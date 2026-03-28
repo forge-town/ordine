@@ -1,0 +1,160 @@
+{
+  "version": 1,
+  "skills": {
+    "barrel-export-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "d206019ecd15404775c3c6e3914b12bd7256fa9c573b228dbd9ac214502be7b9"
+    },
+    "better-auth-integration": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "1495f5138e7d2fa07497c18c5566002c53ad1ce2da4e293086016d1c29a9e3fc"
+    },
+    "check-all-best-practices": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "4cd41179c6b2fe01740acd48e626870a8da80aff2b8eecf1032ec8e60dea4b63"
+    },
+    "check-all-skills": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "10c23fa0fab9f1ce40e9d303267c5e480ecc2cbd6c853045888179c8d0b6ad82"
+    },
+    "check-barrel-export": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "1a92867d61db01db75feb522e04fab6298c6e265a60d83cdb9de9e57c9028a3f"
+    },
+    "check-refine-trpc": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "06ce20bf3b81c2493724608d3c6e1ebac1220fbb412c9b65e238e7f346108b84"
+    },
+    "check-svg": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "5d4f0a5c951713f685879cc7f3ddc211c08a8419a22b3d55754a67fe0225efb2"
+    },
+    "check-try-catch": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "df6098f651f5342618b4591be0cbfa473c6ea5e6d8a97b57ee9d875a37b14515"
+    },
+    "create-skills": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "3393b24935bb830412c5205f20174678a9676c82f67042a1cc39e2001749360d"
+    },
+    "dao-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "e1998ad8ffe9fff97b9c7375df4253b2bf5e5f4714cbd847400da55600888629"
+    },
+    "db-table-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "cf5900e286903786a1ef27c381dfac9b9a79eb76c608aa93789921f6f4d04b72"
+    },
+    "error-handling-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "5d73a7acea405fe3a8f6fee213fd389b28dfdbb685d4452bbb808ef64d6f9ab2"
+    },
+    "fix-all-best-practices": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "a2e39cd717e62dc280a55d6a68e3bbbbf4cc2d73d614a7757be994456227f6dc"
+    },
+    "form-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "4141715f43e58a125c41d522b8ca3e187038bada483caab585eac896ff02a624"
+    },
+    "generate-preview": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "76287ebeb2d81424ca20184b6f0f278f1524f8b5b4713a99b1ac090fd63be3dc"
+    },
+    "implement-split": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "393e8b1e63a3877e717e0bdbd988fb14fa7495002360dcdc25f305130efbe32a"
+    },
+    "implement-trpc-query": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "954470ef48b290e7cc3552b463c51f350f7621dab8a1c39ec3fb5e9d23f88f37"
+    },
+    "one-component-per-file-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "c8aeab7ef76e73645793a1d67a0fe37aca633f834bb0390cf458c061ff31c739"
+    },
+    "page-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "29f9c8a6ce11f57d6ca53a5a0063f46bc3bcc1b361d493abd33e3947e7be1fc1"
+    },
+    "refactor-classname": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "ea8b8692d574e2a34fdd2ff50504915b20a8ceb398fe1f40b0f9d9a00b65944c"
+    },
+    "refine-trpc-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "3229672ecbdd890f735c044297ece94537902e7143fbdc966dd28be396dd662b"
+    },
+    "remove-comments": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "1811c026540eb1f2c1a54fee977613ae7c33eebfb9f1c6624448804d5268b664"
+    },
+    "repository-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "a3cf53be828f53aac5862b9d30d4941fe1c6d6f196f2e79630ac96487929dabd"
+    },
+    "schema-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "388ca9e8863f7b1aeec7da85a41508bd47fd4f72974bd74ac6e8d6825e91e252"
+    },
+    "service-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "5bbdb9c87528e849e2132c4a16ed759afeb8249e7e11d350d7985cf8914385d7"
+    },
+    "skill-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "9bf4092d54f3e928b95e3e4e8815549dddd0bd3cff14c3e3a5a99ada565f85a1"
+    },
+    "store-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "690d277f0c2cdc27427a382e3c14018d2188e78dc21f4ce9926e240aec99cfef"
+    },
+    "storybook-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "c20deb0e1f58c6bb2f6b2d393aebdc1169bd8429834074446d6a75680129b758"
+    },
+    "svg-icon-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "c05ea9b128fdc21833f213aac857cb17b5e824eebf6070a1ebe6d2f116c75c43"
+    },
+    "use-store-not-props-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "f008cfb53679c0702a55ca57589e8f8650d9712ae355bc92e0bb7235baba86ef"
+    },
+    "zod-env-integration": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "computedHash": "6581d29955f147497946ad6e90b3f66203e736e9c9e6fd8de6d669f3fd0bd484"
+    }
+  }
+}
