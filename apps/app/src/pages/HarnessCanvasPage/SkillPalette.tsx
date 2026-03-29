@@ -1,7 +1,7 @@
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "./_store";
 import type { PipelineNode, NodeType } from "./_store";
-import { cn } from "@/lib/cn";
+import { cn } from "@repo/ui/lib/utils";
 import {
   LogIn,
   Wand2,

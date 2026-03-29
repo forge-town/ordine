@@ -1,6 +1,5 @@
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "./_store";
-import { cn } from "@/lib/cn";
 import {
   ZoomIn,
   ZoomOut,
@@ -10,8 +9,10 @@ import {
   Undo2,
   Redo2,
   Bot,
-  Settings,
 } from "lucide-react";
+import { Button } from "@repo/ui/button";
+import { Separator } from "@repo/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
 
 interface CanvasToolbarProps {
   onFitView?: () => void;
@@ -40,88 +41,116 @@ export const CanvasToolbar = ({
 
   return (
     <div className="absolute left-1/2 top-3 z-10 -translate-x-1/2">
-      <div className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-2 py-1.5 shadow-md">
+      <div className="flex items-center gap-0.5 rounded-xl border bg-background px-1.5 py-1 shadow-md">
         {/* Zoom controls */}
-        <button
-          onClick={onZoomOut}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-          title="缩小"
-        >
-          <ZoomOut className="h-4 w-4" />
-        </button>
-        <button
-          onClick={onZoomIn}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-          title="放大"
-        >
-          <ZoomIn className="h-4 w-4" />
-        </button>
-        <button
-          onClick={onFitView}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-          title="适合视图"
-        >
-          <Maximize2 className="h-4 w-4" />
-        </button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={onZoomOut}
+              />
+            }
+          >
+            <ZoomOut className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>缩小</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={onZoomIn}
+              />
+            }
+          >
+            <ZoomIn className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>放大</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={onFitView}
+              />
+            }
+          >
+            <Maximize2 className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>适合视图</TooltipContent>
+        </Tooltip>
 
-        <div className="mx-1 h-5 w-px bg-gray-200" />
+        <Separator orientation="vertical" className="mx-1 h-5" />
 
         {/* History controls */}
-        <button
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition-colors disabled:opacity-50"
-          title="撤销"
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
           disabled
+          title="撤销"
         >
           <Undo2 className="h-4 w-4" />
-        </button>
-        <button
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition-colors disabled:opacity-50"
-          title="重做"
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
           disabled
+          title="重做"
         >
           <Redo2 className="h-4 w-4" />
-        </button>
+        </Button>
 
-        <div className="mx-1 h-5 w-px bg-gray-200" />
+        <Separator orientation="vertical" className="mx-1 h-5" />
 
         {/* Delete */}
-        <button
-          onClick={handleDeleteSelected}
-          disabled={!selectedNodeId}
-          className={cn(
-            "flex h-7 w-7 items-center justify-center rounded-lg transition-colors",
-            selectedNodeId
-              ? "text-red-500 hover:bg-red-50"
-              : "text-gray-300 cursor-not-allowed",
-          )}
-          title="删除选中"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive hover:bg-destructive/10 disabled:text-muted-foreground/30"
+                onClick={handleDeleteSelected}
+                disabled={!selectedNodeId}
+              />
+            }
+          >
+            <Trash2 className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>删除选中</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={<Button variant="ghost" size="icon" className="h-7 w-7" />}
+          >
+            <Download className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>导出</TooltipContent>
+        </Tooltip>
 
-        <button
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-          title="导出"
-        >
-          <Download className="h-4 w-4" />
-        </button>
-
-        <div className="mx-1 h-5 w-px bg-gray-200" />
+        <Separator orientation="vertical" className="mx-1 h-5" />
 
         {/* AI Assistant */}
-        <button
+        <Button
+          variant={isAiAssistantOpen ? "default" : "ghost"}
+          size="sm"
+          className="h-7 gap-1.5 px-2 text-xs"
           onClick={handleToggleAi}
-          className={cn(
-            "flex h-7 items-center gap-1.5 rounded-lg px-2 text-xs font-medium transition-colors",
-            isAiAssistantOpen
-              ? "bg-blue-500 text-white hover:bg-blue-600"
-              : "text-blue-600 hover:bg-blue-50",
-          )}
-          title="AI 设计助手"
         >
           <Bot className="h-3.5 w-3.5" />
           <span>AI</span>
-        </button>
+        </Button>
       </div>
     </div>
   );

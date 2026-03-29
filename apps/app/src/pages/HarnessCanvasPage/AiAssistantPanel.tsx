@@ -1,148 +1,358 @@
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "./_store";
-import { cn } from "@/lib/cn";
-import { Bot, X, Send, Loader2 } from "lucide-react";
-import { useState, useRef } from "react";
+import { Bot, X, Send, Loader2, Sparkles } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@repo/ui/button";
+import { ScrollArea } from "@repo/ui/scroll-area";
+import { Separator } from "@repo/ui/separator";
+import { cn } from "@repo/ui/lib/utils";
+import type { NodeType } from "./nodeSchemas";
+
+const MASTRA_BASE = "http://localhost:4111";
+const AGENT_ID = "harnessDesignAgent";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  actions?: PipelineAction[];
+}
+
+// Structured actions the AI can emit to mutate the pipeline
+interface PipelineAction {
+  type: "addNode" | "clearCanvas" | "connectNodes";
+  nodeType?: NodeType;
+  label?: string;
+  skillName?: string;
+  sourceId?: string;
+  targetId?: string;
+}
+
+// Parse ```actions ... ``` blocks from the AI response
+function parseActions(text: string): {
+  clean: string;
+  actions: PipelineAction[];
+} {
+  const regex = /```actions\s*([\s\S]*?)```/g;
+  const actions: PipelineAction[] = [];
+  let clean = text;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    try {
+      const parsed = JSON.parse(match[1].trim()) as
+        | PipelineAction
+        | PipelineAction[];
+      const list = Array.isArray(parsed) ? parsed : [parsed];
+      actions.push(...list);
+    } catch {
+      // ignore malformed blocks
+    }
+    clean = clean.replace(match[0], "").trim();
+  }
+  return { clean, actions };
 }
 
 export const AiAssistantPanel = () => {
   const store = useHarnessCanvasStore();
-  const isAiAssistantOpen = useStore(store, (state) => state.isAiAssistantOpen);
+  const isOpen = useStore(store, (state) => state.isAiAssistantOpen);
+  const nodes = useStore(store, (state) => state.nodes);
+  const edges = useStore(store, (state) => state.edges);
 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       role: "assistant",
       content:
-        "你好！我是 Harness Studio AI 设计助手。我可以帮你：\n\n• 检查线束设计连接关系\n• 建议最优走线方案\n• 识别潜在的电气冲突\n• 生成 BOM 清单\n\n请告诉我你需要什么帮助？",
+        "你好！我是 Pipeline AI 助手。\n\n告诉我你想搭建什么样的 Pipeline，我来帮你设计节点结构、添加 Skill 或调整连接关系。",
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleClose = () => {
-    store.getState().toggleAiAssistant();
+  const toggle = () => store.getState().toggleAiAssistant();
+
+  // Scroll to bottom when messages update
+  useEffect(() => {
+    if (isOpen) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isOpen]);
+
+  const executePipelineAction = (action: PipelineAction) => {
+    const state = store.getState();
+    if (action.type === "clearCanvas") {
+      state.clearCanvas();
+    } else if (action.type === "addNode" && action.nodeType) {
+      const id = `${action.nodeType}-${Date.now()}`;
+      const x = 200 + Math.random() * 300;
+      const y = 150 + Math.random() * 250;
+      if (action.nodeType === "input") {
+        state.addNode({
+          id,
+          type: "input",
+          position: { x, y },
+          data: {
+            label: action.label ?? "输入",
+            nodeType: "input",
+            contextDescription: "",
+            exampleValue: "",
+          },
+        });
+      } else if (action.nodeType === "skill") {
+        state.addNode({
+          id,
+          type: "skill",
+          position: { x, y },
+          data: {
+            label: action.label ?? "Skill",
+            nodeType: "skill",
+            skillName: action.skillName ?? "page-best-practice",
+            params: "{}",
+            acceptanceCriteria: "",
+            status: "idle",
+          },
+        });
+      } else if (action.nodeType === "condition") {
+        state.addNode({
+          id,
+          type: "condition",
+          position: { x, y },
+          data: {
+            label: action.label ?? "验收条件",
+            nodeType: "condition",
+            expression: "",
+            expectedResult: "",
+            status: "idle",
+          },
+        });
+      } else if (action.nodeType === "output") {
+        state.addNode({
+          id,
+          type: "output",
+          position: { x, y },
+          data: {
+            label: action.label ?? "输出",
+            nodeType: "output",
+            expectedSchema: "",
+            notes: "",
+          },
+        });
+      }
+    }
   };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = {
-      id: `msg-${Date.now()}`,
+    const userMsg: Message = {
+      id: `u-${Date.now()}`,
       role: "user",
       content: input.trim(),
     };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
 
-    // TODO: Integrate with Mastra agent API
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: `msg-${Date.now()}-ai`,
-        role: "assistant",
-        content: `正在分析你的线束设计请求...\n\n针对"${userMessage.content}"，我建议：\n\n1. 检查所有连接器的针脚编号是否正确\n2. 确认导线截面积满足电流需求\n3. 验证接地点布置是否合理\n\n（Mastra AI 服务集成中，请稍候...）`,
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
+    // Build context: current pipeline snapshot
+    const pipelineContext = JSON.stringify({
+      nodes: nodes.map((n) => ({
+        id: n.id,
+        type: n.type,
+        label: (n.data as { label?: string }).label,
+      })),
+      edges: edges.map((e) => ({ source: e.source, target: e.target })),
+    });
+
+    try {
+      const res = await fetch(
+        `${MASTRA_BASE}/api/agents/${AGENT_ID}/generate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [
+              ...messages.map((m) => ({ role: m.role, content: m.content })),
+              {
+                role: "user",
+                content: `当前 Pipeline 状态:\n${pipelineContext}\n\n用户请求: ${userMsg.content}\n\n如果需要修改 Pipeline，请在回复末尾用 \`\`\`actions [...] \`\`\` JSON 块描述操作，支持的 type: addNode (需 nodeType, label, skillName?), clearCanvas, connectNodes (需 sourceId, targetId)。`,
+              },
+            ],
+          }),
+        },
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as { text?: string; content?: string };
+      const raw = data.text ?? data.content ?? "（无响应）";
+      const { clean, actions } = parseActions(raw);
+      actions.forEach(executePipelineAction);
+      setMessages((prev) => [
+        ...prev,
+        { id: `a-${Date.now()}`, role: "assistant", content: clean, actions },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          role: "assistant",
+          content:
+            "连接 Mastra 服务失败。请确保 `apps/mastra` 已在端口 4111 启动。",
+        },
+      ]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
   };
 
-  if (!isAiAssistantOpen) return null;
-
   return (
-    <div className="absolute bottom-4 right-4 z-20 flex h-120 w-80 flex-col rounded-xl border border-gray-200 bg-white shadow-xl">
-      {/* Header */}
-      <div className="flex items-center justify-between rounded-t-xl border-b border-gray-100 bg-linear-to-r from-blue-500 to-blue-600 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
-            <Bot className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-white">AI 设计助手</div>
-            <div className="text-[10px] text-blue-100">由 Mastra 驱动</div>
-          </div>
-        </div>
-        <button
-          onClick={handleClose}
-          className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-white/20 transition-colors"
-        >
-          <X className="h-4 w-4 text-white" />
-        </button>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={cn(
-              "flex",
-              msg.role === "user" ? "justify-end" : "justify-start",
-            )}
-          >
-            <div
-              className={cn(
-                "max-w-[85%] rounded-lg px-3 py-2 text-xs leading-relaxed whitespace-pre-line",
-                msg.role === "user"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-100 text-gray-700",
-              )}
+    <div className="absolute bottom-4 right-4 z-20 flex flex-col items-end gap-3">
+      {/* Expanded chat panel */}
+      {isOpen && (
+        <div className="flex h-[460px] w-[320px] flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl">
+          {/* Header */}
+          <div className="flex shrink-0 items-center justify-between bg-primary px-4 py-3">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
+                <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-primary-foreground">
+                  Pipeline AI
+                </p>
+                <p className="text-[10px] text-primary-foreground/60">
+                  点我来影响画布
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
+              onClick={toggle}
             >
-              {msg.content}
-            </div>
+              <X className="h-3.5 w-3.5" />
+            </Button>
           </div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2">
-              <Loader2 className="h-3 w-3 animate-spin text-gray-500" />
-              <span className="text-xs text-gray-500">思考中...</span>
-            </div>
-          </div>
-        )}
-      </div>
 
-      {/* Input */}
-      <div className="border-t border-gray-100 p-3">
-        <div className="flex items-end gap-2">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            placeholder="描述你的设计需求..."
-            rows={2}
-            className="flex-1 resize-none rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
-          />
-          <button
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading}
-            className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
-              input.trim() && !isLoading
-                ? "bg-blue-500 text-white hover:bg-blue-600"
-                : "bg-gray-100 text-gray-300 cursor-not-allowed",
-            )}
-          >
-            <Send className="h-3.5 w-3.5" />
-          </button>
+          {/* Messages */}
+          <ScrollArea className="flex-1">
+            <div className="space-y-3 p-3">
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={cn(
+                    "flex gap-2",
+                    msg.role === "user" ? "flex-row-reverse" : "flex-row",
+                  )}
+                >
+                  {msg.role === "assistant" && (
+                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                      <Bot className="h-3 w-3 text-primary" />
+                    </div>
+                  )}
+                  <div
+                    className={cn(
+                      "max-w-[80%] rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap",
+                      msg.role === "user"
+                        ? "rounded-tr-sm bg-primary text-primary-foreground"
+                        : "rounded-tl-sm bg-muted text-foreground",
+                    )}
+                  >
+                    {msg.content}
+                    {msg.actions && msg.actions.length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1 border-t border-current/10 pt-1.5">
+                        {msg.actions.map((a, i) => (
+                          <span
+                            key={i}
+                            className="rounded bg-current/10 px-1.5 py-0.5 text-[10px] font-medium"
+                          >
+                            ✓{" "}
+                            {a.type === "addNode"
+                              ? `添加 ${a.nodeType}`
+                              : a.type === "clearCanvas"
+                                ? "清空画布"
+                                : "连接节点"}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex gap-2">
+                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                    <Bot className="h-3 w-3 text-primary" />
+                  </div>
+                  <div className="flex items-center gap-1.5 rounded-xl rounded-tl-sm bg-muted px-3 py-2">
+                    <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      思考中…
+                    </span>
+                  </div>
+                </div>
+              )}
+              <div ref={bottomRef} />
+            </div>
+          </ScrollArea>
+
+          {/* Input */}
+          <Separator />
+          <div className="shrink-0 p-3">
+            <div className="flex items-end gap-2">
+              <textarea
+                ref={inputRef}
+                rows={2}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    void handleSend();
+                  }
+                }}
+                placeholder="告诉我怎么改这个 Pipeline…"
+                className="flex-1 resize-none rounded-lg border bg-transparent px-3 py-2 text-xs placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <Button
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => void handleSend()}
+                disabled={!input.trim() || isLoading}
+              >
+                <Send className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              Enter 发送 · Shift+Enter 换行
+            </p>
+          </div>
         </div>
-        <p className="mt-1.5 text-[10px] text-gray-400">
-          Enter 发送 · Shift+Enter 换行
-        </p>
-      </div>
+      )}
+
+      {/* Floating bubble button */}
+      <button
+        onClick={toggle}
+        className={cn(
+          "group relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200",
+          isOpen
+            ? "bg-primary text-primary-foreground shadow-primary/30"
+            : "bg-primary text-primary-foreground hover:scale-110 hover:shadow-xl hover:shadow-primary/30",
+        )}
+        title="AI Pipeline 助手"
+      >
+        {/* Pulse ring when closed */}
+        {!isOpen && (
+          <span className="absolute inset-0 animate-ping rounded-full bg-primary/30" />
+        )}
+        <Bot
+          className={cn(
+            "h-6 w-6 transition-transform duration-200",
+            isOpen && "scale-90",
+          )}
+        />
+      </button>
     </div>
   );
 };

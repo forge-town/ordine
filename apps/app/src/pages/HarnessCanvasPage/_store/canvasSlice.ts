@@ -7,55 +7,27 @@ import type {
 } from "@xyflow/react";
 import { applyNodeChanges, applyEdgeChanges, addEdge } from "@xyflow/react";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
+import { makeDefaultNodeData, ConnectionRuleSchema } from "../nodeSchemas";
 
-export type NodeType = "skill" | "condition" | "input" | "output";
-export type NodeRunStatus = "idle" | "running" | "pass" | "fail";
+// Re-export all data types from the single source of truth
+export type {
+  NodeType,
+  NodeRunStatus,
+  InputNodeData,
+  SkillNodeData,
+  ConditionNodeData,
+  OutputNodeData,
+  PipelineNodeData,
+  PipelineEdgeData,
+} from "../nodeSchemas";
 
-export interface SkillNodeData extends Record<string, unknown> {
-  label: string;
-  nodeType: "skill";
-  skillName: string;
-  params: string;
-  acceptanceCriteria: string;
-  status: NodeRunStatus;
-  notes?: string;
-}
-
-export interface ConditionNodeData extends Record<string, unknown> {
-  label: string;
-  nodeType: "condition";
-  expression: string;
-  expectedResult: string;
-  status: NodeRunStatus;
-  notes?: string;
-}
-
-export interface InputNodeData extends Record<string, unknown> {
-  label: string;
-  nodeType: "input";
-  contextDescription: string;
-  exampleValue: string;
-}
-
-export interface OutputNodeData extends Record<string, unknown> {
-  label: string;
-  nodeType: "output";
-  expectedSchema: string;
-  notes?: string;
-}
-
-export type PipelineNodeData =
-  | SkillNodeData
-  | ConditionNodeData
-  | InputNodeData
-  | OutputNodeData;
+import type {
+  NodeType,
+  PipelineNodeData,
+  PipelineEdgeData,
+} from "../nodeSchemas";
 
 export type PipelineNode = Node<PipelineNodeData, NodeType>;
-
-export interface PipelineEdgeData extends Record<string, unknown> {
-  label?: string;
-  dataType?: string;
-}
 
 export type PipelineEdge = Edge<PipelineEdgeData>;
 
@@ -75,6 +47,7 @@ export interface CanvasSlice {
   onEdgesChange: (changes: EdgeChange<PipelineEdge>[]) => void;
   onConnect: (connection: Connection) => void;
   addNode: (node: PipelineNode) => void;
+  addNodeWithEdge: (sourceId: string, targetType: NodeType) => void;
   removeNode: (nodeId: string) => void;
   updateNodeData: (nodeId: string, data: Partial<PipelineNodeData>) => void;
   updateEdgeData: (edgeId: string, data: Partial<PipelineEdgeData>) => void;
@@ -213,16 +186,68 @@ export const createCanvasSlice = (
   },
 
   onConnect: (connection) => {
-    set((state) => ({
-      edges: addEdge(
-        { ...connection, type: "smoothstep", data: {} },
-        state.edges,
-      ),
-    }));
+    set((state) => {
+      const sourceNode = state.nodes.find((n) => n.id === connection.source);
+      const targetNode = state.nodes.find((n) => n.id === connection.target);
+      if (!sourceNode || !targetNode) return state;
+
+      const result = ConnectionRuleSchema.safeParse({
+        sourceType: sourceNode.type,
+        targetType: targetNode.type,
+      });
+      if (!result.success) {
+        console.warn("[Canvas] 不允许的连接:", result.error.issues[0]?.message);
+        return state;
+      }
+
+      return {
+        edges: addEdge(
+          {
+            ...connection,
+            type: "smoothstep",
+            animated: targetNode.type !== "output",
+            data: {},
+          },
+          state.edges,
+        ),
+      };
+    });
   },
 
   addNode: (node) => {
     set((state) => ({ nodes: [...state.nodes, node] }));
+  },
+
+  addNodeWithEdge: (sourceId, targetType) => {
+    set((state) => {
+      const source = state.nodes.find((n) => n.id === sourceId);
+      if (!source) return state;
+
+      const newId = `${targetType}-${Date.now()}`;
+      const newNode: PipelineNode = {
+        id: newId,
+        type: targetType,
+        position: {
+          x: source.position.x + 300,
+          y: source.position.y,
+        },
+        data: makeDefaultNodeData(targetType),
+      };
+
+      const newEdge: PipelineEdge = {
+        id: `e-${sourceId}-${newId}`,
+        source: sourceId,
+        target: newId,
+        type: "smoothstep",
+        animated: targetType !== "output",
+        data: {},
+      };
+
+      return {
+        nodes: [...state.nodes, newNode],
+        edges: [...state.edges, newEdge],
+      };
+    });
   },
 
   removeNode: (nodeId) => {

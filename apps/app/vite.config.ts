@@ -4,13 +4,15 @@ import viteReact from "@vitejs/plugin-react";
 import viteTsConfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 
+const IS_STORYBOOK = process.argv[1]?.includes("storybook");
+
 export default defineConfig({
   plugins: [
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
     tailwindcss(),
-    tanstackStart(),
+    ...(!IS_STORYBOOK ? [tanstackStart()] : []),
     viteReact(),
   ],
   ssr: {

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Search, Wand2, ExternalLink } from "lucide-react";
-import { cn } from "@/lib/cn";
+import { Button } from "@repo/ui/button";
+import { Input } from "@repo/ui/input";
+import { Badge } from "@repo/ui/badge";
+import { cn } from "@repo/ui/lib/utils";
 
 type SkillCategory =
   | "all"
@@ -147,39 +150,38 @@ export const SkillsPageContent = () => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex h-14 shrink-0 items-center border-b border-gray-200 bg-white px-6">
+      <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
         <div>
-          <h1 className="text-base font-semibold text-gray-900">技能库</h1>
-          <p className="text-xs text-gray-400">{skills.length} 个可用 Skill</p>
+          <h1 className="text-base font-semibold text-foreground">技能库</h1>
+          <p className="text-xs text-muted-foreground">
+            {skills.length} 个可用 Skill
+          </p>
         </div>
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3 border-b border-gray-100 bg-white px-6 py-3">
+      <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
-          <input
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
             type="text"
             placeholder="搜索技能..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
+            className="pl-8 h-8 text-sm"
           />
         </div>
         <div className="flex items-center gap-1">
           {(Object.keys(categoryLabels) as SkillCategory[]).map((cat) => (
-            <button
+            <Button
               key={cat}
+              variant={category === cat ? "default" : "ghost"}
+              size="sm"
               onClick={() => setCategory(cat)}
-              className={cn(
-                "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-                category === cat
-                  ? "bg-violet-600 text-white"
-                  : "text-gray-600 hover:bg-gray-100",
-              )}
+              className="text-xs h-7 px-2.5"
             >
               {categoryLabels[cat]}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -187,8 +189,8 @@ export const SkillsPageContent = () => {
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-6">
         {filtered.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center text-center text-gray-400">
-            <Wand2 className="h-8 w-8 text-gray-300" />
+          <div className="flex h-40 flex-col items-center justify-center text-center text-muted-foreground">
+            <Wand2 className="h-8 w-8 text-muted-foreground/30" />
             <p className="mt-2 text-sm">未找到匹配的 Skill</p>
           </div>
         ) : (
@@ -196,26 +198,27 @@ export const SkillsPageContent = () => {
             {filtered.map((skill) => (
               <div
                 key={skill.name}
-                className="group flex flex-col rounded-xl border border-gray-200 bg-white p-4 hover:border-violet-300 hover:shadow-sm transition-all"
+                className="group flex flex-col rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:shadow-sm transition-all"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100">
-                    <Wand2 className="h-4 w-4 text-violet-600" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                    <Wand2 className="h-4 w-4 text-primary" />
                   </div>
-                  <span
+                  <Badge
+                    variant="secondary"
                     className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                      "text-[10px]",
                       categoryColors[skill.category],
                     )}
                   >
                     {categoryLabels[skill.category]}
-                  </span>
+                  </Badge>
                 </div>
 
-                <h3 className="mt-3 text-sm font-semibold text-gray-800">
+                <h3 className="mt-3 text-sm font-semibold text-foreground">
                   {skill.label}
                 </h3>
-                <p className="mt-1 flex-1 text-xs text-gray-500 leading-relaxed">
+                <p className="mt-1 flex-1 text-xs text-muted-foreground leading-relaxed">
                   {skill.description}
                 </p>
 
@@ -223,18 +226,18 @@ export const SkillsPageContent = () => {
                   {skill.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500"
+                      className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
                     >
                       {tag}
                     </span>
                   ))}
                 </div>
 
-                <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
-                  <code className="text-[10px] text-gray-400">
+                <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+                  <code className="text-[10px] text-muted-foreground">
                     {skill.name}
                   </code>
-                  <button className="flex items-center gap-1 text-[11px] text-violet-500 opacity-0 group-hover:opacity-100 hover:text-violet-700 transition-opacity">
+                  <button className="flex items-center gap-1 text-[11px] text-primary opacity-0 group-hover:opacity-100 hover:text-primary/80 transition-opacity">
                     <ExternalLink className="h-3 w-3" />
                     详情
                   </button>

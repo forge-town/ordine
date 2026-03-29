@@ -1,6 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
 import { GitBranch, Plus, Clock, ArrowRight, Layers } from "lucide-react";
-import { cn } from "@/lib/cn";
+import { Button } from "@repo/ui/button";
+import { Card } from "@repo/ui/card";
+import { Badge } from "@repo/ui/badge";
+import { cn } from "@repo/ui/lib/utils";
 import { usePipelinesStore, type Pipeline } from "@/store/pipelinesStore";
 
 const NODE_TYPE_COLORS: Record<string, string> = {
@@ -40,44 +43,45 @@ const PipelineCard = ({ pipeline, onOpen }: PipelineCardProps) => {
   }, {});
 
   return (
-    <div
+    <Card
       role="button"
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
-      className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-5 hover:border-violet-300 hover:shadow-md transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+      className="group cursor-pointer p-5 hover:border-primary/50 hover:shadow-md transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {/* Top row */}
       <div className="flex items-start justify-between">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-100 text-violet-600 group-hover:bg-violet-600 group-hover:text-white transition-colors">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
           <GitBranch className="h-4 w-4" />
         </div>
-        <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-400">
+        <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
           <Clock className="h-3 w-3" />
           {formatRelativeTime(pipeline.updatedAt)}
         </span>
       </div>
 
       {/* Name + desc */}
-      <h3 className="mt-3 text-sm font-semibold text-gray-800 group-hover:text-violet-700 transition-colors">
+      <h3 className="mt-3 text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
         {pipeline.name}
       </h3>
-      <p className="mt-1 text-xs text-gray-400 leading-relaxed line-clamp-2">
+      <p className="mt-1 text-xs text-muted-foreground leading-relaxed line-clamp-2">
         {pipeline.description}
       </p>
 
       {/* Node type badges */}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {Object.entries(typeCounts).map(([type, count]) => (
-          <span
+          <Badge
             key={type}
+            variant="secondary"
             className={cn(
-              "rounded-full px-2 py-0.5 text-[11px] font-medium",
-              NODE_TYPE_COLORS[type] ?? "bg-gray-100 text-gray-600",
+              "rounded-full text-[11px]",
+              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground",
             )}
           >
             {count} {NODE_TYPE_LABELS[type] ?? type}
-          </span>
+          </Badge>
         ))}
       </div>
 
@@ -87,7 +91,7 @@ const PipelineCard = ({ pipeline, onOpen }: PipelineCardProps) => {
           {pipeline.tags.map((tag) => (
             <span
               key={tag}
-              className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500"
+              className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
             >
               #{tag}
             </span>
@@ -96,16 +100,16 @@ const PipelineCard = ({ pipeline, onOpen }: PipelineCardProps) => {
       )}
 
       {/* Footer */}
-      <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
-        <span className="text-xs text-gray-400">
+      <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+        <span className="text-xs text-muted-foreground">
           {pipeline.nodes.length} 个节点
         </span>
-        <span className="flex items-center gap-1 text-xs font-medium text-violet-500 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
           在 Canvas 中打开
           <ArrowRight className="h-3 w-3" />
         </span>
       </div>
-    </div>
+    </Card>
   );
 };
 
@@ -163,27 +167,28 @@ export const PipelinesPageContent = () => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
         <div>
-          <h1 className="text-base font-semibold text-gray-900">Pipelines</h1>
-          <p className="text-xs text-gray-400">
+          <h1 className="text-base font-semibold text-foreground">Pipelines</h1>
+          <p className="text-xs text-muted-foreground">
             {pipelines.length} 个 Pipeline
           </p>
         </div>
-        <button
+        <Button
+          size="sm"
           onClick={createNewPipeline}
-          className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700 transition-colors"
+          className="flex items-center gap-1.5"
         >
           <Plus className="h-3.5 w-3.5" />
           新建 Pipeline
-        </button>
+        </Button>
       </div>
 
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-6">
         {pipelines.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center gap-3 text-center text-gray-400">
-            <Layers className="h-8 w-8 text-gray-300" />
+          <div className="flex h-40 flex-col items-center justify-center gap-3 text-center text-muted-foreground">
+            <Layers className="h-8 w-8 text-muted-foreground/30" />
             <p className="text-sm">
               还没有 Pipeline，点击「新建 Pipeline」开始
             </p>

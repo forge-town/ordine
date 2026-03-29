@@ -1,10 +1,11 @@
+import { SidebarInset, SidebarProvider } from "@repo/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 
 export const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <SidebarProvider>
       <AppSidebar />
-      <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
-    </div>
+      <SidebarInset>{children}</SidebarInset>
+    </SidebarProvider>
   );
 };

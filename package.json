@@ -1,5 +1,5 @@
 {
-  "name": "monorepo-template-bun",
+  "name": "ordine",
   "private": true,
   "scripts": {
     "build": "turbo run build",
