@@ -7,6 +7,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
+    "storybook": "turbo run storybook",
+    "build-storybook": "turbo run build-storybook",
     "sync-skills": "bunx skills add https://github.com/forge-town/skills"
   },
   "devDependencies": {
