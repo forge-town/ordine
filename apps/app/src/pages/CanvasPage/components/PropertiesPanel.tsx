@@ -11,25 +11,10 @@ import {
 import { X, Trash2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { Label } from "@repo/ui/label";
 import { Textarea } from "@repo/ui/textarea";
 import { Separator } from "@repo/ui/separator";
 import { ScrollArea } from "@repo/ui/scroll-area";
-
-const Field = ({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) => (
-  <div className="space-y-1.5">
-    <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-      {label}
-    </Label>
-    {children}
-  </div>
-);
+import { Field } from "./Field";
 
 export const PropertiesPanel = () => {
   const store = useHarnessCanvasStore();

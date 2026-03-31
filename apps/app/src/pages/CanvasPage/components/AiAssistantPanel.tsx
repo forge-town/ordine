@@ -29,10 +29,10 @@ interface PipelineAction {
 }
 
 // Parse ```actions ... ``` blocks from the AI response
-function parseActions(text: string): {
+const parseActions = (text: string): {
   clean: string;
   actions: PipelineAction[];
-} {
+} => {
   const regex = /```actions\s*([\s\S]*?)```/g;
   const actions: PipelineAction[] = [];
   let clean = text;

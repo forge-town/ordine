@@ -12,10 +12,24 @@ const NotFound = () => (
   </div>
 );
 
+const RootDocument = () => {
+  return (
+    <html lang="zh-CN">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        <Outlet />
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
-      { charSet: "utf-8" },
+      { charSet: "utf8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Ordine" },
       {
@@ -32,17 +46,3 @@ export const Route = createRootRoute({
   notFoundComponent: NotFound,
   shellComponent: RootDocument,
 });
-
-function RootDocument() {
-  return (
-    <html lang="zh-CN">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <Outlet />
-        <Scripts />
-      </body>
-    </html>
-  );
-}

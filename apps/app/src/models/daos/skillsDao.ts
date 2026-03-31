@@ -11,13 +11,13 @@ export type SkillEntity = Omit<SkillRow, "createdAt" | "updatedAt"> & {
   updatedAt: number;
 };
 
-function rowToEntity(row: SkillRow): SkillEntity {
+const rowToEntity = (row: SkillRow): SkillEntity => {
   return {
     ...row,
     createdAt: row.createdAt.getTime(),
     updatedAt: row.updatedAt.getTime(),
   };
-}
+};
 
 export const skillsDao = {
   async findMany(): Promise<SkillEntity[]> {

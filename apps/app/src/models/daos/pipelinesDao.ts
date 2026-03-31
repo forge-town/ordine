@@ -20,7 +20,7 @@ export type StoredPipeline = PipelineEntity;
 /** @deprecated Use PipelineNode from @/models/types/pipelineGraph */
 export type StoredNode = PipelineNode;
 
-function rowToEntity(row: PipelineRow): PipelineEntity {
+const rowToEntity = (row: PipelineRow): PipelineEntity => {
   return {
     ...row,
     nodeCount: row.nodes.length,
@@ -29,7 +29,7 @@ function rowToEntity(row: PipelineRow): PipelineEntity {
     nodes: row.nodes,
     edges: row.edges,
   };
-}
+};
 
 export const pipelinesDao = {
   async findMany(): Promise<PipelineEntity[]> {

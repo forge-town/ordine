@@ -101,14 +101,15 @@ export const ConnectionRuleSchema = z
 
 export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
   switch (type) {
-    case "input":
+    case "input": {
       return {
         label: "输入",
         nodeType: "input",
         contextDescription: "",
         exampleValue: "",
       };
-    case "skill":
+    }
+    case "skill": {
       return {
         label: "Skill 节点",
         nodeType: "skill",
@@ -117,7 +118,8 @@ export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
         acceptanceCriteria: "",
         status: "idle",
       };
-    case "condition":
+    }
+    case "condition": {
       return {
         label: "验收条件",
         nodeType: "condition",
@@ -125,13 +127,15 @@ export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
         expectedResult: "",
         status: "idle",
       };
-    case "output":
+    }
+    case "output": {
       return {
         label: "输出",
         nodeType: "output",
         expectedSchema: "",
         notes: "",
       };
+    }
   }
 };
 

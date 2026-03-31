@@ -35,6 +35,22 @@ const defaultEdgeOptions = {
   style: { stroke: "#94a3b8", strokeWidth: 2 },
 };
 
+// 全局处理器（不依赖组件状态）
+const handleUndo = () => {
+  // TODO: 实现撤销功能
+  console.log("undo");
+};
+
+const handleRedo = () => {
+  // TODO: 实现重做功能
+  console.log("redo");
+};
+
+const handleExport = () => {
+  // TODO: 实现导出功能
+  console.log("export");
+};
+
 const CanvasInner = () => {
   const store = useHarnessCanvasStore();
   const nodes = useStore(store, (state) => state.nodes);
@@ -74,21 +90,6 @@ const CanvasInner = () => {
     } catch {
       setSaveState("idle");
     }
-  };
-
-  const handleUndo = () => {
-    // TODO: 实现撤销功能
-    console.log("undo");
-  };
-
-  const handleRedo = () => {
-    // TODO: 实现重做功能
-    console.log("redo");
-  };
-
-  const handleExport = () => {
-    // TODO: 实现导出功能
-    console.log("export");
   };
 
   const handleNodeClick = useCallback(
