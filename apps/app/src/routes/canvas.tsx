@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { HarnessCanvasPage } from "@/pages/HarnessCanvasPage";
+import { CanvasPage } from "@/pages/CanvasPage";
 import { getPipelineById } from "@/services/pipelinesService";
 
 export const Route = createFileRoute("/canvas")({
@@ -12,5 +12,5 @@ export const Route = createFileRoute("/canvas")({
     if (!deps.id) return null;
     return getPipelineById({ data: { id: deps.id } });
   },
-  component: HarnessCanvasPage,
+  component: CanvasPage,
 });

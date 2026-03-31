@@ -216,7 +216,7 @@ const CanvasInner = () => {
   );
 };
 
-export const HarnessCanvasPageContent = () => {
+export const CanvasPageContent = () => {
   return (
     <div className="h-full w-full overflow-hidden">
       <ReactFlowProvider>
