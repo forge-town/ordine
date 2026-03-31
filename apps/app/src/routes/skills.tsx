@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { SkillsPage } from '@/pages/SkillsPage'
+import { getSkills } from '@/services/skillsService'
 
 export const Route = createFileRoute('/skills')({
-  component: RouteComponent,
+  loader: async () => {
+    return getSkills()
+  },
+  component: SkillsPage,
 })
-
-function RouteComponent() {
-  return <div>Hello "/skills"!</div>
-}

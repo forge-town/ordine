@@ -1,4 +1,4 @@
-import { AppLayout } from "@/components/AppLayout";
+import { CanvasLayout } from "@/components/CanvasLayout";
 import { HarnessCanvasStoreProvider } from "./_store";
 import { HarnessCanvasPageContent } from "./HarnessCanvasPageContent";
 import { Route } from "@/routes/canvas";
@@ -7,10 +7,10 @@ export const HarnessCanvasPage = () => {
   const pipeline = Route.useLoaderData();
 
   return (
-    <AppLayout>
+    <CanvasLayout>
       <HarnessCanvasStoreProvider pipeline={pipeline ?? null}>
         <HarnessCanvasPageContent />
       </HarnessCanvasStoreProvider>
-    </AppLayout>
+    </CanvasLayout>
   );
 };

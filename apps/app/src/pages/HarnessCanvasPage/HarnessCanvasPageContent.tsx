@@ -18,8 +18,9 @@ import { OutputNode } from "./nodes/OutputNode";
 import { CanvasToolbar } from "./components/CanvasToolbar";
 import { PropertiesPanel } from "./components/PropertiesPanel";
 import { AiAssistantPanel } from "./components/AiAssistantPanel";
-import { HarnessCanvasHeader } from "./components/HarnessCanvasHeader";
 import { CanvasContextMenu } from "./components/CanvasContextMenu";
+import { CanvasFloatingMenu } from "./components/CanvasFloatingMenu";
+import { updatePipeline } from "@/services/pipelinesService";
 
 const nodeTypes = {
   input: InputNode,
@@ -38,6 +39,8 @@ const CanvasInner = () => {
   const store = useHarnessCanvasStore();
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
+  const pipelineId = useStore(store, (state) => state.pipelineId);
+  const pipelineName = useStore(store, (state) => state.pipelineName);
 
   const { fitView, zoomIn, zoomOut, screenToFlowPosition } = useReactFlow();
 
@@ -47,6 +50,46 @@ const CanvasInner = () => {
     flowX: number;
     flowY: number;
   } | null>(null);
+
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
+    "idle",
+  );
+
+  const handleSave = async () => {
+    if (!pipelineId) return;
+    setSaveState("saving");
+    try {
+      await updatePipeline({
+        data: {
+          id: pipelineId,
+          patch: {
+            nodes: nodes as unknown[],
+            edges: edges as unknown[],
+            updatedAt: Date.now(),
+          },
+        },
+      });
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 2000);
+    } catch {
+      setSaveState("idle");
+    }
+  };
+
+  const handleUndo = () => {
+    // TODO: 实现撤销功能
+    console.log("undo");
+  };
+
+  const handleRedo = () => {
+    // TODO: 实现重做功能
+    console.log("redo");
+  };
+
+  const handleExport = () => {
+    // TODO: 实现导出功能
+    console.log("export");
+  };
 
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: { id: string }) => {
@@ -91,6 +134,29 @@ const CanvasInner = () => {
 
   return (
     <div className="relative h-full w-full">
+      {/* 浮动菜单 */}
+      <CanvasFloatingMenu
+        onSave={pipelineId ? handleSave : undefined}
+        onExport={handleExport}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+      />
+
+      {/* 顶部标题栏 */}
+      <div className="absolute left-16 right-4 top-4 z-40 flex items-center justify-between pointer-events-none">
+        <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white/90 px-4 py-1.5 shadow-sm backdrop-blur-sm pointer-events-auto">
+          <span className="text-sm font-medium text-gray-700">
+            {pipelineName || "无标题 Pipeline"}
+          </span>
+          {saveState === "saving" && (
+            <span className="text-xs text-gray-500">保存中...</span>
+          )}
+          {saveState === "saved" && (
+            <span className="text-xs text-green-600">已保存</span>
+          )}
+        </div>
+      </div>
+
       <CanvasToolbar
         onFitView={() => fitView({ padding: 0.1 })}
         onZoomIn={() => zoomIn()}
@@ -152,14 +218,10 @@ const CanvasInner = () => {
 
 export const HarnessCanvasPageContent = () => {
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <HarnessCanvasHeader />
-
-      <div className="relative flex-1 overflow-hidden">
-        <ReactFlowProvider>
-          <CanvasInner />
-        </ReactFlowProvider>
-      </div>
+    <div className="h-full w-full overflow-hidden">
+      <ReactFlowProvider>
+        <CanvasInner />
+      </ReactFlowProvider>
     </div>
   );
 };

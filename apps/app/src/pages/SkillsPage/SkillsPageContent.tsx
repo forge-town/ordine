@@ -4,6 +4,9 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
+import type { SkillEntity } from "@/models/daos/skillsDao";
+
+export type Skill = SkillEntity;
 
 type SkillCategory =
   | "all"
@@ -12,110 +15,6 @@ type SkillCategory =
   | "state"
   | "form"
   | "code-quality";
-
-interface Skill {
-  name: string;
-  label: string;
-  description: string;
-  category: Exclude<SkillCategory, "all">;
-  tags: string[];
-}
-
-const skills: Skill[] = [
-  {
-    name: "page-best-practice",
-    label: "页面结构",
-    description:
-      "生成标准的页面 Anatomy：Wrapper + Content + 可选 Store，确保页面结构清晰分层。",
-    category: "page",
-    tags: ["React", "Anatomy", "Layout"],
-  },
-  {
-    name: "store-best-practice",
-    label: "状态管理 Store",
-    description:
-      "基于 Zustand slice 模式创建 Store，包含 Context Provider 和类型安全的 hook。",
-    category: "state",
-    tags: ["Zustand", "Slice", "Context"],
-  },
-  {
-    name: "dao-best-practice",
-    label: "DAO 层",
-    description:
-      "使用 Drizzle ORM 规范创建数据访问对象，确保命名、类型安全和查询性能。",
-    category: "data",
-    tags: ["Drizzle", "ORM", "Database"],
-  },
-  {
-    name: "service-best-practice",
-    label: "Service 层",
-    description:
-      "按照 tRPC + Service + DAO 架构创建 Service，分离业务逻辑与数据访问。",
-    category: "data",
-    tags: ["tRPC", "Service", "Architecture"],
-  },
-  {
-    name: "form-best-practice",
-    label: "表单组件",
-    description: "创建符合规范的表单组件，包含字段验证、状态管理和 UI 结构。",
-    category: "form",
-    tags: ["Form", "Validation", "UX"],
-  },
-  {
-    name: "schema-best-practice",
-    label: "Schema 校验",
-    description:
-      "使用 Drizzle ORM schema 定义数据库表，确保命名、关系和索引配置规范。",
-    category: "data",
-    tags: ["Schema", "Drizzle", "Types"],
-  },
-  {
-    name: "barrel-export-best-practice",
-    label: "桶导出规范",
-    description:
-      "生成和检查 index.ts 桶导出文件，确保所有 index 文件仅做 re-export。",
-    category: "code-quality",
-    tags: ["Exports", "Index", "Module"],
-  },
-  {
-    name: "error-handling-best-practice",
-    label: "错误处理",
-    description:
-      "规范化 try-catch 写法，确保 catch 块有实质处理逻辑，不为空或仅记录日志。",
-    category: "code-quality",
-    tags: ["Error", "Try-Catch", "Safety"],
-  },
-  {
-    name: "db-table-best-practice",
-    label: "数据库表命名",
-    description: "验证和修正数据库表定义的命名规范，包括表名、列名和索引。",
-    category: "data",
-    tags: ["Database", "Naming", "Schema"],
-  },
-  {
-    name: "svg-icon-best-practice",
-    label: "SVG 图标规范",
-    description:
-      "管理 React TypeScript 项目中的 SVG 图标，确保命名、封装和导出规范。",
-    category: "code-quality",
-    tags: ["SVG", "Icons", "Components"],
-  },
-  {
-    name: "one-component-per-file-best-practice",
-    label: "单组件单文件",
-    description: "强制每个文件只包含一个 React/Vue 组件，不允许多组件共存。",
-    category: "code-quality",
-    tags: ["Components", "Structure", "React"],
-  },
-  {
-    name: "refine-trpc-best-practice",
-    label: "Refine tRPC 规范",
-    description:
-      "在 React 组件中通过 Refine hooks 经由 DataProvider 访问数据，禁止直接调用 tRPC。",
-    category: "data",
-    tags: ["Refine", "tRPC", "DataProvider"],
-  },
-];
 
 const categoryLabels: Record<SkillCategory, string> = {
   all: "全部",
@@ -126,7 +25,7 @@ const categoryLabels: Record<SkillCategory, string> = {
   "code-quality": "代码质量",
 };
 
-const categoryColors: Record<Exclude<SkillCategory, "all">, string> = {
+const categoryColors: Record<string, string> = {
   page: "bg-violet-100 text-violet-700",
   data: "bg-blue-100 text-blue-700",
   state: "bg-emerald-100 text-emerald-700",
@@ -134,7 +33,11 @@ const categoryColors: Record<Exclude<SkillCategory, "all">, string> = {
   "code-quality": "bg-gray-100 text-gray-600",
 };
 
-export const SkillsPageContent = () => {
+interface SkillsPageContentProps {
+  skills: Skill[];
+}
+
+export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<SkillCategory>("all");
 
@@ -197,7 +100,7 @@ export const SkillsPageContent = () => {
           <div className="grid grid-cols-3 gap-4">
             {filtered.map((skill) => (
               <div
-                key={skill.name}
+                key={skill.id}
                 className="group flex flex-col rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:shadow-sm transition-all"
               >
                 <div className="flex items-start justify-between">
@@ -208,10 +111,10 @@ export const SkillsPageContent = () => {
                     variant="secondary"
                     className={cn(
                       "text-[10px]",
-                      categoryColors[skill.category],
+                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600",
                     )}
                   >
-                    {categoryLabels[skill.category]}
+                    {categoryLabels[skill.category as SkillCategory] ?? skill.category}
                   </Badge>
                 </div>
 
