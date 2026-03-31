@@ -1,7 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import { LogIn } from "lucide-react";
 import type { InputNodeData } from "../../_store";
-import { QuickAddButton } from "../../QuickAddButton";
+import { QuickAddButton } from "../../components/QuickAddButton";
 import { NodeCard } from "../NodeCard";
 
 export interface InputNodeProps {
@@ -16,14 +16,15 @@ export const InputNode = ({ id, data, selected }: InputNodeProps) => (
       theme="emerald"
       icon={LogIn}
       label={data.label}
+      description="Input Trigger"
       selected={selected}
-      bodyClassName="space-y-2"
+      bodyClassName="space-y-3"
     >
-      <p className="text-xs leading-relaxed text-gray-600 line-clamp-2">
+      <p className="text-[12px] leading-relaxed text-slate-600 line-clamp-2">
         {data.contextDescription}
       </p>
       {data.exampleValue && (
-        <p className="rounded-lg bg-gray-50 px-2.5 py-1.5 font-mono text-[11px] text-gray-500 line-clamp-2">
+        <p className="font-mono text-[12px] text-slate-500 line-clamp-2 mt-1 px-1">
           {data.exampleValue}
         </p>
       )}
@@ -32,10 +33,10 @@ export const InputNode = ({ id, data, selected }: InputNodeProps) => (
     <Handle
       type="source"
       position={Position.Right}
-      className="!h-3 !w-3 !rounded-full !bg-emerald-400 !border-2 !border-white"
+      className="!h-3.5 !w-3.5 !rounded-full !bg-emerald-500 !border-[3px] !border-white !shadow-sm transition-all hover:!scale-110"
     />
 
-    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+    <div className="opacity-0 group-[.selected]:opacity-100 group-hover:opacity-100 transition-opacity duration-200 absolute right-[-8px] top-1/2 translate-x-full -translate-y-1/2 z-50">
       <QuickAddButton nodeId={id} nodeType="input" />
     </div>
   </div>

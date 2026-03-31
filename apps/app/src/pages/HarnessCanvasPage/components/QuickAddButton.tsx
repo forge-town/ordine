@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, LogIn, Wand2, ShieldCheck, LogOut } from "lucide-react";
-import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "./_store";
-import { allowedConnections, nodeTypeMeta } from "./nodeSchemas";
-import type { NodeType } from "./nodeSchemas";
+import { useHarnessCanvasStore } from "../_store";
+import {
+  allowedConnections,
+  nodeTypeMeta,
+  type NodeType,
+} from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType, React.ElementType> = {
@@ -44,7 +46,7 @@ export const QuickAddButton = ({ nodeId, nodeType }: Props) => {
   }, [open]);
 
   return (
-    <div ref={ref} className="absolute -right-9 top-1/2 -translate-y-1/2 z-50">
+    <div ref={ref} className="relative z-50">
       {/* The "+" trigger button */}
       <button
         onMouseDown={(e) => e.stopPropagation()}
@@ -53,18 +55,18 @@ export const QuickAddButton = ({ nodeId, nodeType }: Props) => {
           setOpen((v) => !v);
         }}
         className={cn(
-          "flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-700 text-white shadow-md transition-all",
-          "hover:bg-violet-600 hover:scale-110",
+          "flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all",
+          "hover:bg-slate-100 hover:text-slate-800 hover:scale-110",
         )}
         title="添加连接节点"
       >
-        <Plus className="h-3.5 w-3.5" />
+        <Plus className="h-3 w-3" />
       </button>
 
       {/* Picker popover */}
       {open && (
-        <div className="absolute left-7 top-1/2 -translate-y-1/2 z-[200] ml-1 min-w-[130px] rounded-xl border border-gray-200 bg-white py-1.5 shadow-xl">
-          <p className="px-3 pb-1 text-[9px] font-semibold uppercase tracking-widest text-gray-400">
+        <div className="absolute left-6 top-1/2 -translate-y-1/2 z-[200] min-w-[130px] rounded-xl border border-slate-200 bg-white/95 backdrop-blur-md py-1.5 shadow-xl">
+          <p className="px-3 pb-1 text-[9px] font-semibold uppercase tracking-widest text-slate-400">
             选择类型
           </p>
           {allowed.map((type) => {

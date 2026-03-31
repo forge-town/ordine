@@ -7,14 +7,8 @@ import {
   ArrowRight,
   Plus,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@repo/ui/card";
-import { Button, buttonVariants } from "@repo/ui/button";
+import { Card, CardContent, CardHeader, CardDescription } from "@repo/ui/card";
+import { buttonVariants } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 
 const stats = [

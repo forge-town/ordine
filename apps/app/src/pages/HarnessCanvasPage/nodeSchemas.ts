@@ -21,9 +21,9 @@ export const SkillNodeDataSchema = z.object({
   label: z.string(),
   nodeType: z.literal("skill"),
   skillName: z.string(),
-  params: z.string(),
-  acceptanceCriteria: z.string(),
-  status: NodeRunStatusSchema,
+  params: z.string().optional(),
+  acceptanceCriteria: z.string().optional(),
+  status: NodeRunStatusSchema.optional(),
   notes: z.string().optional(),
 });
 

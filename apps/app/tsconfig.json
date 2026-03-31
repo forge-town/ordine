@@ -4,23 +4,26 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "jsx": "react-jsx",
+    "jsx": "preserve",
+    "types": [
+      "vite/client",
+      "@tanstack/react-start",
+      "@testing-library/jest-dom"
+    ],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "vite.config.ts"],
-  "exclude": [
-    "node_modules",
-    "**/*.stories.tsx",
-    "**/*.test.tsx",
-    "**/*.test.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist", ".output", "src/routeTree.gen.ts"]
 }

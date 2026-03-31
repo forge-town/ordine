@@ -1,5 +1,5 @@
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "./_store";
+import { useHarnessCanvasStore } from "../_store";
 import {
   ZoomIn,
   ZoomOut,

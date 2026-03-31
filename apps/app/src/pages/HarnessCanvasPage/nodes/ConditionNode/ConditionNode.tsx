@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import type { ConditionNodeData, NodeRunStatus } from "../../_store";
-import { QuickAddButton } from "../../QuickAddButton";
+import { QuickAddButton } from "../../components/QuickAddButton";
 import { NodeCard } from "../NodeCard";
 
 export interface ConditionNodeProps {
@@ -44,31 +44,32 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
         theme="amber"
         icon={ShieldCheck}
         label={data.label}
+        description="Condition Check"
         selected={selected}
         headerRight={
-          <div className="flex shrink-0 items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5">
+          <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-white border border-slate-100 shadow-sm px-2 py-1">
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span className={cn("text-[10px] font-medium leading-none", color)}>
+            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
               {label}
             </span>
           </div>
         }
-        bodyClassName="space-y-2.5"
+        bodyClassName="space-y-3"
       >
-        <div>
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-            条件表达式
+        <div className="space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            Expression
           </p>
-          <p className="rounded-lg bg-gray-50 px-2.5 py-1.5 font-mono text-[11px] text-gray-700 line-clamp-2">
-            {data.expression || <span className="text-gray-300">未设置</span>}
+          <p className="font-mono text-[12px] text-slate-700 line-clamp-2 px-1">
+            {data.expression || <span className="text-slate-400 italic">未设置表达式</span>}
           </p>
         </div>
-        <div>
-          <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-            期望结果
+        <div className="space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            Expected
           </p>
-          <p className="text-xs text-gray-600 line-clamp-1">
-            {data.expectedResult}
+          <p className="text-[12px] font-medium text-slate-600 line-clamp-1">
+            {data.expectedResult || <span className="text-slate-400 italic">...</span>}
           </p>
         </div>
       </NodeCard>
@@ -76,15 +77,15 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-3 !w-3 !rounded-full !bg-amber-400 !border-2 !border-white"
+        className="!h-3.5 !w-3.5 !rounded-full !bg-amber-500 !border-[3px] !border-white !shadow-sm transition-all hover:!scale-110"
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-3 !w-3 !rounded-full !bg-amber-400 !border-2 !border-white"
+        className="!h-3.5 !w-3.5 !rounded-full !bg-amber-500 !border-[3px] !border-white !shadow-sm transition-all hover:!scale-110"
       />
 
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="opacity-0 group-[.selected]:opacity-100 group-hover:opacity-100 transition-opacity duration-200 absolute right-[-8px] top-1/2 translate-x-full -translate-y-1/2 z-50">
         <QuickAddButton nodeId={id} nodeType="condition" />
       </div>
     </div>

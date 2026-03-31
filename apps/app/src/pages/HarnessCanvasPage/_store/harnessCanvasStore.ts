@@ -5,7 +5,12 @@ import {
   type StateCreator,
   type StoreApi,
 } from "zustand";
-import { createCanvasSlice, type CanvasSlice } from "./canvasSlice";
+import {
+  createCanvasSlice,
+  type CanvasSlice,
+  type PipelineNode,
+  type PipelineEdge,
+} from "./canvasSlice";
 import { createUISlice, type UISlice } from "./uiSlice";
 
 export interface HarnessCanvasState extends CanvasSlice, UISlice {}
@@ -20,16 +25,22 @@ export type HarnessCanvasStoreSlice<T = HarnessCanvasState> = StateCreator<
 export type HarnessCanvasStore = Mutate<StoreApi<HarnessCanvasState>, []>;
 
 export const createHarnessCanvasStore = (
-  initialNodes?: import("./canvasSlice").PipelineNode[],
-  initialEdges?: import("./canvasSlice").PipelineEdge[],
+  initialNodes?: PipelineNode[],
+  initialEdges?: PipelineEdge[],
+  pipelineId?: string | null,
+  pipelineName?: string,
 ) => {
-  return createStore<HarnessCanvasState>()((set, get, api) => ({
+  return createStore<HarnessCanvasState>()((set) => ({
     ...createCanvasSlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
       initialNodes,
       initialEdges,
     ),
-    ...createUISlice(set as Parameters<HarnessCanvasStoreSlice>[0]),
+    ...createUISlice(
+      set as Parameters<HarnessCanvasStoreSlice>[0],
+      pipelineId ?? null,
+      pipelineName ?? "",
+    ),
   }));
 };
 

@@ -15,11 +15,11 @@ import { InputNode } from "./nodes/InputNode";
 import { SkillNode } from "./nodes/SkillNode";
 import { ConditionNode } from "./nodes/ConditionNode";
 import { OutputNode } from "./nodes/OutputNode";
-import { CanvasToolbar } from "./CanvasToolbar";
-import { PropertiesPanel } from "./PropertiesPanel";
-import { AiAssistantPanel } from "./AiAssistantPanel";
-import { HarnessCanvasHeader } from "./HarnessCanvasHeader";
-import { CanvasContextMenu } from "./CanvasContextMenu";
+import { CanvasToolbar } from "./components/CanvasToolbar";
+import { PropertiesPanel } from "./components/PropertiesPanel";
+import { AiAssistantPanel } from "./components/AiAssistantPanel";
+import { HarnessCanvasHeader } from "./components/HarnessCanvasHeader";
+import { CanvasContextMenu } from "./components/CanvasContextMenu";
 
 const nodeTypes = {
   input: InputNode,
@@ -27,6 +27,12 @@ const nodeTypes = {
   condition: ConditionNode,
   output: OutputNode,
 } as const;
+
+const defaultEdgeOptions = {
+  type: "smoothstep",
+  animated: true,
+  style: { stroke: "#94a3b8", strokeWidth: 2 },
+};
 
 const CanvasInner = () => {
   const store = useHarnessCanvasStore();
@@ -94,25 +100,32 @@ const CanvasInner = () => {
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={store.getState().onNodesChange}
-        onEdgesChange={store.getState().onEdgesChange}
-        onConnect={store.getState().onConnect}
+        onNodesChange={(changes) => {
+          store.getState().onNodesChange(changes);
+        }}
+        onEdgesChange={(changes) => {
+          store.getState().onEdgesChange(changes);
+        }}
+        onConnect={(connection) => {
+          store.getState().onConnect(connection);
+        }}
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
         onPaneClick={handlePaneClick}
         onPaneContextMenu={handlePaneContextMenu}
         nodeTypes={nodeTypes}
+        defaultEdgeOptions={defaultEdgeOptions}
         fitView
         fitViewOptions={{ padding: 0.15 }}
         proOptions={{ hideAttribution: false }}
-        className="bg-gray-50"
+        className="bg-slate-50/50"
         deleteKeyCode={["Backspace", "Delete"]}
       >
         <Background
           variant={BackgroundVariant.Dots}
-          gap={20}
-          size={1}
-          color="#d1d5db"
+          gap={24}
+          size={1.5}
+          color="#cbd5e1"
         />
         <Controls
           position="bottom-left"

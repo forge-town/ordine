@@ -1,11 +1,13 @@
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "./_store";
-import type {
-  SkillNodeData,
-  ConditionNodeData,
-  InputNodeData,
-  OutputNodeData,
-} from "./_store";
+import {
+  useHarnessCanvasStore,
+  type PipelineNode,
+  type PipelineEdge,
+  type SkillNodeData,
+  type ConditionNodeData,
+  type InputNodeData,
+  type OutputNodeData,
+} from "../_store";
 import { X, Trash2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -36,8 +38,8 @@ export const PropertiesPanel = () => {
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
 
-  const selectedNode = nodes.find((n) => n.id === selectedNodeId);
-  const selectedEdge = edges.find((e) => e.id === selectedEdgeId);
+  const selectedNode = nodes.find((n: PipelineNode) => n.id === selectedNodeId);
+  const selectedEdge = edges.find((e: PipelineEdge) => e.id === selectedEdgeId);
 
   if (!selectedNode && !selectedEdge) return null;
 

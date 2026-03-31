@@ -3,6 +3,8 @@ import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
 export type SidebarPanel = "components" | "properties" | "ai-assistant" | null;
 
 export interface UISlice {
+  pipelineId: string | null;
+  pipelineName: string;
   sidebarPanel: SidebarPanel;
   isSidebarOpen: boolean;
   isPropertiesPanelOpen: boolean;
@@ -17,7 +19,11 @@ export interface UISlice {
 
 export const createUISlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
+  pipelineId: string | null = null,
+  pipelineName = "",
 ): UISlice => ({
+  pipelineId,
+  pipelineName,
   sidebarPanel: "components",
   isSidebarOpen: true,
   isPropertiesPanelOpen: false,

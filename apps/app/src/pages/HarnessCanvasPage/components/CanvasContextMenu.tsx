@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { LogIn, Wand2, ShieldCheck, LogOut } from "lucide-react";
-import { useHarnessCanvasStore } from "./_store";
-import { makeDefaultNodeData, nodeTypeMeta } from "./nodeSchemas";
-import type { NodeType } from "./nodeSchemas";
+import { useHarnessCanvasStore } from "../_store";
+import { makeDefaultNodeData, nodeTypeMeta, type NodeType } from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType, React.ElementType> = {

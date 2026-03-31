@@ -4,8 +4,6 @@ import {
   Workflow,
   BookOpen,
   Settings,
-  Sparkles,
-  FolderOpen,
   Layers,
 } from "lucide-react";
 import {
@@ -33,9 +31,7 @@ const navItems: NavItem[] = [
   { label: "仪表盘", icon: LayoutDashboard, to: "/" },
   { label: "Pipelines", icon: Layers, to: "/pipelines" },
   { label: "Canvas", icon: Workflow, to: "/canvas", badge: "新" },
-  { label: "项目", icon: FolderOpen, to: "/projects" },
   { label: "技能库", icon: BookOpen, to: "/skills" },
-  { label: "AI 助手", icon: Sparkles, to: "/assistant" },
 ];
 
 export const AppSidebar = () => {

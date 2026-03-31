@@ -78,6 +78,7 @@ export const NoSkillName: Story = {
     data: {
       nodeType: "skill",
       label: "未配置技能",
+      skillName: "",
       status: "idle",
     },
   },

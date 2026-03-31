@@ -1,12 +1,12 @@
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "./_store";
+import { useHarnessCanvasStore } from "../_store";
 import { Bot, X, Send, Loader2, Sparkles } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { Separator } from "@repo/ui/separator";
 import { cn } from "@repo/ui/lib/utils";
-import type { NodeType } from "./nodeSchemas";
+import type { NodeType } from "../nodeSchemas";
 
 const MASTRA_BASE = "http://localhost:4111";
 const AGENT_ID = "harnessDesignAgent";

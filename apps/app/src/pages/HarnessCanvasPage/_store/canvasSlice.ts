@@ -1,13 +1,26 @@
-import type {
-  Node,
-  Edge,
-  NodeChange,
-  EdgeChange,
-  Connection,
+import {
+  applyNodeChanges,
+  applyEdgeChanges,
+  addEdge,
+  type Node,
+  type Edge,
+  type NodeChange,
+  type EdgeChange,
+  type Connection,
 } from "@xyflow/react";
-import { applyNodeChanges, applyEdgeChanges, addEdge } from "@xyflow/react";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
-import { makeDefaultNodeData, ConnectionRuleSchema } from "../nodeSchemas";
+import {
+  makeDefaultNodeData,
+  ConnectionRuleSchema,
+  type NodeType,
+  type NodeRunStatus,
+  type InputNodeData,
+  type SkillNodeData,
+  type ConditionNodeData,
+  type OutputNodeData,
+  type PipelineNodeData,
+  type PipelineEdgeData,
+} from "../nodeSchemas";
 
 // Re-export all data types from the single source of truth
 export type {
@@ -19,13 +32,7 @@ export type {
   OutputNodeData,
   PipelineNodeData,
   PipelineEdgeData,
-} from "../nodeSchemas";
-
-import type {
-  NodeType,
-  PipelineNodeData,
-  PipelineEdgeData,
-} from "../nodeSchemas";
+};
 
 export type PipelineNode = Node<PipelineNodeData, NodeType>;
 

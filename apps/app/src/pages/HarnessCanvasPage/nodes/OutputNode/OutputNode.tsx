@@ -15,21 +15,22 @@ export const OutputNode = ({ data, selected }: OutputNodeProps) => (
       theme="sky"
       icon={LogOut}
       label={data.label}
+      description="Output Result"
       selected={selected}
-      bodyClassName="space-y-2"
+      bodyClassName="space-y-3"
     >
       {data.expectedSchema && (
-        <div>
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-            期望产出
+        <div className="space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            Expected Schema
           </p>
-          <p className="rounded-lg bg-gray-50 px-2.5 py-1.5 font-mono text-[11px] text-gray-500 line-clamp-2">
+          <p className="font-mono text-[12px] text-slate-600 line-clamp-2 px-1">
             {data.expectedSchema}
           </p>
         </div>
       )}
       {data.notes && (
-        <p className="text-xs leading-relaxed text-gray-500 line-clamp-2">
+        <p className="text-[11px] leading-relaxed text-slate-500 line-clamp-2">
           {data.notes}
         </p>
       )}
@@ -38,7 +39,7 @@ export const OutputNode = ({ data, selected }: OutputNodeProps) => (
     <Handle
       type="target"
       position={Position.Left}
-      className="!h-3 !w-3 !rounded-full !bg-sky-400 !border-2 !border-white"
+      className="!h-3.5 !w-3.5 !rounded-full !bg-sky-500 !border-[3px] !border-white !shadow-sm transition-all hover:!scale-110"
     />
   </div>
 );

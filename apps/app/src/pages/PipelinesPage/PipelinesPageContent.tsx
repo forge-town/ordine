@@ -1,10 +1,20 @@
+import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { GitBranch, Plus, Clock, ArrowRight, Layers } from "lucide-react";
+import {
+  GitBranch,
+  Plus,
+  Clock,
+  ArrowRight,
+  Layers,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
-import { usePipelinesStore, type Pipeline } from "@/store/pipelinesStore";
+import { Route } from "@/routes/pipelines";
+import { createPipeline, deletePipeline } from "@/services/pipelinesService";
+import type { StoredPipeline } from "@/models/daos/pipelinesDao";
 
 const NODE_TYPE_COLORS: Record<string, string> = {
   input: "bg-emerald-100 text-emerald-700",
@@ -31,11 +41,12 @@ const formatRelativeTime = (ts: number): string => {
 };
 
 interface PipelineCardProps {
-  pipeline: Pipeline;
+  pipeline: StoredPipeline;
   onOpen: () => void;
+  onDelete: () => void;
 }
 
-const PipelineCard = ({ pipeline, onOpen }: PipelineCardProps) => {
+const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) => {
   const typeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     const t = n.type ?? "unknown";
     acc[t] = (acc[t] ?? 0) + 1;
@@ -48,8 +59,20 @@ const PipelineCard = ({ pipeline, onOpen }: PipelineCardProps) => {
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
-      className="group cursor-pointer p-5 hover:border-primary/50 hover:shadow-md transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group relative cursor-pointer p-5 hover:border-primary/50 hover:shadow-md transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
+      {/* Delete button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="absolute right-3 top-3 hidden rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:flex"
+        aria-label="删除"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+
       {/* Top row */}
       <div className="flex items-start justify-between">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -114,20 +137,19 @@ const PipelineCard = ({ pipeline, onOpen }: PipelineCardProps) => {
 };
 
 export const PipelinesPageContent = () => {
-  const pipelines = usePipelinesStore((s) => s.pipelines);
-  const setActivePipelineId = usePipelinesStore((s) => s.setActivePipelineId);
-  const addPipeline = usePipelinesStore((s) => s.addPipeline);
+  const loaderPipelines = Route.useLoaderData();
+  const [pipelines, setPipelines] =
+    React.useState<StoredPipeline[]>(loaderPipelines);
   const navigate = useNavigate();
 
   const openPipeline = (id: string) => {
-    setActivePipelineId(id);
-    void navigate({ to: "/canvas" });
+    void navigate({ to: "/canvas", search: { id } });
   };
 
-  const createNewPipeline = () => {
+  const handleCreate = async () => {
     const id = `pipeline-${Date.now()}`;
     const now = Date.now();
-    addPipeline({
+    const newPipeline: StoredPipeline = {
       id,
       name: "新建 Pipeline",
       description: "在 Canvas 中配置此 Pipeline 的节点和连接。",
@@ -155,13 +177,22 @@ export const PipelinesPageContent = () => {
             label: "输出",
             nodeType: "output",
             expectedSchema: "",
+            notes: "",
           },
         },
       ],
       edges: [],
-    });
-    setActivePipelineId(id);
-    void navigate({ to: "/canvas" });
+    };
+    const saved = (await createPipeline({
+      data: newPipeline,
+    })) as StoredPipeline;
+    setPipelines((prev) => [saved, ...prev]);
+    void navigate({ to: "/canvas", search: { id: saved.id } });
+  };
+
+  const handleDelete = async (id: string) => {
+    setPipelines((prev) => prev.filter((p) => p.id !== id));
+    await deletePipeline({ data: { id } });
   };
 
   return (
@@ -176,7 +207,7 @@ export const PipelinesPageContent = () => {
         </div>
         <Button
           size="sm"
-          onClick={createNewPipeline}
+          onClick={() => void handleCreate()}
           className="flex items-center gap-1.5"
         >
           <Plus className="h-3.5 w-3.5" />
@@ -200,6 +231,7 @@ export const PipelinesPageContent = () => {
                 key={p.id}
                 pipeline={p}
                 onOpen={() => openPipeline(p.id)}
+                onDelete={() => void handleDelete(p.id)}
               />
             ))}
           </div>

@@ -4,22 +4,30 @@ import {
   createHarnessCanvasStore,
   type HarnessCanvasStore,
 } from "./harnessCanvasStore";
-import { usePipelinesStore } from "@/store/pipelinesStore";
+import type { PipelineNode, PipelineEdge } from "./canvasSlice";
+
+interface LoadedPipeline {
+  id: string;
+  name: string;
+  nodes: unknown[];
+  edges: unknown[];
+}
 
 interface Props {
   children: ReactNode;
+  pipeline?: LoadedPipeline | null;
 }
 
-export const HarnessCanvasStoreProvider = ({ children }: Props) => {
+export const HarnessCanvasStoreProvider = ({ children, pipeline }: Props) => {
   const storeRef = useRef<HarnessCanvasStore | null>(null);
-  const activePipelineId = usePipelinesStore((s) => s.activePipelineId);
-  const pipelines = usePipelinesStore((s) => s.pipelines);
 
   if (!storeRef.current) {
-    const active = activePipelineId
-      ? (pipelines.find((p) => p.id === activePipelineId) ?? null)
-      : null;
-    storeRef.current = createHarnessCanvasStore(active?.nodes, active?.edges);
+    storeRef.current = createHarnessCanvasStore(
+      pipeline?.nodes as PipelineNode[] | undefined,
+      pipeline?.edges as PipelineEdge[] | undefined,
+      pipeline?.id ?? null,
+      pipeline?.name ?? "",
+    );
   }
 
   return (
