@@ -92,6 +92,10 @@ export const worksDao = {
       .set({ logs: [...work.logs, line], updatedAt: new Date() })
       .where(eq(worksTable.id, id));
   },
+
+  async delete(id: string): Promise<void> {
+    await db.delete(worksTable).where(eq(worksTable.id, id));
+  },
 };
 
 export type { WorkObject };

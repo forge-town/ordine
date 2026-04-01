@@ -9,8 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorksRouteImport } from './routes/works'
 import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RulesRouteImport } from './routes/rules'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as PipelinesRouteImport } from './routes/pipelines'
 import { Route as JobsRouteImport } from './routes/jobs'
@@ -18,10 +20,16 @@ import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as BestPracticesRouteImport } from './routes/best-practices'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorksWorkIdRouteImport } from './routes/works.$workId'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
 import { Route as ProjectsProjectIdWorkspaceRouteImport } from './routes/projects.$projectId.workspace'
 
+const WorksRoute = WorksRouteImport.update({
+  id: '/works',
+  path: '/works',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SkillsRoute = SkillsRouteImport.update({
   id: '/skills',
   path: '/skills',
@@ -30,6 +38,11 @@ const SkillsRoute = SkillsRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RulesRoute = RulesRouteImport.update({
+  id: '/rules',
+  path: '/rules',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsRoute = ProjectsRouteImport.update({
@@ -67,6 +80,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorksWorkIdRoute = WorksWorkIdRouteImport.update({
+  id: '/$workId',
+  path: '/$workId',
+  getParentRoute: () => WorksRoute,
+} as any)
 const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
   id: '/$projectId',
   path: '/$projectId',
@@ -92,10 +110,13 @@ export interface FileRoutesByFullPath {
   '/jobs': typeof JobsRouteWithChildren
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
+  '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
+  '/works': typeof WorksRouteWithChildren
   '/jobs/$jobId': typeof JobsJobIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/works/$workId': typeof WorksWorkIdRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
 export interface FileRoutesByTo {
@@ -106,10 +127,13 @@ export interface FileRoutesByTo {
   '/jobs': typeof JobsRouteWithChildren
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
+  '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
+  '/works': typeof WorksRouteWithChildren
   '/jobs/$jobId': typeof JobsJobIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/works/$workId': typeof WorksWorkIdRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
 export interface FileRoutesById {
@@ -121,10 +145,13 @@ export interface FileRoutesById {
   '/jobs': typeof JobsRouteWithChildren
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
+  '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
+  '/works': typeof WorksRouteWithChildren
   '/jobs/$jobId': typeof JobsJobIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/works/$workId': typeof WorksWorkIdRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
 export interface FileRouteTypes {
@@ -137,10 +164,13 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/pipelines'
     | '/projects'
+    | '/rules'
     | '/settings'
     | '/skills'
+    | '/works'
     | '/jobs/$jobId'
     | '/projects/$projectId'
+    | '/works/$workId'
     | '/projects/$projectId/workspace'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -151,10 +181,13 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/pipelines'
     | '/projects'
+    | '/rules'
     | '/settings'
     | '/skills'
+    | '/works'
     | '/jobs/$jobId'
     | '/projects/$projectId'
+    | '/works/$workId'
     | '/projects/$projectId/workspace'
   id:
     | '__root__'
@@ -165,10 +198,13 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/pipelines'
     | '/projects'
+    | '/rules'
     | '/settings'
     | '/skills'
+    | '/works'
     | '/jobs/$jobId'
     | '/projects/$projectId'
+    | '/works/$workId'
     | '/projects/$projectId/workspace'
   fileRoutesById: FileRoutesById
 }
@@ -180,12 +216,21 @@ export interface RootRouteChildren {
   JobsRoute: typeof JobsRouteWithChildren
   PipelinesRoute: typeof PipelinesRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
+  RulesRoute: typeof RulesRoute
   SettingsRoute: typeof SettingsRoute
   SkillsRoute: typeof SkillsRoute
+  WorksRoute: typeof WorksRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/works': {
+      id: '/works'
+      path: '/works'
+      fullPath: '/works'
+      preLoaderRoute: typeof WorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/skills': {
       id: '/skills'
       path: '/skills'
@@ -198,6 +243,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rules': {
+      id: '/rules'
+      path: '/rules'
+      fullPath: '/rules'
+      preLoaderRoute: typeof RulesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects': {
@@ -248,6 +300,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/works/$workId': {
+      id: '/works/$workId'
+      path: '/$workId'
+      fullPath: '/works/$workId'
+      preLoaderRoute: typeof WorksWorkIdRouteImport
+      parentRoute: typeof WorksRoute
     }
     '/projects/$projectId': {
       id: '/projects/$projectId'
@@ -306,6 +365,16 @@ const ProjectsRouteWithChildren = ProjectsRoute._addFileChildren(
   ProjectsRouteChildren,
 )
 
+interface WorksRouteChildren {
+  WorksWorkIdRoute: typeof WorksWorkIdRoute
+}
+
+const WorksRouteChildren: WorksRouteChildren = {
+  WorksWorkIdRoute: WorksWorkIdRoute,
+}
+
+const WorksRouteWithChildren = WorksRoute._addFileChildren(WorksRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssistantRoute: AssistantRoute,
@@ -314,8 +383,10 @@ const rootRouteChildren: RootRouteChildren = {
   JobsRoute: JobsRouteWithChildren,
   PipelinesRoute: PipelinesRoute,
   ProjectsRoute: ProjectsRouteWithChildren,
+  RulesRoute: RulesRoute,
   SettingsRoute: SettingsRoute,
   SkillsRoute: SkillsRoute,
+  WorksRoute: WorksRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

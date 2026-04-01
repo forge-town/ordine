@@ -41,3 +41,7 @@ export const updateWorkStatus = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => worksDao.updateStatus(data.id, data.status));
+
+export const deleteWork = createServerFn({ method: "POST" })
+  .inputValidator(z.object({ id: z.string() }))
+  .handler(async ({ data }) => worksDao.delete(data.id));

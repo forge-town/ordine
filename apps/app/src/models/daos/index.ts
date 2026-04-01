@@ -4,3 +4,4 @@ export * from "./githubProjectsDao";
 export * from "./worksDao";
 export * from "./bestPracticesDao";
 export * from "./jobsDao";
+export * from "./rulesDao";
