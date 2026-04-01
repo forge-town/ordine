@@ -1,5 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, LogIn, Wand2, ShieldCheck, LogOut } from "lucide-react";
+import {
+  Plus,
+  LogIn,
+  Wand2,
+  ShieldCheck,
+  LogOut,
+  FileCode,
+  Folder,
+} from "lucide-react";
+import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../_store";
 import {
   allowedConnections,
@@ -13,6 +22,9 @@ const TYPE_ICONS: Record<NodeType, React.ElementType> = {
   skill: Wand2,
   condition: ShieldCheck,
   output: LogOut,
+  "code-file": FileCode,
+  folder: Folder,
+  "github-project": SiGitHubIcon,
 };
 
 interface Props {

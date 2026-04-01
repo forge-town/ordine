@@ -15,6 +15,9 @@ import { InputNode } from "../nodes/InputNode";
 import { SkillNode } from "../nodes/SkillNode";
 import { ConditionNode } from "../nodes/ConditionNode";
 import { OutputNode } from "../nodes/OutputNode";
+import { CodeFileNode } from "../nodes/CodeFileNode";
+import { FolderNode } from "../nodes/FolderNode";
+import { GitHubProjectNode } from "../nodes/GitHubProjectNode";
 
 export const CanvasFlow = () => {
   const store = useHarnessCanvasStore();
@@ -58,6 +61,9 @@ export const CanvasFlow = () => {
       skill: SkillNode,
       condition: ConditionNode,
       output: OutputNode,
+      "code-file": CodeFileNode,
+      folder: FolderNode,
+      "github-project": GitHubProjectNode,
     }),
     [],
   );

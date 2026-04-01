@@ -13,6 +13,9 @@ export type {
   ConditionNodeData,
   InputNodeData,
   OutputNodeData,
+  CodeFileNodeData,
+  FolderNodeData,
+  GitHubProjectNodeData,
   NodeType,
   NodeRunStatus,
   // legacy aliases

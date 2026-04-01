@@ -1,5 +1,14 @@
 import { useEffect } from "react";
-import { LogIn, Wand2, ShieldCheck, LogOut, ArrowRight } from "lucide-react";
+import {
+  LogIn,
+  Wand2,
+  ShieldCheck,
+  LogOut,
+  ArrowRight,
+  FileCode,
+  Folder,
+} from "lucide-react";
+import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../_store";
 import {
   makeDefaultNodeData,
@@ -14,9 +23,20 @@ const TYPE_ICONS: Record<NodeType, React.ElementType> = {
   skill: Wand2,
   condition: ShieldCheck,
   output: LogOut,
+  "code-file": FileCode,
+  folder: Folder,
+  "github-project": SiGitHubIcon,
 };
 
-const ALL_TYPES: NodeType[] = ["input", "skill", "condition", "output"];
+const ALL_TYPES: NodeType[] = [
+  "input",
+  "skill",
+  "condition",
+  "output",
+  "code-file",
+  "folder",
+  "github-project",
+];
 
 interface Props {
   screenX: number;

@@ -18,6 +18,9 @@ import {
   type SkillNodeData,
   type ConditionNodeData,
   type OutputNodeData,
+  type CodeFileNodeData,
+  type FolderNodeData,
+  type GitHubProjectNodeData,
   type PipelineNodeData,
   type PipelineEdgeData,
 } from "../nodeSchemas";
@@ -30,6 +33,9 @@ export type {
   SkillNodeData,
   ConditionNodeData,
   OutputNodeData,
+  CodeFileNodeData,
+  FolderNodeData,
+  GitHubProjectNodeData,
   PipelineNodeData,
   PipelineEdgeData,
 };

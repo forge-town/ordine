@@ -5,7 +5,15 @@ import { z } from "zod";
 export const NodeRunStatusSchema = z.enum(["idle", "running", "pass", "fail"]);
 export type NodeRunStatus = z.infer<typeof NodeRunStatusSchema>;
 
-export const NodeTypeSchema = z.enum(["input", "skill", "condition", "output"]);
+export const NodeTypeSchema = z.enum([
+  "input",
+  "skill",
+  "condition",
+  "output",
+  "code-file",
+  "folder",
+  "github-project",
+]);
 export type NodeType = z.infer<typeof NodeTypeSchema>;
 
 // ─── Node data schemas ────────────────────────────────────────────────────────
@@ -43,11 +51,40 @@ export const OutputNodeDataSchema = z.object({
   notes: z.string().optional(),
 });
 
+// ─── Object node data schemas ─────────────────────────────────────────────────
+
+export const CodeFileNodeDataSchema = z.object({
+  label: z.string(),
+  nodeType: z.literal("code-file"),
+  filePath: z.string(),
+  language: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export const FolderNodeDataSchema = z.object({
+  label: z.string(),
+  nodeType: z.literal("folder"),
+  folderPath: z.string(),
+  description: z.string().optional(),
+});
+
+export const GitHubProjectNodeDataSchema = z.object({
+  label: z.string(),
+  nodeType: z.literal("github-project"),
+  owner: z.string(),
+  repo: z.string(),
+  branch: z.string().optional(),
+  description: z.string().optional(),
+});
+
 export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
   InputNodeDataSchema,
   SkillNodeDataSchema,
   ConditionNodeDataSchema,
   OutputNodeDataSchema,
+  CodeFileNodeDataSchema,
+  FolderNodeDataSchema,
+  GitHubProjectNodeDataSchema,
 ]);
 
 // React Flow requires node data to extend Record<string, unknown>.
@@ -59,6 +96,14 @@ export type SkillNodeData = z.infer<typeof SkillNodeDataSchema> &
 export type ConditionNodeData = z.infer<typeof ConditionNodeDataSchema> &
   Record<string, unknown>;
 export type OutputNodeData = z.infer<typeof OutputNodeDataSchema> &
+  Record<string, unknown>;
+export type CodeFileNodeData = z.infer<typeof CodeFileNodeDataSchema> &
+  Record<string, unknown>;
+export type FolderNodeData = z.infer<typeof FolderNodeDataSchema> &
+  Record<string, unknown>;
+export type GitHubProjectNodeData = z.infer<
+  typeof GitHubProjectNodeDataSchema
+> &
   Record<string, unknown>;
 export type PipelineNodeData = z.infer<typeof PipelineNodeDataSchema> &
   Record<string, unknown>;
@@ -76,10 +121,20 @@ export type PipelineEdgeData = z.infer<typeof PipelineEdgeDataSchema> &
 
 /** Which node types are allowed as targets from each source type. */
 export const allowedConnections: Record<NodeType, NodeType[]> = {
-  input: ["skill", "condition"],
-  skill: ["skill", "condition", "output"],
+  input: ["skill", "condition", "code-file", "folder", "github-project"],
+  skill: [
+    "skill",
+    "condition",
+    "output",
+    "code-file",
+    "folder",
+    "github-project",
+  ],
   condition: ["skill", "output"],
   output: [],
+  "code-file": ["skill", "folder", "github-project", "output"],
+  folder: ["skill", "code-file", "github-project", "output"],
+  "github-project": ["skill", "folder", "code-file", "output"],
 };
 
 /**
@@ -136,6 +191,33 @@ export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
         notes: "",
       };
     }
+    case "code-file": {
+      return {
+        label: "代码文件",
+        nodeType: "code-file",
+        filePath: "",
+        language: "typescript",
+        description: "",
+      };
+    }
+    case "folder": {
+      return {
+        label: "文件夹",
+        nodeType: "folder",
+        folderPath: "",
+        description: "",
+      };
+    }
+    case "github-project": {
+      return {
+        label: "GitHub 项目",
+        nodeType: "github-project",
+        owner: "",
+        repo: "",
+        branch: "main",
+        description: "",
+      };
+    }
   }
 };
 
@@ -185,5 +267,38 @@ export const nodeTypeMeta = {
     iconBg: "bg-sky-500",
     handle: "!border-sky-400",
     plusBg: "bg-sky-100 text-sky-700 hover:bg-sky-200",
+  },
+  "code-file": {
+    label: "代码文件",
+    shortLabel: "文件",
+    border: "border-orange-200",
+    selectedBorder: "border-orange-500",
+    header: "bg-orange-50",
+    headerText: "text-orange-700",
+    iconBg: "bg-orange-500",
+    handle: "!border-orange-400",
+    plusBg: "bg-orange-100 text-orange-700 hover:bg-orange-200",
+  },
+  folder: {
+    label: "文件夹",
+    shortLabel: "文件夹",
+    border: "border-orange-200",
+    selectedBorder: "border-orange-500",
+    header: "bg-orange-50",
+    headerText: "text-orange-700",
+    iconBg: "bg-orange-400",
+    handle: "!border-orange-400",
+    plusBg: "bg-orange-100 text-orange-700 hover:bg-orange-200",
+  },
+  "github-project": {
+    label: "GitHub 项目",
+    shortLabel: "GitHub",
+    border: "border-orange-200",
+    selectedBorder: "border-orange-500",
+    header: "bg-orange-50",
+    headerText: "text-orange-700",
+    iconBg: "bg-orange-600",
+    handle: "!border-orange-400",
+    plusBg: "bg-orange-100 text-orange-700 hover:bg-orange-200",
   },
 } as const satisfies Record<NodeType, object>;
