@@ -1,9 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
+import { BestPracticesPage } from "@/pages/BestPracticesPage";
+import { getBestPractices } from "@/services/bestPracticesService";
 
-const RouteComponent = () => {
-  return <div>Hello "/best-practices"!</div>
-}
-
-export const Route = createFileRoute('/best-practices')({
-  component: RouteComponent,
-})
+export const Route = createFileRoute("/best-practices")({
+  loader: () => getBestPractices(),
+  component: BestPracticesPage,
+});
