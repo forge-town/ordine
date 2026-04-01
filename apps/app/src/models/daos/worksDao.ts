@@ -27,6 +27,14 @@ const rowToEntity = (row: WorkRow): WorkEntity => ({
 });
 
 export const worksDao = {
+  async findMany(): Promise<WorkEntity[]> {
+    const rows = await db
+      .select()
+      .from(worksTable)
+      .orderBy(desc(worksTable.createdAt));
+    return rows.map(rowToEntity);
+  },
+
   async findByProject(projectId: string): Promise<WorkEntity[]> {
     const rows = await db
       .select()

@@ -7,6 +7,7 @@ import {
   Layers,
   FolderGit2,
   Lightbulb,
+  Activity,
 } from "lucide-react";
 import {
   Sidebar,
@@ -21,6 +22,7 @@ import {
   SidebarTrigger,
 } from "@repo/ui/sidebar";
 import { Badge } from "@repo/ui/badge";
+import { cn } from "@repo/ui/lib/utils";
 
 interface NavItem {
   label: string;
@@ -33,9 +35,9 @@ const navItems: NavItem[] = [
   { label: "仪表盘", icon: LayoutDashboard, to: "/" },
   { label: "项目", icon: FolderGit2, to: "/projects" },
   { label: "Pipelines", icon: Layers, to: "/pipelines" },
-  { label: "Canvas", icon: Workflow, to: "/canvas", badge: "新" },
   { label: "技能库", icon: BookOpen, to: "/skills" },
   { label: "最佳实践", icon: Lightbulb, to: "/best-practices" },
+  { label: "Jobs", icon: Activity, to: "/jobs" },
 ];
 
 export const AppSidebar = () => {
@@ -56,6 +58,26 @@ export const AppSidebar = () => {
         </div>
         <SidebarTrigger className="shrink-0" />
       </SidebarHeader>
+
+      {/* Canvas — special featured button */}
+      <div className="shrink-0 border-b border-sidebar-border px-2 py-2">
+        <Link
+          to="/canvas"
+          className={cn(
+            "flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-semibold transition-colors",
+            "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm hover:from-violet-500 hover:to-indigo-500",
+            "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0",
+          )}
+        >
+          <Workflow className="h-4 w-4 shrink-0" />
+          <span className="group-data-[state=collapsed]/sidebar:hidden">
+            Canvas
+          </span>
+          <span className="ml-auto rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-bold leading-none group-data-[state=collapsed]/sidebar:hidden">
+            新
+          </span>
+        </Link>
+      </div>
 
       {/* Nav */}
       <SidebarContent className="py-2">

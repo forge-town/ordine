@@ -13,11 +13,13 @@ import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as PipelinesRouteImport } from './routes/pipelines'
+import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as BestPracticesRouteImport } from './routes/best-practices'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
+import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
 import { Route as ProjectsProjectIdWorkspaceRouteImport } from './routes/projects.$projectId.workspace'
 
 const SkillsRoute = SkillsRouteImport.update({
@@ -38,6 +40,11 @@ const ProjectsRoute = ProjectsRouteImport.update({
 const PipelinesRoute = PipelinesRouteImport.update({
   id: '/pipelines',
   path: '/pipelines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsRoute = JobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CanvasRoute = CanvasRouteImport.update({
@@ -65,6 +72,11 @@ const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
   path: '/$projectId',
   getParentRoute: () => ProjectsRoute,
 } as any)
+const JobsJobIdRoute = JobsJobIdRouteImport.update({
+  id: '/$jobId',
+  path: '/$jobId',
+  getParentRoute: () => JobsRoute,
+} as any)
 const ProjectsProjectIdWorkspaceRoute =
   ProjectsProjectIdWorkspaceRouteImport.update({
     id: '/workspace',
@@ -77,10 +89,12 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AssistantRoute
   '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
+  '/jobs': typeof JobsRouteWithChildren
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
@@ -89,10 +103,12 @@ export interface FileRoutesByTo {
   '/assistant': typeof AssistantRoute
   '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
+  '/jobs': typeof JobsRouteWithChildren
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
@@ -102,10 +118,12 @@ export interface FileRoutesById {
   '/assistant': typeof AssistantRoute
   '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
+  '/jobs': typeof JobsRouteWithChildren
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
@@ -116,10 +134,12 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/best-practices'
     | '/canvas'
+    | '/jobs'
     | '/pipelines'
     | '/projects'
     | '/settings'
     | '/skills'
+    | '/jobs/$jobId'
     | '/projects/$projectId'
     | '/projects/$projectId/workspace'
   fileRoutesByTo: FileRoutesByTo
@@ -128,10 +148,12 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/best-practices'
     | '/canvas'
+    | '/jobs'
     | '/pipelines'
     | '/projects'
     | '/settings'
     | '/skills'
+    | '/jobs/$jobId'
     | '/projects/$projectId'
     | '/projects/$projectId/workspace'
   id:
@@ -140,10 +162,12 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/best-practices'
     | '/canvas'
+    | '/jobs'
     | '/pipelines'
     | '/projects'
     | '/settings'
     | '/skills'
+    | '/jobs/$jobId'
     | '/projects/$projectId'
     | '/projects/$projectId/workspace'
   fileRoutesById: FileRoutesById
@@ -153,6 +177,7 @@ export interface RootRouteChildren {
   AssistantRoute: typeof AssistantRoute
   BestPracticesRoute: typeof BestPracticesRoute
   CanvasRoute: typeof CanvasRoute
+  JobsRoute: typeof JobsRouteWithChildren
   PipelinesRoute: typeof PipelinesRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
   SettingsRoute: typeof SettingsRoute
@@ -187,6 +212,13 @@ declare module '@tanstack/react-router' {
       path: '/pipelines'
       fullPath: '/pipelines'
       preLoaderRoute: typeof PipelinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs': {
+      id: '/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/canvas': {
@@ -224,6 +256,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectIdRouteImport
       parentRoute: typeof ProjectsRoute
     }
+    '/jobs/$jobId': {
+      id: '/jobs/$jobId'
+      path: '/$jobId'
+      fullPath: '/jobs/$jobId'
+      preLoaderRoute: typeof JobsJobIdRouteImport
+      parentRoute: typeof JobsRoute
+    }
     '/projects/$projectId/workspace': {
       id: '/projects/$projectId/workspace'
       path: '/workspace'
@@ -233,6 +272,16 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface JobsRouteChildren {
+  JobsJobIdRoute: typeof JobsJobIdRoute
+}
+
+const JobsRouteChildren: JobsRouteChildren = {
+  JobsJobIdRoute: JobsJobIdRoute,
+}
+
+const JobsRouteWithChildren = JobsRoute._addFileChildren(JobsRouteChildren)
 
 interface ProjectsProjectIdRouteChildren {
   ProjectsProjectIdWorkspaceRoute: typeof ProjectsProjectIdWorkspaceRoute
@@ -262,6 +311,7 @@ const rootRouteChildren: RootRouteChildren = {
   AssistantRoute: AssistantRoute,
   BestPracticesRoute: BestPracticesRoute,
   CanvasRoute: CanvasRoute,
+  JobsRoute: JobsRouteWithChildren,
   PipelinesRoute: PipelinesRoute,
   ProjectsRoute: ProjectsRouteWithChildren,
   SettingsRoute: SettingsRoute,

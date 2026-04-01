@@ -7,6 +7,10 @@ const WorkObjectSchema = z.object({
   path: z.string(),
 });
 
+export const getWorks = createServerFn({ method: "GET" }).handler(() =>
+  worksDao.findMany(),
+);
+
 export const getWorksByProject = createServerFn({ method: "GET" })
   .inputValidator(z.object({ projectId: z.string() }))
   .handler(async ({ data }) => worksDao.findByProject(data.projectId));
