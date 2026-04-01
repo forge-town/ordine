@@ -23,7 +23,8 @@
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "generate:component": "turbo gen react-component",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "quality": "bun run check-types && bun run lint"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",

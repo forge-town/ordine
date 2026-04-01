@@ -26,7 +26,7 @@ const validatePipelineTool = createTool({
       }),
     ),
   }),
-  execute: async ({ context }) => {
+  execute: async (context) => {
     const { nodes, edges } = context;
     const issues: string[] = [];
     const suggestions: string[] = [];
@@ -73,7 +73,7 @@ const validatePipelineTool = createTool({
   },
 });
 
-export const harnessValidatorAgent = new Agent({
+export const pipelineValidatorAgent = new Agent({
   id: "pipeline-validator-agent",
   name: "Pipeline 验证器",
   instructions: `
@@ -113,7 +113,7 @@ const validateConnectionsTool = createTool({
       }),
     ),
   }),
-  execute: async ({ context }) => {
+  execute: async (context) => {
     const { nodes, edges } = context;
     const issues: string[] = [];
     const suggestions: string[] = [];

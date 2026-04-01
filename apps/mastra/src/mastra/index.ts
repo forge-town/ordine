@@ -11,6 +11,7 @@ export const mastra = new Mastra({
     harnessValidatorAgent,
   },
   storage: new LibSQLStore({
+    id: "ordine-mastra",
     url: "file:./mastra.db",
   }),
   logger: new PinoLogger({

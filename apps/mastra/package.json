@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "mastra dev --port 4111",
     "build": "mastra build",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "quality": "bun run check-types"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.0.0",

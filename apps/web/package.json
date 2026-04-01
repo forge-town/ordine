@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
-    "check-types": "next typegen && tsc --noEmit"
+    "check-types": "next typegen && tsc --noEmit",
+    "quality": "bun run check-types && bun run lint"
   },
   "dependencies": {
     "@repo/ui": "*",
