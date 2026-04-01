@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useStore } from "zustand";
 import {
-  LogIn,
   Wand2,
   ShieldCheck,
   LogOut,
@@ -20,7 +19,6 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType, React.ElementType> = {
-  input: LogIn,
   skill: Wand2,
   condition: ShieldCheck,
   output: LogOut,
@@ -149,30 +147,53 @@ export const ConnectionMenu = ({
           </span>
         </div>
 
-        {/* Options */}
+        {/* Options grouped by category */}
         <div className="py-1">
-          {availableTypes.map((type) => {
-            const Icon = TYPE_ICONS[type];
-            const meta = nodeTypeMeta[type];
+          {[
+            {
+              label: "处理对象",
+              types: ["code-file", "folder", "github-project"] as NodeType[],
+            },
+            {
+              label: "操作节点",
+              types: ["skill", "condition", "output"] as NodeType[],
+            },
+          ].map((group, gi) => {
+            const visible = group.types.filter((t) =>
+              availableTypes.includes(t),
+            );
+            if (visible.length === 0) return null;
             return (
-              <button
-                key={type}
-                onClick={() => handleSelect(type)}
-                className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <span
-                  className={cn(
-                    "flex h-6 w-6 shrink-0 items-center justify-center rounded",
-                    meta.iconBg,
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5 text-white" />
-                </span>
-                <span className="text-xs font-medium text-foreground">
-                  {meta.label}
-                </span>
-                <Plus className="ml-auto h-3 w-3 text-muted-foreground" />
-              </button>
+              <div key={group.label}>
+                {gi > 0 && <div className="my-1 border-t border-border/50" />}
+                <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+                  {group.label}
+                </p>
+                {visible.map((type) => {
+                  const Icon = TYPE_ICONS[type];
+                  const meta = nodeTypeMeta[type];
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => handleSelect(type)}
+                      className="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <span
+                        className={cn(
+                          "flex h-6 w-6 shrink-0 items-center justify-center rounded",
+                          meta.iconBg,
+                        )}
+                      >
+                        <Icon className="h-3.5 w-3.5 text-white" />
+                      </span>
+                      <span className="text-xs font-medium text-foreground">
+                        {meta.label}
+                      </span>
+                      <Plus className="ml-auto h-3 w-3 text-muted-foreground" />
+                    </button>
+                  );
+                })}
+              </div>
             );
           })}
         </div>

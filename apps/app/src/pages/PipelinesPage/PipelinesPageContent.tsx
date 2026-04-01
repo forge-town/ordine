@@ -25,25 +25,14 @@ export const PipelinesPageContent = () => {
       name: "新建 Pipeline",
       description: "在 Canvas 中配置此 Pipeline 的节点和连接。",
       tags: [],
-      nodeCount: 2,
+      nodeCount: 1,
       createdAt: now,
       updatedAt: now,
       nodes: [
         {
-          id: `${id}-input`,
-          type: "input",
-          position: { x: 100, y: 200 },
-          data: {
-            label: "输入",
-            nodeType: "input",
-            contextDescription: "",
-            exampleValue: "",
-          },
-        },
-        {
           id: `${id}-output`,
           type: "output",
-          position: { x: 500, y: 200 },
+          position: { x: 300, y: 200 },
           data: {
             label: "输出",
             nodeType: "output",

@@ -14,7 +14,6 @@ import {
   ConnectionRuleSchema,
   type NodeType,
   type NodeRunStatus,
-  type InputNodeData,
   type SkillNodeData,
   type ConditionNodeData,
   type OutputNodeData,
@@ -29,7 +28,6 @@ import {
 export type {
   NodeType,
   NodeRunStatus,
-  InputNodeData,
   SkillNodeData,
   ConditionNodeData,
   OutputNodeData,

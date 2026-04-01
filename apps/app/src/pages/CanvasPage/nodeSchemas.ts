@@ -6,7 +6,6 @@ export const NodeRunStatusSchema = z.enum(["idle", "running", "pass", "fail"]);
 export type NodeRunStatus = z.infer<typeof NodeRunStatusSchema>;
 
 export const NodeTypeSchema = z.enum([
-  "input",
   "skill",
   "condition",
   "output",
@@ -17,13 +16,6 @@ export const NodeTypeSchema = z.enum([
 export type NodeType = z.infer<typeof NodeTypeSchema>;
 
 // ─── Node data schemas ────────────────────────────────────────────────────────
-
-export const InputNodeDataSchema = z.object({
-  label: z.string(),
-  nodeType: z.literal("input"),
-  contextDescription: z.string(),
-  exampleValue: z.string().optional(),
-});
 
 export const SkillNodeDataSchema = z.object({
   label: z.string(),
@@ -78,7 +70,6 @@ export const GitHubProjectNodeDataSchema = z.object({
 });
 
 export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
-  InputNodeDataSchema,
   SkillNodeDataSchema,
   ConditionNodeDataSchema,
   OutputNodeDataSchema,
@@ -89,8 +80,6 @@ export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
 
 // React Flow requires node data to extend Record<string, unknown>.
 // Intersecting with it adds the index signature TypeScript needs.
-export type InputNodeData = z.infer<typeof InputNodeDataSchema> &
-  Record<string, unknown>;
 export type SkillNodeData = z.infer<typeof SkillNodeDataSchema> &
   Record<string, unknown>;
 export type ConditionNodeData = z.infer<typeof ConditionNodeDataSchema> &
@@ -119,9 +108,25 @@ export type PipelineEdgeData = z.infer<typeof PipelineEdgeDataSchema> &
 
 // ─── Connectivity rules ───────────────────────────────────────────────────────
 
+// ─── Node categories ─────────────────────────────────────────────────────────
+
+/** Object nodes represent subjects/inputs being operated on. */
+export const OBJECT_TYPES: NodeType[] = [
+  "code-file",
+  "folder",
+  "github-project",
+];
+
+/** Operation nodes represent transformations/steps in the pipeline. */
+export const OPERATION_TYPES: NodeType[] = ["skill", "condition", "output"];
+
 /** Which node types are allowed as targets from each source type. */
 export const allowedConnections: Record<NodeType, NodeType[]> = {
-  input: ["skill", "condition", "code-file", "folder", "github-project"],
+  // Objects must feed into an Operation
+  "code-file": ["skill", "condition", "output"],
+  folder: ["skill", "condition", "output"],
+  "github-project": ["skill", "condition", "output"],
+  // Operations can chain into another Operation, or output to an Object (observation)
   skill: [
     "skill",
     "condition",
@@ -130,11 +135,15 @@ export const allowedConnections: Record<NodeType, NodeType[]> = {
     "folder",
     "github-project",
   ],
-  condition: ["skill", "output"],
-  output: [],
-  "code-file": ["skill", "folder", "github-project", "output"],
-  folder: ["skill", "code-file", "github-project", "output"],
-  "github-project": ["skill", "folder", "code-file", "output"],
+  condition: [
+    "skill",
+    "condition",
+    "output",
+    "code-file",
+    "folder",
+    "github-project",
+  ],
+  output: ["code-file", "folder", "github-project"],
 };
 
 /**
@@ -156,14 +165,6 @@ export const ConnectionRuleSchema = z
 
 export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
   switch (type) {
-    case "input": {
-      return {
-        label: "输入",
-        nodeType: "input",
-        contextDescription: "",
-        exampleValue: "",
-      };
-    }
     case "skill": {
       return {
         label: "Skill 节点",
@@ -224,17 +225,6 @@ export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
 // ─── UI meta (label + Tailwind colour tokens) ─────────────────────────────────
 
 export const nodeTypeMeta = {
-  input: {
-    label: "输入节点",
-    shortLabel: "输入",
-    border: "border-emerald-200",
-    selectedBorder: "border-emerald-500",
-    header: "bg-emerald-50",
-    headerText: "text-emerald-700",
-    iconBg: "bg-emerald-500",
-    handle: "!border-emerald-400",
-    plusBg: "bg-emerald-100 text-emerald-700 hover:bg-emerald-200",
-  },
   skill: {
     label: "Skill 调用",
     shortLabel: "Skill",

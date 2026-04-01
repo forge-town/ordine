@@ -1,14 +1,20 @@
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type PipelineNode, type NodeType } from "../_store";
+import {
+  useHarnessCanvasStore,
+  type PipelineNode,
+  type NodeType,
+} from "../_store";
 import { cn } from "@repo/ui/lib/utils";
 import {
-  LogIn,
   Wand2,
   ShieldCheck,
   LogOut,
+  FileCode,
+  Folder,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 
 interface NodeTypeItem {
   type: NodeType;
@@ -19,15 +25,34 @@ interface NodeTypeItem {
   iconBg: string;
 }
 
-const nodeTypeItems: NodeTypeItem[] = [
+const objectItems: NodeTypeItem[] = [
   {
-    type: "input",
-    label: "输入节点",
-    description: "pipeline 的入口，承载需求上下文",
-    icon: LogIn,
-    colorClass: "border-emerald-200 bg-emerald-50 hover:border-emerald-400",
-    iconBg: "bg-emerald-500",
+    type: "code-file",
+    label: "代码文件",
+    description: "指定一个代码文件作为操作对象",
+    icon: FileCode,
+    colorClass: "border-orange-200 bg-orange-50 hover:border-orange-400",
+    iconBg: "bg-orange-500",
   },
+  {
+    type: "folder",
+    label: "文件夹",
+    description: "指定一个目录作为操作对象",
+    icon: Folder,
+    colorClass: "border-orange-200 bg-orange-50 hover:border-orange-400",
+    iconBg: "bg-orange-400",
+  },
+  {
+    type: "github-project",
+    label: "GitHub 项目",
+    description: "指定一个 GitHub 仓库作为操作对象",
+    icon: SiGitHubIcon,
+    colorClass: "border-orange-200 bg-orange-50 hover:border-orange-400",
+    iconBg: "bg-orange-600",
+  },
+];
+
+const nodeTypeItems: NodeTypeItem[] = [
   {
     type: "skill",
     label: "Skill 调用",
@@ -78,12 +103,29 @@ export const SkillPalette = () => {
 
     let data: PipelineNode["data"];
 
-    if (item.type === "input") {
+    if (item.type === "code-file") {
       data = {
-        label: "新输入",
-        nodeType: "input",
-        contextDescription: "",
-        exampleValue: "",
+        label: "代码文件",
+        nodeType: "code-file",
+        filePath: "",
+        language: "typescript",
+        description: "",
+      };
+    } else if (item.type === "folder") {
+      data = {
+        label: "文件夹",
+        nodeType: "folder",
+        folderPath: "",
+        description: "",
+      };
+    } else if (item.type === "github-project") {
+      data = {
+        label: "GitHub 项目",
+        nodeType: "github-project",
+        owner: "",
+        repo: "",
+        branch: "main",
+        description: "",
       };
     } else if (item.type === "skill") {
       data = {
@@ -159,10 +201,49 @@ export const SkillPalette = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-4">
-            {/* Node type palette */}
+            {/* Object nodes */}
             <div>
               <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                节点类型
+                处理对象 (Object)
+              </p>
+              <div className="space-y-1.5">
+                {objectItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.type}
+                      onClick={() => handleAddNodeType(item)}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
+                        item.colorClass,
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex h-7 w-7 shrink-0 items-center justify-center rounded",
+                          item.iconBg,
+                        )}
+                      >
+                        <Icon className="h-3.5 w-3.5 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-gray-700">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          {item.description}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Operation nodes */}
+            <div>
+              <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                操作节点 (Operation)
               </p>
               <div className="space-y-1.5">
                 {nodeTypeItems.map((item) => {

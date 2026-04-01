@@ -29,7 +29,9 @@ interface PipelineAction {
 }
 
 // Parse ```actions ... ``` blocks from the AI response
-const parseActions = (text: string): {
+const parseActions = (
+  text: string,
+): {
   clean: string;
   actions: PipelineAction[];
 } => {
@@ -50,7 +52,7 @@ const parseActions = (text: string): {
     clean = clean.replace(match[0], "").trim();
   }
   return { clean, actions };
-}
+};
 
 export const AiAssistantPanel = () => {
   const store = useHarnessCanvasStore();
@@ -86,19 +88,7 @@ export const AiAssistantPanel = () => {
       const id = `${action.nodeType}-${Date.now()}`;
       const x = 200 + Math.random() * 300;
       const y = 150 + Math.random() * 250;
-      if (action.nodeType === "input") {
-        state.addNode({
-          id,
-          type: "input",
-          position: { x, y },
-          data: {
-            label: action.label ?? "输入",
-            nodeType: "input",
-            contextDescription: "",
-            exampleValue: "",
-          },
-        });
-      } else if (action.nodeType === "skill") {
+      if (action.nodeType === "skill") {
         state.addNode({
           id,
           type: "skill",

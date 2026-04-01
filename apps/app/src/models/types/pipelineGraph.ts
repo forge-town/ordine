@@ -1,14 +1,14 @@
 // Pipeline graph node/edge types for DB and business logic (decoupled from page store)
 
-export type NodeRunStatus = "idle" | "running" | "pass" | "fail";
-export type NodeType = "input" | "skill" | "condition" | "output";
+export type NodeType =
+  | "skill"
+  | "condition"
+  | "output"
+  | "code-file"
+  | "folder"
+  | "github-project";
 
-export interface InputNodeData {
-  label: string;
-  nodeType: "input";
-  contextDescription: string;
-  exampleValue?: string;
-}
+export type NodeRunStatus = "idle" | "running" | "pass" | "fail";
 
 export interface SkillNodeData {
   label: string;
@@ -37,7 +37,6 @@ export interface OutputNodeData {
 }
 
 export type PipelineNodeData =
-  | InputNodeData
   | SkillNodeData
   | ConditionNodeData
   | OutputNodeData;

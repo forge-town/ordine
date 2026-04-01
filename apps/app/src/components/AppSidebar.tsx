@@ -5,6 +5,7 @@ import {
   BookOpen,
   Settings,
   Layers,
+  FolderGit2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -29,6 +30,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "仪表盘", icon: LayoutDashboard, to: "/" },
+  { label: "项目", icon: FolderGit2, to: "/projects" },
   { label: "Pipelines", icon: Layers, to: "/pipelines" },
   { label: "Canvas", icon: Workflow, to: "/canvas", badge: "新" },
   { label: "技能库", icon: BookOpen, to: "/skills" },

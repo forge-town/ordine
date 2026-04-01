@@ -11,7 +11,6 @@ export type {
   PipelineEdgeData,
   SkillNodeData,
   ConditionNodeData,
-  InputNodeData,
   OutputNodeData,
   CodeFileNodeData,
   FolderNodeData,

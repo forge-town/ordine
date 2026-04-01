@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Plus,
-  LogIn,
   Wand2,
   ShieldCheck,
   LogOut,
@@ -18,7 +17,6 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType, React.ElementType> = {
-  input: LogIn,
   skill: Wand2,
   condition: ShieldCheck,
   output: LogOut,

@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import {
-  LogIn,
   Wand2,
   ShieldCheck,
   LogOut,
@@ -19,7 +18,6 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType, React.ElementType> = {
-  input: LogIn,
   skill: Wand2,
   condition: ShieldCheck,
   output: LogOut,
@@ -29,13 +27,20 @@ const TYPE_ICONS: Record<NodeType, React.ElementType> = {
 };
 
 const ALL_TYPES: NodeType[] = [
-  "input",
   "skill",
   "condition",
   "output",
   "code-file",
   "folder",
   "github-project",
+];
+
+const TYPE_GROUPS: { label: string; types: NodeType[] }[] = [
+  {
+    label: "处理对象 (Object)",
+    types: ["code-file", "folder", "github-project"],
+  },
+  { label: "操作节点 (Operation)", types: ["skill", "condition", "output"] },
 ];
 
 interface Props {
@@ -179,25 +184,37 @@ export const CanvasContextMenu = ({
             新建节点
           </p>
         )}
-        {availableTypes.map((type) => {
-          const Icon = TYPE_ICONS[type];
-          const meta = nodeTypeMeta[type];
+        {TYPE_GROUPS.map((group, gi) => {
+          const visible = group.types.filter((t) => availableTypes.includes(t));
+          if (visible.length === 0) return null;
           return (
-            <button
-              key={type}
-              onClick={() => handleCreate(type)}
-              className="flex w-full items-center gap-2.5 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
-            >
-              <span
-                className={cn(
-                  "flex h-5 w-5 shrink-0 items-center justify-center rounded",
-                  meta.iconBg,
-                )}
-              >
-                <Icon className="h-3 w-3 text-white" />
-              </span>
-              <span className="text-xs font-medium">{meta.label}</span>
-            </button>
+            <div key={group.label}>
+              {gi > 0 && <div className="my-1 border-t border-border/50" />}
+              <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+                {group.label}
+              </p>
+              {visible.map((type) => {
+                const Icon = TYPE_ICONS[type];
+                const meta = nodeTypeMeta[type];
+                return (
+                  <button
+                    key={type}
+                    onClick={() => handleCreate(type)}
+                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
+                  >
+                    <span
+                      className={cn(
+                        "flex h-5 w-5 shrink-0 items-center justify-center rounded",
+                        meta.iconBg,
+                      )}
+                    >
+                      <Icon className="h-3 w-3 text-white" />
+                    </span>
+                    <span className="text-xs font-medium">{meta.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           );
         })}
       </div>

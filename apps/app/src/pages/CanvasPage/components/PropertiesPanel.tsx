@@ -5,7 +5,6 @@ import {
   type PipelineEdge,
   type SkillNodeData,
   type ConditionNodeData,
-  type InputNodeData,
   type OutputNodeData,
 } from "../_store";
 import { X, Trash2 } from "lucide-react";
@@ -144,35 +143,6 @@ export const PropertiesPanel = () => {
                   );
                 })()}
 
-              {selectedNode.data.nodeType === "input" &&
-                (() => {
-                  const d = selectedNode.data as InputNodeData;
-                  return (
-                    <>
-                      <Field label="上下文描述">
-                        <Textarea
-                          rows={3}
-                          value={d.contextDescription}
-                          onChange={(e) =>
-                            update({ contextDescription: e.target.value })
-                          }
-                          placeholder="描述此 pipeline 的需求背景"
-                        />
-                      </Field>
-                      <Field label="示例输入">
-                        <Textarea
-                          rows={3}
-                          className="font-mono"
-                          value={d.exampleValue}
-                          onChange={(e) =>
-                            update({ exampleValue: e.target.value })
-                          }
-                        />
-                      </Field>
-                    </>
-                  );
-                })()}
-
               {selectedNode.data.nodeType === "output" &&
                 (() => {
                   const d = selectedNode.data as OutputNodeData;
@@ -224,11 +194,9 @@ export const PropertiesPanel = () => {
                 <Input
                   value={selectedEdge.data?.label ?? ""}
                   onChange={(e) =>
-                    store
-                      .getState()
-                      .updateEdgeData(selectedEdge.id, {
-                        label: e.target.value,
-                      })
+                    store.getState().updateEdgeData(selectedEdge.id, {
+                      label: e.target.value,
+                    })
                   }
                 />
               </Field>
