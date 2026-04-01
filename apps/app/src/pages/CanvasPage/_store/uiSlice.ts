@@ -23,6 +23,7 @@ export interface UISlice {
   isPropertiesPanelOpen: boolean;
   isAiAssistantOpen: boolean;
   contextMenu: ContextMenuState | null;
+  connectionMenu: ContextMenuState | null;
   connectStart: ConnectStartState | null;
 
   setSidebarPanel: (panel: SidebarPanel) => void;
@@ -32,6 +33,8 @@ export interface UISlice {
   toggleAiAssistant: () => void;
   openContextMenu: (state: ContextMenuState) => void;
   closeContextMenu: () => void;
+  openConnectionMenu: (state: ContextMenuState) => void;
+  closeConnectionMenu: () => void;
   setConnectStart: (state: ConnectStartState | null) => void;
 }
 
@@ -47,6 +50,7 @@ export const createUISlice = (
   isPropertiesPanelOpen: false,
   isAiAssistantOpen: false,
   contextMenu: null,
+  connectionMenu: null,
   connectStart: null,
 
   setSidebarPanel: (panel) => {
@@ -75,6 +79,14 @@ export const createUISlice = (
 
   closeContextMenu: () => {
     set({ contextMenu: null });
+  },
+
+  openConnectionMenu: (state) => {
+    set({ connectionMenu: state });
+  },
+
+  closeConnectionMenu: () => {
+    set({ connectionMenu: null });
   },
 
   setConnectStart: (state) => {

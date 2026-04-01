@@ -9,6 +9,7 @@ import { CanvasFlow } from "./components/CanvasFlow";
 import { PropertiesPanel } from "./components/PropertiesPanel";
 import { AiAssistantPanel } from "./components/AiAssistantPanel";
 import { CanvasContextMenu } from "./components/CanvasContextMenu";
+import { ConnectionMenu } from "./components/ConnectionMenu";
 import { CanvasFloatingMenu } from "./components/CanvasFloatingMenu";
 import { updatePipeline } from "@/services/pipelinesService";
 
@@ -38,6 +39,11 @@ const CanvasInner = () => {
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const contextMenu = useStore(store, (state) => state.contextMenu);
   const closeContextMenu = useStore(store, (state) => state.closeContextMenu);
+  const connectionMenu = useStore(store, (state) => state.connectionMenu);
+  const closeConnectionMenu = useStore(
+    store,
+    (state) => state.closeConnectionMenu,
+  );
 
   const { fitView, zoomIn, zoomOut } = useReactFlow();
 
@@ -107,6 +113,16 @@ const CanvasInner = () => {
           flowX={contextMenu.flowX}
           flowY={contextMenu.flowY}
           onClose={closeContextMenu}
+        />
+      )}
+
+      {connectionMenu && (
+        <ConnectionMenu
+          screenX={connectionMenu.screenX}
+          screenY={connectionMenu.screenY}
+          flowX={connectionMenu.flowX}
+          flowY={connectionMenu.flowY}
+          onClose={closeConnectionMenu}
         />
       )}
     </div>

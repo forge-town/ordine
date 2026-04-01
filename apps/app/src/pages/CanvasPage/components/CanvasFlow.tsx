@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useStore } from "zustand";
 import {
   ReactFlow,
@@ -18,6 +18,8 @@ import { OutputNode } from "../nodes/OutputNode";
 
 export const CanvasFlow = () => {
   const store = useHarnessCanvasStore();
+  // Suppress pane click that React Flow fires right after a connection drag-end
+  const shouldIgnorePaneClick = useRef(false);
 
   // 使用浅比较选择器，避免不必要重渲染
   const nodes = useStore(store, (state) => state.nodes);
@@ -37,6 +39,14 @@ export const CanvasFlow = () => {
   );
   const openContextMenu = useStore(store, (state) => state.openContextMenu);
   const closeContextMenu = useStore(store, (state) => state.closeContextMenu);
+  const openConnectionMenu = useStore(
+    store,
+    (state) => state.openConnectionMenu,
+  );
+  const closeConnectionMenu = useStore(
+    store,
+    (state) => state.closeConnectionMenu,
+  );
   const setConnectStart = useStore(store, (state) => state.setConnectStart);
 
   const { screenToFlowPosition } = useReactFlow();
@@ -72,8 +82,7 @@ export const CanvasFlow = () => {
 
   const handleConnect = (connection: Parameters<typeof onConnect>[0]) => {
     onConnect(connection);
-    // 连接成功后清除连接状态
-    setConnectStart(null);
+    // connectStart is cleared in handleConnectEnd via connectionState.isValid
   };
 
   const handleConnectStart: OnConnectStart = (_, params) => {
@@ -86,41 +95,55 @@ export const CanvasFlow = () => {
     });
   };
 
-  const handleConnectEnd: OnConnectEnd = (event) => {
-    const state = store.getState();
+  const handleConnectEnd: OnConnectEnd = (event, connectionState) => {
+    // User connected to a valid handle — no menu needed
+    if (connectionState.isValid === true) {
+      setConnectStart(null);
+      return;
+    }
 
-    // 只有在连接未完成且是有效的拖拽结束时才弹出菜单
-    if (state.connectStart && event && "clientX" in event) {
-      const { connectStart, nodes } = state;
+    // !isValid (null = empty space, false = invalid handle) — open connection menu
+    // Use connectionState.fromNode directly (more reliable than stored connectStart)
+    const fromNode = connectionState.fromNode;
+    const fromHandle = connectionState.fromHandle;
 
-      // 获取源节点类型
-      const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
-      if (!sourceNode) {
-        setConnectStart(null);
-        return;
-      }
+    if (fromNode) {
+      const { clientX, clientY } =
+        "changedTouches" in event
+          ? (event as TouchEvent).changedTouches[0]
+          : (event as MouseEvent);
 
-      // 计算放手位置
-      const clientX = (event as MouseEvent).clientX;
-      const clientY = (event as MouseEvent).clientY;
+      // Re-set connectStart from live connectionState data
+      setConnectStart({
+        nodeId: fromNode.id,
+        handleId: fromHandle?.id ?? null,
+        handleType: fromHandle?.type ?? null,
+      });
+
       const flowPos = screenToFlowPosition({ x: clientX, y: clientY });
-
-      // 打开菜单（用于创建新节点并连接）
-      openContextMenu({
+      openConnectionMenu({
         screenX: clientX,
         screenY: clientY,
         flowX: flowPos.x,
         flowY: flowPos.y,
       });
+
+      // React Flow fires onPaneClick right after onConnectEnd — suppress it
+      shouldIgnorePaneClick.current = true;
+      setTimeout(() => {
+        shouldIgnorePaneClick.current = false;
+      }, 100);
+      return;
     }
 
-    // 注意：不清除 connectStart，菜单需要知道源节点信息
+    setConnectStart(null);
   };
 
   const handleNodeClick = (_: React.MouseEvent, node: PipelineNode) => {
     selectNode(node.id);
     openPropertiesPanel();
     closeContextMenu();
+    closeConnectionMenu();
     setConnectStart(null);
   };
 
@@ -128,14 +151,17 @@ export const CanvasFlow = () => {
     selectEdge(edge.id);
     openPropertiesPanel();
     closeContextMenu();
+    closeConnectionMenu();
     setConnectStart(null);
   };
 
   const handlePaneClick = () => {
+    if (shouldIgnorePaneClick.current) return;
     selectNode(null);
     selectEdge(null);
     closePropertiesPanel();
     closeContextMenu();
+    closeConnectionMenu();
     setConnectStart(null);
   };
 
@@ -144,8 +170,8 @@ export const CanvasFlow = () => {
     const clientX = "clientX" in e ? e.clientX : 0;
     const clientY = "clientY" in e ? e.clientY : 0;
     const flowPos = screenToFlowPosition({ x: clientX, y: clientY });
-    // 右键菜单时清除连接状态
     setConnectStart(null);
+    closeConnectionMenu();
     openContextMenu({
       screenX: clientX,
       screenY: clientY,

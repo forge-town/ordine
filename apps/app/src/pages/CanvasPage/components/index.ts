@@ -2,6 +2,7 @@ export * from "./AiAssistantPanel";
 export * from "./CanvasContextMenu";
 export * from "./CanvasFlow";
 export * from "./CanvasToolbar";
+export * from "./ConnectionMenu";
 export * from "./HarnessCanvasHeader";
 export * from "./PropertiesPanel";
 export * from "./QuickAddButton";
