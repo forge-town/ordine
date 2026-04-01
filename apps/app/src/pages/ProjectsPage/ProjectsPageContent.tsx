@@ -18,13 +18,13 @@ import {
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 import { cn } from "@repo/ui/lib/utils";
 
-function CreateProjectDialog({
+const CreateProjectDialog = ({
   onClose,
   onCreate,
 }: {
   onClose: () => void;
   onCreate: (p: GithubProjectEntity) => void;
-}) {
+}) => {
   const [form, setForm] = useState({
     owner: "",
     repo: "",
@@ -145,7 +145,7 @@ function CreateProjectDialog({
   );
 }
 
-function ProjectCard({
+const ProjectCard = ({
   project,
   onClick,
   onDelete,
@@ -153,7 +153,7 @@ function ProjectCard({
   project: GithubProjectEntity;
   onClick: () => void;
   onDelete: () => void;
-}) {
+}) => {
   return (
     <div
       onClick={onClick}

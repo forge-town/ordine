@@ -32,7 +32,7 @@ const OBJECT_LABEL: Record<WorkEntity["object"]["type"], string> = {
   project: "整个项目",
 };
 
-function WorkRow({ work }: { work: WorkEntity }) {
+const WorkRow = ({ work }: { work: WorkEntity }) => {
   const cfg = STATUS_CONFIG[work.status];
   const Icon = cfg.icon;
   return (
@@ -83,7 +83,7 @@ function WorkRow({ work }: { work: WorkEntity }) {
   );
 }
 
-function ProjectMeta({ project }: { project: GithubProjectEntity }) {
+const ProjectMeta = ({ project }: { project: GithubProjectEntity }) => {
   return (
     <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
       <div className="flex items-start gap-4">

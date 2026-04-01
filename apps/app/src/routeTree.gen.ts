@@ -14,6 +14,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as PipelinesRouteImport } from './routes/pipelines'
 import { Route as CanvasRouteImport } from './routes/canvas'
+import { Route as BestPracticesRouteImport } from './routes/best-practices'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
@@ -44,6 +45,11 @@ const CanvasRoute = CanvasRouteImport.update({
   path: '/canvas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BestPracticesRoute = BestPracticesRouteImport.update({
+  id: '/best-practices',
+  path: '/best-practices',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AssistantRoute = AssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -69,6 +75,7 @@ const ProjectsProjectIdWorkspaceRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assistant': typeof AssistantRoute
+  '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
@@ -80,6 +87,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assistant': typeof AssistantRoute
+  '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/assistant': typeof AssistantRoute
+  '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/assistant'
+    | '/best-practices'
     | '/canvas'
     | '/pipelines'
     | '/projects'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/assistant'
+    | '/best-practices'
     | '/canvas'
     | '/pipelines'
     | '/projects'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/assistant'
+    | '/best-practices'
     | '/canvas'
     | '/pipelines'
     | '/projects'
@@ -139,6 +151,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AssistantRoute: typeof AssistantRoute
+  BestPracticesRoute: typeof BestPracticesRoute
   CanvasRoute: typeof CanvasRoute
   PipelinesRoute: typeof PipelinesRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/canvas'
       fullPath: '/canvas'
       preLoaderRoute: typeof CanvasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/best-practices': {
+      id: '/best-practices'
+      path: '/best-practices'
+      fullPath: '/best-practices'
+      preLoaderRoute: typeof BestPracticesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/assistant': {
@@ -240,6 +260,7 @@ const ProjectsRouteWithChildren = ProjectsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssistantRoute: AssistantRoute,
+  BestPracticesRoute: BestPracticesRoute,
   CanvasRoute: CanvasRoute,
   PipelinesRoute: PipelinesRoute,
   ProjectsRoute: ProjectsRouteWithChildren,

@@ -6,6 +6,7 @@ import {
   Settings,
   Layers,
   FolderGit2,
+  Lightbulb,
 } from "lucide-react";
 import {
   Sidebar,
@@ -34,6 +35,7 @@ const navItems: NavItem[] = [
   { label: "Pipelines", icon: Layers, to: "/pipelines" },
   { label: "Canvas", icon: Workflow, to: "/canvas", badge: "新" },
   { label: "技能库", icon: BookOpen, to: "/skills" },
+  { label: "最佳实践", icon: Lightbulb, to: "/best-practices" },
 ];
 
 export const AppSidebar = () => {

@@ -24,7 +24,7 @@ type ObjectItem = {
   label: string;
 };
 
-function buildObjectTree(owner: string, repo: string): ObjectItem[] {
+const buildObjectTree = (owner: string, repo: string): ObjectItem[] => {
   return [
     { type: "project", path: "/", label: `${owner}/${repo} (整个项目)` },
     { type: "folder", path: "src/", label: "src/" },
@@ -41,7 +41,7 @@ const OBJECT_ICONS: Record<WorkObject["type"], React.ElementType> = {
   file: FileCode,
 };
 
-function ObjectRow({
+const ObjectRow = ({
   item,
   selected,
   onToggle,
@@ -49,7 +49,7 @@ function ObjectRow({
   item: ObjectItem;
   selected: boolean;
   onToggle: () => void;
-}) {
+}) => {
   const Icon = OBJECT_ICONS[item.type];
   return (
     <button
@@ -83,7 +83,7 @@ function ObjectRow({
   );
 }
 
-function PipelineRow({
+const PipelineRow = ({
   pipeline,
   selected,
   onSelect,
@@ -91,7 +91,7 @@ function PipelineRow({
   pipeline: PipelineEntity;
   selected: boolean;
   onSelect: () => void;
-}) {
+}) => {
   return (
     <button
       onClick={onSelect}
