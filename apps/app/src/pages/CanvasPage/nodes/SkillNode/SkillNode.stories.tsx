@@ -24,7 +24,6 @@ type Story = StoryObj<typeof SkillNode>;
 
 export const Default: Story = {
   args: {
-    id: "skill-1",
     data: {
       nodeType: "skill",
       label: "文本摘要",
@@ -37,7 +36,6 @@ export const Default: Story = {
 
 export const Running: Story = {
   args: {
-    id: "skill-2",
     data: {
       nodeType: "skill",
       label: "情感分析",
@@ -49,7 +47,6 @@ export const Running: Story = {
 
 export const Pass: Story = {
   args: {
-    id: "skill-3",
     data: {
       nodeType: "skill",
       label: "关键词提取",
@@ -62,7 +59,6 @@ export const Pass: Story = {
 
 export const Fail: Story = {
   args: {
-    id: "skill-4",
     data: {
       nodeType: "skill",
       label: "翻译",
@@ -74,7 +70,6 @@ export const Fail: Story = {
 
 export const NoSkillName: Story = {
   args: {
-    id: "skill-5",
     data: {
       nodeType: "skill",
       label: "未配置技能",
@@ -86,7 +81,6 @@ export const NoSkillName: Story = {
 
 export const Selected: Story = {
   args: {
-    id: "skill-6",
     data: {
       nodeType: "skill",
       label: "文本摘要",

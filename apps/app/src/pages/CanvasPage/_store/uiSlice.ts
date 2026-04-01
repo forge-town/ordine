@@ -2,6 +2,19 @@ import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
 
 export type SidebarPanel = "components" | "properties" | "ai-assistant" | null;
 
+export interface ContextMenuState {
+  screenX: number;
+  screenY: number;
+  flowX: number;
+  flowY: number;
+}
+
+export interface ConnectStartState {
+  nodeId: string;
+  handleId: string | null;
+  handleType: "source" | "target" | null;
+}
+
 export interface UISlice {
   pipelineId: string | null;
   pipelineName: string;
@@ -9,12 +22,17 @@ export interface UISlice {
   isSidebarOpen: boolean;
   isPropertiesPanelOpen: boolean;
   isAiAssistantOpen: boolean;
+  contextMenu: ContextMenuState | null;
+  connectStart: ConnectStartState | null;
 
   setSidebarPanel: (panel: SidebarPanel) => void;
   toggleSidebar: () => void;
   openPropertiesPanel: () => void;
   closePropertiesPanel: () => void;
   toggleAiAssistant: () => void;
+  openContextMenu: (state: ContextMenuState) => void;
+  closeContextMenu: () => void;
+  setConnectStart: (state: ConnectStartState | null) => void;
 }
 
 export const createUISlice = (
@@ -28,6 +46,8 @@ export const createUISlice = (
   isSidebarOpen: true,
   isPropertiesPanelOpen: false,
   isAiAssistantOpen: false,
+  contextMenu: null,
+  connectStart: null,
 
   setSidebarPanel: (panel) => {
     set({ sidebarPanel: panel });
@@ -47,5 +67,17 @@ export const createUISlice = (
 
   toggleAiAssistant: () => {
     set((state) => ({ isAiAssistantOpen: !state.isAiAssistantOpen }));
+  },
+
+  openContextMenu: (state) => {
+    set({ contextMenu: state });
+  },
+
+  closeContextMenu: () => {
+    set({ contextMenu: null });
+  },
+
+  setConnectStart: (state) => {
+    set({ connectStart: state });
   },
 });

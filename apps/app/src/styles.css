@@ -142,6 +142,17 @@
   font-family: inherit;
 }
 
+/* Remove padding from React Flow nodes */
+.react-flow__node-input,
+.react-flow__node-default,
+.react-flow__node-output,
+.react-flow__node-group {
+  padding: 0 !important;
+  --xy-node-border: transparent;
+  --xy-node-boxshadow-selected: transparent;
+  border: none !important;
+}
+
 .react-flow__edge-path {
   stroke-width: 2;
 }

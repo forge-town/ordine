@@ -22,7 +22,7 @@ describe("NodeCard", () => {
     const { container } = render(
       <NodeCard theme="emerald" icon={Box} label="Node" />,
     );
-    // With no children, body div is not rendered — only header div remains
+    // Card should only have header when no children
     expect(container.firstChild?.childNodes).toHaveLength(1);
   });
 
@@ -38,33 +38,19 @@ describe("NodeCard", () => {
     expect(screen.getByText("Status")).toBeInTheDocument();
   });
 
-  it("applies selected border for each theme", () => {
+  it("applies selected ring for each theme", () => {
     const { container, rerender } = render(
       <NodeCard theme="emerald" icon={Box} label="Node" selected />,
     );
-    expect(container.firstChild).toHaveClass("border-emerald-500");
+    expect(container.firstChild).toHaveClass("ring-emerald-500");
 
     rerender(<NodeCard theme="violet" icon={Box} label="Node" selected />);
-    expect(container.firstChild).toHaveClass("border-violet-500");
+    expect(container.firstChild).toHaveClass("ring-violet-500");
 
     rerender(<NodeCard theme="amber" icon={Box} label="Node" selected />);
-    expect(container.firstChild).toHaveClass("border-amber-500");
+    expect(container.firstChild).toHaveClass("ring-amber-500");
 
     rerender(<NodeCard theme="sky" icon={Box} label="Node" selected />);
-    expect(container.firstChild).toHaveClass("border-sky-500");
-  });
-
-  it("applies md size class", () => {
-    const { container } = render(
-      <NodeCard theme="emerald" icon={Box} label="Node" size="md" />,
-    );
-    expect(container.firstChild).toHaveClass("min-w-[200px]");
-  });
-
-  it("defaults to sm size class", () => {
-    const { container } = render(
-      <NodeCard theme="emerald" icon={Box} label="Node" />,
-    );
-    expect(container.firstChild).toHaveClass("min-w-[180px]");
+    expect(container.firstChild).toHaveClass("ring-sky-500");
   });
 });

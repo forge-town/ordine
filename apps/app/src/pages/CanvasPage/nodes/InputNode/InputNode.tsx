@@ -1,16 +1,14 @@
 import { Handle, Position } from "@xyflow/react";
 import { LogIn } from "lucide-react";
 import type { InputNodeData } from "../../_store";
-import { QuickAddButton } from "../../components/QuickAddButton";
 import { NodeCard } from "../NodeCard";
 
 export interface InputNodeProps {
-  id: string;
   data: InputNodeData;
   selected?: boolean;
 }
 
-export const InputNode = ({ id, data, selected }: InputNodeProps) => (
+export const InputNode = ({ data, selected }: InputNodeProps) => (
   <div className="group relative" style={{ overflow: "visible" }}>
     <NodeCard
       theme="emerald"
@@ -29,15 +27,10 @@ export const InputNode = ({ id, data, selected }: InputNodeProps) => (
         </p>
       )}
     </NodeCard>
-
     <Handle
+      className="absolute z-10 h-3.5 w-3.5 rounded-full bg-emerald-500 border-[3px] border-white shadow-sm transition-all hover:scale-110 -right-1.5 top-1/2 -mt-1.5"
       type="source"
       position={Position.Right}
-      className="!h-3.5 !w-3.5 !rounded-full !bg-emerald-500 !border-[3px] !border-white !shadow-sm transition-all hover:!scale-110"
     />
-
-    <div className="opacity-0 group-[.selected]:opacity-100 group-hover:opacity-100 transition-opacity duration-200 absolute right-[-8px] top-1/2 translate-x-full -translate-y-1/2 z-50">
-      <QuickAddButton nodeId={id} nodeType="input" />
-    </div>
   </div>
 );

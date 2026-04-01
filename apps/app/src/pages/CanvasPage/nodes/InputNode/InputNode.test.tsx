@@ -19,23 +19,23 @@ const baseData = {
 
 describe("InputNode", () => {
   it("renders label", () => {
-    render(<InputNode id="1" data={baseData} />, { wrapper });
+    render(<InputNode data={baseData} />, { wrapper });
     expect(screen.getByText("用户输入")).toBeInTheDocument();
   });
 
   it("renders contextDescription", () => {
-    render(<InputNode id="1" data={baseData} />, { wrapper });
+    render(<InputNode data={baseData} />, { wrapper });
     expect(screen.getByText("来自用户的请求信息")).toBeInTheDocument();
   });
 
   it("renders exampleValue when provided", () => {
-    render(<InputNode id="1" data={baseData} />, { wrapper });
+    render(<InputNode data={baseData} />, { wrapper });
     expect(screen.getByText('{ "query": "hello" }')).toBeInTheDocument();
   });
 
   it("does not render exampleValue pill when absent", () => {
     render(
-      <InputNode id="1" data={{ ...baseData, exampleValue: undefined }} />,
+      <InputNode data={{ ...baseData, exampleValue: undefined }} />,
       { wrapper },
     );
     expect(screen.queryByText(/query/)).not.toBeInTheDocument();

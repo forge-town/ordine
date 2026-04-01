@@ -21,7 +21,6 @@ type Story = StoryObj<typeof OutputNode>;
 
 export const Default: Story = {
   args: {
-    id: "output-1",
     data: {
       nodeType: "output",
       label: "最终报告",
@@ -33,7 +32,6 @@ export const Default: Story = {
 
 export const Selected: Story = {
   args: {
-    id: "output-2",
     data: {
       nodeType: "output",
       label: "分析结果",
@@ -45,7 +43,6 @@ export const Selected: Story = {
 
 export const MinimalData: Story = {
   args: {
-    id: "output-3",
     data: {
       nodeType: "output",
       label: "输出节点",
@@ -55,7 +52,6 @@ export const MinimalData: Story = {
 
 export const WithNotesOnly: Story = {
   args: {
-    id: "output-4",
     data: {
       nodeType: "output",
       label: "通知发送",

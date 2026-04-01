@@ -2,11 +2,9 @@ import { Handle, Position } from "@xyflow/react";
 import { Wand2, CheckCircle2, XCircle, Loader2, Circle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import type { SkillNodeData, NodeRunStatus } from "../../_store";
-import { QuickAddButton } from "../../components/QuickAddButton";
 import { NodeCard } from "../NodeCard";
 
 export interface SkillNodeProps {
-  id: string;
   data: SkillNodeData;
   selected?: boolean;
 }
@@ -25,7 +23,7 @@ const statusConfig: Record<
   fail: { icon: XCircle, color: "text-red-500", bg: "bg-red-50" },
 };
 
-export const SkillNode = ({ id, data, selected }: SkillNodeProps) => {
+export const SkillNode = ({ data, selected }: SkillNodeProps) => {
   const { icon: StatusIcon, color, bg } = statusConfig[data.status ?? "idle"];
 
   return (
@@ -62,17 +60,13 @@ export const SkillNode = ({ id, data, selected }: SkillNodeProps) => {
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-3.5 !w-3.5 !rounded-full !bg-violet-500 !border-[3px] !border-white !shadow-sm transition-all hover:!scale-110"
+        className="absolute h-3.5 w-3.5 rounded-full bg-violet-500 border-[3px] border-white shadow-sm transition-all hover:scale-110 -left-1.5 top-1/2 -mt-1.5"
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-3.5 !w-3.5 !rounded-full !bg-violet-500 !border-[3px] !border-white !shadow-sm transition-all hover:!scale-110"
+        className="absolute h-3.5 w-3.5 rounded-full bg-violet-500 border-[3px] border-white shadow-sm transition-all hover:scale-110 -right-1.5 top-1/2 -mt-1.5"
       />
-
-      <div className="opacity-0 group-[.selected]:opacity-100 group-hover:opacity-100 transition-opacity duration-200 absolute right-[-8px] top-1/2 translate-x-full -translate-y-1/2 z-50">
-        <QuickAddButton nodeId={id} nodeType="skill" />
-      </div>
     </div>
   );
 };

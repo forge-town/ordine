@@ -24,7 +24,6 @@ type Story = StoryObj<typeof InputNode>;
 
 export const Default: Story = {
   args: {
-    id: "input-1",
     data: {
       nodeType: "input",
       label: "用户输入",
@@ -36,7 +35,6 @@ export const Default: Story = {
 
 export const Selected: Story = {
   args: {
-    id: "input-2",
     data: {
       nodeType: "input",
       label: "系统提示词",
@@ -48,7 +46,6 @@ export const Selected: Story = {
 
 export const NoExampleValue: Story = {
   args: {
-    id: "input-3",
     data: {
       nodeType: "input",
       label: "文档上传",

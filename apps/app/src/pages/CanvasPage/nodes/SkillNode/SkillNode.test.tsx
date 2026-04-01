@@ -20,29 +20,29 @@ const baseData = {
 
 describe("SkillNode", () => {
   it("renders label", () => {
-    render(<SkillNode id="1" data={baseData} />, { wrapper });
+    render(<SkillNode data={baseData} />, { wrapper });
     expect(screen.getByText("文本摘要")).toBeInTheDocument();
   });
 
   it("renders skillName", () => {
-    render(<SkillNode id="1" data={baseData} />, { wrapper });
+    render(<SkillNode data={baseData} />, { wrapper });
     expect(screen.getByText("summarize-text")).toBeInTheDocument();
   });
 
   it("renders acceptanceCriteria when provided", () => {
-    render(<SkillNode id="1" data={baseData} />, { wrapper });
+    render(<SkillNode data={baseData} />, { wrapper });
     expect(screen.getByText("✓ 输出不超过100字")).toBeInTheDocument();
   });
 
   it("renders placeholder when skillName is empty", () => {
-    render(<SkillNode id="1" data={{ ...baseData, skillName: "" }} />, {
+    render(<SkillNode data={{ ...baseData, skillName: "" }} />, {
       wrapper,
     });
     expect(screen.getByText("未设置 skill")).toBeInTheDocument();
   });
 
   it("shows idle status icon by default", () => {
-    render(<SkillNode id="1" data={{ ...baseData, status: undefined }} />, {
+    render(<SkillNode data={{ ...baseData, status: undefined }} />, {
       wrapper,
     });
     // Only label rendered, no status text

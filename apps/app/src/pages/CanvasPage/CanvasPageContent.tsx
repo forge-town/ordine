@@ -1,39 +1,16 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useStore } from "zustand";
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  BackgroundVariant,
-  useReactFlow,
-  ReactFlowProvider,
-} from "@xyflow/react";
+import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import { useHarnessCanvasStore } from "./_store";
-import { InputNode } from "./nodes/InputNode";
-import { SkillNode } from "./nodes/SkillNode";
-import { ConditionNode } from "./nodes/ConditionNode";
-import { OutputNode } from "./nodes/OutputNode";
 import { CanvasToolbar } from "./components/CanvasToolbar";
+import { CanvasFlow } from "./components/CanvasFlow";
 import { PropertiesPanel } from "./components/PropertiesPanel";
 import { AiAssistantPanel } from "./components/AiAssistantPanel";
 import { CanvasContextMenu } from "./components/CanvasContextMenu";
 import { CanvasFloatingMenu } from "./components/CanvasFloatingMenu";
 import { updatePipeline } from "@/services/pipelinesService";
-
-const nodeTypes = {
-  input: InputNode,
-  skill: SkillNode,
-  condition: ConditionNode,
-  output: OutputNode,
-} as const;
-
-const defaultEdgeOptions = {
-  type: "smoothstep",
-  animated: true,
-  style: { stroke: "#94a3b8", strokeWidth: 2 },
-};
 
 // 全局处理器（不依赖组件状态）
 const handleUndo = () => {
@@ -53,19 +30,16 @@ const handleExport = () => {
 
 const CanvasInner = () => {
   const store = useHarnessCanvasStore();
+
+  // 使用浅比较选择器，避免不必要重渲染
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const pipelineName = useStore(store, (state) => state.pipelineName);
+  const contextMenu = useStore(store, (state) => state.contextMenu);
+  const closeContextMenu = useStore(store, (state) => state.closeContextMenu);
 
-  const { fitView, zoomIn, zoomOut, screenToFlowPosition } = useReactFlow();
-
-  const [contextMenu, setContextMenu] = useState<{
-    screenX: number;
-    screenY: number;
-    flowX: number;
-    flowY: number;
-  } | null>(null);
+  const { fitView, zoomIn, zoomOut } = useReactFlow();
 
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
     "idle",
@@ -92,50 +66,8 @@ const CanvasInner = () => {
     }
   };
 
-  const handleNodeClick = useCallback(
-    (_: React.MouseEvent, node: { id: string }) => {
-      store.getState().selectNode(node.id);
-      store.getState().openPropertiesPanel();
-      setContextMenu(null);
-    },
-    [store],
-  );
-
-  const handleEdgeClick = useCallback(
-    (_: React.MouseEvent, edge: { id: string }) => {
-      store.getState().selectEdge(edge.id);
-      store.getState().openPropertiesPanel();
-      setContextMenu(null);
-    },
-    [store],
-  );
-
-  const handlePaneClick = useCallback(() => {
-    store.getState().selectNode(null);
-    store.getState().selectEdge(null);
-    store.getState().closePropertiesPanel();
-    setContextMenu(null);
-  }, [store]);
-
-  const handlePaneContextMenu = useCallback(
-    (e: React.MouseEvent | MouseEvent) => {
-      e.preventDefault();
-      const clientX = "clientX" in e ? e.clientX : 0;
-      const clientY = "clientY" in e ? e.clientY : 0;
-      const flowPos = screenToFlowPosition({ x: clientX, y: clientY });
-      setContextMenu({
-        screenX: clientX,
-        screenY: clientY,
-        flowX: flowPos.x,
-        flowY: flowPos.y,
-      });
-    },
-    [screenToFlowPosition],
-  );
-
   return (
     <div className="relative h-full w-full">
-      {/* 浮动菜单 */}
       <CanvasFloatingMenu
         onSave={pipelineId ? handleSave : undefined}
         onExport={handleExport}
@@ -143,9 +75,8 @@ const CanvasInner = () => {
         onRedo={handleRedo}
       />
 
-      {/* 顶部标题栏 */}
-      <div className="absolute left-16 right-4 top-4 z-40 flex items-center justify-between pointer-events-none">
-        <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white/90 px-4 py-1.5 shadow-sm backdrop-blur-sm pointer-events-auto">
+      <div className="pointer-events-none absolute left-16 right-4 top-4 z-40 flex items-center justify-between">
+        <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-gray-200 bg-white/90 px-4 py-1.5 shadow-sm backdrop-blur-sm">
           <span className="text-sm font-medium text-gray-700">
             {pipelineName || "无标题 Pipeline"}
           </span>
@@ -164,42 +95,7 @@ const CanvasInner = () => {
         onZoomOut={() => zoomOut()}
       />
 
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={(changes) => {
-          store.getState().onNodesChange(changes);
-        }}
-        onEdgesChange={(changes) => {
-          store.getState().onEdgesChange(changes);
-        }}
-        onConnect={(connection) => {
-          store.getState().onConnect(connection);
-        }}
-        onNodeClick={handleNodeClick}
-        onEdgeClick={handleEdgeClick}
-        onPaneClick={handlePaneClick}
-        onPaneContextMenu={handlePaneContextMenu}
-        nodeTypes={nodeTypes}
-        defaultEdgeOptions={defaultEdgeOptions}
-        fitView
-        fitViewOptions={{ padding: 0.15 }}
-        proOptions={{ hideAttribution: false }}
-        className="bg-slate-50/50"
-        deleteKeyCode={["Backspace", "Delete"]}
-      >
-        <Background
-          variant={BackgroundVariant.Dots}
-          gap={24}
-          size={1.5}
-          color="#cbd5e1"
-        />
-        <Controls
-          position="bottom-left"
-          showInteractive
-          className="border-gray-200! bg-white! shadow-sm!"
-        />
-      </ReactFlow>
+      <CanvasFlow />
 
       <PropertiesPanel />
       <AiAssistantPanel />
@@ -210,7 +106,7 @@ const CanvasInner = () => {
           screenY={contextMenu.screenY}
           flowX={contextMenu.flowX}
           flowY={contextMenu.flowY}
-          onClose={() => setContextMenu(null)}
+          onClose={closeContextMenu}
         />
       )}
     </div>

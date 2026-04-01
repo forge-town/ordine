@@ -24,7 +24,6 @@ type Story = StoryObj<typeof ConditionNode>;
 
 export const Default: Story = {
   args: {
-    id: "condition-1",
     data: {
       nodeType: "condition",
       label: "质量检查",
@@ -37,7 +36,6 @@ export const Default: Story = {
 
 export const Running: Story = {
   args: {
-    id: "condition-2",
     data: {
       nodeType: "condition",
       label: "相关性验证",
@@ -50,7 +48,6 @@ export const Running: Story = {
 
 export const Pass: Story = {
   args: {
-    id: "condition-3",
     data: {
       nodeType: "condition",
       label: "长度检查",
@@ -63,7 +60,6 @@ export const Pass: Story = {
 
 export const Fail: Story = {
   args: {
-    id: "condition-4",
     data: {
       nodeType: "condition",
       label: "格式验证",
@@ -76,7 +72,6 @@ export const Fail: Story = {
 
 export const NoExpression: Story = {
   args: {
-    id: "condition-5",
     data: {
       nodeType: "condition",
       label: "未配置条件",
@@ -89,7 +84,6 @@ export const NoExpression: Story = {
 
 export const Selected: Story = {
   args: {
-    id: "condition-6",
     data: {
       nodeType: "condition",
       label: "质量检查",
