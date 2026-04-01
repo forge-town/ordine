@@ -108,7 +108,7 @@ export const createCanvasSlice = (
         edges: addEdge(
           {
             ...connection,
-            type: "smoothstep",
+            type: "default",
             animated: targetNode.type !== "output",
             data: {},
           },
@@ -142,7 +142,7 @@ export const createCanvasSlice = (
         id: `e-${sourceId}-${newId}`,
         source: sourceId,
         target: newId,
-        type: "smoothstep",
+        type: "default",
         animated: targetType !== "output",
         data: {},
       };

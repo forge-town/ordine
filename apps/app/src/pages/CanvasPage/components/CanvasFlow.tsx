@@ -65,7 +65,7 @@ export const CanvasFlow = () => {
   // 使用 useMemo 缓存 defaultEdgeOptions
   const defaultEdgeOptions = useMemo(
     () => ({
-      type: "smoothstep" as const,
+      type: "default" as const,
       animated: true,
       style: { stroke: "#94a3b8", strokeWidth: 2 },
     }),
