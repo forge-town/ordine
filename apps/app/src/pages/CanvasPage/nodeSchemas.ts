@@ -133,18 +133,16 @@ export const PipelineEdgeDataSchema = z.object({
 export type PipelineEdgeData = z.infer<typeof PipelineEdgeDataSchema> &
   Record<string, unknown>;
 
-// ─── Connectivity rules ───────────────────────────────────────────────────────
-
 // ─── Node categories ─────────────────────────────────────────────────────────
 
-/** Object nodes represent subjects/inputs being operated on. */
+/** Object nodes — the subjects being operated on. */
 export const OBJECT_TYPES: ObjectNodeType[] = [
   "code-file",
   "folder",
   "github-project",
 ];
 
-/** Operation nodes represent transformations/steps in the pipeline. */
+/** The single operation node type. */
 export const OPERATION_TYPE: OperationNodeType = "operation";
 
 /** Output node types — pipeline endpoints (no outgoing connections). */
@@ -153,84 +151,63 @@ export const OUTPUT_TYPES: OutputNodeType[] = [
   "output-local-path",
 ];
 
-/** Get allowed connections based on available operations. */
-export const getAllowedConnections = (
-  _operations: OperationEntity[],
-): Record<NodeType, NodeType[]> => {
-  // Objects connect to operations
-  const objectToOperations: NodeType[] = ["operation"];
-
-  // Operations can chain to other operations or terminate at output nodes
-  const operationToTargets: NodeType[] = [
-    "operation",
-    "output-project-path",
-    "output-local-path",
-  ];
-
-  return {
-    // Objects → operations
-    "code-file": objectToOperations,
-    folder: objectToOperations,
-    "github-project": objectToOperations,
-    // Operations → operations or outputs
-    operation: operationToTargets,
-    // Output nodes are endpoints — no outgoing connections
-    "output-project-path": [],
-    "output-local-path": [],
-  };
-};
-
-/** Legacy static allowed connections (for backward compatibility). */
-export const allowedConnections: Record<NodeType, NodeType[]> = {
-  "code-file": ["operation"],
-  folder: ["operation"],
-  "github-project": ["operation"],
-  operation: ["operation", "output-project-path", "output-local-path"],
-  "output-project-path": [],
-  "output-local-path": [],
-};
+// ─── Connectivity rules (schema-first) ───────────────────────────────────────
 
 /**
- * Check if a connection is allowed.
+ * Zod schema for the connection-topology map.
+ * Every NodeType key must be present; every value must be an array of
+ * valid NodeType values.  Adding a new NodeType to NodeTypeSchema and
+ * forgetting to add it here will be caught by TypeScript's satisfies check.
  */
+export const NodeConnectionRulesSchema = z.object({
+  "code-file": z.array(NodeTypeSchema),
+  folder: z.array(NodeTypeSchema),
+  "github-project": z.array(NodeTypeSchema),
+  operation: z.array(NodeTypeSchema),
+  "output-project-path": z.array(NodeTypeSchema),
+  "output-local-path": z.array(NodeTypeSchema),
+});
+export type NodeConnectionRules = z.infer<typeof NodeConnectionRulesSchema>;
+
+/**
+ * Single source of truth for the pipeline connection topology.
+ * Edit ONLY this object to change which node types can connect to which.
+ * Validated by NodeConnectionRulesSchema at module load.
+ */
+export const NODE_CONNECTION_RULES: NodeConnectionRules =
+  NodeConnectionRulesSchema.parse({
+    // Objects can only feed into operations
+    "code-file": ["operation"],
+    folder: ["operation"],
+    "github-project": ["operation"],
+    // Operations can chain or terminate at an output node
+    operation: ["operation", "output-project-path", "output-local-path"],
+    // Output nodes are pipeline endpoints — no outgoing edges
+    "output-project-path": [],
+    "output-local-path": [],
+  } satisfies Record<NodeType, NodeType[]>);
+
+/**
+ * Returns the connection-topology rules.
+ * The optional `_operations` param is kept for API compatibility;
+ * which *instances* to show in a menu is a UI concern separate from topology.
+ */
+export const getAllowedConnections = (
+  _operations?: OperationEntity[],
+): NodeConnectionRules => NODE_CONNECTION_RULES;
+
+/** Alias for direct lookup without a function call. */
+export const allowedConnections = NODE_CONNECTION_RULES;
+
+/** Returns true when sourceType → targetType is a permitted edge. */
 export const isConnectionAllowed = (
   sourceType: NodeType,
   targetType: NodeType,
-  operations: OperationEntity[],
-  targetOperationId?: string,
-): boolean => {
-  const connections = getAllowedConnections(operations);
-  const allowed = connections[sourceType] ?? [];
-
-  if (!allowed.includes(targetType)) return false;
-
-  // For operation targets, check if it accepts the source object type
-  if (targetType === "operation" && targetOperationId) {
-    const operation = operations.find((op) => op.id === targetOperationId);
-    if (!operation) return false;
-
-    // Map node type to object type
-    const objectTypeMap: Record<string, string> = {
-      "code-file": "file",
-      folder: "folder",
-      "github-project": "project",
-    };
-    const objectType = objectTypeMap[sourceType];
-    if (!objectType) return false;
-
-    return (
-      operation.acceptedObjectTypes?.includes(
-        objectType as "file" | "folder" | "project",
-      ) ?? true
-    );
-  }
-
-  return true;
-};
+): boolean => NODE_CONNECTION_RULES[sourceType]?.includes(targetType) ?? false;
 
 /**
  * Runtime validator for a manual edge drag.
- * Returns a safe parse error when the connection is not allowed.
+ * Returns a safe-parse error when the connection is not allowed.
  */
 export const ConnectionRuleSchema = z
   .object({
@@ -239,7 +216,7 @@ export const ConnectionRuleSchema = z
   })
   .refine(
     ({ sourceType, targetType }) =>
-      allowedConnections[sourceType]?.includes(targetType),
+      NODE_CONNECTION_RULES[sourceType]?.includes(targetType),
     { message: "此节点类型间不允许连接" },
   );
 

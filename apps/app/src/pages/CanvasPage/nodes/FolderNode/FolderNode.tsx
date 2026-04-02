@@ -43,11 +43,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
         />
       </NodeCard>
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        className="absolute h-3.5 w-3.5 rounded-full bg-orange-400 border-[3px] border-white shadow-sm transition-all hover:scale-110 -left-1.5 top-1/2 -mt-1.5"
-      />
+      {/* Object nodes only emit connections — no target handle */}
       <Handle
         type="source"
         position={Position.Right}

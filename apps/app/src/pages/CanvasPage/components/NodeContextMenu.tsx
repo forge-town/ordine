@@ -306,6 +306,38 @@ export const NodeContextMenu = ({
               </p>
             </div>
           )}
+
+          {/* Output nodes */}
+          {(["output-project-path", "output-local-path"] as NodeType[]).some(
+            (t) => availableTypes.includes(t),
+          ) && (
+            <div>
+              <div className="my-1 border-t border-border/40" />
+              <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                输出终点
+              </p>
+              {(["output-project-path", "output-local-path"] as NodeType[])
+                .filter((t) => availableTypes.includes(t))
+                .map((type) => {
+                  const Icon = TYPE_ICONS[type];
+                  const m = nodeTypeMeta[type];
+                  return (
+                    <button
+                      key={type}
+                      className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-accent"
+                      onClick={() => handleAddObject(type)}
+                    >
+                      <span
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${m.iconBg}`}
+                      >
+                        <Icon className="h-2.5 w-2.5 text-white" />
+                      </span>
+                      {m.label}
+                    </button>
+                  );
+                })}
+            </div>
+          )}
         </div>
       )}
     </>

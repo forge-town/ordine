@@ -1,6 +1,13 @@
 import { useEffect } from "react";
 import { useStore } from "zustand";
-import { Plus, Zap, FileCode, Folder, HardDrive, FolderOutput } from "lucide-react";
+import {
+  Plus,
+  Zap,
+  FileCode,
+  Folder,
+  HardDrive,
+  FolderOutput,
+} from "lucide-react";
 import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../_store";
 import {
@@ -50,7 +57,7 @@ export const ConnectionMenu = ({
 
   const allowedConnections = getAllowedConnections(operations);
   const availableTypes: NodeType[] = sourceNode
-    ? allowedConnections[sourceNode.type] ?? []
+    ? (allowedConnections[sourceNode.type] ?? [])
     : [];
 
   // Filter operations based on source type
@@ -64,7 +71,9 @@ export const ConnectionMenu = ({
     const objectType = objectTypeMap[sourceNode.type];
     if (!objectType) return operations;
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project"),
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "project",
+      ),
     );
   })();
 
@@ -266,6 +275,44 @@ export const ConnectionMenu = ({
               <p className="px-3 py-2 text-[10px] text-muted-foreground">
                 没有接受此类型的 Operation
               </p>
+            </div>
+          )}
+
+          {/* Output node types */}
+          {(["output-project-path", "output-local-path"] as NodeType[]).some(
+            (t) => availableTypes.includes(t),
+          ) && (
+            <div>
+              <div className="my-1 border-t border-border/50" />
+              <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+                输出终点
+              </p>
+              {(["output-project-path", "output-local-path"] as NodeType[])
+                .filter((t) => availableTypes.includes(t))
+                .map((type) => {
+                  const Icon = TYPE_ICONS[type];
+                  const meta = nodeTypeMeta[type];
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => handleSelectObject(type)}
+                      className="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <span
+                        className={cn(
+                          "flex h-6 w-6 shrink-0 items-center justify-center rounded",
+                          meta.iconBg,
+                        )}
+                      >
+                        <Icon className="h-3.5 w-3.5 text-white" />
+                      </span>
+                      <span className="text-xs font-medium text-foreground">
+                        {meta.label}
+                      </span>
+                      <Plus className="ml-auto h-3 w-3 text-muted-foreground" />
+                    </button>
+                  );
+                })}
             </div>
           )}
         </div>
