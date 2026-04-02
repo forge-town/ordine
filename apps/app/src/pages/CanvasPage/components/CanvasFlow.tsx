@@ -31,14 +31,6 @@ export const CanvasFlow = () => {
   const onConnect = useStore(store, (state) => state.onConnect);
   const selectNode = useStore(store, (state) => state.selectNode);
   const selectEdge = useStore(store, (state) => state.selectEdge);
-  const openPropertiesPanel = useStore(
-    store,
-    (state) => state.openPropertiesPanel,
-  );
-  const closePropertiesPanel = useStore(
-    store,
-    (state) => state.closePropertiesPanel,
-  );
   const openContextMenu = useStore(store, (state) => state.openContextMenu);
   const closeContextMenu = useStore(store, (state) => state.closeContextMenu);
   const openConnectionMenu = useStore(
@@ -48,6 +40,14 @@ export const CanvasFlow = () => {
   const closeConnectionMenu = useStore(
     store,
     (state) => state.closeConnectionMenu,
+  );
+  const openNodeContextMenu = useStore(
+    store,
+    (state) => state.openNodeContextMenu,
+  );
+  const closeNodeContextMenu = useStore(
+    store,
+    (state) => state.closeNodeContextMenu,
   );
   const setConnectStart = useStore(store, (state) => state.setConnectStart);
 
@@ -145,17 +145,30 @@ export const CanvasFlow = () => {
 
   const handleNodeClick = (_: React.MouseEvent, node: PipelineNode) => {
     selectNode(node.id);
-    openPropertiesPanel();
     closeContextMenu();
     closeConnectionMenu();
+    closeNodeContextMenu();
+    setConnectStart(null);
+  };
+
+  const handleNodeContextMenu = (e: React.MouseEvent, node: PipelineNode) => {
+    e.preventDefault();
+    selectNode(node.id);
+    closeContextMenu();
+    closeConnectionMenu();
+    openNodeContextMenu({
+      screenX: e.clientX,
+      screenY: e.clientY,
+      nodeId: node.id,
+    });
     setConnectStart(null);
   };
 
   const handleEdgeClick = (_: React.MouseEvent, edge: PipelineEdge) => {
     selectEdge(edge.id);
-    openPropertiesPanel();
     closeContextMenu();
     closeConnectionMenu();
+    closeNodeContextMenu();
     setConnectStart(null);
   };
 
@@ -163,9 +176,9 @@ export const CanvasFlow = () => {
     if (shouldIgnorePaneClick.current) return;
     selectNode(null);
     selectEdge(null);
-    closePropertiesPanel();
     closeContextMenu();
     closeConnectionMenu();
+    closeNodeContextMenu();
     setConnectStart(null);
   };
 
@@ -194,6 +207,7 @@ export const CanvasFlow = () => {
       onConnectStart={handleConnectStart}
       onConnectEnd={handleConnectEnd}
       onNodeClick={handleNodeClick}
+      onNodeContextMenu={handleNodeContextMenu}
       onEdgeClick={handleEdgeClick}
       onPaneClick={handlePaneClick}
       onPaneContextMenu={handlePaneContextMenu}

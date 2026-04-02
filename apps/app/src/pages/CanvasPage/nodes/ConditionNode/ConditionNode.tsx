@@ -7,10 +7,15 @@ import {
   Circle,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import type { ConditionNodeData, NodeRunStatus } from "../../_store";
+import {
+  useHarnessCanvasStore,
+  type ConditionNodeData,
+  type NodeRunStatus,
+} from "../../_store";
 import { NodeCard } from "../NodeCard";
 
 export interface ConditionNodeProps {
+  id: string;
   data: ConditionNodeData;
   selected?: boolean;
 }
@@ -29,11 +34,14 @@ const statusConfig: Record<
   fail: { icon: XCircle, color: "text-red-500", label: "失败" },
 };
 
-export const ConditionNode = ({ data, selected }: ConditionNodeProps) => {
+export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
+  const store = useHarnessCanvasStore();
+  const update = (patch: Record<string, unknown>) =>
+    store.getState().updateNodeData(id, patch);
   const {
     icon: StatusIcon,
     color,
-    label,
+    label: statusLabel,
   } = statusConfig[data.status ?? "idle"];
 
   return (
@@ -42,6 +50,7 @@ export const ConditionNode = ({ data, selected }: ConditionNodeProps) => {
         theme="amber"
         icon={ShieldCheck}
         label={data.label}
+        onLabelChange={(v) => update({ label: v })}
         description="Condition Check"
         selected={selected}
         headerRight={
@@ -50,7 +59,7 @@ export const ConditionNode = ({ data, selected }: ConditionNodeProps) => {
             <span
               className={cn("text-[10px] font-semibold tracking-wide", color)}
             >
-              {label}
+              {statusLabel}
             </span>
           </div>
         }
@@ -60,21 +69,26 @@ export const ConditionNode = ({ data, selected }: ConditionNodeProps) => {
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Expression
           </p>
-          <p className="font-mono text-[12px] text-slate-700 line-clamp-2 px-1">
-            {data.expression || (
-              <span className="text-slate-400 italic">未设置表达式</span>
-            )}
-          </p>
+          <textarea
+            className="nodrag nopan font-mono text-[11px] text-slate-700 bg-slate-50 rounded px-1 py-0.5 w-full resize-none focus:outline-none focus:ring-1 focus:ring-slate-200"
+            rows={2}
+            value={data.expression}
+            onChange={(e) => update({ expression: e.target.value })}
+            placeholder="未设置表达式"
+            onMouseDown={(e) => e.stopPropagation()}
+          />
         </div>
         <div className="space-y-1">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Expected
           </p>
-          <p className="text-[12px] font-medium text-slate-600 line-clamp-1">
-            {data.expectedResult || (
-              <span className="text-slate-400 italic">...</span>
-            )}
-          </p>
+          <input
+            className="nodrag nopan text-[11px] font-medium text-slate-600 bg-slate-50 rounded px-1 py-0.5 w-full focus:outline-none focus:ring-1 focus:ring-slate-200"
+            value={data.expectedResult}
+            onChange={(e) => update({ expectedResult: e.target.value })}
+            placeholder="期望结果..."
+            onMouseDown={(e) => e.stopPropagation()}
+          />
         </div>
       </NodeCard>
 

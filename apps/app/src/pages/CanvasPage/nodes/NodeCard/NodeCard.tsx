@@ -61,6 +61,8 @@ export interface NodeCardProps {
   bodyClassName?: string;
   /** Description below the label inside header */
   description?: string;
+  /** When provided, the label becomes an inline editable input */
+  onLabelChange?: (value: string) => void;
 }
 
 export const NodeCard = ({
@@ -72,6 +74,7 @@ export const NodeCard = ({
   children,
   bodyClassName,
   description,
+  onLabelChange,
 }: NodeCardProps) => {
   const t = themeMap[theme] ?? themeMap.emerald;
 
@@ -96,9 +99,18 @@ export const NodeCard = ({
             <Icon className={cn("h-4 w-4", t.iconColor)} />
           </div>
           <div className="flex flex-col flex-1 min-w-0">
-            <CardTitle className="text-xs font-semibold truncate">
-              {label}
-            </CardTitle>
+            {onLabelChange ? (
+              <input
+                className="nodrag nopan bg-transparent text-xs font-semibold w-full focus:outline-none"
+                value={label}
+                onChange={(e) => onLabelChange(e.target.value)}
+                onMouseDown={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <CardTitle className="text-xs font-semibold truncate">
+                {label}
+              </CardTitle>
+            )}
             {description && (
               <CardDescription className="text-[10px] truncate">
                 {description}

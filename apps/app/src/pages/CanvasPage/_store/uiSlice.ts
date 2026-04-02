@@ -9,6 +9,12 @@ export interface ContextMenuState {
   flowY: number;
 }
 
+export interface NodeContextMenuState {
+  screenX: number;
+  screenY: number;
+  nodeId: string;
+}
+
 export interface ConnectStartState {
   nodeId: string;
   handleId: string | null;
@@ -24,6 +30,7 @@ export interface UISlice {
   isAiAssistantOpen: boolean;
   contextMenu: ContextMenuState | null;
   connectionMenu: ContextMenuState | null;
+  nodeContextMenu: NodeContextMenuState | null;
   connectStart: ConnectStartState | null;
 
   setSidebarPanel: (panel: SidebarPanel) => void;
@@ -35,6 +42,8 @@ export interface UISlice {
   closeContextMenu: () => void;
   openConnectionMenu: (state: ContextMenuState) => void;
   closeConnectionMenu: () => void;
+  openNodeContextMenu: (state: NodeContextMenuState) => void;
+  closeNodeContextMenu: () => void;
   setConnectStart: (state: ConnectStartState | null) => void;
 }
 
@@ -51,6 +60,7 @@ export const createUISlice = (
   isAiAssistantOpen: false,
   contextMenu: null,
   connectionMenu: null,
+  nodeContextMenu: null,
   connectStart: null,
 
   setSidebarPanel: (panel) => {
@@ -87,6 +97,14 @@ export const createUISlice = (
 
   closeConnectionMenu: () => {
     set({ connectionMenu: null });
+  },
+
+  openNodeContextMenu: (state) => {
+    set({ nodeContextMenu: state });
+  },
+
+  closeNodeContextMenu: () => {
+    set({ nodeContextMenu: null });
   },
 
   setConnectStart: (state) => {

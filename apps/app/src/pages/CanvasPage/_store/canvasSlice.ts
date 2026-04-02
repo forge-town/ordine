@@ -60,10 +60,11 @@ export interface CanvasSlice {
   addNode: (node: PipelineNode) => void;
   addNodeWithEdge: (sourceId: string, targetType: NodeType) => void;
   removeNode: (nodeId: string) => void;
-  updateNodeData: (nodeId: string, data: Partial<PipelineNodeData>) => void;
+  updateNodeData: (nodeId: string, data: Record<string, unknown>) => void;
   updateEdgeData: (edgeId: string, data: Partial<PipelineEdgeData>) => void;
   selectNode: (nodeId: string | null) => void;
   selectEdge: (edgeId: string | null) => void;
+  duplicateNode: (nodeId: string) => void;
   clearCanvas: () => void;
 }
 
@@ -193,6 +194,22 @@ export const createCanvasSlice = (
 
   selectEdge: (edgeId) => {
     set({ selectedEdgeId: edgeId, selectedNodeId: null });
+  },
+
+  duplicateNode: (nodeId) => {
+    set((state) => {
+      const source = state.nodes.find((n) => n.id === nodeId);
+      if (!source) return state;
+      const newId = `${source.type}-${Date.now()}`;
+      const newNode: PipelineNode = {
+        ...source,
+        id: newId,
+        position: { x: source.position.x + 40, y: source.position.y + 40 },
+        selected: false,
+        data: { ...source.data },
+      };
+      return { nodes: [...state.nodes, newNode] };
+    });
   },
 
   clearCanvas: () => {

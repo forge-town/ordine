@@ -6,10 +6,9 @@ import "@xyflow/react/dist/style.css";
 import { useHarnessCanvasStore } from "./_store";
 import { CanvasToolbar } from "./components/CanvasToolbar";
 import { CanvasFlow } from "./components/CanvasFlow";
-import { PropertiesPanel } from "./components/PropertiesPanel";
-import { AiAssistantPanel } from "./components/AiAssistantPanel";
 import { CanvasContextMenu } from "./components/CanvasContextMenu";
 import { ConnectionMenu } from "./components/ConnectionMenu";
+import { NodeContextMenu } from "./components/NodeContextMenu";
 import { CanvasFloatingMenu } from "./components/CanvasFloatingMenu";
 import { updatePipeline } from "@/services/pipelinesService";
 
@@ -43,6 +42,11 @@ const CanvasInner = () => {
   const closeConnectionMenu = useStore(
     store,
     (state) => state.closeConnectionMenu,
+  );
+  const nodeContextMenu = useStore(store, (state) => state.nodeContextMenu);
+  const closeNodeContextMenu = useStore(
+    store,
+    (state) => state.closeNodeContextMenu,
   );
 
   const { fitView, zoomIn, zoomOut } = useReactFlow();
@@ -103,9 +107,6 @@ const CanvasInner = () => {
 
       <CanvasFlow />
 
-      <PropertiesPanel />
-      <AiAssistantPanel />
-
       {contextMenu && (
         <CanvasContextMenu
           screenX={contextMenu.screenX}
@@ -123,6 +124,15 @@ const CanvasInner = () => {
           flowX={connectionMenu.flowX}
           flowY={connectionMenu.flowY}
           onClose={closeConnectionMenu}
+        />
+      )}
+
+      {nodeContextMenu && (
+        <NodeContextMenu
+          screenX={nodeContextMenu.screenX}
+          screenY={nodeContextMenu.screenY}
+          nodeId={nodeContextMenu.nodeId}
+          onClose={closeNodeContextMenu}
         />
       )}
     </div>

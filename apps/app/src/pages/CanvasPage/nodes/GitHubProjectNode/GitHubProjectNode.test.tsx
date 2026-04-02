@@ -21,27 +21,27 @@ const baseData = {
 
 describe("GitHubProjectNode", () => {
   it("renders label", () => {
-    render(<GitHubProjectNode data={baseData} />, { wrapper });
+    render(<GitHubProjectNode id="test" data={baseData} />, { wrapper });
     expect(screen.getByText("ordine")).toBeInTheDocument();
   });
 
   it("renders owner/repo", () => {
-    render(<GitHubProjectNode data={baseData} />, { wrapper });
+    render(<GitHubProjectNode id="test" data={baseData} />, { wrapper });
     expect(screen.getByText("amin/ordine")).toBeInTheDocument();
   });
 
   it("renders branch badge", () => {
-    render(<GitHubProjectNode data={baseData} />, { wrapper });
+    render(<GitHubProjectNode id="test" data={baseData} />, { wrapper });
     expect(screen.getByText("main")).toBeInTheDocument();
   });
 
   it("renders description", () => {
-    render(<GitHubProjectNode data={baseData} />, { wrapper });
+    render(<GitHubProjectNode id="test" data={baseData} />, { wrapper });
     expect(screen.getByText("主项目仓库")).toBeInTheDocument();
   });
 
   it("shows placeholder when owner and repo are empty", () => {
-    render(<GitHubProjectNode data={{ ...baseData, owner: "", repo: "" }} />, {
+    render(<GitHubProjectNode id="test" data={{ ...baseData, owner: "", repo: "" }} />, {
       wrapper,
     });
     expect(screen.getByText("未设置仓库")).toBeInTheDocument();
