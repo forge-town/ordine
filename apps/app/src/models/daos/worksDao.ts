@@ -18,6 +18,8 @@ export type WorkEntity = Omit<
   finishedAt: number | null;
 };
 
+type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 const rowToEntity = (row: WorkRow): WorkEntity => ({
   ...row,
   createdAt: row.createdAt.getTime(),
@@ -71,12 +73,45 @@ export const worksDao = {
     return rowToEntity(inserted[0]!);
   },
 
+  async createWithTx(
+    tx: DbExecutor,
+    data: Omit<
+      WorkEntity,
+      "createdAt" | "updatedAt" | "startedAt" | "finishedAt"
+    >,
+  ): Promise<WorkEntity> {
+    const now = new Date();
+    const row: NewWorkRow = {
+      ...data,
+      createdAt: now,
+      updatedAt: now,
+      startedAt: null,
+      finishedAt: null,
+    };
+    const inserted = await tx.insert(worksTable).values(row).returning();
+    return rowToEntity(inserted[0]!);
+  },
+
   async updateStatus(
     id: string,
     status: WorkStatus,
     extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date },
   ): Promise<WorkEntity> {
     const rows = await db
+      .update(worksTable)
+      .set({ status, updatedAt: new Date(), ...extra })
+      .where(eq(worksTable.id, id))
+      .returning();
+    return rowToEntity(rows[0]!);
+  },
+
+  async updateStatusWithTx(
+    tx: DbExecutor,
+    id: string,
+    status: WorkStatus,
+    extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date },
+  ): Promise<WorkEntity> {
+    const rows = await tx
       .update(worksTable)
       .set({ status, updatedAt: new Date(), ...extra })
       .where(eq(worksTable.id, id))
@@ -93,8 +128,30 @@ export const worksDao = {
       .where(eq(worksTable.id, id));
   },
 
+  async appendLogWithTx(
+    tx: DbExecutor,
+    id: string,
+    line: string,
+  ): Promise<void> {
+    const rows = await tx
+      .select()
+      .from(worksTable)
+      .where(eq(worksTable.id, id))
+      .limit(1);
+    const row = rows[0];
+    if (!row) return;
+    await tx
+      .update(worksTable)
+      .set({ logs: [...row.logs, line], updatedAt: new Date() })
+      .where(eq(worksTable.id, id));
+  },
+
   async delete(id: string): Promise<void> {
     await db.delete(worksTable).where(eq(worksTable.id, id));
+  },
+
+  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
+    await tx.delete(worksTable).where(eq(worksTable.id, id));
   },
 };
 

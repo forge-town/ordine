@@ -64,7 +64,7 @@ const TYPE_CONFIG: Record<JobType, { label: string; icon: React.ElementType }> =
     custom: { label: "自定义", icon: Cpu },
   };
 
-function MetaRow({
+const MetaRow = ({
   label,
   value,
   mono,
@@ -72,7 +72,7 @@ function MetaRow({
   label: string;
   value: string | null | undefined;
   mono?: boolean;
-}) {
+}) => {
   if (!value) return null;
   return (
     <div className="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0">
@@ -87,7 +87,7 @@ function MetaRow({
       </span>
     </div>
   );
-}
+};
 
 export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
   const navigate = useNavigate();

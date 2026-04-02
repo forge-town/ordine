@@ -94,9 +94,18 @@ const emptyForm = (): RuleForm => ({
   tags: "",
 });
 
+const getEditForm = (rule: RuleEntity): RuleForm => ({
+  name: rule.name,
+  description: rule.description ?? "",
+  category: rule.category,
+  severity: rule.severity,
+  pattern: rule.pattern ?? "",
+  tags: rule.tags.join(", "),
+});
+
 // ── Rule card ─────────────────────────────────────────────────────────────────
 
-function RuleCard({
+const RuleCard = ({
   rule,
   onEdit,
   onDelete,
@@ -106,7 +115,7 @@ function RuleCard({
   onEdit: (rule: RuleEntity) => void;
   onDelete: (id: string) => void;
   onToggle: (id: string, enabled: boolean) => void;
-}) {
+}) => {
   const s = SEVERITY_CONFIG[rule.severity];
   const c = CATEGORY_CONFIG[rule.category];
   const SeverityIcon = s.icon;
@@ -186,11 +195,11 @@ function RuleCard({
       </div>
     </div>
   );
-}
+};
 
 // ── Inline form ───────────────────────────────────────────────────────────────
 
-function RuleForm({
+const RuleForm = ({
   initial,
   onSave,
   onCancel,
@@ -198,7 +207,7 @@ function RuleForm({
   initial?: RuleForm;
   onSave: (form: RuleForm) => Promise<void>;
   onCancel: () => void;
-}) {
+}) => {
   const [form, setForm] = useState<RuleForm>(initial ?? emptyForm());
   const [saving, setSaving] = useState(false);
 
@@ -299,7 +308,7 @@ function RuleForm({
       </div>
     </div>
   );
-}
+};
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
@@ -369,15 +378,6 @@ export const RulesPageContent = ({
     const rule = await toggleRule({ data: { id, enabled } });
     setRules((prev) => prev.map((r) => (r.id === id ? rule : r)));
   };
-
-  const getEditForm = (rule: RuleEntity): RuleForm => ({
-    name: rule.name,
-    description: rule.description ?? "",
-    category: rule.category,
-    severity: rule.severity,
-    pattern: rule.pattern ?? "",
-    tags: rule.tags.join(", "),
-  });
 
   const filtered = rules.filter((r) => {
     if (categoryFilter !== "all" && r.category !== categoryFilter) return false;

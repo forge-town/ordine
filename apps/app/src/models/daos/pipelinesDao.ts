@@ -15,6 +15,8 @@ export type PipelineEntity = Omit<PipelineRow, "createdAt" | "updatedAt"> & {
   edges: PipelineEdge[];
 };
 
+type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 /** @deprecated Use PipelineEntity */
 export type StoredPipeline = PipelineEntity;
 /** @deprecated Use PipelineNode from @/models/types/pipelineGraph */
@@ -65,7 +67,7 @@ export const pipelinesDao = {
   },
 
   async createWithTx(
-    tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+    tx: DbExecutor,
     data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">,
   ): Promise<PipelineEntity> {
     const now = new Date();
@@ -102,7 +104,7 @@ export const pipelinesDao = {
   },
 
   async updateWithTx(
-    tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+    tx: DbExecutor,
     id: string,
     patch: Partial<
       Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">
@@ -127,10 +129,7 @@ export const pipelinesDao = {
     await db.delete(pipelinesTable).where(eq(pipelinesTable.id, id));
   },
 
-  async deleteWithTx(
-    tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
-    id: string,
-  ): Promise<void> {
+  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
     await tx.delete(pipelinesTable).where(eq(pipelinesTable.id, id));
   },
 };

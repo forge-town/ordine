@@ -13,6 +13,8 @@ export type RuleEntity = Omit<RuleRow, "createdAt" | "updatedAt"> & {
   updatedAt: number;
 };
 
+type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 const rowToEntity = (row: RuleRow): RuleEntity => ({
   ...row,
   createdAt: row.createdAt.getTime(),
@@ -56,11 +58,34 @@ export const rulesDao = {
     return rowToEntity(inserted[0]!);
   },
 
+  async createWithTx(
+    tx: DbExecutor,
+    data: Omit<RuleEntity, "createdAt" | "updatedAt">,
+  ): Promise<RuleEntity> {
+    const now = new Date();
+    const row: NewRuleRow = { ...data, createdAt: now, updatedAt: now };
+    const inserted = await tx.insert(rulesTable).values(row).returning();
+    return rowToEntity(inserted[0]!);
+  },
+
   async update(
     id: string,
     data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>,
   ): Promise<RuleEntity> {
     const rows = await db
+      .update(rulesTable)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(rulesTable.id, id))
+      .returning();
+    return rowToEntity(rows[0]!);
+  },
+
+  async updateWithTx(
+    tx: DbExecutor,
+    id: string,
+    data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>,
+  ): Promise<RuleEntity> {
+    const rows = await tx
       .update(rulesTable)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
@@ -77,8 +102,25 @@ export const rulesDao = {
     return rowToEntity(rows[0]!);
   },
 
+  async toggleEnabledWithTx(
+    tx: DbExecutor,
+    id: string,
+    enabled: boolean,
+  ): Promise<RuleEntity> {
+    const rows = await tx
+      .update(rulesTable)
+      .set({ enabled, updatedAt: new Date() })
+      .where(eq(rulesTable.id, id))
+      .returning();
+    return rowToEntity(rows[0]!);
+  },
+
   async delete(id: string): Promise<void> {
     await db.delete(rulesTable).where(eq(rulesTable.id, id));
+  },
+
+  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
+    await tx.delete(rulesTable).where(eq(rulesTable.id, id));
   },
 };
 

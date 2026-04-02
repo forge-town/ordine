@@ -15,11 +15,10 @@ import { cn } from "@repo/ui/lib/utils";
 import type { PipelineEntity } from "@/models/daos/pipelinesDao";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 import type { JobEntity } from "@/models/daos/jobsDao";
-import type { WorkEntity } from "@/models/daos/worksDao";
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
-function StatCard({
+const StatCard = ({
   icon: Icon,
   label,
   value,
@@ -31,7 +30,7 @@ function StatCard({
   value: number | string;
   sub: string;
   to: string;
-}) {
+}) => {
   return (
     <Link to={to as "/"}>
       <div className="group rounded-xl border border-gray-100 bg-white px-5 py-4 shadow-sm hover:border-gray-300 hover:shadow-md transition-all cursor-pointer">
@@ -47,7 +46,7 @@ function StatCard({
       </div>
     </Link>
   );
-}
+};
 
 // ── Recent activity row ───────────────────────────────────────────────────────
 
@@ -64,7 +63,7 @@ const JOB_STATUS_CLS: Record<string, string> = {
   failed: "text-gray-600",
 };
 
-function JobActivityRow({ job }: { job: JobEntity }) {
+const JobActivityRow = ({ job }: { job: JobEntity }) => {
   const Icon = JOB_STATUS_ICON[job.status] ?? Clock;
   return (
     <Link to="/jobs/$jobId" params={{ jobId: job.id }}>
@@ -95,28 +94,7 @@ function JobActivityRow({ job }: { job: JobEntity }) {
       </div>
     </Link>
   );
-}
-
-function WorkActivityRow({ work }: { work: WorkEntity }) {
-  return (
-    <div className="flex items-center gap-3 rounded-lg px-3 py-2.5">
-      <CheckCircle2 className="h-4 w-4 shrink-0 text-gray-400" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-gray-800">
-          {work.pipelineName}
-        </p>
-        <p className="text-[11px] text-gray-400">
-          {work.object.type === "project"
-            ? "整个项目"
-            : `${work.object.type}: ${work.object.path}`}
-        </p>
-      </div>
-      <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
-        {work.status}
-      </span>
-    </div>
-  );
-}
+};
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
@@ -124,17 +102,14 @@ export const DashboardPageContent = ({
   pipelines,
   projects,
   jobs,
-  works,
 }: {
   pipelines: PipelineEntity[];
   projects: GithubProjectEntity[];
   jobs: JobEntity[];
-  works: WorkEntity[];
 }) => {
   const runningJobs = jobs.filter((j) => j.status === "running").length;
   const failedJobs = jobs.filter((j) => j.status === "failed").length;
   const recentJobs = jobs.slice(0, 8);
-  const recentWorks = works.slice(0, 5);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -178,80 +153,38 @@ export const DashboardPageContent = ({
             }
             to="/jobs"
           />
-          <StatCard
-            icon={CheckCircle2}
-            label="Works"
-            value={works.length}
-            sub="Pipeline 执行记录"
-            to="/projects"
-          />
         </div>
 
-        {/* Two columns */}
-        <div className="grid grid-cols-2 gap-5">
-          {/* Recent Jobs */}
-          <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between border-b border-gray-50 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <Activity className="h-3.5 w-3.5 text-gray-400" />
-                <span className="text-xs font-semibold text-gray-600">
-                  最近 Jobs
-                </span>
-              </div>
-              <Link
-                to="/jobs"
-                className="text-[11px] text-gray-400 hover:text-gray-600 hover:underline"
-              >
-                全部查看
-              </Link>
+        {/* Recent Jobs */}
+        <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between border-b border-gray-50 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Activity className="h-3.5 w-3.5 text-gray-400" />
+              <span className="text-xs font-semibold text-gray-600">
+                最近 Jobs
+              </span>
             </div>
-            {recentJobs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <Activity className="h-7 w-7 text-gray-200" />
-                <p className="mt-2 text-xs text-gray-400">
-                  触发 Pipeline 后会在此显示
-                </p>
-              </div>
-            ) : (
-              <div className="py-1">
-                {recentJobs.map((j) => (
-                  <JobActivityRow key={j.id} job={j} />
-                ))}
-              </div>
-            )}
+            <Link
+              to="/jobs"
+              className="text-[11px] text-gray-400 hover:text-gray-600 hover:underline"
+            >
+              全部查看
+            </Link>
           </div>
-
-          {/* Recent Works */}
-          <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between border-b border-gray-50 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-gray-400" />
-                <span className="text-xs font-semibold text-gray-600">
-                  最近 Works
-                </span>
-              </div>
-              <Link
-                to="/projects"
-                className="text-[11px] text-gray-400 hover:text-gray-600 hover:underline"
-              >
-                查看项目
-              </Link>
+          {recentJobs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <Activity className="h-7 w-7 text-gray-200" />
+              <p className="mt-2 text-xs text-gray-400">
+                触发 Pipeline 后会在此显示
+              </p>
             </div>
-            {recentWorks.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <CheckCircle2 className="h-7 w-7 text-gray-200" />
-                <p className="mt-2 text-xs text-gray-400">
-                  在项目工作区触发执行
-                </p>
-              </div>
-            ) : (
-              <div className="py-1">
-                {recentWorks.map((w) => (
-                  <WorkActivityRow key={w.id} work={w} />
-                ))}
-              </div>
-            )}
-          </div>
+          ) : (
+            <div className="py-1">
+              {recentJobs.map((j) => (
+                <JobActivityRow key={j.id} job={j} />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Quick actions */}

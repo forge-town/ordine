@@ -8,7 +8,6 @@ import {
   FolderGit2,
   Lightbulb,
   Activity,
-  CheckCircle2,
   ShieldCheck,
 } from "lucide-react";
 import {
@@ -40,7 +39,6 @@ const navItems: NavItem[] = [
   { label: "技能库", icon: BookOpen, to: "/skills" },
   { label: "最佳实践", icon: Lightbulb, to: "/best-practices" },
   { label: "Rules", icon: ShieldCheck, to: "/rules" },
-  { label: "Works", icon: CheckCircle2, to: "/works" },
   { label: "Jobs", icon: Activity, to: "/jobs" },
 ];
 

@@ -14,6 +14,8 @@ export type BestPracticeEntity = Omit<
   updatedAt: number;
 };
 
+type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 const rowToEntity = (row: BestPracticeRow): BestPracticeEntity => ({
   ...row,
   createdAt: row.createdAt.getTime(),
@@ -50,6 +52,19 @@ export const bestPracticesDao = {
     return rowToEntity(inserted);
   },
 
+  async createWithTx(
+    tx: DbExecutor,
+    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">,
+  ): Promise<BestPracticeEntity> {
+    const now = new Date();
+    const row: NewBestPracticeRow = { ...data, createdAt: now, updatedAt: now };
+    const [inserted] = await tx
+      .insert(bestPracticesTable)
+      .values(row)
+      .returning();
+    return rowToEntity(inserted);
+  },
+
   async update(
     id: string,
     patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>,
@@ -62,7 +77,24 @@ export const bestPracticesDao = {
     return updated ? rowToEntity(updated) : null;
   },
 
+  async updateWithTx(
+    tx: DbExecutor,
+    id: string,
+    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>,
+  ): Promise<BestPracticeEntity | null> {
+    const [updated] = await tx
+      .update(bestPracticesTable)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(eq(bestPracticesTable.id, id))
+      .returning();
+    return updated ? rowToEntity(updated) : null;
+  },
+
   async delete(id: string): Promise<void> {
     await db.delete(bestPracticesTable).where(eq(bestPracticesTable.id, id));
+  },
+
+  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
+    await tx.delete(bestPracticesTable).where(eq(bestPracticesTable.id, id));
   },
 };

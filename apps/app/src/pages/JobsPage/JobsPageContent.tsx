@@ -80,7 +80,7 @@ const STATUS_FILTERS: { value: JobStatus | "all"; label: string }[] = [
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
-function StatCard({
+const StatCard = ({
   label,
   value,
   color,
@@ -90,7 +90,7 @@ function StatCard({
   value: number;
   color: string;
   dot: string;
-}) {
+}) => {
   return (
     <div className="rounded-xl border border-gray-100 bg-white px-5 py-4 shadow-sm">
       <div className="flex items-center gap-2">
@@ -100,11 +100,11 @@ function StatCard({
       <p className={cn("mt-1 text-2xl font-bold", color)}>{value}</p>
     </div>
   );
-}
+};
 
 // ── Job row ───────────────────────────────────────────────────────────────────
 
-function JobRow({
+const JobRow = ({
   job,
   onClick,
   onDelete,
@@ -112,7 +112,7 @@ function JobRow({
   job: JobEntity;
   onClick: () => void;
   onDelete: () => void;
-}) {
+}) => {
   const s = STATUS_CONFIG[job.status];
   const t = TYPE_CONFIG[job.type];
   const StatusIcon = s.icon;
@@ -194,7 +194,7 @@ function JobRow({
       </div>
     </div>
   );
-}
+};
 
 // ── Page content ──────────────────────────────────────────────────────────────
 
