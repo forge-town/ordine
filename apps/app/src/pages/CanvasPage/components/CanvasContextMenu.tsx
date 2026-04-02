@@ -1,12 +1,5 @@
 import { useEffect } from "react";
-import {
-  Wand2,
-  ShieldCheck,
-  LogOut,
-  ArrowRight,
-  FileCode,
-  Folder,
-} from "lucide-react";
+import { ShieldCheck, ArrowRight, FileCode, Folder } from "lucide-react";
 import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../_store";
 import {
@@ -18,18 +11,14 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType, React.ElementType> = {
-  skill: Wand2,
   condition: ShieldCheck,
-  output: LogOut,
   "code-file": FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
 };
 
 const ALL_TYPES: NodeType[] = [
-  "skill",
   "condition",
-  "output",
   "code-file",
   "folder",
   "github-project",
@@ -40,7 +29,7 @@ const TYPE_GROUPS: { label: string; types: NodeType[] }[] = [
     label: "处理对象 (Object)",
     types: ["code-file", "folder", "github-project"],
   },
-  { label: "操作节点 (Operation)", types: ["skill", "condition", "output"] },
+  { label: "操作节点 (Operation)", types: ["condition"] },
 ];
 
 interface Props {

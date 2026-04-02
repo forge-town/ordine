@@ -6,9 +6,7 @@ export const NodeRunStatusSchema = z.enum(["idle", "running", "pass", "fail"]);
 export type NodeRunStatus = z.infer<typeof NodeRunStatusSchema>;
 
 export const NodeTypeSchema = z.enum([
-  "skill",
   "condition",
-  "output",
   "code-file",
   "folder",
   "github-project",
@@ -17,29 +15,12 @@ export type NodeType = z.infer<typeof NodeTypeSchema>;
 
 // ─── Node data schemas ────────────────────────────────────────────────────────
 
-export const SkillNodeDataSchema = z.object({
-  label: z.string(),
-  nodeType: z.literal("skill"),
-  skillName: z.string(),
-  params: z.string().optional(),
-  acceptanceCriteria: z.string().optional(),
-  status: NodeRunStatusSchema.optional(),
-  notes: z.string().optional(),
-});
-
 export const ConditionNodeDataSchema = z.object({
   label: z.string(),
   nodeType: z.literal("condition"),
   expression: z.string(),
   expectedResult: z.string(),
   status: NodeRunStatusSchema,
-  notes: z.string().optional(),
-});
-
-export const OutputNodeDataSchema = z.object({
-  label: z.string(),
-  nodeType: z.literal("output"),
-  expectedSchema: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -70,9 +51,7 @@ export const GitHubProjectNodeDataSchema = z.object({
 });
 
 export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
-  SkillNodeDataSchema,
   ConditionNodeDataSchema,
-  OutputNodeDataSchema,
   CodeFileNodeDataSchema,
   FolderNodeDataSchema,
   GitHubProjectNodeDataSchema,
@@ -80,11 +59,7 @@ export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
 
 // React Flow requires node data to extend Record<string, unknown>.
 // Intersecting with it adds the index signature TypeScript needs.
-export type SkillNodeData = z.infer<typeof SkillNodeDataSchema> &
-  Record<string, unknown>;
 export type ConditionNodeData = z.infer<typeof ConditionNodeDataSchema> &
-  Record<string, unknown>;
-export type OutputNodeData = z.infer<typeof OutputNodeDataSchema> &
   Record<string, unknown>;
 export type CodeFileNodeData = z.infer<typeof CodeFileNodeDataSchema> &
   Record<string, unknown>;
@@ -118,32 +93,16 @@ export const OBJECT_TYPES: NodeType[] = [
 ];
 
 /** Operation nodes represent transformations/steps in the pipeline. */
-export const OPERATION_TYPES: NodeType[] = ["skill", "condition", "output"];
+export const OPERATION_TYPES: NodeType[] = ["condition"];
 
 /** Which node types are allowed as targets from each source type. */
 export const allowedConnections: Record<NodeType, NodeType[]> = {
-  // Objects must feed into an Operation
-  "code-file": ["skill", "condition", "output"],
-  folder: ["skill", "condition", "output"],
-  "github-project": ["skill", "condition", "output"],
-  // Operations can chain into another Operation, or output to an Object (observation)
-  skill: [
-    "skill",
-    "condition",
-    "output",
-    "code-file",
-    "folder",
-    "github-project",
-  ],
-  condition: [
-    "skill",
-    "condition",
-    "output",
-    "code-file",
-    "folder",
-    "github-project",
-  ],
-  output: ["code-file", "folder", "github-project"],
+  // Objects feed into condition
+  "code-file": ["condition"],
+  folder: ["condition"],
+  "github-project": ["condition"],
+  // Condition can chain or output back to an object
+  condition: ["condition", "code-file", "folder", "github-project"],
 };
 
 /**
@@ -165,16 +124,6 @@ export const ConnectionRuleSchema = z
 
 export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
   switch (type) {
-    case "skill": {
-      return {
-        label: "Skill 节点",
-        nodeType: "skill",
-        skillName: "",
-        params: "{}",
-        acceptanceCriteria: "",
-        status: "idle",
-      };
-    }
     case "condition": {
       return {
         label: "验收条件",
@@ -182,14 +131,6 @@ export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
         expression: "",
         expectedResult: "",
         status: "idle",
-      };
-    }
-    case "output": {
-      return {
-        label: "输出",
-        nodeType: "output",
-        expectedSchema: "",
-        notes: "",
       };
     }
     case "code-file": {
@@ -225,17 +166,6 @@ export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
 // ─── UI meta (label + Tailwind colour tokens) ─────────────────────────────────
 
 export const nodeTypeMeta = {
-  skill: {
-    label: "Skill 调用",
-    shortLabel: "Skill",
-    border: "border-violet-200",
-    selectedBorder: "border-violet-500",
-    header: "bg-violet-50",
-    headerText: "text-violet-700",
-    iconBg: "bg-violet-500",
-    handle: "!border-violet-400",
-    plusBg: "bg-violet-100 text-violet-700 hover:bg-violet-200",
-  },
   condition: {
     label: "验收条件",
     shortLabel: "条件",
@@ -246,17 +176,6 @@ export const nodeTypeMeta = {
     iconBg: "bg-amber-500",
     handle: "!border-amber-400",
     plusBg: "bg-amber-100 text-amber-700 hover:bg-amber-200",
-  },
-  output: {
-    label: "输出节点",
-    shortLabel: "输出",
-    border: "border-sky-200",
-    selectedBorder: "border-sky-500",
-    header: "bg-sky-50",
-    headerText: "text-sky-700",
-    iconBg: "bg-sky-500",
-    handle: "!border-sky-400",
-    plusBg: "bg-sky-100 text-sky-700 hover:bg-sky-200",
   },
   "code-file": {
     label: "代码文件",

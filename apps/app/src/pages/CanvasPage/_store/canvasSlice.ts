@@ -14,9 +14,7 @@ import {
   ConnectionRuleSchema,
   type NodeType,
   type NodeRunStatus,
-  type SkillNodeData,
   type ConditionNodeData,
-  type OutputNodeData,
   type CodeFileNodeData,
   type FolderNodeData,
   type GitHubProjectNodeData,
@@ -28,9 +26,7 @@ import {
 export type {
   NodeType,
   NodeRunStatus,
-  SkillNodeData,
   ConditionNodeData,
-  OutputNodeData,
   CodeFileNodeData,
   FolderNodeData,
   GitHubProjectNodeData,
@@ -114,7 +110,7 @@ export const createCanvasSlice = (
           {
             ...connection,
             type: "default",
-            animated: targetNode.type !== "output",
+            animated: true,
             data: {},
           },
           state.edges,
@@ -148,7 +144,7 @@ export const createCanvasSlice = (
         source: sourceId,
         target: newId,
         type: "default",
-        animated: targetType !== "output",
+        animated: true,
         data: {},
       };
 

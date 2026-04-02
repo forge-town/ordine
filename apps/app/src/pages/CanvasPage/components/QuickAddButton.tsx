@@ -1,12 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  Plus,
-  Wand2,
-  ShieldCheck,
-  LogOut,
-  FileCode,
-  Folder,
-} from "lucide-react";
+import { Plus, ShieldCheck, FileCode, Folder } from "lucide-react";
 import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../_store";
 import {
@@ -17,9 +10,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType, React.ElementType> = {
-  skill: Wand2,
   condition: ShieldCheck,
-  output: LogOut,
   "code-file": FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,

@@ -6,9 +6,7 @@ import {
   Copy,
   Trash2,
   Zap,
-  Wand2,
   ShieldCheck,
-  LogOut,
   FileCode,
   Folder,
 } from "lucide-react";
@@ -23,16 +21,14 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType, React.ElementType> = {
-  skill: Wand2,
   condition: ShieldCheck,
-  output: LogOut,
   "code-file": FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
 };
 
 const TYPE_GROUPS: { label: string; types: NodeType[] }[] = [
-  { label: "操作节点", types: ["skill", "condition", "output"] },
+  { label: "操作节点", types: ["condition"] },
   { label: "处理对象", types: ["code-file", "folder", "github-project"] },
 ];
 

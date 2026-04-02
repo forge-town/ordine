@@ -1,24 +1,8 @@
 // Pipeline graph node/edge types for DB and business logic (decoupled from page store)
 
-export type NodeType =
-  | "skill"
-  | "condition"
-  | "output"
-  | "code-file"
-  | "folder"
-  | "github-project";
+export type NodeType = "condition" | "code-file" | "folder" | "github-project";
 
 export type NodeRunStatus = "idle" | "running" | "pass" | "fail";
-
-export interface SkillNodeData {
-  label: string;
-  nodeType: "skill";
-  skillName: string;
-  params: string;
-  acceptanceCriteria: string;
-  status: NodeRunStatus;
-  notes?: string;
-}
 
 export interface ConditionNodeData {
   label: string;
@@ -29,17 +13,35 @@ export interface ConditionNodeData {
   notes?: string;
 }
 
-export interface OutputNodeData {
+export interface CodeFileNodeData {
   label: string;
-  nodeType: "output";
-  expectedSchema?: string;
-  notes?: string;
+  nodeType: "code-file";
+  filePath: string;
+  language?: string;
+  description?: string;
+}
+
+export interface FolderNodeData {
+  label: string;
+  nodeType: "folder";
+  folderPath: string;
+  description?: string;
+}
+
+export interface GitHubProjectNodeData {
+  label: string;
+  nodeType: "github-project";
+  owner: string;
+  repo: string;
+  branch?: string;
+  description?: string;
 }
 
 export type PipelineNodeData =
-  | SkillNodeData
   | ConditionNodeData
-  | OutputNodeData;
+  | CodeFileNodeData
+  | FolderNodeData
+  | GitHubProjectNodeData;
 
 export interface PipelineEdgeData {
   label?: string;

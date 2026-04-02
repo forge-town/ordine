@@ -11,9 +11,7 @@ import {
 } from "@xyflow/react";
 import type { PipelineNode, PipelineEdge } from "../_store/canvasSlice";
 import { useHarnessCanvasStore } from "../_store";
-import { SkillNode } from "../nodes/SkillNode";
 import { ConditionNode } from "../nodes/ConditionNode";
-import { OutputNode } from "../nodes/OutputNode";
 import { CodeFileNode } from "../nodes/CodeFileNode";
 import { FolderNode } from "../nodes/FolderNode";
 import { GitHubProjectNode } from "../nodes/GitHubProjectNode";
@@ -56,9 +54,7 @@ export const CanvasFlow = () => {
   // 使用 useMemo 缓存 nodeTypes - React Flow 最佳实践
   const nodeTypes = useMemo(
     () => ({
-      skill: SkillNode,
       condition: ConditionNode,
-      output: OutputNode,
       "code-file": CodeFileNode,
       folder: FolderNode,
       "github-project": GitHubProjectNode,

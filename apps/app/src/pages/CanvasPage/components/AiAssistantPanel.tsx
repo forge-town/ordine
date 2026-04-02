@@ -88,21 +88,7 @@ export const AiAssistantPanel = () => {
       const id = `${action.nodeType}-${Date.now()}`;
       const x = 200 + Math.random() * 300;
       const y = 150 + Math.random() * 250;
-      if (action.nodeType === "skill") {
-        state.addNode({
-          id,
-          type: "skill",
-          position: { x, y },
-          data: {
-            label: action.label ?? "Skill",
-            nodeType: "skill",
-            skillName: action.skillName ?? "page-best-practice",
-            params: "{}",
-            acceptanceCriteria: "",
-            status: "idle",
-          },
-        });
-      } else if (action.nodeType === "condition") {
+      if (action.nodeType === "condition") {
         state.addNode({
           id,
           type: "condition",
@@ -113,18 +99,6 @@ export const AiAssistantPanel = () => {
             expression: "",
             expectedResult: "",
             status: "idle",
-          },
-        });
-      } else if (action.nodeType === "output") {
-        state.addNode({
-          id,
-          type: "output",
-          position: { x, y },
-          data: {
-            label: action.label ?? "输出",
-            nodeType: "output",
-            expectedSchema: "",
-            notes: "",
           },
         });
       }

@@ -30,14 +30,15 @@ export const PipelinesPageContent = () => {
       updatedAt: now,
       nodes: [
         {
-          id: `${id}-output`,
-          type: "output",
+          id: `${id}-condition`,
+          type: "condition",
           position: { x: 300, y: 200 },
           data: {
-            label: "输出",
-            nodeType: "output",
-            expectedSchema: "",
-            notes: "",
+            label: "验收条件",
+            nodeType: "condition",
+            expression: "",
+            expectedResult: "",
+            status: "idle",
           },
         },
       ],
