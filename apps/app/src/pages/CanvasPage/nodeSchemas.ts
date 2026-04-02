@@ -1,28 +1,31 @@
 import { z } from "zod";
+import type { OperationEntity } from "@/models/daos/operationsDao";
 
 // ─── Primitive enums ──────────────────────────────────────────────────────────
 
 export const NodeRunStatusSchema = z.enum(["idle", "running", "pass", "fail"]);
 export type NodeRunStatus = z.infer<typeof NodeRunStatusSchema>;
 
-export const NodeTypeSchema = z.enum([
-  "condition",
+// Static node types (objects)
+export const ObjectNodeTypeSchema = z.enum([
   "code-file",
   "folder",
   "github-project",
 ]);
+export type ObjectNodeType = z.infer<typeof ObjectNodeTypeSchema>;
+
+// Operation node type (dynamic)
+export const OperationNodeTypeSchema = z.literal("operation");
+export type OperationNodeType = z.infer<typeof OperationNodeTypeSchema>;
+
+// All node types
+export const NodeTypeSchema = z.union([
+  ObjectNodeTypeSchema,
+  OperationNodeTypeSchema,
+]);
 export type NodeType = z.infer<typeof NodeTypeSchema>;
 
 // ─── Node data schemas ────────────────────────────────────────────────────────
-
-export const ConditionNodeDataSchema = z.object({
-  label: z.string(),
-  nodeType: z.literal("condition"),
-  expression: z.string(),
-  expectedResult: z.string(),
-  status: NodeRunStatusSchema,
-  notes: z.string().optional(),
-});
 
 // ─── Object node data schemas ─────────────────────────────────────────────────
 
@@ -50,17 +53,29 @@ export const GitHubProjectNodeDataSchema = z.object({
   description: z.string().optional(),
 });
 
-export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
-  ConditionNodeDataSchema,
+// ─── Operation node data schema ────────────────────────────────────────────────
+
+export const OperationNodeDataSchema = z.object({
+  label: z.string(),
+  nodeType: z.literal("operation"),
+  operationId: z.string(), // Reference to OperationEntity.id
+  operationName: z.string(), // Display name
+  status: NodeRunStatusSchema,
+  config: z.record(z.string(), z.unknown()).optional(),
+  notes: z.string().optional(),
+});
+
+// Note: Discriminated union requires at least 2 options with different literal values
+// We use a union instead since we removed condition and have diverse types
+export const PipelineNodeDataSchema = z.union([
   CodeFileNodeDataSchema,
   FolderNodeDataSchema,
   GitHubProjectNodeDataSchema,
+  OperationNodeDataSchema,
 ]);
 
 // React Flow requires node data to extend Record<string, unknown>.
 // Intersecting with it adds the index signature TypeScript needs.
-export type ConditionNodeData = z.infer<typeof ConditionNodeDataSchema> &
-  Record<string, unknown>;
 export type CodeFileNodeData = z.infer<typeof CodeFileNodeDataSchema> &
   Record<string, unknown>;
 export type FolderNodeData = z.infer<typeof FolderNodeDataSchema> &
@@ -68,6 +83,8 @@ export type FolderNodeData = z.infer<typeof FolderNodeDataSchema> &
 export type GitHubProjectNodeData = z.infer<
   typeof GitHubProjectNodeDataSchema
 > &
+  Record<string, unknown>;
+export type OperationNodeData = z.infer<typeof OperationNodeDataSchema> &
   Record<string, unknown>;
 export type PipelineNodeData = z.infer<typeof PipelineNodeDataSchema> &
   Record<string, unknown>;
@@ -86,23 +103,80 @@ export type PipelineEdgeData = z.infer<typeof PipelineEdgeDataSchema> &
 // ─── Node categories ─────────────────────────────────────────────────────────
 
 /** Object nodes represent subjects/inputs being operated on. */
-export const OBJECT_TYPES: NodeType[] = [
+export const OBJECT_TYPES: ObjectNodeType[] = [
   "code-file",
   "folder",
   "github-project",
 ];
 
 /** Operation nodes represent transformations/steps in the pipeline. */
-export const OPERATION_TYPES: NodeType[] = ["condition"];
+export const OPERATION_TYPE: OperationNodeType = "operation";
 
-/** Which node types are allowed as targets from each source type. */
+/** Get allowed connections based on available operations. */
+export const getAllowedConnections = (
+  _operations: OperationEntity[],
+): Record<NodeType, NodeType[]> => {
+  // All operations accept objects as input
+  const objectToOperations: NodeType[] = ["operation"];
+
+  // Operations can chain to other operations or output to objects
+  const operationToTargets: NodeType[] = [
+    "operation",
+    "code-file",
+    "folder",
+    "github-project",
+  ];
+
+  return {
+    // Objects can connect to operations
+    "code-file": objectToOperations,
+    folder: objectToOperations,
+    "github-project": objectToOperations,
+    // Operations can chain or output to objects
+    operation: operationToTargets,
+  };
+};
+
+/** Legacy static allowed connections (for backward compatibility). */
 export const allowedConnections: Record<NodeType, NodeType[]> = {
-  // Objects feed into condition
-  "code-file": ["condition"],
-  folder: ["condition"],
-  "github-project": ["condition"],
-  // Condition can chain or output back to an object
-  condition: ["condition", "code-file", "folder", "github-project"],
+  "code-file": ["operation"],
+  folder: ["operation"],
+  "github-project": ["operation"],
+  operation: ["operation", "code-file", "folder", "github-project"],
+};
+
+/**
+ * Check if a connection is allowed.
+ */
+export const isConnectionAllowed = (
+  sourceType: NodeType,
+  targetType: NodeType,
+  operations: OperationEntity[],
+  targetOperationId?: string,
+): boolean => {
+  const connections = getAllowedConnections(operations);
+  const allowed = connections[sourceType] ?? [];
+
+  if (!allowed.includes(targetType)) return false;
+
+  // For operation targets, check if it accepts the source object type
+  if (targetType === "operation" && targetOperationId) {
+    const operation = operations.find((op) => op.id === targetOperationId);
+    if (!operation) return false;
+
+    // Map node type to object type
+    const objectTypeMap: Record<string, string> = {
+      "code-file": "file",
+      folder: "folder",
+      "github-project": "project",
+    };
+    const objectType = objectTypeMap[sourceType];
+    if (!objectType) return false;
+
+    return operation.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project") ?? true;
+  }
+
+  return true;
 };
 
 /**
@@ -116,7 +190,7 @@ export const ConnectionRuleSchema = z
   })
   .refine(
     ({ sourceType, targetType }) =>
-      allowedConnections[sourceType].includes(targetType),
+      allowedConnections[sourceType]?.includes(targetType),
     { message: "此节点类型间不允许连接" },
   );
 
@@ -124,13 +198,14 @@ export const ConnectionRuleSchema = z
 
 export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
   switch (type) {
-    case "condition": {
+    case "operation": {
       return {
-        label: "验收条件",
-        nodeType: "condition",
-        expression: "",
-        expectedResult: "",
+        label: "Operation",
+        nodeType: "operation",
+        operationId: "",
+        operationName: "",
         status: "idle",
+        config: {},
       };
     }
     case "code-file": {
@@ -163,19 +238,31 @@ export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
   }
 };
 
+/** Create operation node data from an OperationEntity. */
+export const makeOperationNodeData = (
+  operation: OperationEntity,
+): OperationNodeData => ({
+  label: operation.name,
+  nodeType: "operation",
+  operationId: operation.id,
+  operationName: operation.name,
+  status: "idle",
+  config: {},
+});
+
 // ─── UI meta (label + Tailwind colour tokens) ─────────────────────────────────
 
 export const nodeTypeMeta = {
-  condition: {
-    label: "验收条件",
-    shortLabel: "条件",
-    border: "border-amber-200",
-    selectedBorder: "border-amber-500",
-    header: "bg-amber-50",
-    headerText: "text-amber-700",
-    iconBg: "bg-amber-500",
-    handle: "!border-amber-400",
-    plusBg: "bg-amber-100 text-amber-700 hover:bg-amber-200",
+  operation: {
+    label: "Operation",
+    shortLabel: "OP",
+    border: "border-violet-200",
+    selectedBorder: "border-violet-500",
+    header: "bg-violet-50",
+    headerText: "text-violet-700",
+    iconBg: "bg-violet-500",
+    handle: "!border-violet-400",
+    plusBg: "bg-violet-100 text-violet-700 hover:bg-violet-200",
   },
   "code-file": {
     label: "代码文件",
@@ -211,3 +298,16 @@ export const nodeTypeMeta = {
     plusBg: "bg-orange-100 text-orange-700 hover:bg-orange-200",
   },
 } as const satisfies Record<NodeType, object>;
+
+/** Get meta for an operation node with dynamic label. */
+export const getOperationNodeMeta = (operationName: string) => ({
+  label: operationName,
+  shortLabel: operationName.slice(0, 2).toUpperCase(),
+  border: "border-violet-200",
+  selectedBorder: "border-violet-500",
+  header: "bg-violet-50",
+  headerText: "text-violet-700",
+  iconBg: "bg-violet-500",
+  handle: "!border-violet-400",
+  plusBg: "bg-violet-100 text-violet-700 hover:bg-violet-200",
+});

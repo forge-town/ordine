@@ -14,10 +14,10 @@ import {
   ConnectionRuleSchema,
   type NodeType,
   type NodeRunStatus,
-  type ConditionNodeData,
   type CodeFileNodeData,
   type FolderNodeData,
   type GitHubProjectNodeData,
+  type OperationNodeData,
   type PipelineNodeData,
   type PipelineEdgeData,
 } from "../nodeSchemas";
@@ -26,10 +26,10 @@ import {
 export type {
   NodeType,
   NodeRunStatus,
-  ConditionNodeData,
   CodeFileNodeData,
   FolderNodeData,
   GitHubProjectNodeData,
+  OperationNodeData,
   PipelineNodeData,
   PipelineEdgeData,
 };

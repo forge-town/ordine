@@ -15,6 +15,13 @@
       "when": 1775035241798,
       "tag": "0001_open_captain_flint",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775115784461,
+      "tag": "0002_chunky_cerise",
+      "breakpoints": true
     }
   ]
 }

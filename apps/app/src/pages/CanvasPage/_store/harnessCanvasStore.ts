@@ -12,8 +12,13 @@ import {
   type PipelineEdge,
 } from "./canvasSlice";
 import { createUISlice, type UISlice } from "./uiSlice";
+import type { OperationEntity } from "@/models/daos/operationsDao";
 
-export interface HarnessCanvasState extends CanvasSlice, UISlice {}
+export interface HarnessCanvasState extends CanvasSlice, UISlice {
+  operations: OperationEntity[];
+  getOperationById: (id: string) => OperationEntity | undefined;
+  getAcceptedOperationsForObject: (objectType: string) => OperationEntity[];
+}
 
 export type HarnessCanvasStoreSlice<T = HarnessCanvasState> = StateCreator<
   HarnessCanvasState,
@@ -29,8 +34,11 @@ export const createHarnessCanvasStore = (
   initialEdges?: PipelineEdge[],
   pipelineId?: string | null,
   pipelineName?: string,
+  operations?: OperationEntity[],
 ) => {
-  return createStore<HarnessCanvasState>()((set) => ({
+  const ops = operations ?? [];
+
+  return createStore<HarnessCanvasState>()((set, get) => ({
     ...createCanvasSlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
       initialNodes,
@@ -41,6 +49,15 @@ export const createHarnessCanvasStore = (
       pipelineId ?? null,
       pipelineName ?? "",
     ),
+    operations: ops,
+    getOperationById: (id: string) => {
+      return get().operations.find((op) => op.id === id);
+    },
+    getAcceptedOperationsForObject: (objectType: string) => {
+      return get().operations.filter((op) =>
+        Array.isArray(op.acceptedObjectTypes) && op.acceptedObjectTypes.includes(objectType as "file" | "folder" | "project"),
+      );
+    },
   }));
 };
 

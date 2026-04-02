@@ -5,6 +5,7 @@ import {
   type HarnessCanvasStore,
 } from "./harnessCanvasStore";
 import type { PipelineNode, PipelineEdge } from "./canvasSlice";
+import type { OperationEntity } from "@/models/daos/operationsDao";
 
 interface LoadedPipeline {
   id: string;
@@ -16,9 +17,10 @@ interface LoadedPipeline {
 interface Props {
   children: ReactNode;
   pipeline?: LoadedPipeline | null;
+  operations?: OperationEntity[];
 }
 
-export const HarnessCanvasStoreProvider = ({ children, pipeline }: Props) => {
+export const HarnessCanvasStoreProvider = ({ children, pipeline, operations = [] }: Props) => {
   const storeRef = useRef<HarnessCanvasStore | null>(null);
 
   if (!storeRef.current) {
@@ -27,6 +29,7 @@ export const HarnessCanvasStoreProvider = ({ children, pipeline }: Props) => {
       pipeline?.edges as PipelineEdge[] | undefined,
       pipeline?.id ?? null,
       pipeline?.name ?? "",
+      operations,
     );
   }
 

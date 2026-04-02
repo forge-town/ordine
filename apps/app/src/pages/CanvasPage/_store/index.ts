@@ -9,10 +9,10 @@ export type {
   PipelineEdge,
   PipelineNodeData,
   PipelineEdgeData,
-  ConditionNodeData,
   CodeFileNodeData,
   FolderNodeData,
   GitHubProjectNodeData,
+  OperationNodeData,
   NodeType,
   NodeRunStatus,
   // legacy aliases

@@ -6,9 +6,7 @@ import {
 } from "../_store";
 import { cn } from "@repo/ui/lib/utils";
 import {
-  Wand2,
-  ShieldCheck,
-  LogOut,
+  Zap,
   FileCode,
   Folder,
   ChevronLeft,
@@ -54,40 +52,13 @@ const objectItems: NodeTypeItem[] = [
 
 const nodeTypeItems: NodeTypeItem[] = [
   {
-    type: "skill",
-    label: "Skill 调用",
-    description: "调用指定 skill 并定义验收条件",
-    icon: Wand2,
+    type: "operation",
+    label: "Operation",
+    description: "执行自定义操作",
+    icon: Zap,
     colorClass: "border-violet-200 bg-violet-50 hover:border-violet-400",
     iconBg: "bg-violet-500",
   },
-  {
-    type: "condition",
-    label: "验收条件",
-    description: "对输出做断言，阻止不合格产出流转",
-    icon: ShieldCheck,
-    colorClass: "border-amber-200 bg-amber-50 hover:border-amber-400",
-    iconBg: "bg-amber-500",
-  },
-  {
-    type: "output",
-    label: "输出节点",
-    description: "pipeline 出口，定义期望的最终产出",
-    icon: LogOut,
-    colorClass: "border-sky-200 bg-sky-50 hover:border-sky-400",
-    iconBg: "bg-sky-500",
-  },
-];
-
-const quickSkills: { name: string; label: string }[] = [
-  { name: "page-best-practice", label: "页面结构" },
-  { name: "dao-best-practice", label: "DAO 层" },
-  { name: "service-best-practice", label: "Service 层" },
-  { name: "store-best-practice", label: "Store 状态管理" },
-  { name: "form-best-practice", label: "表单组件" },
-  { name: "schema-best-practice", label: "Schema 校验" },
-  { name: "barrel-export-best-practice", label: "桶导出" },
-  { name: "error-handling-best-practice", label: "错误处理" },
 ];
 
 let nodeCounter = 100;
@@ -127,51 +98,22 @@ export const SkillPalette = () => {
         branch: "main",
         description: "",
       };
-    } else if (item.type === "skill") {
+    } else if (item.type === "operation") {
       data = {
-        label: "Skill 调用",
-        nodeType: "skill",
-        skillName: "page-best-practice",
-        params: "{}",
-        acceptanceCriteria: "",
+        label: "Operation",
+        nodeType: "operation",
+        operationId: "",
+        operationName: "Operation",
         status: "idle",
+        config: {},
       };
-    } else if (item.type === "condition") {
-      data = {
-        label: "验收条件",
-        nodeType: "condition",
-        expression: "",
-        expectedResult: "",
-        status: "idle",
-      };
+      store.getState().addNode({ id, type: "operation", position: pos, data });
+      return;
     } else {
-      data = {
-        label: "输出产物",
-        nodeType: "output",
-        expectedSchema: "",
-        notes: "",
-      };
+      return;
     }
 
     store.getState().addNode({ id, type: item.type, position: pos, data });
-  };
-
-  const handleQuickAddSkill = (skill: { name: string; label: string }) => {
-    nodeCounter++;
-    const id = `skill-${nodeCounter}`;
-    store.getState().addNode({
-      id,
-      type: "skill",
-      position: { x: 250 + Math.random() * 200, y: 150 + Math.random() * 200 },
-      data: {
-        label: skill.label,
-        nodeType: "skill",
-        skillName: skill.name,
-        params: "{}",
-        acceptanceCriteria: "",
-        status: "idle",
-      },
-    });
   };
 
   return (
@@ -276,30 +218,6 @@ export const SkillPalette = () => {
                     </button>
                   );
                 })}
-              </div>
-            </div>
-
-            {/* Quick-add skills */}
-            <div>
-              <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                快速添加 Skill
-              </p>
-              <div className="space-y-1">
-                {quickSkills.map((skill) => (
-                  <button
-                    key={skill.name}
-                    onClick={() => handleQuickAddSkill(skill)}
-                    className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left text-xs hover:bg-violet-50 transition-colors group"
-                  >
-                    <Wand2 className="h-3 w-3 shrink-0 text-violet-400 group-hover:text-violet-600" />
-                    <span className="flex-1 text-gray-600 group-hover:text-violet-700">
-                      {skill.label}
-                    </span>
-                    <span className="font-mono text-[9px] text-gray-400 group-hover:text-violet-400">
-                      {skill.name.replace("-best-practice", "")}
-                    </span>
-                  </button>
-                ))}
               </div>
             </div>
           </div>

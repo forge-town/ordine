@@ -1,36 +1,24 @@
 import { useEffect } from "react";
-import { ShieldCheck, ArrowRight, FileCode, Folder } from "lucide-react";
+import { ArrowRight, FileCode, Folder, Zap } from "lucide-react";
 import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../_store";
 import {
   makeDefaultNodeData,
+  makeOperationNodeData,
   nodeTypeMeta,
-  allowedConnections,
+  getAllowedConnections,
   type NodeType,
 } from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
-const TYPE_ICONS: Record<NodeType, React.ElementType> = {
-  condition: ShieldCheck,
+const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
+  operation: Zap,
   "code-file": FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
 };
 
-const ALL_TYPES: NodeType[] = [
-  "condition",
-  "code-file",
-  "folder",
-  "github-project",
-];
-
-const TYPE_GROUPS: { label: string; types: NodeType[] }[] = [
-  {
-    label: "处理对象 (Object)",
-    types: ["code-file", "folder", "github-project"],
-  },
-  { label: "操作节点 (Operation)", types: ["condition"] },
-];
+const OBJECT_TYPES: NodeType[] = ["code-file", "folder", "github-project"];
 
 interface Props {
   screenX: number;
@@ -51,19 +39,48 @@ export const CanvasContextMenu = ({
   const state = store.getState();
   const connectStart = state.connectStart;
   const nodes = state.nodes;
+  const operations = state.operations;
 
-  // 确定可用的节点类型
+  // Get allowed connections based on current operations
+  const allowedConnections = getAllowedConnections(operations);
+
+  // Determine available node types
   const availableTypes = (() => {
-    if (!connectStart) return ALL_TYPES;
+    if (!connectStart) return [...OBJECT_TYPES, "operation"] as NodeType[];
 
     const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
-    if (!sourceNode) return ALL_TYPES;
+    if (!sourceNode) return [...OBJECT_TYPES, "operation"] as NodeType[];
 
-    // 返回源节点可以连接到的目标类型
-    return allowedConnections[sourceNode.type];
+    // Return allowed target types for the source node
+    return allowedConnections[sourceNode.type] ?? [];
   })();
 
-  // 判断是否为连接模式
+  // Filter operations based on source type (if in connect mode)
+  const availableOperations = (() => {
+    if (!connectStart) return operations;
+
+    const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
+    if (!sourceNode) return operations;
+
+    // Map node type to object type
+    const objectTypeMap: Record<string, string> = {
+      "code-file": "file",
+      folder: "folder",
+      "github-project": "project",
+    };
+    const objectType = objectTypeMap[sourceNode.type];
+    if (!objectType) return operations;
+
+    // Only show operations that accept this object type
+    return operations.filter((op) =>
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project"),
+    );
+  })();
+
+  // Check if operation type is available
+  const canAddOperation = availableTypes.includes("operation");
+
+  // Determine if in connection mode
   const isConnectMode = connectStart !== null;
 
   useEffect(() => {
@@ -77,10 +94,10 @@ export const CanvasContextMenu = ({
     return () => globalThis.removeEventListener("keydown", handler);
   }, [onClose, state]);
 
-  const handleCreate = (type: NodeType) => {
+  const handleCreateObject = (type: NodeType) => {
     const newId = `${type}-${Date.now()}`;
 
-    // 创建新节点
+    // Create new node
     state.addNode({
       id: newId,
       type,
@@ -88,13 +105,11 @@ export const CanvasContextMenu = ({
       data: makeDefaultNodeData(type),
     });
 
-    // 如果是连接模式，自动创建连接
+    // If in connection mode, auto-create connection
     if (connectStart) {
       const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
       if (sourceNode) {
-        // 确定连接方向
         if (connectStart.handleType === "source") {
-          // 从源节点连接到新节点
           state.onConnect({
             source: connectStart.nodeId,
             sourceHandle: connectStart.handleId,
@@ -102,7 +117,6 @@ export const CanvasContextMenu = ({
             targetHandle: null,
           });
         } else {
-          // 从新节点连接到目标节点（反向连接）
           state.onConnect({
             source: newId,
             sourceHandle: null,
@@ -113,16 +127,55 @@ export const CanvasContextMenu = ({
       }
     }
 
-    // 清除连接状态并关闭菜单
+    state.setConnectStart(null);
+    onClose();
+  };
+
+  const handleCreateOperation = (operationId: string) => {
+    const operation = operations.find((op) => op.id === operationId);
+    if (!operation) return;
+
+    const newId = `op-${operationId}-${Date.now()}`;
+
+    // Create new operation node
+    state.addNode({
+      id: newId,
+      type: "operation",
+      position: { x: flowX, y: flowY },
+      data: makeOperationNodeData(operation),
+    });
+
+    // If in connection mode, auto-create connection
+    if (connectStart) {
+      const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
+      if (sourceNode) {
+        if (connectStart.handleType === "source") {
+          state.onConnect({
+            source: connectStart.nodeId,
+            sourceHandle: connectStart.handleId,
+            target: newId,
+            targetHandle: null,
+          });
+        } else {
+          state.onConnect({
+            source: newId,
+            sourceHandle: null,
+            target: connectStart.nodeId,
+            targetHandle: connectStart.handleId,
+          });
+        }
+      }
+    }
+
     state.setConnectStart(null);
     onClose();
   };
 
   // Clamp to viewport edges
-  const left = Math.min(screenX, window.innerWidth - 180);
-  const top = Math.min(screenY, window.innerHeight - 200);
+  const left = Math.min(screenX, window.innerWidth - 220);
+  const top = Math.min(screenY, window.innerHeight - 300);
 
-  // 获取源节点信息用于显示
+  // Get source node info for display
   const sourceNodeInfo = (() => {
     if (!connectStart) return null;
     const node = nodes.find((n) => n.id === connectStart.nodeId);
@@ -130,6 +183,11 @@ export const CanvasContextMenu = ({
       ? { type: node.type, label: nodeTypeMeta[node.type].label }
       : null;
   })();
+
+  // Filter object types based on available connections
+  const visibleObjectTypes = OBJECT_TYPES.filter((t) =>
+    isConnectMode ? availableTypes.includes(t) : true,
+  );
 
   return (
     <>
@@ -144,7 +202,7 @@ export const CanvasContextMenu = ({
 
       {/* Menu */}
       <div
-        className="fixed z-[1000] min-w-[170px] overflow-hidden rounded-xl border bg-popover py-1 shadow-2xl"
+        className="fixed z-[1000] max-h-[80vh] min-w-[200px] overflow-y-auto rounded-xl border bg-popover py-1 shadow-2xl"
         style={{ left, top }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -173,39 +231,73 @@ export const CanvasContextMenu = ({
             新建节点
           </p>
         )}
-        {TYPE_GROUPS.map((group, gi) => {
-          const visible = group.types.filter((t) => availableTypes.includes(t));
-          if (visible.length === 0) return null;
-          return (
-            <div key={group.label}>
-              {gi > 0 && <div className="my-1 border-t border-border/50" />}
-              <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
-                {group.label}
-              </p>
-              {visible.map((type) => {
-                const Icon = TYPE_ICONS[type];
-                const meta = nodeTypeMeta[type];
-                return (
-                  <button
-                    key={type}
-                    onClick={() => handleCreate(type)}
-                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
+
+        {/* Object types group */}
+        {visibleObjectTypes.length > 0 && (
+          <div>
+            <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+              处理对象 (Object)
+            </p>
+            {visibleObjectTypes.map((type) => {
+              const Icon = TYPE_ICONS[type];
+              const meta = nodeTypeMeta[type];
+              return (
+                <button
+                  key={type}
+                  onClick={() => handleCreateObject(type)}
+                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
+                >
+                  <span
+                    className={cn(
+                      "flex h-5 w-5 shrink-0 items-center justify-center rounded",
+                      meta.iconBg,
+                    )}
                   >
-                    <span
-                      className={cn(
-                        "flex h-5 w-5 shrink-0 items-center justify-center rounded",
-                        meta.iconBg,
-                      )}
-                    >
-                      <Icon className="h-3 w-3 text-white" />
-                    </span>
-                    <span className="text-xs font-medium">{meta.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          );
-        })}
+                    <Icon className="h-3 w-3 text-white" />
+                  </span>
+                  <span className="text-xs font-medium">{meta.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Operations group */}
+        {canAddOperation && availableOperations.length > 0 && (
+          <div>
+            <div className="my-1 border-t border-border/50" />
+            <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+              操作节点 (Operation)
+            </p>
+            {availableOperations.map((operation) => (
+              <button
+                key={operation.id}
+                onClick={() => handleCreateOperation(operation.id)}
+                className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
+              >
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-violet-500">
+                  <Zap className="h-3 w-3 text-white" />
+                </span>
+                <span className="text-xs font-medium truncate">
+                  {operation.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Empty state for operations */}
+        {canAddOperation && availableOperations.length === 0 && (
+          <div>
+            <div className="my-1 border-t border-border/50" />
+            <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+              操作节点 (Operation)
+            </p>
+            <p className="px-3 py-2 text-[10px] text-muted-foreground">
+              没有接受此类型的 Operation
+            </p>
+          </div>
+        )}
       </div>
     </>
   );

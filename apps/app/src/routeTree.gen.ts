@@ -14,6 +14,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RulesRouteImport } from './routes/rules'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as PipelinesRouteImport } from './routes/pipelines'
+import { Route as OperationsRouteImport } from './routes/operations'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as BestPracticesRouteImport } from './routes/best-practices'
@@ -46,6 +47,11 @@ const ProjectsRoute = ProjectsRouteImport.update({
 const PipelinesRoute = PipelinesRouteImport.update({
   id: '/pipelines',
   path: '/pipelines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperationsRoute = OperationsRouteImport.update({
+  id: '/operations',
+  path: '/operations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JobsRoute = JobsRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/operations': typeof OperationsRoute
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/rules': typeof RulesRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/operations': typeof OperationsRoute
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/rules': typeof RulesRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/operations': typeof OperationsRoute
   '/pipelines': typeof PipelinesRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/rules': typeof RulesRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/best-practices'
     | '/canvas'
     | '/jobs'
+    | '/operations'
     | '/pipelines'
     | '/projects'
     | '/rules'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/best-practices'
     | '/canvas'
     | '/jobs'
+    | '/operations'
     | '/pipelines'
     | '/projects'
     | '/rules'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/best-practices'
     | '/canvas'
     | '/jobs'
+    | '/operations'
     | '/pipelines'
     | '/projects'
     | '/rules'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   BestPracticesRoute: typeof BestPracticesRoute
   CanvasRoute: typeof CanvasRoute
   JobsRoute: typeof JobsRouteWithChildren
+  OperationsRoute: typeof OperationsRoute
   PipelinesRoute: typeof PipelinesRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
   RulesRoute: typeof RulesRoute
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       path: '/pipelines'
       fullPath: '/pipelines'
       preLoaderRoute: typeof PipelinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operations': {
+      id: '/operations'
+      path: '/operations'
+      fullPath: '/operations'
+      preLoaderRoute: typeof OperationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/jobs': {
@@ -332,6 +352,7 @@ const rootRouteChildren: RootRouteChildren = {
   BestPracticesRoute: BestPracticesRoute,
   CanvasRoute: CanvasRoute,
   JobsRoute: JobsRouteWithChildren,
+  OperationsRoute: OperationsRoute,
   PipelinesRoute: PipelinesRoute,
   ProjectsRoute: ProjectsRouteWithChildren,
   RulesRoute: RulesRoute,

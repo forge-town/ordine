@@ -6,7 +6,6 @@ import {
   Copy,
   Trash2,
   Zap,
-  ShieldCheck,
   FileCode,
   Folder,
 } from "lucide-react";
@@ -14,23 +13,19 @@ import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../_store";
 import {
   nodeTypeMeta,
-  allowedConnections,
   makeDefaultNodeData,
+  makeOperationNodeData,
+  getAllowedConnections,
   type NodeType,
 } from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
-const TYPE_ICONS: Record<NodeType, React.ElementType> = {
-  condition: ShieldCheck,
+const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
+  operation: Zap,
   "code-file": FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
 };
-
-const TYPE_GROUPS: { label: string; types: NodeType[] }[] = [
-  { label: "操作节点", types: ["condition"] },
-  { label: "处理对象", types: ["code-file", "folder", "github-project"] },
-];
 
 const KbdHint = ({ keys }: { keys: string }) => (
   <span className="ml-auto font-mono text-[11px] text-muted-foreground/50">
@@ -53,6 +48,7 @@ export const NodeContextMenu = ({
 }: Props) => {
   const store = useHarnessCanvasStore();
   const nodes = useStore(store, (state) => state.nodes);
+  const operations = useStore(store, (state) => state.operations);
   const node = nodes.find((n) => n.id === nodeId);
   const [actionsOpen, setActionsOpen] = useState(false);
 
@@ -75,7 +71,24 @@ export const NodeContextMenu = ({
   if (!node) return null;
 
   const meta = nodeTypeMeta[node.type];
-  const availableTypes = allowedConnections[node.type];
+  const allowedConnections = getAllowedConnections(operations);
+  const availableTypes = allowedConnections[node.type] ?? [];
+
+  // Filter operations based on source type
+  const availableOperations = (() => {
+    const objectTypeMap: Record<string, string> = {
+      "code-file": "file",
+      folder: "folder",
+      "github-project": "project",
+    };
+    const objectType = objectTypeMap[node.type];
+    if (!objectType) return operations;
+    return operations.filter((op) =>
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project"),
+    );
+  })();
+
+  const canAddOperation = availableTypes.includes("operation");
 
   const MENU_W = 224;
   const SUBMENU_W = 208;
@@ -96,7 +109,7 @@ export const NodeContextMenu = ({
     onClose();
   };
 
-  const handleAddConnected = (type: NodeType) => {
+  const handleAddObject = (type: NodeType) => {
     const state = store.getState();
     const newId = `${type}-${Date.now()}`;
     state.addNode({
@@ -104,6 +117,27 @@ export const NodeContextMenu = ({
       type,
       position: { x: node.position.x + 280, y: node.position.y },
       data: makeDefaultNodeData(type),
+    });
+    state.onConnect({
+      source: nodeId,
+      sourceHandle: null,
+      target: newId,
+      targetHandle: null,
+    });
+    onClose();
+  };
+
+  const handleAddOperation = (operationId: string) => {
+    const operation = operations.find((op) => op.id === operationId);
+    if (!operation) return;
+
+    const state = store.getState();
+    const newId = `op-${operationId}-${Date.now()}`;
+    state.addNode({
+      id: newId,
+      type: "operation",
+      position: { x: node.position.x + 280, y: node.position.y },
+      data: makeOperationNodeData(operation),
     });
     state.onConnect({
       source: nodeId,
@@ -200,24 +234,25 @@ export const NodeContextMenu = ({
           <p className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
             连接新节点
           </p>
-          {TYPE_GROUPS.map((group) => {
-            const visible = group.types.filter((t) =>
-              availableTypes.includes(t),
-            );
-            if (visible.length === 0) return null;
-            return (
-              <div key={group.label}>
-                <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                  {group.label}
-                </p>
-                {visible.map((type) => {
-                  const Icon = TYPE_ICONS[type];
-                  const m = nodeTypeMeta[type];
+
+          {/* Object types */}
+          {["code-file", "folder", "github-project"].filter((t) =>
+            availableTypes.includes(t as NodeType),
+          ).length > 0 && (
+            <div>
+              <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                处理对象
+              </p>
+              {["code-file", "folder", "github-project"]
+                .filter((t) => availableTypes.includes(t as NodeType))
+                .map((type) => {
+                  const Icon = TYPE_ICONS[type as NodeType];
+                  const m = nodeTypeMeta[type as NodeType];
                   return (
                     <button
                       key={type}
                       className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-accent"
-                      onClick={() => handleAddConnected(type)}
+                      onClick={() => handleAddObject(type as NodeType)}
                     >
                       <span
                         className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${m.iconBg}`}
@@ -228,9 +263,43 @@ export const NodeContextMenu = ({
                     </button>
                   );
                 })}
-              </div>
-            );
-          })}
+            </div>
+          )}
+
+          {/* Operations */}
+          {canAddOperation && availableOperations.length > 0 && (
+            <div>
+              <div className="my-1 border-t border-border/40" />
+              <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                操作节点
+              </p>
+              {availableOperations.map((operation) => (
+                <button
+                  key={operation.id}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-accent"
+                  onClick={() => handleAddOperation(operation.id)}
+                >
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded bg-violet-500">
+                    <Zap className="h-2.5 w-2.5 text-white" />
+                  </span>
+                  <span className="truncate">{operation.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {canAddOperation && availableOperations.length === 0 && (
+            <div>
+              <div className="my-1 border-t border-border/40" />
+              <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                操作节点
+              </p>
+              <p className="px-3 py-2 text-[10px] text-muted-foreground">
+                没有接受此类型的 Operation
+              </p>
+            </div>
+          )}
         </div>
       )}
     </>

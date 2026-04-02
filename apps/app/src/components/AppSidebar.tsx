@@ -9,6 +9,7 @@ import {
   Lightbulb,
   Activity,
   ShieldCheck,
+  Zap,
 } from "lucide-react";
 import {
   Sidebar,
@@ -38,6 +39,7 @@ const navItems: NavItem[] = [
   { label: "Pipelines", icon: Layers, to: "/pipelines" },
   { label: "技能库", icon: BookOpen, to: "/skills" },
   { label: "最佳实践", icon: Lightbulb, to: "/best-practices" },
+  { label: "Operations", icon: Zap, to: "/operations" },
   { label: "Rules", icon: ShieldCheck, to: "/rules" },
   { label: "Jobs", icon: Activity, to: "/jobs" },
 ];

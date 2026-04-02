@@ -5,3 +5,4 @@ export * from "./worksService";
 export * from "./bestPracticesService";
 export * from "./jobsService";
 export * from "./rulesService";
+export * from "./operationsService";

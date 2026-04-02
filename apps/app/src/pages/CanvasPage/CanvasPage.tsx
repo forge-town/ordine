@@ -4,11 +4,11 @@ import { CanvasPageContent } from "./CanvasPageContent";
 import { Route } from "@/routes/canvas";
 
 export const CanvasPage = () => {
-  const pipeline = Route.useLoaderData();
+  const { pipeline, operations } = Route.useLoaderData();
 
   return (
     <CanvasLayout>
-      <HarnessCanvasStoreProvider pipeline={pipeline ?? null}>
+      <HarnessCanvasStoreProvider pipeline={pipeline ?? null} operations={operations}>
         <CanvasPageContent />
       </HarnessCanvasStoreProvider>
     </CanvasLayout>

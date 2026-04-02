@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, ShieldCheck, FileCode, Folder } from "lucide-react";
+import { Plus, Zap, FileCode, Folder } from "lucide-react";
 import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../_store";
 import {
@@ -9,8 +9,8 @@ import {
 } from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
-const TYPE_ICONS: Record<NodeType, React.ElementType> = {
-  condition: ShieldCheck,
+const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
+  operation: Zap,
   "code-file": FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,

@@ -88,17 +88,18 @@ export const AiAssistantPanel = () => {
       const id = `${action.nodeType}-${Date.now()}`;
       const x = 200 + Math.random() * 300;
       const y = 150 + Math.random() * 250;
-      if (action.nodeType === "condition") {
+      if (action.nodeType === "operation") {
         state.addNode({
           id,
-          type: "condition",
+          type: "operation",
           position: { x, y },
           data: {
-            label: action.label ?? "验收条件",
-            nodeType: "condition",
-            expression: "",
-            expectedResult: "",
+            label: action.label ?? "Operation",
+            nodeType: "operation",
+            operationId: "",
+            operationName: action.label ?? "Operation",
             status: "idle",
+            config: {},
           },
         });
       }

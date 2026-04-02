@@ -15,6 +15,7 @@ import { ConditionNode } from "../nodes/ConditionNode";
 import { CodeFileNode } from "../nodes/CodeFileNode";
 import { FolderNode } from "../nodes/FolderNode";
 import { GitHubProjectNode } from "../nodes/GitHubProjectNode";
+import { OperationNode } from "../nodes/OperationNode";
 
 export const CanvasFlow = () => {
   const store = useHarnessCanvasStore();
@@ -54,6 +55,7 @@ export const CanvasFlow = () => {
   // 使用 useMemo 缓存 nodeTypes - React Flow 最佳实践
   const nodeTypes = useMemo(
     () => ({
+      operation: OperationNode,
       condition: ConditionNode,
       "code-file": CodeFileNode,
       folder: FolderNode,

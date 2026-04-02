@@ -7,12 +7,18 @@ import {
   Circle,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import {
-  useHarnessCanvasStore,
-  type ConditionNodeData,
-  type NodeRunStatus,
-} from "../../_store";
+import { useHarnessCanvasStore, type NodeRunStatus } from "../../_store";
 import { NodeCard } from "../NodeCard";
+
+// Local type definition for legacy condition node
+interface ConditionNodeData {
+  label: string;
+  nodeType: "condition";
+  expression: string;
+  expectedResult: string;
+  status: NodeRunStatus;
+  notes?: string;
+}
 
 export interface ConditionNodeProps {
   id: string;
@@ -38,11 +44,12 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
   const store = useHarnessCanvasStore();
   const update = (patch: Record<string, unknown>) =>
     store.getState().updateNodeData(id, patch);
+  const status = data.status ?? "idle";
   const {
     icon: StatusIcon,
     color,
     label: statusLabel,
-  } = statusConfig[data.status ?? "idle"];
+  } = statusConfig[status];
 
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
