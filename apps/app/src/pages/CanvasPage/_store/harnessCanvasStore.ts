@@ -83,16 +83,3 @@ export const useHarnessCanvasStore = () => {
   }
   return context;
 };
-
-export const HarnessCanvasStoreContext =
-  createContext<HarnessCanvasStore | null>(null);
-
-export const useHarnessCanvasStore = () => {
-  const context = useContext(HarnessCanvasStoreContext);
-  if (!context) {
-    throw new Error(
-      "useHarnessCanvasStore must be used within HarnessCanvasStoreProvider",
-    );
-  }
-  return context;
-};
