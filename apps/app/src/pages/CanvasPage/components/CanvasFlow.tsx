@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import { useStore } from "zustand";
 import {
   ReactFlow,
@@ -51,6 +51,26 @@ export const CanvasFlow = () => {
     (state) => state.closeNodeContextMenu,
   );
   const setConnectStart = useStore(store, (state) => state.setConnectStart);
+
+  // ─── Undo / Redo keyboard shortcuts ──────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isUndo = (e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey;
+      const isRedo =
+        (e.metaKey || e.ctrlKey) &&
+        (e.key === "y" || (e.key === "z" && e.shiftKey));
+
+      if (isUndo) {
+        e.preventDefault();
+        store.getState().undo();
+      } else if (isRedo) {
+        e.preventDefault();
+        store.getState().redo();
+      }
+    };
+    globalThis.addEventListener("keydown", handler);
+    return () => globalThis.removeEventListener("keydown", handler);
+  }, [store]);
 
   const { screenToFlowPosition } = useReactFlow();
 

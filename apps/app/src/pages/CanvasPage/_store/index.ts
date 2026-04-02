@@ -23,3 +23,9 @@ export type {
   HarnessNodeData,
   HarnessEdgeData,
 } from "./canvasSlice";
+export type {
+  HistorySlice,
+  HistoryEntry,
+  CommandMeta,
+  CommandType,
+} from "./historySlice";

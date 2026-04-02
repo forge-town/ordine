@@ -74,6 +74,7 @@ const initialEdges: PipelineEdge[] = [];
 
 export const createCanvasSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
+  get: Parameters<HarnessCanvasStoreSlice>[1],
   overrideNodes?: PipelineNode[],
   overrideEdges?: PipelineEdge[],
 ): CanvasSlice => ({
@@ -83,6 +84,8 @@ export const createCanvasSlice = (
   selectedEdgeId: null,
 
   onNodesChange: (changes) => {
+    // Position drags — bypass history (noisy), React Flow manages these internally.
+    // Only non-position changes (select, remove) go through normal set.
     set((state) => ({
       nodes: applyNodeChanges(changes, state.nodes),
     }));
@@ -95,89 +98,124 @@ export const createCanvasSlice = (
   },
 
   onConnect: (connection) => {
-    set((state) => {
-      const sourceNode = state.nodes.find((n) => n.id === connection.source);
-      const targetNode = state.nodes.find((n) => n.id === connection.target);
-      if (!sourceNode || !targetNode) return state;
+    const state = get();
+    const sourceNode = state.nodes.find((n) => n.id === connection.source);
+    const targetNode = state.nodes.find((n) => n.id === connection.target);
+    if (!sourceNode || !targetNode) return;
 
-      const result = ConnectionRuleSchema.safeParse({
-        sourceType: sourceNode.type,
-        targetType: targetNode.type,
-      });
-      if (!result.success) {
-        console.warn("[Canvas] 不允许的连接:", result.error.issues[0]?.message);
-        return state;
-      }
-
-      return {
-        edges: addEdge(
-          {
-            ...connection,
-            type: "default",
-            animated: true,
-            data: {},
-          },
-          state.edges,
-        ),
-      };
+    const result = ConnectionRuleSchema.safeParse({
+      sourceType: sourceNode.type,
+      targetType: targetNode.type,
     });
+    if (!result.success) {
+      console.warn("[Canvas] 不允许的连接:", result.error.issues[0]?.message);
+      return;
+    }
+
+    state.recordCommand(
+      {
+        type: "ADD_EDGE",
+        label: `连接 ${sourceNode.data.label} → ${targetNode.data.label}`,
+        payload: { source: connection.source, target: connection.target },
+      },
+      (draft) => {
+        draft.edges = addEdge(
+          { ...connection, type: "default", animated: true, data: {} },
+          draft.edges,
+        );
+      },
+    );
   },
 
   addNode: (node) => {
-    set((state) => ({ nodes: [...state.nodes, node] }));
+    get().recordCommand(
+      {
+        type: "ADD_NODE",
+        label: `添加节点 ${node.data.label}`,
+        payload: { id: node.id, nodeType: node.type },
+      },
+      (draft) => {
+        draft.nodes.push(node);
+      },
+    );
   },
 
   addNodeWithEdge: (sourceId, targetType) => {
-    set((state) => {
-      const source = state.nodes.find((n) => n.id === sourceId);
-      if (!source) return state;
+    const state = get();
+    const source = state.nodes.find((n) => n.id === sourceId);
+    if (!source) return;
 
-      const newId = `${targetType}-${Date.now()}`;
-      const newNode: PipelineNode = {
-        id: newId,
-        type: targetType,
-        position: {
-          x: source.position.x + 300,
-          y: source.position.y,
-        },
-        data: makeDefaultNodeData(targetType),
-      };
+    const newId = `${targetType}-${Date.now()}`;
+    const newNode: PipelineNode = {
+      id: newId,
+      type: targetType,
+      position: { x: source.position.x + 300, y: source.position.y },
+      data: makeDefaultNodeData(targetType),
+    };
+    const newEdge: PipelineEdge = {
+      id: `e-${sourceId}-${newId}`,
+      source: sourceId,
+      target: newId,
+      type: "default",
+      animated: true,
+      data: {},
+    };
 
-      const newEdge: PipelineEdge = {
-        id: `e-${sourceId}-${newId}`,
-        source: sourceId,
-        target: newId,
-        type: "default",
-        animated: true,
-        data: {},
-      };
-
-      return {
-        nodes: [...state.nodes, newNode],
-        edges: [...state.edges, newEdge],
-      };
-    });
+    state.recordCommand(
+      {
+        type: "ADD_NODE_WITH_EDGE",
+        label: `添加 ${newNode.data.label} 并连接`,
+        payload: { sourceId, targetType, newId },
+      },
+      (draft) => {
+        draft.nodes.push(newNode);
+        draft.edges.push(newEdge);
+      },
+    );
   },
 
   removeNode: (nodeId) => {
-    set((state) => ({
-      nodes: state.nodes.filter((n) => n.id !== nodeId),
-      edges: state.edges.filter(
-        (e) => e.source !== nodeId && e.target !== nodeId,
-      ),
-      selectedNodeId:
-        state.selectedNodeId === nodeId ? null : state.selectedNodeId,
+    const state = get();
+    const node = state.nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+
+    state.recordCommand(
+      {
+        type: "REMOVE_NODE",
+        label: `删除节点 ${node.data.label}`,
+        payload: { id: nodeId },
+      },
+      (draft) => {
+        draft.nodes = draft.nodes.filter((n) => n.id !== nodeId);
+        draft.edges = draft.edges.filter(
+          (e) => e.source !== nodeId && e.target !== nodeId,
+        );
+      },
+    );
+    // Clear selection outside of history-tracked state
+    set((s) => ({
+      selectedNodeId: s.selectedNodeId === nodeId ? null : s.selectedNodeId,
     }));
   },
 
   updateNodeData: (nodeId, data) => {
-    set((state) => ({
-      nodes: state.nodes.map((n) =>
-        n.id === nodeId
-          ? { ...n, data: { ...n.data, ...data } as PipelineNodeData }
-          : n,
-      ),
-    }));
+    const state = get();
+    const node = state.nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+
+    state.recordCommand(
+      {
+        type: "UPDATE_NODE_DATA",
+        label: `编辑 ${node.data.label}`,
+        payload: { id: nodeId, fields: Object.keys(data) },
+      },
+      (draft) => {
+        const n = draft.nodes.find((x) => x.id === nodeId);
+        if (n) {
+          n.data = { ...n.data, ...data } as PipelineNodeData;
+        }
+      },
+    );
   },
 
   updateEdgeData: (edgeId, data) => {
@@ -197,22 +235,40 @@ export const createCanvasSlice = (
   },
 
   duplicateNode: (nodeId) => {
-    set((state) => {
-      const source = state.nodes.find((n) => n.id === nodeId);
-      if (!source) return state;
-      const newId = `${source.type}-${Date.now()}`;
-      const newNode: PipelineNode = {
-        ...source,
-        id: newId,
-        position: { x: source.position.x + 40, y: source.position.y + 40 },
-        selected: false,
-        data: { ...source.data },
-      };
-      return { nodes: [...state.nodes, newNode] };
-    });
+    const state = get();
+    const source = state.nodes.find((n) => n.id === nodeId);
+    if (!source) return;
+
+    const newId = `${source.type}-${Date.now()}`;
+    const newNode: PipelineNode = {
+      ...source,
+      id: newId,
+      position: { x: source.position.x + 40, y: source.position.y + 40 },
+      selected: false,
+      data: { ...source.data },
+    };
+
+    state.recordCommand(
+      {
+        type: "DUPLICATE_NODE",
+        label: `复制节点 ${source.data.label}`,
+        payload: { sourceId: nodeId, newId },
+      },
+      (draft) => {
+        draft.nodes.push(newNode);
+      },
+    );
   },
 
   clearCanvas: () => {
-    set({ nodes: [], edges: [], selectedNodeId: null, selectedEdgeId: null });
+    const state = get();
+    state.recordCommand(
+      { type: "CLEAR_CANVAS", label: "清空画布" },
+      (draft) => {
+        draft.nodes = [];
+        draft.edges = [];
+      },
+    );
+    set({ selectedNodeId: null, selectedEdgeId: null });
   },
 });
