@@ -12,17 +12,6 @@ import { NodeContextMenu } from "./components/NodeContextMenu";
 import { CanvasFloatingMenu } from "./components/CanvasFloatingMenu";
 import { updatePipeline } from "@/services/pipelinesService";
 
-// 全局处理器（不依赖组件状态）
-const handleUndo = () => {
-  // TODO: 实现撤销功能
-  console.log("undo");
-};
-
-const handleRedo = () => {
-  // TODO: 实现重做功能
-  console.log("redo");
-};
-
 const handleExport = () => {
   // TODO: 实现导出功能
   console.log("export");
@@ -50,6 +39,9 @@ const CanvasInner = () => {
   );
 
   const { fitView, zoomIn, zoomOut } = useReactFlow();
+
+  const handleUndo = () => store.getState().undo();
+  const handleRedo = () => store.getState().redo();
 
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
     "idle",

@@ -28,6 +28,8 @@ export const CanvasToolbar = ({
   const store = useHarnessCanvasStore();
   const selectedNodeId = useStore(store, (state) => state.selectedNodeId);
   const isAiAssistantOpen = useStore(store, (state) => state.isAiAssistantOpen);
+  const canUndo = useStore(store, (state) => state.canUndo);
+  const canRedo = useStore(store, (state) => state.canRedo);
 
   const handleDeleteSelected = () => {
     if (selectedNodeId) {
@@ -96,7 +98,8 @@ export const CanvasToolbar = ({
           variant="ghost"
           size="icon"
           className="h-7 w-7"
-          disabled
+          disabled={!canUndo}
+          onClick={() => store.getState().undo()}
           title="撤销"
         >
           <Undo2 className="h-4 w-4" />
@@ -105,7 +108,8 @@ export const CanvasToolbar = ({
           variant="ghost"
           size="icon"
           className="h-7 w-7"
-          disabled
+          disabled={!canRedo}
+          onClick={() => store.getState().redo()}
           title="重做"
         >
           <Redo2 className="h-4 w-4" />
