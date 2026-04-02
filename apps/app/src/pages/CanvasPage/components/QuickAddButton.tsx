@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Zap, FileCode, Folder } from "lucide-react";
+import { Plus, Zap, FileCode, Folder, HardDrive, FolderOutput } from "lucide-react";
 import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../_store";
 import {
@@ -14,6 +14,8 @@ const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
   "code-file": FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
+  "output-project-path": FolderOutput,
+  "output-local-path": HardDrive,
 };
 
 interface Props {

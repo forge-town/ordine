@@ -18,10 +18,18 @@ export type ObjectNodeType = z.infer<typeof ObjectNodeTypeSchema>;
 export const OperationNodeTypeSchema = z.literal("operation");
 export type OperationNodeType = z.infer<typeof OperationNodeTypeSchema>;
 
+// Output node types (pipeline endpoints)
+export const OutputNodeTypeSchema = z.enum([
+  "output-project-path",
+  "output-local-path",
+]);
+export type OutputNodeType = z.infer<typeof OutputNodeTypeSchema>;
+
 // All node types
 export const NodeTypeSchema = z.union([
   ObjectNodeTypeSchema,
   OperationNodeTypeSchema,
+  OutputNodeTypeSchema,
 ]);
 export type NodeType = z.infer<typeof NodeTypeSchema>;
 
@@ -53,6 +61,23 @@ export const GitHubProjectNodeDataSchema = z.object({
   description: z.string().optional(),
 });
 
+// ─── Output node data schemas ────────────────────────────────────────────────
+
+export const OutputProjectPathNodeDataSchema = z.object({
+  label: z.string(),
+  nodeType: z.literal("output-project-path"),
+  projectId: z.string().optional(),
+  path: z.string(),
+  description: z.string().optional(),
+});
+
+export const OutputLocalPathNodeDataSchema = z.object({
+  label: z.string(),
+  nodeType: z.literal("output-local-path"),
+  localPath: z.string(),
+  description: z.string().optional(),
+});
+
 // ─── Operation node data schema ────────────────────────────────────────────────
 
 export const OperationNodeDataSchema = z.object({
@@ -72,6 +97,8 @@ export const PipelineNodeDataSchema = z.union([
   FolderNodeDataSchema,
   GitHubProjectNodeDataSchema,
   OperationNodeDataSchema,
+  OutputProjectPathNodeDataSchema,
+  OutputLocalPathNodeDataSchema,
 ]);
 
 // React Flow requires node data to extend Record<string, unknown>.
@@ -85,6 +112,14 @@ export type GitHubProjectNodeData = z.infer<
 > &
   Record<string, unknown>;
 export type OperationNodeData = z.infer<typeof OperationNodeDataSchema> &
+  Record<string, unknown>;
+export type OutputProjectPathNodeData = z.infer<
+  typeof OutputProjectPathNodeDataSchema
+> &
+  Record<string, unknown>;
+export type OutputLocalPathNodeData = z.infer<
+  typeof OutputLocalPathNodeDataSchema
+> &
   Record<string, unknown>;
 export type PipelineNodeData = z.infer<typeof PipelineNodeDataSchema> &
   Record<string, unknown>;
@@ -112,28 +147,36 @@ export const OBJECT_TYPES: ObjectNodeType[] = [
 /** Operation nodes represent transformations/steps in the pipeline. */
 export const OPERATION_TYPE: OperationNodeType = "operation";
 
+/** Output node types — pipeline endpoints (no outgoing connections). */
+export const OUTPUT_TYPES: OutputNodeType[] = [
+  "output-project-path",
+  "output-local-path",
+];
+
 /** Get allowed connections based on available operations. */
 export const getAllowedConnections = (
   _operations: OperationEntity[],
 ): Record<NodeType, NodeType[]> => {
-  // All operations accept objects as input
+  // Objects connect to operations
   const objectToOperations: NodeType[] = ["operation"];
 
-  // Operations can chain to other operations or output to objects
+  // Operations can chain to other operations or terminate at output nodes
   const operationToTargets: NodeType[] = [
     "operation",
-    "code-file",
-    "folder",
-    "github-project",
+    "output-project-path",
+    "output-local-path",
   ];
 
   return {
-    // Objects can connect to operations
+    // Objects → operations
     "code-file": objectToOperations,
     folder: objectToOperations,
     "github-project": objectToOperations,
-    // Operations can chain or output to objects
+    // Operations → operations or outputs
     operation: operationToTargets,
+    // Output nodes are endpoints — no outgoing connections
+    "output-project-path": [],
+    "output-local-path": [],
   };
 };
 
@@ -142,7 +185,9 @@ export const allowedConnections: Record<NodeType, NodeType[]> = {
   "code-file": ["operation"],
   folder: ["operation"],
   "github-project": ["operation"],
-  operation: ["operation", "code-file", "folder", "github-project"],
+  operation: ["operation", "output-project-path", "output-local-path"],
+  "output-project-path": [],
+  "output-local-path": [],
 };
 
 /**
@@ -173,7 +218,11 @@ export const isConnectionAllowed = (
     const objectType = objectTypeMap[sourceType];
     if (!objectType) return false;
 
-    return operation.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project") ?? true;
+    return (
+      operation.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "project",
+      ) ?? true
+    );
   }
 
   return true;
@@ -232,6 +281,23 @@ export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
         owner: "",
         repo: "",
         branch: "main",
+        description: "",
+      };
+    }
+    case "output-project-path": {
+      return {
+        label: "项目路径输出",
+        nodeType: "output-project-path",
+        projectId: "",
+        path: "",
+        description: "",
+      };
+    }
+    case "output-local-path": {
+      return {
+        label: "本地路径输出",
+        nodeType: "output-local-path",
+        localPath: "",
         description: "",
       };
     }
@@ -296,6 +362,28 @@ export const nodeTypeMeta = {
     iconBg: "bg-orange-600",
     handle: "!border-orange-400",
     plusBg: "bg-orange-100 text-orange-700 hover:bg-orange-200",
+  },
+  "output-project-path": {
+    label: "项目路径输出",
+    shortLabel: "输出",
+    border: "border-teal-200",
+    selectedBorder: "border-teal-500",
+    header: "bg-teal-50",
+    headerText: "text-teal-700",
+    iconBg: "bg-teal-500",
+    handle: "!border-teal-400",
+    plusBg: "bg-teal-100 text-teal-700 hover:bg-teal-200",
+  },
+  "output-local-path": {
+    label: "本地路径输出",
+    shortLabel: "本地",
+    border: "border-teal-200",
+    selectedBorder: "border-teal-500",
+    header: "bg-teal-50",
+    headerText: "text-teal-700",
+    iconBg: "bg-teal-600",
+    handle: "!border-teal-400",
+    plusBg: "bg-teal-100 text-teal-700 hover:bg-teal-200",
   },
 } as const satisfies Record<NodeType, object>;
 

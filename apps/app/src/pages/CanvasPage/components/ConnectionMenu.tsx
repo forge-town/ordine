@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useStore } from "zustand";
-import { Plus, Zap, FileCode, Folder } from "lucide-react";
+import { Plus, Zap, FileCode, Folder, HardDrive, FolderOutput } from "lucide-react";
 import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../_store";
 import {
@@ -17,6 +17,8 @@ const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
   "code-file": FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
+  "output-project-path": FolderOutput,
+  "output-local-path": HardDrive,
 };
 
 interface Props {
@@ -193,9 +195,9 @@ export const ConnectionMenu = ({
         {/* Options grouped by category */}
         <div className="py-1">
           {/* Object types */}
-          {["code-file", "folder", "github-project"].filter((t) =>
+          {["code-file", "folder", "github-project"].some((t) =>
             availableTypes.includes(t as NodeType),
-          ).length > 0 && (
+          ) && (
             <div>
               <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
                 处理对象

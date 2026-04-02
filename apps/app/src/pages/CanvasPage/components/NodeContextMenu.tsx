@@ -8,6 +8,8 @@ import {
   Zap,
   FileCode,
   Folder,
+  FolderOutput,
+  HardDrive,
 } from "lucide-react";
 import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../_store";
@@ -25,6 +27,8 @@ const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
   "code-file": FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
+  "output-project-path": FolderOutput,
+  "output-local-path": HardDrive,
 };
 
 const KbdHint = ({ keys }: { keys: string }) => (
@@ -84,7 +88,9 @@ export const NodeContextMenu = ({
     const objectType = objectTypeMap[node.type];
     if (!objectType) return operations;
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project"),
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "project",
+      ),
     );
   })();
 
@@ -236,9 +242,9 @@ export const NodeContextMenu = ({
           </p>
 
           {/* Object types */}
-          {["code-file", "folder", "github-project"].filter((t) =>
+          {["code-file", "folder", "github-project"].some((t) =>
             availableTypes.includes(t as NodeType),
-          ).length > 0 && (
+          ) && (
             <div>
               <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
                 处理对象

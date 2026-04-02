@@ -13,6 +13,8 @@ export type {
   FolderNodeData,
   GitHubProjectNodeData,
   OperationNodeData,
+  OutputProjectPathNodeData,
+  OutputLocalPathNodeData,
   NodeType,
   NodeRunStatus,
   // legacy aliases

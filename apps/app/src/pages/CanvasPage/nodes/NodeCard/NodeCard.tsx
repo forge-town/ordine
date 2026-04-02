@@ -8,7 +8,13 @@ import {
 } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 
-export type NodeTheme = "emerald" | "violet" | "amber" | "sky" | "orange";
+export type NodeTheme =
+  | "emerald"
+  | "violet"
+  | "amber"
+  | "sky"
+  | "orange"
+  | "teal";
 
 const themeMap = {
   emerald: {
@@ -45,6 +51,13 @@ const themeMap = {
     headerBg: "bg-orange-50/50",
     iconBg: "bg-orange-100",
     iconColor: "text-orange-600",
+  },
+  teal: {
+    ring: "ring-teal-500/20",
+    ringSelected: "ring-teal-500",
+    headerBg: "bg-teal-50/50",
+    iconBg: "bg-teal-100",
+    iconColor: "text-teal-600",
   },
 } satisfies Record<NodeTheme, object>;
 

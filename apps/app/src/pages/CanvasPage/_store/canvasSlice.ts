@@ -18,6 +18,8 @@ import {
   type FolderNodeData,
   type GitHubProjectNodeData,
   type OperationNodeData,
+  type OutputProjectPathNodeData,
+  type OutputLocalPathNodeData,
   type PipelineNodeData,
   type PipelineEdgeData,
 } from "../nodeSchemas";
@@ -30,6 +32,8 @@ export type {
   FolderNodeData,
   GitHubProjectNodeData,
   OperationNodeData,
+  OutputProjectPathNodeData,
+  OutputLocalPathNodeData,
   PipelineNodeData,
   PipelineEdgeData,
 };

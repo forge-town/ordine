@@ -11,6 +11,8 @@ import {
   Folder,
   ChevronLeft,
   ChevronRight,
+  FolderOutput,
+  HardDrive,
 } from "lucide-react";
 import { SiGitHubIcon } from "../nodes/GitHubProjectNode/SiGitHubIcon";
 
@@ -58,6 +60,25 @@ const nodeTypeItems: NodeTypeItem[] = [
     icon: Zap,
     colorClass: "border-violet-200 bg-violet-50 hover:border-violet-400",
     iconBg: "bg-violet-500",
+  },
+];
+
+const outputItems: NodeTypeItem[] = [
+  {
+    type: "output-project-path",
+    label: "项目路径",
+    description: "写入项目内的指定路径",
+    icon: FolderOutput,
+    colorClass: "border-teal-200 bg-teal-50 hover:border-teal-400",
+    iconBg: "bg-teal-500",
+  },
+  {
+    type: "output-local-path",
+    label: "本地路径",
+    description: "写入本机文件系统指定路径",
+    icon: HardDrive,
+    colorClass: "border-teal-200 bg-teal-50 hover:border-teal-400",
+    iconBg: "bg-teal-600",
   },
 ];
 
@@ -109,6 +130,21 @@ export const SkillPalette = () => {
       };
       store.getState().addNode({ id, type: "operation", position: pos, data });
       return;
+    } else if (item.type === "output-project-path") {
+      data = {
+        label: "项目路径输出",
+        nodeType: "output-project-path",
+        projectId: "",
+        path: "",
+        description: "",
+      };
+    } else if (item.type === "output-local-path") {
+      data = {
+        label: "本地路径输出",
+        nodeType: "output-local-path",
+        localPath: "",
+        description: "",
+      };
     } else {
       return;
     }
@@ -189,6 +225,45 @@ export const SkillPalette = () => {
               </p>
               <div className="space-y-1.5">
                 {nodeTypeItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.type}
+                      onClick={() => handleAddNodeType(item)}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
+                        item.colorClass,
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex h-7 w-7 shrink-0 items-center justify-center rounded",
+                          item.iconBg,
+                        )}
+                      >
+                        <Icon className="h-3.5 w-3.5 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-gray-700">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          {item.description}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Output nodes */}
+            <div>
+              <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                输出终点 (Output)
+              </p>
+              <div className="space-y-1.5">
+                {outputItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <button

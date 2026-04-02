@@ -16,6 +16,8 @@ import { CodeFileNode } from "../nodes/CodeFileNode";
 import { FolderNode } from "../nodes/FolderNode";
 import { GitHubProjectNode } from "../nodes/GitHubProjectNode";
 import { OperationNode } from "../nodes/OperationNode";
+import { OutputProjectPathNode } from "../nodes/OutputProjectPathNode";
+import { OutputLocalPathNode } from "../nodes/OutputLocalPathNode";
 
 export const CanvasFlow = () => {
   const store = useHarnessCanvasStore();
@@ -60,6 +62,8 @@ export const CanvasFlow = () => {
       "code-file": CodeFileNode,
       folder: FolderNode,
       "github-project": GitHubProjectNode,
+      "output-project-path": OutputProjectPathNode,
+      "output-local-path": OutputLocalPathNode,
     }),
     [],
   );
