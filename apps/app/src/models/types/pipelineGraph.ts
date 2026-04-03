@@ -1,6 +1,13 @@
 // Pipeline graph node/edge types for DB and business logic (decoupled from page store)
 
-export type NodeType = "condition" | "code-file" | "folder" | "github-project";
+export type NodeType =
+  | "condition"
+  | "code-file"
+  | "folder"
+  | "github-project"
+  | "operation"
+  | "output-project-path"
+  | "output-local-path";
 
 export type NodeRunStatus = "idle" | "running" | "pass" | "fail";
 
@@ -39,11 +46,39 @@ export interface GitHubProjectNodeData {
   githubProjectId?: string;
 }
 
+export interface OperationNodeData {
+  label: string;
+  nodeType: "operation";
+  operationId: string;
+  operationName: string;
+  status: NodeRunStatus;
+  config?: Record<string, unknown>;
+  notes?: string;
+}
+
+export interface OutputProjectPathNodeData {
+  label: string;
+  nodeType: "output-project-path";
+  projectId?: string;
+  path: string;
+  description?: string;
+}
+
+export interface OutputLocalPathNodeData {
+  label: string;
+  nodeType: "output-local-path";
+  localPath: string;
+  description?: string;
+}
+
 export type PipelineNodeData =
   | ConditionNodeData
   | CodeFileNodeData
   | FolderNodeData
-  | GitHubProjectNodeData;
+  | GitHubProjectNodeData
+  | OperationNodeData
+  | OutputProjectPathNodeData
+  | OutputLocalPathNodeData;
 
 export interface PipelineEdgeData {
   label?: string;

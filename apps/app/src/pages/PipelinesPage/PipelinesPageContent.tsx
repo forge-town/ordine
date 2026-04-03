@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Layers } from "lucide-react";
 import { Button } from "@repo/ui/button";
-import { Route } from "@/routes/pipelines";
+import { Route } from "@/routes/pipelines.index";
 import { createPipeline, deletePipeline } from "@/services/pipelinesService";
 import type { StoredPipeline } from "@/models/daos/pipelinesDao";
 import { PipelineCard } from "./components/PipelineCard";

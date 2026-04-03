@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStore } from "zustand";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { useNotification } from "@refinedev/core";
 
 import { useHarnessCanvasStore } from "./_store";
 import { CanvasToolbar } from "./components/CanvasToolbar";
@@ -39,13 +40,12 @@ const CanvasInner = () => {
   );
 
   const { fitView, zoomIn, zoomOut } = useReactFlow();
+  const { open: openNotification } = useNotification();
 
   const handleUndo = () => store.getState().undo();
   const handleRedo = () => store.getState().redo();
 
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
-    "idle",
-  );
+  const [saveState, setSaveState] = useState<"idle" | "saving">("idle");
 
   const handleSave = async () => {
     if (!pipelineId) return;
@@ -61,9 +61,18 @@ const CanvasInner = () => {
           },
         },
       });
-      setSaveState("saved");
-      setTimeout(() => setSaveState("idle"), 2000);
+      openNotification?.({
+        type: "success",
+        message: "保存成功",
+        description: `Pipeline「${pipelineName || "无标题"}」已保存`,
+      });
     } catch {
+      openNotification?.({
+        type: "error",
+        message: "保存失败",
+        description: "请稍后重试",
+      });
+    } finally {
       setSaveState("idle");
     }
   };
@@ -84,9 +93,6 @@ const CanvasInner = () => {
           </span>
           {saveState === "saving" && (
             <span className="text-xs text-gray-500">保存中...</span>
-          )}
-          {saveState === "saved" && (
-            <span className="text-xs text-green-600">已保存</span>
           )}
         </div>
       </div>

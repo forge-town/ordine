@@ -1,5 +1,6 @@
 import { createRouter } from "@tanstack/react-router";
 import { Provider } from "@/integrations/tanstack-query/root-provider";
+import { RefineProvider } from "@/integrations/refine/provider";
 import { routeTree } from "./routeTree.gen.ts";
 
 export const getRouter = () => {
@@ -8,7 +9,11 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     Wrap: ({ children }) => {
-      return <Provider>{children}</Provider>;
+      return (
+        <Provider>
+          <RefineProvider>{children}</RefineProvider>
+        </Provider>
+      );
     },
   });
 

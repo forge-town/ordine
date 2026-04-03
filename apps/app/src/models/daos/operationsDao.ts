@@ -5,19 +5,29 @@ import {
   type OperationRow,
   type NewOperationRow,
   type ObjectType,
+  type Visibility,
 } from "@/models/tables/operations_table";
 
-export type OperationEntity = Omit<OperationRow, "createdAt" | "updatedAt" | "acceptedObjectTypes"> & {
+export type OperationEntity = Omit<
+  OperationRow,
+  "createdAt" | "updatedAt" | "acceptedObjectTypes" | "visibility"
+> & {
   createdAt: number;
   updatedAt: number;
   acceptedObjectTypes: ObjectType[];
+  visibility: Visibility;
 };
 
 type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 const rowToEntity = (row: OperationRow): OperationEntity => ({
   ...row,
-  acceptedObjectTypes: (row.acceptedObjectTypes as ObjectType[]) ?? ["file", "folder", "project"],
+  visibility: (row.visibility as Visibility) ?? "public",
+  acceptedObjectTypes: (row.acceptedObjectTypes as ObjectType[]) ?? [
+    "file",
+    "folder",
+    "project",
+  ],
   createdAt: row.createdAt.getTime(),
   updatedAt: row.updatedAt.getTime(),
 });

@@ -9,6 +9,9 @@ import {
   Folder,
   FolderGit2,
   ExternalLink,
+  Globe,
+  Lock,
+  Users,
 } from "lucide-react";
 import {
   createOperation,
@@ -16,8 +19,24 @@ import {
   deleteOperation,
 } from "@/services/operationsService";
 import type { OperationEntity } from "@/models/daos/operationsDao";
-import type { ObjectType } from "@/models/tables/operations_table";
+import type { ObjectType, Visibility } from "@/models/tables/operations_table";
 import { cn } from "@repo/ui/lib/utils";
+
+const VISIBILITY_OPTIONS: {
+  value: Visibility;
+  label: string;
+  icon: React.ElementType;
+}[] = [
+  { value: "public", label: "公开", icon: Globe },
+  { value: "team", label: "团队", icon: Users },
+  { value: "private", label: "私有", icon: Lock },
+];
+
+const VISIBILITY_COLORS: Record<Visibility, string> = {
+  public: "bg-emerald-50 text-emerald-700",
+  team: "bg-sky-50 text-sky-700",
+  private: "bg-rose-50 text-rose-700",
+};
 
 interface Props {
   initialOperations: OperationEntity[];
@@ -47,6 +66,7 @@ interface FormState {
   name: string;
   description: string;
   category: string;
+  visibility: Visibility;
   config: string;
   acceptedObjectTypes: ObjectType[];
 }
@@ -55,16 +75,61 @@ const emptyForm: FormState = {
   name: "",
   description: "",
   category: "general",
+  visibility: "public",
   config: "{}",
   acceptedObjectTypes: ["file", "folder", "project"],
 };
 
 export const OperationsPageContent = ({ initialOperations }: Props) => {
+  type SortKey =
+    | "default"
+    | "name-asc"
+    | "name-desc"
+    | "date-asc"
+    | "date-desc"
+    | "category-asc";
+
   const [operations, setOperations] = useState(initialOperations);
+  const [visibilityFilter, setVisibilityFilter] = useState<Visibility | "all">(
+    "all",
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortKey>("default");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
+
+  const filteredOperations = operations
+    .filter(
+      (op) =>
+        visibilityFilter === "all" ||
+        (op.visibility ?? "public") === visibilityFilter,
+    )
+    .filter((op) => {
+      const q = searchQuery.trim().toLowerCase();
+      if (!q) return true;
+      return (
+        op.name.toLowerCase().includes(q) ||
+        (op.description ?? "").toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "date-asc":
+          return a.createdAt - b.createdAt;
+        case "date-desc":
+          return b.createdAt - a.createdAt;
+        case "category-asc":
+          return a.category.localeCompare(b.category);
+        default:
+          return 0;
+      }
+    });
 
   const openCreate = () => {
     setEditingId(null);
@@ -78,6 +143,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
       name: op.name,
       description: op.description ?? "",
       category: op.category,
+      visibility: op.visibility ?? "public",
       config: op.config,
       acceptedObjectTypes: Array.isArray(op.acceptedObjectTypes)
         ? op.acceptedObjectTypes
@@ -118,6 +184,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
             name: form.name,
             description: form.description || null,
             category: form.category,
+            visibility: form.visibility,
             config: form.config,
             acceptedObjectTypes: form.acceptedObjectTypes,
           },
@@ -136,6 +203,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
             name: form.name,
             description: form.description || null,
             category: form.category,
+            visibility: form.visibility,
             config: form.config,
             acceptedObjectTypes: form.acceptedObjectTypes,
           },
@@ -172,6 +240,60 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
           <Plus className="h-4 w-4" />
           新建 Operation
         </button>
+      </div>
+
+      {/* Search + Visibility filter bar */}
+      <div className="flex items-center gap-1.5 border-b px-6 py-2">
+        {(
+          [
+            { value: "all" as const, label: "全部" },
+            { value: "public" as const, label: "公开" },
+            { value: "team" as const, label: "团队" },
+            { value: "private" as const, label: "私有" },
+          ] as const
+        ).map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => setVisibilityFilter(value)}
+            className={cn(
+              "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+              visibilityFilter === value
+                ? "bg-violet-100 text-violet-700"
+                : "text-muted-foreground hover:bg-muted",
+            )}
+          >
+            {label}
+          </button>
+        ))}
+        <div className="ml-auto flex items-center gap-2">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="搜索操作名称或描述..."
+            className="rounded-md border bg-background px-3 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+          <label htmlFor="sort-select" className="sr-only">
+            排序
+          </label>
+          <select
+            id="sort-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortKey)}
+            className="rounded-md border bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+            aria-label="排序"
+          >
+            <option value="default">默认顺序</option>
+            <option value="name-asc">名称 A → Z</option>
+            <option value="name-desc">名称 Z → A</option>
+            <option value="date-desc">最新先</option>
+            <option value="date-asc">最旧先</option>
+            <option value="category-asc">分类 A → Z</option>
+          </select>
+          <span className="text-xs text-muted-foreground">
+            {filteredOperations.length} 个
+          </span>
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto p-6">
@@ -227,6 +349,37 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                   }
                   placeholder="简单描述这个操作做什么"
                 />
+              </div>
+
+              {/* Visibility */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">
+                  可见性
+                </label>
+                <div className="flex gap-2">
+                  {VISIBILITY_OPTIONS.map(({ value, label, icon: Icon }) => {
+                    const selected = form.visibility === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() =>
+                          setForm((f) => ({ ...f, visibility: value }))
+                        }
+                        className={cn(
+                          "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
+                          selected
+                            ? "border-violet-300 bg-violet-50 text-violet-700"
+                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50",
+                        )}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                        {selected && <span className="ml-1 text-xs">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Accepted Object Types */}
@@ -292,21 +445,29 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
         )}
 
         {/* Operation list */}
-        {operations.length === 0 && !showForm ? (
+        {filteredOperations.length === 0 && !showForm ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <Zap className="h-6 w-6 text-muted-foreground" />
             </div>
-            <p className="text-sm font-medium text-muted-foreground">
-              还没有 Operations
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground/60">
-              点击「新建 Operation」添加第一个操作
-            </p>
+            {searchQuery.trim() || visibilityFilter !== "all" ? (
+              <p className="text-sm font-medium text-muted-foreground">
+                没有找到匹配的 Operations
+              </p>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-muted-foreground">
+                  还没有 Operations
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground/60">
+                  点击「新建 Operation」添加第一个操作
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {operations.map((op) => (
+            {filteredOperations.map((op) => (
               <div
                 key={op.id}
                 className="group relative rounded-xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
@@ -320,9 +481,29 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                       <p className="truncate text-sm font-semibold">
                         {op.name}
                       </p>
-                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        {op.category}
-                      </span>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          {op.category}
+                        </span>
+                        {(() => {
+                          const vCfg = VISIBILITY_OPTIONS.find(
+                            (v) => v.value === (op.visibility ?? "public"),
+                          );
+                          if (!vCfg) return null;
+                          const VIcon = vCfg.icon;
+                          return (
+                            <span
+                              className={cn(
+                                "flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium",
+                                VISIBILITY_COLORS[vCfg.value],
+                              )}
+                            >
+                              <VIcon className="h-2.5 w-2.5" />
+                              {vCfg.label}
+                            </span>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">

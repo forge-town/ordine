@@ -1,4 +1,11 @@
-import { GitBranch, Clock, ArrowRight, Trash2 } from "lucide-react";
+import {
+  GitBranch,
+  Clock,
+  ArrowRight,
+  Trash2,
+  ExternalLink,
+} from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Card } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
@@ -34,7 +41,11 @@ interface PipelineCardProps {
   onDelete: () => void;
 }
 
-export const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) => {
+export const PipelineCard = ({
+  pipeline,
+  onOpen,
+  onDelete,
+}: PipelineCardProps) => {
   const typeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     const t = n.type ?? "unknown";
     acc[t] = (acc[t] ?? 0) + 1;
@@ -55,11 +66,22 @@ export const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) 
           e.stopPropagation();
           onDelete();
         }}
-        className="absolute right-3 top-3 hidden rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:flex"
+        className="absolute right-9 top-3 hidden rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:flex"
         aria-label="删除"
       >
         <Trash2 className="h-3.5 w-3.5" />
       </button>
+
+      {/* View detail button */}
+      <Link
+        to="/pipelines/$pipelineId"
+        params={{ pipelineId: pipeline.id }}
+        onClick={(e) => e.stopPropagation()}
+        className="absolute right-3 top-3 hidden rounded p-1 text-muted-foreground hover:bg-accent group-hover:flex"
+        title="查看详情"
+      >
+        <ExternalLink className="h-3.5 w-3.5" />
+      </Link>
 
       {/* Top row */}
       <div className="flex items-start justify-between">

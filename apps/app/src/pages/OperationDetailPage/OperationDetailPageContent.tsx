@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -9,10 +10,14 @@ import {
   Info,
   Tag,
   XCircle,
+  Globe,
+  Lock,
+  Users,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import { updateOperation } from "@/services/operationsService";
 import type { OperationEntity } from "@/models/daos/operationsDao";
-import type { ObjectType } from "@/models/tables/operations_table";
+import type { ObjectType, Visibility } from "@/models/tables/operations_table";
 
 // ─── Config types (mirrors seed definition) ──────────────────────────────────
 
@@ -56,6 +61,30 @@ const CATEGORY_COLORS: Record<string, string> = {
   planning: "bg-violet-50 text-violet-700 border-violet-200",
   implementation: "bg-emerald-50 text-emerald-700 border-emerald-200",
   general: "bg-gray-100 text-gray-600 border-gray-200",
+};
+
+const VISIBILITY_CONFIG: Record<
+  Visibility,
+  { icon: React.ElementType; label: string; cls: string; next: Visibility }
+> = {
+  public: {
+    icon: Globe,
+    label: "public",
+    cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    next: "team",
+  },
+  team: {
+    icon: Users,
+    label: "team",
+    cls: "bg-sky-50 text-sky-700 border-sky-200",
+    next: "private",
+  },
+  private: {
+    icon: Lock,
+    label: "private",
+    cls: "bg-rose-50 text-rose-700 border-rose-200",
+    next: "public",
+  },
 };
 
 function parseConfig(raw: string): OperationConfig {
@@ -135,6 +164,22 @@ export const OperationDetailPageContent = ({
   operation: OperationEntity | null;
 }) => {
   const navigate = useNavigate();
+  const [visibility, setVisibility] = useState<Visibility>(
+    operation?.visibility ?? "public",
+  );
+  const [toggling, setToggling] = useState(false);
+
+  const handleVisibilityToggle = async () => {
+    if (!operation) return;
+    const next = VISIBILITY_CONFIG[visibility].next;
+    setToggling(true);
+    try {
+      await updateOperation({ data: { id: operation.id, visibility: next } });
+      setVisibility(next);
+    } finally {
+      setToggling(false);
+    }
+  };
 
   if (!operation) {
     return (
@@ -154,6 +199,8 @@ export const OperationDetailPageContent = ({
   const config = parseConfig(operation.config);
   const categoryColor =
     CATEGORY_COLORS[operation.category] ?? CATEGORY_COLORS["general"];
+  const vc = VISIBILITY_CONFIG[visibility];
+  const VisibilityIcon = vc.icon;
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -193,6 +240,24 @@ export const OperationDetailPageContent = ({
               {operation.description}
             </p>
           )}
+
+          {/* Visibility control */}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs text-gray-400 shrink-0">可见性</span>
+            <button
+              onClick={() => void handleVisibilityToggle()}
+              disabled={toggling}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-opacity",
+                vc.cls,
+                toggling && "opacity-50 cursor-not-allowed",
+              )}
+              title="点击切换可见性"
+            >
+              <VisibilityIcon className="h-3 w-3" />
+              {vc.label}
+            </button>
+          </div>
 
           {/* Accepted object types */}
           <div className="flex items-center gap-2">

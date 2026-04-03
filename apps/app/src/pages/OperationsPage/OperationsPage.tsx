@@ -5,7 +5,7 @@ import type { OperationEntity } from "@/models/daos/operationsDao";
 
 export const OperationsPage = () => {
   const operations = useLoaderData({
-    from: "/operations",
+    from: "/operations/",
   }) as OperationEntity[];
   return (
     <AppLayout>

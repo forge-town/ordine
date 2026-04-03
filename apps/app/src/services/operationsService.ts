@@ -1,38 +1,40 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { operationsDao } from "@/models/daos/operationsDao";
-import { OBJECT_TYPES, type ObjectType } from "@/models/tables/operations_table";
+import {
+  OBJECT_TYPES,
+  VISIBILITY_OPTIONS,
+  type ObjectType,
+  type Visibility,
+} from "@/models/tables/operations_table";
 
 const ObjectTypeEnum = z.enum(OBJECT_TYPES);
+const VisibilityEnum = z.enum(VISIBILITY_OPTIONS);
 
-export const getOperations = createServerFn({ method: "GET" }).handler(async () => {
-  const ops = await operationsDao.findMany();
-  return ops as Array<{
-    id: string;
-    name: string;
-    description: string | null;
-    category: string;
-    config: string;
-    acceptedObjectTypes: ObjectType[];
-    createdAt: number;
-    updatedAt: number;
-  }>;
-});
+type OperationResult = {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  visibility: Visibility;
+  config: string;
+  acceptedObjectTypes: ObjectType[];
+  createdAt: number;
+  updatedAt: number;
+};
+
+export const getOperations = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const ops = await operationsDao.findMany();
+    return ops as OperationResult[];
+  },
+);
 
 export const getOperationById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
   .handler(async ({ data }) => {
     const op = await operationsDao.findById(data.id);
-    return op as {
-      id: string;
-      name: string;
-      description: string | null;
-      category: string;
-      config: string;
-      acceptedObjectTypes: ObjectType[];
-      createdAt: number;
-      updatedAt: number;
-    } | null;
+    return op as OperationResult | null;
   });
 
 export const createOperation = createServerFn({ method: "POST" })
@@ -42,22 +44,16 @@ export const createOperation = createServerFn({ method: "POST" })
       name: z.string(),
       description: z.string().nullable().default(null),
       category: z.string().default("general"),
+      visibility: VisibilityEnum.default("public"),
       config: z.string().default("{}"),
-      acceptedObjectTypes: z.array(ObjectTypeEnum).default(["file", "folder", "project"]),
+      acceptedObjectTypes: z
+        .array(ObjectTypeEnum)
+        .default(["file", "folder", "project"]),
     }),
   )
   .handler(async ({ data }) => {
     const op = await operationsDao.create(data);
-    return op as {
-      id: string;
-      name: string;
-      description: string | null;
-      category: string;
-      config: string;
-      acceptedObjectTypes: ObjectType[];
-      createdAt: number;
-      updatedAt: number;
-    };
+    return op as OperationResult;
   });
 
 export const updateOperation = createServerFn({ method: "POST" })
@@ -67,6 +63,7 @@ export const updateOperation = createServerFn({ method: "POST" })
       name: z.string().optional(),
       description: z.string().nullable().optional(),
       category: z.string().optional(),
+      visibility: VisibilityEnum.optional(),
       config: z.string().optional(),
       acceptedObjectTypes: z.array(ObjectTypeEnum).optional(),
     }),
@@ -74,16 +71,7 @@ export const updateOperation = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { id, ...rest } = data;
     const op = await operationsDao.update(id, rest);
-    return op as {
-      id: string;
-      name: string;
-      description: string | null;
-      category: string;
-      config: string;
-      acceptedObjectTypes: ObjectType[];
-      createdAt: number;
-      updatedAt: number;
-    };
+    return op as OperationResult;
   });
 
 export const deleteOperation = createServerFn({ method: "POST" })

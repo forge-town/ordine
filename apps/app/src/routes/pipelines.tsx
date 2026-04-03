@@ -1,8 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PipelinesPage } from "@/pages/PipelinesPage";
-import { getPipelines } from "@/services/pipelinesService";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/pipelines")({
-  loader: () => getPipelines(),
-  component: PipelinesPage,
+  component: Outlet,
 });
