@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { OperationsPageContent } from "./OperationsPageContent";
@@ -45,9 +45,7 @@ const ops: OperationEntity[] = [
 ];
 
 function getCardNames() {
-  return screen
-    .getAllByText(/Task$/)
-    .map((el) => el.textContent ?? "");
+  return screen.getAllByText(/Task$/).map((el) => el.textContent ?? "");
 }
 
 describe("OperationsPageContent – sort", () => {

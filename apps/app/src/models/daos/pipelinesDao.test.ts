@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { PipelineEntity } from "./pipelinesDao";
+import type * as DrizzleOrm from "drizzle-orm";
 
 // ─── Mock DB ─────────────────────────────────────────────────────────────────
 
@@ -18,7 +19,7 @@ vi.mock("@/db", () => ({
 }));
 
 vi.mock("drizzle-orm", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("drizzle-orm")>();
+  const actual = await importOriginal<typeof DrizzleOrm>();
   return {
     ...actual,
     eq: vi.fn((col, val) => ({ col, val, type: "eq" })),
@@ -75,7 +76,9 @@ describe("pipelinesDao.update", () => {
     expect(mockUpdate).toHaveBeenCalledTimes(1);
 
     // Verify .set() received nodes and edges
-    const setPayload = mockSet.mock.calls[0]?.[0] as Record<string, unknown>;
+    const setPayload = (
+      mockSet.mock.calls as Array<Array<Record<string, unknown>>>
+    )[0]?.[0];
     expect(setPayload).toBeDefined();
     expect(setPayload["nodes"]).toEqual(testNodes);
     expect(setPayload["edges"]).toEqual([]);
@@ -110,7 +113,9 @@ describe("pipelinesDao.update", () => {
       description: "New desc",
     });
 
-    const setPayload = mockSet.mock.calls[0]?.[0] as Record<string, unknown>;
+    const setPayload = (
+      mockSet.mock.calls as Array<Array<Record<string, unknown>>>
+    )[0]?.[0];
     // Should have name, description, updatedAt from internal logic
     expect(setPayload["name"]).toBe("Updated Name");
     expect(setPayload["description"]).toBe("New desc");

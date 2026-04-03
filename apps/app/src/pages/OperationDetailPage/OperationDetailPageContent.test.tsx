@@ -12,6 +12,7 @@ const mockOp: OperationEntity = {
   name: "Plan",
   description: "Produce a technical implementation plan.",
   category: "planning",
+  visibility: "public",
   config: JSON.stringify({
     inputs: [
       {

@@ -88,7 +88,9 @@ export const OperationNodeDataSchema = z.object({
   operationId: z.string(), // Reference to OperationEntity.id
   operationName: z.string(), // Display name
   status: NodeRunStatusSchema,
-  config: z.record(z.string(), z.unknown()).optional(),
+  config: z
+    .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+    .optional(),
   notes: z.string().optional(),
 });
 

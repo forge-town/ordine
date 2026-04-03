@@ -52,7 +52,7 @@ export interface OperationNodeData {
   operationId: string;
   operationName: string;
   status: NodeRunStatus;
-  config?: Record<string, unknown>;
+  config?: Record<string, string | number | boolean>;
   notes?: string;
 }
 
