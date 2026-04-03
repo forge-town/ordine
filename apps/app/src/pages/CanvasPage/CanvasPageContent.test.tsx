@@ -3,6 +3,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasPageContent } from "./CanvasPageContent";
 import { HarnessCanvasStoreProvider } from "./_store";
 import type * as Store from "./_store";
+import type * as Zustand from "zustand";
 
 // ─── Mock @refinedev/core useUpdate ──────────────────────────────────────────
 
@@ -43,13 +44,22 @@ vi.mock("./components/NodeContextMenu", () => ({
   NodeContextMenu: () => null,
 }));
 
-vi.mock("./components/CanvasFloatingMenu", () => ({
-  CanvasFloatingMenu: ({ onSave }: { onSave?: () => void }) => (
-    <button data-testid="save-btn" onClick={onSave}>
-      保存
-    </button>
-  ),
-}));
+vi.mock("./components/CanvasFloatingMenu", async () => {
+  const actualStore = await vi.importActual<typeof Store>("./_store");
+  const actualZustand = await vi.importActual<typeof Zustand>("zustand");
+
+  const FloatingMenuMock = () => {
+    const store = actualStore.useHarnessCanvasStore();
+    const saveCanvas = actualZustand.useStore(store, (s) => s.saveCanvas);
+    return (
+      <button data-testid="save-btn" onClick={saveCanvas}>
+        保存
+      </button>
+    );
+  };
+
+  return { CanvasFloatingMenu: FloatingMenuMock };
+});
 
 vi.mock("@xyflow/react", () => ({
   ReactFlowProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,

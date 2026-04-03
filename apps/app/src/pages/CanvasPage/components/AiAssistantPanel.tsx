@@ -103,6 +103,17 @@ export const AiAssistantPanel = () => {
           },
         });
       }
+    } else if (
+      action.type === "connectNodes" &&
+      action.sourceId &&
+      action.targetId
+    ) {
+      state.onConnect({
+        source: action.sourceId,
+        sourceHandle: null,
+        target: action.targetId,
+        targetHandle: null,
+      });
     }
   };
 

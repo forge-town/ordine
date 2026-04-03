@@ -87,7 +87,7 @@ const VISIBILITY_CONFIG: Record<
   },
 };
 
-function parseConfig(raw: string): OperationConfig {
+const parseConfig = (raw: string): OperationConfig => {
   try {
     const parsed = JSON.parse(raw) as Partial<OperationConfig>;
     return {
@@ -97,7 +97,7 @@ function parseConfig(raw: string): OperationConfig {
   } catch {
     return { inputs: [], outputs: [] };
   }
-}
+};
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 

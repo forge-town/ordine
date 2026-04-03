@@ -70,7 +70,15 @@ export const HarnessCanvasHeader = () => {
           </Button>
         )}
         <Separator orientation="vertical" className="mx-1 h-4" />
-        <Button variant="ghost" size="icon" className="h-7 w-7">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() =>
+            void (globalThis.location.href = "/settings")
+          }
+          title="设置"
+        >
           <Settings className="h-4 w-4" />
         </Button>
       </div>

@@ -116,18 +116,24 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case "name-asc":
+        case "name-asc": {
           return a.name.localeCompare(b.name);
-        case "name-desc":
+        }
+        case "name-desc": {
           return b.name.localeCompare(a.name);
-        case "date-asc":
+        }
+        case "date-asc": {
           return a.createdAt - b.createdAt;
-        case "date-desc":
+        }
+        case "date-desc": {
           return b.createdAt - a.createdAt;
-        case "category-asc":
+        }
+        case "category-asc": {
           return a.category.localeCompare(b.category);
-        default:
+        }
+        default: {
           return 0;
+        }
       }
     });
 

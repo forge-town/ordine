@@ -17,12 +17,14 @@ import {
   getOperationById,
   createOperation,
   updateOperation,
+  deleteOperation,
 } from "@/services/operationsService";
 import {
   getPipelines,
   getPipelineById,
   createPipeline,
   updatePipeline,
+  deletePipeline,
 } from "@/services/pipelinesService";
 
 export const ResourceName = {
@@ -45,8 +47,9 @@ export const dataProvider: DataProvider = {
         const data = await getPipelines();
         return { data: data as unknown as TData[], total: data.length };
       }
-      default:
+      default: {
         throw new Error(`getList: unknown resource "${resource}"`);
+      }
     }
   },
 
@@ -64,8 +67,9 @@ export const dataProvider: DataProvider = {
         const data = await getPipelineById({ data: { id: String(id) } });
         return { data: data as unknown as TData };
       }
-      default:
+      default: {
         throw new Error(`getOne: unknown resource "${resource}"`);
+      }
     }
   },
 
@@ -87,8 +91,9 @@ export const dataProvider: DataProvider = {
         });
         return { data: data as unknown as TData };
       }
-      default:
+      default: {
         throw new Error(`create: unknown resource "${resource}"`);
+      }
     }
   },
 
@@ -116,17 +121,30 @@ export const dataProvider: DataProvider = {
         });
         return { data: data as unknown as TData };
       }
-      default:
+      default: {
         throw new Error(`update: unknown resource "${resource}"`);
+      }
     }
   },
 
   deleteOne: async <TData extends BaseRecord = BaseRecord, TVariables = object>(
     params: DeleteOneParams<TVariables>,
   ): Promise<DeleteOneResponse<TData>> => {
-    throw new Error(
-      `deleteOne: not implemented for resource "${params.resource}"`,
-    );
+    const { resource, id } = params;
+
+    switch (resource) {
+      case ResourceName.operations: {
+        const data = await deleteOperation({ data: { id: String(id) } });
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.pipelines: {
+        const data = await deletePipeline({ data: { id: String(id) } });
+        return { data: data as unknown as TData };
+      }
+      default: {
+        throw new Error(`deleteOne: unknown resource "${resource}"`);
+      }
+    }
   },
 
   getApiUrl: () => "",

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useStore } from "zustand";
 import {
   ChevronRight,
-  Play,
   Copy,
   Trash2,
   Zap,
@@ -193,16 +192,6 @@ export const NodeContextMenu = ({
               actionsOpen && "rotate-90",
             )}
           />
-        </button>
-
-        {/* Run Node */}
-        <button
-          className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-accent"
-          onClick={onClose}
-        >
-          <Play className="h-3.5 w-3.5 text-muted-foreground" />
-          Run Node
-          <KbdHint keys="⇧R" />
         </button>
 
         {/* Duplicate */}

@@ -17,6 +17,7 @@ export interface PickedProject {
   description: string;
   label: string;
   githubUrl: string;
+  isPrivate: boolean;
 }
 
 interface PickProjectDialogProps {
@@ -39,7 +40,10 @@ export const PickProjectDialog = ({
     setLoading(true);
     getGithubProjects()
       .then((data) => setProjects(data as GithubProjectEntity[]))
-      .catch(() => setProjects([]))
+      .catch((error) => {
+        console.error("[PickProjectDialog] 加载项目失败:", error);
+        setProjects([]);
+      })
       .finally(() => setLoading(false));
   }, [open]);
 
@@ -59,6 +63,7 @@ export const PickProjectDialog = ({
       description: p.description,
       label: p.repo,
       githubUrl: p.githubUrl,
+      isPrivate: (p as GithubProjectEntity & { isPrivate?: boolean }).isPrivate ?? false,
     });
     onClose();
   };

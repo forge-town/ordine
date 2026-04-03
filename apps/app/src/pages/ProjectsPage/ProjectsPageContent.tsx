@@ -81,6 +81,7 @@ const CreateProjectDialog = ({
           repo: repoInfo.repo,
           branch: repoInfo.branch,
           githubUrl: `https://github.com/${repoInfo.fullName}`,
+          isPrivate: repoInfo.isPrivate ?? false,
         },
       });
       onCreate(project as GithubProjectEntity);

@@ -13,9 +13,10 @@ import {
 } from "./canvasSlice";
 import { createUISlice, type UISlice } from "./uiSlice";
 import { createHistorySlice, type HistorySlice } from "./historySlice";
+import { createActionsSlice, type ActionsSlice } from "./actionsSlice";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 
-export interface HarnessCanvasState extends CanvasSlice, UISlice, HistorySlice {
+export interface HarnessCanvasState extends CanvasSlice, UISlice, HistorySlice, ActionsSlice {
   operations: OperationEntity[];
   getOperationById: (id: string) => OperationEntity | undefined;
   getAcceptedOperationsForObject: (objectType: string) => OperationEntity[];
@@ -55,6 +56,7 @@ export const createHarnessCanvasStore = (
       set as Parameters<HarnessCanvasStoreSlice>[0],
       get as Parameters<HarnessCanvasStoreSlice>[1],
     ),
+    ...createActionsSlice(get as Parameters<HarnessCanvasStoreSlice>[1]),
     operations: ops,
     getOperationById: (id: string) => {
       return get().operations.find((op) => op.id === id);

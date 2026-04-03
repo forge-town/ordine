@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { useStore } from "zustand";
-import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
+import { ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useUpdate } from "@refinedev/core";
 
@@ -12,18 +13,9 @@ import { NodeContextMenu } from "./components/NodeContextMenu";
 import { CanvasFloatingMenu } from "./components/CanvasFloatingMenu";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 
-const handleExport = () => {
-  // TODO: 实现导出功能
-  console.log("export");
-};
-
 const CanvasInner = () => {
   const store = useHarnessCanvasStore();
 
-  // 使用浅比较选择器，避免不必要重渲染
-  const nodes = useStore(store, (state) => state.nodes);
-  const edges = useStore(store, (state) => state.edges);
-  const pipelineId = useStore(store, (state) => state.pipelineId);
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const contextMenu = useStore(store, (state) => state.contextMenu);
   const closeContextMenu = useStore(store, (state) => state.closeContextMenu);
@@ -38,42 +30,38 @@ const CanvasInner = () => {
     (state) => state.closeNodeContextMenu,
   );
 
-  const { fitView, zoomIn, zoomOut } = useReactFlow();
   const { mutate: updatePipelineMutate } = useUpdate();
 
-  const handleUndo = () => store.getState().undo();
-  const handleRedo = () => store.getState().redo();
-
-  const handleSave = () => {
-    if (!pipelineId) return;
-    updatePipelineMutate({
-      resource: ResourceName.pipelines,
-      id: pipelineId,
-      values: {
-        nodes: nodes,
-        edges: edges,
-      },
-      successNotification: {
-        type: "success",
-        message: "保存成功",
-        description: `Pipeline「${pipelineName || "无标题"}」已保存`,
-      },
-      errorNotification: {
-        type: "error",
-        message: "保存失败",
-        description: "请稍后重试",
+  useEffect(() => {
+    store.setState({
+      saveCanvas: () => {
+        const state = store.getState();
+        if (!state.pipelineId) return;
+        updatePipelineMutate({
+          resource: ResourceName.pipelines,
+          id: state.pipelineId,
+          values: {
+            nodes: state.nodes,
+            edges: state.edges,
+          },
+          successNotification: {
+            type: "success",
+            message: "保存成功",
+            description: `Pipeline「${state.pipelineName || "无标题"}」已保存`,
+          },
+          errorNotification: {
+            type: "error",
+            message: "保存失败",
+            description: "请稍后重试",
+          },
+        });
       },
     });
-  };
+  }, [store, updatePipelineMutate]);
 
   return (
     <div className="relative h-full w-full">
-      <CanvasFloatingMenu
-        onSave={pipelineId ? handleSave : undefined}
-        onExport={handleExport}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-      />
+      <CanvasFloatingMenu />
 
       <div className="pointer-events-none absolute left-16 right-4 top-4 z-40 flex items-center justify-between">
         <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-gray-200 bg-white/90 px-4 py-1.5 shadow-sm backdrop-blur-sm">
@@ -83,11 +71,7 @@ const CanvasInner = () => {
         </div>
       </div>
 
-      <CanvasToolbar
-        onFitView={() => fitView({ padding: 0.1 })}
-        onZoomIn={() => zoomIn()}
-        onZoomOut={() => zoomOut()}
-      />
+      <CanvasToolbar />
 
       <CanvasFlow />
 

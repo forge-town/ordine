@@ -72,7 +72,15 @@ export const CanvasFlow = () => {
     return () => globalThis.removeEventListener("keydown", handler);
   }, [store]);
 
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow();
+
+  useEffect(() => {
+    store.setState({
+      fitView: (options?: { padding?: number }) => fitView(options),
+      zoomIn: () => zoomIn(),
+      zoomOut: () => zoomOut(),
+    });
+  }, [store, fitView, zoomIn, zoomOut]);
 
   // 使用 useMemo 缓存 nodeTypes - React Flow 最佳实践
   const nodeTypes = useMemo(

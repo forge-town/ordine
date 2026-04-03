@@ -1,4 +1,4 @@
-import { text, timestamp, pgTable } from "drizzle-orm/pg-core";
+import { text, boolean, timestamp, pgTable } from "drizzle-orm/pg-core";
 
 export const githubProjectsTable = pgTable("github_projects", {
   id: text("id").primaryKey(),
@@ -8,6 +8,7 @@ export const githubProjectsTable = pgTable("github_projects", {
   repo: text("repo").notNull(),
   branch: text("branch").notNull().default("main"),
   githubUrl: text("github_url").notNull(),
+  isPrivate: boolean("is_private").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

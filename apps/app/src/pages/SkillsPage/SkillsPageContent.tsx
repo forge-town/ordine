@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Wand2, ExternalLink } from "lucide-react";
+import { Search, Wand2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
@@ -140,10 +140,6 @@ export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
                   <code className="text-[10px] text-muted-foreground">
                     {skill.name}
                   </code>
-                  <button className="flex items-center gap-1 text-[11px] text-primary opacity-0 group-hover:opacity-100 hover:text-primary/80 transition-opacity">
-                    <ExternalLink className="h-3 w-3" />
-                    详情
-                  </button>
                 </div>
               </div>
             ))}

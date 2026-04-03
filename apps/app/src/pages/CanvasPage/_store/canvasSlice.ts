@@ -101,14 +101,17 @@ export const createCanvasSlice = (
     const state = get();
     const sourceNode = state.nodes.find((n) => n.id === connection.source);
     const targetNode = state.nodes.find((n) => n.id === connection.target);
-    if (!sourceNode || !targetNode) return;
+    if (!sourceNode || !targetNode) {
+      console.error("[Canvas] 连接失败: 未找到源节点或目标节点");
+      return;
+    }
 
     const result = ConnectionRuleSchema.safeParse({
       sourceType: sourceNode.type,
       targetType: targetNode.type,
     });
     if (!result.success) {
-      console.warn("[Canvas] 不允许的连接:", result.error.issues[0]?.message);
+      console.error("[Canvas] 不允许的连接:", result.error.issues[0]?.message);
       return;
     }
 
@@ -143,7 +146,10 @@ export const createCanvasSlice = (
   addNodeWithEdge: (sourceId, targetType) => {
     const state = get();
     const source = state.nodes.find((n) => n.id === sourceId);
-    if (!source) return;
+    if (!source) {
+      console.error("[Canvas] 添加节点失败: 未找到源节点");
+      return;
+    }
 
     const newId = `${targetType}-${Date.now()}`;
     const newNode: PipelineNode = {
@@ -177,7 +183,10 @@ export const createCanvasSlice = (
   removeNode: (nodeId) => {
     const state = get();
     const node = state.nodes.find((n) => n.id === nodeId);
-    if (!node) return;
+    if (!node) {
+      console.error("[Canvas] 删除节点失败: 未找到节点", nodeId);
+      return;
+    }
 
     state.recordCommand(
       {
@@ -201,7 +210,10 @@ export const createCanvasSlice = (
   updateNodeData: (nodeId, data) => {
     const state = get();
     const node = state.nodes.find((n) => n.id === nodeId);
-    if (!node) return;
+    if (!node) {
+      console.error("[Canvas] 更新节点数据失败: 未找到节点", nodeId);
+      return;
+    }
 
     state.recordCommand(
       {
@@ -237,7 +249,10 @@ export const createCanvasSlice = (
   duplicateNode: (nodeId) => {
     const state = get();
     const source = state.nodes.find((n) => n.id === nodeId);
-    if (!source) return;
+    if (!source) {
+      console.error("[Canvas] 复制节点失败: 未找到节点", nodeId);
+      return;
+    }
 
     const newId = `${source.type}-${Date.now()}`;
     const newNode: PipelineNode = {

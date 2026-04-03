@@ -18,6 +18,7 @@ const GithubProjectSchema = z.object({
   repo: z.string(),
   branch: z.string().default("main"),
   githubUrl: z.string(),
+  isPrivate: z.boolean().default(false),
 });
 
 export const createGithubProject = createServerFn({ method: "POST" })

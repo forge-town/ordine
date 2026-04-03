@@ -44,9 +44,9 @@ const ops: OperationEntity[] = [
   makeOp("op2", "Mango Task", "build", 2000),
 ];
 
-function getCardNames() {
+const getCardNames = () => {
   return screen.getAllByText(/Task$/).map((el) => el.textContent ?? "");
-}
+};
 
 describe("OperationsPageContent – sort", () => {
   it("renders a sort selector", () => {

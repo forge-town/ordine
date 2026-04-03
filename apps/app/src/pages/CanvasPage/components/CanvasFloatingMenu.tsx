@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useStore } from "zustand";
 import {
   Menu,
   Home,
@@ -7,23 +8,18 @@ import {
   Settings,
   Undo,
   Redo,
-  Keyboard,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useHarnessCanvasStore } from "../_store";
 
-interface CanvasFloatingMenuProps {
-  onSave?: () => void;
-  onExport?: () => void;
-  onUndo?: () => void;
-  onRedo?: () => void;
-}
+export const CanvasFloatingMenu = () => {
+  const store = useHarnessCanvasStore();
+  const saveCanvas = useStore(store, (state) => state.saveCanvas);
+  const exportCanvas = useStore(store, (state) => state.exportCanvas);
+  const undo = useStore(store, (state) => state.undo);
+  const redo = useStore(store, (state) => state.redo);
+  const pipelineId = useStore(store, (state) => state.pipelineId);
 
-export const CanvasFloatingMenu = ({
-  onSave,
-  onExport,
-  onUndo,
-  onRedo,
-}: CanvasFloatingMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -37,14 +33,15 @@ export const CanvasFloatingMenu = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const onSave = pipelineId ? saveCanvas : undefined;
+
   const menuItems = [
-    { icon: Home, label: "回到工作区", to: "/", onClick: undefined },
+    { icon: Home, label: "回到工作区", to: "/" },
     { icon: Save, label: "保存", onClick: onSave },
-    { icon: FileDown, label: "导出", onClick: onExport },
-    { icon: Undo, label: "撤销", onClick: onUndo, divider: true },
-    { icon: Redo, label: "重做", onClick: onRedo },
+    { icon: FileDown, label: "导出", onClick: exportCanvas },
+    { icon: Undo, label: "撤销", onClick: undo, divider: true },
+    { icon: Redo, label: "重做", onClick: redo },
     { icon: Settings, label: "设置", to: "/settings" },
-    { icon: Keyboard, label: "快捷键", onClick: undefined },
   ];
 
   return (

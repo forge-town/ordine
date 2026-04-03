@@ -40,7 +40,7 @@ export const GitHubProjectNode = ({
       repo: picked.repo,
       branch: picked.branch,
       description: picked.description,
-      isPrivate: false,
+      isPrivate: picked.isPrivate,
       githubProjectId: picked.githubProjectId,
     });
   };

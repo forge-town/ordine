@@ -1,15 +1,19 @@
-import { useState } from "react";
 import { Field, SaveButton, SectionHeader } from "../components";
 import { cn } from "@repo/ui/lib/utils";
 
 interface AppearanceSectionProps {
+  values: { theme: "light" | "dark" | "system" };
+  onChange: (patch: Partial<{ theme: "light" | "dark" | "system" }>) => void;
   onSave: () => void;
   saved: boolean;
 }
 
-export const AppearanceSection = ({ onSave, saved }: AppearanceSectionProps) => {
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("light");
-
+export const AppearanceSection = ({
+  values,
+  onChange,
+  onSave,
+  saved,
+}: AppearanceSectionProps) => {
   return (
     <>
       <SectionHeader title="外观" description="自定义应用的视觉风格" />
@@ -18,10 +22,10 @@ export const AppearanceSection = ({ onSave, saved }: AppearanceSectionProps) => 
           {(["light", "dark", "system"] as const).map((t) => (
             <button
               key={t}
-              onClick={() => setTheme(t)}
+              onClick={() => onChange({ theme: t })}
               className={cn(
                 "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
-                theme === t
+                values.theme === t
                   ? "border-primary bg-accent text-accent-foreground"
                   : "border-border text-muted-foreground hover:border-input",
               )}

@@ -14,22 +14,16 @@ import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
 
-interface CanvasToolbarProps {
-  onFitView?: () => void;
-  onZoomIn?: () => void;
-  onZoomOut?: () => void;
-}
-
-export const CanvasToolbar = ({
-  onFitView,
-  onZoomIn,
-  onZoomOut,
-}: CanvasToolbarProps) => {
+export const CanvasToolbar = () => {
   const store = useHarnessCanvasStore();
   const selectedNodeId = useStore(store, (state) => state.selectedNodeId);
   const isAiAssistantOpen = useStore(store, (state) => state.isAiAssistantOpen);
   const canUndo = useStore(store, (state) => state.canUndo);
   const canRedo = useStore(store, (state) => state.canRedo);
+  const fitView = useStore(store, (state) => state.fitView);
+  const zoomIn = useStore(store, (state) => state.zoomIn);
+  const zoomOut = useStore(store, (state) => state.zoomOut);
+  const exportCanvas = useStore(store, (state) => state.exportCanvas);
 
   const handleDeleteSelected = () => {
     if (selectedNodeId) {
@@ -52,7 +46,7 @@ export const CanvasToolbar = ({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={onZoomOut}
+                onClick={zoomOut}
               />
             }
           >
@@ -67,7 +61,7 @@ export const CanvasToolbar = ({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={onZoomIn}
+                onClick={zoomIn}
               />
             }
           >
@@ -82,7 +76,7 @@ export const CanvasToolbar = ({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={onFitView}
+                onClick={() => fitView({ padding: 0.1 })}
               />
             }
           >
@@ -136,7 +130,14 @@ export const CanvasToolbar = ({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger
-            render={<Button variant="ghost" size="icon" className="h-7 w-7" />}
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={exportCanvas}
+              />
+            }
           >
             <Download className="h-4 w-4" />
           </TooltipTrigger>

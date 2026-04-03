@@ -15,8 +15,8 @@ const baseOp: OperationEntity = {
   visibility: "public",
   config: JSON.stringify({ inputs: [], outputs: [] }),
   acceptedObjectTypes: ["file"],
-  createdAt: 1712000000000,
-  updatedAt: 1712000000000,
+  createdAt: 1_712_000_000_000,
+  updatedAt: 1_712_000_000_000,
 };
 
 describe("OperationDetailPageContent – visibility", () => {

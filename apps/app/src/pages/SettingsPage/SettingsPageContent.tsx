@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   User,
   Bell,
@@ -35,11 +35,101 @@ const sections: {
   { id: "security", label: "安全", icon: Shield },
 ];
 
+export interface AppSettings {
+  profile: {
+    displayName: string;
+    email: string;
+    bio: string;
+  };
+  appearance: {
+    theme: "light" | "dark" | "system";
+  };
+  notifications: {
+    pipeline: boolean;
+    mention: boolean;
+    weekly: boolean;
+  };
+  language: {
+    language: string;
+    timezone: string;
+  };
+  security: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  };
+}
+
+const STORAGE_KEY = "ordine_settings_v1";
+
+const defaultSettings: AppSettings = {
+  profile: {
+    displayName: "Ordine 用户",
+    email: "user@ordine.app",
+    bio: "Skill Pipeline 设计师",
+  },
+  appearance: { theme: "light" },
+  notifications: {
+    pipeline: true,
+    mention: true,
+    weekly: false,
+  },
+  language: {
+    language: "zh-CN",
+    timezone: "Asia/Shanghai",
+  },
+  security: {
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  },
+};
+
+const loadSettings = (): AppSettings => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<AppSettings>;
+      return { ...defaultSettings, ...parsed };
+    }
+  } catch {
+    // ignore
+  }
+  return defaultSettings;
+};
+
+const saveSettings = (settings: AppSettings) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    // ignore
+  }
+};
+
 export const SettingsPageContent = () => {
   const [active, setActive] = useState<Section>("profile");
   const [saved, setSaved] = useState(false);
+  const [settings, setSettings] = useState<AppSettings>(defaultSettings);
+
+  useEffect(() => {
+    setSettings(loadSettings());
+  }, []);
+
+  const updateSection = useCallback(
+    <K extends keyof AppSettings>(
+      section: K,
+      patch: Partial<AppSettings[K]>,
+    ) => {
+      setSettings((prev) => ({
+        ...prev,
+        [section]: { ...prev[section], ...patch },
+      }));
+    },
+    [],
+  );
 
   const saveChanges = () => {
+    saveSettings(settings);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -78,19 +168,44 @@ export const SettingsPageContent = () => {
         <div className="flex-1 overflow-y-auto p-8">
           <div className="mx-auto max-w-lg space-y-6">
             {active === "profile" && (
-              <ProfileSection onSave={saveChanges} saved={saved} />
+              <ProfileSection
+                values={settings.profile}
+                onChange={(patch) => updateSection("profile", patch)}
+                onSave={saveChanges}
+                saved={saved}
+              />
             )}
             {active === "notifications" && (
-              <NotificationsSection onSave={saveChanges} saved={saved} />
+              <NotificationsSection
+                values={settings.notifications}
+                onChange={(patch) => updateSection("notifications", patch)}
+                onSave={saveChanges}
+                saved={saved}
+              />
             )}
             {active === "appearance" && (
-              <AppearanceSection onSave={saveChanges} saved={saved} />
+              <AppearanceSection
+                values={settings.appearance}
+                onChange={(patch) => updateSection("appearance", patch)}
+                onSave={saveChanges}
+                saved={saved}
+              />
             )}
             {active === "language" && (
-              <LanguageSection onSave={saveChanges} saved={saved} />
+              <LanguageSection
+                values={settings.language}
+                onChange={(patch) => updateSection("language", patch)}
+                onSave={saveChanges}
+                saved={saved}
+              />
             )}
             {active === "security" && (
-              <SecuritySection onSave={saveChanges} saved={saved} />
+              <SecuritySection
+                values={settings.security}
+                onChange={(patch) => updateSection("security", patch)}
+                onSave={saveChanges}
+                saved={saved}
+              />
             )}
           </div>
         </div>
