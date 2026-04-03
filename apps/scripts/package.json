@@ -1,0 +1,17 @@
+{
+  "name": "@ordine/scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "tsx src/seeds/operations.ts",
+    "seed:operations": "tsx src/seeds/operations.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

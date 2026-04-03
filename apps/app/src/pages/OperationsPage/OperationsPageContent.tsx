@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Zap, FileCode, Folder, FolderGit2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Zap,
+  FileCode,
+  Folder,
+  FolderGit2,
+  ExternalLink,
+} from "lucide-react";
 import {
   createOperation,
   updateOperation,
@@ -23,7 +33,11 @@ const CATEGORIES = [
   "custom",
 ] as const;
 
-const OBJECT_TYPE_OPTIONS: { value: ObjectType; label: string; icon: React.ElementType }[] = [
+const OBJECT_TYPE_OPTIONS: {
+  value: ObjectType;
+  label: string;
+  icon: React.ElementType;
+}[] = [
   { value: "file", label: "文件", icon: FileCode },
   { value: "folder", label: "文件夹", icon: Folder },
   { value: "project", label: "整个项目", icon: FolderGit2 },
@@ -84,7 +98,10 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
       if (current.includes(type)) {
         // Don't allow unchecking the last option
         if (current.length === 1) return prev;
-        return { ...prev, acceptedObjectTypes: current.filter((t) => t !== type) };
+        return {
+          ...prev,
+          acceptedObjectTypes: current.filter((t) => t !== type),
+        };
       }
       return { ...prev, acceptedObjectTypes: [...current, type] };
     });
@@ -107,7 +124,9 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
         });
         if (updated) {
           setOperations((prev) =>
-            prev.map((o) => (o.id === editingId ? (updated as OperationEntity) : o)),
+            prev.map((o) =>
+              o.id === editingId ? (updated as OperationEntity) : o,
+            ),
           );
         }
       } else {
@@ -227,14 +246,12 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                           "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                           selected
                             ? "border-violet-300 bg-violet-50 text-violet-700"
-                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50",
                         )}
                       >
                         <Icon className="h-4 w-4" />
                         {label}
-                        {selected && (
-                          <span className="ml-1 text-xs">✓</span>
-                        )}
+                        {selected && <span className="ml-1 text-xs">✓</span>}
                       </button>
                     );
                   })}
@@ -309,6 +326,14 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Link
+                      to="/operations/$operationId"
+                      params={{ operationId: op.id }}
+                      className="rounded p-1 hover:bg-accent"
+                      title="查看详情"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Link>
                     <button
                       onClick={() => openEdit(op)}
                       className="rounded p-1 hover:bg-accent"
@@ -332,10 +357,17 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                 )}
                 {/* Show accepted object types */}
                 <div className="mt-3 flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground">适用于:</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    适用于:
+                  </span>
                   <div className="flex gap-1">
-                    {(Array.isArray(op.acceptedObjectTypes) ? op.acceptedObjectTypes : ["file", "folder", "project"]).map((type) => {
-                      const config = OBJECT_TYPE_OPTIONS.find((o) => o.value === type);
+                    {(Array.isArray(op.acceptedObjectTypes)
+                      ? op.acceptedObjectTypes
+                      : ["file", "folder", "project"]
+                    ).map((type) => {
+                      const config = OBJECT_TYPE_OPTIONS.find(
+                        (o) => o.value === type,
+                      );
                       if (!config) return null;
                       const Icon = config.icon;
                       return (
