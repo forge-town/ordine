@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { useStore } from "zustand";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useNotification } from "@refinedev/core";
+import { useUpdate } from "@refinedev/core";
 
 import { useHarnessCanvasStore } from "./_store";
 import { CanvasToolbar } from "./components/CanvasToolbar";
@@ -11,7 +10,7 @@ import { CanvasContextMenu } from "./components/CanvasContextMenu";
 import { ConnectionMenu } from "./components/ConnectionMenu";
 import { NodeContextMenu } from "./components/NodeContextMenu";
 import { CanvasFloatingMenu } from "./components/CanvasFloatingMenu";
-import { updatePipeline } from "@/services/pipelinesService";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 
 const handleExport = () => {
   // TODO: 实现导出功能
@@ -40,41 +39,31 @@ const CanvasInner = () => {
   );
 
   const { fitView, zoomIn, zoomOut } = useReactFlow();
-  const { open: openNotification } = useNotification();
+  const { mutate: updatePipelineMutate } = useUpdate();
 
   const handleUndo = () => store.getState().undo();
   const handleRedo = () => store.getState().redo();
 
-  const [saveState, setSaveState] = useState<"idle" | "saving">("idle");
-
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!pipelineId) return;
-    setSaveState("saving");
-    try {
-      await updatePipeline({
-        data: {
-          id: pipelineId,
-          patch: {
-            nodes: nodes as unknown[],
-            edges: edges as unknown[],
-            updatedAt: Date.now(),
-          },
-        },
-      });
-      openNotification?.({
+    updatePipelineMutate({
+      resource: ResourceName.pipelines,
+      id: pipelineId,
+      values: {
+        nodes: nodes,
+        edges: edges,
+      },
+      successNotification: {
         type: "success",
         message: "保存成功",
         description: `Pipeline「${pipelineName || "无标题"}」已保存`,
-      });
-    } catch {
-      openNotification?.({
+      },
+      errorNotification: {
         type: "error",
         message: "保存失败",
         description: "请稍后重试",
-      });
-    } finally {
-      setSaveState("idle");
-    }
+      },
+    });
   };
 
   return (
@@ -91,9 +80,6 @@ const CanvasInner = () => {
           <span className="text-sm font-medium text-gray-700">
             {pipelineName || "无标题 Pipeline"}
           </span>
-          {saveState === "saving" && (
-            <span className="text-xs text-gray-500">保存中...</span>
-          )}
         </div>
       </div>
 
