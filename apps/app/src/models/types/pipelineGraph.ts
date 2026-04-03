@@ -35,6 +35,8 @@ export interface GitHubProjectNodeData {
   repo: string;
   branch?: string;
   description?: string;
+  isPrivate?: boolean;
+  githubProjectId?: string;
 }
 
 export type PipelineNodeData =

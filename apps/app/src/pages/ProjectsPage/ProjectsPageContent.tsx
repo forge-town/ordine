@@ -9,6 +9,12 @@ import {
   ExternalLink,
   X,
   Folder,
+  Link2,
+  Loader2,
+  AlertCircle,
+  Key,
+  Lock,
+  Globe,
 } from "lucide-react";
 import { Route } from "@/routes/projects";
 import {
@@ -17,6 +23,13 @@ import {
 } from "@/services/githubProjectsService";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 import { cn } from "@repo/ui/lib/utils";
+import {
+  parseGitHubUrl,
+  fetchRepoInfo,
+  type GitHubRepoInfo,
+} from "@/lib/githubApi";
+import { useGithubToken } from "@/hooks/useGithubToken";
+import { GitHubTokenDialog } from "@/pages/CanvasPage/nodes/GitHubProjectNode/GitHubTokenDialog";
 
 const CreateProjectDialog = ({
   onClose,
@@ -25,125 +38,222 @@ const CreateProjectDialog = ({
   onClose: () => void;
   onCreate: (p: GithubProjectEntity) => void;
 }) => {
-  const [form, setForm] = useState({
-    owner: "",
-    repo: "",
-    branch: "main",
-    description: "",
-  });
+  const { token } = useGithubToken();
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [repoInfo, setRepoInfo] = useState<GitHubRepoInfo | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showTokenDialog, setShowTokenDialog] = useState(false);
 
-  const set =
-    (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((prev) => ({ ...prev, [k]: e.target.value }));
+  const handleFetch = async () => {
+    const parsed = parseGitHubUrl(url.trim());
+    if (!parsed) {
+      setError("无效的 GitHub 仓库 URL");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const info = await fetchRepoInfo(
+        parsed.owner,
+        parsed.repo,
+        token ?? undefined,
+      );
+      setRepoInfo(info);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "获取仓库信息失败");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.owner.trim() || !form.repo.trim()) return;
+  const handleSave = async () => {
+    if (!repoInfo) return;
     setSaving(true);
     try {
       const project = await createGithubProject({
         data: {
           id: `proj-${Date.now()}`,
-          name: `${form.owner}/${form.repo}`,
-          description: form.description,
-          owner: form.owner.trim(),
-          repo: form.repo.trim(),
-          branch: form.branch.trim() || "main",
-          githubUrl: `https://github.com/${form.owner.trim()}/${form.repo.trim()}`,
+          name: repoInfo.fullName,
+          description: repoInfo.description ?? "",
+          owner: repoInfo.owner,
+          repo: repoInfo.repo,
+          branch: repoInfo.branch,
+          githubUrl: `https://github.com/${repoInfo.fullName}`,
         },
       });
       onCreate(project as GithubProjectEntity);
       onClose();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "保存失败");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b px-5 py-4">
-          <h2 className="text-sm font-semibold text-gray-900">
-            连接 GitHub 项目
-          </h2>
-          <button
-            onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-gray-100"
-          >
-            <X className="h-4 w-4 text-gray-500" />
-          </button>
-        </div>
-        <form onSubmit={(e) => void handleSubmit(e)} className="p-5 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">
-                Owner *
-              </label>
-              <input
-                value={form.owner}
-                onChange={set("owner")}
-                placeholder="e.g. vercel"
-                required
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">
-                Repo *
-              </label>
-              <input
-                value={form.repo}
-                onChange={set("repo")}
-                placeholder="e.g. next.js"
-                required
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">
-              Branch
-            </label>
-            <input
-              value={form.branch}
-              onChange={set("branch")}
-              placeholder="main"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">
-              描述 (可选)
-            </label>
-            <input
-              value={form.description}
-              onChange={set("description")}
-              placeholder="项目简介"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-1">
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+          <div className="flex items-center justify-between border-b px-5 py-4">
+            <h2 className="text-sm font-semibold text-gray-900">
+              连接 GitHub 项目
+            </h2>
             <button
-              type="button"
               onClick={onClose}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+              className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-gray-100"
             >
-              取消
-            </button>
-            <button
-              type="submit"
-              disabled={saving || !form.owner || !form.repo}
-              className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
-            >
-              {saving ? "保存中..." : "创建"}
+              <X className="h-4 w-4 text-gray-500" />
             </button>
           </div>
-        </form>
+
+          <div className="p-5 space-y-4">
+            {/* Token banner */}
+            <div
+              className={cn(
+                "flex items-center gap-2 rounded-lg px-3 py-2 text-xs",
+                token
+                  ? "bg-green-50 text-green-700"
+                  : "bg-amber-50 text-amber-700",
+              )}
+            >
+              <Key className="h-3.5 w-3.5 shrink-0" />
+              {token ? (
+                <span>已配置 GitHub Token（可访问私有仓库）</span>
+              ) : (
+                <span>
+                  未配置 Token，仅能访问公开仓库。
+                  <button
+                    onClick={() => setShowTokenDialog(true)}
+                    className="ml-1 underline underline-offset-2"
+                  >
+                    配置 Token
+                  </button>
+                </span>
+              )}
+            </div>
+
+            {repoInfo ? (
+              /* Step 2: Confirm */
+              <div className="space-y-3">
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-semibold text-gray-900">
+                      {repoInfo.fullName}
+                    </span>
+                    {repoInfo.isPrivate ? (
+                      <span className="flex items-center gap-0.5 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] text-gray-600">
+                        <Lock className="h-2.5 w-2.5" /> Private
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-0.5 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] text-blue-600">
+                        <Globe className="h-2.5 w-2.5" /> Public
+                      </span>
+                    )}
+                  </div>
+                  {repoInfo.description && (
+                    <p className="text-xs text-gray-500 mb-2">
+                      {repoInfo.description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1 text-[11px] text-gray-400">
+                    <GitBranch className="h-3 w-3" />
+                    {repoInfo.branch}
+                  </div>
+                </div>
+                {error && (
+                  <div className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    {error}
+                  </div>
+                )}
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => {
+                      setRepoInfo(null);
+                      setError(null);
+                    }}
+                    className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                  >
+                    重新输入
+                  </button>
+                  <button
+                    onClick={() => void handleSave()}
+                    disabled={saving}
+                    className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+                  >
+                    {saving ? "保存中..." : "添加到项目库"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Step 1: URL input */
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">
+                    GitHub 仓库 URL
+                  </label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Link2 className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                      <input
+                        value={url}
+                        onChange={(e) => {
+                          setUrl(e.target.value);
+                          setError(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") void handleFetch();
+                        }}
+                        placeholder="https://github.com/owner/repo"
+                        className="w-full rounded-lg border border-gray-200 py-2 pl-8 pr-3 text-sm focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
+                      />
+                    </div>
+                    <button
+                      onClick={() => void handleFetch()}
+                      disabled={loading || !url.trim()}
+                      className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        "查询"
+                      )}
+                    </button>
+                  </div>
+                </div>
+                {error && (
+                  <div className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    {error}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {repoInfo === null && (
+              <div className="flex justify-end">
+                <button
+                  onClick={onClose}
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                >
+                  取消
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+      {showTokenDialog && (
+        <GitHubTokenDialog
+          open={showTokenDialog}
+          onClose={() => setShowTokenDialog(false)}
+        />
+      )}
+    </>
   );
-}
+};
 
 const ProjectCard = ({
   project,
@@ -204,7 +314,7 @@ const ProjectCard = ({
       </div>
     </div>
   );
-}
+};
 
 export const ProjectsPageContent = () => {
   const loaderProjects = Route.useLoaderData();

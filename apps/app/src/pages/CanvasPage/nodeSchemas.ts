@@ -59,6 +59,8 @@ export const GitHubProjectNodeDataSchema = z.object({
   repo: z.string(),
   branch: z.string().optional(),
   description: z.string().optional(),
+  isPrivate: z.boolean().optional(),
+  githubProjectId: z.string().optional(),
 });
 
 // ─── Output node data schemas ────────────────────────────────────────────────

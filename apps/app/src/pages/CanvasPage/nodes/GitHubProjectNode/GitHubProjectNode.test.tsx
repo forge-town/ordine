@@ -20,14 +20,14 @@ const baseData = {
 };
 
 describe("GitHubProjectNode", () => {
-  it("renders label", () => {
+  it("renders label input", () => {
     render(<GitHubProjectNode id="test" data={baseData} />, { wrapper });
-    expect(screen.getByText("ordine")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("ordine")).toBeInTheDocument();
   });
 
-  it("renders owner/repo", () => {
+  it("renders owner/repo combined", () => {
     render(<GitHubProjectNode id="test" data={baseData} />, { wrapper });
-    expect(screen.getByText("amin/ordine")).toBeInTheDocument();
+    expect(screen.getByText(/amin.*ordine/)).toBeInTheDocument();
   });
 
   it("renders branch badge", () => {
@@ -40,10 +40,14 @@ describe("GitHubProjectNode", () => {
     expect(screen.getByText("主项目仓库")).toBeInTheDocument();
   });
 
-  it("shows placeholder when owner and repo are empty", () => {
-    render(<GitHubProjectNode id="test" data={{ ...baseData, owner: "", repo: "" }} />, {
-      wrapper,
-    });
-    expect(screen.getByText("未设置仓库")).toBeInTheDocument();
+  it("shows connect button when owner and repo are empty", () => {
+    render(
+      <GitHubProjectNode
+        id="test"
+        data={{ ...baseData, owner: "", repo: "" }}
+      />,
+      { wrapper },
+    );
+    expect(screen.getByText("从项目库选取")).toBeInTheDocument();
   });
 });
