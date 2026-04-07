@@ -16,7 +16,7 @@ import {
   Lock,
   Globe,
 } from "lucide-react";
-import { Route } from "@/routes/projects";
+import { Route } from "@/routes/projects.index";
 import {
   createGithubProject,
   deleteGithubProject,

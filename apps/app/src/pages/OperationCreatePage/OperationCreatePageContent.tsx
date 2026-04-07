@@ -12,6 +12,15 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/select";
+import { Textarea } from "@repo/ui/textarea";
 import { createOperation } from "@/services/operationsService";
 import type { ObjectType, Visibility } from "@/models/tables/operations_table";
 
@@ -115,8 +124,8 @@ export const OperationCreatePageContent = () => {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((f) => ({ ...f, name: e.target.value }));
   };
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setForm((f) => ({ ...f, category: e.target.value }));
+  const handleCategoryChange = (value: string | null) => {
+    setForm((f) => ({ ...f, category: value ?? f.category }));
   };
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((f) => ({ ...f, description: e.target.value }));
@@ -168,17 +177,23 @@ export const OperationCreatePageContent = () => {
                 <label className="text-xs font-medium text-muted-foreground">
                   分类
                 </label>
-                <select
-                  className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                <Select
                   value={form.category}
-                  onChange={handleCategoryChange}
+                  onValueChange={handleCategoryChange}
                 >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-9 w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {CATEGORIES.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -254,8 +269,8 @@ export const OperationCreatePageContent = () => {
               <label className="text-xs font-medium text-muted-foreground">
                 配置 (JSON)
               </label>
-              <textarea
-                className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+              <Textarea
+                className="resize-none font-mono text-xs"
                 placeholder='{ "command": "eslint src/" }'
                 rows={5}
                 value={form.config}

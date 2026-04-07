@@ -16,6 +16,15 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/select";
+import { Textarea } from "@repo/ui/textarea";
 import type {
   RuleEntity,
   RuleCategory,
@@ -223,10 +232,10 @@ const RuleForm = ({
     set("name", e.target.value);
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     set("description", e.target.value);
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    set("category", e.target.value as RuleCategory);
-  const handleSeverityChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    set("severity", e.target.value as RuleSeverity);
+  const handleCategoryChange = (value: string | null) =>
+    set("category", (value ?? form.category) as RuleCategory);
+  const handleSeverityChange = (value: string | null) =>
+    set("severity", (value ?? form.severity) as RuleSeverity);
   const handlePatternChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     set("pattern", e.target.value);
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -250,8 +259,8 @@ const RuleForm = ({
       />
 
       {/* Description */}
-      <textarea
-        className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground"
+      <Textarea
+        className="resize-none"
         placeholder="规则描述（可选）"
         rows={2}
         value={form.description}
@@ -264,33 +273,39 @@ const RuleForm = ({
           <label className="mb-1 block text-[11px] text-muted-foreground">
             分类
           </label>
-          <select
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            value={form.category}
-            onChange={handleCategoryChange}
-          >
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {CATEGORY_CONFIG[c].label}
-              </option>
-            ))}
-          </select>
+          <Select value={form.category} onValueChange={handleCategoryChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {CATEGORY_CONFIG[c].label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <label className="mb-1 block text-[11px] text-muted-foreground">
             严重度
           </label>
-          <select
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            value={form.severity}
-            onChange={handleSeverityChange}
-          >
-            {SEVERITIES.map((s) => (
-              <option key={s} value={s}>
-                {SEVERITY_CONFIG[s].label}
-              </option>
-            ))}
-          </select>
+          <Select value={form.severity} onValueChange={handleSeverityChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {SEVERITIES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {SEVERITY_CONFIG[s].label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Plus,
@@ -13,6 +13,8 @@ import {
   Lock,
   Users,
   Search,
+  Download,
+  Upload,
 } from "lucide-react";
 import {
   createOperation,
@@ -25,6 +27,16 @@ import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
+import { useToastStore } from "@/hooks/useToastStore";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/select";
+import { Textarea } from "@repo/ui/textarea";
 
 const VISIBILITY_OPTIONS: {
   value: Visibility;
@@ -84,6 +96,19 @@ const emptyForm: FormState = {
   acceptedObjectTypes: ["file", "folder", "project"],
 };
 
+const exportOperation = (op: OperationEntity) => {
+  const data = JSON.stringify(op, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${op.name.replaceAll(/\s+/g, "-").toLowerCase()}.operation.json`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
+
 export const OperationsPageContent = ({ initialOperations }: Props) => {
   type SortKey =
     | "default"
@@ -94,7 +119,10 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
     | "category-asc";
 
   const navigate = useNavigate();
+  const addToast = useToastStore((s) => s.addToast);
   const [operations, setOperations] = useState(initialOperations);
+  const [importing, setImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const [visibilityFilter, setVisibilityFilter] = useState<Visibility | "all">(
     "all",
   );
@@ -238,16 +266,16 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setSearchQuery(e.target.value);
 
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    setSortBy(e.target.value as SortKey);
+  const handleSortChange = (value: string | null) =>
+    setSortBy((value ?? "default") as SortKey);
 
   const handleOpenCreate = () => openCreate();
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, name: e.target.value }));
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    setForm((f) => ({ ...f, category: e.target.value }));
+  const handleCategoryChange = (value: string | null) =>
+    setForm((f) => ({ ...f, category: value ?? f.category }));
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, description: e.target.value }));
@@ -265,6 +293,71 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
 
   const handleDeleteClick = (id: string) => () => void handleDelete(id);
 
+  const handleExportOperation = (op: OperationEntity) => () =>
+    exportOperation(op);
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const text = await file.text();
+      let parsed: Partial<OperationEntity>;
+      try {
+        parsed = JSON.parse(text) as Partial<OperationEntity>;
+      } catch {
+        addToast({
+          type: "error",
+          title: "导入失败",
+          description: "文件不是合法的 JSON 格式",
+        });
+        return;
+      }
+      if (
+        !parsed.name ||
+        typeof parsed.name !== "string" ||
+        !parsed.name.trim()
+      ) {
+        addToast({
+          type: "error",
+          title: "导入失败",
+          description: 'JSON 文件缺少必填字段 "name"',
+        });
+        return;
+      }
+      const created = await createOperation({
+        data: {
+          id: `op-${Date.now()}`,
+          name: parsed.name,
+          description: parsed.description ?? null,
+          category: parsed.category ?? "general",
+          visibility: parsed.visibility ?? "public",
+          config: parsed.config ?? "{}",
+          acceptedObjectTypes: parsed.acceptedObjectTypes ?? [
+            "file",
+            "folder",
+            "project",
+          ],
+        },
+      });
+      if (created) {
+        setOperations((prev) => [created as OperationEntity, ...prev]);
+        addToast({
+          type: "success",
+          title: "导入成功",
+          description: `已导入 Operation「${parsed.name}」`,
+        });
+      }
+    } finally {
+      setImporting(false);
+      e.target.value = "";
+    }
+  };
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
@@ -277,10 +370,28 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
             定义可在 Pipeline 中复用的自定义操作
           </p>
         </div>
-        <Button size="sm" onClick={handleOpenCreate}>
-          <Plus className="h-4 w-4" />
-          新建 Operation
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            disabled={importing}
+            size="sm"
+            variant="outline"
+            onClick={handleImportClick}
+          >
+            <Upload className="h-4 w-4" />
+            {importing ? "导入中..." : "导入"}
+          </Button>
+          <Button size="sm" onClick={handleOpenCreate}>
+            <Plus className="h-4 w-4" />
+            新建 Operation
+          </Button>
+        </div>
+        <input
+          ref={importInputRef}
+          accept=".json,application/json"
+          className="hidden"
+          type="file"
+          onChange={handleImportFile}
+        />
       </div>
 
       {/* Search + Visibility filter bar */}
@@ -316,20 +427,25 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
         <label className="sr-only" htmlFor="sort-select">
           排序
         </label>
-        <select
-          aria-label="排序"
-          className="h-8 rounded-md border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-          id="sort-select"
-          value={sortBy}
-          onChange={handleSortChange}
-        >
-          <option value="default">默认顺序</option>
-          <option value="name-asc">名称 A → Z</option>
-          <option value="name-desc">名称 Z → A</option>
-          <option value="date-desc">最新先</option>
-          <option value="date-asc">最旧先</option>
-          <option value="category-asc">分类 A → Z</option>
-        </select>
+        <Select value={sortBy} onValueChange={handleSortChange}>
+          <SelectTrigger
+            aria-label="排序"
+            className="h-8 w-40 text-xs"
+            id="sort-select"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="default">默认顺序</SelectItem>
+              <SelectItem value="name-asc">名称 A → Z</SelectItem>
+              <SelectItem value="name-desc">名称 Z → A</SelectItem>
+              <SelectItem value="date-desc">最新先</SelectItem>
+              <SelectItem value="date-asc">最旧先</SelectItem>
+              <SelectItem value="category-asc">分类 A → Z</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
         <span className="text-xs text-muted-foreground">
           {filteredOperations.length} 个
         </span>
@@ -348,8 +464,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                   <label className="text-xs font-medium text-muted-foreground">
                     名称 *
                   </label>
-                  <input
-                    className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  <Input
                     placeholder="e.g. Run ESLint"
                     value={form.name}
                     onChange={handleNameChange}
@@ -359,25 +474,30 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                   <label className="text-xs font-medium text-muted-foreground">
                     分类
                   </label>
-                  <select
-                    className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  <Select
                     value={form.category}
-                    onChange={handleCategoryChange}
+                    onValueChange={handleCategoryChange}
                   >
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {CATEGORIES.map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">
                   描述
                 </label>
-                <input
-                  className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                <Input
                   placeholder="简单描述这个操作做什么"
                   value={form.description}
                   onChange={handleDescriptionChange}
@@ -446,8 +566,8 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                 <label className="text-xs font-medium text-muted-foreground">
                   配置 (JSON)
                 </label>
-                <textarea
-                  className="w-full resize-none rounded-md border bg-background px-3 py-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                <Textarea
+                  className="resize-none font-mono text-xs"
                   placeholder='{ "command": "eslint src/" }'
                   rows={4}
                   value={form.config}
@@ -456,19 +576,16 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
               </div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button
-                className="rounded-lg border px-3 py-1.5 text-sm hover:bg-accent"
-                onClick={handleCancel}
-              >
+              <Button size="sm" variant="outline" onClick={handleCancel}>
                 取消
-              </button>
-              <button
-                className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              </Button>
+              <Button
                 disabled={saving || !form.name.trim()}
+                size="sm"
                 onClick={handleSave}
               >
                 {saving ? "保存中..." : "保存"}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -550,6 +667,13 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                       onClick={handleEditClick(op)}
                     >
                       <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                    </button>
+                    <button
+                      className="rounded p-1 hover:bg-accent"
+                      title="导出"
+                      onClick={handleExportOperation(op)}
+                    >
+                      <Download className="h-3.5 w-3.5 text-muted-foreground" />
                     </button>
                     <button
                       className="rounded p-1 hover:bg-destructive/10"

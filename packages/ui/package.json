@@ -19,7 +19,8 @@
     "./skeleton": "./src/skeleton.tsx",
     "./textarea": "./src/textarea.tsx",
     "./toast": "./src/toast.tsx",
-    "./tooltip": "./src/tooltip.tsx"
+    "./tooltip": "./src/tooltip.tsx",
+    "./select": "./src/select.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

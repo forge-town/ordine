@@ -1,4 +1,4 @@
-import { Field, SaveButton, SectionHeader } from "../components";
+import { Field, SaveButton, SectionHeader } from \"../components\";\nimport {\n  Select,\n  SelectContent,\n  SelectGroup,\n  SelectItem,\n  SelectTrigger,\n  SelectValue,\n} from \"@repo/ui/select\";
 
 interface LanguageSectionProps {
   values: { language: string; timezone: string };
@@ -8,36 +8,42 @@ interface LanguageSectionProps {
 }
 
 export const LanguageSection = ({ values, onChange, onSave, saved }: LanguageSectionProps) => {
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    onChange({ language: e.target.value });
-  const handleTimezoneChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    onChange({ timezone: e.target.value });
+  const handleLanguageChange = (value: string | null) =>
+    onChange({ language: value ?? values.language });
+  const handleTimezoneChange = (value: string | null) =>
+    onChange({ timezone: value ?? values.timezone });
   const handleSave = onSave;
 
   return (
     <>
       <SectionHeader description="选择界面语言和时区偏好" title="语言与地区" />
       <Field label="界面语言">
-        <select
-          className="rounded-md border bg-muted/30 px-3 py-2 text-sm focus:border-ring focus:outline-none"
-          value={values.language}
-          onChange={handleLanguageChange}
-        >
-          <option value="zh-CN">简体中文</option>
-          <option value="en-US">English (US)</option>
-          <option value="ja-JP">日本語</option>
-        </select>
+        <Select value={values.language} onValueChange={handleLanguageChange}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="zh-CN">简体中文</SelectItem>
+              <SelectItem value="en-US">English (US)</SelectItem>
+              <SelectItem value="ja-JP">日本語</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </Field>
       <Field label="时区">
-        <select
-          className="rounded-md border bg-muted/30 px-3 py-2 text-sm focus:border-ring focus:outline-none"
-          value={values.timezone}
-          onChange={handleTimezoneChange}
-        >
-          <option value="Asia/Shanghai">亚洲 / 上海 (UTC+8)</option>
-          <option value="UTC">UTC</option>
-          <option value="America/New_York">美洲 / 纽约 (UTC-5)</option>
-        </select>
+        <Select value={values.timezone} onValueChange={handleTimezoneChange}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="Asia/Shanghai">亚洲 / 上海 (UTC+8)</SelectItem>
+              <SelectItem value="UTC">UTC</SelectItem>
+              <SelectItem value="America/New_York">美洲 / 纽约 (UTC-5)</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </Field>
       <SaveButton saved={saved} onSave={handleSave} />
     </>

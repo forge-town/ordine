@@ -14,6 +14,15 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/select";
+import { Textarea } from "@repo/ui/textarea";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import {
   createBestPractice,
@@ -99,17 +108,15 @@ const PracticeFormDialog = ({
 
   const set =
     (k: keyof FormState) =>
-    (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-      >,
-    ) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((prev) => ({ ...prev, [k]: e.target.value }));
 
   const handleTitleChange = set("title");
   const handleConditionChange = set("condition");
-  const handleCategoryChange = set("category");
-  const handleLanguageChange = set("language");
+  const handleCategoryChange = (value: string | null) =>
+    setForm((prev) => ({ ...prev, category: value ?? prev.category }));
+  const handleLanguageChange = (value: string | null) =>
+    setForm((prev) => ({ ...prev, language: value ?? prev.language }));
   const handleCodeSnippetChange = set("codeSnippet");
   const handleTagsChange = set("tags");
   const handleClose = onClose;
@@ -153,9 +160,6 @@ const PracticeFormDialog = ({
 
   const handleFormSubmit = (e: React.FormEvent) => void handleSubmit(e);
 
-  const inputCls =
-    "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring";
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="w-full max-w-2xl rounded-2xl bg-card shadow-xl max-h-[90vh] flex flex-col">
@@ -192,9 +196,9 @@ const PracticeFormDialog = ({
             <label className="mb-1 block text-xs font-medium text-muted-foreground">
               适用时机 (Condition) *
             </label>
-            <textarea
+            <Textarea
               required
-              className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              className="resize-none"
               placeholder="描述什么情况下应该遵循这个实践，例如：当需要在组件挂载后获取异步数据时..."
               rows={3}
               value={form.condition}
@@ -207,33 +211,45 @@ const PracticeFormDialog = ({
               <label className="mb-1 block text-xs font-medium text-muted-foreground">
                 分类
               </label>
-              <select
-                className={inputCls}
+              <Select
                 value={form.category}
-                onChange={handleCategoryChange}
+                onValueChange={handleCategoryChange}
               >
-                {CATEGORIES.filter((c) => c.value !== "all").map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {CATEGORIES.filter((c) => c.value !== "all").map((c) => (
+                      <SelectItem key={c.value} value={c.value}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">
                 语言
               </label>
-              <select
-                className={inputCls}
+              <Select
                 value={form.language}
-                onChange={handleLanguageChange}
+                onValueChange={handleLanguageChange}
               >
-                {LANGUAGES.map((l) => (
-                  <option key={l} value={l}>
-                    {l}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {LANGUAGES.map((l) => (
+                      <SelectItem key={l} value={l}>
+                        {l}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -241,8 +257,8 @@ const PracticeFormDialog = ({
             <label className="mb-1 block text-xs font-medium text-muted-foreground">
               代码片段
             </label>
-            <textarea
-              className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs leading-relaxed focus:outline-none focus:ring-1 focus:ring-ring"
+            <Textarea
+              className="resize-y font-mono text-xs leading-relaxed"
               placeholder="// 在这里粘贴代码示例..."
               rows={8}
               spellCheck={false}
