@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useStore } from "zustand";
 import { Menu, Home, Save, FileDown, Settings, Undo, Redo } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useUpdate } from "@refinedev/core";
+import { useCreate, useUpdate } from "@refinedev/core";
 import { useHarnessCanvasStore } from "../_store";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 
@@ -15,19 +15,10 @@ export const CanvasFloatingMenu = () => {
   const exportCanvas = useStore(store, (state) => state.exportCanvas);
   const undo = useStore(store, (state) => state.undo);
   const redo = useStore(store, (state) => state.redo);
+  const setPipelineId = useStore(store, (state) => state.setPipelineId);
 
-  const { mutate: saveCanvas, mutation } = useUpdate({
-    resource: ResourceName.pipelines,
-    id: pipelineId ?? "",
-    mutationOptions: {
-      onSuccess: () => {
-        // handled by refine notification below
-      },
-      onError: () => {
-        // handled by refine notification below
-      },
-    },
-  });
+  const { mutate: updateCanvas, mutation: updateMutation } = useUpdate();
+  const { mutate: createCanvas, mutation: createMutation } = useCreate();
 
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -43,30 +34,68 @@ export const CanvasFloatingMenu = () => {
   }, []);
 
   const handleSave = () => {
-    if (!pipelineId) return;
-    saveCanvas({
-      values: {
-        nodes,
-        edges,
-      },
-      successNotification: {
-        type: "success",
-        message: "保存成功",
-        description: `Pipeline「${pipelineName || "无标题"}」已保存`,
-      },
-      errorNotification: {
-        type: "error",
-        message: "保存失败",
-        description: "请稍后重试",
-      },
-    });
+    if (pipelineId) {
+      updateCanvas({
+        resource: ResourceName.pipelines,
+        id: pipelineId,
+        values: { nodes, edges },
+        successNotification: {
+          type: "success",
+          message: "保存成功",
+          description: `Pipeline「${pipelineName || "无标题"}」已保存`,
+        },
+        errorNotification: {
+          type: "error",
+          message: "保存失败",
+          description: "请稍后重试",
+        },
+      });
+    } else {
+      const newId = crypto.randomUUID();
+      createCanvas(
+        {
+          resource: ResourceName.pipelines,
+          values: {
+            id: newId,
+            name: pipelineName || "无标题",
+            description: "",
+            tags: [],
+            nodeCount: nodes.length,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            nodes,
+            edges,
+          },
+          successNotification: {
+            type: "success",
+            message: "保存成功",
+            description: `Pipeline「${pipelineName || "无标题"}」已创建`,
+          },
+          errorNotification: {
+            type: "error",
+            message: "保存失败",
+            description: "请稍后重试",
+          },
+        },
+        {
+          onSuccess: () => {
+            setPipelineId(newId);
+          },
+        },
+      );
+    }
   };
 
-  const onSave = pipelineId ? handleSave : undefined;
+  const isPending = updateMutation.isPending || createMutation.isPending;
 
   const menuItems = [
     { icon: Home, label: "回到工作区", to: "/" },
-    { icon: Save, label: "保存", onClick: onSave, disabled: mutation.isPending },
+    {
+      icon: Save,
+      label: "保存",
+      onClick: handleSave,
+      disabled: isPending,
+    },
     { icon: FileDown, label: "导出", onClick: exportCanvas },
     { icon: Undo, label: "撤销", onClick: undo, divider: true },
     { icon: Redo, label: "重做", onClick: redo },
@@ -94,7 +123,9 @@ export const CanvasFloatingMenu = () => {
         <div className="absolute left-0 top-12 w-48 rounded-lg border border-gray-200 bg-white py-2 shadow-lg">
           {menuItems.map((item, index) => (
             <div key={item.label}>
-              {item.divider && index > 0 && <div className="my-1 border-t border-gray-100" />}
+              {item.divider && index > 0 && (
+                <div className="my-1 border-t border-gray-100" />
+              )}
               {item.to ? (
                 <Link
                   className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"

@@ -34,7 +34,7 @@ export const ResourceName = {
 
 export const dataProvider: DataProvider = {
   getList: async <TData extends BaseRecord = BaseRecord>(
-    params: GetListParams
+    params: GetListParams,
   ): Promise<GetListResponse<TData>> => {
     const { resource } = params;
 
@@ -54,7 +54,7 @@ export const dataProvider: DataProvider = {
   },
 
   getOne: async <TData extends BaseRecord = BaseRecord>(
-    params: GetOneParams
+    params: GetOneParams,
   ): Promise<GetOneResponse<TData>> => {
     const { resource, id } = params;
 
@@ -74,7 +74,7 @@ export const dataProvider: DataProvider = {
   },
 
   create: async <TData extends BaseRecord = BaseRecord, TVariables = object>(
-    params: CreateParams<TVariables>
+    params: CreateParams<TVariables>,
   ): Promise<CreateResponse<TData>> => {
     const { resource, variables } = params;
 
@@ -98,7 +98,7 @@ export const dataProvider: DataProvider = {
   },
 
   update: async <TData extends BaseRecord = BaseRecord, TVariables = object>(
-    params: UpdateParams<TVariables>
+    params: UpdateParams<TVariables>,
   ): Promise<UpdateResponse<TData>> => {
     const { resource, id, variables } = params;
 
@@ -106,7 +106,9 @@ export const dataProvider: DataProvider = {
       case ResourceName.operations: {
         const { id: _varId, ...rest } = variables as Record<string, unknown>;
         const data = await updateOperation({
-          data: { id: String(id), ...rest } as Parameters<typeof updateOperation>[0]["data"],
+          data: { id: String(id), ...rest } as Parameters<
+            typeof updateOperation
+          >[0]["data"],
         });
         return { data: data as unknown as TData };
       }
@@ -126,7 +128,7 @@ export const dataProvider: DataProvider = {
   },
 
   deleteOne: async <TData extends BaseRecord = BaseRecord, TVariables = object>(
-    params: DeleteOneParams<TVariables>
+    params: DeleteOneParams<TVariables>,
   ): Promise<DeleteOneResponse<TData>> => {
     const { resource, id } = params;
 

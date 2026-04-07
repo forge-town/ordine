@@ -33,6 +33,7 @@ export interface UISlice {
   nodeContextMenu: NodeContextMenuState | null;
   connectStart: ConnectStartState | null;
 
+  setPipelineId: (id: string) => void;
   setSidebarPanel: (panel: SidebarPanel) => void;
   toggleSidebar: () => void;
   openPropertiesPanel: () => void;
@@ -50,7 +51,7 @@ export interface UISlice {
 export const createUISlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
   pipelineId: string | null = null,
-  pipelineName = ""
+  pipelineName = "",
 ): UISlice => ({
   pipelineId,
   pipelineName,
@@ -62,6 +63,10 @@ export const createUISlice = (
   connectionMenu: null,
   nodeContextMenu: null,
   connectStart: null,
+
+  setPipelineId: (id) => {
+    set({ pipelineId: id });
+  },
 
   setSidebarPanel: (panel) => {
     set({ sidebarPanel: panel });
