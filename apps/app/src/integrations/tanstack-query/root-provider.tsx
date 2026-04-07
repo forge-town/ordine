@@ -9,7 +9,7 @@ const makeQueryClient = () => {
       },
     },
   });
-}
+};
 
 let browserQueryClient: QueryClient | undefined = undefined;
 
@@ -21,7 +21,7 @@ const getQueryClient = () => {
     browserQueryClient = makeQueryClient();
   }
   return browserQueryClient;
-}
+};
 
 interface ProviderProps {
   children: ReactNode;
@@ -30,7 +30,5 @@ interface ProviderProps {
 export const Provider = ({ children }: ProviderProps) => {
   const [queryClient] = useState(() => getQueryClient());
 
-  return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 };

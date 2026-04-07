@@ -50,7 +50,7 @@ export interface UISlice {
 export const createUISlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
   pipelineId: string | null = null,
-  pipelineName = "",
+  pipelineName = ""
 ): UISlice => ({
   pipelineId,
   pipelineName,

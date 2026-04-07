@@ -1,0 +1,14 @@
+{
+  "$schema": "https://oxc.rs/schema/formatter.json",
+  "indentStyle": "space",
+  "indentSize": 2,
+  "lineEnding": "lf",
+  "printWidth": 100,
+  "quoteStyle": "single",
+  "trailingComma": "es5",
+  "semicolons": true,
+  "arrowParens": "always",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "jsxSingleQuote": false
+}

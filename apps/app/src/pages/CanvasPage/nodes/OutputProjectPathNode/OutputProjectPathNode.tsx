@@ -1,9 +1,6 @@
 import { Handle, Position } from "@xyflow/react";
 import { FolderOutput } from "lucide-react";
-import {
-  useHarnessCanvasStore,
-  type OutputProjectPathNodeData,
-} from "../../_store";
+import { useHarnessCanvasStore, type OutputProjectPathNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
 
 export interface OutputProjectPathNodeProps {
@@ -14,14 +11,9 @@ export interface OutputProjectPathNodeProps {
 
 const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
-export const OutputProjectPathNode = ({
-  id,
-  data,
-  selected,
-}: OutputProjectPathNodeProps) => {
+export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathNodeProps) => {
   const store = useHarnessCanvasStore();
-  const update = (patch: Record<string, unknown>) =>
-    store.getState().updateNodeData(id, patch);
+  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleProjectIdChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -44,9 +36,7 @@ export const OutputProjectPathNode = ({
       >
         <div className="space-y-1.5">
           <div className="flex items-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-2.5 py-1">
-            <span className="shrink-0 text-[10px] font-medium text-slate-400">
-              项目 ID
-            </span>
+            <span className="shrink-0 text-[10px] font-medium text-slate-400">项目 ID</span>
             <input
               className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] text-slate-700 focus:outline-none"
               value={data.projectId ?? ""}
@@ -56,9 +46,7 @@ export const OutputProjectPathNode = ({
             />
           </div>
           <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2.5 py-1">
-            <span className="shrink-0 text-[10px] font-medium text-teal-500">
-              路径
-            </span>
+            <span className="shrink-0 text-[10px] font-medium text-teal-500">路径</span>
             <input
               className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
               value={data.path}

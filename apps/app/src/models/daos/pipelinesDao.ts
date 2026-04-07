@@ -35,24 +35,17 @@ const rowToEntity = (row: PipelineRow): PipelineEntity => {
 
 export const pipelinesDao = {
   async findMany(): Promise<PipelineEntity[]> {
-    const rows = await db
-      .select()
-      .from(pipelinesTable)
-      .orderBy(desc(pipelinesTable.updatedAt));
+    const rows = await db.select().from(pipelinesTable).orderBy(desc(pipelinesTable.updatedAt));
     return rows.map(rowToEntity);
   },
 
   async findById(id: string): Promise<PipelineEntity | null> {
-    const rows = await db
-      .select()
-      .from(pipelinesTable)
-      .where(eq(pipelinesTable.id, id))
-      .limit(1);
+    const rows = await db.select().from(pipelinesTable).where(eq(pipelinesTable.id, id)).limit(1);
     return rows[0] ? rowToEntity(rows[0]) : null;
   },
 
   async create(
-    data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">,
+    data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">
   ): Promise<PipelineEntity> {
     const now = new Date();
     const row: NewPipelineRow = {
@@ -68,7 +61,7 @@ export const pipelinesDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">,
+    data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">
   ): Promise<PipelineEntity> {
     const now = new Date();
     const row: NewPipelineRow = {
@@ -84,14 +77,11 @@ export const pipelinesDao = {
 
   async update(
     id: string,
-    patch: Partial<
-      Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">
-    >,
+    patch: Partial<Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">>
   ): Promise<PipelineEntity | null> {
     const updates: Partial<NewPipelineRow> = { updatedAt: new Date() };
     if (patch.name !== undefined) updates.name = patch.name;
-    if (patch.description !== undefined)
-      updates.description = patch.description;
+    if (patch.description !== undefined) updates.description = patch.description;
     if (patch.tags !== undefined) updates.tags = patch.tags;
     if (patch.nodes !== undefined) updates.nodes = patch.nodes;
     if (patch.edges !== undefined) updates.edges = patch.edges;
@@ -106,14 +96,11 @@ export const pipelinesDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    patch: Partial<
-      Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">
-    >,
+    patch: Partial<Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">>
   ): Promise<PipelineEntity | null> {
     const updates: Partial<NewPipelineRow> = { updatedAt: new Date() };
     if (patch.name !== undefined) updates.name = patch.name;
-    if (patch.description !== undefined)
-      updates.description = patch.description;
+    if (patch.description !== undefined) updates.description = patch.description;
     if (patch.tags !== undefined) updates.tags = patch.tags;
     if (patch.nodes !== undefined) updates.nodes = patch.nodes;
     if (patch.edges !== undefined) updates.edges = patch.edges;

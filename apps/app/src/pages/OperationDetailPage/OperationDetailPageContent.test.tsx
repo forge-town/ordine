@@ -60,9 +60,7 @@ describe("OperationDetailPageContent", () => {
 
   it("renders the description", () => {
     render(<OperationDetailPageContent operation={mockOp} />);
-    expect(
-      screen.getByText("Produce a technical implementation plan."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Produce a technical implementation plan.")).toBeInTheDocument();
   });
 
   it("renders the inputs section with port names", () => {

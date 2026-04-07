@@ -72,13 +72,11 @@ const JobActivityRow = ({ job }: { job: JobEntity }) => {
           className={cn(
             "h-4 w-4 shrink-0",
             JOB_STATUS_CLS[job.status],
-            job.status === "running" && "animate-spin",
+            job.status === "running" && "animate-spin"
           )}
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-gray-800">
-            {job.title}
-          </p>
+          <p className="truncate text-sm font-medium text-gray-800">{job.title}</p>
           <p className="text-[11px] text-gray-400">
             {new Date(job.createdAt).toLocaleString("zh-CN", {
               month: "numeric",
@@ -160,9 +158,7 @@ export const DashboardPageContent = ({
           <div className="flex items-center justify-between border-b border-gray-50 px-4 py-3">
             <div className="flex items-center gap-2">
               <Activity className="h-3.5 w-3.5 text-gray-400" />
-              <span className="text-xs font-semibold text-gray-600">
-                最近 Jobs
-              </span>
+              <span className="text-xs font-semibold text-gray-600">最近 Jobs</span>
             </div>
             <Link
               to="/jobs"
@@ -174,9 +170,7 @@ export const DashboardPageContent = ({
           {recentJobs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <Activity className="h-7 w-7 text-gray-200" />
-              <p className="mt-2 text-xs text-gray-400">
-                触发 Pipeline 后会在此显示
-              </p>
+              <p className="mt-2 text-xs text-gray-400">触发 Pipeline 后会在此显示</p>
             </div>
           ) : (
             <div className="py-1">
@@ -225,9 +219,7 @@ export const DashboardPageContent = ({
                   <div className="group flex cursor-pointer flex-col gap-2 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all hover:border-gray-300 hover:shadow-md">
                     <Icon className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">
-                        {a.label}
-                      </p>
+                      <p className="text-sm font-semibold text-gray-800">{a.label}</p>
                       <p className="text-xs text-gray-400">{a.sub}</p>
                     </div>
                   </div>

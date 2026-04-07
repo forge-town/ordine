@@ -15,13 +15,13 @@ export const Toggle = ({ enabled, onToggle, label }: ToggleProps) => {
         onClick={handleToggle}
         className={cn(
           "relative h-5 w-9 rounded-full transition-colors",
-          enabled ? "bg-primary" : "bg-input",
+          enabled ? "bg-primary" : "bg-input"
         )}
       >
         <span
           className={cn(
             "absolute top-0.5 h-4 w-4 rounded-full bg-background shadow-sm transition-transform",
-            enabled ? "translate-x-4" : "translate-x-0.5",
+            enabled ? "translate-x-4" : "translate-x-0.5"
           )}
         />
       </button>

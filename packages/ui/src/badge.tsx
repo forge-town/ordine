@@ -32,7 +32,7 @@ function Badge({
   variant = "default",
   render,
   ...props
-}: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
+}: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>): React.ReactElement {
   return useRender({
     defaultTagName: "span",
     props: mergeProps<"span">(

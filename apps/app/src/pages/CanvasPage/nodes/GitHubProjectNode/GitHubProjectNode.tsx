@@ -1,16 +1,10 @@
 import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { Link2, Lock, Globe, BookMarked } from "lucide-react";
-import {
-  useHarnessCanvasStore,
-  type GitHubProjectNodeData,
-} from "../../_store";
+import { useHarnessCanvasStore, type GitHubProjectNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
 import { SiGitHubIcon } from "./SiGitHubIcon";
-import {
-  GitHubConnectDialog,
-  type ConnectedRepoInfo,
-} from "./GitHubConnectDialog";
+import { GitHubConnectDialog, type ConnectedRepoInfo } from "./GitHubConnectDialog";
 import { PickProjectDialog, type PickedProject } from "./PickProjectDialog";
 
 export interface GitHubProjectNodeProps {
@@ -21,17 +15,12 @@ export interface GitHubProjectNodeProps {
 
 const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
-export const GitHubProjectNode = ({
-  id,
-  data,
-  selected,
-}: GitHubProjectNodeProps) => {
+export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps) => {
   const store = useHarnessCanvasStore();
   const [pickOpen, setPickOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
 
-  const update = (patch: Record<string, unknown>) =>
-    store.getState().updateNodeData(id, patch);
+  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
 
   const isConnected = !!(data.owner && data.repo);
 
@@ -58,9 +47,7 @@ export const GitHubProjectNode = ({
     });
   };
 
-  const repoUrl = isConnected
-    ? `https://github.com/${data.owner}/${data.repo}`
-    : undefined;
+  const repoUrl = isConnected ? `https://github.com/${data.owner}/${data.repo}` : undefined;
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -157,11 +144,7 @@ export const GitHubProjectNode = ({
         className="absolute h-3.5 w-3.5 rounded-full bg-orange-600 border-[3px] border-white shadow-sm transition-all hover:scale-110 -right-1.5 top-1/2 -mt-1.5"
       />
 
-      <PickProjectDialog
-        open={pickOpen}
-        onClose={handlePickClose}
-        onPick={handlePick}
-      />
+      <PickProjectDialog open={pickOpen} onClose={handlePickClose} onPick={handlePick} />
 
       <GitHubConnectDialog
         open={connectOpen}

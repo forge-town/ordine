@@ -76,9 +76,7 @@ describe("pipelinesDao.update", () => {
     expect(mockUpdate).toHaveBeenCalledTimes(1);
 
     // Verify .set() received nodes and edges
-    const setPayload = (
-      mockSet.mock.calls as Array<Array<Record<string, unknown>>>
-    )[0]?.[0];
+    const setPayload = (mockSet.mock.calls as Array<Array<Record<string, unknown>>>)[0]?.[0];
     expect(setPayload).toBeDefined();
     expect(setPayload["nodes"]).toEqual(testNodes);
     expect(setPayload["edges"]).toEqual([]);
@@ -113,9 +111,7 @@ describe("pipelinesDao.update", () => {
       description: "New desc",
     });
 
-    const setPayload = (
-      mockSet.mock.calls as Array<Array<Record<string, unknown>>>
-    )[0]?.[0];
+    const setPayload = (mockSet.mock.calls as Array<Array<Record<string, unknown>>>)[0]?.[0];
     // Should have name, description, updatedAt from internal logic
     expect(setPayload["name"]).toBe("Updated Name");
     expect(setPayload["description"]).toBe("New desc");

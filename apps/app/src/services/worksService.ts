@@ -7,9 +7,7 @@ const WorkObjectSchema = z.object({
   path: z.string(),
 });
 
-export const getWorks = createServerFn({ method: "GET" }).handler(() =>
-  worksDao.findMany(),
-);
+export const getWorks = createServerFn({ method: "GET" }).handler(() => worksDao.findMany());
 
 export const getWorksByProject = createServerFn({ method: "GET" })
   .inputValidator(z.object({ projectId: z.string() }))
@@ -27,18 +25,16 @@ export const createWork = createServerFn({ method: "POST" })
       pipelineId: z.string(),
       pipelineName: z.string(),
       object: WorkObjectSchema,
-    }),
+    })
   )
-  .handler(async ({ data }) =>
-    worksDao.create({ ...data, status: "pending", logs: [] }),
-  );
+  .handler(async ({ data }) => worksDao.create({ ...data, status: "pending", logs: [] }));
 
 export const updateWorkStatus = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       id: z.string(),
       status: z.enum(["pending", "running", "success", "failed"]),
-    }),
+    })
   )
   .handler(async ({ data }) => worksDao.updateStatus(data.id, data.status));
 

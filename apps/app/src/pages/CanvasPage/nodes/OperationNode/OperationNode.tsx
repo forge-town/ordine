@@ -1,17 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
-import {
-  Zap,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  Circle,
-} from "lucide-react";
+import { Zap, CheckCircle2, XCircle, Loader2, Circle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import {
-  useHarnessCanvasStore,
-  type OperationNodeData,
-  type NodeRunStatus,
-} from "../../_store";
+import { useHarnessCanvasStore, type OperationNodeData, type NodeRunStatus } from "../../_store";
 import { NodeCard } from "../NodeCard";
 
 export interface OperationNodeProps {
@@ -36,22 +26,14 @@ const statusConfig: Record<
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const store = useHarnessCanvasStore();
-  const update = (patch: Record<string, unknown>) =>
-    store.getState().updateNodeData(id, patch);
+  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
 
-  const {
-    icon: StatusIcon,
-    color,
-    label: statusLabel,
-  } = statusConfig[data.status ?? "idle"];
+  const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
 
   // Get operation details from store
-  const operation = store
-    .getState()
-    .getOperationById(data.operationId);
+  const operation = store.getState().getOperationById(data.operationId);
 
-  const handleLabelChange = (v: string) =>
-    update({ label: v, operationName: v });
+  const handleLabelChange = (v: string) => update({ label: v, operationName: v });
 
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
@@ -69,14 +51,11 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               data.status === "pass" && "bg-green-50 border-green-100",
               data.status === "fail" && "bg-red-50 border-red-100",
               data.status === "running" && "bg-blue-50 border-blue-100",
-              (!data.status || data.status === "idle") &&
-                "bg-white border-slate-100",
+              (!data.status || data.status === "idle") && "bg-white border-slate-100"
             )}
           >
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span
-              className={cn("text-[10px] font-semibold tracking-wide", color)}
-            >
+            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
               {statusLabel}
             </span>
           </div>

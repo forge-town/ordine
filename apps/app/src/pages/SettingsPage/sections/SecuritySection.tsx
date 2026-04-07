@@ -13,18 +13,13 @@ interface SecuritySectionProps {
       currentPassword: string;
       newPassword: string;
       confirmPassword: string;
-    }>,
+    }>
   ) => void;
   onSave: () => void;
   saved: boolean;
 }
 
-export const SecuritySection = ({
-  values,
-  onChange,
-  onSave,
-  saved,
-}: SecuritySectionProps) => {
+export const SecuritySection = ({ values, onChange, onSave, saved }: SecuritySectionProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const handleCurrentPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>

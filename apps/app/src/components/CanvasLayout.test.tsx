@@ -21,7 +21,7 @@ describe("CanvasLayout", () => {
     render(
       <CanvasLayout>
         <div data-testid="child">content</div>
-      </CanvasLayout>,
+      </CanvasLayout>
     );
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });
@@ -30,7 +30,7 @@ describe("CanvasLayout", () => {
     render(
       <CanvasLayout>
         <div />
-      </CanvasLayout>,
+      </CanvasLayout>
     );
 
     act(() => {
@@ -48,7 +48,7 @@ describe("CanvasLayout", () => {
     render(
       <CanvasLayout>
         <div />
-      </CanvasLayout>,
+      </CanvasLayout>
     );
 
     act(() => {

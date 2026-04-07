@@ -24,11 +24,7 @@ interface PipelinesActionsSlice {
   setActivePipelineId: (id: string | null) => void;
   addPipeline: (pipeline: Pipeline) => void;
   removePipeline: (id: string) => void;
-  updatePipelineGraph: (
-    id: string,
-    nodes: PipelineNode[],
-    edges: PipelineEdge[],
-  ) => void;
+  updatePipelineGraph: (id: string, nodes: PipelineNode[], edges: PipelineEdge[]) => void;
 }
 
 export type PipelinesStoreState = PipelinesStateSlice & PipelinesActionsSlice;
@@ -45,11 +41,9 @@ export const usePipelinesStore = create<PipelinesStoreState>()((set) => ({
 
   setActivePipelineId: (id) => set({ activePipelineId: id }),
 
-  addPipeline: (pipeline) =>
-    set((s) => ({ pipelines: [...s.pipelines, pipeline] })),
+  addPipeline: (pipeline) => set((s) => ({ pipelines: [...s.pipelines, pipeline] })),
 
-  removePipeline: (id) =>
-    set((s) => ({ pipelines: s.pipelines.filter((p) => p.id !== id) })),
+  removePipeline: (id) => set((s) => ({ pipelines: s.pipelines.filter((p) => p.id !== id) })),
 
   updatePipelineGraph: (id, nodes, edges) =>
     set((s) => ({
@@ -62,7 +56,7 @@ export const usePipelinesStore = create<PipelinesStoreState>()((set) => ({
               updatedAt: Date.now(),
               nodeCount: nodes.length,
             }
-          : p,
+          : p
       ),
     })),
 }));

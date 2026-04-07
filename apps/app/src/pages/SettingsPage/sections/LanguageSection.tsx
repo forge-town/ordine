@@ -7,12 +7,7 @@ interface LanguageSectionProps {
   saved: boolean;
 }
 
-export const LanguageSection = ({
-  values,
-  onChange,
-  onSave,
-  saved,
-}: LanguageSectionProps) => {
+export const LanguageSection = ({ values, onChange, onSave, saved }: LanguageSectionProps) => {
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
     onChange({ language: e.target.value });
   const handleTimezoneChange = (e: React.ChangeEvent<HTMLSelectElement>) =>

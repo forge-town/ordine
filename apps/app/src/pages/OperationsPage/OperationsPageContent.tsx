@@ -13,11 +13,7 @@ import {
   Lock,
   Users,
 } from "lucide-react";
-import {
-  createOperation,
-  updateOperation,
-  deleteOperation,
-} from "@/services/operationsService";
+import { createOperation, updateOperation, deleteOperation } from "@/services/operationsService";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { ObjectType, Visibility } from "@/models/tables/operations_table";
 import { cn } from "@repo/ui/lib/utils";
@@ -42,15 +38,7 @@ interface Props {
   initialOperations: OperationEntity[];
 }
 
-const CATEGORIES = [
-  "general",
-  "lint",
-  "format",
-  "build",
-  "test",
-  "deploy",
-  "custom",
-] as const;
+const CATEGORIES = ["general", "lint", "format", "build", "test", "deploy", "custom"] as const;
 
 const OBJECT_TYPE_OPTIONS: {
   value: ObjectType;
@@ -81,18 +69,10 @@ const emptyForm: FormState = {
 };
 
 export const OperationsPageContent = ({ initialOperations }: Props) => {
-  type SortKey =
-    | "default"
-    | "name-asc"
-    | "name-desc"
-    | "date-asc"
-    | "date-desc"
-    | "category-asc";
+  type SortKey = "default" | "name-asc" | "name-desc" | "date-asc" | "date-desc" | "category-asc";
 
   const [operations, setOperations] = useState(initialOperations);
-  const [visibilityFilter, setVisibilityFilter] = useState<Visibility | "all">(
-    "all",
-  );
+  const [visibilityFilter, setVisibilityFilter] = useState<Visibility | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("default");
   const [showForm, setShowForm] = useState(false);
@@ -101,18 +81,11 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
   const [saving, setSaving] = useState(false);
 
   const filteredOperations = operations
-    .filter(
-      (op) =>
-        visibilityFilter === "all" ||
-        (op.visibility ?? "public") === visibilityFilter,
-    )
+    .filter((op) => visibilityFilter === "all" || (op.visibility ?? "public") === visibilityFilter)
     .filter((op) => {
       const q = searchQuery.trim().toLowerCase();
       if (!q) return true;
-      return (
-        op.name.toLowerCase().includes(q) ||
-        (op.description ?? "").toLowerCase().includes(q)
-      );
+      return op.name.toLowerCase().includes(q) || (op.description ?? "").toLowerCase().includes(q);
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -197,9 +170,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
         });
         if (updated) {
           setOperations((prev) =>
-            prev.map((o) =>
-              o.id === editingId ? (updated as OperationEntity) : o,
-            ),
+            prev.map((o) => (o.id === editingId ? (updated as OperationEntity) : o))
           );
         }
       } else {
@@ -229,10 +200,8 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
     setOperations((prev) => prev.filter((o) => o.id !== id));
   };
 
-  const handleVisibilityFilterClick =
-    (value: Visibility | "all") =>
-    () =>
-      setVisibilityFilter(value);
+  const handleVisibilityFilterClick = (value: Visibility | "all") => () =>
+    setVisibilityFilter(value);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setSearchQuery(e.target.value);
@@ -254,8 +223,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
   const handleVisibilityChange = (value: Visibility) => () =>
     setForm((f) => ({ ...f, visibility: value }));
 
-  const handleToggleObjectTypeClick = (type: ObjectType) => () =>
-    toggleObjectType(type);
+  const handleToggleObjectTypeClick = (type: ObjectType) => () => toggleObjectType(type);
 
   const handleConfigChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, config: e.target.value }));
@@ -300,7 +268,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
               "rounded-full px-3 py-1 text-xs font-medium transition-colors",
               visibilityFilter === value
                 ? "bg-violet-100 text-violet-700"
-                : "text-muted-foreground hover:bg-muted",
+                : "text-muted-foreground hover:bg-muted"
             )}
           >
             {label}
@@ -331,9 +299,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
             <option value="date-asc">最旧先</option>
             <option value="category-asc">分类 A → Z</option>
           </select>
-          <span className="text-xs text-muted-foreground">
-            {filteredOperations.length} 个
-          </span>
+          <span className="text-xs text-muted-foreground">{filteredOperations.length} 个</span>
         </div>
       </div>
 
@@ -347,9 +313,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    名称 *
-                  </label>
+                  <label className="text-xs font-medium text-muted-foreground">名称 *</label>
                   <input
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                     value={form.name}
@@ -358,9 +322,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    分类
-                  </label>
+                  <label className="text-xs font-medium text-muted-foreground">分类</label>
                   <select
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                     value={form.category}
@@ -375,9 +337,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">
-                  描述
-                </label>
+                <label className="text-xs font-medium text-muted-foreground">描述</label>
                 <input
                   className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   value={form.description}
@@ -388,9 +348,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
 
               {/* Visibility */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground">
-                  可见性
-                </label>
+                <label className="text-xs font-medium text-muted-foreground">可见性</label>
                 <div className="flex gap-2">
                   {VISIBILITY_OPTIONS.map(({ value, label, icon: Icon }) => {
                     const selected = form.visibility === value;
@@ -403,7 +361,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                           "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                           selected
                             ? "border-violet-300 bg-violet-50 text-violet-700"
-                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50",
+                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
                         )}
                       >
                         <Icon className="h-4 w-4" />
@@ -432,7 +390,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                           "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                           selected
                             ? "border-violet-300 bg-violet-50 text-violet-700"
-                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50",
+                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
                         )}
                       >
                         <Icon className="h-4 w-4" />
@@ -445,9 +403,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">
-                  配置 (JSON)
-                </label>
+                <label className="text-xs font-medium text-muted-foreground">配置 (JSON)</label>
                 <textarea
                   rows={4}
                   className="w-full resize-none rounded-md border bg-background px-3 py-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
@@ -482,14 +438,10 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
               <Zap className="h-6 w-6 text-muted-foreground" />
             </div>
             {searchQuery.trim() || visibilityFilter !== "all" ? (
-              <p className="text-sm font-medium text-muted-foreground">
-                没有找到匹配的 Operations
-              </p>
+              <p className="text-sm font-medium text-muted-foreground">没有找到匹配的 Operations</p>
             ) : (
               <>
-                <p className="text-sm font-medium text-muted-foreground">
-                  还没有 Operations
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">还没有 Operations</p>
                 <p className="mt-1 text-xs text-muted-foreground/60">
                   点击「新建 Operation」添加第一个操作
                 </p>
@@ -509,16 +461,14 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                       <Zap className="h-4 w-4 text-violet-600" />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">
-                        {op.name}
-                      </p>
+                      <p className="truncate text-sm font-semibold">{op.name}</p>
                       <div className="flex items-center gap-1 mt-0.5">
                         <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                           {op.category}
                         </span>
                         {(() => {
                           const vCfg = VISIBILITY_OPTIONS.find(
-                            (v) => v.value === (op.visibility ?? "public"),
+                            (v) => v.value === (op.visibility ?? "public")
                           );
                           if (!vCfg) return null;
                           const VIcon = vCfg.icon;
@@ -526,7 +476,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                             <span
                               className={cn(
                                 "flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium",
-                                VISIBILITY_COLORS[vCfg.value],
+                                VISIBILITY_COLORS[vCfg.value]
                               )}
                             >
                               <VIcon className="h-2.5 w-2.5" />
@@ -569,17 +519,13 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                 )}
                 {/* Show accepted object types */}
                 <div className="mt-3 flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground">
-                    适用于:
-                  </span>
+                  <span className="text-[10px] text-muted-foreground">适用于:</span>
                   <div className="flex gap-1">
                     {(Array.isArray(op.acceptedObjectTypes)
                       ? op.acceptedObjectTypes
                       : ["file", "folder", "project"]
                     ).map((type) => {
-                      const config = OBJECT_TYPE_OPTIONS.find(
-                        (o) => o.value === type,
-                      );
+                      const config = OBJECT_TYPE_OPTIONS.find((o) => o.value === type);
                       if (!config) return null;
                       const Icon = config.icon;
                       return (

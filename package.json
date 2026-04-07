@@ -13,7 +13,7 @@
     "sync-skills": "bunx skills add https://github.com/forge-town/skills"
   },
   "devDependencies": {
-    "@oxlint/binding-darwin-arm64": "^1.57.0",
+    "@oxlint/binding-darwin-arm64": "^1.59.0",
     "prettier": "^3.7.4",
     "turbo": "^2.8.21",
     "typescript": "5.9.2"

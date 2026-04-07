@@ -15,12 +15,7 @@
  *   3. Clears the redo stack
  */
 
-import {
-  produceWithPatches,
-  applyPatches,
-  enablePatches,
-  type Patch,
-} from "immer";
+import { produceWithPatches, applyPatches, enablePatches, type Patch } from "immer";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
 import type { PipelineNode, PipelineEdge } from "./canvasSlice";
 
@@ -89,10 +84,7 @@ export interface HistorySlice {
    *
    * Returns the next state so the caller can merge it with `set(...)`.
    */
-  recordCommand: (
-    command: CommandMeta,
-    mutate: (draft: CanvasHistoryState) => void,
-  ) => void;
+  recordCommand: (command: CommandMeta, mutate: (draft: CanvasHistoryState) => void) => void;
 
   undo: () => void;
   redo: () => void;
@@ -103,7 +95,7 @@ export interface HistorySlice {
 
 export const createHistorySlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
-  get: Parameters<HarnessCanvasStoreSlice>[1],
+  get: Parameters<HarnessCanvasStoreSlice>[1]
 ): HistorySlice => ({
   _history: [],
   _future: [],
@@ -119,12 +111,9 @@ export const createHistorySlice = (
       edges: state.edges,
     };
 
-    const [next, patches, inversePatches] = produceWithPatches(
-      current,
-      (draft) => {
-        mutate(draft);
-      },
-    );
+    const [next, patches, inversePatches] = produceWithPatches(current, (draft) => {
+      mutate(draft);
+    });
 
     // Nothing changed — skip recording
     if (patches.length === 0) return;

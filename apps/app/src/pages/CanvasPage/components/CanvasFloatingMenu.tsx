@@ -1,14 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useStore } from "zustand";
-import {
-  Menu,
-  Home,
-  Save,
-  FileDown,
-  Settings,
-  Undo,
-  Redo,
-} from "lucide-react";
+import { Menu, Home, Save, FileDown, Settings, Undo, Redo } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useUpdate } from "@refinedev/core";
 import { useHarnessCanvasStore } from "../_store";
@@ -102,9 +94,7 @@ export const CanvasFloatingMenu = () => {
         <div className="absolute left-0 top-12 w-48 rounded-lg border border-gray-200 bg-white py-2 shadow-lg">
           {menuItems.map((item, index) => (
             <div key={item.label}>
-              {item.divider && index > 0 && (
-                <div className="my-1 border-t border-gray-100" />
-              )}
+              {item.divider && index > 0 && <div className="my-1 border-t border-gray-100" />}
               {item.to ? (
                 <Link
                   to={item.to}

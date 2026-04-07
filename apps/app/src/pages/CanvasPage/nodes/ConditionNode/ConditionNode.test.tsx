@@ -44,7 +44,7 @@ describe("ConditionNode", () => {
   it("shows status label for each status", () => {
     const { rerender } = render(
       <ConditionNode id="test" data={{ ...baseData, status: "idle" }} />,
-      { wrapper },
+      { wrapper }
     );
     expect(screen.getByText("待验收")).toBeInTheDocument();
 
@@ -53,7 +53,7 @@ describe("ConditionNode", () => {
         <ReactFlowProvider>
           <ConditionNode id="test" data={{ ...baseData, status: "pass" }} />
         </ReactFlowProvider>
-      </HarnessCanvasStoreProvider>,
+      </HarnessCanvasStoreProvider>
     );
     expect(screen.getByText("通过")).toBeInTheDocument();
 
@@ -62,7 +62,7 @@ describe("ConditionNode", () => {
         <ReactFlowProvider>
           <ConditionNode id="test" data={{ ...baseData, status: "fail" }} />
         </ReactFlowProvider>
-      </HarnessCanvasStoreProvider>,
+      </HarnessCanvasStoreProvider>
     );
     expect(screen.getByText("失败")).toBeInTheDocument();
   });

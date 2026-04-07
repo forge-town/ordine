@@ -34,31 +34,17 @@ export const CanvasFlow = () => {
   const selectEdge = useStore(store, (state) => state.selectEdge);
   const openContextMenu = useStore(store, (state) => state.openContextMenu);
   const closeContextMenu = useStore(store, (state) => state.closeContextMenu);
-  const openConnectionMenu = useStore(
-    store,
-    (state) => state.openConnectionMenu,
-  );
-  const closeConnectionMenu = useStore(
-    store,
-    (state) => state.closeConnectionMenu,
-  );
-  const openNodeContextMenu = useStore(
-    store,
-    (state) => state.openNodeContextMenu,
-  );
-  const closeNodeContextMenu = useStore(
-    store,
-    (state) => state.closeNodeContextMenu,
-  );
+  const openConnectionMenu = useStore(store, (state) => state.openConnectionMenu);
+  const closeConnectionMenu = useStore(store, (state) => state.closeConnectionMenu);
+  const openNodeContextMenu = useStore(store, (state) => state.openNodeContextMenu);
+  const closeNodeContextMenu = useStore(store, (state) => state.closeNodeContextMenu);
   const setConnectStart = useStore(store, (state) => state.setConnectStart);
 
   // ─── Undo / Redo keyboard shortcuts ──────────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const isUndo = (e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey;
-      const isRedo =
-        (e.metaKey || e.ctrlKey) &&
-        (e.key === "y" || (e.key === "z" && e.shiftKey));
+      const isRedo = (e.metaKey || e.ctrlKey) && (e.key === "y" || (e.key === "z" && e.shiftKey));
 
       if (isUndo) {
         e.preventDefault();
@@ -93,7 +79,7 @@ export const CanvasFlow = () => {
       "output-project-path": OutputProjectPathNode,
       "output-local-path": OutputLocalPathNode,
     }),
-    [],
+    []
   );
 
   // 使用 useMemo 缓存 defaultEdgeOptions
@@ -103,7 +89,7 @@ export const CanvasFlow = () => {
       animated: true,
       style: { stroke: "#94a3b8", strokeWidth: 2 },
     }),
-    [],
+    []
   );
 
   const handleNodesChange = (changes: Parameters<typeof onNodesChange>[0]) => {
@@ -143,9 +129,7 @@ export const CanvasFlow = () => {
 
     if (fromNode) {
       const { clientX, clientY } =
-        "changedTouches" in event
-          ? (event as TouchEvent).changedTouches[0]
-          : (event as MouseEvent);
+        "changedTouches" in event ? (event as TouchEvent).changedTouches[0] : (event as MouseEvent);
 
       // Re-set connectStart from live connectionState data
       setConnectStart({
@@ -249,12 +233,7 @@ export const CanvasFlow = () => {
       className="bg-slate-50/50"
       deleteKeyCode={["Backspace", "Delete"]}
     >
-      <Background
-        variant={BackgroundVariant.Dots}
-        gap={24}
-        size={1.5}
-        color="#cbd5e1"
-      />
+      <Background variant={BackgroundVariant.Dots} gap={24} size={1.5} color="#cbd5e1" />
       <Controls
         position="bottom-left"
         showInteractive

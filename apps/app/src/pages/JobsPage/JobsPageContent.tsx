@@ -60,14 +60,13 @@ const STATUS_CONFIG: Record<
   },
 };
 
-const TYPE_CONFIG: Record<JobType, { label: string; icon: React.ElementType }> =
-  {
-    pipeline_run: { label: "Pipeline", icon: Layers },
-    code_analysis: { label: "代码分析", icon: Code2 },
-    skill_execution: { label: "技能执行", icon: Wand2 },
-    file_scan: { label: "文件扫描", icon: FileSearch },
-    custom: { label: "自定义", icon: Cpu },
-  };
+const TYPE_CONFIG: Record<JobType, { label: string; icon: React.ElementType }> = {
+  pipeline_run: { label: "Pipeline", icon: Layers },
+  code_analysis: { label: "代码分析", icon: Code2 },
+  skill_execution: { label: "技能执行", icon: Wand2 },
+  file_scan: { label: "文件扫描", icon: FileSearch },
+  custom: { label: "自定义", icon: Cpu },
+};
 
 const STATUS_FILTERS: { value: JobStatus | "all"; label: string }[] = [
   { value: "all", label: "全部" },
@@ -136,23 +135,14 @@ const JobRow = ({
       className="group flex cursor-pointer items-center gap-4 rounded-xl border border-gray-100 bg-white px-4 py-3 hover:border-violet-200 hover:shadow-sm transition-all"
     >
       {/* Status icon */}
-      <span
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-          s.cls,
-        )}
-      >
-        <StatusIcon
-          className={cn("h-4 w-4", job.status === "running" && "animate-spin")}
-        />
+      <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", s.cls)}>
+        <StatusIcon className={cn("h-4 w-4", job.status === "running" && "animate-spin")} />
       </span>
 
       {/* Info */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-semibold text-gray-800">
-            {job.title}
-          </p>
+          <p className="truncate text-sm font-semibold text-gray-800">{job.title}</p>
           <span className="flex shrink-0 items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-500">
             <TypeIcon className="h-2.5 w-2.5" />
             {t.label}
@@ -160,9 +150,7 @@ const JobRow = ({
         </div>
         <div className="mt-0.5 flex items-center gap-3 text-[11px] text-gray-400">
           <span className="font-mono">{job.id}</span>
-          {job.projectId && (
-            <span className="truncate max-w-[120px]">{job.projectId}</span>
-          )}
+          {job.projectId && <span className="truncate max-w-[120px]">{job.projectId}</span>}
           {duration && <span>{duration}</span>}
           <span>
             {new Date(job.createdAt).toLocaleString("zh-CN", {
@@ -176,12 +164,7 @@ const JobRow = ({
       </div>
 
       {/* Status badge */}
-      <span
-        className={cn(
-          "shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium",
-          s.cls,
-        )}
-      >
+      <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium", s.cls)}>
         {s.label}
       </span>
 
@@ -201,20 +184,14 @@ const JobRow = ({
 
 // ── Page content ──────────────────────────────────────────────────────────────
 
-export const JobsPageContent = ({
-  jobs: initialJobs,
-}: {
-  jobs: JobEntity[];
-}) => {
+export const JobsPageContent = ({ jobs: initialJobs }: { jobs: JobEntity[] }) => {
   const [jobs, setJobs] = useState<JobEntity[]>(initialJobs);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<JobStatus | "all">("all");
   const navigate = useNavigate();
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
-  const handleStatusFilterClick =
-    (value: JobStatus | "all") => () => setStatusFilter(value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
+  const handleStatusFilterClick = (value: JobStatus | "all") => () => setStatusFilter(value);
   const handleJobClick = (jobId: string) => () =>
     void navigate({
       to: "/jobs/$jobId",
@@ -263,30 +240,15 @@ export const JobsPageContent = ({
       {/* Stats */}
       <div className="shrink-0 border-b border-gray-100 bg-gray-50 px-6 py-4">
         <div className="grid grid-cols-5 gap-3">
-          <StatCard
-            label="排队中"
-            value={counts.queued}
-            color="text-gray-700"
-            dot="bg-gray-400"
-          />
-          <StatCard
-            label="运行中"
-            value={counts.running}
-            color="text-blue-700"
-            dot="bg-blue-500"
-          />
+          <StatCard label="排队中" value={counts.queued} color="text-gray-700" dot="bg-gray-400" />
+          <StatCard label="运行中" value={counts.running} color="text-blue-700" dot="bg-blue-500" />
           <StatCard
             label="已完成"
             value={counts.done}
             color="text-emerald-700"
             dot="bg-emerald-500"
           />
-          <StatCard
-            label="失败"
-            value={counts.failed}
-            color="text-red-700"
-            dot="bg-red-500"
-          />
+          <StatCard label="失败" value={counts.failed} color="text-red-700" dot="bg-red-500" />
           <StatCard
             label="已取消"
             value={counts.cancelled}
@@ -319,14 +281,12 @@ export const JobsPageContent = ({
                 "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                 statusFilter === f.value
                   ? "bg-violet-600 text-white"
-                  : "text-gray-500 hover:bg-gray-100",
+                  : "text-gray-500 hover:bg-gray-100"
               )}
             >
               {f.label}
               {f.value !== "all" && (
-                <span className="ml-1 opacity-70">
-                  {counts[f.value as JobStatus]}
-                </span>
+                <span className="ml-1 opacity-70">{counts[f.value as JobStatus]}</span>
               )}
             </button>
           ))}
@@ -345,9 +305,7 @@ export const JobsPageContent = ({
               <Activity className="h-7 w-7 text-gray-400" />
             </div>
             <h3 className="mt-4 text-sm font-semibold text-gray-700">
-              {search || statusFilter !== "all"
-                ? "未找到匹配的 Job"
-                : "暂无 Job"}
+              {search || statusFilter !== "all" ? "未找到匹配的 Job" : "暂无 Job"}
             </h3>
             <p className="mt-1 text-xs text-gray-400">
               {search || statusFilter !== "all"

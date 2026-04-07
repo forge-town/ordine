@@ -5,10 +5,7 @@ import { notificationProvider } from "./notificationProvider";
 
 export const RefineProvider: FC<PropsWithChildren> = ({ children }) => {
   return (
-    <Refine
-      dataProvider={dataProvider}
-      notificationProvider={notificationProvider}
-    >
+    <Refine dataProvider={dataProvider} notificationProvider={notificationProvider}>
       {children}
     </Refine>
   );

@@ -101,13 +101,7 @@ const parseConfig = (raw: string): OperationConfig => {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-const SectionHeader = ({
-  icon: Icon,
-  label,
-}: {
-  icon: React.ElementType;
-  label: string;
-}) => (
+const SectionHeader = ({ icon: Icon, label }: { icon: React.ElementType; label: string }) => (
   <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
     <Icon className="h-3.5 w-3.5" />
     {label}
@@ -118,9 +112,7 @@ const InputPortRow = ({ port }: { port: InputPort }) => (
   <div className="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0">
     <div className="flex flex-col gap-0.5 min-w-0 flex-1">
       <div className="flex items-center gap-2">
-        <span className="font-mono text-xs font-semibold text-gray-800">
-          {port.name}
-        </span>
+        <span className="font-mono text-xs font-semibold text-gray-800">{port.name}</span>
         <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-50 text-sky-600 border border-sky-100">
           {KIND_LABEL[port.kind]}
         </span>
@@ -130,9 +122,7 @@ const InputPortRow = ({ port }: { port: InputPort }) => (
           </span>
         )}
       </div>
-      <p className="text-xs text-gray-500 leading-relaxed">
-        {port.description}
-      </p>
+      <p className="text-xs text-gray-500 leading-relaxed">{port.description}</p>
     </div>
   </div>
 );
@@ -141,16 +131,12 @@ const OutputPortRow = ({ port }: { port: OutputPort }) => (
   <div className="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0">
     <div className="flex flex-col gap-0.5 min-w-0 flex-1">
       <div className="flex items-center gap-2">
-        <span className="font-mono text-xs font-semibold text-gray-800">
-          {port.name}
-        </span>
+        <span className="font-mono text-xs font-semibold text-gray-800">{port.name}</span>
         <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-sky-50 text-sky-600 border border-sky-100">
           {KIND_LABEL[port.kind]}
         </span>
       </div>
-      <p className="text-xs text-gray-500 leading-relaxed">
-        {port.description}
-      </p>
+      <p className="text-xs text-gray-500 leading-relaxed">{port.description}</p>
       <p className="font-mono text-[11px] text-gray-400">{port.path}</p>
     </div>
   </div>
@@ -164,9 +150,7 @@ export const OperationDetailPageContent = ({
   operation: OperationEntity | null;
 }) => {
   const navigate = useNavigate();
-  const [visibility, setVisibility] = useState<Visibility>(
-    operation?.visibility ?? "public",
-  );
+  const [visibility, setVisibility] = useState<Visibility>(operation?.visibility ?? "public");
   const [toggling, setToggling] = useState(false);
 
   const handleNavigateBack = () => void navigate({ to: "/operations" });
@@ -190,10 +174,7 @@ export const OperationDetailPageContent = ({
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <XCircle className="h-10 w-10 text-gray-300" />
         <p className="text-sm font-medium text-gray-500">Operation 不存在</p>
-        <button
-          onClick={handleNavigateBack}
-          className="text-xs text-violet-600 hover:underline"
-        >
+        <button onClick={handleNavigateBack} className="text-xs text-violet-600 hover:underline">
           返回列表
         </button>
       </div>
@@ -201,8 +182,7 @@ export const OperationDetailPageContent = ({
   }
 
   const config = parseConfig(operation.config);
-  const categoryColor =
-    CATEGORY_COLORS[operation.category] ?? CATEGORY_COLORS["general"];
+  const categoryColor = CATEGORY_COLORS[operation.category] ?? CATEGORY_COLORS["general"];
   const vc = VISIBILITY_CONFIG[visibility];
   const VisibilityIcon = vc.icon;
 
@@ -218,17 +198,10 @@ export const OperationDetailPageContent = ({
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-gray-900">
-            {operation.name}
-          </h1>
+          <h1 className="truncate text-sm font-semibold text-gray-900">{operation.name}</h1>
           <p className="font-mono text-[11px] text-gray-400">{operation.id}</p>
         </div>
-        <span
-          className={cn(
-            "rounded-full border px-3 py-1 text-xs font-medium",
-            categoryColor,
-          )}
-        >
+        <span className={cn("rounded-full border px-3 py-1 text-xs font-medium", categoryColor)}>
           {operation.category}
         </span>
       </div>
@@ -240,9 +213,7 @@ export const OperationDetailPageContent = ({
           <SectionHeader icon={Info} label="基本信息" />
 
           {operation.description && (
-            <p className="text-sm text-gray-600 leading-relaxed mb-4">
-              {operation.description}
-            </p>
+            <p className="text-sm text-gray-600 leading-relaxed mb-4">{operation.description}</p>
           )}
 
           {/* Visibility control */}
@@ -254,7 +225,7 @@ export const OperationDetailPageContent = ({
               className={cn(
                 "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-opacity",
                 vc.cls,
-                toggling && "opacity-50 cursor-not-allowed",
+                toggling && "opacity-50 cursor-not-allowed"
               )}
               title="点击切换可见性"
             >
@@ -286,10 +257,7 @@ export const OperationDetailPageContent = ({
         {/* Inputs card */}
         {config.inputs.length > 0 && (
           <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-            <SectionHeader
-              icon={FileInput}
-              label={`输入 (${config.inputs.length})`}
-            />
+            <SectionHeader icon={FileInput} label={`输入 (${config.inputs.length})`} />
             <div>
               {config.inputs.map((port) => (
                 <InputPortRow key={port.name} port={port} />
@@ -301,10 +269,7 @@ export const OperationDetailPageContent = ({
         {/* Outputs card */}
         {config.outputs.length > 0 && (
           <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-            <SectionHeader
-              icon={FileOutput}
-              label={`输出 (${config.outputs.length})`}
-            />
+            <SectionHeader icon={FileOutput} label={`输出 (${config.outputs.length})`} />
             <div>
               {config.outputs.map((port) => (
                 <OutputPortRow key={port.name} port={port} />
@@ -318,17 +283,13 @@ export const OperationDetailPageContent = ({
           <SectionHeader icon={Tag} label="元数据" />
           <div className="space-y-0">
             <div className="flex items-start gap-3 py-2.5 border-b border-gray-50">
-              <span className="w-20 shrink-0 text-xs text-gray-400">
-                创建时间
-              </span>
+              <span className="w-20 shrink-0 text-xs text-gray-400">创建时间</span>
               <span className="text-xs text-gray-700">
                 {new Date(operation.createdAt).toLocaleString("zh-CN")}
               </span>
             </div>
             <div className="flex items-start gap-3 py-2.5">
-              <span className="w-20 shrink-0 text-xs text-gray-400">
-                更新时间
-              </span>
+              <span className="w-20 shrink-0 text-xs text-gray-400">更新时间</span>
               <span className="text-xs text-gray-700">
                 {new Date(operation.updatedAt).toLocaleString("zh-CN")}
               </span>

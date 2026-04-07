@@ -40,22 +40,16 @@ const WorkRow = ({ work }: { work: WorkEntity }) => {
       <span
         className={cn(
           "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50",
-          cfg.color,
+          cfg.color
         )}
       >
-        <Icon
-          className={cn("h-4 w-4", work.status === "running" && "animate-spin")}
-        />
+        <Icon className={cn("h-4 w-4", work.status === "running" && "animate-spin")} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-gray-800">
-          {work.pipelineName}
-        </p>
+        <p className="truncate text-sm font-medium text-gray-800">{work.pipelineName}</p>
         <p className="mt-0.5 truncate text-xs text-gray-400">
           {OBJECT_LABEL[work.object.type]}
-          {work.object.path !== "/" && (
-            <span className="ml-1 font-mono">{work.object.path}</span>
-          )}
+          {work.object.path !== "/" && <span className="ml-1 font-mono">{work.object.path}</span>}
         </p>
       </div>
       <div className="text-right shrink-0">
@@ -65,7 +59,7 @@ const WorkRow = ({ work }: { work: WorkEntity }) => {
             work.status === "success" && "bg-emerald-50 text-emerald-700",
             work.status === "failed" && "bg-red-50 text-red-700",
             work.status === "running" && "bg-blue-50 text-blue-700",
-            work.status === "pending" && "bg-gray-100 text-gray-600",
+            work.status === "pending" && "bg-gray-100 text-gray-600"
           )}
         >
           {cfg.label}
@@ -81,7 +75,7 @@ const WorkRow = ({ work }: { work: WorkEntity }) => {
       </div>
     </div>
   );
-}
+};
 
 const ProjectMeta = ({ project }: { project: GithubProjectEntity }) => {
   return (
@@ -115,7 +109,7 @@ const ProjectMeta = ({ project }: { project: GithubProjectEntity }) => {
       </div>
     </div>
   );
-}
+};
 
 export const ProjectDetailPageContent = () => {
   const { project, works, pipelines } = Route.useLoaderData();
@@ -138,12 +132,8 @@ export const ProjectDetailPageContent = () => {
     );
   }
 
-  const activeWorks = works.filter(
-    (w) => w.status === "pending" || w.status === "running",
-  );
-  const finishedWorks = works.filter(
-    (w) => w.status === "success" || w.status === "failed",
-  );
+  const activeWorks = works.filter((w) => w.status === "pending" || w.status === "running");
+  const finishedWorks = works.filter((w) => w.status === "success" || w.status === "failed");
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-gray-50">
@@ -156,9 +146,7 @@ export const ProjectDetailPageContent = () => {
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </button>
         <div className="min-w-0 flex-1">
-          <h1 className="text-sm font-semibold text-gray-900 truncate">
-            {project.name}
-          </h1>
+          <h1 className="text-sm font-semibold text-gray-900 truncate">{project.name}</h1>
           <p className="text-xs text-gray-400 truncate">
             {project.owner}/{project.repo}
           </p>
@@ -223,16 +211,12 @@ export const ProjectDetailPageContent = () => {
 
         {/* History */}
         <section>
-          <h3 className="mb-3 text-sm font-semibold text-gray-700">
-            历史 Works
-          </h3>
+          <h3 className="mb-3 text-sm font-semibold text-gray-700">历史 Works</h3>
           {finishedWorks.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white py-10 text-center">
               <Clock className="h-8 w-8 text-gray-300" />
               <p className="mt-2 text-sm text-gray-400">还没有执行记录</p>
-              <p className="mt-0.5 text-xs text-gray-300">
-                在工作区选择对象并触发 Pipeline
-              </p>
+              <p className="mt-0.5 text-xs text-gray-300">在工作区选择对象并触发 Pipeline</p>
             </div>
           ) : (
             <div className="space-y-2">

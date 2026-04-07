@@ -390,7 +390,7 @@ function SidebarGroupLabel({
   className,
   render,
   ...props
-}: useRender.ComponentProps<"div"> & React.ComponentProps<"div">) {
+}: useRender.ComponentProps<"div"> & React.ComponentProps<"div">): React.ReactElement {
   return useRender({
     defaultTagName: "div",
     props: mergeProps<"div">(
@@ -414,7 +414,7 @@ function SidebarGroupAction({
   className,
   render,
   ...props
-}: useRender.ComponentProps<"button"> & React.ComponentProps<"button">) {
+}: useRender.ComponentProps<"button"> & React.ComponentProps<"button">): React.ReactElement {
   return useRender({
     defaultTagName: "button",
     props: mergeProps<"button">(
@@ -554,7 +554,7 @@ function SidebarMenuAction({
 }: useRender.ComponentProps<"button"> &
   React.ComponentProps<"button"> & {
     showOnHover?: boolean;
-  }) {
+  }): React.ReactElement {
   return useRender({
     defaultTagName: "button",
     props: mergeProps<"button">(
@@ -669,7 +669,7 @@ function SidebarMenuSubButton({
   React.ComponentProps<"a"> & {
     size?: "sm" | "md";
     isActive?: boolean;
-  }) {
+  }): React.ReactElement {
   return useRender({
     defaultTagName: "a",
     props: mergeProps<"a">(

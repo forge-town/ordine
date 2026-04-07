@@ -17,17 +17,10 @@ import {
   Globe,
 } from "lucide-react";
 import { Route } from "@/routes/projects";
-import {
-  createGithubProject,
-  deleteGithubProject,
-} from "@/services/githubProjectsService";
+import { createGithubProject, deleteGithubProject } from "@/services/githubProjectsService";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 import { cn } from "@repo/ui/lib/utils";
-import {
-  parseGitHubUrl,
-  fetchRepoInfo,
-  type GitHubRepoInfo,
-} from "@/lib/githubApi";
+import { parseGitHubUrl, fetchRepoInfo, type GitHubRepoInfo } from "@/lib/githubApi";
 import { useGithubToken } from "@/hooks/useGithubToken";
 import { GitHubTokenDialog } from "@/pages/CanvasPage/nodes/GitHubProjectNode/GitHubTokenDialog";
 
@@ -56,11 +49,7 @@ const CreateProjectDialog = ({
     setLoading(true);
     setError(null);
     try {
-      const info = await fetchRepoInfo(
-        parsed.owner,
-        parsed.repo,
-        token ?? undefined,
-      );
+      const info = await fetchRepoInfo(parsed.owner, parsed.repo, token ?? undefined);
       setRepoInfo(info);
     } catch (error) {
       setError(error instanceof Error ? error.message : "获取仓库信息失败");
@@ -115,9 +104,7 @@ const CreateProjectDialog = ({
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
         <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
           <div className="flex items-center justify-between border-b px-5 py-4">
-            <h2 className="text-sm font-semibold text-gray-900">
-              连接 GitHub 项目
-            </h2>
+            <h2 className="text-sm font-semibold text-gray-900">连接 GitHub 项目</h2>
             <button
               onClick={handleClose}
               className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-gray-100"
@@ -131,9 +118,7 @@ const CreateProjectDialog = ({
             <div
               className={cn(
                 "flex items-center gap-2 rounded-lg px-3 py-2 text-xs",
-                token
-                  ? "bg-green-50 text-green-700"
-                  : "bg-amber-50 text-amber-700",
+                token ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
               )}
             >
               <Key className="h-3.5 w-3.5 shrink-0" />
@@ -157,9 +142,7 @@ const CreateProjectDialog = ({
               <div className="space-y-3">
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-semibold text-gray-900">
-                      {repoInfo.fullName}
-                    </span>
+                    <span className="text-sm font-semibold text-gray-900">{repoInfo.fullName}</span>
                     {repoInfo.isPrivate ? (
                       <span className="flex items-center gap-0.5 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] text-gray-600">
                         <Lock className="h-2.5 w-2.5" /> Private
@@ -171,9 +154,7 @@ const CreateProjectDialog = ({
                     )}
                   </div>
                   {repoInfo.description && (
-                    <p className="text-xs text-gray-500 mb-2">
-                      {repoInfo.description}
-                    </p>
+                    <p className="text-xs text-gray-500 mb-2">{repoInfo.description}</p>
                   )}
                   <div className="flex items-center gap-1 text-[11px] text-gray-400">
                     <GitBranch className="h-3 w-3" />
@@ -225,11 +206,7 @@ const CreateProjectDialog = ({
                       disabled={loading || !url.trim()}
                       className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
                     >
-                      {loading ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        "查询"
-                      )}
+                      {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "查询"}
                     </button>
                   </div>
                 </div>
@@ -256,17 +233,13 @@ const CreateProjectDialog = ({
         </div>
       </div>
       {showTokenDialog && (
-        <GitHubTokenDialog
-          open={showTokenDialog}
-          onClose={handleCloseTokenDialog}
-        />
+        <GitHubTokenDialog open={showTokenDialog} onClose={handleCloseTokenDialog} />
       )}
     </>
   );
 };
 
-const handleExternalLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) =>
-  e.stopPropagation();
+const handleExternalLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => e.stopPropagation();
 
 const ProjectCard = ({
   project,
@@ -314,9 +287,7 @@ const ProjectCard = ({
         {project.owner}/{project.repo}
       </h3>
       {project.description && (
-        <p className="mt-1 line-clamp-2 text-xs text-gray-500">
-          {project.description}
-        </p>
+        <p className="mt-1 line-clamp-2 text-xs text-gray-500">{project.description}</p>
       )}
       <div className="mt-3 flex items-center gap-3 text-[11px] text-gray-400">
         <span className="flex items-center gap-1">
@@ -335,7 +306,7 @@ const ProjectCard = ({
 export const ProjectsPageContent = () => {
   const loaderProjects = Route.useLoaderData();
   const [projects, setProjects] = useState<GithubProjectEntity[]>(
-    loaderProjects as GithubProjectEntity[],
+    loaderProjects as GithubProjectEntity[]
   );
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
@@ -346,7 +317,7 @@ export const ProjectsPageContent = () => {
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.description.toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
-      p.repo.toLowerCase().includes(search.toLowerCase()),
+      p.repo.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleDelete = async (id: string) => {
@@ -354,23 +325,16 @@ export const ProjectsPageContent = () => {
     await deleteGithubProject({ data: { id } });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
   const handleShowCreate = () => setShowCreate(true);
   const handleHideCreate = () => setShowCreate(false);
-  const handleCreateProject = (p: GithubProjectEntity) =>
-    setProjects((prev) => [p, ...prev]);
-  const handleProjectClick =
-    (projectId: string) =>
-    () =>
-      void navigate({
-        to: "/projects/$projectId",
-        params: { projectId },
-      });
-  const handleDeleteProject =
-    (id: string) =>
-    () =>
-      void handleDelete(id);
+  const handleCreateProject = (p: GithubProjectEntity) => setProjects((prev) => [p, ...prev]);
+  const handleProjectClick = (projectId: string) => () =>
+    void navigate({
+      to: "/projects/$projectId",
+      params: { projectId },
+    });
+  const handleDeleteProject = (id: string) => () => void handleDelete(id);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -417,7 +381,7 @@ export const ProjectsPageContent = () => {
               <button
                 onClick={handleShowCreate}
                 className={cn(
-                  "mt-4 flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors",
+                  "mt-4 flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
                 )}
               >
                 <Plus className="h-4 w-4" />
@@ -440,10 +404,7 @@ export const ProjectsPageContent = () => {
       </div>
 
       {showCreate && (
-        <CreateProjectDialog
-          onClose={handleHideCreate}
-          onCreate={handleCreateProject}
-        />
+        <CreateProjectDialog onClose={handleHideCreate} onCreate={handleCreateProject} />
       )}
     </div>
   );

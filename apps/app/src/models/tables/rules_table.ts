@@ -2,12 +2,7 @@ import { sql } from "drizzle-orm";
 import { text, timestamp, boolean, pgTable } from "drizzle-orm/pg-core";
 
 export type RuleSeverity = "error" | "warning" | "info";
-export type RuleCategory =
-  | "lint"
-  | "security"
-  | "style"
-  | "performance"
-  | "custom";
+export type RuleCategory = "lint" | "security" | "style" | "performance" | "custom";
 
 export const rulesTable = pgTable("rules", {
   id: text("id").primaryKey(),

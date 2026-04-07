@@ -55,14 +55,13 @@ const STATUS_CONFIG: Record<
   },
 };
 
-const TYPE_CONFIG: Record<JobType, { label: string; icon: React.ElementType }> =
-  {
-    pipeline_run: { label: "Pipeline 执行", icon: Layers },
-    code_analysis: { label: "代码分析", icon: Code2 },
-    skill_execution: { label: "技能执行", icon: Wand2 },
-    file_scan: { label: "文件扫描", icon: FileSearch },
-    custom: { label: "自定义", icon: Cpu },
-  };
+const TYPE_CONFIG: Record<JobType, { label: string; icon: React.ElementType }> = {
+  pipeline_run: { label: "Pipeline 执行", icon: Layers },
+  code_analysis: { label: "代码分析", icon: Code2 },
+  skill_execution: { label: "技能执行", icon: Wand2 },
+  file_scan: { label: "文件扫描", icon: FileSearch },
+  custom: { label: "自定义", icon: Cpu },
+};
 
 const MetaRow = ({
   label,
@@ -77,12 +76,7 @@ const MetaRow = ({
   return (
     <div className="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0">
       <span className="w-24 shrink-0 text-xs text-gray-400">{label}</span>
-      <span
-        className={cn(
-          "flex-1 text-xs text-gray-700 break-all",
-          mono && "font-mono",
-        )}
-      >
+      <span className={cn("flex-1 text-xs text-gray-700 break-all", mono && "font-mono")}>
         {value}
       </span>
     </div>
@@ -106,10 +100,7 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <XCircle className="h-10 w-10 text-gray-300" />
         <p className="text-sm font-medium text-gray-500">Job 不存在</p>
-        <button
-          onClick={handleNavigateJobs}
-          className="text-xs text-violet-600 hover:underline"
-        >
+        <button onClick={handleNavigateJobs} className="text-xs text-violet-600 hover:underline">
           返回列表
         </button>
       </div>
@@ -137,23 +128,16 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-gray-900">
-            {job.title}
-          </h1>
+          <h1 className="truncate text-sm font-semibold text-gray-900">{job.title}</h1>
           <p className="font-mono text-[11px] text-gray-400">{job.id}</p>
         </div>
         <span
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-            s.cls,
+            s.cls
           )}
         >
-          <StatusIcon
-            className={cn(
-              "h-3.5 w-3.5",
-              job.status === "running" && "animate-spin",
-            )}
-          />
+          <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />
           {s.label}
         </span>
       </div>
@@ -181,25 +165,14 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
                 ) as unknown as string
               }
             />
-            <MetaRow
-              label="创建时间"
-              value={new Date(job.createdAt).toLocaleString("zh-CN")}
-            />
+            <MetaRow label="创建时间" value={new Date(job.createdAt).toLocaleString("zh-CN")} />
             <MetaRow
               label="开始时间"
-              value={
-                job.startedAt
-                  ? new Date(job.startedAt).toLocaleString("zh-CN")
-                  : null
-              }
+              value={job.startedAt ? new Date(job.startedAt).toLocaleString("zh-CN") : null}
             />
             <MetaRow
               label="结束时间"
-              value={
-                job.finishedAt
-                  ? new Date(job.finishedAt).toLocaleString("zh-CN")
-                  : null
-              }
+              value={job.finishedAt ? new Date(job.finishedAt).toLocaleString("zh-CN") : null}
             />
             <MetaRow label="耗时" value={duration} />
             <MetaRow label="Project ID" value={job.projectId} mono />
@@ -226,9 +199,7 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
         {/* Error */}
         {job.error && (
           <div className="rounded-xl border border-red-100 bg-red-50 p-4">
-            <p className="mb-1.5 text-xs font-semibold text-red-600">
-              错误信息
-            </p>
+            <p className="mb-1.5 text-xs font-semibold text-red-600">错误信息</p>
             <pre className="text-xs text-red-700 font-mono whitespace-pre-wrap break-all">
               {job.error}
             </pre>
@@ -251,12 +222,8 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
         <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
           <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-2.5">
             <Terminal className="h-3.5 w-3.5 text-gray-400" />
-            <span className="text-xs font-semibold text-gray-500">
-              日志输出
-            </span>
-            <span className="ml-auto text-[11px] text-gray-400">
-              {job.logs.length} 行
-            </span>
+            <span className="text-xs font-semibold text-gray-500">日志输出</span>
+            <span className="ml-auto text-[11px] text-gray-400">{job.logs.length} 行</span>
           </div>
           {job.logs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
@@ -270,9 +237,7 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
                   <span className="shrink-0 w-8 text-right text-[10px] text-gray-600 font-mono select-none">
                     {i + 1}
                   </span>
-                  <span className="text-xs text-gray-200 font-mono whitespace-pre">
-                    {line}
-                  </span>
+                  <span className="text-xs text-gray-200 font-mono whitespace-pre">{line}</span>
                 </div>
               ))}
             </div>

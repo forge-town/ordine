@@ -16,6 +16,7 @@
     "no-var": "off",
     "consistent-type-exports": "error",
     "func-style": ["warn", "expression", { "allowArrowFunctions": true }],
+
     "react/jsx-handler-names": [
       "error",
       {
@@ -26,6 +27,7 @@
       }
     ],
     "react/self-closing-comp": "warn",
+
     "unicorn/better-regex": "warn",
     "unicorn/catch-error-name": "warn",
     "unicorn/consistent-destructuring": "warn",

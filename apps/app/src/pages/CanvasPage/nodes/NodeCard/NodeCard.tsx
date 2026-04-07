@@ -8,13 +8,7 @@ import {
 } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 
-export type NodeTheme =
-  | "emerald"
-  | "violet"
-  | "amber"
-  | "sky"
-  | "orange"
-  | "teal";
+export type NodeTheme = "emerald" | "violet" | "amber" | "sky" | "orange" | "teal";
 
 const themeMap = {
   emerald: {
@@ -101,18 +95,13 @@ export const NodeCard = ({
       size="sm"
       className={cn(
         "transition-all duration-200",
-        selected
-          ? cn("ring-2 shadow-lg", t.ringSelected)
-          : cn("ring-1 hover:ring-2", t.ring),
+        selected ? cn("ring-2 shadow-lg", t.ringSelected) : cn("ring-1 hover:ring-2", t.ring)
       )}
     >
       <CardHeader className={cn("pb-2", t.headerBg)}>
         <div className="flex items-center gap-2">
           <div
-            className={cn(
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-              t.iconBg,
-            )}
+            className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", t.iconBg)}
           >
             <Icon className={cn("h-4 w-4", t.iconColor)} />
           </div>
@@ -125,24 +114,16 @@ export const NodeCard = ({
                 onMouseDown={handleMouseDown}
               />
             ) : (
-              <CardTitle className="text-xs font-semibold truncate">
-                {label}
-              </CardTitle>
+              <CardTitle className="text-xs font-semibold truncate">{label}</CardTitle>
             )}
             {description && (
-              <CardDescription className="text-[10px] truncate">
-                {description}
-              </CardDescription>
+              <CardDescription className="text-[10px] truncate">{description}</CardDescription>
             )}
           </div>
           {headerRight && <CardAction>{headerRight}</CardAction>}
         </div>
       </CardHeader>
-      {children && (
-        <CardContent className={cn("pt-0", bodyClassName)}>
-          {children}
-        </CardContent>
-      )}
+      {children && <CardContent className={cn("pt-0", bodyClassName)}>{children}</CardContent>}
     </Card>
   );
 };

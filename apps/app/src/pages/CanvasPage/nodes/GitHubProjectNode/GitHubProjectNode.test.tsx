@@ -41,13 +41,9 @@ describe("GitHubProjectNode", () => {
   });
 
   it("shows connect button when owner and repo are empty", () => {
-    render(
-      <GitHubProjectNode
-        id="test"
-        data={{ ...baseData, owner: "", repo: "" }}
-      />,
-      { wrapper },
-    );
+    render(<GitHubProjectNode id="test" data={{ ...baseData, owner: "", repo: "" }} />, {
+      wrapper,
+    });
     expect(screen.getByText("从项目库选取")).toBeInTheDocument();
   });
 });

@@ -33,7 +33,7 @@ const buildObjectTree = (owner: string, repo: string): ObjectItem[] => {
     { type: "file", path: "src/index.ts", label: "src/index.ts" },
     { type: "file", path: "package.json", label: "package.json" },
   ];
-}
+};
 
 const OBJECT_ICONS: Record<WorkObject["type"], React.ElementType> = {
   project: FolderGit2,
@@ -59,7 +59,7 @@ const ObjectRow = ({
         "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
         selected
           ? "border-violet-300 bg-violet-50"
-          : "border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50",
+          : "border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50"
       )}
     >
       <span
@@ -67,14 +67,12 @@ const ObjectRow = ({
           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
           item.type === "project" && "bg-gray-900",
           item.type === "folder" && "bg-orange-400",
-          item.type === "file" && "bg-orange-500",
+          item.type === "file" && "bg-orange-500"
         )}
       >
         <Icon className="h-3.5 w-3.5 text-white" />
       </span>
-      <span className="flex-1 truncate font-mono text-xs text-gray-700">
-        {item.label}
-      </span>
+      <span className="flex-1 truncate font-mono text-xs text-gray-700">{item.label}</span>
       {selected ? (
         <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-500" />
       ) : (
@@ -82,7 +80,7 @@ const ObjectRow = ({
       )}
     </button>
   );
-}
+};
 
 const PipelineRow = ({
   pipeline,
@@ -101,52 +99,39 @@ const PipelineRow = ({
         "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
         selected
           ? "border-violet-300 bg-violet-50"
-          : "border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50",
+          : "border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50"
       )}
     >
       <span
         className={cn(
           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-          selected ? "bg-violet-600" : "bg-violet-100",
+          selected ? "bg-violet-600" : "bg-violet-100"
         )}
       >
-        <Layers
-          className={cn(
-            "h-3.5 w-3.5",
-            selected ? "text-white" : "text-violet-500",
-          )}
-        />
+        <Layers className={cn("h-3.5 w-3.5", selected ? "text-white" : "text-violet-500")} />
       </span>
       <div className="flex-1 min-w-0">
-        <p className="truncate text-xs font-medium text-gray-800">
-          {pipeline.name}
-        </p>
+        <p className="truncate text-xs font-medium text-gray-800">{pipeline.name}</p>
         {pipeline.description && (
-          <p className="truncate text-[10px] text-gray-400">
-            {pipeline.description}
-          </p>
+          <p className="truncate text-[10px] text-gray-400">{pipeline.description}</p>
         )}
       </div>
       <ChevronRight
         className={cn(
           "h-3.5 w-3.5 shrink-0 transition-colors",
-          selected ? "text-violet-500" : "text-gray-300",
+          selected ? "text-violet-500" : "text-gray-300"
         )}
       />
     </button>
   );
-}
+};
 
 export const ProjectWorkspacePageContent = () => {
   const { project, pipelines } = Route.useLoaderData();
   const navigate = useNavigate();
 
-  const [selectedObjects, setSelectedObjects] = useState<Set<string>>(
-    new Set(),
-  );
-  const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(
-    null,
-  );
+  const [selectedObjects, setSelectedObjects] = useState<Set<string>>(new Set());
+  const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
   const [triggering, setTriggering] = useState(false);
 
   if (!project) {
@@ -169,8 +154,7 @@ export const ProjectWorkspacePageContent = () => {
     });
   };
 
-  const canTrigger =
-    selectedObjects.size > 0 && selectedPipelineId !== null && !triggering;
+  const canTrigger = selectedObjects.size > 0 && selectedPipelineId !== null && !triggering;
 
   const handleTrigger = async () => {
     if (!canTrigger || !selectedPipeline) return;
@@ -209,10 +193,8 @@ export const ProjectWorkspacePageContent = () => {
 
   const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
 
-  const handleSelectPipeline =
-    (id: string) =>
-    () =>
-      setSelectedPipelineId(id === selectedPipelineId ? null : id);
+  const handleSelectPipeline = (id: string) => () =>
+    setSelectedPipelineId(id === selectedPipelineId ? null : id);
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-gray-50">
@@ -225,9 +207,7 @@ export const ProjectWorkspacePageContent = () => {
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </button>
         <div className="min-w-0 flex-1">
-          <h1 className="text-sm font-semibold text-gray-900 truncate">
-            工作区
-          </h1>
+          <h1 className="text-sm font-semibold text-gray-900 truncate">工作区</h1>
           <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <FolderGit2 className="h-3 w-3" />
             <span>
@@ -245,7 +225,7 @@ export const ProjectWorkspacePageContent = () => {
             "flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors",
             canTrigger
               ? "bg-violet-600 text-white hover:bg-violet-700"
-              : "cursor-not-allowed bg-gray-100 text-gray-400",
+              : "cursor-not-allowed bg-gray-100 text-gray-400"
           )}
         >
           <Play className="h-3.5 w-3.5" />
@@ -307,9 +287,7 @@ export const ProjectWorkspacePageContent = () => {
       {(selectedObjects.size > 0 || selectedPipeline) && (
         <div className="shrink-0 border-t border-gray-200 bg-white px-6 py-3">
           <div className="flex items-center gap-3 text-xs text-gray-500">
-            <span className="font-medium text-gray-700">
-              {selectedObjects.size} 个对象
-            </span>
+            <span className="font-medium text-gray-700">{selectedObjects.size} 个对象</span>
             <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
             <span className="font-medium text-gray-700">
               {selectedPipeline?.name ?? "— 未选 Pipeline"}

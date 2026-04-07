@@ -2,11 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { pipelinesDao } from "@/models/daos/pipelinesDao";
 
-export const getPipelines = createServerFn({ method: "GET" }).handler(
-  async () => {
-    return pipelinesDao.findMany();
-  },
-);
+export const getPipelines = createServerFn({ method: "GET" }).handler(async () => {
+  return pipelinesDao.findMany();
+});
 
 export const getPipelineById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
@@ -41,17 +39,13 @@ export const updatePipeline = createServerFn({ method: "POST" })
     z.object({
       id: z.string(),
       patch: PipelineSchema.partial(),
-    }),
+    })
   )
   .handler(async ({ data }) => {
     await pipelinesDao.update(data.id, {
       ...data.patch,
-      nodes: data.patch.nodes as
-        | Parameters<typeof pipelinesDao.update>[1]["nodes"]
-        | undefined,
-      edges: data.patch.edges as
-        | Parameters<typeof pipelinesDao.update>[1]["edges"]
-        | undefined,
+      nodes: data.patch.nodes as Parameters<typeof pipelinesDao.update>[1]["nodes"] | undefined,
+      edges: data.patch.edges as Parameters<typeof pipelinesDao.update>[1]["edges"] | undefined,
     });
   });
 

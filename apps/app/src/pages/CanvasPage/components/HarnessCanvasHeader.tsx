@@ -6,8 +6,7 @@ import { Separator } from "@repo/ui/separator";
 import { useHarnessCanvasStore } from "../_store";
 import { updatePipeline } from "@/services/pipelinesService";
 
-const handleNavigateSettings = () =>
-  void (globalThis.location.href = "/settings");
+const handleNavigateSettings = () => void (globalThis.location.href = "/settings");
 
 export const HarnessCanvasHeader = () => {
   const store = useHarnessCanvasStore();
@@ -16,9 +15,7 @@ export const HarnessCanvasHeader = () => {
   const nodes = useStore(store, (s) => s.nodes);
   const edges = useStore(store, (s) => s.edges);
 
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
-    "idle",
-  );
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
 
   const handleSave = async () => {
     if (!pipelineId) return;
@@ -49,9 +46,7 @@ export const HarnessCanvasHeader = () => {
         <div className="flex items-center gap-1">
           <span className="text-sm font-semibold">Canvas</span>
           <span className="text-muted-foreground">/</span>
-          <span className="text-sm text-muted-foreground">
-            {pipelineName || "无标题 Pipeline"}
-          </span>
+          <span className="text-sm text-muted-foreground">{pipelineName || "无标题 Pipeline"}</span>
         </div>
       </div>
 

@@ -22,36 +22,23 @@ const rowToEntity = (row: RuleRow): RuleEntity => ({
 });
 
 export const rulesDao = {
-  async findMany(filter?: {
-    category?: RuleCategory;
-    enabled?: boolean;
-  }): Promise<RuleEntity[]> {
-    const rows = await db
-      .select()
-      .from(rulesTable)
-      .orderBy(desc(rulesTable.createdAt));
+  async findMany(filter?: { category?: RuleCategory; enabled?: boolean }): Promise<RuleEntity[]> {
+    const rows = await db.select().from(rulesTable).orderBy(desc(rulesTable.createdAt));
     return rows
       .filter((r) => {
         if (filter?.category && r.category !== filter.category) return false;
-        if (filter?.enabled !== undefined && r.enabled !== filter.enabled)
-          return false;
+        if (filter?.enabled !== undefined && r.enabled !== filter.enabled) return false;
         return true;
       })
       .map(rowToEntity);
   },
 
   async findById(id: string): Promise<RuleEntity | null> {
-    const rows = await db
-      .select()
-      .from(rulesTable)
-      .where(eq(rulesTable.id, id))
-      .limit(1);
+    const rows = await db.select().from(rulesTable).where(eq(rulesTable.id, id)).limit(1);
     return rows[0] ? rowToEntity(rows[0]) : null;
   },
 
-  async create(
-    data: Omit<RuleEntity, "createdAt" | "updatedAt">,
-  ): Promise<RuleEntity> {
+  async create(data: Omit<RuleEntity, "createdAt" | "updatedAt">): Promise<RuleEntity> {
     const now = new Date();
     const row: NewRuleRow = { ...data, createdAt: now, updatedAt: now };
     const inserted = await db.insert(rulesTable).values(row).returning();
@@ -60,7 +47,7 @@ export const rulesDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<RuleEntity, "createdAt" | "updatedAt">,
+    data: Omit<RuleEntity, "createdAt" | "updatedAt">
   ): Promise<RuleEntity> {
     const now = new Date();
     const row: NewRuleRow = { ...data, createdAt: now, updatedAt: now };
@@ -70,7 +57,7 @@ export const rulesDao = {
 
   async update(
     id: string,
-    data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>,
+    data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>
   ): Promise<RuleEntity> {
     const rows = await db
       .update(rulesTable)
@@ -83,7 +70,7 @@ export const rulesDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>,
+    data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>
   ): Promise<RuleEntity> {
     const rows = await tx
       .update(rulesTable)
@@ -102,11 +89,7 @@ export const rulesDao = {
     return rowToEntity(rows[0]!);
   },
 
-  async toggleEnabledWithTx(
-    tx: DbExecutor,
-    id: string,
-    enabled: boolean,
-  ): Promise<RuleEntity> {
+  async toggleEnabledWithTx(tx: DbExecutor, id: string, enabled: boolean): Promise<RuleEntity> {
     const rows = await tx
       .update(rulesTable)
       .set({ enabled, updatedAt: new Date() })

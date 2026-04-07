@@ -2,13 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { rulesDao } from "@/models/daos/rulesDao";
 
-const RuleCategorySchema = z.enum([
-  "lint",
-  "security",
-  "style",
-  "performance",
-  "custom",
-]);
+const RuleCategorySchema = z.enum(["lint", "security", "style", "performance", "custom"]);
 const RuleSeveritySchema = z.enum(["error", "warning", "info"]);
 
 export const getRules = createServerFn({ method: "GET" })
@@ -18,7 +12,7 @@ export const getRules = createServerFn({ method: "GET" })
         category: RuleCategorySchema.optional(),
         enabled: z.boolean().optional(),
       })
-      .optional(),
+      .optional()
   )
   .handler(({ data }) => rulesDao.findMany(data ?? {}));
 
@@ -37,7 +31,7 @@ export const createRule = createServerFn({ method: "POST" })
       pattern: z.string().nullable().default(null),
       enabled: z.boolean().default(true),
       tags: z.array(z.string()).default([]),
-    }),
+    })
   )
   .handler(({ data }) => rulesDao.create(data));
 
@@ -52,7 +46,7 @@ export const updateRule = createServerFn({ method: "POST" })
       pattern: z.string().nullable().optional(),
       enabled: z.boolean().optional(),
       tags: z.array(z.string()).optional(),
-    }),
+    })
   )
   .handler(({ data }) => {
     const { id, ...rest } = data;

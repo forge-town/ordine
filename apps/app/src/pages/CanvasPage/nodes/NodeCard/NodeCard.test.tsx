@@ -13,34 +13,25 @@ describe("NodeCard", () => {
     render(
       <NodeCard theme="emerald" icon={Box} label="Node">
         <span>Body content</span>
-      </NodeCard>,
+      </NodeCard>
     );
     expect(screen.getByText("Body content")).toBeInTheDocument();
   });
 
   it("does not render body wrapper when no children", () => {
-    const { container } = render(
-      <NodeCard theme="emerald" icon={Box} label="Node" />,
-    );
+    const { container } = render(<NodeCard theme="emerald" icon={Box} label="Node" />);
     // Card should only have header when no children
     expect(container.firstChild?.childNodes).toHaveLength(1);
   });
 
   it("renders headerRight slot", () => {
-    render(
-      <NodeCard
-        theme="violet"
-        icon={Box}
-        label="Node"
-        headerRight={<span>Status</span>}
-      />,
-    );
+    render(<NodeCard theme="violet" icon={Box} label="Node" headerRight={<span>Status</span>} />);
     expect(screen.getByText("Status")).toBeInTheDocument();
   });
 
   it("applies selected ring for each theme", () => {
     const { container, rerender } = render(
-      <NodeCard theme="emerald" icon={Box} label="Node" selected />,
+      <NodeCard theme="emerald" icon={Box} label="Node" selected />
     );
     expect(container.firstChild).toHaveClass("ring-emerald-500");
 

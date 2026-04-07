@@ -8,12 +8,7 @@ interface ProfileSectionProps {
   saved: boolean;
 }
 
-export const ProfileSection = ({
-  values,
-  onChange,
-  onSave,
-  saved,
-}: ProfileSectionProps) => {
+export const ProfileSection = ({ values, onChange, onSave, saved }: ProfileSectionProps) => {
   const handleDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     onChange({ displayName: e.target.value });
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -26,17 +21,10 @@ export const ProfileSection = ({
     <>
       <SectionHeader title="个人信息" description="管理你的账户名称和联系信息" />
       <Field label="显示名称">
-        <Input
-          value={values.displayName}
-          onChange={handleDisplayNameChange}
-        />
+        <Input value={values.displayName} onChange={handleDisplayNameChange} />
       </Field>
       <Field label="邮箱">
-        <Input
-          type="email"
-          value={values.email}
-          onChange={handleEmailChange}
-        />
+        <Input type="email" value={values.email} onChange={handleEmailChange} />
       </Field>
       <Field label="简介">
         <textarea

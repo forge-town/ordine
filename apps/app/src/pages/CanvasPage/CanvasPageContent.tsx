@@ -17,15 +17,9 @@ const CanvasInner = () => {
   const contextMenu = useStore(store, (state) => state.contextMenu);
   const handleCloseContextMenu = useStore(store, (state) => state.closeContextMenu);
   const connectionMenu = useStore(store, (state) => state.connectionMenu);
-  const handleCloseConnectionMenu = useStore(
-    store,
-    (state) => state.closeConnectionMenu,
-  );
+  const handleCloseConnectionMenu = useStore(store, (state) => state.closeConnectionMenu);
   const nodeContextMenu = useStore(store, (state) => state.nodeContextMenu);
-  const handleCloseNodeContextMenu = useStore(
-    store,
-    (state) => state.closeNodeContextMenu,
-  );
+  const handleCloseNodeContextMenu = useStore(store, (state) => state.closeNodeContextMenu);
 
   return (
     <div className="relative h-full w-full">

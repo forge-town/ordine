@@ -70,13 +70,11 @@ export const AppSidebar = () => {
           className={cn(
             "flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-semibold transition-colors",
             "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm hover:from-violet-500 hover:to-indigo-500",
-            "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0",
+            "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0"
           )}
         >
           <Workflow className="h-4 w-4 shrink-0" />
-          <span className="group-data-[state=collapsed]/sidebar:hidden">
-            Canvas
-          </span>
+          <span className="group-data-[state=collapsed]/sidebar:hidden">Canvas</span>
           <span className="ml-auto rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-bold leading-none group-data-[state=collapsed]/sidebar:hidden">
             新
           </span>
@@ -91,8 +89,7 @@ export const AppSidebar = () => {
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive =
-                  currentPath === item.to ||
-                  (item.to !== "/" && currentPath.startsWith(item.to));
+                  currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
                 return (
                   <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton

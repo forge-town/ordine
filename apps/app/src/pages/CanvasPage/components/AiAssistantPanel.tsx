@@ -30,7 +30,7 @@ interface PipelineAction {
 
 // Parse ```actions ... ``` blocks from the AI response
 const parseActions = (
-  text: string,
+  text: string
 ): {
   clean: string;
   actions: PipelineAction[];
@@ -41,9 +41,7 @@ const parseActions = (
   let match;
   while ((match = regex.exec(text)) !== null) {
     try {
-      const parsed = JSON.parse(match[1].trim()) as
-        | PipelineAction
-        | PipelineAction[];
+      const parsed = JSON.parse(match[1].trim()) as PipelineAction | PipelineAction[];
       const list = Array.isArray(parsed) ? parsed : [parsed];
       actions.push(...list);
     } catch {
@@ -103,11 +101,7 @@ export const AiAssistantPanel = () => {
           },
         });
       }
-    } else if (
-      action.type === "connectNodes" &&
-      action.sourceId &&
-      action.targetId
-    ) {
+    } else if (action.type === "connectNodes" && action.sourceId && action.targetId) {
       state.onConnect({
         source: action.sourceId,
         sourceHandle: null,
@@ -140,22 +134,19 @@ export const AiAssistantPanel = () => {
     });
 
     try {
-      const res = await fetch(
-        `${MASTRA_BASE}/api/agents/${AGENT_ID}/generate`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: [
-              ...messages.map((m) => ({ role: m.role, content: m.content })),
-              {
-                role: "user",
-                content: `当前 Pipeline 状态:\n${pipelineContext}\n\n用户请求: ${userMsg.content}\n\n如果需要修改 Pipeline，请在回复末尾用 \`\`\`actions [...] \`\`\` JSON 块描述操作，支持的 type: addNode (需 nodeType, label, skillName?), clearCanvas, connectNodes (需 sourceId, targetId)。`,
-              },
-            ],
-          }),
-        },
-      );
+      const res = await fetch(`${MASTRA_BASE}/api/agents/${AGENT_ID}/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [
+            ...messages.map((m) => ({ role: m.role, content: m.content })),
+            {
+              role: "user",
+              content: `当前 Pipeline 状态:\n${pipelineContext}\n\n用户请求: ${userMsg.content}\n\n如果需要修改 Pipeline，请在回复末尾用 \`\`\`actions [...] \`\`\` JSON 块描述操作，支持的 type: addNode (需 nodeType, label, skillName?), clearCanvas, connectNodes (需 sourceId, targetId)。`,
+            },
+          ],
+        }),
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as { text?: string; content?: string };
       const raw = data.text ?? data.content ?? "（无响应）";
@@ -171,8 +162,7 @@ export const AiAssistantPanel = () => {
         {
           id: `a-${Date.now()}`,
           role: "assistant",
-          content:
-            "连接 Mastra 服务失败。请确保 `apps/mastra` 已在端口 4111 启动。",
+          content: "连接 Mastra 服务失败。请确保 `apps/mastra` 已在端口 4111 启动。",
         },
       ]);
     } finally {
@@ -181,8 +171,7 @@ export const AiAssistantPanel = () => {
     }
   };
 
-  const handleChangeInput = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    setInput(e.target.value);
+  const handleChangeInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value);
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -203,12 +192,8 @@ export const AiAssistantPanel = () => {
                 <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-primary-foreground">
-                  Pipeline AI
-                </p>
-                <p className="text-[10px] text-primary-foreground/60">
-                  点我来影响画布
-                </p>
+                <p className="text-sm font-semibold text-primary-foreground">Pipeline AI</p>
+                <p className="text-[10px] text-primary-foreground/60">点我来影响画布</p>
               </div>
             </div>
             <Button
@@ -229,7 +214,7 @@ export const AiAssistantPanel = () => {
                   key={msg.id}
                   className={cn(
                     "flex gap-2",
-                    msg.role === "user" ? "flex-row-reverse" : "flex-row",
+                    msg.role === "user" ? "flex-row-reverse" : "flex-row"
                   )}
                 >
                   {msg.role === "assistant" && (
@@ -242,7 +227,7 @@ export const AiAssistantPanel = () => {
                       "max-w-[80%] rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap",
                       msg.role === "user"
                         ? "rounded-tr-sm bg-primary text-primary-foreground"
-                        : "rounded-tl-sm bg-muted text-foreground",
+                        : "rounded-tl-sm bg-muted text-foreground"
                     )}
                   >
                     {msg.content}
@@ -273,9 +258,7 @@ export const AiAssistantPanel = () => {
                   </div>
                   <div className="flex items-center gap-1.5 rounded-xl rounded-tl-sm bg-muted px-3 py-2">
                     <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
-                      思考中…
-                    </span>
+                    <span className="text-xs text-muted-foreground">思考中…</span>
                   </div>
                 </div>
               )}
@@ -305,9 +288,7 @@ export const AiAssistantPanel = () => {
                 <Send className="h-3.5 w-3.5" />
               </Button>
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground">
-              Enter 发送 · Shift+Enter 换行
-            </p>
+            <p className="mt-1 text-[10px] text-muted-foreground">Enter 发送 · Shift+Enter 换行</p>
           </div>
         </div>
       )}
@@ -319,20 +300,13 @@ export const AiAssistantPanel = () => {
           "group relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200",
           isOpen
             ? "bg-primary text-primary-foreground shadow-primary/30"
-            : "bg-primary text-primary-foreground hover:scale-110 hover:shadow-xl hover:shadow-primary/30",
+            : "bg-primary text-primary-foreground hover:scale-110 hover:shadow-xl hover:shadow-primary/30"
         )}
         title="AI Pipeline 助手"
       >
         {/* Pulse ring when closed */}
-        {!isOpen && (
-          <span className="absolute inset-0 animate-ping rounded-full bg-primary/30" />
-        )}
-        <Bot
-          className={cn(
-            "h-6 w-6 transition-transform duration-200",
-            isOpen && "scale-90",
-          )}
-        />
+        {!isOpen && <span className="absolute inset-0 animate-ping rounded-full bg-primary/30" />}
+        <Bot className={cn("h-6 w-6 transition-transform duration-200", isOpen && "scale-90")} />
       </button>
     </div>
   );

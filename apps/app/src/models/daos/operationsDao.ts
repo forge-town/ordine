@@ -23,29 +23,19 @@ type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
 const rowToEntity = (row: OperationRow): OperationEntity => ({
   ...row,
   visibility: (row.visibility as Visibility) ?? "public",
-  acceptedObjectTypes: (row.acceptedObjectTypes as ObjectType[]) ?? [
-    "file",
-    "folder",
-    "project",
-  ],
+  acceptedObjectTypes: (row.acceptedObjectTypes as ObjectType[]) ?? ["file", "folder", "project"],
   createdAt: row.createdAt.getTime(),
   updatedAt: row.updatedAt.getTime(),
 });
 
 export const operationsDao = {
   async findMany(): Promise<OperationEntity[]> {
-    const rows = await db
-      .select()
-      .from(operationsTable)
-      .orderBy(desc(operationsTable.createdAt));
+    const rows = await db.select().from(operationsTable).orderBy(desc(operationsTable.createdAt));
     return rows.map(rowToEntity);
   },
 
   async findById(id: string): Promise<OperationEntity | null> {
-    const rows = await db
-      .select()
-      .from(operationsTable)
-      .where(eq(operationsTable.id, id));
+    const rows = await db.select().from(operationsTable).where(eq(operationsTable.id, id));
     return rows[0] ? rowToEntity(rows[0]) : null;
   },
 
@@ -54,18 +44,12 @@ export const operationsDao = {
     return rowToEntity(rows[0]);
   },
 
-  async createWithTx(
-    tx: DbExecutor,
-    data: NewOperationRow,
-  ): Promise<OperationEntity> {
+  async createWithTx(tx: DbExecutor, data: NewOperationRow): Promise<OperationEntity> {
     const rows = await tx.insert(operationsTable).values(data).returning();
     return rowToEntity(rows[0]);
   },
 
-  async update(
-    id: string,
-    data: Partial<Omit<NewOperationRow, "id">>,
-  ): Promise<OperationEntity> {
+  async update(id: string, data: Partial<Omit<NewOperationRow, "id">>): Promise<OperationEntity> {
     const rows = await db
       .update(operationsTable)
       .set({ ...data, updatedAt: new Date() })
@@ -77,7 +61,7 @@ export const operationsDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    data: Partial<Omit<NewOperationRow, "id">>,
+    data: Partial<Omit<NewOperationRow, "id">>
   ): Promise<OperationEntity> {
     const rows = await tx
       .update(operationsTable)

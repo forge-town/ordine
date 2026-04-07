@@ -48,19 +48,16 @@ export const AssistantPageContent = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${MASTRA_BASE}/api/agents/${AGENT_ID}/generate`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: [
-              ...messages.map((m) => ({ role: m.role, content: m.content })),
-              { role: "user", content },
-            ],
-          }),
-        },
-      );
+      const res = await fetch(`${MASTRA_BASE}/api/agents/${AGENT_ID}/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [
+            ...messages.map((m) => ({ role: m.role, content: m.content })),
+            { role: "user", content },
+          ],
+        }),
+      });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as { text?: string; content?: string };
@@ -100,8 +97,7 @@ export const AssistantPageContent = () => {
   };
 
   const handleReset = () => setMessages([]);
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    setInput(e.target.value);
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value);
   const handleSend = () => sendMessage(input);
   const handleStarterClick = (s: string) => () => sendMessage(s);
 
@@ -115,9 +111,7 @@ export const AssistantPageContent = () => {
           </div>
           <div>
             <h1 className="text-base font-semibold text-foreground">AI 助手</h1>
-            <p className="text-xs text-muted-foreground">
-              Ordine AI · Pipeline 设计专家
-            </p>
+            <p className="text-xs text-muted-foreground">Ordine AI · Pipeline 设计专家</p>
           </div>
         </div>
         {messages.length > 0 && (
@@ -141,12 +135,9 @@ export const AssistantPageContent = () => {
               <Sparkles className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-foreground">
-                Ordine AI 助手
-              </h2>
+              <h2 className="text-base font-semibold text-foreground">Ordine AI 助手</h2>
               <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-                我可以帮你设计 Skill
-                Pipeline、解答节点配置问题，或生成最佳实践代码。
+                我可以帮你设计 Skill Pipeline、解答节点配置问题，或生成最佳实践代码。
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-md">
@@ -166,17 +157,12 @@ export const AssistantPageContent = () => {
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={cn(
-                  "flex gap-3",
-                  msg.role === "user" ? "flex-row-reverse" : "flex-row",
-                )}
+                className={cn("flex gap-3", msg.role === "user" ? "flex-row-reverse" : "flex-row")}
               >
                 <div
                   className={cn(
                     "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
-                    msg.role === "user"
-                      ? "bg-primary"
-                      : "bg-muted border border-border",
+                    msg.role === "user" ? "bg-primary" : "bg-muted border border-border"
                   )}
                 >
                   {msg.role === "user" ? (
@@ -190,12 +176,10 @@ export const AssistantPageContent = () => {
                     "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground",
+                      : "bg-muted text-foreground"
                   )}
                 >
-                  <p className="whitespace-pre-wrap leading-relaxed">
-                    {msg.content}
-                  </p>
+                  <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                 </div>
               </div>
             ))}
@@ -245,4 +229,4 @@ export const AssistantPageContent = () => {
       </div>
     </div>
   );
-}
+};

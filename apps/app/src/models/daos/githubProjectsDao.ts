@@ -6,10 +6,7 @@ import {
   type NewGithubProjectRow,
 } from "@/models/tables/github_projects_table";
 
-export type GithubProjectEntity = Omit<
-  GithubProjectRow,
-  "createdAt" | "updatedAt"
-> & {
+export type GithubProjectEntity = Omit<GithubProjectRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
   updatedAt: number;
 };
@@ -41,7 +38,7 @@ export const githubProjectsDao = {
   },
 
   async create(
-    data: Omit<GithubProjectEntity, "createdAt" | "updatedAt">,
+    data: Omit<GithubProjectEntity, "createdAt" | "updatedAt">
   ): Promise<GithubProjectEntity> {
     const now = new Date();
     const row: NewGithubProjectRow = {
@@ -49,16 +46,13 @@ export const githubProjectsDao = {
       createdAt: now,
       updatedAt: now,
     };
-    const inserted = await db
-      .insert(githubProjectsTable)
-      .values(row)
-      .returning();
+    const inserted = await db.insert(githubProjectsTable).values(row).returning();
     return rowToEntity(inserted[0]!);
   },
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<GithubProjectEntity, "createdAt" | "updatedAt">,
+    data: Omit<GithubProjectEntity, "createdAt" | "updatedAt">
   ): Promise<GithubProjectEntity> {
     const now = new Date();
     const row: NewGithubProjectRow = {
@@ -66,16 +60,13 @@ export const githubProjectsDao = {
       createdAt: now,
       updatedAt: now,
     };
-    const inserted = await tx
-      .insert(githubProjectsTable)
-      .values(row)
-      .returning();
+    const inserted = await tx.insert(githubProjectsTable).values(row).returning();
     return rowToEntity(inserted[0]!);
   },
 
   async update(
     id: string,
-    patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>,
+    patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>
   ): Promise<GithubProjectEntity> {
     const rows = await db
       .update(githubProjectsTable)
@@ -88,7 +79,7 @@ export const githubProjectsDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>,
+    patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>
   ): Promise<GithubProjectEntity> {
     const rows = await tx
       .update(githubProjectsTable)

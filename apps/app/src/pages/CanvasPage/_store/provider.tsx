@@ -29,7 +29,7 @@ export const HarnessCanvasStoreProvider = ({ children, pipeline, operations = []
       pipeline?.edges as PipelineEdge[] | undefined,
       pipeline?.id ?? null,
       pipeline?.name ?? "",
-      operations,
+      operations
     );
   }
 

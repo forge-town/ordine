@@ -1,11 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import {
-  ShieldCheck,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  Circle,
-} from "lucide-react";
+import { ShieldCheck, CheckCircle2, XCircle, Loader2, Circle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useHarnessCanvasStore, type NodeRunStatus } from "../../_store";
 import { NodeCard } from "../NodeCard";
@@ -44,14 +38,9 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
   const store = useHarnessCanvasStore();
-  const update = (patch: Record<string, unknown>) =>
-    store.getState().updateNodeData(id, patch);
+  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
   const status = data.status ?? "idle";
-  const {
-    icon: StatusIcon,
-    color,
-    label: statusLabel,
-  } = statusConfig[status];
+  const { icon: StatusIcon, color, label: statusLabel } = statusConfig[status];
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleExpressionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -71,9 +60,7 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
         headerRight={
           <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-white border border-slate-100 shadow-sm px-2 py-1">
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span
-              className={cn("text-[10px] font-semibold tracking-wide", color)}
-            >
+            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
               {statusLabel}
             </span>
           </div>

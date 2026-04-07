@@ -7,9 +7,7 @@ export interface ActionsSlice {
   zoomOut: () => void;
 }
 
-export const createActionsSlice = (
-  get: Parameters<HarnessCanvasStoreSlice>[1],
-): ActionsSlice => ({
+export const createActionsSlice = (get: Parameters<HarnessCanvasStoreSlice>[1]): ActionsSlice => ({
   exportCanvas: () => {
     const state = get();
     const exportData = {

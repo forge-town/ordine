@@ -26,20 +26,12 @@ describe("OperationDetailPageContent – visibility", () => {
   });
 
   it("shows 'private' visibility badge for private operations", () => {
-    render(
-      <OperationDetailPageContent
-        operation={{ ...baseOp, visibility: "private" }}
-      />,
-    );
+    render(<OperationDetailPageContent operation={{ ...baseOp, visibility: "private" }} />);
     expect(screen.getByText("private")).toBeInTheDocument();
   });
 
   it("shows 'team' visibility badge for team operations", () => {
-    render(
-      <OperationDetailPageContent
-        operation={{ ...baseOp, visibility: "team" }}
-      />,
-    );
+    render(<OperationDetailPageContent operation={{ ...baseOp, visibility: "team" }} />);
     expect(screen.getByText("team")).toBeInTheDocument();
   });
 });

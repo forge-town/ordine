@@ -26,16 +26,8 @@ export const NotificationsSection = ({
         onToggle={handlePipelineToggle}
         label="Pipeline 运行完成提醒"
       />
-      <Toggle
-        enabled={values.mention}
-        onToggle={handleMentionToggle}
-        label="被 @提暂时通知"
-      />
-      <Toggle
-        enabled={values.weekly}
-        onToggle={handleWeeklyToggle}
-        label="每周摘要邮件"
-      />
+      <Toggle enabled={values.mention} onToggle={handleMentionToggle} label="被 @提暂时通知" />
+      <Toggle enabled={values.weekly} onToggle={handleWeeklyToggle} label="每周摘要邮件" />
       <SaveButton onSave={handleSave} saved={saved} />
     </>
   );

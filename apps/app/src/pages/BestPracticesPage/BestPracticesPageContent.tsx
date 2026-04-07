@@ -32,15 +32,7 @@ const CATEGORIES = [
   { value: "security", label: "安全" },
 ] as const;
 
-const LANGUAGES = [
-  "typescript",
-  "tsx",
-  "javascript",
-  "python",
-  "sql",
-  "bash",
-  "json",
-] as const;
+const LANGUAGES = ["typescript", "tsx", "javascript", "python", "sql", "bash", "json"] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
   general: "bg-gray-100 text-gray-600",
@@ -91,17 +83,13 @@ const PracticeFormDialog = ({
           codeSnippet: initial.codeSnippet,
           tags: initial.tags.join(", "),
         }
-      : EMPTY_FORM,
+      : EMPTY_FORM
   );
   const [saving, setSaving] = useState(false);
 
   const set =
     (k: keyof FormState) =>
-    (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-      >,
-    ) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setForm((prev) => ({ ...prev, [k]: e.target.value }));
 
   const handleTitleChange = set("title");
@@ -168,14 +156,9 @@ const PracticeFormDialog = ({
             <X className="h-4 w-4 text-gray-500" />
           </button>
         </div>
-        <form
-          onSubmit={handleFormSubmit}
-          className="p-5 space-y-4 overflow-y-auto"
-        >
+        <form onSubmit={handleFormSubmit} className="p-5 space-y-4 overflow-y-auto">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">
-              标题 *
-            </label>
+            <label className="mb-1 block text-xs font-medium text-gray-600">标题 *</label>
             <input
               value={form.title}
               onChange={handleTitleChange}
@@ -201,14 +184,8 @@ const PracticeFormDialog = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">
-                分类
-              </label>
-              <select
-                value={form.category}
-                onChange={handleCategoryChange}
-                className={inputCls}
-              >
+              <label className="mb-1 block text-xs font-medium text-gray-600">分类</label>
+              <select value={form.category} onChange={handleCategoryChange} className={inputCls}>
                 {CATEGORIES.filter((c) => c.value !== "all").map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.label}
@@ -217,14 +194,8 @@ const PracticeFormDialog = ({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">
-                语言
-              </label>
-              <select
-                value={form.language}
-                onChange={handleLanguageChange}
-                className={inputCls}
-              >
+              <label className="mb-1 block text-xs font-medium text-gray-600">语言</label>
+              <select value={form.language} onChange={handleLanguageChange} className={inputCls}>
                 {LANGUAGES.map((l) => (
                   <option key={l} value={l}>
                     {l}
@@ -235,26 +206,19 @@ const PracticeFormDialog = ({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">
-              代码片段
-            </label>
+            <label className="mb-1 block text-xs font-medium text-gray-600">代码片段</label>
             <textarea
               value={form.codeSnippet}
               onChange={handleCodeSnippetChange}
               placeholder="// 在这里粘贴代码示例..."
               rows={8}
               spellCheck={false}
-              className={cn(
-                inputCls,
-                "resize-y font-mono text-xs leading-relaxed",
-              )}
+              className={cn(inputCls, "resize-y font-mono text-xs leading-relaxed")}
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">
-              标签 (逗号分隔)
-            </label>
+            <label className="mb-1 block text-xs font-medium text-gray-600">标签 (逗号分隔)</label>
             <input
               value={form.tags}
               onChange={handleTagsChange}
@@ -283,7 +247,7 @@ const PracticeFormDialog = ({
       </div>
     </div>
   );
-}
+};
 
 // ── Practice card ─────────────────────────────────────────────────────────────
 
@@ -311,9 +275,7 @@ const PracticeCard = ({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-semibold text-gray-900 leading-snug">
-              {practice.title}
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900 leading-snug">{practice.title}</h3>
             <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={handleEdit}
@@ -335,12 +297,10 @@ const PracticeCard = ({
             <span
               className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-                CATEGORY_COLORS[practice.category] ??
-                  "bg-gray-100 text-gray-600",
+                CATEGORY_COLORS[practice.category] ?? "bg-gray-100 text-gray-600"
               )}
             >
-              {CATEGORIES.find((c) => c.value === practice.category)?.label ??
-                practice.category}
+              {CATEGORIES.find((c) => c.value === practice.category)?.label ?? practice.category}
             </span>
             <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500 font-mono">
               {practice.language}
@@ -363,9 +323,7 @@ const PracticeCard = ({
         <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 mb-1">
           适用时机
         </p>
-        <p className="text-xs text-gray-700 leading-relaxed">
-          {practice.condition}
-        </p>
+        <p className="text-xs text-gray-700 leading-relaxed">{practice.condition}</p>
       </div>
 
       {/* Code snippet toggle */}
@@ -394,7 +352,7 @@ const PracticeCard = ({
       )}
     </div>
   );
-}
+};
 
 // ── Main page content ─────────────────────────────────────────────────────────
 
@@ -403,8 +361,7 @@ export const BestPracticesPageContent = ({
 }: {
   practices: BestPracticeEntity[];
 }) => {
-  const [practices, setPractices] =
-    useState<BestPracticeEntity[]>(initialPractices);
+  const [practices, setPractices] = useState<BestPracticeEntity[]>(initialPractices);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [showForm, setShowForm] = useState(false);
@@ -438,30 +395,21 @@ export const BestPracticesPageContent = ({
     await deleteBestPractice({ data: { id } });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
 
-  const handleCategoryClick =
-    (catValue: string) =>
-    () =>
-      setActiveCategory(catValue);
+  const handleCategoryClick = (catValue: string) => () => setActiveCategory(catValue);
 
   const handleAddPractice = () => {
     setEditing(null);
     setShowForm(true);
   };
 
-  const handleEditPractice =
-    (p: BestPracticeEntity) =>
-    () => {
-      setEditing(p);
-      setShowForm(true);
-    };
+  const handleEditPractice = (p: BestPracticeEntity) => () => {
+    setEditing(p);
+    setShowForm(true);
+  };
 
-  const handleDeletePractice =
-    (id: string) =>
-    () =>
-      void handleDelete(id);
+  const handleDeletePractice = (id: string) => () => void handleDelete(id);
 
   const handleFormClose = () => {
     setShowForm(false);
@@ -505,7 +453,7 @@ export const BestPracticesPageContent = ({
                 "whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                 activeCategory === cat.value
                   ? "bg-violet-600 text-white"
-                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-700",
+                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
               )}
             >
               {cat.label}
@@ -518,9 +466,7 @@ export const BestPracticesPageContent = ({
           ))}
         </div>
 
-        <span className="ml-auto text-xs text-gray-400">
-          {filtered.length} 条
-        </span>
+        <span className="ml-auto text-xs text-gray-400">{filtered.length} 条</span>
       </div>
 
       {/* List */}
@@ -531,9 +477,7 @@ export const BestPracticesPageContent = ({
               <BookOpen className="h-7 w-7 text-gray-400" />
             </div>
             <h3 className="mt-4 text-sm font-semibold text-gray-700">
-              {search || activeCategory !== "all"
-                ? "未找到匹配的实践"
-                : "还没有最佳实践"}
+              {search || activeCategory !== "all" ? "未找到匹配的实践" : "还没有最佳实践"}
             </h3>
             <p className="mt-1 text-xs text-gray-400">
               {search || activeCategory !== "all"

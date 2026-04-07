@@ -2,13 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { jobsDao } from "@/models/daos/jobsDao";
 
-const JobStatusSchema = z.enum([
-  "queued",
-  "running",
-  "done",
-  "failed",
-  "cancelled",
-]);
+const JobStatusSchema = z.enum(["queued", "running", "done", "failed", "cancelled"]);
 const JobTypeSchema = z.enum([
   "pipeline_run",
   "code_analysis",
@@ -25,7 +19,7 @@ export const getJobs = createServerFn({ method: "GET" })
         workId: z.string().optional(),
         projectId: z.string().optional(),
       })
-      .optional(),
+      .optional()
   )
   .handler(({ data }) => jobsDao.findMany(data ?? {}));
 
@@ -54,7 +48,7 @@ export const createJob = createServerFn({ method: "POST" })
       status: JobStatusSchema.default("queued"),
       startedAt: z.number().nullable().default(null),
       finishedAt: z.number().nullable().default(null),
-    }),
+    })
   )
   .handler(({ data }) => jobsDao.create(data));
 
@@ -73,7 +67,7 @@ export const updateJobStatus = createServerFn({ method: "POST" })
         .optional(),
       startedAt: z.number().optional(),
       finishedAt: z.number().optional(),
-    }),
+    })
   )
   .handler(({ data }) => {
     const { id, status, ...extra } = data;

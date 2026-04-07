@@ -1,10 +1,4 @@
-import {
-  GitBranch,
-  Clock,
-  ArrowRight,
-  Trash2,
-  ExternalLink,
-} from "lucide-react";
+import { GitBranch, Clock, ArrowRight, Trash2, ExternalLink } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Card } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
@@ -45,11 +39,7 @@ const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
   e.stopPropagation();
 };
 
-export const PipelineCard = ({
-  pipeline,
-  onOpen,
-  onDelete,
-}: PipelineCardProps) => {
+export const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) => {
   const typeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     const t = n.type ?? "unknown";
     acc[t] = (acc[t] ?? 0) + 1;
@@ -120,7 +110,7 @@ export const PipelineCard = ({
             variant="secondary"
             className={cn(
               "rounded-full text-[11px]",
-              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground",
+              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground"
             )}
           >
             {count} {NODE_TYPE_LABELS[type] ?? type}
@@ -144,9 +134,7 @@ export const PipelineCard = ({
 
       {/* Footer */}
       <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-        <span className="text-xs text-muted-foreground">
-          {pipeline.nodes.length} 个节点
-        </span>
+        <span className="text-xs text-muted-foreground">{pipeline.nodes.length} 个节点</span>
         <span className="flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
           在 Canvas 中打开
           <ArrowRight className="h-3 w-3" />

@@ -8,10 +8,7 @@ import {
   type WorkObject,
 } from "@/models/tables/works_table";
 
-export type WorkEntity = Omit<
-  WorkRow,
-  "createdAt" | "updatedAt" | "startedAt" | "finishedAt"
-> & {
+export type WorkEntity = Omit<WorkRow, "createdAt" | "updatedAt" | "startedAt" | "finishedAt"> & {
   createdAt: number;
   updatedAt: number;
   startedAt: number | null;
@@ -30,10 +27,7 @@ const rowToEntity = (row: WorkRow): WorkEntity => ({
 
 export const worksDao = {
   async findMany(): Promise<WorkEntity[]> {
-    const rows = await db
-      .select()
-      .from(worksTable)
-      .orderBy(desc(worksTable.createdAt));
+    const rows = await db.select().from(worksTable).orderBy(desc(worksTable.createdAt));
     return rows.map(rowToEntity);
   },
 
@@ -47,19 +41,12 @@ export const worksDao = {
   },
 
   async findById(id: string): Promise<WorkEntity | null> {
-    const rows = await db
-      .select()
-      .from(worksTable)
-      .where(eq(worksTable.id, id))
-      .limit(1);
+    const rows = await db.select().from(worksTable).where(eq(worksTable.id, id)).limit(1);
     return rows[0] ? rowToEntity(rows[0]) : null;
   },
 
   async create(
-    data: Omit<
-      WorkEntity,
-      "createdAt" | "updatedAt" | "startedAt" | "finishedAt"
-    >,
+    data: Omit<WorkEntity, "createdAt" | "updatedAt" | "startedAt" | "finishedAt">
   ): Promise<WorkEntity> {
     const now = new Date();
     const row: NewWorkRow = {
@@ -75,10 +62,7 @@ export const worksDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<
-      WorkEntity,
-      "createdAt" | "updatedAt" | "startedAt" | "finishedAt"
-    >,
+    data: Omit<WorkEntity, "createdAt" | "updatedAt" | "startedAt" | "finishedAt">
   ): Promise<WorkEntity> {
     const now = new Date();
     const row: NewWorkRow = {
@@ -95,7 +79,7 @@ export const worksDao = {
   async updateStatus(
     id: string,
     status: WorkStatus,
-    extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date },
+    extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date }
   ): Promise<WorkEntity> {
     const rows = await db
       .update(worksTable)
@@ -109,7 +93,7 @@ export const worksDao = {
     tx: DbExecutor,
     id: string,
     status: WorkStatus,
-    extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date },
+    extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date }
   ): Promise<WorkEntity> {
     const rows = await tx
       .update(worksTable)
@@ -128,16 +112,8 @@ export const worksDao = {
       .where(eq(worksTable.id, id));
   },
 
-  async appendLogWithTx(
-    tx: DbExecutor,
-    id: string,
-    line: string,
-  ): Promise<void> {
-    const rows = await tx
-      .select()
-      .from(worksTable)
-      .where(eq(worksTable.id, id))
-      .limit(1);
+  async appendLogWithTx(tx: DbExecutor, id: string, line: string): Promise<void> {
+    const rows = await tx.select().from(worksTable).where(eq(worksTable.id, id)).limit(1);
     const row = rows[0];
     if (!row) return;
     await tx

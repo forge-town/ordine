@@ -14,17 +14,8 @@ import {
   Check,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import type {
-  RuleEntity,
-  RuleCategory,
-  RuleSeverity,
-} from "@/models/daos/rulesDao";
-import {
-  createRule,
-  updateRule,
-  deleteRule,
-  toggleRule,
-} from "@/services/rulesService";
+import type { RuleEntity, RuleCategory, RuleSeverity } from "@/models/daos/rulesDao";
+import { createRule, updateRule, deleteRule, toggleRule } from "@/services/rulesService";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -57,13 +48,7 @@ const SEVERITY_CONFIG: Record<
   },
 };
 
-const CATEGORIES: RuleCategory[] = [
-  "lint",
-  "security",
-  "style",
-  "performance",
-  "custom",
-];
+const CATEGORIES: RuleCategory[] = ["lint", "security", "style", "performance", "custom"];
 const SEVERITIES: RuleSeverity[] = ["error", "warning", "info"];
 
 const CATEGORY_FILTERS = [
@@ -127,20 +112,16 @@ const RuleCard = ({
     <div
       className={cn(
         "group rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all",
-        !rule.enabled && "opacity-50",
+        !rule.enabled && "opacity-50"
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <SeverityIcon className={cn("mt-0.5 h-4 w-4 shrink-0", s.cls)} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-gray-900">
-              {rule.name}
-            </p>
+            <p className="truncate text-sm font-semibold text-gray-900">{rule.name}</p>
             {rule.description && (
-              <p className="mt-0.5 text-xs text-gray-500 line-clamp-2">
-                {rule.description}
-              </p>
+              <p className="mt-0.5 text-xs text-gray-500 line-clamp-2">{rule.description}</p>
             )}
             {rule.pattern && (
               <p className="mt-1 rounded bg-gray-50 px-2 py-1 font-mono text-[11px] text-gray-600 truncate">
@@ -148,12 +129,7 @@ const RuleCard = ({
               </p>
             )}
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span
-                className={cn(
-                  "rounded-full px-2 py-0.5 text-[10px] font-medium",
-                  c.cls,
-                )}
-              >
+              <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", c.cls)}>
                 {c.label}
               </span>
               {rule.tags.map((tag) => (
@@ -214,22 +190,18 @@ const RuleForm = ({
   const [form, setForm] = useState<RuleForm>(initial ?? emptyForm());
   const [saving, setSaving] = useState(false);
 
-  const set = (k: keyof RuleForm, v: string) =>
-    setForm((prev) => ({ ...prev, [k]: v }));
+  const set = (k: keyof RuleForm, v: string) => setForm((prev) => ({ ...prev, [k]: v }));
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    set("name", e.target.value);
-  const handleDescriptionChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement>,
-  ) => set("description", e.target.value);
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => set("name", e.target.value);
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    set("description", e.target.value);
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
     set("category", e.target.value as RuleCategory);
   const handleSeverityChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
     set("severity", e.target.value as RuleSeverity);
   const handlePatternChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     set("pattern", e.target.value);
-  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    set("tags", e.target.value);
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => set("tags", e.target.value);
   const handleCancel = onCancel;
 
   const handleSave = async () => {
@@ -330,15 +302,9 @@ const RuleForm = ({
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export const RulesPageContent = ({
-  rules: initial,
-}: {
-  rules: RuleEntity[];
-}) => {
+export const RulesPageContent = ({ rules: initial }: { rules: RuleEntity[] }) => {
   const [rules, setRules] = useState(initial);
-  const [categoryFilter, setCategoryFilter] = useState<RuleCategory | "all">(
-    "all",
-  );
+  const [categoryFilter, setCategoryFilter] = useState<RuleCategory | "all">("all");
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -412,13 +378,9 @@ export const RulesPageContent = ({
 
   const enabledCount = rules.filter((r) => r.enabled).length;
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
 
-  const handleCategoryFilterClick =
-    (value: RuleCategory | "all") =>
-    () =>
-      setCategoryFilter(value);
+  const handleCategoryFilterClick = (value: RuleCategory | "all") => () => setCategoryFilter(value);
 
   const handleShowForm = () => {
     setEditingId(null);
@@ -456,9 +418,7 @@ export const RulesPageContent = ({
 
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
         {/* Create form */}
-        {showForm && (
-          <RuleForm onSave={handleCreate} onCancel={handleHideForm} />
-        )}
+        {showForm && <RuleForm onSave={handleCreate} onCancel={handleHideForm} />}
 
         {/* Filters + Search */}
         <div className="flex items-center gap-3">
@@ -471,7 +431,7 @@ export const RulesPageContent = ({
                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                   categoryFilter === f.value
                     ? "bg-gray-100 text-gray-800"
-                    : "text-gray-500 hover:text-gray-700",
+                    : "text-gray-500 hover:text-gray-700"
                 )}
               >
                 {f.label}
@@ -494,10 +454,7 @@ export const RulesPageContent = ({
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <ShieldCheck className="h-8 w-8 text-gray-200" />
             <p className="mt-2 text-sm text-gray-400">暂无规则</p>
-            <button
-              onClick={handleShowForm}
-              className="mt-2 text-xs text-gray-500 hover:underline"
-            >
+            <button onClick={handleShowForm} className="mt-2 text-xs text-gray-500 hover:underline">
               创建第一条规则
             </button>
           </div>
@@ -520,7 +477,7 @@ export const RulesPageContent = ({
                   onDelete={handleDelete}
                   onToggle={handleToggle}
                 />
-              ),
+              )
             )}
           </div>
         )}

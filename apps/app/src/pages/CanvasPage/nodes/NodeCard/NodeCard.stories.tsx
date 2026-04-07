@@ -50,9 +50,7 @@ export const WithBody: Story = {
     label: "Node with Body",
     bodyClassName: "space-y-2",
     children: (
-      <p className="text-xs leading-relaxed text-gray-600">
-        Some context description here.
-      </p>
+      <p className="text-xs leading-relaxed text-gray-600">Some context description here.</p>
     ),
   },
 };
@@ -62,9 +60,7 @@ export const WithHeaderRight: Story = {
     theme: "violet",
     icon: Wand2,
     label: "Node with Status",
-    headerRight: (
-      <span className="text-[10px] font-medium text-green-500">✓ Pass</span>
-    ),
+    headerRight: <span className="text-[10px] font-medium text-green-500">✓ Pass</span>,
   },
 };
 

@@ -13,8 +13,7 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const store = useHarnessCanvasStore();
-  const update = (patch: Record<string, unknown>) =>
-    store.getState().updateNodeData(id, patch);
+  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleFolderPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>

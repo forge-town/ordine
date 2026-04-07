@@ -3,7 +3,7 @@ import { z } from "zod";
 import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
 
 export const getBestPractices = createServerFn({ method: "GET" }).handler(() =>
-  bestPracticesDao.findMany(),
+  bestPracticesDao.findMany()
 );
 
 export const getBestPracticeById = createServerFn({ method: "GET" })
@@ -25,9 +25,7 @@ export const createBestPractice = createServerFn({ method: "POST" })
   .handler(({ data }) => bestPracticesDao.create(data));
 
 export const updateBestPractice = createServerFn({ method: "POST" })
-  .inputValidator(
-    z.object({ id: z.string(), patch: BestPracticeSchema.partial() }),
-  )
+  .inputValidator(z.object({ id: z.string(), patch: BestPracticeSchema.partial() }))
   .handler(({ data }) => bestPracticesDao.update(data.id, data.patch));
 
 export const deleteBestPractice = createServerFn({ method: "POST" })

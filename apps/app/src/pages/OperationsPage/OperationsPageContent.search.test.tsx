@@ -6,10 +6,7 @@ import type { OperationEntity } from "@/models/daos/operationsDao";
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
-  Link: ({
-    children,
-    ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) => (
+  Link: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
     <a {...props}>{children}</a>
   ),
 }));
@@ -20,11 +17,7 @@ vi.mock("@/services/operationsService", () => ({
   deleteOperation: vi.fn(),
 }));
 
-const makeOp = (
-  id: string,
-  name: string,
-  description: string | null,
-): OperationEntity => ({
+const makeOp = (id: string, name: string, description: string | null): OperationEntity => ({
   id,
   name,
   description,
@@ -45,9 +38,7 @@ const ops: OperationEntity[] = [
 describe("OperationsPageContent – search", () => {
   it("renders a search input", () => {
     render(<OperationsPageContent initialOperations={ops} />);
-    expect(
-      screen.getByPlaceholderText(/搜索/i),
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/搜索/i)).toBeInTheDocument();
   });
 
   it("shows all ops when search is empty", () => {

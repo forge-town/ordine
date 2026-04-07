@@ -1,9 +1,6 @@
 export { HarnessCanvasStoreProvider } from "./provider";
 export { useHarnessCanvasStore } from "./harnessCanvasStore";
-export type {
-  HarnessCanvasState,
-  HarnessCanvasStore,
-} from "./harnessCanvasStore";
+export type { HarnessCanvasState, HarnessCanvasStore } from "./harnessCanvasStore";
 export type {
   PipelineNode,
   PipelineEdge,
@@ -23,9 +20,4 @@ export type {
   HarnessNodeData,
   HarnessEdgeData,
 } from "./canvasSlice";
-export type {
-  HistorySlice,
-  HistoryEntry,
-  CommandMeta,
-  CommandType,
-} from "./historySlice";
+export type { HistorySlice, HistoryEntry, CommandMeta, CommandType } from "./historySlice";

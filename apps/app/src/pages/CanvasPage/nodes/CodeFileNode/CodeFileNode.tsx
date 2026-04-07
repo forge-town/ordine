@@ -13,8 +13,7 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
   const store = useHarnessCanvasStore();
-  const update = (patch: Record<string, unknown>) =>
-    store.getState().updateNodeData(id, patch);
+  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleFilePathChange = (e: React.ChangeEvent<HTMLInputElement>) =>

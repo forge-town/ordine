@@ -1,16 +1,8 @@
 import { eq, desc, and } from "drizzle-orm";
 import { db } from "@/db";
-import {
-  jobsTable,
-  type JobRow,
-  type NewJobRow,
-  type JobStatus,
-} from "@/models/tables/jobs_table";
+import { jobsTable, type JobRow, type NewJobRow, type JobStatus } from "@/models/tables/jobs_table";
 
-export type JobEntity = Omit<
-  JobRow,
-  "createdAt" | "updatedAt" | "startedAt" | "finishedAt"
-> & {
+export type JobEntity = Omit<JobRow, "createdAt" | "updatedAt" | "startedAt" | "finishedAt"> & {
   createdAt: number;
   updatedAt: number;
   startedAt: number | null;
@@ -36,8 +28,7 @@ export const jobsDao = {
     const conditions = [];
     if (filter?.status) conditions.push(eq(jobsTable.status, filter.status));
     if (filter?.workId) conditions.push(eq(jobsTable.workId, filter.workId));
-    if (filter?.projectId)
-      conditions.push(eq(jobsTable.projectId, filter.projectId));
+    if (filter?.projectId) conditions.push(eq(jobsTable.projectId, filter.projectId));
 
     const rows = await db
       .select()
@@ -48,17 +39,11 @@ export const jobsDao = {
   },
 
   async findById(id: string): Promise<JobEntity | null> {
-    const rows = await db
-      .select()
-      .from(jobsTable)
-      .where(eq(jobsTable.id, id))
-      .limit(1);
+    const rows = await db.select().from(jobsTable).where(eq(jobsTable.id, id)).limit(1);
     return rows[0] ? rowToEntity(rows[0]) : null;
   },
 
-  async create(
-    data: Omit<JobEntity, "createdAt" | "updatedAt">,
-  ): Promise<JobEntity> {
+  async create(data: Omit<JobEntity, "createdAt" | "updatedAt">): Promise<JobEntity> {
     const now = new Date();
     const row: NewJobRow = {
       ...data,
@@ -73,7 +58,7 @@ export const jobsDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<JobEntity, "createdAt" | "updatedAt">,
+    data: Omit<JobEntity, "createdAt" | "updatedAt">
   ): Promise<JobEntity> {
     const now = new Date();
     const row: NewJobRow = {
@@ -96,7 +81,7 @@ export const jobsDao = {
       result?: JobEntity["result"];
       startedAt?: number;
       finishedAt?: number;
-    },
+    }
   ): Promise<JobEntity | null> {
     const patch: Partial<JobRow> = {
       status,
@@ -111,11 +96,7 @@ export const jobsDao = {
         finishedAt: new Date(extra.finishedAt),
       }),
     };
-    const [updated] = await db
-      .update(jobsTable)
-      .set(patch)
-      .where(eq(jobsTable.id, id))
-      .returning();
+    const [updated] = await db.update(jobsTable).set(patch).where(eq(jobsTable.id, id)).returning();
     return updated ? rowToEntity(updated) : null;
   },
 
@@ -129,7 +110,7 @@ export const jobsDao = {
       result?: JobEntity["result"];
       startedAt?: number;
       finishedAt?: number;
-    },
+    }
   ): Promise<JobEntity | null> {
     const patch: Partial<JobRow> = {
       status,
@@ -144,11 +125,7 @@ export const jobsDao = {
         finishedAt: new Date(extra.finishedAt),
       }),
     };
-    const [updated] = await tx
-      .update(jobsTable)
-      .set(patch)
-      .where(eq(jobsTable.id, id))
-      .returning();
+    const [updated] = await tx.update(jobsTable).set(patch).where(eq(jobsTable.id, id)).returning();
     return updated ? rowToEntity(updated) : null;
   },
 
@@ -162,16 +139,8 @@ export const jobsDao = {
       .where(eq(jobsTable.id, id));
   },
 
-  async appendLogWithTx(
-    tx: DbExecutor,
-    id: string,
-    line: string,
-  ): Promise<void> {
-    const rows = await tx
-      .select()
-      .from(jobsTable)
-      .where(eq(jobsTable.id, id))
-      .limit(1);
+  async appendLogWithTx(tx: DbExecutor, id: string, line: string): Promise<void> {
+    const rows = await tx.select().from(jobsTable).where(eq(jobsTable.id, id)).limit(1);
     const row = rows[0];
     if (!row) return;
     await tx

@@ -6,10 +6,7 @@ import {
   type NewBestPracticeRow,
 } from "@/models/tables/best_practices_table";
 
-export type BestPracticeEntity = Omit<
-  BestPracticeRow,
-  "createdAt" | "updatedAt"
-> & {
+export type BestPracticeEntity = Omit<BestPracticeRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
   updatedAt: number;
 };
@@ -41,33 +38,27 @@ export const bestPracticesDao = {
   },
 
   async create(
-    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">,
+    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">
   ): Promise<BestPracticeEntity> {
     const now = new Date();
     const row: NewBestPracticeRow = { ...data, createdAt: now, updatedAt: now };
-    const [inserted] = await db
-      .insert(bestPracticesTable)
-      .values(row)
-      .returning();
+    const [inserted] = await db.insert(bestPracticesTable).values(row).returning();
     return rowToEntity(inserted);
   },
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">,
+    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">
   ): Promise<BestPracticeEntity> {
     const now = new Date();
     const row: NewBestPracticeRow = { ...data, createdAt: now, updatedAt: now };
-    const [inserted] = await tx
-      .insert(bestPracticesTable)
-      .values(row)
-      .returning();
+    const [inserted] = await tx.insert(bestPracticesTable).values(row).returning();
     return rowToEntity(inserted);
   },
 
   async update(
     id: string,
-    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>,
+    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>
   ): Promise<BestPracticeEntity | null> {
     const [updated] = await db
       .update(bestPracticesTable)
@@ -80,7 +71,7 @@ export const bestPracticesDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>,
+    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>
   ): Promise<BestPracticeEntity | null> {
     const [updated] = await tx
       .update(bestPracticesTable)

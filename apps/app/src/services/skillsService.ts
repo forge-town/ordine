@@ -2,13 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { skillsDao } from "@/models/daos/skillsDao";
 
-export const getSkills = createServerFn({ method: "GET" }).handler(
-  async () => {
-    // 确保初始化 seed 数据
-    await skillsDao.seedIfEmpty();
-    return skillsDao.findMany();
-  },
-);
+export const getSkills = createServerFn({ method: "GET" }).handler(async () => {
+  // 确保初始化 seed 数据
+  await skillsDao.seedIfEmpty();
+  return skillsDao.findMany();
+});
 
 export const getSkillById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
@@ -38,7 +36,7 @@ export const updateSkill = createServerFn({ method: "POST" })
     z.object({
       id: z.string(),
       patch: SkillSchema.partial(),
-    }),
+    })
   )
   .handler(async ({ data }) => {
     await skillsDao.update(data.id, data.patch);

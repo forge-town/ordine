@@ -28,10 +28,7 @@ interface Props {
 
 // ─── Node type metadata ───────────────────────────────────────────────────────
 
-const NODE_META: Record<
-  string,
-  { label: string; icon: React.ElementType; color: string }
-> = {
+const NODE_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   operation: {
     label: "操作",
     icon: Zap,
@@ -69,19 +66,11 @@ const NODE_META: Record<
   },
 };
 
-const getNodeLabel = (
-  node: PipelineNode,
-  operations: OperationEntity[],
-): string => {
+const getNodeLabel = (node: PipelineNode, operations: OperationEntity[]): string => {
   const data = node.data as unknown as Record<string, unknown>;
   if (node.type === "operation") {
     const op = operations.find((o) => o.id === (data.operationId as string));
-    return (
-      op?.name ??
-      (data.operationName as string) ??
-      (data.label as string) ??
-      node.id
-    );
+    return op?.name ?? (data.operationName as string) ?? (data.label as string) ?? node.id;
   }
   return (data.label as string) ?? node.id;
 };
@@ -113,19 +102,15 @@ const Stat = ({
 export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   const navigate = useNavigate();
 
-  const handleNavigatePipelines = () =>
-    void navigate({ to: "/pipelines" });
+  const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
   const handleCanvasClick = () => {
     void navigate({ to: "/canvas", search: { id: pipeline.id } });
   };
 
-  const nodeTypeCounts = pipeline.nodes.reduce<Record<string, number>>(
-    (acc, n) => {
-      acc[n.type] = (acc[n.type] ?? 0) + 1;
-      return acc;
-    },
-    {},
-  );
+  const nodeTypeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
+    acc[n.type] = (acc[n.type] ?? 0) + 1;
+    return acc;
+  }, {});
 
   // Build simple left-to-right layout for nodes in the preview
   const previewNodes = pipeline.nodes.map((n, i) => ({
@@ -156,10 +141,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </button>
         <div className="min-w-0 flex-1">
-          <h1
-            className="truncate text-sm font-semibold text-gray-900"
-            role="heading"
-          >
+          <h1 className="truncate text-sm font-semibold text-gray-900" role="heading">
             {pipeline.name}
           </h1>
           <p className="font-mono text-[11px] text-gray-400">{pipeline.id}</p>
@@ -184,9 +166,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
               </div>
               <div>
                 {pipeline.description && (
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {pipeline.description}
-                  </p>
+                  <p className="text-sm text-gray-600 leading-relaxed">{pipeline.description}</p>
                 )}
               </div>
             </div>
@@ -234,7 +214,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     className={cn(
                       "flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium",
                       meta?.color ?? "text-gray-600 bg-gray-50",
-                      "border-current/20",
+                      "border-current/20"
                     )}
                   >
                     <Icon className="h-3 w-3" />
@@ -277,9 +257,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
               <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
                 <GitBranch className="h-8 w-8 text-gray-200" />
                 <p className="text-sm text-gray-400">还没有操作步骤</p>
-                <p className="text-xs text-gray-300">
-                  点击此处在 Canvas 中添加
-                </p>
+                <p className="text-xs text-gray-300">点击此处在 Canvas 中添加</p>
               </div>
             ) : (
               <ReactFlowProvider>
@@ -320,35 +298,25 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                 const meta = NODE_META[node.type];
                 const Icon = meta?.icon ?? Zap;
                 return (
-                  <li
-                    key={node.id}
-                    className="flex items-center gap-3 px-5 py-3"
-                  >
+                  <li key={node.id} className="flex items-center gap-3 px-5 py-3">
                     <div
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-                        meta?.color ?? "text-gray-600 bg-gray-50",
+                        meta?.color ?? "text-gray-600 bg-gray-50"
                       )}
                     >
                       <Icon className="h-3.5 w-3.5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">
-                        {label}
-                      </p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{label}</p>
                       {node.type === "operation" &&
                         (() => {
-                          const nodeData = node.data as unknown as Record<
-                            string,
-                            unknown
-                          >;
+                          const nodeData = node.data as unknown as Record<string, unknown>;
                           const op = operations.find(
-                            (o) => o.id === (nodeData["operationId"] as string),
+                            (o) => o.id === (nodeData["operationId"] as string)
                           );
                           return op?.description ? (
-                            <p className="text-xs text-gray-400 truncate">
-                              {op.description}
-                            </p>
+                            <p className="text-xs text-gray-400 truncate">{op.description}</p>
                           ) : null;
                         })()}
                     </div>
@@ -356,7 +324,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                       className={cn(
                         "shrink-0 rounded border px-2 py-0.5 text-[10px] font-medium",
                         meta?.color ?? "text-gray-500 bg-gray-50",
-                        "border-current/20",
+                        "border-current/20"
                       )}
                     >
                       {meta?.label ?? node.type}

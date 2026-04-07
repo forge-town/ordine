@@ -1,9 +1,5 @@
 import { useStore } from "zustand";
-import {
-  useHarnessCanvasStore,
-  type PipelineNode,
-  type NodeType,
-} from "../_store";
+import { useHarnessCanvasStore, type PipelineNode, type NodeType } from "../_store";
 import { cn } from "@repo/ui/lib/utils";
 import {
   Zap,
@@ -158,7 +154,7 @@ export const SkillPalette = () => {
     <div
       className={cn(
         "relative flex h-full flex-col border-r border-gray-200 bg-white transition-all duration-200",
-        isSidebarOpen ? "w-64" : "w-10",
+        isSidebarOpen ? "w-64" : "w-10"
       )}
     >
       <button
@@ -195,24 +191,20 @@ export const SkillPalette = () => {
                       onClick={() => handleAddNodeType(item)}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass,
+                        item.colorClass
                       )}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg,
+                          item.iconBg
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">
-                          {item.label}
-                        </div>
-                        <div className="text-[10px] text-gray-500">
-                          {item.description}
-                        </div>
+                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
+                        <div className="text-[10px] text-gray-500">{item.description}</div>
                       </div>
                     </button>
                   );
@@ -234,24 +226,20 @@ export const SkillPalette = () => {
                       onClick={() => handleAddNodeType(item)}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass,
+                        item.colorClass
                       )}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg,
+                          item.iconBg
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">
-                          {item.label}
-                        </div>
-                        <div className="text-[10px] text-gray-500">
-                          {item.description}
-                        </div>
+                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
+                        <div className="text-[10px] text-gray-500">{item.description}</div>
                       </div>
                     </button>
                   );
@@ -273,24 +261,20 @@ export const SkillPalette = () => {
                       onClick={() => handleAddNodeType(item)}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass,
+                        item.colorClass
                       )}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg,
+                          item.iconBg
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">
-                          {item.label}
-                        </div>
-                        <div className="text-[10px] text-gray-500">
-                          {item.description}
-                        </div>
+                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
+                        <div className="text-[10px] text-gray-500">{item.description}</div>
                       </div>
                     </button>
                   );
@@ -300,9 +284,7 @@ export const SkillPalette = () => {
           </div>
 
           <div className="border-t border-gray-100 p-3">
-            <p className="text-center text-[10px] text-gray-400">
-              连接节点端口以定义数据流向
-            </p>
+            <p className="text-center text-[10px] text-gray-400">连接节点端口以定义数据流向</p>
           </div>
         </>
       )}
