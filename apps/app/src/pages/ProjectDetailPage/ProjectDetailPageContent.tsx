@@ -15,6 +15,7 @@ import { Route } from "@/routes/projects.$projectId";
 import type { WorkEntity } from "@/models/daos/worksDao";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 import { cn } from "@repo/ui/lib/utils";
+import { Button } from "@repo/ui/button";
 
 const STATUS_CONFIG: Record<
   WorkEntity["status"],
@@ -36,20 +37,26 @@ const WorkRow = ({ work }: { work: WorkEntity }) => {
   const cfg = STATUS_CONFIG[work.status];
   const Icon = cfg.icon;
   return (
-    <div className="flex items-center gap-4 rounded-lg border border-gray-100 bg-white px-4 py-3 hover:border-gray-200 transition-colors">
+    <div className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3 hover:border-primary/50 transition-colors">
       <span
         className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50",
-          cfg.color
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/30",
+          cfg.color,
         )}
       >
-        <Icon className={cn("h-4 w-4", work.status === "running" && "animate-spin")} />
+        <Icon
+          className={cn("h-4 w-4", work.status === "running" && "animate-spin")}
+        />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-gray-800">{work.pipelineName}</p>
-        <p className="mt-0.5 truncate text-xs text-gray-400">
+        <p className="truncate text-sm font-medium text-foreground">
+          {work.pipelineName}
+        </p>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
           {OBJECT_LABEL[work.object.type]}
-          {work.object.path !== "/" && <span className="ml-1 font-mono">{work.object.path}</span>}
+          {work.object.path !== "/" && (
+            <span className="ml-1 font-mono">{work.object.path}</span>
+          )}
         </p>
       </div>
       <div className="text-right shrink-0">
@@ -59,12 +66,12 @@ const WorkRow = ({ work }: { work: WorkEntity }) => {
             work.status === "success" && "bg-emerald-50 text-emerald-700",
             work.status === "failed" && "bg-red-50 text-red-700",
             work.status === "running" && "bg-blue-50 text-blue-700",
-            work.status === "pending" && "bg-gray-100 text-gray-600"
+            work.status === "pending" && "bg-gray-100 text-gray-600",
           )}
         >
           {cfg.label}
         </span>
-        <p className="mt-1 text-[10px] text-gray-400">
+        <p className="mt-1 text-[10px] text-muted-foreground">
           {new Date(work.createdAt).toLocaleString("zh-CN", {
             month: "numeric",
             day: "numeric",
@@ -79,18 +86,18 @@ const WorkRow = ({ work }: { work: WorkEntity }) => {
 
 const ProjectMeta = ({ project }: { project: GithubProjectEntity }) => {
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-start gap-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-900">
-          <FolderGit2 className="h-6 w-6 text-white" />
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <FolderGit2 className="h-6 w-6 text-muted-foreground" />
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-gray-900">
+            <h2 className="text-base font-bold text-foreground">
               {project.owner}/{project.repo}
             </h2>
             <a
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
               href={project.githubUrl}
               rel="noreferrer"
               target="_blank"
@@ -99,9 +106,11 @@ const ProjectMeta = ({ project }: { project: GithubProjectEntity }) => {
             </a>
           </div>
           {project.description && (
-            <p className="mt-1 text-sm text-gray-500">{project.description}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {project.description}
+            </p>
           )}
-          <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-400">
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
             <GitBranch className="h-3.5 w-3.5" />
             <span>{project.branch}</span>
           </div>
@@ -126,38 +135,43 @@ export const ProjectDetailPageContent = () => {
 
   if (!project) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-gray-400">
+      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
         项目不存在
       </div>
     );
   }
 
-  const activeWorks = works.filter((w) => w.status === "pending" || w.status === "running");
-  const finishedWorks = works.filter((w) => w.status === "success" || w.status === "failed");
+  const activeWorks = works.filter(
+    (w) => w.status === "pending" || w.status === "running",
+  );
+  const finishedWorks = works.filter(
+    (w) => w.status === "success" || w.status === "failed",
+  );
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-gray-50">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
-        <button
-          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
+        <Button
+          className="h-8 w-8"
+          size="icon"
+          variant="ghost"
           onClick={handleNavigateProjects}
         >
-          <ArrowLeft className="h-4 w-4 text-gray-500" />
-        </button>
+          <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+        </Button>
         <div className="min-w-0 flex-1">
-          <h1 className="text-sm font-semibold text-gray-900 truncate">{project.name}</h1>
-          <p className="text-xs text-gray-400 truncate">
+          <h1 className="text-sm font-semibold text-foreground truncate">
+            {project.name}
+          </h1>
+          <p className="text-xs text-muted-foreground truncate">
             {project.owner}/{project.repo}
           </p>
         </div>
-        <button
-          className="flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
-          onClick={handleNavigateWorkspace}
-        >
+        <Button size="sm" onClick={handleNavigateWorkspace}>
           <Wrench className="h-3.5 w-3.5" />
           打开工作区
-        </button>
+        </Button>
       </div>
 
       {/* Body */}
@@ -186,10 +200,10 @@ export const ProjectDetailPageContent = () => {
           ].map((s) => (
             <div
               key={s.label}
-              className="rounded-xl border border-gray-100 bg-white px-5 py-4 shadow-sm"
+              className="rounded-xl border border-border bg-card px-5 py-4"
             >
               <p className={cn("text-2xl font-bold", s.color)}>{s.value}</p>
-              <p className="mt-0.5 text-xs text-gray-400">{s.label}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{s.label}</p>
             </div>
           ))}
         </div>
@@ -197,7 +211,7 @@ export const ProjectDetailPageContent = () => {
         {/* Active works */}
         {activeWorks.length > 0 && (
           <section>
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
               <Play className="h-4 w-4 text-blue-500" />
               进行中
             </h3>
@@ -211,12 +225,18 @@ export const ProjectDetailPageContent = () => {
 
         {/* History */}
         <section>
-          <h3 className="mb-3 text-sm font-semibold text-gray-700">历史 Works</h3>
+          <h3 className="mb-3 text-sm font-semibold text-foreground">
+            历史 Works
+          </h3>
           {finishedWorks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white py-10 text-center">
-              <Clock className="h-8 w-8 text-gray-300" />
-              <p className="mt-2 text-sm text-gray-400">还没有执行记录</p>
-              <p className="mt-0.5 text-xs text-gray-300">在工作区选择对象并触发 Pipeline</p>
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-10 text-center">
+              <Clock className="h-8 w-8 text-muted-foreground/30" />
+              <p className="mt-2 text-sm text-muted-foreground">
+                还没有执行记录
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground/60">
+                在工作区选择对象并触发 Pipeline
+              </p>
             </div>
           ) : (
             <div className="space-y-2">

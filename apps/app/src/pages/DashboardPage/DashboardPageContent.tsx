@@ -33,16 +33,16 @@ const StatCard = ({
 }) => {
   return (
     <Link to={to as "/"}>
-      <div className="group rounded-xl border border-gray-100 bg-white px-5 py-4 shadow-sm hover:border-gray-300 hover:shadow-md transition-all cursor-pointer">
+      <div className="group rounded-xl border border-border bg-card px-5 py-4 hover:border-primary/50 hover:shadow-sm transition-all cursor-pointer">
         <div className="flex items-center justify-between">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
             <Icon className="h-4 w-4" />
           </span>
-          <ArrowRight className="h-3.5 w-3.5 text-gray-300 group-hover:text-gray-500 transition-colors" />
+          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
         </div>
-        <p className="mt-3 text-2xl font-bold text-gray-900">{value}</p>
-        <p className="mt-0.5 text-sm font-medium text-gray-700">{label}</p>
-        <p className="mt-0.5 text-xs text-gray-400">{sub}</p>
+        <p className="mt-3 text-2xl font-bold text-foreground">{value}</p>
+        <p className="mt-0.5 text-sm font-medium text-foreground">{label}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>
       </div>
     </Link>
   );
@@ -67,17 +67,19 @@ const JobActivityRow = ({ job }: { job: JobEntity }) => {
   const Icon = JOB_STATUS_ICON[job.status] ?? Clock;
   return (
     <Link params={{ jobId: job.id }} to="/jobs/$jobId">
-      <div className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50 transition-colors">
+      <div className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-accent transition-colors">
         <Icon
           className={cn(
             "h-4 w-4 shrink-0",
             JOB_STATUS_CLS[job.status],
-            job.status === "running" && "animate-spin"
+            job.status === "running" && "animate-spin",
           )}
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-gray-800">{job.title}</p>
-          <p className="text-[11px] text-gray-400">
+          <p className="truncate text-sm font-medium text-foreground">
+            {job.title}
+          </p>
+          <p className="text-[11px] text-muted-foreground">
             {new Date(job.createdAt).toLocaleString("zh-CN", {
               month: "numeric",
               day: "numeric",
@@ -86,7 +88,7 @@ const JobActivityRow = ({ job }: { job: JobEntity }) => {
             })}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
           {job.status}
         </span>
       </div>
@@ -112,10 +114,10 @@ export const DashboardPageContent = ({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex h-14 shrink-0 items-center border-b border-gray-200 bg-white px-6">
-        <h1 className="text-base font-semibold text-gray-900">仪表盘</h1>
+      <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
+        <h1 className="text-base font-semibold text-foreground">仪表盘</h1>
         {runningJobs > 0 && (
-          <span className="ml-3 flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+          <span className="ml-3 flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
             {runningJobs} 个 Job 运行中
           </span>
         )}
@@ -154,14 +156,16 @@ export const DashboardPageContent = ({
         </div>
 
         {/* Recent Jobs */}
-        <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between border-b border-gray-50 px-4 py-3">
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div className="flex items-center gap-2">
-              <Activity className="h-3.5 w-3.5 text-gray-400" />
-              <span className="text-xs font-semibold text-gray-600">最近 Jobs</span>
+              <Activity className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-xs font-semibold text-muted-foreground">
+                最近 Jobs
+              </span>
             </div>
             <Link
-              className="text-[11px] text-gray-400 hover:text-gray-600 hover:underline"
+              className="text-[11px] text-muted-foreground hover:text-foreground hover:underline"
               to="/jobs"
             >
               全部查看
@@ -169,8 +173,10 @@ export const DashboardPageContent = ({
           </div>
           {recentJobs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <Activity className="h-7 w-7 text-gray-200" />
-              <p className="mt-2 text-xs text-gray-400">触发 Pipeline 后会在此显示</p>
+              <Activity className="h-7 w-7 text-muted-foreground/30" />
+              <p className="mt-2 text-xs text-muted-foreground">
+                触发 Pipeline 后会在此显示
+              </p>
             </div>
           ) : (
             <div className="py-1">
@@ -183,7 +189,7 @@ export const DashboardPageContent = ({
 
         {/* Quick actions */}
         <div>
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             快速入口
           </h2>
           <div className="grid grid-cols-4 gap-3">
@@ -216,11 +222,13 @@ export const DashboardPageContent = ({
               const Icon = a.icon;
               return (
                 <Link key={a.to} to={a.to as "/"}>
-                  <div className="group flex cursor-pointer flex-col gap-2 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all hover:border-gray-300 hover:shadow-md">
-                    <Icon className="h-5 w-5 text-gray-500" />
+                  <div className="group flex cursor-pointer flex-col gap-2 rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm">
+                    <Icon className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">{a.label}</p>
-                      <p className="text-xs text-gray-400">{a.sub}</p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {a.label}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{a.sub}</p>
                     </div>
                   </div>
                 </Link>

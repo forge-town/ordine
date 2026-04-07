@@ -12,6 +12,8 @@ import {
   Tag,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import { Button } from "@repo/ui/button";
+import { Input } from "@repo/ui/input";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import {
   createBestPractice,
@@ -32,7 +34,15 @@ const CATEGORIES = [
   { value: "security", label: "安全" },
 ] as const;
 
-const LANGUAGES = ["typescript", "tsx", "javascript", "python", "sql", "bash", "json"] as const;
+const LANGUAGES = [
+  "typescript",
+  "tsx",
+  "javascript",
+  "python",
+  "sql",
+  "bash",
+  "json",
+] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
   general: "bg-gray-100 text-gray-600",
@@ -83,13 +93,17 @@ const PracticeFormDialog = ({
           codeSnippet: initial.codeSnippet,
           tags: initial.tags.join(", "),
         }
-      : EMPTY_FORM
+      : EMPTY_FORM,
   );
   const [saving, setSaving] = useState(false);
 
   const set =
     (k: keyof FormState) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >,
+    ) =>
       setForm((prev) => ({ ...prev, [k]: e.target.value }));
 
   const handleTitleChange = set("title");
@@ -140,28 +154,34 @@ const PracticeFormDialog = ({
   const handleFormSubmit = (e: React.FormEvent) => void handleSubmit(e);
 
   const inputCls =
-    "w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400";
+    "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between border-b px-5 py-4 shrink-0">
-          <h2 className="text-sm font-semibold text-gray-900">
+      <div className="w-full max-w-2xl rounded-2xl bg-card shadow-xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
+          <h2 className="text-sm font-semibold text-foreground">
             {initial ? "编辑最佳实践" : "新增最佳实践"}
           </h2>
-          <button
-            className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-gray-100"
+          <Button
+            className="h-7 w-7"
+            size="icon"
+            variant="ghost"
             onClick={handleClose}
           >
-            <X className="h-4 w-4 text-gray-500" />
-          </button>
+            <X className="h-4 w-4 text-muted-foreground" />
+          </Button>
         </div>
-        <form className="p-5 space-y-4 overflow-y-auto" onSubmit={handleFormSubmit}>
+        <form
+          className="p-5 space-y-4 overflow-y-auto"
+          onSubmit={handleFormSubmit}
+        >
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">标题 *</label>
-            <input
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              标题 *
+            </label>
+            <Input
               required
-              className={inputCls}
               placeholder="e.g. 避免在 useEffect 中直接 setState"
               value={form.title}
               onChange={handleTitleChange}
@@ -169,12 +189,12 @@ const PracticeFormDialog = ({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
               适用时机 (Condition) *
             </label>
             <textarea
               required
-              className={cn(inputCls, "resize-none")}
+              className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
               placeholder="描述什么情况下应该遵循这个实践，例如：当需要在组件挂载后获取异步数据时..."
               rows={3}
               value={form.condition}
@@ -184,8 +204,14 @@ const PracticeFormDialog = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">分类</label>
-              <select className={inputCls} value={form.category} onChange={handleCategoryChange}>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                分类
+              </label>
+              <select
+                className={inputCls}
+                value={form.category}
+                onChange={handleCategoryChange}
+              >
                 {CATEGORIES.filter((c) => c.value !== "all").map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.label}
@@ -194,8 +220,14 @@ const PracticeFormDialog = ({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">语言</label>
-              <select className={inputCls} value={form.language} onChange={handleLanguageChange}>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                语言
+              </label>
+              <select
+                className={inputCls}
+                value={form.language}
+                onChange={handleLanguageChange}
+              >
                 {LANGUAGES.map((l) => (
                   <option key={l} value={l}>
                     {l}
@@ -206,9 +238,11 @@ const PracticeFormDialog = ({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">代码片段</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              代码片段
+            </label>
             <textarea
-              className={cn(inputCls, "resize-y font-mono text-xs leading-relaxed")}
+              className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs leading-relaxed focus:outline-none focus:ring-1 focus:ring-ring"
               placeholder="// 在这里粘贴代码示例..."
               rows={8}
               spellCheck={false}
@@ -218,9 +252,10 @@ const PracticeFormDialog = ({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">标签 (逗号分隔)</label>
-            <input
-              className={inputCls}
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              标签 (逗号分隔)
+            </label>
+            <Input
               placeholder="react, hooks, async"
               value={form.tags}
               onChange={handleTagsChange}
@@ -228,20 +263,15 @@ const PracticeFormDialog = ({
           </div>
 
           <div className="flex justify-end gap-2 pt-1 shrink-0">
-            <button
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
-              type="button"
-              onClick={handleClose}
-            >
+            <Button type="button" variant="outline" onClick={handleClose}>
               取消
-            </button>
-            <button
-              className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+            </Button>
+            <Button
               disabled={saving || !form.title || !form.condition}
               type="submit"
             >
               {saving ? "保存中..." : "保存"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -267,24 +297,26 @@ const PracticeCard = ({
   const handleDelete = onDelete;
 
   return (
-    <div className="group rounded-xl border border-gray-200 bg-white overflow-hidden hover:border-violet-200 hover:shadow-sm transition-all">
+    <div className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/50 hover:shadow-sm transition-all">
       {/* Header */}
       <div className="flex items-start gap-3 p-4">
-        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50">
-          <BookOpen className="h-4 w-4 text-violet-600" />
+        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <BookOpen className="h-4 w-4 text-primary" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-semibold text-gray-900 leading-snug">{practice.title}</h3>
+            <h3 className="text-sm font-semibold text-foreground leading-snug">
+              {practice.title}
+            </h3>
             <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
-                className="flex h-6 w-6 items-center justify-center rounded hover:bg-gray-100"
+                className="flex h-6 w-6 items-center justify-center rounded hover:bg-accent"
                 onClick={handleEdit}
               >
-                <Pencil className="h-3.5 w-3.5 text-gray-400" />
+                <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
               <button
-                className="flex h-6 w-6 items-center justify-center rounded hover:bg-red-50"
+                className="flex h-6 w-6 items-center justify-center rounded hover:bg-destructive/10"
                 onClick={handleDelete}
               >
                 <Trash2 className="h-3.5 w-3.5 text-red-400" />
@@ -297,18 +329,20 @@ const PracticeCard = ({
             <span
               className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-                CATEGORY_COLORS[practice.category] ?? "bg-gray-100 text-gray-600"
+                CATEGORY_COLORS[practice.category] ??
+                  "bg-muted text-muted-foreground",
               )}
             >
-              {CATEGORIES.find((c) => c.value === practice.category)?.label ?? practice.category}
+              {CATEGORIES.find((c) => c.value === practice.category)?.label ??
+                practice.category}
             </span>
-            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500 font-mono">
+            <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground font-mono">
               {practice.language}
             </span>
             {practice.tags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-0.5 rounded-full bg-gray-50 px-2 py-0.5 text-[11px] text-gray-400"
+                className="inline-flex items-center gap-0.5 rounded-full bg-muted/50 px-2 py-0.5 text-[11px] text-muted-foreground"
               >
                 <Tag className="h-2.5 w-2.5" />
                 {tag}
@@ -319,21 +353,23 @@ const PracticeCard = ({
       </div>
 
       {/* Condition */}
-      <div className="border-t border-gray-50 bg-amber-50/60 px-4 py-3">
+      <div className="border-t border-border bg-amber-50/60 px-4 py-3">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 mb-1">
           适用时机
         </p>
-        <p className="text-xs text-gray-700 leading-relaxed">{practice.condition}</p>
+        <p className="text-xs text-foreground leading-relaxed">
+          {practice.condition}
+        </p>
       </div>
 
       {/* Code snippet toggle */}
       {hasCode && (
-        <div className="border-t border-gray-100">
+        <div className="border-t border-border">
           <button
-            className="flex w-full items-center gap-2 px-4 py-2 text-xs text-gray-500 hover:bg-gray-50 transition-colors"
+            className="flex w-full items-center gap-2 px-4 py-2 text-xs text-muted-foreground hover:bg-accent transition-colors"
             onClick={handleToggleExpanded}
           >
-            <Code2 className="h-3.5 w-3.5 text-gray-400" />
+            <Code2 className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="flex-1 text-left font-medium">代码片段</span>
             {expanded ? (
               <ChevronUp className="h-3.5 w-3.5" />
@@ -342,7 +378,7 @@ const PracticeCard = ({
             )}
           </button>
           {expanded && (
-            <div className="border-t border-gray-100 bg-gray-950 px-4 py-3 overflow-x-auto">
+            <div className="border-t border-border bg-gray-950 px-4 py-3 overflow-x-auto">
               <pre className="text-xs leading-relaxed text-gray-100 font-mono whitespace-pre">
                 {practice.codeSnippet}
               </pre>
@@ -361,7 +397,8 @@ export const BestPracticesPageContent = ({
 }: {
   practices: BestPracticeEntity[];
 }) => {
-  const [practices, setPractices] = useState<BestPracticeEntity[]>(initialPractices);
+  const [practices, setPractices] =
+    useState<BestPracticeEntity[]>(initialPractices);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [showForm, setShowForm] = useState(false);
@@ -395,9 +432,11 @@ export const BestPracticesPageContent = ({
     await deleteBestPractice({ data: { id } });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setSearch(e.target.value);
 
-  const handleCategoryClick = (catValue: string) => () => setActiveCategory(catValue);
+  const handleCategoryClick = (catValue: string) => () =>
+    setActiveCategory(catValue);
 
   const handleAddPractice = () => {
     setEditing(null);
@@ -419,23 +458,20 @@ export const BestPracticesPageContent = ({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6">
-        <h1 className="text-base font-semibold text-gray-900">最佳实践</h1>
-        <button
-          className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
-          onClick={handleAddPractice}
-        >
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
+        <h1 className="text-base font-semibold text-foreground">最佳实践</h1>
+        <Button size="sm" onClick={handleAddPractice}>
           <Plus className="h-4 w-4" />
           新增实践
-        </button>
+        </Button>
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3 border-b border-gray-100 bg-white px-6 py-3 flex-wrap">
+      <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3 flex-wrap">
         <div className="relative w-64">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
-          <input
-            className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="h-8 pl-8 text-sm"
             placeholder="搜索实践、标签..."
             type="text"
             value={search}
@@ -446,14 +482,11 @@ export const BestPracticesPageContent = ({
         {/* Category tabs */}
         <div className="flex items-center gap-1 overflow-x-auto">
           {CATEGORIES.map((cat) => (
-            <button
+            <Button
               key={cat.value}
-              className={cn(
-                "whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-                activeCategory === cat.value
-                  ? "bg-violet-600 text-white"
-                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-              )}
+              className="h-7 whitespace-nowrap px-3 text-xs"
+              size="sm"
+              variant={activeCategory === cat.value ? "default" : "ghost"}
               onClick={handleCategoryClick(cat.value)}
             >
               {cat.label}
@@ -462,36 +495,37 @@ export const BestPracticesPageContent = ({
                   {practices.filter((p) => p.category === cat.value).length}
                 </span>
               )}
-            </button>
+            </Button>
           ))}
         </div>
 
-        <span className="ml-auto text-xs text-gray-400">{filtered.length} 条</span>
+        <span className="ml-auto text-xs text-muted-foreground">
+          {filtered.length} 条
+        </span>
       </div>
 
       {/* List */}
       <div className="flex-1 overflow-y-auto p-6">
         {filtered.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
-              <BookOpen className="h-7 w-7 text-gray-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+              <BookOpen className="h-7 w-7 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 text-sm font-semibold text-gray-700">
-              {search || activeCategory !== "all" ? "未找到匹配的实践" : "还没有最佳实践"}
+            <h3 className="mt-4 text-sm font-semibold text-foreground">
+              {search || activeCategory !== "all"
+                ? "未找到匹配的实践"
+                : "还没有最佳实践"}
             </h3>
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-muted-foreground">
               {search || activeCategory !== "all"
                 ? "尝试其他关键词或分类"
                 : "记录第一条最佳实践来开始"}
             </p>
             {!search && activeCategory === "all" && (
-              <button
-                className="mt-4 flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
-                onClick={handleAddPractice}
-              >
+              <Button className="mt-4" onClick={handleAddPractice}>
                 <Plus className="h-4 w-4" />
                 新增实践
-              </button>
+              </Button>
             )}
           </div>
         ) : (

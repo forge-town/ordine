@@ -9,7 +9,12 @@ import {
   SecuritySection,
 } from "./sections";
 
-type Section = "profile" | "notifications" | "appearance" | "language" | "security";
+type Section =
+  | "profile"
+  | "notifications"
+  | "appearance"
+  | "language"
+  | "security";
 
 const sections: {
   id: Section;
@@ -104,34 +109,41 @@ export const SettingsPageContent = () => {
   }, []);
 
   const updateSection = useCallback(
-    <K extends keyof AppSettings>(section: K, patch: Partial<AppSettings[K]>) => {
+    <K extends keyof AppSettings>(
+      section: K,
+      patch: Partial<AppSettings[K]>,
+    ) => {
       setSettings((prev) => ({
         ...prev,
         [section]: { ...prev[section], ...patch },
       }));
     },
-    []
+    [],
   );
 
   const handleProfileChange = useCallback(
     (patch: Partial<AppSettings["profile"]>) => updateSection("profile", patch),
-    [updateSection]
+    [updateSection],
   );
   const handleNotificationsChange = useCallback(
-    (patch: Partial<AppSettings["notifications"]>) => updateSection("notifications", patch),
-    [updateSection]
+    (patch: Partial<AppSettings["notifications"]>) =>
+      updateSection("notifications", patch),
+    [updateSection],
   );
   const handleAppearanceChange = useCallback(
-    (patch: Partial<AppSettings["appearance"]>) => updateSection("appearance", patch),
-    [updateSection]
+    (patch: Partial<AppSettings["appearance"]>) =>
+      updateSection("appearance", patch),
+    [updateSection],
   );
   const handleLanguageChange = useCallback(
-    (patch: Partial<AppSettings["language"]>) => updateSection("language", patch),
-    [updateSection]
+    (patch: Partial<AppSettings["language"]>) =>
+      updateSection("language", patch),
+    [updateSection],
   );
   const handleSecurityChange = useCallback(
-    (patch: Partial<AppSettings["security"]>) => updateSection("security", patch),
-    [updateSection]
+    (patch: Partial<AppSettings["security"]>) =>
+      updateSection("security", patch),
+    [updateSection],
   );
 
   const saveChanges = () => {
@@ -144,13 +156,13 @@ export const SettingsPageContent = () => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex h-14 shrink-0 items-center border-b bg-background px-6">
-        <h1 className="text-base font-semibold">设置</h1>
+      <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
+        <h1 className="text-base font-semibold text-foreground">设置</h1>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <nav className="w-52 shrink-0 border-r bg-background py-4">
+        <nav className="w-52 shrink-0 border-r border-border bg-background py-4">
           {sections.map((s) => {
             const handleClick = () => setActive(s.id);
             return (
@@ -160,13 +172,15 @@ export const SettingsPageContent = () => {
                   "flex w-full items-center gap-2.5 px-4 py-2 text-sm transition-colors",
                   active === s.id
                     ? "bg-accent text-accent-foreground font-medium"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
                 )}
                 onClick={handleClick}
               >
                 <s.icon className="h-4 w-4 shrink-0" />
                 {s.label}
-                {active === s.id && <ChevronRight className="ml-auto h-3.5 w-3.5 text-primary" />}
+                {active === s.id && (
+                  <ChevronRight className="ml-auto h-3.5 w-3.5 text-primary" />
+                )}
               </button>
             );
           })}
