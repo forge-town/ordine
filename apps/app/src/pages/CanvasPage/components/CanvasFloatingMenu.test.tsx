@@ -142,7 +142,23 @@ describe("CanvasFloatingMenu - save behavior", () => {
     });
   });
 
-  describe("disabled state", () => {
+  describe("menu items", () => {
+    const wrapper = ({ children }: React.PropsWithChildren) => (
+      <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
+    );
+
+    it("renders 导入 item in the menu", () => {
+      render(<CanvasFloatingMenu />, { wrapper });
+      openMenu();
+      expect(screen.getByText("导入")).toBeInTheDocument();
+    });
+
+    it("renders 导出 item in the menu", () => {
+      render(<CanvasFloatingMenu />, { wrapper });
+      openMenu();
+      expect(screen.getByText("导出")).toBeInTheDocument();
+    });
+  });
     it("save button is disabled while a mutation is pending", () => {
       mockUpdate.mockImplementationOnce(() => {});
       const isPendingUpdate = vi.fn(() => true);

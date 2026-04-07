@@ -1,13 +1,21 @@
+import type { PipelineEdge, PipelineNode } from "./canvasSlice";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
 
 export interface ActionsSlice {
   exportCanvas: () => void;
+  importCanvas: (data: {
+    nodes: PipelineNode[];
+    edges: PipelineEdge[];
+  }) => void;
   fitView: (options?: { padding?: number }) => void;
   zoomIn: () => void;
   zoomOut: () => void;
 }
 
-export const createActionsSlice = (get: Parameters<HarnessCanvasStoreSlice>[1]): ActionsSlice => ({
+export const createActionsSlice = (
+  set: Parameters<HarnessCanvasStoreSlice>[0],
+  get: Parameters<HarnessCanvasStoreSlice>[1],
+): ActionsSlice => ({
   exportCanvas: () => {
     const state = get();
     const exportData = {
@@ -27,6 +35,9 @@ export const createActionsSlice = (get: Parameters<HarnessCanvasStoreSlice>[1]):
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  },
+  importCanvas: ({ nodes, edges }) => {
+    set({ nodes, edges, selectedNodeId: null, selectedEdgeId: null });
   },
   fitView: () => {},
   zoomIn: () => {},
