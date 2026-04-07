@@ -21,7 +21,7 @@
     "ai": "^4.0.0",
     "hono": "^4.11.9",
     "mastra": "1.2.0",
-    "zod": "^3.22.0"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
