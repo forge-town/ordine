@@ -12,6 +12,7 @@ import {
   Globe,
   Lock,
   Users,
+  Search,
 } from "lucide-react";
 import {
   createOperation,
@@ -21,6 +22,9 @@ import {
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { ObjectType, Visibility } from "@/models/tables/operations_table";
 import { cn } from "@repo/ui/lib/utils";
+import { Button } from "@repo/ui/button";
+import { Input } from "@repo/ui/input";
+import { Badge } from "@repo/ui/badge";
 
 const VISIBILITY_OPTIONS: {
   value: Visibility;
@@ -262,26 +266,25 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
   const handleDeleteClick = (id: string) => () => void handleDelete(id);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between border-b px-6 py-4">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
         <div>
-          <h1 className="text-lg font-semibold">Operations</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <h1 className="text-base font-semibold text-foreground">
+            Operations
+          </h1>
+          <p className="text-xs text-muted-foreground">
             定义可在 Pipeline 中复用的自定义操作
           </p>
         </div>
-        <button
-          className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          onClick={handleOpenCreate}
-        >
+        <Button size="sm" onClick={handleOpenCreate}>
           <Plus className="h-4 w-4" />
           新建 Operation
-        </button>
+        </Button>
       </div>
 
       {/* Search + Visibility filter bar */}
-      <div className="flex items-center gap-1.5 border-b px-6 py-2">
+      <div className="flex shrink-0 items-center gap-3 border-b border-border bg-background px-6 py-3">
         {(
           [
             { value: "all" as const, label: "全部" },
@@ -290,48 +293,46 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
             { value: "private" as const, label: "私有" },
           ] as const
         ).map(({ value, label }) => (
-          <button
+          <Button
             key={value}
-            className={cn(
-              "rounded-full px-3 py-1 text-xs font-medium transition-colors",
-              visibilityFilter === value
-                ? "bg-violet-100 text-violet-700"
-                : "text-muted-foreground hover:bg-muted",
-            )}
+            className="h-7 px-2.5 text-xs"
+            size="sm"
+            variant={visibilityFilter === value ? "default" : "ghost"}
             onClick={handleVisibilityFilterClick(value)}
           >
             {label}
-          </button>
+          </Button>
         ))}
-        <div className="ml-auto flex items-center gap-2">
-          <input
-            className="rounded-md border bg-background px-3 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+        <div className="relative ml-auto max-w-xs flex-1">
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="h-8 pl-8 text-sm"
             placeholder="搜索操作名称或描述..."
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
           />
-          <label className="sr-only" htmlFor="sort-select">
-            排序
-          </label>
-          <select
-            aria-label="排序"
-            className="rounded-md border bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-            id="sort-select"
-            value={sortBy}
-            onChange={handleSortChange}
-          >
-            <option value="default">默认顺序</option>
-            <option value="name-asc">名称 A → Z</option>
-            <option value="name-desc">名称 Z → A</option>
-            <option value="date-desc">最新先</option>
-            <option value="date-asc">最旧先</option>
-            <option value="category-asc">分类 A → Z</option>
-          </select>
-          <span className="text-xs text-muted-foreground">
-            {filteredOperations.length} 个
-          </span>
         </div>
+        <label className="sr-only" htmlFor="sort-select">
+          排序
+        </label>
+        <select
+          aria-label="排序"
+          className="h-8 rounded-md border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+          id="sort-select"
+          value={sortBy}
+          onChange={handleSortChange}
+        >
+          <option value="default">默认顺序</option>
+          <option value="name-asc">名称 A → Z</option>
+          <option value="name-desc">名称 Z → A</option>
+          <option value="date-desc">最新先</option>
+          <option value="date-asc">最旧先</option>
+          <option value="category-asc">分类 A → Z</option>
+        </select>
+        <span className="text-xs text-muted-foreground">
+          {filteredOperations.length} 个
+        </span>
       </div>
 
       <div className="flex-1 overflow-auto p-6">
@@ -494,25 +495,25 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
             )}
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-3 gap-4">
             {filteredOperations.map((op) => (
               <div
                 key={op.id}
-                className="group relative rounded-xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+                className="group relative rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-100">
-                      <Zap className="h-4 w-4 text-violet-600" />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                      <Zap className="h-4 w-4 text-primary" />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">
+                      <p className="truncate text-sm font-semibold text-foreground">
                         {op.name}
                       </p>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      <div className="mt-0.5 flex items-center gap-1">
+                        <Badge className="text-[10px]" variant="secondary">
                           {op.category}
-                        </span>
+                        </Badge>
                         {(() => {
                           const vCfg = VISIBILITY_OPTIONS.find(
                             (v) => v.value === (op.visibility ?? "public"),
@@ -582,7 +583,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                       return (
                         <span
                           key={type}
-                          className="inline-flex items-center gap-0.5 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-600"
+                          className="inline-flex items-center gap-0.5 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
                           title={config.label}
                         >
                           <Icon className="h-3 w-3" />
