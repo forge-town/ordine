@@ -56,6 +56,10 @@ export const PipelinesPageContent = () => {
     await deletePipeline({ data: { id } });
   };
 
+  const handleCreateClick = () => void handleCreate();
+  const handleOpenPipeline = (id: string) => () => openPipeline(id);
+  const handleDeletePipeline = (id: string) => () => void handleDelete(id);
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
@@ -68,7 +72,7 @@ export const PipelinesPageContent = () => {
         </div>
         <Button
           size="sm"
-          onClick={() => void handleCreate()}
+          onClick={handleCreateClick}
           className="flex items-center gap-1.5"
         >
           <Plus className="h-3.5 w-3.5" />
@@ -91,8 +95,8 @@ export const PipelinesPageContent = () => {
               <PipelineCard
                 key={p.id}
                 pipeline={p}
-                onOpen={() => openPipeline(p.id)}
-                onDelete={() => void handleDelete(p.id)}
+                onOpen={handleOpenPipeline(p.id)}
+                onDelete={handleDeletePipeline(p.id)}
               />
             ))}
           </div>

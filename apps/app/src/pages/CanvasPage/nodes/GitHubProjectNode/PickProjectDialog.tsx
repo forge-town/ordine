@@ -68,8 +68,14 @@ export const PickProjectDialog = ({
     onClose();
   };
 
+  const handleOpenChange = (v: boolean) => {
+    if (!v) onClose();
+  };
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setSearch(e.target.value);
+
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>从项目库选取仓库</DialogTitle>
@@ -83,7 +89,7 @@ export const PickProjectDialog = ({
               className="w-full rounded-md border bg-muted/30 py-1.5 pl-8 pr-3 text-sm focus:bg-background focus:outline-none focus:ring-1 focus:ring-ring"
               placeholder="搜索仓库..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleSearchChange}
               autoFocus
             />
           </div>

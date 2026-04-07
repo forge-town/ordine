@@ -152,6 +152,8 @@ export const SkillPalette = () => {
     store.getState().addNode({ id, type: item.type, position: pos, data });
   };
 
+  const handleToggleSidebar = () => store.getState().toggleSidebar();
+
   return (
     <div
       className={cn(
@@ -160,7 +162,7 @@ export const SkillPalette = () => {
       )}
     >
       <button
-        onClick={() => store.getState().toggleSidebar()}
+        onClick={handleToggleSidebar}
         className="absolute -right-3 top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm hover:bg-gray-50"
         title={isSidebarOpen ? "收起侧栏" : "展开侧栏"}
       >

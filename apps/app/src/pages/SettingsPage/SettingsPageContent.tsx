@@ -128,11 +128,37 @@ export const SettingsPageContent = () => {
     [],
   );
 
+  const handleProfileChange = useCallback(
+    (patch: Partial<AppSettings["profile"]>) => updateSection("profile", patch),
+    [updateSection],
+  );
+  const handleNotificationsChange = useCallback(
+    (patch: Partial<AppSettings["notifications"]>) =>
+      updateSection("notifications", patch),
+    [updateSection],
+  );
+  const handleAppearanceChange = useCallback(
+    (patch: Partial<AppSettings["appearance"]>) =>
+      updateSection("appearance", patch),
+    [updateSection],
+  );
+  const handleLanguageChange = useCallback(
+    (patch: Partial<AppSettings["language"]>) =>
+      updateSection("language", patch),
+    [updateSection],
+  );
+  const handleSecurityChange = useCallback(
+    (patch: Partial<AppSettings["security"]>) =>
+      updateSection("security", patch),
+    [updateSection],
+  );
+
   const saveChanges = () => {
     saveSettings(settings);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
+  const handleSave = saveChanges;
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -144,24 +170,27 @@ export const SettingsPageContent = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <nav className="w-52 shrink-0 border-r bg-background py-4">
-          {sections.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setActive(s.id)}
-              className={cn(
-                "flex w-full items-center gap-2.5 px-4 py-2 text-sm transition-colors",
-                active === s.id
-                  ? "bg-accent text-accent-foreground font-medium"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-              )}
-            >
-              <s.icon className="h-4 w-4 shrink-0" />
-              {s.label}
-              {active === s.id && (
-                <ChevronRight className="ml-auto h-3.5 w-3.5 text-primary" />
-              )}
-            </button>
-          ))}
+          {sections.map((s) => {
+            const handleClick = () => setActive(s.id);
+            return (
+              <button
+                key={s.id}
+                onClick={handleClick}
+                className={cn(
+                  "flex w-full items-center gap-2.5 px-4 py-2 text-sm transition-colors",
+                  active === s.id
+                    ? "bg-accent text-accent-foreground font-medium"
+                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                )}
+              >
+                <s.icon className="h-4 w-4 shrink-0" />
+                {s.label}
+                {active === s.id && (
+                  <ChevronRight className="ml-auto h-3.5 w-3.5 text-primary" />
+                )}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Content */}
@@ -170,40 +199,40 @@ export const SettingsPageContent = () => {
             {active === "profile" && (
               <ProfileSection
                 values={settings.profile}
-                onChange={(patch) => updateSection("profile", patch)}
-                onSave={saveChanges}
+                onChange={handleProfileChange}
+                onSave={handleSave}
                 saved={saved}
               />
             )}
             {active === "notifications" && (
               <NotificationsSection
                 values={settings.notifications}
-                onChange={(patch) => updateSection("notifications", patch)}
-                onSave={saveChanges}
+                onChange={handleNotificationsChange}
+                onSave={handleSave}
                 saved={saved}
               />
             )}
             {active === "appearance" && (
               <AppearanceSection
                 values={settings.appearance}
-                onChange={(patch) => updateSection("appearance", patch)}
-                onSave={saveChanges}
+                onChange={handleAppearanceChange}
+                onSave={handleSave}
                 saved={saved}
               />
             )}
             {active === "language" && (
               <LanguageSection
                 values={settings.language}
-                onChange={(patch) => updateSection("language", patch)}
-                onSave={saveChanges}
+                onChange={handleLanguageChange}
+                onSave={handleSave}
                 saved={saved}
               />
             )}
             {active === "security" && (
               <SecuritySection
                 values={settings.security}
-                onChange={(patch) => updateSection("security", patch)}
-                onSave={saveChanges}
+                onChange={handleSecurityChange}
+                onSave={handleSave}
                 saved={saved}
               />
             )}

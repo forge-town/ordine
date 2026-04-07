@@ -46,6 +46,7 @@ const CreateProjectDialog = ({
   const [saving, setSaving] = useState(false);
   const [showTokenDialog, setShowTokenDialog] = useState(false);
 
+  const handleClose = onClose;
   const handleFetch = async () => {
     const parsed = parseGitHubUrl(url.trim());
     if (!parsed) {
@@ -93,6 +94,22 @@ const CreateProjectDialog = ({
     }
   };
 
+  const handleOpenTokenDialog = () => setShowTokenDialog(true);
+  const handleCloseTokenDialog = () => setShowTokenDialog(false);
+  const handleReset = () => {
+    setRepoInfo(null);
+    setError(null);
+  };
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUrl(e.target.value);
+    setError(null);
+  };
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") void handleFetch();
+  };
+  const handleFetchClick = () => void handleFetch();
+  const handleSaveClick = () => void handleSave();
+
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -102,7 +119,7 @@ const CreateProjectDialog = ({
               连接 GitHub 项目
             </h2>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-gray-100"
             >
               <X className="h-4 w-4 text-gray-500" />
@@ -126,7 +143,7 @@ const CreateProjectDialog = ({
                 <span>
                   未配置 Token，仅能访问公开仓库。
                   <button
-                    onClick={() => setShowTokenDialog(true)}
+                    onClick={handleOpenTokenDialog}
                     className="ml-1 underline underline-offset-2"
                   >
                     配置 Token
@@ -171,16 +188,13 @@ const CreateProjectDialog = ({
                 )}
                 <div className="flex justify-end gap-2">
                   <button
-                    onClick={() => {
-                      setRepoInfo(null);
-                      setError(null);
-                    }}
+                    onClick={handleReset}
                     className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
                   >
                     重新输入
                   </button>
                   <button
-                    onClick={() => void handleSave()}
+                    onClick={handleSaveClick}
                     disabled={saving}
                     className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
                   >
@@ -200,19 +214,14 @@ const CreateProjectDialog = ({
                       <Link2 className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
                       <input
                         value={url}
-                        onChange={(e) => {
-                          setUrl(e.target.value);
-                          setError(null);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") void handleFetch();
-                        }}
+                        onChange={handleUrlChange}
+                        onKeyDown={handleKeyDown}
                         placeholder="https://github.com/owner/repo"
                         className="w-full rounded-lg border border-gray-200 py-2 pl-8 pr-3 text-sm focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                       />
                     </div>
                     <button
-                      onClick={() => void handleFetch()}
+                      onClick={handleFetchClick}
                       disabled={loading || !url.trim()}
                       className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
                     >
@@ -236,7 +245,7 @@ const CreateProjectDialog = ({
             {repoInfo === null && (
               <div className="flex justify-end">
                 <button
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
                 >
                   取消
@@ -249,12 +258,15 @@ const CreateProjectDialog = ({
       {showTokenDialog && (
         <GitHubTokenDialog
           open={showTokenDialog}
-          onClose={() => setShowTokenDialog(false)}
+          onClose={handleCloseTokenDialog}
         />
       )}
     </>
   );
 };
+
+const handleExternalLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) =>
+  e.stopPropagation();
 
 const ProjectCard = ({
   project,
@@ -265,9 +277,15 @@ const ProjectCard = ({
   onClick: () => void;
   onDelete: () => void;
 }) => {
+  const handleClick = onClick;
+  const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onDelete();
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-4 hover:border-violet-300 hover:shadow-sm transition-all"
     >
       <div className="flex items-start justify-between">
@@ -279,16 +297,13 @@ const ProjectCard = ({
             href={project.githubUrl}
             target="_blank"
             rel="noreferrer"
-            onClick={(e) => e.stopPropagation()}
+            onClick={handleExternalLinkClick}
             className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-gray-100"
           >
             <ExternalLink className="h-3.5 w-3.5 text-gray-500" />
           </a>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
+            onClick={handleDeleteClick}
             className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-red-50"
           >
             <X className="h-3.5 w-3.5 text-red-400" />
@@ -339,13 +354,31 @@ export const ProjectsPageContent = () => {
     await deleteGithubProject({ data: { id } });
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setSearch(e.target.value);
+  const handleShowCreate = () => setShowCreate(true);
+  const handleHideCreate = () => setShowCreate(false);
+  const handleCreateProject = (p: GithubProjectEntity) =>
+    setProjects((prev) => [p, ...prev]);
+  const handleProjectClick =
+    (projectId: string) =>
+    () =>
+      void navigate({
+        to: "/projects/$projectId",
+        params: { projectId },
+      });
+  const handleDeleteProject =
+    (id: string) =>
+    () =>
+      void handleDelete(id);
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6">
         <h1 className="text-base font-semibold text-gray-900">项目</h1>
         <button
-          onClick={() => setShowCreate(true)}
+          onClick={handleShowCreate}
           className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -361,7 +394,7 @@ export const ProjectsPageContent = () => {
             type="text"
             placeholder="搜索项目..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
           />
         </div>
@@ -382,7 +415,7 @@ export const ProjectsPageContent = () => {
             </p>
             {!search && (
               <button
-                onClick={() => setShowCreate(true)}
+                onClick={handleShowCreate}
                 className={cn(
                   "mt-4 flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors",
                 )}
@@ -398,13 +431,8 @@ export const ProjectsPageContent = () => {
               <ProjectCard
                 key={project.id}
                 project={project}
-                onClick={() =>
-                  void navigate({
-                    to: "/projects/$projectId",
-                    params: { projectId: project.id },
-                  })
-                }
-                onDelete={() => void handleDelete(project.id)}
+                onClick={handleProjectClick(project.id)}
+                onDelete={handleDeleteProject(project.id)}
               />
             ))}
           </div>
@@ -413,8 +441,8 @@ export const ProjectsPageContent = () => {
 
       {showCreate && (
         <CreateProjectDialog
-          onClose={() => setShowCreate(false)}
-          onCreate={(p) => setProjects((prev) => [p, ...prev])}
+          onClose={handleHideCreate}
+          onCreate={handleCreateProject}
         />
       )}
     </div>

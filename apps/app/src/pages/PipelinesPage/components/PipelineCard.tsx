@@ -41,6 +41,10 @@ interface PipelineCardProps {
   onDelete: () => void;
 }
 
+const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  e.stopPropagation();
+};
+
 export const PipelineCard = ({
   pipeline,
   onOpen,
@@ -52,20 +56,26 @@ export const PipelineCard = ({
     return acc;
   }, {});
 
+  const handleClick = onOpen;
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter") onOpen();
+  };
+  const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onDelete();
+  };
+
   return (
     <Card
       role="button"
       tabIndex={0}
-      onClick={onOpen}
-      onKeyDown={(e) => e.key === "Enter" && onOpen()}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
       className="group relative cursor-pointer p-5 hover:border-primary/50 hover:shadow-md transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {/* Delete button */}
       <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
+        onClick={handleDeleteClick}
         className="absolute right-9 top-3 hidden rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:flex"
         aria-label="删除"
       >
@@ -76,7 +86,7 @@ export const PipelineCard = ({
       <Link
         to="/pipelines/$pipelineId"
         params={{ pipelineId: pipeline.id }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleLinkClick}
         className="absolute right-3 top-3 hidden rounded p-1 text-muted-foreground hover:bg-accent group-hover:flex"
         title="查看详情"
       >

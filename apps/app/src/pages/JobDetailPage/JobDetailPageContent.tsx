@@ -92,13 +92,22 @@ const MetaRow = ({
 export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
   const navigate = useNavigate();
 
+  const handleNavigateJobs = () => void navigate({ to: "/jobs" });
+  const handleNavigateProject = () => {
+    if (!job?.projectId) return;
+    void navigate({
+      to: "/projects/$projectId",
+      params: { projectId: job.projectId },
+    });
+  };
+
   if (!job) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <XCircle className="h-10 w-10 text-gray-300" />
         <p className="text-sm font-medium text-gray-500">Job 不存在</p>
         <button
-          onClick={() => void navigate({ to: "/jobs" })}
+          onClick={handleNavigateJobs}
           className="text-xs text-violet-600 hover:underline"
         >
           返回列表
@@ -122,7 +131,7 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
         <button
-          onClick={() => void navigate({ to: "/jobs" })}
+          onClick={handleNavigateJobs}
           className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />
@@ -204,12 +213,7 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
               <Link2 className="h-3.5 w-3.5 text-gray-400" />
               {job.projectId && (
                 <button
-                  onClick={() =>
-                    void navigate({
-                      to: "/projects/$projectId",
-                      params: { projectId: job.projectId! },
-                    })
-                  }
+                  onClick={handleNavigateProject}
                   className="text-xs text-violet-600 hover:underline"
                 >
                   查看项目

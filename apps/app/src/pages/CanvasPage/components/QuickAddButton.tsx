@@ -23,6 +23,8 @@ interface Props {
   nodeType: NodeType;
 }
 
+const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
+
 export const QuickAddButton = ({ nodeId, nodeType }: Props) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -48,15 +50,21 @@ export const QuickAddButton = ({ nodeId, nodeType }: Props) => {
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
+  const handleToggleOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen((v) => !v);
+  };
+  const handlePick = (type: NodeType) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleAdd(type);
+  };
+
   return (
     <div ref={ref} className="relative z-50">
       {/* The "+" trigger button */}
       <button
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((v) => !v);
-        }}
+        onMouseDown={handleMouseDown}
+        onClick={handleToggleOpen}
         className={cn(
           "flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all",
           "hover:bg-slate-100 hover:text-slate-800 hover:scale-110",
@@ -78,11 +86,8 @@ export const QuickAddButton = ({ nodeId, nodeType }: Props) => {
             return (
               <button
                 key={type}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAdd(type);
-                }}
+                onMouseDown={handleMouseDown}
+                onClick={handlePick(type)}
                 className={cn(
                   "flex w-full items-center gap-2 px-3 py-1.5 text-xs transition-colors hover:bg-gray-50",
                 )}

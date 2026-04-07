@@ -7,22 +7,25 @@ export const ToastContainer: FC = () => {
 
   return (
     <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
-      {toasts.map((toast, index) => (
-        <Toast
-          key={toast.id}
-          type={toast.type}
-          title={toast.title}
-          description={toast.description}
-          duration={toast.duration}
-          onClose={() => removeToast(toast.id)}
-          style={{
-            position: "relative",
-            right: 0,
-            top: 0,
-            marginTop: index > 0 ? "0.5rem" : 0,
-          }}
-        />
-      ))}
+      {toasts.map((toast, index) => {
+        const handleClose = () => removeToast(toast.id);
+        return (
+          <Toast
+            key={toast.id}
+            type={toast.type}
+            title={toast.title}
+            description={toast.description}
+            duration={toast.duration}
+            onClose={handleClose}
+            style={{
+              position: "relative",
+              right: 0,
+              top: 0,
+              marginTop: index > 0 ? "0.5rem" : 0,
+            }}
+          />
+        );
+      })}
     </div>
   );
 };

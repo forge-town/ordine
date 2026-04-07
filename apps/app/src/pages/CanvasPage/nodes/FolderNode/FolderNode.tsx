@@ -9,17 +9,26 @@ export interface FolderNodeProps {
   selected?: boolean;
 }
 
+const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
+
 export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const store = useHarnessCanvasStore();
   const update = (patch: Record<string, unknown>) =>
     store.getState().updateNodeData(id, patch);
+
+  const handleLabelChange = (v: string) => update({ label: v });
+  const handleFolderPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    update({ folderPath: e.target.value });
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    update({ description: e.target.value });
+
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
         theme="orange"
         icon={Folder}
         label={data.label}
-        onLabelChange={(v) => update({ label: v })}
+        onLabelChange={handleLabelChange}
         description="Folder"
         selected={selected}
         bodyClassName="space-y-2"
@@ -28,18 +37,18 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
           <input
             className="nodrag nopan font-mono text-[11px] font-semibold text-slate-700 bg-transparent focus:outline-none flex-1 min-w-0"
             value={data.folderPath}
-            onChange={(e) => update({ folderPath: e.target.value })}
+            onChange={handleFolderPathChange}
             placeholder="src/components/"
-            onMouseDown={(e) => e.stopPropagation()}
+            onMouseDown={handleMouseDown}
           />
         </div>
         <textarea
           className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
           rows={2}
           value={data.description ?? ""}
-          onChange={(e) => update({ description: e.target.value })}
+          onChange={handleDescriptionChange}
           placeholder="文件夹描述..."
-          onMouseDown={(e) => e.stopPropagation()}
+          onMouseDown={handleMouseDown}
         />
       </NodeCard>
 

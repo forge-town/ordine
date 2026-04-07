@@ -41,6 +41,10 @@ export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<SkillCategory>("all");
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setSearch(e.target.value);
+  const handleCategoryClick = (cat: SkillCategory) => () => setCategory(cat);
+
   const filtered = skills.filter((s) => {
     const matchesSearch =
       s.label.toLowerCase().includes(search.toLowerCase()) ||
@@ -70,7 +74,7 @@ export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
             type="text"
             placeholder="搜索技能..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             className="pl-8 h-8 text-sm"
           />
         </div>
@@ -80,7 +84,7 @@ export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
               key={cat}
               variant={category === cat ? "default" : "ghost"}
               size="sm"
-              onClick={() => setCategory(cat)}
+              onClick={handleCategoryClick(cat)}
               className="text-xs h-7 px-2.5"
             >
               {categoryLabels[cat]}

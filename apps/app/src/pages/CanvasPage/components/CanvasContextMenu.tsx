@@ -30,6 +30,8 @@ interface Props {
   onClose: () => void;
 }
 
+const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
+
 export const CanvasContextMenu = ({
   screenX,
   screenY,
@@ -191,22 +193,24 @@ export const CanvasContextMenu = ({
     isConnectMode ? availableTypes.includes(t) : true,
   );
 
+  const handleBackdropClick = () => {
+    state.setConnectStart(null);
+    onClose();
+  };
+
   return (
     <>
       {/* Invisible backdrop – closes menu on outside click */}
       <div
         className="fixed inset-0 z-[999]"
-        onClick={() => {
-          state.setConnectStart(null);
-          onClose();
-        }}
+        onClick={handleBackdropClick}
       />
 
       {/* Menu */}
       <div
         className="fixed z-[1000] max-h-[80vh] min-w-[200px] overflow-y-auto rounded-xl border bg-popover py-1 shadow-2xl"
         style={{ left, top }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleStopPropagation}
       >
         {isConnectMode && sourceNodeInfo ? (
           <>

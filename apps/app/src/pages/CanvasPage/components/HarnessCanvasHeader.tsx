@@ -6,6 +6,9 @@ import { Separator } from "@repo/ui/separator";
 import { useHarnessCanvasStore } from "../_store";
 import { updatePipeline } from "@/services/pipelinesService";
 
+const handleNavigateSettings = () =>
+  void (globalThis.location.href = "/settings");
+
 export const HarnessCanvasHeader = () => {
   const store = useHarnessCanvasStore();
   const pipelineId = useStore(store, (s) => s.pipelineId);
@@ -38,6 +41,8 @@ export const HarnessCanvasHeader = () => {
     }
   };
 
+  const handleClickSave = () => void handleSave();
+
   return (
     <header className="flex h-11 shrink-0 items-center justify-between border-b bg-background px-4">
       <div className="flex items-center gap-2.5">
@@ -56,7 +61,7 @@ export const HarnessCanvasHeader = () => {
             variant="ghost"
             size="sm"
             className="h-7 gap-1.5 px-2.5 text-xs"
-            onClick={() => void handleSave()}
+            onClick={handleClickSave}
             disabled={saveState === "saving"}
           >
             {saveState === "saving" ? (
@@ -74,9 +79,7 @@ export const HarnessCanvasHeader = () => {
           variant="ghost"
           size="icon"
           className="h-7 w-7"
-          onClick={() =>
-            void (globalThis.location.href = "/settings")
-          }
+          onClick={handleNavigateSettings}
           title="设置"
         >
           <Settings className="h-4 w-4" />

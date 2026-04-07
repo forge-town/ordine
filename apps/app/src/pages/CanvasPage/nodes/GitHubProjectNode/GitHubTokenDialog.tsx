@@ -74,8 +74,19 @@ export const GitHubTokenDialog = ({
     onClose();
   };
 
+  const handleOpenChange = (v: boolean) => {
+    if (!v) onClose();
+  };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    setVerifiedLogin(null);
+    setVerifyError(null);
+  };
+  const handleToggleShowToken = () => setShowToken((v) => !v);
+  const handleClose = onClose;
+
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -122,18 +133,14 @@ export const GitHubTokenDialog = ({
                 <Input
                   type={showToken ? "text" : "password"}
                   value={inputValue}
-                  onChange={(e) => {
-                    setInputValue(e.target.value);
-                    setVerifiedLogin(null);
-                    setVerifyError(null);
-                  }}
+                  onChange={handleInputChange}
                   placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
                   className="pr-8 font-mono text-sm"
                 />
                 <button
                   type="button"
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  onClick={() => setShowToken((v) => !v)}
+                  onClick={handleToggleShowToken}
                 >
                   {showToken ? (
                     <EyeOff className="h-3.5 w-3.5" />
@@ -198,7 +205,7 @@ export const GitHubTokenDialog = ({
               </Button>
             )}
             <div className="ml-auto flex gap-2">
-              <Button variant="outline" size="sm" onClick={onClose}>
+              <Button variant="outline" size="sm" onClick={handleClose}>
                 取消
               </Button>
               <Button

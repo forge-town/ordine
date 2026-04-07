@@ -10,15 +10,32 @@ import {
   Redo,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useUpdate } from "@refinedev/core";
 import { useHarnessCanvasStore } from "../_store";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 
 export const CanvasFloatingMenu = () => {
   const store = useHarnessCanvasStore();
-  const saveCanvas = useStore(store, (state) => state.saveCanvas);
+  const pipelineId = useStore(store, (state) => state.pipelineId);
+  const pipelineName = useStore(store, (state) => state.pipelineName);
+  const nodes = useStore(store, (state) => state.nodes);
+  const edges = useStore(store, (state) => state.edges);
   const exportCanvas = useStore(store, (state) => state.exportCanvas);
   const undo = useStore(store, (state) => state.undo);
   const redo = useStore(store, (state) => state.redo);
-  const pipelineId = useStore(store, (state) => state.pipelineId);
+
+  const { mutate: saveCanvas, mutation } = useUpdate({
+    resource: ResourceName.pipelines,
+    id: pipelineId ?? "",
+    mutationOptions: {
+      onSuccess: () => {
+        // handled by refine notification below
+      },
+      onError: () => {
+        // handled by refine notification below
+      },
+    },
+  });
 
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -33,21 +50,48 @@ export const CanvasFloatingMenu = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const onSave = pipelineId ? saveCanvas : undefined;
+  const handleSave = () => {
+    if (!pipelineId) return;
+    saveCanvas({
+      values: {
+        nodes,
+        edges,
+      },
+      successNotification: {
+        type: "success",
+        message: "保存成功",
+        description: `Pipeline「${pipelineName || "无标题"}」已保存`,
+      },
+      errorNotification: {
+        type: "error",
+        message: "保存失败",
+        description: "请稍后重试",
+      },
+    });
+  };
+
+  const onSave = pipelineId ? handleSave : undefined;
 
   const menuItems = [
     { icon: Home, label: "回到工作区", to: "/" },
-    { icon: Save, label: "保存", onClick: onSave },
+    { icon: Save, label: "保存", onClick: onSave, disabled: mutation.isPending },
     { icon: FileDown, label: "导出", onClick: exportCanvas },
     { icon: Undo, label: "撤销", onClick: undo, divider: true },
     { icon: Redo, label: "重做", onClick: redo },
     { icon: Settings, label: "设置", to: "/settings" },
   ];
 
+  const handleToggleOpen = () => setIsOpen((v) => !v);
+  const handleCloseMenu = () => setIsOpen(false);
+  const handleItemClick = (onClick?: () => void) => () => {
+    onClick?.();
+    setIsOpen(false);
+  };
+
   return (
     <div ref={menuRef} className="fixed left-4 top-4 z-50">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggleOpen}
         className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white shadow-md transition-all hover:bg-gray-50 hover:shadow-lg active:scale-95"
         title="菜单"
       >
@@ -65,18 +109,16 @@ export const CanvasFloatingMenu = () => {
                 <Link
                   to={item.to}
                   className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleCloseMenu}
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               ) : (
                 <button
-                  onClick={() => {
-                    item.onClick?.();
-                    setIsOpen(false);
-                  }}
-                  className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                  onClick={handleItemClick(item.onClick)}
+                  disabled={item.disabled}
+                  className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}

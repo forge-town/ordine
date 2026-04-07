@@ -1,16 +1,7 @@
 {
   "extends": ["../../packages/oxlint-config/.oxlintrc.json"],
   "rules": {
-    "unicorn/no-abusive-eslint-disable": "off",
-    "react/jsx-handler-names": [
-      "error",
-      {
-        "eventHandlerPrefix": "handle",
-        "eventHandlerPropPrefix": "on",
-        "checkLocalVariables": false,
-        "checkInlineFunction": false
-      }
-    ]
+    "unicorn/no-abusive-eslint-disable": "off"
   },
   "ignorePatterns": [
     "src/routeTree.gen.ts",
@@ -25,10 +16,7 @@
         "**/*.test.ts",
         "**/*.spec.tsx",
         "**/*.spec.ts"
-      ],
-      "rules": {
-        "react/jsx-handler-names": "off"
-      }
+      ]
     }
   ]
 }

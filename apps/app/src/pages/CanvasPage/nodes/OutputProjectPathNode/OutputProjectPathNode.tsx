@@ -12,6 +12,8 @@ export interface OutputProjectPathNodeProps {
   selected?: boolean;
 }
 
+const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
+
 export const OutputProjectPathNode = ({
   id,
   data,
@@ -21,13 +23,21 @@ export const OutputProjectPathNode = ({
   const update = (patch: Record<string, unknown>) =>
     store.getState().updateNodeData(id, patch);
 
+  const handleLabelChange = (v: string) => update({ label: v });
+  const handleProjectIdChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    update({ projectId: e.target.value });
+  const handlePathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    update({ path: e.target.value });
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    update({ description: e.target.value });
+
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
         theme="teal"
         icon={FolderOutput}
         label={data.label}
-        onLabelChange={(v) => update({ label: v })}
+        onLabelChange={handleLabelChange}
         description="项目路径输出"
         selected={selected}
         bodyClassName="space-y-2"
@@ -40,9 +50,9 @@ export const OutputProjectPathNode = ({
             <input
               className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] text-slate-700 focus:outline-none"
               value={data.projectId ?? ""}
-              onChange={(e) => update({ projectId: e.target.value })}
+              onChange={handleProjectIdChange}
               placeholder="project-id"
-              onMouseDown={(e) => e.stopPropagation()}
+              onMouseDown={handleMouseDown}
             />
           </div>
           <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2.5 py-1">
@@ -52,9 +62,9 @@ export const OutputProjectPathNode = ({
             <input
               className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
               value={data.path}
-              onChange={(e) => update({ path: e.target.value })}
+              onChange={handlePathChange}
               placeholder="src/output/"
-              onMouseDown={(e) => e.stopPropagation()}
+              onMouseDown={handleMouseDown}
             />
           </div>
         </div>
@@ -62,9 +72,9 @@ export const OutputProjectPathNode = ({
           className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
           rows={2}
           value={data.description ?? ""}
-          onChange={(e) => update({ description: e.target.value })}
+          onChange={handleDescriptionChange}
           placeholder="描述此输出..."
-          onMouseDown={(e) => e.stopPropagation()}
+          onMouseDown={handleMouseDown}
         />
       </NodeCard>
 

@@ -113,6 +113,8 @@ const Stat = ({
 export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   const navigate = useNavigate();
 
+  const handleNavigatePipelines = () =>
+    void navigate({ to: "/pipelines" });
   const handleCanvasClick = () => {
     void navigate({ to: "/canvas", search: { id: pipeline.id } });
   };
@@ -147,7 +149,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
         <button
-          onClick={() => void navigate({ to: "/pipelines" })}
+          onClick={handleNavigatePipelines}
           className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
           aria-label="返回列表"
         >

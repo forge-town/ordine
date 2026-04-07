@@ -35,6 +35,13 @@ export const CanvasToolbar = () => {
     store.getState().toggleAiAssistant();
   };
 
+  const handleZoomOut = zoomOut;
+  const handleZoomIn = zoomIn;
+  const handleFitView = () => fitView({ padding: 0.1 });
+  const handleUndo = () => store.getState().undo();
+  const handleRedo = () => store.getState().redo();
+  const handleExportCanvas = exportCanvas;
+
   return (
     <div className="absolute left-1/2 top-3 z-10 -translate-x-1/2">
       <div className="flex items-center gap-0.5 rounded-xl border bg-background px-1.5 py-1 shadow-md">
@@ -46,7 +53,7 @@ export const CanvasToolbar = () => {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={zoomOut}
+                onClick={handleZoomOut}
               />
             }
           >
@@ -61,7 +68,7 @@ export const CanvasToolbar = () => {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={zoomIn}
+                onClick={handleZoomIn}
               />
             }
           >
@@ -76,7 +83,7 @@ export const CanvasToolbar = () => {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={() => fitView({ padding: 0.1 })}
+                onClick={handleFitView}
               />
             }
           >
@@ -93,7 +100,7 @@ export const CanvasToolbar = () => {
           size="icon"
           className="h-7 w-7"
           disabled={!canUndo}
-          onClick={() => store.getState().undo()}
+          onClick={handleUndo}
           title="撤销"
         >
           <Undo2 className="h-4 w-4" />
@@ -103,7 +110,7 @@ export const CanvasToolbar = () => {
           size="icon"
           className="h-7 w-7"
           disabled={!canRedo}
-          onClick={() => store.getState().redo()}
+          onClick={handleRedo}
           title="重做"
         >
           <Redo2 className="h-4 w-4" />
@@ -135,7 +142,7 @@ export const CanvasToolbar = () => {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={exportCanvas}
+                onClick={handleExportCanvas}
               />
             }
           >

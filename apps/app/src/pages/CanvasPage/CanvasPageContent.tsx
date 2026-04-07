@@ -1,8 +1,6 @@
-import { useEffect } from "react";
 import { useStore } from "zustand";
 import { ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useUpdate } from "@refinedev/core";
 
 import { useHarnessCanvasStore } from "./_store";
 import { CanvasToolbar } from "./components/CanvasToolbar";
@@ -11,53 +9,23 @@ import { CanvasContextMenu } from "./components/CanvasContextMenu";
 import { ConnectionMenu } from "./components/ConnectionMenu";
 import { NodeContextMenu } from "./components/NodeContextMenu";
 import { CanvasFloatingMenu } from "./components/CanvasFloatingMenu";
-import { ResourceName } from "@/integrations/refine/dataProvider";
 
 const CanvasInner = () => {
   const store = useHarnessCanvasStore();
 
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const contextMenu = useStore(store, (state) => state.contextMenu);
-  const closeContextMenu = useStore(store, (state) => state.closeContextMenu);
+  const handleCloseContextMenu = useStore(store, (state) => state.closeContextMenu);
   const connectionMenu = useStore(store, (state) => state.connectionMenu);
-  const closeConnectionMenu = useStore(
+  const handleCloseConnectionMenu = useStore(
     store,
     (state) => state.closeConnectionMenu,
   );
   const nodeContextMenu = useStore(store, (state) => state.nodeContextMenu);
-  const closeNodeContextMenu = useStore(
+  const handleCloseNodeContextMenu = useStore(
     store,
     (state) => state.closeNodeContextMenu,
   );
-
-  const { mutate: updatePipelineMutate } = useUpdate();
-
-  useEffect(() => {
-    store.setState({
-      saveCanvas: () => {
-        const state = store.getState();
-        if (!state.pipelineId) return;
-        updatePipelineMutate({
-          resource: ResourceName.pipelines,
-          id: state.pipelineId,
-          values: {
-            nodes: state.nodes,
-            edges: state.edges,
-          },
-          successNotification: {
-            type: "success",
-            message: "保存成功",
-            description: `Pipeline「${state.pipelineName || "无标题"}」已保存`,
-          },
-          errorNotification: {
-            type: "error",
-            message: "保存失败",
-            description: "请稍后重试",
-          },
-        });
-      },
-    });
-  }, [store, updatePipelineMutate]);
 
   return (
     <div className="relative h-full w-full">
@@ -81,7 +49,7 @@ const CanvasInner = () => {
           screenY={contextMenu.screenY}
           flowX={contextMenu.flowX}
           flowY={contextMenu.flowY}
-          onClose={closeContextMenu}
+          onClose={handleCloseContextMenu}
         />
       )}
 
@@ -91,7 +59,7 @@ const CanvasInner = () => {
           screenY={connectionMenu.screenY}
           flowX={connectionMenu.flowX}
           flowY={connectionMenu.flowY}
-          onClose={closeConnectionMenu}
+          onClose={handleCloseConnectionMenu}
         />
       )}
 
@@ -100,7 +68,7 @@ const CanvasInner = () => {
           screenX={nodeContextMenu.screenX}
           screenY={nodeContextMenu.screenY}
           nodeId={nodeContextMenu.nodeId}
-          onClose={closeNodeContextMenu}
+          onClose={handleCloseNodeContextMenu}
         />
       )}
     </div>

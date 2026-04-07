@@ -36,6 +36,8 @@ interface Props {
   onClose: () => void;
 }
 
+const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
+
 export const ConnectionMenu = ({
   screenX,
   screenY,
@@ -166,22 +168,24 @@ export const ConnectionMenu = ({
   const left = Math.min(screenX, window.innerWidth - 220);
   const top = Math.min(screenY, window.innerHeight - 300);
 
+  const handleBackdropClick = () => {
+    setConnectStart(null);
+    onClose();
+  };
+
   return (
     <>
       {/* Backdrop */}
       <div
         className="fixed inset-0 z-999"
-        onClick={() => {
-          setConnectStart(null);
-          onClose();
-        }}
+        onClick={handleBackdropClick}
       />
 
       {/* Menu */}
       <div
         className="fixed z-1000 max-h-[80vh] w-52 overflow-y-auto rounded-xl border border-border/60 bg-popover shadow-2xl"
         style={{ left, top }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleStopPropagation}
       >
         {/* Header */}
         <div className="flex items-center gap-2 border-b border-border/50 px-3 py-2.5">

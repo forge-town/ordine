@@ -121,6 +121,15 @@ export const ProjectDetailPageContent = () => {
   const { project, works, pipelines } = Route.useLoaderData();
   const navigate = useNavigate();
 
+  const handleNavigateProjects = () => void navigate({ to: "/projects" });
+  const handleNavigateWorkspace = () => {
+    if (!project) return;
+    void navigate({
+      to: "/projects/$projectId/workspace",
+      params: { projectId: project.id },
+    });
+  };
+
   if (!project) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-gray-400">
@@ -141,7 +150,7 @@ export const ProjectDetailPageContent = () => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
         <button
-          onClick={() => void navigate({ to: "/projects" })}
+          onClick={handleNavigateProjects}
           className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />
@@ -155,12 +164,7 @@ export const ProjectDetailPageContent = () => {
           </p>
         </div>
         <button
-          onClick={() =>
-            void navigate({
-              to: "/projects/$projectId/workspace",
-              params: { projectId: project.id },
-            })
-          }
+          onClick={handleNavigateWorkspace}
           className="flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
         >
           <Wrench className="h-3.5 w-3.5" />

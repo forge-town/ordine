@@ -40,6 +40,8 @@ const statusConfig: Record<
   fail: { icon: XCircle, color: "text-red-500", label: "失败" },
 };
 
+const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
+
 export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
   const store = useHarnessCanvasStore();
   const update = (patch: Record<string, unknown>) =>
@@ -51,13 +53,19 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
     label: statusLabel,
   } = statusConfig[status];
 
+  const handleLabelChange = (v: string) => update({ label: v });
+  const handleExpressionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    update({ expression: e.target.value });
+  const handleExpectedResultChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    update({ expectedResult: e.target.value });
+
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
         theme="amber"
         icon={ShieldCheck}
         label={data.label}
-        onLabelChange={(v) => update({ label: v })}
+        onLabelChange={handleLabelChange}
         description="Condition Check"
         selected={selected}
         headerRight={
@@ -80,9 +88,9 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
             className="nodrag nopan font-mono text-[11px] text-slate-700 bg-slate-50 rounded px-1 py-0.5 w-full resize-none focus:outline-none focus:ring-1 focus:ring-slate-200"
             rows={2}
             value={data.expression}
-            onChange={(e) => update({ expression: e.target.value })}
+            onChange={handleExpressionChange}
             placeholder="未设置表达式"
-            onMouseDown={(e) => e.stopPropagation()}
+            onMouseDown={handleMouseDown}
           />
         </div>
         <div className="space-y-1">
@@ -92,9 +100,9 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
           <input
             className="nodrag nopan text-[11px] font-medium text-slate-600 bg-slate-50 rounded px-1 py-0.5 w-full focus:outline-none focus:ring-1 focus:ring-slate-200"
             value={data.expectedResult}
-            onChange={(e) => update({ expectedResult: e.target.value })}
+            onChange={handleExpectedResultChange}
             placeholder="期望结果..."
-            onMouseDown={(e) => e.stopPropagation()}
+            onMouseDown={handleMouseDown}
           />
         </div>
       </NodeCard>

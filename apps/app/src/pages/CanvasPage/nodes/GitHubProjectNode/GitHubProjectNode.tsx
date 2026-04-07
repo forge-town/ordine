@@ -19,6 +19,8 @@ export interface GitHubProjectNodeProps {
   selected?: boolean;
 }
 
+const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
+
 export const GitHubProjectNode = ({
   id,
   data,
@@ -60,13 +62,21 @@ export const GitHubProjectNode = ({
     ? `https://github.com/${data.owner}/${data.repo}`
     : undefined;
 
+  const handleLabelChange = (v: string) => update({ label: v });
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    update({ description: e.target.value });
+  const handlePickOpen = () => setPickOpen(true);
+  const handleConnectOpen = () => setConnectOpen(true);
+  const handlePickClose = () => setPickOpen(false);
+  const handleConnectClose = () => setConnectOpen(false);
+
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
         theme="orange"
         icon={SiGitHubIcon}
         label={data.label}
-        onLabelChange={(v) => update({ label: v })}
+        onLabelChange={handleLabelChange}
         description="GitHub Project"
         selected={selected}
         bodyClassName="space-y-2"
@@ -75,8 +85,8 @@ export const GitHubProjectNode = ({
         {isConnected ? (
           <div
             className="flex items-center gap-1.5 rounded-md border border-slate-100 bg-slate-50 px-2.5 py-1.5 cursor-pointer hover:bg-orange-50 hover:border-orange-200 transition-colors"
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={() => setPickOpen(true)}
+            onMouseDown={handleMouseDown}
+            onClick={handlePickOpen}
             title="点击切换仓库"
           >
             {data.isPrivate ? (
@@ -94,11 +104,11 @@ export const GitHubProjectNode = ({
             )}
           </div>
         ) : (
-          <div className="space-y-1.5" onMouseDown={(e) => e.stopPropagation()}>
+          <div className="space-y-1.5" onMouseDown={handleMouseDown}>
             <button
               type="button"
               className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-orange-200 bg-orange-50 py-1.5 text-[11px] font-medium text-orange-700 hover:bg-orange-100 transition-colors"
-              onClick={() => setPickOpen(true)}
+              onClick={handlePickOpen}
             >
               <BookMarked className="h-3.5 w-3.5" />
               从项目库选取
@@ -106,7 +116,7 @@ export const GitHubProjectNode = ({
             <button
               type="button"
               className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-slate-200 bg-slate-50/50 py-1.5 text-[11px] text-slate-500 hover:bg-slate-100 transition-colors"
-              onClick={() => setConnectOpen(true)}
+              onClick={handleConnectOpen}
             >
               <Link2 className="h-3 w-3" />
               直接输入 URL
@@ -120,9 +130,9 @@ export const GitHubProjectNode = ({
             className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
             rows={2}
             value={data.description ?? ""}
-            onChange={(e) => update({ description: e.target.value })}
+            onChange={handleDescriptionChange}
             placeholder="仓库描述..."
-            onMouseDown={(e) => e.stopPropagation()}
+            onMouseDown={handleMouseDown}
           />
         )}
 
@@ -133,7 +143,7 @@ export const GitHubProjectNode = ({
             target="_blank"
             rel="noopener noreferrer"
             className="nodrag nopan flex items-center gap-1 text-[10px] text-slate-400 hover:text-orange-500 transition-colors"
-            onMouseDown={(e) => e.stopPropagation()}
+            onMouseDown={handleMouseDown}
           >
             <Globe className="h-2.5 w-2.5" />在 GitHub 查看
           </a>
@@ -149,13 +159,13 @@ export const GitHubProjectNode = ({
 
       <PickProjectDialog
         open={pickOpen}
-        onClose={() => setPickOpen(false)}
+        onClose={handlePickClose}
         onPick={handlePick}
       />
 
       <GitHubConnectDialog
         open={connectOpen}
-        onClose={() => setConnectOpen(false)}
+        onClose={handleConnectClose}
         onConnect={handleConnect}
         initialUrl={
           isConnected

@@ -116,6 +116,9 @@ const RuleCard = ({
   onDelete: (id: string) => void;
   onToggle: (id: string, enabled: boolean) => void;
 }) => {
+  const handleToggle = () => onToggle(rule.id, !rule.enabled);
+  const handleEdit = () => onEdit(rule);
+  const handleDelete = () => onDelete(rule.id);
   const s = SEVERITY_CONFIG[rule.severity];
   const c = CATEGORY_CONFIG[rule.category];
   const SeverityIcon = s.icon;
@@ -169,7 +172,7 @@ const RuleCard = ({
         {/* Actions */}
         <div className="flex shrink-0 items-center gap-1">
           <button
-            onClick={() => onToggle(rule.id, !rule.enabled)}
+            onClick={handleToggle}
             className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
             title={rule.enabled ? "禁用" : "启用"}
           >
@@ -180,13 +183,13 @@ const RuleCard = ({
             )}
           </button>
           <button
-            onClick={() => onEdit(rule)}
+            onClick={handleEdit}
             className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
           >
             <Pencil className="h-3.5 w-3.5 text-gray-400" />
           </button>
           <button
-            onClick={() => onDelete(rule.id)}
+            onClick={handleDelete}
             className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-red-50"
           >
             <Trash2 className="h-3.5 w-3.5 text-gray-400 hover:text-red-500 transition-colors" />
@@ -214,6 +217,21 @@ const RuleForm = ({
   const set = (k: keyof RuleForm, v: string) =>
     setForm((prev) => ({ ...prev, [k]: v }));
 
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    set("name", e.target.value);
+  const handleDescriptionChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => set("description", e.target.value);
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
+    set("category", e.target.value as RuleCategory);
+  const handleSeverityChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
+    set("severity", e.target.value as RuleSeverity);
+  const handlePatternChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    set("pattern", e.target.value);
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    set("tags", e.target.value);
+  const handleCancel = onCancel;
+
   const handleSave = async () => {
     if (!form.name.trim()) return;
     setSaving(true);
@@ -226,7 +244,7 @@ const RuleForm = ({
       {/* Name */}
       <input
         value={form.name}
-        onChange={(e) => set("name", e.target.value)}
+        onChange={handleNameChange}
         placeholder="规则名称 *"
         className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
       />
@@ -234,7 +252,7 @@ const RuleForm = ({
       {/* Description */}
       <textarea
         value={form.description}
-        onChange={(e) => set("description", e.target.value)}
+        onChange={handleDescriptionChange}
         placeholder="规则描述（可选）"
         rows={2}
         className="w-full resize-none rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
@@ -246,7 +264,7 @@ const RuleForm = ({
           <label className="mb-1 block text-[11px] text-gray-400">分类</label>
           <select
             value={form.category}
-            onChange={(e) => set("category", e.target.value)}
+            onChange={handleCategoryChange}
             className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-gray-300"
           >
             {CATEGORIES.map((c) => (
@@ -260,7 +278,7 @@ const RuleForm = ({
           <label className="mb-1 block text-[11px] text-gray-400">严重度</label>
           <select
             value={form.severity}
-            onChange={(e) => set("severity", e.target.value)}
+            onChange={handleSeverityChange}
             className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-gray-300"
           >
             {SEVERITIES.map((s) => (
@@ -275,7 +293,7 @@ const RuleForm = ({
       {/* Pattern */}
       <input
         value={form.pattern}
-        onChange={(e) => set("pattern", e.target.value)}
+        onChange={handlePatternChange}
         placeholder="规则模式（正则或关键词，可选）"
         className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 font-mono text-sm outline-none placeholder:text-gray-400 placeholder:font-sans focus:border-gray-300"
       />
@@ -283,7 +301,7 @@ const RuleForm = ({
       {/* Tags */}
       <input
         value={form.tags}
-        onChange={(e) => set("tags", e.target.value)}
+        onChange={handleTagsChange}
         placeholder="标签（逗号分隔，可选）"
         className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
       />
@@ -291,7 +309,7 @@ const RuleForm = ({
       {/* Actions */}
       <div className="flex items-center justify-end gap-2 pt-1">
         <button
-          onClick={onCancel}
+          onClick={handleCancel}
           className="flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs text-gray-500 hover:bg-gray-50 transition-colors"
         >
           <X className="h-3.5 w-3.5" />
@@ -394,6 +412,28 @@ export const RulesPageContent = ({
 
   const enabledCount = rules.filter((r) => r.enabled).length;
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setSearch(e.target.value);
+
+  const handleCategoryFilterClick =
+    (value: RuleCategory | "all") =>
+    () =>
+      setCategoryFilter(value);
+
+  const handleShowForm = () => {
+    setEditingId(null);
+    setShowForm(true);
+  };
+
+  const handleHideForm = () => setShowForm(false);
+
+  const handleEdit = (r: RuleEntity) => {
+    setShowForm(false);
+    setEditingId(r.id);
+  };
+
+  const handleCancelEdit = () => setEditingId(null);
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
@@ -405,10 +445,7 @@ export const RulesPageContent = ({
         </span>
         <div className="ml-auto">
           <button
-            onClick={() => {
-              setEditingId(null);
-              setShowForm(true);
-            }}
+            onClick={handleShowForm}
             className="flex h-8 items-center gap-1.5 rounded-lg bg-gray-900 px-3 text-xs font-medium text-white hover:bg-gray-700 transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -420,7 +457,7 @@ export const RulesPageContent = ({
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
         {/* Create form */}
         {showForm && (
-          <RuleForm onSave={handleCreate} onCancel={() => setShowForm(false)} />
+          <RuleForm onSave={handleCreate} onCancel={handleHideForm} />
         )}
 
         {/* Filters + Search */}
@@ -429,7 +466,7 @@ export const RulesPageContent = ({
             {CATEGORY_FILTERS.map((f) => (
               <button
                 key={f.value}
-                onClick={() => setCategoryFilter(f.value)}
+                onClick={handleCategoryFilterClick(f.value)}
                 className={cn(
                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                   categoryFilter === f.value
@@ -445,7 +482,7 @@ export const RulesPageContent = ({
             <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleSearchChange}
               placeholder="搜索规则名称、描述或标签…"
               className="w-full rounded-lg border border-gray-100 bg-white py-2 pl-9 pr-4 text-sm shadow-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
             />
@@ -458,7 +495,7 @@ export const RulesPageContent = ({
             <ShieldCheck className="h-8 w-8 text-gray-200" />
             <p className="mt-2 text-sm text-gray-400">暂无规则</p>
             <button
-              onClick={() => setShowForm(true)}
+              onClick={handleShowForm}
               className="mt-2 text-xs text-gray-500 hover:underline"
             >
               创建第一条规则
@@ -472,17 +509,14 @@ export const RulesPageContent = ({
                   <RuleForm
                     initial={getEditForm(rule)}
                     onSave={handleUpdate}
-                    onCancel={() => setEditingId(null)}
+                    onCancel={handleCancelEdit}
                   />
                 </div>
               ) : (
                 <RuleCard
                   key={rule.id}
                   rule={rule}
-                  onEdit={(r) => {
-                    setShowForm(false);
-                    setEditingId(r.id);
-                  }}
+                  onEdit={handleEdit}
                   onDelete={handleDelete}
                   onToggle={handleToggle}
                 />

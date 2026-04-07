@@ -13,25 +13,30 @@ export const NotificationsSection = ({
   onSave,
   saved,
 }: NotificationsSectionProps) => {
+  const handlePipelineToggle = () => onChange({ pipeline: !values.pipeline });
+  const handleMentionToggle = () => onChange({ mention: !values.mention });
+  const handleWeeklyToggle = () => onChange({ weekly: !values.weekly });
+  const handleSave = onSave;
+
   return (
     <>
       <SectionHeader title="通知" description="选择你希望接收哪些通知" />
       <Toggle
         enabled={values.pipeline}
-        onToggle={() => onChange({ pipeline: !values.pipeline })}
+        onToggle={handlePipelineToggle}
         label="Pipeline 运行完成提醒"
       />
       <Toggle
         enabled={values.mention}
-        onToggle={() => onChange({ mention: !values.mention })}
-        label="被 @提及时通知"
+        onToggle={handleMentionToggle}
+        label="被 @提暂时通知"
       />
       <Toggle
         enabled={values.weekly}
-        onToggle={() => onChange({ weekly: !values.weekly })}
+        onToggle={handleWeeklyToggle}
         label="每周摘要邮件"
       />
-      <SaveButton onSave={onSave} saved={saved} />
+      <SaveButton onSave={handleSave} saved={saved} />
     </>
   );
 };

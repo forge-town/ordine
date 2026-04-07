@@ -43,6 +43,8 @@ interface Props {
   onClose: () => void;
 }
 
+const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
+
 export const NodeContextMenu = ({
   screenX,
   screenY,
@@ -153,16 +155,19 @@ export const NodeContextMenu = ({
     onClose();
   };
 
+  const handleClose = () => onClose();
+  const handleToggleActions = () => setActionsOpen((v) => !v);
+
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-[999]" onClick={onClose} />
+      <div className="fixed inset-0 z-[999]" onClick={handleClose} />
 
       {/* Main menu */}
       <div
         className="fixed z-[1001] w-56 overflow-hidden rounded-xl border border-border/60 bg-popover py-1 shadow-2xl"
         style={{ left, top }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleStopPropagation}
       >
         {/* Node type header */}
         <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2 mb-0.5">
@@ -182,7 +187,7 @@ export const NodeContextMenu = ({
             "flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground",
             actionsOpen ? "bg-accent" : "hover:bg-accent",
           )}
-          onClick={() => setActionsOpen((v) => !v)}
+          onClick={handleToggleActions}
         >
           <Zap className="h-3.5 w-3.5 text-muted-foreground" />
           Actions
@@ -224,7 +229,7 @@ export const NodeContextMenu = ({
         <div
           className="fixed z-[1001] w-52 overflow-hidden rounded-xl border border-border/60 bg-popover py-1 shadow-2xl"
           style={{ left: submenuLeft, top }}
-          onClick={(e) => e.stopPropagation()}
+          onClick={handleStopPropagation}
         >
           <p className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
             连接新节点

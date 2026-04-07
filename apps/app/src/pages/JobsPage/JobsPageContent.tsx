@@ -124,9 +124,15 @@ const JobRow = ({
         ? "进行中"
         : null;
 
+  const handleClick = onClick;
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete();
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className="group flex cursor-pointer items-center gap-4 rounded-xl border border-gray-100 bg-white px-4 py-3 hover:border-violet-200 hover:shadow-sm transition-all"
     >
       {/* Status icon */}
@@ -182,10 +188,7 @@ const JobRow = ({
       {/* Actions */}
       <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
+          onClick={handleDelete}
           className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-red-50"
         >
           <Trash2 className="h-3.5 w-3.5 text-red-400" />
@@ -207,6 +210,17 @@ export const JobsPageContent = ({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<JobStatus | "all">("all");
   const navigate = useNavigate();
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setSearch(e.target.value);
+  const handleStatusFilterClick =
+    (value: JobStatus | "all") => () => setStatusFilter(value);
+  const handleJobClick = (jobId: string) => () =>
+    void navigate({
+      to: "/jobs/$jobId",
+      params: { jobId },
+    });
+  const handleDeleteJob = (jobId: string) => () => void handleDelete(jobId);
 
   const filtered = jobs.filter((j) => {
     const matchStatus = statusFilter === "all" || j.status === statusFilter;
@@ -290,7 +304,7 @@ export const JobsPageContent = ({
             type="text"
             placeholder="搜索 Job ID、标题..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
           />
         </div>
@@ -300,7 +314,7 @@ export const JobsPageContent = ({
           {STATUS_FILTERS.map((f) => (
             <button
               key={f.value}
-              onClick={() => setStatusFilter(f.value)}
+              onClick={handleStatusFilterClick(f.value)}
               className={cn(
                 "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                 statusFilter === f.value
@@ -347,13 +361,8 @@ export const JobsPageContent = ({
               <JobRow
                 key={job.id}
                 job={job}
-                onClick={() =>
-                  void navigate({
-                    to: "/jobs/$jobId",
-                    params: { jobId: job.id },
-                  })
-                }
-                onDelete={() => void handleDelete(job.id)}
+                onClick={handleJobClick(job.id)}
+                onDelete={handleDeleteJob(job.id)}
               />
             ))}
           </div>

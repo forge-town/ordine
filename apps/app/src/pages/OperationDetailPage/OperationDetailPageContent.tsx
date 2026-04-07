@@ -169,6 +169,8 @@ export const OperationDetailPageContent = ({
   );
   const [toggling, setToggling] = useState(false);
 
+  const handleNavigateBack = () => void navigate({ to: "/operations" });
+
   const handleVisibilityToggle = async () => {
     if (!operation) return;
     const next = VISIBILITY_CONFIG[visibility].next;
@@ -181,13 +183,15 @@ export const OperationDetailPageContent = ({
     }
   };
 
+  const handleVisibilityClick = () => void handleVisibilityToggle();
+
   if (!operation) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <XCircle className="h-10 w-10 text-gray-300" />
         <p className="text-sm font-medium text-gray-500">Operation 不存在</p>
         <button
-          onClick={() => void navigate({ to: "/operations" })}
+          onClick={handleNavigateBack}
           className="text-xs text-violet-600 hover:underline"
         >
           返回列表
@@ -207,7 +211,7 @@ export const OperationDetailPageContent = ({
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
         <button
-          onClick={() => void navigate({ to: "/operations" })}
+          onClick={handleNavigateBack}
           className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
           aria-label="返回列表"
         >
@@ -245,7 +249,7 @@ export const OperationDetailPageContent = ({
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs text-gray-400 shrink-0">可见性</span>
             <button
-              onClick={() => void handleVisibilityToggle()}
+              onClick={handleVisibilityClick}
               disabled={toggling}
               className={cn(
                 "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-opacity",

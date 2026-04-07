@@ -78,6 +78,8 @@ export interface NodeCardProps {
   onLabelChange?: (value: string) => void;
 }
 
+const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
+
 export const NodeCard = ({
   selected,
   theme,
@@ -90,6 +92,9 @@ export const NodeCard = ({
   onLabelChange,
 }: NodeCardProps) => {
   const t = themeMap[theme] ?? themeMap.emerald;
+  const handleChange = onLabelChange
+    ? (e: React.ChangeEvent<HTMLInputElement>) => onLabelChange(e.target.value)
+    : undefined;
 
   return (
     <Card
@@ -112,12 +117,12 @@ export const NodeCard = ({
             <Icon className={cn("h-4 w-4", t.iconColor)} />
           </div>
           <div className="flex flex-col flex-1 min-w-0">
-            {onLabelChange ? (
+            {handleChange ? (
               <input
                 className="nodrag nopan bg-transparent text-xs font-semibold w-full focus:outline-none"
                 value={label}
-                onChange={(e) => onLabelChange(e.target.value)}
-                onMouseDown={(e) => e.stopPropagation()}
+                onChange={handleChange}
+                onMouseDown={handleMouseDown}
               />
             ) : (
               <CardTitle className="text-xs font-semibold truncate">

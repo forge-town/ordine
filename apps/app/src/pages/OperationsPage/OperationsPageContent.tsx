@@ -229,6 +229,41 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
     setOperations((prev) => prev.filter((o) => o.id !== id));
   };
 
+  const handleVisibilityFilterClick =
+    (value: Visibility | "all") =>
+    () =>
+      setVisibilityFilter(value);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setSearchQuery(e.target.value);
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
+    setSortBy(e.target.value as SortKey);
+
+  const handleOpenCreate = () => openCreate();
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, name: e.target.value }));
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
+    setForm((f) => ({ ...f, category: e.target.value }));
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, description: e.target.value }));
+
+  const handleVisibilityChange = (value: Visibility) => () =>
+    setForm((f) => ({ ...f, visibility: value }));
+
+  const handleToggleObjectTypeClick = (type: ObjectType) => () =>
+    toggleObjectType(type);
+
+  const handleConfigChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    setForm((f) => ({ ...f, config: e.target.value }));
+
+  const handleEditClick = (op: OperationEntity) => () => openEdit(op);
+
+  const handleDeleteClick = (id: string) => () => void handleDelete(id);
+
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
@@ -240,7 +275,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
           </p>
         </div>
         <button
-          onClick={openCreate}
+          onClick={handleOpenCreate}
           className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
@@ -260,7 +295,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
         ).map(({ value, label }) => (
           <button
             key={value}
-            onClick={() => setVisibilityFilter(value)}
+            onClick={handleVisibilityFilterClick(value)}
             className={cn(
               "rounded-full px-3 py-1 text-xs font-medium transition-colors",
               visibilityFilter === value
@@ -275,7 +310,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
             placeholder="搜索操作名称或描述..."
             className="rounded-md border bg-background px-3 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
           />
@@ -285,7 +320,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
           <select
             id="sort-select"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortKey)}
+            onChange={handleSortChange}
             className="rounded-md border bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
             aria-label="排序"
           >
@@ -318,9 +353,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                   <input
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                     value={form.name}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, name: e.target.value }))
-                    }
+                    onChange={handleNameChange}
                     placeholder="e.g. Run ESLint"
                   />
                 </div>
@@ -331,9 +364,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                   <select
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                     value={form.category}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, category: e.target.value }))
-                    }
+                    onChange={handleCategoryChange}
                   >
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>
@@ -350,9 +381,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                 <input
                   className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   value={form.description}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, description: e.target.value }))
-                  }
+                  onChange={handleDescriptionChange}
                   placeholder="简单描述这个操作做什么"
                 />
               </div>
@@ -369,9 +398,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                       <button
                         key={value}
                         type="button"
-                        onClick={() =>
-                          setForm((f) => ({ ...f, visibility: value }))
-                        }
+                        onClick={handleVisibilityChange(value)}
                         className={cn(
                           "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                           selected
@@ -400,7 +427,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                       <button
                         key={value}
                         type="button"
-                        onClick={() => toggleObjectType(value)}
+                        onClick={handleToggleObjectTypeClick(value)}
                         className={cn(
                           "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                           selected
@@ -425,9 +452,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                   rows={4}
                   className="w-full resize-none rounded-md border bg-background px-3 py-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
                   value={form.config}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, config: e.target.value }))
-                  }
+                  onChange={handleConfigChange}
                   placeholder='{ "command": "eslint src/" }'
                 />
               </div>
@@ -522,14 +547,14 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                       <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                     </Link>
                     <button
-                      onClick={() => openEdit(op)}
+                      onClick={handleEditClick(op)}
                       className="rounded p-1 hover:bg-accent"
                       title="编辑"
                     >
                       <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                     </button>
                     <button
-                      onClick={() => handleDelete(op.id)}
+                      onClick={handleDeleteClick(op.id)}
                       className="rounded p-1 hover:bg-destructive/10"
                       title="删除"
                     >

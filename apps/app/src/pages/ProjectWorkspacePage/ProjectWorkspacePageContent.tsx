@@ -51,9 +51,10 @@ const ObjectRow = ({
   onToggle: () => void;
 }) => {
   const Icon = OBJECT_ICONS[item.type];
+  const handleToggle = () => onToggle();
   return (
     <button
-      onClick={onToggle}
+      onClick={handleToggle}
       className={cn(
         "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
         selected
@@ -92,9 +93,10 @@ const PipelineRow = ({
   selected: boolean;
   onSelect: () => void;
 }) => {
+  const handleSelect = () => onSelect();
   return (
     <button
-      onClick={onSelect}
+      onClick={handleSelect}
       className={cn(
         "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
         selected
@@ -195,17 +197,29 @@ export const ProjectWorkspacePageContent = () => {
     }
   };
 
+  const handleNavigateBack = () =>
+    void navigate({
+      to: "/projects/$projectId",
+      params: { projectId: project.id },
+    });
+
+  const handleTriggerClick = () => void handleTrigger();
+
+  const handleToggleObject = (path: string) => () => toggleObject(path);
+
+  const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
+
+  const handleSelectPipeline =
+    (id: string) =>
+    () =>
+      setSelectedPipelineId(id === selectedPipelineId ? null : id);
+
   return (
     <div className="flex h-full flex-col overflow-hidden bg-gray-50">
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
         <button
-          onClick={() =>
-            void navigate({
-              to: "/projects/$projectId",
-              params: { projectId: project.id },
-            })
-          }
+          onClick={handleNavigateBack}
           className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />
@@ -226,7 +240,7 @@ export const ProjectWorkspacePageContent = () => {
         {/* Trigger button */}
         <button
           disabled={!canTrigger}
-          onClick={() => void handleTrigger()}
+          onClick={handleTriggerClick}
           className={cn(
             "flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors",
             canTrigger
@@ -252,7 +266,7 @@ export const ProjectWorkspacePageContent = () => {
                 key={obj.path}
                 item={obj}
                 selected={selectedObjects.has(obj.path)}
-                onToggle={() => toggleObject(obj.path)}
+                onToggle={handleToggleObject(obj.path)}
               />
             ))}
           </div>
@@ -268,7 +282,7 @@ export const ProjectWorkspacePageContent = () => {
               <Layers className="h-8 w-8 text-gray-300" />
               <p className="mt-2 text-sm text-gray-400">还没有 Pipeline</p>
               <button
-                onClick={() => void navigate({ to: "/pipelines" })}
+                onClick={handleNavigatePipelines}
                 className="mt-3 text-xs text-violet-600 hover:underline"
               >
                 去创建
@@ -281,11 +295,7 @@ export const ProjectWorkspacePageContent = () => {
                   key={p.id}
                   pipeline={p}
                   selected={p.id === selectedPipelineId}
-                  onSelect={() =>
-                    setSelectedPipelineId(
-                      p.id === selectedPipelineId ? null : p.id,
-                    )
-                  }
+                  onSelect={handleSelectPipeline(p.id)}
                 />
               ))}
             </div>

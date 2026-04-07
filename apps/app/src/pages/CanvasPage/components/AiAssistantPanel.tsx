@@ -73,7 +73,7 @@ export const AiAssistantPanel = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const toggle = () => store.getState().toggleAiAssistant();
+  const handleToggle = () => store.getState().toggleAiAssistant();
 
   // Scroll to bottom when messages update
   useEffect(() => {
@@ -181,6 +181,16 @@ export const AiAssistantPanel = () => {
     }
   };
 
+  const handleChangeInput = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    setInput(e.target.value);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      void handleSend();
+    }
+  };
+  const handleClickSend = () => void handleSend();
+
   return (
     <div className="absolute bottom-4 right-4 z-20 flex flex-col items-end gap-3">
       {/* Expanded chat panel */}
@@ -205,7 +215,7 @@ export const AiAssistantPanel = () => {
               variant="ghost"
               size="icon"
               className="h-6 w-6 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
-              onClick={toggle}
+              onClick={handleToggle}
             >
               <X className="h-3.5 w-3.5" />
             </Button>
@@ -281,20 +291,15 @@ export const AiAssistantPanel = () => {
                 ref={inputRef}
                 rows={2}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    void handleSend();
-                  }
-                }}
+                onChange={handleChangeInput}
+                onKeyDown={handleKeyDown}
                 placeholder="告诉我怎么改这个 Pipeline…"
                 className="flex-1 resize-none rounded-lg border bg-transparent px-3 py-2 text-xs placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               />
               <Button
                 size="icon"
                 className="h-8 w-8 shrink-0"
-                onClick={() => void handleSend()}
+                onClick={handleClickSend}
                 disabled={!input.trim() || isLoading}
               >
                 <Send className="h-3.5 w-3.5" />
@@ -309,7 +314,7 @@ export const AiAssistantPanel = () => {
 
       {/* Floating bubble button */}
       <button
-        onClick={toggle}
+        onClick={handleToggle}
         className={cn(
           "group relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200",
           isOpen

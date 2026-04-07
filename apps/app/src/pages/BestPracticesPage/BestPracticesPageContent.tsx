@@ -104,6 +104,14 @@ const PracticeFormDialog = ({
     ) =>
       setForm((prev) => ({ ...prev, [k]: e.target.value }));
 
+  const handleTitleChange = set("title");
+  const handleConditionChange = set("condition");
+  const handleCategoryChange = set("category");
+  const handleLanguageChange = set("language");
+  const handleCodeSnippetChange = set("codeSnippet");
+  const handleTagsChange = set("tags");
+  const handleClose = onClose;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim() || !form.condition.trim()) return;
@@ -141,6 +149,8 @@ const PracticeFormDialog = ({
     }
   };
 
+  const handleFormSubmit = (e: React.FormEvent) => void handleSubmit(e);
+
   const inputCls =
     "w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400";
 
@@ -152,14 +162,14 @@ const PracticeFormDialog = ({
             {initial ? "编辑最佳实践" : "新增最佳实践"}
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-gray-100"
           >
             <X className="h-4 w-4 text-gray-500" />
           </button>
         </div>
         <form
-          onSubmit={(e) => void handleSubmit(e)}
+          onSubmit={handleFormSubmit}
           className="p-5 space-y-4 overflow-y-auto"
         >
           <div>
@@ -168,7 +178,7 @@ const PracticeFormDialog = ({
             </label>
             <input
               value={form.title}
-              onChange={set("title")}
+              onChange={handleTitleChange}
               placeholder="e.g. 避免在 useEffect 中直接 setState"
               required
               className={inputCls}
@@ -181,7 +191,7 @@ const PracticeFormDialog = ({
             </label>
             <textarea
               value={form.condition}
-              onChange={set("condition")}
+              onChange={handleConditionChange}
               placeholder="描述什么情况下应该遵循这个实践，例如：当需要在组件挂载后获取异步数据时..."
               required
               rows={3}
@@ -196,7 +206,7 @@ const PracticeFormDialog = ({
               </label>
               <select
                 value={form.category}
-                onChange={set("category")}
+                onChange={handleCategoryChange}
                 className={inputCls}
               >
                 {CATEGORIES.filter((c) => c.value !== "all").map((c) => (
@@ -212,7 +222,7 @@ const PracticeFormDialog = ({
               </label>
               <select
                 value={form.language}
-                onChange={set("language")}
+                onChange={handleLanguageChange}
                 className={inputCls}
               >
                 {LANGUAGES.map((l) => (
@@ -230,7 +240,7 @@ const PracticeFormDialog = ({
             </label>
             <textarea
               value={form.codeSnippet}
-              onChange={set("codeSnippet")}
+              onChange={handleCodeSnippetChange}
               placeholder="// 在这里粘贴代码示例..."
               rows={8}
               spellCheck={false}
@@ -247,7 +257,7 @@ const PracticeFormDialog = ({
             </label>
             <input
               value={form.tags}
-              onChange={set("tags")}
+              onChange={handleTagsChange}
               placeholder="react, hooks, async"
               className={inputCls}
             />
@@ -256,7 +266,7 @@ const PracticeFormDialog = ({
           <div className="flex justify-end gap-2 pt-1 shrink-0">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
             >
               取消
@@ -288,6 +298,9 @@ const PracticeCard = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
   const hasCode = practice.codeSnippet.trim().length > 0;
+  const handleToggleExpanded = () => setExpanded((v) => !v);
+  const handleEdit = onEdit;
+  const handleDelete = onDelete;
 
   return (
     <div className="group rounded-xl border border-gray-200 bg-white overflow-hidden hover:border-violet-200 hover:shadow-sm transition-all">
@@ -303,13 +316,13 @@ const PracticeCard = ({
             </h3>
             <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
-                onClick={onEdit}
+                onClick={handleEdit}
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-gray-100"
               >
                 <Pencil className="h-3.5 w-3.5 text-gray-400" />
               </button>
               <button
-                onClick={onDelete}
+                onClick={handleDelete}
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-red-50"
               >
                 <Trash2 className="h-3.5 w-3.5 text-red-400" />
@@ -359,7 +372,7 @@ const PracticeCard = ({
       {hasCode && (
         <div className="border-t border-gray-100">
           <button
-            onClick={() => setExpanded((v) => !v)}
+            onClick={handleToggleExpanded}
             className="flex w-full items-center gap-2 px-4 py-2 text-xs text-gray-500 hover:bg-gray-50 transition-colors"
           >
             <Code2 className="h-3.5 w-3.5 text-gray-400" />
@@ -425,16 +438,43 @@ export const BestPracticesPageContent = ({
     await deleteBestPractice({ data: { id } });
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setSearch(e.target.value);
+
+  const handleCategoryClick =
+    (catValue: string) =>
+    () =>
+      setActiveCategory(catValue);
+
+  const handleAddPractice = () => {
+    setEditing(null);
+    setShowForm(true);
+  };
+
+  const handleEditPractice =
+    (p: BestPracticeEntity) =>
+    () => {
+      setEditing(p);
+      setShowForm(true);
+    };
+
+  const handleDeletePractice =
+    (id: string) =>
+    () =>
+      void handleDelete(id);
+
+  const handleFormClose = () => {
+    setShowForm(false);
+    setEditing(null);
+  };
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6">
         <h1 className="text-base font-semibold text-gray-900">最佳实践</h1>
         <button
-          onClick={() => {
-            setEditing(null);
-            setShowForm(true);
-          }}
+          onClick={handleAddPractice}
           className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -450,7 +490,7 @@ export const BestPracticesPageContent = ({
             type="text"
             placeholder="搜索实践、标签..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
           />
         </div>
@@ -460,7 +500,7 @@ export const BestPracticesPageContent = ({
           {CATEGORIES.map((cat) => (
             <button
               key={cat.value}
-              onClick={() => setActiveCategory(cat.value)}
+              onClick={handleCategoryClick(cat.value)}
               className={cn(
                 "whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                 activeCategory === cat.value
@@ -502,10 +542,7 @@ export const BestPracticesPageContent = ({
             </p>
             {!search && activeCategory === "all" && (
               <button
-                onClick={() => {
-                  setEditing(null);
-                  setShowForm(true);
-                }}
+                onClick={handleAddPractice}
                 className="mt-4 flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
               >
                 <Plus className="h-4 w-4" />
@@ -519,11 +556,8 @@ export const BestPracticesPageContent = ({
               <PracticeCard
                 key={p.id}
                 practice={p}
-                onEdit={() => {
-                  setEditing(p);
-                  setShowForm(true);
-                }}
-                onDelete={() => void handleDelete(p.id)}
+                onEdit={handleEditPractice(p)}
+                onDelete={handleDeletePractice(p.id)}
               />
             ))}
           </div>
@@ -533,10 +567,7 @@ export const BestPracticesPageContent = ({
       {showForm && (
         <PracticeFormDialog
           initial={editing ?? undefined}
-          onClose={() => {
-            setShowForm(false);
-            setEditing(null);
-          }}
+          onClose={handleFormClose}
           onSave={handleSave}
         />
       )}

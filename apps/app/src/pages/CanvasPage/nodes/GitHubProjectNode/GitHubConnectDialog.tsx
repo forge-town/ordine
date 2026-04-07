@@ -94,10 +94,18 @@ export const GitHubConnectDialog = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !loading) handleFetch();
   };
+  const handleOpenChange = (v: boolean) => {
+    if (!v) handleClose();
+  };
+  const handleOpenTokenDialog = () => setTokenDialogOpen(true);
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setUrl(e.target.value);
+  const handleGoToInput = () => setStep("input");
+  const handleTokenDialogClose = () => setTokenDialogOpen(false);
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -125,7 +133,7 @@ export const GitHubConnectDialog = ({
                 <button
                   type="button"
                   className="font-medium underline underline-offset-2 hover:no-underline"
-                  onClick={() => setTokenDialogOpen(true)}
+                  onClick={handleOpenTokenDialog}
                 >
                   {token ? "修改" : "配置"}
                 </button>
@@ -137,7 +145,7 @@ export const GitHubConnectDialog = ({
                 <div className="flex gap-2">
                   <Input
                     value={url}
-                    onChange={(e) => setUrl(e.target.value)}
+                    onChange={handleUrlChange}
                     onKeyDown={handleKeyDown}
                     placeholder="https://github.com/owner/repo"
                     className="font-mono text-sm"
@@ -213,7 +221,7 @@ export const GitHubConnectDialog = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setStep("input")}
+                  onClick={handleGoToInput}
                 >
                   返回
                 </Button>
@@ -228,7 +236,7 @@ export const GitHubConnectDialog = ({
 
       <GitHubTokenDialog
         open={tokenDialogOpen}
-        onClose={() => setTokenDialogOpen(false)}
+        onClose={handleTokenDialogClose}
       />
     </>
   );

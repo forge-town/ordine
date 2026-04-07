@@ -27,6 +27,13 @@ export const SecuritySection = ({
 }: SecuritySectionProps) => {
   const [error, setError] = useState<string | null>(null);
 
+  const handleCurrentPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    onChange({ currentPassword: e.target.value });
+  const handleNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    onChange({ newPassword: e.target.value });
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    onChange({ confirmPassword: e.target.value });
+
   const handleSave = () => {
     setError(null);
     if (values.newPassword || values.confirmPassword) {
@@ -54,7 +61,7 @@ export const SecuritySection = ({
           type="password"
           placeholder="输入当前密码"
           value={values.currentPassword}
-          onChange={(e) => onChange({ currentPassword: e.target.value })}
+          onChange={handleCurrentPasswordChange}
         />
       </Field>
       <Field label="新密码">
@@ -62,7 +69,7 @@ export const SecuritySection = ({
           type="password"
           placeholder="输入新密码"
           value={values.newPassword}
-          onChange={(e) => onChange({ newPassword: e.target.value })}
+          onChange={handleNewPasswordChange}
         />
       </Field>
       <Field label="确认新密码">
@@ -70,7 +77,7 @@ export const SecuritySection = ({
           type="password"
           placeholder="再次输入新密码"
           value={values.confirmPassword}
-          onChange={(e) => onChange({ confirmPassword: e.target.value })}
+          onChange={handleConfirmPasswordChange}
         />
       </Field>
       {error && <p className="text-xs text-destructive">{error}</p>}

@@ -50,13 +50,16 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     .getState()
     .getOperationById(data.operationId);
 
+  const handleLabelChange = (v: string) =>
+    update({ label: v, operationName: v });
+
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
         theme="violet"
         icon={Zap}
         label={data.operationName || data.label}
-        onLabelChange={(v) => update({ label: v, operationName: v })}
+        onLabelChange={handleLabelChange}
         description={operation?.description || "自定义操作"}
         selected={selected}
         headerRight={
