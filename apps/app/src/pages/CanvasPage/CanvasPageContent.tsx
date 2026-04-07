@@ -9,17 +9,27 @@ import { CanvasContextMenu } from "./components/CanvasContextMenu";
 import { ConnectionMenu } from "./components/ConnectionMenu";
 import { NodeContextMenu } from "./components/NodeContextMenu";
 import { CanvasFloatingMenu } from "./components/CanvasFloatingMenu";
+import { AiAssistantPanel } from "./components/AiAssistantPanel";
 
 const CanvasInner = () => {
   const store = useHarnessCanvasStore();
 
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const contextMenu = useStore(store, (state) => state.contextMenu);
-  const handleCloseContextMenu = useStore(store, (state) => state.closeContextMenu);
+  const handleCloseContextMenu = useStore(
+    store,
+    (state) => state.closeContextMenu,
+  );
   const connectionMenu = useStore(store, (state) => state.connectionMenu);
-  const handleCloseConnectionMenu = useStore(store, (state) => state.closeConnectionMenu);
+  const handleCloseConnectionMenu = useStore(
+    store,
+    (state) => state.closeConnectionMenu,
+  );
   const nodeContextMenu = useStore(store, (state) => state.nodeContextMenu);
-  const handleCloseNodeContextMenu = useStore(store, (state) => state.closeNodeContextMenu);
+  const handleCloseNodeContextMenu = useStore(
+    store,
+    (state) => state.closeNodeContextMenu,
+  );
 
   return (
     <div className="relative h-full w-full">
@@ -65,6 +75,8 @@ const CanvasInner = () => {
           onClose={handleCloseNodeContextMenu}
         />
       )}
+
+      <AiAssistantPanel />
     </div>
   );
 };
