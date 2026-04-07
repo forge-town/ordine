@@ -8,7 +8,7 @@ export const CanvasPage = () => {
 
   return (
     <CanvasLayout>
-      <HarnessCanvasStoreProvider pipeline={pipeline} operations={operations}>
+      <HarnessCanvasStoreProvider operations={operations} pipeline={pipeline}>
         <CanvasPageContent />
       </HarnessCanvasStoreProvider>
     </CanvasLayout>

@@ -57,28 +57,28 @@ export const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) 
 
   return (
     <Card
+      className="group relative cursor-pointer p-5 hover:border-primary/50 hover:shadow-md transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring"
       role="button"
       tabIndex={0}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      className="group relative cursor-pointer p-5 hover:border-primary/50 hover:shadow-md transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {/* Delete button */}
       <button
-        onClick={handleDeleteClick}
-        className="absolute right-9 top-3 hidden rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:flex"
         aria-label="删除"
+        className="absolute right-9 top-3 hidden rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:flex"
+        onClick={handleDeleteClick}
       >
         <Trash2 className="h-3.5 w-3.5" />
       </button>
 
       {/* View detail button */}
       <Link
-        to="/pipelines/$pipelineId"
-        params={{ pipelineId: pipeline.id }}
-        onClick={handleLinkClick}
         className="absolute right-3 top-3 hidden rounded p-1 text-muted-foreground hover:bg-accent group-hover:flex"
+        params={{ pipelineId: pipeline.id }}
         title="查看详情"
+        to="/pipelines/$pipelineId"
+        onClick={handleLinkClick}
       >
         <ExternalLink className="h-3.5 w-3.5" />
       </Link>
@@ -107,11 +107,11 @@ export const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) 
         {Object.entries(typeCounts).map(([type, count]) => (
           <Badge
             key={type}
-            variant="secondary"
             className={cn(
               "rounded-full text-[11px]",
               NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground"
             )}
+            variant="secondary"
           >
             {count} {NODE_TYPE_LABELS[type] ?? type}
           </Badge>

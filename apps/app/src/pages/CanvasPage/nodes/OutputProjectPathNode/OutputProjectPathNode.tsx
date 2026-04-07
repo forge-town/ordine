@@ -26,22 +26,22 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
-        theme="teal"
+        bodyClassName="space-y-2"
+        description="项目路径输出"
         icon={FolderOutput}
         label={data.label}
-        onLabelChange={handleLabelChange}
-        description="项目路径输出"
         selected={selected}
-        bodyClassName="space-y-2"
+        theme="teal"
+        onLabelChange={handleLabelChange}
       >
         <div className="space-y-1.5">
           <div className="flex items-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-2.5 py-1">
             <span className="shrink-0 text-[10px] font-medium text-slate-400">项目 ID</span>
             <input
               className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] text-slate-700 focus:outline-none"
+              placeholder="project-id"
               value={data.projectId ?? ""}
               onChange={handleProjectIdChange}
-              placeholder="project-id"
               onMouseDown={handleMouseDown}
             />
           </div>
@@ -49,28 +49,28 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
             <span className="shrink-0 text-[10px] font-medium text-teal-500">路径</span>
             <input
               className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
+              placeholder="src/output/"
               value={data.path}
               onChange={handlePathChange}
-              placeholder="src/output/"
               onMouseDown={handleMouseDown}
             />
           </div>
         </div>
         <textarea
           className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
+          placeholder="描述此输出..."
           rows={2}
           value={data.description ?? ""}
           onChange={handleDescriptionChange}
-          placeholder="描述此输出..."
           onMouseDown={handleMouseDown}
         />
       </NodeCard>
 
       {/* Output nodes only receive connections — no source handle */}
       <Handle
-        type="target"
-        position={Position.Left}
         className="absolute h-3.5 w-3.5 rounded-full bg-teal-500 border-[3px] border-white shadow-sm transition-all hover:scale-110 -left-1.5 top-1/2 -mt-1.5"
+        position={Position.Left}
+        type="target"
       />
     </div>
   );

@@ -197,9 +197,9 @@ export const AiAssistantPanel = () => {
               </div>
             </div>
             <Button
-              variant="ghost"
-              size="icon"
               className="h-6 w-6 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
+              size="icon"
+              variant="ghost"
               onClick={handleToggle}
             >
               <X className="h-3.5 w-3.5" />
@@ -272,18 +272,18 @@ export const AiAssistantPanel = () => {
             <div className="flex items-end gap-2">
               <textarea
                 ref={inputRef}
+                className="flex-1 resize-none rounded-lg border bg-transparent px-3 py-2 text-xs placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                placeholder="告诉我怎么改这个 Pipeline…"
                 rows={2}
                 value={input}
                 onChange={handleChangeInput}
                 onKeyDown={handleKeyDown}
-                placeholder="告诉我怎么改这个 Pipeline…"
-                className="flex-1 resize-none rounded-lg border bg-transparent px-3 py-2 text-xs placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               />
               <Button
-                size="icon"
                 className="h-8 w-8 shrink-0"
-                onClick={handleClickSend}
                 disabled={!input.trim() || isLoading}
+                size="icon"
+                onClick={handleClickSend}
               >
                 <Send className="h-3.5 w-3.5" />
               </Button>
@@ -295,7 +295,6 @@ export const AiAssistantPanel = () => {
 
       {/* Floating bubble button */}
       <button
-        onClick={handleToggle}
         className={cn(
           "group relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200",
           isOpen
@@ -303,6 +302,7 @@ export const AiAssistantPanel = () => {
             : "bg-primary text-primary-foreground hover:scale-110 hover:shadow-xl hover:shadow-primary/30"
         )}
         title="AI Pipeline 助手"
+        onClick={handleToggle}
       >
         {/* Pulse ring when closed */}
         {!isOpen && <span className="absolute inset-0 animate-ping rounded-full bg-primary/30" />}

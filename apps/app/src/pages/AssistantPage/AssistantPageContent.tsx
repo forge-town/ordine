@@ -116,10 +116,10 @@ export const AssistantPageContent = () => {
         </div>
         {messages.length > 0 && (
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleReset}
             className="flex items-center gap-1.5 text-xs text-muted-foreground"
+            size="sm"
+            variant="ghost"
+            onClick={handleReset}
           >
             <RotateCcw className="h-3 w-3" />
             清空对话
@@ -144,8 +144,8 @@ export const AssistantPageContent = () => {
               {STARTERS.map((s) => (
                 <button
                   key={s}
-                  onClick={handleStarterClick(s)}
                   className="rounded-xl border border-border bg-card px-3 py-2.5 text-left text-xs text-muted-foreground hover:border-primary/50 hover:bg-accent transition-colors"
+                  onClick={handleStarterClick(s)}
                 >
                   {s}
                 </button>
@@ -205,19 +205,19 @@ export const AssistantPageContent = () => {
           <div className="flex items-end gap-2 rounded-xl border border-border bg-muted/50 px-3 py-2 focus-within:border-primary focus-within:bg-background focus-within:ring-1 focus-within:ring-ring transition-all">
             <textarea
               ref={inputRef}
+              className="flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              placeholder="描述你的 Pipeline 需求，或提问…（Enter 发送，Shift+Enter 换行）"
               rows={1}
+              style={{ maxHeight: "8rem", overflowY: "auto" }}
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder="描述你的 Pipeline 需求，或提问…（Enter 发送，Shift+Enter 换行）"
-              className="flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-              style={{ maxHeight: "8rem", overflowY: "auto" }}
             />
             <Button
-              size="icon"
               className="h-7 w-7"
-              onClick={handleSend}
               disabled={!input.trim() || loading}
+              size="icon"
+              onClick={handleSend}
             >
               <Send className="h-3.5 w-3.5" />
             </Button>

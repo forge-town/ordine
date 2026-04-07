@@ -110,25 +110,25 @@ export const GitHubTokenDialog = ({ open, onClose, onTokenSaved }: GitHubTokenDi
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Input
+                  className="pr-8 font-mono text-sm"
+                  placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
                   type={showToken ? "text" : "password"}
                   value={inputValue}
                   onChange={handleInputChange}
-                  placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                  className="pr-8 font-mono text-sm"
                 />
                 <button
-                  type="button"
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  type="button"
                   onClick={handleToggleShowToken}
                 >
                   {showToken ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 </button>
               </div>
               <Button
-                variant="outline"
-                size="sm"
-                onClick={handleVerify}
                 disabled={!inputValue.trim() || verifying}
+                size="sm"
+                variant="outline"
+                onClick={handleVerify}
               >
                 {verifying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "验证"}
               </Button>
@@ -153,10 +153,10 @@ export const GitHubTokenDialog = ({ open, onClose, onTokenSaved }: GitHubTokenDi
           <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
             <div>Token 仅保存在本地浏览器，不会上传至服务器</div>
             <a
-              href="https://github.com/settings/tokens/new?scopes=repo&description=Ordine"
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-primary hover:underline"
+              href="https://github.com/settings/tokens/new?scopes=repo&description=Ordine"
+              rel="noopener noreferrer"
+              target="_blank"
             >
               <ExternalLink className="h-3 w-3" />在 GitHub 创建 Token（需勾选 repo 权限）
             </a>
@@ -166,19 +166,19 @@ export const GitHubTokenDialog = ({ open, onClose, onTokenSaved }: GitHubTokenDi
           <div className="flex justify-between">
             {savedToken && (
               <Button
-                variant="ghost"
-                size="sm"
                 className="text-destructive hover:text-destructive"
+                size="sm"
+                variant="ghost"
                 onClick={handleClear}
               >
                 清除 Token
               </Button>
             )}
             <div className="ml-auto flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleClose}>
+              <Button size="sm" variant="outline" onClick={handleClose}>
                 取消
               </Button>
-              <Button size="sm" onClick={handleSave} disabled={!inputValue.trim()}>
+              <Button disabled={!inputValue.trim()} size="sm" onClick={handleSave}>
                 保存
               </Button>
             </div>

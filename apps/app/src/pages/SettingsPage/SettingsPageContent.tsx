@@ -156,13 +156,13 @@ export const SettingsPageContent = () => {
             return (
               <button
                 key={s.id}
-                onClick={handleClick}
                 className={cn(
                   "flex w-full items-center gap-2.5 px-4 py-2 text-sm transition-colors",
                   active === s.id
                     ? "bg-accent text-accent-foreground font-medium"
                     : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                 )}
+                onClick={handleClick}
               >
                 <s.icon className="h-4 w-4 shrink-0" />
                 {s.label}
@@ -177,42 +177,42 @@ export const SettingsPageContent = () => {
           <div className="mx-auto max-w-lg space-y-6">
             {active === "profile" && (
               <ProfileSection
+                saved={saved}
                 values={settings.profile}
                 onChange={handleProfileChange}
                 onSave={handleSave}
-                saved={saved}
               />
             )}
             {active === "notifications" && (
               <NotificationsSection
+                saved={saved}
                 values={settings.notifications}
                 onChange={handleNotificationsChange}
                 onSave={handleSave}
-                saved={saved}
               />
             )}
             {active === "appearance" && (
               <AppearanceSection
+                saved={saved}
                 values={settings.appearance}
                 onChange={handleAppearanceChange}
                 onSave={handleSave}
-                saved={saved}
               />
             )}
             {active === "language" && (
               <LanguageSection
+                saved={saved}
                 values={settings.language}
                 onChange={handleLanguageChange}
                 onSave={handleSave}
-                saved={saved}
               />
             )}
             {active === "security" && (
               <SecuritySection
+                saved={saved}
                 values={settings.security}
                 onChange={handleSecurityChange}
                 onSave={handleSave}
-                saved={saved}
               />
             )}
           </div>

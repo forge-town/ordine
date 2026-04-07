@@ -112,8 +112,8 @@ export const GitHubConnectDialog = ({
                   {token ? "已配置 Token（可访问私有仓库）" : "未配置 Token（仅可访问公开仓库）"}
                 </div>
                 <button
-                  type="button"
                   className="font-medium underline underline-offset-2 hover:no-underline"
+                  type="button"
                   onClick={handleOpenTokenDialog}
                 >
                   {token ? "修改" : "配置"}
@@ -125,13 +125,13 @@ export const GitHubConnectDialog = ({
                 <label className="text-sm font-medium">GitHub 仓库 URL</label>
                 <div className="flex gap-2">
                   <Input
+                    className="font-mono text-sm"
+                    placeholder="https://github.com/owner/repo"
                     value={url}
                     onChange={handleUrlChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="https://github.com/owner/repo"
-                    className="font-mono text-sm"
                   />
-                  <Button size="sm" onClick={handleFetch} disabled={!url.trim() || loading}>
+                  <Button disabled={!url.trim() || loading} size="sm" onClick={handleFetch}>
                     {loading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
@@ -189,7 +189,7 @@ export const GitHubConnectDialog = ({
               </div>
 
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" size="sm" onClick={handleGoToInput}>
+                <Button size="sm" variant="outline" onClick={handleGoToInput}>
                   返回
                 </Button>
                 <Button size="sm" onClick={handleConfirm}>

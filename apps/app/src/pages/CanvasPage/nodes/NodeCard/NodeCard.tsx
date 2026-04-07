@@ -92,11 +92,11 @@ export const NodeCard = ({
 
   return (
     <Card
-      size="sm"
       className={cn(
         "transition-all duration-200",
         selected ? cn("ring-2 shadow-lg", t.ringSelected) : cn("ring-1 hover:ring-2", t.ring)
       )}
+      size="sm"
     >
       <CardHeader className={cn("pb-2", t.headerBg)}>
         <div className="flex items-center gap-2">

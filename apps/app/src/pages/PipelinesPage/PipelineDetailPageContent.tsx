@@ -134,9 +134,9 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
         <button
-          onClick={handleNavigatePipelines}
-          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
           aria-label="返回列表"
+          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+          onClick={handleNavigatePipelines}
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </button>
@@ -147,9 +147,9 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
           <p className="font-mono text-[11px] text-gray-400">{pipeline.id}</p>
         </div>
         <Link
-          to="/canvas"
-          search={{ id: pipeline.id }}
           className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          search={{ id: pipeline.id }}
+          to="/canvas"
         >
           <Pencil className="h-3.5 w-3.5" />在 Canvas 中编辑
         </Link>
@@ -233,18 +233,18 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
               Pipeline 预览
             </span>
             <Link
-              to="/canvas"
-              search={{ id: pipeline.id }}
               className="text-xs text-violet-600 hover:underline"
+              search={{ id: pipeline.id }}
+              to="/canvas"
             >
               全屏编辑 →
             </Link>
           </div>
 
           <div
+            className="relative h-72 cursor-pointer group"
             data-testid="canvas-preview"
             onClick={handleCanvasClick}
-            className="relative h-72 cursor-pointer group"
           >
             {/* Clickable overlay */}
             <div className="absolute inset-0 z-10 bg-transparent group-hover:bg-black/5 transition-colors flex items-center justify-center">
@@ -262,22 +262,22 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
             ) : (
               <ReactFlowProvider>
                 <ReactFlow
-                  nodes={previewNodes}
+                  fitView
                   edges={previewEdges}
-                  nodesDraggable={false}
-                  nodesConnectable={false}
                   elementsSelectable={false}
-                  zoomOnScroll={false}
+                  fitViewOptions={{ padding: 0.3 }}
+                  nodes={previewNodes}
+                  nodesConnectable={false}
+                  nodesDraggable={false}
+                  nodeTypes={{}}
                   panOnDrag={false}
                   panOnScroll={false}
-                  zoomOnDoubleClick={false}
                   preventScrolling={false}
-                  fitView
-                  fitViewOptions={{ padding: 0.3 }}
-                  nodeTypes={{}}
                   proOptions={{ hideAttribution: true }}
+                  zoomOnDoubleClick={false}
+                  zoomOnScroll={false}
                 >
-                  <Background gap={20} color="#f3f4f6" />
+                  <Background color="#f3f4f6" gap={20} />
                 </ReactFlow>
               </ReactFlowProvider>
             )}

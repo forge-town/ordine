@@ -60,21 +60,21 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
-        theme="orange"
+        bodyClassName="space-y-2"
+        description="GitHub Project"
         icon={SiGitHubIcon}
         label={data.label}
-        onLabelChange={handleLabelChange}
-        description="GitHub Project"
         selected={selected}
-        bodyClassName="space-y-2"
+        theme="orange"
+        onLabelChange={handleLabelChange}
       >
         {/* Repo display / connect area */}
         {isConnected ? (
           <div
             className="flex items-center gap-1.5 rounded-md border border-slate-100 bg-slate-50 px-2.5 py-1.5 cursor-pointer hover:bg-orange-50 hover:border-orange-200 transition-colors"
-            onMouseDown={handleMouseDown}
-            onClick={handlePickOpen}
             title="点击切换仓库"
+            onClick={handlePickOpen}
+            onMouseDown={handleMouseDown}
           >
             {data.isPrivate ? (
               <Lock className="h-3 w-3 shrink-0 text-orange-400" />
@@ -93,16 +93,16 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         ) : (
           <div className="space-y-1.5" onMouseDown={handleMouseDown}>
             <button
-              type="button"
               className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-orange-200 bg-orange-50 py-1.5 text-[11px] font-medium text-orange-700 hover:bg-orange-100 transition-colors"
+              type="button"
               onClick={handlePickOpen}
             >
               <BookMarked className="h-3.5 w-3.5" />
               从项目库选取
             </button>
             <button
-              type="button"
               className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-slate-200 bg-slate-50/50 py-1.5 text-[11px] text-slate-500 hover:bg-slate-100 transition-colors"
+              type="button"
               onClick={handleConnectOpen}
             >
               <Link2 className="h-3 w-3" />
@@ -115,10 +115,10 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         {isConnected && (
           <textarea
             className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
+            placeholder="仓库描述..."
             rows={2}
             value={data.description ?? ""}
             onChange={handleDescriptionChange}
-            placeholder="仓库描述..."
             onMouseDown={handleMouseDown}
           />
         )}
@@ -126,10 +126,10 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         {/* Connected repo link */}
         {repoUrl && (
           <a
-            href={repoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
             className="nodrag nopan flex items-center gap-1 text-[10px] text-slate-400 hover:text-orange-500 transition-colors"
+            href={repoUrl}
+            rel="noopener noreferrer"
+            target="_blank"
             onMouseDown={handleMouseDown}
           >
             <Globe className="h-2.5 w-2.5" />在 GitHub 查看
@@ -139,22 +139,22 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
 
       {/* Object nodes only emit connections — no target handle */}
       <Handle
-        type="source"
-        position={Position.Right}
         className="absolute h-3.5 w-3.5 rounded-full bg-orange-600 border-[3px] border-white shadow-sm transition-all hover:scale-110 -right-1.5 top-1/2 -mt-1.5"
+        position={Position.Right}
+        type="source"
       />
 
       <PickProjectDialog open={pickOpen} onClose={handlePickClose} onPick={handlePick} />
 
       <GitHubConnectDialog
-        open={connectOpen}
-        onClose={handleConnectClose}
-        onConnect={handleConnect}
         initialUrl={
           isConnected
             ? `https://github.com/${data.owner}/${data.repo}${data.branch ? `/tree/${data.branch}` : ""}`
             : ""
         }
+        open={connectOpen}
+        onClose={handleConnectClose}
+        onConnect={handleConnect}
       />
     </div>
   );

@@ -106,8 +106,8 @@ const CreateProjectDialog = ({
           <div className="flex items-center justify-between border-b px-5 py-4">
             <h2 className="text-sm font-semibold text-gray-900">连接 GitHub 项目</h2>
             <button
-              onClick={handleClose}
               className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-gray-100"
+              onClick={handleClose}
             >
               <X className="h-4 w-4 text-gray-500" />
             </button>
@@ -128,8 +128,8 @@ const CreateProjectDialog = ({
                 <span>
                   未配置 Token，仅能访问公开仓库。
                   <button
-                    onClick={handleOpenTokenDialog}
                     className="ml-1 underline underline-offset-2"
+                    onClick={handleOpenTokenDialog}
                   >
                     配置 Token
                   </button>
@@ -169,15 +169,15 @@ const CreateProjectDialog = ({
                 )}
                 <div className="flex justify-end gap-2">
                   <button
-                    onClick={handleReset}
                     className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                    onClick={handleReset}
                   >
                     重新输入
                   </button>
                   <button
-                    onClick={handleSaveClick}
-                    disabled={saving}
                     className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+                    disabled={saving}
+                    onClick={handleSaveClick}
                   >
                     {saving ? "保存中..." : "添加到项目库"}
                   </button>
@@ -194,17 +194,17 @@ const CreateProjectDialog = ({
                     <div className="relative flex-1">
                       <Link2 className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
                       <input
+                        className="w-full rounded-lg border border-gray-200 py-2 pl-8 pr-3 text-sm focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
+                        placeholder="https://github.com/owner/repo"
                         value={url}
                         onChange={handleUrlChange}
                         onKeyDown={handleKeyDown}
-                        placeholder="https://github.com/owner/repo"
-                        className="w-full rounded-lg border border-gray-200 py-2 pl-8 pr-3 text-sm focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                       />
                     </div>
                     <button
-                      onClick={handleFetchClick}
-                      disabled={loading || !url.trim()}
                       className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+                      disabled={loading || !url.trim()}
+                      onClick={handleFetchClick}
                     >
                       {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "查询"}
                     </button>
@@ -222,8 +222,8 @@ const CreateProjectDialog = ({
             {repoInfo === null && (
               <div className="flex justify-end">
                 <button
-                  onClick={handleClose}
                   className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                  onClick={handleClose}
                 >
                   取消
                 </button>
@@ -258,8 +258,8 @@ const ProjectCard = ({
 
   return (
     <div
-      onClick={handleClick}
       className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-4 hover:border-violet-300 hover:shadow-sm transition-all"
+      onClick={handleClick}
     >
       <div className="flex items-start justify-between">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-900">
@@ -267,17 +267,17 @@ const ProjectCard = ({
         </span>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <a
-            href={project.githubUrl}
-            target="_blank"
-            rel="noreferrer"
-            onClick={handleExternalLinkClick}
             className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-gray-100"
+            href={project.githubUrl}
+            rel="noreferrer"
+            target="_blank"
+            onClick={handleExternalLinkClick}
           >
             <ExternalLink className="h-3.5 w-3.5 text-gray-500" />
           </a>
           <button
-            onClick={handleDeleteClick}
             className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-red-50"
+            onClick={handleDeleteClick}
           >
             <X className="h-3.5 w-3.5 text-red-400" />
           </button>
@@ -342,8 +342,8 @@ export const ProjectsPageContent = () => {
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6">
         <h1 className="text-base font-semibold text-gray-900">项目</h1>
         <button
-          onClick={handleShowCreate}
           className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
+          onClick={handleShowCreate}
         >
           <Plus className="h-4 w-4" />
           连接 GitHub 项目
@@ -355,11 +355,11 @@ export const ProjectsPageContent = () => {
         <div className="relative flex-1 max-w-xs">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
           <input
-            type="text"
+            className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
             placeholder="搜索项目..."
+            type="text"
             value={search}
             onChange={handleSearchChange}
-            className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
           />
         </div>
       </div>
@@ -379,10 +379,10 @@ export const ProjectsPageContent = () => {
             </p>
             {!search && (
               <button
-                onClick={handleShowCreate}
                 className={cn(
                   "mt-4 flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
                 )}
+                onClick={handleShowCreate}
               >
                 <Plus className="h-4 w-4" />
                 连接 GitHub 项目

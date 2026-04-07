@@ -50,33 +50,33 @@ export const SecuritySection = ({ values, onChange, onSave, saved }: SecuritySec
 
   return (
     <>
-      <SectionHeader title="安全" description="管理密码和登录安全设置" />
+      <SectionHeader description="管理密码和登录安全设置" title="安全" />
       <Field label="当前密码">
         <Input
-          type="password"
           placeholder="输入当前密码"
+          type="password"
           value={values.currentPassword}
           onChange={handleCurrentPasswordChange}
         />
       </Field>
       <Field label="新密码">
         <Input
-          type="password"
           placeholder="输入新密码"
+          type="password"
           value={values.newPassword}
           onChange={handleNewPasswordChange}
         />
       </Field>
       <Field label="确认新密码">
         <Input
-          type="password"
           placeholder="再次输入新密码"
+          type="password"
           value={values.confirmPassword}
           onChange={handleConfirmPasswordChange}
         />
       </Field>
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <SaveButton onSave={handleSave} saved={saved} />
+      <SaveButton saved={saved} onSave={handleSave} />
     </>
   );
 };

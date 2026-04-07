@@ -90,10 +90,10 @@ const ProjectMeta = ({ project }: { project: GithubProjectEntity }) => {
               {project.owner}/{project.repo}
             </h2>
             <a
-              href={project.githubUrl}
-              target="_blank"
-              rel="noreferrer"
               className="text-gray-400 hover:text-gray-600 transition-colors"
+              href={project.githubUrl}
+              rel="noreferrer"
+              target="_blank"
             >
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
@@ -140,8 +140,8 @@ export const ProjectDetailPageContent = () => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
         <button
-          onClick={handleNavigateProjects}
           className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+          onClick={handleNavigateProjects}
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </button>
@@ -152,8 +152,8 @@ export const ProjectDetailPageContent = () => {
           </p>
         </div>
         <button
-          onClick={handleNavigateWorkspace}
           className="flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
+          onClick={handleNavigateWorkspace}
         >
           <Wrench className="h-3.5 w-3.5" />
           打开工作区

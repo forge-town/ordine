@@ -80,15 +80,15 @@ const STATUS_FILTERS: { value: JobStatus | "all"; label: string }[] = [
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
 const StatCard = ({
-  label,
-  value,
   color,
   dot,
+  label,
+  value,
 }: {
-  label: string;
-  value: number;
   color: string;
   dot: string;
+  label: string;
+  value: number;
 }) => {
   return (
     <div className="rounded-xl border border-gray-100 bg-white px-5 py-4 shadow-sm">
@@ -131,8 +131,8 @@ const JobRow = ({
 
   return (
     <div
-      onClick={handleClick}
       className="group flex cursor-pointer items-center gap-4 rounded-xl border border-gray-100 bg-white px-4 py-3 hover:border-violet-200 hover:shadow-sm transition-all"
+      onClick={handleClick}
     >
       {/* Status icon */}
       <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", s.cls)}>
@@ -171,8 +171,8 @@ const JobRow = ({
       {/* Actions */}
       <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
-          onClick={handleDelete}
           className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-red-50"
+          onClick={handleDelete}
         >
           <Trash2 className="h-3.5 w-3.5 text-red-400" />
         </button>
@@ -240,20 +240,20 @@ export const JobsPageContent = ({ jobs: initialJobs }: { jobs: JobEntity[] }) =>
       {/* Stats */}
       <div className="shrink-0 border-b border-gray-100 bg-gray-50 px-6 py-4">
         <div className="grid grid-cols-5 gap-3">
-          <StatCard label="排队中" value={counts.queued} color="text-gray-700" dot="bg-gray-400" />
-          <StatCard label="运行中" value={counts.running} color="text-blue-700" dot="bg-blue-500" />
+          <StatCard color="text-gray-700" dot="bg-gray-400" label="排队中" value={counts.queued} />
+          <StatCard color="text-blue-700" dot="bg-blue-500" label="运行中" value={counts.running} />
           <StatCard
-            label="已完成"
-            value={counts.done}
             color="text-emerald-700"
             dot="bg-emerald-500"
+            label="已完成"
+            value={counts.done}
           />
-          <StatCard label="失败" value={counts.failed} color="text-red-700" dot="bg-red-500" />
+          <StatCard color="text-red-700" dot="bg-red-500" label="失败" value={counts.failed} />
           <StatCard
-            label="已取消"
-            value={counts.cancelled}
             color="text-amber-600"
             dot="bg-amber-400"
+            label="已取消"
+            value={counts.cancelled}
           />
         </div>
       </div>
@@ -263,11 +263,11 @@ export const JobsPageContent = ({ jobs: initialJobs }: { jobs: JobEntity[] }) =>
         <div className="relative w-60">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
           <input
-            type="text"
+            className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
             placeholder="搜索 Job ID、标题..."
+            type="text"
             value={search}
             onChange={handleSearchChange}
-            className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
           />
         </div>
 
@@ -276,13 +276,13 @@ export const JobsPageContent = ({ jobs: initialJobs }: { jobs: JobEntity[] }) =>
           {STATUS_FILTERS.map((f) => (
             <button
               key={f.value}
-              onClick={handleStatusFilterClick(f.value)}
               className={cn(
                 "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                 statusFilter === f.value
                   ? "bg-violet-600 text-white"
                   : "text-gray-500 hover:bg-gray-100"
               )}
+              onClick={handleStatusFilterClick(f.value)}
             >
               {f.label}
               {f.value !== "all" && (

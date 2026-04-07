@@ -20,27 +20,27 @@ const baseData = {
 
 describe("CodeFileNode", () => {
   it("renders label", () => {
-    render(<CodeFileNode id="test" data={baseData} />, { wrapper });
+    render(<CodeFileNode data={baseData} id="test" />, { wrapper });
     expect(screen.getByText("main.ts")).toBeInTheDocument();
   });
 
   it("renders filePath", () => {
-    render(<CodeFileNode id="test" data={baseData} />, { wrapper });
+    render(<CodeFileNode data={baseData} id="test" />, { wrapper });
     expect(screen.getByText("src/main.ts")).toBeInTheDocument();
   });
 
   it("renders language badge", () => {
-    render(<CodeFileNode id="test" data={baseData} />, { wrapper });
+    render(<CodeFileNode data={baseData} id="test" />, { wrapper });
     expect(screen.getByText("typescript")).toBeInTheDocument();
   });
 
   it("renders description", () => {
-    render(<CodeFileNode id="test" data={baseData} />, { wrapper });
+    render(<CodeFileNode data={baseData} id="test" />, { wrapper });
     expect(screen.getByText("应用入口文件")).toBeInTheDocument();
   });
 
   it("shows placeholder when filePath is empty", () => {
-    render(<CodeFileNode id="test" data={{ ...baseData, filePath: "" }} />, { wrapper });
+    render(<CodeFileNode data={{ ...baseData, filePath: "" }} id="test" />, { wrapper });
     expect(screen.getByText("未设置路径")).toBeInTheDocument();
   });
 });

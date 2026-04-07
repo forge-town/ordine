@@ -243,8 +243,8 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
           </p>
         </div>
         <button
-          onClick={handleOpenCreate}
           className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          onClick={handleOpenCreate}
         >
           <Plus className="h-4 w-4" />
           新建 Operation
@@ -263,34 +263,34 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
         ).map(({ value, label }) => (
           <button
             key={value}
-            onClick={handleVisibilityFilterClick(value)}
             className={cn(
               "rounded-full px-3 py-1 text-xs font-medium transition-colors",
               visibilityFilter === value
                 ? "bg-violet-100 text-violet-700"
                 : "text-muted-foreground hover:bg-muted"
             )}
+            onClick={handleVisibilityFilterClick(value)}
           >
             {label}
           </button>
         ))}
         <div className="ml-auto flex items-center gap-2">
           <input
+            className="rounded-md border bg-background px-3 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+            placeholder="搜索操作名称或描述..."
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
-            placeholder="搜索操作名称或描述..."
-            className="rounded-md border bg-background px-3 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
           />
-          <label htmlFor="sort-select" className="sr-only">
+          <label className="sr-only" htmlFor="sort-select">
             排序
           </label>
           <select
+            aria-label="排序"
+            className="rounded-md border bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
             id="sort-select"
             value={sortBy}
             onChange={handleSortChange}
-            className="rounded-md border bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-            aria-label="排序"
           >
             <option value="default">默认顺序</option>
             <option value="name-asc">名称 A → Z</option>
@@ -316,9 +316,9 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                   <label className="text-xs font-medium text-muted-foreground">名称 *</label>
                   <input
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="e.g. Run ESLint"
                     value={form.name}
                     onChange={handleNameChange}
-                    placeholder="e.g. Run ESLint"
                   />
                 </div>
                 <div className="space-y-1">
@@ -340,9 +340,9 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                 <label className="text-xs font-medium text-muted-foreground">描述</label>
                 <input
                   className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  placeholder="简单描述这个操作做什么"
                   value={form.description}
                   onChange={handleDescriptionChange}
-                  placeholder="简单描述这个操作做什么"
                 />
               </div>
 
@@ -355,14 +355,14 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                     return (
                       <button
                         key={value}
-                        type="button"
-                        onClick={handleVisibilityChange(value)}
                         className={cn(
                           "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                           selected
                             ? "border-violet-300 bg-violet-50 text-violet-700"
                             : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
                         )}
+                        type="button"
+                        onClick={handleVisibilityChange(value)}
                       >
                         <Icon className="h-4 w-4" />
                         {label}
@@ -384,14 +384,14 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                     return (
                       <button
                         key={value}
-                        type="button"
-                        onClick={handleToggleObjectTypeClick(value)}
                         className={cn(
                           "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                           selected
                             ? "border-violet-300 bg-violet-50 text-violet-700"
                             : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
                         )}
+                        type="button"
+                        onClick={handleToggleObjectTypeClick(value)}
                       >
                         <Icon className="h-4 w-4" />
                         {label}
@@ -405,25 +405,25 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">配置 (JSON)</label>
                 <textarea
-                  rows={4}
                   className="w-full resize-none rounded-md border bg-background px-3 py-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                  placeholder='{ "command": "eslint src/" }'
+                  rows={4}
                   value={form.config}
                   onChange={handleConfigChange}
-                  placeholder='{ "command": "eslint src/" }'
                 />
               </div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <button
-                onClick={handleCancel}
                 className="rounded-lg border px-3 py-1.5 text-sm hover:bg-accent"
+                onClick={handleCancel}
               >
                 取消
               </button>
               <button
-                onClick={handleSave}
-                disabled={saving || !form.name.trim()}
                 className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                disabled={saving || !form.name.trim()}
+                onClick={handleSave}
               >
                 {saving ? "保存中..." : "保存"}
               </button>
@@ -489,24 +489,24 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                   </div>
                   <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                     <Link
-                      to="/operations/$operationId"
-                      params={{ operationId: op.id }}
                       className="rounded p-1 hover:bg-accent"
+                      params={{ operationId: op.id }}
                       title="查看详情"
+                      to="/operations/$operationId"
                     >
                       <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                     </Link>
                     <button
-                      onClick={handleEditClick(op)}
                       className="rounded p-1 hover:bg-accent"
                       title="编辑"
+                      onClick={handleEditClick(op)}
                     >
                       <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                     </button>
                     <button
-                      onClick={handleDeleteClick(op.id)}
                       className="rounded p-1 hover:bg-destructive/10"
                       title="删除"
+                      onClick={handleDeleteClick(op.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </button>

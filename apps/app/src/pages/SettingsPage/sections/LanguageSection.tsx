@@ -16,12 +16,12 @@ export const LanguageSection = ({ values, onChange, onSave, saved }: LanguageSec
 
   return (
     <>
-      <SectionHeader title="语言与地区" description="选择界面语言和时区偏好" />
+      <SectionHeader description="选择界面语言和时区偏好" title="语言与地区" />
       <Field label="界面语言">
         <select
+          className="rounded-md border bg-muted/30 px-3 py-2 text-sm focus:border-ring focus:outline-none"
           value={values.language}
           onChange={handleLanguageChange}
-          className="rounded-md border bg-muted/30 px-3 py-2 text-sm focus:border-ring focus:outline-none"
         >
           <option value="zh-CN">简体中文</option>
           <option value="en-US">English (US)</option>
@@ -30,16 +30,16 @@ export const LanguageSection = ({ values, onChange, onSave, saved }: LanguageSec
       </Field>
       <Field label="时区">
         <select
+          className="rounded-md border bg-muted/30 px-3 py-2 text-sm focus:border-ring focus:outline-none"
           value={values.timezone}
           onChange={handleTimezoneChange}
-          className="rounded-md border bg-muted/30 px-3 py-2 text-sm focus:border-ring focus:outline-none"
         >
           <option value="Asia/Shanghai">亚洲 / 上海 (UTC+8)</option>
           <option value="UTC">UTC</option>
           <option value="America/New_York">美洲 / 纽约 (UTC-5)</option>
         </select>
       </Field>
-      <SaveButton onSave={handleSave} saved={saved} />
+      <SaveButton saved={saved} onSave={handleSave} />
     </>
   );
 };

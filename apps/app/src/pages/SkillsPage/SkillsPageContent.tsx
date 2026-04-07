@@ -62,21 +62,21 @@ export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
         <div className="relative flex-1 max-w-xs">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
-            type="text"
+            className="pl-8 h-8 text-sm"
             placeholder="搜索技能..."
+            type="text"
             value={search}
             onChange={handleSearchChange}
-            className="pl-8 h-8 text-sm"
           />
         </div>
         <div className="flex items-center gap-1">
           {(Object.keys(categoryLabels) as SkillCategory[]).map((cat) => (
             <Button
               key={cat}
-              variant={category === cat ? "default" : "ghost"}
-              size="sm"
-              onClick={handleCategoryClick(cat)}
               className="text-xs h-7 px-2.5"
+              size="sm"
+              variant={category === cat ? "default" : "ghost"}
+              onClick={handleCategoryClick(cat)}
             >
               {categoryLabels[cat]}
             </Button>
@@ -103,11 +103,11 @@ export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
                     <Wand2 className="h-4 w-4 text-primary" />
                   </div>
                   <Badge
-                    variant="secondary"
                     className={cn(
                       "text-[10px]",
                       categoryColors[skill.category] ?? "bg-gray-100 text-gray-600"
                     )}
+                    variant="secondary"
                   >
                     {categoryLabels[skill.category as SkillCategory] ?? skill.category}
                   </Badge>

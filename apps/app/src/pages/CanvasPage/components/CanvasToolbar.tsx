@@ -40,7 +40,7 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleZoomOut} />
+              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomOut} />
             }
           >
             <ZoomOut className="h-4 w-4" />
@@ -50,7 +50,7 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleZoomIn} />
+              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomIn} />
             }
           >
             <ZoomIn className="h-4 w-4" />
@@ -60,7 +60,7 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleFitView} />
+              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleFitView} />
             }
           >
             <Maximize2 className="h-4 w-4" />
@@ -68,42 +68,42 @@ export const CanvasToolbar = () => {
           <TooltipContent>适合视图</TooltipContent>
         </Tooltip>
 
-        <Separator orientation="vertical" className="mx-1 h-5" />
+        <Separator className="mx-1 h-5" orientation="vertical" />
 
         {/* History controls */}
         <Button
-          variant="ghost"
-          size="icon"
           className="h-7 w-7"
           disabled={!canUndo}
-          onClick={handleUndo}
+          size="icon"
           title="撤销"
+          variant="ghost"
+          onClick={handleUndo}
         >
           <Undo2 className="h-4 w-4" />
         </Button>
         <Button
-          variant="ghost"
-          size="icon"
           className="h-7 w-7"
           disabled={!canRedo}
-          onClick={handleRedo}
+          size="icon"
           title="重做"
+          variant="ghost"
+          onClick={handleRedo}
         >
           <Redo2 className="h-4 w-4" />
         </Button>
 
-        <Separator orientation="vertical" className="mx-1 h-5" />
+        <Separator className="mx-1 h-5" orientation="vertical" />
 
         {/* Delete */}
         <Tooltip>
           <TooltipTrigger
             render={
               <Button
-                variant="ghost"
-                size="icon"
                 className="h-7 w-7 text-destructive hover:bg-destructive/10 disabled:text-muted-foreground/30"
-                onClick={handleDeleteSelected}
                 disabled={!selectedNodeId}
+                size="icon"
+                variant="ghost"
+                onClick={handleDeleteSelected}
               />
             }
           >
@@ -115,9 +115,9 @@ export const CanvasToolbar = () => {
           <TooltipTrigger
             render={
               <Button
-                variant="ghost"
-                size="icon"
                 className="h-7 w-7"
+                size="icon"
+                variant="ghost"
                 onClick={handleExportCanvas}
               />
             }
@@ -127,13 +127,13 @@ export const CanvasToolbar = () => {
           <TooltipContent>导出</TooltipContent>
         </Tooltip>
 
-        <Separator orientation="vertical" className="mx-1 h-5" />
+        <Separator className="mx-1 h-5" orientation="vertical" />
 
         {/* AI Assistant */}
         <Button
-          variant={isAiAssistantOpen ? "default" : "ghost"}
-          size="sm"
           className="h-7 gap-1.5 px-2 text-xs"
+          size="sm"
+          variant={isAiAssistantOpen ? "default" : "ghost"}
           onClick={handleToggleAi}
         >
           <Bot className="h-3.5 w-3.5" />

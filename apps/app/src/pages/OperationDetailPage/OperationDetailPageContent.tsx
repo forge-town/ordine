@@ -174,7 +174,7 @@ export const OperationDetailPageContent = ({
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <XCircle className="h-10 w-10 text-gray-300" />
         <p className="text-sm font-medium text-gray-500">Operation 不存在</p>
-        <button onClick={handleNavigateBack} className="text-xs text-violet-600 hover:underline">
+        <button className="text-xs text-violet-600 hover:underline" onClick={handleNavigateBack}>
           返回列表
         </button>
       </div>
@@ -191,9 +191,9 @@ export const OperationDetailPageContent = ({
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
         <button
-          onClick={handleNavigateBack}
-          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
           aria-label="返回列表"
+          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+          onClick={handleNavigateBack}
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </button>
@@ -220,14 +220,14 @@ export const OperationDetailPageContent = ({
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs text-gray-400 shrink-0">可见性</span>
             <button
-              onClick={handleVisibilityClick}
-              disabled={toggling}
               className={cn(
                 "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-opacity",
                 vc.cls,
                 toggling && "opacity-50 cursor-not-allowed"
               )}
+              disabled={toggling}
               title="点击切换可见性"
+              onClick={handleVisibilityClick}
             >
               <VisibilityIcon className="h-3 w-3" />
               {vc.label}

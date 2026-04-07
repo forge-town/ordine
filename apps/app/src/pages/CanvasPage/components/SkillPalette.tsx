@@ -158,9 +158,9 @@ export const SkillPalette = () => {
       )}
     >
       <button
-        onClick={handleToggleSidebar}
         className="absolute -right-3 top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm hover:bg-gray-50"
         title={isSidebarOpen ? "收起侧栏" : "展开侧栏"}
+        onClick={handleToggleSidebar}
       >
         {isSidebarOpen ? (
           <ChevronLeft className="h-3 w-3 text-gray-500" />
@@ -188,11 +188,11 @@ export const SkillPalette = () => {
                   return (
                     <button
                       key={item.type}
-                      onClick={() => handleAddNodeType(item)}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
                         item.colorClass
                       )}
+                      onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(
@@ -223,11 +223,11 @@ export const SkillPalette = () => {
                   return (
                     <button
                       key={item.type}
-                      onClick={() => handleAddNodeType(item)}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
                         item.colorClass
                       )}
+                      onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(
@@ -258,11 +258,11 @@ export const SkillPalette = () => {
                   return (
                     <button
                       key={item.type}
-                      onClick={() => handleAddNodeType(item)}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
                         item.colorClass
                       )}
+                      onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(

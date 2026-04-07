@@ -51,12 +51,8 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
-        theme="amber"
-        icon={ShieldCheck}
-        label={data.label}
-        onLabelChange={handleLabelChange}
+        bodyClassName="space-y-3"
         description="Condition Check"
-        selected={selected}
         headerRight={
           <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-white border border-slate-100 shadow-sm px-2 py-1">
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
@@ -65,7 +61,11 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
             </span>
           </div>
         }
-        bodyClassName="space-y-3"
+        icon={ShieldCheck}
+        label={data.label}
+        selected={selected}
+        theme="amber"
+        onLabelChange={handleLabelChange}
       >
         <div className="space-y-1">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -73,10 +73,10 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
           </p>
           <textarea
             className="nodrag nopan font-mono text-[11px] text-slate-700 bg-slate-50 rounded px-1 py-0.5 w-full resize-none focus:outline-none focus:ring-1 focus:ring-slate-200"
+            placeholder="未设置表达式"
             rows={2}
             value={data.expression}
             onChange={handleExpressionChange}
-            placeholder="未设置表达式"
             onMouseDown={handleMouseDown}
           />
         </div>
@@ -86,23 +86,23 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
           </p>
           <input
             className="nodrag nopan text-[11px] font-medium text-slate-600 bg-slate-50 rounded px-1 py-0.5 w-full focus:outline-none focus:ring-1 focus:ring-slate-200"
+            placeholder="期望结果..."
             value={data.expectedResult}
             onChange={handleExpectedResultChange}
-            placeholder="期望结果..."
             onMouseDown={handleMouseDown}
           />
         </div>
       </NodeCard>
 
       <Handle
-        type="target"
-        position={Position.Left}
         className="absolute h-3.5 w-3.5 rounded-full bg-amber-500 border-[3px] border-white shadow-sm transition-all hover:scale-110 -left-1.5 top-1/2 -mt-1.5"
+        position={Position.Left}
+        type="target"
       />
       <Handle
-        type="source"
-        position={Position.Right}
         className="absolute h-3.5 w-3.5 rounded-full bg-amber-500 border-[3px] border-white shadow-sm transition-all hover:scale-110 -right-1.5 top-1/2 -mt-1.5"
+        position={Position.Right}
+        type="source"
       />
     </div>
   );

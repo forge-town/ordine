@@ -16,45 +16,45 @@ export const AppearanceSection = ({ values, onChange, onSave, saved }: Appearanc
 
   return (
     <>
-      <SectionHeader title="外观" description="自定义应用的视觉风格" />
+      <SectionHeader description="自定义应用的视觉风格" title="外观" />
       <Field label="主题">
         <div className="flex gap-2">
           <button
-            onClick={handleLightClick}
             className={cn(
               "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
               values.theme === "light"
                 ? "border-primary bg-accent text-accent-foreground"
                 : "border-border text-muted-foreground hover:border-input"
             )}
+            onClick={handleLightClick}
           >
             浅色
           </button>
           <button
-            onClick={handleDarkClick}
             className={cn(
               "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
               values.theme === "dark"
                 ? "border-primary bg-accent text-accent-foreground"
                 : "border-border text-muted-foreground hover:border-input"
             )}
+            onClick={handleDarkClick}
           >
             深色
           </button>
           <button
-            onClick={handleSystemClick}
             className={cn(
               "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
               values.theme === "system"
                 ? "border-primary bg-accent text-accent-foreground"
                 : "border-border text-muted-foreground hover:border-input"
             )}
+            onClick={handleSystemClick}
           >
             跟随系统
           </button>
         </div>
       </Field>
-      <SaveButton onSave={handleSave} saved={saved} />
+      <SaveButton saved={saved} onSave={handleSave} />
     </>
   );
 };

@@ -26,45 +26,45 @@ export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
-        theme="orange"
+        bodyClassName="space-y-2"
+        description="Code File"
         icon={FileCode}
         label={data.label}
-        onLabelChange={handleLabelChange}
-        description="Code File"
         selected={selected}
-        bodyClassName="space-y-2"
+        theme="orange"
+        onLabelChange={handleLabelChange}
       >
         <div className="flex items-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-2.5 py-1">
           <input
             className="nodrag nopan font-mono text-[11px] font-semibold text-slate-700 bg-transparent focus:outline-none flex-1 min-w-0"
+            placeholder="src/file.tsx"
             value={data.filePath}
             onChange={handleFilePathChange}
-            placeholder="src/file.tsx"
             onMouseDown={handleMouseDown}
           />
           <input
             className="nodrag nopan w-12 shrink-0 rounded bg-orange-100 px-1 py-0.5 font-mono text-[10px] font-medium text-orange-700 focus:outline-none focus:bg-orange-50 text-right"
+            placeholder="ts"
             value={data.language ?? ""}
             onChange={handleLanguageChange}
-            placeholder="ts"
             onMouseDown={handleMouseDown}
           />
         </div>
         <textarea
           className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
+          placeholder="文件描述..."
           rows={2}
           value={data.description ?? ""}
           onChange={handleDescriptionChange}
-          placeholder="文件描述..."
           onMouseDown={handleMouseDown}
         />
       </NodeCard>
 
       {/* Object nodes only emit connections — no target handle */}
       <Handle
-        type="source"
-        position={Position.Right}
         className="absolute h-3.5 w-3.5 rounded-full bg-orange-500 border-[3px] border-white shadow-sm transition-all hover:scale-110 -right-1.5 top-1/2 -mt-1.5"
+        position={Position.Right}
+        type="source"
       />
     </div>
   );

@@ -100,7 +100,7 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <XCircle className="h-10 w-10 text-gray-300" />
         <p className="text-sm font-medium text-gray-500">Job 不存在</p>
-        <button onClick={handleNavigateJobs} className="text-xs text-violet-600 hover:underline">
+        <button className="text-xs text-violet-600 hover:underline" onClick={handleNavigateJobs}>
           返回列表
         </button>
       </div>
@@ -122,8 +122,8 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
         <button
-          onClick={handleNavigateJobs}
           className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+          onClick={handleNavigateJobs}
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </button>
@@ -175,9 +175,9 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
               value={job.finishedAt ? new Date(job.finishedAt).toLocaleString("zh-CN") : null}
             />
             <MetaRow label="耗时" value={duration} />
-            <MetaRow label="Project ID" value={job.projectId} mono />
-            <MetaRow label="Pipeline ID" value={job.pipelineId} mono />
-            <MetaRow label="Work ID" value={job.workId} mono />
+            <MetaRow mono label="Project ID" value={job.projectId} />
+            <MetaRow mono label="Pipeline ID" value={job.pipelineId} />
+            <MetaRow mono label="Work ID" value={job.workId} />
           </div>
 
           {/* Related links */}
@@ -186,8 +186,8 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
               <Link2 className="h-3.5 w-3.5 text-gray-400" />
               {job.projectId && (
                 <button
-                  onClick={handleNavigateProject}
                   className="text-xs text-violet-600 hover:underline"
+                  onClick={handleNavigateProject}
                 >
                   查看项目
                 </button>

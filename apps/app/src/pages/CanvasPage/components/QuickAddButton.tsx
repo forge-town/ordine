@@ -59,13 +59,13 @@ export const QuickAddButton = ({ nodeId, nodeType }: Props) => {
     <div ref={ref} className="relative z-50">
       {/* The "+" trigger button */}
       <button
-        onMouseDown={handleMouseDown}
-        onClick={handleToggleOpen}
         className={cn(
           "flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all",
           "hover:bg-slate-100 hover:text-slate-800 hover:scale-110"
         )}
         title="添加连接节点"
+        onClick={handleToggleOpen}
+        onMouseDown={handleMouseDown}
       >
         <Plus className="h-3 w-3" />
       </button>
@@ -82,11 +82,11 @@ export const QuickAddButton = ({ nodeId, nodeType }: Props) => {
             return (
               <button
                 key={type}
-                onMouseDown={handleMouseDown}
-                onClick={handlePick(type)}
                 className={cn(
                   "flex w-full items-center gap-2 px-3 py-1.5 text-xs transition-colors hover:bg-gray-50"
                 )}
+                onClick={handlePick(type)}
+                onMouseDown={handleMouseDown}
               >
                 <span
                   className={cn(

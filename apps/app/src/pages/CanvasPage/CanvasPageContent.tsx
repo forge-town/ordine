@@ -39,29 +39,29 @@ const CanvasInner = () => {
 
       {contextMenu && (
         <CanvasContextMenu
-          screenX={contextMenu.screenX}
-          screenY={contextMenu.screenY}
           flowX={contextMenu.flowX}
           flowY={contextMenu.flowY}
+          screenX={contextMenu.screenX}
+          screenY={contextMenu.screenY}
           onClose={handleCloseContextMenu}
         />
       )}
 
       {connectionMenu && (
         <ConnectionMenu
-          screenX={connectionMenu.screenX}
-          screenY={connectionMenu.screenY}
           flowX={connectionMenu.flowX}
           flowY={connectionMenu.flowY}
+          screenX={connectionMenu.screenX}
+          screenY={connectionMenu.screenY}
           onClose={handleCloseConnectionMenu}
         />
       )}
 
       {nodeContextMenu && (
         <NodeContextMenu
+          nodeId={nodeContextMenu.nodeId}
           screenX={nodeContextMenu.screenX}
           screenY={nodeContextMenu.screenY}
-          nodeId={nodeContextMenu.nodeId}
           onClose={handleCloseNodeContextMenu}
         />
       )}

@@ -53,11 +53,11 @@ export const HarnessCanvasHeader = () => {
       <div className="flex items-center gap-1">
         {pipelineId && (
           <Button
-            variant="ghost"
-            size="sm"
             className="h-7 gap-1.5 px-2.5 text-xs"
-            onClick={handleClickSave}
             disabled={saveState === "saving"}
+            size="sm"
+            variant="ghost"
+            onClick={handleClickSave}
           >
             {saveState === "saving" ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -69,13 +69,13 @@ export const HarnessCanvasHeader = () => {
             {saveState === "saved" ? "已保存" : "保存"}
           </Button>
         )}
-        <Separator orientation="vertical" className="mx-1 h-4" />
+        <Separator className="mx-1 h-4" orientation="vertical" />
         <Button
-          variant="ghost"
-          size="icon"
           className="h-7 w-7"
-          onClick={handleNavigateSettings}
+          size="icon"
           title="设置"
+          variant="ghost"
+          onClick={handleNavigateSettings}
         >
           <Settings className="h-4 w-4" />
         </Button>

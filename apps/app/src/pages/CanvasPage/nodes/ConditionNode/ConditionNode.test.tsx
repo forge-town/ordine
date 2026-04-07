@@ -20,22 +20,22 @@ const baseData = {
 
 describe("ConditionNode", () => {
   it("renders label", () => {
-    render(<ConditionNode id="test" data={baseData} />, { wrapper });
+    render(<ConditionNode data={baseData} id="test" />, { wrapper });
     expect(screen.getByText("质量检查")).toBeInTheDocument();
   });
 
   it("renders condition expression", () => {
-    render(<ConditionNode id="test" data={baseData} />, { wrapper });
+    render(<ConditionNode data={baseData} id="test" />, { wrapper });
     expect(screen.getByText("score >= 0.8")).toBeInTheDocument();
   });
 
   it("renders expectedResult", () => {
-    render(<ConditionNode id="test" data={baseData} />, { wrapper });
+    render(<ConditionNode data={baseData} id="test" />, { wrapper });
     expect(screen.getByText("通过阈值")).toBeInTheDocument();
   });
 
   it("renders placeholder when expression is empty", () => {
-    render(<ConditionNode id="test" data={{ ...baseData, expression: "" }} />, {
+    render(<ConditionNode data={{ ...baseData, expression: "" }} id="test" />, {
       wrapper,
     });
     expect(screen.getByText("未设置")).toBeInTheDocument();
@@ -43,7 +43,7 @@ describe("ConditionNode", () => {
 
   it("shows status label for each status", () => {
     const { rerender } = render(
-      <ConditionNode id="test" data={{ ...baseData, status: "idle" }} />,
+      <ConditionNode data={{ ...baseData, status: "idle" }} id="test" />,
       { wrapper }
     );
     expect(screen.getByText("待验收")).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe("ConditionNode", () => {
     rerender(
       <HarnessCanvasStoreProvider>
         <ReactFlowProvider>
-          <ConditionNode id="test" data={{ ...baseData, status: "pass" }} />
+          <ConditionNode data={{ ...baseData, status: "pass" }} id="test" />
         </ReactFlowProvider>
       </HarnessCanvasStoreProvider>
     );
@@ -60,7 +60,7 @@ describe("ConditionNode", () => {
     rerender(
       <HarnessCanvasStoreProvider>
         <ReactFlowProvider>
-          <ConditionNode id="test" data={{ ...baseData, status: "fail" }} />
+          <ConditionNode data={{ ...baseData, status: "fail" }} id="test" />
         </ReactFlowProvider>
       </HarnessCanvasStoreProvider>
     );

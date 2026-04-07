@@ -19,22 +19,22 @@ const baseData = {
 
 describe("FolderNode", () => {
   it("renders label", () => {
-    render(<FolderNode id="test" data={baseData} />, { wrapper });
+    render(<FolderNode data={baseData} id="test" />, { wrapper });
     expect(screen.getByText("src")).toBeInTheDocument();
   });
 
   it("renders folderPath", () => {
-    render(<FolderNode id="test" data={baseData} />, { wrapper });
+    render(<FolderNode data={baseData} id="test" />, { wrapper });
     expect(screen.getByText("apps/app/src")).toBeInTheDocument();
   });
 
   it("renders description", () => {
-    render(<FolderNode id="test" data={baseData} />, { wrapper });
+    render(<FolderNode data={baseData} id="test" />, { wrapper });
     expect(screen.getByText("应用源码目录")).toBeInTheDocument();
   });
 
   it("shows placeholder when folderPath is empty", () => {
-    render(<FolderNode id="test" data={{ ...baseData, folderPath: "" }} />, { wrapper });
+    render(<FolderNode data={{ ...baseData, folderPath: "" }} id="test" />, { wrapper });
     expect(screen.getByText("未设置路径")).toBeInTheDocument();
   });
 });

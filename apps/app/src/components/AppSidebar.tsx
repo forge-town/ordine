@@ -49,7 +49,7 @@ export const AppSidebar = () => {
   const currentPath = location.pathname;
 
   return (
-    <Sidebar collapsible="icon" className="border-r bg-sidebar">
+    <Sidebar className="border-r bg-sidebar" collapsible="icon">
       {/* Logo + collapse trigger */}
       <SidebarHeader className="h-11 flex-row items-center justify-between border-b px-3 py-0">
         <div className="flex items-center gap-2 overflow-hidden">
@@ -66,12 +66,12 @@ export const AppSidebar = () => {
       {/* Canvas — special featured button */}
       <div className="shrink-0 border-b border-sidebar-border px-2 py-2">
         <Link
-          to="/canvas"
           className={cn(
             "flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-semibold transition-colors",
             "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm hover:from-violet-500 hover:to-indigo-500",
             "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0"
           )}
+          to="/canvas"
         >
           <Workflow className="h-4 w-4 shrink-0" />
           <span className="group-data-[state=collapsed]/sidebar:hidden">Canvas</span>
@@ -93,17 +93,17 @@ export const AppSidebar = () => {
                 return (
                   <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton
-                      render={<Link to={item.to as "/"} />}
-                      isActive={isActive}
-                      tooltip={item.label}
                       className="h-8"
+                      isActive={isActive}
+                      render={<Link to={item.to as "/"} />}
+                      tooltip={item.label}
                     >
                       <Icon />
                       <span>{item.label}</span>
                       {item.badge && (
                         <Badge
-                          variant="secondary"
                           className="ml-auto h-4 px-1.5 text-[10px] group-data-[state=collapsed]/sidebar:hidden"
+                          variant="secondary"
                         >
                           {item.badge}
                         </Badge>
@@ -122,10 +122,10 @@ export const AppSidebar = () => {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              render={<Link to="/settings" />}
-              isActive={currentPath === "/settings"}
-              tooltip="设置"
               className="h-8"
+              isActive={currentPath === "/settings"}
+              render={<Link to="/settings" />}
+              tooltip="设置"
             >
               <Settings />
               <span>设置</span>

@@ -12,11 +12,11 @@ export const Toggle = ({ enabled, onToggle, label }: ToggleProps) => {
     <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-3">
       <span className="text-sm">{label}</span>
       <button
-        onClick={handleToggle}
         className={cn(
           "relative h-5 w-9 rounded-full transition-colors",
           enabled ? "bg-primary" : "bg-input"
         )}
+        onClick={handleToggle}
       >
         <span
           className={cn(

@@ -67,7 +67,7 @@ export const PipelinesPageContent = () => {
           <h1 className="text-base font-semibold text-foreground">Pipelines</h1>
           <p className="text-xs text-muted-foreground">{pipelines.length} 个 Pipeline</p>
         </div>
-        <Button size="sm" onClick={handleCreateClick} className="flex items-center gap-1.5">
+        <Button className="flex items-center gap-1.5" size="sm" onClick={handleCreateClick}>
           <Plus className="h-3.5 w-3.5" />
           新建 Pipeline
         </Button>
@@ -86,8 +86,8 @@ export const PipelinesPageContent = () => {
               <PipelineCard
                 key={p.id}
                 pipeline={p}
-                onOpen={handleOpenPipeline(p.id)}
                 onDelete={handleDeletePipeline(p.id)}
+                onOpen={handleOpenPipeline(p.id)}
               />
             ))}
           </div>

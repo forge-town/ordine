@@ -17,7 +17,7 @@ export const PipelineDetailPage = () => {
 
   return (
     <AppLayout>
-      <PipelineDetailPageContent pipeline={pipeline} operations={operations} />
+      <PipelineDetailPageContent operations={operations} pipeline={pipeline} />
     </AppLayout>
   );
 };

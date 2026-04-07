@@ -19,7 +19,7 @@ export const ProfileSection = ({ values, onChange, onSave, saved }: ProfileSecti
 
   return (
     <>
-      <SectionHeader title="个人信息" description="管理你的账户名称和联系信息" />
+      <SectionHeader description="管理你的账户名称和联系信息" title="个人信息" />
       <Field label="显示名称">
         <Input value={values.displayName} onChange={handleDisplayNameChange} />
       </Field>
@@ -28,13 +28,13 @@ export const ProfileSection = ({ values, onChange, onSave, saved }: ProfileSecti
       </Field>
       <Field label="简介">
         <textarea
+          className="rounded-md border bg-muted/30 px-3 py-2 text-sm resize-none focus:border-ring focus:bg-background focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+          rows={3}
           value={values.bio}
           onChange={handleBioChange}
-          rows={3}
-          className="rounded-md border bg-muted/30 px-3 py-2 text-sm resize-none focus:border-ring focus:bg-background focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
         />
       </Field>
-      <SaveButton onSave={handleSave} saved={saved} />
+      <SaveButton saved={saved} onSave={handleSave} />
     </>
   );
 };

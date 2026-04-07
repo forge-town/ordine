@@ -14,7 +14,7 @@ export const DashboardPage = () => {
 
   return (
     <AppLayout>
-      <DashboardPageContent pipelines={data.pipelines} projects={data.projects} jobs={data.jobs} />
+      <DashboardPageContent jobs={data.jobs} pipelines={data.pipelines} projects={data.projects} />
     </AppLayout>
   );
 };

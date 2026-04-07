@@ -38,12 +38,8 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
-        theme="violet"
-        icon={Zap}
-        label={data.operationName || data.label}
-        onLabelChange={handleLabelChange}
+        bodyClassName="space-y-2"
         description={operation?.description || "自定义操作"}
-        selected={selected}
         headerRight={
           <div
             className={cn(
@@ -60,7 +56,11 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             </span>
           </div>
         }
-        bodyClassName="space-y-2"
+        icon={Zap}
+        label={data.operationName || data.label}
+        selected={selected}
+        theme="violet"
+        onLabelChange={handleLabelChange}
       >
         {operation?.category && (
           <div className="flex items-center gap-1.5">
@@ -110,15 +110,15 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
 
       {/* Target handle (input from object or previous operation) */}
       <Handle
-        type="target"
-        position={Position.Left}
         className="absolute h-3.5 w-3.5 rounded-full border-[3px] border-white shadow-sm transition-all hover:scale-110 -left-1.5 top-1/2 -mt-1.5 bg-violet-500"
+        position={Position.Left}
+        type="target"
       />
       {/* Source handle (output to next operation or object) */}
       <Handle
-        type="source"
-        position={Position.Right}
         className="absolute h-3.5 w-3.5 rounded-full border-[3px] border-white shadow-sm transition-all hover:scale-110 -right-1.5 top-1/2 -mt-1.5 bg-violet-500"
+        position={Position.Right}
+        type="source"
       />
     </div>
   );

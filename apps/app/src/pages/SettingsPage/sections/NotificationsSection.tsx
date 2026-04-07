@@ -20,15 +20,15 @@ export const NotificationsSection = ({
 
   return (
     <>
-      <SectionHeader title="通知" description="选择你希望接收哪些通知" />
+      <SectionHeader description="选择你希望接收哪些通知" title="通知" />
       <Toggle
         enabled={values.pipeline}
-        onToggle={handlePipelineToggle}
         label="Pipeline 运行完成提醒"
+        onToggle={handlePipelineToggle}
       />
-      <Toggle enabled={values.mention} onToggle={handleMentionToggle} label="被 @提暂时通知" />
-      <Toggle enabled={values.weekly} onToggle={handleWeeklyToggle} label="每周摘要邮件" />
-      <SaveButton onSave={handleSave} saved={saved} />
+      <Toggle enabled={values.mention} label="被 @提暂时通知" onToggle={handleMentionToggle} />
+      <Toggle enabled={values.weekly} label="每周摘要邮件" onToggle={handleWeeklyToggle} />
+      <SaveButton saved={saved} onSave={handleSave} />
     </>
   );
 };

@@ -54,13 +54,13 @@ const ObjectRow = ({
   const handleToggle = () => onToggle();
   return (
     <button
-      onClick={handleToggle}
       className={cn(
         "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
         selected
           ? "border-violet-300 bg-violet-50"
           : "border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50"
       )}
+      onClick={handleToggle}
     >
       <span
         className={cn(
@@ -94,13 +94,13 @@ const PipelineRow = ({
   const handleSelect = () => onSelect();
   return (
     <button
-      onClick={handleSelect}
       className={cn(
         "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
         selected
           ? "border-violet-300 bg-violet-50"
           : "border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50"
       )}
+      onClick={handleSelect}
     >
       <span
         className={cn(
@@ -201,8 +201,8 @@ export const ProjectWorkspacePageContent = () => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
         <button
-          onClick={handleNavigateBack}
           className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+          onClick={handleNavigateBack}
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </button>
@@ -219,14 +219,14 @@ export const ProjectWorkspacePageContent = () => {
         </div>
         {/* Trigger button */}
         <button
-          disabled={!canTrigger}
-          onClick={handleTriggerClick}
           className={cn(
             "flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors",
             canTrigger
               ? "bg-violet-600 text-white hover:bg-violet-700"
               : "cursor-not-allowed bg-gray-100 text-gray-400"
           )}
+          disabled={!canTrigger}
+          onClick={handleTriggerClick}
         >
           <Play className="h-3.5 w-3.5" />
           触发 Work {selectedObjects.size > 0 && `(${selectedObjects.size})`}
@@ -262,8 +262,8 @@ export const ProjectWorkspacePageContent = () => {
               <Layers className="h-8 w-8 text-gray-300" />
               <p className="mt-2 text-sm text-gray-400">还没有 Pipeline</p>
               <button
-                onClick={handleNavigatePipelines}
                 className="mt-3 text-xs text-violet-600 hover:underline"
+                onClick={handleNavigatePipelines}
               >
                 去创建
               </button>

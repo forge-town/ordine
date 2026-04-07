@@ -150,21 +150,21 @@ const PracticeFormDialog = ({
             {initial ? "编辑最佳实践" : "新增最佳实践"}
           </h2>
           <button
-            onClick={handleClose}
             className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-gray-100"
+            onClick={handleClose}
           >
             <X className="h-4 w-4 text-gray-500" />
           </button>
         </div>
-        <form onSubmit={handleFormSubmit} className="p-5 space-y-4 overflow-y-auto">
+        <form className="p-5 space-y-4 overflow-y-auto" onSubmit={handleFormSubmit}>
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">标题 *</label>
             <input
-              value={form.title}
-              onChange={handleTitleChange}
-              placeholder="e.g. 避免在 useEffect 中直接 setState"
               required
               className={inputCls}
+              placeholder="e.g. 避免在 useEffect 中直接 setState"
+              value={form.title}
+              onChange={handleTitleChange}
             />
           </div>
 
@@ -173,19 +173,19 @@ const PracticeFormDialog = ({
               适用时机 (Condition) *
             </label>
             <textarea
+              required
+              className={cn(inputCls, "resize-none")}
+              placeholder="描述什么情况下应该遵循这个实践，例如：当需要在组件挂载后获取异步数据时..."
+              rows={3}
               value={form.condition}
               onChange={handleConditionChange}
-              placeholder="描述什么情况下应该遵循这个实践，例如：当需要在组件挂载后获取异步数据时..."
-              required
-              rows={3}
-              className={cn(inputCls, "resize-none")}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">分类</label>
-              <select value={form.category} onChange={handleCategoryChange} className={inputCls}>
+              <select className={inputCls} value={form.category} onChange={handleCategoryChange}>
                 {CATEGORIES.filter((c) => c.value !== "all").map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.label}
@@ -195,7 +195,7 @@ const PracticeFormDialog = ({
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">语言</label>
-              <select value={form.language} onChange={handleLanguageChange} className={inputCls}>
+              <select className={inputCls} value={form.language} onChange={handleLanguageChange}>
                 {LANGUAGES.map((l) => (
                   <option key={l} value={l}>
                     {l}
@@ -208,37 +208,37 @@ const PracticeFormDialog = ({
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">代码片段</label>
             <textarea
-              value={form.codeSnippet}
-              onChange={handleCodeSnippetChange}
+              className={cn(inputCls, "resize-y font-mono text-xs leading-relaxed")}
               placeholder="// 在这里粘贴代码示例..."
               rows={8}
               spellCheck={false}
-              className={cn(inputCls, "resize-y font-mono text-xs leading-relaxed")}
+              value={form.codeSnippet}
+              onChange={handleCodeSnippetChange}
             />
           </div>
 
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">标签 (逗号分隔)</label>
             <input
+              className={inputCls}
+              placeholder="react, hooks, async"
               value={form.tags}
               onChange={handleTagsChange}
-              placeholder="react, hooks, async"
-              className={inputCls}
             />
           </div>
 
           <div className="flex justify-end gap-2 pt-1 shrink-0">
             <button
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
               type="button"
               onClick={handleClose}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
             >
               取消
             </button>
             <button
-              type="submit"
-              disabled={saving || !form.title || !form.condition}
               className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+              disabled={saving || !form.title || !form.condition}
+              type="submit"
             >
               {saving ? "保存中..." : "保存"}
             </button>
@@ -278,14 +278,14 @@ const PracticeCard = ({
             <h3 className="text-sm font-semibold text-gray-900 leading-snug">{practice.title}</h3>
             <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
-                onClick={handleEdit}
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-gray-100"
+                onClick={handleEdit}
               >
                 <Pencil className="h-3.5 w-3.5 text-gray-400" />
               </button>
               <button
-                onClick={handleDelete}
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-red-50"
+                onClick={handleDelete}
               >
                 <Trash2 className="h-3.5 w-3.5 text-red-400" />
               </button>
@@ -330,8 +330,8 @@ const PracticeCard = ({
       {hasCode && (
         <div className="border-t border-gray-100">
           <button
-            onClick={handleToggleExpanded}
             className="flex w-full items-center gap-2 px-4 py-2 text-xs text-gray-500 hover:bg-gray-50 transition-colors"
+            onClick={handleToggleExpanded}
           >
             <Code2 className="h-3.5 w-3.5 text-gray-400" />
             <span className="flex-1 text-left font-medium">代码片段</span>
@@ -422,8 +422,8 @@ export const BestPracticesPageContent = ({
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6">
         <h1 className="text-base font-semibold text-gray-900">最佳实践</h1>
         <button
-          onClick={handleAddPractice}
           className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
+          onClick={handleAddPractice}
         >
           <Plus className="h-4 w-4" />
           新增实践
@@ -435,11 +435,11 @@ export const BestPracticesPageContent = ({
         <div className="relative w-64">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
           <input
-            type="text"
+            className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
             placeholder="搜索实践、标签..."
+            type="text"
             value={search}
             onChange={handleSearchChange}
-            className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
           />
         </div>
 
@@ -448,13 +448,13 @@ export const BestPracticesPageContent = ({
           {CATEGORIES.map((cat) => (
             <button
               key={cat.value}
-              onClick={handleCategoryClick(cat.value)}
               className={cn(
                 "whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                 activeCategory === cat.value
                   ? "bg-violet-600 text-white"
                   : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
               )}
+              onClick={handleCategoryClick(cat.value)}
             >
               {cat.label}
               {cat.value !== "all" && (
@@ -486,8 +486,8 @@ export const BestPracticesPageContent = ({
             </p>
             {!search && activeCategory === "all" && (
               <button
-                onClick={handleAddPractice}
                 className="mt-4 flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-colors"
+                onClick={handleAddPractice}
               >
                 <Plus className="h-4 w-4" />
                 新增实践
@@ -500,8 +500,8 @@ export const BestPracticesPageContent = ({
               <PracticeCard
                 key={p.id}
                 practice={p}
-                onEdit={handleEditPractice(p)}
                 onDelete={handleDeletePractice(p.id)}
+                onEdit={handleEditPractice(p)}
               />
             ))}
           </div>

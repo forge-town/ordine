@@ -197,8 +197,8 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
                   return (
                     <button
                       key={type}
-                      onClick={() => handleSelectObject(type as NodeType)}
                       className="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => handleSelectObject(type as NodeType)}
                     >
                       <span
                         className={cn(
@@ -226,8 +226,8 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
               {availableOperations.map((operation) => (
                 <button
                   key={operation.id}
-                  onClick={() => handleSelectOperation(operation.id)}
                   className="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => handleSelectOperation(operation.id)}
                 >
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-violet-500">
                     <Zap className="h-3.5 w-3.5 text-white" />
@@ -271,8 +271,8 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
                   return (
                     <button
                       key={type}
-                      onClick={() => handleSelectObject(type)}
                       className="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => handleSelectObject(type)}
                     >
                       <span
                         className={cn(

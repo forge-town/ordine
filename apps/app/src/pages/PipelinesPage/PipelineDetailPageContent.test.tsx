@@ -74,20 +74,20 @@ const ops: OperationEntity[] = [
 
 describe("PipelineDetailPageContent", () => {
   it("renders the pipeline name in the header", () => {
-    render(<PipelineDetailPageContent pipeline={makePipeline()} operations={ops} />);
+    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline()} />);
     expect(screen.getByRole("heading", { name: "My Pipeline" })).toBeInTheDocument();
   });
 
   it("renders the pipeline description", () => {
-    render(<PipelineDetailPageContent pipeline={makePipeline()} operations={ops} />);
+    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline()} />);
     expect(screen.getByText("A test pipeline")).toBeInTheDocument();
   });
 
   it("renders tags when present", () => {
     render(
       <PipelineDetailPageContent
-        pipeline={makePipeline({ tags: ["ci", "lint"] })}
         operations={ops}
+        pipeline={makePipeline({ tags: ["ci", "lint"] })}
       />
     );
     expect(screen.getByText("ci")).toBeInTheDocument();
@@ -111,18 +111,18 @@ describe("PipelineDetailPageContent", () => {
         },
       ],
     });
-    render(<PipelineDetailPageContent pipeline={pipeline} operations={ops} />);
+    render(<PipelineDetailPageContent operations={ops} pipeline={pipeline} />);
     expect(screen.getByText("1")).toBeInTheDocument();
   });
 
   it("renders a canvas preview area", () => {
-    render(<PipelineDetailPageContent pipeline={makePipeline()} operations={ops} />);
+    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline()} />);
     expect(screen.getByTestId("canvas-preview")).toBeInTheDocument();
   });
 
   it("clicking canvas preview navigates to canvas with pipeline id", async () => {
     const user = userEvent.setup();
-    render(<PipelineDetailPageContent pipeline={makePipeline()} operations={ops} />);
+    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline()} />);
     await user.click(screen.getByTestId("canvas-preview"));
     expect(mockNavigate).toHaveBeenCalledWith({
       to: "/canvas",
@@ -131,14 +131,14 @@ describe("PipelineDetailPageContent", () => {
   });
 
   it("has a link button to open in canvas", () => {
-    render(<PipelineDetailPageContent pipeline={makePipeline()} operations={ops} />);
+    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline()} />);
     const link = screen.getByRole("link", { name: /在 Canvas 中编辑/i });
     expect(link).toBeInTheDocument();
     expect(link.getAttribute("href")).toContain("pipe-1");
   });
 
   it("shows empty state message inside canvas area when no nodes", () => {
-    render(<PipelineDetailPageContent pipeline={makePipeline({ nodes: [] })} operations={ops} />);
+    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline({ nodes: [] })} />);
     expect(screen.getByText(/还没有操作步骤/i)).toBeInTheDocument();
   });
 });

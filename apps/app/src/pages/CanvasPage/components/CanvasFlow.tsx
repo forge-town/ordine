@@ -213,31 +213,31 @@ export const CanvasFlow = () => {
 
   return (
     <ReactFlow
-      nodes={nodes}
+      fitView
+      className="bg-slate-50/50"
+      defaultEdgeOptions={defaultEdgeOptions}
+      deleteKeyCode={["Backspace", "Delete"]}
       edges={edges}
-      onNodesChange={handleNodesChange}
-      onEdgesChange={handleEdgesChange}
+      fitViewOptions={{ padding: 0.15 }}
+      nodes={nodes}
+      nodeTypes={nodeTypes}
+      proOptions={{ hideAttribution: false }}
       onConnect={handleConnect}
-      onConnectStart={handleConnectStart}
       onConnectEnd={handleConnectEnd}
+      onConnectStart={handleConnectStart}
+      onEdgeClick={handleEdgeClick}
+      onEdgesChange={handleEdgesChange}
       onNodeClick={handleNodeClick}
       onNodeContextMenu={handleNodeContextMenu}
-      onEdgeClick={handleEdgeClick}
+      onNodesChange={handleNodesChange}
       onPaneClick={handlePaneClick}
       onPaneContextMenu={handlePaneContextMenu}
-      nodeTypes={nodeTypes}
-      defaultEdgeOptions={defaultEdgeOptions}
-      fitView
-      fitViewOptions={{ padding: 0.15 }}
-      proOptions={{ hideAttribution: false }}
-      className="bg-slate-50/50"
-      deleteKeyCode={["Backspace", "Delete"]}
     >
-      <Background variant={BackgroundVariant.Dots} gap={24} size={1.5} color="#cbd5e1" />
+      <Background color="#cbd5e1" gap={24} size={1.5} variant={BackgroundVariant.Dots} />
       <Controls
-        position="bottom-left"
         showInteractive
         className="border-gray-200! bg-white! shadow-sm!"
+        position="bottom-left"
       />
     </ReactFlow>
   );

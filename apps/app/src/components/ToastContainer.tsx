@@ -12,17 +12,17 @@ export const ToastContainer: FC = () => {
         return (
           <Toast
             key={toast.id}
-            type={toast.type}
-            title={toast.title}
             description={toast.description}
             duration={toast.duration}
-            onClose={handleClose}
             style={{
               position: "relative",
               right: 0,
               top: 0,
               marginTop: index > 0 ? "0.5rem" : 0,
             }}
+            title={toast.title}
+            type={toast.type}
+            onClose={handleClose}
           />
         );
       })}

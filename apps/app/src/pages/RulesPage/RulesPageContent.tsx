@@ -148,9 +148,9 @@ const RuleCard = ({
         {/* Actions */}
         <div className="flex shrink-0 items-center gap-1">
           <button
-            onClick={handleToggle}
             className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
             title={rule.enabled ? "禁用" : "启用"}
+            onClick={handleToggle}
           >
             {rule.enabled ? (
               <ToggleRight className="h-4 w-4 text-gray-600" />
@@ -159,14 +159,14 @@ const RuleCard = ({
             )}
           </button>
           <button
-            onClick={handleEdit}
             className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
+            onClick={handleEdit}
           >
             <Pencil className="h-3.5 w-3.5 text-gray-400" />
           </button>
           <button
-            onClick={handleDelete}
             className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-red-50"
+            onClick={handleDelete}
           >
             <Trash2 className="h-3.5 w-3.5 text-gray-400 hover:text-red-500 transition-colors" />
           </button>
@@ -215,19 +215,19 @@ const RuleForm = ({
     <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm space-y-3">
       {/* Name */}
       <input
+        className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
+        placeholder="规则名称 *"
         value={form.name}
         onChange={handleNameChange}
-        placeholder="规则名称 *"
-        className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
       />
 
       {/* Description */}
       <textarea
-        value={form.description}
-        onChange={handleDescriptionChange}
+        className="w-full resize-none rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
         placeholder="规则描述（可选）"
         rows={2}
-        className="w-full resize-none rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
+        value={form.description}
+        onChange={handleDescriptionChange}
       />
 
       {/* Category + Severity */}
@@ -235,9 +235,9 @@ const RuleForm = ({
         <div>
           <label className="mb-1 block text-[11px] text-gray-400">分类</label>
           <select
+            className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-gray-300"
             value={form.category}
             onChange={handleCategoryChange}
-            className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-gray-300"
           >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -249,9 +249,9 @@ const RuleForm = ({
         <div>
           <label className="mb-1 block text-[11px] text-gray-400">严重度</label>
           <select
+            className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-gray-300"
             value={form.severity}
             onChange={handleSeverityChange}
-            className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-gray-300"
           >
             {SEVERITIES.map((s) => (
               <option key={s} value={s}>
@@ -264,33 +264,33 @@ const RuleForm = ({
 
       {/* Pattern */}
       <input
+        className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 font-mono text-sm outline-none placeholder:text-gray-400 placeholder:font-sans focus:border-gray-300"
+        placeholder="规则模式（正则或关键词，可选）"
         value={form.pattern}
         onChange={handlePatternChange}
-        placeholder="规则模式（正则或关键词，可选）"
-        className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 font-mono text-sm outline-none placeholder:text-gray-400 placeholder:font-sans focus:border-gray-300"
       />
 
       {/* Tags */}
       <input
+        className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
+        placeholder="标签（逗号分隔，可选）"
         value={form.tags}
         onChange={handleTagsChange}
-        placeholder="标签（逗号分隔，可选）"
-        className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
       />
 
       {/* Actions */}
       <div className="flex items-center justify-end gap-2 pt-1">
         <button
-          onClick={handleCancel}
           className="flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs text-gray-500 hover:bg-gray-50 transition-colors"
+          onClick={handleCancel}
         >
           <X className="h-3.5 w-3.5" />
           取消
         </button>
         <button
-          onClick={handleSave}
-          disabled={!form.name.trim() || saving}
           className="flex h-8 items-center gap-1.5 rounded-lg bg-gray-900 px-3 text-xs font-medium text-white disabled:opacity-50 hover:bg-gray-700 transition-colors"
+          disabled={!form.name.trim() || saving}
+          onClick={handleSave}
         >
           <Check className="h-3.5 w-3.5" />
           {saving ? "保存中…" : "保存"}
@@ -407,8 +407,8 @@ export const RulesPageContent = ({ rules: initial }: { rules: RuleEntity[] }) =>
         </span>
         <div className="ml-auto">
           <button
-            onClick={handleShowForm}
             className="flex h-8 items-center gap-1.5 rounded-lg bg-gray-900 px-3 text-xs font-medium text-white hover:bg-gray-700 transition-colors"
+            onClick={handleShowForm}
           >
             <Plus className="h-3.5 w-3.5" />
             新建规则
@@ -418,7 +418,7 @@ export const RulesPageContent = ({ rules: initial }: { rules: RuleEntity[] }) =>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
         {/* Create form */}
-        {showForm && <RuleForm onSave={handleCreate} onCancel={handleHideForm} />}
+        {showForm && <RuleForm onCancel={handleHideForm} onSave={handleCreate} />}
 
         {/* Filters + Search */}
         <div className="flex items-center gap-3">
@@ -426,13 +426,13 @@ export const RulesPageContent = ({ rules: initial }: { rules: RuleEntity[] }) =>
             {CATEGORY_FILTERS.map((f) => (
               <button
                 key={f.value}
-                onClick={handleCategoryFilterClick(f.value)}
                 className={cn(
                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                   categoryFilter === f.value
                     ? "bg-gray-100 text-gray-800"
                     : "text-gray-500 hover:text-gray-700"
                 )}
+                onClick={handleCategoryFilterClick(f.value)}
               >
                 {f.label}
               </button>
@@ -441,10 +441,10 @@ export const RulesPageContent = ({ rules: initial }: { rules: RuleEntity[] }) =>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
             <input
+              className="w-full rounded-lg border border-gray-100 bg-white py-2 pl-9 pr-4 text-sm shadow-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
+              placeholder="搜索规则名称、描述或标签…"
               value={search}
               onChange={handleSearchChange}
-              placeholder="搜索规则名称、描述或标签…"
-              className="w-full rounded-lg border border-gray-100 bg-white py-2 pl-9 pr-4 text-sm shadow-sm outline-none placeholder:text-gray-400 focus:border-gray-300"
             />
           </div>
         </div>
@@ -454,7 +454,7 @@ export const RulesPageContent = ({ rules: initial }: { rules: RuleEntity[] }) =>
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <ShieldCheck className="h-8 w-8 text-gray-200" />
             <p className="mt-2 text-sm text-gray-400">暂无规则</p>
-            <button onClick={handleShowForm} className="mt-2 text-xs text-gray-500 hover:underline">
+            <button className="mt-2 text-xs text-gray-500 hover:underline" onClick={handleShowForm}>
               创建第一条规则
             </button>
           </div>
@@ -465,16 +465,16 @@ export const RulesPageContent = ({ rules: initial }: { rules: RuleEntity[] }) =>
                 <div key={rule.id} className="col-span-2">
                   <RuleForm
                     initial={getEditForm(rule)}
-                    onSave={handleUpdate}
                     onCancel={handleCancelEdit}
+                    onSave={handleUpdate}
                   />
                 </div>
               ) : (
                 <RuleCard
                   key={rule.id}
                   rule={rule}
-                  onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onEdit={handleEdit}
                   onToggle={handleToggle}
                 />
               )

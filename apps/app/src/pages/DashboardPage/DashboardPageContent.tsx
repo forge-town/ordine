@@ -66,7 +66,7 @@ const JOB_STATUS_CLS: Record<string, string> = {
 const JobActivityRow = ({ job }: { job: JobEntity }) => {
   const Icon = JOB_STATUS_ICON[job.status] ?? Clock;
   return (
-    <Link to="/jobs/$jobId" params={{ jobId: job.id }}>
+    <Link params={{ jobId: job.id }} to="/jobs/$jobId">
       <div className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50 transition-colors">
         <Icon
           className={cn(
@@ -127,21 +127,20 @@ export const DashboardPageContent = ({
           <StatCard
             icon={FolderGit2}
             label="GitHub 项目"
-            value={projects.length}
             sub="已连接的仓库"
             to="/projects"
+            value={projects.length}
           />
           <StatCard
             icon={Layers}
             label="Pipelines"
-            value={pipelines.length}
             sub="已设计的流水线"
             to="/pipelines"
+            value={pipelines.length}
           />
           <StatCard
             icon={Activity}
             label="Jobs"
-            value={jobs.length}
             sub={
               failedJobs > 0
                 ? `${failedJobs} 失败`
@@ -150,6 +149,7 @@ export const DashboardPageContent = ({
                   : "全部正常"
             }
             to="/jobs"
+            value={jobs.length}
           />
         </div>
 
@@ -161,8 +161,8 @@ export const DashboardPageContent = ({
               <span className="text-xs font-semibold text-gray-600">最近 Jobs</span>
             </div>
             <Link
-              to="/jobs"
               className="text-[11px] text-gray-400 hover:text-gray-600 hover:underline"
+              to="/jobs"
             >
               全部查看
             </Link>

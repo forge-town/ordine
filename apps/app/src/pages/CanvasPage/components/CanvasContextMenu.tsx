@@ -237,8 +237,8 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
               return (
                 <button
                   key={type}
-                  onClick={() => handleCreateObject(type)}
                   className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
+                  onClick={() => handleCreateObject(type)}
                 >
                   <span
                     className={cn(
@@ -265,8 +265,8 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
             {availableOperations.map((operation) => (
               <button
                 key={operation.id}
-                onClick={() => handleCreateOperation(operation.id)}
                 className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
+                onClick={() => handleCreateOperation(operation.id)}
               >
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-violet-500">
                   <Zap className="h-3 w-3 text-white" />

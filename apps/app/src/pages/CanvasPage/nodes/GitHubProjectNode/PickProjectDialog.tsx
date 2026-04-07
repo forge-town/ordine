@@ -76,11 +76,11 @@ export const PickProjectDialog = ({ open, onClose, onPick }: PickProjectDialogPr
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
+              autoFocus
               className="w-full rounded-md border bg-muted/30 py-1.5 pl-8 pr-3 text-sm focus:bg-background focus:outline-none focus:ring-1 focus:ring-ring"
               placeholder="搜索仓库..."
               value={search}
               onChange={handleSearchChange}
-              autoFocus
             />
           </div>
 
@@ -105,9 +105,9 @@ export const PickProjectDialog = ({ open, onClose, onPick }: PickProjectDialogPr
               filtered.map((p) => (
                 <button
                   key={p.id}
+                  className="w-full rounded-lg border border-transparent px-3 py-2.5 text-left hover:border-border hover:bg-muted/50 transition-colors"
                   type="button"
                   onClick={() => handlePick(p)}
-                  className="w-full rounded-lg border border-transparent px-3 py-2.5 text-left hover:border-border hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     {p.githubUrl.includes("private") ? (
