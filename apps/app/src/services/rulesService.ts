@@ -1,9 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { rulesDao } from "@/models/daos/rulesDao";
-
-const RuleCategorySchema = z.enum(["lint", "security", "style", "performance", "custom"]);
-const RuleSeveritySchema = z.enum(["error", "warning", "info"]);
+import { RuleCategorySchema, RuleSeveritySchema } from "@/schemas";
 
 export const getRules = createServerFn({ method: "GET" })
   .inputValidator(

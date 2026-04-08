@@ -12,7 +12,7 @@ describe("OutputPortRow", () => {
           path: "/output/result.json",
           description: "输出结果",
         }}
-      />,
+      />
     );
     expect(screen.getByText("result")).toBeInTheDocument();
     expect(screen.getByText("/output/result.json")).toBeInTheDocument();
@@ -27,7 +27,7 @@ describe("OutputPortRow", () => {
           path: "/out",
           description: "输出文件夹",
         }}
-      />,
+      />
     );
     expect(screen.getByText("输出文件夹")).toBeInTheDocument();
   });

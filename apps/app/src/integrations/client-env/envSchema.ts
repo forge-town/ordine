@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const clientEnvSchema = z.object({
   VITE_APP_URL: z.string().default("http://localhost:3001"),

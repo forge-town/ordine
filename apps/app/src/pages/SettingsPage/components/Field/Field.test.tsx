@@ -7,7 +7,7 @@ describe("Field", () => {
     render(
       <Field label="Name">
         <input />
-      </Field>,
+      </Field>
     );
     expect(screen.getByText("Name")).toBeTruthy();
   });
@@ -16,7 +16,7 @@ describe("Field", () => {
     render(
       <Field label="Test">
         <span>child content</span>
-      </Field>,
+      </Field>
     );
     expect(screen.getByText("child content")).toBeTruthy();
   });

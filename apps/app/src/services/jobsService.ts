@@ -1,15 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { jobsDao } from "@/models/daos/jobsDao";
-
-const JobStatusSchema = z.enum(["queued", "running", "done", "failed", "cancelled"]);
-const JobTypeSchema = z.enum([
-  "pipeline_run",
-  "code_analysis",
-  "skill_execution",
-  "file_scan",
-  "custom",
-]);
+import { JobStatusSchema, JobTypeSchema } from "@/schemas";
 
 export const getJobs = createServerFn({ method: "GET" })
   .inputValidator(

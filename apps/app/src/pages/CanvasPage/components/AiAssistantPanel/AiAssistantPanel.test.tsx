@@ -6,9 +6,7 @@ import { AiAssistantPanel } from "./AiAssistantPanel";
 vi.stubGlobal("fetch", vi.fn());
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>
-    {children}
-  </HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
 );
 
 describe("AiAssistantPanel", () => {

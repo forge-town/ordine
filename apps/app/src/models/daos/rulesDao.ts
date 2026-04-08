@@ -1,4 +1,5 @@
 import { eq, desc } from "drizzle-orm";
+import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@/db";
 import {
   rulesTable,
@@ -13,7 +14,9 @@ export type RuleEntity = Omit<RuleRow, "createdAt" | "updatedAt"> & {
   updatedAt: number;
 };
 
-type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type DbExecutor =
+  | PostgresJsDatabase<Record<string, unknown>>
+  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: RuleRow): RuleEntity => ({
   ...row,
@@ -58,44 +61,48 @@ export const rulesDao = {
   async update(
     id: string,
     data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>
-  ): Promise<RuleEntity> {
+  ): Promise<RuleEntity | null> {
     const rows = await db
       .update(rulesTable)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
-    return rowToEntity(rows[0]!);
+    return rows[0] ? rowToEntity(rows[0]) : null;
   },
 
   async updateWithTx(
     tx: DbExecutor,
     id: string,
     data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>
-  ): Promise<RuleEntity> {
+  ): Promise<RuleEntity | null> {
     const rows = await tx
       .update(rulesTable)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
-    return rowToEntity(rows[0]!);
+    return rows[0] ? rowToEntity(rows[0]) : null;
   },
 
-  async toggleEnabled(id: string, enabled: boolean): Promise<RuleEntity> {
+  async toggleEnabled(id: string, enabled: boolean): Promise<RuleEntity | null> {
     const rows = await db
       .update(rulesTable)
       .set({ enabled, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
-    return rowToEntity(rows[0]!);
+    return rows[0] ? rowToEntity(rows[0]) : null;
   },
 
-  async toggleEnabledWithTx(tx: DbExecutor, id: string, enabled: boolean): Promise<RuleEntity> {
+  async toggleEnabledWithTx(
+    tx: DbExecutor,
+    id: string,
+    enabled: boolean
+  ): Promise<RuleEntity | null> {
     const rows = await tx
       .update(rulesTable)
       .set({ enabled, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
-    return rowToEntity(rows[0]!);
+    return rows[0] ? rowToEntity(rows[0]) : null;
   },
 
   async delete(id: string): Promise<void> {

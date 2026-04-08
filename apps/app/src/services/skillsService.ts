@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { skillsDao } from "@/models/daos/skillsDao";
+import { SkillSchema } from "@/schemas";
 
 export const getSkills = createServerFn({ method: "GET" }).handler(async () => {
   // 确保初始化 seed 数据
@@ -13,17 +14,6 @@ export const getSkillById = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     return skillsDao.findById(data.id);
   });
-
-const SkillSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  label: z.string(),
-  description: z.string(),
-  category: z.string(),
-  tags: z.array(z.string()),
-  createdAt: z.number(),
-  updatedAt: z.number(),
-});
 
 export const createSkill = createServerFn({ method: "POST" })
   .inputValidator(SkillSchema)

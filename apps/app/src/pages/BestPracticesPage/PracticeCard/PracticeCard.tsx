@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  BookOpen,
-  Code2,
-  ChevronDown,
-  ChevronUp,
-  Pencil,
-  Trash2,
-  Tag,
-} from "lucide-react";
+import { BookOpen, Code2, ChevronDown, ChevronUp, Pencil, Trash2, Tag } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import { CATEGORIES, CATEGORY_COLORS } from "../constants";
@@ -18,11 +10,7 @@ export type PracticeCardProps = {
   onDelete: () => void;
 };
 
-export const PracticeCard = ({
-  practice,
-  onEdit,
-  onDelete,
-}: PracticeCardProps) => {
+export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const hasCode = practice.codeSnippet.trim().length > 0;
   const handleToggleExpanded = () => setExpanded((v) => !v);
@@ -38,9 +26,7 @@ export const PracticeCard = ({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-semibold text-foreground leading-snug">
-              {practice.title}
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground leading-snug">{practice.title}</h3>
             <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-accent"
@@ -62,12 +48,10 @@ export const PracticeCard = ({
             <span
               className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-                CATEGORY_COLORS[practice.category] ??
-                  "bg-muted text-muted-foreground",
+                CATEGORY_COLORS[practice.category] ?? "bg-muted text-muted-foreground"
               )}
             >
-              {CATEGORIES.find((c) => c.value === practice.category)?.label ??
-                practice.category}
+              {CATEGORIES.find((c) => c.value === practice.category)?.label ?? practice.category}
             </span>
             <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground font-mono">
               {practice.language}
@@ -90,9 +74,7 @@ export const PracticeCard = ({
         <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 mb-1">
           适用时机
         </p>
-        <p className="text-xs text-foreground leading-relaxed">
-          {practice.condition}
-        </p>
+        <p className="text-xs text-foreground leading-relaxed">{practice.condition}</p>
       </div>
 
       {/* Code snippet toggle */}

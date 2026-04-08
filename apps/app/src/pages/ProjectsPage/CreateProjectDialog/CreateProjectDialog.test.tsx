@@ -21,14 +21,16 @@ vi.mock("@/services/githubProjectsService", () => ({
 
 describe("CreateProjectDialog", () => {
   it("renders dialog title", () => {
-    render(<CreateProjectDialog onClose={vi.fn()} onCreate={vi.fn()} />);
+    const handleClose = vi.fn();
+    const handleCreate = vi.fn();
+    render(<CreateProjectDialog onClose={handleClose} onCreate={handleCreate} />);
     expect(screen.getByText("连接 GitHub 项目")).toBeInTheDocument();
   });
 
   it("renders URL input", () => {
-    render(<CreateProjectDialog onClose={vi.fn()} onCreate={vi.fn()} />);
-    expect(
-      screen.getByPlaceholderText("https://github.com/owner/repo"),
-    ).toBeInTheDocument();
+    const handleClose = vi.fn();
+    const handleCreate = vi.fn();
+    render(<CreateProjectDialog onClose={handleClose} onCreate={handleCreate} />);
+    expect(screen.getByPlaceholderText("https://github.com/owner/repo")).toBeInTheDocument();
   });
 });

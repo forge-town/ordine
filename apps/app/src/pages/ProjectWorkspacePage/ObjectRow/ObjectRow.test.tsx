@@ -10,15 +10,14 @@ const mockItem = {
 
 describe("ObjectRow", () => {
   it("renders label", () => {
-    render(<ObjectRow item={mockItem} selected={false} onToggle={vi.fn()} />);
+    const handleToggle = vi.fn();
+    render(<ObjectRow item={mockItem} selected={false} onToggle={handleToggle} />);
     expect(screen.getByText("src/main.ts")).toBeInTheDocument();
   });
 
   it("calls onToggle when clicked", () => {
     const handleToggle = vi.fn();
-    render(
-      <ObjectRow item={mockItem} selected={false} onToggle={handleToggle} />,
-    );
+    render(<ObjectRow item={mockItem} selected={false} onToggle={handleToggle} />);
     fireEvent.click(screen.getByRole("button"));
     expect(handleToggle).toHaveBeenCalledTimes(1);
   });

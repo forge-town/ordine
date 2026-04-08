@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  FileCode,
-  Folder,
-  FolderGit2,
-  Globe,
-  Lock,
-  Users,
-} from "lucide-react";
+import { ArrowLeft, FileCode, Folder, FolderGit2, Globe, Lock, Users } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -24,15 +16,7 @@ import { Textarea } from "@repo/ui/textarea";
 import { createOperation } from "@/services/operationsService";
 import type { ObjectType, Visibility } from "@/models/tables/operations_table";
 
-const CATEGORIES = [
-  "general",
-  "lint",
-  "format",
-  "build",
-  "test",
-  "deploy",
-  "custom",
-] as const;
+const CATEGORIES = ["general", "lint", "format", "build", "test", "deploy", "custom"] as const;
 
 const VISIBILITY_OPTIONS: {
   value: Visibility;
@@ -153,9 +137,7 @@ export const OperationCreatePageContent = () => {
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-base font-semibold text-foreground">
-          新建 Operation
-        </h1>
+        <h1 className="text-base font-semibold text-foreground">新建 Operation</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -163,9 +145,7 @@ export const OperationCreatePageContent = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">
-                  名称 *
-                </label>
+                <label className="text-xs font-medium text-muted-foreground">名称 *</label>
                 <Input
                   className="h-9 text-sm"
                   placeholder="e.g. Run ESLint"
@@ -174,13 +154,8 @@ export const OperationCreatePageContent = () => {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">
-                  分类
-                </label>
-                <Select
-                  value={form.category}
-                  onValueChange={handleCategoryChange}
-                >
+                <label className="text-xs font-medium text-muted-foreground">分类</label>
+                <Select value={form.category} onValueChange={handleCategoryChange}>
                   <SelectTrigger className="h-9 w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -198,9 +173,7 @@ export const OperationCreatePageContent = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">
-                描述
-              </label>
+              <label className="text-xs font-medium text-muted-foreground">描述</label>
               <Input
                 className="h-9 text-sm"
                 placeholder="简单描述这个操作做什么"
@@ -210,9 +183,7 @@ export const OperationCreatePageContent = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground">
-                可见性
-              </label>
+              <label className="text-xs font-medium text-muted-foreground">可见性</label>
               <div className="flex gap-2">
                 {VISIBILITY_OPTIONS.map(({ value, label, icon: Icon }) => {
                   const selected = form.visibility === value;
@@ -223,7 +194,7 @@ export const OperationCreatePageContent = () => {
                         "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                         selected
                           ? "border-primary/50 bg-primary/10 text-primary"
-                          : "border-border bg-background text-muted-foreground hover:bg-muted",
+                          : "border-border bg-background text-muted-foreground hover:bg-muted"
                       )}
                       type="button"
                       onClick={() => handleVisibilitySelect(value)}
@@ -238,9 +209,7 @@ export const OperationCreatePageContent = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground">
-                可应用的对象类型
-              </label>
+              <label className="text-xs font-medium text-muted-foreground">可应用的对象类型</label>
               <div className="flex gap-2">
                 {OBJECT_TYPE_OPTIONS.map(({ value, label, icon: Icon }) => {
                   const selected = form.acceptedObjectTypes.includes(value);
@@ -251,7 +220,7 @@ export const OperationCreatePageContent = () => {
                         "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                         selected
                           ? "border-primary/50 bg-primary/10 text-primary"
-                          : "border-border bg-background text-muted-foreground hover:bg-muted",
+                          : "border-border bg-background text-muted-foreground hover:bg-muted"
                       )}
                       type="button"
                       onClick={() => handleObjectTypeToggle(value)}
@@ -266,9 +235,7 @@ export const OperationCreatePageContent = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">
-                配置 (JSON)
-              </label>
+              <label className="text-xs font-medium text-muted-foreground">配置 (JSON)</label>
               <Textarea
                 className="resize-none font-mono text-xs"
                 placeholder='{ "command": "eslint src/" }'

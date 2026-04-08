@@ -54,8 +54,8 @@ export const CreateProjectDialog = ({
         token ?? undefined,
       );
       setRepoInfo(info);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "获取仓库信息失败");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "获取仓库信息失败");
     } finally {
       setLoading(false);
     }
@@ -79,8 +79,8 @@ export const CreateProjectDialog = ({
       });
       onCreate(project as GithubProjectEntity);
       onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "保存失败");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "保存失败");
     } finally {
       setSaving(false);
     }
@@ -99,6 +99,9 @@ export const CreateProjectDialog = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") void handleFetch();
   };
+  const handleClose = () => onClose();
+  const handleSaveClick = () => void handleSave();
+  const handleFetchClick = () => void handleFetch();
 
   return (
     <>
@@ -112,7 +115,7 @@ export const CreateProjectDialog = ({
               className="h-7 w-7"
               size="icon"
               variant="ghost"
-              onClick={onClose}
+              onClick={handleClose}
             >
               <X className="h-4 w-4 text-muted-foreground" />
             </Button>
@@ -180,7 +183,7 @@ export const CreateProjectDialog = ({
                   <Button variant="outline" onClick={handleReset}>
                     重新输入
                   </Button>
-                  <Button disabled={saving} onClick={() => void handleSave()}>
+                  <Button disabled={saving} onClick={handleSaveClick}>
                     {saving ? "保存中..." : "添加到项目库"}
                   </Button>
                 </div>
@@ -205,7 +208,7 @@ export const CreateProjectDialog = ({
                     <Button
                       disabled={loading || !url.trim()}
                       size="sm"
-                      onClick={() => void handleFetch()}
+                      onClick={handleFetchClick}
                     >
                       {loading ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -226,7 +229,7 @@ export const CreateProjectDialog = ({
 
             {repoInfo === null && (
               <div className="flex justify-end">
-                <Button variant="outline" onClick={onClose}>
+                <Button variant="outline" onClick={handleClose}>
                   取消
                 </Button>
               </div>

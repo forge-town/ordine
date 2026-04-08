@@ -8,9 +8,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 vi.mock("@/components/AppLayout", () => ({
-  AppLayout: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  AppLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 vi.mock("./RulesPageContent/RulesPageContent", () => ({

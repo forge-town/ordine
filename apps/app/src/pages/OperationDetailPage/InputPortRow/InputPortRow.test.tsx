@@ -12,26 +12,18 @@ describe("InputPortRow", () => {
           required: true,
           description: "输入文件",
         }}
-      />,
+      />
     );
     expect(screen.getByText("source_file")).toBeInTheDocument();
   });
 
   it("shows 必填 badge when required", () => {
-    render(
-      <InputPortRow
-        port={{ name: "p", kind: "text", required: true, description: "" }}
-      />,
-    );
+    render(<InputPortRow port={{ name: "p", kind: "text", required: true, description: "" }} />);
     expect(screen.getByText("必填")).toBeInTheDocument();
   });
 
   it("hides 必填 badge when not required", () => {
-    render(
-      <InputPortRow
-        port={{ name: "p", kind: "text", required: false, description: "" }}
-      />,
-    );
+    render(<InputPortRow port={{ name: "p", kind: "text", required: false, description: "" }} />);
     expect(screen.queryByText("必填")).not.toBeInTheDocument();
   });
 });

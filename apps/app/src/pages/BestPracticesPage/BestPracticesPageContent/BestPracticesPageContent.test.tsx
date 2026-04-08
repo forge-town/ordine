@@ -9,6 +9,11 @@ vi.mock("@/services/bestPracticesService", () => ({
   updateBestPractice: vi.fn(),
 }));
 
+const mockUseLoaderData = vi.fn();
+vi.mock("@/routes/best-practices", () => ({
+  Route: { useLoaderData: () => mockUseLoaderData() },
+}));
+
 const mockPractices: BestPracticeEntity[] = [
   {
     id: "bp-1",
@@ -36,20 +41,21 @@ const mockPractices: BestPracticeEntity[] = [
 
 describe("BestPracticesPageContent", () => {
   it("renders list of practices", () => {
-    render(<BestPracticesPageContent practices={mockPractices} />);
-    expect(
-      screen.getByText("避免在 useEffect 中直接 setState"),
-    ).toBeInTheDocument();
+    mockUseLoaderData.mockReturnValue(mockPractices);
+    render(<BestPracticesPageContent />);
+    expect(screen.getByText("避免在 useEffect 中直接 setState")).toBeInTheDocument();
     expect(screen.getByText("使用 useMemo 缓存计算结果")).toBeInTheDocument();
   });
 
   it("renders empty state when no practices", () => {
-    render(<BestPracticesPageContent practices={[]} />);
+    mockUseLoaderData.mockReturnValue([]);
+    render(<BestPracticesPageContent />);
     expect(screen.getByText("还没有最佳实践")).toBeInTheDocument();
   });
 
   it("shows practice count", () => {
-    render(<BestPracticesPageContent practices={mockPractices} />);
+    mockUseLoaderData.mockReturnValue(mockPractices);
+    render(<BestPracticesPageContent />);
     expect(screen.getByText("2 条")).toBeInTheDocument();
   });
 });

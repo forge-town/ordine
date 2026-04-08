@@ -26,7 +26,10 @@ export const CanvasFloatingMenu = () => {
   const importCanvas = useStore(store, (state) => state.importCanvas);
   const undo = useStore(store, (state) => state.undo);
   const redo = useStore(store, (state) => state.redo);
-  const setPipelineId = useStore(store, (state) => state.setPipelineId);
+  const handlePipelineIdChange = useStore(
+    store,
+    (state) => state.handlePipelineIdChange,
+  );
 
   const { mutate: updateCanvas, mutation: updateMutation } = useUpdate();
   const { mutate: createCanvas, mutation: createMutation } = useCreate();
@@ -90,7 +93,7 @@ export const CanvasFloatingMenu = () => {
         },
         {
           onSuccess: () => {
-            setPipelineId(newId);
+            handlePipelineIdChange(newId);
           },
         },
       );
@@ -108,10 +111,7 @@ export const CanvasFloatingMenu = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const text = evt.target?.result;
-      if (typeof text !== "string") return;
+    void file.text().then((text) => {
       const parsed = JSON.parse(text) as {
         nodes?: PipelineNode[];
         edges?: PipelineEdge[];
@@ -120,8 +120,7 @@ export const CanvasFloatingMenu = () => {
         nodes: parsed.nodes ?? [],
         edges: parsed.edges ?? [],
       });
-    };
-    reader.readAsText(file);
+    });
     e.target.value = "";
     setIsOpen(false);
   };

@@ -4,19 +4,14 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import { deleteBestPractice } from "@/services/bestPracticesService";
+import { Route } from "@/routes/best-practices";
 import { CATEGORIES } from "../constants";
 import { PracticeFormDialog } from "../PracticeFormDialog";
 import { PracticeCard } from "../PracticeCard";
 
-export type BestPracticesPageContentProps = {
-  practices: BestPracticeEntity[];
-};
-
-export const BestPracticesPageContent = ({
-  practices: initialPractices,
-}: BestPracticesPageContentProps) => {
-  const [practices, setPractices] =
-    useState<BestPracticeEntity[]>(initialPractices);
+export const BestPracticesPageContent = () => {
+  const initialPractices = Route.useLoaderData() as BestPracticeEntity[];
+  const [practices, setPractices] = useState<BestPracticeEntity[]>(initialPractices);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [showForm, setShowForm] = useState(false);
@@ -50,11 +45,9 @@ export const BestPracticesPageContent = ({
     await deleteBestPractice({ data: { id } });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
 
-  const handleCategoryClick = (catValue: string) => () =>
-    setActiveCategory(catValue);
+  const handleCategoryClick = (catValue: string) => () => setActiveCategory(catValue);
 
   const handleAddPractice = () => {
     setEditing(null);
@@ -117,9 +110,7 @@ export const BestPracticesPageContent = ({
           ))}
         </div>
 
-        <span className="ml-auto text-xs text-muted-foreground">
-          {filtered.length} 条
-        </span>
+        <span className="ml-auto text-xs text-muted-foreground">{filtered.length} 条</span>
       </div>
 
       {/* List */}
@@ -130,9 +121,7 @@ export const BestPracticesPageContent = ({
               <BookOpen className="h-7 w-7 text-muted-foreground" />
             </div>
             <h3 className="mt-4 text-sm font-semibold text-foreground">
-              {search || activeCategory !== "all"
-                ? "未找到匹配的实践"
-                : "还没有最佳实践"}
+              {search || activeCategory !== "all" ? "未找到匹配的实践" : "还没有最佳实践"}
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
               {search || activeCategory !== "all"

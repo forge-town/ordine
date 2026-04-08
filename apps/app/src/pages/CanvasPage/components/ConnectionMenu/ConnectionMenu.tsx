@@ -36,7 +36,7 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);
   const operations = useStore(store, (s) => s.operations);
-  const setConnectStart = useStore(store, (s) => s.setConnectStart);
+  const storeHandleConnectStart = useStore(store, (s) => s.handleConnectStart);
   const onConnect = useStore(store, (s) => s.onConnect);
   const addNode = useStore(store, (s) => s.addNode);
 
@@ -65,13 +65,13 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setConnectStart(null);
+        storeHandleConnectStart(null);
         onClose();
       }
     };
     globalThis.addEventListener("keydown", handler);
     return () => globalThis.removeEventListener("keydown", handler);
-  }, [onClose, setConnectStart]);
+  }, [onClose, storeHandleConnectStart]);
 
   const handleSelectObject = (type: NodeType) => {
     const newId = `${type}-${Date.now()}`;
@@ -101,7 +101,7 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
       }
     }
 
-    setConnectStart(null);
+    storeHandleConnectStart(null);
     onClose();
   };
 
@@ -136,7 +136,7 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
       }
     }
 
-    setConnectStart(null);
+    storeHandleConnectStart(null);
     onClose();
   };
 
@@ -150,7 +150,7 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
   const top = Math.min(screenY, window.innerHeight - 300);
 
   const handleBackdropClick = () => {
-    setConnectStart(null);
+    storeHandleConnectStart(null);
     onClose();
   };
 

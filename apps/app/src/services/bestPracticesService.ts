@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
+import { BestPracticeSchema } from "@/schemas";
 
 export const getBestPractices = createServerFn({ method: "GET" }).handler(() =>
   bestPracticesDao.findMany()
@@ -9,16 +10,6 @@ export const getBestPractices = createServerFn({ method: "GET" }).handler(() =>
 export const getBestPracticeById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
   .handler(({ data }) => bestPracticesDao.findById(data.id));
-
-const BestPracticeSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  condition: z.string(),
-  category: z.string().default("general"),
-  language: z.string().default("typescript"),
-  codeSnippet: z.string().default(""),
-  tags: z.array(z.string()).default([]),
-});
 
 export const createBestPractice = createServerFn({ method: "POST" })
   .inputValidator(BestPracticeSchema)

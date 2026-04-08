@@ -30,22 +30,16 @@ export const WorkRow = ({ work }: WorkRowProps) => {
       <span
         className={cn(
           "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/30",
-          cfg.color,
+          cfg.color
         )}
       >
-        <Icon
-          className={cn("h-4 w-4", work.status === "running" && "animate-spin")}
-        />
+        <Icon className={cn("h-4 w-4", work.status === "running" && "animate-spin")} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-foreground">
-          {work.pipelineName}
-        </p>
+        <p className="truncate text-sm font-medium text-foreground">{work.pipelineName}</p>
         <p className="mt-0.5 truncate text-xs text-muted-foreground">
           {OBJECT_LABEL[work.object.type]}
-          {work.object.path !== "/" && (
-            <span className="ml-1 font-mono">{work.object.path}</span>
-          )}
+          {work.object.path !== "/" && <span className="ml-1 font-mono">{work.object.path}</span>}
         </p>
       </div>
       <div className="text-right shrink-0">
@@ -55,7 +49,7 @@ export const WorkRow = ({ work }: WorkRowProps) => {
             work.status === "success" && "bg-emerald-50 text-emerald-700",
             work.status === "failed" && "bg-red-50 text-red-700",
             work.status === "running" && "bg-blue-50 text-blue-700",
-            work.status === "pending" && "bg-gray-100 text-gray-600",
+            work.status === "pending" && "bg-gray-100 text-gray-600"
           )}
         >
           {cfg.label}

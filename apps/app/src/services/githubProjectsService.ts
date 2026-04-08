@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { githubProjectsDao } from "@/models/daos/githubProjectsDao";
+import { GithubProjectSchema } from "@/schemas";
 
 export const getGithubProjects = createServerFn({ method: "GET" }).handler(async () =>
   githubProjectsDao.findMany()
@@ -9,17 +10,6 @@ export const getGithubProjects = createServerFn({ method: "GET" }).handler(async
 export const getGithubProjectById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
   .handler(async ({ data }) => githubProjectsDao.findById(data.id));
-
-const GithubProjectSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().default(""),
-  owner: z.string(),
-  repo: z.string(),
-  branch: z.string().default("main"),
-  githubUrl: z.string(),
-  isPrivate: z.boolean().default(false),
-});
 
 export const createGithubProject = createServerFn({ method: "POST" })
   .inputValidator(GithubProjectSchema)

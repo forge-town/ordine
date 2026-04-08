@@ -1,14 +1,9 @@
 import { ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
-import type {
-  RuleCategory,
-  RuleSeverity,
-  RuleEntity,
-} from "@/models/daos/rulesDao";
+import { z } from "zod/v4";
+import type { RuleCategory, RuleSeverity, RuleEntity } from "@/models/daos/rulesDao";
+import { RuleCategorySchema, RuleSeveritySchema } from "@/schemas";
 
-export const CATEGORY_CONFIG: Record<
-  RuleCategory,
-  { label: string; cls: string }
-> = {
+export const CATEGORY_CONFIG: Record<RuleCategory, { label: string; cls: string }> = {
   lint: { label: "Lint", cls: "bg-muted text-muted-foreground" },
   security: { label: "安全", cls: "bg-muted text-muted-foreground" },
   style: { label: "风格", cls: "bg-muted text-muted-foreground" },
@@ -37,13 +32,7 @@ export const SEVERITY_CONFIG: Record<
   },
 };
 
-export const CATEGORIES: RuleCategory[] = [
-  "lint",
-  "security",
-  "style",
-  "performance",
-  "custom",
-];
+export const CATEGORIES: RuleCategory[] = ["lint", "security", "style", "performance", "custom"];
 
 export const SEVERITIES: RuleSeverity[] = ["error", "warning", "info"];
 
@@ -55,14 +44,16 @@ export const CATEGORY_FILTERS = [
   })),
 ];
 
-export interface RuleFormState {
-  name: string;
-  description: string;
-  category: RuleCategory;
-  severity: RuleSeverity;
-  pattern: string;
-  tags: string;
-}
+export const RuleFormStateSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  category: RuleCategorySchema,
+  severity: RuleSeveritySchema,
+  pattern: z.string(),
+  tags: z.string(),
+});
+
+export type RuleFormState = z.infer<typeof RuleFormStateSchema>;
 
 export const emptyForm = (): RuleFormState => ({
   name: "",

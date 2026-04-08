@@ -1,1 +1,1 @@
-export * from './AiAssistantPanel';
+export * from "./AiAssistantPanel";

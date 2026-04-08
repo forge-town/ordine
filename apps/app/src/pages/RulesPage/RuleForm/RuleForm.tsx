@@ -31,11 +31,9 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
   const [form, setForm] = useState<RuleFormState>(initial ?? emptyForm());
   const [saving, setSaving] = useState(false);
 
-  const set = (k: keyof RuleFormState, v: string) =>
-    setForm((prev) => ({ ...prev, [k]: v }));
+  const set = (k: keyof RuleFormState, v: string) => setForm((prev) => ({ ...prev, [k]: v }));
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    set("name", e.target.value);
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => set("name", e.target.value);
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     set("description", e.target.value);
   const handleCategoryChange = (value: string | null) =>
@@ -44,8 +42,7 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
     set("severity", (value ?? form.severity) as RuleSeverity);
   const handlePatternChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     set("pattern", e.target.value);
-  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    set("tags", e.target.value);
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => set("tags", e.target.value);
   const handleCancel = onCancel;
 
   const handleSave = async () => {
@@ -57,11 +54,7 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 space-y-3">
-      <Input
-        placeholder="规则名称 *"
-        value={form.name}
-        onChange={handleNameChange}
-      />
+      <Input placeholder="规则名称 *" value={form.name} onChange={handleNameChange} />
 
       <Textarea
         className="resize-none"
@@ -73,9 +66,7 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-[11px] text-muted-foreground">
-            分类
-          </label>
+          <label className="mb-1 block text-[11px] text-muted-foreground">分类</label>
           <Select value={form.category} onValueChange={handleCategoryChange}>
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -92,9 +83,7 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
           </Select>
         </div>
         <div>
-          <label className="mb-1 block text-[11px] text-muted-foreground">
-            严重度
-          </label>
+          <label className="mb-1 block text-[11px] text-muted-foreground">严重度</label>
           <Select value={form.severity} onValueChange={handleSeverityChange}>
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -119,22 +108,14 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
         onChange={handlePatternChange}
       />
 
-      <Input
-        placeholder="标签（逗号分隔，可选）"
-        value={form.tags}
-        onChange={handleTagsChange}
-      />
+      <Input placeholder="标签（逗号分隔，可选）" value={form.tags} onChange={handleTagsChange} />
 
       <div className="flex items-center justify-end gap-2 pt-1">
         <Button size="sm" variant="outline" onClick={handleCancel}>
           <X className="h-3.5 w-3.5" />
           取消
         </Button>
-        <Button
-          disabled={!form.name.trim() || saving}
-          size="sm"
-          onClick={handleSave}
-        >
+        <Button disabled={!form.name.trim() || saving} size="sm" onClick={handleSave}>
           <Check className="h-3.5 w-3.5" />
           {saving ? "保存中…" : "保存"}
         </Button>

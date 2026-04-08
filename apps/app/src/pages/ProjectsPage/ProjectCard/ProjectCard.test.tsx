@@ -18,24 +18,16 @@ const mockProject = {
 
 describe("ProjectCard", () => {
   it("renders owner/repo", () => {
-    render(
-      <ProjectCard
-        project={mockProject}
-        onClick={vi.fn()}
-        onDelete={vi.fn()}
-      />,
-    );
+    const handleClick = vi.fn();
+    const handleDelete = vi.fn();
+    render(<ProjectCard project={mockProject} onClick={handleClick} onDelete={handleDelete} />);
     expect(screen.getByText("acme/ordine")).toBeInTheDocument();
   });
 
   it("renders branch", () => {
-    render(
-      <ProjectCard
-        project={mockProject}
-        onClick={vi.fn()}
-        onDelete={vi.fn()}
-      />,
-    );
+    const handleClick = vi.fn();
+    const handleDelete = vi.fn();
+    render(<ProjectCard project={mockProject} onClick={handleClick} onDelete={handleDelete} />);
     expect(screen.getByText("main")).toBeInTheDocument();
   });
 });

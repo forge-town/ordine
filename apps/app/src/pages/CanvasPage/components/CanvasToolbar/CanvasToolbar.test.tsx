@@ -1,22 +1,17 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { CanvasToolbar } from "./CanvasToolbar";
 import { HarnessCanvasStoreProvider } from "../../_store";
 
 vi.mock("@repo/ui/button", () => ({
   Button: ({
     children,
-    onClick,
+    onClick: handleClick,
     disabled,
     title,
     className,
   }: React.ComponentProps<"button">) => (
-    <button
-      className={className}
-      disabled={disabled}
-      title={title}
-      onClick={onClick}
-    >
+    <button className={className} disabled={disabled} title={title} onClick={handleClick}>
       {children}
     </button>
   ),
@@ -42,9 +37,7 @@ vi.mock("@repo/ui/tooltip", () => ({
 }));
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>
-    {children}
-  </HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
 );
 
 describe("CanvasToolbar - export removed", () => {

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 
 // ─── Primitive enums ──────────────────────────────────────────────────────────

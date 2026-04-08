@@ -9,12 +9,7 @@ import {
   SecuritySection,
 } from "../sections";
 
-type Section =
-  | "profile"
-  | "notifications"
-  | "appearance"
-  | "language"
-  | "security";
+type Section = "profile" | "notifications" | "appearance" | "language" | "security";
 
 const sections: {
   id: Section;
@@ -109,41 +104,34 @@ export const SettingsPageContent = () => {
   }, []);
 
   const updateSection = useCallback(
-    <K extends keyof AppSettings>(
-      section: K,
-      patch: Partial<AppSettings[K]>,
-    ) => {
+    <K extends keyof AppSettings>(section: K, patch: Partial<AppSettings[K]>) => {
       setSettings((prev) => ({
         ...prev,
         [section]: { ...prev[section], ...patch },
       }));
     },
-    [],
+    []
   );
 
   const handleProfileChange = useCallback(
     (patch: Partial<AppSettings["profile"]>) => updateSection("profile", patch),
-    [updateSection],
+    [updateSection]
   );
   const handleNotificationsChange = useCallback(
-    (patch: Partial<AppSettings["notifications"]>) =>
-      updateSection("notifications", patch),
-    [updateSection],
+    (patch: Partial<AppSettings["notifications"]>) => updateSection("notifications", patch),
+    [updateSection]
   );
   const handleAppearanceChange = useCallback(
-    (patch: Partial<AppSettings["appearance"]>) =>
-      updateSection("appearance", patch),
-    [updateSection],
+    (patch: Partial<AppSettings["appearance"]>) => updateSection("appearance", patch),
+    [updateSection]
   );
   const handleLanguageChange = useCallback(
-    (patch: Partial<AppSettings["language"]>) =>
-      updateSection("language", patch),
-    [updateSection],
+    (patch: Partial<AppSettings["language"]>) => updateSection("language", patch),
+    [updateSection]
   );
   const handleSecurityChange = useCallback(
-    (patch: Partial<AppSettings["security"]>) =>
-      updateSection("security", patch),
-    [updateSection],
+    (patch: Partial<AppSettings["security"]>) => updateSection("security", patch),
+    [updateSection]
   );
 
   const saveChanges = () => {
@@ -170,15 +158,13 @@ export const SettingsPageContent = () => {
                   "flex w-full items-center gap-2.5 px-4 py-2 text-sm transition-colors",
                   active === s.id
                     ? "bg-accent text-accent-foreground font-medium"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                 )}
                 onClick={handleClick}
               >
                 <s.icon className="h-4 w-4 shrink-0" />
                 {s.label}
-                {active === s.id && (
-                  <ChevronRight className="ml-auto h-3.5 w-3.5 text-primary" />
-                )}
+                {active === s.id && <ChevronRight className="ml-auto h-3.5 w-3.5 text-primary" />}
               </button>
             );
           })}

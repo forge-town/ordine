@@ -1,1 +1,1 @@
-export * from './CanvasContextMenu';
+export * from "./CanvasContextMenu";

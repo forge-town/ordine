@@ -26,7 +26,7 @@ const mockJobs: JobEntity[] = [
     projectId: null,
     pipelineId: "p-1",
     logs: [],
-    result: undefined,
+    result: null,
     error: null,
     startedAt: null,
     finishedAt: null,
@@ -42,7 +42,7 @@ describe("DashboardPageContent", () => {
         jobs={[]}
         pipelines={[] as PipelineEntity[]}
         projects={[] as GithubProjectEntity[]}
-      />,
+      />
     );
     expect(screen.getByText("仪表盘")).toBeInTheDocument();
   });
@@ -53,11 +53,9 @@ describe("DashboardPageContent", () => {
         jobs={[]}
         pipelines={[] as PipelineEntity[]}
         projects={[] as GithubProjectEntity[]}
-      />,
+      />
     );
-    expect(
-      screen.getByText("触发 Pipeline 后会在此显示"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("触发 Pipeline 后会在此显示")).toBeInTheDocument();
   });
 
   it("renders job list when jobs exist", () => {
@@ -66,7 +64,7 @@ describe("DashboardPageContent", () => {
         jobs={mockJobs}
         pipelines={[] as PipelineEntity[]}
         projects={[] as GithubProjectEntity[]}
-      />,
+      />
     );
     expect(screen.getByText("运行 Pipeline")).toBeInTheDocument();
   });

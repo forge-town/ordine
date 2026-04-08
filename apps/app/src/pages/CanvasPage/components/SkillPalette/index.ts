@@ -1,1 +1,1 @@
-export * from './SkillPalette';
+export * from "./SkillPalette";

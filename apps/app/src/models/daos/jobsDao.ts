@@ -1,4 +1,5 @@
 import { eq, desc, and } from "drizzle-orm";
+import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@/db";
 import { jobsTable, type JobRow, type NewJobRow, type JobStatus } from "@/models/tables/jobs_table";
 
@@ -9,7 +10,9 @@ export type JobEntity = Omit<JobRow, "createdAt" | "updatedAt" | "startedAt" | "
   finishedAt: number | null;
 };
 
-type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type DbExecutor =
+  | PostgresJsDatabase<Record<string, unknown>>
+  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: JobRow): JobEntity => ({
   ...row,

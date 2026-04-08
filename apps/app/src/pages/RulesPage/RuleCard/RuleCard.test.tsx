@@ -12,43 +12,52 @@ const mockRule: RuleEntity = {
   pattern: "console\\.log",
   enabled: true,
   tags: ["debug", "style"],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
 };
 
 describe("RuleCard", () => {
   it("renders rule name", () => {
+    const handleDelete = vi.fn();
+    const handleEdit = vi.fn();
+    const handleToggle = vi.fn();
     render(
       <RuleCard
         rule={mockRule}
-        onDelete={vi.fn()}
-        onEdit={vi.fn()}
-        onToggle={vi.fn()}
-      />,
+        onDelete={handleDelete}
+        onEdit={handleEdit}
+        onToggle={handleToggle}
+      />
     );
     expect(screen.getByText("No console.log")).toBeTruthy();
   });
 
   it("renders description", () => {
+    const handleDelete = vi.fn();
+    const handleEdit = vi.fn();
+    const handleToggle = vi.fn();
     render(
       <RuleCard
         rule={mockRule}
-        onDelete={vi.fn()}
-        onEdit={vi.fn()}
-        onToggle={vi.fn()}
-      />,
+        onDelete={handleDelete}
+        onEdit={handleEdit}
+        onToggle={handleToggle}
+      />
     );
     expect(screen.getByText("禁止使用 console.log")).toBeTruthy();
   });
 
   it("renders tags", () => {
+    const handleDelete = vi.fn();
+    const handleEdit = vi.fn();
+    const handleToggle = vi.fn();
     render(
       <RuleCard
         rule={mockRule}
-        onDelete={vi.fn()}
-        onEdit={vi.fn()}
-        onToggle={vi.fn()}
-      />,
+        onDelete={handleDelete}
+        onEdit={handleEdit}
+        onToggle={handleToggle}
+      />
     );
     expect(screen.getByText("debug")).toBeTruthy();
     expect(screen.getByText("style")).toBeTruthy();

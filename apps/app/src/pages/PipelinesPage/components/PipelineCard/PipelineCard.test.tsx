@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { PipelineCard } from "./PipelineCard";
 import type { StoredPipeline } from "@/models/daos/pipelinesDao";
@@ -16,13 +16,9 @@ const mockPipeline: StoredPipeline = {
 
 describe("PipelineCard", () => {
   it("renders pipeline name", () => {
-    render(
-      <PipelineCard
-        pipeline={mockPipeline}
-        onDelete={() => {}}
-        onOpen={() => {}}
-      />,
-    );
+    const handleDelete = vi.fn();
+    const handleOpen = vi.fn();
+    render(<PipelineCard pipeline={mockPipeline} onDelete={handleDelete} onOpen={handleOpen} />);
     expect(screen.getByText("测试 Pipeline")).toBeInTheDocument();
   });
 });

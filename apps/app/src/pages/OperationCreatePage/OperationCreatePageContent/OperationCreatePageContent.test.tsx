@@ -62,7 +62,7 @@ describe("OperationCreatePageContent", () => {
       expect(mockCreateOperation).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ name: "Test Op" }),
-        }),
+        })
       );
     });
   });
@@ -81,7 +81,7 @@ describe("OperationCreatePageContent", () => {
         expect.objectContaining({
           to: "/operations/$operationId",
           params: { operationId: "new-op-id" },
-        }),
+        })
       );
     });
   });

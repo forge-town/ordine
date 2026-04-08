@@ -30,13 +30,11 @@ export const JobActivityRow = ({ job }: JobActivityRowProps) => {
           className={cn(
             "h-4 w-4 shrink-0",
             JOB_STATUS_CLS[job.status],
-            job.status === "running" && "animate-spin",
+            job.status === "running" && "animate-spin"
           )}
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-foreground">
-            {job.title}
-          </p>
+          <p className="truncate text-sm font-medium text-foreground">{job.title}</p>
           <p className="text-[11px] text-muted-foreground">
             {new Date(job.createdAt).toLocaleString("zh-CN", {
               month: "numeric",

@@ -12,10 +12,7 @@ import {
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
-import {
-  createBestPractice,
-  updateBestPractice,
-} from "@/services/bestPracticesService";
+import { createBestPractice, updateBestPractice } from "@/services/bestPracticesService";
 import { CATEGORIES, LANGUAGES } from "../constants";
 
 type FormState = {
@@ -42,11 +39,7 @@ export type PracticeFormDialogProps = {
   onSave: (p: BestPracticeEntity) => void;
 };
 
-export const PracticeFormDialog = ({
-  initial,
-  onClose,
-  onSave,
-}: PracticeFormDialogProps) => {
+export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDialogProps) => {
   const [form, setForm] = useState<FormState>(
     initial
       ? {
@@ -57,13 +50,12 @@ export const PracticeFormDialog = ({
           codeSnippet: initial.codeSnippet,
           tags: initial.tags.join(", "),
         }
-      : EMPTY_FORM,
+      : EMPTY_FORM
   );
   const [saving, setSaving] = useState(false);
 
   const set =
-    (k: keyof FormState) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((prev) => ({ ...prev, [k]: e.target.value }));
 
   const handleTitleChange = set("title");
@@ -122,23 +114,13 @@ export const PracticeFormDialog = ({
           <h2 className="text-sm font-semibold text-foreground">
             {initial ? "编辑最佳实践" : "新增最佳实践"}
           </h2>
-          <Button
-            className="h-7 w-7"
-            size="icon"
-            variant="ghost"
-            onClick={handleClose}
-          >
+          <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleClose}>
             <X className="h-4 w-4 text-muted-foreground" />
           </Button>
         </div>
-        <form
-          className="p-5 space-y-4 overflow-y-auto"
-          onSubmit={handleFormSubmit}
-        >
+        <form className="p-5 space-y-4 overflow-y-auto" onSubmit={handleFormSubmit}>
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              标题 *
-            </label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">标题 *</label>
             <Input
               required
               placeholder="e.g. 避免在 useEffect 中直接 setState"
@@ -163,13 +145,8 @@ export const PracticeFormDialog = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                分类
-              </label>
-              <Select
-                value={form.category}
-                onValueChange={handleCategoryChange}
-              >
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">分类</label>
+              <Select value={form.category} onValueChange={handleCategoryChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -185,13 +162,8 @@ export const PracticeFormDialog = ({
               </Select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                语言
-              </label>
-              <Select
-                value={form.language}
-                onValueChange={handleLanguageChange}
-              >
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">语言</label>
+              <Select value={form.language} onValueChange={handleLanguageChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -209,9 +181,7 @@ export const PracticeFormDialog = ({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              代码片段
-            </label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">代码片段</label>
             <Textarea
               className="resize-y font-mono text-xs leading-relaxed"
               placeholder="// 在这里粘贴代码示例..."
@@ -237,10 +207,7 @@ export const PracticeFormDialog = ({
             <Button type="button" variant="outline" onClick={handleClose}>
               取消
             </Button>
-            <Button
-              disabled={saving || !form.title || !form.condition}
-              type="submit"
-            >
+            <Button disabled={saving || !form.title || !form.condition} type="submit">
               {saving ? "保存中..." : "保存"}
             </Button>
           </div>

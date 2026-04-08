@@ -24,12 +24,12 @@ vi.mock("@refinedev/core", () => ({
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
     children,
-    onClick,
+    onClick: handleClick,
   }: {
     children: React.ReactNode;
     onClick?: () => void;
     to: string;
-  }) => <a onClick={onClick}>{children}</a>,
+  }) => <a onClick={handleClick}>{children}</a>,
 }));
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -43,6 +43,28 @@ const clickSave = () => {
   fireEvent.click(screen.getByText("保存"));
 };
 
+const wrapperWithPipeline = ({ children }: React.PropsWithChildren) => (
+  <HarnessCanvasStoreProvider
+    pipeline={{ id: "pipe-001", name: "My Pipeline", nodes: [], edges: [] }}
+  >
+    {children}
+  </HarnessCanvasStoreProvider>
+);
+
+const wrapperWithNullPipeline = ({ children }: React.PropsWithChildren) => (
+  <HarnessCanvasStoreProvider pipeline={null}>
+    {children}
+  </HarnessCanvasStoreProvider>
+);
+
+const wrapperWithTestPipeline = ({ children }: React.PropsWithChildren) => (
+  <HarnessCanvasStoreProvider
+    pipeline={{ id: "pipe-001", name: "Test", nodes: [], edges: [] }}
+  >
+    {children}
+  </HarnessCanvasStoreProvider>
+);
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("CanvasFloatingMenu - save behavior", () => {
@@ -52,16 +74,8 @@ describe("CanvasFloatingMenu - save behavior", () => {
   });
 
   describe("when pipelineId exists (update path)", () => {
-    const wrapper = ({ children }: React.PropsWithChildren) => (
-      <HarnessCanvasStoreProvider
-        pipeline={{ id: "pipe-001", name: "My Pipeline", nodes: [], edges: [] }}
-      >
-        {children}
-      </HarnessCanvasStoreProvider>
-    );
-
     it("calls useUpdate.mutate with correct resource and id", () => {
-      render(<CanvasFloatingMenu />, { wrapper });
+      render(<CanvasFloatingMenu />, { wrapper: wrapperWithPipeline });
       clickSave();
 
       expect(mockUpdate).toHaveBeenCalledTimes(1);
@@ -75,7 +89,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
     });
 
     it("does NOT call useCreate.mutate", () => {
-      render(<CanvasFloatingMenu />, { wrapper });
+      render(<CanvasFloatingMenu />, { wrapper: wrapperWithPipeline });
       clickSave();
 
       expect(mockCreate).not.toHaveBeenCalled();
@@ -83,14 +97,8 @@ describe("CanvasFloatingMenu - save behavior", () => {
   });
 
   describe("when pipelineId is null (create path)", () => {
-    const wrapper = ({ children }: React.PropsWithChildren) => (
-      <HarnessCanvasStoreProvider pipeline={null}>
-        {children}
-      </HarnessCanvasStoreProvider>
-    );
-
     it("calls useCreate.mutate with correct resource and required fields", () => {
-      render(<CanvasFloatingMenu />, { wrapper });
+      render(<CanvasFloatingMenu />, { wrapper: wrapperWithNullPipeline });
       clickSave();
 
       expect(mockCreate).toHaveBeenCalledTimes(1);
@@ -109,19 +117,19 @@ describe("CanvasFloatingMenu - save behavior", () => {
     });
 
     it("does NOT call useUpdate.mutate", () => {
-      render(<CanvasFloatingMenu />, { wrapper });
+      render(<CanvasFloatingMenu />, { wrapper: wrapperWithNullPipeline });
       clickSave();
 
       expect(mockUpdate).not.toHaveBeenCalled();
     });
 
     it("onSuccess callback calls setPipelineId with the generated id", () => {
-      render(<CanvasFloatingMenu />, { wrapper });
+      render(<CanvasFloatingMenu />, { wrapper: wrapperWithNullPipeline });
       clickSave();
 
-      const [[callArgs, { onSuccess }]] = mockCreate.mock.calls as [
-        [{ values: { id: string } }, { onSuccess: () => void }],
-      ][];
+      const [[callArgs, { onSuccess }]] = mockCreate.mock.calls as Array<
+        [{ values: { id: string } }, { onSuccess: () => void }]
+      >;
       const generatedId = callArgs.values.id;
 
       expect(generatedId).toBeTruthy();
@@ -143,43 +151,31 @@ describe("CanvasFloatingMenu - save behavior", () => {
   });
 
   describe("menu items", () => {
-    const wrapper = ({ children }: React.PropsWithChildren) => (
-      <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
-    );
-
     it("renders 导入 item in the menu", () => {
-      render(<CanvasFloatingMenu />, { wrapper });
+      render(<CanvasFloatingMenu />, { wrapper: wrapperWithNullPipeline });
       openMenu();
       expect(screen.getByText("导入")).toBeInTheDocument();
     });
 
     it("renders 导出 item in the menu", () => {
-      render(<CanvasFloatingMenu />, { wrapper });
+      render(<CanvasFloatingMenu />, { wrapper: wrapperWithNullPipeline });
       openMenu();
       expect(screen.getByText("导出")).toBeInTheDocument();
     });
   });
-    it("save button is disabled while a mutation is pending", () => {
-      mockUpdate.mockImplementationOnce(() => {});
-      const isPendingUpdate = vi.fn(() => true);
+  it("save button is disabled while a mutation is pending", () => {
+    mockUpdate.mockImplementationOnce(() => {});
+    const isPendingUpdate = vi.fn(() => true);
 
-      // We verify the button exists and is clickable by default — the
-      // pending state comes from the hook's mutation.isPending, which is
-      // wired in the component. Since our mock always returns isPending:false
-      // the button is enabled in normal tests; this structural test confirms
-      // the disabled prop is wired to the button element.
-      const wrapper = ({ children }: React.PropsWithChildren) => (
-        <HarnessCanvasStoreProvider
-          pipeline={{ id: "pipe-001", name: "Test", nodes: [], edges: [] }}
-        >
-          {children}
-        </HarnessCanvasStoreProvider>
-      );
-      render(<CanvasFloatingMenu />, { wrapper });
-      openMenu();
-      const saveBtn = screen.getByText("保存").closest("button");
-      expect(saveBtn).not.toBeDisabled();
-      isPendingUpdate.mockRestore?.();
-    });
+    // We verify the button exists and is clickable by default — the
+    // pending state comes from the hook's mutation.isPending, which is
+    // wired in the component. Since our mock always returns isPending:false
+    // the button is enabled in normal tests; this structural test confirms
+    // the disabled prop is wired to the button element.
+    render(<CanvasFloatingMenu />, { wrapper: wrapperWithTestPipeline });
+    openMenu();
+    const saveBtn = screen.getByText("保存").closest("button");
+    expect(saveBtn).not.toBeDisabled();
+    isPendingUpdate.mockRestore?.();
   });
 });

@@ -17,69 +17,51 @@ const mockPractice: BestPracticeEntity = {
 
 describe("PracticeCard", () => {
   it("renders practice title", () => {
-    render(
-      <PracticeCard
-        practice={mockPractice}
-        onDelete={vi.fn()}
-        onEdit={vi.fn()}
-      />,
-    );
+    const handleDelete = vi.fn();
+    const handleEdit = vi.fn();
+    render(<PracticeCard practice={mockPractice} onDelete={handleDelete} onEdit={handleEdit} />);
     expect(screen.getByText(mockPractice.title)).toBeInTheDocument();
   });
 
   it("renders practice condition", () => {
-    render(
-      <PracticeCard
-        practice={mockPractice}
-        onDelete={vi.fn()}
-        onEdit={vi.fn()}
-      />,
-    );
+    const handleDelete = vi.fn();
+    const handleEdit = vi.fn();
+    render(<PracticeCard practice={mockPractice} onDelete={handleDelete} onEdit={handleEdit} />);
     expect(screen.getByText(mockPractice.condition)).toBeInTheDocument();
   });
 
   it("shows code snippet toggle when codeSnippet is not empty", () => {
-    render(
-      <PracticeCard
-        practice={mockPractice}
-        onDelete={vi.fn()}
-        onEdit={vi.fn()}
-      />,
-    );
+    const handleDelete = vi.fn();
+    const handleEdit = vi.fn();
+    render(<PracticeCard practice={mockPractice} onDelete={handleDelete} onEdit={handleEdit} />);
     expect(screen.getByText("代码片段")).toBeInTheDocument();
   });
 
   it("does not show code snippet toggle when codeSnippet is empty", () => {
+    const handleDelete = vi.fn();
+    const handleEdit = vi.fn();
     render(
       <PracticeCard
         practice={{ ...mockPractice, codeSnippet: "" }}
-        onDelete={vi.fn()}
-        onEdit={vi.fn()}
-      />,
+        onDelete={handleDelete}
+        onEdit={handleEdit}
+      />
     );
     expect(screen.queryByText("代码片段")).not.toBeInTheDocument();
   });
 
   it("expands code snippet on toggle click", () => {
-    render(
-      <PracticeCard
-        practice={mockPractice}
-        onDelete={vi.fn()}
-        onEdit={vi.fn()}
-      />,
-    );
+    const handleDelete = vi.fn();
+    const handleEdit = vi.fn();
+    render(<PracticeCard practice={mockPractice} onDelete={handleDelete} onEdit={handleEdit} />);
     fireEvent.click(screen.getByText("代码片段"));
     expect(screen.getByText(mockPractice.codeSnippet)).toBeInTheDocument();
   });
 
   it("renders tags", () => {
-    render(
-      <PracticeCard
-        practice={mockPractice}
-        onDelete={vi.fn()}
-        onEdit={vi.fn()}
-      />,
-    );
+    const handleDelete = vi.fn();
+    const handleEdit = vi.fn();
+    render(<PracticeCard practice={mockPractice} onDelete={handleDelete} onEdit={handleEdit} />);
     expect(screen.getByText("react")).toBeInTheDocument();
     expect(screen.getByText("hooks")).toBeInTheDocument();
   });

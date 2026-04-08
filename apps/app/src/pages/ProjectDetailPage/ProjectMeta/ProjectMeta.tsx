@@ -27,9 +27,7 @@ export const ProjectMeta = ({ project }: ProjectMetaProps) => {
             </a>
           </div>
           {project.description && (
-            <p className="mt-1 text-sm text-muted-foreground">
-              {project.description}
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{project.description}</p>
           )}
           <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
             <GitBranch className="h-3.5 w-3.5" />

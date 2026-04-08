@@ -4,21 +4,29 @@ import { RuleForm } from "./RuleForm";
 
 describe("RuleForm", () => {
   it("renders name input", () => {
-    render(<RuleForm onCancel={vi.fn()} onSave={vi.fn()} />);
+    const handleCancel = vi.fn();
+    const handleSave = vi.fn();
+    render(<RuleForm onCancel={handleCancel} onSave={handleSave} />);
     expect(screen.getByPlaceholderText("规则名称 *")).toBeTruthy();
   });
 
   it("renders cancel button", () => {
-    render(<RuleForm onCancel={vi.fn()} onSave={vi.fn()} />);
+    const handleCancel = vi.fn();
+    const handleSave = vi.fn();
+    render(<RuleForm onCancel={handleCancel} onSave={handleSave} />);
     expect(screen.getByText("取消")).toBeTruthy();
   });
 
   it("renders save button", () => {
-    render(<RuleForm onCancel={vi.fn()} onSave={vi.fn()} />);
+    const handleCancel = vi.fn();
+    const handleSave = vi.fn();
+    render(<RuleForm onCancel={handleCancel} onSave={handleSave} />);
     expect(screen.getByText("保存")).toBeTruthy();
   });
 
   it("renders with initial values", () => {
+    const handleCancel = vi.fn();
+    const handleSave = vi.fn();
     render(
       <RuleForm
         initial={{
@@ -29,9 +37,9 @@ describe("RuleForm", () => {
           pattern: "",
           tags: "",
         }}
-        onCancel={vi.fn()}
-        onSave={vi.fn()}
-      />,
+        onCancel={handleCancel}
+        onSave={handleSave}
+      />
     );
     const input = screen.getByPlaceholderText("规则名称 *") as HTMLInputElement;
     expect(input.value).toBe("Test Rule");

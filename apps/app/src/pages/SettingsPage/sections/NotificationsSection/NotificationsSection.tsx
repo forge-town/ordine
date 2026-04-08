@@ -2,9 +2,7 @@ import { SaveButton, SectionHeader, Toggle } from "../../components";
 
 interface NotificationsSectionProps {
   values: { pipeline: boolean; mention: boolean; weekly: boolean };
-  onChange: (
-    patch: Partial<{ pipeline: boolean; mention: boolean; weekly: boolean }>,
-  ) => void;
+  onChange: (patch: Partial<{ pipeline: boolean; mention: boolean; weekly: boolean }>) => void;
   onSave: () => void;
   saved: boolean;
 }
@@ -28,16 +26,8 @@ export const NotificationsSection = ({
         label="Pipeline 运行完成提醒"
         onToggle={handlePipelineToggle}
       />
-      <Toggle
-        enabled={values.mention}
-        label="被 @提暂时通知"
-        onToggle={handleMentionToggle}
-      />
-      <Toggle
-        enabled={values.weekly}
-        label="每周摘要邮件"
-        onToggle={handleWeeklyToggle}
-      />
+      <Toggle enabled={values.mention} label="被 @提暂时通知" onToggle={handleMentionToggle} />
+      <Toggle enabled={values.weekly} label="每周摘要邮件" onToggle={handleWeeklyToggle} />
       <SaveButton saved={saved} onSave={handleSave} />
     </>
   );

@@ -33,8 +33,8 @@ export interface UISlice {
   nodeContextMenu: NodeContextMenuState | null;
   connectStart: ConnectStartState | null;
 
-  setPipelineId: (id: string) => void;
-  setSidebarPanel: (panel: SidebarPanel) => void;
+  handlePipelineIdChange: (id: string) => void;
+  handleSidebarPanelChange: (panel: SidebarPanel) => void;
   toggleSidebar: () => void;
   openPropertiesPanel: () => void;
   closePropertiesPanel: () => void;
@@ -45,13 +45,13 @@ export interface UISlice {
   closeConnectionMenu: () => void;
   openNodeContextMenu: (state: NodeContextMenuState) => void;
   closeNodeContextMenu: () => void;
-  setConnectStart: (state: ConnectStartState | null) => void;
+  handleConnectStart: (state: ConnectStartState | null) => void;
 }
 
 export const createUISlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
   pipelineId: string | null = null,
-  pipelineName = "",
+  pipelineName = ""
 ): UISlice => ({
   pipelineId,
   pipelineName,
@@ -64,11 +64,11 @@ export const createUISlice = (
   nodeContextMenu: null,
   connectStart: null,
 
-  setPipelineId: (id) => {
+  handlePipelineIdChange: (id) => {
     set({ pipelineId: id });
   },
 
-  setSidebarPanel: (panel) => {
+  handleSidebarPanelChange: (panel) => {
     set({ sidebarPanel: panel });
   },
 
@@ -112,7 +112,7 @@ export const createUISlice = (
     set({ nodeContextMenu: null });
   },
 
-  setConnectStart: (state) => {
+  handleConnectStart: (state) => {
     set({ connectStart: state });
   },
 });

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { pipelinesDao } from "@/models/daos/pipelinesDao";
+import { PipelineSchema } from "@/schemas";
 
 export const getPipelines = createServerFn({ method: "GET" }).handler(async () => {
   return pipelinesDao.findMany();
@@ -11,18 +12,6 @@ export const getPipelineById = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     return pipelinesDao.findById(data.id);
   });
-
-const PipelineSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  tags: z.array(z.string()),
-  nodeCount: z.number(),
-  createdAt: z.number(),
-  updatedAt: z.number(),
-  nodes: z.array(z.unknown()),
-  edges: z.array(z.unknown()),
-});
 
 export const createPipeline = createServerFn({ method: "POST" })
   .inputValidator(PipelineSchema)

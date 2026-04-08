@@ -12,7 +12,7 @@ import { ProjectCard } from "../ProjectCard";
 export const ProjectsPageContent = () => {
   const loaderProjects = Route.useLoaderData();
   const [projects, setProjects] = useState<GithubProjectEntity[]>(
-    loaderProjects as GithubProjectEntity[],
+    loaderProjects as GithubProjectEntity[]
   );
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
@@ -23,7 +23,7 @@ export const ProjectsPageContent = () => {
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.description.toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
-      p.repo.toLowerCase().includes(search.toLowerCase()),
+      p.repo.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleDelete = async (id: string) => {
@@ -31,12 +31,10 @@ export const ProjectsPageContent = () => {
     await deleteGithubProject({ data: { id } });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
   const handleShowCreate = () => setShowCreate(true);
   const handleHideCreate = () => setShowCreate(false);
-  const handleCreateProject = (p: GithubProjectEntity) =>
-    setProjects((prev) => [p, ...prev]);
+  const handleCreateProject = (p: GithubProjectEntity) => setProjects((prev) => [p, ...prev]);
   const handleProjectClick = (projectId: string) => () =>
     void navigate({
       to: "/projects/$projectId",
@@ -104,10 +102,7 @@ export const ProjectsPageContent = () => {
       </div>
 
       {showCreate && (
-        <CreateProjectDialog
-          onClose={handleHideCreate}
-          onCreate={handleCreateProject}
-        />
+        <CreateProjectDialog onClose={handleHideCreate} onCreate={handleCreateProject} />
       )}
     </div>
   );

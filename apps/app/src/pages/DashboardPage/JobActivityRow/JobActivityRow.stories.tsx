@@ -11,7 +11,7 @@ const baseJob: JobEntity = {
   projectId: null,
   pipelineId: "pipeline-1",
   logs: [],
-  result: undefined,
+  result: null,
   error: null,
   startedAt: null,
   finishedAt: null,

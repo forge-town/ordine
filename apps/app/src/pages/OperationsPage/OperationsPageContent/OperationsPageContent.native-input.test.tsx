@@ -40,9 +40,9 @@ describe("OperationsPageContent - no raw native inputs in form", () => {
     const editBtn = container.querySelector('[title="编辑"]') as HTMLElement;
     fireEvent.click(editBtn);
     // The form should be visible now; check no raw <input> without data-slot="input"
-    const rawInputs = Array.from(container.querySelectorAll("input")).filter(
+    const rawInputs = [...container.querySelectorAll("input")].filter(
       (el) =>
-        el.getAttribute("data-slot") !== "input" &&
+        el.dataset.slot !== "input" &&
         el.type !== "file" &&
         !el.id.startsWith("base-ui-"),
     );

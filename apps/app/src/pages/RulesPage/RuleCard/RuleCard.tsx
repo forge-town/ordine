@@ -10,12 +10,7 @@ export type RuleCardProps = {
   onToggle: (id: string, enabled: boolean) => void;
 };
 
-export const RuleCard = ({
-  rule,
-  onEdit,
-  onDelete,
-  onToggle,
-}: RuleCardProps) => {
+export const RuleCard = ({ rule, onEdit, onDelete, onToggle }: RuleCardProps) => {
   const handleToggle = () => onToggle(rule.id, !rule.enabled);
   const handleEdit = () => onEdit(rule);
   const handleDelete = () => onDelete(rule.id);
@@ -27,16 +22,14 @@ export const RuleCard = ({
     <div
       className={cn(
         "group rounded-xl border border-border bg-card p-4 transition-all",
-        !rule.enabled && "opacity-50",
+        !rule.enabled && "opacity-50"
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <SeverityIcon className={cn("mt-0.5 h-4 w-4 shrink-0", s.cls)} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-foreground">
-              {rule.name}
-            </p>
+            <p className="truncate text-sm font-semibold text-foreground">{rule.name}</p>
             {rule.description && (
               <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
                 {rule.description}
@@ -48,12 +41,7 @@ export const RuleCard = ({
               </p>
             )}
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span
-                className={cn(
-                  "rounded-full px-2 py-0.5 text-[10px] font-medium",
-                  c.cls,
-                )}
-              >
+              <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", c.cls)}>
                 {c.label}
               </span>
               {rule.tags.map((tag) => (

@@ -11,36 +11,20 @@ const mockPipeline = {
 
 describe("PipelineRow", () => {
   it("renders pipeline name", () => {
-    render(
-      <PipelineRow
-        pipeline={mockPipeline}
-        selected={false}
-        onSelect={vi.fn()}
-      />,
-    );
+    const handleSelect = vi.fn();
+    render(<PipelineRow pipeline={mockPipeline} selected={false} onSelect={handleSelect} />);
     expect(screen.getByText("CI Pipeline")).toBeInTheDocument();
   });
 
   it("renders description", () => {
-    render(
-      <PipelineRow
-        pipeline={mockPipeline}
-        selected={false}
-        onSelect={vi.fn()}
-      />,
-    );
+    const handleSelect = vi.fn();
+    render(<PipelineRow pipeline={mockPipeline} selected={false} onSelect={handleSelect} />);
     expect(screen.getByText("持续集成流水线")).toBeInTheDocument();
   });
 
   it("calls onSelect when clicked", () => {
     const handleSelect = vi.fn();
-    render(
-      <PipelineRow
-        pipeline={mockPipeline}
-        selected={false}
-        onSelect={handleSelect}
-      />,
-    );
+    render(<PipelineRow pipeline={mockPipeline} selected={false} onSelect={handleSelect} />);
     fireEvent.click(screen.getByRole("button"));
     expect(handleSelect).toHaveBeenCalledTimes(1);
   });

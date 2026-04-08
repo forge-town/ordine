@@ -38,7 +38,7 @@ export const CanvasFlow = () => {
   const closeConnectionMenu = useStore(store, (state) => state.closeConnectionMenu);
   const openNodeContextMenu = useStore(store, (state) => state.openNodeContextMenu);
   const closeNodeContextMenu = useStore(store, (state) => state.closeNodeContextMenu);
-  const setConnectStart = useStore(store, (state) => state.setConnectStart);
+  const storeHandleConnectStart = useStore(store, (state) => state.handleConnectStart);
 
   // ─── Undo / Redo keyboard shortcuts ──────────────────────────────────────────
   useEffect(() => {
@@ -108,7 +108,7 @@ export const CanvasFlow = () => {
   const handleConnectStart: OnConnectStart = (_, params) => {
     // 记录连接开始状态
     if (!params.nodeId) return;
-    setConnectStart({
+    storeHandleConnectStart({
       nodeId: params.nodeId,
       handleId: params.handleId ?? null,
       handleType: params.handleType ?? null,
@@ -118,7 +118,7 @@ export const CanvasFlow = () => {
   const handleConnectEnd: OnConnectEnd = (event, connectionState) => {
     // User connected to a valid handle — no menu needed
     if (connectionState.isValid === true) {
-      setConnectStart(null);
+      storeHandleConnectStart(null);
       return;
     }
 
@@ -132,7 +132,7 @@ export const CanvasFlow = () => {
         "changedTouches" in event ? (event as TouchEvent).changedTouches[0] : (event as MouseEvent);
 
       // Re-set connectStart from live connectionState data
-      setConnectStart({
+      storeHandleConnectStart({
         nodeId: fromNode.id,
         handleId: fromHandle?.id ?? null,
         handleType: fromHandle?.type ?? null,
@@ -154,7 +154,7 @@ export const CanvasFlow = () => {
       return;
     }
 
-    setConnectStart(null);
+    storeHandleConnectStart(null);
   };
 
   const handleNodeClick = (_: React.MouseEvent, node: PipelineNode) => {
@@ -162,7 +162,7 @@ export const CanvasFlow = () => {
     closeContextMenu();
     closeConnectionMenu();
     closeNodeContextMenu();
-    setConnectStart(null);
+    storeHandleConnectStart(null);
   };
 
   const handleNodeContextMenu = (e: React.MouseEvent, node: PipelineNode) => {
@@ -175,7 +175,7 @@ export const CanvasFlow = () => {
       screenY: e.clientY,
       nodeId: node.id,
     });
-    setConnectStart(null);
+    storeHandleConnectStart(null);
   };
 
   const handleEdgeClick = (_: React.MouseEvent, edge: PipelineEdge) => {
@@ -183,7 +183,7 @@ export const CanvasFlow = () => {
     closeContextMenu();
     closeConnectionMenu();
     closeNodeContextMenu();
-    setConnectStart(null);
+    storeHandleConnectStart(null);
   };
 
   const handlePaneClick = () => {
@@ -193,7 +193,7 @@ export const CanvasFlow = () => {
     closeContextMenu();
     closeConnectionMenu();
     closeNodeContextMenu();
-    setConnectStart(null);
+    storeHandleConnectStart(null);
   };
 
   const handlePaneContextMenu = (e: React.MouseEvent | MouseEvent) => {
@@ -201,7 +201,7 @@ export const CanvasFlow = () => {
     const clientX = "clientX" in e ? e.clientX : 0;
     const clientY = "clientY" in e ? e.clientY : 0;
     const flowPos = screenToFlowPosition({ x: clientX, y: clientY });
-    setConnectStart(null);
+    storeHandleConnectStart(null);
     closeConnectionMenu();
     openContextMenu({
       screenX: clientX,

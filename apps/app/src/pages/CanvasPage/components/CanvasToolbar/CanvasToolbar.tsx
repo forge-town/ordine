@@ -1,14 +1,6 @@
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../../_store";
-import {
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  Trash2,
-  Undo2,
-  Redo2,
-  Bot,
-} from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize2, Trash2, Undo2, Redo2, Bot } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
@@ -46,12 +38,7 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button
-                className="h-7 w-7"
-                size="icon"
-                variant="ghost"
-                onClick={handleZoomOut}
-              />
+              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomOut} />
             }
           >
             <ZoomOut className="h-4 w-4" />
@@ -61,12 +48,7 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button
-                className="h-7 w-7"
-                size="icon"
-                variant="ghost"
-                onClick={handleZoomIn}
-              />
+              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomIn} />
             }
           >
             <ZoomIn className="h-4 w-4" />
@@ -76,12 +58,7 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button
-                className="h-7 w-7"
-                size="icon"
-                variant="ghost"
-                onClick={handleFitView}
-              />
+              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleFitView} />
             }
           >
             <Maximize2 className="h-4 w-4" />

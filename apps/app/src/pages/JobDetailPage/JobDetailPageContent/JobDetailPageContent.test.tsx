@@ -16,7 +16,7 @@ const mockJob: JobEntity = {
   projectId: null,
   pipelineId: "p-1",
   logs: [],
-  result: undefined,
+  result: null,
   error: null,
   startedAt: null,
   finishedAt: null,

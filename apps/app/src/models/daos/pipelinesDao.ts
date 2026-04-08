@@ -1,4 +1,5 @@
 import { eq, desc } from "drizzle-orm";
+import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@/db";
 import {
   pipelinesTable,
@@ -15,7 +16,9 @@ export type PipelineEntity = Omit<PipelineRow, "createdAt" | "updatedAt"> & {
   edges: PipelineEdge[];
 };
 
-type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type DbExecutor =
+  | PostgresJsDatabase<Record<string, unknown>>
+  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 /** @deprecated Use PipelineEntity */
 export type StoredPipeline = PipelineEntity;

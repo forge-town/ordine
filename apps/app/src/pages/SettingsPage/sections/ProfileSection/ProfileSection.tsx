@@ -3,19 +3,12 @@ import { Input } from "@repo/ui/input";
 
 interface ProfileSectionProps {
   values: { displayName: string; email: string; bio: string };
-  onChange: (
-    patch: Partial<{ displayName: string; email: string; bio: string }>,
-  ) => void;
+  onChange: (patch: Partial<{ displayName: string; email: string; bio: string }>) => void;
   onSave: () => void;
   saved: boolean;
 }
 
-export const ProfileSection = ({
-  values,
-  onChange,
-  onSave,
-  saved,
-}: ProfileSectionProps) => {
+export const ProfileSection = ({ values, onChange, onSave, saved }: ProfileSectionProps) => {
   const handleDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     onChange({ displayName: e.target.value });
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -26,10 +19,7 @@ export const ProfileSection = ({
 
   return (
     <>
-      <SectionHeader
-        description="管理你的账户名称和联系信息"
-        title="个人信息"
-      />
+      <SectionHeader description="管理你的账户名称和联系信息" title="个人信息" />
       <Field label="显示名称">
         <Input value={values.displayName} onChange={handleDisplayNameChange} />
       </Field>

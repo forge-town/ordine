@@ -4,25 +4,14 @@ import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { RuleEntity, RuleCategory } from "@/models/daos/rulesDao";
-import {
-  createRule,
-  updateRule,
-  deleteRule,
-  toggleRule,
-} from "@/services/rulesService";
+import { createRule, updateRule, deleteRule, toggleRule } from "@/services/rulesService";
 import { CATEGORY_FILTERS, getEditForm, type RuleFormState } from "../types";
 import { RuleCard } from "../RuleCard";
 import { RuleForm } from "../RuleForm";
 
-export const RulesPageContent = ({
-  rules: initial,
-}: {
-  rules: RuleEntity[];
-}) => {
+export const RulesPageContent = ({ rules: initial }: { rules: RuleEntity[] }) => {
   const [rules, setRules] = useState(initial);
-  const [categoryFilter, setCategoryFilter] = useState<RuleCategory | "all">(
-    "all",
-  );
+  const [categoryFilter, setCategoryFilter] = useState<RuleCategory | "all">("all");
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -67,7 +56,7 @@ export const RulesPageContent = ({
           : [],
       },
     });
-    setRules((prev) => prev.map((r) => (r.id === editingId ? rule : r)));
+    setRules((prev) => prev.map((r) => (r.id === editingId && rule ? rule : r)));
     setEditingId(null);
   };
 
@@ -78,7 +67,7 @@ export const RulesPageContent = ({
 
   const handleToggle = async (id: string, enabled: boolean) => {
     const rule = await toggleRule({ data: { id, enabled } });
-    setRules((prev) => prev.map((r) => (r.id === id ? rule : r)));
+    setRules((prev) => prev.map((r) => (r.id === id && rule ? rule : r)));
   };
 
   const filtered = rules.filter((r) => {
@@ -96,11 +85,9 @@ export const RulesPageContent = ({
 
   const enabledCount = rules.filter((r) => r.enabled).length;
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
 
-  const handleCategoryFilterClick = (value: RuleCategory | "all") => () =>
-    setCategoryFilter(value);
+  const handleCategoryFilterClick = (value: RuleCategory | "all") => () => setCategoryFilter(value);
 
   const handleShowForm = () => {
     setEditingId(null);
@@ -133,9 +120,7 @@ export const RulesPageContent = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
-        {showForm && (
-          <RuleForm onCancel={handleHideForm} onSave={handleCreate} />
-        )}
+        {showForm && <RuleForm onCancel={handleHideForm} onSave={handleCreate} />}
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1">
@@ -146,7 +131,7 @@ export const RulesPageContent = ({
                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                   categoryFilter === f.value
                     ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:text-foreground",
+                    : "text-muted-foreground hover:text-foreground"
                 )}
                 onClick={handleCategoryFilterClick(f.value)}
               >
@@ -169,11 +154,7 @@ export const RulesPageContent = ({
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <ShieldCheck className="h-8 w-8 text-muted-foreground/30" />
             <p className="mt-2 text-sm text-muted-foreground">暂无规则</p>
-            <Button
-              className="mt-2 h-auto p-0 text-xs"
-              variant="link"
-              onClick={handleShowForm}
-            >
+            <Button className="mt-2 h-auto p-0 text-xs" variant="link" onClick={handleShowForm}>
               创建第一条规则
             </Button>
           </div>
@@ -196,7 +177,7 @@ export const RulesPageContent = ({
                   onEdit={handleEdit}
                   onToggle={handleToggle}
                 />
-              ),
+              )
             )}
           </div>
         )}

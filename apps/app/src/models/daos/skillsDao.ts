@@ -1,4 +1,5 @@
 import { eq, desc } from "drizzle-orm";
+import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@/db";
 import { skillsTable, type NewSkillRow, type SkillRow } from "@/models/tables/skills_table";
 
@@ -7,7 +8,9 @@ export type SkillEntity = Omit<SkillRow, "createdAt" | "updatedAt"> & {
   updatedAt: number;
 };
 
-type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type DbExecutor =
+  | PostgresJsDatabase<Record<string, unknown>>
+  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: SkillRow): SkillEntity => {
   return {

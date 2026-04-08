@@ -1,11 +1,12 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
+import type * as XyFlowReact from "@xyflow/react";
 import { HarnessCanvasStoreProvider } from "../../_store";
 import { CanvasInner } from "./CanvasInner";
 
 vi.mock("@xyflow/react", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@xyflow/react")>();
+  const actual = await importOriginal<typeof XyFlowReact>();
   return {
     ...actual,
     ReactFlow: ({ children }: React.PropsWithChildren) => (

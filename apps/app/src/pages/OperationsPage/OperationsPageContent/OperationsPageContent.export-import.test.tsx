@@ -29,8 +29,8 @@ const mockOperation: OperationEntity = {
   visibility: "public",
   config: '{"command":"eslint src/"}',
   acceptedObjectTypes: ["file", "folder"],
-  createdAt: 1700000000000,
-  updatedAt: 1700000000000,
+  createdAt: 1_700_000_000_000,
+  updatedAt: 1_700_000_000_000,
 };
 
 describe("OperationsPageContent - export", () => {

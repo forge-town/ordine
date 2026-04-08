@@ -1,15 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { operationsDao } from "@/models/daos/operationsDao";
-import {
-  OBJECT_TYPES,
-  VISIBILITY_OPTIONS,
-  type ObjectType,
-  type Visibility,
-} from "@/models/tables/operations_table";
-
-const ObjectTypeEnum = z.enum(OBJECT_TYPES);
-const VisibilityEnum = z.enum(VISIBILITY_OPTIONS);
+import type { ObjectType, Visibility } from "@/models/tables/operations_table";
+import { ObjectTypeSchema as ObjectTypeEnum, VisibilitySchema as VisibilityEnum } from "@/schemas";
 
 type OperationResult = {
   id: string;

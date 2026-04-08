@@ -1,1 +1,1 @@
-export * from './QuickAddButton';
+export * from "./QuickAddButton";

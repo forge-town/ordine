@@ -4,17 +4,14 @@ import { HarnessCanvasStoreProvider } from "../../_store";
 import { QuickAddButton } from "./QuickAddButton";
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>
-    {children}
-  </HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
 );
 
 describe("QuickAddButton", () => {
   it("renders without crashing", () => {
-    const { container } = render(
-      <QuickAddButton nodeId="node-1" nodeType="code-file" />,
-      { wrapper },
-    );
+    const { container } = render(<QuickAddButton nodeId="node-1" nodeType="code-file" />, {
+      wrapper,
+    });
     expect(container.firstChild).toBeTruthy();
   });
 });

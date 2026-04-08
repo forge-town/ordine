@@ -1,11 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import {
-  Layers,
-  FolderGit2,
-  Activity,
-  Lightbulb,
-  Workflow,
-} from "lucide-react";
+import { Layers, FolderGit2, Activity, Lightbulb, Workflow } from "lucide-react";
 import type { PipelineEntity } from "@/models/daos/pipelinesDao";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 import type { JobEntity } from "@/models/daos/jobsDao";
@@ -18,11 +12,7 @@ export type DashboardPageContentProps = {
   jobs: JobEntity[];
 };
 
-export const DashboardPageContent = ({
-  pipelines,
-  projects,
-  jobs,
-}: DashboardPageContentProps) => {
+export const DashboardPageContent = ({ pipelines, projects, jobs }: DashboardPageContentProps) => {
   const runningJobs = jobs.filter((j) => j.status === "running").length;
   const failedJobs = jobs.filter((j) => j.status === "failed").length;
   const recentJobs = jobs.slice(0, 8);
@@ -76,9 +66,7 @@ export const DashboardPageContent = ({
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div className="flex items-center gap-2">
               <Activity className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-xs font-semibold text-muted-foreground">
-                最近 Jobs
-              </span>
+              <span className="text-xs font-semibold text-muted-foreground">最近 Jobs</span>
             </div>
             <Link
               className="text-[11px] text-muted-foreground hover:text-foreground hover:underline"
@@ -90,9 +78,7 @@ export const DashboardPageContent = ({
           {recentJobs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <Activity className="h-7 w-7 text-muted-foreground/30" />
-              <p className="mt-2 text-xs text-muted-foreground">
-                触发 Pipeline 后会在此显示
-              </p>
+              <p className="mt-2 text-xs text-muted-foreground">触发 Pipeline 后会在此显示</p>
             </div>
           ) : (
             <div className="py-1">
@@ -141,9 +127,7 @@ export const DashboardPageContent = ({
                   <div className="group flex cursor-pointer flex-col gap-2 rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm">
                     <Icon className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {a.label}
-                      </p>
+                      <p className="text-sm font-semibold text-foreground">{a.label}</p>
                       <p className="text-xs text-muted-foreground">{a.sub}</p>
                     </div>
                   </div>

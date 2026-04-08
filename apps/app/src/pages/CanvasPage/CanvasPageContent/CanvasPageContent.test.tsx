@@ -70,9 +70,7 @@ const makePipeline = () => ({
 });
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={makePipeline()}>
-    {children}
-  </HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider pipeline={makePipeline()}>{children}</HarnessCanvasStoreProvider>
 );
 
 // ─── Tests ────────────────────────────────────────────────────────────────────

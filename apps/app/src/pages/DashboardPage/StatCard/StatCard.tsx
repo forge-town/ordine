@@ -9,13 +9,7 @@ export type StatCardProps = {
   to: string;
 };
 
-export const StatCard = ({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  to,
-}: StatCardProps) => {
+export const StatCard = ({ icon: Icon, label, value, sub, to }: StatCardProps) => {
   return (
     <Link to={to as "/"}>
       <div className="group rounded-xl border border-border bg-card px-5 py-4 hover:border-primary/50 hover:shadow-sm transition-all cursor-pointer">

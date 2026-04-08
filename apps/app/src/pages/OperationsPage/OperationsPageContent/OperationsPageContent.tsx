@@ -16,11 +16,7 @@ import {
   Download,
   Upload,
 } from "lucide-react";
-import {
-  createOperation,
-  updateOperation,
-  deleteOperation,
-} from "@/services/operationsService";
+import { createOperation, updateOperation, deleteOperation } from "@/services/operationsService";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { ObjectType, Visibility } from "@/models/tables/operations_table";
 import { cn } from "@repo/ui/lib/utils";
@@ -58,15 +54,7 @@ interface Props {
   initialOperations: OperationEntity[];
 }
 
-const CATEGORIES = [
-  "general",
-  "lint",
-  "format",
-  "build",
-  "test",
-  "deploy",
-  "custom",
-] as const;
+const CATEGORIES = ["general", "lint", "format", "build", "test", "deploy", "custom"] as const;
 
 const OBJECT_TYPE_OPTIONS: {
   value: ObjectType;
@@ -110,22 +98,14 @@ const exportOperation = (op: OperationEntity) => {
 };
 
 export const OperationsPageContent = ({ initialOperations }: Props) => {
-  type SortKey =
-    | "default"
-    | "name-asc"
-    | "name-desc"
-    | "date-asc"
-    | "date-desc"
-    | "category-asc";
+  type SortKey = "default" | "name-asc" | "name-desc" | "date-asc" | "date-desc" | "category-asc";
 
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
   const [operations, setOperations] = useState(initialOperations);
   const [importing, setImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
-  const [visibilityFilter, setVisibilityFilter] = useState<Visibility | "all">(
-    "all",
-  );
+  const [visibilityFilter, setVisibilityFilter] = useState<Visibility | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("default");
   const [showForm, setShowForm] = useState(false);
@@ -134,18 +114,11 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
   const [saving, setSaving] = useState(false);
 
   const filteredOperations = operations
-    .filter(
-      (op) =>
-        visibilityFilter === "all" ||
-        (op.visibility ?? "public") === visibilityFilter,
-    )
+    .filter((op) => visibilityFilter === "all" || (op.visibility ?? "public") === visibilityFilter)
     .filter((op) => {
       const q = searchQuery.trim().toLowerCase();
       if (!q) return true;
-      return (
-        op.name.toLowerCase().includes(q) ||
-        (op.description ?? "").toLowerCase().includes(q)
-      );
+      return op.name.toLowerCase().includes(q) || (op.description ?? "").toLowerCase().includes(q);
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -228,9 +201,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
         });
         if (updated) {
           setOperations((prev) =>
-            prev.map((o) =>
-              o.id === editingId ? (updated as OperationEntity) : o,
-            ),
+            prev.map((o) => (o.id === editingId ? (updated as OperationEntity) : o))
           );
         }
       } else {
@@ -266,8 +237,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setSearchQuery(e.target.value);
 
-  const handleSortChange = (value: string | null) =>
-    setSortBy((value ?? "default") as SortKey);
+  const handleSortChange = (value: string | null) => setSortBy((value ?? "default") as SortKey);
 
   const handleOpenCreate = () => openCreate();
 
@@ -283,8 +253,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
   const handleVisibilityChange = (value: Visibility) => () =>
     setForm((f) => ({ ...f, visibility: value }));
 
-  const handleToggleObjectTypeClick = (type: ObjectType) => () =>
-    toggleObjectType(type);
+  const handleToggleObjectTypeClick = (type: ObjectType) => () => toggleObjectType(type);
 
   const handleConfigChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, config: e.target.value }));
@@ -293,8 +262,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
 
   const handleDeleteClick = (id: string) => () => void handleDelete(id);
 
-  const handleExportOperation = (op: OperationEntity) => () =>
-    exportOperation(op);
+  const handleExportOperation = (op: OperationEntity) => () => exportOperation(op);
 
   const handleImportClick = () => {
     importInputRef.current?.click();
@@ -317,11 +285,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
         });
         return;
       }
-      if (
-        !parsed.name ||
-        typeof parsed.name !== "string" ||
-        !parsed.name.trim()
-      ) {
+      if (!parsed.name || typeof parsed.name !== "string" || !parsed.name.trim()) {
         addToast({
           type: "error",
           title: "导入失败",
@@ -337,11 +301,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
           category: parsed.category ?? "general",
           visibility: parsed.visibility ?? "public",
           config: parsed.config ?? "{}",
-          acceptedObjectTypes: parsed.acceptedObjectTypes ?? [
-            "file",
-            "folder",
-            "project",
-          ],
+          acceptedObjectTypes: parsed.acceptedObjectTypes ?? ["file", "folder", "project"],
         },
       });
       if (created) {
@@ -363,20 +323,11 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
         <div>
-          <h1 className="text-base font-semibold text-foreground">
-            Operations
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            定义可在 Pipeline 中复用的自定义操作
-          </p>
+          <h1 className="text-base font-semibold text-foreground">Operations</h1>
+          <p className="text-xs text-muted-foreground">定义可在 Pipeline 中复用的自定义操作</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            disabled={importing}
-            size="sm"
-            variant="outline"
-            onClick={handleImportClick}
-          >
+          <Button disabled={importing} size="sm" variant="outline" onClick={handleImportClick}>
             <Upload className="h-4 w-4" />
             {importing ? "导入中..." : "导入"}
           </Button>
@@ -428,11 +379,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
           排序
         </label>
         <Select value={sortBy} onValueChange={handleSortChange}>
-          <SelectTrigger
-            aria-label="排序"
-            className="h-8 w-40 text-xs"
-            id="sort-select"
-          >
+          <SelectTrigger aria-label="排序" className="h-8 w-40 text-xs" id="sort-select">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -446,9 +393,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <span className="text-xs text-muted-foreground">
-          {filteredOperations.length} 个
-        </span>
+        <span className="text-xs text-muted-foreground">{filteredOperations.length} 个</span>
       </div>
 
       <div className="flex-1 overflow-auto p-6">
@@ -461,9 +406,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    名称 *
-                  </label>
+                  <label className="text-xs font-medium text-muted-foreground">名称 *</label>
                   <Input
                     placeholder="e.g. Run ESLint"
                     value={form.name}
@@ -471,13 +414,8 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    分类
-                  </label>
-                  <Select
-                    value={form.category}
-                    onValueChange={handleCategoryChange}
-                  >
+                  <label className="text-xs font-medium text-muted-foreground">分类</label>
+                  <Select value={form.category} onValueChange={handleCategoryChange}>
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
@@ -494,9 +432,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">
-                  描述
-                </label>
+                <label className="text-xs font-medium text-muted-foreground">描述</label>
                 <Input
                   placeholder="简单描述这个操作做什么"
                   value={form.description}
@@ -506,9 +442,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
 
               {/* Visibility */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground">
-                  可见性
-                </label>
+                <label className="text-xs font-medium text-muted-foreground">可见性</label>
                 <div className="flex gap-2">
                   {VISIBILITY_OPTIONS.map(({ value, label, icon: Icon }) => {
                     const selected = form.visibility === value;
@@ -519,7 +453,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                           "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                           selected
                             ? "border-violet-300 bg-violet-50 text-violet-700"
-                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50",
+                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
                         )}
                         type="button"
                         onClick={handleVisibilityChange(value)}
@@ -548,7 +482,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                           "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                           selected
                             ? "border-violet-300 bg-violet-50 text-violet-700"
-                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50",
+                            : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
                         )}
                         type="button"
                         onClick={handleToggleObjectTypeClick(value)}
@@ -563,9 +497,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">
-                  配置 (JSON)
-                </label>
+                <label className="text-xs font-medium text-muted-foreground">配置 (JSON)</label>
                 <Textarea
                   className="resize-none font-mono text-xs"
                   placeholder='{ "command": "eslint src/" }'
@@ -579,11 +511,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
               <Button size="sm" variant="outline" onClick={handleCancel}>
                 取消
               </Button>
-              <Button
-                disabled={saving || !form.name.trim()}
-                size="sm"
-                onClick={handleSave}
-              >
+              <Button disabled={saving || !form.name.trim()} size="sm" onClick={handleSave}>
                 {saving ? "保存中..." : "保存"}
               </Button>
             </div>
@@ -597,14 +525,10 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
               <Zap className="h-6 w-6 text-muted-foreground" />
             </div>
             {searchQuery.trim() || visibilityFilter !== "all" ? (
-              <p className="text-sm font-medium text-muted-foreground">
-                没有找到匹配的 Operations
-              </p>
+              <p className="text-sm font-medium text-muted-foreground">没有找到匹配的 Operations</p>
             ) : (
               <>
-                <p className="text-sm font-medium text-muted-foreground">
-                  还没有 Operations
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">还没有 Operations</p>
                 <p className="mt-1 text-xs text-muted-foreground/60">
                   点击「新建 Operation」添加第一个操作
                 </p>
@@ -624,16 +548,14 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                       <Zap className="h-4 w-4 text-primary" />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">
-                        {op.name}
-                      </p>
+                      <p className="truncate text-sm font-semibold text-foreground">{op.name}</p>
                       <div className="mt-0.5 flex items-center gap-1">
                         <Badge className="text-[10px]" variant="secondary">
                           {op.category}
                         </Badge>
                         {(() => {
                           const vCfg = VISIBILITY_OPTIONS.find(
-                            (v) => v.value === (op.visibility ?? "public"),
+                            (v) => v.value === (op.visibility ?? "public")
                           );
                           if (!vCfg) return null;
                           const VIcon = vCfg.icon;
@@ -641,7 +563,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                             <span
                               className={cn(
                                 "flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium",
-                                VISIBILITY_COLORS[vCfg.value],
+                                VISIBILITY_COLORS[vCfg.value]
                               )}
                             >
                               <VIcon className="h-2.5 w-2.5" />
@@ -691,17 +613,13 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                 )}
                 {/* Show accepted object types */}
                 <div className="mt-3 flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground">
-                    适用于:
-                  </span>
+                  <span className="text-[10px] text-muted-foreground">适用于:</span>
                   <div className="flex gap-1">
                     {(Array.isArray(op.acceptedObjectTypes)
                       ? op.acceptedObjectTypes
                       : ["file", "folder", "project"]
                     ).map((type) => {
-                      const config = OBJECT_TYPE_OPTIONS.find(
-                        (o) => o.value === type,
-                      );
+                      const config = OBJECT_TYPE_OPTIONS.find((o) => o.value === type);
                       if (!config) return null;
                       const Icon = config.icon;
                       return (

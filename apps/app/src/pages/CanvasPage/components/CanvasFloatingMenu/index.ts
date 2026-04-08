@@ -1,1 +1,1 @@
-export * from './CanvasFloatingMenu';
+export * from "./CanvasFloatingMenu";

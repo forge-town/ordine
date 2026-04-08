@@ -1,1 +1,1 @@
-export * from './CanvasInner';
+export * from "./CanvasInner";

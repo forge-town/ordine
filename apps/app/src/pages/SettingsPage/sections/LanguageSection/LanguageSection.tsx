@@ -15,12 +15,7 @@ interface LanguageSectionProps {
   saved: boolean;
 }
 
-export const LanguageSection = ({
-  values,
-  onChange,
-  onSave,
-  saved,
-}: LanguageSectionProps) => {
+export const LanguageSection = ({ values, onChange, onSave, saved }: LanguageSectionProps) => {
   const handleLanguageChange = (value: string | null) =>
     onChange({ language: value ?? values.language });
   const handleTimezoneChange = (value: string | null) =>
@@ -53,9 +48,7 @@ export const LanguageSection = ({
             <SelectGroup>
               <SelectItem value="Asia/Shanghai">亚洲 / 上海 (UTC+8)</SelectItem>
               <SelectItem value="UTC">UTC</SelectItem>
-              <SelectItem value="America/New_York">
-                美洲 / 纽约 (UTC-5)
-              </SelectItem>
+              <SelectItem value="America/New_York">美洲 / 纽约 (UTC-5)</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>

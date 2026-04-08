@@ -22,18 +22,14 @@ export type JobsPageContentProps = {
   jobs: JobEntity[];
 };
 
-export const JobsPageContent = ({
-  jobs: initialJobs,
-}: JobsPageContentProps) => {
+export const JobsPageContent = ({ jobs: initialJobs }: JobsPageContentProps) => {
   const [jobs, setJobs] = useState<JobEntity[]>(initialJobs);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<JobStatus | "all">("all");
   const navigate = useNavigate();
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
-  const handleStatusFilterClick = (value: JobStatus | "all") => () =>
-    setStatusFilter(value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
+  const handleStatusFilterClick = (value: JobStatus | "all") => () => setStatusFilter(value);
   const handleJobClick = (jobId: string) => () =>
     void navigate({ to: "/jobs/$jobId", params: { jobId } });
   const handleDeleteJob = (jobId: string) => () => void handleDelete(jobId);
@@ -79,30 +75,15 @@ export const JobsPageContent = ({
       {/* Stats */}
       <div className="shrink-0 border-b border-border bg-muted/50 px-6 py-4">
         <div className="grid grid-cols-5 gap-3">
-          <StatCard
-            color="text-gray-700"
-            dot="bg-gray-400"
-            label="排队中"
-            value={counts.queued}
-          />
-          <StatCard
-            color="text-blue-700"
-            dot="bg-blue-500"
-            label="运行中"
-            value={counts.running}
-          />
+          <StatCard color="text-gray-700" dot="bg-gray-400" label="排队中" value={counts.queued} />
+          <StatCard color="text-blue-700" dot="bg-blue-500" label="运行中" value={counts.running} />
           <StatCard
             color="text-emerald-700"
             dot="bg-emerald-500"
             label="已完成"
             value={counts.done}
           />
-          <StatCard
-            color="text-red-700"
-            dot="bg-red-500"
-            label="失败"
-            value={counts.failed}
-          />
+          <StatCard color="text-red-700" dot="bg-red-500" label="失败" value={counts.failed} />
           <StatCard
             color="text-amber-600"
             dot="bg-amber-400"
@@ -136,9 +117,7 @@ export const JobsPageContent = ({
             >
               {f.label}
               {f.value !== "all" && (
-                <span className="ml-1 opacity-70">
-                  {counts[f.value as JobStatus]}
-                </span>
+                <span className="ml-1 opacity-70">{counts[f.value as JobStatus]}</span>
               )}
             </Button>
           ))}
@@ -156,9 +135,7 @@ export const JobsPageContent = ({
               <Activity className="h-7 w-7 text-muted-foreground" />
             </div>
             <h3 className="mt-4 text-sm font-semibold text-foreground">
-              {search || statusFilter !== "all"
-                ? "未找到匹配的 Job"
-                : "暂无 Job"}
+              {search || statusFilter !== "all" ? "未找到匹配的 Job" : "暂无 Job"}
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
               {search || statusFilter !== "all"

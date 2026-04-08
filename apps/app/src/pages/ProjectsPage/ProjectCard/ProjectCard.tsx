@@ -1,8 +1,7 @@
 import { FolderGit2, GitBranch, Clock, ExternalLink, X } from "lucide-react";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 
-const handleExternalLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) =>
-  e.stopPropagation();
+const handleExternalLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => e.stopPropagation();
 
 export type ProjectCardProps = {
   project: GithubProjectEntity;
@@ -10,20 +9,18 @@ export type ProjectCardProps = {
   onDelete: () => void;
 };
 
-export const ProjectCard = ({
-  project,
-  onClick,
-  onDelete,
-}: ProjectCardProps) => {
+export const ProjectCard = ({ project, onClick, onDelete }: ProjectCardProps) => {
   const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     onDelete();
   };
 
+  const handleClick = () => onClick();
+
   return (
     <div
       className="group cursor-pointer rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:shadow-sm transition-all"
-      onClick={onClick}
+      onClick={handleClick}
     >
       <div className="flex items-start justify-between">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
@@ -51,9 +48,7 @@ export const ProjectCard = ({
         {project.owner}/{project.repo}
       </h3>
       {project.description && (
-        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-          {project.description}
-        </p>
+        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{project.description}</p>
       )}
       <div className="mt-3 flex items-center gap-3 text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1">

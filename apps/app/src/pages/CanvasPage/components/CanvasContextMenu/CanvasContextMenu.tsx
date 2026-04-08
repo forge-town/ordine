@@ -84,7 +84,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        state.setConnectStart(null);
+        state.handleConnectStart(null);
         onClose();
       }
     };
@@ -125,7 +125,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
       }
     }
 
-    state.setConnectStart(null);
+    state.handleConnectStart(null);
     onClose();
   };
 
@@ -165,7 +165,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
       }
     }
 
-    state.setConnectStart(null);
+    state.handleConnectStart(null);
     onClose();
   };
 
@@ -186,7 +186,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
   );
 
   const handleBackdropClick = () => {
-    state.setConnectStart(null);
+    state.handleConnectStart(null);
     onClose();
   };
 

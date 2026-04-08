@@ -4,18 +4,14 @@ import { Toggle } from "./Toggle";
 
 describe("Toggle", () => {
   it("renders label", () => {
-    render(
-      <Toggle
-        enabled={false}
-        label="Enable notifications"
-        onToggle={vi.fn()}
-      />,
-    );
+    const handleToggle = vi.fn();
+    render(<Toggle enabled={false} label="Enable notifications" onToggle={handleToggle} />);
     expect(screen.getByText("Enable notifications")).toBeTruthy();
   });
 
   it("renders in enabled state", () => {
-    render(<Toggle enabled={true} label="Enable" onToggle={vi.fn()} />);
+    const handleToggle = vi.fn();
+    render(<Toggle enabled={true} label="Enable" onToggle={handleToggle} />);
     expect(screen.getByText("Enable")).toBeTruthy();
   });
 });

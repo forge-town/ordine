@@ -3,10 +3,7 @@ import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
 
 export interface ActionsSlice {
   exportCanvas: () => void;
-  importCanvas: (data: {
-    nodes: PipelineNode[];
-    edges: PipelineEdge[];
-  }) => void;
+  importCanvas: (data: { nodes: PipelineNode[]; edges: PipelineEdge[] }) => void;
   fitView: (options?: { padding?: number }) => void;
   zoomIn: () => void;
   zoomOut: () => void;
@@ -14,7 +11,7 @@ export interface ActionsSlice {
 
 export const createActionsSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
-  get: Parameters<HarnessCanvasStoreSlice>[1],
+  get: Parameters<HarnessCanvasStoreSlice>[1]
 ): ActionsSlice => ({
   exportCanvas: () => {
     const state = get();

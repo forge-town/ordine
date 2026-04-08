@@ -3,9 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { SettingsPage } from "./SettingsPage";
 
 vi.mock("@/components/AppLayout", () => ({
-  AppLayout: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  AppLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 vi.mock("./SettingsPageContent/SettingsPageContent", () => ({

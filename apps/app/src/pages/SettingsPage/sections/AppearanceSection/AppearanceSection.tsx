@@ -8,12 +8,7 @@ interface AppearanceSectionProps {
   saved: boolean;
 }
 
-export const AppearanceSection = ({
-  values,
-  onChange,
-  onSave,
-  saved,
-}: AppearanceSectionProps) => {
+export const AppearanceSection = ({ values, onChange, onSave, saved }: AppearanceSectionProps) => {
   const handleLightClick = () => onChange({ theme: "light" });
   const handleDarkClick = () => onChange({ theme: "dark" });
   const handleSystemClick = () => onChange({ theme: "system" });
@@ -29,7 +24,7 @@ export const AppearanceSection = ({
               "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
               values.theme === "light"
                 ? "border-primary bg-accent text-accent-foreground"
-                : "border-border text-muted-foreground hover:border-input",
+                : "border-border text-muted-foreground hover:border-input"
             )}
             onClick={handleLightClick}
           >
@@ -40,7 +35,7 @@ export const AppearanceSection = ({
               "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
               values.theme === "dark"
                 ? "border-primary bg-accent text-accent-foreground"
-                : "border-border text-muted-foreground hover:border-input",
+                : "border-border text-muted-foreground hover:border-input"
             )}
             onClick={handleDarkClick}
           >
@@ -51,7 +46,7 @@ export const AppearanceSection = ({
               "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
               values.theme === "system"
                 ? "border-primary bg-accent text-accent-foreground"
-                : "border-border text-muted-foreground hover:border-input",
+                : "border-border text-muted-foreground hover:border-input"
             )}
             onClick={handleSystemClick}
           >

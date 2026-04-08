@@ -22,43 +22,31 @@ const mockPractice: BestPracticeEntity = {
 
 describe("PracticeFormDialog", () => {
   it("renders 新增 title when no initial", () => {
-    render(
-      <PracticeFormDialog
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-      />,
-    );
+    const handleClose = vi.fn();
+    const handleSave = vi.fn();
+    render(<PracticeFormDialog onClose={handleClose} onSave={handleSave} />);
     expect(screen.getByText("新增最佳实践")).toBeInTheDocument();
   });
 
   it("renders 编辑 title when initial is provided", () => {
-    render(
-      <PracticeFormDialog
-        initial={mockPractice}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-      />,
-    );
+    const handleClose = vi.fn();
+    const handleSave = vi.fn();
+    render(<PracticeFormDialog initial={mockPractice} onClose={handleClose} onSave={handleSave} />);
     expect(screen.getByText("编辑最佳实践")).toBeInTheDocument();
   });
 
   it("calls onClose when close button is clicked", () => {
-    const onClose = vi.fn();
-    render(
-      <PracticeFormDialog onClose={onClose} onSave={vi.fn()} />,
-    );
+    const handleClose = vi.fn();
+    const handleSave = vi.fn();
+    render(<PracticeFormDialog onClose={handleClose} onSave={handleSave} />);
     fireEvent.click(screen.getByRole("button", { name: /取消/i }));
-    expect(onClose).toHaveBeenCalledOnce();
+    expect(handleClose).toHaveBeenCalledOnce();
   });
 
   it("prefills form with initial data", () => {
-    render(
-      <PracticeFormDialog
-        initial={mockPractice}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-      />,
-    );
+    const handleClose = vi.fn();
+    const handleSave = vi.fn();
+    render(<PracticeFormDialog initial={mockPractice} onClose={handleClose} onSave={handleSave} />);
     expect(screen.getByDisplayValue(mockPractice.title)).toBeInTheDocument();
   });
 });

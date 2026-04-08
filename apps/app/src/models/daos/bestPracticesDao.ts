@@ -1,4 +1,5 @@
 import { eq, desc } from "drizzle-orm";
+import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@/db";
 import {
   bestPracticesTable,
@@ -11,7 +12,9 @@ export type BestPracticeEntity = Omit<BestPracticeRow, "createdAt" | "updatedAt"
   updatedAt: number;
 };
 
-type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type DbExecutor =
+  | PostgresJsDatabase<Record<string, unknown>>
+  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: BestPracticeRow): BestPracticeEntity => ({
   ...row,
