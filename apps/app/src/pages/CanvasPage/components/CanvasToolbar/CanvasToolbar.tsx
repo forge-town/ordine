@@ -1,17 +1,23 @@
 import { useState } from "react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../../_store";
-import { ZoomIn, ZoomOut, Maximize2, Trash2, Undo2, Redo2, Bot, Play } from "lucide-react";
+import {
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Trash2,
+  Undo2,
+  Redo2,
+  Bot,
+  Play,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
-import { useCreate, useUpdate } from "@refinedev/core";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-
-const MASTRA_BASE = "http://localhost:4111";
-const VALIDATOR_AGENT_ID = "harnessValidatorAgent";
+import { updatePipeline } from "@/services/pipelinesService";
 import { useToastStore } from "@/hooks/useToastStore";
+import { ResultAsync } from "neverthrow";
 
 export const CanvasToolbar = () => {
   const { t } = useTranslation();
@@ -29,9 +35,6 @@ export const CanvasToolbar = () => {
 
   const [isRunning, setIsRunning] = useState(false);
 
-  const { mutate: createJobMutation } = useCreate();
-  const { mutate: updateJobMutation } = useUpdate();
-
   const handleDeleteSelected = () => {
     if (selectedNodeId) {
       store.getState().removeNode(selectedNodeId);
@@ -48,132 +51,80 @@ export const CanvasToolbar = () => {
   const handleUndo = () => store.getState().undo();
   const handleRedo = () => store.getState().redo();
 
-  const handleRunTest = () => {
+  const handleRunTest = async () => {
     if (isRunning) return;
-    setIsRunning(true);
 
-    const jobId = `job-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    const startedAt = Date.now();
-
-    const snapshot = JSON.stringify({
-      nodes: nodes.map((n) => ({
-        id: n.id,
-        type: n.type,
-        label: (n.data as { label?: string }).label ?? n.id,
-      })),
-      edges: edges.map((e) => ({
-        id: e.id,
-        source: e.source,
-        target: e.target,
-      })),
-    });
-
-    const finishRun = () => setIsRunning(false);
-
-    const onValidateSuccess = (output: string) => {
-      updateJobMutation(
-        {
-          resource: ResourceName.jobs,
-          id: jobId,
-          values: {
-            status: "success",
-            finishedAt: Date.now(),
-            result: { output, summary: t("canvas.runSuccess") },
-          },
-        },
-        {
-          onSuccess: () => {
-            useToastStore.getState().addToast({
-              type: "success",
-              title: t("canvas.runCompleted"),
-              description: t("canvas.runSuccess"),
-            });
-            finishRun();
-          },
-          onError: () => {
-            useToastStore.getState().addToast({
-              type: "error",
-              title: t("canvas.runFailed"),
-              description: t("canvas.runSaveFailed"),
-            });
-            finishRun();
-          },
-        }
-      );
-    };
-
-    const onValidateError = () => {
-      updateJobMutation(
-        {
-          resource: ResourceName.jobs,
-          id: jobId,
-          values: {
-            status: "failed",
-            finishedAt: Date.now(),
-            error: t("canvas.runFailed"),
-          },
-        },
-        { onSuccess: finishRun, onError: finishRun }
-      );
+    if (!pipelineId) {
       useToastStore.getState().addToast({
         type: "error",
         title: t("canvas.runFailed"),
-        description: t("canvas.runFailed"),
+        description: t("canvas.saveFailed"),
       });
-    };
+      return;
+    }
 
-    const runValidation = () => {
-      fetch(`${MASTRA_BASE}/api/agents/${VALIDATOR_AGENT_ID}/generate`, {
+    setIsRunning(true);
+
+    const saveResult = await ResultAsync.fromPromise(
+      updatePipeline({
+        data: {
+          id: pipelineId,
+          patch: {
+            nodes: nodes as unknown[],
+            edges: edges as unknown[],
+            updatedAt: Date.now(),
+          },
+        },
+      }),
+      () => "save-failed" as const,
+    );
+
+    if (saveResult.isErr()) {
+      useToastStore.getState().addToast({
+        type: "error",
+        title: t("canvas.runFailed"),
+        description: t("canvas.saveFailed"),
+      });
+      setIsRunning(false);
+      return;
+    }
+
+    const runResult = await ResultAsync.fromPromise(
+      fetch(`/api/pipelines/${pipelineId}/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [
-            {
-              role: "user",
-              content: `请验证以下线束设计的连接完整性：\n${snapshot}`,
-            },
-          ],
-        }),
-      })
-        .then((res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.json() as Promise<{ text?: string; content?: string }>;
-        })
-        .then((data) => onValidateSuccess(data.text ?? data.content ?? ""))
-        .catch(onValidateError);
-    };
-
-    createJobMutation(
-      {
-        resource: ResourceName.jobs,
-        values: {
-          id: jobId,
-          title: t("canvas.runStart"),
-          type: "pipeline_run",
-          pipelineId,
-          workId: null,
-          projectId: null,
-          logs: [],
-          result: null,
-          error: null,
-          status: "running",
-          startedAt,
-          finishedAt: null,
-        },
-      },
-      {
-        onSuccess: runValidation,
-        onError: () => {
-          useToastStore.getState().addToast({
-            type: "error",
-            title: t("canvas.runFailed"),
-            description: t("canvas.runFailed"),
-          });
-          finishRun();
-        },
-      }
+        body: JSON.stringify({}),
+      }).then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `HTTP ${res.status}`);
+        }
+        return res.json() as Promise<{ jobId: string }>;
+      }),
+      (cause) => (cause instanceof Error ? cause.message : String(cause)),
     );
+
+    runResult.match(
+      ({ jobId }) => {
+        useToastStore.getState().addToast({
+          type: "success",
+          title: t("canvas.runCompleted"),
+          description: `Job ${jobId} ${t("canvas.runSuccess")}`,
+        });
+      },
+      (error) => {
+        useToastStore.getState().addToast({
+          type: "error",
+          title: t("canvas.runFailed"),
+          description: error,
+        });
+      },
+    );
+
+    setIsRunning(false);
   };
+
+  const handleClickRun = () => void handleRunTest();
 
   return (
     <div className="absolute left-1/2 top-3 z-10 -translate-x-1/2">
@@ -182,7 +133,12 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomOut} />
+              <Button
+                className="h-7 w-7"
+                size="icon"
+                variant="ghost"
+                onClick={handleZoomOut}
+              />
             }
           >
             <ZoomOut className="h-4 w-4" />
@@ -192,7 +148,12 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomIn} />
+              <Button
+                className="h-7 w-7"
+                size="icon"
+                variant="ghost"
+                onClick={handleZoomIn}
+              />
             }
           >
             <ZoomIn className="h-4 w-4" />
@@ -202,7 +163,12 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleFitView} />
+              <Button
+                className="h-7 w-7"
+                size="icon"
+                variant="ghost"
+                onClick={handleFitView}
+              />
             }
           >
             <Maximize2 className="h-4 w-4" />
@@ -275,11 +241,11 @@ export const CanvasToolbar = () => {
             render={
               <Button
                 className="h-7 gap-1.5 px-2 text-xs text-green-600 hover:bg-green-50 hover:text-green-700 disabled:text-muted-foreground/30"
-                disabled={isRunning}
+                disabled={isRunning || !pipelineId}
                 size="sm"
                 title="运行测试"
                 variant="ghost"
-                onClick={handleRunTest}
+                onClick={handleClickRun}
               />
             }
           >

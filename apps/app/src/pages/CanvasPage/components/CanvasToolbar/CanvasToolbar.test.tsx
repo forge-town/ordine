@@ -5,17 +5,9 @@ import { CanvasToolbar } from "./CanvasToolbar";
 import { HarnessCanvasStoreProvider } from "../../_store";
 import { useToastStore } from "@/hooks/useToastStore";
 
-const mockCreateJob = vi.fn();
-const mockUpdateJob = vi.fn();
-vi.mock("@refinedev/core", () => ({
-  useCreate: () => ({
-    mutate: mockCreateJob,
-    mutation: { isPending: false },
-  }),
-  useUpdate: () => ({
-    mutate: mockUpdateJob,
-    mutation: { isPending: false },
-  }),
+const mockUpdatePipeline = vi.fn();
+vi.mock("@/services/pipelinesService", () => ({
+  updatePipeline: (...args: unknown[]) => mockUpdatePipeline(...args),
 }));
 
 const mockFetch = vi.fn();
@@ -29,7 +21,12 @@ vi.mock("@repo/ui/button", () => ({
     title,
     className,
   }: React.ComponentProps<"button">) => (
-    <button className={className} disabled={disabled} title={title} onClick={handleClick}>
+    <button
+      className={className}
+      disabled={disabled}
+      title={title}
+      onClick={handleClick}
+    >
       {children}
     </button>
   ),
@@ -55,7 +52,9 @@ vi.mock("@repo/ui/tooltip", () => ({
 }));
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider pipeline={null}>
+    {children}
+  </HarnessCanvasStoreProvider>
 );
 
 const wrapperWithPipeline = ({ children }: React.PropsWithChildren) => (
@@ -78,13 +77,14 @@ describe("CanvasToolbar - export removed", () => {
 
 describe("CanvasToolbar - Run Test button", () => {
   beforeEach(() => {
-    mockCreateJob.mockClear();
-    mockUpdateJob.mockClear();
+    mockUpdatePipeline.mockReset();
+    mockUpdatePipeline.mockResolvedValue(undefined);
     mockFetch.mockReset();
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ text: "验证通过" }),
+      json: () => Promise.resolve({ jobId: "job-123" }),
     });
+    useToastStore.setState({ toasts: [] });
   });
 
   it("renders the Run Test button", () => {
@@ -92,9 +92,9 @@ describe("CanvasToolbar - Run Test button", () => {
     expect(screen.getByTitle("运行测试")).toBeInTheDocument();
   });
 
-  it("Run Test button is enabled without pipelineId", () => {
+  it("Run Test button is disabled without pipelineId", () => {
     render(<CanvasToolbar />, { wrapper });
-    expect(screen.getByTitle("运行测试")).not.toBeDisabled();
+    expect(screen.getByTitle("运行测试")).toBeDisabled();
   });
 
   it("Run Test button is enabled when pipelineId exists", () => {
@@ -102,92 +102,64 @@ describe("CanvasToolbar - Run Test button", () => {
     expect(screen.getByTitle("运行测试")).not.toBeDisabled();
   });
 
-  it("clicking Run Test calls createJob with pipeline_run type and null pipelineId when not saved", async () => {
-    const user = userEvent.setup();
-    render(<CanvasToolbar />, { wrapper });
-    await user.click(screen.getByTitle("运行测试"));
-    expect(mockCreateJob).toHaveBeenCalledWith(
-      expect.objectContaining({
-        resource: "jobs",
-        values: expect.objectContaining({
-          type: "pipeline_run",
-          pipelineId: null,
-          status: "running",
-        }),
-      }),
-      expect.objectContaining({
-        onSuccess: expect.any(Function),
-        onError: expect.any(Function),
-      })
-    );
-  });
-
-  it("clicking Run Test calls createJob with pipelineId when pipeline is saved", async () => {
+  it("clicking Run saves pipeline then calls run API", async () => {
     const user = userEvent.setup();
     render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
     await user.click(screen.getByTitle("运行测试"));
-    expect(mockCreateJob).toHaveBeenCalledWith(
-      expect.objectContaining({
-        resource: "jobs",
-        values: expect.objectContaining({
-          type: "pipeline_run",
-          pipelineId: "pipe-test",
-          status: "running",
+
+    await waitFor(() => {
+      expect(mockUpdatePipeline).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ id: "pipe-test" }),
         }),
-      }),
-      expect.objectContaining({
-        onSuccess: expect.any(Function),
-        onError: expect.any(Function),
-      })
-    );
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/pipelines/pipe-test/run",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
   });
 
   it("shows success toast after successful run", async () => {
     const user = userEvent.setup();
-    mockUpdateJob.mockImplementation((_vars: unknown, callbacks: { onSuccess?: () => void }) => {
-      callbacks?.onSuccess?.();
-    });
-    mockCreateJob.mockImplementation((_vars: unknown, callbacks: { onSuccess?: () => void }) => {
-      callbacks?.onSuccess?.();
-    });
-    render(<CanvasToolbar />, { wrapper });
+    render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
     await user.click(screen.getByTitle("运行测试"));
     await waitFor(() => {
       expect(useToastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "success" })])
+        expect.arrayContaining([expect.objectContaining({ type: "success" })]),
       );
     });
-    useToastStore.setState({ toasts: [] });
   });
 
-  it("shows error toast when createJob fails", async () => {
+  it("shows error toast when save fails", async () => {
+    mockUpdatePipeline.mockRejectedValue(new Error("save failed"));
     const user = userEvent.setup();
-    mockCreateJob.mockImplementation((_vars: unknown, callbacks: { onError?: () => void }) => {
-      callbacks?.onError?.();
-    });
-    render(<CanvasToolbar />, { wrapper });
+    render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
     await user.click(screen.getByTitle("运行测试"));
     await waitFor(() => {
       expect(useToastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "error" })])
+        expect.arrayContaining([expect.objectContaining({ type: "error" })]),
       );
     });
-    useToastStore.setState({ toasts: [] });
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("shows error toast when Mastra validation fails", async () => {
-    const user = userEvent.setup();
-    mockFetch.mockRejectedValue(new Error("Mastra unavailable"));
-    mockCreateJob.mockImplementation((_vars: unknown, callbacks: { onSuccess?: () => void }) => {
-      callbacks?.onSuccess?.();
+  it("shows error toast when run API fails", async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: () => Promise.resolve("Internal Server Error"),
     });
-    render(<CanvasToolbar />, { wrapper });
+    const user = userEvent.setup();
+    render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
     await user.click(screen.getByTitle("运行测试"));
     await waitFor(() => {
       expect(useToastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "error" })])
+        expect.arrayContaining([expect.objectContaining({ type: "error" })]),
       );
     });
-    useToastStore.setState({ toasts: [] });
   });
 });
