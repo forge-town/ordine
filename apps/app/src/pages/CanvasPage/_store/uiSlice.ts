@@ -28,6 +28,8 @@ export interface UISlice {
   isSidebarOpen: boolean;
   isPropertiesPanelOpen: boolean;
   isAiAssistantOpen: boolean;
+  isConsoleOpen: boolean;
+  activeJobId: string | null;
   contextMenu: ContextMenuState | null;
   connectionMenu: ContextMenuState | null;
   nodeContextMenu: NodeContextMenuState | null;
@@ -39,6 +41,8 @@ export interface UISlice {
   openPropertiesPanel: () => void;
   closePropertiesPanel: () => void;
   toggleAiAssistant: () => void;
+  toggleConsole: () => void;
+  setActiveJobId: (jobId: string | null) => void;
   openContextMenu: (state: ContextMenuState) => void;
   closeContextMenu: () => void;
   openConnectionMenu: (state: ContextMenuState) => void;
@@ -51,7 +55,7 @@ export interface UISlice {
 export const createUISlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
   pipelineId: string | null = null,
-  pipelineName = ""
+  pipelineName = "",
 ): UISlice => ({
   pipelineId,
   pipelineName,
@@ -59,6 +63,8 @@ export const createUISlice = (
   isSidebarOpen: true,
   isPropertiesPanelOpen: false,
   isAiAssistantOpen: false,
+  isConsoleOpen: false,
+  activeJobId: null,
   contextMenu: null,
   connectionMenu: null,
   nodeContextMenu: null,
@@ -86,6 +92,14 @@ export const createUISlice = (
 
   toggleAiAssistant: () => {
     set((state) => ({ isAiAssistantOpen: !state.isAiAssistantOpen }));
+  },
+
+  toggleConsole: () => {
+    set((state) => ({ isConsoleOpen: !state.isConsoleOpen }));
+  },
+
+  setActiveJobId: (jobId) => {
+    set({ activeJobId: jobId, isConsoleOpen: jobId !== null });
   },
 
   openContextMenu: (state) => {

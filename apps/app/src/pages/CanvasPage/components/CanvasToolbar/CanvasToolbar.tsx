@@ -97,6 +97,7 @@ export const CanvasToolbar = () => {
 
     runResult.match(
       ({ jobId }) => {
+        store.getState().setActiveJobId(jobId);
         useToastStore.getState().addToast({
           type: "success",
           title: t("canvas.runCompleted"),

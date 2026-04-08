@@ -7,6 +7,7 @@ import { ConnectionMenu } from "../ConnectionMenu";
 import { NodeContextMenu } from "../NodeContextMenu";
 import { CanvasFloatingMenu } from "../CanvasFloatingMenu";
 import { AiAssistantPanel } from "../AiAssistantPanel";
+import { RunConsole } from "../RunConsole";
 
 export const CanvasInner = () => {
   const store = useHarnessCanvasStore();
@@ -18,6 +19,12 @@ export const CanvasInner = () => {
   const handleCloseConnectionMenu = useStore(store, (state) => state.closeConnectionMenu);
   const nodeContextMenu = useStore(store, (state) => state.nodeContextMenu);
   const handleCloseNodeContextMenu = useStore(store, (state) => state.closeNodeContextMenu);
+  const activeJobId = useStore(store, (state) => state.activeJobId);
+  const isConsoleOpen = useStore(store, (state) => state.isConsoleOpen);
+
+  const handleCloseConsole = () => {
+    store.getState().setActiveJobId(null);
+  };
 
   return (
     <div className="relative h-full w-full">
@@ -65,6 +72,8 @@ export const CanvasInner = () => {
       )}
 
       <AiAssistantPanel />
+
+      {isConsoleOpen && <RunConsole jobId={activeJobId} onClose={handleCloseConsole} />}
     </div>
   );
 };
