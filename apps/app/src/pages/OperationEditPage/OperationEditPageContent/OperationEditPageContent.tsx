@@ -161,11 +161,14 @@ const parseExecutorDefaults = (
 
 type EditFormValues = z.infer<typeof editFormSchema>;
 
+import type { SkillEntity } from "@/models/daos/skillsDao";
+
 interface Props {
   operation: OperationEntity;
+  skills: SkillEntity[];
 }
 
-export const OperationEditPageContent = ({ operation }: Props) => {
+export const OperationEditPageContent = ({ operation, skills }: Props) => {
   const navigate = useNavigate();
 
   const form = useForm<EditFormValues>({
@@ -408,14 +411,24 @@ export const OperationEditPageContent = ({ operation }: Props) => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium text-muted-foreground">
-                          Skill ID
+                          Skill
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            className="h-9 font-mono text-sm"
-                            placeholder="e.g. lint-check, format-code"
-                            {...field}
-                          />
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="h-9 w-full">
+                              <SelectValue placeholder="选择 Skill" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {skills.map((s) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  {s.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <FormMessage className="text-xs" />
                       </FormItem>

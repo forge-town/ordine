@@ -1,10 +1,13 @@
 import { AppLayout } from "@/components/AppLayout";
 import { OperationEditPageContent } from "./OperationEditPageContent";
 import { Route } from "@/routes/operations.$operationId.edit";
-import type { OperationEntity } from "@/models/daos/operationsDao";
+import type { SkillEntity } from "@/models/daos/skillsDao";
 
 export const OperationEditPage = () => {
-  const operation = Route.useLoaderData() as OperationEntity | null;
+  const { operation, skills } = Route.useLoaderData() as {
+    operation: import("@/models/daos/operationsDao").OperationEntity | null;
+    skills: SkillEntity[];
+  };
 
   if (!operation) {
     return (
@@ -18,7 +21,7 @@ export const OperationEditPage = () => {
 
   return (
     <AppLayout>
-      <OperationEditPageContent operation={operation} />
+      <OperationEditPageContent operation={operation} skills={skills} />
     </AppLayout>
   );
 };

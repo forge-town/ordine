@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { PracticeFormDialog } from "./PracticeFormDialog";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
@@ -31,7 +31,13 @@ describe("PracticeFormDialog", () => {
   it("renders 编辑 title when initial is provided", () => {
     const handleClose = vi.fn();
     const handleSave = vi.fn();
-    render(<PracticeFormDialog initial={mockPractice} onClose={handleClose} onSave={handleSave} />);
+    render(
+      <PracticeFormDialog
+        initial={mockPractice}
+        onClose={handleClose}
+        onSave={handleSave}
+      />,
+    );
     expect(screen.getByText("编辑最佳实践")).toBeInTheDocument();
   });
 
@@ -46,7 +52,36 @@ describe("PracticeFormDialog", () => {
   it("prefills form with initial data", () => {
     const handleClose = vi.fn();
     const handleSave = vi.fn();
-    render(<PracticeFormDialog initial={mockPractice} onClose={handleClose} onSave={handleSave} />);
+    render(
+      <PracticeFormDialog
+        initial={mockPractice}
+        onClose={handleClose}
+        onSave={handleSave}
+      />,
+    );
     expect(screen.getByDisplayValue(mockPractice.title)).toBeInTheDocument();
+  });
+
+  it("renders inside a <form> element (react-hook-form)", () => {
+    const { container } = render(
+      <PracticeFormDialog onClose={vi.fn()} onSave={vi.fn()} />,
+    );
+    expect(container.querySelector("form")).not.toBeNull();
+  });
+
+  it("shows validation error when submitting with empty title", async () => {
+    render(<PracticeFormDialog onClose={vi.fn()} onSave={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: /^保存/ }));
+    await waitFor(() => {
+      expect(screen.getByText(/标题不能为空/i)).toBeInTheDocument();
+    });
+  });
+
+  it("shows validation error when submitting with empty condition", async () => {
+    render(<PracticeFormDialog onClose={vi.fn()} onSave={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: /^保存/ }));
+    await waitFor(() => {
+      expect(screen.getByText(/适用时机不能为空/i)).toBeInTheDocument();
+    });
   });
 });

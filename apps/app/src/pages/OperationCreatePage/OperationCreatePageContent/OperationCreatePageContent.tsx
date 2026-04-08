@@ -125,7 +125,13 @@ const toggleObjectType = (
   return [...current, type];
 };
 
-export const OperationCreatePageContent = () => {
+import type { SkillEntity } from "@/models/daos/skillsDao";
+
+export const OperationCreatePageContent = ({
+  skills,
+}: {
+  skills: SkillEntity[];
+}) => {
   const navigate = useNavigate();
 
   const form = useForm<CreateFormValues>({
@@ -359,14 +365,24 @@ export const OperationCreatePageContent = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium text-muted-foreground">
-                          Skill ID
+                          Skill
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            className="h-9 font-mono text-sm"
-                            placeholder="e.g. lint-check, format-code"
-                            {...field}
-                          />
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="h-9 w-full">
+                              <SelectValue placeholder="选择 Skill" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {skills.map((s) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  {s.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <FormMessage className="text-xs" />
                       </FormItem>
