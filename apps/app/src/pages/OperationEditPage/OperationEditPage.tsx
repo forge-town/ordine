@@ -2,10 +2,11 @@ import { AppLayout } from "@/components/AppLayout";
 import { OperationEditPageContent } from "./OperationEditPageContent";
 import { Route } from "@/routes/operations.$operationId.edit";
 import type { SkillEntity } from "@/models/daos/skillsDao";
+import type { OperationEntity } from "@/models/daos/operationsDao";
 
 export const OperationEditPage = () => {
   const { operation, skills } = Route.useLoaderData() as {
-    operation: import("@/models/daos/operationsDao").OperationEntity | null;
+    operation: OperationEntity | null;
     skills: SkillEntity[];
   };
 

@@ -13,7 +13,6 @@ import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RulesRouteImport } from './routes/rules'
 import { Route as PipelinesRouteImport } from './routes/pipelines'
-import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as BestPracticesRouteImport } from './routes/best-practices'
 import { Route as AssistantRouteImport } from './routes/assistant'
@@ -21,6 +20,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as PipelinesIndexRouteImport } from './routes/pipelines.index'
 import { Route as OperationsIndexRouteImport } from './routes/operations.index'
+import { Route as JobsIndexRouteImport } from './routes/jobs.index'
 import { Route as PipelinesPipelineIdRouteImport } from './routes/pipelines.$pipelineId'
 import { Route as OperationsNewRouteImport } from './routes/operations.new'
 import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
@@ -28,6 +28,7 @@ import { Route as ProjectsProjectIdIndexRouteImport } from './routes/projects.$p
 import { Route as OperationsOperationIdIndexRouteImport } from './routes/operations.$operationId.index'
 import { Route as ProjectsProjectIdWorkspaceRouteImport } from './routes/projects.$projectId.workspace'
 import { Route as OperationsOperationIdEditRouteImport } from './routes/operations.$operationId.edit'
+import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
 
 const SkillsRoute = SkillsRouteImport.update({
   id: '/skills',
@@ -47,11 +48,6 @@ const RulesRoute = RulesRouteImport.update({
 const PipelinesRoute = PipelinesRouteImport.update({
   id: '/pipelines',
   path: '/pipelines',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JobsRoute = JobsRouteImport.update({
-  id: '/jobs',
-  path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CanvasRoute = CanvasRouteImport.update({
@@ -87,6 +83,11 @@ const PipelinesIndexRoute = PipelinesIndexRouteImport.update({
 const OperationsIndexRoute = OperationsIndexRouteImport.update({
   id: '/operations/',
   path: '/operations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsIndexRoute = JobsIndexRouteImport.update({
+  id: '/jobs/',
+  path: '/jobs/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PipelinesPipelineIdRoute = PipelinesPipelineIdRouteImport.update({
@@ -127,13 +128,17 @@ const OperationsOperationIdEditRoute =
     path: '/operations/$operationId/edit',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
+  id: '/api/trpc/$',
+  path: '/api/trpc/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assistant': typeof AssistantRoute
   '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
-  '/jobs': typeof JobsRouteWithChildren
   '/pipelines': typeof PipelinesRouteWithChildren
   '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
@@ -141,9 +146,11 @@ export interface FileRoutesByFullPath {
   '/jobs/$jobId': typeof JobsJobIdRoute
   '/operations/new': typeof OperationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
+  '/jobs/': typeof JobsIndexRoute
   '/operations/': typeof OperationsIndexRoute
   '/pipelines/': typeof PipelinesIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/operations/$operationId/edit': typeof OperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
   '/operations/$operationId/': typeof OperationsOperationIdIndexRoute
@@ -154,16 +161,17 @@ export interface FileRoutesByTo {
   '/assistant': typeof AssistantRoute
   '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
-  '/jobs': typeof JobsRouteWithChildren
   '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/jobs/$jobId': typeof JobsJobIdRoute
   '/operations/new': typeof OperationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
+  '/jobs': typeof JobsIndexRoute
   '/operations': typeof OperationsIndexRoute
   '/pipelines': typeof PipelinesIndexRoute
   '/projects': typeof ProjectsIndexRoute
+  '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/operations/$operationId/edit': typeof OperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
   '/operations/$operationId': typeof OperationsOperationIdIndexRoute
@@ -175,7 +183,6 @@ export interface FileRoutesById {
   '/assistant': typeof AssistantRoute
   '/best-practices': typeof BestPracticesRoute
   '/canvas': typeof CanvasRoute
-  '/jobs': typeof JobsRouteWithChildren
   '/pipelines': typeof PipelinesRouteWithChildren
   '/rules': typeof RulesRoute
   '/settings': typeof SettingsRoute
@@ -183,9 +190,11 @@ export interface FileRoutesById {
   '/jobs/$jobId': typeof JobsJobIdRoute
   '/operations/new': typeof OperationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
+  '/jobs/': typeof JobsIndexRoute
   '/operations/': typeof OperationsIndexRoute
   '/pipelines/': typeof PipelinesIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/operations/$operationId/edit': typeof OperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
   '/operations/$operationId/': typeof OperationsOperationIdIndexRoute
@@ -198,7 +207,6 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/best-practices'
     | '/canvas'
-    | '/jobs'
     | '/pipelines'
     | '/rules'
     | '/settings'
@@ -206,9 +214,11 @@ export interface FileRouteTypes {
     | '/jobs/$jobId'
     | '/operations/new'
     | '/pipelines/$pipelineId'
+    | '/jobs/'
     | '/operations/'
     | '/pipelines/'
     | '/projects/'
+    | '/api/trpc/$'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
     | '/operations/$operationId/'
@@ -219,16 +229,17 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/best-practices'
     | '/canvas'
-    | '/jobs'
     | '/rules'
     | '/settings'
     | '/skills'
     | '/jobs/$jobId'
     | '/operations/new'
     | '/pipelines/$pipelineId'
+    | '/jobs'
     | '/operations'
     | '/pipelines'
     | '/projects'
+    | '/api/trpc/$'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
     | '/operations/$operationId'
@@ -239,7 +250,6 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/best-practices'
     | '/canvas'
-    | '/jobs'
     | '/pipelines'
     | '/rules'
     | '/settings'
@@ -247,9 +257,11 @@ export interface FileRouteTypes {
     | '/jobs/$jobId'
     | '/operations/new'
     | '/pipelines/$pipelineId'
+    | '/jobs/'
     | '/operations/'
     | '/pipelines/'
     | '/projects/'
+    | '/api/trpc/$'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
     | '/operations/$operationId/'
@@ -261,14 +273,15 @@ export interface RootRouteChildren {
   AssistantRoute: typeof AssistantRoute
   BestPracticesRoute: typeof BestPracticesRoute
   CanvasRoute: typeof CanvasRoute
-  JobsRoute: typeof JobsRouteWithChildren
   PipelinesRoute: typeof PipelinesRouteWithChildren
   RulesRoute: typeof RulesRoute
   SettingsRoute: typeof SettingsRoute
   SkillsRoute: typeof SkillsRoute
   OperationsNewRoute: typeof OperationsNewRoute
+  JobsIndexRoute: typeof JobsIndexRoute
   OperationsIndexRoute: typeof OperationsIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
+  ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   OperationsOperationIdEditRoute: typeof OperationsOperationIdEditRoute
   ProjectsProjectIdWorkspaceRoute: typeof ProjectsProjectIdWorkspaceRoute
   OperationsOperationIdIndexRoute: typeof OperationsOperationIdIndexRoute
@@ -303,13 +316,6 @@ declare module '@tanstack/react-router' {
       path: '/pipelines'
       fullPath: '/pipelines'
       preLoaderRoute: typeof PipelinesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/jobs': {
-      id: '/jobs'
-      path: '/jobs'
-      fullPath: '/jobs'
-      preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/canvas': {
@@ -361,6 +367,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OperationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jobs/': {
+      id: '/jobs/'
+      path: '/jobs'
+      fullPath: '/jobs/'
+      preLoaderRoute: typeof JobsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pipelines/$pipelineId': {
       id: '/pipelines/$pipelineId'
       path: '/$pipelineId'
@@ -410,18 +423,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OperationsOperationIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/trpc/$': {
+      id: '/api/trpc/$'
+      path: '/api/trpc/$'
+      fullPath: '/api/trpc/$'
+      preLoaderRoute: typeof ApiTrpcSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
-
-interface JobsRouteChildren {
-  JobsJobIdRoute: typeof JobsJobIdRoute
-}
-
-const JobsRouteChildren: JobsRouteChildren = {
-  JobsJobIdRoute: JobsJobIdRoute,
-}
-
-const JobsRouteWithChildren = JobsRoute._addFileChildren(JobsRouteChildren)
 
 interface PipelinesRouteChildren {
   PipelinesPipelineIdRoute: typeof PipelinesPipelineIdRoute
@@ -442,14 +452,15 @@ const rootRouteChildren: RootRouteChildren = {
   AssistantRoute: AssistantRoute,
   BestPracticesRoute: BestPracticesRoute,
   CanvasRoute: CanvasRoute,
-  JobsRoute: JobsRouteWithChildren,
   PipelinesRoute: PipelinesRouteWithChildren,
   RulesRoute: RulesRoute,
   SettingsRoute: SettingsRoute,
   SkillsRoute: SkillsRoute,
   OperationsNewRoute: OperationsNewRoute,
+  JobsIndexRoute: JobsIndexRoute,
   OperationsIndexRoute: OperationsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
+  ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   OperationsOperationIdEditRoute: OperationsOperationIdEditRoute,
   ProjectsProjectIdWorkspaceRoute: ProjectsProjectIdWorkspaceRoute,
   OperationsOperationIdIndexRoute: OperationsOperationIdIndexRoute,

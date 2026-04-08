@@ -37,9 +37,7 @@ describe("OperationCreatePageContent", () => {
   });
 
   it("renders inside a <form> element (react-hook-form)", () => {
-    const { container } = render(
-      <OperationCreatePageContent skills={mockSkills} />,
-    );
+    const { container } = render(<OperationCreatePageContent skills={mockSkills} />);
     expect(container.querySelector("form")).not.toBeNull();
   });
 
@@ -85,7 +83,7 @@ describe("OperationCreatePageContent", () => {
       expect(mockCreateOperation).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ name: "Test Op" }),
-        }),
+        })
       );
     });
   });
@@ -104,7 +102,7 @@ describe("OperationCreatePageContent", () => {
         expect.objectContaining({
           to: "/operations/$operationId",
           params: { operationId: "new-op-id" },
-        }),
+        })
       );
     });
   });

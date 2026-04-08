@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { JobsPageContent } from "./JobsPageContent";
-import { Route } from "@/routes/jobs";
+import { Route } from "@/routes/jobs.index";
 import type { JobEntity } from "@/models/daos/jobsDao";
 
 export const JobsPage = () => {

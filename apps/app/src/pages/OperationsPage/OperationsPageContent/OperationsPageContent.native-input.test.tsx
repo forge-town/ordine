@@ -7,10 +7,7 @@ const mockNavigate = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
-  Link: ({
-    children,
-    ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) => (
+  Link: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
     <a {...props}>{children}</a>
   ),
 }));
@@ -34,9 +31,7 @@ const existingOp: OperationEntity = {
 
 describe("OperationsPageContent - edit button navigates to edit page", () => {
   it("clicking edit button navigates to /operations/$operationId/edit", () => {
-    const { container } = render(
-      <OperationsPageContent initialOperations={[existingOp]} />,
-    );
+    const { container } = render(<OperationsPageContent initialOperations={[existingOp]} />);
     const editBtn = container.querySelector('[title="编辑"]') as HTMLElement;
     fireEvent.click(editBtn);
     expect(mockNavigate).toHaveBeenCalledWith({
@@ -47,12 +42,10 @@ describe("OperationsPageContent - edit button navigates to edit page", () => {
 
   it("clicking edit button does NOT show an inline form", () => {
     const { container, queryByText } = render(
-      <OperationsPageContent initialOperations={[existingOp]} />,
+      <OperationsPageContent initialOperations={[existingOp]} />
     );
     const editBtn = container.querySelector('[title="编辑"]') as HTMLElement;
     fireEvent.click(editBtn);
-    expect(
-      queryByText("编辑 Operation", { selector: "h2" }),
-    ).not.toBeInTheDocument();
+    expect(queryByText("编辑 Operation", { selector: "h2" })).not.toBeInTheDocument();
   });
 });

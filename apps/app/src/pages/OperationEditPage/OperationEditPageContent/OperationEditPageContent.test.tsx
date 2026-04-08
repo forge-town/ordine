@@ -51,16 +51,14 @@ describe("OperationEditPageContent", () => {
 
   it("renders inside a <form> element (react-hook-form)", () => {
     const { container } = render(
-      <OperationEditPageContent operation={mockOp} skills={mockSkills} />,
+      <OperationEditPageContent operation={mockOp} skills={mockSkills} />
     );
     expect(container.querySelector("form")).not.toBeNull();
   });
 
   it("renders the edit form pre-filled with operation data", () => {
     render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
-    const nameInput = screen.getByPlaceholderText(
-      /e.g. Run ESLint/i,
-    ) as HTMLInputElement;
+    const nameInput = screen.getByPlaceholderText(/e.g. Run ESLint/i) as HTMLInputElement;
     expect(nameInput.value).toBe("Run ESLint");
   });
 
@@ -108,7 +106,7 @@ describe("OperationEditPageContent", () => {
       expect(mockUpdateOperation).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ id: "op-123", name: "Run ESLint" }),
-        }),
+        })
       );
     });
   });

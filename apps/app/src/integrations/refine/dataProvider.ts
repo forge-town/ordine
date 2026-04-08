@@ -12,24 +12,17 @@ import {
   type DeleteOneParams,
   type DeleteOneResponse,
 } from "@refinedev/core";
-import {
-  getOperations,
-  getOperationById,
-  createOperation,
-  updateOperation,
-  deleteOperation,
-} from "@/services/operationsService";
-import {
-  getPipelines,
-  getPipelineById,
-  createPipeline,
-  updatePipeline,
-  deletePipeline,
-} from "@/services/pipelinesService";
+import { trpcClient } from "@/integrations/trpc/client";
 
 export const ResourceName = {
   operations: "operations",
   pipelines: "pipelines",
+  jobs: "jobs",
+  works: "works",
+  rules: "rules",
+  bestPractices: "bestPractices",
+  githubProjects: "githubProjects",
+  skills: "skills",
 } as const;
 
 export const dataProvider: DataProvider = {
@@ -40,11 +33,31 @@ export const dataProvider: DataProvider = {
 
     switch (resource) {
       case ResourceName.operations: {
-        const data = await getOperations();
+        const data = await trpcClient.operations.getMany.query();
         return { data: data as unknown as TData[], total: data.length };
       }
       case ResourceName.pipelines: {
-        const data = await getPipelines();
+        const data = await trpcClient.pipelines.getMany.query();
+        return { data: data as unknown as TData[], total: data.length };
+      }
+      case ResourceName.works: {
+        const data = await trpcClient.works.getMany.query();
+        return { data: data as unknown as TData[], total: data.length };
+      }
+      case ResourceName.rules: {
+        const data = await trpcClient.rules.getMany.query({});
+        return { data: data as unknown as TData[], total: data.length };
+      }
+      case ResourceName.bestPractices: {
+        const data = await trpcClient.bestPractices.getMany.query();
+        return { data: data as unknown as TData[], total: data.length };
+      }
+      case ResourceName.githubProjects: {
+        const data = await trpcClient.githubProjects.getMany.query();
+        return { data: data as unknown as TData[], total: data.length };
+      }
+      case ResourceName.skills: {
+        const data = await trpcClient.skills.getMany.query();
         return { data: data as unknown as TData[], total: data.length };
       }
       default: {
@@ -60,11 +73,39 @@ export const dataProvider: DataProvider = {
 
     switch (resource) {
       case ResourceName.operations: {
-        const data = await getOperationById({ data: { id: String(id) } });
+        const data = await trpcClient.operations.getById.query({
+          id: String(id),
+        });
         return { data: data as unknown as TData };
       }
       case ResourceName.pipelines: {
-        const data = await getPipelineById({ data: { id: String(id) } });
+        const data = await trpcClient.pipelines.getById.query({
+          id: String(id),
+        });
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.works: {
+        const data = await trpcClient.works.getById.query({ id: String(id) });
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.rules: {
+        const data = await trpcClient.rules.getById.query({ id: String(id) });
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.bestPractices: {
+        const data = await trpcClient.bestPractices.getById.query({
+          id: String(id),
+        });
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.githubProjects: {
+        const data = await trpcClient.githubProjects.getById.query({
+          id: String(id),
+        });
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.skills: {
+        const data = await trpcClient.skills.getById.query({ id: String(id) });
         return { data: data as unknown as TData };
       }
       default: {
@@ -80,15 +121,51 @@ export const dataProvider: DataProvider = {
 
     switch (resource) {
       case ResourceName.operations: {
-        const data = await createOperation({
-          data: variables as Parameters<typeof createOperation>[0]["data"],
-        });
+        const data = await trpcClient.operations.create.mutate(
+          variables as Parameters<typeof trpcClient.operations.create.mutate>[0]
+        );
         return { data: data as unknown as TData };
       }
       case ResourceName.pipelines: {
-        const data = await createPipeline({
-          data: variables as Parameters<typeof createPipeline>[0]["data"],
-        });
+        const data = await trpcClient.pipelines.create.mutate(
+          variables as Parameters<typeof trpcClient.pipelines.create.mutate>[0]
+        );
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.jobs: {
+        const data = await trpcClient.jobs.create.mutate(
+          variables as Parameters<typeof trpcClient.jobs.create.mutate>[0]
+        );
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.works: {
+        const data = await trpcClient.works.create.mutate(
+          variables as Parameters<typeof trpcClient.works.create.mutate>[0]
+        );
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.rules: {
+        const data = await trpcClient.rules.create.mutate(
+          variables as Parameters<typeof trpcClient.rules.create.mutate>[0]
+        );
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.bestPractices: {
+        const data = await trpcClient.bestPractices.create.mutate(
+          variables as Parameters<typeof trpcClient.bestPractices.create.mutate>[0]
+        );
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.githubProjects: {
+        const data = await trpcClient.githubProjects.create.mutate(
+          variables as Parameters<typeof trpcClient.githubProjects.create.mutate>[0]
+        );
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.skills: {
+        const data = await trpcClient.skills.create.mutate(
+          variables as Parameters<typeof trpcClient.skills.create.mutate>[0]
+        );
         return { data: data as unknown as TData };
       }
       default: {
@@ -104,19 +181,59 @@ export const dataProvider: DataProvider = {
 
     switch (resource) {
       case ResourceName.operations: {
-        const { id: _varId, ...rest } = variables as Record<string, unknown>;
-        const data = await updateOperation({
-          data: { id: String(id), ...rest } as Parameters<typeof updateOperation>[0]["data"],
-        });
+        const data = await trpcClient.operations.update.mutate({
+          id: String(id),
+          ...(variables as Record<string, unknown>),
+        } as Parameters<typeof trpcClient.operations.update.mutate>[0]);
         return { data: data as unknown as TData };
       }
       case ResourceName.pipelines: {
-        const data = await updatePipeline({
-          data: {
-            id: String(id),
-            patch: variables as Record<string, unknown>,
-          },
-        });
+        const data = await trpcClient.pipelines.update.mutate({
+          id: String(id),
+          patch: variables as Record<string, unknown>,
+        } as Parameters<typeof trpcClient.pipelines.update.mutate>[0]);
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.jobs: {
+        const data = await trpcClient.jobs.updateStatus.mutate({
+          id: String(id),
+          ...variables,
+        } as unknown as Parameters<typeof trpcClient.jobs.updateStatus.mutate>[0]);
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.works: {
+        const data = await trpcClient.works.updateStatus.mutate({
+          id: String(id),
+          ...variables,
+        } as unknown as Parameters<typeof trpcClient.works.updateStatus.mutate>[0]);
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.rules: {
+        const data = await trpcClient.rules.update.mutate({
+          id: String(id),
+          ...(variables as Record<string, unknown>),
+        } as Parameters<typeof trpcClient.rules.update.mutate>[0]);
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.bestPractices: {
+        const data = await trpcClient.bestPractices.update.mutate({
+          id: String(id),
+          patch: variables as Record<string, unknown>,
+        } as Parameters<typeof trpcClient.bestPractices.update.mutate>[0]);
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.githubProjects: {
+        const data = await trpcClient.githubProjects.update.mutate({
+          id: String(id),
+          patch: variables as Record<string, unknown>,
+        } as Parameters<typeof trpcClient.githubProjects.update.mutate>[0]);
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.skills: {
+        const data = await trpcClient.skills.update.mutate({
+          id: String(id),
+          patch: variables as Record<string, unknown>,
+        } as Parameters<typeof trpcClient.skills.update.mutate>[0]);
         return { data: data as unknown as TData };
       }
       default: {
@@ -132,11 +249,39 @@ export const dataProvider: DataProvider = {
 
     switch (resource) {
       case ResourceName.operations: {
-        const data = await deleteOperation({ data: { id: String(id) } });
+        const data = await trpcClient.operations.delete.mutate({
+          id: String(id),
+        });
         return { data: data as unknown as TData };
       }
       case ResourceName.pipelines: {
-        const data = await deletePipeline({ data: { id: String(id) } });
+        const data = await trpcClient.pipelines.delete.mutate({
+          id: String(id),
+        });
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.works: {
+        const data = await trpcClient.works.delete.mutate({ id: String(id) });
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.rules: {
+        const data = await trpcClient.rules.delete.mutate({ id: String(id) });
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.bestPractices: {
+        const data = await trpcClient.bestPractices.delete.mutate({
+          id: String(id),
+        });
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.githubProjects: {
+        const data = await trpcClient.githubProjects.delete.mutate({
+          id: String(id),
+        });
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.skills: {
+        const data = await trpcClient.skills.delete.mutate({ id: String(id) });
         return { data: data as unknown as TData };
       }
       default: {

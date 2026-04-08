@@ -1,10 +1,7 @@
 import { useRef } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { FolderOpen, HardDrive } from "lucide-react";
-import {
-  useHarnessCanvasStore,
-  type OutputLocalPathNodeData,
-} from "../../_store";
+import { useHarnessCanvasStore, type OutputLocalPathNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
 
 export interface OutputLocalPathNodeProps {
@@ -13,23 +10,23 @@ export interface OutputLocalPathNodeProps {
   selected?: boolean;
 }
 
-const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
+const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
-export const OutputLocalPathNode = ({
-  id,
-  data,
-  selected,
-}: OutputLocalPathNodeProps) => {
+export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeProps) => {
   const store = useHarnessCanvasStore();
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const update = (patch: Record<string, unknown>) =>
-    store.getState().updateNodeData(id, patch);
+  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleLocalPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     update({ localPath: e.target.value });
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     update({ description: e.target.value });
+
+  const handleFolderButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    folderInputRef.current?.click();
+  };
 
   const handleFolderPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,27 +50,22 @@ export const OutputLocalPathNode = ({
         onLabelChange={handleLabelChange}
       >
         <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">
-            路径
-          </span>
+          <span className="shrink-0 text-[10px] font-medium text-teal-500">路径</span>
           <input
             className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
             placeholder="/home/user/output/"
             value={data.localPath}
             onChange={handleLocalPathChange}
-            onClick={stopPropagation}
-            onMouseDown={stopPropagation}
-            onKeyDown={stopPropagation}
+            onClick={handleStopPropagation}
+            onKeyDown={handleStopPropagation}
+            onMouseDown={handleStopPropagation}
           />
           <button
             className="nodrag nopan shrink-0 rounded p-0.5 text-teal-400 hover:bg-teal-100 hover:text-teal-700 transition-colors"
             title="选择文件夹"
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              folderInputRef.current?.click();
-            }}
-            onMouseDown={stopPropagation}
+            onClick={handleFolderButtonClick}
+            onMouseDown={handleStopPropagation}
           >
             <FolderOpen className="h-3.5 w-3.5" />
           </button>
@@ -86,7 +78,7 @@ export const OutputLocalPathNode = ({
           // @ts-expect-error webkitdirectory is not in standard types
           webkitdirectory=""
           onChange={handleFolderPick}
-          onMouseDown={stopPropagation}
+          onMouseDown={handleStopPropagation}
         />
         <textarea
           className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
@@ -94,7 +86,7 @@ export const OutputLocalPathNode = ({
           rows={2}
           value={data.description ?? ""}
           onChange={handleDescriptionChange}
-          onMouseDown={stopPropagation}
+          onMouseDown={handleStopPropagation}
         />
       </NodeCard>
 

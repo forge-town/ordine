@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { JobsPage } from "./JobsPage";
 
-vi.mock("@/routes/jobs", () => ({
+vi.mock("@/routes/jobs.index", () => ({
   Route: { useLoaderData: () => [] },
 }));
 

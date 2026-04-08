@@ -2,15 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
-import {
-  ArrowLeft,
-  FileCode,
-  Folder,
-  FolderGit2,
-  Puzzle,
-  Terminal,
-  Wand2,
-} from "lucide-react";
+import { ArrowLeft, FileCode, Folder, FolderGit2, Puzzle, Terminal, Wand2 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -23,14 +15,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@repo/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { createOperation } from "@/services/operationsService";
 import type { ObjectType } from "@/models/tables/operations_table";
 import {
@@ -39,15 +24,7 @@ import {
   ScriptLanguageSchema as ScriptLanguageEnum,
 } from "@/schemas";
 
-const CATEGORIES = [
-  "general",
-  "lint",
-  "format",
-  "build",
-  "test",
-  "deploy",
-  "custom",
-] as const;
+const CATEGORIES = ["general", "lint", "format", "build", "test", "deploy", "custom"] as const;
 
 const EXECUTOR_TYPE_OPTIONS = [
   {
@@ -114,10 +91,7 @@ const buildConfig = (values: CreateFormValues): string => {
 
 type CreateFormValues = z.infer<typeof createFormSchema>;
 
-const toggleObjectType = (
-  current: ObjectType[],
-  type: ObjectType,
-): ObjectType[] => {
+const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[] => {
   if (current.includes(type)) {
     if (current.length === 1) return current;
     return current.filter((t) => t !== type);
@@ -127,11 +101,7 @@ const toggleObjectType = (
 
 import type { SkillEntity } from "@/models/daos/skillsDao";
 
-export const OperationCreatePageContent = ({
-  skills,
-}: {
-  skills: SkillEntity[];
-}) => {
+export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }) => {
   const navigate = useNavigate();
 
   const form = useForm<CreateFormValues>({
@@ -189,9 +159,7 @@ export const OperationCreatePageContent = ({
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-base font-semibold text-foreground">
-          新建 Operation
-        </h1>
+        <h1 className="text-base font-semibold text-foreground">新建 Operation</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -208,11 +176,7 @@ export const OperationCreatePageContent = ({
                         名称 *
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          className="h-9 text-sm"
-                          placeholder="e.g. Run ESLint"
-                          {...field}
-                        />
+                        <Input className="h-9 text-sm" placeholder="e.g. Run ESLint" {...field} />
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>
@@ -222,33 +186,33 @@ export const OperationCreatePageContent = ({
                 <FormField
                   control={form.control}
                   name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-medium text-muted-foreground">
-                        分类
-                      </FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger className="h-9 w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              {CATEGORIES.map((c) => (
-                                <SelectItem key={c} value={c}>
-                                  {c}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const handleChange = field.onChange;
+                    return (
+                      <FormItem>
+                        <FormLabel className="text-xs font-medium text-muted-foreground">
+                          分类
+                        </FormLabel>
+                        <FormControl>
+                          <Select value={field.value} onValueChange={handleChange}>
+                            <SelectTrigger className="h-9 w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {CATEGORIES.map((c) => (
+                                  <SelectItem key={c} value={c}>
+                                    {c}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    );
+                  }}
                 />
               </div>
 
@@ -275,15 +239,16 @@ export const OperationCreatePageContent = ({
               <Controller
                 control={form.control}
                 name="acceptedObjectTypes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium text-muted-foreground">
-                      可应用的对象类型
-                    </FormLabel>
-                    <FormControl>
-                      <div className="flex gap-2">
-                        {OBJECT_TYPE_OPTIONS.map(
-                          ({ value, label, icon: Icon }) => {
+                render={({ field }) => {
+                  const handleChange = field.onChange;
+                  return (
+                    <FormItem>
+                      <FormLabel className="text-xs font-medium text-muted-foreground">
+                        可应用的对象类型
+                      </FormLabel>
+                      <FormControl>
+                        <div className="flex gap-2">
+                          {OBJECT_TYPE_OPTIONS.map(({ value, label, icon: Icon }) => {
                             const selected = field.value.includes(value);
                             return (
                               <button
@@ -292,44 +257,37 @@ export const OperationCreatePageContent = ({
                                   "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                                   selected
                                     ? "border-primary/50 bg-primary/10 text-primary"
-                                    : "border-border bg-background text-muted-foreground hover:bg-muted",
+                                    : "border-border bg-background text-muted-foreground hover:bg-muted"
                                 )}
                                 type="button"
-                                onClick={() =>
-                                  field.onChange(
-                                    toggleObjectType(field.value, value),
-                                  )
-                                }
+                                onClick={() => handleChange(toggleObjectType(field.value, value))}
                               >
                                 <Icon className="h-4 w-4" />
                                 {label}
-                                {selected && (
-                                  <span className="ml-1 text-xs">✓</span>
-                                )}
+                                {selected && <span className="ml-1 text-xs">✓</span>}
                               </button>
                             );
-                          },
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
+                          })}
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  );
+                }}
               />
 
               {/* Executor section */}
               <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
-                <FormLabel className="text-xs font-semibold text-foreground">
-                  执行方式
-                </FormLabel>
+                <FormLabel className="text-xs font-semibold text-foreground">执行方式</FormLabel>
 
                 <Controller
                   control={form.control}
                   name="executorType"
-                  render={({ field }) => (
-                    <div className="flex gap-2">
-                      {EXECUTOR_TYPE_OPTIONS.map(
-                        ({ value, label, icon: Icon, description }) => {
+                  render={({ field }) => {
+                    const handleChange = field.onChange;
+                    return (
+                      <div className="flex gap-2">
+                        {EXECUTOR_TYPE_OPTIONS.map(({ value, label, icon: Icon, description }) => {
                           const selected = field.value === value;
                           return (
                             <button
@@ -338,55 +296,53 @@ export const OperationCreatePageContent = ({
                                 "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
                                 selected
                                   ? "border-primary/50 bg-primary/10 text-primary"
-                                  : "border-border bg-background text-muted-foreground hover:bg-muted",
+                                  : "border-border bg-background text-muted-foreground hover:bg-muted"
                               )}
                               type="button"
-                              onClick={() => field.onChange(value)}
+                              onClick={() => handleChange(value)}
                             >
                               <span className="flex items-center gap-1.5 font-medium">
                                 <Icon className="h-3.5 w-3.5" />
                                 {label}
                               </span>
-                              <span className="text-[11px] opacity-70">
-                                {description}
-                              </span>
+                              <span className="text-[11px] opacity-70">{description}</span>
                             </button>
                           );
-                        },
-                      )}
-                    </div>
-                  )}
+                        })}
+                      </div>
+                    );
+                  }}
                 />
 
                 {executorType === "skill" && (
                   <FormField
                     control={form.control}
                     name="skillId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs font-medium text-muted-foreground">
-                          Skill
-                        </FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <SelectTrigger className="h-9 w-full">
-                              <SelectValue placeholder="选择 Skill" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {skills.map((s) => (
-                                <SelectItem key={s.id} value={s.id}>
-                                  {s.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const handleChange = field.onChange;
+                      return (
+                        <FormItem>
+                          <FormLabel className="text-xs font-medium text-muted-foreground">
+                            Skill
+                          </FormLabel>
+                          <FormControl>
+                            <Select value={field.value} onValueChange={handleChange}>
+                              <SelectTrigger className="h-9 w-full">
+                                <SelectValue placeholder="选择 Skill" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {skills.map((s) => (
+                                  <SelectItem key={s.id} value={s.id}>
+                                    {s.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage className="text-xs" />
+                        </FormItem>
+                      );
+                    }}
                   />
                 )}
 
@@ -439,50 +395,39 @@ export const OperationCreatePageContent = ({
                     <FormField
                       control={form.control}
                       name="scriptLanguage"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs font-medium text-muted-foreground">
-                            语言
-                          </FormLabel>
-                          <FormControl>
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                            >
-                              <SelectTrigger className="h-9 w-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="bash">Bash</SelectItem>
-                                <SelectItem value="python">Python</SelectItem>
-                                <SelectItem value="javascript">
-                                  JavaScript
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const handleChange = field.onChange;
+                        return (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium text-muted-foreground">
+                              语言
+                            </FormLabel>
+                            <FormControl>
+                              <Select value={field.value} onValueChange={handleChange}>
+                                <SelectTrigger className="h-9 w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="bash">Bash</SelectItem>
+                                  <SelectItem value="python">Python</SelectItem>
+                                  <SelectItem value="javascript">JavaScript</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        );
+                      }}
                     />
                   </div>
                 )}
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <Button
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                >
+                <Button size="sm" type="button" variant="outline" onClick={handleCancel}>
                   取消
                 </Button>
-                <Button
-                  disabled={form.formState.isSubmitting}
-                  size="sm"
-                  type="submit"
-                >
+                <Button disabled={form.formState.isSubmitting} size="sm" type="submit">
                   {form.formState.isSubmitting ? "保存中..." : "保存"}
                 </Button>
               </div>

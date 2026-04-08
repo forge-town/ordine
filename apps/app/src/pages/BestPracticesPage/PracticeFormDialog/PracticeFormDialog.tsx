@@ -13,19 +13,9 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@repo/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
-import {
-  createBestPractice,
-  updateBestPractice,
-} from "@/services/bestPracticesService";
+import { createBestPractice, updateBestPractice } from "@/services/bestPracticesService";
 import { CATEGORIES, LANGUAGES } from "../constants";
 
 const formSchema = z.object({
@@ -45,11 +35,8 @@ export type PracticeFormDialogProps = {
   onSave: (p: BestPracticeEntity) => void;
 };
 
-export const PracticeFormDialog = ({
-  initial,
-  onClose,
-  onSave,
-}: PracticeFormDialogProps) => {
+export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDialogProps) => {
+  const handleClose = onClose;
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initial
@@ -108,20 +95,12 @@ export const PracticeFormDialog = ({
           <h2 className="text-sm font-semibold text-foreground">
             {initial ? "编辑最佳实践" : "新增最佳实践"}
           </h2>
-          <Button
-            className="h-7 w-7"
-            size="icon"
-            variant="ghost"
-            onClick={onClose}
-          >
+          <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleClose}>
             <X className="h-4 w-4 text-muted-foreground" />
           </Button>
         </div>
         <Form {...form}>
-          <form
-            className="space-y-4 overflow-y-auto p-5"
-            onSubmit={form.handleSubmit(onSubmit)}
-          >
+          <form className="space-y-4 overflow-y-auto p-5" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="title"
@@ -131,10 +110,7 @@ export const PracticeFormDialog = ({
                     标题 *
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="e.g. 避免在 useEffect 中直接 setState"
-                      {...field}
-                    />
+                    <Input placeholder="e.g. 避免在 useEffect 中直接 setState" {...field} />
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -166,66 +142,64 @@ export const PracticeFormDialog = ({
               <FormField
                 control={form.control}
                 name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium text-muted-foreground">
-                      分类
-                    </FormLabel>
-                    <FormControl>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {CATEGORIES.filter((c) => c.value !== "all").map(
-                              (c) => (
+                render={({ field }) => {
+                  const handleChange = field.onChange;
+                  return (
+                    <FormItem>
+                      <FormLabel className="text-xs font-medium text-muted-foreground">
+                        分类
+                      </FormLabel>
+                      <FormControl>
+                        <Select value={field.value} onValueChange={handleChange}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              {CATEGORIES.filter((c) => c.value !== "all").map((c) => (
                                 <SelectItem key={c.value} value={c.value}>
                                   {c.label}
                                 </SelectItem>
-                              ),
-                            )}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  );
+                }}
               />
               <FormField
                 control={form.control}
                 name="language"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium text-muted-foreground">
-                      语言
-                    </FormLabel>
-                    <FormControl>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {LANGUAGES.map((l) => (
-                              <SelectItem key={l} value={l}>
-                                {l}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const handleChange = field.onChange;
+                  return (
+                    <FormItem>
+                      <FormLabel className="text-xs font-medium text-muted-foreground">
+                        语言
+                      </FormLabel>
+                      <FormControl>
+                        <Select value={field.value} onValueChange={handleChange}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              {LANGUAGES.map((l) => (
+                                <SelectItem key={l} value={l}>
+                                  {l}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
 
@@ -268,7 +242,7 @@ export const PracticeFormDialog = ({
             />
 
             <div className="flex shrink-0 justify-end gap-2 pt-1">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={handleClose}>
                 取消
               </Button>
               <Button disabled={form.formState.isSubmitting} type="submit">
