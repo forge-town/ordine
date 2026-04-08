@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { User, Bell, Palette, Globe, Shield, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import {
   AppearanceSection,
@@ -11,17 +12,15 @@ import {
 
 type Section = "profile" | "notifications" | "appearance" | "language" | "security";
 
-const sections: {
-  id: Section;
-  label: string;
-  icon: React.FC<{ className?: string }>;
-}[] = [
-  { id: "profile", label: "个人信息", icon: User },
-  { id: "notifications", label: "通知", icon: Bell },
-  { id: "appearance", label: "外观", icon: Palette },
-  { id: "language", label: "语言与地区", icon: Globe },
-  { id: "security", label: "安全", icon: Shield },
-];
+const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
+  profile: User,
+  notifications: Bell,
+  appearance: Palette,
+  language: Globe,
+  security: Shield,
+};
+
+const SECTION_IDS: Section[] = ["profile", "notifications", "appearance", "language", "security"];
 
 export interface AppSettings {
   profile: {
@@ -95,6 +94,7 @@ const saveSettings = (settings: AppSettings) => {
 };
 
 export const SettingsPageContent = () => {
+  const { t } = useTranslation();
   const [active, setActive] = useState<Section>("profile");
   const [saved, setSaved] = useState(false);
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
@@ -144,27 +144,29 @@ export const SettingsPageContent = () => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
-        <h1 className="text-base font-semibold text-foreground">设置</h1>
+        <h1 className="text-base font-semibold text-foreground">{t("settings.title")}</h1>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         <nav className="w-52 shrink-0 border-r border-border bg-background py-4">
-          {sections.map((s) => {
-            const handleClick = () => setActive(s.id);
+          {SECTION_IDS.map((id) => {
+            const Icon = SECTION_ICONS[id];
+            const label = t(`settings.sections.${id}`);
+            const handleClick = () => setActive(id);
             return (
               <button
-                key={s.id}
+                key={id}
                 className={cn(
                   "flex w-full items-center gap-2.5 px-4 py-2 text-sm transition-colors",
-                  active === s.id
+                  active === id
                     ? "bg-accent text-accent-foreground font-medium"
                     : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                 )}
                 onClick={handleClick}
               >
-                <s.icon className="h-4 w-4 shrink-0" />
-                {s.label}
-                {active === s.id && <ChevronRight className="ml-auto h-3.5 w-3.5 text-primary" />}
+                <Icon className="h-4 w-4 shrink-0" />
+                {label}
+                {active === id && <ChevronRight className="ml-auto h-3.5 w-3.5 text-primary" />}
               </button>
             );
           })}

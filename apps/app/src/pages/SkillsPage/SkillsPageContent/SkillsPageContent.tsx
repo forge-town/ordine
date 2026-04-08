@@ -11,15 +11,6 @@ export type Skill = SkillEntity;
 
 type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
 
-const categoryLabels: Record<SkillCategory, string> = {
-  all: "全部",
-  page: "页面结构",
-  data: "数据层",
-  state: "状态管理",
-  form: "表单",
-  "code-quality": "代码质量",
-};
-
 const categoryColors: Record<string, string> = {
   page: "bg-violet-100 text-violet-700",
   data: "bg-blue-100 text-blue-700",
@@ -34,6 +25,16 @@ interface SkillsPageContentProps {
 
 export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
   const { t } = useTranslation();
+
+  const categoryLabels: Record<SkillCategory, string> = {
+    all: t("skills.categories.all"),
+    page: t("skills.categories.page"),
+    data: t("skills.categories.data"),
+    state: t("skills.categories.state"),
+    form: t("skills.categories.form"),
+    "code-quality": t("skills.categories.code-quality"),
+  };
+
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<SkillCategory>("all");
 

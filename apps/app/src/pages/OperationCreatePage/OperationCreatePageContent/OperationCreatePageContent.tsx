@@ -27,36 +27,17 @@ import {
 
 const CATEGORIES = ["general", "lint", "format", "build", "test", "deploy", "custom"] as const;
 
-const EXECUTOR_TYPE_OPTIONS = [
-  {
-    value: "skill" as const,
-    label: "Skill",
-    icon: Puzzle,
-    description: "调用已有的 Skill",
-  },
-  {
-    value: "prompt" as const,
-    label: "Prompt",
-    icon: Wand2,
-    description: "LLM 系统提示词",
-  },
-  {
-    value: "script" as const,
-    label: "Script",
-    icon: Terminal,
-    description: "执行脚本命令",
-  },
-];
+const EXECUTOR_ICONS = {
+  skill: Puzzle,
+  prompt: Wand2,
+  script: Terminal,
+} as const satisfies Record<string, React.ElementType>;
 
-const OBJECT_TYPE_OPTIONS: {
-  value: ObjectType;
-  label: string;
-  icon: React.ElementType;
-}[] = [
-  { value: "file", label: "文件", icon: FileCode },
-  { value: "folder", label: "文件夹", icon: Folder },
-  { value: "project", label: "整个项目", icon: FolderGit2 },
-];
+const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
+  file: FileCode,
+  folder: Folder,
+  project: FolderGit2,
+};
 
 const createFormSchema = z.object({
   name: z.string().min(1, "名称不能为空"),
@@ -105,6 +86,49 @@ import type { SkillEntity } from "@/models/daos/skillsDao";
 export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const EXECUTOR_TYPE_OPTIONS = [
+    {
+      value: "skill" as const,
+      label: "Skill",
+      icon: EXECUTOR_ICONS.skill,
+      description: t("operations.executorSkillDesc"),
+    },
+    {
+      value: "prompt" as const,
+      label: "Prompt",
+      icon: EXECUTOR_ICONS.prompt,
+      description: t("operations.executorPromptDesc"),
+    },
+    {
+      value: "script" as const,
+      label: "Script",
+      icon: EXECUTOR_ICONS.script,
+      description: t("operations.executorScriptDesc"),
+    },
+  ];
+
+  const OBJECT_TYPE_OPTIONS: {
+    value: ObjectType;
+    label: string;
+    icon: React.ElementType;
+  }[] = [
+    {
+      value: "file",
+      label: t("operations.objectTypeFile"),
+      icon: OBJECT_TYPE_ICONS.file,
+    },
+    {
+      value: "folder",
+      label: t("operations.objectTypeFolder"),
+      icon: OBJECT_TYPE_ICONS.folder,
+    },
+    {
+      value: "project",
+      label: t("operations.objectTypeProject"),
+      icon: OBJECT_TYPE_ICONS.project,
+    },
+  ];
 
   const form = useForm<CreateFormValues>({
     resolver: zodResolver(createFormSchema),

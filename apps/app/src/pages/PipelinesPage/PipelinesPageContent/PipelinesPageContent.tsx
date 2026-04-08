@@ -24,7 +24,7 @@ export const PipelinesPageContent = () => {
     const newPipeline: StoredPipeline = {
       id,
       name: t("pipelines.createNew"),
-      description: t("canvas.title"),
+      description: t("pipelines.newPipelineDescription"),
 
       tags: [],
       nodeCount: 1,
@@ -36,7 +36,7 @@ export const PipelinesPageContent = () => {
           type: "condition",
           position: { x: 300, y: 200 },
           data: {
-            label: "验收条件",
+            label: t("pipelines.conditionNodeLabel"),
             nodeType: "condition",
             expression: "",
             expectedResult: "",

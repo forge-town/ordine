@@ -34,15 +34,11 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 
-const VISIBILITY_OPTIONS: {
-  value: Visibility;
-  label: string;
-  icon: React.ElementType;
-}[] = [
-  { value: "public", label: "公开", icon: Globe },
-  { value: "team", label: "团队", icon: Users },
-  { value: "private", label: "私有", icon: Lock },
-];
+const VISIBILITY_ICONS: Record<Visibility, React.ElementType> = {
+  public: Globe,
+  team: Users,
+  private: Lock,
+};
 
 const VISIBILITY_COLORS: Record<Visibility, string> = {
   public: "bg-emerald-50 text-emerald-700",
@@ -53,16 +49,6 @@ const VISIBILITY_COLORS: Record<Visibility, string> = {
 interface Props {
   initialOperations: OperationEntity[];
 }
-
-const OBJECT_TYPE_OPTIONS: {
-  value: ObjectType;
-  label: string;
-  icon: React.ElementType;
-}[] = [
-  { value: "file", label: "文件", icon: FileCode },
-  { value: "folder", label: "文件夹", icon: Folder },
-  { value: "project", label: "整个项目", icon: FolderGit2 },
-];
 
 const exportOperation = (op: OperationEntity) => {
   const data = JSON.stringify(op, null, 2);
@@ -81,6 +67,30 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
   type SortKey = "default" | "name-asc" | "name-desc" | "date-asc" | "date-desc" | "category-asc";
 
   const { t } = useTranslation();
+
+  const VISIBILITY_OPTIONS: {
+    value: Visibility;
+    label: string;
+    icon: React.ElementType;
+  }[] = [
+    { value: "public", label: t("operations.public"), icon: Globe },
+    { value: "team", label: t("operations.team"), icon: Users },
+    { value: "private", label: t("operations.private"), icon: Lock },
+  ];
+
+  const OBJECT_TYPE_OPTIONS: {
+    value: ObjectType;
+    label: string;
+    icon: React.ElementType;
+  }[] = [
+    { value: "file", label: t("operations.objectTypeFile"), icon: FileCode },
+    { value: "folder", label: t("operations.objectTypeFolder"), icon: Folder },
+    {
+      value: "project",
+      label: t("operations.objectTypeProject"),
+      icon: FolderGit2,
+    },
+  ];
 
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
@@ -237,7 +247,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
           [
             { value: "all" as const, label: t("common.all") },
             { value: "public" as const, label: t("operations.public") },
-            { value: "team" as const, label: t("sidebar.user") },
+            { value: "team" as const, label: t("operations.team") },
             { value: "private" as const, label: t("operations.private") },
           ] as const
         ).map(({ value, label }) => (
@@ -262,24 +272,28 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
           />
         </div>
         <label className="sr-only" htmlFor="sort-select">
-          排序
+          {t("common.actions")}
         </label>
         <Select value={sortBy} onValueChange={handleSortChange}>
-          <SelectTrigger aria-label="排序" className="h-8 w-40 text-xs" id="sort-select">
+          <SelectTrigger
+            aria-label={t("common.actions")}
+            className="h-8 w-40 text-xs"
+            id="sort-select"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="default">默认顺序</SelectItem>
-              <SelectItem value="name-asc">名称 A → Z</SelectItem>
-              <SelectItem value="name-desc">名称 Z → A</SelectItem>
-              <SelectItem value="date-desc">最新先</SelectItem>
-              <SelectItem value="date-asc">最旧先</SelectItem>
-              <SelectItem value="category-asc">分类 A → Z</SelectItem>
+              <SelectItem value="default">{t("operations.sortDefault")}</SelectItem>
+              <SelectItem value="name-asc">{t("operations.sortNameAsc")}</SelectItem>
+              <SelectItem value="name-desc">{t("operations.sortNameDesc")}</SelectItem>
+              <SelectItem value="date-desc">{t("operations.sortDateDesc")}</SelectItem>
+              <SelectItem value="date-asc">{t("operations.sortDateAsc")}</SelectItem>
+              <SelectItem value="category-asc">{t("operations.sortCategoryAsc")}</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
-        <span className="text-xs text-muted-foreground">{filteredOperations.length} 个</span>
+        <span className="text-xs text-muted-foreground">{filteredOperations.length}</span>
       </div>
 
       <div className="flex-1 overflow-auto p-6">
@@ -323,7 +337,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                             (v) => v.value === (op.visibility ?? "public")
                           );
                           if (!vCfg) return null;
-                          const VIcon = vCfg.icon;
+                          const VIcon = VISIBILITY_ICONS[vCfg.value];
                           return (
                             <span
                               className={cn(
@@ -378,7 +392,9 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
                 )}
                 {/* Show accepted object types */}
                 <div className="mt-3 flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground">适用于:</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {t("operations.acceptedObjectTypes")}:
+                  </span>
                   <div className="flex gap-1">
                     {(Array.isArray(op.acceptedObjectTypes)
                       ? op.acceptedObjectTypes

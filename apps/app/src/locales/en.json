@@ -103,6 +103,7 @@
     "basicInfo": "Basic info",
     "visibilityLabel": "Visibility",
     "public": "Public",
+    "team": "Team",
     "private": "Private",
     "inputPorts": "Input ports",
     "outputPorts": "Output ports",
@@ -113,7 +114,13 @@
     "objectTypeProject": "Entire project",
     "backToOperations": "Back to Operations",
     "editOperation": "Edit Operation",
-    "operationNotFound": "Operation not found"
+    "operationNotFound": "Operation not found",
+    "sortDefault": "Default order",
+    "sortNameAsc": "Name A → Z",
+    "sortNameDesc": "Name Z → A",
+    "sortDateDesc": "Newest first",
+    "sortDateAsc": "Oldest first",
+    "sortCategoryAsc": "Category A → Z"
   },
   "pipelines": {
     "title": "Pipelines",
@@ -123,7 +130,9 @@
     "nodeCount": "nodes",
     "pipelineNotFound": "Pipeline not found",
     "back": "Back to Pipelines",
-    "openInCanvas": "Open in Canvas"
+    "openInCanvas": "Open in Canvas",
+    "newPipelineDescription": "Configure this pipeline's nodes and connections in Canvas.",
+    "conditionNodeLabel": "Acceptance condition"
   },
   "canvas": {
     "title": "Canvas",
@@ -209,14 +218,29 @@
   },
   "skills": {
     "title": "Skills",
-    "noSkills": "No skills"
+    "noSkills": "No skills found",
+    "categories": {
+      "all": "All",
+      "page": "Page structure",
+      "data": "Data layer",
+      "state": "State management",
+      "form": "Forms",
+      "code-quality": "Code quality"
+    }
   },
   "settings": {
     "title": "Settings",
     "language": "Language",
     "selectLanguage": "Select language",
     "timezone": "Timezone",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "sections": {
+      "profile": "Profile",
+      "notifications": "Notifications",
+      "appearance": "Appearance",
+      "language": "Language & Region",
+      "security": "Security"
+    }
   },
   "errors": {
     "notFound": "Page not found",

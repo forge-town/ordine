@@ -26,11 +26,11 @@
   },
   "nav": {
     "dashboard": "仪表盘",
-    "pipelines": "Pipelines",
-    "jobs": "Jobs",
+    "pipelines": "流水线",
+    "jobs": "任务",
     "projects": "GitHub 项目",
-    "operations": "Operations",
-    "skills": "Skills",
+    "operations": "操作集",
+    "skills": "技能",
     "rules": "规则",
     "bestPractices": "最佳实践",
     "settings": "设置"
@@ -80,7 +80,7 @@
     "id": "ID"
   },
   "operations": {
-    "title": "Operations",
+    "title": "操作集",
     "createNew": "新建 Operation",
     "noOperations": "还没有任何 Operation",
     "searchPlaceholder": "搜索 Operations...",
@@ -103,6 +103,7 @@
     "basicInfo": "基本信息",
     "visibilityLabel": "可见性",
     "public": "公开",
+    "team": "团队",
     "private": "私有",
     "inputPorts": "输入端口",
     "outputPorts": "输出端口",
@@ -113,20 +114,29 @@
     "objectTypeProject": "整个项目",
     "backToOperations": "返回 Operations",
     "editOperation": "编辑 Operation",
-    "operationNotFound": "Operation 不存在"
+    "operationNotFound": "Operation 不存在",
+    "sortDefault": "默认顺序",
+    "sortNameAsc": "名称 A → Z",
+    "sortNameDesc": "名称 Z → A",
+    "sortDateDesc": "最新先",
+    "sortDateAsc": "最旧先",
+    "sortCategoryAsc": "分类 A → Z",
+    "count": "个"
   },
   "pipelines": {
-    "title": "Pipelines",
+    "title": "流水线",
     "createNew": "新建 Pipeline",
     "noPipelines": "还没有任何 Pipeline",
     "noNodes": "暂无节点",
     "nodeCount": "个节点",
     "pipelineNotFound": "Pipeline 不存在",
     "back": "返回 Pipelines",
-    "openInCanvas": "在 Canvas 中打开"
+    "openInCanvas": "在 Canvas 中打开",
+    "newPipelineDescription": "在 Canvas 中配置此 Pipeline 的节点和连接。",
+    "conditionNodeLabel": "验收条件"
   },
   "canvas": {
-    "title": "Canvas",
+    "title": "画布",
     "pipelineTitle": "Pipeline 标题",
     "unsavedPipeline": "未保存的 Pipeline",
     "saveSuccess": "Pipeline 已保存",
@@ -208,15 +218,30 @@
     "filterAll": "全部"
   },
   "skills": {
-    "title": "Skills",
-    "noSkills": "暂无 Skills"
+    "title": "技能",
+    "noSkills": "暂无 Skills",
+    "categories": {
+      "all": "全部",
+      "page": "页面结构",
+      "data": "数据层",
+      "state": "状态管理",
+      "form": "表单",
+      "code-quality": "代码质量"
+    }
   },
   "settings": {
     "title": "设置",
     "language": "语言",
     "selectLanguage": "选择语言",
     "timezone": "时区",
-    "appearance": "外观"
+    "appearance": "外观",
+    "sections": {
+      "profile": "个人信息",
+      "notifications": "通知",
+      "appearance": "外观",
+      "language": "语言与地区",
+      "security": "安全"
+    }
   },
   "errors": {
     "notFound": "页面不存在",
