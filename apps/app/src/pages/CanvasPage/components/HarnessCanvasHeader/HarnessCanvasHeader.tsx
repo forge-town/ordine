@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Settings, Save, CheckCircle2, Loader2 } from "lucide-react";
 import { useStore } from "zustand";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { useHarnessCanvasStore } from "../../_store";
@@ -9,6 +10,7 @@ import { updatePipeline } from "@/services/pipelinesService";
 const handleNavigateSettings = () => void (globalThis.location.href = "/settings");
 
 export const HarnessCanvasHeader = () => {
+  const { t } = useTranslation();
   const store = useHarnessCanvasStore();
   const pipelineId = useStore(store, (s) => s.pipelineId);
   const pipelineName = useStore(store, (s) => s.pipelineName);
@@ -44,9 +46,11 @@ export const HarnessCanvasHeader = () => {
     <header className="flex h-11 shrink-0 items-center justify-between border-b bg-background px-4">
       <div className="flex items-center gap-2.5">
         <div className="flex items-center gap-1">
-          <span className="text-sm font-semibold">Canvas</span>
+          <span className="text-sm font-semibold">{t("canvas.title")}</span>
           <span className="text-muted-foreground">/</span>
-          <span className="text-sm text-muted-foreground">{pipelineName || "无标题 Pipeline"}</span>
+          <span className="text-sm text-muted-foreground">
+            {pipelineName || t("canvas.unsavedPipeline")}
+          </span>
         </div>
       </div>
 
@@ -66,14 +70,14 @@ export const HarnessCanvasHeader = () => {
             ) : (
               <Save className="h-3.5 w-3.5" />
             )}
-            {saveState === "saved" ? "已保存" : "保存"}
+            {saveState === "saved" ? t("canvas.saveSuccess") : t("common.save")}
           </Button>
         )}
         <Separator className="mx-1 h-4" orientation="vertical" />
         <Button
           className="h-7 w-7"
           size="icon"
-          title="设置"
+          title={t("nav.settings")}
           variant="ghost"
           onClick={handleNavigateSettings}
         >

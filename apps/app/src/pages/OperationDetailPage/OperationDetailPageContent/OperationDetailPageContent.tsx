@@ -14,6 +14,7 @@ import {
   XCircle,
   Pencil,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import type { OperationEntity } from "@/models/daos/operationsDao";
@@ -99,6 +100,7 @@ const ExecutorCard = ({ executor }: { executor: ExecutorConfig }) => {
 };
 
 export const OperationDetailPageContent = ({ operation }: OperationDetailPageContentProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleNavigateBack = () => void navigate({ to: "/operations" });
@@ -107,9 +109,11 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <XCircle className="h-10 w-10 text-muted-foreground/30" />
-        <p className="text-sm font-medium text-muted-foreground">Operation 不存在</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          {t("operations.operationNotFound")}
+        </p>
         <button className="text-xs text-primary hover:underline" onClick={handleNavigateBack}>
-          返回列表
+          {t("common.backToList")}
         </button>
       </div>
     );
@@ -127,7 +131,7 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
         <Button
-          aria-label="返回列表"
+          aria-label={t("common.backToList")}
           className="h-8 w-8"
           size="icon"
           variant="ghost"
@@ -140,9 +144,14 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
           <p className="font-mono text-[11px] text-muted-foreground">{operation.id}</p>
         </div>
         <Badge variant="secondary">{operation.category}</Badge>
-        <Button aria-label="编辑" size="sm" variant="outline" onClick={handleNavigateToEdit}>
+        <Button
+          aria-label={t("common.edit")}
+          size="sm"
+          variant="outline"
+          onClick={handleNavigateToEdit}
+        >
           <Pencil className="h-4 w-4" />
-          编辑
+          {t("common.edit")}
         </Button>
       </div>
 
@@ -150,7 +159,7 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
         {/* Meta card */}
         <div className="rounded-xl border border-border bg-card p-4">
-          <SectionHeader icon={Info} label="基本信息" />
+          <SectionHeader icon={Info} label={t("operations.basicInfo")} />
           {operation.description && (
             <p className="mb-4 text-sm leading-relaxed text-foreground">{operation.description}</p>
           )}

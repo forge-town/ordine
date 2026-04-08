@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Activity, Search, Filter } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { JobEntity } from "@/models/daos/jobsDao";
@@ -9,24 +10,25 @@ import { deleteJob } from "@/services/jobsService";
 import { StatCard } from "../StatCard";
 import { JobRow } from "../JobRow";
 
-const STATUS_FILTERS: { value: JobStatus | "all"; label: string }[] = [
-  { value: "all", label: "全部" },
-  { value: "running", label: "运行中" },
-  { value: "queued", label: "排队中" },
-  { value: "done", label: "已完成" },
-  { value: "failed", label: "失败" },
-  { value: "cancelled", label: "已取消" },
-];
-
 export type JobsPageContentProps = {
   jobs: JobEntity[];
 };
 
 export const JobsPageContent = ({ jobs: initialJobs }: JobsPageContentProps) => {
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState<JobEntity[]>(initialJobs);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<JobStatus | "all">("all");
   const navigate = useNavigate();
+
+  const STATUS_FILTERS: { value: JobStatus | "all"; label: string }[] = [
+    { value: "all", label: t("jobs.filterAll") },
+    { value: "running", label: t("jobs.filterRunning") },
+    { value: "queued", label: t("jobs.filterQueued") },
+    { value: "done", label: t("jobs.filterDone") },
+    { value: "failed", label: t("jobs.filterFailed") },
+    { value: "cancelled", label: t("jobs.filterCancelled") },
+  ];
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
   const handleStatusFilterClick = (value: JobStatus | "all") => () => setStatusFilter(value);
@@ -63,11 +65,11 @@ export const JobsPageContent = ({ jobs: initialJobs }: JobsPageContentProps) => 
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
         <Activity className="h-4 w-4 text-primary" />
-        <h1 className="text-base font-semibold text-foreground">Jobs 监控</h1>
+        <h1 className="text-base font-semibold text-foreground">{t("jobs.title")}</h1>
         {counts.running > 0 && (
           <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
-            {counts.running} 运行中
+            {counts.running} {t("jobs.filterRunning")}
           </span>
         )}
       </div>
@@ -75,19 +77,34 @@ export const JobsPageContent = ({ jobs: initialJobs }: JobsPageContentProps) => 
       {/* Stats */}
       <div className="shrink-0 border-b border-border bg-muted/50 px-6 py-4">
         <div className="grid grid-cols-5 gap-3">
-          <StatCard color="text-gray-700" dot="bg-gray-400" label="排队中" value={counts.queued} />
-          <StatCard color="text-blue-700" dot="bg-blue-500" label="运行中" value={counts.running} />
+          <StatCard
+            color="text-gray-700"
+            dot="bg-gray-400"
+            label={t("jobs.filterQueued")}
+            value={counts.queued}
+          />
+          <StatCard
+            color="text-blue-700"
+            dot="bg-blue-500"
+            label={t("jobs.filterRunning")}
+            value={counts.running}
+          />
           <StatCard
             color="text-emerald-700"
             dot="bg-emerald-500"
-            label="已完成"
+            label={t("jobs.filterDone")}
             value={counts.done}
           />
-          <StatCard color="text-red-700" dot="bg-red-500" label="失败" value={counts.failed} />
+          <StatCard
+            color="text-red-700"
+            dot="bg-red-500"
+            label={t("jobs.filterFailed")}
+            value={counts.failed}
+          />
           <StatCard
             color="text-amber-600"
             dot="bg-amber-400"
-            label="已取消"
+            label={t("jobs.filterCancelled")}
             value={counts.cancelled}
           />
         </div>
@@ -99,7 +116,7 @@ export const JobsPageContent = ({ jobs: initialJobs }: JobsPageContentProps) => 
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="h-8 pl-8 text-sm"
-            placeholder="搜索 Job ID、标题..."
+            placeholder={t("common.search")}
             type="text"
             value={search}
             onChange={handleSearchChange}
@@ -135,12 +152,10 @@ export const JobsPageContent = ({ jobs: initialJobs }: JobsPageContentProps) => 
               <Activity className="h-7 w-7 text-muted-foreground" />
             </div>
             <h3 className="mt-4 text-sm font-semibold text-foreground">
-              {search || statusFilter !== "all" ? "未找到匹配的 Job" : "暂无 Job"}
+              {search || statusFilter !== "all" ? t("common.notFound") : t("jobs.noJobs")}
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              {search || statusFilter !== "all"
-                ? "尝试其他关键词或状态筛选"
-                : "触发 Pipeline 执行后会在此显示"}
+              {search || statusFilter !== "all" ? t("common.search") : t("dashboard.noJobs")}
             </p>
           </div>
         ) : (

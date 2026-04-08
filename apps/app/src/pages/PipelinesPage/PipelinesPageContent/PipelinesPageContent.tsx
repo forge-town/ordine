@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Layers } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Route } from "@/routes/pipelines.index";
 import { createPipeline, deletePipeline } from "@/services/pipelinesService";
@@ -8,6 +9,7 @@ import type { StoredPipeline } from "@/models/daos/pipelinesDao";
 import { PipelineCard } from "../components/PipelineCard";
 
 export const PipelinesPageContent = () => {
+  const { t } = useTranslation();
   const loaderPipelines = Route.useLoaderData();
   const [pipelines, setPipelines] = React.useState<StoredPipeline[]>(loaderPipelines);
   const navigate = useNavigate();
@@ -21,8 +23,9 @@ export const PipelinesPageContent = () => {
     const now = Date.now();
     const newPipeline: StoredPipeline = {
       id,
-      name: "新建 Pipeline",
-      description: "在 Canvas 中配置此 Pipeline 的节点和连接。",
+      name: t("pipelines.createNew"),
+      description: t("canvas.title"),
+
       tags: [],
       nodeCount: 1,
       createdAt: now,
@@ -64,12 +67,12 @@ export const PipelinesPageContent = () => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
         <div>
-          <h1 className="text-base font-semibold text-foreground">Pipelines</h1>
-          <p className="text-xs text-muted-foreground">{pipelines.length} 个 Pipeline</p>
+          <h1 className="text-base font-semibold text-foreground">{t("pipelines.title")}</h1>
+          <p className="text-xs text-muted-foreground">{pipelines.length}</p>
         </div>
         <Button className="flex items-center gap-1.5" size="sm" onClick={handleCreateClick}>
           <Plus className="h-3.5 w-3.5" />
-          新建 Pipeline
+          {t("pipelines.createNew")}
         </Button>
       </div>
 
@@ -78,7 +81,7 @@ export const PipelinesPageContent = () => {
         {pipelines.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center gap-3 text-center text-muted-foreground">
             <Layers className="h-8 w-8 text-muted-foreground/30" />
-            <p className="text-sm">还没有 Pipeline，点击「新建 Pipeline」开始</p>
+            <p className="text-sm">{t("pipelines.noPipelines")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-4">

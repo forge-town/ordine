@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
 import { ArrowLeft, FileCode, Folder, FolderGit2, Puzzle, Terminal, Wand2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -102,6 +103,7 @@ const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[]
 import type { SkillEntity } from "@/models/daos/skillsDao";
 
 export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const form = useForm<CreateFormValues>({
@@ -150,7 +152,7 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
         <Button
-          aria-label="返回"
+          aria-label={t("common.back")}
           className="h-8 w-8"
           size="icon"
           type="button"
@@ -159,7 +161,7 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-base font-semibold text-foreground">新建 Operation</h1>
+        <h1 className="text-base font-semibold text-foreground">{t("operations.createNew")}</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -173,7 +175,7 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-xs font-medium text-muted-foreground">
-                        名称 *
+                        {t("operations.nameLabel")}
                       </FormLabel>
                       <FormControl>
                         <Input className="h-9 text-sm" placeholder="e.g. Run ESLint" {...field} />
@@ -191,7 +193,7 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
                     return (
                       <FormItem>
                         <FormLabel className="text-xs font-medium text-muted-foreground">
-                          分类
+                          {t("operations.categoryLabel")}
                         </FormLabel>
                         <FormControl>
                           <Select value={field.value} onValueChange={handleChange}>
@@ -222,7 +224,7 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs font-medium text-muted-foreground">
-                      描述
+                      {t("operations.descriptionLabel")}
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -244,7 +246,7 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
                   return (
                     <FormItem>
                       <FormLabel className="text-xs font-medium text-muted-foreground">
-                        可应用的对象类型
+                        {t("operations.acceptedObjectTypes")}
                       </FormLabel>
                       <FormControl>
                         <div className="flex gap-2">
@@ -278,7 +280,9 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
 
               {/* Executor section */}
               <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
-                <FormLabel className="text-xs font-semibold text-foreground">执行方式</FormLabel>
+                <FormLabel className="text-xs font-semibold text-foreground">
+                  {t("operations.executorType")}
+                </FormLabel>
 
                 <Controller
                   control={form.control}
@@ -323,12 +327,12 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
                       return (
                         <FormItem>
                           <FormLabel className="text-xs font-medium text-muted-foreground">
-                            Skill
+                            {t("operations.skillLabel")}
                           </FormLabel>
                           <FormControl>
                             <Select value={field.value} onValueChange={handleChange}>
                               <SelectTrigger className="h-9 w-full">
-                                <SelectValue placeholder="选择 Skill" />
+                                <SelectValue placeholder={t("operations.selectSkill")} />
                               </SelectTrigger>
                               <SelectContent>
                                 {skills.map((s) => (
@@ -353,7 +357,7 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium text-muted-foreground">
-                          系统提示词
+                          {t("operations.promptLabel")}
                         </FormLabel>
                         <FormControl>
                           <Textarea
@@ -378,7 +382,7 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-xs font-medium text-muted-foreground">
-                              脚本命令
+                              {t("operations.scriptCommand")}
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -400,7 +404,7 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
                         return (
                           <FormItem>
                             <FormLabel className="text-xs font-medium text-muted-foreground">
-                              语言
+                              {t("operations.scriptLanguage")}
                             </FormLabel>
                             <FormControl>
                               <Select value={field.value} onValueChange={handleChange}>
@@ -425,10 +429,10 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button size="sm" type="button" variant="outline" onClick={handleCancel}>
-                  取消
+                  {t("common.cancel")}
                 </Button>
                 <Button disabled={form.formState.isSubmitting} size="sm" type="submit">
-                  {form.formState.isSubmitting ? "保存中..." : "保存"}
+                  {form.formState.isSubmitting ? t("common.saving") : t("common.save")}
                 </Button>
               </div>
             </form>

@@ -17,6 +17,7 @@ import {
   Link2,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { JobEntity } from "@/models/daos/jobsDao";
 import type { JobStatus, JobType } from "@/models/tables/jobs_table";
@@ -66,6 +67,7 @@ const TYPE_CONFIG: Record<JobType, { label: string; icon: React.ElementType }> =
 };
 
 export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleNavigateJobs = () => void navigate({ to: "/jobs" });
@@ -81,18 +83,18 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <XCircle className="h-10 w-10 text-muted-foreground/30" />
-        <p className="text-sm font-medium text-muted-foreground">Job 不存在</p>
+        <p className="text-sm font-medium text-muted-foreground">{t("common.notFound")}</p>
         <Button size="sm" variant="link" onClick={handleNavigateJobs}>
-          返回列表
+          {t("common.backToList")}
         </Button>
       </div>
     );
   }
 
   const s = STATUS_CONFIG[job.status];
-  const t = TYPE_CONFIG[job.type];
+  const jobType = TYPE_CONFIG[job.type];
   const StatusIcon = s.icon;
-  const TypeIcon = t.icon;
+  const TypeIcon = jobType.icon;
 
   const duration =
     job.startedAt && job.finishedAt
@@ -130,30 +132,33 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <Info className="h-3.5 w-3.5" />
-            基本信息
+            {t("operations.basicInfo")}
           </div>
           <div>
             <MetaRow
-              label="类型"
+              label={t("jobs.type")}
               value={
                 (
                   <span className="flex items-center gap-1.5">
                     <TypeIcon className="h-3 w-3" />
-                    {t.label}
+                    {jobType.label}
                   </span>
                 ) as unknown as string
               }
             />
-            <MetaRow label="创建时间" value={new Date(job.createdAt).toLocaleString("zh-CN")} />
             <MetaRow
-              label="开始时间"
+              label={t("jobs.createdAt")}
+              value={new Date(job.createdAt).toLocaleString("zh-CN")}
+            />
+            <MetaRow
+              label={t("jobs.createdAt")}
               value={job.startedAt ? new Date(job.startedAt).toLocaleString("zh-CN") : null}
             />
             <MetaRow
-              label="结束时间"
+              label={t("jobs.createdAt")}
               value={job.finishedAt ? new Date(job.finishedAt).toLocaleString("zh-CN") : null}
             />
-            <MetaRow label="耗时" value={duration} />
+            <MetaRow label={t("jobs.duration")} value={duration} />
             <MetaRow mono label="Project ID" value={job.projectId} />
             <MetaRow mono label="Pipeline ID" value={job.pipelineId} />
             <MetaRow mono label="Work ID" value={job.workId} />
@@ -169,7 +174,7 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
                   variant="link"
                   onClick={handleNavigateProject}
                 >
-                  查看项目
+                  {t("nav.projects")}
                 </Button>
               )}
             </div>
@@ -179,7 +184,7 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
         {/* Error */}
         {job.error && (
           <div className="rounded-xl border border-red-100 bg-red-50 p-4">
-            <p className="mb-1.5 text-xs font-semibold text-red-600">错误信息</p>
+            <p className="mb-1.5 text-xs font-semibold text-red-600">{t("errors.networkError")}</p>
             <pre className="text-xs text-red-700 font-mono whitespace-pre-wrap break-all">
               {job.error}
             </pre>
@@ -202,13 +207,13 @@ export const JobDetailPageContent = ({ job }: { job: JobEntity | null }) => {
         <div className="rounded-xl border border-border bg-card overflow-hidden">
           <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-2.5">
             <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-xs font-semibold text-muted-foreground">日志输出</span>
-            <span className="ml-auto text-[11px] text-muted-foreground">{job.logs.length} 行</span>
+            <span className="text-xs font-semibold text-muted-foreground">{t("jobs.logs")}</span>
+            <span className="ml-auto text-[11px] text-muted-foreground">{job.logs.length}</span>
           </div>
           {job.logs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <Terminal className="h-8 w-8 text-muted-foreground/30" />
-              <p className="mt-2 text-xs text-muted-foreground">暂无日志</p>
+              <p className="mt-2 text-xs text-muted-foreground">{t("jobs.noLogs")}</p>
             </div>
           ) : (
             <div className="bg-gray-950 p-4 overflow-x-auto max-h-96 overflow-y-auto">

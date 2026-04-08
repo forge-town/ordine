@@ -16,6 +16,7 @@ import {
   Download,
   Upload,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { createOperation, deleteOperation } from "@/services/operationsService";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { ObjectType, Visibility } from "@/models/tables/operations_table";
@@ -78,6 +79,8 @@ const exportOperation = (op: OperationEntity) => {
 
 export const OperationsPageContent = ({ initialOperations }: Props) => {
   type SortKey = "default" | "name-asc" | "name-desc" | "date-asc" | "date-desc" | "category-asc";
+
+  const { t } = useTranslation();
 
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
@@ -163,16 +166,16 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
       } catch {
         addToast({
           type: "error",
-          title: "导入失败",
-          description: "文件不是合法的 JSON 格式",
+          title: t("common.import"),
+          description: t("errors.networkError"),
         });
         return;
       }
       if (!parsed.name || typeof parsed.name !== "string" || !parsed.name.trim()) {
         addToast({
           type: "error",
-          title: "导入失败",
-          description: 'JSON 文件缺少必填字段 "name"',
+          title: t("common.import"),
+          description: `JSON ${t("validation.nameRequired")}`,
         });
         return;
       }
@@ -191,8 +194,8 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
         setOperations((prev) => [created as OperationEntity, ...prev]);
         addToast({
           type: "success",
-          title: "导入成功",
-          description: `已导入 Operation「${parsed.name}」`,
+          title: t("common.import"),
+          description: `${t("operations.createNew")} ${parsed.name}`,
         });
       }
     } finally {
@@ -206,17 +209,17 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
         <div>
-          <h1 className="text-base font-semibold text-foreground">Operations</h1>
-          <p className="text-xs text-muted-foreground">定义可在 Pipeline 中复用的自定义操作</p>
+          <h1 className="text-base font-semibold text-foreground">{t("operations.title")}</h1>
+          <p className="text-xs text-muted-foreground">{t("operations.noOperations")}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button disabled={importing} size="sm" variant="outline" onClick={handleImportClick}>
             <Upload className="h-4 w-4" />
-            {importing ? "导入中..." : "导入"}
+            {importing ? t("common.loading") : t("common.import")}
           </Button>
           <Button size="sm" onClick={handleOpenCreate}>
             <Plus className="h-4 w-4" />
-            新建 Operation
+            {t("operations.createNew")}
           </Button>
         </div>
         <input
@@ -232,10 +235,10 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
       <div className="flex shrink-0 items-center gap-3 border-b border-border bg-background px-6 py-3">
         {(
           [
-            { value: "all" as const, label: "全部" },
-            { value: "public" as const, label: "公开" },
-            { value: "team" as const, label: "团队" },
-            { value: "private" as const, label: "私有" },
+            { value: "all" as const, label: t("common.all") },
+            { value: "public" as const, label: t("operations.public") },
+            { value: "team" as const, label: t("sidebar.user") },
+            { value: "private" as const, label: t("operations.private") },
           ] as const
         ).map(({ value, label }) => (
           <Button
@@ -252,7 +255,7 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="h-8 pl-8 text-sm"
-            placeholder="搜索操作名称或描述..."
+            placeholder={t("operations.searchPlaceholder")}
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
@@ -287,13 +290,13 @@ export const OperationsPageContent = ({ initialOperations }: Props) => {
               <Zap className="h-6 w-6 text-muted-foreground" />
             </div>
             {searchQuery.trim() || visibilityFilter !== "all" ? (
-              <p className="text-sm font-medium text-muted-foreground">没有找到匹配的 Operations</p>
+              <p className="text-sm font-medium text-muted-foreground">{t("common.notFound")}</p>
             ) : (
               <>
-                <p className="text-sm font-medium text-muted-foreground">还没有 Operations</p>
-                <p className="mt-1 text-xs text-muted-foreground/60">
-                  点击「新建 Operation」添加第一个操作
+                <p className="text-sm font-medium text-muted-foreground">
+                  {t("operations.noOperations")}
                 </p>
+                <p className="mt-1 text-xs text-muted-foreground/60">{t("operations.createNew")}</p>
               </>
             )}
           </div>

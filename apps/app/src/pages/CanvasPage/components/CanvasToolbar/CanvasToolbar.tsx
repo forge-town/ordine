@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../../_store";
 import { ZoomIn, ZoomOut, Maximize2, Trash2, Undo2, Redo2, Bot, Play } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
@@ -13,6 +14,7 @@ const VALIDATOR_AGENT_ID = "harnessValidatorAgent";
 import { useToastStore } from "@/hooks/useToastStore";
 
 export const CanvasToolbar = () => {
+  const { t } = useTranslation();
   const store = useHarnessCanvasStore();
   const selectedNodeId = useStore(store, (state) => state.selectedNodeId);
   const isAiAssistantOpen = useStore(store, (state) => state.isAiAssistantOpen);
@@ -76,23 +78,23 @@ export const CanvasToolbar = () => {
           values: {
             status: "success",
             finishedAt: Date.now(),
-            result: { output, summary: "验证完成" },
+            result: { output, summary: t("canvas.runSuccess") },
           },
         },
         {
           onSuccess: () => {
             useToastStore.getState().addToast({
               type: "success",
-              title: "测试运行完成",
-              description: "Pipeline 验证已完成",
+              title: t("canvas.runCompleted"),
+              description: t("canvas.runSuccess"),
             });
             finishRun();
           },
           onError: () => {
             useToastStore.getState().addToast({
               type: "error",
-              title: "运行失败",
-              description: "Pipeline 验证结果保存失败",
+              title: t("canvas.runFailed"),
+              description: t("canvas.runSaveFailed"),
             });
             finishRun();
           },
@@ -108,15 +110,15 @@ export const CanvasToolbar = () => {
           values: {
             status: "failed",
             finishedAt: Date.now(),
-            error: "运行失败",
+            error: t("canvas.runFailed"),
           },
         },
         { onSuccess: finishRun, onError: finishRun }
       );
       useToastStore.getState().addToast({
         type: "error",
-        title: "运行失败",
-        description: "Pipeline 验证失败，请重试",
+        title: t("canvas.runFailed"),
+        description: t("canvas.runFailed"),
       });
     };
 
@@ -146,7 +148,7 @@ export const CanvasToolbar = () => {
         resource: ResourceName.jobs,
         values: {
           id: jobId,
-          title: "Pipeline 测试运行",
+          title: t("canvas.runStart"),
           type: "pipeline_run",
           pipelineId,
           workId: null,
@@ -164,8 +166,8 @@ export const CanvasToolbar = () => {
         onError: () => {
           useToastStore.getState().addToast({
             type: "error",
-            title: "触发失败",
-            description: "无法创建测试运行，请重试",
+            title: t("canvas.runFailed"),
+            description: t("canvas.runFailed"),
           });
           finishRun();
         },
@@ -185,7 +187,7 @@ export const CanvasToolbar = () => {
           >
             <ZoomOut className="h-4 w-4" />
           </TooltipTrigger>
-          <TooltipContent>缩小</TooltipContent>
+          <TooltipContent>{t("canvas.zoomOut")}</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger
@@ -195,7 +197,7 @@ export const CanvasToolbar = () => {
           >
             <ZoomIn className="h-4 w-4" />
           </TooltipTrigger>
-          <TooltipContent>放大</TooltipContent>
+          <TooltipContent>{t("canvas.zoomIn")}</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger
@@ -205,7 +207,7 @@ export const CanvasToolbar = () => {
           >
             <Maximize2 className="h-4 w-4" />
           </TooltipTrigger>
-          <TooltipContent>适合视图</TooltipContent>
+          <TooltipContent>{t("canvas.fitView")}</TooltipContent>
         </Tooltip>
 
         <Separator className="mx-1 h-5" orientation="vertical" />
@@ -215,7 +217,7 @@ export const CanvasToolbar = () => {
           className="h-7 w-7"
           disabled={!canUndo}
           size="icon"
-          title="撤销"
+          title={t("canvas.undo")}
           variant="ghost"
           onClick={handleUndo}
         >
@@ -225,7 +227,7 @@ export const CanvasToolbar = () => {
           className="h-7 w-7"
           disabled={!canRedo}
           size="icon"
-          title="重做"
+          title={t("canvas.redo")}
           variant="ghost"
           onClick={handleRedo}
         >
@@ -249,7 +251,7 @@ export const CanvasToolbar = () => {
           >
             <Trash2 className="h-4 w-4" />
           </TooltipTrigger>
-          <TooltipContent>删除选中</TooltipContent>
+          <TooltipContent>{t("canvas.deleteNode")}</TooltipContent>
         </Tooltip>
 
         <Separator className="mx-1 h-5" orientation="vertical" />
@@ -282,9 +284,9 @@ export const CanvasToolbar = () => {
             }
           >
             <Play className="h-3.5 w-3.5" />
-            <span>运行</span>
+            <span>{t("canvas.run")}</span>
           </TooltipTrigger>
-          <TooltipContent>运行测试</TooltipContent>
+          <TooltipContent>{t("canvas.run")}</TooltipContent>
         </Tooltip>
       </div>
     </div>

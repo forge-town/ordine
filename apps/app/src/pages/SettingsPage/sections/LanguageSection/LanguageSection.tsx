@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Field, SaveButton, SectionHeader } from "../../components";
 import {
   Select,
@@ -16,16 +17,21 @@ interface LanguageSectionProps {
 }
 
 export const LanguageSection = ({ values, onChange, onSave, saved }: LanguageSectionProps) => {
-  const handleLanguageChange = (value: string | null) =>
-    onChange({ language: value ?? values.language });
+  const { i18n, t } = useTranslation();
+  const handleLanguageChange = (value: string | null) => {
+    const lang = value ?? values.language;
+    onChange({ language: lang });
+    const i18nLang = lang.startsWith("zh") ? "zh" : "en";
+    void i18n.changeLanguage(i18nLang);
+  };
   const handleTimezoneChange = (value: string | null) =>
     onChange({ timezone: value ?? values.timezone });
   const handleSave = onSave;
 
   return (
     <>
-      <SectionHeader description="选择界面语言和时区偏好" title="语言与地区" />
-      <Field label="界面语言">
+      <SectionHeader description={t("settings.selectLanguage")} title={t("settings.language")} />
+      <Field label={t("settings.language")}>
         <Select value={values.language} onValueChange={handleLanguageChange}>
           <SelectTrigger className="w-48">
             <SelectValue />
@@ -39,7 +45,7 @@ export const LanguageSection = ({ values, onChange, onSave, saved }: LanguageSec
           </SelectContent>
         </Select>
       </Field>
-      <Field label="时区">
+      <Field label={t("settings.timezone")}>
         <Select value={values.timezone} onValueChange={handleTimezoneChange}>
           <SelectTrigger className="w-48">
             <SelectValue />

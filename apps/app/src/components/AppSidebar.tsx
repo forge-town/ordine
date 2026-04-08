@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Sidebar,
   SidebarContent,
@@ -27,25 +28,26 @@ import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 
 interface NavItem {
-  label: string;
+  labelKey: string;
   icon: React.ElementType;
   to: string;
   badge?: string;
 }
 
 const navItems: NavItem[] = [
-  { label: "仪表盘", icon: LayoutDashboard, to: "/" },
-  { label: "项目", icon: FolderGit2, to: "/projects" },
-  { label: "Pipelines", icon: Layers, to: "/pipelines" },
-  { label: "技能库", icon: BookOpen, to: "/skills" },
-  { label: "最佳实践", icon: Lightbulb, to: "/best-practices" },
-  { label: "Operations", icon: Zap, to: "/operations" },
-  { label: "Rules", icon: ShieldCheck, to: "/rules" },
-  { label: "Jobs", icon: Activity, to: "/jobs" },
+  { labelKey: "nav.dashboard", icon: LayoutDashboard, to: "/" },
+  { labelKey: "nav.projects", icon: FolderGit2, to: "/projects" },
+  { labelKey: "nav.pipelines", icon: Layers, to: "/pipelines" },
+  { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
+  { labelKey: "nav.bestPractices", icon: Lightbulb, to: "/best-practices" },
+  { labelKey: "nav.operations", icon: Zap, to: "/operations" },
+  { labelKey: "nav.rules", icon: ShieldCheck, to: "/rules" },
+  { labelKey: "nav.jobs", icon: Activity, to: "/jobs" },
 ];
 
 export const AppSidebar = () => {
   const { location } = useRouterState();
+  const { t } = useTranslation();
   const currentPath = location.pathname;
 
   return (
@@ -88,6 +90,7 @@ export const AppSidebar = () => {
             <SidebarMenu>
               {navItems.map((item) => {
                 const Icon = item.icon;
+                const label = t(item.labelKey);
                 const isActive =
                   currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
                 return (
@@ -96,10 +99,10 @@ export const AppSidebar = () => {
                       className="h-8"
                       isActive={isActive}
                       render={<Link to={item.to as "/"} />}
-                      tooltip={item.label}
+                      tooltip={label}
                     >
                       <Icon />
-                      <span>{item.label}</span>
+                      <span>{label}</span>
                       {item.badge && (
                         <Badge
                           className="ml-auto h-4 px-1.5 text-[10px] group-data-[state=collapsed]/sidebar:hidden"
@@ -125,10 +128,10 @@ export const AppSidebar = () => {
               className="h-8"
               isActive={currentPath === "/settings"}
               render={<Link to="/settings" />}
-              tooltip="设置"
+              tooltip={t("nav.settings")}
             >
               <Settings />
-              <span>设置</span>
+              <span>{t("nav.settings")}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

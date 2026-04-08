@@ -1,5 +1,6 @@
 import { Outlet, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
+import "@/lib/i18n";
 
 const NotFound = () => (
   <div className="flex h-screen items-center justify-center text-muted-foreground">

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Search, Folder } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/projects.index";
 import { deleteGithubProject } from "@/services/githubProjectsService";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
@@ -10,6 +11,7 @@ import { CreateProjectDialog } from "../CreateProjectDialog";
 import { ProjectCard } from "../ProjectCard";
 
 export const ProjectsPageContent = () => {
+  const { t } = useTranslation();
   const loaderProjects = Route.useLoaderData();
   const [projects, setProjects] = useState<GithubProjectEntity[]>(
     loaderProjects as GithubProjectEntity[]
@@ -46,10 +48,10 @@ export const ProjectsPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <h1 className="text-base font-semibold text-foreground">项目</h1>
+        <h1 className="text-base font-semibold text-foreground">{t("projects.title")}</h1>
         <Button size="sm" onClick={handleShowCreate}>
           <Plus className="h-4 w-4" />
-          连接 GitHub 项目
+          {t("projects.importProject")}
         </Button>
       </div>
 
@@ -59,7 +61,7 @@ export const ProjectsPageContent = () => {
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="h-8 pl-8 text-sm"
-            placeholder="搜索项目..."
+            placeholder={t("common.search")}
             type="text"
             value={search}
             onChange={handleSearchChange}
@@ -75,15 +77,15 @@ export const ProjectsPageContent = () => {
               <Folder className="h-7 w-7 text-muted-foreground" />
             </div>
             <h3 className="mt-4 text-sm font-semibold text-foreground">
-              {search ? "未找到匹配的项目" : "还没有项目"}
+              {search ? t("common.notFound") : t("projects.noProjects")}
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              {search ? "请尝试其他关键词" : "连接一个 GitHub 仓库来开始"}
+              {search ? t("common.search") : t("projects.connectGitHub")}
             </p>
             {!search && (
               <Button className="mt-4" onClick={handleShowCreate}>
                 <Plus className="h-4 w-4" />
-                连接 GitHub 项目
+                {t("projects.importProject")}
               </Button>
             )}
           </div>

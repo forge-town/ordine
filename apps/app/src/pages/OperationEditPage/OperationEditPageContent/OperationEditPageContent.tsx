@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
 import { ArrowLeft, FileCode, Folder, FolderGit2, Puzzle, Terminal, Wand2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -152,6 +153,7 @@ interface Props {
 }
 
 export const OperationEditPageContent = ({ operation, skills }: Props) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const form = useForm<EditFormValues>({
@@ -198,7 +200,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
         <Button
-          aria-label="返回"
+          aria-label={t("common.back")}
           className="h-8 w-8"
           size="icon"
           type="button"
@@ -207,7 +209,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-base font-semibold text-foreground">编辑 Operation</h1>
+        <h1 className="text-base font-semibold text-foreground">{t("operations.editOperation")}</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -473,10 +475,10 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button size="sm" type="button" variant="outline" onClick={handleCancel}>
-                  取消
+                  {t("common.cancel")}
                 </Button>
                 <Button disabled={form.formState.isSubmitting} size="sm" type="submit">
-                  {form.formState.isSubmitting ? "保存中..." : "保存"}
+                  {form.formState.isSubmitting ? t("common.saving") : t("common.save")}
                 </Button>
               </div>
             </form>

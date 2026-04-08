@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Search, ShieldCheck } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { RuleEntity, RuleCategory } from "@/models/daos/rulesDao";
@@ -10,6 +11,7 @@ import { RuleCard } from "../RuleCard";
 import { RuleForm } from "../RuleForm";
 
 export const RulesPageContent = ({ rules: initial }: { rules: RuleEntity[] }) => {
+  const { t } = useTranslation();
   const [rules, setRules] = useState(initial);
   const [categoryFilter, setCategoryFilter] = useState<RuleCategory | "all">("all");
   const [search, setSearch] = useState("");
@@ -107,14 +109,14 @@ export const RulesPageContent = ({ rules: initial }: { rules: RuleEntity[] }) =>
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
         <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" />
-        <h1 className="text-base font-semibold text-foreground">Rules</h1>
+        <h1 className="text-base font-semibold text-foreground">{t("rules.title")}</h1>
         <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-          {enabledCount} 启用 / {rules.length} 总计
+          {enabledCount} {t("rules.enabled")} / {rules.length} {t("common.all")}
         </span>
         <div className="ml-auto">
           <Button size="sm" onClick={handleShowForm}>
             <Plus className="h-3.5 w-3.5" />
-            新建规则
+            {t("rules.createNew")}
           </Button>
         </div>
       </div>
@@ -153,9 +155,9 @@ export const RulesPageContent = ({ rules: initial }: { rules: RuleEntity[] }) =>
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <ShieldCheck className="h-8 w-8 text-muted-foreground/30" />
-            <p className="mt-2 text-sm text-muted-foreground">暂无规则</p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("rules.noRules")}</p>
             <Button className="mt-2 h-auto p-0 text-xs" variant="link" onClick={handleShowForm}>
-              创建第一条规则
+              {t("rules.createNew")}
             </Button>
           </div>
         ) : (

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Wand2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
@@ -32,6 +33,7 @@ interface SkillsPageContentProps {
 }
 
 export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<SkillCategory>("all");
 
@@ -52,8 +54,8 @@ export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
         <div>
-          <h1 className="text-base font-semibold text-foreground">技能库</h1>
-          <p className="text-xs text-muted-foreground">{skills.length} 个可用 Skill</p>
+          <h1 className="text-base font-semibold text-foreground">{t("skills.title")}</h1>
+          <p className="text-xs text-muted-foreground">{skills.length}</p>
         </div>
       </div>
 
@@ -63,7 +65,7 @@ export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="pl-8 h-8 text-sm"
-            placeholder="搜索技能..."
+            placeholder={t("common.search")}
             type="text"
             value={search}
             onChange={handleSearchChange}
@@ -89,7 +91,7 @@ export const SkillsPageContent = ({ skills }: SkillsPageContentProps) => {
         {filtered.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center text-center text-muted-foreground">
             <Wand2 className="h-8 w-8 text-muted-foreground/30" />
-            <p className="mt-2 text-sm">未找到匹配的 Skill</p>
+            <p className="mt-2 text-sm">{t("skills.noSkills")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-4">
