@@ -1,8 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { operationsDao } from "@/models/daos/operationsDao";
-import type { ObjectType, Visibility } from "@/models/tables/operations_table";
-import { ObjectTypeSchema as ObjectTypeEnum, VisibilitySchema as VisibilityEnum } from "@/schemas";
+import {
+  VISIBILITY_OPTIONS,
+  type ObjectType,
+  type Visibility,
+} from "@/models/tables/operations_table";
+import { ObjectTypeSchema as ObjectTypeEnum } from "@/schemas";
+
+const VisibilityEnum = z.enum(VISIBILITY_OPTIONS);
 
 type OperationResult = {
   id: string;
@@ -16,10 +22,12 @@ type OperationResult = {
   updatedAt: number;
 };
 
-export const getOperations = createServerFn({ method: "GET" }).handler(async () => {
-  const ops = await operationsDao.findMany();
-  return ops as OperationResult[];
-});
+export const getOperations = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const ops = await operationsDao.findMany();
+    return ops as OperationResult[];
+  },
+);
 
 export const getOperationById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
@@ -37,8 +45,10 @@ export const createOperation = createServerFn({ method: "POST" })
       category: z.string().default("general"),
       visibility: VisibilityEnum.default("public"),
       config: z.string().default("{}"),
-      acceptedObjectTypes: z.array(ObjectTypeEnum).default(["file", "folder", "project"]),
-    })
+      acceptedObjectTypes: z
+        .array(ObjectTypeEnum)
+        .default(["file", "folder", "project"]),
+    }),
   )
   .handler(async ({ data }) => {
     const op = await operationsDao.create(data);
@@ -55,7 +65,7 @@ export const updateOperation = createServerFn({ method: "POST" })
       visibility: VisibilityEnum.optional(),
       config: z.string().optional(),
       acceptedObjectTypes: z.array(ObjectTypeEnum).optional(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const { id, ...rest } = data;
