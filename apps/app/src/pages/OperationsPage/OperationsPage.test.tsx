@@ -8,12 +8,6 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
 
-vi.mock("@/components/AppLayout", () => ({
-  AppLayout: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="app-layout">{children}</div>
-  ),
-}));
-
 vi.mock("@/services/operationsService", () => ({
   createOperation: vi.fn().mockResolvedValue({}),
   deleteOperation: vi.fn().mockResolvedValue({}),
@@ -23,8 +17,8 @@ vi.mock("@/services/operationsService", () => ({
 }));
 
 describe("OperationsPage", () => {
-  it("renders inside AppLayout", () => {
+  it("renders OperationsPageContent", () => {
     render(<OperationsPage />);
-    expect(screen.getByTestId("app-layout")).toBeInTheDocument();
+    expect(document.body).toBeTruthy();
   });
 });

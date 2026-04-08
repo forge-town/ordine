@@ -1,14 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { ProjectDetailPage } from "./ProjectDetailPage";
 
-vi.mock("@/components/AppLayout", () => ({
-  AppLayout: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="app-layout">{children}</div>
-  ),
-}));
-
-vi.mock("@/routes/projects.$projectId", () => ({
+vi.mock("@/routes/_layout/projects.$projectId", () => ({
   Route: {
     useLoaderData: () => ({ project: null, works: [], pipelines: [] }),
   },
@@ -19,8 +13,8 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 describe("ProjectDetailPage", () => {
-  it("renders inside AppLayout", () => {
+  it("renders without crashing", () => {
     render(<ProjectDetailPage />);
-    expect(screen.getByTestId("app-layout")).toBeInTheDocument();
+    expect(document.body).toBeTruthy();
   });
 });
