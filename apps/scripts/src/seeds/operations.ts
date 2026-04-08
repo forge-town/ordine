@@ -30,7 +30,16 @@ interface OutputPort {
   description: string;
 }
 
+interface ExecutorConfig {
+  type: "skill" | "prompt" | "script";
+  skillId?: string;
+  prompt?: string;
+  command?: string;
+  language?: "bash" | "python" | "javascript";
+}
+
 interface OperationConfig {
+  executor?: ExecutorConfig;
   inputs: InputPort[];
   outputs: OutputPort[];
 }
@@ -379,6 +388,46 @@ const OPERATIONS: NewOperationRow[] = [
           path: ".specify/{feature}/tasks.md",
           description:
             "tasks.md with completed items checked off and any blockers noted.",
+        },
+      ],
+    }),
+  },
+
+  // ── 9. check ─────────────────────────────────────────────────────────────
+  {
+    id: "op_check",
+    name: "Check",
+    description:
+      "Run quality checks on the codebase: linting, type checking, and tests. Reports issues found and suggests fixes.",
+    category: "lint",
+    acceptedObjectTypes: ["file", "folder", "project"],
+    config: cfg({
+      executor: {
+        type: "skill",
+        skillId: "code-check",
+      },
+      inputs: [
+        {
+          name: "target",
+          kind: "project",
+          required: true,
+          description: "The file, folder, or project to run checks on.",
+        },
+        {
+          name: "checkTypes",
+          kind: "text",
+          required: false,
+          description:
+            "Comma-separated list of checks to run: lint, typecheck, test. Defaults to all.",
+        },
+      ],
+      outputs: [
+        {
+          name: "checkReport",
+          kind: "file",
+          path: ".ordine/check-report.md",
+          description:
+            "Markdown report listing all issues found with severity and suggested fixes.",
         },
       ],
     }),
