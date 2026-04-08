@@ -50,10 +50,19 @@ describe("OperationEditPageContent", () => {
     expect(nameInput.value).toBe("Run ESLint");
   });
 
-  it("renders description and config fields", () => {
+  it("renders description and executor type selector", () => {
     render(<OperationEditPageContent operation={mockOp} />);
     expect(screen.getByPlaceholderText(/简单描述/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/command/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Skill/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Prompt/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Script/i })).toBeInTheDocument();
+  });
+
+  it("does not render a visibility field", () => {
+    render(<OperationEditPageContent operation={mockOp} />);
+    expect(screen.queryByText(/可见性/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/公开/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/私有/i)).not.toBeInTheDocument();
   });
 
   it("shows 编辑 Operation header", () => {

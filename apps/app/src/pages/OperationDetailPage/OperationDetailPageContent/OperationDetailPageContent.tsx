@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -8,23 +7,21 @@ import {
   FileInput,
   FileOutput,
   Info,
+  Puzzle,
   Tag,
+  Terminal,
+  Wand2,
   XCircle,
-  Globe,
-  Lock,
-  Users,
   Pencil,
 } from "lucide-react";
-import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
-import { updateOperation } from "@/services/operationsService";
 import type { OperationEntity } from "@/models/daos/operationsDao";
-import type { ObjectType, Visibility } from "@/models/tables/operations_table";
+import type { ObjectType } from "@/models/tables/operations_table";
 import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
 import { OutputPortRow } from "../OutputPortRow";
-import type { OperationConfig } from "../types";
+import type { OperationConfig, ExecutorConfig } from "../types";
 
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
@@ -32,34 +29,23 @@ const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   project: FolderGit2,
 };
 
-const VISIBILITY_CONFIG: Record<
-  Visibility,
-  { icon: React.ElementType; label: string; cls: string; next: Visibility }
-> = {
-  public: {
-    icon: Globe,
-    label: "public",
-    cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    next: "team",
-  },
-  team: {
-    icon: Users,
-    label: "team",
-    cls: "bg-sky-50 text-sky-700 border-sky-200",
-    next: "private",
-  },
-  private: {
-    icon: Lock,
-    label: "private",
-    cls: "bg-rose-50 text-rose-700 border-rose-200",
-    next: "public",
-  },
+const EXECUTOR_ICON: Record<string, React.ElementType> = {
+  skill: Puzzle,
+  prompt: Wand2,
+  script: Terminal,
+};
+
+const EXECUTOR_LABEL: Record<string, string> = {
+  skill: "Skill",
+  prompt: "Prompt",
+  script: "Script",
 };
 
 const parseConfig = (raw: string): OperationConfig => {
   try {
     const parsed = JSON.parse(raw) as Partial<OperationConfig>;
     return {
+      executor: parsed.executor,
       inputs: Array.isArray(parsed.inputs) ? parsed.inputs : [],
       outputs: Array.isArray(parsed.outputs) ? parsed.outputs : [],
     };
@@ -72,30 +58,56 @@ export type OperationDetailPageContentProps = {
   operation: OperationEntity | null;
 };
 
+const ExecutorCard = ({ executor }: { executor: ExecutorConfig }) => {
+  const Icon = EXECUTOR_ICON[executor.type] ?? Puzzle;
+  const label = EXECUTOR_LABEL[executor.type] ?? executor.type;
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <SectionHeader icon={Icon} label={`执行方式 · ${label}`} />
+      <div className="mt-3 space-y-2">
+        {executor.type === "skill" && executor.skillId && (
+          <div className="flex items-center gap-2">
+            <span className="w-16 shrink-0 text-xs text-muted-foreground">
+              Skill ID
+            </span>
+            <code className="rounded bg-muted px-2 py-0.5 font-mono text-xs">
+              {executor.skillId}
+            </code>
+          </div>
+        )}
+        {executor.type === "prompt" && executor.prompt && (
+          <div>
+            <span className="text-xs text-muted-foreground">系统提示词</span>
+            <pre className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap rounded-lg bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">
+              {executor.prompt}
+            </pre>
+          </div>
+        )}
+        {executor.type === "script" && (
+          <div className="flex items-start gap-2">
+            {executor.language && (
+              <span className="shrink-0 rounded bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground">
+                {executor.language}
+              </span>
+            )}
+            {executor.command && (
+              <code className="font-mono text-xs text-foreground">
+                {executor.command}
+              </code>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const OperationDetailPageContent = ({
   operation,
 }: OperationDetailPageContentProps) => {
   const navigate = useNavigate();
-  const [visibility, setVisibility] = useState<Visibility>(
-    operation?.visibility ?? "public",
-  );
-  const [toggling, setToggling] = useState(false);
 
   const handleNavigateBack = () => void navigate({ to: "/operations" });
-
-  const handleVisibilityToggle = async () => {
-    if (!operation) return;
-    const next = VISIBILITY_CONFIG[visibility].next;
-    setToggling(true);
-    try {
-      await updateOperation({ data: { id: operation.id, visibility: next } });
-      setVisibility(next);
-    } finally {
-      setToggling(false);
-    }
-  };
-
-  const handleVisibilityClick = () => void handleVisibilityToggle();
 
   if (!operation) {
     return (
@@ -115,8 +127,6 @@ export const OperationDetailPageContent = ({
   }
 
   const config = parseConfig(operation.config);
-  const vc = VISIBILITY_CONFIG[visibility];
-  const VisibilityIcon = vc.icon;
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -166,24 +176,6 @@ export const OperationDetailPageContent = ({
               {operation.description}
             </p>
           )}
-          <div className="mb-3 flex items-center justify-between">
-            <span className="shrink-0 text-xs text-muted-foreground">
-              可见性
-            </span>
-            <button
-              className={cn(
-                "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-opacity",
-                vc.cls,
-                toggling && "cursor-not-allowed opacity-50",
-              )}
-              disabled={toggling}
-              title="点击切换可见性"
-              onClick={handleVisibilityClick}
-            >
-              <VisibilityIcon className="h-3 w-3" />
-              {vc.label}
-            </button>
-          </div>
           <div className="flex items-center gap-2">
             <span className="shrink-0 text-xs text-muted-foreground">
               适用对象
@@ -204,6 +196,8 @@ export const OperationDetailPageContent = ({
             </div>
           </div>
         </div>
+
+        {config.executor && <ExecutorCard executor={config.executor} />}
 
         {config.inputs.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-4">

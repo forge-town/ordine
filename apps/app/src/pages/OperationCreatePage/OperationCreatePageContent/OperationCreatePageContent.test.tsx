@@ -32,10 +32,19 @@ describe("OperationCreatePageContent", () => {
     expect(screen.getByPlaceholderText(/e.g. Run ESLint/i)).toBeInTheDocument();
   });
 
-  it("renders category, description, and config fields", () => {
+  it("renders description and executor type selector", () => {
     render(<OperationCreatePageContent />);
     expect(screen.getByPlaceholderText(/简单描述/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/command/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Skill/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Prompt/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Script/i })).toBeInTheDocument();
+  });
+
+  it("does not render a visibility field", () => {
+    render(<OperationCreatePageContent />);
+    expect(screen.queryByText(/可见性/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/公开/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/私有/i)).not.toBeInTheDocument();
   });
 
   it("shows validation error when submitting with empty name", async () => {

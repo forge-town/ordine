@@ -2,7 +2,15 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
-import { ArrowLeft, FileCode, Folder, FolderGit2, Globe, Lock, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  FileCode,
+  Folder,
+  FolderGit2,
+  Puzzle,
+  Terminal,
+  Wand2,
+} from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -24,19 +32,42 @@ import {
   FormMessage,
 } from "@repo/ui/form";
 import { createOperation } from "@/services/operationsService";
-import type { ObjectType, Visibility } from "@/models/tables/operations_table";
-import { ObjectTypeSchema as ObjectTypeEnum, VisibilitySchema as VisibilityEnum } from "@/schemas";
+import type { ObjectType } from "@/models/tables/operations_table";
+import {
+  ObjectTypeSchema as ObjectTypeEnum,
+  ExecutorTypeSchema as ExecutorTypeEnum,
+  ScriptLanguageSchema as ScriptLanguageEnum,
+} from "@/schemas";
 
-const CATEGORIES = ["general", "lint", "format", "build", "test", "deploy", "custom"] as const;
+const CATEGORIES = [
+  "general",
+  "lint",
+  "format",
+  "build",
+  "test",
+  "deploy",
+  "custom",
+] as const;
 
-const VISIBILITY_OPTIONS: {
-  value: Visibility;
-  label: string;
-  icon: React.ElementType;
-}[] = [
-  { value: "public", label: "公开", icon: Globe },
-  { value: "team", label: "团队", icon: Users },
-  { value: "private", label: "私有", icon: Lock },
+const EXECUTOR_TYPE_OPTIONS = [
+  {
+    value: "skill" as const,
+    label: "Skill",
+    icon: Puzzle,
+    description: "调用已有的 Skill",
+  },
+  {
+    value: "prompt" as const,
+    label: "Prompt",
+    icon: Wand2,
+    description: "LLM 系统提示词",
+  },
+  {
+    value: "script" as const,
+    label: "Script",
+    icon: Terminal,
+    description: "执行脚本命令",
+  },
 ];
 
 const OBJECT_TYPE_OPTIONS: {
@@ -53,14 +84,40 @@ const createFormSchema = z.object({
   name: z.string().min(1, "名称不能为空"),
   description: z.string(),
   category: z.string(),
-  visibility: VisibilityEnum,
-  config: z.string(),
   acceptedObjectTypes: z.array(ObjectTypeEnum).min(1),
+  executorType: ExecutorTypeEnum,
+  skillId: z.string(),
+  promptText: z.string(),
+  scriptCommand: z.string(),
+  scriptLanguage: ScriptLanguageEnum,
 });
+
+const buildConfig = (values: CreateFormValues): string => {
+  if (values.executorType === "skill") {
+    return JSON.stringify({
+      executor: { type: "skill", skillId: values.skillId },
+    });
+  }
+  if (values.executorType === "prompt") {
+    return JSON.stringify({
+      executor: { type: "prompt", prompt: values.promptText },
+    });
+  }
+  return JSON.stringify({
+    executor: {
+      type: "script",
+      command: values.scriptCommand,
+      language: values.scriptLanguage,
+    },
+  });
+};
 
 type CreateFormValues = z.infer<typeof createFormSchema>;
 
-const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[] => {
+const toggleObjectType = (
+  current: ObjectType[],
+  type: ObjectType,
+): ObjectType[] => {
   if (current.includes(type)) {
     if (current.length === 1) return current;
     return current.filter((t) => t !== type);
@@ -77,14 +134,19 @@ export const OperationCreatePageContent = () => {
       name: "",
       description: "",
       category: "general",
-      visibility: "public",
-      config: "{}",
       acceptedObjectTypes: ["file", "folder", "project"],
+      executorType: "script" as const,
+      skillId: "",
+      promptText: "",
+      scriptCommand: "",
+      scriptLanguage: "bash" as const,
     },
   });
 
+  const executorType = form.watch("executorType");
+
   const handleCancel = () => {
-    navigate({ to: "/operations" });
+    void navigate({ to: "/operations" });
   };
 
   const onSubmit = async (values: CreateFormValues) => {
@@ -94,13 +156,13 @@ export const OperationCreatePageContent = () => {
         name: values.name,
         description: values.description || null,
         category: values.category,
-        visibility: values.visibility,
-        config: values.config,
+        visibility: "public",
+        config: buildConfig(values),
         acceptedObjectTypes: values.acceptedObjectTypes,
       },
     });
     if (created) {
-      navigate({
+      void navigate({
         to: "/operations/$operationId",
         params: { operationId: (created as { id: string }).id },
       });
@@ -121,7 +183,9 @@ export const OperationCreatePageContent = () => {
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-base font-semibold text-foreground">新建 Operation</h1>
+        <h1 className="text-base font-semibold text-foreground">
+          新建 Operation
+        </h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -158,7 +222,10 @@ export const OperationCreatePageContent = () => {
                         分类
                       </FormLabel>
                       <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger className="h-9 w-full">
                             <SelectValue />
                           </SelectTrigger>
@@ -199,43 +266,6 @@ export const OperationCreatePageContent = () => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="visibility"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium text-muted-foreground">
-                      可见性
-                    </FormLabel>
-                    <FormControl>
-                      <div className="flex gap-2">
-                        {VISIBILITY_OPTIONS.map(({ value, label, icon: Icon }) => {
-                          const selected = field.value === value;
-                          return (
-                            <button
-                              key={value}
-                              className={cn(
-                                "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
-                                selected
-                                  ? "border-primary/50 bg-primary/10 text-primary"
-                                  : "border-border bg-background text-muted-foreground hover:bg-muted"
-                              )}
-                              type="button"
-                              onClick={() => field.onChange(value)}
-                            >
-                              <Icon className="h-4 w-4" />
-                              {label}
-                              {selected && <span className="ml-1 text-xs">✓</span>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-
               <Controller
                 control={form.control}
                 name="acceptedObjectTypes"
@@ -246,28 +276,34 @@ export const OperationCreatePageContent = () => {
                     </FormLabel>
                     <FormControl>
                       <div className="flex gap-2">
-                        {OBJECT_TYPE_OPTIONS.map(({ value, label, icon: Icon }) => {
-                          const selected = field.value.includes(value);
-                          return (
-                            <button
-                              key={value}
-                              className={cn(
-                                "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
-                                selected
-                                  ? "border-primary/50 bg-primary/10 text-primary"
-                                  : "border-border bg-background text-muted-foreground hover:bg-muted"
-                              )}
-                              type="button"
-                              onClick={() =>
-                                field.onChange(toggleObjectType(field.value, value))
-                              }
-                            >
-                              <Icon className="h-4 w-4" />
-                              {label}
-                              {selected && <span className="ml-1 text-xs">✓</span>}
-                            </button>
-                          );
-                        })}
+                        {OBJECT_TYPE_OPTIONS.map(
+                          ({ value, label, icon: Icon }) => {
+                            const selected = field.value.includes(value);
+                            return (
+                              <button
+                                key={value}
+                                className={cn(
+                                  "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
+                                  selected
+                                    ? "border-primary/50 bg-primary/10 text-primary"
+                                    : "border-border bg-background text-muted-foreground hover:bg-muted",
+                                )}
+                                type="button"
+                                onClick={() =>
+                                  field.onChange(
+                                    toggleObjectType(field.value, value),
+                                  )
+                                }
+                              >
+                                <Icon className="h-4 w-4" />
+                                {label}
+                                {selected && (
+                                  <span className="ml-1 text-xs">✓</span>
+                                )}
+                              </button>
+                            );
+                          },
+                        )}
                       </div>
                     </FormControl>
                     <FormMessage className="text-xs" />
@@ -275,32 +311,162 @@ export const OperationCreatePageContent = () => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="config"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium text-muted-foreground">
-                      配置 (JSON)
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        className="resize-none font-mono text-xs"
-                        placeholder='{ "command": "eslint src/" }'
-                        rows={5}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
+              {/* Executor section */}
+              <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
+                <FormLabel className="text-xs font-semibold text-foreground">
+                  执行方式
+                </FormLabel>
+
+                <Controller
+                  control={form.control}
+                  name="executorType"
+                  render={({ field }) => (
+                    <div className="flex gap-2">
+                      {EXECUTOR_TYPE_OPTIONS.map(
+                        ({ value, label, icon: Icon, description }) => {
+                          const selected = field.value === value;
+                          return (
+                            <button
+                              key={value}
+                              className={cn(
+                                "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
+                                selected
+                                  ? "border-primary/50 bg-primary/10 text-primary"
+                                  : "border-border bg-background text-muted-foreground hover:bg-muted",
+                              )}
+                              type="button"
+                              onClick={() => field.onChange(value)}
+                            >
+                              <span className="flex items-center gap-1.5 font-medium">
+                                <Icon className="h-3.5 w-3.5" />
+                                {label}
+                              </span>
+                              <span className="text-[11px] opacity-70">
+                                {description}
+                              </span>
+                            </button>
+                          );
+                        },
+                      )}
+                    </div>
+                  )}
+                />
+
+                {executorType === "skill" && (
+                  <FormField
+                    control={form.control}
+                    name="skillId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-medium text-muted-foreground">
+                          Skill ID
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            className="h-9 font-mono text-sm"
+                            placeholder="e.g. lint-check, format-code"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
+
+                {executorType === "prompt" && (
+                  <FormField
+                    control={form.control}
+                    name="promptText"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-medium text-muted-foreground">
+                          系统提示词
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            className="resize-none text-sm"
+                            placeholder="你是一个代码审查专家，请分析以下代码..."
+                            rows={5}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {executorType === "script" && (
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
+                        name="scriptCommand"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium text-muted-foreground">
+                              脚本命令
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                className="h-9 font-mono text-sm"
+                                placeholder="e.g. eslint src/ --fix"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="scriptLanguage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs font-medium text-muted-foreground">
+                            语言
+                          </FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="h-9 w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="bash">Bash</SelectItem>
+                                <SelectItem value="python">Python</SelectItem>
+                                <SelectItem value="javascript">
+                                  JavaScript
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage className="text-xs" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <Button size="sm" type="button" variant="outline" onClick={handleCancel}>
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                >
                   取消
                 </Button>
-                <Button disabled={form.formState.isSubmitting} size="sm" type="submit">
+                <Button
+                  disabled={form.formState.isSubmitting}
+                  size="sm"
+                  type="submit"
+                >
                   {form.formState.isSubmitting ? "保存中..." : "保存"}
                 </Button>
               </div>

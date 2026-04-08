@@ -13,25 +13,57 @@ const baseOp: OperationEntity = {
   description: "Produce a technical implementation plan.",
   category: "planning",
   visibility: "public",
-  config: JSON.stringify({ inputs: [], outputs: [] }),
+  config: JSON.stringify({
+    executor: { type: "script", command: "eslint src/", language: "bash" },
+    inputs: [],
+    outputs: [],
+  }),
   acceptedObjectTypes: ["file"],
   createdAt: 1_712_000_000_000,
   updatedAt: 1_712_000_000_000,
 };
 
-describe("OperationDetailPageContent – visibility", () => {
-  it("shows 'public' visibility badge for public operations", () => {
+describe("OperationDetailPageContent – executor display", () => {
+  it("shows executor section when config has an executor", () => {
     render(<OperationDetailPageContent operation={baseOp} />);
-    expect(screen.getByText("public")).toBeInTheDocument();
+    expect(screen.getByText(/执行方式/i)).toBeInTheDocument();
   });
 
-  it("shows 'private' visibility badge for private operations", () => {
-    render(<OperationDetailPageContent operation={{ ...baseOp, visibility: "private" }} />);
-    expect(screen.getByText("private")).toBeInTheDocument();
+  it("shows script command when executor type is script", () => {
+    render(<OperationDetailPageContent operation={baseOp} />);
+    expect(screen.getByText("eslint src/")).toBeInTheDocument();
   });
 
-  it("shows 'team' visibility badge for team operations", () => {
-    render(<OperationDetailPageContent operation={{ ...baseOp, visibility: "team" }} />);
-    expect(screen.getByText("team")).toBeInTheDocument();
+  it("shows skill id when executor type is skill", () => {
+    const op: OperationEntity = {
+      ...baseOp,
+      config: JSON.stringify({
+        executor: { type: "skill", skillId: "lint-check" },
+        inputs: [],
+        outputs: [],
+      }),
+    };
+    render(<OperationDetailPageContent operation={op} />);
+    expect(screen.getByText("lint-check")).toBeInTheDocument();
+  });
+
+  it("shows prompt text when executor type is prompt", () => {
+    const op: OperationEntity = {
+      ...baseOp,
+      config: JSON.stringify({
+        executor: { type: "prompt", prompt: "You are a code reviewer" },
+        inputs: [],
+        outputs: [],
+      }),
+    };
+    render(<OperationDetailPageContent operation={op} />);
+    expect(screen.getByText("You are a code reviewer")).toBeInTheDocument();
+  });
+
+  it("does not render a visibility badge", () => {
+    render(<OperationDetailPageContent operation={baseOp} />);
+    expect(screen.queryByText("public")).not.toBeInTheDocument();
+    expect(screen.queryByText("private")).not.toBeInTheDocument();
+    expect(screen.queryByText("team")).not.toBeInTheDocument();
   });
 });

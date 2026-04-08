@@ -21,11 +21,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as PipelinesIndexRouteImport } from './routes/pipelines.index'
 import { Route as OperationsIndexRouteImport } from './routes/operations.index'
-import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 import { Route as PipelinesPipelineIdRouteImport } from './routes/pipelines.$pipelineId'
 import { Route as OperationsNewRouteImport } from './routes/operations.new'
-import { Route as OperationsOperationIdRouteImport } from './routes/operations.$operationId'
 import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
+import { Route as ProjectsProjectIdIndexRouteImport } from './routes/projects.$projectId.index'
+import { Route as OperationsOperationIdIndexRouteImport } from './routes/operations.$operationId.index'
 import { Route as ProjectsProjectIdWorkspaceRouteImport } from './routes/projects.$projectId.workspace'
 import { Route as OperationsOperationIdEditRouteImport } from './routes/operations.$operationId.edit'
 
@@ -89,11 +89,6 @@ const OperationsIndexRoute = OperationsIndexRouteImport.update({
   path: '/operations/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
-  id: '/projects/$projectId',
-  path: '/projects/$projectId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PipelinesPipelineIdRoute = PipelinesPipelineIdRouteImport.update({
   id: '/$pipelineId',
   path: '/$pipelineId',
@@ -104,27 +99,33 @@ const OperationsNewRoute = OperationsNewRouteImport.update({
   path: '/operations/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OperationsOperationIdRoute = OperationsOperationIdRouteImport.update({
-  id: '/operations/$operationId',
-  path: '/operations/$operationId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const JobsJobIdRoute = JobsJobIdRouteImport.update({
   id: '/$jobId',
   path: '/$jobId',
   getParentRoute: () => JobsRoute,
 } as any)
+const ProjectsProjectIdIndexRoute = ProjectsProjectIdIndexRouteImport.update({
+  id: '/projects/$projectId/',
+  path: '/projects/$projectId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperationsOperationIdIndexRoute =
+  OperationsOperationIdIndexRouteImport.update({
+    id: '/operations/$operationId/',
+    path: '/operations/$operationId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ProjectsProjectIdWorkspaceRoute =
   ProjectsProjectIdWorkspaceRouteImport.update({
-    id: '/workspace',
-    path: '/workspace',
-    getParentRoute: () => ProjectsProjectIdRoute,
+    id: '/projects/$projectId/workspace',
+    path: '/projects/$projectId/workspace',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const OperationsOperationIdEditRoute =
   OperationsOperationIdEditRouteImport.update({
-    id: '/edit',
-    path: '/edit',
-    getParentRoute: () => OperationsOperationIdRoute,
+    id: '/operations/$operationId/edit',
+    path: '/operations/$operationId/edit',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -138,15 +139,15 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/jobs/$jobId': typeof JobsJobIdRoute
-  '/operations/$operationId': typeof OperationsOperationIdRouteWithChildren
   '/operations/new': typeof OperationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
   '/operations/': typeof OperationsIndexRoute
   '/pipelines/': typeof PipelinesIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/operations/$operationId/edit': typeof OperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
+  '/operations/$operationId/': typeof OperationsOperationIdIndexRoute
+  '/projects/$projectId/': typeof ProjectsProjectIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -158,15 +159,15 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/jobs/$jobId': typeof JobsJobIdRoute
-  '/operations/$operationId': typeof OperationsOperationIdRouteWithChildren
   '/operations/new': typeof OperationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
   '/operations': typeof OperationsIndexRoute
   '/pipelines': typeof PipelinesIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/operations/$operationId/edit': typeof OperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
+  '/operations/$operationId': typeof OperationsOperationIdIndexRoute
+  '/projects/$projectId': typeof ProjectsProjectIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -180,15 +181,15 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/jobs/$jobId': typeof JobsJobIdRoute
-  '/operations/$operationId': typeof OperationsOperationIdRouteWithChildren
   '/operations/new': typeof OperationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
   '/operations/': typeof OperationsIndexRoute
   '/pipelines/': typeof PipelinesIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/operations/$operationId/edit': typeof OperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
+  '/operations/$operationId/': typeof OperationsOperationIdIndexRoute
+  '/projects/$projectId/': typeof ProjectsProjectIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -203,15 +204,15 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skills'
     | '/jobs/$jobId'
-    | '/operations/$operationId'
     | '/operations/new'
     | '/pipelines/$pipelineId'
-    | '/projects/$projectId'
     | '/operations/'
     | '/pipelines/'
     | '/projects/'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
+    | '/operations/$operationId/'
+    | '/projects/$projectId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -223,15 +224,15 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skills'
     | '/jobs/$jobId'
-    | '/operations/$operationId'
     | '/operations/new'
     | '/pipelines/$pipelineId'
-    | '/projects/$projectId'
     | '/operations'
     | '/pipelines'
     | '/projects'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
+    | '/operations/$operationId'
+    | '/projects/$projectId'
   id:
     | '__root__'
     | '/'
@@ -244,15 +245,15 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skills'
     | '/jobs/$jobId'
-    | '/operations/$operationId'
     | '/operations/new'
     | '/pipelines/$pipelineId'
-    | '/projects/$projectId'
     | '/operations/'
     | '/pipelines/'
     | '/projects/'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
+    | '/operations/$operationId/'
+    | '/projects/$projectId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -265,11 +266,13 @@ export interface RootRouteChildren {
   RulesRoute: typeof RulesRoute
   SettingsRoute: typeof SettingsRoute
   SkillsRoute: typeof SkillsRoute
-  OperationsOperationIdRoute: typeof OperationsOperationIdRouteWithChildren
   OperationsNewRoute: typeof OperationsNewRoute
-  ProjectsProjectIdRoute: typeof ProjectsProjectIdRouteWithChildren
   OperationsIndexRoute: typeof OperationsIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
+  OperationsOperationIdEditRoute: typeof OperationsOperationIdEditRoute
+  ProjectsProjectIdWorkspaceRoute: typeof ProjectsProjectIdWorkspaceRoute
+  OperationsOperationIdIndexRoute: typeof OperationsOperationIdIndexRoute
+  ProjectsProjectIdIndexRoute: typeof ProjectsProjectIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -358,13 +361,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OperationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects/$projectId': {
-      id: '/projects/$projectId'
-      path: '/projects/$projectId'
-      fullPath: '/projects/$projectId'
-      preLoaderRoute: typeof ProjectsProjectIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/pipelines/$pipelineId': {
       id: '/pipelines/$pipelineId'
       path: '/$pipelineId'
@@ -379,13 +375,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OperationsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/operations/$operationId': {
-      id: '/operations/$operationId'
-      path: '/operations/$operationId'
-      fullPath: '/operations/$operationId'
-      preLoaderRoute: typeof OperationsOperationIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/jobs/$jobId': {
       id: '/jobs/$jobId'
       path: '/$jobId'
@@ -393,19 +382,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsJobIdRouteImport
       parentRoute: typeof JobsRoute
     }
+    '/projects/$projectId/': {
+      id: '/projects/$projectId/'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId/'
+      preLoaderRoute: typeof ProjectsProjectIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operations/$operationId/': {
+      id: '/operations/$operationId/'
+      path: '/operations/$operationId'
+      fullPath: '/operations/$operationId/'
+      preLoaderRoute: typeof OperationsOperationIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projects/$projectId/workspace': {
       id: '/projects/$projectId/workspace'
-      path: '/workspace'
+      path: '/projects/$projectId/workspace'
       fullPath: '/projects/$projectId/workspace'
       preLoaderRoute: typeof ProjectsProjectIdWorkspaceRouteImport
-      parentRoute: typeof ProjectsProjectIdRoute
+      parentRoute: typeof rootRouteImport
     }
     '/operations/$operationId/edit': {
       id: '/operations/$operationId/edit'
-      path: '/edit'
+      path: '/operations/$operationId/edit'
       fullPath: '/operations/$operationId/edit'
       preLoaderRoute: typeof OperationsOperationIdEditRouteImport
-      parentRoute: typeof OperationsOperationIdRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -434,30 +437,6 @@ const PipelinesRouteWithChildren = PipelinesRoute._addFileChildren(
   PipelinesRouteChildren,
 )
 
-interface OperationsOperationIdRouteChildren {
-  OperationsOperationIdEditRoute: typeof OperationsOperationIdEditRoute
-}
-
-const OperationsOperationIdRouteChildren: OperationsOperationIdRouteChildren = {
-  OperationsOperationIdEditRoute: OperationsOperationIdEditRoute,
-}
-
-const OperationsOperationIdRouteWithChildren =
-  OperationsOperationIdRoute._addFileChildren(
-    OperationsOperationIdRouteChildren,
-  )
-
-interface ProjectsProjectIdRouteChildren {
-  ProjectsProjectIdWorkspaceRoute: typeof ProjectsProjectIdWorkspaceRoute
-}
-
-const ProjectsProjectIdRouteChildren: ProjectsProjectIdRouteChildren = {
-  ProjectsProjectIdWorkspaceRoute: ProjectsProjectIdWorkspaceRoute,
-}
-
-const ProjectsProjectIdRouteWithChildren =
-  ProjectsProjectIdRoute._addFileChildren(ProjectsProjectIdRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssistantRoute: AssistantRoute,
@@ -468,11 +447,13 @@ const rootRouteChildren: RootRouteChildren = {
   RulesRoute: RulesRoute,
   SettingsRoute: SettingsRoute,
   SkillsRoute: SkillsRoute,
-  OperationsOperationIdRoute: OperationsOperationIdRouteWithChildren,
   OperationsNewRoute: OperationsNewRoute,
-  ProjectsProjectIdRoute: ProjectsProjectIdRouteWithChildren,
   OperationsIndexRoute: OperationsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
+  OperationsOperationIdEditRoute: OperationsOperationIdEditRoute,
+  ProjectsProjectIdWorkspaceRoute: ProjectsProjectIdWorkspaceRoute,
+  OperationsOperationIdIndexRoute: OperationsOperationIdIndexRoute,
+  ProjectsProjectIdIndexRoute: ProjectsProjectIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

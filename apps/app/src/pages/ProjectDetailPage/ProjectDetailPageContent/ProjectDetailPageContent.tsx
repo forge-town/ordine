@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Play, Clock, Wrench, ArrowLeft } from "lucide-react";
-import { Route } from "@/routes/projects.$projectId";
+import { Route } from "@/routes/projects.$projectId.index";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { WorkRow } from "../WorkRow";
@@ -27,18 +27,29 @@ export const ProjectDetailPageContent = () => {
     );
   }
 
-  const activeWorks = works.filter((w) => w.status === "pending" || w.status === "running");
-  const finishedWorks = works.filter((w) => w.status === "success" || w.status === "failed");
+  const activeWorks = works.filter(
+    (w) => w.status === "pending" || w.status === "running",
+  );
+  const finishedWorks = works.filter(
+    (w) => w.status === "success" || w.status === "failed",
+  );
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button className="h-8 w-8" size="icon" variant="ghost" onClick={handleNavigateProjects}>
+        <Button
+          className="h-8 w-8"
+          size="icon"
+          variant="ghost"
+          onClick={handleNavigateProjects}
+        >
           <ArrowLeft className="h-4 w-4 text-muted-foreground" />
         </Button>
         <div className="min-w-0 flex-1">
-          <h1 className="text-sm font-semibold text-foreground truncate">{project.name}</h1>
+          <h1 className="text-sm font-semibold text-foreground truncate">
+            {project.name}
+          </h1>
           <p className="text-xs text-muted-foreground truncate">
             {project.owner}/{project.repo}
           </p>
@@ -73,7 +84,10 @@ export const ProjectDetailPageContent = () => {
               color: "text-gray-700",
             },
           ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-border bg-card px-5 py-4">
+            <div
+              key={s.label}
+              className="rounded-xl border border-border bg-card px-5 py-4"
+            >
               <p className={cn("text-2xl font-bold", s.color)}>{s.value}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">{s.label}</p>
             </div>
@@ -97,11 +111,15 @@ export const ProjectDetailPageContent = () => {
 
         {/* History */}
         <section>
-          <h3 className="mb-3 text-sm font-semibold text-foreground">历史 Works</h3>
+          <h3 className="mb-3 text-sm font-semibold text-foreground">
+            历史 Works
+          </h3>
           {finishedWorks.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-10 text-center">
               <Clock className="h-8 w-8 text-muted-foreground/30" />
-              <p className="mt-2 text-sm text-muted-foreground">还没有执行记录</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                还没有执行记录
+              </p>
               <p className="mt-0.5 text-xs text-muted-foreground/60">
                 在工作区选择对象并触发 Pipeline
               </p>

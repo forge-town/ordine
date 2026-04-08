@@ -14,6 +14,7 @@ vi.mock("@/components/AppLayout", () => ({
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
+  createFileRoute: () => () => ({ useLoaderData: () => null }),
 }));
 
 vi.mock("@/services/operationsService", () => ({

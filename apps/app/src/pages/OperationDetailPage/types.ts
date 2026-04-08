@@ -14,7 +14,19 @@ export interface OutputPort {
   description: string;
 }
 
+export type ExecutorType = "skill" | "prompt" | "script";
+export type ScriptLanguage = "bash" | "python" | "javascript";
+
+export interface ExecutorConfig {
+  type: ExecutorType;
+  skillId?: string;
+  prompt?: string;
+  command?: string;
+  language?: ScriptLanguage;
+}
+
 export interface OperationConfig {
+  executor?: ExecutorConfig;
   inputs: InputPort[];
   outputs: OutputPort[];
 }
