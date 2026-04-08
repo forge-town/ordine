@@ -1,6 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
+import { Result } from "neverthrow";
 
 import en from "../locales/en.json";
 import zh from "../locales/zh.json";
@@ -20,11 +21,12 @@ const getSavedLanguage = (): string | undefined => {
   ).localStorage;
 
   if (ls && typeof ls.getItem === "function") {
-    try {
-      return ls.getItem("i18nextLng") ?? getCookie("i18next");
-    } catch {
-      return getCookie("i18next");
-    }
+    const safeGetItem = Result.fromThrowable(
+      (key: string) => ls.getItem!(key),
+      () => null,
+    );
+    const result = safeGetItem("i18nextLng");
+    return (result.isOk() ? result.value : null) ?? getCookie("i18next");
   }
   return getCookie("i18next");
 };

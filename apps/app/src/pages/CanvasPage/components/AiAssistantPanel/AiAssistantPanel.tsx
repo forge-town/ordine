@@ -7,6 +7,8 @@ import { ScrollArea } from "@repo/ui/scroll-area";
 import { Separator } from "@repo/ui/separator";
 import { cn } from "@repo/ui/lib/utils";
 import type { NodeType } from "../../nodeSchemas";
+import { safeJsonParse } from "@/lib/safeJson";
+import { ResultAsync } from "neverthrow";
 
 const MASTRA_BASE = "http://localhost:4111";
 const AGENT_ID = "harnessDesignAgent";
@@ -40,12 +42,10 @@ const parseActions = (
   let clean = text;
   let match;
   while ((match = regex.exec(text)) !== null) {
-    try {
-      const parsed = JSON.parse(match[1].trim()) as PipelineAction | PipelineAction[];
-      const list = Array.isArray(parsed) ? parsed : [parsed];
+    const parseResult = safeJsonParse<PipelineAction | PipelineAction[]>(match[1].trim());
+    if (parseResult.isOk()) {
+      const list = Array.isArray(parseResult.value) ? parseResult.value : [parseResult.value];
       actions.push(...list);
-    } catch {
-      // ignore malformed blocks
     }
     clean = clean.replace(match[0], "").trim();
   }
@@ -133,42 +133,46 @@ export const AiAssistantPanel = () => {
       edges: edges.map((e) => ({ source: e.source, target: e.target })),
     });
 
-    try {
-      const res = await fetch(`${MASTRA_BASE}/api/agents/${AGENT_ID}/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [
-            ...messages.map((m) => ({ role: m.role, content: m.content })),
-            {
-              role: "user",
-              content: `当前 Pipeline 状态:\n${pipelineContext}\n\n用户请求: ${userMsg.content}\n\n如果需要修改 Pipeline，请在回复末尾用 \`\`\`actions [...] \`\`\` JSON 块描述操作，支持的 type: addNode (需 nodeType, label, skillName?), clearCanvas, connectNodes (需 sourceId, targetId)。`,
-            },
-          ],
-        }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = (await res.json()) as { text?: string; content?: string };
-      const raw = data.text ?? data.content ?? "（无响应）";
-      const { clean, actions } = parseActions(raw);
-      actions.forEach(executePipelineAction);
-      setMessages((prev) => [
-        ...prev,
-        { id: `a-${Date.now()}`, role: "assistant", content: clean, actions },
-      ]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `a-${Date.now()}`,
-          role: "assistant",
-          content: "连接 Mastra 服务失败。请确保 `apps/mastra` 已在端口 4111 启动。",
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
+    const result = await ResultAsync.fromPromise(
+      (async () => {
+        const res = await fetch(`${MASTRA_BASE}/api/agents/${AGENT_ID}/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [
+              ...messages.map((m) => ({ role: m.role, content: m.content })),
+              {
+                role: "user",
+                content: `当前 Pipeline 状态:\n${pipelineContext}\n\n用户请求: ${userMsg.content}\n\n如果需要修改 Pipeline，请在回复末尾用 \`\`\`actions [...] \`\`\` JSON 块描述操作，支持的 type: addNode (需 nodeType, label, skillName?), clearCanvas, connectNodes (需 sourceId, targetId)。`,
+              },
+            ],
+          }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return (await res.json()) as { text?: string; content?: string };
+      })(),
+      () => "连接 Mastra 服务失败。请确保 `apps/mastra` 已在端口 4111 启动。"
+    );
+
+    result.match(
+      (data) => {
+        const raw = data.text ?? data.content ?? "（无响应）";
+        const { clean, actions } = parseActions(raw);
+        actions.forEach(executePipelineAction);
+        setMessages((prev) => [
+          ...prev,
+          { id: `a-${Date.now()}`, role: "assistant", content: clean, actions },
+        ]);
+      },
+      (errorMsg) => {
+        setMessages((prev) => [
+          ...prev,
+          { id: `a-${Date.now()}`, role: "assistant", content: errorMsg },
+        ]);
+      }
+    );
+    setIsLoading(false);
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   const handleChangeInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value);

@@ -9,6 +9,7 @@ import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import { ResultAsync } from "neverthrow";
 
 export type CreateProjectDialogProps = {
   onClose: () => void;
@@ -33,21 +34,22 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
     }
     setLoading(true);
     setError(null);
-    try {
-      const info = await fetchRepoInfo(parsed.owner, parsed.repo, token ?? undefined);
-      setRepoInfo(info);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : t("projects.fetchFailed"));
-    } finally {
-      setLoading(false);
-    }
+    const result = await ResultAsync.fromPromise(
+      fetchRepoInfo(parsed.owner, parsed.repo, token ?? undefined),
+      (e) => (e instanceof Error ? e.message : t("projects.fetchFailed"))
+    );
+    result.match(
+      (info) => setRepoInfo(info),
+      (errorMsg) => setError(errorMsg)
+    );
+    setLoading(false);
   };
 
   const handleSave = async () => {
     if (!repoInfo) return;
     setSaving(true);
-    try {
-      const project = await createGithubProject({
+    const result = await ResultAsync.fromPromise(
+      createGithubProject({
         data: {
           id: `proj-${Date.now()}`,
           name: repoInfo.fullName,
@@ -58,14 +60,17 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
           githubUrl: `https://github.com/${repoInfo.fullName}`,
           isPrivate: repoInfo.isPrivate ?? false,
         },
-      });
-      onCreate(project as GithubProjectEntity);
-      onClose();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : t("projects.saveFailed"));
-    } finally {
-      setSaving(false);
-    }
+      }),
+      (e) => (e instanceof Error ? e.message : t("projects.saveFailed"))
+    );
+    result.match(
+      (project) => {
+        onCreate(project as GithubProjectEntity);
+        onClose();
+      },
+      (errorMsg) => setError(errorMsg)
+    );
+    setSaving(false);
   };
 
   const handleOpenTokenDialog = () => setShowTokenDialog(true);

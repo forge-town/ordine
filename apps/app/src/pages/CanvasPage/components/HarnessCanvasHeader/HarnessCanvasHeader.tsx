@@ -6,6 +6,7 @@ import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { useHarnessCanvasStore } from "../../_store";
 import { updatePipeline } from "@/services/pipelinesService";
+import { ResultAsync } from "neverthrow";
 
 const handleNavigateSettings = () => void (globalThis.location.href = "/settings");
 
@@ -22,8 +23,8 @@ export const HarnessCanvasHeader = () => {
   const handleSave = async () => {
     if (!pipelineId) return;
     setSaveState("saving");
-    try {
-      await updatePipeline({
+    const result = await ResultAsync.fromPromise(
+      updatePipeline({
         data: {
           id: pipelineId,
           patch: {
@@ -32,12 +33,16 @@ export const HarnessCanvasHeader = () => {
             updatedAt: Date.now(),
           },
         },
-      });
-      setSaveState("saved");
-      setTimeout(() => setSaveState("idle"), 2000);
-    } catch {
-      setSaveState("idle");
-    }
+      }),
+      () => "save-failed" as const
+    );
+    result.match(
+      () => {
+        setSaveState("saved");
+        setTimeout(() => setSaveState("idle"), 2000);
+      },
+      () => setSaveState("idle")
+    );
   };
 
   const handleClickSave = () => void handleSave();

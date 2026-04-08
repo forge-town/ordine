@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { operationsDao } from "@/models/daos/operationsDao";
 import { VISIBILITY_OPTIONS, OBJECT_TYPES } from "@/models/tables/operations_table";
+import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const VisibilityEnum = z.enum(VISIBILITY_OPTIONS);
 const ObjectTypeEnum = z.enum(OBJECT_TYPES);
@@ -16,14 +17,6 @@ const CreateOperationSchema = z.object({
   acceptedObjectTypes: z.array(ObjectTypeEnum).default(["file", "folder", "project"]),
 });
 
-const json = (data: unknown, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-
-const error = (message: string, status: number) => json({ error: message }, status);
-
 export const Route = createFileRoute("/api/operations")({
   server: {
     handlers: {
@@ -33,16 +26,12 @@ export const Route = createFileRoute("/api/operations")({
       },
 
       POST: async ({ request }) => {
-        let body: unknown;
-        try {
-          body = await request.json();
-        } catch {
-          return error("Invalid JSON body", 400);
-        }
+        const bodyResult = await parseJsonBody(request);
+        if (bodyResult.isErr()) return bodyResult.error;
 
-        const parsed = CreateOperationSchema.safeParse(body);
+        const parsed = CreateOperationSchema.safeParse(bodyResult.value);
         if (!parsed.success) {
-          return error(parsed.error.message, 400);
+          return errorResponse(parsed.error.message, 400);
         }
 
         const operation = await operationsDao.create(parsed.data);

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { User, Bell, Palette, Globe, Shield, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
+import { safeJsonParse } from "@/lib/safeJson";
 import {
   AppearanceSection,
   LanguageSection,
@@ -73,24 +74,15 @@ const defaultSettings: AppSettings = {
 };
 
 const loadSettings = (): AppSettings => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<AppSettings>;
-      return { ...defaultSettings, ...parsed };
-    }
-  } catch {
-    // ignore
-  }
-  return defaultSettings;
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return defaultSettings;
+  const result = safeJsonParse<Partial<AppSettings>>(raw);
+  if (result.isErr()) return defaultSettings;
+  return { ...defaultSettings, ...result.value };
 };
 
 const saveSettings = (settings: AppSettings) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  } catch {
-    // ignore
-  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 };
 
 export const SettingsPageContent = () => {

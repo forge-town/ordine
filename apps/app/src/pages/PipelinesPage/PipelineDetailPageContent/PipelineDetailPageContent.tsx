@@ -25,6 +25,7 @@ import "@xyflow/react/dist/style.css";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import { ResultAsync } from "neverthrow";
 import type { PipelineEntity } from "@/models/daos/pipelinesDao";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { PipelineNode } from "@/models/types/pipelineGraph";
@@ -125,21 +126,29 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
     setLogs([]);
     setRunError(null);
     setJobId(null);
-    try {
-      const res = await fetch(`/api/pipelines/${pipeline.id}/run`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inputPath: inputPath || undefined }),
-      });
-      const data = (await res.json()) as { jobId?: string; error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Failed to start pipeline");
-      const id = data.jobId!;
-      setJobId(id);
-      await pollJob(id);
-    } catch (error) {
-      setRunState("failed");
-      setRunError(error instanceof Error ? error.message : String(error));
-    }
+    const result = await ResultAsync.fromPromise(
+      (async () => {
+        const res = await fetch(`/api/pipelines/${pipeline.id}/run`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ inputPath: inputPath || undefined }),
+        });
+        const data = (await res.json()) as { jobId?: string; error?: string };
+        if (!res.ok) throw new Error(data.error ?? "Failed to start pipeline");
+        return data.jobId!;
+      })(),
+      (e) => (e instanceof Error ? e.message : String(e))
+    );
+    await result.match(
+      async (id) => {
+        setJobId(id);
+        await pollJob(id);
+      },
+      async (errorMsg) => {
+        setRunState("failed");
+        setRunError(errorMsg);
+      }
+    );
   };
 
   const handleInputPathChange = (e: React.ChangeEvent<HTMLInputElement>) => {

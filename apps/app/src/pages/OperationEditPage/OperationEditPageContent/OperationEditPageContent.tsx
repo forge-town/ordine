@@ -26,6 +26,7 @@ import {
   ScriptLanguageSchema as ScriptLanguageEnum,
   type ExecutorType,
 } from "@/schemas";
+import { safeJsonParse } from "@/lib/safeJson";
 
 const CATEGORIES = ["general", "lint", "format", "build", "test", "deploy", "custom"] as const;
 
@@ -82,38 +83,32 @@ const parseExecutorDefaults = (
   scriptCommand: string;
   scriptLanguage: "bash" | "python" | "javascript";
 } => {
-  try {
-    const parsed = JSON.parse(config) as { executor?: Record<string, string> };
-    const ex = parsed.executor;
-    if (!ex)
-      return {
-        executorType: "script",
-        skillId: "",
-        promptText: "",
-        scriptCommand: "",
-        scriptLanguage: "bash",
-      };
-    const exType = ["skill", "prompt", "script"].includes(ex.type ?? "")
-      ? (ex.type as ExecutorType)
-      : "script";
-    return {
-      executorType: exType,
-      skillId: ex.skillId ?? "",
-      promptText: ex.prompt ?? "",
-      scriptCommand: ex.command ?? "",
-      scriptLanguage: (["bash", "python", "javascript"].includes(ex.language ?? "")
-        ? ex.language
-        : "bash") as "bash" | "python" | "javascript",
-    };
-  } catch {
-    return {
-      executorType: "script",
-      skillId: "",
-      promptText: "",
-      scriptCommand: "",
-      scriptLanguage: "bash",
-    };
-  }
+  const defaults = {
+    executorType: "script" as ExecutorType,
+    skillId: "",
+    promptText: "",
+    scriptCommand: "",
+    scriptLanguage: "bash" as "bash" | "python" | "javascript",
+  };
+
+  const result = safeJsonParse<{ executor?: Record<string, string> }>(config);
+  if (result.isErr()) return defaults;
+
+  const ex = result.value.executor;
+  if (!ex) return defaults;
+
+  const exType = ["skill", "prompt", "script"].includes(ex.type ?? "")
+    ? (ex.type as ExecutorType)
+    : "script";
+  return {
+    executorType: exType,
+    skillId: ex.skillId ?? "",
+    promptText: ex.prompt ?? "",
+    scriptCommand: ex.command ?? "",
+    scriptLanguage: (["bash", "python", "javascript"].includes(ex.language ?? "")
+      ? ex.language
+      : "bash") as "bash" | "python" | "javascript",
+  };
 };
 
 type EditFormValues = z.infer<typeof editFormSchema>;

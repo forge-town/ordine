@@ -1,6 +1,10 @@
+import { Result, ResultAsync } from "neverthrow";
+
 const GITHUB_API_BASE = "https://api.github.com";
 
-export type GitHubTokenStatus = { valid: true; login: string } | { valid: false; error: string };
+export type GitHubTokenStatus =
+  | { valid: true; login: string }
+  | { valid: false; error: string };
 
 export interface GitHubRepoInfo {
   owner: string;
@@ -22,47 +26,54 @@ export const getGitHubHeaders = (token?: string | null): HeadersInit => {
   return headers;
 };
 
-export const verifyGitHubToken = async (token: string | null): Promise<GitHubTokenStatus> => {
+export const verifyGitHubToken = async (
+  token: string | null,
+): Promise<GitHubTokenStatus> => {
   if (!token?.trim()) {
     return { valid: false, error: "TOKEN_EMPTY:Token 不能为空" };
   }
 
-  try {
-    const res = await fetch(`${GITHUB_API_BASE}/user`, {
+  const result = await ResultAsync.fromPromise(
+    fetch(`${GITHUB_API_BASE}/user`, {
       headers: getGitHubHeaders(token),
-    });
+    }),
+    () => "NETWORK_ERROR:网络错误，无法验证 Token",
+  );
 
-    if (res.ok) {
-      const data = await res.json();
-      return { valid: true, login: data.login as string };
-    }
+  if (result.isErr()) {
+    return { valid: false, error: result.error };
+  }
 
-    if (res.status === 401) {
-      return {
-        valid: false,
-        error: "AUTH_FAILED:Token 无效或已过期，请重新配置",
-      };
-    }
+  const res = result.value;
 
-    if (res.status === 403) {
-      const data = await res.json().catch(() => ({}));
-      const msg = (data as { message?: string }).message ?? "";
-      if (msg.toLowerCase().includes("rate limit")) {
-        return {
-          valid: false,
-          error: "RATE_LIMIT:GitHub API 已达到限流，请稍后再试",
-        };
-      }
-      return { valid: false, error: "AUTH_FAILED:Token 权限不足或被禁用" };
-    }
+  if (res.ok) {
+    const data = await res.json();
+    return { valid: true, login: data.login as string };
+  }
 
+  if (res.status === 401) {
     return {
       valid: false,
-      error: `AUTH_FAILED:验证失败 (状态码: ${res.status})`,
+      error: "AUTH_FAILED:Token 无效或已过期，请重新配置",
     };
-  } catch {
-    return { valid: false, error: "NETWORK_ERROR:网络错误，无法验证 Token" };
   }
+
+  if (res.status === 403) {
+    const data = await res.json().catch(() => ({}));
+    const msg = (data as { message?: string }).message ?? "";
+    if (msg.toLowerCase().includes("rate limit")) {
+      return {
+        valid: false,
+        error: "RATE_LIMIT:GitHub API 已达到限流，请稍后再试",
+      };
+    }
+    return { valid: false, error: "AUTH_FAILED:Token 权限不足或被禁用" };
+  }
+
+  return {
+    valid: false,
+    error: `AUTH_FAILED:验证失败 (状态码: ${res.status})`,
+  };
 };
 
 export interface ParsedGitHubUrl {
@@ -72,30 +83,34 @@ export interface ParsedGitHubUrl {
 }
 
 export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
-  try {
-    const parsed = new URL(url.trim());
-    if (parsed.hostname !== "github.com") return null;
+  const urlResult = Result.fromThrowable(
+    () => new URL(url.trim()),
+    () => null,
+  )();
+  if (urlResult.isErr()) return null;
 
-    const parts = parsed.pathname.split("/").filter(Boolean);
-    if (parts.length < 2) return null;
+  const parsed = urlResult.value;
+  if (parsed.hostname !== "github.com") return null;
 
-    const [owner, repo, treeKeyword, ...branchParts] = parts;
-    if (!owner || !repo) return null;
+  const parts = parsed.pathname.split("/").filter(Boolean);
+  if (parts.length < 2) return null;
 
-    const branch =
-      treeKeyword === "tree" && branchParts.length > 0 ? branchParts.join("/") : undefined;
+  const [owner, repo, treeKeyword, ...branchParts] = parts;
+  if (!owner || !repo) return null;
 
-    return { owner, repo, branch };
-  } catch {
-    return null;
-  }
+  const branch =
+    treeKeyword === "tree" && branchParts.length > 0
+      ? branchParts.join("/")
+      : undefined;
+
+  return { owner, repo, branch };
 };
 
 export const fetchRepoInfo = async (
   owner: string,
   repo: string,
   token?: string | null,
-  branchHint?: string
+  branchHint?: string,
 ): Promise<GitHubRepoInfo> => {
   const headers = getGitHubHeaders(token);
 
@@ -108,7 +123,7 @@ export const fetchRepoInfo = async (
       throw new Error(
         token
           ? "仓库不存在，请检查 owner/repo 是否正确"
-          : "仓库不存在或为私有仓库，请先配置 GitHub Token"
+          : "仓库不存在或为私有仓库，请先配置 GitHub Token",
       );
     }
     if (repoRes.status === 401 || repoRes.status === 403) {

@@ -24,6 +24,7 @@ import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
 import { OutputPortRow } from "../OutputPortRow";
 import type { OperationConfig, ExecutorConfig } from "../types";
+import { safeJsonParse } from "@/lib/safeJson";
 
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
@@ -44,16 +45,14 @@ const EXECUTOR_LABEL: Record<string, string> = {
 };
 
 const parseConfig = (raw: string): OperationConfig => {
-  try {
-    const parsed = JSON.parse(raw) as Partial<OperationConfig>;
-    return {
-      executor: parsed.executor,
-      inputs: Array.isArray(parsed.inputs) ? parsed.inputs : [],
-      outputs: Array.isArray(parsed.outputs) ? parsed.outputs : [],
-    };
-  } catch {
-    return { inputs: [], outputs: [] };
-  }
+  const result = safeJsonParse<Partial<OperationConfig>>(raw);
+  if (result.isErr()) return { inputs: [], outputs: [] };
+  const parsed = result.value;
+  return {
+    executor: parsed.executor,
+    inputs: Array.isArray(parsed.inputs) ? parsed.inputs : [],
+    outputs: Array.isArray(parsed.outputs) ? parsed.outputs : [],
+  };
 };
 
 const ExecutorCard = ({ executor }: { executor: ExecutorConfig }) => {

@@ -1,19 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SkillSchema } from "@/schemas";
 import { skillsDao } from "@/models/daos/skillsDao";
+import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const CreateSkillSchema = SkillSchema.omit({
   createdAt: true,
   updatedAt: true,
 });
-
-const json = (data: unknown, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-
-const error = (message: string, status: number) => json({ error: message }, status);
 
 export const Route = createFileRoute("/api/skills")({
   server: {
@@ -25,16 +18,12 @@ export const Route = createFileRoute("/api/skills")({
       },
 
       POST: async ({ request }) => {
-        let body: unknown;
-        try {
-          body = await request.json();
-        } catch {
-          return error("Invalid JSON body", 400);
-        }
+        const bodyResult = await parseJsonBody(request);
+        if (bodyResult.isErr()) return bodyResult.error;
 
-        const parsed = CreateSkillSchema.safeParse(body);
+        const parsed = CreateSkillSchema.safeParse(bodyResult.value);
         if (!parsed.success) {
-          return error(parsed.error.message, 400);
+          return errorResponse(parsed.error.message, 400);
         }
 
         const skill = await skillsDao.create(parsed.data);

@@ -1,24 +1,33 @@
 import { useState, useCallback } from "react";
+import { Result } from "neverthrow";
 
 const STORAGE_KEY = "github_personal_access_token";
 
+const safeGetItem = Result.fromThrowable(
+  (key: string) => localStorage.getItem(key),
+  () => null,
+);
+
+const safeSetItem = Result.fromThrowable(
+  (key: string, value: string) => localStorage.setItem(key, value),
+  () => undefined,
+);
+
+const safeRemoveItem = Result.fromThrowable(
+  (key: string) => localStorage.removeItem(key),
+  () => undefined,
+);
+
 const readToken = (): string | null => {
-  try {
-    return localStorage.getItem(STORAGE_KEY);
-  } catch {
-    return null;
-  }
+  const result = safeGetItem(STORAGE_KEY);
+  return result.isOk() ? result.value : null;
 };
 
 const writeToken = (token: string | null): void => {
-  try {
-    if (token) {
-      localStorage.setItem(STORAGE_KEY, token);
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  } catch {
-    // storage not available
+  if (token) {
+    safeSetItem(STORAGE_KEY, token);
+  } else {
+    safeRemoveItem(STORAGE_KEY);
   }
 };
 

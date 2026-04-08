@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { jobsDao } from "@/models/daos/jobsDao";
 import { JobStatusSchema, JobTypeSchema } from "@/schemas";
+import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const CreateJobSchema = z.object({
   id: z.string(),
@@ -24,14 +25,6 @@ const CreateJobSchema = z.object({
   finishedAt: z.number().nullable().default(null),
 });
 
-const json = (data: unknown, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-
-const error = (message: string, status: number) => json({ error: message }, status);
-
 export const Route = createFileRoute("/api/jobs")({
   server: {
     handlers: {
@@ -51,16 +44,12 @@ export const Route = createFileRoute("/api/jobs")({
       },
 
       POST: async ({ request }) => {
-        let body: unknown;
-        try {
-          body = await request.json();
-        } catch {
-          return error("Invalid JSON body", 400);
-        }
+        const bodyResult = await parseJsonBody(request);
+        if (bodyResult.isErr()) return bodyResult.error;
 
-        const parsed = CreateJobSchema.safeParse(body);
+        const parsed = CreateJobSchema.safeParse(bodyResult.value);
         if (!parsed.success) {
-          return error(parsed.error.message, 400);
+          return errorResponse(parsed.error.message, 400);
         }
 
         const job = await jobsDao.create(parsed.data);

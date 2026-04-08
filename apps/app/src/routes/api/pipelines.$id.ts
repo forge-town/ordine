@@ -1,37 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PipelineSchema } from "@/schemas";
 import { pipelinesDao } from "@/models/daos/pipelinesDao";
+import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const UpdatePipelineSchema = PipelineSchema.partial().omit({ id: true });
-
-const json = (data: unknown, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-
-const error = (message: string, status: number) => json({ error: message }, status);
 
 export const Route = createFileRoute("/api/pipelines/$id")({
   server: {
     handlers: {
       GET: async ({ params }) => {
         const pipeline = await pipelinesDao.findById(params.id);
-        if (!pipeline) return error("Pipeline not found", 404);
+        if (!pipeline) return errorResponse("Pipeline not found", 404);
         return json(pipeline);
       },
 
       PATCH: async ({ request, params }) => {
-        let body: unknown;
-        try {
-          body = await request.json();
-        } catch {
-          return error("Invalid JSON body", 400);
-        }
+        const bodyResult = await parseJsonBody(request);
+        if (bodyResult.isErr()) return bodyResult.error;
 
-        const parsed = UpdatePipelineSchema.safeParse(body);
+        const parsed = UpdatePipelineSchema.safeParse(bodyResult.value);
         if (!parsed.success) {
-          return error(parsed.error.message, 400);
+          return errorResponse(parsed.error.message, 400);
         }
 
         const pipeline = await pipelinesDao.update(params.id, {
@@ -44,7 +33,7 @@ export const Route = createFileRoute("/api/pipelines/$id")({
 
       DELETE: async ({ params }) => {
         const existing = await pipelinesDao.findById(params.id);
-        if (!existing) return error("Pipeline not found", 404);
+        if (!existing) return errorResponse("Pipeline not found", 404);
         await pipelinesDao.delete(params.id);
         return new Response(null, { status: 204 });
       },

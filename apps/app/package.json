@@ -48,6 +48,7 @@
     "i18next-browser-languagedetector": "^8.2.1",
     "immer": "^11.1.4",
     "lucide-react": "^1.7.0",
+    "neverthrow": "^8.2.0",
     "postgres": "^3.4.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialo
 import { parseGitHubUrl, fetchRepoInfo, type GitHubRepoInfo } from "@/lib/githubApi";
 import { useGithubToken } from "@/hooks/useGithubToken";
 import { GitHubTokenDialog } from "./GitHubTokenDialog";
+import { ResultAsync } from "neverthrow";
 
 export interface ConnectedRepoInfo {
   owner: string;
@@ -41,20 +42,25 @@ export const GitHubConnectDialog = ({
     setError(null);
     setLoading(true);
 
-    try {
-      const parsed = parseGitHubUrl(url);
-      if (!parsed) {
-        throw new Error("无法解析 GitHub URL，请输入完整的仓库链接");
-      }
-
-      const info = await fetchRepoInfo(parsed.owner, parsed.repo, token, parsed.branch);
-      setRepoInfo(info);
-      setStep("confirm");
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "获取仓库信息失败");
-    } finally {
+    const parsed = parseGitHubUrl(url);
+    if (!parsed) {
+      setError("无法解析 GitHub URL，请输入完整的仓库链接");
       setLoading(false);
+      return;
     }
+
+    const result = await ResultAsync.fromPromise(
+      fetchRepoInfo(parsed.owner, parsed.repo, token, parsed.branch),
+      (e) => (e instanceof Error ? e.message : "获取仓库信息失败")
+    );
+    result.match(
+      (info) => {
+        setRepoInfo(info);
+        setStep("confirm");
+      },
+      (errorMsg) => setError(errorMsg)
+    );
+    setLoading(false);
   };
 
   const handleConfirm = () => {

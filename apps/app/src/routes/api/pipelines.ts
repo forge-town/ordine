@@ -1,20 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PipelineSchema } from "@/schemas";
 import { pipelinesDao } from "@/models/daos/pipelinesDao";
+import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const CreatePipelineSchema = PipelineSchema.omit({
   createdAt: true,
   updatedAt: true,
   nodeCount: true,
 });
-
-const json = (data: unknown, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-
-const error = (message: string, status: number) => json({ error: message }, status);
 
 export const Route = createFileRoute("/api/pipelines")({
   server: {
@@ -25,16 +18,12 @@ export const Route = createFileRoute("/api/pipelines")({
       },
 
       POST: async ({ request }) => {
-        let body: unknown;
-        try {
-          body = await request.json();
-        } catch {
-          return error("Invalid JSON body", 400);
-        }
+        const bodyResult = await parseJsonBody(request);
+        if (bodyResult.isErr()) return bodyResult.error;
 
-        const parsed = CreatePipelineSchema.safeParse(body);
+        const parsed = CreatePipelineSchema.safeParse(bodyResult.value);
         if (!parsed.success) {
-          return error(parsed.error.message, 400);
+          return errorResponse(parsed.error.message, 400);
         }
 
         const pipeline = await pipelinesDao.create({

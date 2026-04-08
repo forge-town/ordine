@@ -1,16 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BestPracticeSchema } from "@/schemas";
 import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
+import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const CreateBestPracticeSchema = BestPracticeSchema;
-
-const json = (data: unknown, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-
-const error = (message: string, status: number) => json({ error: message }, status);
 
 export const Route = createFileRoute("/api/best-practices")({
   server: {
@@ -21,16 +14,12 @@ export const Route = createFileRoute("/api/best-practices")({
       },
 
       POST: async ({ request }) => {
-        let body: unknown;
-        try {
-          body = await request.json();
-        } catch {
-          return error("Invalid JSON body", 400);
-        }
+        const bodyResult = await parseJsonBody(request);
+        if (bodyResult.isErr()) return bodyResult.error;
 
-        const parsed = CreateBestPracticeSchema.safeParse(body);
+        const parsed = CreateBestPracticeSchema.safeParse(bodyResult.value);
         if (!parsed.success) {
-          return error(parsed.error.message, 400);
+          return errorResponse(parsed.error.message, 400);
         }
 
         const practice = await bestPracticesDao.create(parsed.data);
