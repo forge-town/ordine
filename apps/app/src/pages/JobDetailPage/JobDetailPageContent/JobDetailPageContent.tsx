@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { JobEntity } from "@/models/daos/jobsDao";
 import type { JobStatus, JobType } from "@/models/tables/jobs_table";
-import { Route } from "@/routes/jobs.$jobId";
+import { Route } from "@/routes/_layout/jobs.$jobId";
 
 const STATUS_CONFIG: Record<
   JobStatus,

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Search, Folder } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Route } from "@/routes/projects.index";
+import { Route } from "@/routes/_layout/projects.index";
 import { deleteGithubProject } from "@/services/githubProjectsService";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 import { Button } from "@repo/ui/button";

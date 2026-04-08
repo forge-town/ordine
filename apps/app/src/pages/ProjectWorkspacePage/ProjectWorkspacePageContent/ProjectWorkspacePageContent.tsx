@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, FolderGit2, ChevronRight, Play, GitBranch, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Route } from "@/routes/projects.$projectId.workspace";
+import { Route } from "@/routes/_layout/projects.$projectId.workspace";
 import { createWork } from "@/services/worksService";
 import { Button } from "@repo/ui/button";
 import { ObjectRow, type ObjectItem } from "../ObjectRow";

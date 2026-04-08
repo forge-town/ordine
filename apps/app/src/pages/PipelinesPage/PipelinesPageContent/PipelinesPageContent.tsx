@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Plus, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import { Route } from "@/routes/pipelines.index";
+import { Route } from "@/routes/_layout/pipelines.index";
 import { createPipeline, deletePipeline } from "@/services/pipelinesService";
 import type { StoredPipeline } from "@/models/daos/pipelinesDao";
 import { PipelineCard } from "../components/PipelineCard";

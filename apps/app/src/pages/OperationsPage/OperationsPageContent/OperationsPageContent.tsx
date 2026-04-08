@@ -61,7 +61,7 @@ const exportOperation = (op: OperationEntity) => {
 
 export const OperationsPageContent = () => {
   const initialOperations = useLoaderData({
-    from: "/operations/",
+    from: "/_layout/operations/",
   }) as OperationEntity[];
   type SortKey =
     | "default"

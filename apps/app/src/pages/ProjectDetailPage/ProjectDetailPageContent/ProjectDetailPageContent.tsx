@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Play, Clock, Wrench, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Route } from "@/routes/projects.$projectId.index";
+import { Route } from "@/routes/_layout/projects.$projectId.index";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { WorkRow } from "../WorkRow";

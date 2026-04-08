@@ -6,7 +6,11 @@ import type { OperationEntity } from "@/models/daos/operationsDao";
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
-  Link: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
+  useLoaderData: () => ops,
+  Link: ({
+    children,
+    ...props
+  }: React.PropsWithChildren<Record<string, unknown>>) => (
     <a {...props}>{children}</a>
   ),
 }));
@@ -17,7 +21,11 @@ vi.mock("@/services/operationsService", () => ({
   deleteOperation: vi.fn(),
 }));
 
-const makeOp = (id: string, name: string, description: string | null): OperationEntity => ({
+const makeOp = (
+  id: string,
+  name: string,
+  description: string | null,
+): OperationEntity => ({
   id,
   name,
   description,
@@ -37,12 +45,12 @@ const ops: OperationEntity[] = [
 
 describe("OperationsPageContent – search", () => {
   it("renders a search input", () => {
-    render(<OperationsPageContent initialOperations={ops} />);
+    render(<OperationsPageContent />);
     expect(screen.getByPlaceholderText(/搜索/i)).toBeInTheDocument();
   });
 
   it("shows all ops when search is empty", () => {
-    render(<OperationsPageContent initialOperations={ops} />);
+    render(<OperationsPageContent />);
     expect(screen.getByText("Constitution Plan")).toBeInTheDocument();
     expect(screen.getByText("Run ESLint")).toBeInTheDocument();
     expect(screen.getByText("Deploy Build")).toBeInTheDocument();
@@ -50,7 +58,7 @@ describe("OperationsPageContent – search", () => {
 
   it("filters by name (case-insensitive)", async () => {
     const user = userEvent.setup();
-    render(<OperationsPageContent initialOperations={ops} />);
+    render(<OperationsPageContent />);
     await user.type(screen.getByPlaceholderText(/搜索/i), "eslint");
     expect(screen.getByText("Run ESLint")).toBeInTheDocument();
     expect(screen.queryByText("Constitution Plan")).not.toBeInTheDocument();
@@ -59,7 +67,7 @@ describe("OperationsPageContent – search", () => {
 
   it("filters by description (case-insensitive)", async () => {
     const user = userEvent.setup();
-    render(<OperationsPageContent initialOperations={ops} />);
+    render(<OperationsPageContent />);
     await user.type(screen.getByPlaceholderText(/搜索/i), "principles");
     expect(screen.getByText("Constitution Plan")).toBeInTheDocument();
     expect(screen.queryByText("Run ESLint")).not.toBeInTheDocument();
@@ -67,14 +75,14 @@ describe("OperationsPageContent – search", () => {
 
   it("shows empty message when no ops match search", async () => {
     const user = userEvent.setup();
-    render(<OperationsPageContent initialOperations={ops} />);
+    render(<OperationsPageContent />);
     await user.type(screen.getByPlaceholderText(/搜索/i), "zzznomatch");
     expect(screen.getByText(/没有找到/i)).toBeInTheDocument();
   });
 
   it("clears search and shows all ops again", async () => {
     const user = userEvent.setup();
-    render(<OperationsPageContent initialOperations={ops} />);
+    render(<OperationsPageContent />);
     const input = screen.getByPlaceholderText(/搜索/i);
     await user.type(input, "eslint");
     await user.clear(input);

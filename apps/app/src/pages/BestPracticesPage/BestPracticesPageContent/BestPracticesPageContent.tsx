@@ -5,7 +5,7 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import { deleteBestPractice } from "@/services/bestPracticesService";
-import { Route } from "@/routes/best-practices";
+import { Route } from "@/routes/_layout/best-practices";
 import { CATEGORIES } from "../constants";
 import { PracticeFormDialog } from "../PracticeFormDialog";
 import { PracticeCard } from "../PracticeCard";

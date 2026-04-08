@@ -3,6 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import { OperationDetailPageContent } from "./OperationDetailPageContent";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 
+const mockUseLoaderData = vi.fn();
+
+vi.mock("@/routes/_layout/operations.$operationId.index", () => ({
+  Route: { useLoaderData: () => mockUseLoaderData() },
+}));
+
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
@@ -25,12 +31,14 @@ const baseOp: OperationEntity = {
 
 describe("OperationDetailPageContent – executor display", () => {
   it("shows executor section when config has an executor", () => {
-    render(<OperationDetailPageContent operation={baseOp} />);
+    mockUseLoaderData.mockReturnValue(baseOp);
+    render(<OperationDetailPageContent />);
     expect(screen.getByText(/执行方式/i)).toBeInTheDocument();
   });
 
   it("shows script command when executor type is script", () => {
-    render(<OperationDetailPageContent operation={baseOp} />);
+    mockUseLoaderData.mockReturnValue(baseOp);
+    render(<OperationDetailPageContent />);
     expect(screen.getByText("eslint src/")).toBeInTheDocument();
   });
 
@@ -43,7 +51,8 @@ describe("OperationDetailPageContent – executor display", () => {
         outputs: [],
       }),
     };
-    render(<OperationDetailPageContent operation={op} />);
+    mockUseLoaderData.mockReturnValue(op);
+    render(<OperationDetailPageContent />);
     expect(screen.getByText("lint-check")).toBeInTheDocument();
   });
 
@@ -56,12 +65,14 @@ describe("OperationDetailPageContent – executor display", () => {
         outputs: [],
       }),
     };
-    render(<OperationDetailPageContent operation={op} />);
+    mockUseLoaderData.mockReturnValue(op);
+    render(<OperationDetailPageContent />);
     expect(screen.getByText("You are a code reviewer")).toBeInTheDocument();
   });
 
   it("does not render a visibility badge", () => {
-    render(<OperationDetailPageContent operation={baseOp} />);
+    mockUseLoaderData.mockReturnValue(baseOp);
+    render(<OperationDetailPageContent />);
     expect(screen.queryByText("public")).not.toBeInTheDocument();
     expect(screen.queryByText("private")).not.toBeInTheDocument();
     expect(screen.queryByText("team")).not.toBeInTheDocument();

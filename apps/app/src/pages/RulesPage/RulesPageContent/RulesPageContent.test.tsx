@@ -2,6 +2,10 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { RulesPageContent } from "./RulesPageContent";
 
+vi.mock("@tanstack/react-router", () => ({
+  useLoaderData: () => [],
+}));
+
 vi.mock("@/services/rulesService", () => ({
   createRule: vi.fn(),
   updateRule: vi.fn(),
@@ -19,22 +23,22 @@ vi.mock("../RuleForm", () => ({
 
 describe("RulesPageContent", () => {
   it("renders empty state when no rules", () => {
-    render(<RulesPageContent rules={[]} />);
+    render(<RulesPageContent />);
     expect(screen.getByText("暂无规则")).toBeTruthy();
   });
 
   it("renders header with Rules title", () => {
-    render(<RulesPageContent rules={[]} />);
+    render(<RulesPageContent />);
     expect(screen.getByText("Rules")).toBeTruthy();
   });
 
   it("renders count badge", () => {
-    render(<RulesPageContent rules={[]} />);
+    render(<RulesPageContent />);
     expect(screen.getByText("0 启用 / 0 总计")).toBeTruthy();
   });
 
   it("renders add button", () => {
-    render(<RulesPageContent rules={[]} />);
+    render(<RulesPageContent />);
     expect(screen.getByText("新建规则")).toBeTruthy();
   });
 });

@@ -4,6 +4,6 @@ const RouteComponent = () => {
   return <div>Hello "/assistant"!</div>;
 };
 
-export const Route = createFileRoute("/assistant")({
+export const Route = createFileRoute("/_layout/assistant")({
   component: RouteComponent,
 });

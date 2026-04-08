@@ -3,7 +3,7 @@ import { OperationEditPage } from "@/pages/OperationEditPage";
 import { getOperationById } from "@/services/operationsService";
 import { getSkills } from "@/services/skillsService";
 
-export const Route = createFileRoute("/operations/$operationId/edit")({
+export const Route = createFileRoute("/_layout/operations/$operationId/edit")({
   loader: async ({ params }) => {
     const [operation, skills] = await Promise.all([
       getOperationById({ data: { id: params.operationId } }),

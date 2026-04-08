@@ -17,7 +17,7 @@ import { RuleCard } from "../RuleCard";
 import { RuleForm } from "../RuleForm";
 
 export const RulesPageContent = () => {
-  const initial = useLoaderData({ from: "/rules" }) as RuleEntity[];
+  const initial = useLoaderData({ from: "/_layout/rules" }) as RuleEntity[];
   const { t } = useTranslation();
   const [rules, setRules] = useState(initial);
   const [categoryFilter, setCategoryFilter] = useState<RuleCategory | "all">(

@@ -6,7 +6,7 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { JobEntity } from "@/models/daos/jobsDao";
 import type { JobStatus } from "@/models/tables/jobs_table";
-import { Route } from "@/routes/jobs.index";
+import { Route } from "@/routes/_layout/jobs.index";
 import { deleteJob } from "@/services/jobsService";
 import { StatCard } from "../StatCard";
 import { JobRow } from "../JobRow";

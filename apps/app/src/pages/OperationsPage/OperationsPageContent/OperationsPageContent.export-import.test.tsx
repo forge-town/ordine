@@ -5,9 +5,15 @@ import type { OperationEntity } from "@/models/daos/operationsDao";
 import { createOperation } from "@/services/operationsService";
 import { useToastStore } from "@/hooks/useToastStore";
 
+const mockUseLoaderData = vi.fn(() => [] as OperationEntity[]);
+
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
-  Link: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
+  useLoaderData: () => mockUseLoaderData(),
+  Link: ({
+    children,
+    ...props
+  }: React.PropsWithChildren<Record<string, unknown>>) => (
     <a {...props}>{children}</a>
   ),
 }));
@@ -33,6 +39,7 @@ const mockOperation: OperationEntity = {
 describe("OperationsPageContent - export", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseLoaderData.mockReturnValue([mockOperation]);
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:mock");
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
   });
@@ -42,12 +49,12 @@ describe("OperationsPageContent - export", () => {
   });
 
   it("renders an export button on each operation card", () => {
-    render(<OperationsPageContent initialOperations={[mockOperation]} />);
+    render(<OperationsPageContent />);
     expect(screen.getByTitle("导出")).toBeInTheDocument();
   });
 
   it("clicking export creates an object URL from a JSON blob", () => {
-    render(<OperationsPageContent initialOperations={[mockOperation]} />);
+    render(<OperationsPageContent />);
     fireEvent.click(screen.getByTitle("导出"));
     expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
   });
@@ -56,6 +63,7 @@ describe("OperationsPageContent - export", () => {
 describe("OperationsPageContent - import", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseLoaderData.mockReturnValue([]);
     vi.mocked(createOperation).mockResolvedValue({
       ...mockOperation,
       id: "op-imported",
@@ -64,16 +72,18 @@ describe("OperationsPageContent - import", () => {
   });
 
   it("renders an import button in the header", () => {
-    render(<OperationsPageContent initialOperations={[]} />);
+    render(<OperationsPageContent />);
     expect(screen.getByRole("button", { name: /导入/i })).toBeInTheDocument();
   });
 
   it("importing a valid JSON file calls createOperation with parsed data", async () => {
-    render(<OperationsPageContent initialOperations={[]} />);
+    render(<OperationsPageContent />);
     const importBtn = screen.getByRole("button", { name: /导入/i });
     fireEvent.click(importBtn);
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     expect(fileInput).not.toBeNull();
 
     const jsonContent = JSON.stringify(mockOperation);
@@ -95,17 +105,19 @@ describe("OperationsPageContent - import", () => {
             category: "lint",
             visibility: "public",
           }),
-        })
+        }),
       );
     });
   });
 
   it("imported operation appears in the list", async () => {
-    render(<OperationsPageContent initialOperations={[]} />);
+    render(<OperationsPageContent />);
     const importBtn = screen.getByRole("button", { name: /导入/i });
     fireEvent.click(importBtn);
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const file = new File([JSON.stringify(mockOperation)], "op.json", {
       type: "application/json",
     });
@@ -124,15 +136,18 @@ describe("OperationsPageContent - import", () => {
 describe("OperationsPageContent - import validation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseLoaderData.mockReturnValue([]);
     useToastStore.setState({ toasts: [] });
   });
 
   it("shows an error toast when the file is not valid JSON", async () => {
-    render(<OperationsPageContent initialOperations={[]} />);
+    render(<OperationsPageContent />);
     const importBtn = screen.getByRole("button", { name: /导入/i });
     fireEvent.click(importBtn);
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const file = new File(["not valid json {{{"], "bad.json", {
       type: "application/json",
     });
@@ -149,11 +164,13 @@ describe("OperationsPageContent - import validation", () => {
   });
 
   it("shows an error toast when 'name' field is missing from the JSON", async () => {
-    render(<OperationsPageContent initialOperations={[]} />);
+    render(<OperationsPageContent />);
     const importBtn = screen.getByRole("button", { name: /导入/i });
     fireEvent.click(importBtn);
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const missingName = { category: "lint", config: "{}" };
     const file = new File([JSON.stringify(missingName)], "no-name.json", {
       type: "application/json",
@@ -176,11 +193,13 @@ describe("OperationsPageContent - import validation", () => {
       id: "op-imported",
     } as OperationEntity);
 
-    render(<OperationsPageContent initialOperations={[]} />);
+    render(<OperationsPageContent />);
     const importBtn = screen.getByRole("button", { name: /导入/i });
     fireEvent.click(importBtn);
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const file = new File([JSON.stringify(mockOperation)], "op.json", {
       type: "application/json",
     });

@@ -19,7 +19,7 @@ import { Button } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { ObjectType } from "@/models/tables/operations_table";
-import { Route } from "@/routes/operations.$operationId.index";
+import { Route } from "@/routes/_layout/operations.$operationId.index";
 import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
 import { OutputPortRow } from "../OutputPortRow";

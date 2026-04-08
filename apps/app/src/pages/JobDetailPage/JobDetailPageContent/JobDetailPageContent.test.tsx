@@ -3,6 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import { JobDetailPageContent } from "./JobDetailPageContent";
 import type { JobEntity } from "@/models/daos/jobsDao";
 
+const mockUseLoaderData = vi.fn();
+
+vi.mock("@/routes/_layout/jobs.$jobId", () => ({
+  Route: { useLoaderData: () => mockUseLoaderData() },
+}));
+
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
@@ -26,12 +32,14 @@ const mockJob: JobEntity = {
 
 describe("JobDetailPageContent", () => {
   it("renders job title", () => {
-    render(<JobDetailPageContent job={mockJob} />);
+    mockUseLoaderData.mockReturnValue(mockJob);
+    render(<JobDetailPageContent />);
     expect(screen.getByText(mockJob.title)).toBeInTheDocument();
   });
 
   it("renders null state when job is null", () => {
-    render(<JobDetailPageContent job={null} />);
+    mockUseLoaderData.mockReturnValue(null);
+    render(<JobDetailPageContent />);
     expect(screen.getByText("Job 不存在")).toBeInTheDocument();
   });
 });

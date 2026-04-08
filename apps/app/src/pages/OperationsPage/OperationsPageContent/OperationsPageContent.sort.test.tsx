@@ -6,7 +6,11 @@ import type { OperationEntity } from "@/models/daos/operationsDao";
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
-  Link: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
+  useLoaderData: () => ops,
+  Link: ({
+    children,
+    ...props
+  }: React.PropsWithChildren<Record<string, unknown>>) => (
     <a {...props}>{children}</a>
   ),
 }));
@@ -37,11 +41,19 @@ vi.mock("@repo/ui/select", () => ({
   ),
   SelectTrigger: () => null,
   SelectValue: () => null,
-  SelectContent: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
-  SelectGroup: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
-  SelectItem: ({ value, children }: { value: string; children?: React.ReactNode }) => (
-    <option value={value}>{children}</option>
+  SelectContent: ({ children }: { children?: React.ReactNode }) => (
+    <>{children}</>
   ),
+  SelectGroup: ({ children }: { children?: React.ReactNode }) => (
+    <>{children}</>
+  ),
+  SelectItem: ({
+    value,
+    children,
+  }: {
+    value: string;
+    children?: React.ReactNode;
+  }) => <option value={value}>{children}</option>,
   SelectLabel: () => null,
   SelectSeparator: () => null,
   SelectScrollUpButton: () => null,
@@ -52,7 +64,7 @@ const makeOp = (
   id: string,
   name: string,
   category: string,
-  createdAt: number
+  createdAt: number,
 ): OperationEntity => ({
   id,
   name,
@@ -78,48 +90,63 @@ const getCardNames = () => {
 
 describe("OperationsPageContent – sort", () => {
   it("renders a sort selector", () => {
-    render(<OperationsPageContent initialOperations={ops} />);
+    render(<OperationsPageContent />);
     expect(screen.getByRole("combobox", { name: /排序/i })).toBeInTheDocument();
   });
 
   it("default order preserves insertion order", () => {
-    render(<OperationsPageContent initialOperations={ops} />);
+    render(<OperationsPageContent />);
     const names = getCardNames();
     expect(names).toEqual(["Zebra Task", "Alpha Task", "Mango Task"]);
   });
 
   it("sort by name ascending (A → Z)", async () => {
     const user = userEvent.setup();
-    render(<OperationsPageContent initialOperations={ops} />);
-    await user.selectOptions(screen.getByRole("combobox", { name: /排序/i }), "name-asc");
+    render(<OperationsPageContent />);
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /排序/i }),
+      "name-asc",
+    );
     expect(getCardNames()).toEqual(["Alpha Task", "Mango Task", "Zebra Task"]);
   });
 
   it("sort by name descending (Z → A)", async () => {
     const user = userEvent.setup();
-    render(<OperationsPageContent initialOperations={ops} />);
-    await user.selectOptions(screen.getByRole("combobox", { name: /排序/i }), "name-desc");
+    render(<OperationsPageContent />);
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /排序/i }),
+      "name-desc",
+    );
     expect(getCardNames()).toEqual(["Zebra Task", "Mango Task", "Alpha Task"]);
   });
 
   it("sort by newest first (createdAt desc)", async () => {
     const user = userEvent.setup();
-    render(<OperationsPageContent initialOperations={ops} />);
-    await user.selectOptions(screen.getByRole("combobox", { name: /排序/i }), "date-desc");
+    render(<OperationsPageContent />);
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /排序/i }),
+      "date-desc",
+    );
     expect(getCardNames()).toEqual(["Alpha Task", "Mango Task", "Zebra Task"]);
   });
 
   it("sort by oldest first (createdAt asc)", async () => {
     const user = userEvent.setup();
-    render(<OperationsPageContent initialOperations={ops} />);
-    await user.selectOptions(screen.getByRole("combobox", { name: /排序/i }), "date-asc");
+    render(<OperationsPageContent />);
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /排序/i }),
+      "date-asc",
+    );
     expect(getCardNames()).toEqual(["Zebra Task", "Mango Task", "Alpha Task"]);
   });
 
   it("sort by category ascending", async () => {
     const user = userEvent.setup();
-    render(<OperationsPageContent initialOperations={ops} />);
-    await user.selectOptions(screen.getByRole("combobox", { name: /排序/i }), "category-asc");
+    render(<OperationsPageContent />);
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /排序/i }),
+      "category-asc",
+    );
     // build < deploy < lint
     expect(getCardNames()).toEqual(["Mango Task", "Zebra Task", "Alpha Task"]);
   });

@@ -35,7 +35,7 @@ import {
 import { createOperation } from "@/services/operationsService";
 import type { ObjectType } from "@/models/tables/operations_table";
 import type { SkillEntity } from "@/models/daos/skillsDao";
-import { Route } from "@/routes/operations.new";
+import { Route } from "@/routes/_layout/operations.new";
 import {
   ObjectTypeSchema as ObjectTypeEnum,
   ExecutorTypeSchema as ExecutorTypeEnum,

@@ -3,6 +3,12 @@ import { render, screen } from "@testing-library/react";
 import { JobsPageContent } from "./JobsPageContent";
 import type { JobEntity } from "@/models/daos/jobsDao";
 
+const mockUseLoaderData = vi.fn(() => [] as JobEntity[]);
+
+vi.mock("@/routes/_layout/jobs.index", () => ({
+  Route: { useLoaderData: () => mockUseLoaderData() },
+}));
+
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
@@ -48,27 +54,29 @@ const mockJobs: JobEntity[] = [
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockUseLoaderData.mockReturnValue(mockJobs);
 });
 
 describe("JobsPageContent", () => {
   it("renders jobs header", () => {
-    render(<JobsPageContent jobs={mockJobs} />);
+    render(<JobsPageContent />);
     expect(screen.getByText("Jobs 监控")).toBeInTheDocument();
   });
 
   it("renders job rows", () => {
-    render(<JobsPageContent jobs={mockJobs} />);
+    render(<JobsPageContent />);
     expect(screen.getByText("Pipeline 运行")).toBeInTheDocument();
     expect(screen.getAllByText("代码分析").length).toBeGreaterThan(0);
   });
 
   it("renders empty state when no jobs", () => {
-    render(<JobsPageContent jobs={[]} />);
+    mockUseLoaderData.mockReturnValue([]);
+    render(<JobsPageContent />);
     expect(screen.getByText("暂无 Job")).toBeInTheDocument();
   });
 
   it("shows running count badge", () => {
-    render(<JobsPageContent jobs={mockJobs} />);
+    render(<JobsPageContent />);
     expect(screen.getByText("1 运行中")).toBeInTheDocument();
   });
 });

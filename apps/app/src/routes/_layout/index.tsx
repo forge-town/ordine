@@ -4,7 +4,7 @@ import { getPipelines } from "@/services/pipelinesService";
 import { getGithubProjects } from "@/services/githubProjectsService";
 import { getJobs } from "@/services/jobsService";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_layout/")({
   loader: async () => ({
     pipelines: await getPipelines(),
     projects: await getGithubProjects(),
