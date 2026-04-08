@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { SaveButton, SectionHeader, Toggle } from "../../components";
 
 interface NotificationsSectionProps {
@@ -13,6 +14,7 @@ export const NotificationsSection = ({
   onSave,
   saved,
 }: NotificationsSectionProps) => {
+  const { t } = useTranslation();
   const handlePipelineToggle = () => onChange({ pipeline: !values.pipeline });
   const handleMentionToggle = () => onChange({ mention: !values.mention });
   const handleWeeklyToggle = () => onChange({ weekly: !values.weekly });
@@ -20,14 +22,25 @@ export const NotificationsSection = ({
 
   return (
     <>
-      <SectionHeader description="选择你希望接收哪些通知" title="通知" />
+      <SectionHeader
+        description={t("settings.notificationsSection.description")}
+        title={t("settings.notificationsSection.title")}
+      />
       <Toggle
         enabled={values.pipeline}
-        label="Pipeline 运行完成提醒"
+        label={t("settings.notificationsSection.pipeline")}
         onToggle={handlePipelineToggle}
       />
-      <Toggle enabled={values.mention} label="被 @提暂时通知" onToggle={handleMentionToggle} />
-      <Toggle enabled={values.weekly} label="每周摘要邮件" onToggle={handleWeeklyToggle} />
+      <Toggle
+        enabled={values.mention}
+        label={t("settings.notificationsSection.mention")}
+        onToggle={handleMentionToggle}
+      />
+      <Toggle
+        enabled={values.weekly}
+        label={t("settings.notificationsSection.weekly")}
+        onToggle={handleWeeklyToggle}
+      />
       <SaveButton saved={saved} onSave={handleSave} />
     </>
   );

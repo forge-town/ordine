@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Play, Clock, Wrench, ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/projects.$projectId.index";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
@@ -9,6 +10,7 @@ import { ProjectMeta } from "../ProjectMeta";
 export const ProjectDetailPageContent = () => {
   const { project, works, pipelines } = Route.useLoaderData();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleNavigateProjects = () => void navigate({ to: "/projects" });
   const handleNavigateWorkspace = () => {
@@ -22,7 +24,7 @@ export const ProjectDetailPageContent = () => {
   if (!project) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        项目不存在
+        {t("projects.notFound")}
       </div>
     );
   }
@@ -45,7 +47,7 @@ export const ProjectDetailPageContent = () => {
         </div>
         <Button size="sm" onClick={handleNavigateWorkspace}>
           <Wrench className="h-3.5 w-3.5" />
-          打开工作区
+          {t("projects.openWorkspace")}
         </Button>
       </div>
 
@@ -58,17 +60,17 @@ export const ProjectDetailPageContent = () => {
         <div className="grid grid-cols-3 gap-4">
           {[
             {
-              label: "可用 Pipeline",
+              label: t("projects.availablePipelines"),
               value: pipelines.length,
               color: "text-violet-600",
             },
             {
-              label: "进行中 Works",
+              label: t("projects.activeWorks"),
               value: activeWorks.length,
               color: "text-blue-600",
             },
             {
-              label: "历史 Works",
+              label: t("projects.historyWorks"),
               value: works.length,
               color: "text-gray-700",
             },
@@ -85,7 +87,7 @@ export const ProjectDetailPageContent = () => {
           <section>
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
               <Play className="h-4 w-4 text-blue-500" />
-              进行中
+              {t("projects.activeSection")}
             </h3>
             <div className="space-y-2">
               {activeWorks.map((w) => (
@@ -97,13 +99,15 @@ export const ProjectDetailPageContent = () => {
 
         {/* History */}
         <section>
-          <h3 className="mb-3 text-sm font-semibold text-foreground">历史 Works</h3>
+          <h3 className="mb-3 text-sm font-semibold text-foreground">
+            {t("projects.historyWorks")}
+          </h3>
           {finishedWorks.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-10 text-center">
               <Clock className="h-8 w-8 text-muted-foreground/30" />
-              <p className="mt-2 text-sm text-muted-foreground">还没有执行记录</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t("projects.noHistory")}</p>
               <p className="mt-0.5 text-xs text-muted-foreground/60">
-                在工作区选择对象并触发 Pipeline
+                {t("projects.noHistoryHint")}
               </p>
             </div>
           ) : (

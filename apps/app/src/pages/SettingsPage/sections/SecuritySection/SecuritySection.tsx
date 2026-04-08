@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Field, SaveButton, SectionHeader } from "../../components";
 import { Input } from "@repo/ui/input";
 
@@ -20,6 +21,7 @@ interface SecuritySectionProps {
 }
 
 export const SecuritySection = ({ values, onChange, onSave, saved }: SecuritySectionProps) => {
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
 
   const handleCurrentPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -33,15 +35,15 @@ export const SecuritySection = ({ values, onChange, onSave, saved }: SecuritySec
     setError(null);
     if (values.newPassword || values.confirmPassword) {
       if (values.newPassword.length < 6) {
-        setError("新密码长度不能少于 6 位");
+        setError(t("settings.securitySection.errorMinLength"));
         return;
       }
       if (values.newPassword !== values.confirmPassword) {
-        setError("两次输入的新密码不一致");
+        setError(t("settings.securitySection.errorMismatch"));
         return;
       }
       if (!values.currentPassword) {
-        setError("请输入当前密码");
+        setError(t("settings.securitySection.errorCurrentRequired"));
         return;
       }
     }
@@ -50,26 +52,29 @@ export const SecuritySection = ({ values, onChange, onSave, saved }: SecuritySec
 
   return (
     <>
-      <SectionHeader description="管理密码和登录安全设置" title="安全" />
-      <Field label="当前密码">
+      <SectionHeader
+        description={t("settings.securitySection.description")}
+        title={t("settings.securitySection.title")}
+      />
+      <Field label={t("settings.securitySection.currentPassword")}>
         <Input
-          placeholder="输入当前密码"
+          placeholder={t("settings.securitySection.currentPasswordPlaceholder")}
           type="password"
           value={values.currentPassword}
           onChange={handleCurrentPasswordChange}
         />
       </Field>
-      <Field label="新密码">
+      <Field label={t("settings.securitySection.newPassword")}>
         <Input
-          placeholder="输入新密码"
+          placeholder={t("settings.securitySection.newPasswordPlaceholder")}
           type="password"
           value={values.newPassword}
           onChange={handleNewPasswordChange}
         />
       </Field>
-      <Field label="确认新密码">
+      <Field label={t("settings.securitySection.confirmPassword")}>
         <Input
-          placeholder="再次输入新密码"
+          placeholder={t("settings.securitySection.confirmPasswordPlaceholder")}
           type="password"
           value={values.confirmPassword}
           onChange={handleConfirmPasswordChange}

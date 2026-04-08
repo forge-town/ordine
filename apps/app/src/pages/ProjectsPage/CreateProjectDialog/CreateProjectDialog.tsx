@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { GitBranch, X, Link2, Loader2, AlertCircle, Key, Lock, Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { parseGitHubUrl, fetchRepoInfo, type GitHubRepoInfo } from "@/lib/githubApi";
 import { useGithubToken } from "@/hooks/useGithubToken";
 import { GitHubTokenDialog } from "@/pages/CanvasPage/nodes/GitHubProjectNode/GitHubTokenDialog";
@@ -15,6 +16,7 @@ export type CreateProjectDialogProps = {
 };
 
 export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogProps) => {
+  const { t } = useTranslation();
   const { token } = useGithubToken();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,7 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
   const handleFetch = async () => {
     const parsed = parseGitHubUrl(url.trim());
     if (!parsed) {
-      setError("无效的 GitHub 仓库 URL");
+      setError(t("projects.invalidUrl"));
       return;
     }
     setLoading(true);
@@ -35,7 +37,7 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
       const info = await fetchRepoInfo(parsed.owner, parsed.repo, token ?? undefined);
       setRepoInfo(info);
     } catch (error) {
-      setError(error instanceof Error ? error.message : "获取仓库信息失败");
+      setError(error instanceof Error ? error.message : t("projects.fetchFailed"));
     } finally {
       setLoading(false);
     }
@@ -60,7 +62,7 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
       onCreate(project as GithubProjectEntity);
       onClose();
     } catch (error) {
-      setError(error instanceof Error ? error.message : "保存失败");
+      setError(error instanceof Error ? error.message : t("projects.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -88,7 +90,9 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
         <div className="w-full max-w-md rounded-2xl bg-card shadow-xl">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <h2 className="text-sm font-semibold text-foreground">连接 GitHub 项目</h2>
+            <h2 className="text-sm font-semibold text-foreground">
+              {t("projects.connectProjectTitle")}
+            </h2>
             <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleClose}>
               <X className="h-4 w-4 text-muted-foreground" />
             </Button>
@@ -103,15 +107,15 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
             >
               <Key className="h-3.5 w-3.5 shrink-0" />
               {token ? (
-                <span>已配置 GitHub Token（可访问私有仓库）</span>
+                <span>{t("projects.tokenConfigured")}</span>
               ) : (
                 <span>
-                  未配置 Token，仅能访问公开仓库。
+                  {t("projects.tokenMissing")}
                   <button
                     className="ml-1 underline underline-offset-2"
                     onClick={handleOpenTokenDialog}
                   >
-                    配置 Token
+                    {t("projects.configureToken")}
                   </button>
                 </span>
               )}
@@ -150,10 +154,10 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
                 )}
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={handleReset}>
-                    重新输入
+                    {t("projects.resetInput")}
                   </Button>
                   <Button disabled={saving} onClick={handleSaveClick}>
-                    {saving ? "保存中..." : "添加到项目库"}
+                    {saving ? t("common.saving") : t("projects.addToLibrary")}
                   </Button>
                 </div>
               </div>
@@ -161,7 +165,7 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
               <div className="space-y-3">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                    GitHub 仓库 URL
+                    {t("projects.githubUrl")}
                   </label>
                   <div className="flex gap-2">
                     <div className="relative flex-1">
@@ -175,7 +179,11 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
                       />
                     </div>
                     <Button disabled={loading || !url.trim()} size="sm" onClick={handleFetchClick}>
-                      {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "查询"}
+                      {loading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        t("projects.fetch")
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -191,7 +199,7 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
             {repoInfo === null && (
               <div className="flex justify-end">
                 <Button variant="outline" onClick={handleClose}>
-                  取消
+                  {t("common.cancel")}
                 </Button>
               </div>
             )}

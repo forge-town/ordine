@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Check } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -28,6 +29,7 @@ export type RuleFormProps = {
 };
 
 export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<RuleFormState>(initial ?? emptyForm());
   const [saving, setSaving] = useState(false);
 
@@ -54,11 +56,15 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 space-y-3">
-      <Input placeholder="规则名称 *" value={form.name} onChange={handleNameChange} />
+      <Input
+        placeholder={t("rules.namePlaceholder")}
+        value={form.name}
+        onChange={handleNameChange}
+      />
 
       <Textarea
         className="resize-none"
-        placeholder="规则描述（可选）"
+        placeholder={t("rules.descriptionPlaceholder")}
         rows={2}
         value={form.description}
         onChange={handleDescriptionChange}
@@ -66,7 +72,9 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-[11px] text-muted-foreground">分类</label>
+          <label className="mb-1 block text-[11px] text-muted-foreground">
+            {t("common.category")}
+          </label>
           <Select value={form.category} onValueChange={handleCategoryChange}>
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -83,7 +91,9 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
           </Select>
         </div>
         <div>
-          <label className="mb-1 block text-[11px] text-muted-foreground">严重度</label>
+          <label className="mb-1 block text-[11px] text-muted-foreground">
+            {t("rules.severity")}
+          </label>
           <Select value={form.severity} onValueChange={handleSeverityChange}>
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -103,21 +113,25 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
 
       <Input
         className="font-mono"
-        placeholder="规则模式（正则或关键词，可选）"
+        placeholder={t("rules.patternPlaceholder")}
         value={form.pattern}
         onChange={handlePatternChange}
       />
 
-      <Input placeholder="标签（逗号分隔，可选）" value={form.tags} onChange={handleTagsChange} />
+      <Input
+        placeholder={t("rules.tagsPlaceholder")}
+        value={form.tags}
+        onChange={handleTagsChange}
+      />
 
       <div className="flex items-center justify-end gap-2 pt-1">
         <Button size="sm" variant="outline" onClick={handleCancel}>
           <X className="h-3.5 w-3.5" />
-          取消
+          {t("common.cancel")}
         </Button>
         <Button disabled={!form.name.trim() || saving} size="sm" onClick={handleSave}>
           <Check className="h-3.5 w-3.5" />
-          {saving ? "保存中…" : "保存"}
+          {saving ? t("common.saving") : t("common.save")}
         </Button>
       </div>
     </div>

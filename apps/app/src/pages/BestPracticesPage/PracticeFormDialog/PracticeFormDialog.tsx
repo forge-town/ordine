@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import {
@@ -36,6 +37,7 @@ export type PracticeFormDialogProps = {
 };
 
 export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDialogProps) => {
+  const { t } = useTranslation();
   const handleClose = onClose;
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -93,7 +95,7 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
       <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl bg-card shadow-xl">
         <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
           <h2 className="text-sm font-semibold text-foreground">
-            {initial ? "编辑最佳实践" : "新增最佳实践"}
+            {initial ? t("bestPractices.editTitle") : t("bestPractices.createTitle")}
           </h2>
           <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleClose}>
             <X className="h-4 w-4 text-muted-foreground" />
@@ -107,10 +109,10 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-xs font-medium text-muted-foreground">
-                    标题 *
+                    {t("bestPractices.titleLabel")}
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. 避免在 useEffect 中直接 setState" {...field} />
+                    <Input placeholder={t("bestPractices.titlePlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -123,12 +125,12 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-xs font-medium text-muted-foreground">
-                    适用时机 (Condition) *
+                    {t("bestPractices.conditionLabel")}
                   </FormLabel>
                   <FormControl>
                     <Textarea
                       className="resize-none"
-                      placeholder="描述什么情况下应该遵循这个实践，例如：当需要在组件挂载后获取异步数据时..."
+                      placeholder={t("bestPractices.conditionPlaceholder")}
                       rows={3}
                       {...field}
                     />
@@ -147,7 +149,7 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
                   return (
                     <FormItem>
                       <FormLabel className="text-xs font-medium text-muted-foreground">
-                        分类
+                        {t("common.category")}
                       </FormLabel>
                       <FormControl>
                         <Select value={field.value} onValueChange={handleChange}>
@@ -178,7 +180,7 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
                   return (
                     <FormItem>
                       <FormLabel className="text-xs font-medium text-muted-foreground">
-                        语言
+                        {t("common.language")}
                       </FormLabel>
                       <FormControl>
                         <Select value={field.value} onValueChange={handleChange}>
@@ -209,12 +211,12 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-xs font-medium text-muted-foreground">
-                    代码片段
+                    {t("bestPractices.codeSnippetLabel")}
                   </FormLabel>
                   <FormControl>
                     <Textarea
                       className="resize-y font-mono text-xs leading-relaxed"
-                      placeholder="// 在这里粘贴代码示例..."
+                      placeholder={t("bestPractices.codeSnippetPlaceholder")}
                       rows={8}
                       spellCheck={false}
                       {...field}
@@ -231,7 +233,7 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-xs font-medium text-muted-foreground">
-                    标签 (逗号分隔)
+                    {t("bestPractices.tagsLabel")}
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="react, hooks, async" {...field} />
@@ -243,10 +245,10 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
 
             <div className="flex shrink-0 justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={handleClose}>
-                取消
+                {t("common.cancel")}
               </Button>
               <Button disabled={form.formState.isSubmitting} type="submit">
-                {form.formState.isSubmitting ? "保存中..." : "保存"}
+                {form.formState.isSubmitting ? t("common.saving") : t("common.save")}
               </Button>
             </div>
           </form>

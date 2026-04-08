@@ -247,7 +247,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-xs font-medium text-muted-foreground">
-                        名称 *
+                        {t("operations.nameLabel")}
                       </FormLabel>
                       <FormControl>
                         <Input className="h-9 text-sm" placeholder="e.g. Run ESLint" {...field} />
@@ -265,7 +265,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                     return (
                       <FormItem>
                         <FormLabel className="text-xs font-medium text-muted-foreground">
-                          分类
+                          {t("operations.categoryLabel")}
                         </FormLabel>
                         <FormControl>
                           <Select value={field.value} onValueChange={handleChange}>
@@ -296,12 +296,12 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs font-medium text-muted-foreground">
-                      描述
+                      {t("operations.descriptionLabel")}
                     </FormLabel>
                     <FormControl>
                       <Input
                         className="h-9 text-sm"
-                        placeholder="简单描述这个操作做什么"
+                        placeholder={t("operations.descriptionPlaceholder")}
                         {...field}
                       />
                     </FormControl>
@@ -318,7 +318,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                   return (
                     <FormItem>
                       <FormLabel className="text-xs font-medium text-muted-foreground">
-                        可应用的对象类型
+                        {t("operations.acceptedObjectTypes")}
                       </FormLabel>
                       <FormControl>
                         <div className="flex gap-2">
@@ -352,7 +352,9 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
 
               {/* Executor section */}
               <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
-                <FormLabel className="text-xs font-semibold text-foreground">执行方式</FormLabel>
+                <FormLabel className="text-xs font-semibold text-foreground">
+                  {t("operations.executorType")}
+                </FormLabel>
 
                 <Controller
                   control={form.control}
@@ -402,7 +404,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                           <FormControl>
                             <Select value={field.value} onValueChange={handleChange}>
                               <SelectTrigger className="h-9 w-full">
-                                <SelectValue placeholder="选择 Skill" />
+                                <SelectValue placeholder={t("operations.selectSkill")} />
                               </SelectTrigger>
                               <SelectContent>
                                 {skills.map((s) => (
@@ -427,12 +429,12 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium text-muted-foreground">
-                          系统提示词
+                          {t("operations.promptLabel")}
                         </FormLabel>
                         <FormControl>
                           <Textarea
                             className="resize-none text-sm"
-                            placeholder="你是一个代码审查专家，请分析以下代码..."
+                            placeholder={t("operations.promptPlaceholder")}
                             rows={5}
                             {...field}
                           />
@@ -452,7 +454,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-xs font-medium text-muted-foreground">
-                              脚本命令
+                              {t("operations.scriptCommand")}
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -474,7 +476,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                         return (
                           <FormItem>
                             <FormLabel className="text-xs font-medium text-muted-foreground">
-                              语言
+                              {t("operations.scriptLanguage")}
                             </FormLabel>
                             <FormControl>
                               <Select value={field.value} onValueChange={handleChange}>

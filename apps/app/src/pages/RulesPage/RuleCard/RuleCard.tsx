@@ -1,4 +1,5 @@
 import { Pencil, Trash2, Tag, ToggleLeft, ToggleRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import type { RuleEntity } from "@/models/daos/rulesDao";
 import { SEVERITY_CONFIG, CATEGORY_CONFIG } from "../types";
@@ -11,6 +12,7 @@ export type RuleCardProps = {
 };
 
 export const RuleCard = ({ rule, onEdit, onDelete, onToggle }: RuleCardProps) => {
+  const { t } = useTranslation();
   const handleToggle = () => onToggle(rule.id, !rule.enabled);
   const handleEdit = () => onEdit(rule);
   const handleDelete = () => onDelete(rule.id);
@@ -60,7 +62,7 @@ export const RuleCard = ({ rule, onEdit, onDelete, onToggle }: RuleCardProps) =>
         <div className="flex shrink-0 items-center gap-1">
           <button
             className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-accent"
-            title={rule.enabled ? "禁用" : "启用"}
+            title={rule.enabled ? t("rules.disable") : t("rules.enable")}
             onClick={handleToggle}
           >
             {rule.enabled ? (

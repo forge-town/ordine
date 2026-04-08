@@ -1,5 +1,6 @@
 import { Handle, Position } from "@xyflow/react";
 import { Folder } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useHarnessCanvasStore, type FolderNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
 
@@ -12,6 +13,7 @@ export interface FolderNodeProps {
 const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
+  const { t } = useTranslation();
   const store = useHarnessCanvasStore();
   const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
 
@@ -43,7 +45,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
         </div>
         <textarea
           className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
-          placeholder="文件夹描述..."
+          placeholder={t("canvas.folderDescPlaceholder")}
           rows={2}
           value={data.description ?? ""}
           onChange={handleDescriptionChange}

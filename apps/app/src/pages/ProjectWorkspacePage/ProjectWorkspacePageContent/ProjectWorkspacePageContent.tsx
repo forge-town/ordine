@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, FolderGit2, ChevronRight, Play, GitBranch, Layers } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/projects.$projectId.workspace";
 import { createWork } from "@/services/worksService";
 import { Button } from "@repo/ui/button";
 import { ObjectRow, type ObjectItem } from "../ObjectRow";
 import { PipelineRow } from "../PipelineRow";
 
-const buildObjectTree = (owner: string, repo: string): ObjectItem[] => [
-  { type: "project", path: "/", label: `${owner}/${repo} (整个项目)` },
+const buildObjectTree = (owner: string, repo: string, entireProject: string): ObjectItem[] => [
+  { type: "project", path: "/", label: `${owner}/${repo} (${entireProject})` },
   { type: "folder", path: "src/", label: "src/" },
   { type: "folder", path: "src/pages/", label: "src/pages/" },
   { type: "folder", path: "src/components/", label: "src/components/" },
@@ -19,6 +20,7 @@ const buildObjectTree = (owner: string, repo: string): ObjectItem[] => [
 export const ProjectWorkspacePageContent = () => {
   const { project, pipelines } = Route.useLoaderData();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [selectedObjects, setSelectedObjects] = useState<Set<string>>(new Set());
   const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
@@ -27,12 +29,12 @@ export const ProjectWorkspacePageContent = () => {
   if (!project) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        项目不存在
+        {t("workspace.notFound")}
       </div>
     );
   }
 
-  const objects = buildObjectTree(project.owner, project.repo);
+  const objects = buildObjectTree(project.owner, project.repo, t("workspace.entireProject"));
   const selectedPipeline = pipelines.find((p) => p.id === selectedPipelineId);
 
   const toggleObject = (path: string) => {
@@ -94,7 +96,7 @@ export const ProjectWorkspacePageContent = () => {
           <ArrowLeft className="h-4 w-4 text-muted-foreground" />
         </Button>
         <div className="min-w-0 flex-1">
-          <h1 className="text-sm font-semibold text-foreground truncate">工作区</h1>
+          <h1 className="text-sm font-semibold text-foreground truncate">{t("workspace.title")}</h1>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <FolderGit2 className="h-3 w-3" />
             <span>
@@ -107,7 +109,7 @@ export const ProjectWorkspacePageContent = () => {
         {/* Trigger button */}
         <Button disabled={!canTrigger} size="sm" onClick={handleTriggerClick}>
           <Play className="h-3.5 w-3.5" />
-          触发 Work {selectedObjects.size > 0 && `(${selectedObjects.size})`}
+          {t("workspace.triggerWork")} {selectedObjects.size > 0 && `(${selectedObjects.size})`}
         </Button>
       </div>
 
@@ -116,7 +118,7 @@ export const ProjectWorkspacePageContent = () => {
         {/* Left: Objects */}
         <div className="w-1/2 overflow-y-auto border-r border-border p-5">
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            选择对象 (Object)
+            {t("workspace.selectObjects")}
           </h2>
           <div className="space-y-1.5">
             {objects.map((obj) => (
@@ -133,18 +135,18 @@ export const ProjectWorkspacePageContent = () => {
         {/* Right: Pipelines */}
         <div className="w-1/2 overflow-y-auto p-5">
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            选择 Pipeline
+            {t("workspace.selectPipeline")}
           </h2>
           {pipelines.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-10 text-center">
               <Layers className="h-8 w-8 text-muted-foreground/30" />
-              <p className="mt-2 text-sm text-muted-foreground">还没有 Pipeline</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t("workspace.noPipelines")}</p>
               <Button
                 className="mt-3 h-auto p-0 text-xs"
                 variant="link"
                 onClick={handleNavigatePipelines}
               >
-                去创建
+                {t("workspace.createPipeline")}
               </Button>
             </div>
           ) : (
@@ -166,10 +168,12 @@ export const ProjectWorkspacePageContent = () => {
       {(selectedObjects.size > 0 || selectedPipeline) && (
         <div className="shrink-0 border-t border-border bg-background px-6 py-3">
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">{selectedObjects.size} 个对象</span>
+            <span className="font-medium text-foreground">
+              {t("workspace.objectsCount", { count: selectedObjects.size })}
+            </span>
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="font-medium text-foreground">
-              {selectedPipeline?.name ?? "— 未选 Pipeline"}
+              {selectedPipeline?.name ?? t("workspace.noPipelineSelected")}
             </span>
           </div>
         </div>

@@ -1,21 +1,20 @@
 import { CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import type { WorkEntity } from "@/models/daos/worksDao";
 
-const STATUS_CONFIG: Record<
-  WorkEntity["status"],
-  { label: string; icon: React.ElementType; color: string }
-> = {
-  pending: { label: "等待中", icon: Clock, color: "text-gray-500" },
-  running: { label: "运行中", icon: Loader2, color: "text-blue-500" },
-  success: { label: "成功", icon: CheckCircle2, color: "text-emerald-500" },
-  failed: { label: "失败", icon: XCircle, color: "text-red-500" },
-};
+const STATUS_ICONS = {
+  pending: Clock,
+  running: Loader2,
+  success: CheckCircle2,
+  failed: XCircle,
+} as const;
 
-const OBJECT_LABEL: Record<WorkEntity["object"]["type"], string> = {
-  file: "文件",
-  folder: "文件夹",
-  project: "整个项目",
+const STATUS_COLORS: Record<string, string> = {
+  pending: "text-gray-500",
+  running: "text-blue-500",
+  success: "text-emerald-500",
+  failed: "text-red-500",
 };
 
 export type WorkRowProps = {
@@ -23,14 +22,19 @@ export type WorkRowProps = {
 };
 
 export const WorkRow = ({ work }: WorkRowProps) => {
-  const cfg = STATUS_CONFIG[work.status];
-  const Icon = cfg.icon;
+  const { t } = useTranslation();
+  const Icon = STATUS_ICONS[work.status];
+  const color = STATUS_COLORS[work.status];
+  const statusLabel = t(`work.${work.status}`);
+  const objectLabel = t(
+    `work.object${work.object.type.charAt(0).toUpperCase()}${work.object.type.slice(1)}`
+  );
   return (
     <div className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3 hover:border-primary/50 transition-colors">
       <span
         className={cn(
           "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/30",
-          cfg.color
+          color
         )}
       >
         <Icon className={cn("h-4 w-4", work.status === "running" && "animate-spin")} />
@@ -38,7 +42,7 @@ export const WorkRow = ({ work }: WorkRowProps) => {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-foreground">{work.pipelineName}</p>
         <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          {OBJECT_LABEL[work.object.type]}
+          {objectLabel}
           {work.object.path !== "/" && <span className="ml-1 font-mono">{work.object.path}</span>}
         </p>
       </div>
@@ -52,10 +56,10 @@ export const WorkRow = ({ work }: WorkRowProps) => {
             work.status === "pending" && "bg-gray-100 text-gray-600"
           )}
         >
-          {cfg.label}
+          {statusLabel}
         </span>
         <p className="mt-1 text-[10px] text-muted-foreground">
-          {new Date(work.createdAt).toLocaleString("zh-CN", {
+          {new Date(work.createdAt).toLocaleString(undefined, {
             month: "numeric",
             day: "numeric",
             hour: "2-digit",

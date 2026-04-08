@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, GitBranch, Lock, Globe, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import { getGithubProjects } from "@/services/githubProjectsService";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
@@ -62,13 +63,14 @@ export const PickProjectDialog = ({ open, onClose, onPick }: PickProjectDialogPr
   const handleOpenChange = (v: boolean) => {
     if (!v) onClose();
   };
+  const { t } = useTranslation();
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>从项目库选取仓库</DialogTitle>
+          <DialogTitle>{t("canvas.pickRepoTitle")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-3">
@@ -78,7 +80,7 @@ export const PickProjectDialog = ({ open, onClose, onPick }: PickProjectDialogPr
             <input
               autoFocus
               className="w-full rounded-md border bg-muted/30 py-1.5 pl-8 pr-3 text-sm focus:bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-              placeholder="搜索仓库..."
+              placeholder={t("canvas.searchRepo")}
               value={search}
               onChange={handleSearchChange}
             />

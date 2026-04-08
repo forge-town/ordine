@@ -77,7 +77,14 @@
     "logs": "Logs",
     "noLogs": "No logs",
     "status": "Status",
-    "id": "ID"
+    "id": "ID",
+    "typeCodeAnalysis": "Code Analysis",
+    "typeSkillExecution": "Skill Execution",
+    "typeFileScan": "File Scan",
+    "typeCustom": "Custom",
+    "typePipeline": "Pipeline",
+    "inProgress": "In Progress",
+    "result": "Result"
   },
   "operations": {
     "title": "Operations",
@@ -120,7 +127,9 @@
     "sortNameDesc": "Name Z → A",
     "sortDateDesc": "Newest first",
     "sortDateAsc": "Oldest first",
-    "sortCategoryAsc": "Category A → Z"
+    "sortCategoryAsc": "Category A → Z",
+    "descriptionPlaceholder": "Briefly describe what this operation does",
+    "promptPlaceholder": "You are a code review expert, please analyze the following code..."
   },
   "pipelines": {
     "title": "Pipelines",
@@ -170,7 +179,15 @@
       "addFolder": "Add Folder",
       "addCondition": "Add Condition",
       "addOperation": "Add Operation"
-    }
+    },
+    "folderDescPlaceholder": "Folder description...",
+    "clickToSwitchRepo": "Click to switch repo",
+    "pickFromLibrary": "Pick from library",
+    "enterUrlDirectly": "Enter URL directly",
+    "repoDescPlaceholder": "Repository description...",
+    "viewOnGitHub": "View on GitHub",
+    "pickRepoTitle": "Pick a repo from library",
+    "searchRepo": "Search repos..."
   },
   "projects": {
     "title": "GitHub Projects",
@@ -188,7 +205,26 @@
     "works": "Works",
     "noWorks": "No work records",
     "runNew": "New run",
-    "projectId": "Project ID"
+    "projectId": "Project ID",
+    "notFound": "Project not found",
+    "openWorkspace": "Open workspace",
+    "availablePipelines": "Available Pipelines",
+    "activeWorks": "Active Works",
+    "historyWorks": "Works history",
+    "activeSection": "Active",
+    "noHistory": "No execution records yet",
+    "noHistoryHint": "Select objects in the workspace and trigger a Pipeline",
+    "connectProjectTitle": "Connect GitHub project",
+    "tokenConfigured": "GitHub Token configured (can access private repos)",
+    "tokenMissing": "Token not configured, only public repos accessible.",
+    "configureToken": "Configure Token",
+    "resetInput": "Re-enter",
+    "addToLibrary": "Add to library",
+    "githubUrl": "GitHub repository URL",
+    "fetch": "Fetch",
+    "invalidUrl": "Invalid GitHub repository URL",
+    "fetchFailed": "Failed to fetch repository info",
+    "saveFailed": "Save failed"
   },
   "rules": {
     "title": "Rules",
@@ -201,7 +237,14 @@
     "patternLabel": "Pattern (regex)",
     "enabled": "Enabled",
     "disabled": "Disabled",
-    "toggle": "Toggle"
+    "toggle": "Toggle",
+    "namePlaceholder": "Rule name *",
+    "descriptionPlaceholder": "Rule description (optional)",
+    "severity": "Severity",
+    "patternPlaceholder": "Rule pattern (regex or keyword, optional)",
+    "tagsPlaceholder": "Tags (comma-separated, optional)",
+    "enable": "Enable",
+    "disable": "Disable"
   },
   "bestPractices": {
     "title": "Best Practices",
@@ -214,7 +257,13 @@
     "codeSnippetLabel": "Code snippet",
     "tagsLabel": "Tags (comma separated)",
     "searchPlaceholder": "Search best practices...",
-    "filterAll": "All"
+    "filterAll": "All",
+    "conditionSection": "When to apply",
+    "codeSnippetBtn": "Code snippet",
+    "count": "",
+    "titlePlaceholder": "e.g. Avoid direct setState in useEffect",
+    "conditionPlaceholder": "Describe when this practice should be followed, e.g. when fetching async data after component mount...",
+    "codeSnippetPlaceholder": "// Paste your code example here..."
   },
   "skills": {
     "title": "Skills",
@@ -240,6 +289,43 @@
       "appearance": "Appearance",
       "language": "Language & Region",
       "security": "Security"
+    },
+    "saveChanges": "Save changes",
+    "saved": "Saved ✓",
+    "profile": {
+      "title": "Profile",
+      "description": "Manage your account name and contact information",
+      "displayName": "Display name",
+      "email": "Email",
+      "bio": "Bio"
+    },
+    "appearanceSection": {
+      "title": "Appearance",
+      "description": "Customize the visual style of the app",
+      "theme": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "Follow system"
+    },
+    "securitySection": {
+      "title": "Security",
+      "description": "Manage password and login security settings",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPasswordPlaceholder": "Enter new password again",
+      "errorMinLength": "New password must be at least 6 characters",
+      "errorMismatch": "New passwords do not match",
+      "errorCurrentRequired": "Please enter your current password"
+    },
+    "notificationsSection": {
+      "title": "Notifications",
+      "description": "Choose which notifications you want to receive",
+      "pipeline": "Pipeline run completion reminder",
+      "mention": "Notify when mentioned",
+      "weekly": "Weekly summary email"
     }
   },
   "errors": {
@@ -253,6 +339,27 @@
       "descriptionPlaceholder": "Describe this output...",
       "localPathPlaceholder": "/home/user/output/"
     }
+  },
+  "work": {
+    "pending": "Pending",
+    "running": "Running",
+    "success": "Success",
+    "failed": "Failed",
+    "objectFile": "File",
+    "objectFolder": "Folder",
+    "objectProject": "Entire project"
+  },
+  "workspace": {
+    "title": "Workspace",
+    "notFound": "Project not found",
+    "triggerWork": "Trigger work",
+    "selectObjects": "Select objects (Object)",
+    "selectPipeline": "Select Pipeline",
+    "noPipelines": "No Pipelines yet",
+    "createPipeline": "Create one",
+    "objectsCount": "{{count}} objects",
+    "noPipelineSelected": "\u2014 No pipeline selected",
+    "entireProject": "Entire project"
   },
   "validation": {
     "nameRequired": "Name is required",

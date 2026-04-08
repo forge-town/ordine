@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { Link2, Lock, Globe, BookMarked } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useHarnessCanvasStore, type GitHubProjectNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
 import { SiGitHubIcon } from "./SiGitHubIcon";
@@ -16,6 +17,7 @@ export interface GitHubProjectNodeProps {
 const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps) => {
+  const { t } = useTranslation();
   const store = useHarnessCanvasStore();
   const [pickOpen, setPickOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
@@ -72,7 +74,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         {isConnected ? (
           <div
             className="flex items-center gap-1.5 rounded-md border border-slate-100 bg-slate-50 px-2.5 py-1.5 cursor-pointer hover:bg-orange-50 hover:border-orange-200 transition-colors"
-            title="点击切换仓库"
+            title={t("canvas.clickToSwitchRepo")}
             onClick={handlePickOpen}
             onMouseDown={handleMouseDown}
           >
@@ -98,7 +100,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
               onClick={handlePickOpen}
             >
               <BookMarked className="h-3.5 w-3.5" />
-              从项目库选取
+              {t("canvas.pickFromLibrary")}
             </button>
             <button
               className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-slate-200 bg-slate-50/50 py-1.5 text-[11px] text-slate-500 hover:bg-slate-100 transition-colors"
@@ -106,7 +108,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
               onClick={handleConnectOpen}
             >
               <Link2 className="h-3 w-3" />
-              直接输入 URL
+              {t("canvas.enterUrlDirectly")}
             </button>
           </div>
         )}
@@ -115,7 +117,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         {isConnected && (
           <textarea
             className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
-            placeholder="仓库描述..."
+            placeholder={t("canvas.repoDescPlaceholder")}
             rows={2}
             value={data.description ?? ""}
             onChange={handleDescriptionChange}
@@ -132,7 +134,8 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
             target="_blank"
             onMouseDown={handleMouseDown}
           >
-            <Globe className="h-2.5 w-2.5" />在 GitHub 查看
+            <Globe className="h-2.5 w-2.5" />
+            {t("canvas.viewOnGitHub")}
           </a>
         )}
       </NodeCard>

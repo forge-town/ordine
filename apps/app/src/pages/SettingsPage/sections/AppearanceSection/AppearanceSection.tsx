@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Field, SaveButton, SectionHeader } from "../../components";
 import { cn } from "@repo/ui/lib/utils";
 
@@ -9,6 +10,7 @@ interface AppearanceSectionProps {
 }
 
 export const AppearanceSection = ({ values, onChange, onSave, saved }: AppearanceSectionProps) => {
+  const { t } = useTranslation();
   const handleLightClick = () => onChange({ theme: "light" });
   const handleDarkClick = () => onChange({ theme: "dark" });
   const handleSystemClick = () => onChange({ theme: "system" });
@@ -16,8 +18,11 @@ export const AppearanceSection = ({ values, onChange, onSave, saved }: Appearanc
 
   return (
     <>
-      <SectionHeader description="自定义应用的视觉风格" title="外观" />
-      <Field label="主题">
+      <SectionHeader
+        description={t("settings.appearanceSection.description")}
+        title={t("settings.appearanceSection.title")}
+      />
+      <Field label={t("settings.appearanceSection.theme")}>
         <div className="flex gap-2">
           <button
             className={cn(
@@ -28,7 +33,7 @@ export const AppearanceSection = ({ values, onChange, onSave, saved }: Appearanc
             )}
             onClick={handleLightClick}
           >
-            浅色
+            {t("settings.appearanceSection.light")}
           </button>
           <button
             className={cn(
@@ -39,7 +44,7 @@ export const AppearanceSection = ({ values, onChange, onSave, saved }: Appearanc
             )}
             onClick={handleDarkClick}
           >
-            深色
+            {t("settings.appearanceSection.dark")}
           </button>
           <button
             className={cn(
@@ -50,7 +55,7 @@ export const AppearanceSection = ({ values, onChange, onSave, saved }: Appearanc
             )}
             onClick={handleSystemClick}
           >
-            跟随系统
+            {t("settings.appearanceSection.system")}
           </button>
         </div>
       </Field>

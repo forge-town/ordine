@@ -14,51 +14,36 @@ import {
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
+import { useTranslation } from "react-i18next";
 import type { JobEntity } from "@/models/daos/jobsDao";
 import type { JobStatus, JobType } from "@/models/tables/jobs_table";
 
-const STATUS_CONFIG: Record<
-  JobStatus,
-  { label: string; icon: React.ElementType; cls: string; dot: string }
-> = {
-  queued: {
-    label: "排队中",
-    icon: Clock,
-    cls: "bg-gray-100 text-gray-600",
-    dot: "bg-gray-400",
-  },
+const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot: string }> = {
+  queued: { icon: Clock, cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400" },
   running: {
-    label: "运行中",
     icon: Loader2,
     cls: "bg-blue-50 text-blue-700",
     dot: "bg-blue-500",
   },
   done: {
-    label: "完成",
     icon: CheckCircle2,
     cls: "bg-emerald-50 text-emerald-700",
     dot: "bg-emerald-500",
   },
-  failed: {
-    label: "失败",
-    icon: XCircle,
-    cls: "bg-red-50 text-red-700",
-    dot: "bg-red-500",
-  },
+  failed: { icon: XCircle, cls: "bg-red-50 text-red-700", dot: "bg-red-500" },
   cancelled: {
-    label: "已取消",
     icon: Ban,
     cls: "bg-amber-50 text-amber-600",
     dot: "bg-amber-400",
   },
 };
 
-const TYPE_CONFIG: Record<JobType, { label: string; icon: React.ElementType }> = {
-  pipeline_run: { label: "Pipeline", icon: Layers },
-  code_analysis: { label: "代码分析", icon: Code2 },
-  skill_execution: { label: "技能执行", icon: Wand2 },
-  file_scan: { label: "文件扫描", icon: FileSearch },
-  custom: { label: "自定义", icon: Cpu },
+const TYPE_ICON: Record<JobType, React.ElementType> = {
+  pipeline_run: Layers,
+  code_analysis: Code2,
+  skill_execution: Wand2,
+  file_scan: FileSearch,
+  custom: Cpu,
 };
 
 export type JobRowProps = {
@@ -68,15 +53,22 @@ export type JobRowProps = {
 };
 
 export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
-  const s = STATUS_CONFIG[job.status];
-  const t = TYPE_CONFIG[job.type];
+  const { t } = useTranslation();
+  const s = STATUS_META[job.status];
   const StatusIcon = s.icon;
-  const TypeIcon = t.icon;
+  const TypeIcon = TYPE_ICON[job.type];
+  const TYPE_LABELS: Record<JobType, string> = {
+    pipeline_run: t("jobs.typePipeline"),
+    code_analysis: t("jobs.typeCodeAnalysis"),
+    skill_execution: t("jobs.typeSkillExecution"),
+    file_scan: t("jobs.typeFileScan"),
+    custom: t("jobs.typeCustom"),
+  };
   const duration =
     job.startedAt && job.finishedAt
       ? ((job.finishedAt - job.startedAt) / 1000).toFixed(1) + "s"
       : job.startedAt
-        ? "进行中"
+        ? t("jobs.inProgress")
         : null;
 
   const handleClick = onClick;
@@ -98,7 +90,7 @@ export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
           <p className="truncate text-sm font-semibold text-foreground">{job.title}</p>
           <span className="flex shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
             <TypeIcon className="h-2.5 w-2.5" />
-            {t.label}
+            {TYPE_LABELS[job.type]}
           </span>
         </div>
         <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
@@ -116,7 +108,7 @@ export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
         </div>
       </div>
       <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium", s.cls)}>
-        {s.label}
+        {t(`jobs.${job.status}`)}
       </span>
       <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <Button

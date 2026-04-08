@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BookOpen, Code2, ChevronDown, ChevronUp, Pencil, Trash2, Tag } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import { CATEGORIES, CATEGORY_COLORS } from "../constants";
@@ -11,6 +12,7 @@ export type PracticeCardProps = {
 };
 
 export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const hasCode = practice.codeSnippet.trim().length > 0;
   const handleToggleExpanded = () => setExpanded((v) => !v);
@@ -72,7 +74,7 @@ export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) 
       {/* Condition */}
       <div className="border-t border-border bg-amber-50/60 px-4 py-3">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 mb-1">
-          适用时机
+          {t("bestPractices.conditionSection")}
         </p>
         <p className="text-xs text-foreground leading-relaxed">{practice.condition}</p>
       </div>
@@ -85,7 +87,9 @@ export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) 
             onClick={handleToggleExpanded}
           >
             <Code2 className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="flex-1 text-left font-medium">代码片段</span>
+            <span className="flex-1 text-left font-medium">
+              {t("bestPractices.codeSnippetBtn")}
+            </span>
             {expanded ? (
               <ChevronUp className="h-3.5 w-3.5" />
             ) : (

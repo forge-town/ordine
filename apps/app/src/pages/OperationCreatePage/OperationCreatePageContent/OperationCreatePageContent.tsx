@@ -253,7 +253,7 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
                     <FormControl>
                       <Input
                         className="h-9 text-sm"
-                        placeholder="简单描述这个操作做什么"
+                        placeholder={t("operations.descriptionPlaceholder")}
                         {...field}
                       />
                     </FormControl>
@@ -386,7 +386,7 @@ export const OperationCreatePageContent = ({ skills }: { skills: SkillEntity[] }
                         <FormControl>
                           <Textarea
                             className="resize-none text-sm"
-                            placeholder="你是一个代码审查专家，请分析以下代码..."
+                            placeholder={t("operations.promptPlaceholder")}
                             rows={5}
                             {...field}
                           />

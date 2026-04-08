@@ -112,7 +112,9 @@ export const BestPracticesPageContent = () => {
           ))}
         </div>
 
-        <span className="ml-auto text-xs text-muted-foreground">{filtered.length} 条</span>
+        <span className="ml-auto text-xs text-muted-foreground">
+          {filtered.length} {t("bestPractices.count")}
+        </span>
       </div>
 
       {/* List */}

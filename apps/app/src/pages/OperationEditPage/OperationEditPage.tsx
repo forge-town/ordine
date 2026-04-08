@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { OperationEditPageContent } from "./OperationEditPageContent";
 import { Route } from "@/routes/operations.$operationId.edit";
@@ -9,12 +10,13 @@ export const OperationEditPage = () => {
     operation: OperationEntity | null;
     skills: SkillEntity[];
   };
+  const { t } = useTranslation();
 
   if (!operation) {
     return (
       <AppLayout>
         <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-          Operation 不存在
+          {t("operations.operationNotFound")}
         </div>
       </AppLayout>
     );

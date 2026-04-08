@@ -77,7 +77,14 @@
     "logs": "日志",
     "noLogs": "暂无日志",
     "status": "状态",
-    "id": "ID"
+    "id": "ID",
+    "typeCodeAnalysis": "代码分析",
+    "typeSkillExecution": "技能执行",
+    "typeFileScan": "文件扫描",
+    "typeCustom": "自定义",
+    "typePipeline": "Pipeline",
+    "inProgress": "进行中",
+    "result": "执行结果"
   },
   "operations": {
     "title": "操作集",
@@ -121,7 +128,9 @@
     "sortDateDesc": "最新先",
     "sortDateAsc": "最旧先",
     "sortCategoryAsc": "分类 A → Z",
-    "count": "个"
+    "count": "个",
+    "descriptionPlaceholder": "简单描述这个操作做什么",
+    "promptPlaceholder": "你是一个代码审查专家，请分析以下代码..."
   },
   "pipelines": {
     "title": "流水线",
@@ -171,7 +180,15 @@
       "addFolder": "添加 Folder",
       "addCondition": "添加 Condition",
       "addOperation": "添加 Operation"
-    }
+    },
+    "folderDescPlaceholder": "文件夹描述...",
+    "clickToSwitchRepo": "点击切换仓库",
+    "pickFromLibrary": "从项目库选取",
+    "enterUrlDirectly": "直接输入 URL",
+    "repoDescPlaceholder": "仓库描述...",
+    "viewOnGitHub": "在 GitHub 查看",
+    "pickRepoTitle": "从项目库选取仓库",
+    "searchRepo": "搜索仓库..."
   },
   "projects": {
     "title": "GitHub 项目",
@@ -189,7 +206,26 @@
     "works": "Works",
     "noWorks": "暂无工作记录",
     "runNew": "新建运行",
-    "projectId": "Project ID"
+    "projectId": "Project ID",
+    "notFound": "项目不存在",
+    "openWorkspace": "打开工作区",
+    "availablePipelines": "可用 Pipeline",
+    "activeWorks": "进行中 Works",
+    "historyWorks": "历史 Works",
+    "activeSection": "进行中",
+    "noHistory": "还没有执行记录",
+    "noHistoryHint": "在工作区选择对象并触发 Pipeline",
+    "connectProjectTitle": "连接 GitHub 项目",
+    "tokenConfigured": "已配置 GitHub Token（可访问私有仓库）",
+    "tokenMissing": "未配置 Token，仅能访问公开仓库。",
+    "configureToken": "配置 Token",
+    "resetInput": "重新输入",
+    "addToLibrary": "添加到项目库",
+    "githubUrl": "GitHub 仓库 URL",
+    "fetch": "查询",
+    "invalidUrl": "无效的 GitHub 仓库 URL",
+    "fetchFailed": "获取仓库信息失败",
+    "saveFailed": "保存失败"
   },
   "rules": {
     "title": "规则",
@@ -202,7 +238,14 @@
     "patternLabel": "匹配规则 (正则)",
     "enabled": "启用",
     "disabled": "禁用",
-    "toggle": "切换状态"
+    "toggle": "切换状态",
+    "namePlaceholder": "规则名称 *",
+    "descriptionPlaceholder": "规则描述（可选）",
+    "severity": "严重度",
+    "patternPlaceholder": "规则模式（正则或关键词，可选）",
+    "tagsPlaceholder": "标签（逗号分隔，可选）",
+    "enable": "启用",
+    "disable": "禁用"
   },
   "bestPractices": {
     "title": "最佳实践",
@@ -215,7 +258,13 @@
     "codeSnippetLabel": "代码片段",
     "tagsLabel": "标签 (逗号分隔)",
     "searchPlaceholder": "搜索最佳实践...",
-    "filterAll": "全部"
+    "filterAll": "全部",
+    "conditionSection": "适用时机",
+    "codeSnippetBtn": "代码片段",
+    "count": "条",
+    "titlePlaceholder": "e.g. 避免在 useEffect 中直接 setState",
+    "conditionPlaceholder": "描述什么情况下应该遵循这个实践，例如：当需要在组件挂载后获取异步数据时...",
+    "codeSnippetPlaceholder": "// 在这里粘贴代码示例..."
   },
   "skills": {
     "title": "技能",
@@ -241,6 +290,43 @@
       "appearance": "外观",
       "language": "语言与地区",
       "security": "安全"
+    },
+    "saveChanges": "保存更改",
+    "saved": "已保存 ✓",
+    "profile": {
+      "title": "个人信息",
+      "description": "管理你的账户名称和联系信息",
+      "displayName": "显示名称",
+      "email": "邮箱",
+      "bio": "简介"
+    },
+    "appearanceSection": {
+      "title": "外观",
+      "description": "自定义应用的视觉风格",
+      "theme": "主题",
+      "light": "浅色",
+      "dark": "深色",
+      "system": "跟随系统"
+    },
+    "securitySection": {
+      "title": "安全",
+      "description": "管理密码和登录安全设置",
+      "currentPassword": "当前密码",
+      "newPassword": "新密码",
+      "confirmPassword": "确认新密码",
+      "currentPasswordPlaceholder": "输入当前密码",
+      "newPasswordPlaceholder": "输入新密码",
+      "confirmPasswordPlaceholder": "再次输入新密码",
+      "errorMinLength": "新密码长度不能少于 6 位",
+      "errorMismatch": "两次输入的新密码不一致",
+      "errorCurrentRequired": "请输入当前密码"
+    },
+    "notificationsSection": {
+      "title": "通知",
+      "description": "选择你希望接收哪些通知",
+      "pipeline": "Pipeline 运行完成提醒",
+      "mention": "被 @提及时通知",
+      "weekly": "每周摘要邮件"
     }
   },
   "errors": {
@@ -254,6 +340,27 @@
       "descriptionPlaceholder": "描述此输出...",
       "localPathPlaceholder": "/home/user/output/"
     }
+  },
+  "work": {
+    "pending": "等待中",
+    "running": "运行中",
+    "success": "成功",
+    "failed": "失败",
+    "objectFile": "文件",
+    "objectFolder": "文件夹",
+    "objectProject": "整个项目"
+  },
+  "workspace": {
+    "title": "工作区",
+    "notFound": "项目不存在",
+    "triggerWork": "触发 Work",
+    "selectObjects": "选择对象 (Object)",
+    "selectPipeline": "选择 Pipeline",
+    "noPipelines": "还没有 Pipeline",
+    "createPipeline": "去创建",
+    "objectsCount": "{{count}} 个对象",
+    "noPipelineSelected": "— 未选 Pipeline",
+    "entireProject": "整个项目"
   },
   "validation": {
     "nameRequired": "名称不能为空",

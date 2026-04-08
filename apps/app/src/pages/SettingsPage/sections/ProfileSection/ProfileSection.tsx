@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Field, SaveButton, SectionHeader } from "../../components";
 import { Input } from "@repo/ui/input";
 
@@ -9,6 +10,7 @@ interface ProfileSectionProps {
 }
 
 export const ProfileSection = ({ values, onChange, onSave, saved }: ProfileSectionProps) => {
+  const { t } = useTranslation();
   const handleDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     onChange({ displayName: e.target.value });
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -19,14 +21,17 @@ export const ProfileSection = ({ values, onChange, onSave, saved }: ProfileSecti
 
   return (
     <>
-      <SectionHeader description="管理你的账户名称和联系信息" title="个人信息" />
-      <Field label="显示名称">
+      <SectionHeader
+        description={t("settings.profile.description")}
+        title={t("settings.profile.title")}
+      />
+      <Field label={t("settings.profile.displayName")}>
         <Input value={values.displayName} onChange={handleDisplayNameChange} />
       </Field>
-      <Field label="邮箱">
+      <Field label={t("settings.profile.email")}>
         <Input type="email" value={values.email} onChange={handleEmailChange} />
       </Field>
-      <Field label="简介">
+      <Field label={t("settings.profile.bio")}>
         <textarea
           className="rounded-md border bg-muted/30 px-3 py-2 text-sm resize-none focus:border-ring focus:bg-background focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
           rows={3}
