@@ -2,7 +2,15 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
-import { ArrowLeft, FileCode, Folder, FolderGit2, Globe, Lock, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  FileCode,
+  Folder,
+  FolderGit2,
+  Globe,
+  Lock,
+  Users,
+} from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -23,11 +31,23 @@ import {
   FormControl,
   FormMessage,
 } from "@repo/ui/form";
-import { createOperation } from "@/services/operationsService";
+import { updateOperation } from "@/services/operationsService";
+import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { ObjectType, Visibility } from "@/models/tables/operations_table";
-import { ObjectTypeSchema as ObjectTypeEnum, VisibilitySchema as VisibilityEnum } from "@/schemas";
+import {
+  ObjectTypeSchema as ObjectTypeEnum,
+  VisibilitySchema as VisibilityEnum,
+} from "@/schemas";
 
-const CATEGORIES = ["general", "lint", "format", "build", "test", "deploy", "custom"] as const;
+const CATEGORIES = [
+  "general",
+  "lint",
+  "format",
+  "build",
+  "test",
+  "deploy",
+  "custom",
+] as const;
 
 const VISIBILITY_OPTIONS: {
   value: Visibility;
@@ -49,7 +69,7 @@ const OBJECT_TYPE_OPTIONS: {
   { value: "project", label: "整个项目", icon: FolderGit2 },
 ];
 
-const createFormSchema = z.object({
+const editFormSchema = z.object({
   name: z.string().min(1, "名称不能为空"),
   description: z.string(),
   category: z.string(),
@@ -58,39 +78,40 @@ const createFormSchema = z.object({
   acceptedObjectTypes: z.array(ObjectTypeEnum).min(1),
 });
 
-type CreateFormValues = z.infer<typeof createFormSchema>;
+type EditFormValues = z.infer<typeof editFormSchema>;
 
-const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[] => {
-  if (current.includes(type)) {
-    if (current.length === 1) return current;
-    return current.filter((t) => t !== type);
-  }
-  return [...current, type];
-};
+interface Props {
+  operation: OperationEntity;
+}
 
-export const OperationCreatePageContent = () => {
+export const OperationEditPageContent = ({ operation }: Props) => {
   const navigate = useNavigate();
 
-  const form = useForm<CreateFormValues>({
-    resolver: zodResolver(createFormSchema),
+  const form = useForm<EditFormValues>({
+    resolver: zodResolver(editFormSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      category: "general",
-      visibility: "public",
-      config: "{}",
-      acceptedObjectTypes: ["file", "folder", "project"],
+      name: operation.name,
+      description: operation.description ?? "",
+      category: operation.category,
+      visibility: operation.visibility ?? "public",
+      config: operation.config,
+      acceptedObjectTypes: Array.isArray(operation.acceptedObjectTypes)
+        ? [...operation.acceptedObjectTypes]
+        : ["file", "folder", "project"],
     },
   });
 
   const handleCancel = () => {
-    navigate({ to: "/operations" });
+    navigate({
+      to: "/operations/$operationId",
+      params: { operationId: operation.id },
+    });
   };
 
-  const onSubmit = async (values: CreateFormValues) => {
-    const created = await createOperation({
+  const onSubmit = async (values: EditFormValues) => {
+    await updateOperation({
       data: {
-        id: `op-${Date.now()}`,
+        id: operation.id,
         name: values.name,
         description: values.description || null,
         category: values.category,
@@ -99,12 +120,21 @@ export const OperationCreatePageContent = () => {
         acceptedObjectTypes: values.acceptedObjectTypes,
       },
     });
-    if (created) {
-      navigate({
-        to: "/operations/$operationId",
-        params: { operationId: (created as { id: string }).id },
-      });
+    navigate({
+      to: "/operations/$operationId",
+      params: { operationId: operation.id },
+    });
+  };
+
+  const toggleObjectType = (
+    current: ObjectType[],
+    type: ObjectType,
+  ): ObjectType[] => {
+    if (current.includes(type)) {
+      if (current.length === 1) return current;
+      return current.filter((t) => t !== type);
     }
+    return [...current, type];
   };
 
   return (
@@ -121,7 +151,9 @@ export const OperationCreatePageContent = () => {
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-base font-semibold text-foreground">新建 Operation</h1>
+        <h1 className="text-base font-semibold text-foreground">
+          编辑 Operation
+        </h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -158,7 +190,10 @@ export const OperationCreatePageContent = () => {
                         分类
                       </FormLabel>
                       <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger className="h-9 w-full">
                             <SelectValue />
                           </SelectTrigger>
@@ -209,26 +244,30 @@ export const OperationCreatePageContent = () => {
                     </FormLabel>
                     <FormControl>
                       <div className="flex gap-2">
-                        {VISIBILITY_OPTIONS.map(({ value, label, icon: Icon }) => {
-                          const selected = field.value === value;
-                          return (
-                            <button
-                              key={value}
-                              className={cn(
-                                "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
-                                selected
-                                  ? "border-primary/50 bg-primary/10 text-primary"
-                                  : "border-border bg-background text-muted-foreground hover:bg-muted"
-                              )}
-                              type="button"
-                              onClick={() => field.onChange(value)}
-                            >
-                              <Icon className="h-4 w-4" />
-                              {label}
-                              {selected && <span className="ml-1 text-xs">✓</span>}
-                            </button>
-                          );
-                        })}
+                        {VISIBILITY_OPTIONS.map(
+                          ({ value, label, icon: Icon }) => {
+                            const selected = field.value === value;
+                            return (
+                              <button
+                                key={value}
+                                className={cn(
+                                  "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
+                                  selected
+                                    ? "border-primary/50 bg-primary/10 text-primary"
+                                    : "border-border bg-background text-muted-foreground hover:bg-muted",
+                                )}
+                                type="button"
+                                onClick={() => field.onChange(value)}
+                              >
+                                <Icon className="h-4 w-4" />
+                                {label}
+                                {selected && (
+                                  <span className="ml-1 text-xs">✓</span>
+                                )}
+                              </button>
+                            );
+                          },
+                        )}
                       </div>
                     </FormControl>
                     <FormMessage className="text-xs" />
@@ -246,28 +285,34 @@ export const OperationCreatePageContent = () => {
                     </FormLabel>
                     <FormControl>
                       <div className="flex gap-2">
-                        {OBJECT_TYPE_OPTIONS.map(({ value, label, icon: Icon }) => {
-                          const selected = field.value.includes(value);
-                          return (
-                            <button
-                              key={value}
-                              className={cn(
-                                "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
-                                selected
-                                  ? "border-primary/50 bg-primary/10 text-primary"
-                                  : "border-border bg-background text-muted-foreground hover:bg-muted"
-                              )}
-                              type="button"
-                              onClick={() =>
-                                field.onChange(toggleObjectType(field.value, value))
-                              }
-                            >
-                              <Icon className="h-4 w-4" />
-                              {label}
-                              {selected && <span className="ml-1 text-xs">✓</span>}
-                            </button>
-                          );
-                        })}
+                        {OBJECT_TYPE_OPTIONS.map(
+                          ({ value, label, icon: Icon }) => {
+                            const selected = field.value.includes(value);
+                            return (
+                              <button
+                                key={value}
+                                className={cn(
+                                  "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
+                                  selected
+                                    ? "border-primary/50 bg-primary/10 text-primary"
+                                    : "border-border bg-background text-muted-foreground hover:bg-muted",
+                                )}
+                                type="button"
+                                onClick={() =>
+                                  field.onChange(
+                                    toggleObjectType(field.value, value),
+                                  )
+                                }
+                              >
+                                <Icon className="h-4 w-4" />
+                                {label}
+                                {selected && (
+                                  <span className="ml-1 text-xs">✓</span>
+                                )}
+                              </button>
+                            );
+                          },
+                        )}
                       </div>
                     </FormControl>
                     <FormMessage className="text-xs" />
@@ -287,7 +332,7 @@ export const OperationCreatePageContent = () => {
                       <Textarea
                         className="resize-none font-mono text-xs"
                         placeholder='{ "command": "eslint src/" }'
-                        rows={5}
+                        rows={6}
                         {...field}
                       />
                     </FormControl>
@@ -297,10 +342,19 @@ export const OperationCreatePageContent = () => {
               />
 
               <div className="flex justify-end gap-2 pt-2">
-                <Button size="sm" type="button" variant="outline" onClick={handleCancel}>
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                >
                   取消
                 </Button>
-                <Button disabled={form.formState.isSubmitting} size="sm" type="submit">
+                <Button
+                  disabled={form.formState.isSubmitting}
+                  size="sm"
+                  type="submit"
+                >
                   {form.formState.isSubmitting ? "保存中..." : "保存"}
                 </Button>
               </div>

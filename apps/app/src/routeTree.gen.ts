@@ -27,6 +27,7 @@ import { Route as OperationsNewRouteImport } from './routes/operations.new'
 import { Route as OperationsOperationIdRouteImport } from './routes/operations.$operationId'
 import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
 import { Route as ProjectsProjectIdWorkspaceRouteImport } from './routes/projects.$projectId.workspace'
+import { Route as OperationsOperationIdEditRouteImport } from './routes/operations.$operationId.edit'
 
 const SkillsRoute = SkillsRouteImport.update({
   id: '/skills',
@@ -119,6 +120,12 @@ const ProjectsProjectIdWorkspaceRoute =
     path: '/workspace',
     getParentRoute: () => ProjectsProjectIdRoute,
   } as any)
+const OperationsOperationIdEditRoute =
+  OperationsOperationIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => OperationsOperationIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -131,13 +138,14 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/jobs/$jobId': typeof JobsJobIdRoute
-  '/operations/$operationId': typeof OperationsOperationIdRoute
+  '/operations/$operationId': typeof OperationsOperationIdRouteWithChildren
   '/operations/new': typeof OperationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
   '/operations/': typeof OperationsIndexRoute
   '/pipelines/': typeof PipelinesIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/operations/$operationId/edit': typeof OperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
 export interface FileRoutesByTo {
@@ -150,13 +158,14 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/jobs/$jobId': typeof JobsJobIdRoute
-  '/operations/$operationId': typeof OperationsOperationIdRoute
+  '/operations/$operationId': typeof OperationsOperationIdRouteWithChildren
   '/operations/new': typeof OperationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
   '/operations': typeof OperationsIndexRoute
   '/pipelines': typeof PipelinesIndexRoute
   '/projects': typeof ProjectsIndexRoute
+  '/operations/$operationId/edit': typeof OperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
 export interface FileRoutesById {
@@ -171,13 +180,14 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/jobs/$jobId': typeof JobsJobIdRoute
-  '/operations/$operationId': typeof OperationsOperationIdRoute
+  '/operations/$operationId': typeof OperationsOperationIdRouteWithChildren
   '/operations/new': typeof OperationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
   '/operations/': typeof OperationsIndexRoute
   '/pipelines/': typeof PipelinesIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/operations/$operationId/edit': typeof OperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
 export interface FileRouteTypes {
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/operations/'
     | '/pipelines/'
     | '/projects/'
+    | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/operations'
     | '/pipelines'
     | '/projects'
+    | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
   id:
     | '__root__'
@@ -239,6 +251,7 @@ export interface FileRouteTypes {
     | '/operations/'
     | '/pipelines/'
     | '/projects/'
+    | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
   fileRoutesById: FileRoutesById
 }
@@ -252,7 +265,7 @@ export interface RootRouteChildren {
   RulesRoute: typeof RulesRoute
   SettingsRoute: typeof SettingsRoute
   SkillsRoute: typeof SkillsRoute
-  OperationsOperationIdRoute: typeof OperationsOperationIdRoute
+  OperationsOperationIdRoute: typeof OperationsOperationIdRouteWithChildren
   OperationsNewRoute: typeof OperationsNewRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRouteWithChildren
   OperationsIndexRoute: typeof OperationsIndexRoute
@@ -387,6 +400,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectIdWorkspaceRouteImport
       parentRoute: typeof ProjectsProjectIdRoute
     }
+    '/operations/$operationId/edit': {
+      id: '/operations/$operationId/edit'
+      path: '/edit'
+      fullPath: '/operations/$operationId/edit'
+      preLoaderRoute: typeof OperationsOperationIdEditRouteImport
+      parentRoute: typeof OperationsOperationIdRoute
+    }
   }
 }
 
@@ -414,6 +434,19 @@ const PipelinesRouteWithChildren = PipelinesRoute._addFileChildren(
   PipelinesRouteChildren,
 )
 
+interface OperationsOperationIdRouteChildren {
+  OperationsOperationIdEditRoute: typeof OperationsOperationIdEditRoute
+}
+
+const OperationsOperationIdRouteChildren: OperationsOperationIdRouteChildren = {
+  OperationsOperationIdEditRoute: OperationsOperationIdEditRoute,
+}
+
+const OperationsOperationIdRouteWithChildren =
+  OperationsOperationIdRoute._addFileChildren(
+    OperationsOperationIdRouteChildren,
+  )
+
 interface ProjectsProjectIdRouteChildren {
   ProjectsProjectIdWorkspaceRoute: typeof ProjectsProjectIdWorkspaceRoute
 }
@@ -435,7 +468,7 @@ const rootRouteChildren: RootRouteChildren = {
   RulesRoute: RulesRoute,
   SettingsRoute: SettingsRoute,
   SkillsRoute: SkillsRoute,
-  OperationsOperationIdRoute: OperationsOperationIdRoute,
+  OperationsOperationIdRoute: OperationsOperationIdRouteWithChildren,
   OperationsNewRoute: OperationsNewRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRouteWithChildren,
   OperationsIndexRoute: OperationsIndexRoute,

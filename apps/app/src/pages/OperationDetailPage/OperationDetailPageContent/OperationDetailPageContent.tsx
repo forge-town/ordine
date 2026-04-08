@@ -13,6 +13,7 @@ import {
   Globe,
   Lock,
   Users,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
@@ -71,9 +72,13 @@ export type OperationDetailPageContentProps = {
   operation: OperationEntity | null;
 };
 
-export const OperationDetailPageContent = ({ operation }: OperationDetailPageContentProps) => {
+export const OperationDetailPageContent = ({
+  operation,
+}: OperationDetailPageContentProps) => {
   const navigate = useNavigate();
-  const [visibility, setVisibility] = useState<Visibility>(operation?.visibility ?? "public");
+  const [visibility, setVisibility] = useState<Visibility>(
+    operation?.visibility ?? "public",
+  );
   const [toggling, setToggling] = useState(false);
 
   const handleNavigateBack = () => void navigate({ to: "/operations" });
@@ -96,8 +101,13 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <XCircle className="h-10 w-10 text-muted-foreground/30" />
-        <p className="text-sm font-medium text-muted-foreground">Operation 不存在</p>
-        <button className="text-xs text-primary hover:underline" onClick={handleNavigateBack}>
+        <p className="text-sm font-medium text-muted-foreground">
+          Operation 不存在
+        </p>
+        <button
+          className="text-xs text-primary hover:underline"
+          onClick={handleNavigateBack}
+        >
           返回列表
         </button>
       </div>
@@ -122,10 +132,28 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-foreground">{operation.name}</h1>
-          <p className="font-mono text-[11px] text-muted-foreground">{operation.id}</p>
+          <h1 className="truncate text-sm font-semibold text-foreground">
+            {operation.name}
+          </h1>
+          <p className="font-mono text-[11px] text-muted-foreground">
+            {operation.id}
+          </p>
         </div>
         <Badge variant="secondary">{operation.category}</Badge>
+        <Button
+          aria-label="编辑"
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            void navigate({
+              to: "/operations/$operationId/edit",
+              params: { operationId: operation.id },
+            })
+          }
+        >
+          <Pencil className="h-4 w-4" />
+          编辑
+        </Button>
       </div>
 
       {/* Body */}
@@ -134,15 +162,19 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
         <div className="rounded-xl border border-border bg-card p-4">
           <SectionHeader icon={Info} label="基本信息" />
           {operation.description && (
-            <p className="mb-4 text-sm leading-relaxed text-foreground">{operation.description}</p>
+            <p className="mb-4 text-sm leading-relaxed text-foreground">
+              {operation.description}
+            </p>
           )}
           <div className="mb-3 flex items-center justify-between">
-            <span className="shrink-0 text-xs text-muted-foreground">可见性</span>
+            <span className="shrink-0 text-xs text-muted-foreground">
+              可见性
+            </span>
             <button
               className={cn(
                 "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-opacity",
                 vc.cls,
-                toggling && "cursor-not-allowed opacity-50"
+                toggling && "cursor-not-allowed opacity-50",
               )}
               disabled={toggling}
               title="点击切换可见性"
@@ -153,7 +185,9 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <span className="shrink-0 text-xs text-muted-foreground">适用对象</span>
+            <span className="shrink-0 text-xs text-muted-foreground">
+              适用对象
+            </span>
             <div className="flex flex-wrap gap-1.5">
               {operation.acceptedObjectTypes.map((type) => {
                 const Icon = OBJECT_TYPE_ICONS[type];
@@ -173,7 +207,10 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
 
         {config.inputs.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-4">
-            <SectionHeader icon={FileInput} label={`输入 (${config.inputs.length})`} />
+            <SectionHeader
+              icon={FileInput}
+              label={`输入 (${config.inputs.length})`}
+            />
             <div>
               {config.inputs.map((port) => (
                 <InputPortRow key={port.name} port={port} />
@@ -184,7 +221,10 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
 
         {config.outputs.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-4">
-            <SectionHeader icon={FileOutput} label={`输出 (${config.outputs.length})`} />
+            <SectionHeader
+              icon={FileOutput}
+              label={`输出 (${config.outputs.length})`}
+            />
             <div>
               {config.outputs.map((port) => (
                 <OutputPortRow key={port.name} port={port} />
@@ -197,13 +237,17 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
           <SectionHeader icon={Tag} label="元数据" />
           <div className="space-y-0">
             <div className="flex items-start gap-3 border-b border-border/50 py-2.5">
-              <span className="w-20 shrink-0 text-xs text-muted-foreground">创建时间</span>
+              <span className="w-20 shrink-0 text-xs text-muted-foreground">
+                创建时间
+              </span>
               <span className="text-xs text-foreground">
                 {new Date(operation.createdAt).toLocaleString("zh-CN")}
               </span>
             </div>
             <div className="flex items-start gap-3 py-2.5">
-              <span className="w-20 shrink-0 text-xs text-muted-foreground">更新时间</span>
+              <span className="w-20 shrink-0 text-xs text-muted-foreground">
+                更新时间
+              </span>
               <span className="text-xs text-foreground">
                 {new Date(operation.updatedAt).toLocaleString("zh-CN")}
               </span>

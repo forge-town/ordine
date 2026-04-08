@@ -22,6 +22,11 @@ describe("OperationCreatePageContent", () => {
     mockCreateOperation.mockClear();
   });
 
+  it("renders inside a <form> element (react-hook-form)", () => {
+    const { container } = render(<OperationCreatePageContent />);
+    expect(container.querySelector("form")).not.toBeNull();
+  });
+
   it("renders the create form with name input", () => {
     render(<OperationCreatePageContent />);
     expect(screen.getByPlaceholderText(/e.g. Run ESLint/i)).toBeInTheDocument();
@@ -33,19 +38,12 @@ describe("OperationCreatePageContent", () => {
     expect(screen.getByPlaceholderText(/command/i)).toBeInTheDocument();
   });
 
-  it("save button is disabled when name is empty", () => {
+  it("shows validation error when submitting with empty name", async () => {
     render(<OperationCreatePageContent />);
-    const saveBtn = screen.getByRole("button", { name: /保存/ });
-    expect(saveBtn).toBeDisabled();
-  });
-
-  it("save button is enabled when name has value", () => {
-    render(<OperationCreatePageContent />);
-    fireEvent.change(screen.getByPlaceholderText(/e.g. Run ESLint/i), {
-      target: { value: "My Op" },
+    fireEvent.click(screen.getByRole("button", { name: /保存/ }));
+    await waitFor(() => {
+      expect(screen.getByText(/名称不能为空/i)).toBeInTheDocument();
     });
-    const saveBtn = screen.getByRole("button", { name: /保存/ });
-    expect(saveBtn).not.toBeDisabled();
   });
 
   it("calls createOperation with correct data on save", async () => {
@@ -62,7 +60,7 @@ describe("OperationCreatePageContent", () => {
       expect(mockCreateOperation).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ name: "Test Op" }),
-        })
+        }),
       );
     });
   });
@@ -81,7 +79,7 @@ describe("OperationCreatePageContent", () => {
         expect.objectContaining({
           to: "/operations/$operationId",
           params: { operationId: "new-op-id" },
-        })
+        }),
       );
     });
   });
