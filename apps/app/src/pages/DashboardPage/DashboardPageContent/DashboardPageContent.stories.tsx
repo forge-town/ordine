@@ -2,22 +2,21 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { DashboardPageContent } from "./DashboardPageContent";
 import type { JobEntity } from "@/models/daos/jobsDao";
 
+// Route.useLoaderData is mocked via Storybook parameters or decorators
 const meta: Meta<typeof DashboardPageContent> = {
   title: "DashboardPage/DashboardPageContent",
   component: DashboardPageContent,
-  args: {
-    pipelines: [],
-    projects: [],
-    jobs: [],
-  },
 };
 export default meta;
 type Story = StoryObj<typeof DashboardPageContent>;
-export const Default: Story = { args: {} };
+
+export const Default: Story = {};
+
 export const WithJobs: Story = {
-  args: {
-    jobs: [
-      {
+  decorators: [
+    (Story) => {
+      const { Route } = require("@/routes/index");
+      const mockJob: JobEntity = {
         id: "job-1",
         title: "运行 Pipeline",
         type: "pipeline_run",
@@ -32,7 +31,10 @@ export const WithJobs: Story = {
         finishedAt: null,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-      } satisfies JobEntity,
-    ],
-  },
+      };
+      Route.useLoaderData = () => ({ pipelines: [], projects: [], jobs: [mockJob] });
+      return <Story />;
+    },
+  ],
 };
+

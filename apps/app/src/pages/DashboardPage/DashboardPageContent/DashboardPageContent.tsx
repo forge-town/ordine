@@ -4,16 +4,16 @@ import { useTranslation } from "react-i18next";
 import type { PipelineEntity } from "@/models/daos/pipelinesDao";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 import type { JobEntity } from "@/models/daos/jobsDao";
+import { Route } from "@/routes/index";
 import { StatCard } from "../StatCard";
 import { JobActivityRow } from "../JobActivityRow";
 
-export type DashboardPageContentProps = {
-  pipelines: PipelineEntity[];
-  projects: GithubProjectEntity[];
-  jobs: JobEntity[];
-};
-
-export const DashboardPageContent = ({ pipelines, projects, jobs }: DashboardPageContentProps) => {
+export const DashboardPageContent = () => {
+  const { pipelines, projects, jobs } = Route.useLoaderData() as {
+    pipelines: PipelineEntity[];
+    projects: GithubProjectEntity[];
+    jobs: JobEntity[];
+  };
   const { t } = useTranslation();
   const runningJobs = jobs.filter((j) => j.status === "running").length;
   const failedJobs = jobs.filter((j) => j.status === "failed").length;

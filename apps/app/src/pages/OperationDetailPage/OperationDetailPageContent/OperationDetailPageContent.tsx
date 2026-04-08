@@ -19,6 +19,7 @@ import { Button } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { ObjectType } from "@/models/tables/operations_table";
+import { Route } from "@/routes/operations.$operationId.index";
 import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
 import { OutputPortRow } from "../OutputPortRow";
@@ -55,10 +56,6 @@ const parseConfig = (raw: string): OperationConfig => {
   }
 };
 
-export type OperationDetailPageContentProps = {
-  operation: OperationEntity | null;
-};
-
 const ExecutorCard = ({ executor }: { executor: ExecutorConfig }) => {
   const Icon = EXECUTOR_ICON[executor.type] ?? Puzzle;
   const label = EXECUTOR_LABEL[executor.type] ?? executor.type;
@@ -68,7 +65,9 @@ const ExecutorCard = ({ executor }: { executor: ExecutorConfig }) => {
       <div className="mt-3 space-y-2">
         {executor.type === "skill" && executor.skillId && (
           <div className="flex items-center gap-2">
-            <span className="w-16 shrink-0 text-xs text-muted-foreground">Skill ID</span>
+            <span className="w-16 shrink-0 text-xs text-muted-foreground">
+              Skill ID
+            </span>
             <code className="rounded bg-muted px-2 py-0.5 font-mono text-xs">
               {executor.skillId}
             </code>
@@ -90,7 +89,9 @@ const ExecutorCard = ({ executor }: { executor: ExecutorConfig }) => {
               </span>
             )}
             {executor.command && (
-              <code className="font-mono text-xs text-foreground">{executor.command}</code>
+              <code className="font-mono text-xs text-foreground">
+                {executor.command}
+              </code>
             )}
           </div>
         )}
@@ -99,7 +100,8 @@ const ExecutorCard = ({ executor }: { executor: ExecutorConfig }) => {
   );
 };
 
-export const OperationDetailPageContent = ({ operation }: OperationDetailPageContentProps) => {
+export const OperationDetailPageContent = () => {
+  const operation = Route.useLoaderData() as OperationEntity | null;
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -112,7 +114,10 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
         <p className="text-sm font-medium text-muted-foreground">
           {t("operations.operationNotFound")}
         </p>
-        <button className="text-xs text-primary hover:underline" onClick={handleNavigateBack}>
+        <button
+          className="text-xs text-primary hover:underline"
+          onClick={handleNavigateBack}
+        >
           {t("common.backToList")}
         </button>
       </div>
@@ -140,8 +145,12 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-foreground">{operation.name}</h1>
-          <p className="font-mono text-[11px] text-muted-foreground">{operation.id}</p>
+          <h1 className="truncate text-sm font-semibold text-foreground">
+            {operation.name}
+          </h1>
+          <p className="font-mono text-[11px] text-muted-foreground">
+            {operation.id}
+          </p>
         </div>
         <Badge variant="secondary">{operation.category}</Badge>
         <Button
@@ -161,10 +170,14 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
         <div className="rounded-xl border border-border bg-card p-4">
           <SectionHeader icon={Info} label={t("operations.basicInfo")} />
           {operation.description && (
-            <p className="mb-4 text-sm leading-relaxed text-foreground">{operation.description}</p>
+            <p className="mb-4 text-sm leading-relaxed text-foreground">
+              {operation.description}
+            </p>
           )}
           <div className="flex items-center gap-2">
-            <span className="shrink-0 text-xs text-muted-foreground">适用对象</span>
+            <span className="shrink-0 text-xs text-muted-foreground">
+              适用对象
+            </span>
             <div className="flex flex-wrap gap-1.5">
               {operation.acceptedObjectTypes.map((type) => {
                 const Icon = OBJECT_TYPE_ICONS[type];
@@ -186,7 +199,10 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
 
         {config.inputs.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-4">
-            <SectionHeader icon={FileInput} label={`输入 (${config.inputs.length})`} />
+            <SectionHeader
+              icon={FileInput}
+              label={`输入 (${config.inputs.length})`}
+            />
             <div>
               {config.inputs.map((port) => (
                 <InputPortRow key={port.name} port={port} />
@@ -197,7 +213,10 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
 
         {config.outputs.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-4">
-            <SectionHeader icon={FileOutput} label={`输出 (${config.outputs.length})`} />
+            <SectionHeader
+              icon={FileOutput}
+              label={`输出 (${config.outputs.length})`}
+            />
             <div>
               {config.outputs.map((port) => (
                 <OutputPortRow key={port.name} port={port} />
@@ -210,13 +229,17 @@ export const OperationDetailPageContent = ({ operation }: OperationDetailPageCon
           <SectionHeader icon={Tag} label="元数据" />
           <div className="space-y-0">
             <div className="flex items-start gap-3 border-b border-border/50 py-2.5">
-              <span className="w-20 shrink-0 text-xs text-muted-foreground">创建时间</span>
+              <span className="w-20 shrink-0 text-xs text-muted-foreground">
+                创建时间
+              </span>
               <span className="text-xs text-foreground">
                 {new Date(operation.createdAt).toLocaleString("zh-CN")}
               </span>
             </div>
             <div className="flex items-start gap-3 py-2.5">
-              <span className="w-20 shrink-0 text-xs text-muted-foreground">更新时间</span>
+              <span className="w-20 shrink-0 text-xs text-muted-foreground">
+                更新时间
+              </span>
               <span className="text-xs text-foreground">
                 {new Date(operation.updatedAt).toLocaleString("zh-CN")}
               </span>
