@@ -1,0 +1,1 @@
+export { PipelinesPageContent } from './PipelinesPageContent';

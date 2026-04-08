@@ -1,0 +1,1 @@
+export { ProjectDetailPageContent } from './ProjectDetailPageContent';

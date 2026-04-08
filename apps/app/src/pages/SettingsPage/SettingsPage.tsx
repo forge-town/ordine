@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
-import { SettingsPageContent } from "./SettingsPageContent";
+import { SettingsPageContent } from "./SettingsPageContent/SettingsPageContent";
 
 export const SettingsPage = () => {
   return (

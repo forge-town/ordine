@@ -1,0 +1,1 @@
+export { JobDetailPageContent } from "./JobDetailPageContent";

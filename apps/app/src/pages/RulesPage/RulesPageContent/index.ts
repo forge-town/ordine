@@ -1,0 +1,1 @@
+export { RulesPageContent } from "./RulesPageContent";

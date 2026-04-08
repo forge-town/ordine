@@ -1,0 +1,206 @@
+import { useState } from "react";
+import { Plus, Search, ShieldCheck } from "lucide-react";
+import { cn } from "@repo/ui/lib/utils";
+import { Button } from "@repo/ui/button";
+import { Input } from "@repo/ui/input";
+import type { RuleEntity, RuleCategory } from "@/models/daos/rulesDao";
+import {
+  createRule,
+  updateRule,
+  deleteRule,
+  toggleRule,
+} from "@/services/rulesService";
+import { CATEGORY_FILTERS, getEditForm, type RuleFormState } from "../types";
+import { RuleCard } from "../RuleCard";
+import { RuleForm } from "../RuleForm";
+
+export const RulesPageContent = ({
+  rules: initial,
+}: {
+  rules: RuleEntity[];
+}) => {
+  const [rules, setRules] = useState(initial);
+  const [categoryFilter, setCategoryFilter] = useState<RuleCategory | "all">(
+    "all",
+  );
+  const [search, setSearch] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const handleCreate = async (form: RuleFormState) => {
+    const rule = await createRule({
+      data: {
+        id: crypto.randomUUID(),
+        name: form.name,
+        description: form.description || null,
+        category: form.category,
+        severity: form.severity,
+        pattern: form.pattern || null,
+        enabled: true,
+        tags: form.tags
+          ? form.tags
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : [],
+      },
+    });
+    setRules((prev) => [rule, ...prev]);
+    setShowForm(false);
+  };
+
+  const handleUpdate = async (form: RuleFormState) => {
+    if (!editingId) return;
+    const rule = await updateRule({
+      data: {
+        id: editingId,
+        name: form.name,
+        description: form.description || null,
+        category: form.category,
+        severity: form.severity,
+        pattern: form.pattern || null,
+        tags: form.tags
+          ? form.tags
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : [],
+      },
+    });
+    setRules((prev) => prev.map((r) => (r.id === editingId ? rule : r)));
+    setEditingId(null);
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteRule({ data: { id } });
+    setRules((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const handleToggle = async (id: string, enabled: boolean) => {
+    const rule = await toggleRule({ data: { id, enabled } });
+    setRules((prev) => prev.map((r) => (r.id === id ? rule : r)));
+  };
+
+  const filtered = rules.filter((r) => {
+    if (categoryFilter !== "all" && r.category !== categoryFilter) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      return (
+        r.name.toLowerCase().includes(q) ||
+        (r.description?.toLowerCase().includes(q) ?? false) ||
+        r.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    }
+    return true;
+  });
+
+  const enabledCount = rules.filter((r) => r.enabled).length;
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setSearch(e.target.value);
+
+  const handleCategoryFilterClick = (value: RuleCategory | "all") => () =>
+    setCategoryFilter(value);
+
+  const handleShowForm = () => {
+    setEditingId(null);
+    setShowForm(true);
+  };
+
+  const handleHideForm = () => setShowForm(false);
+
+  const handleEdit = (r: RuleEntity) => {
+    setShowForm(false);
+    setEditingId(r.id);
+  };
+
+  const handleCancelEdit = () => setEditingId(null);
+
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
+        <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" />
+        <h1 className="text-base font-semibold text-foreground">Rules</h1>
+        <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+          {enabledCount} 启用 / {rules.length} 总计
+        </span>
+        <div className="ml-auto">
+          <Button size="sm" onClick={handleShowForm}>
+            <Plus className="h-3.5 w-3.5" />
+            新建规则
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        {showForm && (
+          <RuleForm onCancel={handleHideForm} onSave={handleCreate} />
+        )}
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1">
+            {CATEGORY_FILTERS.map((f) => (
+              <button
+                key={f.value}
+                className={cn(
+                  "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                  categoryFilter === f.value
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+                onClick={handleCategoryFilterClick(f.value)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="h-9 pl-9"
+              placeholder="搜索规则名称、描述或标签…"
+              value={search}
+              onChange={handleSearchChange}
+            />
+          </div>
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <ShieldCheck className="h-8 w-8 text-muted-foreground/30" />
+            <p className="mt-2 text-sm text-muted-foreground">暂无规则</p>
+            <Button
+              className="mt-2 h-auto p-0 text-xs"
+              variant="link"
+              onClick={handleShowForm}
+            >
+              创建第一条规则
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {filtered.map((rule) =>
+              editingId === rule.id ? (
+                <div key={rule.id} className="col-span-2">
+                  <RuleForm
+                    initial={getEditForm(rule)}
+                    onCancel={handleCancelEdit}
+                    onSave={handleUpdate}
+                  />
+                </div>
+              ) : (
+                <RuleCard
+                  key={rule.id}
+                  rule={rule}
+                  onDelete={handleDelete}
+                  onEdit={handleEdit}
+                  onToggle={handleToggle}
+                />
+              ),
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

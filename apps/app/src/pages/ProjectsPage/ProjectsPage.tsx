@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
-import { ProjectsPageContent } from "./ProjectsPageContent";
+import { ProjectsPageContent } from "./ProjectsPageContent/ProjectsPageContent";
 
 export const ProjectsPage = () => {
   return (
