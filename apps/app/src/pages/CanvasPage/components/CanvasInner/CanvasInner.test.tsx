@@ -2,6 +2,7 @@ import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
 import type * as XyFlowReact from "@xyflow/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HarnessCanvasStoreProvider } from "../../_store";
 import { CanvasInner } from "./CanvasInner";
 
@@ -19,10 +20,16 @@ vi.mock("@/services/pipelinesService", () => ({
   updatePipeline: vi.fn(),
 }));
 
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>
-    <ReactFlowProvider>{children}</ReactFlowProvider>
-  </HarnessCanvasStoreProvider>
+  <QueryClientProvider client={queryClient}>
+    <HarnessCanvasStoreProvider pipeline={null}>
+      <ReactFlowProvider>{children}</ReactFlowProvider>
+    </HarnessCanvasStoreProvider>
+  </QueryClientProvider>
 );
 
 describe("CanvasInner", () => {

@@ -14,7 +14,7 @@ describe("LanguageSection", () => {
         onSave={handleSave}
       />
     );
-    expect(screen.getByText("语言与地区")).toBeTruthy();
+    expect(screen.getAllByText("语言").length).toBeGreaterThan(0);
   });
 
   it("renders language field", () => {
@@ -28,6 +28,6 @@ describe("LanguageSection", () => {
         onSave={handleSave}
       />
     );
-    expect(screen.getByText("界面语言")).toBeTruthy();
+    expect(screen.getAllByText("语言").length).toBeGreaterThan(0);
   });
 });

@@ -17,6 +17,6 @@ vi.mock("@/services/bestPracticesService", () => ({
 describe("BestPracticesPage", () => {
   it("renders empty state when no practices loaded", () => {
     render(<BestPracticesPage />);
-    expect(screen.getByText("还没有最佳实践")).toBeInTheDocument();
+    expect(screen.getByText("还没有任何最佳实践")).toBeInTheDocument();
   });
 });

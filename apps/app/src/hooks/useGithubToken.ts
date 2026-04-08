@@ -5,17 +5,17 @@ const STORAGE_KEY = "github_personal_access_token";
 
 const safeGetItem = Result.fromThrowable(
   (key: string) => localStorage.getItem(key),
-  () => null,
+  () => null
 );
 
 const safeSetItem = Result.fromThrowable(
   (key: string, value: string) => localStorage.setItem(key, value),
-  () => undefined,
+  () => undefined
 );
 
 const safeRemoveItem = Result.fromThrowable(
   (key: string) => localStorage.removeItem(key),
-  () => undefined,
+  () => undefined
 );
 
 const readToken = (): string | null => {

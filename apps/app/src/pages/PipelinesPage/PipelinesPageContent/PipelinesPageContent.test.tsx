@@ -19,6 +19,6 @@ vi.mock("@/services/pipelinesService", () => ({
 describe("PipelinesPageContent", () => {
   it("renders with no pipelines", () => {
     render(<PipelinesPageContent />);
-    expect(screen.getByText(/Pipeline|pipeline/i)).toBeInTheDocument();
+    expect(screen.getByText("流水线")).toBeInTheDocument();
   });
 });

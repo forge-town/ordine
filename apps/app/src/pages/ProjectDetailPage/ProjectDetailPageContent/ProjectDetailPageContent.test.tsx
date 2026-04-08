@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ProjectDetailPageContent } from "./ProjectDetailPageContent";
 
-vi.mock("@/routes/projects.$projectId", () => ({
+vi.mock("@/routes/_layout/projects.$projectId.index", () => ({
   Route: {
     useLoaderData: () => ({
       project: null,
@@ -13,6 +13,7 @@ vi.mock("@/routes/projects.$projectId", () => ({
 }));
 
 vi.mock("@tanstack/react-router", () => ({
+  createFileRoute: () => (opts: Record<string, unknown>) => opts,
   useNavigate: () => vi.fn(),
 }));
 

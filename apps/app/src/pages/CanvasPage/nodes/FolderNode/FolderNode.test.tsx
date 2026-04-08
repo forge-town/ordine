@@ -1,13 +1,16 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { ReactFlowProvider } from "@xyflow/react";
+import { describe, expect, it, vi } from "vitest";
 import { HarnessCanvasStoreProvider } from "../../_store";
 import { FolderNode } from "./FolderNode";
 
+vi.mock("@xyflow/react", () => ({
+  Handle: () => null,
+  Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
+  ReactFlowProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
+}));
+
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <HarnessCanvasStoreProvider>
-    <ReactFlowProvider>{children}</ReactFlowProvider>
-  </HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider>{children}</HarnessCanvasStoreProvider>
 );
 
 const baseData = {
@@ -20,21 +23,23 @@ const baseData = {
 describe("FolderNode", () => {
   it("renders label", () => {
     render(<FolderNode data={baseData} id="test" />, { wrapper });
-    expect(screen.getByText("src")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("src")).toBeInTheDocument();
   });
 
   it("renders folderPath", () => {
     render(<FolderNode data={baseData} id="test" />, { wrapper });
-    expect(screen.getByText("apps/app/src")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("apps/app/src")).toBeInTheDocument();
   });
 
   it("renders description", () => {
     render(<FolderNode data={baseData} id="test" />, { wrapper });
-    expect(screen.getByText("应用源码目录")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("应用源码目录")).toBeInTheDocument();
   });
 
   it("shows placeholder when folderPath is empty", () => {
-    render(<FolderNode data={{ ...baseData, folderPath: "" }} id="test" />, { wrapper });
-    expect(screen.getByText("未设置路径")).toBeInTheDocument();
+    render(<FolderNode data={{ ...baseData, folderPath: "" }} id="test" />, {
+      wrapper,
+    });
+    expect(screen.getByPlaceholderText("src/components/")).toBeInTheDocument();
   });
 });

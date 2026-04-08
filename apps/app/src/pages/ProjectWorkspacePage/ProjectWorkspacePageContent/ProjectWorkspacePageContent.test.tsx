@@ -2,13 +2,14 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ProjectWorkspacePageContent } from "./ProjectWorkspacePageContent";
 
-vi.mock("@/routes/projects.$projectId.workspace", () => ({
+vi.mock("@/routes/_layout/projects.$projectId.workspace", () => ({
   Route: {
     useLoaderData: () => ({ project: null, pipelines: [] }),
   },
 }));
 
 vi.mock("@tanstack/react-router", () => ({
+  createFileRoute: () => (opts: Record<string, unknown>) => opts,
   useNavigate: () => vi.fn(),
 }));
 

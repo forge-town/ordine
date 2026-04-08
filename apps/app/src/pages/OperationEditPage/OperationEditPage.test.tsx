@@ -16,6 +16,7 @@ const mockOp: OperationEntity = {
 };
 
 vi.mock("@tanstack/react-router", () => ({
+  createFileRoute: () => (opts: Record<string, unknown>) => opts,
   useNavigate: () => vi.fn(),
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
@@ -25,7 +26,7 @@ vi.mock("@/services/operationsService", () => ({
 }));
 
 vi.mock("@/routes/_layout/operations.$operationId.edit", () => ({
-  Route: { useLoaderData: () => mockOp },
+  Route: { useLoaderData: () => ({ operation: mockOp, skills: [] }) },
 }));
 
 describe("OperationEditPage", () => {

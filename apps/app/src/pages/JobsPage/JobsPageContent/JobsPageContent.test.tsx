@@ -72,7 +72,7 @@ describe("JobsPageContent", () => {
   it("renders empty state when no jobs", () => {
     mockUseLoaderData.mockReturnValue([]);
     render(<JobsPageContent />);
-    expect(screen.getByText("暂无 Job")).toBeInTheDocument();
+    expect(screen.getByText("当前没有 Job")).toBeInTheDocument();
   });
 
   it("shows running count badge", () => {

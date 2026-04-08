@@ -22,13 +22,22 @@ const mockJobs: JobEntity[] = [
   },
 ];
 
-vi.mock("@/routes/index", () => ({
+const useLoaderData = vi.fn(() => ({
+  pipelines: [],
+  projects: [],
+  jobs: [] as JobEntity[],
+}));
+
+vi.mock("@/routes/_layout/index", () => ({
   Route: {
-    useLoaderData: () => ({ pipelines: [], projects: [], jobs: [] }),
+    get useLoaderData() {
+      return useLoaderData;
+    },
   },
 }));
 
 vi.mock("@tanstack/react-router", () => ({
+  createFileRoute: () => (opts: Record<string, unknown>) => opts,
   Link: ({
     children,
   }: {
@@ -51,11 +60,11 @@ describe("DashboardPageContent", () => {
   });
 
   it("renders job list when jobs exist", () => {
-    vi.mock("@/routes/index", () => ({
-      Route: {
-        useLoaderData: () => ({ pipelines: [], projects: [], jobs: mockJobs }),
-      },
-    }));
+    useLoaderData.mockReturnValue({
+      pipelines: [],
+      projects: [],
+      jobs: mockJobs,
+    });
     render(<DashboardPageContent />);
     expect(screen.getByText("运行 Pipeline")).toBeInTheDocument();
   });

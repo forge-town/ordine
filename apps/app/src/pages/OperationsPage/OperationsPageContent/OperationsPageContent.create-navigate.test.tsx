@@ -25,13 +25,15 @@ describe("OperationsPageContent - create button navigation", () => {
 
   it("navigates to /operations/new when 新建 Operation is clicked", () => {
     render(<OperationsPageContent />);
-    fireEvent.click(screen.getByText("新建 Operation"));
+    const buttons = screen.getAllByText("新建 Operation");
+    fireEvent.click(buttons[0]);
     expect(mockNavigate).toHaveBeenCalledWith({ to: "/operations/new" });
   });
 
   it("does NOT open the inline form after clicking 新建 Operation", () => {
     render(<OperationsPageContent />);
-    fireEvent.click(screen.getByText("新建 Operation"));
+    const buttons = screen.getAllByText("新建 Operation");
+    fireEvent.click(buttons[0]);
     expect(screen.queryByText("新建 Operation", { selector: "h2" })).not.toBeInTheDocument();
   });
 });

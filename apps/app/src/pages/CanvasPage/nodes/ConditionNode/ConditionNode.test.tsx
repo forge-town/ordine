@@ -1,13 +1,16 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { ReactFlowProvider } from "@xyflow/react";
+import { describe, expect, it, vi } from "vitest";
 import { HarnessCanvasStoreProvider } from "../../_store";
 import { ConditionNode } from "./ConditionNode";
 
+vi.mock("@xyflow/react", () => ({
+  Handle: () => null,
+  Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
+  ReactFlowProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
+}));
+
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <HarnessCanvasStoreProvider>
-    <ReactFlowProvider>{children}</ReactFlowProvider>
-  </HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider>{children}</HarnessCanvasStoreProvider>
 );
 
 const baseData = {
@@ -21,7 +24,7 @@ const baseData = {
 describe("ConditionNode", () => {
   it("renders label", () => {
     render(<ConditionNode data={baseData} id="test" />, { wrapper });
-    expect(screen.getByText("质量检查")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("质量检查")).toBeInTheDocument();
   });
 
   it("renders condition expression", () => {
@@ -31,14 +34,14 @@ describe("ConditionNode", () => {
 
   it("renders expectedResult", () => {
     render(<ConditionNode data={baseData} id="test" />, { wrapper });
-    expect(screen.getByText("通过阈值")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("通过阈值")).toBeInTheDocument();
   });
 
   it("renders placeholder when expression is empty", () => {
     render(<ConditionNode data={{ ...baseData, expression: "" }} id="test" />, {
       wrapper,
     });
-    expect(screen.getByText("未设置")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("未设置表达式")).toBeInTheDocument();
   });
 
   it("shows status label for each status", () => {
@@ -50,18 +53,14 @@ describe("ConditionNode", () => {
 
     rerender(
       <HarnessCanvasStoreProvider>
-        <ReactFlowProvider>
-          <ConditionNode data={{ ...baseData, status: "pass" }} id="test" />
-        </ReactFlowProvider>
+        <ConditionNode data={{ ...baseData, status: "pass" }} id="test" />
       </HarnessCanvasStoreProvider>
     );
     expect(screen.getByText("通过")).toBeInTheDocument();
 
     rerender(
       <HarnessCanvasStoreProvider>
-        <ReactFlowProvider>
-          <ConditionNode data={{ ...baseData, status: "fail" }} id="test" />
-        </ReactFlowProvider>
+        <ConditionNode data={{ ...baseData, status: "fail" }} id="test" />
       </HarnessCanvasStoreProvider>
     );
     expect(screen.getByText("失败")).toBeInTheDocument();

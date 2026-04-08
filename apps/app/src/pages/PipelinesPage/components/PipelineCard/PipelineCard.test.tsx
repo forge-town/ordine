@@ -3,6 +3,10 @@ import { render, screen } from "@testing-library/react";
 import { PipelineCard } from "./PipelineCard";
 import type { StoredPipeline } from "@/models/daos/pipelinesDao";
 
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
+}));
+
 const mockPipeline: StoredPipeline = {
   id: "pipe-001",
   name: "测试 Pipeline",

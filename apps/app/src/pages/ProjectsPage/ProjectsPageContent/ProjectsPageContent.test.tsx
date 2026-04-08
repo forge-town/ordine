@@ -2,13 +2,14 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ProjectsPageContent } from "./ProjectsPageContent";
 
-vi.mock("@/routes/projects.index", () => ({
+vi.mock("@/routes/_layout/projects.index", () => ({
   Route: {
     useLoaderData: () => [],
   },
 }));
 
 vi.mock("@tanstack/react-router", () => ({
+  createFileRoute: () => (opts: Record<string, unknown>) => opts,
   useNavigate: () => vi.fn(),
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
@@ -33,16 +34,16 @@ vi.mock("../ProjectCard", () => ({
 describe("ProjectsPageContent", () => {
   it("renders empty state when no projects", () => {
     render(<ProjectsPageContent />);
-    expect(screen.getByText("还没有项目")).toBeTruthy();
+    expect(screen.getByText("还没有关联任何 GitHub 项目")).toBeTruthy();
   });
 
   it("renders header with title", () => {
     render(<ProjectsPageContent />);
-    expect(screen.getByText("项目")).toBeTruthy();
+    expect(screen.getByText("GitHub 项目")).toBeTruthy();
   });
 
   it("renders connect button", () => {
     render(<ProjectsPageContent />);
-    expect(screen.getAllByText("连接 GitHub 项目").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/连接 GitHub|导入项目/).length).toBeGreaterThan(0);
   });
 });

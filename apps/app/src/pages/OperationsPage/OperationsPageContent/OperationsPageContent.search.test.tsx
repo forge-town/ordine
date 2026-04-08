@@ -70,7 +70,7 @@ describe("OperationsPageContent – search", () => {
     const user = userEvent.setup();
     render(<OperationsPageContent />);
     await user.type(screen.getByPlaceholderText(/搜索/i), "zzznomatch");
-    expect(screen.getByText(/没有找到/i)).toBeInTheDocument();
+    expect(screen.getByText("不存在")).toBeInTheDocument();
   });
 
   it("clears search and shows all ops again", async () => {

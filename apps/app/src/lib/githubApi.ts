@@ -2,9 +2,7 @@ import { Result, ResultAsync } from "neverthrow";
 
 const GITHUB_API_BASE = "https://api.github.com";
 
-export type GitHubTokenStatus =
-  | { valid: true; login: string }
-  | { valid: false; error: string };
+export type GitHubTokenStatus = { valid: true; login: string } | { valid: false; error: string };
 
 export interface GitHubRepoInfo {
   owner: string;
@@ -26,9 +24,7 @@ export const getGitHubHeaders = (token?: string | null): HeadersInit => {
   return headers;
 };
 
-export const verifyGitHubToken = async (
-  token: string | null,
-): Promise<GitHubTokenStatus> => {
+export const verifyGitHubToken = async (token: string | null): Promise<GitHubTokenStatus> => {
   if (!token?.trim()) {
     return { valid: false, error: "TOKEN_EMPTY:Token 不能为空" };
   }
@@ -37,7 +33,7 @@ export const verifyGitHubToken = async (
     fetch(`${GITHUB_API_BASE}/user`, {
       headers: getGitHubHeaders(token),
     }),
-    () => "NETWORK_ERROR:网络错误，无法验证 Token",
+    () => "NETWORK_ERROR:网络错误，无法验证 Token"
   );
 
   if (result.isErr()) {
@@ -85,7 +81,7 @@ export interface ParsedGitHubUrl {
 export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
   const urlResult = Result.fromThrowable(
     () => new URL(url.trim()),
-    () => null,
+    () => null
   )();
   if (urlResult.isErr()) return null;
 
@@ -99,9 +95,7 @@ export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
   if (!owner || !repo) return null;
 
   const branch =
-    treeKeyword === "tree" && branchParts.length > 0
-      ? branchParts.join("/")
-      : undefined;
+    treeKeyword === "tree" && branchParts.length > 0 ? branchParts.join("/") : undefined;
 
   return { owner, repo, branch };
 };
@@ -110,7 +104,7 @@ export const fetchRepoInfo = async (
   owner: string,
   repo: string,
   token?: string | null,
-  branchHint?: string,
+  branchHint?: string
 ): Promise<GitHubRepoInfo> => {
   const headers = getGitHubHeaders(token);
 
@@ -123,7 +117,7 @@ export const fetchRepoInfo = async (
       throw new Error(
         token
           ? "仓库不存在，请检查 owner/repo 是否正确"
-          : "仓库不存在或为私有仓库，请先配置 GitHub Token",
+          : "仓库不存在或为私有仓库，请先配置 GitHub Token"
       );
     }
     if (repoRes.status === 401 || repoRes.status === 403) {

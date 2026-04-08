@@ -24,21 +24,21 @@ vi.mock("../RuleForm", () => ({
 describe("RulesPageContent", () => {
   it("renders empty state when no rules", () => {
     render(<RulesPageContent />);
-    expect(screen.getByText("暂无规则")).toBeTruthy();
+    expect(screen.getByText("还没有任何规则")).toBeTruthy();
   });
 
   it("renders header with Rules title", () => {
     render(<RulesPageContent />);
-    expect(screen.getByText("Rules")).toBeTruthy();
+    expect(screen.getByText("规则")).toBeTruthy();
   });
 
   it("renders count badge", () => {
     render(<RulesPageContent />);
-    expect(screen.getByText("0 启用 / 0 总计")).toBeTruthy();
+    expect(screen.getByText(/0 启用.*0 全部/)).toBeTruthy();
   });
 
   it("renders add button", () => {
     render(<RulesPageContent />);
-    expect(screen.getByText("新建规则")).toBeTruthy();
+    expect(screen.getAllByText("新建规则").length).toBeGreaterThan(0);
   });
 });

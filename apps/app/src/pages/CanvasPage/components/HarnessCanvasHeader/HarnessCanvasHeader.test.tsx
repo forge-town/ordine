@@ -14,6 +14,6 @@ const wrapper = ({ children }: React.PropsWithChildren) => (
 describe("HarnessCanvasHeader", () => {
   it("renders pipeline name placeholder", () => {
     render(<HarnessCanvasHeader />, { wrapper });
-    expect(screen.getByText("无标题 Pipeline")).toBeInTheDocument();
+    expect(screen.getByText("未保存的 Pipeline")).toBeInTheDocument();
   });
 });

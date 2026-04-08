@@ -10,7 +10,7 @@ vi.mock("@/services/bestPracticesService", () => ({
 }));
 
 const mockUseLoaderData = vi.fn();
-vi.mock("@/routes/best-practices", () => ({
+vi.mock("@/routes/_layout/best-practices", () => ({
   Route: { useLoaderData: () => mockUseLoaderData() },
 }));
 
@@ -50,7 +50,7 @@ describe("BestPracticesPageContent", () => {
   it("renders empty state when no practices", () => {
     mockUseLoaderData.mockReturnValue([]);
     render(<BestPracticesPageContent />);
-    expect(screen.getByText("还没有最佳实践")).toBeInTheDocument();
+    expect(screen.getByText("还没有任何最佳实践")).toBeInTheDocument();
   });
 
   it("shows practice count", () => {

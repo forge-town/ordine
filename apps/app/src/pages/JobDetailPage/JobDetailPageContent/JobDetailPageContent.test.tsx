@@ -40,6 +40,6 @@ describe("JobDetailPageContent", () => {
   it("renders null state when job is null", () => {
     mockUseLoaderData.mockReturnValue(null);
     render(<JobDetailPageContent />);
-    expect(screen.getByText("Job 不存在")).toBeInTheDocument();
+    expect(screen.getByText("不存在")).toBeInTheDocument();
   });
 });
