@@ -1,1 +1,1 @@
-export { ProjectWorkspacePageContent } from "./ProjectWorkspacePageContent";
+export * from "./ProjectWorkspacePageContent";

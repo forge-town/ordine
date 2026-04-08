@@ -1,1 +1,1 @@
-export { ProjectDetailPageContent } from "./ProjectDetailPageContent";
+export * from "./ProjectDetailPageContent";

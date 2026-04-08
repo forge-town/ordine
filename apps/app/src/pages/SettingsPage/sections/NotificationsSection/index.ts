@@ -1,1 +1,1 @@
-export { NotificationsSection } from "./NotificationsSection";
+export * from "./NotificationsSection";

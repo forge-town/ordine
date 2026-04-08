@@ -1,1 +1,1 @@
-export { OperationCreatePage } from "./OperationCreatePage";
+export * from "./OperationCreatePage";

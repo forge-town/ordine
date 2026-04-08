@@ -8,420 +8,422 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as SkillsRouteImport } from "./routes/skills";
-import { Route as SettingsRouteImport } from "./routes/settings";
-import { Route as RulesRouteImport } from "./routes/rules";
-import { Route as PipelinesRouteImport } from "./routes/pipelines";
-import { Route as JobsRouteImport } from "./routes/jobs";
-import { Route as CanvasRouteImport } from "./routes/canvas";
-import { Route as BestPracticesRouteImport } from "./routes/best-practices";
-import { Route as AssistantRouteImport } from "./routes/assistant";
-import { Route as IndexRouteImport } from "./routes/index";
-import { Route as ProjectsIndexRouteImport } from "./routes/projects.index";
-import { Route as PipelinesIndexRouteImport } from "./routes/pipelines.index";
-import { Route as OperationsIndexRouteImport } from "./routes/operations.index";
-import { Route as ProjectsProjectIdRouteImport } from "./routes/projects.$projectId";
-import { Route as PipelinesPipelineIdRouteImport } from "./routes/pipelines.$pipelineId";
-import { Route as OperationsNewRouteImport } from "./routes/operations.new";
-import { Route as OperationsOperationIdRouteImport } from "./routes/operations.$operationId";
-import { Route as JobsJobIdRouteImport } from "./routes/jobs.$jobId";
-import { Route as ProjectsProjectIdWorkspaceRouteImport } from "./routes/projects.$projectId.workspace";
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as SkillsRouteImport } from './routes/skills'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RulesRouteImport } from './routes/rules'
+import { Route as PipelinesRouteImport } from './routes/pipelines'
+import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as CanvasRouteImport } from './routes/canvas'
+import { Route as BestPracticesRouteImport } from './routes/best-practices'
+import { Route as AssistantRouteImport } from './routes/assistant'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
+import { Route as PipelinesIndexRouteImport } from './routes/pipelines.index'
+import { Route as OperationsIndexRouteImport } from './routes/operations.index'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
+import { Route as PipelinesPipelineIdRouteImport } from './routes/pipelines.$pipelineId'
+import { Route as OperationsNewRouteImport } from './routes/operations.new'
+import { Route as OperationsOperationIdRouteImport } from './routes/operations.$operationId'
+import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
+import { Route as ProjectsProjectIdWorkspaceRouteImport } from './routes/projects.$projectId.workspace'
 
 const SkillsRoute = SkillsRouteImport.update({
-  id: "/skills",
-  path: "/skills",
+  id: '/skills',
+  path: '/skills',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
-  id: "/settings",
-  path: "/settings",
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const RulesRoute = RulesRouteImport.update({
-  id: "/rules",
-  path: "/rules",
+  id: '/rules',
+  path: '/rules',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PipelinesRoute = PipelinesRouteImport.update({
-  id: "/pipelines",
-  path: "/pipelines",
+  id: '/pipelines',
+  path: '/pipelines',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const JobsRoute = JobsRouteImport.update({
-  id: "/jobs",
-  path: "/jobs",
+  id: '/jobs',
+  path: '/jobs',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const CanvasRoute = CanvasRouteImport.update({
-  id: "/canvas",
-  path: "/canvas",
+  id: '/canvas',
+  path: '/canvas',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const BestPracticesRoute = BestPracticesRouteImport.update({
-  id: "/best-practices",
-  path: "/best-practices",
+  id: '/best-practices',
+  path: '/best-practices',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AssistantRoute = AssistantRouteImport.update({
-  id: "/assistant",
-  path: "/assistant",
+  id: '/assistant',
+  path: '/assistant',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
-  id: "/projects/",
-  path: "/projects/",
+  id: '/projects/',
+  path: '/projects/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PipelinesIndexRoute = PipelinesIndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => PipelinesRoute,
-} as any);
+} as any)
 const OperationsIndexRoute = OperationsIndexRouteImport.update({
-  id: "/operations/",
-  path: "/operations/",
+  id: '/operations/',
+  path: '/operations/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
-  id: "/projects/$projectId",
-  path: "/projects/$projectId",
+  id: '/projects/$projectId',
+  path: '/projects/$projectId',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PipelinesPipelineIdRoute = PipelinesPipelineIdRouteImport.update({
-  id: "/$pipelineId",
-  path: "/$pipelineId",
+  id: '/$pipelineId',
+  path: '/$pipelineId',
   getParentRoute: () => PipelinesRoute,
-} as any);
+} as any)
 const OperationsNewRoute = OperationsNewRouteImport.update({
-  id: "/operations/new",
-  path: "/operations/new",
+  id: '/operations/new',
+  path: '/operations/new',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const OperationsOperationIdRoute = OperationsOperationIdRouteImport.update({
-  id: "/operations/$operationId",
-  path: "/operations/$operationId",
+  id: '/operations/$operationId',
+  path: '/operations/$operationId',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const JobsJobIdRoute = JobsJobIdRouteImport.update({
-  id: "/$jobId",
-  path: "/$jobId",
+  id: '/$jobId',
+  path: '/$jobId',
   getParentRoute: () => JobsRoute,
-} as any);
-const ProjectsProjectIdWorkspaceRoute = ProjectsProjectIdWorkspaceRouteImport.update({
-  id: "/workspace",
-  path: "/workspace",
-  getParentRoute: () => ProjectsProjectIdRoute,
-} as any);
+} as any)
+const ProjectsProjectIdWorkspaceRoute =
+  ProjectsProjectIdWorkspaceRouteImport.update({
+    id: '/workspace',
+    path: '/workspace',
+    getParentRoute: () => ProjectsProjectIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/assistant": typeof AssistantRoute;
-  "/best-practices": typeof BestPracticesRoute;
-  "/canvas": typeof CanvasRoute;
-  "/jobs": typeof JobsRouteWithChildren;
-  "/pipelines": typeof PipelinesRouteWithChildren;
-  "/rules": typeof RulesRoute;
-  "/settings": typeof SettingsRoute;
-  "/skills": typeof SkillsRoute;
-  "/jobs/$jobId": typeof JobsJobIdRoute;
-  "/operations/$operationId": typeof OperationsOperationIdRoute;
-  "/operations/new": typeof OperationsNewRoute;
-  "/pipelines/$pipelineId": typeof PipelinesPipelineIdRoute;
-  "/projects/$projectId": typeof ProjectsProjectIdRouteWithChildren;
-  "/operations/": typeof OperationsIndexRoute;
-  "/pipelines/": typeof PipelinesIndexRoute;
-  "/projects/": typeof ProjectsIndexRoute;
-  "/projects/$projectId/workspace": typeof ProjectsProjectIdWorkspaceRoute;
+  '/': typeof IndexRoute
+  '/assistant': typeof AssistantRoute
+  '/best-practices': typeof BestPracticesRoute
+  '/canvas': typeof CanvasRoute
+  '/jobs': typeof JobsRouteWithChildren
+  '/pipelines': typeof PipelinesRouteWithChildren
+  '/rules': typeof RulesRoute
+  '/settings': typeof SettingsRoute
+  '/skills': typeof SkillsRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
+  '/operations/$operationId': typeof OperationsOperationIdRoute
+  '/operations/new': typeof OperationsNewRoute
+  '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/operations/': typeof OperationsIndexRoute
+  '/pipelines/': typeof PipelinesIndexRoute
+  '/projects/': typeof ProjectsIndexRoute
+  '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/assistant": typeof AssistantRoute;
-  "/best-practices": typeof BestPracticesRoute;
-  "/canvas": typeof CanvasRoute;
-  "/jobs": typeof JobsRouteWithChildren;
-  "/rules": typeof RulesRoute;
-  "/settings": typeof SettingsRoute;
-  "/skills": typeof SkillsRoute;
-  "/jobs/$jobId": typeof JobsJobIdRoute;
-  "/operations/$operationId": typeof OperationsOperationIdRoute;
-  "/operations/new": typeof OperationsNewRoute;
-  "/pipelines/$pipelineId": typeof PipelinesPipelineIdRoute;
-  "/projects/$projectId": typeof ProjectsProjectIdRouteWithChildren;
-  "/operations": typeof OperationsIndexRoute;
-  "/pipelines": typeof PipelinesIndexRoute;
-  "/projects": typeof ProjectsIndexRoute;
-  "/projects/$projectId/workspace": typeof ProjectsProjectIdWorkspaceRoute;
+  '/': typeof IndexRoute
+  '/assistant': typeof AssistantRoute
+  '/best-practices': typeof BestPracticesRoute
+  '/canvas': typeof CanvasRoute
+  '/jobs': typeof JobsRouteWithChildren
+  '/rules': typeof RulesRoute
+  '/settings': typeof SettingsRoute
+  '/skills': typeof SkillsRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
+  '/operations/$operationId': typeof OperationsOperationIdRoute
+  '/operations/new': typeof OperationsNewRoute
+  '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/operations': typeof OperationsIndexRoute
+  '/pipelines': typeof PipelinesIndexRoute
+  '/projects': typeof ProjectsIndexRoute
+  '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  "/": typeof IndexRoute;
-  "/assistant": typeof AssistantRoute;
-  "/best-practices": typeof BestPracticesRoute;
-  "/canvas": typeof CanvasRoute;
-  "/jobs": typeof JobsRouteWithChildren;
-  "/pipelines": typeof PipelinesRouteWithChildren;
-  "/rules": typeof RulesRoute;
-  "/settings": typeof SettingsRoute;
-  "/skills": typeof SkillsRoute;
-  "/jobs/$jobId": typeof JobsJobIdRoute;
-  "/operations/$operationId": typeof OperationsOperationIdRoute;
-  "/operations/new": typeof OperationsNewRoute;
-  "/pipelines/$pipelineId": typeof PipelinesPipelineIdRoute;
-  "/projects/$projectId": typeof ProjectsProjectIdRouteWithChildren;
-  "/operations/": typeof OperationsIndexRoute;
-  "/pipelines/": typeof PipelinesIndexRoute;
-  "/projects/": typeof ProjectsIndexRoute;
-  "/projects/$projectId/workspace": typeof ProjectsProjectIdWorkspaceRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/assistant': typeof AssistantRoute
+  '/best-practices': typeof BestPracticesRoute
+  '/canvas': typeof CanvasRoute
+  '/jobs': typeof JobsRouteWithChildren
+  '/pipelines': typeof PipelinesRouteWithChildren
+  '/rules': typeof RulesRoute
+  '/settings': typeof SettingsRoute
+  '/skills': typeof SkillsRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
+  '/operations/$operationId': typeof OperationsOperationIdRoute
+  '/operations/new': typeof OperationsNewRoute
+  '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/operations/': typeof OperationsIndexRoute
+  '/pipelines/': typeof PipelinesIndexRoute
+  '/projects/': typeof ProjectsIndexRoute
+  '/projects/$projectId/workspace': typeof ProjectsProjectIdWorkspaceRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | "/"
-    | "/assistant"
-    | "/best-practices"
-    | "/canvas"
-    | "/jobs"
-    | "/pipelines"
-    | "/rules"
-    | "/settings"
-    | "/skills"
-    | "/jobs/$jobId"
-    | "/operations/$operationId"
-    | "/operations/new"
-    | "/pipelines/$pipelineId"
-    | "/projects/$projectId"
-    | "/operations/"
-    | "/pipelines/"
-    | "/projects/"
-    | "/projects/$projectId/workspace";
-  fileRoutesByTo: FileRoutesByTo;
+    | '/'
+    | '/assistant'
+    | '/best-practices'
+    | '/canvas'
+    | '/jobs'
+    | '/pipelines'
+    | '/rules'
+    | '/settings'
+    | '/skills'
+    | '/jobs/$jobId'
+    | '/operations/$operationId'
+    | '/operations/new'
+    | '/pipelines/$pipelineId'
+    | '/projects/$projectId'
+    | '/operations/'
+    | '/pipelines/'
+    | '/projects/'
+    | '/projects/$projectId/workspace'
+  fileRoutesByTo: FileRoutesByTo
   to:
-    | "/"
-    | "/assistant"
-    | "/best-practices"
-    | "/canvas"
-    | "/jobs"
-    | "/rules"
-    | "/settings"
-    | "/skills"
-    | "/jobs/$jobId"
-    | "/operations/$operationId"
-    | "/operations/new"
-    | "/pipelines/$pipelineId"
-    | "/projects/$projectId"
-    | "/operations"
-    | "/pipelines"
-    | "/projects"
-    | "/projects/$projectId/workspace";
+    | '/'
+    | '/assistant'
+    | '/best-practices'
+    | '/canvas'
+    | '/jobs'
+    | '/rules'
+    | '/settings'
+    | '/skills'
+    | '/jobs/$jobId'
+    | '/operations/$operationId'
+    | '/operations/new'
+    | '/pipelines/$pipelineId'
+    | '/projects/$projectId'
+    | '/operations'
+    | '/pipelines'
+    | '/projects'
+    | '/projects/$projectId/workspace'
   id:
-    | "__root__"
-    | "/"
-    | "/assistant"
-    | "/best-practices"
-    | "/canvas"
-    | "/jobs"
-    | "/pipelines"
-    | "/rules"
-    | "/settings"
-    | "/skills"
-    | "/jobs/$jobId"
-    | "/operations/$operationId"
-    | "/operations/new"
-    | "/pipelines/$pipelineId"
-    | "/projects/$projectId"
-    | "/operations/"
-    | "/pipelines/"
-    | "/projects/"
-    | "/projects/$projectId/workspace";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/'
+    | '/assistant'
+    | '/best-practices'
+    | '/canvas'
+    | '/jobs'
+    | '/pipelines'
+    | '/rules'
+    | '/settings'
+    | '/skills'
+    | '/jobs/$jobId'
+    | '/operations/$operationId'
+    | '/operations/new'
+    | '/pipelines/$pipelineId'
+    | '/projects/$projectId'
+    | '/operations/'
+    | '/pipelines/'
+    | '/projects/'
+    | '/projects/$projectId/workspace'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  AssistantRoute: typeof AssistantRoute;
-  BestPracticesRoute: typeof BestPracticesRoute;
-  CanvasRoute: typeof CanvasRoute;
-  JobsRoute: typeof JobsRouteWithChildren;
-  PipelinesRoute: typeof PipelinesRouteWithChildren;
-  RulesRoute: typeof RulesRoute;
-  SettingsRoute: typeof SettingsRoute;
-  SkillsRoute: typeof SkillsRoute;
-  OperationsOperationIdRoute: typeof OperationsOperationIdRoute;
-  OperationsNewRoute: typeof OperationsNewRoute;
-  ProjectsProjectIdRoute: typeof ProjectsProjectIdRouteWithChildren;
-  OperationsIndexRoute: typeof OperationsIndexRoute;
-  ProjectsIndexRoute: typeof ProjectsIndexRoute;
+  IndexRoute: typeof IndexRoute
+  AssistantRoute: typeof AssistantRoute
+  BestPracticesRoute: typeof BestPracticesRoute
+  CanvasRoute: typeof CanvasRoute
+  JobsRoute: typeof JobsRouteWithChildren
+  PipelinesRoute: typeof PipelinesRouteWithChildren
+  RulesRoute: typeof RulesRoute
+  SettingsRoute: typeof SettingsRoute
+  SkillsRoute: typeof SkillsRoute
+  OperationsOperationIdRoute: typeof OperationsOperationIdRoute
+  OperationsNewRoute: typeof OperationsNewRoute
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRouteWithChildren
+  OperationsIndexRoute: typeof OperationsIndexRoute
+  ProjectsIndexRoute: typeof ProjectsIndexRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/skills": {
-      id: "/skills";
-      path: "/skills";
-      fullPath: "/skills";
-      preLoaderRoute: typeof SkillsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/settings": {
-      id: "/settings";
-      path: "/settings";
-      fullPath: "/settings";
-      preLoaderRoute: typeof SettingsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/rules": {
-      id: "/rules";
-      path: "/rules";
-      fullPath: "/rules";
-      preLoaderRoute: typeof RulesRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/pipelines": {
-      id: "/pipelines";
-      path: "/pipelines";
-      fullPath: "/pipelines";
-      preLoaderRoute: typeof PipelinesRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/jobs": {
-      id: "/jobs";
-      path: "/jobs";
-      fullPath: "/jobs";
-      preLoaderRoute: typeof JobsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/canvas": {
-      id: "/canvas";
-      path: "/canvas";
-      fullPath: "/canvas";
-      preLoaderRoute: typeof CanvasRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/best-practices": {
-      id: "/best-practices";
-      path: "/best-practices";
-      fullPath: "/best-practices";
-      preLoaderRoute: typeof BestPracticesRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/assistant": {
-      id: "/assistant";
-      path: "/assistant";
-      fullPath: "/assistant";
-      preLoaderRoute: typeof AssistantRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/projects/": {
-      id: "/projects/";
-      path: "/projects";
-      fullPath: "/projects/";
-      preLoaderRoute: typeof ProjectsIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/pipelines/": {
-      id: "/pipelines/";
-      path: "/";
-      fullPath: "/pipelines/";
-      preLoaderRoute: typeof PipelinesIndexRouteImport;
-      parentRoute: typeof PipelinesRoute;
-    };
-    "/operations/": {
-      id: "/operations/";
-      path: "/operations";
-      fullPath: "/operations/";
-      preLoaderRoute: typeof OperationsIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/projects/$projectId": {
-      id: "/projects/$projectId";
-      path: "/projects/$projectId";
-      fullPath: "/projects/$projectId";
-      preLoaderRoute: typeof ProjectsProjectIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/pipelines/$pipelineId": {
-      id: "/pipelines/$pipelineId";
-      path: "/$pipelineId";
-      fullPath: "/pipelines/$pipelineId";
-      preLoaderRoute: typeof PipelinesPipelineIdRouteImport;
-      parentRoute: typeof PipelinesRoute;
-    };
-    "/operations/new": {
-      id: "/operations/new";
-      path: "/operations/new";
-      fullPath: "/operations/new";
-      preLoaderRoute: typeof OperationsNewRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/operations/$operationId": {
-      id: "/operations/$operationId";
-      path: "/operations/$operationId";
-      fullPath: "/operations/$operationId";
-      preLoaderRoute: typeof OperationsOperationIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/jobs/$jobId": {
-      id: "/jobs/$jobId";
-      path: "/$jobId";
-      fullPath: "/jobs/$jobId";
-      preLoaderRoute: typeof JobsJobIdRouteImport;
-      parentRoute: typeof JobsRoute;
-    };
-    "/projects/$projectId/workspace": {
-      id: "/projects/$projectId/workspace";
-      path: "/workspace";
-      fullPath: "/projects/$projectId/workspace";
-      preLoaderRoute: typeof ProjectsProjectIdWorkspaceRouteImport;
-      parentRoute: typeof ProjectsProjectIdRoute;
-    };
+    '/skills': {
+      id: '/skills'
+      path: '/skills'
+      fullPath: '/skills'
+      preLoaderRoute: typeof SkillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rules': {
+      id: '/rules'
+      path: '/rules'
+      fullPath: '/rules'
+      preLoaderRoute: typeof RulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipelines': {
+      id: '/pipelines'
+      path: '/pipelines'
+      fullPath: '/pipelines'
+      preLoaderRoute: typeof PipelinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs': {
+      id: '/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/canvas': {
+      id: '/canvas'
+      path: '/canvas'
+      fullPath: '/canvas'
+      preLoaderRoute: typeof CanvasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/best-practices': {
+      id: '/best-practices'
+      path: '/best-practices'
+      fullPath: '/best-practices'
+      preLoaderRoute: typeof BestPracticesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistant': {
+      id: '/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AssistantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/': {
+      id: '/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof ProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipelines/': {
+      id: '/pipelines/'
+      path: '/'
+      fullPath: '/pipelines/'
+      preLoaderRoute: typeof PipelinesIndexRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/operations/': {
+      id: '/operations/'
+      path: '/operations'
+      fullPath: '/operations/'
+      preLoaderRoute: typeof OperationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$projectId': {
+      id: '/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof ProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipelines/$pipelineId': {
+      id: '/pipelines/$pipelineId'
+      path: '/$pipelineId'
+      fullPath: '/pipelines/$pipelineId'
+      preLoaderRoute: typeof PipelinesPipelineIdRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/operations/new': {
+      id: '/operations/new'
+      path: '/operations/new'
+      fullPath: '/operations/new'
+      preLoaderRoute: typeof OperationsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operations/$operationId': {
+      id: '/operations/$operationId'
+      path: '/operations/$operationId'
+      fullPath: '/operations/$operationId'
+      preLoaderRoute: typeof OperationsOperationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs/$jobId': {
+      id: '/jobs/$jobId'
+      path: '/$jobId'
+      fullPath: '/jobs/$jobId'
+      preLoaderRoute: typeof JobsJobIdRouteImport
+      parentRoute: typeof JobsRoute
+    }
+    '/projects/$projectId/workspace': {
+      id: '/projects/$projectId/workspace'
+      path: '/workspace'
+      fullPath: '/projects/$projectId/workspace'
+      preLoaderRoute: typeof ProjectsProjectIdWorkspaceRouteImport
+      parentRoute: typeof ProjectsProjectIdRoute
+    }
   }
 }
 
 interface JobsRouteChildren {
-  JobsJobIdRoute: typeof JobsJobIdRoute;
+  JobsJobIdRoute: typeof JobsJobIdRoute
 }
 
 const JobsRouteChildren: JobsRouteChildren = {
   JobsJobIdRoute: JobsJobIdRoute,
-};
+}
 
-const JobsRouteWithChildren = JobsRoute._addFileChildren(JobsRouteChildren);
+const JobsRouteWithChildren = JobsRoute._addFileChildren(JobsRouteChildren)
 
 interface PipelinesRouteChildren {
-  PipelinesPipelineIdRoute: typeof PipelinesPipelineIdRoute;
-  PipelinesIndexRoute: typeof PipelinesIndexRoute;
+  PipelinesPipelineIdRoute: typeof PipelinesPipelineIdRoute
+  PipelinesIndexRoute: typeof PipelinesIndexRoute
 }
 
 const PipelinesRouteChildren: PipelinesRouteChildren = {
   PipelinesPipelineIdRoute: PipelinesPipelineIdRoute,
   PipelinesIndexRoute: PipelinesIndexRoute,
-};
+}
 
-const PipelinesRouteWithChildren = PipelinesRoute._addFileChildren(PipelinesRouteChildren);
+const PipelinesRouteWithChildren = PipelinesRoute._addFileChildren(
+  PipelinesRouteChildren,
+)
 
 interface ProjectsProjectIdRouteChildren {
-  ProjectsProjectIdWorkspaceRoute: typeof ProjectsProjectIdWorkspaceRoute;
+  ProjectsProjectIdWorkspaceRoute: typeof ProjectsProjectIdWorkspaceRoute
 }
 
 const ProjectsProjectIdRouteChildren: ProjectsProjectIdRouteChildren = {
   ProjectsProjectIdWorkspaceRoute: ProjectsProjectIdWorkspaceRoute,
-};
+}
 
-const ProjectsProjectIdRouteWithChildren = ProjectsProjectIdRoute._addFileChildren(
-  ProjectsProjectIdRouteChildren
-);
+const ProjectsProjectIdRouteWithChildren =
+  ProjectsProjectIdRoute._addFileChildren(ProjectsProjectIdRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -438,16 +440,16 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectsProjectIdRoute: ProjectsProjectIdRouteWithChildren,
   OperationsIndexRoute: OperationsIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from "./router.tsx";
-import type { createStart } from "@tanstack/react-start";
-declare module "@tanstack/react-start" {
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
   interface Register {
-    ssr: true;
-    router: Awaited<ReturnType<typeof getRouter>>;
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
   }
 }

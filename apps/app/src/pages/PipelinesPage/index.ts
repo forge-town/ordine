@@ -1,2 +1,2 @@
-export { PipelinesPage } from "./PipelinesPage";
-export { PipelineDetailPage } from "./PipelineDetailPage";
+export * from "./PipelinesPage";
+export * from "./PipelineDetailPage";

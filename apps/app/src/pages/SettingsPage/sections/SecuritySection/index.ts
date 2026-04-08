@@ -1,1 +1,1 @@
-export { SecuritySection } from "./SecuritySection";
+export * from "./SecuritySection";

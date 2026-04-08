@@ -1,1 +1,1 @@
-export { JobDetailPageContent } from "./JobDetailPageContent";
+export * from "./JobDetailPageContent";

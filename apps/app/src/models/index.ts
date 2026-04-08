@@ -1,3 +1,3 @@
 export * from "./daos";
 export * from "./tables";
-export * from "./types/pipelineGraph";
+export * from "./types";

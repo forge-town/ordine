@@ -1,1 +1,1 @@
-export { LanguageSection } from "./LanguageSection";
+export * from "./LanguageSection";

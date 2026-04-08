@@ -1,1 +1,1 @@
-export { BestPracticesPageContent } from "./BestPracticesPageContent";
+export * from "./BestPracticesPageContent";

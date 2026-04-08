@@ -1,1 +1,1 @@
-export { ProfileSection } from "./ProfileSection";
+export * from "./ProfileSection";

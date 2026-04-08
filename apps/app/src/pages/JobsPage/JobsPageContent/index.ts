@@ -1,2 +1,1 @@
-export { JobsPageContent } from "./JobsPageContent";
-export type { JobsPageContentProps } from "./JobsPageContent";
+export * from "./JobsPageContent";

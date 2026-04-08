@@ -1,1 +1,1 @@
-export { CanvasPageContent } from "./CanvasPageContent";
+export * from "./CanvasPageContent";

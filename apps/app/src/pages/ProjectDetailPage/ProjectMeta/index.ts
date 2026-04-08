@@ -1,2 +1,1 @@
-export { ProjectMeta } from "./ProjectMeta";
-export type { ProjectMetaProps } from "./ProjectMeta";
+export * from "./ProjectMeta";

@@ -1,2 +1,1 @@
-export { RuleCard } from "./RuleCard";
-export type { RuleCardProps } from "./RuleCard";
+export * from "./RuleCard";

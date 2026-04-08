@@ -1,2 +1,1 @@
-export { PipelineRow } from "./PipelineRow";
-export type { PipelineRowProps } from "./PipelineRow";
+export * from "./PipelineRow";

@@ -1,2 +1,1 @@
-export { ObjectRow } from "./ObjectRow";
-export type { ObjectRowProps, ObjectItem } from "./ObjectRow";
+export * from "./ObjectRow";

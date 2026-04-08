@@ -1,2 +1,1 @@
-export { InputPortRow } from "./InputPortRow";
-export type { InputPortRowProps } from "./InputPortRow";
+export * from "./InputPortRow";

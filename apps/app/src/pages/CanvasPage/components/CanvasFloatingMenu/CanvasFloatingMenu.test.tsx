@@ -52,15 +52,11 @@ const wrapperWithPipeline = ({ children }: React.PropsWithChildren) => (
 );
 
 const wrapperWithNullPipeline = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>
-    {children}
-  </HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
 );
 
 const wrapperWithTestPipeline = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider
-    pipeline={{ id: "pipe-001", name: "Test", nodes: [], edges: [] }}
-  >
+  <HarnessCanvasStoreProvider pipeline={{ id: "pipe-001", name: "Test", nodes: [], edges: [] }}>
     {children}
   </HarnessCanvasStoreProvider>
 );
@@ -84,7 +80,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
           resource: "pipelines",
           id: "pipe-001",
           values: expect.objectContaining({ nodes: [], edges: [] }),
-        }),
+        })
       );
     });
 
@@ -112,7 +108,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
             edges: [],
           }),
         }),
-        expect.objectContaining({ onSuccess: expect.any(Function) }),
+        expect.objectContaining({ onSuccess: expect.any(Function) })
       );
     });
 
@@ -143,9 +139,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
       openMenu();
       fireEvent.click(screen.getByText("保存"));
 
-      expect(mockUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ id: generatedId }),
-      );
+      expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: generatedId }));
       expect(mockCreate).not.toHaveBeenCalled();
     });
   });
