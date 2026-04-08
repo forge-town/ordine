@@ -12,7 +12,5 @@ export const PipelineDetailPage = () => {
     );
   }
 
-  return (
-    <PipelineDetailPageContent operations={operations} pipeline={pipeline} />
-  );
+  return <PipelineDetailPageContent operations={operations} pipeline={pipeline} />;
 };

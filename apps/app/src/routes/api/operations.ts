@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { operationsDao } from "@/models/daos/operationsDao";
-import {
-  VISIBILITY_OPTIONS,
-  OBJECT_TYPES,
-} from "@/models/tables/operations_table";
+import { VISIBILITY_OPTIONS, OBJECT_TYPES } from "@/models/tables/operations_table";
 
 const VisibilityEnum = z.enum(VISIBILITY_OPTIONS);
 const ObjectTypeEnum = z.enum(OBJECT_TYPES);
@@ -16,9 +13,7 @@ const CreateOperationSchema = z.object({
   category: z.string().default("general"),
   visibility: VisibilityEnum.default("public"),
   config: z.string().default("{}"),
-  acceptedObjectTypes: z
-    .array(ObjectTypeEnum)
-    .default(["file", "folder", "project"]),
+  acceptedObjectTypes: z.array(ObjectTypeEnum).default(["file", "folder", "project"]),
 });
 
 const json = (data: unknown, status = 200) =>
@@ -27,8 +22,7 @@ const json = (data: unknown, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
-const error = (message: string, status: number) =>
-  json({ error: message }, status);
+const error = (message: string, status: number) => json({ error: message }, status);
 
 export const Route = createFileRoute("/api/operations")({
   server: {

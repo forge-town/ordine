@@ -8,10 +8,7 @@ const mockNavigate = vi.fn();
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
   useLoaderData: () => [existingOp],
-  Link: ({
-    children,
-    ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) => (
+  Link: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
     <a {...props}>{children}</a>
   ),
 }));
@@ -48,8 +45,6 @@ describe("OperationsPageContent - edit button navigates to edit page", () => {
     const { container, queryByText } = render(<OperationsPageContent />);
     const editBtn = container.querySelector('[title="编辑"]') as HTMLElement;
     fireEvent.click(editBtn);
-    expect(
-      queryByText("编辑 Operation", { selector: "h2" }),
-    ).not.toBeInTheDocument();
+    expect(queryByText("编辑 Operation", { selector: "h2" })).not.toBeInTheDocument();
   });
 });

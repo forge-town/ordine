@@ -17,8 +17,7 @@ const json = (data: unknown, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
-const error = (message: string, status: number) =>
-  json({ error: message }, status);
+const error = (message: string, status: number) => json({ error: message }, status);
 
 export const Route = createFileRoute("/api/works")({
   server: {

@@ -7,10 +7,7 @@ import type { OperationEntity } from "@/models/daos/operationsDao";
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
   useLoaderData: () => ops,
-  Link: ({
-    children,
-    ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) => (
+  Link: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
     <a {...props}>{children}</a>
   ),
 }));
@@ -21,11 +18,7 @@ vi.mock("@/services/operationsService", () => ({
   deleteOperation: vi.fn(),
 }));
 
-const makeOp = (
-  id: string,
-  name: string,
-  description: string | null,
-): OperationEntity => ({
+const makeOp = (id: string, name: string, description: string | null): OperationEntity => ({
   id,
   name,
   description,

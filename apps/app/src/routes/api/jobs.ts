@@ -30,8 +30,7 @@ const json = (data: unknown, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
-const error = (message: string, status: number) =>
-  json({ error: message }, status);
+const error = (message: string, status: number) => json({ error: message }, status);
 
 export const Route = createFileRoute("/api/jobs")({
   server: {
@@ -43,8 +42,7 @@ export const Route = createFileRoute("/api/jobs")({
         const projectId = url.searchParams.get("projectId") ?? undefined;
 
         const filter: Parameters<typeof jobsDao.findMany>[0] = {};
-        if (statusParam)
-          filter.status = statusParam as NonNullable<typeof filter>["status"];
+        if (statusParam) filter.status = statusParam as NonNullable<typeof filter>["status"];
         if (workId) filter.workId = workId;
         if (projectId) filter.projectId = projectId;
 

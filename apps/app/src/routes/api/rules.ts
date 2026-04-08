@@ -20,8 +20,7 @@ const json = (data: unknown, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
-const error = (message: string, status: number) =>
-  json({ error: message }, status);
+const error = (message: string, status: number) => json({ error: message }, status);
 
 export const Route = createFileRoute("/api/rules")({
   server: {
@@ -31,17 +30,11 @@ export const Route = createFileRoute("/api/rules")({
         const categoryParam = url.searchParams.get("category");
         const enabledParam = url.searchParams.get("enabled");
         const enabled =
-          enabledParam === "true"
-            ? true
-            : enabledParam === "false"
-              ? false
-              : undefined;
+          enabledParam === "true" ? true : enabledParam === "false" ? false : undefined;
 
         const filter: Parameters<typeof rulesDao.findMany>[0] = {};
         if (categoryParam)
-          filter.category = categoryParam as NonNullable<
-            typeof filter
-          >["category"];
+          filter.category = categoryParam as NonNullable<typeof filter>["category"];
         if (enabled !== undefined) filter.enabled = enabled;
 
         const rules = await rulesDao.findMany(filter);

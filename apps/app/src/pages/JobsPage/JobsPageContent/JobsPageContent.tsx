@@ -28,10 +28,8 @@ export const JobsPageContent = () => {
     { value: "cancelled", label: t("jobs.filterCancelled") },
   ];
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
-  const handleStatusFilterClick = (value: JobStatus | "all") => () =>
-    setStatusFilter(value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
+  const handleStatusFilterClick = (value: JobStatus | "all") => () => setStatusFilter(value);
   const handleJobClick = (jobId: string) => () =>
     void navigate({ to: "/jobs/$jobId", params: { jobId } });
   const handleDeleteJob = (jobId: string) => () => void handleDelete(jobId);
@@ -65,9 +63,7 @@ export const JobsPageContent = () => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
         <Activity className="h-4 w-4 text-primary" />
-        <h1 className="text-base font-semibold text-foreground">
-          {t("jobs.title")}
-        </h1>
+        <h1 className="text-base font-semibold text-foreground">{t("jobs.title")}</h1>
         {counts.running > 0 && (
           <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
@@ -136,9 +132,7 @@ export const JobsPageContent = () => {
             >
               {f.label}
               {f.value !== "all" && (
-                <span className="ml-1 opacity-70">
-                  {counts[f.value as JobStatus]}
-                </span>
+                <span className="ml-1 opacity-70">{counts[f.value as JobStatus]}</span>
               )}
             </Button>
           ))}
@@ -156,14 +150,10 @@ export const JobsPageContent = () => {
               <Activity className="h-7 w-7 text-muted-foreground" />
             </div>
             <h3 className="mt-4 text-sm font-semibold text-foreground">
-              {search || statusFilter !== "all"
-                ? t("common.notFound")
-                : t("jobs.noJobs")}
+              {search || statusFilter !== "all" ? t("common.notFound") : t("jobs.noJobs")}
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              {search || statusFilter !== "all"
-                ? t("common.search")
-                : t("dashboard.noJobs")}
+              {search || statusFilter !== "all" ? t("common.search") : t("dashboard.noJobs")}
             </p>
           </div>
         ) : (

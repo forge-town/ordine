@@ -5,10 +5,7 @@ import { OperationsPageContent } from "./OperationsPageContent";
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
   useLoaderData: () => [],
-  Link: ({
-    children,
-    ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) => (
+  Link: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
     <a {...props}>{children}</a>
   ),
 }));

@@ -10,8 +10,7 @@ const json = (data: unknown, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
-const error = (message: string, status: number) =>
-  json({ error: message }, status);
+const error = (message: string, status: number) => json({ error: message }, status);
 
 export const Route = createFileRoute("/api/pipelines/$id")({
   server: {
@@ -37,12 +36,8 @@ export const Route = createFileRoute("/api/pipelines/$id")({
 
         const pipeline = await pipelinesDao.update(params.id, {
           ...parsed.data,
-          nodes: parsed.data.nodes as Parameters<
-            typeof pipelinesDao.update
-          >[1]["nodes"],
-          edges: parsed.data.edges as Parameters<
-            typeof pipelinesDao.update
-          >[1]["edges"],
+          nodes: parsed.data.nodes as Parameters<typeof pipelinesDao.update>[1]["nodes"],
+          edges: parsed.data.edges as Parameters<typeof pipelinesDao.update>[1]["edges"],
         });
         return json(pipeline);
       },

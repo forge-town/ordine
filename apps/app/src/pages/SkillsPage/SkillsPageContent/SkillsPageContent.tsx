@@ -10,13 +10,7 @@ import { Route } from "@/routes/_layout/skills";
 
 export type Skill = SkillEntity;
 
-type SkillCategory =
-  | "all"
-  | "page"
-  | "data"
-  | "state"
-  | "form"
-  | "code-quality";
+type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
 
 const categoryColors: Record<string, string> = {
   page: "bg-violet-100 text-violet-700",
@@ -42,8 +36,7 @@ export const SkillsPageContent = () => {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<SkillCategory>("all");
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
   const handleCategoryClick = (cat: SkillCategory) => () => setCategory(cat);
 
   const filtered = skills.filter((s) => {
@@ -60,9 +53,7 @@ export const SkillsPageContent = () => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
         <div>
-          <h1 className="text-base font-semibold text-foreground">
-            {t("skills.title")}
-          </h1>
+          <h1 className="text-base font-semibold text-foreground">{t("skills.title")}</h1>
           <p className="text-xs text-muted-foreground">{skills.length}</p>
         </div>
       </div>
@@ -115,19 +106,15 @@ export const SkillsPageContent = () => {
                   <Badge
                     className={cn(
                       "text-[10px]",
-                      categoryColors[skill.category] ??
-                        "bg-gray-100 text-gray-600",
+                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600"
                     )}
                     variant="secondary"
                   >
-                    {categoryLabels[skill.category as SkillCategory] ??
-                      skill.category}
+                    {categoryLabels[skill.category as SkillCategory] ?? skill.category}
                   </Badge>
                 </div>
 
-                <h3 className="mt-3 text-sm font-semibold text-foreground">
-                  {skill.label}
-                </h3>
+                <h3 className="mt-3 text-sm font-semibold text-foreground">{skill.label}</h3>
                 <p className="mt-1 flex-1 text-xs text-muted-foreground leading-relaxed">
                   {skill.description}
                 </p>
@@ -144,9 +131,7 @@ export const SkillsPageContent = () => {
                 </div>
 
                 <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                  <code className="text-[10px] text-muted-foreground">
-                    {skill.name}
-                  </code>
+                  <code className="text-[10px] text-muted-foreground">{skill.name}</code>
                 </div>
               </div>
             ))}

@@ -13,10 +13,18 @@ import {
   HardDrive,
   FolderOutput,
   GitMerge,
+  Play,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  FolderOpen,
 } from "lucide-react";
+import { useState } from "react";
 import { ReactFlow, Background, ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { cn } from "@repo/ui/lib/utils";
+import { Button } from "@repo/ui/button";
+import { Input } from "@repo/ui/input";
 import type { PipelineEntity } from "@/models/daos/pipelinesDao";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { PipelineNode } from "@/models/types/pipelineGraph";
@@ -78,13 +86,69 @@ const getNodeLabel = (node: PipelineNode, operations: OperationEntity[]): string
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
+type RunState = "idle" | "running" | "done" | "failed";
+
 export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   const navigate = useNavigate();
 
-  const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
-  const handleCanvasClick = () => {
-    void navigate({ to: "/canvas", search: { id: pipeline.id } });
+  // ── Run panel state ─────────────────────────────────────────────────────────
+  const [inputPath, setInputPath] = useState("");
+  const [runState, setRunState] = useState<RunState>("idle");
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [runError, setRunError] = useState<string | null>(null);
+
+  const pollJob = async (id: string) => {
+    const poll = async () => {
+      const res = await fetch(`/api/jobs/${id}`);
+      if (!res.ok) return;
+      const job = (await res.json()) as {
+        status: string;
+        logs: string[];
+        error: string | null;
+      };
+      setLogs(job.logs ?? []);
+      if (job.status === "done") {
+        setRunState("done");
+      } else if (job.status === "failed") {
+        setRunState("failed");
+        setRunError(job.error ?? "Unknown error");
+      } else {
+        setTimeout(() => void poll(), 1000);
+      }
+    };
+    await poll();
   };
+
+  const handleRun = async () => {
+    setRunState("running");
+    setLogs([]);
+    setRunError(null);
+    setJobId(null);
+    try {
+      const res = await fetch(`/api/pipelines/${pipeline.id}/run`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inputPath: inputPath || undefined }),
+      });
+      const data = (await res.json()) as { jobId?: string; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Failed to start pipeline");
+      const id = data.jobId!;
+      setJobId(id);
+      await pollJob(id);
+    } catch (error) {
+      setRunState("failed");
+      setRunError(error instanceof Error ? error.message : String(error));
+    }
+  };
+
+  const handleInputPathChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputPath(e.target.value);
+  };
+
+  const handleClickRun = () => void handleRun();
+  const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
+  const handleCanvasClick = () => void navigate({ to: "/canvas", search: { id: pipeline.id } });
 
   const nodeTypeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     acc[n.type] = (acc[n.type] ?? 0) + 1;
@@ -259,6 +323,83 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                   <Background color="#f3f4f6" gap={20} />
                 </ReactFlow>
               </ReactFlowProvider>
+            )}
+          </div>
+        </div>
+
+        {/* ── Run panel ─────────────────────────────────────────────────── */}
+        <div className="rounded-xl border border-gray-100 bg-white shadow-sm">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
+            <Play className="h-3.5 w-3.5 text-gray-400" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              执行流水线
+            </span>
+          </div>
+          <div className="p-5 space-y-4">
+            {/* Input path */}
+            <div className="flex items-center gap-2">
+              <FolderOpen className="h-4 w-4 shrink-0 text-gray-400" />
+              <Input
+                className="flex-1 font-mono text-xs"
+                disabled={runState === "running"}
+                placeholder="/path/to/your/file-or-folder (可选)"
+                value={inputPath}
+                onChange={handleInputPathChange}
+              />
+              <Button
+                className="shrink-0 gap-1.5"
+                disabled={runState === "running"}
+                size="sm"
+                onClick={handleClickRun}
+              >
+                {runState === "running" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Play className="h-3.5 w-3.5" />
+                )}
+                {runState === "running" ? "执行中…" : "运行"}
+              </Button>
+            </div>
+
+            {/* Status */}
+            {runState !== "idle" && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5">
+                  {runState === "running" && (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
+                  )}
+                  {runState === "done" && <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
+                  {runState === "failed" && <XCircle className="h-3.5 w-3.5 text-red-500" />}
+                  <span
+                    className={cn(
+                      "text-xs font-medium",
+                      runState === "running" && "text-blue-600",
+                      runState === "done" && "text-green-600",
+                      runState === "failed" && "text-red-600"
+                    )}
+                  >
+                    {runState === "running" && "正在执行…"}
+                    {runState === "done" && "执行完成"}
+                    {runState === "failed" && `执行失败: ${runError ?? ""}`}
+                  </span>
+                  {jobId && (
+                    <span className="ml-auto font-mono text-[10px] text-gray-400">
+                      Job: {jobId.slice(0, 8)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Log viewer */}
+                {logs.length > 0 && (
+                  <div className="rounded-lg bg-gray-950 p-3 font-mono text-[11px] leading-relaxed text-gray-300 overflow-y-auto max-h-48 space-y-0.5">
+                    {logs.map((line, i) => (
+                      <div key={i} className="whitespace-pre-wrap break-all">
+                        {line}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

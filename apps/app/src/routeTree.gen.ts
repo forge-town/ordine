@@ -43,6 +43,7 @@ import { Route as LayoutOperationsNewRouteImport } from './routes/_layout/operat
 import { Route as LayoutJobsJobIdRouteImport } from './routes/_layout/jobs.$jobId'
 import { Route as LayoutProjectsProjectIdIndexRouteImport } from './routes/_layout/projects.$projectId.index'
 import { Route as LayoutOperationsOperationIdIndexRouteImport } from './routes/_layout/operations.$operationId.index'
+import { Route as ApiPipelinesIdRunRouteImport } from './routes/api/pipelines.$id.run'
 import { Route as LayoutProjectsProjectIdWorkspaceRouteImport } from './routes/_layout/projects.$projectId.workspace'
 import { Route as LayoutOperationsOperationIdEditRouteImport } from './routes/_layout/operations.$operationId.edit'
 
@@ -218,6 +219,11 @@ const LayoutOperationsOperationIdIndexRoute =
     path: '/operations/$operationId/',
     getParentRoute: () => LayoutRoute,
   } as any)
+const ApiPipelinesIdRunRoute = ApiPipelinesIdRunRouteImport.update({
+  id: '/run',
+  path: '/run',
+  getParentRoute: () => ApiPipelinesIdRoute,
+} as any)
 const LayoutProjectsProjectIdWorkspaceRoute =
   LayoutProjectsProjectIdWorkspaceRouteImport.update({
     id: '/projects/$projectId/workspace',
@@ -254,7 +260,7 @@ export interface FileRoutesByFullPath {
   '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
   '/api/jobs/$id': typeof ApiJobsIdRoute
   '/api/operations/$id': typeof ApiOperationsIdRoute
-  '/api/pipelines/$id': typeof ApiPipelinesIdRoute
+  '/api/pipelines/$id': typeof ApiPipelinesIdRouteWithChildren
   '/api/rules/$id': typeof ApiRulesIdRoute
   '/api/skills/$id': typeof ApiSkillsIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -265,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/projects/': typeof LayoutProjectsIndexRoute
   '/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
+  '/api/pipelines/$id/run': typeof ApiPipelinesIdRunRoute
   '/operations/$operationId/': typeof LayoutOperationsOperationIdIndexRoute
   '/projects/$projectId/': typeof LayoutProjectsProjectIdIndexRoute
 }
@@ -289,7 +296,7 @@ export interface FileRoutesByTo {
   '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
   '/api/jobs/$id': typeof ApiJobsIdRoute
   '/api/operations/$id': typeof ApiOperationsIdRoute
-  '/api/pipelines/$id': typeof ApiPipelinesIdRoute
+  '/api/pipelines/$id': typeof ApiPipelinesIdRouteWithChildren
   '/api/rules/$id': typeof ApiRulesIdRoute
   '/api/skills/$id': typeof ApiSkillsIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   '/projects': typeof LayoutProjectsIndexRoute
   '/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
+  '/api/pipelines/$id/run': typeof ApiPipelinesIdRunRoute
   '/operations/$operationId': typeof LayoutOperationsOperationIdIndexRoute
   '/projects/$projectId': typeof LayoutProjectsProjectIdIndexRoute
 }
@@ -328,7 +336,7 @@ export interface FileRoutesById {
   '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
   '/api/jobs/$id': typeof ApiJobsIdRoute
   '/api/operations/$id': typeof ApiOperationsIdRoute
-  '/api/pipelines/$id': typeof ApiPipelinesIdRoute
+  '/api/pipelines/$id': typeof ApiPipelinesIdRouteWithChildren
   '/api/rules/$id': typeof ApiRulesIdRoute
   '/api/skills/$id': typeof ApiSkillsIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -339,6 +347,7 @@ export interface FileRoutesById {
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
   '/_layout/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/_layout/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
+  '/api/pipelines/$id/run': typeof ApiPipelinesIdRunRoute
   '/_layout/operations/$operationId/': typeof LayoutOperationsOperationIdIndexRoute
   '/_layout/projects/$projectId/': typeof LayoutProjectsProjectIdIndexRoute
 }
@@ -378,6 +387,7 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
+    | '/api/pipelines/$id/run'
     | '/operations/$operationId/'
     | '/projects/$projectId/'
   fileRoutesByTo: FileRoutesByTo
@@ -413,6 +423,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
+    | '/api/pipelines/$id/run'
     | '/operations/$operationId'
     | '/projects/$projectId'
   id:
@@ -451,6 +462,7 @@ export interface FileRouteTypes {
     | '/_layout/projects/'
     | '/_layout/operations/$operationId/edit'
     | '/_layout/projects/$projectId/workspace'
+    | '/api/pipelines/$id/run'
     | '/_layout/operations/$operationId/'
     | '/_layout/projects/$projectId/'
   fileRoutesById: FileRoutesById
@@ -708,6 +720,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutOperationsOperationIdIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/api/pipelines/$id/run': {
+      id: '/api/pipelines/$id/run'
+      path: '/run'
+      fullPath: '/api/pipelines/$id/run'
+      preLoaderRoute: typeof ApiPipelinesIdRunRouteImport
+      parentRoute: typeof ApiPipelinesIdRoute
+    }
     '/_layout/projects/$projectId/workspace': {
       id: '/_layout/projects/$projectId/workspace'
       path: '/projects/$projectId/workspace'
@@ -826,12 +845,24 @@ const ApiOperationsRouteWithChildren = ApiOperationsRoute._addFileChildren(
   ApiOperationsRouteChildren,
 )
 
+interface ApiPipelinesIdRouteChildren {
+  ApiPipelinesIdRunRoute: typeof ApiPipelinesIdRunRoute
+}
+
+const ApiPipelinesIdRouteChildren: ApiPipelinesIdRouteChildren = {
+  ApiPipelinesIdRunRoute: ApiPipelinesIdRunRoute,
+}
+
+const ApiPipelinesIdRouteWithChildren = ApiPipelinesIdRoute._addFileChildren(
+  ApiPipelinesIdRouteChildren,
+)
+
 interface ApiPipelinesRouteChildren {
-  ApiPipelinesIdRoute: typeof ApiPipelinesIdRoute
+  ApiPipelinesIdRoute: typeof ApiPipelinesIdRouteWithChildren
 }
 
 const ApiPipelinesRouteChildren: ApiPipelinesRouteChildren = {
-  ApiPipelinesIdRoute: ApiPipelinesIdRoute,
+  ApiPipelinesIdRoute: ApiPipelinesIdRouteWithChildren,
 }
 
 const ApiPipelinesRouteWithChildren = ApiPipelinesRoute._addFileChildren(
