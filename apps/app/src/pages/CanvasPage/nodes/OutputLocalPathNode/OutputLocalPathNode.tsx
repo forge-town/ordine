@@ -1,6 +1,10 @@
+import { useRef } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { HardDrive } from "lucide-react";
-import { useHarnessCanvasStore, type OutputLocalPathNodeData } from "../../_store";
+import { FolderOpen, HardDrive } from "lucide-react";
+import {
+  useHarnessCanvasStore,
+  type OutputLocalPathNodeData,
+} from "../../_store";
 import { NodeCard } from "../NodeCard";
 
 export interface OutputLocalPathNodeProps {
@@ -9,17 +13,33 @@ export interface OutputLocalPathNodeProps {
   selected?: boolean;
 }
 
-const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
+const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
-export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeProps) => {
+export const OutputLocalPathNode = ({
+  id,
+  data,
+  selected,
+}: OutputLocalPathNodeProps) => {
   const store = useHarnessCanvasStore();
-  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const update = (patch: Record<string, unknown>) =>
+    store.getState().updateNodeData(id, patch);
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleLocalPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     update({ localPath: e.target.value });
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     update({ description: e.target.value });
+
+  const handleFolderPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const folderName = file.webkitRelativePath.split("/")[0];
+      update({ localPath: folderName });
+    }
+    // Reset so the same folder can be re-selected
+    e.target.value = "";
+  };
 
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
@@ -32,23 +52,49 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
         theme="teal"
         onLabelChange={handleLabelChange}
       >
-        <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2.5 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">路径</span>
+        <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
+          <span className="shrink-0 text-[10px] font-medium text-teal-500">
+            路径
+          </span>
           <input
             className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
             placeholder="/home/user/output/"
             value={data.localPath}
             onChange={handleLocalPathChange}
-            onMouseDown={handleMouseDown}
+            onClick={stopPropagation}
+            onMouseDown={stopPropagation}
+            onKeyDown={stopPropagation}
           />
+          <button
+            className="nodrag nopan shrink-0 rounded p-0.5 text-teal-400 hover:bg-teal-100 hover:text-teal-700 transition-colors"
+            title="选择文件夹"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              folderInputRef.current?.click();
+            }}
+            onMouseDown={stopPropagation}
+          >
+            <FolderOpen className="h-3.5 w-3.5" />
+          </button>
         </div>
+        {/* Hidden folder picker */}
+        <input
+          ref={folderInputRef}
+          className="hidden"
+          type="file"
+          // @ts-expect-error webkitdirectory is not in standard types
+          webkitdirectory=""
+          onChange={handleFolderPick}
+          onMouseDown={stopPropagation}
+        />
         <textarea
           className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
           placeholder="描述此输出..."
           rows={2}
           value={data.description ?? ""}
           onChange={handleDescriptionChange}
-          onMouseDown={handleMouseDown}
+          onMouseDown={stopPropagation}
         />
       </NodeCard>
 

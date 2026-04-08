@@ -1,5 +1,18 @@
+import React from "react";
 import type { Preview } from "@storybook/react-vite";
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRouter,
+  RouterContextProvider,
+} from "@tanstack/react-router";
 import "../src/styles.css";
+
+const rootRoute = createRootRoute();
+const router = createRouter({
+  routeTree: rootRoute,
+  history: createMemoryHistory({ initialEntries: ["/"] }),
+});
 
 const preview: Preview = {
   parameters: {
@@ -17,6 +30,13 @@ const preview: Preview = {
       test: "todo",
     },
   },
+  decorators: [
+    (Story) => (
+      <RouterContextProvider router={router}>
+        <Story />
+      </RouterContextProvider>
+    ),
+  ],
 };
 
 export default preview;
