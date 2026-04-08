@@ -21,12 +21,7 @@ vi.mock("@repo/ui/button", () => ({
     title,
     className,
   }: React.ComponentProps<"button">) => (
-    <button
-      className={className}
-      disabled={disabled}
-      title={title}
-      onClick={handleClick}
-    >
+    <button className={className} disabled={disabled} title={title} onClick={handleClick}>
       {children}
     </button>
   ),
@@ -52,9 +47,7 @@ vi.mock("@repo/ui/tooltip", () => ({
 }));
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>
-    {children}
-  </HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
 );
 
 const wrapperWithPipeline = ({ children }: React.PropsWithChildren) => (
@@ -111,14 +104,14 @@ describe("CanvasToolbar - Run Test button", () => {
       expect(mockUpdatePipeline).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ id: "pipe-test" }),
-        }),
+        })
       );
     });
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
         "/api/pipelines/pipe-test/run",
-        expect.objectContaining({ method: "POST" }),
+        expect.objectContaining({ method: "POST" })
       );
     });
   });
@@ -129,7 +122,7 @@ describe("CanvasToolbar - Run Test button", () => {
     await user.click(screen.getByTitle("运行测试"));
     await waitFor(() => {
       expect(useToastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "success" })]),
+        expect.arrayContaining([expect.objectContaining({ type: "success" })])
       );
     });
   });
@@ -141,7 +134,7 @@ describe("CanvasToolbar - Run Test button", () => {
     await user.click(screen.getByTitle("运行测试"));
     await waitFor(() => {
       expect(useToastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "error" })]),
+        expect.arrayContaining([expect.objectContaining({ type: "error" })])
       );
     });
     expect(mockFetch).not.toHaveBeenCalled();
@@ -158,7 +151,7 @@ describe("CanvasToolbar - Run Test button", () => {
     await user.click(screen.getByTitle("运行测试"));
     await waitFor(() => {
       expect(useToastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "error" })]),
+        expect.arrayContaining([expect.objectContaining({ type: "error" })])
       );
     });
   });

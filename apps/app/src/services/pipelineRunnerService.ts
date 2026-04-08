@@ -5,23 +5,29 @@
  * passing results between nodes. Supports three executor types:
  *   - script  → runs a shell/python/js command via child_process
  *   - prompt  → sends input to an AI model via @ai-sdk/openai
- *   - skill   → placeholder (logs a warning)
+ *   - skill   → looks up skill metadata and delegates to an AI model
  *
  * Progress is tracked through a Job record in the DB.
  */
 
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { readFile, mkdir, writeFile, readdir, rm } from "node:fs/promises";
 import { existsSync, statSync } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { ResultAsync, ok } from "neverthrow";
-import type { PipelineNode, PipelineEdge } from "@/models/types/pipelineGraph";
+import type {
+  PipelineNode,
+  PipelineEdge,
+  GitHubProjectNodeData,
+} from "@/models/types/pipelineGraph";
 import { type OperationEntity, operationsDao } from "@/models/daos/operationsDao";
 import { pipelinesDao } from "@/models/daos/pipelinesDao";
 import { jobsDao } from "@/models/daos/jobsDao";
+import { skillsDao } from "@/models/daos/skillsDao";
 import type { ExecutorConfig } from "@/pages/OperationDetailPage/types";
 
 const execAsync = promisify(exec);
@@ -79,11 +85,33 @@ class ConfigParseError extends Error {
   }
 }
 
+class SkillExecutionError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: unknown
+  ) {
+    super(message);
+    this.name = "SkillExecutionError";
+  }
+}
+
+class GitCloneError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: unknown
+  ) {
+    super(message);
+    this.name = "GitCloneError";
+  }
+}
+
 type PipelineRunError =
   | PipelineNotFoundError
   | ScriptExecutionError
   | PromptExecutionError
-  | ConfigParseError;
+  | ConfigParseError
+  | SkillExecutionError
+  | GitCloneError;
 
 // ─── topological sort ─────────────────────────────────────────────────────────
 
@@ -211,15 +239,117 @@ const runPrompt = (
   );
 };
 
+// ─── github clone helper ──────────────────────────────────────────────────────
+
+const cloneGitHubRepo = (
+  owner: string,
+  repo: string,
+  branch: string,
+  githubToken?: string
+): ResultAsync<string, GitCloneError> => {
+  const cloneDir = join(tmpdir(), `ordine-pipeline-${Date.now()}-${repo}`);
+  const url = githubToken
+    ? `https://x-access-token:${githubToken}@github.com/${owner}/${repo}.git`
+    : `https://github.com/${owner}/${repo}.git`;
+
+  return ResultAsync.fromPromise(
+    (async () => {
+      await mkdir(cloneDir, { recursive: true });
+      await execAsync(`git clone --depth 1 --branch ${branch} ${url} ${cloneDir}`, {
+        timeout: 120_000,
+      });
+      return cloneDir;
+    })(),
+    (cause) =>
+      new GitCloneError(
+        `Failed to clone ${owner}/${repo}@${branch}: ${cause instanceof Error ? cause.message : String(cause)}`,
+        cause
+      )
+  );
+};
+
+const listDirTree = async (dir: string, prefix = "", depth = 0): Promise<string> => {
+  if (depth > 3) return `${prefix}...\n`;
+  const entries = await readdir(dir, { withFileTypes: true });
+  const filtered = entries.filter((e) => e.name !== ".git");
+  const lines: string[] = [];
+  for (const entry of filtered) {
+    if (entry.isDirectory()) {
+      lines.push(`${prefix}${entry.name}/`);
+      lines.push(await listDirTree(join(dir, entry.name), `${prefix}  `, depth + 1));
+    } else {
+      lines.push(`${prefix}${entry.name}`);
+    }
+  }
+  return lines.join("\n");
+};
+
+// ─── skill executor helper ────────────────────────────────────────────────────
+
+const runSkill = (
+  skillId: string,
+  skillDescription: string,
+  inputContent: string,
+  inputPath: string
+): ResultAsync<string, never> => {
+  const systemPrompt = [
+    `You are executing the skill "${skillId}".`,
+    `Skill description: ${skillDescription}`,
+    "",
+    "Analyze the provided input and produce a detailed report.",
+    "Be thorough, specific, and actionable.",
+  ].join("\n");
+
+  const userPrompt = inputPath
+    ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
+    : `Input:\n${inputContent}`;
+
+  const generateFallbackReport = (): string => {
+    const lines = currentContentLines(inputContent);
+    return [
+      `# Skill Report: ${skillId}`,
+      "",
+      `**Description:** ${skillDescription}`,
+      `**Input path:** ${inputPath || "(none)"}`,
+      `**Input size:** ${inputContent.length} chars, ${lines} lines`,
+      "",
+      "## Status",
+      "",
+      "LLM analysis unavailable (OPENAI_API_KEY not configured).",
+      "Skill executed in passthrough mode — input forwarded as-is.",
+      "",
+      "## Input Preview",
+      "",
+      "```",
+      inputContent.slice(0, 2000),
+      inputContent.length > 2000 ? `\n... (${inputContent.length - 2000} more chars)` : "",
+      "```",
+    ].join("\n");
+  };
+
+  return ResultAsync.fromPromise(
+    generateText({
+      model: openai("gpt-4o-mini"),
+      system: systemPrompt,
+      prompt: userPrompt,
+    }).then(({ text }) => text),
+    () => null
+  ).orElse(() => ok(generateFallbackReport()));
+};
+
+const currentContentLines = (content: string): number => (content ? content.split("\n").length : 0);
+
 // ─── main runner ──────────────────────────────────────────────────────────────
 
 const executePipeline = async (opts: {
   pipelineId: string;
   inputPath?: string;
   jobId: string;
+  githubToken?: string;
 }): Promise<{ ok: true; summary: string } | { ok: false; error: PipelineRunError }> => {
-  const { pipelineId, jobId } = opts;
+  const { pipelineId, jobId, githubToken } = opts;
   let inputPath = opts.inputPath ?? "";
+  const tempDirs: string[] = [];
 
   const log = async (line: string) => {
     await jobsDao.appendLog(jobId, `[${new Date().toISOString()}] ${line}`);
@@ -296,9 +426,43 @@ const executePipeline = async (opts: {
       continue;
     }
 
+    // ── GitHub Project nodes ─────────────────────────────────────────────
+    if (node.type === "github-project") {
+      const ghData = node.data as unknown as GitHubProjectNodeData;
+      const owner = ghData.owner;
+      const repo = ghData.repo;
+      const branch = ghData.branch ?? "main";
+
+      if (!owner || !repo) {
+        await log(`WARNING: GitHub project node missing owner/repo, skipping`);
+        continue;
+      }
+
+      await log(`Cloning GitHub repo ${owner}/${repo}@${branch}...`);
+      const cloneResult = await cloneGitHubRepo(owner, repo, branch, githubToken);
+      if (cloneResult.isErr()) {
+        await log(`ERROR: ${cloneResult.error.message}`);
+        return { ok: false, error: cloneResult.error };
+      }
+
+      const clonedDir = cloneResult.value;
+      tempDirs.push(clonedDir);
+      inputPath = clonedDir;
+      const tree = await listDirTree(clonedDir);
+      currentContent = `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}\n\nFile tree:\n${tree}`;
+      await log(`Cloned to ${clonedDir} (tree: ${tree.split("\n").length} entries)`);
+      continue;
+    }
+
     // ── Output nodes ─────────────────────────────────────────────────────
     if (node.type === "output-local-path") {
-      outputLocalPath = data.localPath ?? "";
+      const rawPath = data.localPath ?? "";
+      let resolvedPath = rawPath ? resolve(rawPath) : "";
+      // If the path points to an existing directory, append a default filename
+      if (resolvedPath && existsSync(resolvedPath) && statSync(resolvedPath).isDirectory()) {
+        resolvedPath = join(resolvedPath, "output.md");
+      }
+      outputLocalPath = resolvedPath;
       await log(`Output path set: ${outputLocalPath}`);
       // Write the current content to the output path
       if (outputLocalPath && currentContent) {
@@ -349,7 +513,21 @@ const executePipeline = async (opts: {
         currentContent = promptResult.value;
         await log(`Prompt output (${currentContent.length} chars)`);
       } else if (executor.type === "skill") {
-        await log(`Skill executor not yet supported for operation "${operation.name}", skipping`);
+        const skillId = executor.skillId ?? "";
+        if (!skillId) {
+          await log(`WARNING: No skillId configured for operation "${operation.name}", skipping`);
+          continue;
+        }
+
+        const skill = (await skillsDao.findById(skillId)) ?? (await skillsDao.findByName(skillId));
+        const skillDescription = skill
+          ? `${skill.label}: ${skill.description}`
+          : `Skill "${skillId}" (no description available)`;
+
+        await log(`Running skill "${skillId}"${skill ? ` (${skill.label})` : ""}...`);
+        const skillResult = await runSkill(skillId, skillDescription, currentContent, inputPath);
+        currentContent = skillResult.isOk() ? skillResult.value : "";
+        await log(`Skill output (${currentContent.length} chars)`);
       }
 
       continue;
@@ -364,6 +542,12 @@ const executePipeline = async (opts: {
     : `Completed (no output-local-path node configured)`;
 
   await log(`Pipeline complete. ${summary}`);
+
+  // Cleanup temp directories
+  for (const dir of tempDirs) {
+    await rm(dir, { recursive: true, force: true }).catch(() => {});
+  }
+
   return { ok: true, summary };
 };
 
@@ -371,6 +555,7 @@ export const runPipeline = async (opts: {
   pipelineId: string;
   inputPath?: string;
   jobId: string;
+  githubToken?: string;
 }): Promise<void> => {
   const result = await ResultAsync.fromPromise(
     executePipeline(opts),

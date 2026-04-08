@@ -8,6 +8,7 @@ import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const RunPipelineSchema = z.object({
   inputPath: z.string().optional(),
+  githubToken: z.string().optional(),
 });
 
 export const Route = createFileRoute("/api/pipelines/$id/run")({
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/api/pipelines/$id/run")({
         void runPipeline({
           pipelineId: params.id,
           inputPath: parsed.data.inputPath,
+          githubToken: parsed.data.githubToken,
           jobId,
         });
 

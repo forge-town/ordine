@@ -1,8 +1,9 @@
-import { useRef } from "react";
+import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { FolderOpen, HardDrive } from "lucide-react";
 import { useHarnessCanvasStore, type OutputLocalPathNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
+import { FolderBrowser } from "./FolderBrowser";
 
 export interface OutputLocalPathNodeProps {
   id: string;
@@ -14,7 +15,7 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
 export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeProps) => {
   const store = useHarnessCanvasStore();
-  const folderInputRef = useRef<HTMLInputElement>(null);
+  const [browserOpen, setBrowserOpen] = useState(false);
   const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
 
   const handleLabelChange = (v: string) => update({ label: v });
@@ -25,17 +26,15 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
 
   const handleFolderButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    folderInputRef.current?.click();
+    setBrowserOpen(true);
   };
 
-  const handleFolderPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const folderName = file.webkitRelativePath.split("/")[0];
-      update({ localPath: folderName });
-    }
-    // Reset so the same folder can be re-selected
-    e.target.value = "";
+  const handleFolderSelect = (path: string) => {
+    update({ localPath: path });
+  };
+
+  const handleBrowserOpenChange = (open: boolean) => {
+    setBrowserOpen(open);
   };
 
   return (
@@ -53,7 +52,7 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
           <span className="shrink-0 text-[10px] font-medium text-teal-500">路径</span>
           <input
             className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
-            placeholder="/home/user/output/"
+            placeholder="/Users/you/Desktop/output"
             value={data.localPath}
             onChange={handleLocalPathChange}
             onClick={handleStopPropagation}
@@ -62,7 +61,7 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
           />
           <button
             className="nodrag nopan shrink-0 rounded p-0.5 text-teal-400 hover:bg-teal-100 hover:text-teal-700 transition-colors"
-            title="选择文件夹"
+            title="浏览文件夹"
             type="button"
             onClick={handleFolderButtonClick}
             onMouseDown={handleStopPropagation}
@@ -70,16 +69,6 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
             <FolderOpen className="h-3.5 w-3.5" />
           </button>
         </div>
-        {/* Hidden folder picker */}
-        <input
-          ref={folderInputRef}
-          className="hidden"
-          type="file"
-          // @ts-expect-error webkitdirectory is not in standard types
-          webkitdirectory=""
-          onChange={handleFolderPick}
-          onMouseDown={handleStopPropagation}
-        />
         <textarea
           className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
           placeholder="描述此输出..."
@@ -89,6 +78,12 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
           onMouseDown={handleStopPropagation}
         />
       </NodeCard>
+
+      <FolderBrowser
+        open={browserOpen}
+        onOpenChange={handleBrowserOpenChange}
+        onSelect={handleFolderSelect}
+      />
 
       {/* Output nodes only receive connections — no source handle */}
       <Handle

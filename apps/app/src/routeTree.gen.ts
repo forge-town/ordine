@@ -37,6 +37,7 @@ import { Route as ApiRulesIdRouteImport } from './routes/api/rules.$id'
 import { Route as ApiPipelinesIdRouteImport } from './routes/api/pipelines.$id'
 import { Route as ApiOperationsIdRouteImport } from './routes/api/operations.$id'
 import { Route as ApiJobsIdRouteImport } from './routes/api/jobs.$id'
+import { Route as ApiFilesystemBrowseRouteImport } from './routes/api/filesystem.browse'
 import { Route as ApiBestPracticesIdRouteImport } from './routes/api/best-practices.$id'
 import { Route as LayoutPipelinesPipelineIdRouteImport } from './routes/_layout/pipelines.$pipelineId'
 import { Route as LayoutOperationsNewRouteImport } from './routes/_layout/operations.new'
@@ -186,6 +187,11 @@ const ApiJobsIdRoute = ApiJobsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiJobsRoute,
 } as any)
+const ApiFilesystemBrowseRoute = ApiFilesystemBrowseRouteImport.update({
+  id: '/api/filesystem/browse',
+  path: '/api/filesystem/browse',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBestPracticesIdRoute = ApiBestPracticesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -258,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/operations/new': typeof LayoutOperationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
+  '/api/filesystem/browse': typeof ApiFilesystemBrowseRoute
   '/api/jobs/$id': typeof ApiJobsIdRoute
   '/api/operations/$id': typeof ApiOperationsIdRoute
   '/api/pipelines/$id': typeof ApiPipelinesIdRouteWithChildren
@@ -294,6 +301,7 @@ export interface FileRoutesByTo {
   '/operations/new': typeof LayoutOperationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
+  '/api/filesystem/browse': typeof ApiFilesystemBrowseRoute
   '/api/jobs/$id': typeof ApiJobsIdRoute
   '/api/operations/$id': typeof ApiOperationsIdRoute
   '/api/pipelines/$id': typeof ApiPipelinesIdRouteWithChildren
@@ -334,6 +342,7 @@ export interface FileRoutesById {
   '/_layout/operations/new': typeof LayoutOperationsNewRoute
   '/_layout/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
+  '/api/filesystem/browse': typeof ApiFilesystemBrowseRoute
   '/api/jobs/$id': typeof ApiJobsIdRoute
   '/api/operations/$id': typeof ApiOperationsIdRoute
   '/api/pipelines/$id': typeof ApiPipelinesIdRouteWithChildren
@@ -374,6 +383,7 @@ export interface FileRouteTypes {
     | '/operations/new'
     | '/pipelines/$pipelineId'
     | '/api/best-practices/$id'
+    | '/api/filesystem/browse'
     | '/api/jobs/$id'
     | '/api/operations/$id'
     | '/api/pipelines/$id'
@@ -410,6 +420,7 @@ export interface FileRouteTypes {
     | '/operations/new'
     | '/pipelines/$pipelineId'
     | '/api/best-practices/$id'
+    | '/api/filesystem/browse'
     | '/api/jobs/$id'
     | '/api/operations/$id'
     | '/api/pipelines/$id'
@@ -449,6 +460,7 @@ export interface FileRouteTypes {
     | '/_layout/operations/new'
     | '/_layout/pipelines/$pipelineId'
     | '/api/best-practices/$id'
+    | '/api/filesystem/browse'
     | '/api/jobs/$id'
     | '/api/operations/$id'
     | '/api/pipelines/$id'
@@ -477,6 +489,7 @@ export interface RootRouteChildren {
   ApiRulesRoute: typeof ApiRulesRouteWithChildren
   ApiSkillsRoute: typeof ApiSkillsRouteWithChildren
   ApiWorksRoute: typeof ApiWorksRouteWithChildren
+  ApiFilesystemBrowseRoute: typeof ApiFilesystemBrowseRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
 
@@ -677,6 +690,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/jobs/$id'
       preLoaderRoute: typeof ApiJobsIdRouteImport
       parentRoute: typeof ApiJobsRoute
+    }
+    '/api/filesystem/browse': {
+      id: '/api/filesystem/browse'
+      path: '/api/filesystem/browse'
+      fullPath: '/api/filesystem/browse'
+      preLoaderRoute: typeof ApiFilesystemBrowseRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/best-practices/$id': {
       id: '/api/best-practices/$id'
@@ -915,6 +935,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRulesRoute: ApiRulesRouteWithChildren,
   ApiSkillsRoute: ApiSkillsRouteWithChildren,
   ApiWorksRoute: ApiWorksRouteWithChildren,
+  ApiFilesystemBrowseRoute: ApiFilesystemBrowseRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }
 export const routeTree = rootRouteImport
