@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore, type FolderNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
+import { useNodeRunState } from "../useNodeRunState";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
 
 export interface FolderNodeProps {
@@ -17,6 +18,7 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
 export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const { t } = useTranslation();
+  const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const [browserOpen, setBrowserOpen] = useState(false);
@@ -46,8 +48,10 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
       <NodeCard
         bodyClassName="space-y-2"
         description="Folder"
+        dimmed={dimmed}
         icon={Folder}
         label={data.label}
+        runStatus={runStatus}
         selected={selected}
         theme="orange"
         onLabelChange={handleLabelChange}

@@ -1,5 +1,12 @@
 import { Handle, Position } from "@xyflow/react";
-import { Zap, CheckCircle2, XCircle, Loader2, Circle, Brain } from "lucide-react";
+import {
+  Zap,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Circle,
+  Brain,
+} from "lucide-react";
 import { useStore } from "zustand";
 import { cn } from "@repo/ui/lib/utils";
 import {
@@ -11,8 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
-import { useHarnessCanvasStore, type OperationNodeData, type NodeRunStatus } from "../../_store";
+import {
+  useHarnessCanvasStore,
+  type OperationNodeData,
+  type NodeRunStatus,
+} from "../../_store";
 import { NodeCard } from "../NodeCard";
+import { useNodeRunState } from "../useNodeRunState";
 import { LLM_PROVIDERS } from "@/models/tables/settings_table";
 
 export interface OperationNodeProps {
@@ -54,17 +66,26 @@ const MODEL_OPTIONS: Record<string, { value: string; label: string }[]> = {
 };
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
+  const { runStatus: nodeRunStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const getOperationById = useStore(store, (s) => s.getOperationById);
+  const isTestRunning = useStore(store, (s) => s.isTestRunning);
+  const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
+  const setInspectingNodeId = useStore(store, (s) => s.setInspectingNodeId);
 
   const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
 
-  const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
+  const {
+    icon: StatusIcon,
+    color,
+    label: statusLabel,
+  } = statusConfig[data.status ?? "idle"];
 
   const operation = getOperationById(data.operationId);
 
-  const handleLabelChange = (v: string) => update({ label: v, operationName: v });
+  const handleLabelChange = (v: string) =>
+    update({ label: v, operationName: v });
 
   const selectedProvider = data.llmProvider ?? "";
   const selectedModel = data.llmModel ?? "";
@@ -82,11 +103,25 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     if (value) update({ llmModel: value });
   };
 
+  const hasLlmContent = !!nodeLlmContent[id];
+  const canInspect = isTestRunning || hasLlmContent;
+  const handleCardClick = canInspect
+    ? () => setInspectingNodeId(id)
+    : undefined;
+
   return (
-    <div className="group relative" style={{ overflow: "visible" }}>
+    <div
+      className="group relative"
+      style={{
+        overflow: "visible",
+        cursor: canInspect ? "pointer" : undefined,
+      }}
+      onClick={handleCardClick}
+    >
       <NodeCard
         bodyClassName="space-y-2"
         description={operation?.description || "自定义操作"}
+        dimmed={dimmed}
         headerRight={
           <div
             className={cn(
@@ -94,17 +129,21 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               data.status === "pass" && "bg-green-50 border-green-100",
               data.status === "fail" && "bg-red-50 border-red-100",
               data.status === "running" && "bg-blue-50 border-blue-100",
-              (!data.status || data.status === "idle") && "bg-white border-slate-100"
+              (!data.status || data.status === "idle") &&
+                "bg-white border-slate-100",
             )}
           >
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
+            <span
+              className={cn("text-[10px] font-semibold tracking-wide", color)}
+            >
               {statusLabel}
             </span>
           </div>
         }
         icon={Zap}
         label={data.operationName || data.label}
+        runStatus={nodeRunStatus}
         selected={selected}
         theme="violet"
         onLabelChange={handleLabelChange}
@@ -152,7 +191,10 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             模型
           </p>
           <div className="flex gap-1.5">
-            <Select value={selectedProvider || "__default__"} onValueChange={handleProviderChange}>
+            <Select
+              value={selectedProvider || "__default__"}
+              onValueChange={handleProviderChange}
+            >
               <SelectTrigger className="h-6 min-w-0 flex-1 px-1.5 text-[10px]">
                 <SelectValue />
               </SelectTrigger>
@@ -187,6 +229,13 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             )}
           </div>
         </div>
+
+        {hasLlmContent && (
+          <div className="flex items-center gap-1 rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-[10px] text-violet-600">
+            <Brain className="h-3 w-3 shrink-0" />
+            <span>点击查看 LLM 输出</span>
+          </div>
+        )}
       </NodeCard>
 
       {/* Target handle (input from object or previous operation) */}

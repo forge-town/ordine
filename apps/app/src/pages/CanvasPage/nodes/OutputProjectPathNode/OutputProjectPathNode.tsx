@@ -3,6 +3,7 @@ import { FolderOutput } from "lucide-react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore, type OutputProjectPathNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
+import { useNodeRunState } from "../useNodeRunState";
 
 export interface OutputProjectPathNodeProps {
   id: string;
@@ -13,6 +14,7 @@ export interface OutputProjectPathNodeProps {
 const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathNodeProps) => {
+  const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
@@ -30,8 +32,10 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
       <NodeCard
         bodyClassName="space-y-2"
         description="项目路径输出"
+        dimmed={dimmed}
         icon={FolderOutput}
         label={data.label}
+        runStatus={runStatus}
         selected={selected}
         theme="teal"
         onLabelChange={handleLabelChange}

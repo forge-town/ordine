@@ -4,6 +4,7 @@ import { FileCode, FolderOpen } from "lucide-react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore, type CodeFileNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
+import { useNodeRunState } from "../useNodeRunState";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
 
 export interface CodeFileNodeProps {
@@ -15,6 +16,7 @@ export interface CodeFileNodeProps {
 const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
 export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
+  const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const [browserOpen, setBrowserOpen] = useState(false);
@@ -46,8 +48,10 @@ export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
       <NodeCard
         bodyClassName="space-y-2"
         description="Code File"
+        dimmed={dimmed}
         icon={FileCode}
         label={data.label}
+        runStatus={runStatus}
         selected={selected}
         theme="orange"
         onLabelChange={handleLabelChange}

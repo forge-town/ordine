@@ -7,6 +7,7 @@ import {
   CardAction,
 } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
+import type { NodeRunStatus } from "../../nodeSchemas";
 
 export type NodeTheme = "emerald" | "violet" | "amber" | "sky" | "orange" | "teal";
 
@@ -70,6 +71,10 @@ export interface NodeCardProps {
   description?: string;
   /** When provided, the label becomes an inline editable input */
   onLabelChange?: (value: string) => void;
+  /** Run status for pipeline test mode */
+  runStatus?: NodeRunStatus;
+  /** Whether the node is disabled during a test run */
+  dimmed?: boolean;
 }
 
 const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
@@ -84,6 +89,8 @@ export const NodeCard = ({
   bodyClassName,
   description,
   onLabelChange,
+  runStatus,
+  dimmed,
 }: NodeCardProps) => {
   const t = themeMap[theme] ?? themeMap.emerald;
   const handleChange = onLabelChange
@@ -94,7 +101,12 @@ export const NodeCard = ({
     <Card
       className={cn(
         "transition-all duration-200",
-        selected ? cn("ring-2 shadow-lg", t.ringSelected) : cn("ring-1 hover:ring-2", t.ring)
+        selected ? cn("ring-2 shadow-lg", t.ringSelected) : cn("ring-1 hover:ring-2", t.ring),
+        runStatus === "running" &&
+          "ring-2 ring-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.4)] animate-pulse",
+        runStatus === "pass" && "ring-2 ring-green-500",
+        runStatus === "fail" && "ring-2 ring-red-500",
+        dimmed && "opacity-40 pointer-events-none"
       )}
       size="sm"
     >

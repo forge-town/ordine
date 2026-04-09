@@ -8,6 +8,7 @@ import { NodeContextMenu } from "../NodeContextMenu";
 import { CanvasFloatingMenu } from "../CanvasFloatingMenu";
 import { AiAssistantPanel } from "../AiAssistantPanel";
 import { RunConsole } from "../RunConsole";
+import { LlmContentCard } from "../LlmContentCard/LlmContentCard";
 
 export const CanvasInner = () => {
   const store = useHarnessCanvasStore();
@@ -81,6 +82,8 @@ export const CanvasInner = () => {
       )}
 
       <AiAssistantPanel />
+
+      <LlmContentCard />
 
       {isConsoleOpen && <RunConsole jobId={activeJobId} onClose={handleCloseConsole} />}
     </div>

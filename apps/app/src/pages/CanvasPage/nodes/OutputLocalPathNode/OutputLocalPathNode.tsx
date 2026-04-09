@@ -3,11 +3,9 @@ import { Handle, Position } from "@xyflow/react";
 import { AlertTriangle, FolderOpen, HardDrive } from "lucide-react";
 import { useStore } from "zustand";
 import { OUTPUT_MODES, type OutputMode } from "@/models/types/pipelineGraph";
-import {
-  useHarnessCanvasStore,
-  type OutputLocalPathNodeData,
-} from "../../_store";
+import { useHarnessCanvasStore, type OutputLocalPathNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
+import { useNodeRunState } from "../useNodeRunState";
 import { FolderBrowser } from "./FolderBrowser";
 
 export interface OutputLocalPathNodeProps {
@@ -24,11 +22,8 @@ const MODE_LABELS: Record<OutputMode, string> = {
   auto_rename: "自动重命名",
 };
 
-export const OutputLocalPathNode = ({
-  id,
-  data,
-  selected,
-}: OutputLocalPathNodeProps) => {
+export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeProps) => {
+  const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const [browserOpen, setBrowserOpen] = useState(false);
@@ -64,16 +59,16 @@ export const OutputLocalPathNode = ({
       <NodeCard
         bodyClassName="space-y-2"
         description="本地路径输出"
+        dimmed={dimmed}
         icon={HardDrive}
         label={data.label}
+        runStatus={runStatus}
         selected={selected}
         theme="teal"
         onLabelChange={handleLabelChange}
       >
         <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">
-            路径
-          </span>
+          <span className="shrink-0 text-[10px] font-medium text-teal-500">路径</span>
           <input
             className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
             placeholder="/Users/you/Desktop/output"
@@ -95,9 +90,7 @@ export const OutputLocalPathNode = ({
         </div>
 
         <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">
-            文件名
-          </span>
+          <span className="shrink-0 text-[10px] font-medium text-teal-500">文件名</span>
           <input
             className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
             placeholder="output.md"
@@ -110,9 +103,7 @@ export const OutputLocalPathNode = ({
         </div>
 
         <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">
-            写入模式
-          </span>
+          <span className="shrink-0 text-[10px] font-medium text-teal-500">写入模式</span>
           <select
             className="nodrag nopan flex-1 min-w-0 bg-transparent text-[11px] font-semibold text-teal-800 focus:outline-none cursor-pointer"
             value={currentMode}

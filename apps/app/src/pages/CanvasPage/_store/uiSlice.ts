@@ -1,3 +1,4 @@
+import type { NodeRunStatus } from "../nodeSchemas";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
 
 export type SidebarPanel = "components" | "properties" | "ai-assistant" | null;
@@ -35,6 +36,13 @@ export interface UISlice {
   nodeContextMenu: NodeContextMenuState | null;
   connectStart: ConnectStartState | null;
 
+  // Pipeline test run state
+  isTestRunning: boolean;
+  runningNodeId: string | null;
+  nodeRunStatuses: Record<string, NodeRunStatus>;
+  nodeLlmContent: Record<string, string>;
+  inspectingNodeId: string | null;
+
   handlePipelineIdChange: (id: string) => void;
   handleSidebarPanelChange: (panel: SidebarPanel) => void;
   toggleSidebar: () => void;
@@ -51,6 +59,14 @@ export interface UISlice {
   closeNodeContextMenu: () => void;
   handleConnectStart: (state: ConnectStartState | null) => void;
   setPipelineName: (name: string) => void;
+
+  // Pipeline run actions
+  startTestRun: () => void;
+  stopTestRun: () => void;
+  setNodeRunStatus: (nodeId: string, status: NodeRunStatus) => void;
+  setRunningNodeId: (nodeId: string | null) => void;
+  setNodeLlmContent: (nodeId: string, content: string) => void;
+  setInspectingNodeId: (nodeId: string | null) => void;
 }
 
 export const createUISlice = (
@@ -70,7 +86,12 @@ export const createUISlice = (
   connectionMenu: null,
   nodeContextMenu: null,
   connectStart: null,
-
+  // Pipeline test run state defaults
+  isTestRunning: false,
+  runningNodeId: null,
+  nodeRunStatuses: {},
+  nodeLlmContent: {},
+  inspectingNodeId: null,
   handlePipelineIdChange: (id) => {
     set({ pipelineId: id });
   },
@@ -133,5 +154,39 @@ export const createUISlice = (
 
   setPipelineName: (name) => {
     set({ pipelineName: name });
+  },
+
+  startTestRun: () => {
+    set({
+      isTestRunning: true,
+      runningNodeId: null,
+      nodeRunStatuses: {},
+      nodeLlmContent: {},
+      inspectingNodeId: null,
+    });
+  },
+
+  stopTestRun: () => {
+    set({ isTestRunning: false, runningNodeId: null });
+  },
+
+  setNodeRunStatus: (nodeId, status) => {
+    set((state) => ({
+      nodeRunStatuses: { ...state.nodeRunStatuses, [nodeId]: status },
+    }));
+  },
+
+  setRunningNodeId: (nodeId) => {
+    set({ runningNodeId: nodeId });
+  },
+
+  setNodeLlmContent: (nodeId, content) => {
+    set((state) => ({
+      nodeLlmContent: { ...state.nodeLlmContent, [nodeId]: content },
+    }));
+  },
+
+  setInspectingNodeId: (nodeId) => {
+    set({ inspectingNodeId: nodeId });
   },
 });

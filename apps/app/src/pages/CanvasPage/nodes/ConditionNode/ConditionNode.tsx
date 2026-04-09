@@ -4,6 +4,7 @@ import { cn } from "@repo/ui/lib/utils";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore, type NodeRunStatus } from "../../_store";
 import { NodeCard } from "../NodeCard";
+import { useNodeRunState } from "../useNodeRunState";
 
 // Local type definition for legacy condition node
 interface ConditionNodeData {
@@ -38,6 +39,7 @@ const statusConfig: Record<
 const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
+  const { runStatus: nodeRunStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
@@ -55,6 +57,7 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
       <NodeCard
         bodyClassName="space-y-3"
         description="Condition Check"
+        dimmed={dimmed}
         headerRight={
           <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-white border border-slate-100 shadow-sm px-2 py-1">
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
@@ -65,6 +68,7 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
         }
         icon={ShieldCheck}
         label={data.label}
+        runStatus={nodeRunStatus}
         selected={selected}
         theme="amber"
         onLabelChange={handleLabelChange}

@@ -12,6 +12,8 @@ import {
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { cn } from "@repo/ui/lib/utils";
+import { useStore } from "zustand";
+import { useHarnessCanvasStore } from "../../_store";
 
 type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled";
 
@@ -74,32 +76,102 @@ const parseMessage = (log: string): string => {
   return log.replace(/^\[[^\]]+\]\s*/, "");
 };
 
+const STRUCTURED_LOG_PREFIX = "@@";
+
+const parseStructuredLogs = (
+  logs: string[],
+  callbacks: {
+    onNodeStart: (nodeId: string) => void;
+    onNodeDone: (nodeId: string) => void;
+    onNodeFail: (nodeId: string) => void;
+    onLlmContent: (nodeId: string, content: string) => void;
+  }
+) => {
+  for (const log of logs) {
+    const msg = log.replace(/^\[[^\]]+\]\s*/, "");
+    if (!msg.startsWith(STRUCTURED_LOG_PREFIX)) continue;
+    if (msg.startsWith("@@NODE_START::")) {
+      callbacks.onNodeStart(msg.slice("@@NODE_START::".length));
+    } else if (msg.startsWith("@@NODE_DONE::")) {
+      callbacks.onNodeDone(msg.slice("@@NODE_DONE::".length));
+    } else if (msg.startsWith("@@NODE_FAIL::")) {
+      callbacks.onNodeFail(msg.slice("@@NODE_FAIL::".length));
+    } else if (msg.startsWith("@@LLM_CONTENT::")) {
+      const rest = msg.slice("@@LLM_CONTENT::".length);
+      const sepIdx = rest.indexOf("::");
+      if (sepIdx !== -1) {
+        callbacks.onLlmContent(rest.slice(0, sepIdx), rest.slice(sepIdx + 2));
+      }
+    }
+  }
+};
+
+const isStructuredLog = (log: string): boolean => {
+  const msg = log.replace(/^\[[^\]]+\]\s*/, "");
+  return msg.startsWith(STRUCTURED_LOG_PREFIX);
+};
+
 export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
+  const store = useHarnessCanvasStore();
+  const setNodeRunStatus = useStore(store, (s) => s.setNodeRunStatus);
+  const setRunningNodeId = useStore(store, (s) => s.setRunningNodeId);
+  const setNodeLlmContent = useStore(store, (s) => s.setNodeLlmContent);
+  const stopTestRun = useStore(store, (s) => s.stopTestRun);
+
   const [job, setJob] = useState<JobData | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isTerminal = useRef(false);
+  const processedLogCount = useRef(0);
 
-  const fetchJob = useCallback(async (id: string) => {
-    const res = await fetch(`/api/jobs/${id}`);
-    if (!res.ok) return;
-    const data = (await res.json()) as JobData;
-    setJob(data);
+  const fetchJob = useCallback(
+    async (id: string) => {
+      const res = await fetch(`/api/jobs/${id}`);
+      if (!res.ok) return;
+      const data = (await res.json()) as JobData;
+      setJob(data);
 
-    if (data.status === "done" || data.status === "failed" || data.status === "cancelled") {
-      isTerminal.current = true;
-    }
-  }, []);
+      // Parse new structured log lines since last fetch
+      const newLogs = data.logs.slice(processedLogCount.current);
+      processedLogCount.current = data.logs.length;
+
+      parseStructuredLogs(newLogs, {
+        onNodeStart: (nodeId) => {
+          setRunningNodeId(nodeId);
+          setNodeRunStatus(nodeId, "running");
+        },
+        onNodeDone: (nodeId) => {
+          setNodeRunStatus(nodeId, "pass");
+          setRunningNodeId(null);
+        },
+        onNodeFail: (nodeId) => {
+          setNodeRunStatus(nodeId, "fail");
+          setRunningNodeId(null);
+        },
+        onLlmContent: (nodeId, content) => {
+          setNodeLlmContent(nodeId, content);
+        },
+      });
+
+      if (data.status === "done" || data.status === "failed" || data.status === "cancelled") {
+        isTerminal.current = true;
+        stopTestRun();
+      }
+    },
+    [setRunningNodeId, setNodeRunStatus, setNodeLlmContent, stopTestRun]
+  );
 
   // Initial fetch + polling
   useEffect(() => {
     if (!jobId) {
       setJob(null);
       isTerminal.current = false;
+      processedLogCount.current = 0;
       return;
     }
 
     isTerminal.current = false;
+    processedLogCount.current = 0;
     void fetchJob(jobId);
 
     const timer = setInterval(() => {
@@ -182,24 +254,26 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                 Loading...
               </div>
             )}
-            {job?.logs.map((log, i) => (
-              <div key={i} className="flex gap-2 py-0.5 hover:bg-muted/30">
-                <span className="shrink-0 text-muted-foreground tabular-nums">
-                  {parseTimestamp(log)}
-                </span>
-                <span
-                  className={cn(
-                    "break-all",
-                    log.includes("ERROR") && "text-red-600 font-medium",
-                    log.includes("Pipeline complete") && "text-green-600 font-medium",
-                    log.includes("Cloned to") && "text-blue-600",
-                    log.includes("Skill output") && "text-violet-600"
-                  )}
-                >
-                  {parseMessage(log)}
-                </span>
-              </div>
-            ))}
+            {job?.logs
+              .filter((l) => !isStructuredLog(l))
+              .map((log, i) => (
+                <div key={i} className="flex gap-2 py-0.5 hover:bg-muted/30">
+                  <span className="shrink-0 text-muted-foreground tabular-nums">
+                    {parseTimestamp(log)}
+                  </span>
+                  <span
+                    className={cn(
+                      "break-all",
+                      log.includes("ERROR") && "text-red-600 font-medium",
+                      log.includes("Pipeline complete") && "text-green-600 font-medium",
+                      log.includes("Cloned to") && "text-blue-600",
+                      log.includes("Skill output") && "text-violet-600"
+                    )}
+                  >
+                    {parseMessage(log)}
+                  </span>
+                </div>
+              ))}
             {job?.status === "done" && job.result?.summary && (
               <div className="mt-2 rounded border border-green-200 bg-green-50 px-3 py-2 text-green-700">
                 {job.result.summary}

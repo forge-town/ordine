@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore, type GitHubProjectNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
+import { useNodeRunState } from "../useNodeRunState";
 import { SiGitHubIcon } from "./SiGitHubIcon";
 import { GitHubConnectDialog, type ConnectedRepoInfo } from "./GitHubConnectDialog";
 import { PickProjectDialog, type PickedProject } from "./PickProjectDialog";
@@ -19,6 +20,7 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps) => {
   const { t } = useTranslation();
+  const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
   const [pickOpen, setPickOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
@@ -67,8 +69,10 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
       <NodeCard
         bodyClassName="space-y-2"
         description="GitHub Project"
+        dimmed={dimmed}
         icon={SiGitHubIcon}
         label={data.label}
+        runStatus={runStatus}
         selected={selected}
         theme="orange"
         onLabelChange={handleLabelChange}

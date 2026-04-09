@@ -29,6 +29,8 @@ export const CanvasToolbar = () => {
   const undo = useStore(store, (state) => state.undo);
   const redo = useStore(store, (state) => state.redo);
   const setActiveJobId = useStore(store, (state) => state.setActiveJobId);
+  const startTestRun = useStore(store, (state) => state.startTestRun);
+  const isTestRunning = useStore(store, (state) => state.isTestRunning);
 
   const [isRunning, setIsRunning] = useState(false);
 
@@ -49,7 +51,7 @@ export const CanvasToolbar = () => {
   const handleRedo = () => redo();
 
   const handleRunTest = async () => {
-    if (isRunning) return;
+    if (isRunning || isTestRunning) return;
 
     if (!pipelineId) {
       useToastStore.getState().addToast({
@@ -61,6 +63,7 @@ export const CanvasToolbar = () => {
     }
 
     setIsRunning(true);
+    startTestRun();
 
     const saveResult = await ResultAsync.fromPromise(
       updatePipeline({
