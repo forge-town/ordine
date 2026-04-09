@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { Link2, Lock, Globe, BookMarked } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useStore } from "zustand";
 import { useHarnessCanvasStore, type GitHubProjectNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
 import { SiGitHubIcon } from "./SiGitHubIcon";
@@ -22,7 +23,9 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
   const [pickOpen, setPickOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
 
-  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
+  const updateNodeData = useStore(store, (s) => s.updateNodeData);
+
+  const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
 
   const isConnected = !!(data.owner && data.repo);
 

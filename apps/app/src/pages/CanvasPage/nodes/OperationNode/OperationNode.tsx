@@ -1,8 +1,19 @@
 import { Handle, Position } from "@xyflow/react";
-import { Zap, CheckCircle2, XCircle, Loader2, Circle } from "lucide-react";
+import { Zap, CheckCircle2, XCircle, Loader2, Circle, Brain } from "lucide-react";
+import { useStore } from "zustand";
 import { cn } from "@repo/ui/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/select";
 import { useHarnessCanvasStore, type OperationNodeData, type NodeRunStatus } from "../../_store";
 import { NodeCard } from "../NodeCard";
+import { LLM_PROVIDERS } from "@/models/tables/settings_table";
 
 export interface OperationNodeProps {
   id: string;
@@ -24,16 +35,52 @@ const statusConfig: Record<
   fail: { icon: XCircle, color: "text-red-500", label: "失败" },
 };
 
+const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
+
+const PROVIDER_LABELS: Record<string, string> = {
+  kimi: "Kimi",
+  deepseek: "DeepSeek",
+};
+
+const MODEL_OPTIONS: Record<string, { value: string; label: string }[]> = {
+  kimi: [
+    { value: "kimi-k2-0711-preview", label: "Kimi K2 Preview" },
+    { value: "kimi-for-coding", label: "Kimi for Coding" },
+  ],
+  deepseek: [
+    { value: "deepseek-chat", label: "DeepSeek Chat" },
+    { value: "deepseek-reasoner", label: "DeepSeek Reasoner" },
+  ],
+};
+
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const store = useHarnessCanvasStore();
-  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
+  const updateNodeData = useStore(store, (s) => s.updateNodeData);
+  const getOperationById = useStore(store, (s) => s.getOperationById);
+
+  const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
 
   const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
 
-  // Get operation details from store
-  const operation = store.getState().getOperationById(data.operationId);
+  const operation = getOperationById(data.operationId);
 
   const handleLabelChange = (v: string) => update({ label: v, operationName: v });
+
+  const selectedProvider = data.llmProvider ?? "";
+  const selectedModel = data.llmModel ?? "";
+
+  const handleProviderChange = (value: string | null) => {
+    if (!value || value === "__default__") {
+      update({ llmProvider: undefined, llmModel: undefined });
+    } else {
+      const models = MODEL_OPTIONS[value];
+      update({ llmProvider: value, llmModel: models?.[0]?.value ?? "" });
+    }
+  };
+
+  const handleModelChange = (value: string | null) => {
+    if (value) update({ llmModel: value });
+  };
 
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
@@ -97,6 +144,49 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             </div>
           </div>
         )}
+
+        {/* LLM model selector */}
+        <div className="space-y-1" onMouseDown={handleStopPropagation}>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            <Brain className="mr-1 inline-block h-3 w-3" />
+            模型
+          </p>
+          <div className="flex gap-1.5">
+            <Select value={selectedProvider || "__default__"} onValueChange={handleProviderChange}>
+              <SelectTrigger className="h-6 min-w-0 flex-1 px-1.5 text-[10px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Provider</SelectLabel>
+                  <SelectItem value="__default__">默认</SelectItem>
+                  {LLM_PROVIDERS.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {PROVIDER_LABELS[p] ?? p}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            {selectedProvider && (
+              <Select value={selectedModel} onValueChange={handleModelChange}>
+                <SelectTrigger className="h-6 min-w-0 flex-1 px-1.5 text-[10px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Model</SelectLabel>
+                    {(MODEL_OPTIONS[selectedProvider] ?? []).map((m) => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>
       </NodeCard>
 
       {/* Target handle (input from object or previous operation) */}

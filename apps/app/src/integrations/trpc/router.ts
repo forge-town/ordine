@@ -3,6 +3,7 @@ import { filesystemRouter } from "./routers/filesystem";
 import { jobsRouter } from "./routers/jobs";
 import { operationsRouter } from "./routers/operations";
 import { pipelinesRouter } from "./routers/pipelines";
+import { settingsRouter } from "./routers/settings";
 import { worksRouter } from "./routers/works";
 import { rulesRouter } from "./routers/rules";
 import { bestPracticesRouter } from "./routers/bestPractices";
@@ -14,6 +15,7 @@ export const appRouter = router({
   jobs: jobsRouter,
   operations: operationsRouter,
   pipelines: pipelinesRouter,
+  settings: settingsRouter,
   works: worksRouter,
   rules: rulesRouter,
   bestPractices: bestPracticesRouter,

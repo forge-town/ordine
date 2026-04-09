@@ -1,6 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import { ShieldCheck, CheckCircle2, XCircle, Loader2, Circle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import { useStore } from "zustand";
 import { useHarnessCanvasStore, type NodeRunStatus } from "../../_store";
 import { NodeCard } from "../NodeCard";
 
@@ -38,7 +39,8 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
   const store = useHarnessCanvasStore();
-  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
+  const updateNodeData = useStore(store, (s) => s.updateNodeData);
+  const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
   const status = data.status ?? "idle";
   const { icon: StatusIcon, color, label: statusLabel } = statusConfig[status];
 

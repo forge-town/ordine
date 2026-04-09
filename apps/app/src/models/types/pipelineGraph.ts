@@ -1,3 +1,5 @@
+import type { LlmProvider } from "@/models/tables/settings_table";
+
 // Pipeline graph node/edge types for DB and business logic (decoupled from page store)
 
 export type NodeType =
@@ -54,6 +56,8 @@ export interface OperationNodeData {
   status: NodeRunStatus;
   config?: Record<string, string | number | boolean>;
   notes?: string;
+  llmProvider?: LlmProvider;
+  llmModel?: string;
 }
 
 export interface OutputProjectPathNodeData {

@@ -14,10 +14,7 @@ vi.mock("@refinedev/core", () => ({
   useList: (...args: unknown[]) => mockUseList(...args),
 }));
 
-const makeQueryResult = (
-  data: unknown[],
-  overrides?: Record<string, unknown>,
-) => ({
+const makeQueryResult = (data: unknown[], overrides?: Record<string, unknown>) => ({
   query: {
     data: { data, total: data.length },
     isLoading: false,
@@ -37,26 +34,14 @@ const handleSelect = vi.fn();
 
 describe("FolderBrowser", () => {
   it("renders dialog with title when open", async () => {
-    render(
-      <FolderBrowser
-        open
-        onOpenChange={handleOpenChange}
-        onSelect={handleSelect}
-      />,
-    );
+    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
     await waitFor(() => {
       expect(screen.getByText("选择文件夹")).toBeInTheDocument();
     });
   });
 
   it("displays directory entries (excluding files in folder mode)", async () => {
-    render(
-      <FolderBrowser
-        open
-        onOpenChange={handleOpenChange}
-        onSelect={handleSelect}
-      />,
-    );
+    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
     expect(screen.getByText("Desktop")).toBeInTheDocument();
     expect(screen.getByText("Documents")).toBeInTheDocument();
     expect(screen.queryByText(".zshrc")).not.toBeInTheDocument();
@@ -64,12 +49,7 @@ describe("FolderBrowser", () => {
 
   it("shows files in file mode", async () => {
     render(
-      <FolderBrowser
-        open
-        mode="file"
-        onOpenChange={handleOpenChange}
-        onSelect={handleSelect}
-      />,
+      <FolderBrowser open mode="file" onOpenChange={handleOpenChange} onSelect={handleSelect} />
     );
     expect(screen.getByText("Desktop")).toBeInTheDocument();
     expect(screen.getByText(".zshrc")).toBeInTheDocument();
@@ -77,38 +57,24 @@ describe("FolderBrowser", () => {
 
   it("navigates into a folder on click", async () => {
     const user = userEvent.setup();
-    const subEntries = [
-      { name: "测试", type: "directory", path: "/Users/test/Desktop/测试" },
-    ];
+    const subEntries = [{ name: "测试", type: "directory", path: "/Users/test/Desktop/测试" }];
 
     mockUseList
       .mockReturnValueOnce(makeQueryResult(mockEntries))
       .mockReturnValueOnce(makeQueryResult(subEntries));
 
     const { rerender } = render(
-      <FolderBrowser
-        open
-        onOpenChange={handleOpenChange}
-        onSelect={handleSelect}
-      />,
+      <FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />
     );
 
     await user.click(screen.getByText("Desktop"));
 
-    rerender(
-      <FolderBrowser
-        open
-        onOpenChange={handleOpenChange}
-        onSelect={handleSelect}
-      />,
-    );
+    rerender(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
 
     expect(mockUseList).toHaveBeenCalledWith(
       expect.objectContaining({
-        filters: [
-          { field: "path", operator: "eq", value: "/Users/test/Desktop" },
-        ],
-      }),
+        filters: [{ field: "path", operator: "eq", value: "/Users/test/Desktop" }],
+      })
     );
   });
 
@@ -117,31 +83,19 @@ describe("FolderBrowser", () => {
     const handleSelectSpy = vi.fn();
     const handleOpenChangeSpy = vi.fn();
 
-    const subEntries = [
-      { name: "output", type: "directory", path: "/Users/test/Desktop/output" },
-    ];
+    const subEntries = [{ name: "output", type: "directory", path: "/Users/test/Desktop/output" }];
 
     mockUseList
       .mockReturnValueOnce(makeQueryResult(mockEntries))
       .mockReturnValueOnce(makeQueryResult(subEntries));
 
     const { rerender } = render(
-      <FolderBrowser
-        open
-        onOpenChange={handleOpenChangeSpy}
-        onSelect={handleSelectSpy}
-      />,
+      <FolderBrowser open onOpenChange={handleOpenChangeSpy} onSelect={handleSelectSpy} />
     );
 
     await user.click(screen.getByText("Desktop"));
 
-    rerender(
-      <FolderBrowser
-        open
-        onOpenChange={handleOpenChangeSpy}
-        onSelect={handleSelectSpy}
-      />,
-    );
+    rerender(<FolderBrowser open onOpenChange={handleOpenChangeSpy} onSelect={handleSelectSpy} />);
 
     await user.click(screen.getByText("选择此文件夹"));
 
@@ -159,13 +113,7 @@ describe("FolderBrowser", () => {
       },
     });
 
-    render(
-      <FolderBrowser
-        open
-        onOpenChange={handleOpenChange}
-        onSelect={handleSelect}
-      />,
-    );
+    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
     expect(screen.getByText("加载中...")).toBeInTheDocument();
   });
 
@@ -179,13 +127,7 @@ describe("FolderBrowser", () => {
       },
     });
 
-    render(
-      <FolderBrowser
-        open
-        onOpenChange={handleOpenChange}
-        onSelect={handleSelect}
-      />,
-    );
+    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
     expect(screen.getByText("Path does not exist")).toBeInTheDocument();
   });
 });

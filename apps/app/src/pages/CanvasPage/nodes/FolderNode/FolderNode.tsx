@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { Folder, FolderOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useStore } from "zustand";
 import { useHarnessCanvasStore, type FolderNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
@@ -17,8 +18,9 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const { t } = useTranslation();
   const store = useHarnessCanvasStore();
+  const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const [browserOpen, setBrowserOpen] = useState(false);
-  const update = (patch: Record<string, unknown>) => store.getState().updateNodeData(id, patch);
+  const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleFolderPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>

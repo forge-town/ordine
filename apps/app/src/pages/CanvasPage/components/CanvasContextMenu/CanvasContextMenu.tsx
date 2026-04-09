@@ -1,5 +1,13 @@
 import { useEffect } from "react";
-import { ArrowRight, FileCode, Folder, HardDrive, FolderOutput, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  FileCode,
+  Folder,
+  HardDrive,
+  FolderOutput,
+  Zap,
+} from "lucide-react";
+import { useStore } from "zustand";
 import { SiGitHubIcon } from "../../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../../_store";
 import {
@@ -32,12 +40,20 @@ interface Props {
 
 const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
-export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: Props) => {
+export const CanvasContextMenu = ({
+  screenX,
+  screenY,
+  flowX,
+  flowY,
+  onClose,
+}: Props) => {
   const store = useHarnessCanvasStore();
-  const state = store.getState();
-  const connectStart = state.connectStart;
-  const nodes = state.nodes;
-  const operations = state.operations;
+  const connectStart = useStore(store, (s) => s.connectStart);
+  const nodes = useStore(store, (s) => s.nodes);
+  const operations = useStore(store, (s) => s.operations);
+  const addNode = useStore(store, (s) => s.addNode);
+  const onConnect = useStore(store, (s) => s.onConnect);
+  const handleConnectStart = useStore(store, (s) => s.handleConnectStart);
 
   // Get allowed connections based on current operations
   const allowedConnections = getAllowedConnections(operations);
@@ -71,7 +87,9 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
 
     // Only show operations that accept this object type
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "project",
+      ),
     );
   })();
 
@@ -84,19 +102,19 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        state.handleConnectStart(null);
+        handleConnectStart(null);
         onClose();
       }
     };
     globalThis.addEventListener("keydown", handler);
     return () => globalThis.removeEventListener("keydown", handler);
-  }, [onClose, state]);
+  }, [onClose, handleConnectStart]);
 
   const handleCreateObject = (type: NodeType) => {
     const newId = `${type}-${Date.now()}`;
 
     // Create new node
-    state.addNode({
+    addNode({
       id: newId,
       type,
       position: { x: flowX, y: flowY },
@@ -108,14 +126,14 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
       const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
       if (sourceNode) {
         if (connectStart.handleType === "source") {
-          state.onConnect({
+          onConnect({
             source: connectStart.nodeId,
             sourceHandle: connectStart.handleId,
             target: newId,
             targetHandle: null,
           });
         } else {
-          state.onConnect({
+          onConnect({
             source: newId,
             sourceHandle: null,
             target: connectStart.nodeId,
@@ -125,7 +143,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
       }
     }
 
-    state.handleConnectStart(null);
+    handleConnectStart(null);
     onClose();
   };
 
@@ -136,7 +154,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
     const newId = `op-${operationId}-${Date.now()}`;
 
     // Create new operation node
-    state.addNode({
+    addNode({
       id: newId,
       type: "operation",
       position: { x: flowX, y: flowY },
@@ -148,14 +166,14 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
       const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
       if (sourceNode) {
         if (connectStart.handleType === "source") {
-          state.onConnect({
+          onConnect({
             source: connectStart.nodeId,
             sourceHandle: connectStart.handleId,
             target: newId,
             targetHandle: null,
           });
         } else {
-          state.onConnect({
+          onConnect({
             source: newId,
             sourceHandle: null,
             target: connectStart.nodeId,
@@ -165,7 +183,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
       }
     }
 
-    state.handleConnectStart(null);
+    handleConnectStart(null);
     onClose();
   };
 
@@ -177,16 +195,18 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
   const sourceNodeInfo = (() => {
     if (!connectStart) return null;
     const node = nodes.find((n) => n.id === connectStart.nodeId);
-    return node ? { type: node.type, label: nodeTypeMeta[node.type].label } : null;
+    return node
+      ? { type: node.type, label: nodeTypeMeta[node.type].label }
+      : null;
   })();
 
   // Filter object types based on available connections
   const visibleObjectTypes = OBJECT_TYPES.filter((t) =>
-    isConnectMode ? availableTypes.includes(t) : true
+    isConnectMode ? availableTypes.includes(t) : true,
   );
 
   const handleBackdropClick = () => {
-    state.handleConnectStart(null);
+    handleConnectStart(null);
     onClose();
   };
 
@@ -207,7 +227,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
               <span
                 className={cn(
                   "flex h-4 w-4 shrink-0 items-center justify-center rounded",
-                  nodeTypeMeta[sourceNodeInfo.type].iconBg
+                  nodeTypeMeta[sourceNodeInfo.type].iconBg,
                 )}
               >
                 {(() => {
@@ -216,7 +236,9 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
                 })()}
               </span>
               <ArrowRight className="h-3 w-3 text-muted-foreground" />
-              <span className="text-[10px] font-medium text-muted-foreground">连接到...</span>
+              <span className="text-[10px] font-medium text-muted-foreground">
+                连接到...
+              </span>
             </div>
           </>
         ) : (
@@ -243,7 +265,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
                   <span
                     className={cn(
                       "flex h-5 w-5 shrink-0 items-center justify-center rounded",
-                      meta.iconBg
+                      meta.iconBg,
                     )}
                   >
                     <Icon className="h-3 w-3 text-white" />
@@ -271,7 +293,9 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-violet-500">
                   <Zap className="h-3 w-3 text-white" />
                 </span>
-                <span className="text-xs font-medium truncate">{operation.name}</span>
+                <span className="text-xs font-medium truncate">
+                  {operation.name}
+                </span>
               </button>
             ))}
           </div>

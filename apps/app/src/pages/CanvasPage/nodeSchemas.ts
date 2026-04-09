@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import type { OperationEntity } from "@/models/daos/operationsDao";
+import { LLM_PROVIDERS } from "@/models/tables/settings_table";
 
 // ─── Primitive enums ──────────────────────────────────────────────────────────
 
@@ -83,6 +84,8 @@ export const OperationNodeDataSchema = z.object({
   status: NodeRunStatusSchema,
   config: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
   notes: z.string().optional(),
+  llmProvider: z.enum(LLM_PROVIDERS).optional(),
+  llmModel: z.string().optional(),
 });
 
 // Note: Discriminated union requires at least 2 options with different literal values
