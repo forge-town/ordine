@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { BookOpen, Code2, ChevronDown, ChevronUp, Pencil, Trash2, Tag } from "lucide-react";
+import {
+  BookOpen,
+  Code2,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Pencil,
+  Trash2,
+  Tag,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
@@ -11,11 +20,18 @@ export type PracticeCardProps = {
   onDelete: () => void;
 };
 
-export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) => {
+export const PracticeCard = ({
+  practice,
+  onEdit,
+  onDelete,
+}: PracticeCardProps) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
+  const [contentExpanded, setContentExpanded] = useState(false);
   const hasCode = practice.codeSnippet.trim().length > 0;
+  const hasContent = practice.content.trim().length > 0;
   const handleToggleExpanded = () => setExpanded((v) => !v);
+  const handleToggleContent = () => setContentExpanded((v) => !v);
   const handleEdit = onEdit;
   const handleDelete = onDelete;
 
@@ -28,7 +44,9 @@ export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) 
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-semibold text-foreground leading-snug">{practice.title}</h3>
+            <h3 className="text-sm font-semibold text-foreground leading-snug">
+              {practice.title}
+            </h3>
             <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-accent"
@@ -50,10 +68,12 @@ export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) 
             <span
               className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-                CATEGORY_COLORS[practice.category] ?? "bg-muted text-muted-foreground"
+                CATEGORY_COLORS[practice.category] ??
+                  "bg-muted text-muted-foreground",
               )}
             >
-              {CATEGORIES.find((c) => c.value === practice.category)?.label ?? practice.category}
+              {CATEGORIES.find((c) => c.value === practice.category)?.label ??
+                practice.category}
             </span>
             <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground font-mono">
               {practice.language}
@@ -76,8 +96,37 @@ export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) 
         <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 mb-1">
           {t("bestPractices.conditionSection")}
         </p>
-        <p className="text-xs text-foreground leading-relaxed">{practice.condition}</p>
+        <p className="text-xs text-foreground leading-relaxed">
+          {practice.condition}
+        </p>
       </div>
+
+      {/* Content toggle */}
+      {hasContent && (
+        <div className="border-t border-border">
+          <button
+            className="flex w-full items-center gap-2 px-4 py-2 text-xs text-muted-foreground hover:bg-accent transition-colors"
+            onClick={handleToggleContent}
+          >
+            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="flex-1 text-left font-medium">
+              {t("bestPractices.contentSection")}
+            </span>
+            {contentExpanded ? (
+              <ChevronUp className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5" />
+            )}
+          </button>
+          {contentExpanded && (
+            <div className="border-t border-border bg-muted/30 px-4 py-3 overflow-x-auto">
+              <pre className="text-xs leading-relaxed text-foreground whitespace-pre-wrap">
+                {practice.content}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Code snippet toggle */}
       {hasCode && (

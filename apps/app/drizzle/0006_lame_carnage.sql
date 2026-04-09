@@ -1,0 +1,1 @@
+ALTER TABLE "best_practices" ADD COLUMN "content" text DEFAULT '' NOT NULL;

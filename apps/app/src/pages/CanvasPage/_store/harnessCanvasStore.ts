@@ -1,5 +1,10 @@
 import { createContext, useContext } from "react";
-import { createStore, type Mutate, type StateCreator, type StoreApi } from "zustand";
+import {
+  createStore,
+  type Mutate,
+  type StateCreator,
+  type StoreApi,
+} from "zustand";
 import {
   createCanvasSlice,
   type CanvasSlice,
@@ -10,9 +15,12 @@ import { createUISlice, type UISlice } from "./uiSlice";
 import { createHistorySlice, type HistorySlice } from "./historySlice";
 import { createActionsSlice, type ActionsSlice } from "./actionsSlice";
 import type { OperationEntity } from "@/models/daos/operationsDao";
+import type { RecipeEntity } from "@/models/daos/recipesDao";
 
-export interface HarnessCanvasState extends CanvasSlice, UISlice, HistorySlice, ActionsSlice {
+export interface HarnessCanvasState
+  extends CanvasSlice, UISlice, HistorySlice, ActionsSlice {
   operations: OperationEntity[];
+  recipes: RecipeEntity[];
   getOperationById: (id: string) => OperationEntity | undefined;
   getAcceptedOperationsForObject: (objectType: string) => OperationEntity[];
 }
@@ -31,31 +39,34 @@ export const createHarnessCanvasStore = (
   initialEdges?: PipelineEdge[],
   pipelineId?: string | null,
   pipelineName?: string,
-  operations?: OperationEntity[]
+  operations?: OperationEntity[],
+  recipes?: RecipeEntity[],
 ) => {
   const ops = operations ?? [];
+  const rcps = recipes ?? [];
 
   return createStore<HarnessCanvasState>()((set, get) => ({
     ...createCanvasSlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
       get as Parameters<HarnessCanvasStoreSlice>[1],
       initialNodes,
-      initialEdges
+      initialEdges,
     ),
     ...createUISlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
       pipelineId ?? null,
-      pipelineName ?? ""
+      pipelineName ?? "",
     ),
     ...createHistorySlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
-      get as Parameters<HarnessCanvasStoreSlice>[1]
+      get as Parameters<HarnessCanvasStoreSlice>[1],
     ),
     ...createActionsSlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
-      get as Parameters<HarnessCanvasStoreSlice>[1]
+      get as Parameters<HarnessCanvasStoreSlice>[1],
     ),
     operations: ops,
+    recipes: rcps,
     getOperationById: (id: string) => {
       return get().operations.find((op) => op.id === id);
     },
@@ -63,18 +74,23 @@ export const createHarnessCanvasStore = (
       return get().operations.filter(
         (op) =>
           Array.isArray(op.acceptedObjectTypes) &&
-          op.acceptedObjectTypes.includes(objectType as "file" | "folder" | "project")
+          op.acceptedObjectTypes.includes(
+            objectType as "file" | "folder" | "project",
+          ),
       );
     },
   }));
 };
 
-export const HarnessCanvasStoreContext = createContext<HarnessCanvasStore | null>(null);
+export const HarnessCanvasStoreContext =
+  createContext<HarnessCanvasStore | null>(null);
 
 export const useHarnessCanvasStore = () => {
   const context = useContext(HarnessCanvasStoreContext);
   if (!context) {
-    throw new Error("useHarnessCanvasStore must be used within HarnessCanvasStoreProvider");
+    throw new Error(
+      "useHarnessCanvasStore must be used within HarnessCanvasStoreProvider",
+    );
   }
   return context;
 };

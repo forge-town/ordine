@@ -1,5 +1,13 @@
 import { Handle, Position } from "@xyflow/react";
-import { Zap, CheckCircle2, XCircle, Loader2, Circle, Brain } from "lucide-react";
+import {
+  Zap,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Circle,
+  Brain,
+  BookOpen,
+} from "lucide-react";
 import { useStore } from "zustand";
 import { cn } from "@repo/ui/lib/utils";
 import {
@@ -11,7 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
-import { useHarnessCanvasStore, type OperationNodeData, type NodeRunStatus } from "../../_store";
+import {
+  useHarnessCanvasStore,
+  type OperationNodeData,
+  type NodeRunStatus,
+} from "../../_store";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
 import { LLM_PROVIDERS } from "@/models/tables/settings_table";
@@ -65,11 +77,16 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
 
   const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
 
-  const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
+  const {
+    icon: StatusIcon,
+    color,
+    label: statusLabel,
+  } = statusConfig[data.status ?? "idle"];
 
   const operation = getOperationById(data.operationId);
 
-  const handleLabelChange = (v: string) => update({ label: v, operationName: v });
+  const handleLabelChange = (v: string) =>
+    update({ label: v, operationName: v });
 
   const selectedProvider = data.llmProvider ?? "";
   const selectedModel = data.llmModel ?? "";
@@ -89,7 +106,9 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
 
   const hasLlmContent = !!nodeLlmContent[id];
   const canInspect = isTestRunning || hasLlmContent;
-  const handleCardClick = canInspect ? () => setInspectingNodeId(id) : undefined;
+  const handleCardClick = canInspect
+    ? () => setInspectingNodeId(id)
+    : undefined;
 
   return (
     <div
@@ -111,11 +130,14 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               data.status === "pass" && "bg-green-50 border-green-100",
               data.status === "fail" && "bg-red-50 border-red-100",
               data.status === "running" && "bg-blue-50 border-blue-100",
-              (!data.status || data.status === "idle") && "bg-white border-slate-100"
+              (!data.status || data.status === "idle") &&
+                "bg-white border-slate-100",
             )}
           >
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
+            <span
+              className={cn("text-[10px] font-semibold tracking-wide", color)}
+            >
               {statusLabel}
             </span>
           </div>
@@ -170,7 +192,10 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             模型
           </p>
           <div className="flex gap-1.5">
-            <Select value={selectedProvider || "__default__"} onValueChange={handleProviderChange}>
+            <Select
+              value={selectedProvider || "__default__"}
+              onValueChange={handleProviderChange}
+            >
               <SelectTrigger className="h-6 min-w-0 flex-1 px-1.5 text-[10px]">
                 <SelectValue />
               </SelectTrigger>
@@ -210,6 +235,13 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
           <div className="flex items-center gap-1 rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-[10px] text-violet-600">
             <Brain className="h-3 w-3 shrink-0" />
             <span>点击查看 LLM 输出</span>
+          </div>
+        )}
+
+        {data.bestPracticeName && (
+          <div className="flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] text-amber-700">
+            <BookOpen className="h-3 w-3 shrink-0" />
+            <span className="truncate">{data.bestPracticeName}</span>
           </div>
         )}
       </NodeCard>

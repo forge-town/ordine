@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 import { CanvasPage } from "@/pages/CanvasPage";
 import { getPipelineById } from "@/services/pipelinesService";
 import { getOperations } from "@/services/operationsService";
+import { getRecipes } from "@/services/recipesService";
 
 export const Route = createFileRoute("/canvas")({
   validateSearch: z.object({
@@ -10,11 +11,12 @@ export const Route = createFileRoute("/canvas")({
   }),
   loaderDeps: ({ search }) => ({ id: search.id }),
   loader: async ({ deps }) => {
-    const [pipeline, operations] = await Promise.all([
+    const [pipeline, operations, recipes] = await Promise.all([
       deps.id ? getPipelineById({ data: { id: deps.id } }) : null,
       getOperations(),
+      getRecipes(),
     ]);
-    return { pipeline, operations };
+    return { pipeline, operations, recipes };
   },
   component: CanvasPage,
 });

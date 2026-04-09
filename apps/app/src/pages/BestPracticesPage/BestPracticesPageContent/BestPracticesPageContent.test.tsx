@@ -19,6 +19,7 @@ const mockPractices: BestPracticeEntity[] = [
     id: "bp-1",
     title: "避免在 useEffect 中直接 setState",
     condition: "当需要在组件挂载后获取异步数据时",
+    content: "",
     category: "component",
     language: "typescript",
     codeSnippet: "",
@@ -30,6 +31,7 @@ const mockPractices: BestPracticeEntity[] = [
     id: "bp-2",
     title: "使用 useMemo 缓存计算结果",
     condition: "当有昂贵的计算且依赖不频繁变化时",
+    content: "",
     category: "performance",
     language: "typescript",
     codeSnippet: "",
@@ -43,7 +45,9 @@ describe("BestPracticesPageContent", () => {
   it("renders list of practices", () => {
     mockUseLoaderData.mockReturnValue(mockPractices);
     render(<BestPracticesPageContent />);
-    expect(screen.getByText("避免在 useEffect 中直接 setState")).toBeInTheDocument();
+    expect(
+      screen.getByText("避免在 useEffect 中直接 setState"),
+    ).toBeInTheDocument();
     expect(screen.getByText("使用 useMemo 缓存计算结果")).toBeInTheDocument();
   });
 

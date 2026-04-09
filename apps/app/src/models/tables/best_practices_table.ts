@@ -5,6 +5,7 @@ export const bestPracticesTable = pgTable("best_practices", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
   condition: text("condition").notNull(),
+  content: text("content").notNull().default(""),
   category: text("category").notNull().default("general"),
   language: text("language").notNull().default("typescript"),
   codeSnippet: text("code_snippet").notNull().default(""),

@@ -12,6 +12,7 @@ const mockPractice: BestPracticeEntity = {
   id: "bp-1",
   title: "避免在 useEffect 中直接 setState",
   condition: "当需要在组件挂载后获取异步数据时",
+  content: "",
   category: "component",
   language: "typescript",
   codeSnippet: "",
@@ -31,7 +32,13 @@ describe("PracticeFormDialog", () => {
   it("renders 编辑 title when initial is provided", () => {
     const handleClose = vi.fn();
     const handleSave = vi.fn();
-    render(<PracticeFormDialog initial={mockPractice} onClose={handleClose} onSave={handleSave} />);
+    render(
+      <PracticeFormDialog
+        initial={mockPractice}
+        onClose={handleClose}
+        onSave={handleSave}
+      />,
+    );
     expect(screen.getByText("编辑最佳实践")).toBeInTheDocument();
   });
 
@@ -46,14 +53,22 @@ describe("PracticeFormDialog", () => {
   it("prefills form with initial data", () => {
     const handleClose = vi.fn();
     const handleSave = vi.fn();
-    render(<PracticeFormDialog initial={mockPractice} onClose={handleClose} onSave={handleSave} />);
+    render(
+      <PracticeFormDialog
+        initial={mockPractice}
+        onClose={handleClose}
+        onSave={handleSave}
+      />,
+    );
     expect(screen.getByDisplayValue(mockPractice.title)).toBeInTheDocument();
   });
 
   it("renders inside a <form> element (react-hook-form)", () => {
     const handleClose = vi.fn();
     const handleSave = vi.fn();
-    const { container } = render(<PracticeFormDialog onClose={handleClose} onSave={handleSave} />);
+    const { container } = render(
+      <PracticeFormDialog onClose={handleClose} onSave={handleSave} />,
+    );
     expect(container.querySelector("form")).not.toBeNull();
   });
 

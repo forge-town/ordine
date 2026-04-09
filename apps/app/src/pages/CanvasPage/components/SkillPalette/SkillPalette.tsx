@@ -1,5 +1,9 @@
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type PipelineNode, type NodeType } from "../../_store";
+import {
+  useHarnessCanvasStore,
+  type PipelineNode,
+  type NodeType,
+} from "../../_store";
 import { cn } from "@repo/ui/lib/utils";
 import {
   Zap,
@@ -9,6 +13,7 @@ import {
   ChevronRight,
   FolderOutput,
   HardDrive,
+  BookOpen,
 } from "lucide-react";
 import { SiGitHubIcon } from "../../nodes/GitHubProjectNode/SiGitHubIcon";
 
@@ -85,6 +90,28 @@ export const SkillPalette = () => {
   const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
   const addNode = useStore(store, (state) => state.addNode);
   const toggleSidebar = useStore(store, (state) => state.toggleSidebar);
+  const recipes = useStore(store, (state) => state.recipes);
+  const operations = useStore(store, (state) => state.operations);
+
+  const handleAddRecipe = (recipeId: string) => {
+    const recipe = recipes.find((r) => r.id === recipeId);
+    if (!recipe) return;
+    const operation = operations.find((op) => op.id === recipe.operationId);
+    nodeCounter++;
+    const id = `operation-${nodeCounter}`;
+    const pos = { x: 250 + Math.random() * 200, y: 150 + Math.random() * 200 };
+    const data: PipelineNode["data"] = {
+      label: recipe.name,
+      nodeType: "operation",
+      operationId: recipe.operationId,
+      operationName: operation?.name ?? recipe.name,
+      status: "idle",
+      config: {},
+      bestPracticeId: recipe.bestPracticeId,
+      bestPracticeName: recipe.name,
+    };
+    addNode({ id, type: "operation", position: pos, data });
+  };
 
   const handleAddNodeType = (item: NodeTypeItem) => {
     nodeCounter++;
@@ -156,7 +183,7 @@ export const SkillPalette = () => {
     <div
       className={cn(
         "relative flex h-full flex-col border-r border-gray-200 bg-white transition-all duration-200",
-        isSidebarOpen ? "w-64" : "w-10"
+        isSidebarOpen ? "w-64" : "w-10",
       )}
     >
       <button
@@ -192,21 +219,25 @@ export const SkillPalette = () => {
                       key={item.type}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass
+                        item.colorClass,
                       )}
                       onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg
+                          item.iconBg,
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
-                        <div className="text-[10px] text-gray-500">{item.description}</div>
+                        <div className="text-xs font-semibold text-gray-700">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          {item.description}
+                        </div>
                       </div>
                     </button>
                   );
@@ -227,21 +258,25 @@ export const SkillPalette = () => {
                       key={item.type}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass
+                        item.colorClass,
                       )}
                       onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg
+                          item.iconBg,
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
-                        <div className="text-[10px] text-gray-500">{item.description}</div>
+                        <div className="text-xs font-semibold text-gray-700">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          {item.description}
+                        </div>
                       </div>
                     </button>
                   );
@@ -262,31 +297,70 @@ export const SkillPalette = () => {
                       key={item.type}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass
+                        item.colorClass,
                       )}
                       onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg
+                          item.iconBg,
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
-                        <div className="text-[10px] text-gray-500">{item.description}</div>
+                        <div className="text-xs font-semibold text-gray-700">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          {item.description}
+                        </div>
                       </div>
                     </button>
                   );
                 })}
               </div>
             </div>
+
+            {/* Recipe nodes */}
+            {recipes.length > 0 && (
+              <div>
+                <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                  快捷配方 (Recipe)
+                </p>
+                <div className="space-y-1.5">
+                  {recipes.map((recipe) => (
+                    <button
+                      key={recipe.id}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
+                        "border-amber-200 bg-amber-50 hover:border-amber-400",
+                      )}
+                      onClick={() => handleAddRecipe(recipe.id)}
+                    >
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-amber-500">
+                        <BookOpen className="h-3.5 w-3.5 text-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-gray-700 truncate">
+                          {recipe.name}
+                        </div>
+                        <div className="text-[10px] text-gray-500 truncate">
+                          {recipe.description || "Operation + Best Practice"}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t border-gray-100 p-3">
-            <p className="text-center text-[10px] text-gray-400">连接节点端口以定义数据流向</p>
+            <p className="text-center text-[10px] text-gray-400">
+              连接节点端口以定义数据流向
+            </p>
           </div>
         </>
       )}

@@ -6,3 +6,4 @@ export * from "./bestPracticesDao";
 export * from "./jobsDao";
 export * from "./rulesDao";
 export * from "./operationsDao";
+export * from "./recipesDao";

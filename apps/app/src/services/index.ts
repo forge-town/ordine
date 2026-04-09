@@ -7,3 +7,4 @@ export * from "./jobsService";
 export * from "./rulesService";
 export * from "./operationsService";
 export * from "./filesystemService";
+export * from "./recipesService";
