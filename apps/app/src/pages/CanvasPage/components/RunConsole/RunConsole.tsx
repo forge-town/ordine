@@ -86,11 +86,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
     const data = (await res.json()) as JobData;
     setJob(data);
 
-    if (
-      data.status === "done" ||
-      data.status === "failed" ||
-      data.status === "cancelled"
-    ) {
+    if (data.status === "done" || data.status === "failed" || data.status === "cancelled") {
       isTerminal.current = true;
     }
   }, []);
@@ -133,7 +129,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
     <div
       className={cn(
         "absolute bottom-0 left-0 right-0 z-30 border-t bg-background shadow-lg transition-all",
-        collapsed ? "h-9" : "h-64",
+        collapsed ? "h-9" : "h-64"
       )}
     >
       {/* Status bar */}
@@ -150,39 +146,27 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                   "font-medium",
                   job.status === "running" && "text-blue-600",
                   job.status === "done" && "text-green-600",
-                  job.status === "failed" && "text-red-600",
+                  job.status === "failed" && "text-red-600"
                 )}
               >
                 {statusLabel[job.status]}
               </span>
               {job.status === "running" && (
-                <span className="text-muted-foreground">
-                  ({job.logs.length} logs)
-                </span>
+                <span className="text-muted-foreground">({job.logs.length} logs)</span>
               )}
             </>
           )}
         </div>
 
         <div className="flex items-center gap-0.5">
-          <Button
-            className="h-6 w-6"
-            size="icon"
-            variant="ghost"
-            onClick={handleToggleCollapse}
-          >
+          <Button className="h-6 w-6" size="icon" variant="ghost" onClick={handleToggleCollapse}>
             {collapsed ? (
               <ChevronUp className="h-3.5 w-3.5" />
             ) : (
               <ChevronDown className="h-3.5 w-3.5" />
             )}
           </Button>
-          <Button
-            className="h-6 w-6"
-            size="icon"
-            variant="ghost"
-            onClick={handleClose}
-          >
+          <Button className="h-6 w-6" size="icon" variant="ghost" onClick={handleClose}>
             <X className="h-3.5 w-3.5" />
           </Button>
         </div>
@@ -191,10 +175,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
       {/* Log area */}
       {!collapsed && (
         <ScrollArea className="h-[calc(100%-2.25rem)]">
-          <div
-            ref={scrollRef}
-            className="h-full overflow-auto p-2 font-mono text-xs"
-          >
+          <div ref={scrollRef} className="h-full overflow-auto p-2 font-mono text-xs">
             {!job && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -210,10 +191,9 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                   className={cn(
                     "break-all",
                     log.includes("ERROR") && "text-red-600 font-medium",
-                    log.includes("Pipeline complete") &&
-                      "text-green-600 font-medium",
+                    log.includes("Pipeline complete") && "text-green-600 font-medium",
                     log.includes("Cloned to") && "text-blue-600",
-                    log.includes("Skill output") && "text-violet-600",
+                    log.includes("Skill output") && "text-violet-600"
                   )}
                 >
                   {parseMessage(log)}

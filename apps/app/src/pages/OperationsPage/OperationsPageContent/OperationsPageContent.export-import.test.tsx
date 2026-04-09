@@ -25,8 +25,6 @@ const mockOperation: OperationEntity = {
   id: "op-1",
   name: "Run ESLint",
   description: "Lint source files",
-  category: "lint",
-  visibility: "public",
   config: '{"command":"eslint src/"}',
   acceptedObjectTypes: ["file", "folder"],
   createdAt: 1_700_000_000_000,
@@ -97,8 +95,6 @@ describe("OperationsPageContent - import", () => {
         expect.objectContaining({
           data: expect.objectContaining({
             name: "Run ESLint",
-            category: "lint",
-            visibility: "public",
           }),
         })
       );

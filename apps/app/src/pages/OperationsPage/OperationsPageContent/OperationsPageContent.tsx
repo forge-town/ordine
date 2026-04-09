@@ -9,9 +9,6 @@ import {
   Folder,
   FolderGit2,
   ExternalLink,
-  Globe,
-  Lock,
-  Users,
   Search,
   Download,
   Upload,
@@ -19,11 +16,9 @@ import {
 import { useTranslation } from "react-i18next";
 import { createOperation, deleteOperation } from "@/services/operationsService";
 import type { OperationEntity } from "@/models/daos/operationsDao";
-import type { ObjectType, Visibility } from "@/models/tables/operations_table";
-import { cn } from "@repo/ui/lib/utils";
+import type { ObjectType } from "@/models/tables/operations_table";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { Badge } from "@repo/ui/badge";
 import { useToastStore } from "@/hooks/useToastStore";
 import { safeJsonParse } from "@/lib/safeJson";
 import {
@@ -34,18 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
-
-const VISIBILITY_ICONS: Record<Visibility, React.ElementType> = {
-  public: Globe,
-  team: Users,
-  private: Lock,
-};
-
-const VISIBILITY_COLORS: Record<Visibility, string> = {
-  public: "bg-emerald-50 text-emerald-700",
-  team: "bg-sky-50 text-sky-700",
-  private: "bg-rose-50 text-rose-700",
-};
 
 const exportOperation = (op: OperationEntity) => {
   const data = JSON.stringify(op, null, 2);
@@ -64,19 +47,9 @@ export const OperationsPageContent = () => {
   const initialOperations = useLoaderData({
     from: "/_layout/operations/",
   }) as OperationEntity[];
-  type SortKey = "default" | "name-asc" | "name-desc" | "date-asc" | "date-desc" | "category-asc";
+  type SortKey = "default" | "name-asc" | "name-desc" | "date-asc" | "date-desc";
 
   const { t } = useTranslation();
-
-  const VISIBILITY_OPTIONS: {
-    value: Visibility;
-    label: string;
-    icon: React.ElementType;
-  }[] = [
-    { value: "public", label: t("operations.public"), icon: Globe },
-    { value: "team", label: t("operations.team"), icon: Users },
-    { value: "private", label: t("operations.private"), icon: Lock },
-  ];
 
   const OBJECT_TYPE_OPTIONS: {
     value: ObjectType;
@@ -97,12 +70,10 @@ export const OperationsPageContent = () => {
   const [operations, setOperations] = useState(initialOperations);
   const [importing, setImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
-  const [visibilityFilter, setVisibilityFilter] = useState<Visibility | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("default");
 
   const filteredOperations = operations
-    .filter((op) => visibilityFilter === "all" || (op.visibility ?? "public") === visibilityFilter)
     .filter((op) => {
       const q = searchQuery.trim().toLowerCase();
       if (!q) return true;
@@ -122,9 +93,6 @@ export const OperationsPageContent = () => {
         case "date-desc": {
           return b.createdAt - a.createdAt;
         }
-        case "category-asc": {
-          return a.category.localeCompare(b.category);
-        }
         default: {
           return 0;
         }
@@ -139,9 +107,6 @@ export const OperationsPageContent = () => {
     await deleteOperation({ data: { id } });
     setOperations((prev) => prev.filter((o) => o.id !== id));
   };
-
-  const handleVisibilityFilterClick = (value: Visibility | "all") => () =>
-    setVisibilityFilter(value);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setSearchQuery(e.target.value);
@@ -197,8 +162,6 @@ export const OperationsPageContent = () => {
         id: `op-${Date.now()}`,
         name: parsed.name,
         description: parsed.description ?? null,
-        category: parsed.category ?? "general",
-        visibility: parsed.visibility ?? "public",
         config: parsed.config ?? "{}",
         acceptedObjectTypes: parsed.acceptedObjectTypes ?? ["file", "folder", "project"],
       },
@@ -242,26 +205,8 @@ export const OperationsPageContent = () => {
         />
       </div>
 
-      {/* Search + Visibility filter bar */}
+      {/* Search + filter bar */}
       <div className="flex shrink-0 items-center gap-3 border-b border-border bg-background px-6 py-3">
-        {(
-          [
-            { value: "all" as const, label: t("common.all") },
-            { value: "public" as const, label: t("operations.public") },
-            { value: "team" as const, label: t("operations.team") },
-            { value: "private" as const, label: t("operations.private") },
-          ] as const
-        ).map(({ value, label }) => (
-          <Button
-            key={value}
-            className="h-7 px-2.5 text-xs"
-            size="sm"
-            variant={visibilityFilter === value ? "default" : "ghost"}
-            onClick={handleVisibilityFilterClick(value)}
-          >
-            {label}
-          </Button>
-        ))}
         <div className="relative ml-auto max-w-xs flex-1">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -290,7 +235,6 @@ export const OperationsPageContent = () => {
               <SelectItem value="name-desc">{t("operations.sortNameDesc")}</SelectItem>
               <SelectItem value="date-desc">{t("operations.sortDateDesc")}</SelectItem>
               <SelectItem value="date-asc">{t("operations.sortDateAsc")}</SelectItem>
-              <SelectItem value="category-asc">{t("operations.sortCategoryAsc")}</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -304,7 +248,7 @@ export const OperationsPageContent = () => {
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <Zap className="h-6 w-6 text-muted-foreground" />
             </div>
-            {searchQuery.trim() || visibilityFilter !== "all" ? (
+            {searchQuery.trim() ? (
               <p className="text-sm font-medium text-muted-foreground">{t("common.notFound")}</p>
             ) : (
               <>
@@ -329,29 +273,6 @@ export const OperationsPageContent = () => {
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-foreground">{op.name}</p>
-                      <div className="mt-0.5 flex items-center gap-1">
-                        <Badge className="text-[10px]" variant="secondary">
-                          {op.category}
-                        </Badge>
-                        {(() => {
-                          const vCfg = VISIBILITY_OPTIONS.find(
-                            (v) => v.value === (op.visibility ?? "public")
-                          );
-                          if (!vCfg) return null;
-                          const VIcon = VISIBILITY_ICONS[vCfg.value];
-                          return (
-                            <span
-                              className={cn(
-                                "flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium",
-                                VISIBILITY_COLORS[vCfg.value]
-                              )}
-                            >
-                              <VIcon className="h-2.5 w-2.5" />
-                              {vCfg.label}
-                            </span>
-                          );
-                        })()}
-                      </div>
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">

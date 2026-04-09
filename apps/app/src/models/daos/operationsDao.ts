@@ -6,17 +6,15 @@ import {
   type OperationRow,
   type NewOperationRow,
   type ObjectType,
-  type Visibility,
 } from "@/models/tables/operations_table";
 
 export type OperationEntity = Omit<
   OperationRow,
-  "createdAt" | "updatedAt" | "acceptedObjectTypes" | "visibility"
+  "createdAt" | "updatedAt" | "acceptedObjectTypes"
 > & {
   createdAt: number;
   updatedAt: number;
   acceptedObjectTypes: ObjectType[];
-  visibility: Visibility;
 };
 
 type DbExecutor =
@@ -25,7 +23,6 @@ type DbExecutor =
 
 const rowToEntity = (row: OperationRow): OperationEntity => ({
   ...row,
-  visibility: (row.visibility as Visibility) ?? "public",
   acceptedObjectTypes: (row.acceptedObjectTypes as ObjectType[]) ?? ["file", "folder", "project"],
   createdAt: row.createdAt.getTime(),
   updatedAt: row.updatedAt.getTime(),

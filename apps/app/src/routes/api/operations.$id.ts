@@ -1,17 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { operationsDao } from "@/models/daos/operationsDao";
-import { VISIBILITY_OPTIONS, OBJECT_TYPES } from "@/models/tables/operations_table";
+import { OBJECT_TYPES } from "@/models/tables/operations_table";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
-const VisibilityEnum = z.enum(VISIBILITY_OPTIONS);
 const ObjectTypeEnum = z.enum(OBJECT_TYPES);
 
 const UpdateOperationSchema = z.object({
   name: z.string().optional(),
   description: z.string().nullable().optional(),
-  category: z.string().optional(),
-  visibility: VisibilityEnum.optional(),
   config: z.string().optional(),
   acceptedObjectTypes: z.array(ObjectTypeEnum).optional(),
 });

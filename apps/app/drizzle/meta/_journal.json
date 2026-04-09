@@ -29,6 +29,13 @@
       "when": 1775540427660,
       "tag": "0003_certain_black_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1775696881663,
+      "tag": "0004_superb_stranger",
+      "breakpoints": true
     }
   ]
 }

@@ -11,7 +11,6 @@ export const operationsTable = pgTable("operations", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  category: text("category").notNull().default("general"),
   config: text("config").notNull().default("{}"),
   acceptedObjectTypes: jsonb("accepted_object_types")
     .notNull()

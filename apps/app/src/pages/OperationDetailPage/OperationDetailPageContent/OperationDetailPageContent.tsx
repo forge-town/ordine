@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import { Badge } from "@repo/ui/badge";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { ObjectType } from "@/models/tables/operations_table";
 import { Route } from "@/routes/_layout/operations.$operationId.index";
@@ -140,7 +139,6 @@ export const OperationDetailPageContent = () => {
           <h1 className="truncate text-sm font-semibold text-foreground">{operation.name}</h1>
           <p className="font-mono text-[11px] text-muted-foreground">{operation.id}</p>
         </div>
-        <Badge variant="secondary">{operation.category}</Badge>
         <Button
           aria-label={t("common.edit")}
           size="sm"

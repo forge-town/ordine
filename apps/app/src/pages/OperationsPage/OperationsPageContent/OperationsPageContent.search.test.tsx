@@ -22,8 +22,6 @@ const makeOp = (id: string, name: string, description: string | null): Operation
   id,
   name,
   description,
-  category: "general",
-  visibility: "public",
   config: "{}",
   acceptedObjectTypes: ["file"],
   createdAt: Date.now(),

@@ -22,8 +22,6 @@ const existingOp: OperationEntity = {
   id: "op-1",
   name: "Lint Check",
   description: "Runs ESLint",
-  category: "lint",
-  visibility: "public",
   config: "{}",
   acceptedObjectTypes: ["file"],
   createdAt: 1000,

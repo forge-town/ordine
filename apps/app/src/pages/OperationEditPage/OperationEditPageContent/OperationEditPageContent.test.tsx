@@ -22,8 +22,6 @@ const mockOp: OperationEntity = {
   id: "op-123",
   name: "Run ESLint",
   description: "Lints the code",
-  category: "lint",
-  visibility: "public",
   config: '{"command":"eslint src/"}',
   acceptedObjectTypes: ["file", "folder"],
   createdAt: 1000,

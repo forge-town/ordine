@@ -62,15 +62,6 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         theme="violet"
         onLabelChange={handleLabelChange}
       >
-        {operation?.category && (
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-slate-400">分类:</span>
-            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
-              {operation.category}
-            </span>
-          </div>
-        )}
-
         {/* Config display (read-only summary) */}
         {data.config && Object.keys(data.config).length > 0 && (
           <div className="space-y-1">

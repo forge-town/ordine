@@ -1,18 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { operationsDao } from "@/models/daos/operationsDao";
-import { VISIBILITY_OPTIONS, OBJECT_TYPES } from "@/models/tables/operations_table";
+import { OBJECT_TYPES } from "@/models/tables/operations_table";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
-const VisibilityEnum = z.enum(VISIBILITY_OPTIONS);
 const ObjectTypeEnum = z.enum(OBJECT_TYPES);
 
 const CreateOperationSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable().default(null),
-  category: z.string().default("general"),
-  visibility: VisibilityEnum.default("public"),
   config: z.string().default("{}"),
   acceptedObjectTypes: z.array(ObjectTypeEnum).default(["file", "folder", "project"]),
 });

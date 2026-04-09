@@ -45,8 +45,6 @@ const makeOp = (id: string, name: string, description?: string): OperationEntity
   id,
   name,
   description: description ?? null,
-  category: "general",
-  visibility: "public",
   config: "{}",
   acceptedObjectTypes: ["file"],
   createdAt: Date.now(),

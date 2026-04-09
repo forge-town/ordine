@@ -57,7 +57,6 @@ const OPERATIONS: NewOperationRow[] = [
     name: "Constitution",
     description:
       "Establish the project's governing principles, architectural constraints, quality standards, and development guidelines that all subsequent work must follow.",
-    category: "planning",
     acceptedObjectTypes: ["project"],
     config: cfg({
       inputs: [
@@ -106,7 +105,6 @@ const OPERATIONS: NewOperationRow[] = [
     name: "Specify",
     description:
       "Translate a raw feature idea into a structured specification document covering user stories, acceptance criteria, and scope boundaries.",
-    category: "planning",
     acceptedObjectTypes: ["project", "folder"],
     config: cfg({
       inputs: [
@@ -143,7 +141,6 @@ const OPERATIONS: NewOperationRow[] = [
     name: "Clarify",
     description:
       "Identify and resolve ambiguities or underspecified areas in a specification before planning begins.",
-    category: "planning",
     acceptedObjectTypes: ["file"],
     config: cfg({
       inputs: [
@@ -186,7 +183,6 @@ const OPERATIONS: NewOperationRow[] = [
     name: "Plan",
     description:
       "Produce a detailed technical implementation plan (architecture, data model, API surface, component breakdown) for a specification.",
-    category: "planning",
     acceptedObjectTypes: ["file"],
     config: cfg({
       inputs: [
@@ -229,7 +225,6 @@ const OPERATIONS: NewOperationRow[] = [
     name: "Analyze",
     description:
       "Run a cross-artifact consistency and coverage analysis to verify the plan fully satisfies the spec and surface any gaps before task breakdown.",
-    category: "planning",
     acceptedObjectTypes: ["folder"],
     config: cfg({
       inputs: [
@@ -265,7 +260,6 @@ const OPERATIONS: NewOperationRow[] = [
     name: "Checklist",
     description:
       "Generate a custom quality checklist validating requirements completeness, clarity, and consistency — like running unit tests against the English spec.",
-    category: "planning",
     acceptedObjectTypes: ["file", "folder"],
     config: cfg({
       inputs: [
@@ -307,7 +301,6 @@ const OPERATIONS: NewOperationRow[] = [
     name: "Tasks",
     description:
       "Decompose the technical plan into an ordered, actionable task list with clear acceptance criteria per task.",
-    category: "planning",
     acceptedObjectTypes: ["file"],
     config: cfg({
       inputs: [
@@ -343,7 +336,6 @@ const OPERATIONS: NewOperationRow[] = [
     name: "Implement",
     description:
       "Execute the task list and build the feature according to the plan, updating tasks.md as each task completes.",
-    category: "implementation",
     acceptedObjectTypes: ["file", "folder"],
     config: cfg({
       inputs: [
@@ -399,7 +391,6 @@ const OPERATIONS: NewOperationRow[] = [
     name: "Check",
     description:
       "Run quality checks on the codebase: linting, type checking, and tests. Reports issues found and suggests fixes.",
-    category: "lint",
     acceptedObjectTypes: ["file", "folder", "project"],
     config: cfg({
       executor: {

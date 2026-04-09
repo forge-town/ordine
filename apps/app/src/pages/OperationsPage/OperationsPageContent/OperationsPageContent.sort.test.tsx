@@ -49,17 +49,10 @@ vi.mock("@repo/ui/select", () => ({
   SelectScrollDownButton: () => null,
 }));
 
-const makeOp = (
-  id: string,
-  name: string,
-  category: string,
-  createdAt: number
-): OperationEntity => ({
+const makeOp = (id: string, name: string, createdAt: number): OperationEntity => ({
   id,
   name,
   description: null,
-  category,
-  visibility: "public",
   config: "{}",
   acceptedObjectTypes: ["file"],
   createdAt,
@@ -68,9 +61,9 @@ const makeOp = (
 
 // Declared oldest → newest, names out-of-order
 const ops: OperationEntity[] = [
-  makeOp("op3", "Zebra Task", "deploy", 1000),
-  makeOp("op1", "Alpha Task", "lint", 3000),
-  makeOp("op2", "Mango Task", "build", 2000),
+  makeOp("op3", "Zebra Task", 1000),
+  makeOp("op1", "Alpha Task", 3000),
+  makeOp("op2", "Mango Task", 2000),
 ];
 
 const getCardNames = () => {
@@ -115,13 +108,5 @@ describe("OperationsPageContent – sort", () => {
     render(<OperationsPageContent />);
     await user.selectOptions(screen.getByRole("combobox", { name: /排序/i }), "date-asc");
     expect(getCardNames()).toEqual(["Zebra Task", "Mango Task", "Alpha Task"]);
-  });
-
-  it("sort by category ascending", async () => {
-    const user = userEvent.setup();
-    render(<OperationsPageContent />);
-    await user.selectOptions(screen.getByRole("combobox", { name: /排序/i }), "category-asc");
-    // build < deploy < lint
-    expect(getCardNames()).toEqual(["Mango Task", "Zebra Task", "Alpha Task"]);
   });
 });

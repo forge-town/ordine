@@ -17,8 +17,6 @@ const mockOp: OperationEntity = {
   id: "op_plan",
   name: "Plan",
   description: "Produce a technical implementation plan.",
-  category: "planning",
-  visibility: "public",
   config: JSON.stringify({
     inputs: [
       {
@@ -59,12 +57,6 @@ describe("OperationDetailPageContent", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
     render(<OperationDetailPageContent />);
     expect(screen.getByText("op_plan")).toBeInTheDocument();
-  });
-
-  it("renders the category badge", () => {
-    mockUseLoaderData.mockReturnValue(mockOp);
-    render(<OperationDetailPageContent />);
-    expect(screen.getByText("planning")).toBeInTheDocument();
   });
 
   it("renders the description", () => {

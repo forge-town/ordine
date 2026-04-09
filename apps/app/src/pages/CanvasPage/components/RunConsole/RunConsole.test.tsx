@@ -36,10 +36,7 @@ const mockJobRunning = {
 const mockJobDone = {
   ...mockJobRunning,
   status: "done",
-  logs: [
-    ...mockJobRunning.logs,
-    "[2026-04-08T16:00:05.000Z] Pipeline complete",
-  ],
+  logs: [...mockJobRunning.logs, "[2026-04-08T16:00:05.000Z] Pipeline complete"],
   finishedAt: Date.now(),
   result: { summary: "Output written to /Users/test/Desktop/output.md" },
 };
@@ -123,16 +120,13 @@ describe("RunConsole", () => {
       expect(screen.getByText(/done/i)).toBeInTheDocument();
     });
 
-    const callCount = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls
-      .length;
+    const callCount = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length;
 
     await act(async () => {
       vi.advanceTimersByTime(5000);
     });
 
     // Should not have polled again
-    expect(
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length,
-    ).toBe(callCount);
+    expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callCount);
   });
 });

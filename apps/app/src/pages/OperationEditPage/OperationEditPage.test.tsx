@@ -7,8 +7,6 @@ const mockOp: OperationEntity = {
   id: "op-1",
   name: "Lint",
   description: null,
-  category: "lint",
-  visibility: "public",
   config: "{}",
   acceptedObjectTypes: ["file"],
   createdAt: 1000,

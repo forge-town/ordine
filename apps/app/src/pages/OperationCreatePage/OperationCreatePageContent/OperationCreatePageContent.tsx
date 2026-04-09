@@ -7,14 +7,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { createOperation } from "@/services/operationsService";
@@ -26,8 +19,6 @@ import {
   ExecutorTypeSchema as ExecutorTypeEnum,
   ScriptLanguageSchema as ScriptLanguageEnum,
 } from "@/schemas";
-
-const CATEGORIES = ["general", "lint", "format", "build", "test", "deploy", "custom"] as const;
 
 const EXECUTOR_ICONS = {
   skill: Puzzle,
@@ -44,7 +35,6 @@ const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
 const createFormSchema = z.object({
   name: z.string().min(1, "名称不能为空"),
   description: z.string(),
-  category: z.string(),
   acceptedObjectTypes: z.array(ObjectTypeEnum).min(1),
   executorType: ExecutorTypeEnum,
   skillId: z.string(),
@@ -136,7 +126,6 @@ export const OperationCreatePageContent = () => {
     defaultValues: {
       name: "",
       description: "",
-      category: "general",
       acceptedObjectTypes: ["file", "folder", "project"],
       executorType: "script" as const,
       skillId: "",
@@ -158,8 +147,6 @@ export const OperationCreatePageContent = () => {
         id: `op-${Date.now()}`,
         name: values.name,
         description: values.description || null,
-        category: values.category,
-        visibility: "public",
         config: buildConfig(values),
         acceptedObjectTypes: values.acceptedObjectTypes,
       },
@@ -193,55 +180,21 @@ export const OperationCreatePageContent = () => {
         <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-6">
           <Form {...form}>
             <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-medium text-muted-foreground">
-                        {t("operations.nameLabel")}
-                      </FormLabel>
-                      <FormControl>
-                        <Input className="h-9 text-sm" placeholder="e.g. Run ESLint" {...field} />
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => {
-                    const handleChange = field.onChange;
-                    return (
-                      <FormItem>
-                        <FormLabel className="text-xs font-medium text-muted-foreground">
-                          {t("operations.categoryLabel")}
-                        </FormLabel>
-                        <FormControl>
-                          <Select value={field.value} onValueChange={handleChange}>
-                            <SelectTrigger className="h-9 w-full">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {CATEGORIES.map((c) => (
-                                  <SelectItem key={c} value={c}>
-                                    {c}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    );
-                  }}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">
+                      {t("operations.nameLabel")}
+                    </FormLabel>
+                    <FormControl>
+                      <Input className="h-9 text-sm" placeholder="e.g. Run ESLint" {...field} />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

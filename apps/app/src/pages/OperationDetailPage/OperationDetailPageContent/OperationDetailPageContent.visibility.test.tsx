@@ -17,8 +17,6 @@ const baseOp: OperationEntity = {
   id: "op_plan",
   name: "Plan",
   description: "Produce a technical implementation plan.",
-  category: "planning",
-  visibility: "public",
   config: JSON.stringify({
     executor: { type: "script", command: "eslint src/", language: "bash" },
     inputs: [],
