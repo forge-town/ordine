@@ -1,5 +1,9 @@
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type PipelineNode, type NodeType } from "../../_store";
+import {
+  useHarnessCanvasStore,
+  type PipelineNode,
+  type NodeType,
+} from "../../_store";
 import { cn } from "@repo/ui/lib/utils";
 import {
   Zap,
@@ -83,6 +87,8 @@ let nodeCounter = 100;
 export const SkillPalette = () => {
   const store = useHarnessCanvasStore();
   const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
+  const addNode = useStore(store, (state) => state.addNode);
+  const toggleSidebar = useStore(store, (state) => state.toggleSidebar);
 
   const handleAddNodeType = (item: NodeTypeItem) => {
     nodeCounter++;
@@ -124,7 +130,7 @@ export const SkillPalette = () => {
         status: "idle",
         config: {},
       };
-      store.getState().addNode({ id, type: "operation", position: pos, data });
+      addNode({ id, type: "operation", position: pos, data });
       return;
     } else if (item.type === "output-project-path") {
       data = {
@@ -145,16 +151,16 @@ export const SkillPalette = () => {
       return;
     }
 
-    store.getState().addNode({ id, type: item.type, position: pos, data });
+    addNode({ id, type: item.type, position: pos, data });
   };
 
-  const handleToggleSidebar = () => store.getState().toggleSidebar();
+  const handleToggleSidebar = () => toggleSidebar();
 
   return (
     <div
       className={cn(
         "relative flex h-full flex-col border-r border-gray-200 bg-white transition-all duration-200",
-        isSidebarOpen ? "w-64" : "w-10"
+        isSidebarOpen ? "w-64" : "w-10",
       )}
     >
       <button
@@ -190,21 +196,25 @@ export const SkillPalette = () => {
                       key={item.type}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass
+                        item.colorClass,
                       )}
                       onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg
+                          item.iconBg,
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
-                        <div className="text-[10px] text-gray-500">{item.description}</div>
+                        <div className="text-xs font-semibold text-gray-700">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          {item.description}
+                        </div>
                       </div>
                     </button>
                   );
@@ -225,21 +235,25 @@ export const SkillPalette = () => {
                       key={item.type}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass
+                        item.colorClass,
                       )}
                       onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg
+                          item.iconBg,
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
-                        <div className="text-[10px] text-gray-500">{item.description}</div>
+                        <div className="text-xs font-semibold text-gray-700">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          {item.description}
+                        </div>
                       </div>
                     </button>
                   );
@@ -260,21 +274,25 @@ export const SkillPalette = () => {
                       key={item.type}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass
+                        item.colorClass,
                       )}
                       onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg
+                          item.iconBg,
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
-                        <div className="text-[10px] text-gray-500">{item.description}</div>
+                        <div className="text-xs font-semibold text-gray-700">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          {item.description}
+                        </div>
                       </div>
                     </button>
                   );
@@ -284,7 +302,9 @@ export const SkillPalette = () => {
           </div>
 
           <div className="border-t border-gray-100 p-3">
-            <p className="text-center text-[10px] text-gray-400">连接节点端口以定义数据流向</p>
+            <p className="text-center text-[10px] text-gray-400">
+              连接节点端口以定义数据流向
+            </p>
           </div>
         </>
       )}

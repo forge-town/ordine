@@ -1,8 +1,20 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Zap, FileCode, Folder, HardDrive, FolderOutput } from "lucide-react";
+import {
+  Plus,
+  Zap,
+  FileCode,
+  Folder,
+  HardDrive,
+  FolderOutput,
+} from "lucide-react";
+import { useStore } from "zustand";
 import { SiGitHubIcon } from "../../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../../_store";
-import { allowedConnections, nodeTypeMeta, type NodeType } from "../../nodeSchemas";
+import {
+  allowedConnections,
+  nodeTypeMeta,
+  type NodeType,
+} from "../../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
@@ -25,12 +37,13 @@ export const QuickAddButton = ({ nodeId, nodeType }: Props) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const store = useHarnessCanvasStore();
+  const addNodeWithEdge = useStore(store, (s) => s.addNodeWithEdge);
 
   const allowed = allowedConnections[nodeType];
   if (allowed.length === 0) return null;
 
   const handleAdd = (targetType: NodeType) => {
-    store.getState().addNodeWithEdge(nodeId, targetType);
+    addNodeWithEdge(nodeId, targetType);
     setOpen(false);
   };
 
@@ -61,7 +74,7 @@ export const QuickAddButton = ({ nodeId, nodeType }: Props) => {
       <button
         className={cn(
           "flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all",
-          "hover:bg-slate-100 hover:text-slate-800 hover:scale-110"
+          "hover:bg-slate-100 hover:text-slate-800 hover:scale-110",
         )}
         title="添加连接节点"
         onClick={handleToggleOpen}
@@ -83,7 +96,7 @@ export const QuickAddButton = ({ nodeId, nodeType }: Props) => {
               <button
                 key={type}
                 className={cn(
-                  "flex w-full items-center gap-2 px-3 py-1.5 text-xs transition-colors hover:bg-gray-50"
+                  "flex w-full items-center gap-2 px-3 py-1.5 text-xs transition-colors hover:bg-gray-50",
                 )}
                 onClick={handlePick(type)}
                 onMouseDown={handleMouseDown}
@@ -91,7 +104,7 @@ export const QuickAddButton = ({ nodeId, nodeType }: Props) => {
                 <span
                   className={cn(
                     "flex h-4 w-4 shrink-0 items-center justify-center rounded",
-                    meta.iconBg
+                    meta.iconBg,
                   )}
                 >
                   <Icon className="h-2.5 w-2.5 text-white" />

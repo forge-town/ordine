@@ -31,7 +31,9 @@ const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
 };
 
 const KbdHint = ({ keys }: { keys: string }) => (
-  <span className="ml-auto font-mono text-[11px] text-muted-foreground/50">{keys}</span>
+  <span className="ml-auto font-mono text-[11px] text-muted-foreground/50">
+    {keys}
+  </span>
 );
 
 interface Props {
@@ -43,10 +45,19 @@ interface Props {
 
 const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
-export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) => {
+export const NodeContextMenu = ({
+  screenX,
+  screenY,
+  nodeId,
+  onClose,
+}: Props) => {
   const store = useHarnessCanvasStore();
-  const nodes = useStore(store, (state) => state.nodes);
-  const operations = useStore(store, (state) => state.operations);
+  const nodes = useStore(store, (s) => s.nodes);
+  const operations = useStore(store, (s) => s.operations);
+  const duplicateNode = useStore(store, (s) => s.duplicateNode);
+  const removeNode = useStore(store, (s) => s.removeNode);
+  const addNode = useStore(store, (s) => s.addNode);
+  const onConnect = useStore(store, (s) => s.onConnect);
   const node = nodes.find((n) => n.id === nodeId);
   const [actionsOpen, setActionsOpen] = useState(false);
 
@@ -58,13 +69,13 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
       }
       if (e.key === "d" && e.metaKey) {
         e.preventDefault();
-        store.getState().duplicateNode(nodeId);
+        duplicateNode(nodeId);
         onClose();
       }
     };
     globalThis.addEventListener("keydown", handler);
     return () => globalThis.removeEventListener("keydown", handler);
-  }, [onClose, store, nodeId]);
+  }, [onClose, duplicateNode, nodeId]);
 
   if (!node) return null;
 
@@ -82,7 +93,9 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
     const objectType = objectTypeMap[node.type];
     if (!objectType) return operations;
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "project",
+      ),
     );
   })();
 
@@ -93,28 +106,29 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
   const left = Math.min(screenX, window.innerWidth - MENU_W - 8);
   const top = Math.min(screenY, window.innerHeight - 280);
   const submenuLeft =
-    left + MENU_W + 4 + SUBMENU_W > window.innerWidth ? left - SUBMENU_W - 4 : left + MENU_W + 4;
+    left + MENU_W + 4 + SUBMENU_W > window.innerWidth
+      ? left - SUBMENU_W - 4
+      : left + MENU_W + 4;
 
   const handleDuplicate = () => {
-    store.getState().duplicateNode(nodeId);
+    duplicateNode(nodeId);
     onClose();
   };
 
   const handleDelete = () => {
-    store.getState().removeNode(nodeId);
+    removeNode(nodeId);
     onClose();
   };
 
   const handleAddObject = (type: NodeType) => {
-    const state = store.getState();
     const newId = `${type}-${Date.now()}`;
-    state.addNode({
+    addNode({
       id: newId,
       type,
       position: { x: node.position.x + 280, y: node.position.y },
       data: makeDefaultNodeData(type),
     });
-    state.onConnect({
+    onConnect({
       source: nodeId,
       sourceHandle: null,
       target: newId,
@@ -127,15 +141,14 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
     const operation = operations.find((op) => op.id === operationId);
     if (!operation) return;
 
-    const state = store.getState();
     const newId = `op-${operationId}-${Date.now()}`;
-    state.addNode({
+    addNode({
       id: newId,
       type: "operation",
       position: { x: node.position.x + 280, y: node.position.y },
       data: makeOperationNodeData(operation),
     });
-    state.onConnect({
+    onConnect({
       source: nodeId,
       sourceHandle: null,
       target: newId,
@@ -165,14 +178,16 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
           >
             {meta.shortLabel.charAt(0)}
           </span>
-          <span className="text-xs font-semibold text-foreground">{meta.label}</span>
+          <span className="text-xs font-semibold text-foreground">
+            {meta.label}
+          </span>
         </div>
 
         {/* Actions → */}
         <button
           className={cn(
             "flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground",
-            actionsOpen ? "bg-accent" : "hover:bg-accent"
+            actionsOpen ? "bg-accent" : "hover:bg-accent",
           )}
           onClick={handleToggleActions}
         >
@@ -181,7 +196,7 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
           <ChevronRight
             className={cn(
               "ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform",
-              actionsOpen && "rotate-90"
+              actionsOpen && "rotate-90",
             )}
           />
         </button>
@@ -205,7 +220,9 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
         >
           <Trash2 className="h-3.5 w-3.5" />
           Delete
-          <span className="ml-auto font-mono text-[11px] text-destructive/40">⌫</span>
+          <span className="ml-auto font-mono text-[11px] text-destructive/40">
+            ⌫
+          </span>
         </button>
       </div>
 
@@ -222,7 +239,7 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
 
           {/* Object types */}
           {["code-file", "folder", "github-project"].some((t) =>
-            availableTypes.includes(t as NodeType)
+            availableTypes.includes(t as NodeType),
           ) && (
             <div>
               <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
@@ -287,8 +304,8 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
           )}
 
           {/* Output nodes */}
-          {(["output-project-path", "output-local-path"] as NodeType[]).some((t) =>
-            availableTypes.includes(t)
+          {(["output-project-path", "output-local-path"] as NodeType[]).some(
+            (t) => availableTypes.includes(t),
           ) && (
             <div>
               <div className="my-1 border-t border-border/40" />

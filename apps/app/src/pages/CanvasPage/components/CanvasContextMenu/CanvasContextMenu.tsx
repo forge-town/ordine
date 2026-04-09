@@ -1,12 +1,5 @@
 import { useEffect } from "react";
-import {
-  ArrowRight,
-  FileCode,
-  Folder,
-  HardDrive,
-  FolderOutput,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, FileCode, Folder, HardDrive, FolderOutput, Zap } from "lucide-react";
 import { useStore } from "zustand";
 import { SiGitHubIcon } from "../../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../../_store";
@@ -40,13 +33,7 @@ interface Props {
 
 const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
-export const CanvasContextMenu = ({
-  screenX,
-  screenY,
-  flowX,
-  flowY,
-  onClose,
-}: Props) => {
+export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: Props) => {
   const store = useHarnessCanvasStore();
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);
@@ -87,9 +74,7 @@ export const CanvasContextMenu = ({
 
     // Only show operations that accept this object type
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(
-        objectType as "file" | "folder" | "project",
-      ),
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
     );
   })();
 
@@ -195,14 +180,12 @@ export const CanvasContextMenu = ({
   const sourceNodeInfo = (() => {
     if (!connectStart) return null;
     const node = nodes.find((n) => n.id === connectStart.nodeId);
-    return node
-      ? { type: node.type, label: nodeTypeMeta[node.type].label }
-      : null;
+    return node ? { type: node.type, label: nodeTypeMeta[node.type].label } : null;
   })();
 
   // Filter object types based on available connections
   const visibleObjectTypes = OBJECT_TYPES.filter((t) =>
-    isConnectMode ? availableTypes.includes(t) : true,
+    isConnectMode ? availableTypes.includes(t) : true
   );
 
   const handleBackdropClick = () => {
@@ -227,7 +210,7 @@ export const CanvasContextMenu = ({
               <span
                 className={cn(
                   "flex h-4 w-4 shrink-0 items-center justify-center rounded",
-                  nodeTypeMeta[sourceNodeInfo.type].iconBg,
+                  nodeTypeMeta[sourceNodeInfo.type].iconBg
                 )}
               >
                 {(() => {
@@ -236,9 +219,7 @@ export const CanvasContextMenu = ({
                 })()}
               </span>
               <ArrowRight className="h-3 w-3 text-muted-foreground" />
-              <span className="text-[10px] font-medium text-muted-foreground">
-                连接到...
-              </span>
+              <span className="text-[10px] font-medium text-muted-foreground">连接到...</span>
             </div>
           </>
         ) : (
@@ -265,7 +246,7 @@ export const CanvasContextMenu = ({
                   <span
                     className={cn(
                       "flex h-5 w-5 shrink-0 items-center justify-center rounded",
-                      meta.iconBg,
+                      meta.iconBg
                     )}
                   >
                     <Icon className="h-3 w-3 text-white" />
@@ -293,9 +274,7 @@ export const CanvasContextMenu = ({
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-violet-500">
                   <Zap className="h-3 w-3 text-white" />
                 </span>
-                <span className="text-xs font-medium truncate">
-                  {operation.name}
-                </span>
+                <span className="text-xs font-medium truncate">{operation.name}</span>
               </button>
             ))}
           </div>

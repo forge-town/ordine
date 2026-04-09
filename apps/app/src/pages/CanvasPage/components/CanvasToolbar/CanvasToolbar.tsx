@@ -23,24 +23,29 @@ export const CanvasToolbar = () => {
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
+  const removeNode = useStore(store, (state) => state.removeNode);
+  const toggleAiAssistant = useStore(store, (state) => state.toggleAiAssistant);
+  const undo = useStore(store, (state) => state.undo);
+  const redo = useStore(store, (state) => state.redo);
+  const setActiveJobId = useStore(store, (state) => state.setActiveJobId);
 
   const [isRunning, setIsRunning] = useState(false);
 
   const handleDeleteSelected = () => {
     if (selectedNodeId) {
-      store.getState().removeNode(selectedNodeId);
+      removeNode(selectedNodeId);
     }
   };
 
   const handleToggleAi = () => {
-    store.getState().toggleAiAssistant();
+    toggleAiAssistant();
   };
 
   const handleZoomOut = zoomOut;
   const handleZoomIn = zoomIn;
   const handleFitView = () => fitView({ padding: 0.1 });
-  const handleUndo = () => store.getState().undo();
-  const handleRedo = () => store.getState().redo();
+  const handleUndo = () => undo();
+  const handleRedo = () => redo();
 
   const handleRunTest = async () => {
     if (isRunning) return;
@@ -97,7 +102,7 @@ export const CanvasToolbar = () => {
 
     runResult.match(
       ({ jobId }) => {
-        store.getState().setActiveJobId(jobId);
+        setActiveJobId(jobId);
         useToastStore.getState().addToast({
           type: "success",
           title: t("canvas.runCompleted"),
