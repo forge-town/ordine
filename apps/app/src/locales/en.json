@@ -33,6 +33,7 @@
     "skills": "Skills",
     "rules": "Rules",
     "bestPractices": "Best Practices",
+    "recipes": "Recipes",
     "settings": "Settings"
   },
   "sidebar": {
@@ -368,5 +369,23 @@
     "titleRequired": "Title is required",
     "conditionRequired": "Condition is required",
     "objectTypeRequired": "Select at least one object type"
+  },
+  "recipes": {
+    "title": "Recipes",
+    "addNew": "Add recipe",
+    "editTitle": "Edit recipe",
+    "createTitle": "Add recipe",
+    "noItems": "No recipes yet",
+    "noItemsHint": "A recipe = operation + best practice shortcut",
+    "nameLabel": "Name *",
+    "namePlaceholder": "e.g. Check ClassName Convention",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe what this recipe does...",
+    "operationLabel": "Operation *",
+    "operationPlaceholder": "Select an operation",
+    "bestPracticeLabel": "Best Practice *",
+    "bestPracticePlaceholder": "Select a best practice",
+    "searchPlaceholder": "Search recipes...",
+    "count": ""
   }
 }

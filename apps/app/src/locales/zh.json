@@ -33,6 +33,7 @@
     "skills": "技能",
     "rules": "规则",
     "bestPractices": "最佳实践",
+    "recipes": "配方",
     "settings": "设置"
   },
   "sidebar": {
@@ -369,5 +370,23 @@
     "titleRequired": "标题不能为空",
     "conditionRequired": "适用时机不能为空",
     "objectTypeRequired": "至少选择一种对象类型"
+  },
+  "recipes": {
+    "title": "配方",
+    "addNew": "新增配方",
+    "editTitle": "编辑配方",
+    "createTitle": "新增配方",
+    "noItems": "还没有任何配方",
+    "noItemsHint": "配方 = 操作 + 最佳实践的快捷组合",
+    "nameLabel": "名称 *",
+    "namePlaceholder": "e.g. Check ClassName 规范",
+    "descriptionLabel": "描述",
+    "descriptionPlaceholder": "描述这个配方的用途...",
+    "operationLabel": "操作 *",
+    "operationPlaceholder": "选择一个操作",
+    "bestPracticeLabel": "最佳实践 *",
+    "bestPracticePlaceholder": "选择一个最佳实践",
+    "searchPlaceholder": "搜索配方...",
+    "count": "条"
   }
 }

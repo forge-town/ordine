@@ -22,6 +22,7 @@ import { Route as ApiBestPracticesRouteImport } from './routes/api/best-practice
 import { Route as LayoutSkillsRouteImport } from './routes/_layout/skills'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutRulesRouteImport } from './routes/_layout/rules'
+import { Route as LayoutRecipesRouteImport } from './routes/_layout/recipes'
 import { Route as LayoutPipelinesRouteImport } from './routes/_layout/pipelines'
 import { Route as LayoutJobsRouteImport } from './routes/_layout/jobs'
 import { Route as LayoutBestPracticesRouteImport } from './routes/_layout/best-practices'
@@ -110,6 +111,11 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
 const LayoutRulesRoute = LayoutRulesRouteImport.update({
   id: '/rules',
   path: '/rules',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutRecipesRoute = LayoutRecipesRouteImport.update({
+  id: '/recipes',
+  path: '/recipes',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutPipelinesRoute = LayoutPipelinesRouteImport.update({
@@ -250,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/best-practices': typeof LayoutBestPracticesRoute
   '/jobs': typeof LayoutJobsRouteWithChildren
   '/pipelines': typeof LayoutPipelinesRouteWithChildren
+  '/recipes': typeof LayoutRecipesRoute
   '/rules': typeof LayoutRulesRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
@@ -286,6 +293,7 @@ export interface FileRoutesByTo {
   '/canvas': typeof CanvasRoute
   '/assistant': typeof LayoutAssistantRoute
   '/best-practices': typeof LayoutBestPracticesRoute
+  '/recipes': typeof LayoutRecipesRoute
   '/rules': typeof LayoutRulesRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
@@ -327,6 +335,7 @@ export interface FileRoutesById {
   '/_layout/best-practices': typeof LayoutBestPracticesRoute
   '/_layout/jobs': typeof LayoutJobsRouteWithChildren
   '/_layout/pipelines': typeof LayoutPipelinesRouteWithChildren
+  '/_layout/recipes': typeof LayoutRecipesRoute
   '/_layout/rules': typeof LayoutRulesRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/skills': typeof LayoutSkillsRoute
@@ -369,6 +378,7 @@ export interface FileRouteTypes {
     | '/best-practices'
     | '/jobs'
     | '/pipelines'
+    | '/recipes'
     | '/rules'
     | '/settings'
     | '/skills'
@@ -405,6 +415,7 @@ export interface FileRouteTypes {
     | '/canvas'
     | '/assistant'
     | '/best-practices'
+    | '/recipes'
     | '/rules'
     | '/settings'
     | '/skills'
@@ -445,6 +456,7 @@ export interface FileRouteTypes {
     | '/_layout/best-practices'
     | '/_layout/jobs'
     | '/_layout/pipelines'
+    | '/_layout/recipes'
     | '/_layout/rules'
     | '/_layout/settings'
     | '/_layout/skills'
@@ -584,6 +596,13 @@ declare module '@tanstack/react-router' {
       path: '/rules'
       fullPath: '/rules'
       preLoaderRoute: typeof LayoutRulesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/recipes': {
+      id: '/_layout/recipes'
+      path: '/recipes'
+      fullPath: '/recipes'
+      preLoaderRoute: typeof LayoutRecipesRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/pipelines': {
@@ -797,6 +816,7 @@ interface LayoutRouteChildren {
   LayoutBestPracticesRoute: typeof LayoutBestPracticesRoute
   LayoutJobsRoute: typeof LayoutJobsRouteWithChildren
   LayoutPipelinesRoute: typeof LayoutPipelinesRouteWithChildren
+  LayoutRecipesRoute: typeof LayoutRecipesRoute
   LayoutRulesRoute: typeof LayoutRulesRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutSkillsRoute: typeof LayoutSkillsRoute
@@ -815,6 +835,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutBestPracticesRoute: LayoutBestPracticesRoute,
   LayoutJobsRoute: LayoutJobsRouteWithChildren,
   LayoutPipelinesRoute: LayoutPipelinesRouteWithChildren,
+  LayoutRecipesRoute: LayoutRecipesRoute,
   LayoutRulesRoute: LayoutRulesRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutSkillsRoute: LayoutSkillsRoute,
