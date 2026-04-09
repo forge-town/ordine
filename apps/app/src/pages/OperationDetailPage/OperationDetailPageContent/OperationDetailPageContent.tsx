@@ -7,7 +7,6 @@ import {
   FileInput,
   FileOutput,
   Info,
-  Puzzle,
   Tag,
   Terminal,
   Wand2,
@@ -32,15 +31,18 @@ const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
 };
 
 const EXECUTOR_ICON: Record<string, React.ElementType> = {
-  skill: Puzzle,
-  prompt: Wand2,
+  agent: Wand2,
   script: Terminal,
 };
 
 const EXECUTOR_LABEL: Record<string, string> = {
+  agent: "Agent",
+  script: "Script",
+};
+
+const AGENT_MODE_LABEL: Record<string, string> = {
   skill: "Skill",
   prompt: "Prompt",
-  script: "Script",
 };
 
 const parseConfig = (raw: string): OperationConfig => {
@@ -54,14 +56,29 @@ const parseConfig = (raw: string): OperationConfig => {
   };
 };
 
-const ExecutorCard = ({ executor }: { executor: ExecutorConfig }) => {
-  const Icon = EXECUTOR_ICON[executor.type] ?? Puzzle;
+const normalizeExecutor = (executor: ExecutorConfig): ExecutorConfig => {
+  const rawType = executor.type as string;
+  if (rawType === "skill" || rawType === "prompt") {
+    return {
+      ...executor,
+      agentMode: rawType as "skill" | "prompt",
+      type: "agent",
+    };
+  }
+  return executor;
+};
+
+const ExecutorCard = ({ executor: raw }: { executor: ExecutorConfig }) => {
+  const executor = normalizeExecutor(raw);
+  const Icon = EXECUTOR_ICON[executor.type] ?? Wand2;
+  const modeLabel = executor.agentMode ? AGENT_MODE_LABEL[executor.agentMode] : undefined;
   const label = EXECUTOR_LABEL[executor.type] ?? executor.type;
+  const displayLabel = modeLabel ? `${label} · ${modeLabel}` : label;
   return (
     <div className="rounded-xl border border-border bg-card p-4">
-      <SectionHeader icon={Icon} label={`执行方式 · ${label}`} />
+      <SectionHeader icon={Icon} label={`执行方式 · ${displayLabel}`} />
       <div className="mt-3 space-y-2">
-        {executor.type === "skill" && executor.skillId && (
+        {executor.type === "agent" && executor.agentMode === "skill" && executor.skillId && (
           <div className="flex items-center gap-2">
             <span className="w-16 shrink-0 text-xs text-muted-foreground">Skill ID</span>
             <code className="rounded bg-muted px-2 py-0.5 font-mono text-xs">
@@ -69,7 +86,7 @@ const ExecutorCard = ({ executor }: { executor: ExecutorConfig }) => {
             </code>
           </div>
         )}
-        {executor.type === "prompt" && executor.prompt && (
+        {executor.type === "agent" && executor.agentMode === "prompt" && executor.prompt && (
           <div>
             <span className="text-xs text-muted-foreground">系统提示词</span>
             <pre className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap rounded-lg bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">

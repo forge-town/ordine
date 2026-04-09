@@ -14,11 +14,13 @@ export interface OutputPort {
   description: string;
 }
 
-export type ExecutorType = "skill" | "prompt" | "script";
+export type ExecutorType = "agent" | "script";
+export type AgentMode = "skill" | "prompt";
 export type ScriptLanguage = "bash" | "python" | "javascript";
 
 export interface ExecutorConfig {
   type: ExecutorType;
+  agentMode?: AgentMode;
   skillId?: string;
   prompt?: string;
   command?: string;

@@ -17,13 +17,18 @@ import { Route } from "@/routes/_layout/operations.new";
 import {
   ObjectTypeSchema as ObjectTypeEnum,
   ExecutorTypeSchema as ExecutorTypeEnum,
+  AgentModeSchema as AgentModeEnum,
   ScriptLanguageSchema as ScriptLanguageEnum,
 } from "@/schemas";
 
 const EXECUTOR_ICONS = {
+  agent: Wand2,
+  script: Terminal,
+} as const satisfies Record<string, React.ElementType>;
+
+const AGENT_MODE_ICONS = {
   skill: Puzzle,
   prompt: Wand2,
-  script: Terminal,
 } as const satisfies Record<string, React.ElementType>;
 
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
@@ -37,6 +42,7 @@ const createFormSchema = z.object({
   description: z.string(),
   acceptedObjectTypes: z.array(ObjectTypeEnum).min(1),
   executorType: ExecutorTypeEnum,
+  agentMode: AgentModeEnum,
   skillId: z.string(),
   promptText: z.string(),
   scriptCommand: z.string(),
@@ -44,14 +50,22 @@ const createFormSchema = z.object({
 });
 
 const buildConfig = (values: CreateFormValues): string => {
-  if (values.executorType === "skill") {
+  if (values.executorType === "agent") {
+    if (values.agentMode === "skill") {
+      return JSON.stringify({
+        executor: {
+          type: "agent",
+          agentMode: "skill",
+          skillId: values.skillId,
+        },
+      });
+    }
     return JSON.stringify({
-      executor: { type: "skill", skillId: values.skillId },
-    });
-  }
-  if (values.executorType === "prompt") {
-    return JSON.stringify({
-      executor: { type: "prompt", prompt: values.promptText },
+      executor: {
+        type: "agent",
+        agentMode: "prompt",
+        prompt: values.promptText,
+      },
     });
   }
   return JSON.stringify({
@@ -80,22 +94,31 @@ export const OperationCreatePageContent = () => {
 
   const EXECUTOR_TYPE_OPTIONS = [
     {
-      value: "skill" as const,
-      label: "Skill",
-      icon: EXECUTOR_ICONS.skill,
-      description: t("operations.executorSkillDesc"),
-    },
-    {
-      value: "prompt" as const,
-      label: "Prompt",
-      icon: EXECUTOR_ICONS.prompt,
-      description: t("operations.executorPromptDesc"),
+      value: "agent" as const,
+      label: "Agent",
+      icon: EXECUTOR_ICONS.agent,
+      description: t("operations.executorAgentDesc"),
     },
     {
       value: "script" as const,
       label: "Script",
       icon: EXECUTOR_ICONS.script,
       description: t("operations.executorScriptDesc"),
+    },
+  ];
+
+  const AGENT_MODE_OPTIONS = [
+    {
+      value: "skill" as const,
+      label: "Skill",
+      icon: AGENT_MODE_ICONS.skill,
+      description: t("operations.agentModeSkillDesc"),
+    },
+    {
+      value: "prompt" as const,
+      label: "Prompt",
+      icon: AGENT_MODE_ICONS.prompt,
+      description: t("operations.agentModePromptDesc"),
     },
   ];
 
@@ -127,7 +150,8 @@ export const OperationCreatePageContent = () => {
       name: "",
       description: "",
       acceptedObjectTypes: ["file", "folder", "project"],
-      executorType: "script" as const,
+      executorType: "agent" as const,
+      agentMode: "skill" as const,
       skillId: "",
       promptText: "",
       scriptCommand: "",
@@ -136,6 +160,7 @@ export const OperationCreatePageContent = () => {
   });
 
   const executorType = form.watch("executorType");
+  const agentMode = form.watch("agentMode");
 
   const handleCancel = () => {
     void navigate({ to: "/operations" });
@@ -296,59 +321,100 @@ export const OperationCreatePageContent = () => {
                   }}
                 />
 
-                {executorType === "skill" && (
-                  <FormField
-                    control={form.control}
-                    name="skillId"
-                    render={({ field }) => {
-                      const handleChange = field.onChange;
-                      return (
-                        <FormItem>
-                          <FormLabel className="text-xs font-medium text-muted-foreground">
-                            {t("operations.skillLabel")}
-                          </FormLabel>
-                          <FormControl>
-                            <Select value={field.value} onValueChange={handleChange}>
-                              <SelectTrigger className="h-9 w-full">
-                                <SelectValue placeholder={t("operations.selectSkill")} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {skills.map((s) => (
-                                  <SelectItem key={s.id} value={s.id}>
-                                    {s.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
-                      );
-                    }}
-                  />
-                )}
+                {executorType === "agent" && (
+                  <>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">
+                      {t("operations.agentMode")}
+                    </FormLabel>
+                    <Controller
+                      control={form.control}
+                      name="agentMode"
+                      render={({ field }) => {
+                        const handleChange = field.onChange;
+                        return (
+                          <div className="flex gap-2">
+                            {AGENT_MODE_OPTIONS.map(({ value, label, icon: Icon, description }) => {
+                              const selected = field.value === value;
+                              return (
+                                <button
+                                  key={value}
+                                  className={cn(
+                                    "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                                    selected
+                                      ? "border-primary/50 bg-primary/10 text-primary"
+                                      : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                  )}
+                                  type="button"
+                                  onClick={() => handleChange(value)}
+                                >
+                                  <span className="flex items-center gap-1.5 font-medium">
+                                    <Icon className="h-3.5 w-3.5" />
+                                    {label}
+                                  </span>
+                                  <span className="text-[11px] opacity-70">{description}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                      }}
+                    />
 
-                {executorType === "prompt" && (
-                  <FormField
-                    control={form.control}
-                    name="promptText"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs font-medium text-muted-foreground">
-                          {t("operations.promptLabel")}
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            className="resize-none text-sm"
-                            placeholder={t("operations.promptPlaceholder")}
-                            rows={5}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
+                    {agentMode === "skill" && (
+                      <FormField
+                        control={form.control}
+                        name="skillId"
+                        render={({ field }) => {
+                          const handleChange = field.onChange;
+                          return (
+                            <FormItem>
+                              <FormLabel className="text-xs font-medium text-muted-foreground">
+                                {t("operations.skillLabel")}
+                              </FormLabel>
+                              <FormControl>
+                                <Select value={field.value} onValueChange={handleChange}>
+                                  <SelectTrigger className="h-9 w-full">
+                                    <SelectValue placeholder={t("operations.selectSkill")} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {skills.map((s) => (
+                                      <SelectItem key={s.id} value={s.id}>
+                                        {s.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          );
+                        }}
+                      />
                     )}
-                  />
+
+                    {agentMode === "prompt" && (
+                      <FormField
+                        control={form.control}
+                        name="promptText"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium text-muted-foreground">
+                              {t("operations.promptLabel")}
+                            </FormLabel>
+                            <FormControl>
+                              <Textarea
+                                className="resize-none text-sm"
+                                placeholder={t("operations.promptPlaceholder")}
+                                rows={5}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </>
                 )}
 
                 {executorType === "script" && (

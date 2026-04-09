@@ -53,8 +53,7 @@ describe("OperationCreatePageContent", () => {
   it("renders description and executor type selector", () => {
     render(<OperationCreatePageContent />);
     expect(screen.getByPlaceholderText(/简单描述/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Skill/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Prompt/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Agent/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Script/i })).toBeInTheDocument();
   });
 
@@ -87,7 +86,7 @@ describe("OperationCreatePageContent", () => {
       expect(mockCreateOperation).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ name: "Test Op" }),
-        })
+        }),
       );
     });
   });
@@ -106,7 +105,7 @@ describe("OperationCreatePageContent", () => {
         expect.objectContaining({
           to: "/operations/$operationId",
           params: { operationId: "new-op-id" },
-        })
+        }),
       );
     });
   });
