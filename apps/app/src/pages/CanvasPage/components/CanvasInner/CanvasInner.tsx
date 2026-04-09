@@ -14,26 +14,22 @@ export const CanvasInner = () => {
 
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const contextMenu = useStore(store, (state) => state.contextMenu);
-  const handleCloseContextMenu = useStore(
-    store,
-    (state) => state.closeContextMenu,
-  );
+  const handleCloseContextMenu = useStore(store, (state) => state.closeContextMenu);
   const connectionMenu = useStore(store, (state) => state.connectionMenu);
-  const handleCloseConnectionMenu = useStore(
-    store,
-    (state) => state.closeConnectionMenu,
-  );
+  const handleCloseConnectionMenu = useStore(store, (state) => state.closeConnectionMenu);
   const nodeContextMenu = useStore(store, (state) => state.nodeContextMenu);
-  const handleCloseNodeContextMenu = useStore(
-    store,
-    (state) => state.closeNodeContextMenu,
-  );
+  const handleCloseNodeContextMenu = useStore(store, (state) => state.closeNodeContextMenu);
   const activeJobId = useStore(store, (state) => state.activeJobId);
   const isConsoleOpen = useStore(store, (state) => state.isConsoleOpen);
   const setActiveJobId = useStore(store, (state) => state.setActiveJobId);
+  const setPipelineName = useStore(store, (state) => state.setPipelineName);
 
   const handleCloseConsole = () => {
     setActiveJobId(null);
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPipelineName(e.target.value);
   };
 
   return (
@@ -42,9 +38,12 @@ export const CanvasInner = () => {
 
       <div className="pointer-events-none absolute left-16 right-4 top-4 z-40 flex items-center justify-between">
         <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-gray-200 bg-white/90 px-4 py-1.5 shadow-sm backdrop-blur-sm">
-          <span className="text-sm font-medium text-gray-700">
-            {pipelineName || "无标题 Pipeline"}
-          </span>
+          <input
+            className="w-48 bg-transparent text-sm font-medium text-gray-700 outline-none placeholder:text-gray-400"
+            placeholder="无标题 Pipeline"
+            value={pipelineName}
+            onChange={handleNameChange}
+          />
         </div>
       </div>
 
@@ -83,9 +82,7 @@ export const CanvasInner = () => {
 
       <AiAssistantPanel />
 
-      {isConsoleOpen && (
-        <RunConsole jobId={activeJobId} onClose={handleCloseConsole} />
-      )}
+      {isConsoleOpen && <RunConsole jobId={activeJobId} onClose={handleCloseConsole} />}
     </div>
   );
 };

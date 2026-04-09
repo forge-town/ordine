@@ -34,26 +34,11 @@ export const CanvasFlow = () => {
   const selectEdge = useStore(store, (state) => state.selectEdge);
   const openContextMenu = useStore(store, (state) => state.openContextMenu);
   const closeContextMenu = useStore(store, (state) => state.closeContextMenu);
-  const openConnectionMenu = useStore(
-    store,
-    (state) => state.openConnectionMenu,
-  );
-  const closeConnectionMenu = useStore(
-    store,
-    (state) => state.closeConnectionMenu,
-  );
-  const openNodeContextMenu = useStore(
-    store,
-    (state) => state.openNodeContextMenu,
-  );
-  const closeNodeContextMenu = useStore(
-    store,
-    (state) => state.closeNodeContextMenu,
-  );
-  const storeHandleConnectStart = useStore(
-    store,
-    (state) => state.handleConnectStart,
-  );
+  const openConnectionMenu = useStore(store, (state) => state.openConnectionMenu);
+  const closeConnectionMenu = useStore(store, (state) => state.closeConnectionMenu);
+  const openNodeContextMenu = useStore(store, (state) => state.openNodeContextMenu);
+  const closeNodeContextMenu = useStore(store, (state) => state.closeNodeContextMenu);
+  const storeHandleConnectStart = useStore(store, (state) => state.handleConnectStart);
   const undo = useStore(store, (state) => state.undo);
   const redo = useStore(store, (state) => state.redo);
 
@@ -61,9 +46,7 @@ export const CanvasFlow = () => {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const isUndo = (e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey;
-      const isRedo =
-        (e.metaKey || e.ctrlKey) &&
-        (e.key === "y" || (e.key === "z" && e.shiftKey));
+      const isRedo = (e.metaKey || e.ctrlKey) && (e.key === "y" || (e.key === "z" && e.shiftKey));
 
       if (isUndo) {
         e.preventDefault();
@@ -98,7 +81,7 @@ export const CanvasFlow = () => {
       "output-project-path": OutputProjectPathNode,
       "output-local-path": OutputLocalPathNode,
     }),
-    [],
+    []
   );
 
   // 使用 useMemo 缓存 defaultEdgeOptions
@@ -108,7 +91,7 @@ export const CanvasFlow = () => {
       animated: true,
       style: { stroke: "#94a3b8", strokeWidth: 2 },
     }),
-    [],
+    []
   );
 
   const handleNodesChange = (changes: Parameters<typeof onNodesChange>[0]) => {
@@ -148,9 +131,7 @@ export const CanvasFlow = () => {
 
     if (fromNode) {
       const { clientX, clientY } =
-        "changedTouches" in event
-          ? (event as TouchEvent).changedTouches[0]
-          : (event as MouseEvent);
+        "changedTouches" in event ? (event as TouchEvent).changedTouches[0] : (event as MouseEvent);
 
       // Re-set connectStart from live connectionState data
       storeHandleConnectStart({
@@ -254,12 +235,7 @@ export const CanvasFlow = () => {
       onPaneClick={handlePaneClick}
       onPaneContextMenu={handlePaneContextMenu}
     >
-      <Background
-        color="#cbd5e1"
-        gap={24}
-        size={1.5}
-        variant={BackgroundVariant.Dots}
-      />
+      <Background color="#cbd5e1" gap={24} size={1.5} variant={BackgroundVariant.Dots} />
       <Controls
         showInteractive
         className="border-gray-200! bg-white! shadow-sm!"

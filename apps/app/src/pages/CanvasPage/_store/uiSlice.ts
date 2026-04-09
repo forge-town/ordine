@@ -50,6 +50,7 @@ export interface UISlice {
   openNodeContextMenu: (state: NodeContextMenuState) => void;
   closeNodeContextMenu: () => void;
   handleConnectStart: (state: ConnectStartState | null) => void;
+  setPipelineName: (name: string) => void;
 }
 
 export const createUISlice = (
@@ -128,5 +129,9 @@ export const createUISlice = (
 
   handleConnectStart: (state) => {
     set({ connectStart: state });
+  },
+
+  setPipelineName: (name) => {
+    set({ pipelineName: name });
   },
 });

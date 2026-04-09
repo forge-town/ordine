@@ -21,6 +21,7 @@ export const CanvasToolbar = () => {
   const zoomIn = useStore(store, (state) => state.zoomIn);
   const zoomOut = useStore(store, (state) => state.zoomOut);
   const pipelineId = useStore(store, (state) => state.pipelineId);
+  const pipelineName = useStore(store, (state) => state.pipelineName);
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
   const removeNode = useStore(store, (state) => state.removeNode);
@@ -66,6 +67,7 @@ export const CanvasToolbar = () => {
         data: {
           id: pipelineId,
           patch: {
+            name: pipelineName || "无标题 Pipeline",
             nodes: nodes as unknown[],
             edges: edges as unknown[],
             updatedAt: Date.now(),
