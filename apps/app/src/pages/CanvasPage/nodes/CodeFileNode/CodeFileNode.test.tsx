@@ -9,6 +9,17 @@ vi.mock("@xyflow/react", () => ({
   ReactFlowProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }));
 
+vi.mock("@refinedev/core", () => ({
+  useList: () => ({
+    query: {
+      data: { data: [], total: 0 },
+      isLoading: false,
+      isError: false,
+      error: null,
+    },
+  }),
+}));
+
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <HarnessCanvasStoreProvider>{children}</HarnessCanvasStoreProvider>
 );

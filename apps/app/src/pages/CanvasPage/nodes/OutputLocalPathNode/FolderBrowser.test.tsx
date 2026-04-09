@@ -9,12 +9,27 @@ const mockEntries = [
   { name: ".zshrc", type: "file", path: "/Users/test/.zshrc" },
 ];
 
+const mockUseList = vi.fn();
+vi.mock("@refinedev/core", () => ({
+  useList: (...args: unknown[]) => mockUseList(...args),
+}));
+
+const makeQueryResult = (
+  data: unknown[],
+  overrides?: Record<string, unknown>,
+) => ({
+  query: {
+    data: { data, total: data.length },
+    isLoading: false,
+    isError: false,
+    error: null,
+    ...overrides,
+  },
+});
+
 beforeEach(() => {
   vi.restoreAllMocks();
-  globalThis.fetch = vi.fn().mockResolvedValue({
-    ok: true,
-    json: () => Promise.resolve(mockEntries),
-  });
+  mockUseList.mockReturnValue(makeQueryResult(mockEntries));
 });
 
 const handleOpenChange = vi.fn();
@@ -22,53 +37,79 @@ const handleSelect = vi.fn();
 
 describe("FolderBrowser", () => {
   it("renders dialog with title when open", async () => {
-    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
+    render(
+      <FolderBrowser
+        open
+        onOpenChange={handleOpenChange}
+        onSelect={handleSelect}
+      />,
+    );
     await waitFor(() => {
       expect(screen.getByText("选择文件夹")).toBeInTheDocument();
     });
   });
 
-  it("fetches and displays directory entries on open", async () => {
-    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
-    await waitFor(() => {
-      expect(screen.getByText("Desktop")).toBeInTheDocument();
-      expect(screen.getByText("Documents")).toBeInTheDocument();
-    });
+  it("displays directory entries (excluding files in folder mode)", async () => {
+    render(
+      <FolderBrowser
+        open
+        onOpenChange={handleOpenChange}
+        onSelect={handleSelect}
+      />,
+    );
+    expect(screen.getByText("Desktop")).toBeInTheDocument();
+    expect(screen.getByText("Documents")).toBeInTheDocument();
+    expect(screen.queryByText(".zshrc")).not.toBeInTheDocument();
   });
 
-  it("only shows directories, not files", async () => {
-    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
-    await waitFor(() => {
-      expect(screen.getByText("Desktop")).toBeInTheDocument();
-    });
-    expect(screen.queryByText(".zshrc")).not.toBeInTheDocument();
+  it("shows files in file mode", async () => {
+    render(
+      <FolderBrowser
+        open
+        mode="file"
+        onOpenChange={handleOpenChange}
+        onSelect={handleSelect}
+      />,
+    );
+    expect(screen.getByText("Desktop")).toBeInTheDocument();
+    expect(screen.getByText(".zshrc")).toBeInTheDocument();
   });
 
   it("navigates into a folder on click", async () => {
     const user = userEvent.setup();
-    const subEntries = [{ name: "测试", type: "directory", path: "/Users/test/Desktop/测试" }];
+    const subEntries = [
+      { name: "测试", type: "directory", path: "/Users/test/Desktop/测试" },
+    ];
 
-    (globalThis.fetch as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockEntries),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(subEntries),
-      });
+    mockUseList
+      .mockReturnValueOnce(makeQueryResult(mockEntries))
+      .mockReturnValueOnce(makeQueryResult(subEntries));
 
-    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Desktop")).toBeInTheDocument();
-    });
+    const { rerender } = render(
+      <FolderBrowser
+        open
+        onOpenChange={handleOpenChange}
+        onSelect={handleSelect}
+      />,
+    );
 
     await user.click(screen.getByText("Desktop"));
 
-    await waitFor(() => {
-      expect(screen.getByText("测试")).toBeInTheDocument();
-    });
+    rerender(
+      <FolderBrowser
+        open
+        onOpenChange={handleOpenChange}
+        onSelect={handleSelect}
+      />,
+    );
+
+    expect(mockUseList).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: [
+          { field: "path", operator: "eq", value: "/Users/test/Desktop" },
+        ],
+      }),
+    );
   });
 
   it("calls onSelect with the current path when confirmed", async () => {
@@ -76,29 +117,31 @@ describe("FolderBrowser", () => {
     const handleSelectSpy = vi.fn();
     const handleOpenChangeSpy = vi.fn();
 
-    const subEntries = [{ name: "output", type: "directory", path: "/Users/test/Desktop/output" }];
+    const subEntries = [
+      { name: "output", type: "directory", path: "/Users/test/Desktop/output" },
+    ];
 
-    (globalThis.fetch as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockEntries),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(subEntries),
-      });
+    mockUseList
+      .mockReturnValueOnce(makeQueryResult(mockEntries))
+      .mockReturnValueOnce(makeQueryResult(subEntries));
 
-    render(<FolderBrowser open onOpenChange={handleOpenChangeSpy} onSelect={handleSelectSpy} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Desktop")).toBeInTheDocument();
-    });
+    const { rerender } = render(
+      <FolderBrowser
+        open
+        onOpenChange={handleOpenChangeSpy}
+        onSelect={handleSelectSpy}
+      />,
+    );
 
     await user.click(screen.getByText("Desktop"));
 
-    await waitFor(() => {
-      expect(screen.getByText("output")).toBeInTheDocument();
-    });
+    rerender(
+      <FolderBrowser
+        open
+        onOpenChange={handleOpenChangeSpy}
+        onSelect={handleSelectSpy}
+      />,
+    );
 
     await user.click(screen.getByText("选择此文件夹"));
 
@@ -106,16 +149,43 @@ describe("FolderBrowser", () => {
     expect(handleOpenChangeSpy).toHaveBeenCalledWith(false);
   });
 
-  it("shows error message when fetch fails", async () => {
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: false,
-      json: () => Promise.resolve({ error: "Path does not exist" }),
+  it("shows loading state", async () => {
+    mockUseList.mockReturnValue({
+      query: {
+        data: undefined,
+        isLoading: true,
+        isError: false,
+        error: null,
+      },
     });
 
-    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
+    render(
+      <FolderBrowser
+        open
+        onOpenChange={handleOpenChange}
+        onSelect={handleSelect}
+      />,
+    );
+    expect(screen.getByText("加载中...")).toBeInTheDocument();
+  });
 
-    await waitFor(() => {
-      expect(screen.getByText("Path does not exist")).toBeInTheDocument();
+  it("shows error message when query fails", async () => {
+    mockUseList.mockReturnValue({
+      query: {
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        error: { message: "Path does not exist" },
+      },
     });
+
+    render(
+      <FolderBrowser
+        open
+        onOpenChange={handleOpenChange}
+        onSelect={handleSelect}
+      />,
+    );
+    expect(screen.getByText("Path does not exist")).toBeInTheDocument();
   });
 });

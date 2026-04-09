@@ -15,6 +15,7 @@ import {
 import { trpcClient } from "@/integrations/trpc/client";
 
 export const ResourceName = {
+  filesystem: "filesystem",
   operations: "operations",
   pipelines: "pipelines",
   jobs: "jobs",
@@ -32,6 +33,15 @@ export const dataProvider: DataProvider = {
     const { resource } = params;
 
     switch (resource) {
+      case ResourceName.filesystem: {
+        const pathFilter = params.filters?.find((f) => "field" in f && f.field === "path");
+        const path =
+          pathFilter && "value" in pathFilter
+            ? (pathFilter.value as string | undefined)
+            : undefined;
+        const data = await trpcClient.filesystem.browse.query({ path });
+        return { data: data as unknown as TData[], total: data.length };
+      }
       case ResourceName.operations: {
         const data = await trpcClient.operations.getMany.query();
         return { data: data as unknown as TData[], total: data.length };

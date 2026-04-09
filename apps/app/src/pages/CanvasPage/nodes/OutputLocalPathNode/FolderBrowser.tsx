@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState } from "react";
+import { useList } from "@refinedev/core";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +10,8 @@ import {
 } from "@repo/ui/dialog";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
-import { Folder, ChevronRight, Home, ArrowUp } from "lucide-react";
+import { Folder, FileCode, ChevronRight, Home, ArrowUp } from "lucide-react";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 
 interface DirectoryEntry {
   name: string;
@@ -21,61 +23,71 @@ export interface FolderBrowserProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelect: (path: string) => void;
+  /** "folder" = only show dirs + select current dir (default); "file" = show dirs+files, select a file */
+  mode?: "folder" | "file";
 }
 
-export const FolderBrowser = ({ open, onOpenChange, onSelect }: FolderBrowserProps) => {
-  const [currentPath, setCurrentPath] = useState("");
-  const [entries, setEntries] = useState<DirectoryEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+export const FolderBrowser = ({
+  open,
+  onOpenChange,
+  onSelect,
+  mode = "folder",
+}: FolderBrowserProps) => {
+  const [currentPath, setCurrentPath] = useState<string | undefined>(undefined);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
-  const fetchEntries = useCallback(async (dirPath?: string) => {
-    setLoading(true);
-    setError("");
-    const url = dirPath
-      ? `/api/filesystem/browse?path=${encodeURIComponent(dirPath)}`
-      : "/api/filesystem/browse";
+  const { query } = useList<DirectoryEntry>({
+    resource: ResourceName.filesystem,
+    filters: currentPath ? [{ field: "path", operator: "eq", value: currentPath }] : [],
+    queryOptions: { enabled: open },
+  });
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      const body = (await response.json()) as { error: string };
-      setError(body.error);
-      setLoading(false);
-      return;
-    }
+  const allEntries = query.data?.data ?? [];
+  const entries =
+    mode === "file" ? allEntries : allEntries.filter((e: DirectoryEntry) => e.type === "directory");
 
-    const data = (await response.json()) as DirectoryEntry[];
-    const dirs = data.filter((e) => e.type === "directory");
-    setEntries(dirs);
-    setCurrentPath(dirPath ?? "~");
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    if (open) {
-      void fetchEntries();
-    }
-  }, [open, fetchEntries]);
+  const displayPath = currentPath ?? "~";
 
   const handleNavigate = (path: string) => {
-    void fetchEntries(path);
+    setCurrentPath(path);
+    setSelectedFile(null);
   };
 
   const handleGoUp = () => {
-    if (currentPath === "~") return;
+    if (!currentPath) return;
     const parent = currentPath.split("/").slice(0, -1).join("/") || "/";
-    void fetchEntries(parent);
+    setCurrentPath(parent);
+    setSelectedFile(null);
   };
 
   const handleGoHome = () => {
-    void fetchEntries();
+    setCurrentPath(undefined);
+    setSelectedFile(null);
   };
 
-  const handleOpenChange = (v: boolean) => onOpenChange(v);
+  const handleOpenChange = (v: boolean) => {
+    if (!v) {
+      setCurrentPath(undefined);
+      setSelectedFile(null);
+    }
+    onOpenChange(v);
+  };
 
   const handleConfirm = () => {
-    onSelect(currentPath === "~" ? "" : currentPath);
+    if (mode === "file" && selectedFile) {
+      onSelect(selectedFile);
+    } else {
+      onSelect(currentPath ?? "");
+    }
     onOpenChange(false);
+  };
+
+  const handleFileClick = (entry: DirectoryEntry) => {
+    if (entry.type === "directory") {
+      handleNavigate(entry.path);
+    } else {
+      setSelectedFile(entry.path);
+    }
   };
 
   const handleCancel = () => onOpenChange(false);
@@ -84,14 +96,16 @@ export const FolderBrowser = ({ open, onOpenChange, onSelect }: FolderBrowserPro
     if (fullPath) handleNavigate(fullPath);
   };
 
-  const pathSegments = currentPath === "~" ? ["~"] : currentPath.split("/").filter(Boolean);
+  const pathSegments = displayPath === "~" ? ["~"] : displayPath.split("/").filter(Boolean);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>选择文件夹</DialogTitle>
-          <DialogDescription>浏览并选择输出目录</DialogDescription>
+          <DialogTitle>{mode === "file" ? "选择文件" : "选择文件夹"}</DialogTitle>
+          <DialogDescription>
+            {mode === "file" ? "浏览并选择代码文件" : "浏览并选择输出目录"}
+          </DialogDescription>
         </DialogHeader>
 
         {/* Breadcrumb / Path bar */}
@@ -106,7 +120,7 @@ export const FolderBrowser = ({ open, onOpenChange, onSelect }: FolderBrowserPro
           <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
           {pathSegments.map((seg, i) => {
             const fullPath =
-              currentPath === "~" ? undefined : "/" + pathSegments.slice(0, i + 1).join("/");
+              displayPath === "~" ? undefined : "/" + pathSegments.slice(0, i + 1).join("/");
             return (
               <span key={`${seg}-${i}`} className="flex items-center gap-1">
                 <button
@@ -126,19 +140,19 @@ export const FolderBrowser = ({ open, onOpenChange, onSelect }: FolderBrowserPro
 
         {/* Directory listing */}
         <ScrollArea className="h-[280px] rounded-md border">
-          {loading && (
+          {query.isLoading && (
             <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
               加载中...
             </div>
           )}
-          {error && (
+          {query.isError && (
             <div className="flex items-center justify-center h-full text-sm text-destructive">
-              {error}
+              {query.error?.message ?? "加载失败"}
             </div>
           )}
-          {!loading && !error && (
+          {!query.isLoading && !query.isError && (
             <div className="p-1">
-              {currentPath !== "~" && (
+              {currentPath && (
                 <button
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-accent"
                   type="button"
@@ -151,15 +165,21 @@ export const FolderBrowser = ({ open, onOpenChange, onSelect }: FolderBrowserPro
               {entries.map((entry) => (
                 <button
                   key={entry.path}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-accent"
+                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-accent ${
+                    selectedFile === entry.path ? "bg-accent ring-1 ring-teal-400" : ""
+                  }`}
                   type="button"
-                  onClick={() => handleNavigate(entry.path)}
+                  onClick={() => handleFileClick(entry)}
                 >
-                  <Folder className="h-3.5 w-3.5 shrink-0 text-teal-500" />
+                  {entry.type === "directory" ? (
+                    <Folder className="h-3.5 w-3.5 shrink-0 text-teal-500" />
+                  ) : (
+                    <FileCode className="h-3.5 w-3.5 shrink-0 text-orange-500" />
+                  )}
                   <span className="truncate">{entry.name}</span>
                 </button>
               ))}
-              {entries.length === 0 && !loading && (
+              {entries.length === 0 && !query.isLoading && (
                 <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
                   空文件夹
                 </div>
@@ -171,14 +191,18 @@ export const FolderBrowser = ({ open, onOpenChange, onSelect }: FolderBrowserPro
         {/* Current selection display */}
         <div className="rounded-md border border-teal-200 bg-teal-50 px-3 py-2 text-xs">
           <span className="text-teal-600 font-medium">当前选择：</span>
-          <span className="font-mono text-teal-800">{currentPath}</span>
+          <span className="font-mono text-teal-800">
+            {mode === "file" && selectedFile ? selectedFile : displayPath}
+          </span>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel}>
             取消
           </Button>
-          <Button onClick={handleConfirm}>选择此文件夹</Button>
+          <Button disabled={mode === "file" && !selectedFile} onClick={handleConfirm}>
+            {mode === "file" ? "选择此文件" : "选择此文件夹"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

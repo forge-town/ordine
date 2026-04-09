@@ -382,8 +382,11 @@ const runSkill = (
       system: systemPrompt,
       prompt: userPrompt,
     }).then(({ text }) => text),
-    () => null,
-  ).orElse(() => ok(generateFallbackReport()));
+    (cause) => cause,
+  ).orElse((cause) => {
+    console.error("[runSkill] LLM call failed:", cause);
+    return ok(generateFallbackReport());
+  });
 };
 
 const currentContentLines = (content: string): number =>
@@ -462,10 +465,13 @@ const executePipeline = async (opts: {
     // ── Input nodes ──────────────────────────────────────────────────────
     if (node.type === "folder") {
       const p = data.folderPath ?? "";
-      if (p) {
+      if (p && existsSync(p)) {
         inputPath = p;
-        currentContent = p;
-        await log(`Input folder: ${p}`);
+        const tree = await listDirTree(p);
+        currentContent = `Folder: ${p}\n\nFile tree:\n${tree}`;
+        await log(
+          `Input folder: ${p} (tree: ${tree.split("\n").length} entries)`,
+        );
       }
       continue;
     }

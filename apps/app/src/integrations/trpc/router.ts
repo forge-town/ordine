@@ -1,4 +1,5 @@
 import { router } from "./init";
+import { filesystemRouter } from "./routers/filesystem";
 import { jobsRouter } from "./routers/jobs";
 import { operationsRouter } from "./routers/operations";
 import { pipelinesRouter } from "./routers/pipelines";
@@ -9,6 +10,7 @@ import { githubProjectsRouter } from "./routers/githubProjects";
 import { skillsRouter } from "./routers/skills";
 
 export const appRouter = router({
+  filesystem: filesystemRouter,
   jobs: jobsRouter,
   operations: operationsRouter,
   pipelines: pipelinesRouter,
