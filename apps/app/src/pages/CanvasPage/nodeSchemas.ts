@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import type { OperationEntity } from "@/models/daos/operationsDao";
+import { OUTPUT_MODES } from "@/models/types/pipelineGraph";
 import { LLM_PROVIDERS } from "@/models/tables/settings_table";
 
 // ─── Primitive enums ──────────────────────────────────────────────────────────
@@ -71,6 +72,8 @@ export const OutputLocalPathNodeDataSchema = z.object({
   label: z.string(),
   nodeType: z.literal("output-local-path"),
   localPath: z.string(),
+  outputFileName: z.string().optional(),
+  outputMode: z.enum(OUTPUT_MODES).optional(),
   description: z.string().optional(),
 });
 

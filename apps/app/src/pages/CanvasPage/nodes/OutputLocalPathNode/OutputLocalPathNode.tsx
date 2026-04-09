@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { FolderOpen, HardDrive } from "lucide-react";
+import { AlertTriangle, FolderOpen, HardDrive } from "lucide-react";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type OutputLocalPathNodeData } from "../../_store";
+import { OUTPUT_MODES, type OutputMode } from "@/models/types/pipelineGraph";
+import {
+  useHarnessCanvasStore,
+  type OutputLocalPathNodeData,
+} from "../../_store";
 import { NodeCard } from "../NodeCard";
 import { FolderBrowser } from "./FolderBrowser";
 
@@ -14,7 +18,17 @@ export interface OutputLocalPathNodeProps {
 
 const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
-export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeProps) => {
+const MODE_LABELS: Record<OutputMode, string> = {
+  overwrite: "覆写",
+  error_if_exists: "已存在则中断",
+  auto_rename: "自动重命名",
+};
+
+export const OutputLocalPathNode = ({
+  id,
+  data,
+  selected,
+}: OutputLocalPathNodeProps) => {
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const [browserOpen, setBrowserOpen] = useState(false);
@@ -23,6 +37,10 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
   const handleLabelChange = (v: string) => update({ label: v });
   const handleLocalPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     update({ localPath: e.target.value });
+  const handleFileNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    update({ outputFileName: e.target.value });
+  const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
+    update({ outputMode: e.target.value as OutputMode });
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     update({ description: e.target.value });
 
@@ -39,6 +57,8 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
     setBrowserOpen(open);
   };
 
+  const currentMode = data.outputMode ?? "overwrite";
+
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
@@ -51,7 +71,9 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
         onLabelChange={handleLabelChange}
       >
         <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">路径</span>
+          <span className="shrink-0 text-[10px] font-medium text-teal-500">
+            路径
+          </span>
           <input
             className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
             placeholder="/Users/you/Desktop/output"
@@ -71,6 +93,48 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
             <FolderOpen className="h-3.5 w-3.5" />
           </button>
         </div>
+
+        <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
+          <span className="shrink-0 text-[10px] font-medium text-teal-500">
+            文件名
+          </span>
+          <input
+            className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
+            placeholder="output.md"
+            value={data.outputFileName ?? ""}
+            onChange={handleFileNameChange}
+            onClick={handleStopPropagation}
+            onKeyDown={handleStopPropagation}
+            onMouseDown={handleStopPropagation}
+          />
+        </div>
+
+        <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
+          <span className="shrink-0 text-[10px] font-medium text-teal-500">
+            写入模式
+          </span>
+          <select
+            className="nodrag nopan flex-1 min-w-0 bg-transparent text-[11px] font-semibold text-teal-800 focus:outline-none cursor-pointer"
+            value={currentMode}
+            onChange={handleModeChange}
+            onClick={handleStopPropagation}
+            onMouseDown={handleStopPropagation}
+          >
+            {OUTPUT_MODES.map((mode) => (
+              <option key={mode} value={mode}>
+                {MODE_LABELS[mode]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {currentMode === "error_if_exists" && (
+          <div className="flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] text-amber-700">
+            <AlertTriangle className="h-3 w-3 shrink-0" />
+            <span>如果输出文件已存在，管线将会中断</span>
+          </div>
+        )}
+
         <textarea
           className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
           placeholder="描述此输出..."

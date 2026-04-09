@@ -68,10 +68,15 @@ export interface OutputProjectPathNodeData {
   description?: string;
 }
 
+export const OUTPUT_MODES = ["overwrite", "error_if_exists", "auto_rename"] as const;
+export type OutputMode = (typeof OUTPUT_MODES)[number];
+
 export interface OutputLocalPathNodeData {
   label: string;
   nodeType: "output-local-path";
   localPath: string;
+  outputFileName?: string;
+  outputMode?: OutputMode;
   description?: string;
 }
 
