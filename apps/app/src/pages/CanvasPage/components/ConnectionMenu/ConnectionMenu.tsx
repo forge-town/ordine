@@ -18,6 +18,7 @@ import {
 } from "@repo/ui/context-menu";
 import { SiGitHubIcon } from "../../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../../_store";
+import { Route } from "@/routes/canvas";
 import {
   makeDefaultNodeData,
   makeOperationNodeData,
@@ -51,11 +52,10 @@ export const ConnectionMenu = ({
   flowY,
   onClose,
 }: Props) => {
+  const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);
-  const operations = useStore(store, (s) => s.operations);
-  const recipes = useStore(store, (s) => s.recipes);
   const storeHandleConnectStart = useStore(store, (s) => s.handleConnectStart);
   const onConnect = useStore(store, (s) => s.onConnect);
   const addNode = useStore(store, (s) => s.addNode);

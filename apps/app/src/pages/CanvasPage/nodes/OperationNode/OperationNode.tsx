@@ -24,6 +24,7 @@ import {
   type OperationNodeData,
   type NodeRunStatus,
 } from "../../_store";
+import { Route } from "@/routes/canvas";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
 import { LLM_PROVIDERS } from "@/models/tables/settings_table";
@@ -68,15 +69,14 @@ const MODEL_OPTIONS: Record<string, { value: string; label: string }[]> = {
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const { runStatus: nodeRunStatus, dimmed } = useNodeRunState(id);
+  const { operations, bestPractices } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
-  const getOperationById = useStore(store, (s) => s.getOperationById);
   const isTestRunning = useStore(store, (s) => s.isTestRunning);
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
   const setInspectingNodeId = useStore(store, (s) => s.setInspectingNodeId);
 
   const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
-  const bestPractices = useStore(store, (s) => s.bestPractices);
 
   const {
     icon: StatusIcon,
@@ -84,7 +84,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     label: statusLabel,
   } = statusConfig[data.status ?? "idle"];
 
-  const operation = getOperationById(data.operationId);
+  const operation = operations.find((op) => op.id === data.operationId);
 
   const handleLabelChange = (v: string) =>
     update({ label: v, operationName: v });

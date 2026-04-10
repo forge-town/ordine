@@ -23,6 +23,7 @@ import {
 } from "@repo/ui/context-menu";
 import { SiGitHubIcon } from "../../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../../_store";
+import { Route } from "@/routes/canvas";
 import {
   nodeTypeMeta,
   makeDefaultNodeData,
@@ -54,10 +55,9 @@ export const NodeContextMenu = ({
   nodeId,
   onClose,
 }: Props) => {
+  const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
   const nodes = useStore(store, (s) => s.nodes);
-  const operations = useStore(store, (s) => s.operations);
-  const recipes = useStore(store, (s) => s.recipes);
   const duplicateNode = useStore(store, (s) => s.duplicateNode);
   const removeNode = useStore(store, (s) => s.removeNode);
   const addNode = useStore(store, (s) => s.addNode);

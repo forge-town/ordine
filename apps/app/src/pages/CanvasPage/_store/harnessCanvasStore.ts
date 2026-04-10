@@ -14,18 +14,9 @@ import {
 import { createUISlice, type UISlice } from "./uiSlice";
 import { createHistorySlice, type HistorySlice } from "./historySlice";
 import { createActionsSlice, type ActionsSlice } from "./actionsSlice";
-import type { OperationEntity } from "@/models/daos/operationsDao";
-import type { RecipeEntity } from "@/models/daos/recipesDao";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 
 export interface HarnessCanvasState
-  extends CanvasSlice, UISlice, HistorySlice, ActionsSlice {
-  operations: OperationEntity[];
-  recipes: RecipeEntity[];
-  bestPractices: BestPracticeEntity[];
-  getOperationById: (id: string) => OperationEntity | undefined;
-  getAcceptedOperationsForObject: (objectType: string) => OperationEntity[];
-}
+  extends CanvasSlice, UISlice, HistorySlice, ActionsSlice {}
 
 export type HarnessCanvasStoreSlice<T = HarnessCanvasState> = StateCreator<
   HarnessCanvasState,
@@ -41,14 +32,7 @@ export const createHarnessCanvasStore = (
   initialEdges?: PipelineEdge[],
   pipelineId?: string | null,
   pipelineName?: string,
-  operations?: OperationEntity[],
-  recipes?: RecipeEntity[],
-  bestPractices?: BestPracticeEntity[],
 ) => {
-  const ops = operations ?? [];
-  const rcps = recipes ?? [];
-  const bps = bestPractices ?? [];
-
   return createStore<HarnessCanvasState>()((set, get) => ({
     ...createCanvasSlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
@@ -69,21 +53,6 @@ export const createHarnessCanvasStore = (
       set as Parameters<HarnessCanvasStoreSlice>[0],
       get as Parameters<HarnessCanvasStoreSlice>[1],
     ),
-    operations: ops,
-    recipes: rcps,
-    bestPractices: bps,
-    getOperationById: (id: string) => {
-      return get().operations.find((op) => op.id === id);
-    },
-    getAcceptedOperationsForObject: (objectType: string) => {
-      return get().operations.filter(
-        (op) =>
-          Array.isArray(op.acceptedObjectTypes) &&
-          op.acceptedObjectTypes.includes(
-            objectType as "file" | "folder" | "project",
-          ),
-      );
-    },
   }));
 };
 

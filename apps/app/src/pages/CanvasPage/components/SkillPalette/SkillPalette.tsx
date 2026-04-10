@@ -4,6 +4,7 @@ import {
   type PipelineNode,
   type NodeType,
 } from "../../_store";
+import { Route } from "@/routes/canvas";
 import { cn } from "@repo/ui/lib/utils";
 import {
   Zap,
@@ -86,12 +87,11 @@ const outputItems: NodeTypeItem[] = [
 let nodeCounter = 100;
 
 export const SkillPalette = () => {
+  const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
   const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
   const addNode = useStore(store, (state) => state.addNode);
   const toggleSidebar = useStore(store, (state) => state.toggleSidebar);
-  const recipes = useStore(store, (state) => state.recipes);
-  const operations = useStore(store, (state) => state.operations);
 
   const handleAddRecipe = (recipeId: string) => {
     const recipe = recipes.find((r) => r.id === recipeId);

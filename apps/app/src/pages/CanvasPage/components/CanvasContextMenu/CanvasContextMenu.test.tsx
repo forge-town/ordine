@@ -3,6 +3,17 @@ import { describe, expect, it, vi } from "vitest";
 import { HarnessCanvasStoreProvider } from "../../_store";
 import { CanvasContextMenu } from "./CanvasContextMenu";
 
+vi.mock("@/routes/canvas", () => ({
+  Route: {
+    useLoaderData: () => ({
+      pipeline: null,
+      operations: [],
+      recipes: [],
+      bestPractices: [],
+    }),
+  },
+}));
+
 const wrapper = ({ children }: React.PropsWithChildren) => (
   <HarnessCanvasStoreProvider pipeline={null}>
     {children}

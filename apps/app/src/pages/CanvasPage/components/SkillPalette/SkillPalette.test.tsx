@@ -1,10 +1,23 @@
 import { render } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { HarnessCanvasStoreProvider } from "../../_store";
 import { SkillPalette } from "./SkillPalette";
 
+vi.mock("@/routes/canvas", () => ({
+  Route: {
+    useLoaderData: () => ({
+      pipeline: null,
+      operations: [],
+      recipes: [],
+      bestPractices: [],
+    }),
+  },
+}));
+
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider pipeline={null}>
+    {children}
+  </HarnessCanvasStoreProvider>
 );
 
 describe("SkillPalette", () => {

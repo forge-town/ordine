@@ -4,7 +4,12 @@ import { CanvasPage } from "./CanvasPage";
 
 vi.mock("@/routes/canvas", () => ({
   Route: {
-    useLoaderData: () => ({ pipeline: null, operations: [], recipes: [] }),
+    useLoaderData: () => ({
+      pipeline: null,
+      operations: [],
+      recipes: [],
+      bestPractices: [],
+    }),
   },
 }));
 

@@ -24,14 +24,16 @@ describe("importCanvas store action", () => {
   let store: ReturnType<typeof createHarnessCanvasStore>;
 
   beforeEach(() => {
-    store = createHarnessCanvasStore([], [], null, "", []);
+    store = createHarnessCanvasStore([], [], null, "");
   });
 
   it("sets nodes and edges from imported data", () => {
     const importedNodes = [makeNode("n1"), makeNode("n2")];
     const importedEdges = [makeEdge("e1")];
 
-    store.getState().importCanvas({ nodes: importedNodes, edges: importedEdges });
+    store
+      .getState()
+      .importCanvas({ nodes: importedNodes, edges: importedEdges });
 
     expect(store.getState().nodes).toEqual(importedNodes);
     expect(store.getState().edges).toEqual(importedEdges);
@@ -39,7 +41,7 @@ describe("importCanvas store action", () => {
 
   it("replaces existing canvas content", () => {
     const initialNode = makeNode("old");
-    store = createHarnessCanvasStore([initialNode], [], null, "", []);
+    store = createHarnessCanvasStore([initialNode], [], null, "");
     expect(store.getState().nodes).toHaveLength(1);
 
     store.getState().importCanvas({ nodes: [], edges: [] });
