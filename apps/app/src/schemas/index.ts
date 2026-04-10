@@ -1,4 +1,5 @@
 export * from "./BestPracticeSchema";
+export * from "./ChecklistSchema";
 export * from "./GithubProjectSchema";
 export * from "./JobSchema";
 export * from "./OperationSchema";

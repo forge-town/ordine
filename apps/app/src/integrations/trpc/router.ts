@@ -10,6 +10,7 @@ import { bestPracticesRouter } from "./routers/bestPractices";
 import { githubProjectsRouter } from "./routers/githubProjects";
 import { skillsRouter } from "./routers/skills";
 import { recipesRouter } from "./routers/recipes";
+import { checklistRouter } from "./routers/checklist";
 
 export const appRouter = router({
   filesystem: filesystemRouter,
@@ -23,6 +24,7 @@ export const appRouter = router({
   githubProjects: githubProjectsRouter,
   skills: skillsRouter,
   recipes: recipesRouter,
+  checklist: checklistRouter,
 });
 
 export type AppRouter = typeof appRouter;

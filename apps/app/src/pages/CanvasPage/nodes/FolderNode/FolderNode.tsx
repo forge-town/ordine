@@ -28,9 +28,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const [browserOpen, setBrowserOpen] = useState(false);
   const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
 
-  const excludedPaths: string[] = Array.isArray(data.excludedPaths)
-    ? data.excludedPaths
-    : [];
+  const excludedPaths: string[] = Array.isArray(data.excludedPaths) ? data.excludedPaths : [];
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleFolderPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>

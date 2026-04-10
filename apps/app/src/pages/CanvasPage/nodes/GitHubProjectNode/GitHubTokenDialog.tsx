@@ -1,22 +1,9 @@
 import { useState, useEffect } from "react";
-import {
-  Key,
-  Eye,
-  EyeOff,
-  ExternalLink,
-  AlertCircle,
-  CheckCircle,
-  Loader2,
-} from "lucide-react";
+import { Key, Eye, EyeOff, ExternalLink, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@repo/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import { verifyGitHubToken } from "@/lib/githubApi";
 import { useGithubToken } from "@/hooks/useGithubToken";
 
@@ -26,11 +13,7 @@ interface GitHubTokenDialogProps {
   onTokenSaved?: (token: string | null) => void;
 }
 
-export const GitHubTokenDialog = ({
-  open,
-  onClose,
-  onTokenSaved,
-}: GitHubTokenDialogProps) => {
+export const GitHubTokenDialog = ({ open, onClose, onTokenSaved }: GitHubTokenDialogProps) => {
   const { token: savedToken, setToken } = useGithubToken();
   const [inputValue, setInputValue] = useState(savedToken ?? "");
   const [showToken, setShowToken] = useState(false);
@@ -55,9 +38,7 @@ export const GitHubTokenDialog = ({
     if (result.valid) {
       setVerifiedLogin(result.login);
     } else {
-      const msg = result.error.includes(":")
-        ? result.error.split(":")[1]
-        : result.error;
+      const msg = result.error.includes(":") ? result.error.split(":")[1] : result.error;
       setVerifyError(msg ?? result.error);
     }
   };
@@ -118,9 +99,7 @@ export const GitHubTokenDialog = ({
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <div>
                   <div className="font-medium">未配置 Token</div>
-                  <div className="mt-0.5">
-                    访问私有仓库需要填写 Personal Access Token
-                  </div>
+                  <div className="mt-0.5">访问私有仓库需要填写 Personal Access Token</div>
                 </div>
               </>
             )}
@@ -144,11 +123,7 @@ export const GitHubTokenDialog = ({
                   variant="ghost"
                   onClick={handleToggleShowToken}
                 >
-                  {showToken ? (
-                    <EyeOff className="h-3.5 w-3.5" />
-                  ) : (
-                    <Eye className="h-3.5 w-3.5" />
-                  )}
+                  {showToken ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 </Button>
               </div>
               <Button
@@ -157,11 +132,7 @@ export const GitHubTokenDialog = ({
                 variant="outline"
                 onClick={handleVerify}
               >
-                {verifying ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  "验证"
-                )}
+                {verifying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "验证"}
               </Button>
             </div>
 
@@ -189,8 +160,7 @@ export const GitHubTokenDialog = ({
               rel="noopener noreferrer"
               target="_blank"
             >
-              <ExternalLink className="h-3 w-3" />在 GitHub 创建 Token（需勾选
-              repo 权限）
+              <ExternalLink className="h-3 w-3" />在 GitHub 创建 Token（需勾选 repo 权限）
             </a>
           </div>
 
@@ -210,11 +180,7 @@ export const GitHubTokenDialog = ({
               <Button size="sm" variant="outline" onClick={handleClose}>
                 取消
               </Button>
-              <Button
-                disabled={!inputValue.trim()}
-                size="sm"
-                onClick={handleSave}
-              >
+              <Button disabled={!inputValue.trim()} size="sm" onClick={handleSave}>
                 保存
               </Button>
             </div>

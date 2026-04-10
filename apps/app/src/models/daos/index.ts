@@ -7,3 +7,5 @@ export * from "./jobsDao";
 export * from "./rulesDao";
 export * from "./operationsDao";
 export * from "./recipesDao";
+export * from "./checklistItemsDao";
+export * from "./checklistResultsDao";

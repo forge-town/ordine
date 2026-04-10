@@ -6,5 +6,6 @@ export * from "./bestPracticesService";
 export * from "./jobsService";
 export * from "./rulesService";
 export * from "./operationsService";
+export * from "./checklistService";
 export * from "./filesystemService";
 export * from "./recipesService";
