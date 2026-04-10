@@ -1,35 +1,28 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useStore } from "zustand";
+import { useSettingsStore } from "../../_store";
 import { Field, SaveButton, SectionHeader } from "../../components";
 import { Input } from "@repo/ui/input";
 
-interface SecuritySectionProps {
-  values: {
-    currentPassword: string;
-    newPassword: string;
-    confirmPassword: string;
-  };
-  onChange: (
-    patch: Partial<{
-      currentPassword: string;
-      newPassword: string;
-      confirmPassword: string;
-    }>
-  ) => void;
-  onSave: () => void;
-  saved: boolean;
-}
-
-export const SecuritySection = ({ values, onChange, onSave, saved }: SecuritySectionProps) => {
+export const SecuritySection = () => {
   const { t } = useTranslation();
+  const store = useSettingsStore();
+  const values = useStore(store, (s) => s.security);
+  const updateSection = useStore(store, (s) => s.updateSection);
+  const save = useStore(store, (s) => s.save);
+  const saved = useStore(store, (s) => s.saved);
+  const resetSaved = useStore(store, (s) => s.resetSaved);
   const [error, setError] = useState<string | null>(null);
 
-  const handleCurrentPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    onChange({ currentPassword: e.target.value });
+  const handleCurrentPasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => updateSection("security", { currentPassword: e.target.value });
   const handleNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    onChange({ newPassword: e.target.value });
-  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    onChange({ confirmPassword: e.target.value });
+    updateSection("security", { newPassword: e.target.value });
+  const handleConfirmPasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => updateSection("security", { confirmPassword: e.target.value });
 
   const handleSave = () => {
     setError(null);
@@ -47,7 +40,8 @@ export const SecuritySection = ({ values, onChange, onSave, saved }: SecuritySec
         return;
       }
     }
-    onSave();
+    save();
+    setTimeout(resetSaved, 2000);
   };
 
   return (

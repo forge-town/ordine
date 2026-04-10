@@ -1,24 +1,27 @@
 import { useTranslation } from "react-i18next";
+import { useStore } from "zustand";
+import { useSettingsStore } from "../../_store";
 import { SaveButton, SectionHeader, Toggle } from "../../components";
 
-interface NotificationsSectionProps {
-  values: { pipeline: boolean; mention: boolean; weekly: boolean };
-  onChange: (patch: Partial<{ pipeline: boolean; mention: boolean; weekly: boolean }>) => void;
-  onSave: () => void;
-  saved: boolean;
-}
-
-export const NotificationsSection = ({
-  values,
-  onChange,
-  onSave,
-  saved,
-}: NotificationsSectionProps) => {
+export const NotificationsSection = () => {
   const { t } = useTranslation();
-  const handlePipelineToggle = () => onChange({ pipeline: !values.pipeline });
-  const handleMentionToggle = () => onChange({ mention: !values.mention });
-  const handleWeeklyToggle = () => onChange({ weekly: !values.weekly });
-  const handleSave = onSave;
+  const store = useSettingsStore();
+  const values = useStore(store, (s) => s.notifications);
+  const updateSection = useStore(store, (s) => s.updateSection);
+  const save = useStore(store, (s) => s.save);
+  const saved = useStore(store, (s) => s.saved);
+  const resetSaved = useStore(store, (s) => s.resetSaved);
+
+  const handlePipelineToggle = () =>
+    updateSection("notifications", { pipeline: !values.pipeline });
+  const handleMentionToggle = () =>
+    updateSection("notifications", { mention: !values.mention });
+  const handleWeeklyToggle = () =>
+    updateSection("notifications", { weekly: !values.weekly });
+  const handleSave = () => {
+    save();
+    setTimeout(resetSaved, 2000);
+  };
 
   return (
     <>

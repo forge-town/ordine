@@ -1,23 +1,28 @@
 import { useTranslation } from "react-i18next";
+import { useStore } from "zustand";
+import { useSettingsStore } from "../../_store";
 import { Field, SaveButton, SectionHeader } from "../../components";
 import { Input } from "@repo/ui/input";
 
-interface ProfileSectionProps {
-  values: { displayName: string; email: string; bio: string };
-  onChange: (patch: Partial<{ displayName: string; email: string; bio: string }>) => void;
-  onSave: () => void;
-  saved: boolean;
-}
-
-export const ProfileSection = ({ values, onChange, onSave, saved }: ProfileSectionProps) => {
+export const ProfileSection = () => {
   const { t } = useTranslation();
+  const store = useSettingsStore();
+  const values = useStore(store, (s) => s.profile);
+  const updateSection = useStore(store, (s) => s.updateSection);
+  const save = useStore(store, (s) => s.save);
+  const saved = useStore(store, (s) => s.saved);
+  const resetSaved = useStore(store, (s) => s.resetSaved);
+
   const handleDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    onChange({ displayName: e.target.value });
+    updateSection("profile", { displayName: e.target.value });
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    onChange({ email: e.target.value });
+    updateSection("profile", { email: e.target.value });
   const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    onChange({ bio: e.target.value });
-  const handleSave = onSave;
+    updateSection("profile", { bio: e.target.value });
+  const handleSave = () => {
+    save();
+    setTimeout(resetSaved, 2000);
+  };
 
   return (
     <>
