@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
   ArrowRight,
   FileCode,
@@ -9,6 +8,14 @@ import {
   BookOpen,
 } from "lucide-react";
 import { useStore } from "zustand";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuGroup,
+  ContextMenuLabel,
+  ContextMenuItem,
+  ContextMenuSeparator,
+} from "@repo/ui/context-menu";
 import { SiGitHubIcon } from "../../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../../_store";
 import {
@@ -38,8 +45,6 @@ interface Props {
   flowY: number;
   onClose: () => void;
 }
-
-const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
 export const CanvasContextMenu = ({
   screenX,
@@ -100,17 +105,6 @@ export const CanvasContextMenu = ({
 
   // Determine if in connection mode
   const isConnectMode = connectStart !== null;
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleConnectStart(null);
-        onClose();
-      }
-    };
-    globalThis.addEventListener("keydown", handler);
-    return () => globalThis.removeEventListener("keydown", handler);
-  }, [onClose, handleConnectStart]);
 
   const handleCreateObject = (type: NodeType) => {
     const newId = `${type}-${Date.now()}`;
@@ -251,139 +245,153 @@ export const CanvasContextMenu = ({
     isConnectMode ? availableTypes.includes(t) : true,
   );
 
-  const handleBackdropClick = () => {
-    handleConnectStart(null);
-    onClose();
+  const virtualAnchor = {
+    getBoundingClientRect: () => ({
+      x: left,
+      y: top,
+      width: 0,
+      height: 0,
+      top,
+      right: left,
+      bottom: top,
+      left,
+      toJSON() {
+        return this;
+      },
+    }),
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      handleConnectStart(null);
+      onClose();
+    }
   };
 
   return (
-    <>
-      {/* Invisible backdrop – closes menu on outside click */}
-      <div className="fixed inset-0 z-[999]" onClick={handleBackdropClick} />
-
-      {/* Menu */}
-      <div
-        className="fixed z-[1000] max-h-[80vh] min-w-[200px] overflow-y-auto rounded-xl border bg-popover py-1 shadow-2xl"
-        style={{ left, top }}
-        onClick={handleStopPropagation}
+    <ContextMenu open onOpenChange={handleOpenChange}>
+      <ContextMenuContent
+        align="start"
+        alignOffset={0}
+        anchor={virtualAnchor}
+        className="max-h-[80vh] min-w-50"
+        positionMethod="fixed"
+        side="bottom"
+        sideOffset={0}
       >
         {isConnectMode && sourceNodeInfo ? (
-          <>
-            <div className="flex items-center gap-2 px-3 py-1.5">
-              <span
-                className={cn(
-                  "flex h-4 w-4 shrink-0 items-center justify-center rounded",
-                  nodeTypeMeta[sourceNodeInfo.type].iconBg,
-                )}
-              >
-                {(() => {
-                  const Icon = TYPE_ICONS[sourceNodeInfo.type];
-                  return <Icon className="h-2.5 w-2.5 text-white" />;
-                })()}
-              </span>
-              <ArrowRight className="h-3 w-3 text-muted-foreground" />
-              <span className="text-[10px] font-medium text-muted-foreground">
-                连接到...
-              </span>
-            </div>
-          </>
+          <div className="flex items-center gap-2 px-1.5 py-1.5">
+            <span
+              className={cn(
+                "flex size-4 shrink-0 items-center justify-center rounded",
+                nodeTypeMeta[sourceNodeInfo.type].iconBg,
+              )}
+            >
+              {(() => {
+                const Icon = TYPE_ICONS[sourceNodeInfo.type];
+                return <Icon className="size-2.5 text-white" />;
+              })()}
+            </span>
+            <ArrowRight className="size-3 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">
+              连接到...
+            </span>
+          </div>
         ) : (
-          <p className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <div className="px-1.5 py-1 text-xs font-medium text-muted-foreground">
             新建节点
-          </p>
+          </div>
         )}
 
         {/* Object types group */}
         {visibleObjectTypes.length > 0 && (
-          <div>
-            <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
-              处理对象 (Object)
-            </p>
+          <ContextMenuGroup>
+            <ContextMenuLabel>处理对象 (Object)</ContextMenuLabel>
             {visibleObjectTypes.map((type) => {
               const Icon = TYPE_ICONS[type];
-              const meta = nodeTypeMeta[type];
+              const typeMeta = nodeTypeMeta[type];
               return (
-                <button
+                <ContextMenuItem
                   key={type}
-                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
+                  closeOnClick={false}
                   onClick={() => handleCreateObject(type)}
                 >
                   <span
                     className={cn(
-                      "flex h-5 w-5 shrink-0 items-center justify-center rounded",
-                      meta.iconBg,
+                      "flex size-4 shrink-0 items-center justify-center rounded",
+                      typeMeta.iconBg,
                     )}
                   >
-                    <Icon className="h-3 w-3 text-white" />
+                    <Icon className="size-2.5 text-white" />
                   </span>
-                  <span className="text-xs font-medium">{meta.label}</span>
-                </button>
+                  <span className="text-xs font-medium">{typeMeta.label}</span>
+                </ContextMenuItem>
               );
             })}
-          </div>
+          </ContextMenuGroup>
         )}
 
         {/* Operations group */}
         {canAddOperation && availableOperations.length > 0 && (
-          <div>
-            <div className="my-1 border-t border-border/50" />
-            <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
-              操作节点 (Operation)
-            </p>
-            {availableOperations.map((operation) => (
-              <button
-                key={operation.id}
-                className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
-                onClick={() => handleCreateOperation(operation.id)}
-              >
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-violet-500">
-                  <Zap className="h-3 w-3 text-white" />
-                </span>
-                <span className="text-xs font-medium truncate">
-                  {operation.name}
-                </span>
-              </button>
-            ))}
-          </div>
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuGroup>
+              <ContextMenuLabel>操作节点 (Operation)</ContextMenuLabel>
+              {availableOperations.map((operation) => (
+                <ContextMenuItem
+                  key={operation.id}
+                  closeOnClick={false}
+                  onClick={() => handleCreateOperation(operation.id)}
+                >
+                  <span className="flex size-4 shrink-0 items-center justify-center rounded bg-violet-500">
+                    <Zap className="size-2.5 text-white" />
+                  </span>
+                  <span className="truncate text-xs font-medium">
+                    {operation.name}
+                  </span>
+                </ContextMenuItem>
+              ))}
+            </ContextMenuGroup>
+          </>
         )}
 
         {/* Empty state for operations */}
         {canAddOperation && availableOperations.length === 0 && (
-          <div>
-            <div className="my-1 border-t border-border/50" />
-            <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
-              操作节点 (Operation)
-            </p>
-            <p className="px-3 py-2 text-[10px] text-muted-foreground">
-              没有接受此类型的 Operation
-            </p>
-          </div>
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuGroup>
+              <ContextMenuLabel>操作节点 (Operation)</ContextMenuLabel>
+              <p className="px-1.5 py-1 text-xs text-muted-foreground">
+                没有接受此类型的 Operation
+              </p>
+            </ContextMenuGroup>
+          </>
         )}
 
         {/* Recipes group */}
         {canAddOperation && recipes.length > 0 && (
-          <div>
-            <div className="my-1 border-t border-border/50" />
-            <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
-              快捷配方 (Recipe)
-            </p>
-            {recipes.map((recipe) => (
-              <button
-                key={recipe.id}
-                className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
-                onClick={() => handleCreateRecipe(recipe.id)}
-              >
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-amber-500">
-                  <BookOpen className="h-3 w-3 text-white" />
-                </span>
-                <span className="text-xs font-medium truncate">
-                  {recipe.name}
-                </span>
-              </button>
-            ))}
-          </div>
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuGroup>
+              <ContextMenuLabel>快捷配方 (Recipe)</ContextMenuLabel>
+              {recipes.map((recipe) => (
+                <ContextMenuItem
+                  key={recipe.id}
+                  closeOnClick={false}
+                  onClick={() => handleCreateRecipe(recipe.id)}
+                >
+                  <span className="flex size-4 shrink-0 items-center justify-center rounded bg-amber-500">
+                    <BookOpen className="size-2.5 text-white" />
+                  </span>
+                  <span className="truncate text-xs font-medium">
+                    {recipe.name}
+                  </span>
+                </ContextMenuItem>
+              ))}
+            </ContextMenuGroup>
+          </>
         )}
-      </div>
-    </>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 };

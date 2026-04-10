@@ -8,6 +8,7 @@
     "./badge": "./src/badge.tsx",
     "./button": "./src/button.tsx",
     "./card": "./src/card.tsx",
+    "./context-menu": "./src/context-menu.tsx",
     "./dialog": "./src/dialog.tsx",
     "./dropdown-menu": "./src/dropdown-menu.tsx",
     "./input": "./src/input.tsx",
