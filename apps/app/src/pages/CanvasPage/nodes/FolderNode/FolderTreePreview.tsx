@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Folder, File, Ban, RotateCw } from "lucide-react";
+import { Button } from "@repo/ui/button";
 
 interface DirectoryEntry {
   name: string;
@@ -89,14 +90,16 @@ export const FolderTreePreview = ({
               {entry.name}
             </span>
             {!isExcluded && entry.type === "directory" && (
-              <button
+              <Button
                 aria-label={`排除 ${entry.name}`}
-                className="nodrag nopan opacity-0 group-hover/entry:opacity-100 rounded p-0.5 text-red-400 hover:bg-red-100 hover:text-red-600 transition-all"
+                className="nodrag nopan opacity-0 group-hover/entry:opacity-100 rounded p-0.5 text-red-400 hover:bg-red-100 hover:text-red-600 transition-all h-auto"
+                size="icon-xs"
                 type="button"
+                variant="ghost"
                 onClick={handleExclude}
               >
                 <Ban className="h-2.5 w-2.5" />
-              </button>
+              </Button>
             )}
           </div>
         );

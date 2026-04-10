@@ -3,12 +3,20 @@ import { Handle, Position } from "@xyflow/react";
 import { Link2, Lock, Globe, BookMarked } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type GitHubProjectNodeData } from "../../_store";
+import {
+  useHarnessCanvasStore,
+  type GitHubProjectNodeData,
+} from "../../_store";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
 import { SiGitHubIcon } from "./SiGitHubIcon";
-import { GitHubConnectDialog, type ConnectedRepoInfo } from "./GitHubConnectDialog";
+import {
+  GitHubConnectDialog,
+  type ConnectedRepoInfo,
+} from "./GitHubConnectDialog";
 import { PickProjectDialog, type PickedProject } from "./PickProjectDialog";
+import { Button } from "@repo/ui/button";
+import { Textarea } from "@repo/ui/textarea";
 
 export interface GitHubProjectNodeProps {
   id: string;
@@ -18,7 +26,11 @@ export interface GitHubProjectNodeProps {
 
 const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
-export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps) => {
+export const GitHubProjectNode = ({
+  id,
+  data,
+  selected,
+}: GitHubProjectNodeProps) => {
   const { t } = useTranslation();
   const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
@@ -54,7 +66,9 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
     });
   };
 
-  const repoUrl = isConnected ? `https://github.com/${data.owner}/${data.repo}` : undefined;
+  const repoUrl = isConnected
+    ? `https://github.com/${data.owner}/${data.repo}`
+    : undefined;
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -101,29 +115,31 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
           </div>
         ) : (
           <div className="space-y-1.5" onMouseDown={handleMouseDown}>
-            <button
-              className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-orange-200 bg-orange-50 py-1.5 text-[11px] font-medium text-orange-700 hover:bg-orange-100 transition-colors"
+            <Button
+              className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-orange-200 bg-orange-50 py-1.5 text-[11px] font-medium text-orange-700 hover:bg-orange-100 transition-colors h-auto"
               type="button"
+              variant="ghost"
               onClick={handlePickOpen}
             >
               <BookMarked className="h-3.5 w-3.5" />
               {t("canvas.pickFromLibrary")}
-            </button>
-            <button
-              className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-slate-200 bg-slate-50/50 py-1.5 text-[11px] text-slate-500 hover:bg-slate-100 transition-colors"
+            </Button>
+            <Button
+              className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-slate-200 bg-slate-50/50 py-1.5 text-[11px] text-slate-500 hover:bg-slate-100 transition-colors h-auto"
               type="button"
+              variant="ghost"
               onClick={handleConnectOpen}
             >
               <Link2 className="h-3 w-3" />
               {t("canvas.enterUrlDirectly")}
-            </button>
+            </Button>
           </div>
         )}
 
         {/* Description */}
         {isConnected && (
-          <textarea
-            className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
+          <Textarea
+            className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1 border-none shadow-none min-h-0 p-0"
             placeholder={t("canvas.repoDescPlaceholder")}
             rows={2}
             value={data.description ?? ""}
@@ -154,7 +170,11 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         type="source"
       />
 
-      <PickProjectDialog open={pickOpen} onClose={handlePickClose} onPick={handlePick} />
+      <PickProjectDialog
+        open={pickOpen}
+        onClose={handlePickClose}
+        onPick={handlePick}
+      />
 
       <GitHubConnectDialog
         initialUrl={

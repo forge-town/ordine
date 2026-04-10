@@ -1,9 +1,14 @@
 import { Handle, Position } from "@xyflow/react";
 import { FolderOutput } from "lucide-react";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type OutputProjectPathNodeData } from "../../_store";
+import {
+  useHarnessCanvasStore,
+  type OutputProjectPathNodeData,
+} from "../../_store";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
+import { Input } from "@repo/ui/input";
+import { Textarea } from "@repo/ui/textarea";
 
 export interface OutputProjectPathNodeProps {
   id: string;
@@ -13,7 +18,11 @@ export interface OutputProjectPathNodeProps {
 
 const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
-export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathNodeProps) => {
+export const OutputProjectPathNode = ({
+  id,
+  data,
+  selected,
+}: OutputProjectPathNodeProps) => {
   const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
@@ -42,9 +51,11 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
       >
         <div className="space-y-1.5">
           <div className="flex items-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-2.5 py-1">
-            <span className="shrink-0 text-[10px] font-medium text-slate-400">项目 ID</span>
-            <input
-              className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] text-slate-700 focus:outline-none"
+            <span className="shrink-0 text-[10px] font-medium text-slate-400">
+              项目 ID
+            </span>
+            <Input
+              className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] text-slate-700 focus:outline-none border-none shadow-none p-0 h-auto"
               placeholder="project-id"
               value={data.projectId ?? ""}
               onChange={handleProjectIdChange}
@@ -52,9 +63,11 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
             />
           </div>
           <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2.5 py-1">
-            <span className="shrink-0 text-[10px] font-medium text-teal-500">路径</span>
-            <input
-              className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
+            <span className="shrink-0 text-[10px] font-medium text-teal-500">
+              路径
+            </span>
+            <Input
+              className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none border-none shadow-none p-0 h-auto"
               placeholder="src/output/"
               value={data.path}
               onChange={handlePathChange}
@@ -62,8 +75,8 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
             />
           </div>
         </div>
-        <textarea
-          className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
+        <Textarea
+          className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1 border-none shadow-none min-h-0 p-0"
           placeholder="描述此输出..."
           rows={2}
           value={data.description ?? ""}

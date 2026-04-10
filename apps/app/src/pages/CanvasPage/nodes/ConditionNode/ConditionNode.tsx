@@ -1,10 +1,18 @@
 import { Handle, Position } from "@xyflow/react";
-import { ShieldCheck, CheckCircle2, XCircle, Loader2, Circle } from "lucide-react";
+import {
+  ShieldCheck,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Circle,
+} from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore, type NodeRunStatus } from "../../_store";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
+import { Input } from "@repo/ui/input";
+import { Textarea } from "@repo/ui/textarea";
 
 // Local type definition for legacy condition node
 interface ConditionNodeData {
@@ -61,7 +69,9 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
         headerRight={
           <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-white border border-slate-100 shadow-sm px-2 py-1">
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
+            <span
+              className={cn("text-[10px] font-semibold tracking-wide", color)}
+            >
               {statusLabel}
             </span>
           </div>
@@ -77,8 +87,8 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Expression
           </p>
-          <textarea
-            className="nodrag nopan font-mono text-[11px] text-slate-700 bg-slate-50 rounded px-1 py-0.5 w-full resize-none focus:outline-none focus:ring-1 focus:ring-slate-200"
+          <Textarea
+            className="nodrag nopan font-mono text-[11px] text-slate-700 bg-slate-50 rounded px-1 py-0.5 w-full resize-none focus:outline-none focus:ring-1 focus:ring-slate-200 border-none shadow-none min-h-0"
             placeholder="未设置表达式"
             rows={2}
             value={data.expression}
@@ -90,8 +100,8 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Expected
           </p>
-          <input
-            className="nodrag nopan text-[11px] font-medium text-slate-600 bg-slate-50 rounded px-1 py-0.5 w-full focus:outline-none focus:ring-1 focus:ring-slate-200"
+          <Input
+            className="nodrag nopan text-[11px] font-medium text-slate-600 bg-slate-50 rounded px-1 py-0.5 w-full focus:outline-none focus:ring-1 focus:ring-slate-200 border-none shadow-none h-auto"
             placeholder="期望结果..."
             value={data.expectedResult}
             onChange={handleExpectedResultChange}
