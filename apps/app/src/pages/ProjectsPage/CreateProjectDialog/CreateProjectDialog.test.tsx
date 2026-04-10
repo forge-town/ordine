@@ -11,7 +11,7 @@ vi.mock("@/hooks/useGithubToken", () => ({
   useGithubToken: () => ({ token: null }),
 }));
 
-vi.mock("@/pages/CanvasPage/nodes/GitHubProjectNode/GitHubTokenDialog", () => ({
+vi.mock("@/pages/CanvasPage/GitHubProjectNode/GitHubTokenDialog", () => ({
   GitHubTokenDialog: () => <div data-testid="token-dialog" />,
 }));
 

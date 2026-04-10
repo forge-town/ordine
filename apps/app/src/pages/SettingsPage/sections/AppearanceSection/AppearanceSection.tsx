@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useSettingsStore } from "../../_store";
-import { Field, SaveButton, SectionHeader } from "../../components";
+import { Field } from "../../Field";
+import { SaveButton } from "../../SaveButton";
+import { SectionHeader } from "../../SectionHeader";
 import { cn } from "@repo/ui/lib/utils";
 
 export const AppearanceSection = () => {

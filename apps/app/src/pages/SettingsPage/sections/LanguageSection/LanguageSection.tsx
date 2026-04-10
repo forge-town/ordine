@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useSettingsStore } from "../../_store";
-import { Field, SaveButton, SectionHeader } from "../../components";
+import { Field } from "../../Field";
+import { SaveButton } from "../../SaveButton";
+import { SectionHeader } from "../../SectionHeader";
 import {
   Select,
   SelectContent,
@@ -47,10 +49,7 @@ export const LanguageSection = () => {
 
   return (
     <>
-      <SectionHeader
-        description={t("settings.selectLanguage")}
-        title={t("settings.language")}
-      />
+      <SectionHeader description={t("settings.selectLanguage")} title={t("settings.language")} />
       <Field label={t("settings.language")}>
         <Select
           open={languageOpen}
@@ -84,9 +83,7 @@ export const LanguageSection = () => {
             <SelectGroup>
               <SelectItem value="Asia/Shanghai">亚洲 / 上海 (UTC+8)</SelectItem>
               <SelectItem value="UTC">UTC</SelectItem>
-              <SelectItem value="America/New_York">
-                美洲 / 纽约 (UTC-5)
-              </SelectItem>
+              <SelectItem value="America/New_York">美洲 / 纽约 (UTC-5)</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>

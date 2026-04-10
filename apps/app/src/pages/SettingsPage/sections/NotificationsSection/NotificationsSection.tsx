@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useSettingsStore } from "../../_store";
-import { SaveButton, SectionHeader, Toggle } from "../../components";
+import { SaveButton } from "../../SaveButton";
+import { SectionHeader } from "../../SectionHeader";
+import { Toggle } from "../../Toggle";
 
 export const NotificationsSection = () => {
   const { t } = useTranslation();

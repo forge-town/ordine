@@ -3,7 +3,7 @@ import { GitBranch, X, Link2, Loader2, AlertCircle, Key, Lock, Globe } from "luc
 import { useTranslation } from "react-i18next";
 import { parseGitHubUrl, fetchRepoInfo, type GitHubRepoInfo } from "@/lib/githubApi";
 import { useGithubToken } from "@/hooks/useGithubToken";
-import { GitHubTokenDialog } from "@/pages/CanvasPage/nodes/GitHubProjectNode/GitHubTokenDialog";
+import { GitHubTokenDialog } from "@/pages/CanvasPage/GitHubProjectNode/GitHubTokenDialog";
 import { createGithubProject } from "@/services/githubProjectsService";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 import { cn } from "@repo/ui/lib/utils";

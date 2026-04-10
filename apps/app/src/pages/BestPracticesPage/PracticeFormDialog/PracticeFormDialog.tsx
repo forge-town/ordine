@@ -15,19 +15,9 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@repo/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
-import {
-  createBestPractice,
-  updateBestPractice,
-} from "@/services/bestPracticesService";
+import { createBestPractice, updateBestPractice } from "@/services/bestPracticesService";
 import { CATEGORIES, LANGUAGES } from "../constants";
 
 const formSchema = z.object({
@@ -48,11 +38,7 @@ export type PracticeFormDialogProps = {
   onSave: (p: BestPracticeEntity) => void;
 };
 
-export const PracticeFormDialog = ({
-  initial,
-  onClose,
-  onSave,
-}: PracticeFormDialogProps) => {
+export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDialogProps) => {
   const { t } = useTranslation();
   const handleClose = onClose;
   const form = useForm<FormValues>({
@@ -122,24 +108,14 @@ export const PracticeFormDialog = ({
       <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl bg-card shadow-xl">
         <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
           <h2 className="text-sm font-semibold text-foreground">
-            {initial
-              ? t("bestPractices.editTitle")
-              : t("bestPractices.createTitle")}
+            {initial ? t("bestPractices.editTitle") : t("bestPractices.createTitle")}
           </h2>
-          <Button
-            className="h-7 w-7"
-            size="icon"
-            variant="ghost"
-            onClick={handleClose}
-          >
+          <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleClose}>
             <X className="h-4 w-4 text-muted-foreground" />
           </Button>
         </div>
         <Form {...form}>
-          <form
-            className="space-y-4 overflow-y-auto p-5"
-            onSubmit={form.handleSubmit(onSubmit)}
-          >
+          <form className="space-y-4 overflow-y-auto p-5" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="title"
@@ -149,10 +125,7 @@ export const PracticeFormDialog = ({
                     {t("bestPractices.titleLabel")}
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={t("bestPractices.titlePlaceholder")}
-                      {...field}
-                    />
+                    <Input placeholder={t("bestPractices.titlePlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -222,21 +195,16 @@ export const PracticeFormDialog = ({
                           onOpenChange={handleCategoryOpenChange}
                           onValueChange={handleChange}
                         >
-                          <SelectTrigger
-                            className="w-full"
-                            onClick={handleCategoryToggle}
-                          >
+                          <SelectTrigger className="w-full" onClick={handleCategoryToggle}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
-                              {CATEGORIES.filter((c) => c.value !== "all").map(
-                                (c) => (
-                                  <SelectItem key={c.value} value={c.value}>
-                                    {c.label}
-                                  </SelectItem>
-                                ),
-                              )}
+                              {CATEGORIES.filter((c) => c.value !== "all").map((c) => (
+                                <SelectItem key={c.value} value={c.value}>
+                                  {c.label}
+                                </SelectItem>
+                              ))}
                             </SelectGroup>
                           </SelectContent>
                         </Select>
@@ -266,10 +234,7 @@ export const PracticeFormDialog = ({
                           onOpenChange={handleLanguageOpenChange}
                           onValueChange={handleChange}
                         >
-                          <SelectTrigger
-                            className="w-full"
-                            onClick={handleLanguageToggle}
-                          >
+                          <SelectTrigger className="w-full" onClick={handleLanguageToggle}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -333,9 +298,7 @@ export const PracticeFormDialog = ({
                 {t("common.cancel")}
               </Button>
               <Button disabled={form.formState.isSubmitting} type="submit">
-                {form.formState.isSubmitting
-                  ? t("common.saving")
-                  : t("common.save")}
+                {form.formState.isSubmitting ? t("common.saving") : t("common.save")}
               </Button>
             </div>
           </form>

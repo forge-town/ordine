@@ -33,11 +33,9 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
   const [form, setForm] = useState<RuleFormState>(initial ?? emptyForm());
   const [saving, setSaving] = useState(false);
 
-  const set = (k: keyof RuleFormState, v: string) =>
-    setForm((prev) => ({ ...prev, [k]: v }));
+  const set = (k: keyof RuleFormState, v: string) => setForm((prev) => ({ ...prev, [k]: v }));
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    set("name", e.target.value);
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => set("name", e.target.value);
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     set("description", e.target.value);
   const handleCategoryChange = (value: string | null) => {
@@ -58,8 +56,7 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
   const handleSeverityToggle = () => setSeverityOpen((prev) => !prev);
   const handlePatternChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     set("pattern", e.target.value);
-  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    set("tags", e.target.value);
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => set("tags", e.target.value);
   const handleCancel = onCancel;
 
   const handleSave = async () => {
@@ -154,11 +151,7 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
           <X className="h-3.5 w-3.5" />
           {t("common.cancel")}
         </Button>
-        <Button
-          disabled={!form.name.trim() || saving}
-          size="sm"
-          onClick={handleSave}
-        >
+        <Button disabled={!form.name.trim() || saving} size="sm" onClick={handleSave}>
           <Check className="h-3.5 w-3.5" />
           {saving ? t("common.saving") : t("common.save")}
         </Button>

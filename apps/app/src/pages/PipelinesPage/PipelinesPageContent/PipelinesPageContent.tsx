@@ -6,7 +6,7 @@ import { Button } from "@repo/ui/button";
 import { Route } from "@/routes/_layout/pipelines.index";
 import { createPipeline, deletePipeline } from "@/services/pipelinesService";
 import type { StoredPipeline } from "@/models/daos/pipelinesDao";
-import { PipelineCard } from "../components/PipelineCard";
+import { PipelineCard } from "../PipelineCard";
 
 export const PipelinesPageContent = () => {
   const { t } = useTranslation();
