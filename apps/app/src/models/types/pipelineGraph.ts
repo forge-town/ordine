@@ -40,12 +40,14 @@ export interface FolderNodeData {
 export interface GitHubProjectNodeData {
   label: string;
   nodeType: "github-project";
+  sourceType?: "github" | "local";
   owner: string;
   repo: string;
   branch?: string;
   description?: string;
   isPrivate?: boolean;
   githubProjectId?: string;
+  localPath?: string;
 }
 
 export interface OperationNodeData {
@@ -70,7 +72,11 @@ export interface OutputProjectPathNodeData {
   description?: string;
 }
 
-export const OUTPUT_MODES = ["overwrite", "error_if_exists", "auto_rename"] as const;
+export const OUTPUT_MODES = [
+  "overwrite",
+  "error_if_exists",
+  "auto_rename",
+] as const;
 export type OutputMode = (typeof OUTPUT_MODES)[number];
 
 export interface OutputLocalPathNodeData {

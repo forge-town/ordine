@@ -187,7 +187,14 @@
     "repoDescPlaceholder": "Repository description...",
     "viewOnGitHub": "View on GitHub",
     "pickRepoTitle": "Pick a repo from library",
-    "searchRepo": "Search repos..."
+    "searchRepo": "Search repos...",
+    "pickLocalFolder": "Pick Local Folder",
+    "pickLocalFolderDesc": "Enter or browse a local project folder path",
+    "browseFolder": "Browse folder",
+    "useThisFolder": "Use this folder",
+    "selectLocalFolder": "Select local folder",
+    "localFolderPath": "Local path",
+    "clickToSwitchLocalFolder": "Click to switch local folder"
   },
   "projects": {
     "title": "GitHub Projects",

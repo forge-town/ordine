@@ -188,7 +188,14 @@
     "repoDescPlaceholder": "仓库描述...",
     "viewOnGitHub": "在 GitHub 查看",
     "pickRepoTitle": "从项目库选取仓库",
-    "searchRepo": "搜索仓库..."
+    "searchRepo": "搜索仓库...",
+    "pickLocalFolder": "选择本地文件夹",
+    "pickLocalFolderDesc": "输入或浏览本地项目文件夹路径",
+    "browseFolder": "浏览文件夹",
+    "useThisFolder": "使用此文件夹",
+    "selectLocalFolder": "选择本地文件夹",
+    "localFolderPath": "本地路径",
+    "clickToSwitchLocalFolder": "点击切换本地文件夹"
   },
   "projects": {
     "title": "GitHub 项目",
