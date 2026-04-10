@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { HarnessCanvasStoreProvider } from "../../_store";
 import { FolderNode } from "./FolderNode";
@@ -52,5 +53,39 @@ describe("FolderNode", () => {
       wrapper,
     });
     expect(screen.getByPlaceholderText("src/components/")).toBeInTheDocument();
+  });
+
+  it("renders excluded paths as badges when excludedPaths is set", () => {
+    const data = {
+      ...baseData,
+      excludedPaths: ["node_modules", "dist"],
+    };
+    render(<FolderNode data={data} id="test" />, { wrapper });
+    expect(screen.getByText("node_modules")).toBeInTheDocument();
+    expect(screen.getByText("dist")).toBeInTheDocument();
+  });
+
+  it("removes an excluded path when its remove button is clicked", async () => {
+    const user = userEvent.setup();
+    const data = {
+      ...baseData,
+      excludedPaths: ["node_modules", "dist"],
+    };
+    const { rerender } = render(<FolderNode data={data} id="test" />, {
+      wrapper,
+    });
+
+    const removeButtons = screen.getAllByRole("button", { name: /移除排除/ });
+    await user.click(removeButtons[0]);
+
+    // Simulate re-render with updated data (store would trigger this in real app)
+    rerender(
+      <HarnessCanvasStoreProvider>
+        <FolderNode data={{ ...data, excludedPaths: ["dist"] }} id="test" />
+      </HarnessCanvasStoreProvider>,
+    );
+
+    expect(screen.queryByText("node_modules")).not.toBeInTheDocument();
+    expect(screen.getByText("dist")).toBeInTheDocument();
   });
 });

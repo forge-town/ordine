@@ -51,6 +51,7 @@ export const FolderNodeDataSchema = z.object({
   label: z.string(),
   nodeType: z.literal("folder"),
   folderPath: z.string(),
+  excludedPaths: z.array(z.string()).optional(),
   description: z.string().optional(),
 });
 

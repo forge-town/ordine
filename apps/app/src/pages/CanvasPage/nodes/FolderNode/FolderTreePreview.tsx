@@ -1,0 +1,105 @@
+import { useEffect, useState } from "react";
+import { Folder, File, Ban, RotateCw } from "lucide-react";
+
+interface DirectoryEntry {
+  name: string;
+  type: "file" | "directory";
+  path: string;
+}
+
+interface FolderTreePreviewProps {
+  folderPath: string;
+  excludedPaths: string[];
+  onExclude: (relativePath: string) => void;
+}
+
+const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
+
+export const FolderTreePreview = ({
+  folderPath,
+  excludedPaths,
+  onExclude,
+}: FolderTreePreviewProps) => {
+  const [entries, setEntries] = useState<DirectoryEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!folderPath) return;
+
+    let cancelled = false;
+    setLoading(true);
+
+    fetch(`/api/filesystem/tree?path=${encodeURIComponent(folderPath)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch");
+        return res.json() as Promise<DirectoryEntry[]>;
+      })
+      .then((data) => {
+        if (!cancelled) setEntries(data);
+      })
+      .catch(() => {
+        if (!cancelled) setEntries([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [folderPath]);
+
+  if (!folderPath) return null;
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-1 px-1 py-1 text-[10px] text-slate-400">
+        <RotateCw className="h-3 w-3 animate-spin" />
+        加载中…
+      </div>
+    );
+  }
+
+  if (entries.length === 0) return null;
+
+  return (
+    <div
+      className="nodrag nopan max-h-32 overflow-y-auto rounded-md border border-slate-100 bg-slate-50/50 px-1 py-0.5"
+      onMouseDown={handleStopPropagation}
+    >
+      {entries.map((entry) => {
+        const isExcluded = excludedPaths.includes(entry.name);
+        return (
+          <div
+            key={entry.name}
+            className="group/entry flex items-center gap-1 rounded px-1 py-0.5 text-[10px] hover:bg-slate-100 transition-colors"
+            data-excluded={isExcluded}
+          >
+            {entry.type === "directory" ? (
+              <Folder className="h-3 w-3 shrink-0 text-orange-400" />
+            ) : (
+              <File className="h-3 w-3 shrink-0 text-slate-400" />
+            )}
+            <span
+              className={`flex-1 truncate font-mono ${
+                isExcluded ? "line-through text-slate-400" : "text-slate-600"
+              }`}
+            >
+              {entry.name}
+            </span>
+            {!isExcluded && entry.type === "directory" && (
+              <button
+                aria-label={`排除 ${entry.name}`}
+                className="nodrag nopan opacity-0 group-hover/entry:opacity-100 rounded p-0.5 text-red-400 hover:bg-red-100 hover:text-red-600 transition-all"
+                type="button"
+                onClick={() => onExclude(entry.name)}
+              >
+                <Ban className="h-2.5 w-2.5" />
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};

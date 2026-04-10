@@ -12,7 +12,7 @@
 
 import { exec, execSync } from "node:child_process";
 import { promisify } from "node:util";
-import { readFile, mkdir, writeFile, readdir, rm } from "node:fs/promises";
+import { readFile, mkdir, writeFile, rm } from "node:fs/promises";
 import { existsSync, statSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -34,6 +34,7 @@ import { jobsDao } from "@/models/daos/jobsDao";
 import { skillsDao } from "@/models/daos/skillsDao";
 import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
 import type { ExecutorConfig } from "@/pages/OperationDetailPage/types";
+import { listDirTree } from "@/services/filesystemService";
 
 const execAsync = promisify(exec);
 
@@ -76,6 +77,7 @@ const getLlmModel = async (override?: LlmOverride) => {
 interface NodeData {
   nodeType?: string;
   folderPath?: string;
+  excludedPaths?: string[];
   filePath?: string;
   localPath?: string;
   operationId?: string;
@@ -334,27 +336,7 @@ const cloneGitHubRepo = (
   );
 };
 
-const listDirTree = async (
-  dir: string,
-  prefix = "",
-  depth = 0,
-): Promise<string> => {
-  if (depth > 3) return `${prefix}...\n`;
-  const entries = await readdir(dir, { withFileTypes: true });
-  const filtered = entries.filter((e) => e.name !== ".git");
-  const lines: string[] = [];
-  for (const entry of filtered) {
-    if (entry.isDirectory()) {
-      lines.push(`${prefix}${entry.name}/`);
-      lines.push(
-        await listDirTree(join(dir, entry.name), `${prefix}  `, depth + 1),
-      );
-    } else {
-      lines.push(`${prefix}${entry.name}`);
-    }
-  }
-  return lines.join("\n");
-};
+// listDirTree is now imported from filesystemService
 
 // ─── skill executor helper ────────────────────────────────────────────────────
 
@@ -503,9 +485,12 @@ const executePipeline = async (opts: {
     // ── Input nodes ──────────────────────────────────────────────────────
     if (node.type === "folder") {
       const p = data.folderPath ?? "";
+      const excludedPaths: string[] = Array.isArray(data.excludedPaths)
+        ? data.excludedPaths
+        : [];
       if (p && existsSync(p)) {
         inputPath = p;
-        const tree = await listDirTree(p);
+        const tree = await listDirTree(p, { excludedPaths });
         currentContent = `Folder: ${p}\n\nFile tree:\n${tree}`;
         await log(
           `Input folder: ${p} (tree: ${tree.split("\n").length} entries)`,

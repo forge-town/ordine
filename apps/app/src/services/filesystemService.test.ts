@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { listDirectory } from "./filesystemService";
+import { listDirectory, listDirTree } from "./filesystemService";
 import { mkdtemp, writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -75,6 +75,80 @@ describe("filesystemService", () => {
       expect(result.isErr()).toBe(true);
       const error = result._unsafeUnwrapErr();
       expect(error.type).toBe("NotADirectory");
+    });
+  });
+
+  describe("listDirTree", () => {
+    let treeDir: string;
+
+    beforeEach(async () => {
+      treeDir = await mkdtemp(join(tmpdir(), "tree-test-"));
+      // Create structure:
+      // treeDir/
+      //   src/
+      //     index.ts
+      //     utils/
+      //       helper.ts
+      //   node_modules/
+      //     pkg/
+      //       index.js
+      //   .git/
+      //     HEAD
+      //   README.md
+      await mkdir(join(treeDir, "src", "utils"), { recursive: true });
+      await mkdir(join(treeDir, "node_modules", "pkg"), { recursive: true });
+      await mkdir(join(treeDir, ".git"), { recursive: true });
+      await writeFile(join(treeDir, "src", "index.ts"), "");
+      await writeFile(join(treeDir, "src", "utils", "helper.ts"), "");
+      await writeFile(join(treeDir, "node_modules", "pkg", "index.js"), "");
+      await writeFile(join(treeDir, ".git", "HEAD"), "");
+      await writeFile(join(treeDir, "README.md"), "");
+    });
+
+    afterEach(async () => {
+      await rm(treeDir, { recursive: true, force: true });
+    });
+
+    it("generates tree string excluding .git by default", async () => {
+      const tree = await listDirTree(treeDir);
+      expect(tree).toContain("src/");
+      expect(tree).toContain("node_modules/");
+      expect(tree).toContain("README.md");
+      expect(tree).not.toContain(".git");
+    });
+
+    it("excludes paths listed in excludedPaths", async () => {
+      const tree = await listDirTree(treeDir, {
+        excludedPaths: ["node_modules"],
+      });
+      expect(tree).toContain("src/");
+      expect(tree).toContain("README.md");
+      expect(tree).not.toContain("node_modules");
+    });
+
+    it("excludes multiple paths", async () => {
+      const tree = await listDirTree(treeDir, {
+        excludedPaths: ["node_modules", "src/utils"],
+      });
+      expect(tree).toContain("src/");
+      expect(tree).toContain("index.ts");
+      expect(tree).not.toContain("node_modules");
+      expect(tree).not.toContain("utils");
+      expect(tree).not.toContain("helper.ts");
+    });
+
+    it("respects maxDepth option", async () => {
+      const tree = await listDirTree(treeDir, { maxDepth: 1 });
+      expect(tree).toContain("src/");
+      expect(tree).toContain("node_modules/");
+      // depth 1 should not show contents of subdirs
+      expect(tree).not.toContain("index.ts");
+      expect(tree).not.toContain("helper.ts");
+    });
+
+    it("returns empty string for non-existent directory", async () => {
+      const tree = await listDirTree("/nonexistent-abc-123");
+      expect(tree).toBe("");
     });
   });
 });

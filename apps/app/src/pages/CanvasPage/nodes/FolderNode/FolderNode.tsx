@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { Folder, FolderOpen } from "lucide-react";
+import { Folder, FolderOpen, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore, type FolderNodeData } from "../../_store";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
+import { FolderTreePreview } from "./FolderTreePreview";
 
 export interface FolderNodeProps {
   id: string;
@@ -23,6 +24,10 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const [browserOpen, setBrowserOpen] = useState(false);
   const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
+
+  const excludedPaths: string[] = Array.isArray(data.excludedPaths)
+    ? data.excludedPaths
+    : [];
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleFolderPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -41,6 +46,16 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
 
   const handleBrowserOpenChange = (open: boolean) => {
     setBrowserOpen(open);
+  };
+
+  const handleRemoveExcluded = (path: string) => {
+    update({ excludedPaths: excludedPaths.filter((p) => p !== path) });
+  };
+
+  const handleAddExcluded = (path: string) => {
+    if (!excludedPaths.includes(path)) {
+      update({ excludedPaths: [...excludedPaths, path] });
+    }
   };
 
   return (
@@ -76,6 +91,35 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
             <FolderOpen className="h-3.5 w-3.5" />
           </button>
         </div>
+
+        {excludedPaths.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {excludedPaths.map((ep) => (
+              <span
+                key={ep}
+                className="inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-red-200"
+              >
+                {ep}
+                <button
+                  aria-label={`移除排除 ${ep}`}
+                  className="nodrag nopan rounded-sm p-0 hover:bg-red-200 transition-colors"
+                  type="button"
+                  onClick={() => handleRemoveExcluded(ep)}
+                  onMouseDown={handleStopPropagation}
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        <FolderTreePreview
+          excludedPaths={excludedPaths}
+          folderPath={data.folderPath}
+          onExclude={handleAddExcluded}
+        />
+
         <textarea
           className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
           placeholder={t("canvas.folderDescPlaceholder")}
