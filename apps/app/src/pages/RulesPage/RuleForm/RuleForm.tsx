@@ -33,18 +33,33 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
   const [form, setForm] = useState<RuleFormState>(initial ?? emptyForm());
   const [saving, setSaving] = useState(false);
 
-  const set = (k: keyof RuleFormState, v: string) => setForm((prev) => ({ ...prev, [k]: v }));
+  const set = (k: keyof RuleFormState, v: string) =>
+    setForm((prev) => ({ ...prev, [k]: v }));
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => set("name", e.target.value);
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    set("name", e.target.value);
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     set("description", e.target.value);
-  const handleCategoryChange = (value: string | null) =>
+  const handleCategoryChange = (value: string | null) => {
     set("category", (value ?? form.category) as RuleCategory);
-  const handleSeverityChange = (value: string | null) =>
+    setCategoryOpen(false);
+  };
+  const handleSeverityChange = (value: string | null) => {
     set("severity", (value ?? form.severity) as RuleSeverity);
+    setSeverityOpen(false);
+  };
+
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const handleCategoryOpenChange = (v: boolean) => setCategoryOpen(v);
+  const handleCategoryToggle = () => setCategoryOpen((prev) => !prev);
+
+  const [severityOpen, setSeverityOpen] = useState(false);
+  const handleSeverityOpenChange = (v: boolean) => setSeverityOpen(v);
+  const handleSeverityToggle = () => setSeverityOpen((prev) => !prev);
   const handlePatternChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     set("pattern", e.target.value);
-  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => set("tags", e.target.value);
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    set("tags", e.target.value);
   const handleCancel = onCancel;
 
   const handleSave = async () => {
@@ -75,8 +90,13 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
           <label className="mb-1 block text-[11px] text-muted-foreground">
             {t("common.category")}
           </label>
-          <Select value={form.category} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-full">
+          <Select
+            open={categoryOpen}
+            value={form.category}
+            onOpenChange={handleCategoryOpenChange}
+            onValueChange={handleCategoryChange}
+          >
+            <SelectTrigger className="w-full" onClick={handleCategoryToggle}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -94,8 +114,13 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
           <label className="mb-1 block text-[11px] text-muted-foreground">
             {t("rules.severity")}
           </label>
-          <Select value={form.severity} onValueChange={handleSeverityChange}>
-            <SelectTrigger className="w-full">
+          <Select
+            open={severityOpen}
+            value={form.severity}
+            onOpenChange={handleSeverityOpenChange}
+            onValueChange={handleSeverityChange}
+          >
+            <SelectTrigger className="w-full" onClick={handleSeverityToggle}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -129,7 +154,11 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
           <X className="h-3.5 w-3.5" />
           {t("common.cancel")}
         </Button>
-        <Button disabled={!form.name.trim() || saving} size="sm" onClick={handleSave}>
+        <Button
+          disabled={!form.name.trim() || saving}
+          size="sm"
+          onClick={handleSave}
+        >
           <Check className="h-3.5 w-3.5" />
           {saving ? t("common.saving") : t("common.save")}
         </Button>

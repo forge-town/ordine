@@ -32,7 +32,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@repo/ui/form";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import type { ChecklistItemEntity } from "@/models/daos/checklistItemsDao";
 import { updateBestPractice } from "@/services/bestPracticesService";
@@ -42,7 +49,14 @@ import {
   deleteChecklistItem,
 } from "@/services/checklistService";
 import { CATEGORIES, LANGUAGES } from "@/pages/BestPracticesPage/constants";
-import { toJson, fromJson, toCsv, fromCsv, downloadFile, readFileContent } from "../checklistIO";
+import {
+  toJson,
+  fromJson,
+  toCsv,
+  fromCsv,
+  downloadFile,
+  readFileContent,
+} from "../checklistIO";
 
 const editFormSchema = z.object({
   title: z.string().min(1, "标题不能为空"),
@@ -91,7 +105,7 @@ export const BestPracticeEditPageContent = ({
       isNew: false,
       isDeleted: false,
       isDirty: false,
-    }))
+    })),
   );
 
   const form = useForm<EditFormValues>({
@@ -113,6 +127,14 @@ export const BestPracticeEditPageContent = ({
       params: { bestPracticeId: bestPractice.id },
     });
   };
+
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const handleCategoryOpenChange = (v: boolean) => setCategoryOpen(v);
+  const handleCategoryToggle = () => setCategoryOpen((prev) => !prev);
+
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const handleLanguageOpenChange = (v: boolean) => setLanguageOpen(v);
+  const handleLanguageToggle = () => setLanguageOpen((prev) => !prev);
 
   const handleAddChecklistItem = () => {
     setItems((prev) => [
@@ -137,15 +159,21 @@ export const BestPracticeEditPageContent = ({
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number
+    value: string | number,
   ) => {
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item))
+      prev.map((item) =>
+        item.id === id ? { ...item, [field]: value, isDirty: true } : item,
+      ),
     );
   };
 
   const handleDeleteChecklistItem = (id: string) => {
-    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, isDeleted: true } : item)));
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, isDeleted: true } : item,
+      ),
+    );
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -158,7 +186,11 @@ export const BestPracticeEditPageContent = ({
       script: item.checkType === "script" ? item.script || null : null,
       sortOrder: item.sortOrder,
     }));
-    downloadFile(toJson(exportItems), `checklist-${bestPractice.id}.json`, "application/json");
+    downloadFile(
+      toJson(exportItems),
+      `checklist-${bestPractice.id}.json`,
+      "application/json",
+    );
   };
 
   const handleExportCsv = () => {
@@ -169,7 +201,11 @@ export const BestPracticeEditPageContent = ({
       script: item.checkType === "script" ? item.script || null : null,
       sortOrder: item.sortOrder,
     }));
-    downloadFile(toCsv(exportItems), `checklist-${bestPractice.id}.csv`, "text/csv");
+    downloadFile(
+      toCsv(exportItems),
+      `checklist-${bestPractice.id}.csv`,
+      "text/csv",
+    );
   };
 
   const handleImport = async (file: File) => {
@@ -273,13 +309,18 @@ export const BestPracticeEditPageContent = ({
           <h1 className="truncate text-sm font-semibold text-foreground">
             {t("bestPractices.editTitle")}
           </h1>
-          <p className="font-mono text-[11px] text-muted-foreground">{bestPractice.id}</p>
+          <p className="font-mono text-[11px] text-muted-foreground">
+            {bestPractice.id}
+          </p>
         </div>
       </div>
 
       {/* Body */}
       <Form {...form}>
-        <form className="flex-1 overflow-y-auto" onSubmit={form.handleSubmit(onSubmit)}>
+        <form
+          className="flex-1 overflow-y-auto"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           <div className="mx-auto max-w-3xl space-y-6 p-6">
             {/* Basic Info Fields */}
             <div className="rounded-xl border border-border bg-card p-5 space-y-4">
@@ -292,7 +333,10 @@ export const BestPracticeEditPageContent = ({
                       {t("bestPractices.titleLabel")}
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder={t("bestPractices.titlePlaceholder")} {...field} />
+                      <Input
+                        placeholder={t("bestPractices.titlePlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage className="text-xs" />
                   </FormItem>
@@ -346,20 +390,33 @@ export const BestPracticeEditPageContent = ({
                   control={form.control}
                   name="category"
                   render={({ field }) => {
-                    const handleChange = field.onChange;
+                    const handleChange = (v: string | null) => {
+                      if (v) field.onChange(v);
+                      setCategoryOpen(false);
+                    };
                     return (
                       <FormItem>
                         <FormLabel className="text-xs font-medium text-muted-foreground">
                           {t("common.category")}
                         </FormLabel>
                         <FormControl>
-                          <Select value={field.value} onValueChange={handleChange}>
-                            <SelectTrigger className="w-full">
+                          <Select
+                            open={categoryOpen}
+                            value={field.value}
+                            onOpenChange={handleCategoryOpenChange}
+                            onValueChange={handleChange}
+                          >
+                            <SelectTrigger
+                              className="w-full"
+                              onClick={handleCategoryToggle}
+                            >
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectGroup>
-                                {CATEGORIES.filter((c) => c.value !== "all").map((c) => (
+                                {CATEGORIES.filter(
+                                  (c) => c.value !== "all",
+                                ).map((c) => (
                                   <SelectItem key={c.value} value={c.value}>
                                     {c.label}
                                   </SelectItem>
@@ -378,15 +435,26 @@ export const BestPracticeEditPageContent = ({
                   control={form.control}
                   name="language"
                   render={({ field }) => {
-                    const handleChange = field.onChange;
+                    const handleChange = (v: string | null) => {
+                      if (v) field.onChange(v);
+                      setLanguageOpen(false);
+                    };
                     return (
                       <FormItem>
                         <FormLabel className="text-xs font-medium text-muted-foreground">
                           {t("common.language")}
                         </FormLabel>
                         <FormControl>
-                          <Select value={field.value} onValueChange={handleChange}>
-                            <SelectTrigger className="w-full">
+                          <Select
+                            open={languageOpen}
+                            value={field.value}
+                            onOpenChange={handleLanguageOpenChange}
+                            onValueChange={handleChange}
+                          >
+                            <SelectTrigger
+                              className="w-full"
+                              onClick={handleLanguageToggle}
+                            >
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -466,7 +534,12 @@ export const BestPracticeEditPageContent = ({
                     type="file"
                     onChange={handleFileChange}
                   />
-                  <Button size="sm" type="button" variant="outline" onClick={handleImportClick}>
+                  <Button
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                    onClick={handleImportClick}
+                  >
                     <Upload className="h-3.5 w-3.5" />
                     {t("bestPractices.checklistImport")}
                   </Button>
@@ -523,7 +596,9 @@ export const BestPracticeEditPageContent = ({
                 {t("common.cancel")}
               </Button>
               <Button disabled={form.formState.isSubmitting} type="submit">
-                {form.formState.isSubmitting ? t("common.saving") : t("common.save")}
+                {form.formState.isSubmitting
+                  ? t("common.saving")
+                  : t("common.save")}
               </Button>
             </div>
           </div>
@@ -544,13 +619,22 @@ interface ChecklistItemEditorProps {
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number
+    value: string | number,
   ) => void;
   onDelete: (id: string) => void;
 }
 
-const ChecklistItemEditor = ({ item, index, onUpdate, onDelete }: ChecklistItemEditorProps) => {
+const ChecklistItemEditor = ({
+  item,
+  index,
+  onUpdate,
+  onDelete,
+}: ChecklistItemEditorProps) => {
   const { t } = useTranslation();
+
+  const [checkTypeOpen, setCheckTypeOpen] = useState(false);
+  const handleCheckTypeOpenChange = (v: boolean) => setCheckTypeOpen(v);
+  const handleCheckTypeToggle = () => setCheckTypeOpen((prev) => !prev);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     onUpdate(item.id, "title", e.target.value);
@@ -559,7 +643,10 @@ const ChecklistItemEditor = ({ item, index, onUpdate, onDelete }: ChecklistItemE
     onUpdate(item.id, "description", e.target.value);
 
   const handleCheckTypeChange = (value: string | null) => {
-    if (value) onUpdate(item.id, "checkType", value);
+    if (value) {
+      onUpdate(item.id, "checkType", value);
+      setCheckTypeOpen(false);
+    }
   };
 
   const handleScriptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -601,8 +688,16 @@ const ChecklistItemEditor = ({ item, index, onUpdate, onDelete }: ChecklistItemE
 
       <div className="flex items-center gap-3">
         <div className="w-40">
-          <Select value={item.checkType} onValueChange={handleCheckTypeChange}>
-            <SelectTrigger className="h-8 text-xs">
+          <Select
+            open={checkTypeOpen}
+            value={item.checkType}
+            onOpenChange={handleCheckTypeOpenChange}
+            onValueChange={handleCheckTypeChange}
+          >
+            <SelectTrigger
+              className="h-8 text-xs"
+              onClick={handleCheckTypeToggle}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

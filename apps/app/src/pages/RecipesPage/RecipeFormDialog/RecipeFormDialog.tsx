@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
@@ -14,7 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@repo/ui/form";
 import type { RecipeEntity } from "@/models/daos/recipesDao";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
@@ -63,6 +71,14 @@ export const RecipeFormDialog = ({
         },
   });
 
+  const [operationOpen, setOperationOpen] = useState(false);
+  const handleOperationOpenChange = (v: boolean) => setOperationOpen(v);
+  const handleOperationToggle = () => setOperationOpen((prev) => !prev);
+
+  const [bestPracticeOpen, setBestPracticeOpen] = useState(false);
+  const handleBestPracticeOpenChange = (v: boolean) => setBestPracticeOpen(v);
+  const handleBestPracticeToggle = () => setBestPracticeOpen((prev) => !prev);
+
   const onSubmit = async (values: FormValues) => {
     if (initial) {
       const updated = await updateRecipe({
@@ -91,12 +107,20 @@ export const RecipeFormDialog = ({
           <h2 className="text-sm font-semibold text-foreground">
             {initial ? t("recipes.editTitle") : t("recipes.createTitle")}
           </h2>
-          <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleClose}>
+          <Button
+            className="h-7 w-7"
+            size="icon"
+            variant="ghost"
+            onClick={handleClose}
+          >
             <X className="h-4 w-4 text-muted-foreground" />
           </Button>
         </div>
         <Form {...form}>
-          <form className="space-y-4 overflow-y-auto p-5" onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            className="space-y-4 overflow-y-auto p-5"
+            onSubmit={form.handleSubmit(onSubmit)}
+          >
             <FormField
               control={form.control}
               name="name"
@@ -106,7 +130,10 @@ export const RecipeFormDialog = ({
                     {t("recipes.nameLabel")}
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder={t("recipes.namePlaceholder")} {...field} />
+                    <Input
+                      placeholder={t("recipes.namePlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -138,16 +165,29 @@ export const RecipeFormDialog = ({
               control={form.control}
               name="operationId"
               render={({ field }) => {
-                const handleChange = field.onChange;
+                const handleChange = (v: string | null) => {
+                  field.onChange(v);
+                  setOperationOpen(false);
+                };
                 return (
                   <FormItem>
                     <FormLabel className="text-xs font-medium text-muted-foreground">
                       {t("recipes.operationLabel")}
                     </FormLabel>
                     <FormControl>
-                      <Select value={field.value} onValueChange={handleChange}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder={t("recipes.operationPlaceholder")} />
+                      <Select
+                        open={operationOpen}
+                        value={field.value}
+                        onOpenChange={handleOperationOpenChange}
+                        onValueChange={handleChange}
+                      >
+                        <SelectTrigger
+                          className="w-full"
+                          onClick={handleOperationToggle}
+                        >
+                          <SelectValue
+                            placeholder={t("recipes.operationPlaceholder")}
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -170,16 +210,29 @@ export const RecipeFormDialog = ({
               control={form.control}
               name="bestPracticeId"
               render={({ field }) => {
-                const handleChange = field.onChange;
+                const handleChange = (v: string | null) => {
+                  field.onChange(v);
+                  setBestPracticeOpen(false);
+                };
                 return (
                   <FormItem>
                     <FormLabel className="text-xs font-medium text-muted-foreground">
                       {t("recipes.bestPracticeLabel")}
                     </FormLabel>
                     <FormControl>
-                      <Select value={field.value} onValueChange={handleChange}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder={t("recipes.bestPracticePlaceholder")} />
+                      <Select
+                        open={bestPracticeOpen}
+                        value={field.value}
+                        onOpenChange={handleBestPracticeOpenChange}
+                        onValueChange={handleChange}
+                      >
+                        <SelectTrigger
+                          className="w-full"
+                          onClick={handleBestPracticeToggle}
+                        >
+                          <SelectValue
+                            placeholder={t("recipes.bestPracticePlaceholder")}
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -203,7 +256,9 @@ export const RecipeFormDialog = ({
                 {t("common.cancel")}
               </Button>
               <Button disabled={form.formState.isSubmitting} type="submit">
-                {form.formState.isSubmitting ? t("common.saving") : t("common.save")}
+                {form.formState.isSubmitting
+                  ? t("common.saving")
+                  : t("common.save")}
               </Button>
             </div>
           </form>

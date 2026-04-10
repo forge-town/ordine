@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { BookOpen } from "lucide-react";
 import {
   Select,
@@ -35,18 +35,15 @@ export const BestPracticeSelect = ({
   };
   const handleToggle = () => setOpen((prev) => !prev);
 
-  const handleChange = useCallback(
-    (v: string | null) => {
-      if (!v || v === "__none__") {
-        onValueChange(undefined, undefined);
-      } else {
-        const bp = bestPractices.find((b) => b.id === v);
-        onValueChange(v, bp?.title ?? v);
-      }
-      setOpen(false);
-    },
-    [bestPractices, onValueChange],
-  );
+  const handleChange = (v: string | null) => {
+    if (!v || v === "__none__") {
+      onValueChange(undefined, undefined);
+    } else {
+      const bp = bestPractices.find((b) => b.id === v);
+      onValueChange(v, bp?.title ?? v);
+    }
+    setOpen(false);
+  };
 
   return (
     <div className="space-y-1" onMouseDown={handleStopPropagation}>

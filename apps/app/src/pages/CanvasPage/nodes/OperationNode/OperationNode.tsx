@@ -1,6 +1,13 @@
 import { Handle, Position } from "@xyflow/react";
-import { Zap, CheckCircle2, XCircle, Loader2, Circle, Brain } from "lucide-react";
-import { useCallback } from "react";
+import {
+  Zap,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Circle,
+  Brain,
+} from "lucide-react";
+import { useState } from "react";
 import { useStore } from "zustand";
 import { cn } from "@repo/ui/lib/utils";
 import {
@@ -12,7 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
-import { useHarnessCanvasStore, type OperationNodeData, type NodeRunStatus } from "../../_store";
+import {
+  useHarnessCanvasStore,
+  type OperationNodeData,
+  type NodeRunStatus,
+} from "../../_store";
 import { Route } from "@/routes/canvas";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
@@ -66,16 +77,18 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
   const setInspectingNodeId = useStore(store, (s) => s.setInspectingNodeId);
 
-  const update = useCallback(
-    (patch: Record<string, unknown>) => updateNodeData(id, patch),
-    [updateNodeData, id]
-  );
+  const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
 
-  const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
+  const {
+    icon: StatusIcon,
+    color,
+    label: statusLabel,
+  } = statusConfig[data.status ?? "idle"];
 
   const operation = operations.find((op) => op.id === data.operationId);
 
-  const handleLabelChange = (v: string) => update({ label: v, operationName: v });
+  const handleLabelChange = (v: string) =>
+    update({ label: v, operationName: v });
 
   const selectedProvider = data.llmProvider ?? "";
   const selectedModel = data.llmModel ?? "";
@@ -87,22 +100,34 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
       const models = MODEL_OPTIONS[value];
       update({ llmProvider: value, llmModel: models?.[0]?.value ?? "" });
     }
+    setProviderOpen(false);
   };
 
   const handleModelChange = (value: string | null) => {
     if (value) update({ llmModel: value });
+    setModelOpen(false);
   };
 
-  const handleBestPracticeChange = useCallback(
-    (bpId: string | undefined, bpName: string | undefined) => {
-      update({ bestPracticeId: bpId, bestPracticeName: bpName });
-    },
-    [update]
-  );
+  const [providerOpen, setProviderOpen] = useState(false);
+  const handleProviderOpenChange = (v: boolean) => setProviderOpen(v);
+  const handleProviderToggle = () => setProviderOpen((prev) => !prev);
+
+  const [modelOpen, setModelOpen] = useState(false);
+  const handleModelOpenChange = (v: boolean) => setModelOpen(v);
+  const handleModelToggle = () => setModelOpen((prev) => !prev);
+
+  const handleBestPracticeChange = (
+    bpId: string | undefined,
+    bpName: string | undefined,
+  ) => {
+    update({ bestPracticeId: bpId, bestPracticeName: bpName });
+  };
 
   const hasLlmContent = !!nodeLlmContent[id];
   const canInspect = isTestRunning || hasLlmContent;
-  const handleCardClick = canInspect ? () => setInspectingNodeId(id) : undefined;
+  const handleCardClick = canInspect
+    ? () => setInspectingNodeId(id)
+    : undefined;
 
   return (
     <div
@@ -124,11 +149,14 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               data.status === "pass" && "bg-green-50 border-green-100",
               data.status === "fail" && "bg-red-50 border-red-100",
               data.status === "running" && "bg-blue-50 border-blue-100",
-              (!data.status || data.status === "idle") && "bg-white border-slate-100"
+              (!data.status || data.status === "idle") &&
+                "bg-white border-slate-100",
             )}
           >
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
+            <span
+              className={cn("text-[10px] font-semibold tracking-wide", color)}
+            >
               {statusLabel}
             </span>
           </div>
@@ -183,8 +211,16 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             模型
           </p>
           <div className="flex gap-1.5">
-            <Select value={selectedProvider || "__default__"} onValueChange={handleProviderChange}>
-              <SelectTrigger className="h-6 min-w-0 flex-1 px-1.5 text-[10px]">
+            <Select
+              open={providerOpen}
+              value={selectedProvider || "__default__"}
+              onOpenChange={handleProviderOpenChange}
+              onValueChange={handleProviderChange}
+            >
+              <SelectTrigger
+                className="h-6 min-w-0 flex-1 px-1.5 text-[10px]"
+                onClick={handleProviderToggle}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -200,8 +236,16 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               </SelectContent>
             </Select>
             {selectedProvider && (
-              <Select value={selectedModel} onValueChange={handleModelChange}>
-                <SelectTrigger className="h-6 min-w-0 flex-1 px-1.5 text-[10px]">
+              <Select
+                open={modelOpen}
+                value={selectedModel}
+                onOpenChange={handleModelOpenChange}
+                onValueChange={handleModelChange}
+              >
+                <SelectTrigger
+                  className="h-6 min-w-0 flex-1 px-1.5 text-[10px]"
+                  onClick={handleModelToggle}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
