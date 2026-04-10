@@ -5,7 +5,7 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import { deleteBestPractice } from "@/services/bestPracticesService";
-import { Route } from "@/routes/_layout/best-practices";
+import { Route } from "@/routes/_layout/best-practices.index";
 import { CATEGORIES } from "../constants";
 import { PracticeFormDialog } from "../PracticeFormDialog";
 import { PracticeCard } from "../PracticeCard";
@@ -17,7 +17,6 @@ export const BestPracticesPageContent = () => {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<BestPracticeEntity | null>(null);
 
   const filtered = practices.filter((p) => {
     const matchCat = activeCategory === "all" || p.category === activeCategory;
@@ -31,15 +30,7 @@ export const BestPracticesPageContent = () => {
   });
 
   const handleSave = (p: BestPracticeEntity) => {
-    setPractices((prev) => {
-      const idx = prev.findIndex((x) => x.id === p.id);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = p;
-        return next;
-      }
-      return [p, ...prev];
-    });
+    setPractices((prev) => [p, ...prev]);
   };
 
   const handleDelete = async (id: string) => {
@@ -52,12 +43,6 @@ export const BestPracticesPageContent = () => {
   const handleCategoryClick = (catValue: string) => () => setActiveCategory(catValue);
 
   const handleAddPractice = () => {
-    setEditing(null);
-    setShowForm(true);
-  };
-
-  const handleEditPractice = (p: BestPracticeEntity) => () => {
-    setEditing(p);
     setShowForm(true);
   };
 
@@ -65,7 +50,6 @@ export const BestPracticesPageContent = () => {
 
   const handleFormClose = () => {
     setShowForm(false);
-    setEditing(null);
   };
 
   return (
@@ -142,24 +126,13 @@ export const BestPracticesPageContent = () => {
         ) : (
           <div className="grid grid-cols-1 gap-4 max-w-4xl">
             {filtered.map((p) => (
-              <PracticeCard
-                key={p.id}
-                practice={p}
-                onDelete={handleDeletePractice(p.id)}
-                onEdit={handleEditPractice(p)}
-              />
+              <PracticeCard key={p.id} practice={p} onDelete={handleDeletePractice(p.id)} />
             ))}
           </div>
         )}
       </div>
 
-      {showForm && (
-        <PracticeFormDialog
-          initial={editing ?? undefined}
-          onClose={handleFormClose}
-          onSave={handleSave}
-        />
-      )}
+      {showForm && <PracticeFormDialog onClose={handleFormClose} onSave={handleSave} />}
     </div>
   );
 };

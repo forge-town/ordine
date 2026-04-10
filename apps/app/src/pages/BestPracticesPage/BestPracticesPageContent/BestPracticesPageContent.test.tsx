@@ -16,7 +16,7 @@ vi.mock("@/services/bestPracticesService", () => ({
 }));
 
 const mockUseLoaderData = vi.fn();
-vi.mock("@/routes/_layout/best-practices", () => ({
+vi.mock("@/routes/_layout/best-practices.index", () => ({
   Route: { useLoaderData: () => mockUseLoaderData() },
 }));
 
@@ -51,9 +51,7 @@ describe("BestPracticesPageContent", () => {
   it("renders list of practices", () => {
     mockUseLoaderData.mockReturnValue(mockPractices);
     render(<BestPracticesPageContent />);
-    expect(
-      screen.getByText("避免在 useEffect 中直接 setState"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("避免在 useEffect 中直接 setState")).toBeInTheDocument();
     expect(screen.getByText("使用 useMemo 缓存计算结果")).toBeInTheDocument();
   });
 

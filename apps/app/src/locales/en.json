@@ -286,7 +286,13 @@
     "checklistItemSortOrder": "Sort order",
     "checklistSaveSuccess": "Checklist item saved",
     "checklistDeleteConfirm": "Delete this checklist item?",
-    "checklistItemCount": "checklist items"
+    "checklistItemCount": "checklist items",
+    "checklistExport": "Export",
+    "checklistExportJson": "Export JSON",
+    "checklistExportCsv": "Export CSV",
+    "checklistImport": "Import",
+    "checklistImportSuccess": "Successfully imported {{count}} items",
+    "checklistImportError": "Import failed: invalid file format"
   },
   "skills": {
     "title": "Skills",

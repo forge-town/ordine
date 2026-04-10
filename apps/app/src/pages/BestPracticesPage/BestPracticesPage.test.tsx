@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BestPracticesPage } from "./BestPracticesPage";
 
-vi.mock("@/routes/_layout/best-practices", () => ({
+vi.mock("@/routes/_layout/best-practices.index", () => ({
   Route: {
     useLoaderData: () => [],
   },

@@ -17,11 +17,10 @@ import { CATEGORIES, CATEGORY_COLORS } from "../constants";
 
 export type PracticeCardProps = {
   practice: BestPracticeEntity;
-  onEdit: () => void;
   onDelete: () => void;
 };
 
-export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) => {
+export const PracticeCard = ({ practice, onDelete }: PracticeCardProps) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [contentExpanded, setContentExpanded] = useState(false);
@@ -29,7 +28,6 @@ export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) 
   const hasContent = practice.content.trim().length > 0;
   const handleToggleExpanded = () => setExpanded((v) => !v);
   const handleToggleContent = () => setContentExpanded((v) => !v);
-  const handleEdit = onEdit;
   const handleDelete = onDelete;
 
   return (
@@ -51,12 +49,13 @@ export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) 
               </Link>
             </h3>
             <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
+              <Link
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-accent"
-                onClick={handleEdit}
+                params={{ bestPracticeId: practice.id }}
+                to="/best-practices/$bestPracticeId/edit"
               >
                 <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-              </button>
+              </Link>
               <button
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-destructive/10"
                 onClick={handleDelete}

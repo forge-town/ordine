@@ -287,7 +287,13 @@
     "checklistItemSortOrder": "排序",
     "checklistSaveSuccess": "检查项保存成功",
     "checklistDeleteConfirm": "确定删除此检查项？",
-    "checklistItemCount": "个检查项"
+    "checklistItemCount": "个检查项",
+    "checklistExport": "导出",
+    "checklistExportJson": "导出 JSON",
+    "checklistExportCsv": "导出 CSV",
+    "checklistImport": "导入",
+    "checklistImportSuccess": "成功导入 {{count}} 个检查项",
+    "checklistImportError": "导入失败：文件格式不正确"
   },
   "skills": {
     "title": "技能",
