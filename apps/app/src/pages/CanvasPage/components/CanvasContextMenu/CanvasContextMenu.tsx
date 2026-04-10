@@ -1,5 +1,13 @@
 import { useEffect } from "react";
-import { ArrowRight, FileCode, Folder, HardDrive, FolderOutput, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  FileCode,
+  Folder,
+  HardDrive,
+  FolderOutput,
+  Zap,
+  BookOpen,
+} from "lucide-react";
 import { useStore } from "zustand";
 import { SiGitHubIcon } from "../../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../../_store";
@@ -33,11 +41,18 @@ interface Props {
 
 const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
-export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: Props) => {
+export const CanvasContextMenu = ({
+  screenX,
+  screenY,
+  flowX,
+  flowY,
+  onClose,
+}: Props) => {
   const store = useHarnessCanvasStore();
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);
   const operations = useStore(store, (s) => s.operations);
+  const recipes = useStore(store, (s) => s.recipes);
   const addNode = useStore(store, (s) => s.addNode);
   const onConnect = useStore(store, (s) => s.onConnect);
   const handleConnectStart = useStore(store, (s) => s.handleConnectStart);
@@ -74,7 +89,9 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
 
     // Only show operations that accept this object type
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "project",
+      ),
     );
   })();
 
@@ -172,6 +189,50 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
     onClose();
   };
 
+  const handleCreateRecipe = (recipeId: string) => {
+    const recipe = recipes.find((r) => r.id === recipeId);
+    if (!recipe) return;
+    const operation = operations.find((op) => op.id === recipe.operationId);
+    if (!operation) return;
+
+    const newId = `op-recipe-${Date.now()}`;
+    addNode({
+      id: newId,
+      type: "operation",
+      position: { x: flowX, y: flowY },
+      data: {
+        ...makeOperationNodeData(operation),
+        label: recipe.name,
+        bestPracticeId: recipe.bestPracticeId,
+        bestPracticeName: recipe.name,
+      },
+    });
+
+    if (connectStart) {
+      const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
+      if (sourceNode) {
+        if (connectStart.handleType === "source") {
+          onConnect({
+            source: connectStart.nodeId,
+            sourceHandle: connectStart.handleId,
+            target: newId,
+            targetHandle: null,
+          });
+        } else {
+          onConnect({
+            source: newId,
+            sourceHandle: null,
+            target: connectStart.nodeId,
+            targetHandle: connectStart.handleId,
+          });
+        }
+      }
+    }
+
+    handleConnectStart(null);
+    onClose();
+  };
+
   // Clamp to viewport edges
   const left = Math.min(screenX, window.innerWidth - 220);
   const top = Math.min(screenY, window.innerHeight - 300);
@@ -180,12 +241,14 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
   const sourceNodeInfo = (() => {
     if (!connectStart) return null;
     const node = nodes.find((n) => n.id === connectStart.nodeId);
-    return node ? { type: node.type, label: nodeTypeMeta[node.type].label } : null;
+    return node
+      ? { type: node.type, label: nodeTypeMeta[node.type].label }
+      : null;
   })();
 
   // Filter object types based on available connections
   const visibleObjectTypes = OBJECT_TYPES.filter((t) =>
-    isConnectMode ? availableTypes.includes(t) : true
+    isConnectMode ? availableTypes.includes(t) : true,
   );
 
   const handleBackdropClick = () => {
@@ -210,7 +273,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
               <span
                 className={cn(
                   "flex h-4 w-4 shrink-0 items-center justify-center rounded",
-                  nodeTypeMeta[sourceNodeInfo.type].iconBg
+                  nodeTypeMeta[sourceNodeInfo.type].iconBg,
                 )}
               >
                 {(() => {
@@ -219,7 +282,9 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
                 })()}
               </span>
               <ArrowRight className="h-3 w-3 text-muted-foreground" />
-              <span className="text-[10px] font-medium text-muted-foreground">连接到...</span>
+              <span className="text-[10px] font-medium text-muted-foreground">
+                连接到...
+              </span>
             </div>
           </>
         ) : (
@@ -246,7 +311,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
                   <span
                     className={cn(
                       "flex h-5 w-5 shrink-0 items-center justify-center rounded",
-                      meta.iconBg
+                      meta.iconBg,
                     )}
                   >
                     <Icon className="h-3 w-3 text-white" />
@@ -274,7 +339,9 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-violet-500">
                   <Zap className="h-3 w-3 text-white" />
                 </span>
-                <span className="text-xs font-medium truncate">{operation.name}</span>
+                <span className="text-xs font-medium truncate">
+                  {operation.name}
+                </span>
               </button>
             ))}
           </div>
@@ -290,6 +357,30 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
             <p className="px-3 py-2 text-[10px] text-muted-foreground">
               没有接受此类型的 Operation
             </p>
+          </div>
+        )}
+
+        {/* Recipes group */}
+        {canAddOperation && recipes.length > 0 && (
+          <div>
+            <div className="my-1 border-t border-border/50" />
+            <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+              快捷配方 (Recipe)
+            </p>
+            {recipes.map((recipe) => (
+              <button
+                key={recipe.id}
+                className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
+                onClick={() => handleCreateRecipe(recipe.id)}
+              >
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-amber-500">
+                  <BookOpen className="h-3 w-3 text-white" />
+                </span>
+                <span className="text-xs font-medium truncate">
+                  {recipe.name}
+                </span>
+              </button>
+            ))}
           </div>
         )}
       </div>

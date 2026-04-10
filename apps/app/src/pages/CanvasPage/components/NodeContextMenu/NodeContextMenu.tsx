@@ -9,6 +9,7 @@ import {
   Folder,
   FolderOutput,
   HardDrive,
+  BookOpen,
 } from "lucide-react";
 import { SiGitHubIcon } from "../../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../../_store";
@@ -31,7 +32,9 @@ const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
 };
 
 const KbdHint = ({ keys }: { keys: string }) => (
-  <span className="ml-auto font-mono text-[11px] text-muted-foreground/50">{keys}</span>
+  <span className="ml-auto font-mono text-[11px] text-muted-foreground/50">
+    {keys}
+  </span>
 );
 
 interface Props {
@@ -43,10 +46,16 @@ interface Props {
 
 const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
-export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) => {
+export const NodeContextMenu = ({
+  screenX,
+  screenY,
+  nodeId,
+  onClose,
+}: Props) => {
   const store = useHarnessCanvasStore();
   const nodes = useStore(store, (s) => s.nodes);
   const operations = useStore(store, (s) => s.operations);
+  const recipes = useStore(store, (s) => s.recipes);
   const duplicateNode = useStore(store, (s) => s.duplicateNode);
   const removeNode = useStore(store, (s) => s.removeNode);
   const addNode = useStore(store, (s) => s.addNode);
@@ -86,7 +95,9 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
     const objectType = objectTypeMap[node.type];
     if (!objectType) return operations;
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "project",
+      ),
     );
   })();
 
@@ -97,7 +108,9 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
   const left = Math.min(screenX, window.innerWidth - MENU_W - 8);
   const top = Math.min(screenY, window.innerHeight - 280);
   const submenuLeft =
-    left + MENU_W + 4 + SUBMENU_W > window.innerWidth ? left - SUBMENU_W - 4 : left + MENU_W + 4;
+    left + MENU_W + 4 + SUBMENU_W > window.innerWidth
+      ? left - SUBMENU_W - 4
+      : left + MENU_W + 4;
 
   const handleDuplicate = () => {
     duplicateNode(nodeId);
@@ -146,6 +159,33 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
     onClose();
   };
 
+  const handleAddRecipe = (recipeId: string) => {
+    const recipe = recipes.find((r) => r.id === recipeId);
+    if (!recipe) return;
+    const operation = operations.find((op) => op.id === recipe.operationId);
+    if (!operation) return;
+
+    const newId = `op-recipe-${Date.now()}`;
+    addNode({
+      id: newId,
+      type: "operation",
+      position: { x: node.position.x + 280, y: node.position.y },
+      data: {
+        ...makeOperationNodeData(operation),
+        label: recipe.name,
+        bestPracticeId: recipe.bestPracticeId,
+        bestPracticeName: recipe.name,
+      },
+    });
+    onConnect({
+      source: nodeId,
+      sourceHandle: null,
+      target: newId,
+      targetHandle: null,
+    });
+    onClose();
+  };
+
   const handleClose = () => onClose();
   const handleToggleActions = () => setActionsOpen((v) => !v);
 
@@ -167,14 +207,16 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
           >
             {meta.shortLabel.charAt(0)}
           </span>
-          <span className="text-xs font-semibold text-foreground">{meta.label}</span>
+          <span className="text-xs font-semibold text-foreground">
+            {meta.label}
+          </span>
         </div>
 
         {/* Actions → */}
         <button
           className={cn(
             "flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground",
-            actionsOpen ? "bg-accent" : "hover:bg-accent"
+            actionsOpen ? "bg-accent" : "hover:bg-accent",
           )}
           onClick={handleToggleActions}
         >
@@ -183,7 +225,7 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
           <ChevronRight
             className={cn(
               "ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform",
-              actionsOpen && "rotate-90"
+              actionsOpen && "rotate-90",
             )}
           />
         </button>
@@ -207,7 +249,9 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
         >
           <Trash2 className="h-3.5 w-3.5" />
           Delete
-          <span className="ml-auto font-mono text-[11px] text-destructive/40">⌫</span>
+          <span className="ml-auto font-mono text-[11px] text-destructive/40">
+            ⌫
+          </span>
         </button>
       </div>
 
@@ -224,7 +268,7 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
 
           {/* Object types */}
           {["code-file", "folder", "github-project"].some((t) =>
-            availableTypes.includes(t as NodeType)
+            availableTypes.includes(t as NodeType),
           ) && (
             <div>
               <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
@@ -288,9 +332,31 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
             </div>
           )}
 
+          {/* Recipes */}
+          {canAddOperation && recipes.length > 0 && (
+            <div>
+              <div className="my-1 border-t border-border/40" />
+              <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                快捷配方
+              </p>
+              {recipes.map((recipe) => (
+                <button
+                  key={recipe.id}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-accent"
+                  onClick={() => handleAddRecipe(recipe.id)}
+                >
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded bg-amber-500">
+                    <BookOpen className="h-2.5 w-2.5 text-white" />
+                  </span>
+                  <span className="truncate">{recipe.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Output nodes */}
-          {(["output-project-path", "output-local-path"] as NodeType[]).some((t) =>
-            availableTypes.includes(t)
+          {(["output-project-path", "output-local-path"] as NodeType[]).some(
+            (t) => availableTypes.includes(t),
           ) && (
             <div>
               <div className="my-1 border-t border-border/40" />
