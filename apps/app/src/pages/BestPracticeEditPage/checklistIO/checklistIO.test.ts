@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  toJson,
-  fromJson,
-  toCsv,
-  fromCsv,
-  type ChecklistExportItem,
-} from "./checklistIO";
+import { toJson, fromJson, toCsv, fromCsv, type ChecklistExportItem } from "./checklistIO";
 
 const sampleItems: ChecklistExportItem[] = [
   {
@@ -55,17 +49,12 @@ describe("checklistIO", () => {
     it("round-trips items through CSV", () => {
       const csv = toCsv(sampleItems);
       const parsed = fromCsv(csv);
-      expect(parsed).toEqual([
-        { ...sampleItems[0], script: null },
-        { ...sampleItems[1] },
-      ]);
+      expect(parsed).toEqual([{ ...sampleItems[0], script: null }, { ...sampleItems[1] }]);
     });
 
     it("handles empty CSV", () => {
       expect(fromCsv("")).toEqual([]);
-      expect(fromCsv("title,description,checkType,script,sortOrder")).toEqual(
-        [],
-      );
+      expect(fromCsv("title,description,checkType,script,sortOrder")).toEqual([]);
     });
 
     it("escapes commas and quotes in CSV fields", () => {
@@ -104,8 +93,7 @@ describe("checklistIO", () => {
     });
 
     it("defaults invalid checkType to llm", () => {
-      const csv =
-        "title,description,checkType,script,sortOrder\nTest,desc,invalid,,0";
+      const csv = "title,description,checkType,script,sortOrder\nTest,desc,invalid,,0";
       const parsed = fromCsv(csv);
       expect(parsed[0].checkType).toBe("llm");
     });

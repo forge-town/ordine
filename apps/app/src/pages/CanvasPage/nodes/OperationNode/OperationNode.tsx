@@ -1,5 +1,6 @@
 import { Handle, Position } from "@xyflow/react";
-import { Zap, CheckCircle2, XCircle, Loader2, Circle, Brain, BookOpen } from "lucide-react";
+import { Zap, CheckCircle2, XCircle, Loader2, Circle, Brain } from "lucide-react";
+import { useCallback } from "react";
 import { useStore } from "zustand";
 import { cn } from "@repo/ui/lib/utils";
 import {
@@ -16,6 +17,7 @@ import { Route } from "@/routes/canvas";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
 import { LLM_PROVIDERS } from "@/models/tables/settings_table";
+import { BestPracticeSelect } from "./BestPracticeSelect";
 
 export interface OperationNodeProps {
   id: string;
@@ -64,7 +66,10 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
   const setInspectingNodeId = useStore(store, (s) => s.setInspectingNodeId);
 
-  const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
+  const update = useCallback(
+    (patch: Record<string, unknown>) => updateNodeData(id, patch),
+    [updateNodeData, id]
+  );
 
   const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
 
@@ -88,20 +93,12 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     if (value) update({ llmModel: value });
   };
 
-  const handleBestPracticeChange = (value: string | null) => {
-    if (!value || value === "__none__") {
-      update({
-        bestPracticeId: undefined,
-        bestPracticeName: undefined,
-      });
-    } else {
-      const bp = bestPractices.find((b) => b.id === value);
-      update({
-        bestPracticeId: value,
-        bestPracticeName: bp?.title ?? value,
-      });
-    }
-  };
+  const handleBestPracticeChange = useCallback(
+    (bpId: string | undefined, bpName: string | undefined) => {
+      update({ bestPracticeId: bpId, bestPracticeName: bpName });
+    },
+    [update]
+  );
 
   const hasLlmContent = !!nodeLlmContent[id];
   const canInspect = isTestRunning || hasLlmContent;
@@ -230,31 +227,11 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         )}
 
         {/* Best Practice selector */}
-        <div className="space-y-1" onMouseDown={handleStopPropagation}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-            <BookOpen className="mr-1 inline-block h-3 w-3" />
-            最佳实践
-          </p>
-          <Select
-            value={data.bestPracticeId ?? "__none__"}
-            onValueChange={handleBestPracticeChange}
-          >
-            <SelectTrigger className="h-6 min-w-0 w-full px-1.5 text-[10px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Best Practice</SelectLabel>
-                <SelectItem value="__none__">无</SelectItem>
-                {bestPractices.map((bp) => (
-                  <SelectItem key={bp.id} value={bp.id}>
-                    {bp.title}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+        <BestPracticeSelect
+          bestPractices={bestPractices}
+          value={data.bestPracticeId}
+          onValueChange={handleBestPracticeChange}
+        />
       </NodeCard>
 
       {/* Target handle (input from object or previous operation) */}
