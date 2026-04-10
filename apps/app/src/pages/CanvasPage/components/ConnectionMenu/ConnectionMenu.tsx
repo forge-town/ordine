@@ -1,6 +1,14 @@
 import { useEffect } from "react";
 import { useStore } from "zustand";
-import { Plus, Zap, FileCode, Folder, HardDrive, FolderOutput } from "lucide-react";
+import {
+  Plus,
+  Zap,
+  FileCode,
+  Folder,
+  HardDrive,
+  FolderOutput,
+  BookOpen,
+} from "lucide-react";
 import { SiGitHubIcon } from "../../nodes/GitHubProjectNode/SiGitHubIcon";
 import { useHarnessCanvasStore } from "../../_store";
 import {
@@ -31,19 +39,30 @@ interface Props {
 
 const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
-export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Props) => {
+export const ConnectionMenu = ({
+  screenX,
+  screenY,
+  flowX,
+  flowY,
+  onClose,
+}: Props) => {
   const store = useHarnessCanvasStore();
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);
   const operations = useStore(store, (s) => s.operations);
+  const recipes = useStore(store, (s) => s.recipes);
   const storeHandleConnectStart = useStore(store, (s) => s.handleConnectStart);
   const onConnect = useStore(store, (s) => s.onConnect);
   const addNode = useStore(store, (s) => s.addNode);
 
-  const sourceNode = connectStart ? nodes.find((n) => n.id === connectStart.nodeId) : null;
+  const sourceNode = connectStart
+    ? nodes.find((n) => n.id === connectStart.nodeId)
+    : null;
 
   const allowedConnections = getAllowedConnections(operations);
-  const availableTypes: NodeType[] = sourceNode ? (allowedConnections[sourceNode.type] ?? []) : [];
+  const availableTypes: NodeType[] = sourceNode
+    ? (allowedConnections[sourceNode.type] ?? [])
+    : [];
 
   // Filter operations based on source type
   const availableOperations = (() => {
@@ -56,7 +75,9 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
     const objectType = objectTypeMap[sourceNode.type];
     if (!objectType) return operations;
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "project",
+      ),
     );
   })();
 
@@ -140,6 +161,47 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
     onClose();
   };
 
+  const handleSelectRecipe = (recipeId: string) => {
+    const recipe = recipes.find((r) => r.id === recipeId);
+    if (!recipe) return;
+    const operation = operations.find((op) => op.id === recipe.operationId);
+    if (!operation) return;
+
+    const newId = `op-recipe-${Date.now()}`;
+    addNode({
+      id: newId,
+      type: "operation",
+      position: { x: flowX + 40, y: flowY - 40 },
+      data: {
+        ...makeOperationNodeData(operation),
+        label: recipe.name,
+        bestPracticeId: recipe.bestPracticeId,
+        bestPracticeName: recipe.name,
+      },
+    });
+
+    if (connectStart) {
+      if (connectStart.handleType === "source") {
+        onConnect({
+          source: connectStart.nodeId,
+          sourceHandle: connectStart.handleId,
+          target: newId,
+          targetHandle: null,
+        });
+      } else {
+        onConnect({
+          source: newId,
+          sourceHandle: null,
+          target: connectStart.nodeId,
+          targetHandle: connectStart.handleId,
+        });
+      }
+    }
+
+    storeHandleConnectStart(null);
+    onClose();
+  };
+
   if (!sourceNode || availableTypes.length === 0) return null;
 
   const sourceMeta = nodeTypeMeta[sourceNode.type];
@@ -170,20 +232,24 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
           <span
             className={cn(
               "flex h-5 w-5 shrink-0 items-center justify-center rounded",
-              sourceMeta.iconBg
+              sourceMeta.iconBg,
             )}
           >
             <SourceIcon className="h-3 w-3 text-white" />
           </span>
-          <span className="text-[11px] font-semibold text-foreground">{sourceMeta.label}</span>
-          <span className="ml-auto text-[10px] text-muted-foreground">连接到</span>
+          <span className="text-[11px] font-semibold text-foreground">
+            {sourceMeta.label}
+          </span>
+          <span className="ml-auto text-[10px] text-muted-foreground">
+            连接到
+          </span>
         </div>
 
         {/* Options grouped by category */}
         <div className="py-1">
           {/* Object types */}
           {["code-file", "folder", "github-project"].some((t) =>
-            availableTypes.includes(t as NodeType)
+            availableTypes.includes(t as NodeType),
           ) && (
             <div>
               <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
@@ -203,12 +269,14 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
                       <span
                         className={cn(
                           "flex h-6 w-6 shrink-0 items-center justify-center rounded",
-                          meta.iconBg
+                          meta.iconBg,
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </span>
-                      <span className="text-xs font-medium text-foreground">{meta.label}</span>
+                      <span className="text-xs font-medium text-foreground">
+                        {meta.label}
+                      </span>
                       <Plus className="ml-auto h-3 w-3 text-muted-foreground" />
                     </button>
                   );
@@ -254,9 +322,34 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
             </div>
           )}
 
+          {/* Recipes */}
+          {canAddOperation && recipes.length > 0 && (
+            <div>
+              <div className="my-1 border-t border-border/50" />
+              <p className="px-3 pt-1 pb-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+                快捷配方
+              </p>
+              {recipes.map((recipe) => (
+                <button
+                  key={recipe.id}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => handleSelectRecipe(recipe.id)}
+                >
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-amber-500">
+                    <BookOpen className="h-3.5 w-3.5 text-white" />
+                  </span>
+                  <span className="text-xs font-medium text-foreground truncate">
+                    {recipe.name}
+                  </span>
+                  <Plus className="ml-auto h-3 w-3 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Output node types */}
-          {(["output-project-path", "output-local-path"] as NodeType[]).some((t) =>
-            availableTypes.includes(t)
+          {(["output-project-path", "output-local-path"] as NodeType[]).some(
+            (t) => availableTypes.includes(t),
           ) && (
             <div>
               <div className="my-1 border-t border-border/50" />
@@ -277,12 +370,14 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
                       <span
                         className={cn(
                           "flex h-6 w-6 shrink-0 items-center justify-center rounded",
-                          meta.iconBg
+                          meta.iconBg,
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </span>
-                      <span className="text-xs font-medium text-foreground">{meta.label}</span>
+                      <span className="text-xs font-medium text-foreground">
+                        {meta.label}
+                      </span>
                       <Plus className="ml-auto h-3 w-3 text-muted-foreground" />
                     </button>
                   );
