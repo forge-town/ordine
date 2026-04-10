@@ -46,7 +46,7 @@ describe("RecipeCard", () => {
         recipe={mockRecipe}
         onDelete={handleDelete}
         onEdit={handleEdit}
-      />,
+      />
     );
     expect(screen.getByText("Check ClassName 规范")).toBeInTheDocument();
   });
@@ -61,7 +61,7 @@ describe("RecipeCard", () => {
         recipe={mockRecipe}
         onDelete={handleDelete}
         onEdit={handleEdit}
-      />,
+      />
     );
     expect(screen.getByText("Check")).toBeInTheDocument();
     expect(screen.getByText("ClassName 转换规则")).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe("RecipeCard", () => {
         recipe={mockRecipe}
         onDelete={handleDelete}
         onEdit={handleEdit}
-      />,
+      />
     );
     expect(screen.getByText("检查 className 模板字符串")).toBeInTheDocument();
   });
@@ -85,13 +85,7 @@ describe("RecipeCard", () => {
   it("falls back to IDs when operation/bestPractice missing", () => {
     const handleDelete = vi.fn();
     const handleEdit = vi.fn();
-    render(
-      <RecipeCard
-        recipe={mockRecipe}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
-      />,
-    );
+    render(<RecipeCard recipe={mockRecipe} onDelete={handleDelete} onEdit={handleEdit} />);
     expect(screen.getByText("op-1")).toBeInTheDocument();
     expect(screen.getByText("bp-1")).toBeInTheDocument();
   });

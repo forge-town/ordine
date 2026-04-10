@@ -69,6 +69,7 @@ export const FolderTreePreview = ({
     >
       {entries.map((entry) => {
         const isExcluded = excludedPaths.includes(entry.name);
+        const handleExclude = () => onExclude(entry.name);
         return (
           <div
             key={entry.name}
@@ -92,7 +93,7 @@ export const FolderTreePreview = ({
                 aria-label={`排除 ${entry.name}`}
                 className="nodrag nopan opacity-0 group-hover/entry:opacity-100 rounded p-0.5 text-red-400 hover:bg-red-100 hover:text-red-600 transition-all"
                 type="button"
-                onClick={() => onExclude(entry.name)}
+                onClick={handleExclude}
               >
                 <Ban className="h-2.5 w-2.5" />
               </button>

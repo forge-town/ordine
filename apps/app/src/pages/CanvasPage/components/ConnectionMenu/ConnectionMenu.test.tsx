@@ -15,23 +15,15 @@ vi.mock("@/routes/canvas", () => ({
 }));
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>
-    {children}
-  </HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
 );
 
 describe("ConnectionMenu", () => {
   it("renders without crashing", () => {
     const handleClose = vi.fn();
     const { container } = render(
-      <ConnectionMenu
-        flowX={100}
-        flowY={100}
-        screenX={200}
-        screenY={200}
-        onClose={handleClose}
-      />,
-      { wrapper },
+      <ConnectionMenu flowX={100} flowY={100} screenX={200} screenY={200} onClose={handleClose} />,
+      { wrapper }
     );
     // Returns null when no connectStart in store – that's expected
     expect(container).toBeTruthy();

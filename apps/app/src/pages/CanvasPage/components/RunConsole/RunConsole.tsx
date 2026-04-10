@@ -113,8 +113,9 @@ const isStructuredLog = (log: string): boolean => {
 
 export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
   const store = useHarnessCanvasStore();
-  const setNodeRunStatus = useStore(store, (s) => s.setNodeRunStatus);
-  const setRunningNodeId = useStore(store, (s) => s.setRunningNodeId);
+  const markNodeRunning = useStore(store, (s) => s.markNodeRunning);
+  const markNodePassed = useStore(store, (s) => s.markNodePassed);
+  const markNodeFailed = useStore(store, (s) => s.markNodeFailed);
   const setNodeLlmContent = useStore(store, (s) => s.setNodeLlmContent);
   const stopTestRun = useStore(store, (s) => s.stopTestRun);
 
@@ -137,16 +138,13 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
 
       parseStructuredLogs(newLogs, {
         onNodeStart: (nodeId) => {
-          setRunningNodeId(nodeId);
-          setNodeRunStatus(nodeId, "running");
+          markNodeRunning(nodeId);
         },
         onNodeDone: (nodeId) => {
-          setNodeRunStatus(nodeId, "pass");
-          setRunningNodeId(null);
+          markNodePassed(nodeId);
         },
         onNodeFail: (nodeId) => {
-          setNodeRunStatus(nodeId, "fail");
-          setRunningNodeId(null);
+          markNodeFailed(nodeId);
         },
         onLlmContent: (nodeId, content) => {
           setNodeLlmContent(nodeId, content);
@@ -158,7 +156,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
         stopTestRun();
       }
     },
-    [setRunningNodeId, setNodeRunStatus, setNodeLlmContent, stopTestRun]
+    [markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent, stopTestRun]
   );
 
   // Initial fetch + polling

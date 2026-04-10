@@ -3,9 +3,7 @@ import { z } from "zod/v4";
 import { recipesDao } from "@/models/daos/recipesDao";
 import { RecipeSchema } from "@/schemas";
 
-export const getRecipes = createServerFn({ method: "GET" }).handler(() =>
-  recipesDao.findMany(),
-);
+export const getRecipes = createServerFn({ method: "GET" }).handler(() => recipesDao.findMany());
 
 export const getRecipeById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))

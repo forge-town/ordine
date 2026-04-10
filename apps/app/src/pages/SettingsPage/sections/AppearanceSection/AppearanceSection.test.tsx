@@ -7,7 +7,7 @@ const renderWithStore = (initial = {}) =>
   render(
     <SettingsStoreProvider initialSettings={initial}>
       <AppearanceSection />
-    </SettingsStoreProvider>,
+    </SettingsStoreProvider>
   );
 
 describe("AppearanceSection", () => {

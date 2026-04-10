@@ -15,14 +15,12 @@ export const SecuritySection = () => {
   const resetSaved = useStore(store, (s) => s.resetSaved);
   const [error, setError] = useState<string | null>(null);
 
-  const handleCurrentPasswordChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => updateSection("security", { currentPassword: e.target.value });
+  const handleCurrentPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    updateSection("security", { currentPassword: e.target.value });
   const handleNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     updateSection("security", { newPassword: e.target.value });
-  const handleConfirmPasswordChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => updateSection("security", { confirmPassword: e.target.value });
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    updateSection("security", { confirmPassword: e.target.value });
 
   const handleSave = () => {
     setError(null);

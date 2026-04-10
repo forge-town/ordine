@@ -82,7 +82,7 @@ describe("FolderNode", () => {
     rerender(
       <HarnessCanvasStoreProvider>
         <FolderNode data={{ ...data, excludedPaths: ["dist"] }} id="test" />
-      </HarnessCanvasStoreProvider>,
+      </HarnessCanvasStoreProvider>
     );
 
     expect(screen.queryByText("node_modules")).not.toBeInTheDocument();

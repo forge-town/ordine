@@ -54,9 +54,9 @@ export interface CanvasSlice {
   selectedNodeId: string | null;
   selectedEdgeId: string | null;
 
-  onNodesChange: (changes: NodeChange<PipelineNode>[]) => void;
-  onEdgesChange: (changes: EdgeChange<PipelineEdge>[]) => void;
-  onConnect: (connection: Connection) => void;
+  handleNodesChange: (changes: NodeChange<PipelineNode>[]) => void;
+  handleEdgesChange: (changes: EdgeChange<PipelineEdge>[]) => void;
+  handleConnect: (connection: Connection) => void;
   addNode: (node: PipelineNode) => void;
   addNodeWithEdge: (sourceId: string, targetType: NodeType) => void;
   removeNode: (nodeId: string) => void;
@@ -83,7 +83,7 @@ export const createCanvasSlice = (
   selectedNodeId: null,
   selectedEdgeId: null,
 
-  onNodesChange: (changes) => {
+  handleNodesChange: (changes) => {
     // Position drags — bypass history (noisy), React Flow manages these internally.
     // Only non-position changes (select, remove) go through normal set.
     set((state) => ({
@@ -91,13 +91,13 @@ export const createCanvasSlice = (
     }));
   },
 
-  onEdgesChange: (changes) => {
+  handleEdgesChange: (changes) => {
     set((state) => ({
       edges: applyEdgeChanges(changes, state.edges),
     }));
   },
 
-  onConnect: (connection) => {
+  handleConnect: (connection) => {
     const state = get();
     const sourceNode = state.nodes.find((n) => n.id === connection.source);
     const targetNode = state.nodes.find((n) => n.id === connection.target);

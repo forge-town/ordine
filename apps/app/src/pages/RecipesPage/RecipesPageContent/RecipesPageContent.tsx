@@ -28,10 +28,7 @@ export const RecipesPageContent = () => {
   const filtered = recipes.filter((r) => {
     const q = search.toLowerCase();
     if (!q) return true;
-    return (
-      r.name.toLowerCase().includes(q) ||
-      r.description.toLowerCase().includes(q)
-    );
+    return r.name.toLowerCase().includes(q) || r.description.toLowerCase().includes(q);
   });
 
   const handleSave = (r: RecipeEntity) => {
@@ -51,8 +48,7 @@ export const RecipesPageContent = () => {
     await deleteRecipe({ data: { id } });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
 
   const handleAddRecipe = () => {
     setEditing(null);
@@ -71,20 +67,14 @@ export const RecipesPageContent = () => {
     setEditing(null);
   };
 
-  const opMap = new Map<string, OperationEntity>(
-    operations.map((o) => [o.id, o]),
-  );
-  const bpMap = new Map<string, BestPracticeEntity>(
-    bestPractices.map((bp) => [bp.id, bp]),
-  );
+  const opMap = new Map<string, OperationEntity>(operations.map((o) => [o.id, o]));
+  const bpMap = new Map<string, BestPracticeEntity>(bestPractices.map((bp) => [bp.id, bp]));
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <h1 className="text-base font-semibold text-foreground">
-          {t("recipes.title")}
-        </h1>
+        <h1 className="text-base font-semibold text-foreground">{t("recipes.title")}</h1>
         <Button size="sm" onClick={handleAddRecipe}>
           <Plus className="h-4 w-4" />
           {t("recipes.addNew")}

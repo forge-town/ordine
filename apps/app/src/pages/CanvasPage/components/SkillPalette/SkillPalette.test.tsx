@@ -15,9 +15,7 @@ vi.mock("@/routes/canvas", () => ({
 }));
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>
-    {children}
-  </HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
 );
 
 describe("SkillPalette", () => {

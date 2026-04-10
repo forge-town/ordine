@@ -45,10 +45,10 @@ export interface UISlice {
 
   handlePipelineIdChange: (id: string) => void;
   handleSidebarPanelChange: (panel: SidebarPanel) => void;
-  toggleSidebar: () => void;
+  handleToggleSidebar: () => void;
   openPropertiesPanel: () => void;
   closePropertiesPanel: () => void;
-  toggleAiAssistant: () => void;
+  handleToggleAi: () => void;
   toggleConsole: () => void;
   setActiveJobId: (jobId: string | null) => void;
   openContextMenu: (state: ContextMenuState) => void;
@@ -67,6 +67,16 @@ export interface UISlice {
   setRunningNodeId: (nodeId: string | null) => void;
   setNodeLlmContent: (nodeId: string, content: string) => void;
   setInspectingNodeId: (nodeId: string | null) => void;
+
+  // Semantic actions
+  handleCloseConsole: () => void;
+  handleDismissInspection: () => void;
+  dismissAllMenus: () => void;
+  showPaneContextMenu: (state: ContextMenuState) => void;
+  showNodeContextMenu: (nodeId: string, screenX: number, screenY: number) => void;
+  markNodeRunning: (nodeId: string) => void;
+  markNodePassed: (nodeId: string) => void;
+  markNodeFailed: (nodeId: string) => void;
 }
 
 export const createUISlice = (
@@ -100,7 +110,7 @@ export const createUISlice = (
     set({ sidebarPanel: panel });
   },
 
-  toggleSidebar: () => {
+  handleToggleSidebar: () => {
     set((state) => ({ isSidebarOpen: !state.isSidebarOpen }));
   },
 
@@ -112,7 +122,7 @@ export const createUISlice = (
     set({ isPropertiesPanelOpen: false });
   },
 
-  toggleAiAssistant: () => {
+  handleToggleAi: () => {
     set((state) => ({ isAiAssistantOpen: !state.isAiAssistantOpen }));
   },
 
@@ -188,5 +198,70 @@ export const createUISlice = (
 
   setInspectingNodeId: (nodeId) => {
     set({ inspectingNodeId: nodeId });
+  },
+
+  // Semantic actions
+  handleCloseConsole: () => {
+    set({ activeJobId: null, isConsoleOpen: false });
+  },
+
+  handleDismissInspection: () => {
+    set({ inspectingNodeId: null });
+  },
+
+  dismissAllMenus: () => {
+    set({
+      contextMenu: null,
+      connectionMenu: null,
+      nodeContextMenu: null,
+      connectStart: null,
+    });
+  },
+
+  showPaneContextMenu: (state) => {
+    set({
+      connectStart: null,
+      connectionMenu: null,
+      contextMenu: state,
+    });
+  },
+
+  showNodeContextMenu: (nodeId, screenX, screenY) => {
+    set({
+      contextMenu: null,
+      connectionMenu: null,
+      nodeContextMenu: { screenX, screenY, nodeId },
+      connectStart: null,
+    });
+  },
+
+  markNodeRunning: (nodeId) => {
+    set((state) => ({
+      runningNodeId: nodeId,
+      nodeRunStatuses: {
+        ...state.nodeRunStatuses,
+        [nodeId]: "running" as NodeRunStatus,
+      },
+    }));
+  },
+
+  markNodePassed: (nodeId) => {
+    set((state) => ({
+      runningNodeId: null,
+      nodeRunStatuses: {
+        ...state.nodeRunStatuses,
+        [nodeId]: "pass" as NodeRunStatus,
+      },
+    }));
+  },
+
+  markNodeFailed: (nodeId) => {
+    set((state) => ({
+      runningNodeId: null,
+      nodeRunStatuses: {
+        ...state.nodeRunStatuses,
+        [nodeId]: "fail" as NodeRunStatus,
+      },
+    }));
   },
 });

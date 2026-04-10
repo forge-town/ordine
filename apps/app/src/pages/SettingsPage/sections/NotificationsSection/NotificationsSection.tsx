@@ -12,12 +12,9 @@ export const NotificationsSection = () => {
   const saved = useStore(store, (s) => s.saved);
   const resetSaved = useStore(store, (s) => s.resetSaved);
 
-  const handlePipelineToggle = () =>
-    updateSection("notifications", { pipeline: !values.pipeline });
-  const handleMentionToggle = () =>
-    updateSection("notifications", { mention: !values.mention });
-  const handleWeeklyToggle = () =>
-    updateSection("notifications", { weekly: !values.weekly });
+  const handlePipelineToggle = () => updateSection("notifications", { pipeline: !values.pipeline });
+  const handleMentionToggle = () => updateSection("notifications", { mention: !values.mention });
+  const handleWeeklyToggle = () => updateSection("notifications", { weekly: !values.weekly });
   const handleSave = () => {
     save();
     setTimeout(resetSaved, 2000);

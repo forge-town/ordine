@@ -13,11 +13,9 @@ export const AppearanceSection = () => {
   const saved = useStore(store, (s) => s.saved);
   const resetSaved = useStore(store, (s) => s.resetSaved);
 
-  const handleLightClick = () =>
-    updateSection("appearance", { theme: "light" });
+  const handleLightClick = () => updateSection("appearance", { theme: "light" });
   const handleDarkClick = () => updateSection("appearance", { theme: "dark" });
-  const handleSystemClick = () =>
-    updateSection("appearance", { theme: "system" });
+  const handleSystemClick = () => updateSection("appearance", { theme: "system" });
   const handleSave = () => {
     save();
     setTimeout(resetSaved, 2000);
@@ -36,7 +34,7 @@ export const AppearanceSection = () => {
               "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
               values.theme === "light"
                 ? "border-primary bg-accent text-accent-foreground"
-                : "border-border text-muted-foreground hover:border-input",
+                : "border-border text-muted-foreground hover:border-input"
             )}
             onClick={handleLightClick}
           >
@@ -47,7 +45,7 @@ export const AppearanceSection = () => {
               "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
               values.theme === "dark"
                 ? "border-primary bg-accent text-accent-foreground"
-                : "border-border text-muted-foreground hover:border-input",
+                : "border-border text-muted-foreground hover:border-input"
             )}
             onClick={handleDarkClick}
           >
@@ -58,7 +56,7 @@ export const AppearanceSection = () => {
               "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
               values.theme === "system"
                 ? "border-primary bg-accent text-accent-foreground"
-                : "border-border text-muted-foreground hover:border-input",
+                : "border-border text-muted-foreground hover:border-input"
             )}
             onClick={handleSystemClick}
           >

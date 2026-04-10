@@ -25,10 +25,7 @@ import type {
   GitHubProjectNodeData,
   OutputMode,
 } from "@/models/types/pipelineGraph";
-import {
-  type OperationEntity,
-  operationsDao,
-} from "@/models/daos/operationsDao";
+import { type OperationEntity, operationsDao } from "@/models/daos/operationsDao";
 import { pipelinesDao } from "@/models/daos/pipelinesDao";
 import { jobsDao } from "@/models/daos/jobsDao";
 import { skillsDao } from "@/models/daos/skillsDao";
@@ -101,7 +98,7 @@ class PipelineNotFoundError extends Error {
 class ScriptExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(message);
     this.name = "ScriptExecutionError";
@@ -111,7 +108,7 @@ class ScriptExecutionError extends Error {
 class PromptExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(message);
     this.name = "PromptExecutionError";
@@ -121,7 +118,7 @@ class PromptExecutionError extends Error {
 class ConfigParseError extends Error {
   constructor(
     public readonly operationName: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(`Could not parse config for operation ${operationName}`);
     this.name = "ConfigParseError";
@@ -131,7 +128,7 @@ class ConfigParseError extends Error {
 class SkillExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(message);
     this.name = "SkillExecutionError";
@@ -141,7 +138,7 @@ class SkillExecutionError extends Error {
 class GitCloneError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(message);
     this.name = "GitCloneError";
@@ -158,10 +155,7 @@ type PipelineRunError =
 
 // ─── topological sort ─────────────────────────────────────────────────────────
 
-const topoSort = (
-  nodes: PipelineNode[],
-  edges: PipelineEdge[],
-): PipelineNode[] => {
+const topoSort = (nodes: PipelineNode[], edges: PipelineEdge[]): PipelineNode[] => {
   const inDegree = new Map<string, number>();
   const adjacency = new Map<string, string[]>();
 
@@ -199,15 +193,15 @@ const topoSort = (
 
 const safeParseJson = (
   raw: string,
-  operationName: string,
+  operationName: string
 ): ResultAsync<OperationConfig, ConfigParseError> =>
   ResultAsync.fromPromise(
     Promise.resolve(JSON.parse(raw) as OperationConfig),
-    (cause) => new ConfigParseError(operationName, cause),
+    (cause) => new ConfigParseError(operationName, cause)
   );
 
 const safeReadInputFile = (
-  path: string,
+  path: string
 ): ResultAsync<{ content: string; isFile: boolean }, never> =>
   ResultAsync.fromPromise(
     (async () => {
@@ -218,19 +212,19 @@ const safeReadInputFile = (
       }
       return { content: path, isFile: false };
     })(),
-    () => ({ content: path, isFile: false }),
+    () => ({ content: path, isFile: false })
   ).orElse((fallback) => ok(fallback));
 
 const runScript = (
   executor: ExecutorConfig,
   inputPath: string,
-  inputContent: string,
+  inputContent: string
 ): ResultAsync<string, ScriptExecutionError> => {
   const lang = executor.language ?? "bash";
   const command = executor.command ?? "";
   if (!command.trim()) {
     return ResultAsync.fromSafePromise<string, ScriptExecutionError>(
-      Promise.reject(new ScriptExecutionError("Script command is empty")),
+      Promise.reject(new ScriptExecutionError("Script command is empty"))
     );
   }
 
@@ -256,8 +250,8 @@ const runScript = (
     (cause) =>
       new ScriptExecutionError(
         `Script execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-        cause,
-      ),
+        cause
+      )
   );
 };
 
@@ -267,12 +261,12 @@ const runPrompt = (
   executor: ExecutorConfig,
   inputContent: string,
   override?: LlmOverride,
-  onChunk?: StreamCallback,
+  onChunk?: StreamCallback
 ): ResultAsync<string, PromptExecutionError> => {
   const prompt = executor.prompt;
   if (!prompt?.trim()) {
     return ResultAsync.fromSafePromise<string, PromptExecutionError>(
-      Promise.reject(new PromptExecutionError("Prompt text is empty")),
+      Promise.reject(new PromptExecutionError("Prompt text is empty"))
     );
   }
 
@@ -280,9 +274,7 @@ const runPrompt = (
     (async () => {
       const model = await getLlmModel(override);
       if (!model) {
-        throw new PromptExecutionError(
-          "LLM not configured (API key missing in settings)",
-        );
+        throw new PromptExecutionError("LLM not configured (API key missing in settings)");
       }
       const result = streamText({
         model,
@@ -300,8 +292,8 @@ const runPrompt = (
         ? cause
         : new PromptExecutionError(
             `Prompt execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-            cause,
-          ),
+            cause
+          )
   );
 };
 
@@ -311,7 +303,7 @@ const cloneGitHubRepo = (
   owner: string,
   repo: string,
   branch: string,
-  githubToken?: string,
+  githubToken?: string
 ): ResultAsync<string, GitCloneError> => {
   const cloneDir = join(tmpdir(), `ordine-pipeline-${Date.now()}-${repo}`);
   const url = githubToken
@@ -331,8 +323,8 @@ const cloneGitHubRepo = (
     (cause) =>
       new GitCloneError(
         `Failed to clone ${owner}/${repo}@${branch}: ${cause instanceof Error ? cause.message : String(cause)}`,
-        cause,
-      ),
+        cause
+      )
   );
 };
 
@@ -346,7 +338,7 @@ const runSkill = (
   inputContent: string,
   inputPath: string,
   override?: LlmOverride,
-  onChunk?: StreamCallback,
+  onChunk?: StreamCallback
 ): ResultAsync<string, never> => {
   const systemPrompt = [
     `You are executing the skill "${skillId}".`,
@@ -378,9 +370,7 @@ const runSkill = (
       "",
       "```",
       inputContent.slice(0, 2000),
-      inputContent.length > 2000
-        ? `\n... (${inputContent.length - 2000} more chars)`
-        : "",
+      inputContent.length > 2000 ? `\n... (${inputContent.length - 2000} more chars)` : "",
       "```",
     ].join("\n");
   };
@@ -401,15 +391,14 @@ const runSkill = (
       }
       return accumulated;
     })(),
-    (cause) => cause,
+    (cause) => cause
   ).orElse((cause) => {
     console.error("[runSkill] LLM call failed:", cause);
     return ok(generateFallbackReport());
   });
 };
 
-const currentContentLines = (content: string): number =>
-  content ? content.split("\n").length : 0;
+const currentContentLines = (content: string): number => (content ? content.split("\n").length : 0);
 
 // ─── main runner ──────────────────────────────────────────────────────────────
 
@@ -418,9 +407,7 @@ const executePipeline = async (opts: {
   inputPath?: string;
   jobId: string;
   githubToken?: string;
-}): Promise<
-  { ok: true; summary: string } | { ok: false; error: PipelineRunError }
-> => {
+}): Promise<{ ok: true; summary: string } | { ok: false; error: PipelineRunError }> => {
   const { pipelineId, jobId, githubToken } = opts;
   let inputPath = opts.inputPath ?? "";
   const tempDirs: string[] = [];
@@ -442,9 +429,7 @@ const executePipeline = async (opts: {
   const edges = pipeline.edges as PipelineEdge[];
   const ordered = topoSort(nodes, edges);
 
-  await log(
-    `Pipeline "${pipeline.name}" loaded. Processing ${ordered.length} nodes.`,
-  );
+  await log(`Pipeline "${pipeline.name}" loaded. Processing ${ordered.length} nodes.`);
 
   // Load all operations referenced in the pipeline
   const operationIds = ordered
@@ -478,23 +463,19 @@ const executePipeline = async (opts: {
   for (const node of ordered) {
     const data = node.data as unknown as NodeData;
     await log(
-      `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`,
+      `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`
     );
     await log(`@@NODE_START::${node.id}`);
 
     // ── Input nodes ──────────────────────────────────────────────────────
     if (node.type === "folder") {
       const p = data.folderPath ?? "";
-      const excludedPaths: string[] = Array.isArray(data.excludedPaths)
-        ? data.excludedPaths
-        : [];
+      const excludedPaths: string[] = Array.isArray(data.excludedPaths) ? data.excludedPaths : [];
       if (p && existsSync(p)) {
         inputPath = p;
         const tree = await listDirTree(p, { excludedPaths });
         currentContent = `Folder: ${p}\n\nFile tree:\n${tree}`;
-        await log(
-          `Input folder: ${p} (tree: ${tree.split("\n").length} entries)`,
-        );
+        await log(`Input folder: ${p} (tree: ${tree.split("\n").length} entries)`);
       }
       await log(`@@NODE_DONE::${node.id}`);
       continue;
@@ -525,12 +506,7 @@ const executePipeline = async (opts: {
       }
 
       await log(`Cloning GitHub repo ${owner}/${repo}@${branch}...`);
-      const cloneResult = await cloneGitHubRepo(
-        owner,
-        repo,
-        branch,
-        githubToken,
-      );
+      const cloneResult = await cloneGitHubRepo(owner, repo, branch, githubToken);
       if (cloneResult.isErr()) {
         await log(`ERROR: ${cloneResult.error.message}`);
         await log(`@@NODE_FAIL::${node.id}`);
@@ -542,9 +518,7 @@ const executePipeline = async (opts: {
       inputPath = clonedDir;
       const tree = await listDirTree(clonedDir);
       currentContent = `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}\n\nFile tree:\n${tree}`;
-      await log(
-        `Cloned to ${clonedDir} (tree: ${tree.split("\n").length} entries)`,
-      );
+      await log(`Cloned to ${clonedDir} (tree: ${tree.split("\n").length} entries)`);
       await log(`@@NODE_DONE::${node.id}`);
       continue;
     }
@@ -556,25 +530,19 @@ const executePipeline = async (opts: {
       const outputMode: OutputMode = data.outputMode ?? "overwrite";
       let resolvedPath = rawPath ? resolve(rawPath) : "";
       // If the path points to an existing directory, append the filename
-      if (
-        resolvedPath &&
-        existsSync(resolvedPath) &&
-        statSync(resolvedPath).isDirectory()
-      ) {
+      if (resolvedPath && existsSync(resolvedPath) && statSync(resolvedPath).isDirectory()) {
         resolvedPath = join(resolvedPath, outputFileName);
       }
 
       // Handle output mode
       if (resolvedPath && existsSync(resolvedPath)) {
         if (outputMode === "error_if_exists") {
-          await log(
-            `ERROR: Output file already exists: ${resolvedPath} (mode: error_if_exists)`,
-          );
+          await log(`ERROR: Output file already exists: ${resolvedPath} (mode: error_if_exists)`);
           await log(`@@NODE_FAIL::${node.id}`);
           return {
             ok: false,
             error: new ScriptExecutionError(
-              `Output file already exists: ${resolvedPath}. Pipeline aborted (output mode: error_if_exists).`,
+              `Output file already exists: ${resolvedPath}. Pipeline aborted (output mode: error_if_exists).`
             ),
           };
         }
@@ -600,9 +568,7 @@ const executePipeline = async (opts: {
       if (outputLocalPath && currentContent) {
         await mkdir(dirname(outputLocalPath), { recursive: true });
         await writeFile(outputLocalPath, currentContent, "utf8");
-        await log(
-          `Wrote output to: ${outputLocalPath} (${currentContent.length} chars)`,
-        );
+        await log(`Wrote output to: ${outputLocalPath} (${currentContent.length} chars)`);
       }
       await log(`@@NODE_DONE::${node.id}`);
       continue;
@@ -636,12 +602,10 @@ const executePipeline = async (opts: {
         const bp = await bestPracticesDao.findById(opData.bestPracticeId);
         if (bp) {
           bestPracticeContent = bp.content;
-          await log(
-            `Loaded best practice "${bp.title}" (${bp.content.length} chars)`,
-          );
+          await log(`Loaded best practice "${bp.title}" (${bp.content.length} chars)`);
         } else {
           await log(
-            `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`,
+            `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`
           );
         }
       }
@@ -652,10 +616,7 @@ const executePipeline = async (opts: {
         continue;
       }
 
-      const configResult = await safeParseJson(
-        operation.config,
-        operation.name,
-      );
+      const configResult = await safeParseJson(operation.config, operation.name);
       if (configResult.isErr()) {
         await log(`WARNING: ${configResult.error.message}, skipping`);
         await log(`@@NODE_FAIL::${node.id}`);
@@ -665,9 +626,7 @@ const executePipeline = async (opts: {
       const config = configResult.value;
       const executor = config.executor;
       if (!executor) {
-        await log(
-          `WARNING: No executor configured for operation "${operation.name}", skipping`,
-        );
+        await log(`WARNING: No executor configured for operation "${operation.name}", skipping`);
         await log(`@@NODE_FAIL::${node.id}`);
         continue;
       }
@@ -698,11 +657,7 @@ const executePipeline = async (opts: {
         : currentContent;
 
       if (executor.type === "script") {
-        const scriptResult = await runScript(
-          executor,
-          inputPath,
-          currentContent,
-        );
+        const scriptResult = await runScript(executor, inputPath, currentContent);
         if (scriptResult.isErr()) {
           await log(`@@NODE_FAIL::${node.id}`);
           return { ok: false, error: scriptResult.error };
@@ -710,12 +665,7 @@ const executePipeline = async (opts: {
         currentContent = scriptResult.value;
         await log(`Script output (${currentContent.length} chars)`);
       } else if (executor.type === "agent" && executor.agentMode === "prompt") {
-        const promptResult = await runPrompt(
-          executor,
-          effectiveInput,
-          llmOverride,
-          handleChunk,
-        );
+        const promptResult = await runPrompt(executor, effectiveInput, llmOverride, handleChunk);
         if (promptResult.isErr()) {
           await log(`@@NODE_FAIL::${node.id}`);
           return { ok: false, error: promptResult.error };
@@ -726,30 +676,24 @@ const executePipeline = async (opts: {
       } else if (executor.type === "agent" && executor.agentMode === "skill") {
         const skillId = executor.skillId ?? "";
         if (!skillId) {
-          await log(
-            `WARNING: No skillId configured for operation "${operation.name}", skipping`,
-          );
+          await log(`WARNING: No skillId configured for operation "${operation.name}", skipping`);
           await log(`@@NODE_FAIL::${node.id}`);
           continue;
         }
 
-        const skill =
-          (await skillsDao.findById(skillId)) ??
-          (await skillsDao.findByName(skillId));
+        const skill = (await skillsDao.findById(skillId)) ?? (await skillsDao.findByName(skillId));
         const skillDescription = skill
           ? `${skill.label}: ${skill.description}`
           : `Skill "${skillId}" (no description available)`;
 
-        await log(
-          `Running skill "${skillId}"${skill ? ` (${skill.label})` : ""}...`,
-        );
+        await log(`Running skill "${skillId}"${skill ? ` (${skill.label})` : ""}...`);
         const skillResult = await runSkill(
           skillId,
           skillDescription,
           effectiveInput,
           inputPath,
           llmOverride,
-          handleChunk,
+          handleChunk
         );
         currentContent = skillResult.isOk() ? skillResult.value : "";
         await log(`@@LLM_CONTENT::${node.id}::${currentContent}`);
@@ -790,13 +734,11 @@ export const runPipeline = async (opts: {
     (cause) =>
       new ScriptExecutionError(
         cause instanceof Error ? cause.message : String(cause),
-        cause,
-      ) as PipelineRunError,
+        cause
+      ) as PipelineRunError
   );
 
-  const outcome = result.isOk()
-    ? result.value
-    : { ok: false as const, error: result.error };
+  const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };
 
   if (outcome.ok) {
     await jobsDao.updateStatus(opts.jobId, "done", {
@@ -805,10 +747,7 @@ export const runPipeline = async (opts: {
     });
   } else {
     const message = outcome.error.message;
-    await jobsDao.appendLog(
-      opts.jobId,
-      `[${new Date().toISOString()}] ERROR: ${message}`,
-    );
+    await jobsDao.appendLog(opts.jobId, `[${new Date().toISOString()}] ERROR: ${message}`);
     await jobsDao.updateStatus(opts.jobId, "failed", {
       finishedAt: Date.now(),
       error: message,

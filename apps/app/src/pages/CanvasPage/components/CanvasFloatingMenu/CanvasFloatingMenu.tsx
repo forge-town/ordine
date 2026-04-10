@@ -15,8 +15,8 @@ export const CanvasFloatingMenu = () => {
   const edges = useStore(store, (state) => state.edges);
   const exportCanvas = useStore(store, (state) => state.exportCanvas);
   const importCanvas = useStore(store, (state) => state.importCanvas);
-  const undo = useStore(store, (state) => state.undo);
-  const redo = useStore(store, (state) => state.redo);
+  const handleUndo = useStore(store, (state) => state.handleUndo);
+  const handleRedo = useStore(store, (state) => state.handleRedo);
   const handlePipelineIdChange = useStore(store, (state) => state.handlePipelineIdChange);
 
   const { mutate: updateCanvas, mutation: updateMutation } = useUpdate();
@@ -123,8 +123,8 @@ export const CanvasFloatingMenu = () => {
     },
     { icon: FileDown, label: "导出", onClick: exportCanvas },
     { icon: FileUp, label: "导入", onClick: handleImport },
-    { icon: Undo, label: "撤销", onClick: undo, divider: true },
-    { icon: Redo, label: "重做", onClick: redo },
+    { icon: Undo, label: "撤销", onClick: handleUndo, divider: true },
+    { icon: Redo, label: "重做", onClick: handleRedo },
     { icon: Settings, label: "设置", to: "/settings" },
   ];
 

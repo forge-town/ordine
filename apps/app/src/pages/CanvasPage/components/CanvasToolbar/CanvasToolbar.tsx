@@ -18,37 +18,22 @@ export const CanvasToolbar = () => {
   const canUndo = useStore(store, (state) => state.canUndo);
   const canRedo = useStore(store, (state) => state.canRedo);
   const fitView = useStore(store, (state) => state.fitView);
-  const zoomIn = useStore(store, (state) => state.zoomIn);
-  const zoomOut = useStore(store, (state) => state.zoomOut);
+  const handleFitView = () => fitView({ padding: 0.1 });
+  const handleZoomIn = useStore(store, (state) => state.handleZoomIn);
+  const handleZoomOut = useStore(store, (state) => state.handleZoomOut);
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
-  const removeNode = useStore(store, (state) => state.removeNode);
-  const toggleAiAssistant = useStore(store, (state) => state.toggleAiAssistant);
-  const undo = useStore(store, (state) => state.undo);
-  const redo = useStore(store, (state) => state.redo);
+  const handleDeleteSelected = useStore(store, (state) => state.handleDeleteSelected);
+  const handleToggleAi = useStore(store, (state) => state.handleToggleAi);
+  const handleUndo = useStore(store, (state) => state.handleUndo);
+  const handleRedo = useStore(store, (state) => state.handleRedo);
   const setActiveJobId = useStore(store, (state) => state.setActiveJobId);
   const startTestRun = useStore(store, (state) => state.startTestRun);
   const isTestRunning = useStore(store, (state) => state.isTestRunning);
 
   const [isRunning, setIsRunning] = useState(false);
-
-  const handleDeleteSelected = () => {
-    if (selectedNodeId) {
-      removeNode(selectedNodeId);
-    }
-  };
-
-  const handleToggleAi = () => {
-    toggleAiAssistant();
-  };
-
-  const handleZoomOut = zoomOut;
-  const handleZoomIn = zoomIn;
-  const handleFitView = () => fitView({ padding: 0.1 });
-  const handleUndo = () => undo();
-  const handleRedo = () => redo();
 
   const handleRunTest = async () => {
     if (isRunning || isTestRunning) return;

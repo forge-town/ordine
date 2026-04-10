@@ -15,9 +15,7 @@ vi.mock("@/routes/canvas", () => ({
 }));
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>
-    {children}
-  </HarnessCanvasStoreProvider>
+  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
 );
 
 describe("CanvasContextMenu", () => {
@@ -31,7 +29,7 @@ describe("CanvasContextMenu", () => {
         screenY={200}
         onClose={handleClose}
       />,
-      { wrapper },
+      { wrapper }
     );
     expect(screen.getByText("新建节点")).toBeTruthy();
   });

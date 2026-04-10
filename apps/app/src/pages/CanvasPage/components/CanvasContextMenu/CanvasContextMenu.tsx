@@ -1,12 +1,4 @@
-import {
-  ArrowRight,
-  FileCode,
-  Folder,
-  HardDrive,
-  FolderOutput,
-  Zap,
-  BookOpen,
-} from "lucide-react";
+import { ArrowRight, FileCode, Folder, HardDrive, FolderOutput, Zap, BookOpen } from "lucide-react";
 import { useStore } from "zustand";
 import {
   ContextMenu,
@@ -47,19 +39,13 @@ interface Props {
   onClose: () => void;
 }
 
-export const CanvasContextMenu = ({
-  screenX,
-  screenY,
-  flowX,
-  flowY,
-  onClose,
-}: Props) => {
+export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: Props) => {
   const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);
   const addNode = useStore(store, (s) => s.addNode);
-  const onConnect = useStore(store, (s) => s.onConnect);
+  const onConnect = useStore(store, (s) => s.handleConnect);
   const handleConnectStart = useStore(store, (s) => s.handleConnectStart);
 
   // Get allowed connections based on current operations
@@ -94,9 +80,7 @@ export const CanvasContextMenu = ({
 
     // Only show operations that accept this object type
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(
-        objectType as "file" | "folder" | "project",
-      ),
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
     );
   })();
 
@@ -235,14 +219,12 @@ export const CanvasContextMenu = ({
   const sourceNodeInfo = (() => {
     if (!connectStart) return null;
     const node = nodes.find((n) => n.id === connectStart.nodeId);
-    return node
-      ? { type: node.type, label: nodeTypeMeta[node.type].label }
-      : null;
+    return node ? { type: node.type, label: nodeTypeMeta[node.type].label } : null;
   })();
 
   // Filter object types based on available connections
   const visibleObjectTypes = OBJECT_TYPES.filter((t) =>
-    isConnectMode ? availableTypes.includes(t) : true,
+    isConnectMode ? availableTypes.includes(t) : true
   );
 
   const virtualAnchor = {
@@ -284,7 +266,7 @@ export const CanvasContextMenu = ({
             <span
               className={cn(
                 "flex size-4 shrink-0 items-center justify-center rounded",
-                nodeTypeMeta[sourceNodeInfo.type].iconBg,
+                nodeTypeMeta[sourceNodeInfo.type].iconBg
               )}
             >
               {(() => {
@@ -293,14 +275,10 @@ export const CanvasContextMenu = ({
               })()}
             </span>
             <ArrowRight className="size-3 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground">
-              连接到...
-            </span>
+            <span className="text-xs font-medium text-muted-foreground">连接到...</span>
           </div>
         ) : (
-          <div className="px-1.5 py-1 text-xs font-medium text-muted-foreground">
-            新建节点
-          </div>
+          <div className="px-1.5 py-1 text-xs font-medium text-muted-foreground">新建节点</div>
         )}
 
         {/* Object types group */}
@@ -319,7 +297,7 @@ export const CanvasContextMenu = ({
                   <span
                     className={cn(
                       "flex size-4 shrink-0 items-center justify-center rounded",
-                      typeMeta.iconBg,
+                      typeMeta.iconBg
                     )}
                   >
                     <Icon className="size-2.5 text-white" />
@@ -346,9 +324,7 @@ export const CanvasContextMenu = ({
                   <span className="flex size-4 shrink-0 items-center justify-center rounded bg-violet-500">
                     <Zap className="size-2.5 text-white" />
                   </span>
-                  <span className="truncate text-xs font-medium">
-                    {operation.name}
-                  </span>
+                  <span className="truncate text-xs font-medium">{operation.name}</span>
                 </ContextMenuItem>
               ))}
             </ContextMenuGroup>
@@ -383,9 +359,7 @@ export const CanvasContextMenu = ({
                   <span className="flex size-4 shrink-0 items-center justify-center rounded bg-amber-500">
                     <BookOpen className="size-2.5 text-white" />
                   </span>
-                  <span className="truncate text-xs font-medium">
-                    {recipe.name}
-                  </span>
+                  <span className="truncate text-xs font-medium">{recipe.name}</span>
                 </ContextMenuItem>
               ))}
             </ContextMenuGroup>

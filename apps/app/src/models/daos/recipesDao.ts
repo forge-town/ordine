@@ -1,14 +1,7 @@
 import { eq, desc } from "drizzle-orm";
-import type {
-  PostgresJsDatabase,
-  PostgresJsTransaction,
-} from "drizzle-orm/postgres-js";
+import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@/db";
-import {
-  recipesTable,
-  type RecipeRow,
-  type NewRecipeRow,
-} from "@/models/tables/recipes_table";
+import { recipesTable, type RecipeRow, type NewRecipeRow } from "@/models/tables/recipes_table";
 
 export type RecipeEntity = Omit<RecipeRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
@@ -27,19 +20,12 @@ const rowToEntity = (row: RecipeRow): RecipeEntity => ({
 
 export const recipesDao = {
   async findMany(): Promise<RecipeEntity[]> {
-    const rows = await db
-      .select()
-      .from(recipesTable)
-      .orderBy(desc(recipesTable.updatedAt));
+    const rows = await db.select().from(recipesTable).orderBy(desc(recipesTable.updatedAt));
     return rows.map(rowToEntity);
   },
 
   async findById(id: string): Promise<RecipeEntity | null> {
-    const rows = await db
-      .select()
-      .from(recipesTable)
-      .where(eq(recipesTable.id, id))
-      .limit(1);
+    const rows = await db.select().from(recipesTable).where(eq(recipesTable.id, id)).limit(1);
     return rows[0] ? rowToEntity(rows[0]) : null;
   },
 
@@ -52,9 +38,7 @@ export const recipesDao = {
     return rows.map(rowToEntity);
   },
 
-  async create(
-    data: Omit<RecipeEntity, "createdAt" | "updatedAt">,
-  ): Promise<RecipeEntity> {
+  async create(data: Omit<RecipeEntity, "createdAt" | "updatedAt">): Promise<RecipeEntity> {
     const now = new Date();
     const row: NewRecipeRow = { ...data, createdAt: now, updatedAt: now };
     const [inserted] = await db.insert(recipesTable).values(row).returning();
@@ -63,7 +47,7 @@ export const recipesDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<RecipeEntity, "createdAt" | "updatedAt">,
+    data: Omit<RecipeEntity, "createdAt" | "updatedAt">
   ): Promise<RecipeEntity> {
     const now = new Date();
     const row: NewRecipeRow = { ...data, createdAt: now, updatedAt: now };
@@ -73,7 +57,7 @@ export const recipesDao = {
 
   async update(
     id: string,
-    patch: Partial<Omit<RecipeEntity, "id" | "createdAt" | "updatedAt">>,
+    patch: Partial<Omit<RecipeEntity, "id" | "createdAt" | "updatedAt">>
   ): Promise<RecipeEntity | null> {
     const [updated] = await db
       .update(recipesTable)
@@ -86,7 +70,7 @@ export const recipesDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    patch: Partial<Omit<RecipeEntity, "id" | "createdAt" | "updatedAt">>,
+    patch: Partial<Omit<RecipeEntity, "id" | "createdAt" | "updatedAt">>
   ): Promise<RecipeEntity | null> {
     const [updated] = await tx
       .update(recipesTable)

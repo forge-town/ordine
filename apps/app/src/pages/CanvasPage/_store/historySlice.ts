@@ -86,8 +86,8 @@ export interface HistorySlice {
    */
   recordCommand: (command: CommandMeta, mutate: (draft: CanvasHistoryState) => void) => void;
 
-  undo: () => void;
-  redo: () => void;
+  handleUndo: () => void;
+  handleRedo: () => void;
   clearHistory: () => void;
 }
 
@@ -138,7 +138,7 @@ export const createHistorySlice = (
     });
   },
 
-  undo() {
+  handleUndo() {
     const { _history, _future } = get();
     if (_history.length === 0) return;
 
@@ -164,7 +164,7 @@ export const createHistorySlice = (
     });
   },
 
-  redo() {
+  handleRedo() {
     const { _history, _future } = get();
     if (_future.length === 0) return;
 

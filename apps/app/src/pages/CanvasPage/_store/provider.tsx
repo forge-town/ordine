@@ -1,8 +1,5 @@
 import { type ReactNode } from "react";
-import {
-  HarnessCanvasStoreContext,
-  createHarnessCanvasStore,
-} from "./harnessCanvasStore";
+import { HarnessCanvasStoreContext, createHarnessCanvasStore } from "./harnessCanvasStore";
 import type { PipelineNode, PipelineEdge } from "./canvasSlice";
 import { useInit } from "@/hooks/useInit";
 
@@ -24,8 +21,8 @@ export const HarnessCanvasStoreProvider = ({ children, pipeline }: Props) => {
       pipeline?.nodes as PipelineNode[] | undefined,
       pipeline?.edges as PipelineEdge[] | undefined,
       pipeline?.id ?? null,
-      pipeline?.name ?? "",
-    ),
+      pipeline?.name ?? ""
+    )
   );
 
   return (

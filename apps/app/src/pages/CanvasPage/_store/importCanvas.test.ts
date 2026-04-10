@@ -31,9 +31,7 @@ describe("importCanvas store action", () => {
     const importedNodes = [makeNode("n1"), makeNode("n2")];
     const importedEdges = [makeEdge("e1")];
 
-    store
-      .getState()
-      .importCanvas({ nodes: importedNodes, edges: importedEdges });
+    store.getState().importCanvas({ nodes: importedNodes, edges: importedEdges });
 
     expect(store.getState().nodes).toEqual(importedNodes);
     expect(store.getState().edges).toEqual(importedEdges);

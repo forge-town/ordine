@@ -31,10 +31,7 @@ export interface AppSettings {
 export interface SettingsState extends AppSettings {
   saved: boolean;
 
-  updateSection: <K extends keyof AppSettings>(
-    section: K,
-    patch: Partial<AppSettings[K]>,
-  ) => void;
+  updateSection: <K extends keyof AppSettings>(section: K, patch: Partial<AppSettings[K]>) => void;
   save: () => void;
   resetSaved: () => void;
 }
@@ -70,9 +67,7 @@ const defaultSettings: AppSettings = {
 
 // ─── Store factory ────────────────────────────────────────────────────────────
 
-export const createSettingsStore = (
-  initialOverrides?: Partial<AppSettings>,
-): SettingsStore => {
+export const createSettingsStore = (initialOverrides?: Partial<AppSettings>): SettingsStore => {
   const initial: AppSettings = {
     profile: { ...defaultSettings.profile, ...initialOverrides?.profile },
     appearance: {
@@ -97,7 +92,13 @@ export const createSettingsStore = (
       })),
 
     save: () => {
-      const { saved, updateSection, save, resetSaved, ...settings } = get();
+      const {
+        saved: _saved,
+        updateSection: _updateSection,
+        save: _save,
+        resetSaved: _resetSaved,
+        ...settings
+      } = get();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
       set({ saved: true });
     },
@@ -113,9 +114,7 @@ export const SettingsStoreContext = createContext<SettingsStore | null>(null);
 export const useSettingsStore = (): SettingsStore => {
   const context = useContext(SettingsStoreContext);
   if (!context) {
-    throw new Error(
-      "useSettingsStore must be used within a SettingsStoreProvider",
-    );
+    throw new Error("useSettingsStore must be used within a SettingsStoreProvider");
   }
   return context;
 };

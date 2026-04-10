@@ -23,12 +23,9 @@ describe("FolderTreePreview", () => {
   });
 
   it("fetches and displays directory entries", async () => {
+    const handleExclude = () => {};
     render(
-      <FolderTreePreview
-        excludedPaths={[]}
-        folderPath="/project"
-        onExclude={() => {}}
-      />,
+      <FolderTreePreview excludedPaths={[]} folderPath="/project" onExclude={handleExclude} />
     );
 
     await waitFor(() => {
@@ -41,12 +38,13 @@ describe("FolderTreePreview", () => {
   });
 
   it("shows excluded entries with strikethrough style", async () => {
+    const handleExclude = () => {};
     render(
       <FolderTreePreview
         excludedPaths={["node_modules"]}
         folderPath="/project"
-        onExclude={() => {}}
-      />,
+        onExclude={handleExclude}
+      />
     );
 
     await waitFor(() => {
@@ -54,22 +52,15 @@ describe("FolderTreePreview", () => {
     });
 
     const excludedItem = screen.getByText("node_modules");
-    expect(excludedItem.closest("[data-excluded]")).toHaveAttribute(
-      "data-excluded",
-      "true",
-    );
+    expect(excludedItem.closest("[data-excluded]")).toHaveAttribute("data-excluded", "true");
   });
 
   it("calls onExclude when exclude button is clicked on a non-excluded entry", async () => {
     const user = userEvent.setup();
-    const onExclude = vi.fn();
+    const handleExclude = vi.fn();
 
     render(
-      <FolderTreePreview
-        excludedPaths={[]}
-        folderPath="/project"
-        onExclude={onExclude}
-      />,
+      <FolderTreePreview excludedPaths={[]} folderPath="/project" onExclude={handleExclude} />
     );
 
     await waitFor(() => {
@@ -79,16 +70,13 @@ describe("FolderTreePreview", () => {
     const excludeButtons = screen.getAllByRole("button", { name: /排除/ });
     await user.click(excludeButtons[0]);
 
-    expect(onExclude).toHaveBeenCalledWith("node_modules");
+    expect(handleExclude).toHaveBeenCalledWith("node_modules");
   });
 
   it("does not render when folderPath is empty", () => {
+    const handleExclude = () => {};
     const { container } = render(
-      <FolderTreePreview
-        excludedPaths={[]}
-        folderPath=""
-        onExclude={() => {}}
-      />,
+      <FolderTreePreview excludedPaths={[]} folderPath="" onExclude={handleExclude} />
     );
 
     expect(container.firstChild).toBeNull();

@@ -30,9 +30,7 @@ export const RecipeCard = ({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-semibold text-foreground leading-snug">
-              {recipe.name}
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground leading-snug">{recipe.name}</h3>
             <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-accent"

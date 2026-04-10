@@ -27,20 +27,18 @@ export const CanvasFlow = () => {
   // 使用浅比较选择器，避免不必要重渲染
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
-  const onNodesChange = useStore(store, (state) => state.onNodesChange);
-  const onEdgesChange = useStore(store, (state) => state.onEdgesChange);
-  const onConnect = useStore(store, (state) => state.onConnect);
-  const selectNode = useStore(store, (state) => state.selectNode);
-  const selectEdge = useStore(store, (state) => state.selectEdge);
-  const openContextMenu = useStore(store, (state) => state.openContextMenu);
-  const closeContextMenu = useStore(store, (state) => state.closeContextMenu);
+  const handleNodesChange = useStore(store, (state) => state.handleNodesChange);
+  const handleEdgesChange = useStore(store, (state) => state.handleEdgesChange);
+  const handleConnect = useStore(store, (state) => state.handleConnect);
+  const focusNode = useStore(store, (state) => state.focusNode);
+  const focusEdge = useStore(store, (state) => state.focusEdge);
+  const clearSelection = useStore(store, (state) => state.clearSelection);
   const openConnectionMenu = useStore(store, (state) => state.openConnectionMenu);
-  const closeConnectionMenu = useStore(store, (state) => state.closeConnectionMenu);
-  const openNodeContextMenu = useStore(store, (state) => state.openNodeContextMenu);
-  const closeNodeContextMenu = useStore(store, (state) => state.closeNodeContextMenu);
   const storeHandleConnectStart = useStore(store, (state) => state.handleConnectStart);
-  const undo = useStore(store, (state) => state.undo);
-  const redo = useStore(store, (state) => state.redo);
+  const showPaneContextMenu = useStore(store, (state) => state.showPaneContextMenu);
+  const showNodeContextMenu = useStore(store, (state) => state.showNodeContextMenu);
+  const handleUndo = useStore(store, (state) => state.handleUndo);
+  const handleRedo = useStore(store, (state) => state.handleRedo);
 
   // ─── Undo / Redo keyboard shortcuts ──────────────────────────────────────────
   useEffect(() => {
@@ -50,23 +48,23 @@ export const CanvasFlow = () => {
 
       if (isUndo) {
         e.preventDefault();
-        undo();
+        handleUndo();
       } else if (isRedo) {
         e.preventDefault();
-        redo();
+        handleRedo();
       }
     };
     globalThis.addEventListener("keydown", handler);
     return () => globalThis.removeEventListener("keydown", handler);
-  }, [undo, redo]);
+  }, [handleUndo, handleRedo]);
 
   const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow();
 
   useEffect(() => {
     store.setState({
       fitView: (options?: { padding?: number }) => fitView(options),
-      zoomIn: () => zoomIn(),
-      zoomOut: () => zoomOut(),
+      handleZoomIn: () => zoomIn(),
+      handleZoomOut: () => zoomOut(),
     });
   }, [store, fitView, zoomIn, zoomOut]);
 
@@ -93,19 +91,6 @@ export const CanvasFlow = () => {
     }),
     []
   );
-
-  const handleNodesChange = (changes: Parameters<typeof onNodesChange>[0]) => {
-    onNodesChange(changes);
-  };
-
-  const handleEdgesChange = (changes: Parameters<typeof onEdgesChange>[0]) => {
-    onEdgesChange(changes);
-  };
-
-  const handleConnect = (connection: Parameters<typeof onConnect>[0]) => {
-    onConnect(connection);
-    // connectStart is cleared in handleConnectEnd via connectionState.isValid
-  };
 
   const handleConnectStart: OnConnectStart = (_, params) => {
     // 记录连接开始状态
@@ -160,42 +145,22 @@ export const CanvasFlow = () => {
   };
 
   const handleNodeClick = (_: React.MouseEvent, node: PipelineNode) => {
-    selectNode(node.id);
-    closeContextMenu();
-    closeConnectionMenu();
-    closeNodeContextMenu();
-    storeHandleConnectStart(null);
+    focusNode(node.id);
   };
 
   const handleNodeContextMenu = (e: React.MouseEvent, node: PipelineNode) => {
     e.preventDefault();
-    selectNode(node.id);
-    closeContextMenu();
-    closeConnectionMenu();
-    openNodeContextMenu({
-      screenX: e.clientX,
-      screenY: e.clientY,
-      nodeId: node.id,
-    });
-    storeHandleConnectStart(null);
+    focusNode(node.id);
+    showNodeContextMenu(node.id, e.clientX, e.clientY);
   };
 
   const handleEdgeClick = (_: React.MouseEvent, edge: PipelineEdge) => {
-    selectEdge(edge.id);
-    closeContextMenu();
-    closeConnectionMenu();
-    closeNodeContextMenu();
-    storeHandleConnectStart(null);
+    focusEdge(edge.id);
   };
 
   const handlePaneClick = () => {
     if (shouldIgnorePaneClick.current) return;
-    selectNode(null);
-    selectEdge(null);
-    closeContextMenu();
-    closeConnectionMenu();
-    closeNodeContextMenu();
-    storeHandleConnectStart(null);
+    clearSelection();
   };
 
   const handlePaneContextMenu = (e: React.MouseEvent | MouseEvent) => {
@@ -203,9 +168,7 @@ export const CanvasFlow = () => {
     const clientX = "clientX" in e ? e.clientX : 0;
     const clientY = "clientY" in e ? e.clientY : 0;
     const flowPos = screenToFlowPosition({ x: clientX, y: clientY });
-    storeHandleConnectStart(null);
-    closeConnectionMenu();
-    openContextMenu({
+    showPaneContextMenu({
       screenX: clientX,
       screenY: clientY,
       flowX: flowPos.x,

@@ -7,7 +7,7 @@ const renderWithStore = (initial = {}) =>
   render(
     <SettingsStoreProvider initialSettings={initial}>
       <SecuritySection />
-    </SettingsStoreProvider>,
+    </SettingsStoreProvider>
   );
 
 describe("SecuritySection", () => {

@@ -24,7 +24,7 @@ describe("useBeginning", () => {
       useBeginning(() => {
         callCount++;
         return callCount;
-      }),
+      })
     );
     expect(result.current).toBe(1);
     rerender();
@@ -39,9 +39,7 @@ describe("useInit", () => {
   });
 
   it("returns the same reference across re-renders", () => {
-    const { result, rerender } = renderHook(() =>
-      useInit(() => ({ value: 99 })),
-    );
+    const { result, rerender } = renderHook(() => useInit(() => ({ value: 99 })));
     const first = result.current;
     rerender();
     rerender();

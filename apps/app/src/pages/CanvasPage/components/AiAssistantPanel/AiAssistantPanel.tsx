@@ -57,10 +57,10 @@ export const AiAssistantPanel = () => {
   const isOpen = useStore(store, (state) => state.isAiAssistantOpen);
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
-  const toggleAiAssistant = useStore(store, (state) => state.toggleAiAssistant);
+  const toggleAiAssistant = useStore(store, (state) => state.handleToggleAi);
   const clearCanvas = useStore(store, (state) => state.clearCanvas);
   const addNode = useStore(store, (state) => state.addNode);
-  const onConnect = useStore(store, (state) => state.onConnect);
+  const onConnect = useStore(store, (state) => state.handleConnect);
 
   const [messages, setMessages] = useState<Message[]>([
     {

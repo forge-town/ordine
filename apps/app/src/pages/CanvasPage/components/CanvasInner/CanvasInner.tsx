@@ -22,12 +22,8 @@ export const CanvasInner = () => {
   const handleCloseNodeContextMenu = useStore(store, (state) => state.closeNodeContextMenu);
   const activeJobId = useStore(store, (state) => state.activeJobId);
   const isConsoleOpen = useStore(store, (state) => state.isConsoleOpen);
-  const setActiveJobId = useStore(store, (state) => state.setActiveJobId);
+  const handleCloseConsole = useStore(store, (state) => state.handleCloseConsole);
   const setPipelineName = useStore(store, (state) => state.setPipelineName);
-
-  const handleCloseConsole = () => {
-    setActiveJobId(null);
-  };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPipelineName(e.target.value);

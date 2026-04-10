@@ -10,12 +10,7 @@ import {
   SecuritySection,
 } from "../sections";
 
-type Section =
-  | "profile"
-  | "notifications"
-  | "appearance"
-  | "language"
-  | "security";
+type Section = "profile" | "notifications" | "appearance" | "language" | "security";
 
 const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
   profile: User,
@@ -25,13 +20,7 @@ const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
   security: Shield,
 };
 
-const SECTION_IDS: Section[] = [
-  "profile",
-  "notifications",
-  "appearance",
-  "language",
-  "security",
-];
+const SECTION_IDS: Section[] = ["profile", "notifications", "appearance", "language", "security"];
 
 export const SettingsPageContent = () => {
   const { t } = useTranslation();
@@ -40,9 +29,7 @@ export const SettingsPageContent = () => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
-        <h1 className="text-base font-semibold text-foreground">
-          {t("settings.title")}
-        </h1>
+        <h1 className="text-base font-semibold text-foreground">{t("settings.title")}</h1>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
@@ -58,15 +45,13 @@ export const SettingsPageContent = () => {
                   "flex w-full items-center gap-2.5 px-4 py-2 text-sm transition-colors",
                   active === id
                     ? "bg-accent text-accent-foreground font-medium"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                 )}
                 onClick={handleClick}
               >
                 <Icon className="h-4 w-4 shrink-0" />
                 {label}
-                {active === id && (
-                  <ChevronRight className="ml-auto h-3.5 w-3.5 text-primary" />
-                )}
+                {active === id && <ChevronRight className="ml-auto h-3.5 w-3.5 text-primary" />}
               </button>
             );
           })}

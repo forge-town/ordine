@@ -14,9 +14,7 @@ export const recipesRouter = router({
     .input(z.object({ operationId: z.string() }))
     .query(({ input }) => recipesDao.findByOperationId(input.operationId)),
 
-  create: publicProcedure
-    .input(RecipeSchema)
-    .mutation(({ input }) => recipesDao.create(input)),
+  create: publicProcedure.input(RecipeSchema).mutation(({ input }) => recipesDao.create(input)),
 
   update: publicProcedure
     .input(z.object({ id: z.string(), patch: RecipeSchema.partial() }))

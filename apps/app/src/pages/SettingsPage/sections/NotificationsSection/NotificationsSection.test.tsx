@@ -7,7 +7,7 @@ const renderWithStore = (initial = {}) =>
   render(
     <SettingsStoreProvider initialSettings={initial}>
       <NotificationsSection />
-    </SettingsStoreProvider>,
+    </SettingsStoreProvider>
   );
 
 describe("NotificationsSection", () => {

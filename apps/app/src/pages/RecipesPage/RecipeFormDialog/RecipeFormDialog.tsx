@@ -14,14 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@repo/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import type { RecipeEntity } from "@/models/daos/recipesDao";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
@@ -98,20 +91,12 @@ export const RecipeFormDialog = ({
           <h2 className="text-sm font-semibold text-foreground">
             {initial ? t("recipes.editTitle") : t("recipes.createTitle")}
           </h2>
-          <Button
-            className="h-7 w-7"
-            size="icon"
-            variant="ghost"
-            onClick={handleClose}
-          >
+          <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleClose}>
             <X className="h-4 w-4 text-muted-foreground" />
           </Button>
         </div>
         <Form {...form}>
-          <form
-            className="space-y-4 overflow-y-auto p-5"
-            onSubmit={form.handleSubmit(onSubmit)}
-          >
+          <form className="space-y-4 overflow-y-auto p-5" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="name"
@@ -121,10 +106,7 @@ export const RecipeFormDialog = ({
                     {t("recipes.nameLabel")}
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={t("recipes.namePlaceholder")}
-                      {...field}
-                    />
+                    <Input placeholder={t("recipes.namePlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -165,9 +147,7 @@ export const RecipeFormDialog = ({
                     <FormControl>
                       <Select value={field.value} onValueChange={handleChange}>
                         <SelectTrigger className="w-full">
-                          <SelectValue
-                            placeholder={t("recipes.operationPlaceholder")}
-                          />
+                          <SelectValue placeholder={t("recipes.operationPlaceholder")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -199,9 +179,7 @@ export const RecipeFormDialog = ({
                     <FormControl>
                       <Select value={field.value} onValueChange={handleChange}>
                         <SelectTrigger className="w-full">
-                          <SelectValue
-                            placeholder={t("recipes.bestPracticePlaceholder")}
-                          />
+                          <SelectValue placeholder={t("recipes.bestPracticePlaceholder")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -225,9 +203,7 @@ export const RecipeFormDialog = ({
                 {t("common.cancel")}
               </Button>
               <Button disabled={form.formState.isSubmitting} type="submit">
-                {form.formState.isSubmitting
-                  ? t("common.saving")
-                  : t("common.save")}
+                {form.formState.isSubmitting ? t("common.saving") : t("common.save")}
               </Button>
             </div>
           </form>
