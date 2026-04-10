@@ -9,6 +9,7 @@ import {
   Trash2,
   Tag,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
@@ -40,7 +41,15 @@ export const PracticeCard = ({ practice, onEdit, onDelete }: PracticeCardProps) 
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-semibold text-foreground leading-snug">{practice.title}</h3>
+            <h3 className="text-sm font-semibold text-foreground leading-snug">
+              <Link
+                className="hover:text-primary hover:underline transition-colors"
+                params={{ bestPracticeId: practice.id }}
+                to="/best-practices/$bestPracticeId"
+              >
+                {practice.title}
+              </Link>
+            </h3>
             <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-accent"

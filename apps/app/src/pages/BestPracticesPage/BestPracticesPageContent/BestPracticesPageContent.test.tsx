@@ -3,6 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import { BestPracticesPageContent } from "./BestPracticesPageContent";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children, ...props }: Record<string, unknown>) => (
+    <a href={String(props.to ?? "#")}>{children as React.ReactNode}</a>
+  ),
+}));
+
 vi.mock("@/services/bestPracticesService", () => ({
   deleteBestPractice: vi.fn(),
   createBestPractice: vi.fn(),
@@ -45,7 +51,9 @@ describe("BestPracticesPageContent", () => {
   it("renders list of practices", () => {
     mockUseLoaderData.mockReturnValue(mockPractices);
     render(<BestPracticesPageContent />);
-    expect(screen.getByText("避免在 useEffect 中直接 setState")).toBeInTheDocument();
+    expect(
+      screen.getByText("避免在 useEffect 中直接 setState"),
+    ).toBeInTheDocument();
     expect(screen.getByText("使用 useMemo 缓存计算结果")).toBeInTheDocument();
   });
 

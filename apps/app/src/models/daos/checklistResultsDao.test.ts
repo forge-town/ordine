@@ -4,9 +4,7 @@ import type * as DrizzleOrm from "drizzle-orm";
 // ─── Mock DB ─────────────────────────────────────────────────────────────────
 
 const mockReturning = vi.fn();
-const mockSelectWhere = vi.fn(
-  (): Promise<Record<string, unknown>[]> => Promise.resolve([]),
-);
+const mockSelectWhere = vi.fn((): Promise<Record<string, unknown>[]> => Promise.resolve([]));
 const mockWriteWhere = vi.fn(() => ({
   returning: mockReturning,
 }));

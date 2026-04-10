@@ -46,9 +46,11 @@ import { Route as LayoutOperationsNewRouteImport } from './routes/_layout/operat
 import { Route as LayoutJobsJobIdRouteImport } from './routes/_layout/jobs.$jobId'
 import { Route as LayoutProjectsProjectIdIndexRouteImport } from './routes/_layout/projects.$projectId.index'
 import { Route as LayoutOperationsOperationIdIndexRouteImport } from './routes/_layout/operations.$operationId.index'
+import { Route as LayoutBestPracticesBestPracticeIdIndexRouteImport } from './routes/_layout/best-practices.$bestPracticeId.index'
 import { Route as ApiPipelinesIdRunRouteImport } from './routes/api/pipelines.$id.run'
 import { Route as LayoutProjectsProjectIdWorkspaceRouteImport } from './routes/_layout/projects.$projectId.workspace'
 import { Route as LayoutOperationsOperationIdEditRouteImport } from './routes/_layout/operations.$operationId.edit'
+import { Route as LayoutBestPracticesBestPracticeIdEditRouteImport } from './routes/_layout/best-practices.$bestPracticeId.edit'
 
 const CanvasRoute = CanvasRouteImport.update({
   id: '/canvas',
@@ -237,6 +239,12 @@ const LayoutOperationsOperationIdIndexRoute =
     path: '/operations/$operationId/',
     getParentRoute: () => LayoutRoute,
   } as any)
+const LayoutBestPracticesBestPracticeIdIndexRoute =
+  LayoutBestPracticesBestPracticeIdIndexRouteImport.update({
+    id: '/$bestPracticeId/',
+    path: '/$bestPracticeId/',
+    getParentRoute: () => LayoutBestPracticesRoute,
+  } as any)
 const ApiPipelinesIdRunRoute = ApiPipelinesIdRunRouteImport.update({
   id: '/run',
   path: '/run',
@@ -254,12 +262,18 @@ const LayoutOperationsOperationIdEditRoute =
     path: '/operations/$operationId/edit',
     getParentRoute: () => LayoutRoute,
   } as any)
+const LayoutBestPracticesBestPracticeIdEditRoute =
+  LayoutBestPracticesBestPracticeIdEditRouteImport.update({
+    id: '/$bestPracticeId/edit',
+    path: '/$bestPracticeId/edit',
+    getParentRoute: () => LayoutBestPracticesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
   '/canvas': typeof CanvasRoute
   '/assistant': typeof LayoutAssistantRoute
-  '/best-practices': typeof LayoutBestPracticesRoute
+  '/best-practices': typeof LayoutBestPracticesRouteWithChildren
   '/jobs': typeof LayoutJobsRouteWithChildren
   '/pipelines': typeof LayoutPipelinesRouteWithChildren
   '/recipes': typeof LayoutRecipesRoute
@@ -290,16 +304,18 @@ export interface FileRoutesByFullPath {
   '/operations/': typeof LayoutOperationsIndexRoute
   '/pipelines/': typeof LayoutPipelinesIndexRoute
   '/projects/': typeof LayoutProjectsIndexRoute
+  '/best-practices/$bestPracticeId/edit': typeof LayoutBestPracticesBestPracticeIdEditRoute
   '/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
   '/api/pipelines/$id/run': typeof ApiPipelinesIdRunRoute
+  '/best-practices/$bestPracticeId/': typeof LayoutBestPracticesBestPracticeIdIndexRoute
   '/operations/$operationId/': typeof LayoutOperationsOperationIdIndexRoute
   '/projects/$projectId/': typeof LayoutProjectsProjectIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/canvas': typeof CanvasRoute
   '/assistant': typeof LayoutAssistantRoute
-  '/best-practices': typeof LayoutBestPracticesRoute
+  '/best-practices': typeof LayoutBestPracticesRouteWithChildren
   '/recipes': typeof LayoutRecipesRoute
   '/rules': typeof LayoutRulesRoute
   '/settings': typeof LayoutSettingsRoute
@@ -329,9 +345,11 @@ export interface FileRoutesByTo {
   '/operations': typeof LayoutOperationsIndexRoute
   '/pipelines': typeof LayoutPipelinesIndexRoute
   '/projects': typeof LayoutProjectsIndexRoute
+  '/best-practices/$bestPracticeId/edit': typeof LayoutBestPracticesBestPracticeIdEditRoute
   '/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
   '/api/pipelines/$id/run': typeof ApiPipelinesIdRunRoute
+  '/best-practices/$bestPracticeId': typeof LayoutBestPracticesBestPracticeIdIndexRoute
   '/operations/$operationId': typeof LayoutOperationsOperationIdIndexRoute
   '/projects/$projectId': typeof LayoutProjectsProjectIdIndexRoute
 }
@@ -340,7 +358,7 @@ export interface FileRoutesById {
   '/_layout': typeof LayoutRouteWithChildren
   '/canvas': typeof CanvasRoute
   '/_layout/assistant': typeof LayoutAssistantRoute
-  '/_layout/best-practices': typeof LayoutBestPracticesRoute
+  '/_layout/best-practices': typeof LayoutBestPracticesRouteWithChildren
   '/_layout/jobs': typeof LayoutJobsRouteWithChildren
   '/_layout/pipelines': typeof LayoutPipelinesRouteWithChildren
   '/_layout/recipes': typeof LayoutRecipesRoute
@@ -372,9 +390,11 @@ export interface FileRoutesById {
   '/_layout/operations/': typeof LayoutOperationsIndexRoute
   '/_layout/pipelines/': typeof LayoutPipelinesIndexRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
+  '/_layout/best-practices/$bestPracticeId/edit': typeof LayoutBestPracticesBestPracticeIdEditRoute
   '/_layout/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/_layout/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
   '/api/pipelines/$id/run': typeof ApiPipelinesIdRunRoute
+  '/_layout/best-practices/$bestPracticeId/': typeof LayoutBestPracticesBestPracticeIdIndexRoute
   '/_layout/operations/$operationId/': typeof LayoutOperationsOperationIdIndexRoute
   '/_layout/projects/$projectId/': typeof LayoutProjectsProjectIdIndexRoute
 }
@@ -415,9 +435,11 @@ export interface FileRouteTypes {
     | '/operations/'
     | '/pipelines/'
     | '/projects/'
+    | '/best-practices/$bestPracticeId/edit'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
     | '/api/pipelines/$id/run'
+    | '/best-practices/$bestPracticeId/'
     | '/operations/$operationId/'
     | '/projects/$projectId/'
   fileRoutesByTo: FileRoutesByTo
@@ -454,9 +476,11 @@ export interface FileRouteTypes {
     | '/operations'
     | '/pipelines'
     | '/projects'
+    | '/best-practices/$bestPracticeId/edit'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
     | '/api/pipelines/$id/run'
+    | '/best-practices/$bestPracticeId'
     | '/operations/$operationId'
     | '/projects/$projectId'
   id:
@@ -496,9 +520,11 @@ export interface FileRouteTypes {
     | '/_layout/operations/'
     | '/_layout/pipelines/'
     | '/_layout/projects/'
+    | '/_layout/best-practices/$bestPracticeId/edit'
     | '/_layout/operations/$operationId/edit'
     | '/_layout/projects/$projectId/workspace'
     | '/api/pipelines/$id/run'
+    | '/_layout/best-practices/$bestPracticeId/'
     | '/_layout/operations/$operationId/'
     | '/_layout/projects/$projectId/'
   fileRoutesById: FileRoutesById
@@ -779,6 +805,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutOperationsOperationIdIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/best-practices/$bestPracticeId/': {
+      id: '/_layout/best-practices/$bestPracticeId/'
+      path: '/$bestPracticeId'
+      fullPath: '/best-practices/$bestPracticeId/'
+      preLoaderRoute: typeof LayoutBestPracticesBestPracticeIdIndexRouteImport
+      parentRoute: typeof LayoutBestPracticesRoute
+    }
     '/api/pipelines/$id/run': {
       id: '/api/pipelines/$id/run'
       path: '/run'
@@ -800,8 +833,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutOperationsOperationIdEditRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/best-practices/$bestPracticeId/edit': {
+      id: '/_layout/best-practices/$bestPracticeId/edit'
+      path: '/$bestPracticeId/edit'
+      fullPath: '/best-practices/$bestPracticeId/edit'
+      preLoaderRoute: typeof LayoutBestPracticesBestPracticeIdEditRouteImport
+      parentRoute: typeof LayoutBestPracticesRoute
+    }
   }
 }
+
+interface LayoutBestPracticesRouteChildren {
+  LayoutBestPracticesBestPracticeIdEditRoute: typeof LayoutBestPracticesBestPracticeIdEditRoute
+  LayoutBestPracticesBestPracticeIdIndexRoute: typeof LayoutBestPracticesBestPracticeIdIndexRoute
+}
+
+const LayoutBestPracticesRouteChildren: LayoutBestPracticesRouteChildren = {
+  LayoutBestPracticesBestPracticeIdEditRoute:
+    LayoutBestPracticesBestPracticeIdEditRoute,
+  LayoutBestPracticesBestPracticeIdIndexRoute:
+    LayoutBestPracticesBestPracticeIdIndexRoute,
+}
+
+const LayoutBestPracticesRouteWithChildren =
+  LayoutBestPracticesRoute._addFileChildren(LayoutBestPracticesRouteChildren)
 
 interface LayoutJobsRouteChildren {
   LayoutJobsJobIdRoute: typeof LayoutJobsJobIdRoute
@@ -833,7 +888,7 @@ const LayoutPipelinesRouteWithChildren = LayoutPipelinesRoute._addFileChildren(
 
 interface LayoutRouteChildren {
   LayoutAssistantRoute: typeof LayoutAssistantRoute
-  LayoutBestPracticesRoute: typeof LayoutBestPracticesRoute
+  LayoutBestPracticesRoute: typeof LayoutBestPracticesRouteWithChildren
   LayoutJobsRoute: typeof LayoutJobsRouteWithChildren
   LayoutPipelinesRoute: typeof LayoutPipelinesRouteWithChildren
   LayoutRecipesRoute: typeof LayoutRecipesRoute
@@ -852,7 +907,7 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAssistantRoute: LayoutAssistantRoute,
-  LayoutBestPracticesRoute: LayoutBestPracticesRoute,
+  LayoutBestPracticesRoute: LayoutBestPracticesRouteWithChildren,
   LayoutJobsRoute: LayoutJobsRouteWithChildren,
   LayoutPipelinesRoute: LayoutPipelinesRouteWithChildren,
   LayoutRecipesRoute: LayoutRecipesRoute,

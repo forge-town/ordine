@@ -4,12 +4,8 @@ import type * as DrizzleOrm from "drizzle-orm";
 // ─── Mock DB ─────────────────────────────────────────────────────────────────
 
 const mockReturning = vi.fn();
-const mockLimit = vi.fn(
-  (): Promise<Record<string, unknown>[]> => Promise.resolve([]),
-);
-const mockOrderBy = vi.fn(
-  (): Promise<Record<string, unknown>[]> => Promise.resolve([]),
-);
+const mockLimit = vi.fn((): Promise<Record<string, unknown>[]> => Promise.resolve([]));
+const mockOrderBy = vi.fn((): Promise<Record<string, unknown>[]> => Promise.resolve([]));
 const mockWhere = vi.fn(() => ({
   returning: mockReturning,
   limit: mockLimit,
