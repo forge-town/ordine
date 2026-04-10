@@ -76,6 +76,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const setInspectingNodeId = useStore(store, (s) => s.setInspectingNodeId);
 
   const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
+  const bestPractices = useStore(store, (s) => s.bestPractices);
 
   const {
     icon: StatusIcon,
@@ -238,12 +239,45 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
           </div>
         )}
 
-        {data.bestPracticeName && (
-          <div className="flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] text-amber-700">
-            <BookOpen className="h-3 w-3 shrink-0" />
-            <span className="truncate">{data.bestPracticeName}</span>
-          </div>
-        )}
+        {/* Best Practice selector */}
+        <div className="space-y-1" onMouseDown={handleStopPropagation}>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            <BookOpen className="mr-1 inline-block h-3 w-3" />
+            最佳实践
+          </p>
+          <Select
+            value={data.bestPracticeId ?? "__none__"}
+            onValueChange={(value: string | null) => {
+              if (!value || value === "__none__") {
+                update({
+                  bestPracticeId: undefined,
+                  bestPracticeName: undefined,
+                });
+              } else {
+                const bp = bestPractices.find((b) => b.id === value);
+                update({
+                  bestPracticeId: value,
+                  bestPracticeName: bp?.name ?? value,
+                });
+              }
+            }}
+          >
+            <SelectTrigger className="h-6 min-w-0 w-full px-1.5 text-[10px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Best Practice</SelectLabel>
+                <SelectItem value="__none__">无</SelectItem>
+                {bestPractices.map((bp) => (
+                  <SelectItem key={bp.id} value={bp.id}>
+                    {bp.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </NodeCard>
 
       {/* Target handle (input from object or previous operation) */}

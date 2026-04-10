@@ -16,11 +16,13 @@ import { createHistorySlice, type HistorySlice } from "./historySlice";
 import { createActionsSlice, type ActionsSlice } from "./actionsSlice";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { RecipeEntity } from "@/models/daos/recipesDao";
+import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 
 export interface HarnessCanvasState
   extends CanvasSlice, UISlice, HistorySlice, ActionsSlice {
   operations: OperationEntity[];
   recipes: RecipeEntity[];
+  bestPractices: BestPracticeEntity[];
   getOperationById: (id: string) => OperationEntity | undefined;
   getAcceptedOperationsForObject: (objectType: string) => OperationEntity[];
 }
@@ -41,9 +43,11 @@ export const createHarnessCanvasStore = (
   pipelineName?: string,
   operations?: OperationEntity[],
   recipes?: RecipeEntity[],
+  bestPractices?: BestPracticeEntity[],
 ) => {
   const ops = operations ?? [];
   const rcps = recipes ?? [];
+  const bps = bestPractices ?? [];
 
   return createStore<HarnessCanvasState>()((set, get) => ({
     ...createCanvasSlice(
@@ -67,6 +71,7 @@ export const createHarnessCanvasStore = (
     ),
     operations: ops,
     recipes: rcps,
+    bestPractices: bps,
     getOperationById: (id: string) => {
       return get().operations.find((op) => op.id === id);
     },

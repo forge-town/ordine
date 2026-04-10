@@ -7,6 +7,7 @@ import {
 import type { PipelineNode, PipelineEdge } from "./canvasSlice";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { RecipeEntity } from "@/models/daos/recipesDao";
+import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 
 interface LoadedPipeline {
   id: string;
@@ -20,6 +21,7 @@ interface Props {
   pipeline?: LoadedPipeline | null;
   operations?: OperationEntity[];
   recipes?: RecipeEntity[];
+  bestPractices?: BestPracticeEntity[];
 }
 
 export const HarnessCanvasStoreProvider = ({
@@ -27,6 +29,7 @@ export const HarnessCanvasStoreProvider = ({
   pipeline,
   operations = [],
   recipes = [],
+  bestPractices = [],
 }: Props) => {
   const storeRef = useRef<HarnessCanvasStore | null>(null);
 
@@ -38,6 +41,7 @@ export const HarnessCanvasStoreProvider = ({
       pipeline?.name ?? "",
       operations,
       recipes,
+      bestPractices,
     );
   }
 

@@ -4,6 +4,7 @@ import { CanvasPage } from "@/pages/CanvasPage";
 import { getPipelineById } from "@/services/pipelinesService";
 import { getOperations } from "@/services/operationsService";
 import { getRecipes } from "@/services/recipesService";
+import { getBestPractices } from "@/services/bestPracticesService";
 
 export const Route = createFileRoute("/canvas")({
   validateSearch: z.object({
@@ -11,12 +12,13 @@ export const Route = createFileRoute("/canvas")({
   }),
   loaderDeps: ({ search }) => ({ id: search.id }),
   loader: async ({ deps }) => {
-    const [pipeline, operations, recipes] = await Promise.all([
+    const [pipeline, operations, recipes, bestPractices] = await Promise.all([
       deps.id ? getPipelineById({ data: { id: deps.id } }) : null,
       getOperations(),
       getRecipes(),
+      getBestPractices(),
     ]);
-    return { pipeline, operations, recipes };
+    return { pipeline, operations, recipes, bestPractices };
   },
   component: CanvasPage,
 });
