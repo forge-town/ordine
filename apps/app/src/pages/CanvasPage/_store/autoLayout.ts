@@ -1,5 +1,3 @@
-import ELK from "elkjs/lib/elk.bundled.js";
-import type { ElkNode, ElkExtendedEdge } from "elkjs";
 import type { PipelineNode, PipelineEdge } from "./canvasSlice";
 import type { LoopNodeData } from "../nodeSchemas";
 
@@ -9,20 +7,54 @@ const H_GAP = 80;
 const V_GAP = 60;
 const COMPOUND_PAD = 20;
 
-const elk = new ELK();
+// ── Kahn's topological sort (cycle-safe: leftover nodes appended) ────────────
+const topoSort = (nodeIds: string[], edgeList: PipelineEdge[]): string[] => {
+  const nodeSet = new Set(nodeIds);
+  const adj = new Map<string, string[]>();
+  const inDeg = new Map<string, number>();
 
-let edgeCounter = 0;
+  for (const id of nodeIds) {
+    adj.set(id, []);
+    inDeg.set(id, 0);
+  }
+  for (const e of edgeList) {
+    if (!nodeSet.has(e.source) || !nodeSet.has(e.target)) continue;
+    if (e.source === e.target) continue;
+    adj.get(e.source)!.push(e.target);
+    inDeg.set(e.target, (inDeg.get(e.target) ?? 0) + 1);
+  }
 
-export const computeAutoLayout = async (
+  const queue: string[] = [];
+  for (const id of nodeIds) {
+    if (inDeg.get(id) === 0) queue.push(id);
+  }
+
+  const result: string[] = [];
+  while (queue.length > 0) {
+    const cur = queue.shift()!;
+    result.push(cur);
+    for (const next of adj.get(cur) ?? []) {
+      const d = (inDeg.get(next) ?? 1) - 1;
+      inDeg.set(next, d);
+      if (d === 0) queue.push(next);
+    }
+  }
+
+  for (const id of nodeIds) {
+    if (!result.includes(id)) result.push(id);
+  }
+  return result;
+};
+
+export const computeAutoLayout = (
   nodes: PipelineNode[],
   edges: PipelineEdge[],
-): Promise<PipelineNode[]> => {
+): PipelineNode[] => {
   if (nodes.length === 0) return [];
-  edgeCounter = 0;
 
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
 
-  // ── Loop structure (childToLoop maps child → immediate parent loop) ────────
+  // ── Loop structure ──────────────────────────────────────────────────────────
   const loopChildren = new Map<string, string[]>();
   const childToLoop = new Map<string, string>();
 
@@ -42,141 +74,87 @@ export const computeAutoLayout = async (
     };
   };
 
-  // ── Ancestor chain helpers ─────────────────────────────────────────────────
-  const getAncestorChain = (id: string): string[] => {
-    const chain: string[] = [];
-    let cur = childToLoop.get(id);
-    const visited = new Set<string>();
-    while (cur && !visited.has(cur)) {
-      chain.push(cur);
-      visited.add(cur);
-      cur = childToLoop.get(cur);
-    }
-    return chain;
-  };
+  // ── Expanded sizes (after laying out children) ─────────────────────────────
+  const expandedW = new Map<string, number>();
+  const expandedH = new Map<string, number>();
+  const childRelPos = new Map<string, { x: number; y: number }>();
 
-  // ── Find which level (loop) owns an edge ────────────────────────────────────
-  // Returns the loop ID whose children array should contain this edge,
-  // or undefined for the root level.
-  // Rule: the edge belongs to the deepest loop that is a proper ancestor of BOTH endpoints.
-  // If one endpoint IS a direct ancestor of the other, go up to that ancestor's parent.
-  const findEdgeOwner = (src: string, tgt: string): string | undefined => {
-    const pathA = [src, ...getAncestorChain(src)];
-    const pathB = new Set([tgt, ...getAncestorChain(tgt)]);
+  // Recursive: layout children bottom-up (inner loops first)
+  const layoutChildren = (loopId: string) => {
+    const children = loopChildren.get(loopId) ?? [];
+    if (children.length === 0) return;
 
-    for (const node of pathA) {
-      if (pathB.has(node)) {
-        if (node === src || node === tgt) {
-          return childToLoop.get(node);
-        }
-        return node;
-      }
-    }
-    return undefined;
-  };
-
-  // ── Resolve endpoint: lift child id to direct child of `targetParent` ──────
-  const resolveToLevel = (
-    id: string,
-    targetParent: string | undefined,
-  ): string => {
-    let cur = id;
-    const visited = new Set<string>();
-    while (childToLoop.has(cur) && childToLoop.get(cur) !== targetParent) {
-      if (visited.has(cur)) break;
-      visited.add(cur);
-      cur = childToLoop.get(cur)!;
-    }
-    return cur;
-  };
-
-  // ── Recursive ELK node builder ─────────────────────────────────────────────
-  const buildElkNode = (id: string): ElkNode => {
-    const { w, h } = getSize(id);
-
-    if (!loopChildren.has(id)) {
-      return { id, width: w, height: h };
+    for (const cid of children) {
+      if (loopChildren.has(cid)) layoutChildren(cid);
     }
 
-    const directChildren = loopChildren.get(id)!;
-    const elkChildren = directChildren.map(buildElkNode);
+    const childSet = new Set(children);
+    const childEdges = edges.filter(
+      (e) =>
+        childSet.has(e.source) &&
+        childSet.has(e.target) &&
+        childToLoop.get(e.source) === loopId &&
+        childToLoop.get(e.target) === loopId,
+    );
 
-    const elkEdges: ElkExtendedEdge[] = edges
-      .filter((e) => findEdgeOwner(e.source, e.target) === id)
-      .map((e) => ({
-        id: `elk_${edgeCounter++}`,
-        sources: [resolveToLevel(e.source, id)],
-        targets: [resolveToLevel(e.target, id)],
-      }));
+    const order = topoSort(children, childEdges);
+    const loopCardH = getSize(loopId).h;
 
-    return {
-      id,
-      layoutOptions: {
-        "elk.algorithm": "layered",
-        "elk.direction": "RIGHT",
-        "elk.spacing.nodeNode": String(V_GAP),
-        "elk.layered.spacing.nodeNodeBetweenLayers": String(H_GAP),
-        "elk.padding": `[top=${h + V_GAP},left=${COMPOUND_PAD},bottom=${COMPOUND_PAD},right=${COMPOUND_PAD}]`,
-      },
-      children: elkChildren,
-      edges: elkEdges,
-    };
+    let cx = COMPOUND_PAD;
+    let maxChildH = 0;
+
+    for (const cid of order) {
+      const w = expandedW.get(cid) ?? getSize(cid).w;
+      const h = expandedH.get(cid) ?? getSize(cid).h;
+      childRelPos.set(cid, { x: cx, y: loopCardH + V_GAP });
+      cx += w + H_GAP;
+      maxChildH = Math.max(maxChildH, h);
+    }
+
+    const totalW = cx - H_GAP + COMPOUND_PAD;
+    expandedW.set(loopId, Math.max(getSize(loopId).w, totalW));
+    expandedH.set(loopId, loopCardH + V_GAP + maxChildH + COMPOUND_PAD);
   };
 
-  // ── Build root graph ───────────────────────────────────────────────────────
-  const rootChildren: ElkNode[] = [];
-  for (const n of nodes) {
-    if (childToLoop.has(n.id)) continue;
-    rootChildren.push(buildElkNode(n.id));
+  // Layout all top-level loops (recursion handles nesting)
+  for (const loopId of loopChildren.keys()) {
+    if (!childToLoop.has(loopId)) layoutChildren(loopId);
   }
 
-  const rootEdges: ElkExtendedEdge[] = [];
-  for (const e of edges) {
-    const owner = findEdgeOwner(e.source, e.target);
-    if (owner !== undefined) continue;
-    const src = resolveToLevel(e.source, undefined);
-    const tgt = resolveToLevel(e.target, undefined);
-    if (src === tgt) continue;
-    rootEdges.push({
-      id: `elk_${edgeCounter++}`,
-      sources: [src],
-      targets: [tgt],
-    });
-  }
+  // ── Trunk: toposort + straight horizontal line ─────────────────────────────
+  const trunkIds = nodes.filter((n) => !childToLoop.has(n.id)).map((n) => n.id);
+  const trunkEdges = edges.filter(
+    (e) => !childToLoop.has(e.source) && !childToLoop.has(e.target),
+  );
+  const trunkOrder = topoSort(trunkIds, trunkEdges);
 
-  const graph: ElkNode = {
-    id: "root",
-    layoutOptions: {
-      "elk.algorithm": "layered",
-      "elk.direction": "RIGHT",
-      "elk.spacing.nodeNode": String(V_GAP),
-      "elk.layered.spacing.nodeNodeBetweenLayers": String(H_GAP),
-    },
-    children: rootChildren,
-    edges: rootEdges,
-  };
-
-  const laid = await elk.layout(graph);
-
-  // ── Recursively extract positions (absolute) ───────────────────────────────
   const positionMap = new Map<string, { x: number; y: number }>();
+  let tx = 0;
+  for (const id of trunkOrder) {
+    const w = expandedW.get(id) ?? getSize(id).w;
+    positionMap.set(id, { x: tx, y: 0 });
+    tx += w + H_GAP;
+  }
 
-  const extractPositions = (
-    elkNodes: ElkNode[],
-    offsetX: number,
-    offsetY: number,
-  ) => {
-    for (const en of elkNodes) {
-      const ax = offsetX + (en.x ?? 0);
-      const ay = offsetY + (en.y ?? 0);
-      positionMap.set(en.id, { x: ax, y: ay });
-      if (en.children) {
-        extractPositions(en.children as ElkNode[], ax, ay);
-      }
+  // ── Offset children to absolute positions (top-down BFS) ───────────────────
+  const loopQueue = [...loopChildren.keys()].filter(
+    (id) => !childToLoop.has(id),
+  );
+  while (loopQueue.length > 0) {
+    const loopId = loopQueue.shift()!;
+    const loopPos = positionMap.get(loopId);
+    if (!loopPos) continue;
+
+    for (const cid of loopChildren.get(loopId) ?? []) {
+      const rel = childRelPos.get(cid);
+      if (!rel) continue;
+      positionMap.set(cid, {
+        x: loopPos.x + rel.x,
+        y: loopPos.y + rel.y,
+      });
+      if (loopChildren.has(cid)) loopQueue.push(cid);
     }
-  };
-
-  extractPositions((laid.children ?? []) as ElkNode[], 0, 0);
+  }
 
   return nodes.map((n) => ({
     ...n,

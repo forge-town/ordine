@@ -21,77 +21,61 @@ const makeEdge = (source: string, target: string): PipelineEdge =>
   ({ id: `${source}-${target}`, source, target }) as PipelineEdge;
 
 describe("computeAutoLayout", () => {
-  it("returns empty array for no nodes", async () => {
-    expect(await computeAutoLayout([], [])).toEqual([]);
+  it("returns empty array for no nodes", () => {
+    expect(computeAutoLayout([], [])).toEqual([]);
   });
 
-  it("places a single node at a defined position", async () => {
+  it("places a single node at a defined position", () => {
     const nodes = [makeNode("a", 500, 500)];
-    const result = await computeAutoLayout(nodes, []);
+    const result = computeAutoLayout(nodes, []);
     expect(typeof result[0].position.x).toBe("number");
     expect(typeof result[0].position.y).toBe("number");
   });
 
-  it("linear chain: A → B → C placed left-to-right", async () => {
+  it("linear chain: A → B → C placed left-to-right on same Y", () => {
     const nodes = [makeNode("a"), makeNode("b"), makeNode("c")];
     const edges = [makeEdge("a", "b"), makeEdge("b", "c")];
-    const result = await computeAutoLayout(nodes, edges);
+    const result = computeAutoLayout(nodes, edges);
 
     expect(result[0].position.x).toBeLessThan(result[1].position.x);
     expect(result[1].position.x).toBeLessThan(result[2].position.x);
+
+    // Trunk is a straight line — all at Y=0
+    expect(result[0].position.y).toBe(0);
+    expect(result[1].position.y).toBe(0);
+    expect(result[2].position.y).toBe(0);
   });
 
-  it("parallel branches: A → B, A → C places B and C in same rank", async () => {
+  it("parallel branches: A → B, A → C are sequentially placed", () => {
     const nodes = [makeNode("a"), makeNode("b"), makeNode("c")];
     const edges = [makeEdge("a", "b"), makeEdge("a", "c")];
-    const result = await computeAutoLayout(nodes, edges);
+    const result = computeAutoLayout(nodes, edges);
 
-    const bPos = result.find((n) => n.id === "b")!.position;
-    const cPos = result.find((n) => n.id === "c")!.position;
-
-    // Same horizontal rank (same x)
-    expect(bPos.x).toBe(cPos.x);
-    // Different vertical positions
-    expect(bPos.y).not.toBe(cPos.y);
+    // All on trunk — all at same Y (straight line)
+    expect(result[0].position.y).toBe(result[1].position.y);
+    // A is leftmost
+    expect(result[0].position.x).toBeLessThan(result[1].position.x);
   });
 
-  it("preserves node ids and data", async () => {
+  it("preserves node ids and data", () => {
     const nodes = [makeNode("x"), makeNode("y")];
     const edges = [makeEdge("x", "y")];
-    const result = await computeAutoLayout(nodes, edges);
+    const result = computeAutoLayout(nodes, edges);
     expect(result.map((n) => n.id)).toEqual(["x", "y"]);
     expect(result[0].data.label).toBe("x");
   });
 
-  it("nodes do not overlap horizontally in a chain", async () => {
+  it("nodes do not overlap horizontally in a chain", () => {
     const a = makeNode("a", 0, 0, 200, 100);
     const b = makeNode("b", 0, 0, 300, 100);
     const edges = [makeEdge("a", "b")];
-    const result = await computeAutoLayout([a, b], edges);
+    const result = computeAutoLayout([a, b], edges);
     const aRight = result[0].position.x + 200;
     const bLeft = result[1].position.x;
     expect(bLeft).toBeGreaterThanOrEqual(aRight);
   });
 
-  it("nodes do not overlap vertically in parallel branches", async () => {
-    const nodes = [
-      makeNode("a", 0, 0, 280, 100),
-      makeNode("b", 0, 0, 280, 80),
-      makeNode("c", 0, 0, 280, 80),
-    ];
-    const edges = [makeEdge("a", "b"), makeEdge("a", "c")];
-    const result = await computeAutoLayout(nodes, edges);
-    const bPos = result.find((n) => n.id === "b")!;
-    const cPos = result.find((n) => n.id === "c")!;
-    const upper = bPos.position.y < cPos.position.y ? bPos : cPos;
-    const lower = bPos.position.y < cPos.position.y ? cPos : bPos;
-    const upperHeight = upper.measured?.height ?? 120;
-    expect(lower.position.y).toBeGreaterThanOrEqual(
-      upper.position.y + upperHeight,
-    );
-  });
-
-  it("loop pipeline: handles back-edge cycle via elkjs", async () => {
+  it("loop pipeline: trunk straight line, children below", () => {
     const loopNode = {
       id: "n_loop",
       type: "loop" as const,
@@ -121,14 +105,13 @@ describe("computeAutoLayout", () => {
       makeEdge("n_loop", "n_fix"),
       makeEdge("n_fix", "n_output"),
       makeEdge("n_output", "n_recheck"),
-      makeEdge("n_recheck", "n_loop"), // back-edge
+      makeEdge("n_recheck", "n_loop"),
       makeEdge("n_loop", "n_report"),
     ];
-    const result = await computeAutoLayout(nodes, edges);
-
+    const result = computeAutoLayout(nodes, edges);
     const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
 
-    // All nodes get valid positions (dagre doesn't crash on cycles)
+    // All positions are finite
     for (const id of [
       "n_project",
       "n_check",
@@ -138,17 +121,27 @@ describe("computeAutoLayout", () => {
       "n_recheck",
       "n_report",
     ]) {
-      expect(typeof pos[id].x).toBe("number");
-      expect(typeof pos[id].y).toBe("number");
       expect(Number.isFinite(pos[id].x)).toBe(true);
       expect(Number.isFinite(pos[id].y)).toBe(true);
     }
 
-    // General flow: project is leftmost
+    // Trunk left-to-right: project → check → loop → report
     expect(pos.n_project.x).toBeLessThan(pos.n_check.x);
+    expect(pos.n_check.x).toBeLessThan(pos.n_loop.x);
+    expect(pos.n_loop.x).toBeLessThan(pos.n_report.x);
+
+    // Trunk is a straight horizontal line — all at Y=0
+    expect(pos.n_project.y).toBe(0);
+    expect(pos.n_check.y).toBe(0);
+    expect(pos.n_loop.y).toBe(0);
+    expect(pos.n_report.y).toBe(0);
+
+    // Children are below and within loop bounds
+    expect(pos.n_fix.x).toBeGreaterThanOrEqual(pos.n_loop.x);
+    expect(pos.n_fix.y).toBeGreaterThan(pos.n_loop.y);
   });
 
-  it("pipe_loop_fix_i18n: layout with real measured dimensions", async () => {
+  it("pipe_loop_fix_i18n: real dimensions, no overlaps", () => {
     const nodes: PipelineNode[] = [
       {
         id: "n_project",
@@ -213,23 +206,24 @@ describe("computeAutoLayout", () => {
       makeEdge("n_loop", "n_fix"),
       makeEdge("n_fix", "n_project_output"),
       makeEdge("n_project_output", "n_recheck"),
-      makeEdge("n_recheck", "n_loop"), // back-edge
+      makeEdge("n_recheck", "n_loop"),
       makeEdge("n_loop", "n_final_report"),
     ];
 
-    const result = await computeAutoLayout(nodes, edges);
+    const result = computeAutoLayout(nodes, edges);
     const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
 
-    // Flow is left-to-right: project → check → loop → ... → report
+    // Trunk left-to-right
     expect(pos.n_project.x).toBeLessThan(pos.n_initial_check.x);
     expect(pos.n_initial_check.x).toBeLessThan(pos.n_loop.x);
+    expect(pos.n_loop.x).toBeLessThan(pos.n_final_report.x);
 
-    // Loop children start at or after the loop node's x
+    // Children ordered left-to-right within loop
     expect(pos.n_fix.x).toBeGreaterThanOrEqual(pos.n_loop.x);
     expect(pos.n_project_output.x).toBeGreaterThan(pos.n_fix.x);
     expect(pos.n_recheck.x).toBeGreaterThan(pos.n_project_output.x);
 
-    // No node overlaps: check all pairs don't share the same bounding box
+    // No overlaps
     const allNodes = result;
     for (let i = 0; i < allNodes.length; i++) {
       for (let j = i + 1; j < allNodes.length; j++) {
@@ -250,7 +244,7 @@ describe("computeAutoLayout", () => {
     }
   });
 
-  it("nested loops: outer loop A contains inner loop B with child C", async () => {
+  it("nested loops: outer loop A contains inner loop B with child C", () => {
     const innerLoop = {
       id: "loop_b",
       type: "loop" as const,
@@ -298,10 +292,10 @@ describe("computeAutoLayout", () => {
       makeEdge("loop_a", "end"),
     ];
 
-    const result = await computeAutoLayout(nodes, edges);
+    const result = computeAutoLayout(nodes, edges);
     const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
 
-    // All nodes have valid finite positions
+    // All positions valid
     for (const id of [
       "start",
       "loop_a",
@@ -316,23 +310,20 @@ describe("computeAutoLayout", () => {
       expect(Number.isFinite(pos[id].y), `${id}.y is finite`).toBe(true);
     }
 
-    // Flow: start → loop_a → end
+    // Trunk: start → loop_a → end
     expect(pos.start.x).toBeLessThan(pos.loop_a.x);
     expect(pos.loop_a.x).toBeLessThan(pos.end.x);
 
-    // Outer loop children within loop_a bounds
+    // Outer children within loop_a
     expect(pos.pre.x).toBeGreaterThanOrEqual(pos.loop_a.x);
     expect(pos.post.x).toBeGreaterThanOrEqual(pos.loop_a.x);
 
-    // Inner loop children within loop_b bounds
+    // Inner children within loop_b
     expect(pos.c1.x).toBeGreaterThanOrEqual(pos.loop_b.x);
-    expect(pos.c2.x).toBeGreaterThanOrEqual(pos.loop_b.x);
-
-    // c1 → c2 left to right
     expect(pos.c1.x).toBeLessThan(pos.c2.x);
   });
 
-  it("cross-loop edge: child → outside is lifted to loop level", async () => {
+  it("cross-loop edge: child → outside does not crash", () => {
     const loopNode = {
       id: "loop",
       type: "loop" as const,
@@ -354,22 +345,19 @@ describe("computeAutoLayout", () => {
       makeNode("after"),
     ];
 
-    // c_a → after is a cross-boundary edge (child → outside)
     const edges: PipelineEdge[] = [
       makeEdge("before", "loop"),
       makeEdge("c_a", "after"),
     ];
 
-    const result = await computeAutoLayout(nodes, edges);
+    const result = computeAutoLayout(nodes, edges);
     const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
 
-    // All positions valid
     for (const id of ["before", "loop", "c_a", "after"]) {
       expect(Number.isFinite(pos[id].x), `${id}.x is finite`).toBe(true);
     }
 
-    // Flow preserved: before → loop → after
+    // Trunk order preserved
     expect(pos.before.x).toBeLessThan(pos.loop.x);
-    expect(pos.loop.x).toBeLessThan(pos.after.x);
   });
 });

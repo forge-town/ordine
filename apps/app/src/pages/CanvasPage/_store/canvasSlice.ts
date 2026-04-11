@@ -288,8 +288,7 @@ export const createCanvasSlice = (
 
   formatLayout: () => {
     const { nodes, edges } = get();
-    void computeAutoLayout(nodes, edges).then((layouted) => {
-      set({ nodes: layouted });
-    });
+    const layouted = computeAutoLayout(nodes, edges);
+    set({ nodes: layouted });
   },
 });
