@@ -1,7 +1,17 @@
 import { useState } from "react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
-import { ZoomIn, ZoomOut, Maximize2, Trash2, Undo2, Redo2, Bot, Play } from "lucide-react";
+import {
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Trash2,
+  Undo2,
+  Redo2,
+  Bot,
+  Play,
+  AlignLeft,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
@@ -25,13 +35,17 @@ export const CanvasToolbar = () => {
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
-  const handleDeleteSelected = useStore(store, (state) => state.handleDeleteSelected);
+  const handleDeleteSelected = useStore(
+    store,
+    (state) => state.handleDeleteSelected,
+  );
   const handleToggleAi = useStore(store, (state) => state.handleToggleAi);
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
   const setActiveJobId = useStore(store, (state) => state.setActiveJobId);
   const startTestRun = useStore(store, (state) => state.startTestRun);
   const isTestRunning = useStore(store, (state) => state.isTestRunning);
+  const formatLayout = useStore(store, (state) => state.formatLayout);
 
   const [isRunning, setIsRunning] = useState(false);
 
@@ -62,7 +76,7 @@ export const CanvasToolbar = () => {
           },
         },
       }),
-      () => "save-failed" as const
+      () => "save-failed" as const,
     );
 
     if (saveResult.isErr()) {
@@ -81,13 +95,16 @@ export const CanvasToolbar = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       }),
-      () => "Failed to start pipeline"
+      () => "Failed to start pipeline",
     )
       .andThen((res) =>
-        ResultAsync.fromPromise(res.text(), () => "Failed to read response").map((text) => ({
+        ResultAsync.fromPromise(
+          res.text(),
+          () => "Failed to read response",
+        ).map((text) => ({
           res,
           text,
-        }))
+        })),
       )
       .andThen(({ res, text }) => {
         if (!res.ok) {
@@ -95,7 +112,7 @@ export const CanvasToolbar = () => {
         }
         return ResultAsync.fromPromise(
           Promise.resolve().then(() => JSON.parse(text) as { jobId: string }),
-          () => "Failed to parse response"
+          () => "Failed to parse response",
         );
       });
 
@@ -114,7 +131,7 @@ export const CanvasToolbar = () => {
           title: t("canvas.runFailed"),
           description: error,
         });
-      }
+      },
     );
 
     setIsRunning(false);
@@ -129,7 +146,12 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomOut} />
+              <Button
+                className="h-7 w-7"
+                size="icon"
+                variant="ghost"
+                onClick={handleZoomOut}
+              />
             }
           >
             <ZoomOut className="h-4 w-4" />
@@ -139,7 +161,12 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomIn} />
+              <Button
+                className="h-7 w-7"
+                size="icon"
+                variant="ghost"
+                onClick={handleZoomIn}
+              />
             }
           >
             <ZoomIn className="h-4 w-4" />
@@ -149,12 +176,32 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleFitView} />
+              <Button
+                className="h-7 w-7"
+                size="icon"
+                variant="ghost"
+                onClick={handleFitView}
+              />
             }
           >
             <Maximize2 className="h-4 w-4" />
           </TooltipTrigger>
           <TooltipContent>{t("canvas.fitView")}</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                className="h-7 w-7"
+                size="icon"
+                variant="ghost"
+                onClick={formatLayout}
+              />
+            }
+          >
+            <AlignLeft className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>{t("canvas.formatLayout")}</TooltipContent>
         </Tooltip>
 
         <Separator className="mx-1 h-5" orientation="vertical" />

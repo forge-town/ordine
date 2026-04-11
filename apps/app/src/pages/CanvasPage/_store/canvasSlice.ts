@@ -25,6 +25,8 @@ import {
   type PipelineEdgeData,
 } from "../nodeSchemas";
 
+import { computeAutoLayout } from "./autoLayout";
+
 // Re-export all data types from the single source of truth
 export type {
   NodeType,
@@ -68,6 +70,7 @@ export interface CanvasSlice {
   selectEdge: (edgeId: string | null) => void;
   duplicateNode: (nodeId: string) => void;
   clearCanvas: () => void;
+  formatLayout: () => void;
 }
 
 const initialNodes: PipelineNode[] = [];
@@ -281,5 +284,12 @@ export const createCanvasSlice = (
       },
     );
     set({ selectedNodeId: null, selectedEdgeId: null });
+  },
+
+  formatLayout: () => {
+    const { nodes, edges } = get();
+    void computeAutoLayout(nodes, edges).then((layouted) => {
+      set({ nodes: layouted });
+    });
   },
 });
