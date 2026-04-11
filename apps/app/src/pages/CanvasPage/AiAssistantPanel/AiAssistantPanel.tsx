@@ -68,8 +68,7 @@ export const AiAssistantPanel = () => {
     {
       id: "welcome",
       role: "assistant",
-      content:
-        "你好！我是 Pipeline AI 助手。\n\n告诉我你想搭建什么样的 Pipeline，我来帮你设计节点结构、添加 Skill 或调整连接关系。",
+      content: t("canvas.aiAssistantWelcome"),
     },
   ]);
   const [input, setInput] = useState("");
@@ -208,7 +207,7 @@ export const AiAssistantPanel = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-primary-foreground">Pipeline AI</p>
-                <p className="text-[10px] text-primary-foreground/60">点我来影响画布</p>
+                <p className="text-[10px] text-primary-foreground/60">{t("canvas.aiAssistantSubtitle")}</p>
               </div>
             </div>
             <Button
@@ -255,10 +254,10 @@ export const AiAssistantPanel = () => {
                           >
                             ✓{" "}
                             {a.type === "addNode"
-                              ? `添加 ${a.nodeType}`
+                              ? `${t("canvas.aiAssistantActionAdd")} ${a.nodeType}`
                               : a.type === "clearCanvas"
-                                ? "清空画布"
-                                : "连接节点"}
+                                ? t("canvas.aiAssistantActionClear")
+                                : t("canvas.aiAssistantActionConnect")}
                           </span>
                         ))}
                       </div>
@@ -273,7 +272,7 @@ export const AiAssistantPanel = () => {
                   </div>
                   <div className="flex items-center gap-1.5 rounded-xl rounded-tl-sm bg-muted px-3 py-2">
                     <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">思考中…</span>
+                    <span className="text-xs text-muted-foreground">{t("canvas.aiAssistantThinking")}</span>
                   </div>
                 </div>
               )}
@@ -288,7 +287,7 @@ export const AiAssistantPanel = () => {
               <textarea
                 ref={inputRef}
                 className="flex-1 resize-none rounded-lg border bg-transparent px-3 py-2 text-xs placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-                placeholder="告诉我怎么改这个 Pipeline…"
+                placeholder={t("canvas.aiAssistantInputPlaceholder")}
                 rows={2}
                 value={input}
                 onChange={handleChangeInput}
@@ -303,7 +302,7 @@ export const AiAssistantPanel = () => {
                 <Send className="h-3.5 w-3.5" />
               </Button>
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground">Enter 发送 · Shift+Enter 换行</p>
+            <p className="mt-1 text-[10px] text-muted-foreground">{t("canvas.aiAssistantSendHint")}</p>
           </div>
         </div>
       )}

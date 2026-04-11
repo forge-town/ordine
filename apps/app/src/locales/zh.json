@@ -2,6 +2,8 @@
   "common": {
     "startTime": "开始时间",
     "endTime": "结束时间",
+    "startedAt": "开始时间",
+    "finishedAt": "完成时间",
     "save": "保存",
     "saving": "保存中...",
     "cancel": "取消",
@@ -26,7 +28,10 @@
     "category": "分类",
     "language": "语言",
     "tags": "标签",
-    "new": "新"
+    "new": "新",
+    "metadata": "元数据",
+    "createdAt": "创建时间",
+    "updatedAt": "更新时间"
   },
   "nav": {
     "dashboard": "仪表盘",
@@ -157,7 +162,31 @@
     "back": "返回 Pipelines",
     "openInCanvas": "在 Canvas 中打开",
     "newPipelineDescription": "在 Canvas 中配置此 Pipeline 的节点和连接。",
-    "conditionNodeLabel": "验收条件"
+    "conditionNodeLabel": "验收条件",
+    "backToList": "返回列表",
+    "editInCanvas": "在 Canvas 中编辑",
+    "preview": "Pipeline 预览",
+    "fullscreenEdit": "全屏编辑 →",
+    "clickToOpenInCanvas": "点击在 Canvas 中打开",
+    "noStepsYet": "还没有操作步骤",
+    "clickToAdd": "点击此处在 Canvas 中添加",
+    "runPipeline": "执行流水线",
+    "inputPathOptional": "/path/to/your/file-or-folder (可选)",
+    "running": "执行中…",
+    "run": "运行",
+    "runningStatus": "正在执行…",
+    "doneStatus": "执行完成",
+    "failedStatus": "执行失败",
+    "nodeList": "节点列表",
+    "nodeTypes": {
+      "operation": "操作",
+      "code-file": "代码文件",
+      "folder": "文件夹",
+      "github-project": "GitHub",
+      "output-local-path": "本地输出",
+      "output-project-path": "项目输出",
+      "condition": "条件"
+    }
   },
   "canvas": {
     "title": "画布",
@@ -435,7 +464,98 @@
       "currentSelection": "当前选择：",
       "selectThisFile": "选择此文件",
       "selectThisFolder": "选择此文件夹"
+    },
+    "codeFile": {
+      "descriptionPlaceholder": "文件描述...",
+      "browseFile": "浏览文件"
+    },
+    "condition": {
+      "expressionPlaceholder": "未设置表达式",
+      "expectedResultPlaceholder": "期望结果...",
+      "statusIdle": "待验收",
+      "statusRunning": "检查中",
+      "statusPass": "通过",
+      "statusFail": "失败"
+    },
+    "outputProjectPath": {
+      "descriptionPlaceholder": "描述此输出...",
+      "projectIdLabel": "项目 ID",
+      "pathLabel": "路径"
+    },
+    "outputLocalPathNode": {
+      "pathLabel": "路径",
+      "filenameLabel": "文件名",
+      "writeModeLabel": "写入模式",
+      "modeOverwrite": "覆写",
+      "modeErrorIfExists": "已存在则中断",
+      "modeAutoRename": "自动重命名",
+      "errorIfExistsWarning": "如果输出文件已存在，管线将会中断",
+      "descriptionPlaceholder": "描述此输出...",
+      "browseFolder": "浏览文件夹"
     }
+  },
+  "github": {
+    "tokenEmpty": "TOKEN_EMPTY:Token 不能为空",
+    "networkError": "NETWORK_ERROR:网络错误，无法验证 Token",
+    "authFailed": "AUTH_FAILED:Token 无效或已过期，请重新配置",
+    "rateLimit": "RATE_LIMIT:GitHub API 已达到限流，请稍后再试",
+    "tokenInsufficient": "AUTH_FAILED:Token 权限不足或被禁用",
+    "verifyFailed": "AUTH_FAILED:验证失败 (状态码: {{status}})",
+    "connectError": "网络错误，无法连接 GitHub",
+    "parseRepoError": "解析仓库数据失败",
+    "repoNotFoundWithToken": "仓库不存在，请检查 owner/repo 是否正确",
+    "repoNotFoundNoToken": "仓库不存在或为私有仓库，请先配置 GitHub Token",
+    "noAccess": "无权访问该仓库，请检查 Token 是否有效",
+    "fetchRepoFailed": "获取仓库信息失败 ({{status}})",
+    "connectTitle": "连接 GitHub 仓库",
+    "urlLabel": "GitHub 仓库 URL",
+    "urlHint": "支持格式：https://github.com/owner/repo 或 https://github.com/owner/repo/tree/branch",
+    "branch": "分支",
+    "defaultBranch": "默认分支",
+    "connectRepo": "连接仓库",
+    "back": "返回",
+    "tokenConfigured": "已配置 Token（可访问私有仓库）",
+    "tokenMissing": "未配置 Token（仅可访问公开仓库）",
+    "configure": "配置",
+    "modify": "修改",
+    "urlParseError": "无法解析 GitHub URL，请输入完整的仓库链接"
+  },
+  "aiAssistant": {
+    "placeholder": "告诉我怎么改这个 Pipeline…",
+    "welcomeMessage": "你好！我是 Pipeline AI 助手。\n\n告诉我你想搭建什么样的 Pipeline，我来帮你设计节点结构、添加 Skill 或调整连接关系。",
+    "thinking": "思考中…",
+    "sendHint": "Enter 发送 · Shift+Enter 换行",
+    "subtitle": "点我来影响画布",
+    "actionAdd": "添加",
+    "actionClear": "清空画布",
+    "actionConnect": "连接节点",
+    "mastraError": "连接 Mastra 服务失败。请确保 apps/mastra 已在端口 4111 启动。"
+  },
+  "skills": {
+    "pageStructure": "页面结构",
+    "pageStructureDesc": "生成标准的页面 Anatomy：Wrapper + Content + 可选 Store，确保页面结构清晰分层。",
+    "stateManagement": "状态管理 Store",
+    "stateManagementDesc": "基于 Zustand slice 模式创建 Store，包含 Context Provider 和类型安全的 hook。",
+    "daoLayer": "DAO 层",
+    "daoLayerDesc": "使用 Drizzle ORM 规范创建数据访问对象，确保命名、类型安全和查询性能。",
+    "serviceLayer": "Service 层",
+    "serviceLayerDesc": "按照 tRPC + Service + DAO 架构创建 Service，分离业务逻辑与数据访问。",
+    "formComponent": "表单组件",
+    "formComponentDesc": "创建符合规范的表单组件，包含字段验证、状态管理和 UI 结构。",
+    "schemaValidation": "Schema 校验",
+    "schemaValidationDesc": "使用 Drizzle ORM schema 定义数据库表，确保命名、关系和索引配置规范。",
+    "barrelExport": "桶导出规范",
+    "barrelExportDesc": "生成和检查 index.ts 桶导出文件，确保所有 index 文件仅做 re-export。",
+    "errorHandling": "错误处理",
+    "errorHandlingDesc": "规范化 try-catch 写法，确保 catch 块有实质处理逻辑，不为空或仅记录日志。",
+    "dbNaming": "数据库表命名",
+    "dbNamingDesc": "验证和修正数据库表定义的命名规范，包括表名、列名和索引。",
+    "svgIcon": "SVG 图标规范",
+    "svgIconDesc": "管理 React TypeScript 项目中的 SVG 图标，确保命名、封装和导出规范。",
+    "oneComponent": "单组件单文件",
+    "oneComponentDesc": "强制每个文件只包含一个 React/Vue 组件，不允许多组件共存。",
+    "refineTrpc": "Refine tRPC 规范",
+    "refineTrpcDesc": "在 React 组件中通过 Refine hooks 经由 DataProvider 访问数据，禁止直接调用 tRPC。"
   },
   "work": {
     "pending": "等待中",

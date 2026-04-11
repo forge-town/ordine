@@ -7,6 +7,7 @@ export type NodeType =
   | "code-file"
   | "folder"
   | "github-project"
+  | "loop"
   | "operation"
   | "output-project-path"
   | "output-local-path";
@@ -75,7 +76,11 @@ export interface OutputProjectPathNodeData {
   description?: string;
 }
 
-export const OUTPUT_MODES = ["overwrite", "error_if_exists", "auto_rename"] as const;
+export const OUTPUT_MODES = [
+  "overwrite",
+  "error_if_exists",
+  "auto_rename",
+] as const;
 export type OutputMode = (typeof OUTPUT_MODES)[number];
 
 export interface OutputLocalPathNodeData {
@@ -87,11 +92,38 @@ export interface OutputLocalPathNodeData {
   description?: string;
 }
 
+// ── Loop node ────────────────────────────────────────────────────────────────
+
+export type LoopPassOperator = "eq" | "lte" | "gte" | "lt" | "gt";
+
+export interface LoopPassCondition {
+  /** JSON path to extract from the last child node's structured output (e.g. "stats.errors") */
+  field: string;
+  /** Comparison operator */
+  operator: LoopPassOperator;
+  /** The target value to compare against */
+  value: number;
+}
+
+export interface LoopNodeData {
+  label: string;
+  nodeType: "loop";
+  /** IDs of child nodes to execute in each iteration (in topological order) */
+  childNodeIds: string[];
+  /** Maximum number of iterations before exiting regardless of condition */
+  maxIterations: number;
+  /** Exit condition: if the condition is met, the loop stops (pass) */
+  passCondition: LoopPassCondition;
+  status?: NodeRunStatus;
+  description?: string;
+}
+
 export type PipelineNodeData =
   | ConditionNodeData
   | CodeFileNodeData
   | FolderNodeData
   | GitHubProjectNodeData
+  | LoopNodeData
   | OperationNodeData
   | OutputProjectPathNodeData
   | OutputLocalPathNodeData;

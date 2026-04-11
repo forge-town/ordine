@@ -98,7 +98,7 @@ export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
           {job.projectId && <span className="truncate max-w-30">{job.projectId}</span>}
           {duration && <span>{duration}</span>}
           <span>
-            {new Date(job.createdAt).toLocaleString("zh-CN", {
+            {new Date(job.createdAt).toLocaleString(undefined, {
               month: "numeric",
               day: "numeric",
               hour: "2-digit",

@@ -36,7 +36,7 @@ export const JobActivityRow = ({ job }: JobActivityRowProps) => {
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-foreground">{job.title}</p>
           <p className="text-[11px] text-muted-foreground">
-            {new Date(job.createdAt).toLocaleString("zh-CN", {
+            {new Date(job.createdAt).toLocaleString(undefined, {
               month: "numeric",
               day: "numeric",
               hour: "2-digit",

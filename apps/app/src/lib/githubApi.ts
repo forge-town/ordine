@@ -1,4 +1,5 @@
 import { Result, ResultAsync, errAsync } from "neverthrow";
+import i18n from "@/lib/i18n";
 
 const GITHUB_API_BASE = "https://api.github.com";
 
@@ -25,15 +26,17 @@ export const getGitHubHeaders = (token?: string | null): HeadersInit => {
 };
 
 export const verifyGitHubToken = async (token: string | null): Promise<GitHubTokenStatus> => {
+  const t = i18n.t.bind(i18n);
+  
   if (!token?.trim()) {
-    return { valid: false, error: "TOKEN_EMPTY:Token 不能为空" };
+    return { valid: false, error: `TOKEN_EMPTY:${t("github.tokenEmpty")}` };
   }
 
   const result = await ResultAsync.fromPromise(
     fetch(`${GITHUB_API_BASE}/user`, {
       headers: getGitHubHeaders(token),
     }),
-    () => "NETWORK_ERROR:网络错误，无法验证 Token"
+    () => `NETWORK_ERROR:${t("github.networkError")}`
   );
 
   if (result.isErr()) {
@@ -50,7 +53,7 @@ export const verifyGitHubToken = async (token: string | null): Promise<GitHubTok
   if (res.status === 401) {
     return {
       valid: false,
-      error: "AUTH_FAILED:Token 无效或已过期，请重新配置",
+      error: `AUTH_FAILED:${t("github.authFailed")}`,
     };
   }
 
@@ -64,15 +67,15 @@ export const verifyGitHubToken = async (token: string | null): Promise<GitHubTok
     if (msg.toLowerCase().includes("rate limit")) {
       return {
         valid: false,
-        error: "RATE_LIMIT:GitHub API 已达到限流，请稍后再试",
+        error: `RATE_LIMIT:${t("github.rateLimit")}`,
       };
     }
-    return { valid: false, error: "AUTH_FAILED:Token 权限不足或被禁用" };
+    return { valid: false, error: `AUTH_FAILED:${t("github.tokenInsufficient")}` };
   }
 
   return {
     valid: false,
-    error: `AUTH_FAILED:验证失败 (状态码: ${res.status})`,
+    error: `AUTH_FAILED:${t("github.verifyFailed", { status: res.status })}`,
   };
 };
 
@@ -120,16 +123,17 @@ export const fetchRepoInfo = (
   token?: string | null,
   branchHint?: string
 ): ResultAsync<GitHubRepoInfo, string> => {
+  const t = i18n.t.bind(i18n);
   const headers = getGitHubHeaders(token);
 
   return ResultAsync.fromPromise(
     fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}`, { headers }),
-    () => "网络错误，无法连接 GitHub"
+    () => t("github.connectError")
   ).andThen((repoRes) => {
     if (repoRes.ok) {
       return ResultAsync.fromPromise(
         repoRes.json() as Promise<Record<string, unknown>>,
-        () => "解析仓库数据失败"
+        () => t("github.parseRepoError")
       ).map((repoData) => {
         const defaultBranch = repoData.default_branch as string;
         const targetBranch = branchHint ?? defaultBranch;
@@ -148,15 +152,15 @@ export const fetchRepoInfo = (
     if (repoRes.status === 404) {
       return errAsync(
         token
-          ? "仓库不存在，请检查 owner/repo 是否正确"
-          : "仓库不存在或为私有仓库，请先配置 GitHub Token"
+          ? t("github.repoNotFoundWithToken")
+          : t("github.repoNotFoundNoToken")
       );
     }
 
     if (repoRes.status === 401 || repoRes.status === 403) {
-      return errAsync("无权访问该仓库，请检查 Token 是否有效");
+      return errAsync(t("github.noAccess"));
     }
 
-    return errAsync(`获取仓库信息失败 (${repoRes.status})`);
+    return errAsync(t("github.fetchRepoFailed", { status: repoRes.status }));
   });
 };

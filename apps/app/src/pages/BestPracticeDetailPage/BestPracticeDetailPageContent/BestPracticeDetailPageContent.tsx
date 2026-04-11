@@ -209,7 +209,7 @@ export const BestPracticeDetailPageContent = ({ bestPractice, checklistItems }: 
                 {t("common.createdAt")}
               </span>
               <span className="text-xs text-foreground">
-                {new Date(bestPractice.createdAt).toLocaleString("zh-CN")}
+                {new Date(bestPractice.createdAt).toLocaleString()}
               </span>
             </div>
             <div className="flex items-start gap-3 py-2.5">
@@ -217,7 +217,7 @@ export const BestPracticeDetailPageContent = ({ bestPractice, checklistItems }: 
                 {t("common.updatedAt")}
               </span>
               <span className="text-xs text-foreground">
-                {new Date(bestPractice.updatedAt).toLocaleString("zh-CN")}
+                {new Date(bestPractice.updatedAt).toLocaleString()}
               </span>
             </div>
           </div>

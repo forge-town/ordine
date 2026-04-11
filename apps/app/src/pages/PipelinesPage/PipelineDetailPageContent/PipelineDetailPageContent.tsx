@@ -26,6 +26,7 @@ import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { ResultAsync, err, ok } from "neverthrow";
+import { useTranslation } from "react-i18next";
 import type { PipelineEntity } from "@/models/daos/pipelinesDao";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { PipelineNode } from "@/models/types/pipelineGraph";
@@ -38,49 +39,67 @@ interface Props {
 
 // ─── Node type metadata ───────────────────────────────────────────────────────
 
-const NODE_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+const NODE_META: Record<
+  string,
+  { icon: React.ElementType; color: string }
+> = {
   operation: {
-    label: "操作",
     icon: Zap,
     color: "text-violet-600 bg-violet-50",
   },
   "code-file": {
-    label: "代码文件",
     icon: FileCode,
     color: "text-sky-600 bg-sky-50",
   },
   folder: {
-    label: "文件夹",
     icon: Folder,
     color: "text-amber-600 bg-amber-50",
   },
   "github-project": {
-    label: "GitHub",
     icon: FolderGit2,
     color: "text-slate-600 bg-slate-50",
   },
   "output-local-path": {
-    label: "本地输出",
     icon: HardDrive,
     color: "text-emerald-600 bg-emerald-50",
   },
   "output-project-path": {
-    label: "项目输出",
     icon: FolderOutput,
     color: "text-teal-600 bg-teal-50",
   },
   condition: {
-    label: "条件",
     icon: GitMerge,
     color: "text-rose-600 bg-rose-50",
   },
 };
 
-const getNodeLabel = (node: PipelineNode, operations: OperationEntity[]): string => {
+const getNodeTypeLabel = (type: string, t: (key: string) => string): string => {
+  const keyMap: Record<string, string> = {
+    operation: "pipelines.nodeTypes.operation",
+    "code-file": "pipelines.nodeTypes.code-file",
+    folder: "pipelines.nodeTypes.folder",
+    "github-project": "pipelines.nodeTypes.github-project",
+    "output-local-path": "pipelines.nodeTypes.output-local-path",
+    "output-project-path": "pipelines.nodeTypes.output-project-path",
+    condition: "pipelines.nodeTypes.condition",
+  };
+  const key = keyMap[type];
+  return key ? t(key) : type;
+};
+
+const getNodeLabel = (
+  node: PipelineNode,
+  operations: OperationEntity[],
+): string => {
   const data = node.data as unknown as Record<string, unknown>;
   if (node.type === "operation") {
     const op = operations.find((o) => o.id === (data.operationId as string));
-    return op?.name ?? (data.operationName as string) ?? (data.label as string) ?? node.id;
+    return (
+      op?.name ??
+      (data.operationName as string) ??
+      (data.label as string) ??
+      node.id
+    );
   }
   return (data.label as string) ?? node.id;
 };
@@ -90,6 +109,7 @@ const getNodeLabel = (node: PipelineNode, operations: OperationEntity[]): string
 type RunState = "idle" | "running" | "done" | "failed";
 
 export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   // ── Run panel state ─────────────────────────────────────────────────────────
@@ -132,13 +152,13 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ inputPath: inputPath || undefined }),
       }),
-      () => "Failed to start pipeline"
+      () => "Failed to start pipeline",
     )
       .andThen((res) =>
         ResultAsync.fromPromise(
           res.json() as Promise<{ jobId?: string; error?: string }>,
-          () => "Failed to parse response"
-        ).map((data) => ({ res, data }))
+          () => "Failed to parse response",
+        ).map((data) => ({ res, data })),
       )
       .andThen(({ res, data }) => {
         if (!res.ok) {
@@ -154,7 +174,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
       async (errorMsg) => {
         setRunState("failed");
         setRunError(errorMsg);
-      }
+      },
     );
   };
 
@@ -164,12 +184,16 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
 
   const handleClickRun = () => void handleRun();
   const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
-  const handleCanvasClick = () => void navigate({ to: "/canvas", search: { id: pipeline.id } });
+  const handleCanvasClick = () =>
+    void navigate({ to: "/canvas", search: { id: pipeline.id } });
 
-  const nodeTypeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
-    acc[n.type] = (acc[n.type] ?? 0) + 1;
-    return acc;
-  }, {});
+  const nodeTypeCounts = pipeline.nodes.reduce<Record<string, number>>(
+    (acc, n) => {
+      acc[n.type] = (acc[n.type] ?? 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
   // Build simple left-to-right layout for nodes in the preview
   const previewNodes = pipeline.nodes.map((n, i) => ({
@@ -193,14 +217,17 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
         <button
-          aria-label="返回列表"
+          aria-label={t("pipelines.backToList")}
           className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
           onClick={handleNavigatePipelines}
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-gray-900" role="heading">
+          <h1
+            className="truncate text-sm font-semibold text-gray-900"
+            role="heading"
+          >
             {pipeline.name}
           </h1>
           <p className="font-mono text-[11px] text-gray-400">{pipeline.id}</p>
@@ -210,7 +237,8 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
           search={{ id: pipeline.id }}
           to="/canvas"
         >
-          <Pencil className="h-3.5 w-3.5" />在 Canvas 中编辑
+          <Pencil className="h-3.5 w-3.5" />
+          {t("pipelines.editInCanvas")}
         </Link>
       </div>
 
@@ -225,7 +253,9 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
               </div>
               <div>
                 {pipeline.description && (
-                  <p className="text-sm text-gray-600 leading-relaxed">{pipeline.description}</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {pipeline.description}
+                  </p>
                 )}
               </div>
             </div>
@@ -248,16 +278,16 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
 
           {/* Stats row */}
           <div className="mt-5 grid grid-cols-3 gap-4 border-t border-gray-50 pt-4">
-            <Stat icon={Layers} label="节点数" value={pipeline.nodes.length} />
+            <Stat icon={Layers} label={t("pipelines.nodeCount")} value={pipeline.nodes.length} />
             <Stat
               icon={Calendar}
-              label="更新时间"
-              value={new Date(pipeline.updatedAt).toLocaleDateString("zh-CN")}
+              label={t("common.updatedAt")}
+              value={new Date(pipeline.updatedAt).toLocaleDateString()}
             />
             <Stat
               icon={Calendar}
-              label="创建时间"
-              value={new Date(pipeline.createdAt).toLocaleDateString("zh-CN")}
+              label={t("common.createdAt")}
+              value={new Date(pipeline.createdAt).toLocaleDateString()}
             />
           </div>
 
@@ -273,11 +303,11 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     className={cn(
                       "flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium",
                       meta?.color ?? "text-gray-600 bg-gray-50",
-                      "border-current/20"
+                      "border-current/20",
                     )}
                   >
                     <Icon className="h-3 w-3" />
-                    {count} {meta?.label ?? type}
+                    {count} {getNodeTypeLabel(type, t)}
                   </span>
                 );
               })}
@@ -289,14 +319,14 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
         <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Pipeline 预览
+              {t("pipelines.preview")}
             </span>
             <Link
               className="text-xs text-violet-600 hover:underline"
               search={{ id: pipeline.id }}
               to="/canvas"
             >
-              全屏编辑 →
+              {t("pipelines.fullscreenEdit")}
             </Link>
           </div>
 
@@ -308,15 +338,19 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
             {/* Clickable overlay */}
             <div className="absolute inset-0 z-10 bg-transparent group-hover:bg-black/5 transition-colors flex items-center justify-center">
               <span className="opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-black/70 px-4 py-1.5 text-xs font-medium text-white">
-                点击在 Canvas 中打开
+                {t("pipelines.clickToOpenInCanvas")}
               </span>
             </div>
 
             {pipeline.nodes.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
                 <GitBranch className="h-8 w-8 text-gray-200" />
-                <p className="text-sm text-gray-400">还没有操作步骤</p>
-                <p className="text-xs text-gray-300">点击此处在 Canvas 中添加</p>
+                <p className="text-sm text-gray-400">
+                  {t("pipelines.noStepsYet")}
+                </p>
+                <p className="text-xs text-gray-300">
+                  {t("pipelines.clickToAdd")}
+                </p>
               </div>
             ) : (
               <ReactFlowProvider>
@@ -348,7 +382,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
           <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
             <Play className="h-3.5 w-3.5 text-gray-400" />
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-              执行流水线
+              {t("pipelines.runPipeline")}
             </span>
           </div>
           <div className="p-5 space-y-4">
@@ -373,7 +407,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                 ) : (
                   <Play className="h-3.5 w-3.5" />
                 )}
-                {runState === "running" ? "执行中…" : "运行"}
+                {runState === "running" ? t("pipelines.running") : t("pipelines.run")}
               </Button>
             </div>
 
@@ -384,19 +418,23 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                   {runState === "running" && (
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
                   )}
-                  {runState === "done" && <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
-                  {runState === "failed" && <XCircle className="h-3.5 w-3.5 text-red-500" />}
+                  {runState === "done" && (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                  )}
+                  {runState === "failed" && (
+                    <XCircle className="h-3.5 w-3.5 text-red-500" />
+                  )}
                   <span
                     className={cn(
                       "text-xs font-medium",
                       runState === "running" && "text-blue-600",
                       runState === "done" && "text-green-600",
-                      runState === "failed" && "text-red-600"
+                      runState === "failed" && "text-red-600",
                     )}
                   >
-                    {runState === "running" && "正在执行…"}
-                    {runState === "done" && "执行完成"}
-                    {runState === "failed" && `执行失败: ${runError ?? ""}`}
+                    {runState === "running" && t("pipelines.runningStatus")}
+                    {runState === "done" && t("pipelines.doneStatus")}
+                    {runState === "failed" && `${t("pipelines.failedStatus")}: ${runError ?? ""}`}
                   </span>
                   {jobId && (
                     <span className="ml-auto font-mono text-[10px] text-gray-400">
@@ -425,7 +463,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
           <div className="rounded-xl border border-gray-100 bg-white shadow-sm">
             <div className="px-5 py-3 border-b border-gray-100">
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                节点列表
+                {t("pipelines.nodeList")}
               </span>
             </div>
             <ul className="divide-y divide-gray-50">
@@ -434,25 +472,35 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                 const meta = NODE_META[node.type];
                 const Icon = meta?.icon ?? Zap;
                 return (
-                  <li key={node.id} className="flex items-center gap-3 px-5 py-3">
+                  <li
+                    key={node.id}
+                    className="flex items-center gap-3 px-5 py-3"
+                  >
                     <div
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-                        meta?.color ?? "text-gray-600 bg-gray-50"
+                        meta?.color ?? "text-gray-600 bg-gray-50",
                       )}
                     >
                       <Icon className="h-3.5 w-3.5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{label}</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">
+                        {label}
+                      </p>
                       {node.type === "operation" &&
                         (() => {
-                          const nodeData = node.data as unknown as Record<string, unknown>;
+                          const nodeData = node.data as unknown as Record<
+                            string,
+                            unknown
+                          >;
                           const op = operations.find(
-                            (o) => o.id === (nodeData["operationId"] as string)
+                            (o) => o.id === (nodeData["operationId"] as string),
                           );
                           return op?.description ? (
-                            <p className="text-xs text-gray-400 truncate">{op.description}</p>
+                            <p className="text-xs text-gray-400 truncate">
+                              {op.description}
+                            </p>
                           ) : null;
                         })()}
                     </div>
@@ -460,10 +508,10 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                       className={cn(
                         "shrink-0 rounded border px-2 py-0.5 text-[10px] font-medium",
                         meta?.color ?? "text-gray-500 bg-gray-50",
-                        "border-current/20"
+                        "border-current/20",
                       )}
                     >
-                      {meta?.label ?? node.type}
+                      {getNodeTypeLabel(node.type, t)}
                     </span>
                   </li>
                 );
