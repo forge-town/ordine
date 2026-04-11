@@ -34,6 +34,7 @@ export interface FolderNodeData {
   label: string;
   nodeType: "folder";
   folderPath: string;
+  excludedPaths?: string[];
   description?: string;
 }
 
@@ -48,6 +49,8 @@ export interface GitHubProjectNodeData {
   isPrivate?: boolean;
   githubProjectId?: string;
   localPath?: string;
+  disclosureMode?: "tree" | "full" | "files-only";
+  excludedPaths?: string[];
 }
 
 export interface OperationNodeData {
@@ -72,7 +75,11 @@ export interface OutputProjectPathNodeData {
   description?: string;
 }
 
-export const OUTPUT_MODES = ["overwrite", "error_if_exists", "auto_rename"] as const;
+export const OUTPUT_MODES = [
+  "overwrite",
+  "error_if_exists",
+  "auto_rename",
+] as const;
 export type OutputMode = (typeof OUTPUT_MODES)[number];
 
 export interface OutputLocalPathNodeData {

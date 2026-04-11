@@ -1,17 +1,40 @@
 import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { Link2, Lock, Globe, BookMarked, FolderOpen, FolderInput } from "lucide-react";
+import {
+  Link2,
+  Lock,
+  Globe,
+  BookMarked,
+  FolderOpen,
+  FolderInput,
+  X,
+  Eye,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore, type GitHubProjectNodeData } from "../_store";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
+import { FolderTreePreview } from "../FolderNode/FolderTreePreview";
 import { SiGitHubIcon } from "./SiGitHubIcon";
-import { GitHubConnectDialog, type ConnectedRepoInfo } from "./GitHubConnectDialog";
+import {
+  GitHubConnectDialog,
+  type ConnectedRepoInfo,
+} from "./GitHubConnectDialog";
 import { PickProjectDialog, type PickedProject } from "./PickProjectDialog";
-import { PickLocalFolderDialog, type LocalFolderInfo } from "./PickLocalFolderDialog";
+import {
+  PickLocalFolderDialog,
+  type LocalFolderInfo,
+} from "./PickLocalFolderDialog";
 import { Button } from "@repo/ui/button";
 import { Textarea } from "@repo/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/select";
 
 export interface GitHubProjectNodeProps {
   id: string;
@@ -21,7 +44,11 @@ export interface GitHubProjectNodeProps {
 
 const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
-export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps) => {
+export const GitHubProjectNode = ({
+  id,
+  data,
+  selected,
+}: GitHubProjectNodeProps) => {
   const { t } = useTranslation();
   const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
@@ -35,6 +62,11 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
 
   const isLocal = data.sourceType === "local";
   const isConnected = isLocal ? !!data.localPath : !!(data.owner && data.repo);
+  const disclosureMode = data.disclosureMode ?? "tree";
+  const excludedPaths: string[] = Array.isArray(data.excludedPaths)
+    ? data.excludedPaths
+    : [];
+  const previewPath = isLocal ? (data.localPath ?? "") : "";
 
   const handlePick = (picked: PickedProject) => {
     update({
@@ -76,7 +108,9 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
   };
 
   const repoUrl =
-    isConnected && !isLocal ? `https://github.com/${data.owner}/${data.repo}` : undefined;
+    isConnected && !isLocal
+      ? `https://github.com/${data.owner}/${data.repo}`
+      : undefined;
 
   const handleLabelChange = (v: string) => update({ label: v });
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -87,6 +121,16 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
   const handlePickClose = () => setPickOpen(false);
   const handleConnectClose = () => setConnectOpen(false);
   const handleLocalFolderClose = () => setLocalFolderOpen(false);
+
+  const handleDisclosureModeChange = (value: string) =>
+    update({ disclosureMode: value as "tree" | "full" | "files-only" });
+  const handleRemoveExcluded = (path: string) =>
+    update({ excludedPaths: excludedPaths.filter((p) => p !== path) });
+  const handleAddExcluded = (path: string) => {
+    if (!excludedPaths.includes(path)) {
+      update({ excludedPaths: [...excludedPaths, path] });
+    }
+  };
 
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
@@ -196,6 +240,69 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
             {t("canvas.viewOnGitHub")}
           </a>
         )}
+
+        {/* Disclosure mode & excluded paths */}
+        {isConnected && (
+          <>
+            <div
+              className="flex items-center gap-1.5"
+              onMouseDown={handleMouseDown}
+            >
+              <Eye className="h-3 w-3 shrink-0 text-slate-400" />
+              <Select
+                value={disclosureMode}
+                onValueChange={handleDisclosureModeChange}
+              >
+                <SelectTrigger className="nodrag nopan h-6 flex-1 min-w-0 border-slate-200 bg-slate-50 text-[10px] shadow-none focus:ring-1 focus:ring-slate-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tree">
+                    {t("canvas.disclosureTree")}
+                  </SelectItem>
+                  <SelectItem value="files-only">
+                    {t("canvas.disclosureFilesOnly")}
+                  </SelectItem>
+                  <SelectItem value="full">
+                    {t("canvas.disclosureFull")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {excludedPaths.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {excludedPaths.map((ep) => (
+                  <span
+                    key={ep}
+                    className="inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-red-200"
+                  >
+                    {ep}
+                    <Button
+                      aria-label={`${t("canvas.removeExclude")} ${ep}`}
+                      className="nodrag nopan rounded-sm p-0 hover:bg-red-200 transition-colors h-auto"
+                      size="icon-xs"
+                      type="button"
+                      variant="ghost"
+                      onClick={() => handleRemoveExcluded(ep)}
+                      onMouseDown={handleMouseDown}
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </Button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {previewPath && (
+              <FolderTreePreview
+                excludedPaths={excludedPaths}
+                folderPath={previewPath}
+                onExclude={handleAddExcluded}
+              />
+            )}
+          </>
+        )}
       </NodeCard>
 
       {/* Object nodes only emit connections — no target handle */}
@@ -205,7 +312,11 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         type="source"
       />
 
-      <PickProjectDialog open={pickOpen} onClose={handlePickClose} onPick={handlePick} />
+      <PickProjectDialog
+        open={pickOpen}
+        onClose={handlePickClose}
+        onPick={handlePick}
+      />
 
       <GitHubConnectDialog
         initialUrl={

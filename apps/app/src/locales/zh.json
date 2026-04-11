@@ -195,7 +195,11 @@
     "useThisFolder": "使用此文件夹",
     "selectLocalFolder": "选择本地文件夹",
     "localFolderPath": "本地路径",
-    "clickToSwitchLocalFolder": "点击切换本地文件夹"
+    "clickToSwitchLocalFolder": "点击切换本地文件夹",
+    "disclosureTree": "仅目录结构",
+    "disclosureFilesOnly": "仅文件内容",
+    "disclosureFull": "目录结构 + 文件内容",
+    "removeExclude": "移除排除"
   },
   "projects": {
     "title": "GitHub 项目",

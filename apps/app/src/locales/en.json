@@ -194,7 +194,11 @@
     "useThisFolder": "Use this folder",
     "selectLocalFolder": "Select local folder",
     "localFolderPath": "Local path",
-    "clickToSwitchLocalFolder": "Click to switch local folder"
+    "clickToSwitchLocalFolder": "Click to switch local folder",
+    "disclosureTree": "Directory tree only",
+    "disclosureFilesOnly": "File contents only",
+    "disclosureFull": "Tree + file contents",
+    "removeExclude": "Remove exclude"
   },
   "projects": {
     "title": "GitHub Projects",
