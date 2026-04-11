@@ -28,13 +28,81 @@ import type {
   GitHubProjectNodeData,
   OutputMode,
 } from "@/models/types/pipelineGraph";
-import { type OperationEntity, operationsDao } from "@/models/daos/operationsDao";
+import {
+  type OperationEntity,
+  operationsDao,
+} from "@/models/daos/operationsDao";
 import { pipelinesDao } from "@/models/daos/pipelinesDao";
 import { jobsDao } from "@/models/daos/jobsDao";
 import { skillsDao } from "@/models/daos/skillsDao";
 import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
 import type { ExecutorConfig } from "@/pages/OperationDetailPage/types";
 import { listDirTree, readProjectFiles } from "@/services/filesystemService";
+import {
+  OperationOutputSchema,
+  CheckOutputSchema,
+  FixOutputSchema,
+} from "@/schemas/OperationOutputSchema";
+import { z as zv4 } from "zod/v4";
+
+// ─── Example instances for LLM instruction prompts ───────────────────────────
+// These are validated against the Zod schemas at import time to stay in sync.
+
+const CHECK_OUTPUT_EXAMPLE = {
+  type: "check" as const,
+  summary: "Executive summary of the check results",
+  findings: [
+    {
+      id: "FINDING_001",
+      severity: "error" as const,
+      message: "One-line description of the issue",
+      file: "relative/path/to/file.ts",
+      line: 42,
+      rule: "rule-name",
+      snippet: "short code snippet showing the violation",
+      suggestion: "how to fix the issue",
+      skipped: false,
+      skipReason: "reason if skipped (only when skipped=true)",
+    },
+  ],
+  stats: {
+    totalFiles: 10,
+    totalFindings: 5,
+    errors: 2,
+    warnings: 2,
+    infos: 1,
+    skipped: 1,
+  },
+};
+CheckOutputSchema.parse(CHECK_OUTPUT_EXAMPLE); // compile-time sync guard
+
+const FIX_OUTPUT_EXAMPLE = {
+  type: "fix" as const,
+  summary: "Summary of all changes made",
+  changes: [
+    {
+      file: "relative/path/to/file.ts",
+      action: "replace" as const,
+      description: "What was changed",
+      findingId: "FINDING_001",
+    },
+  ],
+  remainingFindings: [
+    {
+      id: "FINDING_002",
+      severity: "warning" as const,
+      message: "Issue that could not be auto-fixed",
+      file: "relative/path/to/other.ts",
+    },
+  ],
+  stats: {
+    totalChanges: 3,
+    filesModified: 2,
+    findingsFixed: 3,
+    findingsSkipped: 1,
+  },
+};
+FixOutputSchema.parse(FIX_OUTPUT_EXAMPLE); // compile-time sync guard
 
 const execAsync = promisify(exec);
 
@@ -68,11 +136,13 @@ const getLlmModel = async (override?: LlmOverride, log: LogFn = noopLog) => {
   const apiKey = settings.llmApiKey;
 
   await log(
-    `[LLM] Provider: ${provider}, Model: ${model}, API key: ${apiKey ? `configured (${apiKey.slice(0, 6)}...)` : "NOT SET"}`
+    `[LLM] Provider: ${provider}, Model: ${model}, API key: ${apiKey ? `configured (${apiKey.slice(0, 6)}...)` : "NOT SET"}`,
   );
 
   if (!apiKey) {
-    await log(`[LLM] WARNING: No API key configured — LLM calls will be skipped`);
+    await log(
+      `[LLM] WARNING: No API key configured — LLM calls will be skipped`,
+    );
     return null;
   }
 
@@ -88,7 +158,10 @@ const getLlmModel = async (override?: LlmOverride, log: LogFn = noopLog) => {
   return openai(model);
 };
 
-const getMastraModelConfig = async (override?: LlmOverride, log: LogFn = noopLog) => {
+const getMastraModelConfig = async (
+  override?: LlmOverride,
+  log: LogFn = noopLog,
+) => {
   const settings = await settingsDao.get();
   const provider = override?.llmProvider ?? settings.llmProvider;
   const model = override?.llmModel ?? settings.llmModel;
@@ -141,7 +214,7 @@ class PipelineNotFoundError extends Error {
 class ScriptExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown
+    public readonly cause?: unknown,
   ) {
     super(message);
     this.name = "ScriptExecutionError";
@@ -151,7 +224,7 @@ class ScriptExecutionError extends Error {
 class PromptExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown
+    public readonly cause?: unknown,
   ) {
     super(message);
     this.name = "PromptExecutionError";
@@ -161,7 +234,7 @@ class PromptExecutionError extends Error {
 class ConfigParseError extends Error {
   constructor(
     public readonly operationName: string,
-    public readonly cause?: unknown
+    public readonly cause?: unknown,
   ) {
     super(`Could not parse config for operation ${operationName}`);
     this.name = "ConfigParseError";
@@ -171,7 +244,7 @@ class ConfigParseError extends Error {
 class SkillExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown
+    public readonly cause?: unknown,
   ) {
     super(message);
     this.name = "SkillExecutionError";
@@ -181,7 +254,7 @@ class SkillExecutionError extends Error {
 class GitCloneError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown
+    public readonly cause?: unknown,
   ) {
     super(message);
     this.name = "GitCloneError";
@@ -198,7 +271,10 @@ type PipelineRunError =
 
 // ─── topological sort ─────────────────────────────────────────────────────────
 
-const topoSort = (nodes: PipelineNode[], edges: PipelineEdge[]): PipelineNode[] => {
+const topoSort = (
+  nodes: PipelineNode[],
+  edges: PipelineEdge[],
+): PipelineNode[] => {
   const inDegree = new Map<string, number>();
   const adjacency = new Map<string, string[]>();
 
@@ -236,15 +312,15 @@ const topoSort = (nodes: PipelineNode[], edges: PipelineEdge[]): PipelineNode[] 
 
 const safeParseJson = (
   raw: string,
-  operationName: string
+  operationName: string,
 ): ResultAsync<OperationConfig, ConfigParseError> =>
   ResultAsync.fromPromise(
     Promise.resolve(JSON.parse(raw) as OperationConfig),
-    (cause) => new ConfigParseError(operationName, cause)
+    (cause) => new ConfigParseError(operationName, cause),
   );
 
 const safeReadInputFile = (
-  path: string
+  path: string,
 ): ResultAsync<{ content: string; isFile: boolean }, never> =>
   ResultAsync.fromPromise(
     (async () => {
@@ -255,19 +331,19 @@ const safeReadInputFile = (
       }
       return { content: path, isFile: false };
     })(),
-    () => ({ content: path, isFile: false })
+    () => ({ content: path, isFile: false }),
   ).orElse((fallback) => ok(fallback));
 
 const runScript = (
   executor: ExecutorConfig,
   inputPath: string,
-  inputContent: string
+  inputContent: string,
 ): ResultAsync<string, ScriptExecutionError> => {
   const lang = executor.language ?? "bash";
   const command = executor.command ?? "";
   if (!command.trim()) {
     return ResultAsync.fromSafePromise<string, ScriptExecutionError>(
-      Promise.reject(new ScriptExecutionError("Script command is empty"))
+      Promise.reject(new ScriptExecutionError("Script command is empty")),
     );
   }
 
@@ -293,8 +369,8 @@ const runScript = (
     (cause) =>
       new ScriptExecutionError(
         `Script execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-        cause
-      )
+        cause,
+      ),
   );
 };
 
@@ -305,24 +381,26 @@ const runPrompt = (
   inputContent: string,
   override?: LlmOverride,
   onChunk?: StreamCallback,
-  log: LogFn = noopLog
+  log: LogFn = noopLog,
 ): ResultAsync<string, PromptExecutionError> => {
   const prompt = executor.prompt;
   if (!prompt?.trim()) {
     return ResultAsync.fromSafePromise<string, PromptExecutionError>(
-      Promise.reject(new PromptExecutionError("Prompt text is empty"))
+      Promise.reject(new PromptExecutionError("Prompt text is empty")),
     );
   }
 
   return ResultAsync.fromPromise(
     (async () => {
       await log(
-        `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`
+        `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`,
       );
       const model = await getLlmModel(override, log);
       if (!model) {
         await log(`[LLM] runPrompt: LLM not configured, throwing error`);
-        throw new PromptExecutionError("LLM not configured (API key missing in settings)");
+        throw new PromptExecutionError(
+          "LLM not configured (API key missing in settings)",
+        );
       }
       await log(`[LLM] runPrompt: Starting streamText...`);
       const result = streamText({
@@ -334,18 +412,22 @@ const runPrompt = (
         accumulated += chunk;
         if (onChunk) await onChunk(accumulated);
       }
-      await log(`[LLM] runPrompt: Stream complete, total output=${accumulated.length} chars`);
+      await log(
+        `[LLM] runPrompt: Stream complete, total output=${accumulated.length} chars`,
+      );
       return accumulated;
     })(),
     (cause) => {
-      log(`[LLM] runPrompt: Error — ${cause instanceof Error ? cause.message : String(cause)}`);
+      log(
+        `[LLM] runPrompt: Error — ${cause instanceof Error ? cause.message : String(cause)}`,
+      );
       return cause instanceof PromptExecutionError
         ? cause
         : new PromptExecutionError(
             `Prompt execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-            cause
+            cause,
           );
-    }
+    },
   );
 };
 
@@ -355,7 +437,7 @@ const cloneGitHubRepo = (
   owner: string,
   repo: string,
   branch: string,
-  githubToken?: string
+  githubToken?: string,
 ): ResultAsync<string, GitCloneError> => {
   const cloneDir = join(tmpdir(), `ordine-pipeline-${Date.now()}-${repo}`);
   const url = githubToken
@@ -375,8 +457,8 @@ const cloneGitHubRepo = (
     (cause) =>
       new GitCloneError(
         `Failed to clone ${owner}/${repo}@${branch}: ${cause instanceof Error ? cause.message : String(cause)}`,
-        cause
-      )
+        cause,
+      ),
   );
 };
 
@@ -384,16 +466,22 @@ const cloneGitHubRepo = (
 
 // ─── skill executor helper (Mastra Agent) ────────────────────────────────────
 
-const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean }) => {
+const buildSkillTools = (
+  projectRoot: string,
+  opts?: { writeEnabled?: boolean },
+) => {
   const MAX_READ_SIZE = 100_000;
 
   const readFileTool = createTool({
     id: "readFile",
-    description: "Read the contents of a file. Use relative paths from the project root.",
+    description:
+      "Read the contents of a file. Use relative paths from the project root.",
     inputSchema: z.object({
       path: z
         .string()
-        .describe("Relative file path from the project root, e.g. 'src/components/Button.tsx'"),
+        .describe(
+          "Relative file path from the project root, e.g. 'src/components/Button.tsx'",
+        ),
     }),
     execute: async ({ path: relPath }) => {
       const fullPath = join(projectRoot, relPath);
@@ -418,9 +506,14 @@ const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean })
 
   const listDirectoryTool = createTool({
     id: "listDirectory",
-    description: "List entries in a directory. Returns file and folder names with types.",
+    description:
+      "List entries in a directory. Returns file and folder names with types.",
     inputSchema: z.object({
-      path: z.string().describe("Relative directory path from project root, e.g. 'src/pages'"),
+      path: z
+        .string()
+        .describe(
+          "Relative directory path from project root, e.g. 'src/pages'",
+        ),
     }),
     execute: async ({ path: relPath }) => {
       const fullPath = join(projectRoot, relPath);
@@ -445,7 +538,9 @@ const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean })
       "Search for a text pattern in files under a directory. Returns matching file paths and line content.",
     inputSchema: z.object({
       pattern: z.string().describe("Text or regex pattern to search for"),
-      directory: z.string().describe("Relative directory to search in, e.g. 'src/pages'"),
+      directory: z
+        .string()
+        .describe("Relative directory to search in, e.g. 'src/pages'"),
       fileExtensions: z
         .array(z.string())
         .optional()
@@ -468,7 +563,8 @@ const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean })
             if (results.length >= MAX_RESULTS) break;
             const full = join(dir, entry.name);
             if (entry.isDirectory()) {
-              if (entry.name === "node_modules" || entry.name === ".git") continue;
+              if (entry.name === "node_modules" || entry.name === ".git")
+                continue;
               await walkSearch(full);
             } else if (exts.some((ext: string) => entry.name.endsWith(ext))) {
               try {
@@ -523,7 +619,9 @@ const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean })
     inputSchema: z.object({
       path: z
         .string()
-        .describe("Relative file path from the project root, e.g. 'src/utils/helpers.ts'"),
+        .describe(
+          "Relative file path from the project root, e.g. 'src/utils/helpers.ts'",
+        ),
       content: z.string().describe("The full file content to write"),
     }),
     execute: async ({ path: relPath, content }) => {
@@ -550,7 +648,7 @@ const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean })
       oldString: z
         .string()
         .describe(
-          "The exact literal text to find and replace. Must appear exactly once in the file."
+          "The exact literal text to find and replace. Must appear exactly once in the file.",
         ),
       newString: z.string().describe("The replacement text"),
     }),
@@ -589,6 +687,66 @@ const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean })
   };
 };
 
+// ─── Structured JSON extraction ──────────────────────────────────────────────
+
+/**
+ * Extracts structured JSON from an LLM response that may contain ```json fences
+ * or surrounding prose. Validates against OperationOutputSchema.
+ * Returns the clean JSON string if valid, otherwise returns the original text.
+ */
+const extractStructuredOutput = (
+  rawText: string,
+  log: (line: string) => Promise<void>,
+): string => {
+  // Try to extract JSON from ```json ... ``` fenced block
+  const fenceMatch = rawText.match(/```json\s*\n?([\s\S]*?)\n?\s*```/);
+  const candidate = fenceMatch ? fenceMatch[1].trim() : rawText.trim();
+
+  // Try to parse as JSON
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(candidate);
+  } catch {
+    // If fenced extraction failed, try to find a top-level JSON object in the text
+    const objectMatch = rawText.match(
+      /\{[\s\S]*"type"\s*:\s*"(?:check|fix)"[\s\S]*\}/,
+    );
+    if (objectMatch) {
+      try {
+        parsed = JSON.parse(objectMatch[0]);
+      } catch {
+        void log(
+          "[extractStructuredOutput] No valid JSON found — returning raw text",
+        );
+        return rawText;
+      }
+    } else {
+      void log(
+        "[extractStructuredOutput] No JSON-like content found — returning raw text",
+      );
+      return rawText;
+    }
+  }
+
+  // Validate against schema
+  const result = OperationOutputSchema.safeParse(parsed);
+  if (result.success) {
+    void log(
+      `[extractStructuredOutput] Valid ${result.data.type} output with ${
+        result.data.type === "check"
+          ? `${result.data.findings.length} findings`
+          : `${result.data.changes.length} changes`
+      }`,
+    );
+    return JSON.stringify(result.data, null, 2);
+  }
+
+  void log(
+    `[extractStructuredOutput] JSON parsed but schema validation failed — ${zv4.prettifyError(result.error)}. Returning raw text`,
+  );
+  return rawText;
+};
+
 const runSkill = (
   skillId: string,
   skillDescription: string,
@@ -597,9 +755,12 @@ const runSkill = (
   override?: LlmOverride,
   onChunk?: StreamCallback,
   log: LogFn = noopLog,
-  opts?: { writeEnabled?: boolean }
+  opts?: { writeEnabled?: boolean },
 ): ResultAsync<string, never> => {
   const isImplementMode = opts?.writeEnabled === true;
+
+  const CHECK_JSON_EXAMPLE = JSON.stringify(CHECK_OUTPUT_EXAMPLE, null, 2);
+  const FIX_JSON_EXAMPLE = JSON.stringify(FIX_OUTPUT_EXAMPLE, null, 2);
 
   const checkInstructions = [
     `You are an expert code analysis agent executing the skill "${skillId}".`,
@@ -613,17 +774,20 @@ const runSkill = (
     "Budget your steps wisely:",
     "  Phase 1 (steps 1-5): Use searchCode and listDirectory to find relevant files",
     "  Phase 2 (steps 6-18): Use readFile on the most important files found",
-    "  Phase 3 (step 19+): STOP all tool calls and write your Markdown report",
+    "  Phase 3 (step 19+): STOP all tool calls and write your report",
     "",
     "DO NOT call any more tools after step 18. Write the report immediately.",
     "If in doubt whether to read one more file or write the report — WRITE THE REPORT.",
     "",
-    "Your final message MUST be a complete Markdown report with:",
-    "- Specific file paths and line numbers",
-    "- Code snippets showing violations or compliance",
-    "- A summary table of findings",
+    "OUTPUT FORMAT: Your final message MUST be a single JSON object wrapped in ```json fences.",
+    "Output data conforming to this structure (replace example values with real data):",
+    "```json",
+    CHECK_JSON_EXAMPLE,
+    "```",
     "",
-    "NEVER end your response with a tool call. Always end with the report text.",
+    "Include specific file paths, line numbers, code snippets, and suggestions.",
+    "Mark findings that are allowed exceptions with skipped: true and provide skipReason.",
+    "NEVER end your response with a tool call. Always end with the JSON output.",
   ].join("\n");
 
   const implementInstructions = [
@@ -631,7 +795,7 @@ const runSkill = (
     `Skill description: ${skillDescription}`,
     "",
     "You have access to tools that let you read AND WRITE files in the project.",
-    "Your goal is to FIX the violations described in the input report.",
+    "Your goal is to FIX the violations described in the input.",
     "",
     "Available tools:",
     "  - readFile: read a file's content",
@@ -642,59 +806,79 @@ const runSkill = (
     "",
     "CRITICAL CONSTRAINT — You have a HARD LIMIT of 25 tool-call steps.",
     "Budget your steps wisely:",
-    "  Phase 1 (steps 1-3): Read the violation report to understand what needs fixing",
+    "  Phase 1 (steps 1-3): Parse the input to understand what needs fixing",
     "  Phase 2 (steps 4-20): Read affected files, then use replaceInFile to fix each violation",
-    "  Phase 3 (step 21+): STOP all tool calls and write a summary of changes made",
+    "  Phase 3 (step 21+): STOP all tool calls and write the output",
     "",
     "RULES:",
     "- Always use replaceInFile when possible (safer than writeFile)",
     "- Read the file first before editing to ensure correct context",
     "- Do NOT change code that is not directly related to the violations",
     "- Skip violations that are allowable exceptions (framework boundaries, startup validators, React context hooks)",
-    "- After fixing, your final message MUST be a Markdown summary listing each file changed and what was fixed",
+    "",
+    "OUTPUT FORMAT: Your final message MUST be a single JSON object wrapped in ```json fences.",
+    "Output data conforming to this structure (replace example values with real data):",
+    "```json",
+    FIX_JSON_EXAMPLE,
+    "```",
+    "",
+    "NEVER end your response with a tool call. Always end with the JSON output.",
   ].join("\n");
 
-  const instructions = isImplementMode ? implementInstructions : checkInstructions;
+  const instructions = isImplementMode
+    ? implementInstructions
+    : checkInstructions;
 
   const userPrompt = inputPath
     ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
     : `Input:\n${inputContent}`;
 
   const generateFallbackReport = (): string => {
-    const lines = currentContentLines(inputContent);
-    return [
-      `# Skill Report: ${skillId}`,
-      "",
-      `**Description:** ${skillDescription}`,
-      `**Input path:** ${inputPath || "(none)"}`,
-      `**Input size:** ${inputContent.length} chars, ${lines} lines`,
-      "",
-      "## Status",
-      "",
-      "LLM analysis unavailable (LLM_API_KEY not configured).",
-      "Skill executed in passthrough mode — input forwarded as-is.",
-      "",
-      "## Input Preview",
-      "",
-      "```",
-      inputContent.slice(0, 2000),
-      inputContent.length > 2000 ? `\n... (${inputContent.length - 2000} more chars)` : "",
-      "```",
-    ].join("\n");
+    const fallback = isImplementMode
+      ? {
+          type: "fix" as const,
+          summary: `LLM analysis unavailable for skill "${skillId}". No changes made.`,
+          changes: [],
+          remainingFindings: [],
+          stats: {
+            totalChanges: 0,
+            filesModified: 0,
+            findingsFixed: 0,
+            findingsSkipped: 0,
+          },
+        }
+      : {
+          type: "check" as const,
+          summary: `LLM analysis unavailable for skill "${skillId}". Input forwarded as-is.`,
+          findings: [],
+          stats: {
+            totalFiles: 0,
+            totalFindings: 0,
+            errors: 0,
+            warnings: 0,
+            infos: 0,
+            skipped: 0,
+          },
+        };
+    return JSON.stringify(fallback, null, 2);
   };
 
   return ResultAsync.fromPromise(
     (async () => {
       await log(
-        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`
+        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`,
       );
-      await log(`[Mastra] runSkill: instructions length=${instructions.length}`);
+      await log(
+        `[Mastra] runSkill: instructions length=${instructions.length}`,
+      );
 
       // Use Mastra Agent with tools if we have a project path
       if (inputPath) {
         const modelConfig = await getMastraModelConfig(override, log);
         if (!modelConfig) {
-          await log(`[Mastra] runSkill: No model config — returning fallback report`);
+          await log(
+            `[Mastra] runSkill: No model config — returning fallback report`,
+          );
           return generateFallbackReport();
         }
 
@@ -722,7 +906,9 @@ const runSkill = (
               },
         });
 
-        await log(`[Mastra] runSkill: Starting agent.generate (tool-use mode)...`);
+        await log(
+          `[Mastra] runSkill: Starting agent.generate (tool-use mode)...`,
+        );
 
         let result;
         const MAX_ATTEMPTS = 2;
@@ -740,14 +926,17 @@ const runSkill = (
             });
             break; // success
           } catch (agentErr) {
-            const errMsg = agentErr instanceof Error ? agentErr.message : String(agentErr);
+            const errMsg =
+              agentErr instanceof Error ? agentErr.message : String(agentErr);
             const isThinkingError = errMsg.includes("reasoning_content");
             await log(
-              `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`
+              `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`,
             );
 
             if (isThinkingError && attempt < MAX_ATTEMPTS) {
-              await log(`[Mastra] runSkill: Retrying with reasoning disabled...`);
+              await log(
+                `[Mastra] runSkill: Retrying with reasoning disabled...`,
+              );
               continue;
             }
 
@@ -760,38 +949,44 @@ const runSkill = (
         const stepCount = result.steps?.length ?? 0;
         const toolCallCount = (result.steps ?? []).reduce(
           (acc, step) => acc + (step.toolCalls?.length ?? 0),
-          0
+          0,
         );
 
         // If result.text is empty, try to salvage text from intermediate steps
         let outputText = result.text;
         if (!outputText && result.steps?.length) {
-          const stepTexts = result.steps.map((s) => s.text ?? "").filter((t) => t.length > 50);
+          const stepTexts = result.steps
+            .map((s) => s.text ?? "")
+            .filter((t) => t.length > 50);
           if (stepTexts.length > 0) {
             outputText = stepTexts[stepTexts.length - 1];
-            await log(`[Mastra] runSkill: Salvaged ${outputText.length} chars from step text`);
+            await log(
+              `[Mastra] runSkill: Salvaged ${outputText.length} chars from step text`,
+            );
           }
         }
 
         await log(
-          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${outputText.length} chars`
+          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${outputText.length} chars`,
         );
 
         if (onChunk) await onChunk(outputText);
 
         if (outputText.length === 0) {
           await log(
-            `[Mastra] runSkill: WARNING — Agent returned empty output, using fallback report`
+            `[Mastra] runSkill: WARNING — Agent returned empty output, using fallback report`,
           );
           return generateFallbackReport();
         }
-        return outputText;
+        return extractStructuredOutput(outputText, log);
       }
 
       // Fallback to streaming without tools if no project path
       const model = await getLlmModel(override, log);
       if (!model) {
-        await log(`[Mastra] runSkill: No LLM model — returning fallback report`);
+        await log(
+          `[Mastra] runSkill: No LLM model — returning fallback report`,
+        );
         return generateFallbackReport();
       }
       await log(`[Mastra] runSkill: Starting streamText (no project path)...`);
@@ -808,23 +1003,23 @@ const runSkill = (
         if (onChunk) await onChunk(accumulated);
       }
       await log(
-        `[Mastra] runSkill: Stream complete, chunks=${chunkCount}, total output=${accumulated.length} chars`
+        `[Mastra] runSkill: Stream complete, chunks=${chunkCount}, total output=${accumulated.length} chars`,
       );
       if (accumulated.length === 0) {
-        await log(`[Mastra] runSkill: WARNING — LLM returned empty output, using fallback report`);
+        await log(
+          `[Mastra] runSkill: WARNING — LLM returned empty output, using fallback report`,
+        );
         return generateFallbackReport();
       }
-      return accumulated;
+      return extractStructuredOutput(accumulated, log);
     })(),
-    (cause) => cause
+    (cause) => cause,
   ).orElse((cause) => {
     const errMsg = cause instanceof Error ? cause.message : String(cause);
     log(`[Mastra] runSkill: Agent call FAILED — ${errMsg}`);
     return ok(generateFallbackReport());
   });
 };
-
-const currentContentLines = (content: string): number => (content ? content.split("\n").length : 0);
 
 // ─── main runner ──────────────────────────────────────────────────────────────
 
@@ -833,7 +1028,9 @@ const executePipeline = async (opts: {
   inputPath?: string;
   jobId: string;
   githubToken?: string;
-}): Promise<{ ok: true; summary: string } | { ok: false; error: PipelineRunError }> => {
+}): Promise<
+  { ok: true; summary: string } | { ok: false; error: PipelineRunError }
+> => {
   const { pipelineId, jobId, githubToken } = opts;
   let inputPath = opts.inputPath ?? "";
   const tempDirs: string[] = [];
@@ -855,7 +1052,9 @@ const executePipeline = async (opts: {
   const edges = pipeline.edges as PipelineEdge[];
   const ordered = topoSort(nodes, edges);
 
-  await log(`Pipeline "${pipeline.name}" loaded. Processing ${ordered.length} nodes.`);
+  await log(
+    `Pipeline "${pipeline.name}" loaded. Processing ${ordered.length} nodes.`,
+  );
 
   // Load all operations referenced in the pipeline
   const operationIds = ordered
@@ -889,19 +1088,23 @@ const executePipeline = async (opts: {
   for (const node of ordered) {
     const data = node.data as unknown as NodeData;
     await log(
-      `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`
+      `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`,
     );
     await log(`@@NODE_START::${node.id}`);
 
     // ── Input nodes ──────────────────────────────────────────────────────
     if (node.type === "folder") {
       const p = data.folderPath ?? "";
-      const excludedPaths: string[] = Array.isArray(data.excludedPaths) ? data.excludedPaths : [];
+      const excludedPaths: string[] = Array.isArray(data.excludedPaths)
+        ? data.excludedPaths
+        : [];
       if (p && existsSync(p)) {
         inputPath = p;
         const tree = await listDirTree(p, { excludedPaths });
         currentContent = `Folder: ${p}\n\nFile tree:\n${tree}`;
-        await log(`Input folder: ${p} (tree: ${tree.split("\n").length} entries)`);
+        await log(
+          `Input folder: ${p} (tree: ${tree.split("\n").length} entries)`,
+        );
       }
       await log(`@@NODE_DONE::${node.id}`);
       continue;
@@ -926,12 +1129,15 @@ const executePipeline = async (opts: {
         ? ghData.excludedPaths
         : [];
 
-      const buildProjectContent = async (dir: string, label: string): Promise<string> => {
+      const buildProjectContent = async (
+        dir: string,
+        label: string,
+      ): Promise<string> => {
         const treeOpts = { excludedPaths };
         if (disclosureMode === "tree") {
           const tree = await listDirTree(dir, treeOpts);
           await log(
-            `Disclosure mode: tree (${tree.split("\n").length} entries, excluded: [${excludedPaths.join(", ")}])`
+            `Disclosure mode: tree (${tree.split("\n").length} entries, excluded: [${excludedPaths.join(", ")}])`,
           );
           return `${label}\n\nFile tree:\n${tree}`;
         }
@@ -939,14 +1145,14 @@ const executePipeline = async (opts: {
           const tree = await listDirTree(dir, treeOpts);
           const fileContents = await readProjectFiles(dir, { excludedPaths });
           await log(
-            `Disclosure mode: full (tree + file contents, ${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`
+            `Disclosure mode: full (tree + file contents, ${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,
           );
           return `${label}\n\nFile tree:\n${tree}\n\n---\n\nFile contents:\n\n${fileContents}`;
         }
         // files-only: just file contents, no tree
         const fileContents = await readProjectFiles(dir, { excludedPaths });
         await log(
-          `Disclosure mode: files-only (${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`
+          `Disclosure mode: files-only (${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,
         );
         return `${label}\n\nFile contents:\n\n${fileContents}`;
       };
@@ -955,13 +1161,18 @@ const executePipeline = async (opts: {
       if (ghData.sourceType === "local") {
         const localPath = ghData.localPath ?? "";
         if (!localPath) {
-          await log(`WARNING: GitHub project node (local) missing localPath, skipping`);
+          await log(
+            `WARNING: GitHub project node (local) missing localPath, skipping`,
+          );
           await log(`@@NODE_FAIL::${node.id}`);
           continue;
         }
         await log(`Using local folder: ${localPath}`);
         inputPath = localPath;
-        currentContent = await buildProjectContent(localPath, `Local Folder: ${localPath}`);
+        currentContent = await buildProjectContent(
+          localPath,
+          `Local Folder: ${localPath}`,
+        );
         await log(`@@NODE_DONE::${node.id}`);
         continue;
       }
@@ -978,7 +1189,12 @@ const executePipeline = async (opts: {
       }
 
       await log(`Cloning GitHub repo ${owner}/${repo}@${branch}...`);
-      const cloneResult = await cloneGitHubRepo(owner, repo, branch, githubToken);
+      const cloneResult = await cloneGitHubRepo(
+        owner,
+        repo,
+        branch,
+        githubToken,
+      );
       if (cloneResult.isErr()) {
         await log(`ERROR: ${cloneResult.error.message}`);
         await log(`@@NODE_FAIL::${node.id}`);
@@ -990,7 +1206,7 @@ const executePipeline = async (opts: {
       inputPath = clonedDir;
       currentContent = await buildProjectContent(
         clonedDir,
-        `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}`
+        `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}`,
       );
       await log(`@@NODE_DONE::${node.id}`);
       continue;
@@ -1003,19 +1219,25 @@ const executePipeline = async (opts: {
       const outputMode: OutputMode = data.outputMode ?? "overwrite";
       let resolvedPath = rawPath ? resolve(rawPath) : "";
       // If the path points to an existing directory, append the filename
-      if (resolvedPath && existsSync(resolvedPath) && statSync(resolvedPath).isDirectory()) {
+      if (
+        resolvedPath &&
+        existsSync(resolvedPath) &&
+        statSync(resolvedPath).isDirectory()
+      ) {
         resolvedPath = join(resolvedPath, outputFileName);
       }
 
       // Handle output mode
       if (resolvedPath && existsSync(resolvedPath)) {
         if (outputMode === "error_if_exists") {
-          await log(`ERROR: Output file already exists: ${resolvedPath} (mode: error_if_exists)`);
+          await log(
+            `ERROR: Output file already exists: ${resolvedPath} (mode: error_if_exists)`,
+          );
           await log(`@@NODE_FAIL::${node.id}`);
           return {
             ok: false,
             error: new ScriptExecutionError(
-              `Output file already exists: ${resolvedPath}. Pipeline aborted (output mode: error_if_exists).`
+              `Output file already exists: ${resolvedPath}. Pipeline aborted (output mode: error_if_exists).`,
             ),
           };
         }
@@ -1041,7 +1263,9 @@ const executePipeline = async (opts: {
       if (outputLocalPath && currentContent) {
         await mkdir(dirname(outputLocalPath), { recursive: true });
         await writeFile(outputLocalPath, currentContent, "utf8");
-        await log(`Wrote output to: ${outputLocalPath} (${currentContent.length} chars)`);
+        await log(
+          `Wrote output to: ${outputLocalPath} (${currentContent.length} chars)`,
+        );
       }
       await log(`@@NODE_DONE::${node.id}`);
       continue;
@@ -1075,10 +1299,12 @@ const executePipeline = async (opts: {
         const bp = await bestPracticesDao.findById(opData.bestPracticeId);
         if (bp) {
           bestPracticeContent = bp.content;
-          await log(`Loaded best practice "${bp.title}" (${bp.content.length} chars)`);
+          await log(
+            `Loaded best practice "${bp.title}" (${bp.content.length} chars)`,
+          );
         } else {
           await log(
-            `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`
+            `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`,
           );
         }
       }
@@ -1089,7 +1315,10 @@ const executePipeline = async (opts: {
         continue;
       }
 
-      const configResult = await safeParseJson(operation.config, operation.name);
+      const configResult = await safeParseJson(
+        operation.config,
+        operation.name,
+      );
       if (configResult.isErr()) {
         await log(`WARNING: ${configResult.error.message}, skipping`);
         await log(`@@NODE_FAIL::${node.id}`);
@@ -1099,7 +1328,9 @@ const executePipeline = async (opts: {
       const config = configResult.value;
       const executor = config.executor;
       if (!executor) {
-        await log(`WARNING: No executor configured for operation "${operation.name}", skipping`);
+        await log(
+          `WARNING: No executor configured for operation "${operation.name}", skipping`,
+        );
         await log(`@@NODE_FAIL::${node.id}`);
         continue;
       }
@@ -1130,7 +1361,11 @@ const executePipeline = async (opts: {
         : currentContent;
 
       if (executor.type === "script") {
-        const scriptResult = await runScript(executor, inputPath, currentContent);
+        const scriptResult = await runScript(
+          executor,
+          inputPath,
+          currentContent,
+        );
         if (scriptResult.isErr()) {
           await log(`@@NODE_FAIL::${node.id}`);
           return { ok: false, error: scriptResult.error };
@@ -1143,7 +1378,7 @@ const executePipeline = async (opts: {
           effectiveInput,
           llmOverride,
           handleChunk,
-          log
+          log,
         );
         if (promptResult.isErr()) {
           await log(`@@NODE_FAIL::${node.id}`);
@@ -1155,17 +1390,23 @@ const executePipeline = async (opts: {
       } else if (executor.type === "agent" && executor.agentMode === "skill") {
         const skillId = executor.skillId ?? "";
         if (!skillId) {
-          await log(`WARNING: No skillId configured for operation "${operation.name}", skipping`);
+          await log(
+            `WARNING: No skillId configured for operation "${operation.name}", skipping`,
+          );
           await log(`@@NODE_FAIL::${node.id}`);
           continue;
         }
 
-        const skill = (await skillsDao.findById(skillId)) ?? (await skillsDao.findByName(skillId));
+        const skill =
+          (await skillsDao.findById(skillId)) ??
+          (await skillsDao.findByName(skillId));
         const skillDescription = skill
           ? `${skill.label}: ${skill.description}`
           : `Skill "${skillId}" (no description available)`;
 
-        await log(`Running skill "${skillId}"${skill ? ` (${skill.label})` : ""}...`);
+        await log(
+          `Running skill "${skillId}"${skill ? ` (${skill.label})` : ""}...`,
+        );
         const skillResult = await runSkill(
           skillId,
           skillDescription,
@@ -1174,7 +1415,7 @@ const executePipeline = async (opts: {
           llmOverride,
           handleChunk,
           log,
-          { writeEnabled: executor.writeEnabled === true }
+          { writeEnabled: executor.writeEnabled === true },
         );
         currentContent = skillResult.isOk() ? skillResult.value : "";
         await log(`@@LLM_CONTENT::${node.id}::${currentContent}`);
@@ -1209,7 +1450,10 @@ const executePipeline = async (opts: {
 
   // Cleanup temp directories
   for (const dir of tempDirs) {
-    await ResultAsync.fromPromise(rm(dir, { recursive: true, force: true }), () => undefined);
+    await ResultAsync.fromPromise(
+      rm(dir, { recursive: true, force: true }),
+      () => undefined,
+    );
   }
 
   return { ok: true, summary };
@@ -1226,11 +1470,13 @@ export const runPipeline = async (opts: {
     (cause) =>
       new ScriptExecutionError(
         cause instanceof Error ? cause.message : String(cause),
-        cause
-      ) as PipelineRunError
+        cause,
+      ) as PipelineRunError,
   );
 
-  const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };
+  const outcome = result.isOk()
+    ? result.value
+    : { ok: false as const, error: result.error };
 
   if (outcome.ok) {
     await jobsDao.updateStatus(opts.jobId, "done", {
@@ -1239,7 +1485,10 @@ export const runPipeline = async (opts: {
     });
   } else {
     const message = outcome.error.message;
-    await jobsDao.appendLog(opts.jobId, `[${new Date().toISOString()}] ERROR: ${message}`);
+    await jobsDao.appendLog(
+      opts.jobId,
+      `[${new Date().toISOString()}] ERROR: ${message}`,
+    );
     await jobsDao.updateStatus(opts.jobId, "failed", {
       finishedAt: Date.now(),
       error: message,

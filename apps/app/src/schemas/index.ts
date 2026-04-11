@@ -2,6 +2,7 @@ export * from "./BestPracticeSchema";
 export * from "./ChecklistSchema";
 export * from "./GithubProjectSchema";
 export * from "./JobSchema";
+export * from "./OperationOutputSchema";
 export * from "./OperationSchema";
 export * from "./PipelineSchema";
 export * from "./RecipeSchema";

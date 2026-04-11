@@ -2,12 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, GitBranch, Lock, Globe, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ResultAsync } from "neverthrow";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@repo/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import { getGithubProjects } from "@/services/githubProjectsService";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
 
@@ -28,11 +23,7 @@ interface PickProjectDialogProps {
   onPick: (project: PickedProject) => void;
 }
 
-export const PickProjectDialog = ({
-  open,
-  onClose,
-  onPick,
-}: PickProjectDialogProps) => {
+export const PickProjectDialog = ({ open, onClose, onPick }: PickProjectDialogProps) => {
   const [projects, setProjects] = useState<GithubProjectEntity[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -40,13 +31,10 @@ export const PickProjectDialog = ({
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    void ResultAsync.fromPromise(
-      getGithubProjects(),
-      () => [] as GithubProjectEntity[],
-    )
+    void ResultAsync.fromPromise(getGithubProjects(), () => [] as GithubProjectEntity[])
       .match(
         (data) => setProjects(data as GithubProjectEntity[]),
-        () => setProjects([]),
+        () => setProjects([])
       )
       .then(() => setLoading(false));
   }, [open]);
@@ -55,7 +43,7 @@ export const PickProjectDialog = ({
     (p) =>
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
       p.repo.toLowerCase().includes(search.toLowerCase()) ||
-      p.description.toLowerCase().includes(search.toLowerCase()),
+      p.description.toLowerCase().includes(search.toLowerCase())
   );
 
   const handlePick = (p: GithubProjectEntity) => {
@@ -67,8 +55,7 @@ export const PickProjectDialog = ({
       description: p.description,
       label: p.repo,
       githubUrl: p.githubUrl,
-      isPrivate:
-        (p as GithubProjectEntity & { isPrivate?: boolean }).isPrivate ?? false,
+      isPrivate: (p as GithubProjectEntity & { isPrivate?: boolean }).isPrivate ?? false,
     });
     onClose();
   };
@@ -77,8 +64,7 @@ export const PickProjectDialog = ({
     if (!v) onClose();
   };
   const { t } = useTranslation();
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

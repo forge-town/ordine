@@ -9,12 +9,9 @@ export interface ChecklistExportItem {
   sortOrder: number;
 }
 
-export const toJson = (items: ChecklistExportItem[]): string =>
-  JSON.stringify(items, null, 2);
+export const toJson = (items: ChecklistExportItem[]): string => JSON.stringify(items, null, 2);
 
-export const fromJson = (
-  text: string,
-): Result<ChecklistExportItem[], string> => {
+export const fromJson = (text: string): Result<ChecklistExportItem[], string> => {
   return safeJsonParse<unknown>(text)
     .mapErr(() => "Invalid JSON")
     .andThen((parsed) => {
@@ -28,7 +25,7 @@ export const fromJson = (
             : "llm") as "script" | "llm",
           script: item.script == null ? null : String(item.script),
           sortOrder: typeof item.sortOrder === "number" ? item.sortOrder : idx,
-        })),
+        }))
       );
     });
 };
@@ -49,7 +46,7 @@ export const toCsv = (items: ChecklistExportItem[]): string => {
       item.checkType,
       escapeCsvField(item.script ?? ""),
       String(item.sortOrder),
-    ].join(","),
+    ].join(",")
   );
   return [header, ...rows].join("\n");
 };
@@ -68,8 +65,7 @@ export const fromCsv = (text: string): ChecklistExportItem[] => {
     items.push({
       title: fields[0] ?? "",
       description: fields[1] ?? "",
-      checkType:
-        fields[2] === "script" || fields[2] === "llm" ? fields[2] : "llm",
+      checkType: fields[2] === "script" || fields[2] === "llm" ? fields[2] : "llm",
       script: fields[3] || null,
       sortOrder: Number(fields[4]) || i - 1,
     });

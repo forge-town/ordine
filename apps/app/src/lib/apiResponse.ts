@@ -6,13 +6,8 @@ export const json = (data: unknown, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
-export const errorResponse = (message: string, status: number) =>
-  json({ error: message }, status);
+export const errorResponse = (message: string, status: number) => json({ error: message }, status);
 
-export const parseJsonBody = (
-  request: Request,
-): ResultAsync<unknown, Response> => {
-  return ResultAsync.fromPromise(request.json(), () =>
-    errorResponse("Invalid JSON body", 400),
-  );
+export const parseJsonBody = (request: Request): ResultAsync<unknown, Response> => {
+  return ResultAsync.fromPromise(request.json(), () => errorResponse("Invalid JSON body", 400));
 };
