@@ -1,3 +1,5 @@
+import { type Result, ok, err } from "neverthrow";
+
 export interface ChecklistExportItem {
   title: string;
   description: string;
@@ -6,18 +8,31 @@ export interface ChecklistExportItem {
   sortOrder: number;
 }
 
-export const toJson = (items: ChecklistExportItem[]): string => JSON.stringify(items, null, 2);
+export const toJson = (items: ChecklistExportItem[]): string =>
+  JSON.stringify(items, null, 2);
 
-export const fromJson = (text: string): ChecklistExportItem[] => {
-  const parsed: unknown = JSON.parse(text);
-  if (!Array.isArray(parsed)) throw new Error("Expected an array");
-  return parsed.map((item: Record<string, unknown>, idx: number) => ({
-    title: String(item.title ?? ""),
-    description: String(item.description ?? ""),
-    checkType: item.checkType === "script" || item.checkType === "llm" ? item.checkType : "llm",
-    script: item.script == null ? null : String(item.script),
-    sortOrder: typeof item.sortOrder === "number" ? item.sortOrder : idx,
-  }));
+export const fromJson = (
+  text: string,
+): Result<ChecklistExportItem[], string> => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return err("Invalid JSON");
+  }
+  if (!Array.isArray(parsed)) return err("Expected an array");
+  return ok(
+    parsed.map((item: Record<string, unknown>, idx: number) => ({
+      title: String(item.title ?? ""),
+      description: String(item.description ?? ""),
+      checkType:
+        item.checkType === "script" || item.checkType === "llm"
+          ? item.checkType
+          : "llm",
+      script: item.script == null ? null : String(item.script),
+      sortOrder: typeof item.sortOrder === "number" ? item.sortOrder : idx,
+    })),
+  );
 };
 
 const escapeCsvField = (value: string): string => {
@@ -36,7 +51,7 @@ export const toCsv = (items: ChecklistExportItem[]): string => {
       item.checkType,
       escapeCsvField(item.script ?? ""),
       String(item.sortOrder),
-    ].join(",")
+    ].join(","),
   );
   return [header, ...rows].join("\n");
 };
@@ -55,7 +70,8 @@ export const fromCsv = (text: string): ChecklistExportItem[] => {
     items.push({
       title: fields[0] ?? "",
       description: fields[1] ?? "",
-      checkType: fields[2] === "script" || fields[2] === "llm" ? fields[2] : "llm",
+      checkType:
+        fields[2] === "script" || fields[2] === "llm" ? fields[2] : "llm",
       script: fields[3] || null,
       sortOrder: Number(fields[4]) || i - 1,
     });

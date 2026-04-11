@@ -1,7 +1,20 @@
 import { useState } from "react";
-import { GitBranch, X, Link2, Loader2, AlertCircle, Key, Lock, Globe } from "lucide-react";
+import {
+  GitBranch,
+  X,
+  Link2,
+  Loader2,
+  AlertCircle,
+  Key,
+  Lock,
+  Globe,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { parseGitHubUrl, fetchRepoInfo, type GitHubRepoInfo } from "@/lib/githubApi";
+import {
+  parseGitHubUrl,
+  fetchRepoInfo,
+  type GitHubRepoInfo,
+} from "@/lib/githubApi";
 import { useGithubToken } from "@/hooks/useGithubToken";
 import { GitHubTokenDialog } from "@/pages/CanvasPage/GitHubProjectNode/GitHubTokenDialog";
 import { createGithubProject } from "@/services/githubProjectsService";
@@ -16,7 +29,10 @@ export type CreateProjectDialogProps = {
   onCreate: (p: GithubProjectEntity) => void;
 };
 
-export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogProps) => {
+export const CreateProjectDialog = ({
+  onClose,
+  onCreate,
+}: CreateProjectDialogProps) => {
   const { t } = useTranslation();
   const { token } = useGithubToken();
   const [url, setUrl] = useState("");
@@ -34,13 +50,14 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
     }
     setLoading(true);
     setError(null);
-    const result = await ResultAsync.fromPromise(
-      fetchRepoInfo(parsed.owner, parsed.repo, token ?? undefined),
-      (e) => (e instanceof Error ? e.message : t("projects.fetchFailed"))
+    const result = await fetchRepoInfo(
+      parsed.owner,
+      parsed.repo,
+      token ?? undefined,
     );
     result.match(
       (info) => setRepoInfo(info),
-      (errorMsg) => setError(errorMsg)
+      (errorMsg) => setError(errorMsg),
     );
     setLoading(false);
   };
@@ -61,14 +78,14 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
           isPrivate: repoInfo.isPrivate ?? false,
         },
       }),
-      (e) => (e instanceof Error ? e.message : t("projects.saveFailed"))
+      (e) => (e instanceof Error ? e.message : t("projects.saveFailed")),
     );
     result.match(
       (project) => {
         onCreate(project as GithubProjectEntity);
         onClose();
       },
-      (errorMsg) => setError(errorMsg)
+      (errorMsg) => setError(errorMsg),
     );
     setSaving(false);
   };
@@ -98,7 +115,12 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
             <h2 className="text-sm font-semibold text-foreground">
               {t("projects.connectProjectTitle")}
             </h2>
-            <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleClose}>
+            <Button
+              className="h-7 w-7"
+              size="icon"
+              variant="ghost"
+              onClick={handleClose}
+            >
               <X className="h-4 w-4 text-muted-foreground" />
             </Button>
           </div>
@@ -107,7 +129,9 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
             <div
               className={cn(
                 "flex items-center gap-2 rounded-lg px-3 py-2 text-xs",
-                token ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+                token
+                  ? "bg-green-50 text-green-700"
+                  : "bg-amber-50 text-amber-700",
               )}
             >
               <Key className="h-3.5 w-3.5 shrink-0" />
@@ -144,7 +168,9 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
                     )}
                   </div>
                   {repoInfo.description && (
-                    <p className="text-xs text-muted-foreground mb-2">{repoInfo.description}</p>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {repoInfo.description}
+                    </p>
                   )}
                   <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                     <GitBranch className="h-3 w-3" />
@@ -183,7 +209,11 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
                         onKeyDown={handleKeyDown}
                       />
                     </div>
-                    <Button disabled={loading || !url.trim()} size="sm" onClick={handleFetchClick}>
+                    <Button
+                      disabled={loading || !url.trim()}
+                      size="sm"
+                      onClick={handleFetchClick}
+                    >
                       {loading ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
@@ -212,7 +242,10 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
         </div>
       </div>
       {showTokenDialog && (
-        <GitHubTokenDialog open={showTokenDialog} onClose={handleCloseTokenDialog} />
+        <GitHubTokenDialog
+          open={showTokenDialog}
+          onClose={handleCloseTokenDialog}
+        />
       )}
     </>
   );

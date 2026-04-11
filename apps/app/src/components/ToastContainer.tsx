@@ -1,6 +1,6 @@
 import { type FC } from "react";
 import { Toast } from "@repo/ui/toast";
-import { useToastStore } from "@/hooks/useToastStore";
+import { useToastStore } from "@/store/toastStore";
 
 export const ToastContainer: FC = () => {
   const { toasts, removeToast } = useToastStore();

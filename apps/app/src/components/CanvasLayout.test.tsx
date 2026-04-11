@@ -1,7 +1,7 @@
 import { render, screen, act } from "@testing-library/react";
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import { CanvasLayout } from "./CanvasLayout";
-import { useToastStore } from "@/hooks/useToastStore";
+import { useToastStore } from "@/store/toastStore";
 
 vi.mock("@repo/ui/toast", () => ({
   Toast: ({ title, description }: { title: string; description?: string }) => (
@@ -21,7 +21,7 @@ describe("CanvasLayout", () => {
     render(
       <CanvasLayout>
         <div data-testid="child">content</div>
-      </CanvasLayout>
+      </CanvasLayout>,
     );
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });
@@ -30,7 +30,7 @@ describe("CanvasLayout", () => {
     render(
       <CanvasLayout>
         <div />
-      </CanvasLayout>
+      </CanvasLayout>,
     );
 
     act(() => {
@@ -48,7 +48,7 @@ describe("CanvasLayout", () => {
     render(
       <CanvasLayout>
         <div />
-      </CanvasLayout>
+      </CanvasLayout>,
     );
 
     act(() => {

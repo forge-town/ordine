@@ -1,8 +1,10 @@
-import { Result, ResultAsync } from "neverthrow";
+import { Result, ResultAsync, errAsync } from "neverthrow";
 
 const GITHUB_API_BASE = "https://api.github.com";
 
-export type GitHubTokenStatus = { valid: true; login: string } | { valid: false; error: string };
+export type GitHubTokenStatus =
+  | { valid: true; login: string }
+  | { valid: false; error: string };
 
 export interface GitHubRepoInfo {
   owner: string;
@@ -24,7 +26,9 @@ export const getGitHubHeaders = (token?: string | null): HeadersInit => {
   return headers;
 };
 
-export const verifyGitHubToken = async (token: string | null): Promise<GitHubTokenStatus> => {
+export const verifyGitHubToken = async (
+  token: string | null,
+): Promise<GitHubTokenStatus> => {
   if (!token?.trim()) {
     return { valid: false, error: "TOKEN_EMPTY:Token 不能为空" };
   }
@@ -33,7 +37,7 @@ export const verifyGitHubToken = async (token: string | null): Promise<GitHubTok
     fetch(`${GITHUB_API_BASE}/user`, {
       headers: getGitHubHeaders(token),
     }),
-    () => "NETWORK_ERROR:网络错误，无法验证 Token"
+    () => "NETWORK_ERROR:网络错误，无法验证 Token",
   );
 
   if (result.isErr()) {
@@ -55,7 +59,11 @@ export const verifyGitHubToken = async (token: string | null): Promise<GitHubTok
   }
 
   if (res.status === 403) {
-    const data = await res.json().catch(() => ({}));
+    const jsonResult = await ResultAsync.fromPromise(
+      res.json() as Promise<Record<string, unknown>>,
+      () => ({}),
+    );
+    const data = jsonResult.unwrapOr({});
     const msg = (data as { message?: string }).message ?? "";
     if (msg.toLowerCase().includes("rate limit")) {
       return {
@@ -81,7 +89,7 @@ export interface ParsedGitHubUrl {
 export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
   const urlResult = Result.fromThrowable(
     () => new URL(url.trim()),
-    () => null
+    () => null,
   )();
   if (urlResult.isErr()) return null;
 
@@ -95,48 +103,66 @@ export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
   if (!owner || !repo) return null;
 
   const branch =
-    treeKeyword === "tree" && branchParts.length > 0 ? branchParts.join("/") : undefined;
+    treeKeyword === "tree" && branchParts.length > 0
+      ? branchParts.join("/")
+      : undefined;
 
   return { owner, repo, branch };
 };
 
-export const fetchRepoInfo = async (
+export class GitHubApiError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode?: number,
+  ) {
+    super(message);
+    this.name = "GitHubApiError";
+  }
+}
+
+export const fetchRepoInfo = (
   owner: string,
   repo: string,
   token?: string | null,
-  branchHint?: string
-): Promise<GitHubRepoInfo> => {
+  branchHint?: string,
+): ResultAsync<GitHubRepoInfo, string> => {
   const headers = getGitHubHeaders(token);
 
-  const repoRes = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}`, {
-    headers,
-  });
+  return ResultAsync.fromPromise(
+    fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}`, { headers }),
+    () => "网络错误，无法连接 GitHub",
+  ).andThen((repoRes) => {
+    if (repoRes.ok) {
+      return ResultAsync.fromPromise(
+        repoRes.json() as Promise<Record<string, unknown>>,
+        () => "解析仓库数据失败",
+      ).map((repoData) => {
+        const defaultBranch = repoData.default_branch as string;
+        const targetBranch = branchHint ?? defaultBranch;
+        return {
+          owner,
+          repo,
+          branch: targetBranch,
+          defaultBranch,
+          description: (repoData.description as string) ?? "",
+          isPrivate: repoData.private as boolean,
+          fullName: repoData.full_name as string,
+        };
+      });
+    }
 
-  if (!repoRes.ok) {
     if (repoRes.status === 404) {
-      throw new Error(
+      return errAsync(
         token
           ? "仓库不存在，请检查 owner/repo 是否正确"
-          : "仓库不存在或为私有仓库，请先配置 GitHub Token"
+          : "仓库不存在或为私有仓库，请先配置 GitHub Token",
       );
     }
+
     if (repoRes.status === 401 || repoRes.status === 403) {
-      throw new Error("无权访问该仓库，请检查 Token 是否有效");
+      return errAsync("无权访问该仓库，请检查 Token 是否有效");
     }
-    throw new Error(`获取仓库信息失败 (${repoRes.status})`);
-  }
 
-  const repoData = await repoRes.json();
-  const defaultBranch = (repoData as { default_branch: string }).default_branch;
-  const targetBranch = branchHint ?? defaultBranch;
-
-  return {
-    owner,
-    repo,
-    branch: targetBranch,
-    defaultBranch,
-    description: (repoData as { description?: string }).description ?? "",
-    isPrivate: (repoData as { private: boolean }).private,
-    fullName: (repoData as { full_name: string }).full_name,
-  };
+    return errAsync(`获取仓库信息失败 (${repoRes.status})`);
+  });
 };

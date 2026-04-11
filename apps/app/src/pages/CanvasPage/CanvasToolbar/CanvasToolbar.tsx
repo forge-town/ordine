@@ -1,13 +1,22 @@
 import { useState } from "react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
-import { ZoomIn, ZoomOut, Maximize2, Trash2, Undo2, Redo2, Bot, Play } from "lucide-react";
+import {
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Trash2,
+  Undo2,
+  Redo2,
+  Bot,
+  Play,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
 import { updatePipeline } from "@/services/pipelinesService";
-import { useToastStore } from "@/hooks/useToastStore";
+import { useToastStore } from "@/store/toastStore";
 import { ResultAsync } from "neverthrow";
 
 export const CanvasToolbar = () => {
@@ -25,7 +34,10 @@ export const CanvasToolbar = () => {
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
-  const handleDeleteSelected = useStore(store, (state) => state.handleDeleteSelected);
+  const handleDeleteSelected = useStore(
+    store,
+    (state) => state.handleDeleteSelected,
+  );
   const handleToggleAi = useStore(store, (state) => state.handleToggleAi);
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
@@ -62,7 +74,7 @@ export const CanvasToolbar = () => {
           },
         },
       }),
-      () => "save-failed" as const
+      () => "save-failed" as const,
     );
 
     if (saveResult.isErr()) {
@@ -87,7 +99,7 @@ export const CanvasToolbar = () => {
         }
         return res.json() as Promise<{ jobId: string }>;
       }),
-      (cause) => (cause instanceof Error ? cause.message : String(cause))
+      (cause) => (cause instanceof Error ? cause.message : String(cause)),
     );
 
     runResult.match(
@@ -105,7 +117,7 @@ export const CanvasToolbar = () => {
           title: t("canvas.runFailed"),
           description: error,
         });
-      }
+      },
     );
 
     setIsRunning(false);
@@ -120,7 +132,12 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomOut} />
+              <Button
+                className="h-7 w-7"
+                size="icon"
+                variant="ghost"
+                onClick={handleZoomOut}
+              />
             }
           >
             <ZoomOut className="h-4 w-4" />
@@ -130,7 +147,12 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomIn} />
+              <Button
+                className="h-7 w-7"
+                size="icon"
+                variant="ghost"
+                onClick={handleZoomIn}
+              />
             }
           >
             <ZoomIn className="h-4 w-4" />
@@ -140,7 +162,12 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleFitView} />
+              <Button
+                className="h-7 w-7"
+                size="icon"
+                variant="ghost"
+                onClick={handleFitView}
+              />
             }
           >
             <Maximize2 className="h-4 w-4" />

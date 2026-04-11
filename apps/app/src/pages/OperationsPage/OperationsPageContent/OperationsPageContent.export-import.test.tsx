@@ -3,14 +3,17 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { OperationsPageContent } from "./OperationsPageContent";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import { createOperation } from "@/services/operationsService";
-import { useToastStore } from "@/hooks/useToastStore";
+import { useToastStore } from "@/store/toastStore";
 
 const mockUseLoaderData = vi.fn(() => [] as OperationEntity[]);
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
   useLoaderData: () => mockUseLoaderData(),
-  Link: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
+  Link: ({
+    children,
+    ...props
+  }: React.PropsWithChildren<Record<string, unknown>>) => (
     <a {...props}>{children}</a>
   ),
 }));
@@ -76,7 +79,9 @@ describe("OperationsPageContent - import", () => {
     const importBtn = screen.getByRole("button", { name: /导入/i });
     fireEvent.click(importBtn);
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     expect(fileInput).not.toBeNull();
 
     const jsonContent = JSON.stringify(mockOperation);
@@ -96,7 +101,7 @@ describe("OperationsPageContent - import", () => {
           data: expect.objectContaining({
             name: "Run ESLint",
           }),
-        })
+        }),
       );
     });
   });
@@ -106,7 +111,9 @@ describe("OperationsPageContent - import", () => {
     const importBtn = screen.getByRole("button", { name: /导入/i });
     fireEvent.click(importBtn);
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const file = new File([JSON.stringify(mockOperation)], "op.json", {
       type: "application/json",
     });
@@ -134,7 +141,9 @@ describe("OperationsPageContent - import validation", () => {
     const importBtn = screen.getByRole("button", { name: /导入/i });
     fireEvent.click(importBtn);
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const file = new File(["not valid json {{{"], "bad.json", {
       type: "application/json",
     });
@@ -155,7 +164,9 @@ describe("OperationsPageContent - import validation", () => {
     const importBtn = screen.getByRole("button", { name: /导入/i });
     fireEvent.click(importBtn);
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const missingName = { category: "lint", config: "{}" };
     const file = new File([JSON.stringify(missingName)], "no-name.json", {
       type: "application/json",
@@ -182,7 +193,9 @@ describe("OperationsPageContent - import validation", () => {
     const importBtn = screen.getByRole("button", { name: /导入/i });
     fireEvent.click(importBtn);
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const file = new File([JSON.stringify(mockOperation)], "op.json", {
       type: "application/json",
     });

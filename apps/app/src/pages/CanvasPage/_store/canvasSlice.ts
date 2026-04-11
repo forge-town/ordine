@@ -76,7 +76,7 @@ export const createCanvasSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
   get: Parameters<HarnessCanvasStoreSlice>[1],
   overrideNodes?: PipelineNode[],
-  overrideEdges?: PipelineEdge[]
+  overrideEdges?: PipelineEdge[],
 ): CanvasSlice => ({
   nodes: overrideNodes ?? initialNodes,
   edges: overrideEdges ?? initialEdges,
@@ -102,7 +102,6 @@ export const createCanvasSlice = (
     const sourceNode = state.nodes.find((n) => n.id === connection.source);
     const targetNode = state.nodes.find((n) => n.id === connection.target);
     if (!sourceNode || !targetNode) {
-      console.error("[Canvas] 连接失败: 未找到源节点或目标节点");
       return;
     }
 
@@ -111,7 +110,6 @@ export const createCanvasSlice = (
       targetType: targetNode.type,
     });
     if (!result.success) {
-      console.error("[Canvas] 不允许的连接:", result.error.issues[0]?.message);
       return;
     }
 
@@ -124,9 +122,9 @@ export const createCanvasSlice = (
       (draft) => {
         draft.edges = addEdge(
           { ...connection, type: "default", animated: true, data: {} },
-          draft.edges
+          draft.edges,
         );
-      }
+      },
     );
   },
 
@@ -139,7 +137,7 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes.push(node);
-      }
+      },
     );
   },
 
@@ -147,7 +145,6 @@ export const createCanvasSlice = (
     const state = get();
     const source = state.nodes.find((n) => n.id === sourceId);
     if (!source) {
-      console.error("[Canvas] 添加节点失败: 未找到源节点");
       return;
     }
 
@@ -176,7 +173,7 @@ export const createCanvasSlice = (
       (draft) => {
         draft.nodes.push(newNode);
         draft.edges.push(newEdge);
-      }
+      },
     );
   },
 
@@ -184,7 +181,6 @@ export const createCanvasSlice = (
     const state = get();
     const node = state.nodes.find((n) => n.id === nodeId);
     if (!node) {
-      console.error("[Canvas] 删除节点失败: 未找到节点", nodeId);
       return;
     }
 
@@ -196,8 +192,10 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes = draft.nodes.filter((n) => n.id !== nodeId);
-        draft.edges = draft.edges.filter((e) => e.source !== nodeId && e.target !== nodeId);
-      }
+        draft.edges = draft.edges.filter(
+          (e) => e.source !== nodeId && e.target !== nodeId,
+        );
+      },
     );
     // Clear selection outside of history-tracked state
     set((s) => ({
@@ -209,7 +207,6 @@ export const createCanvasSlice = (
     const state = get();
     const node = state.nodes.find((n) => n.id === nodeId);
     if (!node) {
-      console.error("[Canvas] 更新节点数据失败: 未找到节点", nodeId);
       return;
     }
 
@@ -224,13 +221,15 @@ export const createCanvasSlice = (
         if (n) {
           n.data = { ...n.data, ...data } as PipelineNodeData;
         }
-      }
+      },
     );
   },
 
   updateEdgeData: (edgeId, data) => {
     set((state) => ({
-      edges: state.edges.map((e) => (e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e)),
+      edges: state.edges.map((e) =>
+        e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e,
+      ),
     }));
   },
 
@@ -246,7 +245,6 @@ export const createCanvasSlice = (
     const state = get();
     const source = state.nodes.find((n) => n.id === nodeId);
     if (!source) {
-      console.error("[Canvas] 复制节点失败: 未找到节点", nodeId);
       return;
     }
 
@@ -267,16 +265,19 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes.push(newNode);
-      }
+      },
     );
   },
 
   clearCanvas: () => {
     const state = get();
-    state.recordCommand({ type: "CLEAR_CANVAS", label: "清空画布" }, (draft) => {
-      draft.nodes = [];
-      draft.edges = [];
-    });
+    state.recordCommand(
+      { type: "CLEAR_CANVAS", label: "清空画布" },
+      (draft) => {
+        draft.nodes = [];
+        draft.edges = [];
+      },
+    );
     set({ selectedNodeId: null, selectedEdgeId: null });
   },
 });

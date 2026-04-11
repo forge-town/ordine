@@ -552,19 +552,22 @@ const runSkill = (
     "You have access to tools that let you read files and explore the project.",
     "Use these tools to examine actual source code before making conclusions.",
     "",
-    "IMPORTANT: You have a limited number of tool-call steps. Be strategic:",
-    "- Use searchCode first to find relevant files quickly",
-    "- Only readFile for files that are directly relevant",
-    "- Stop exploring after you have enough evidence (5-10 files max)",
-    "- ALWAYS produce a complete Markdown report as your FINAL response",
+    "CRITICAL CONSTRAINT — You have a HARD LIMIT of 25 tool-call steps.",
+    "If you exceed this limit, your response will be CUT OFF and LOST entirely.",
+    "Budget your steps wisely:",
+    "  Phase 1 (steps 1-5): Use searchCode and listDirectory to find relevant files",
+    "  Phase 2 (steps 6-18): Use readFile on the most important files found",
+    "  Phase 3 (step 19+): STOP all tool calls and write your Markdown report",
     "",
-    "Workflow:",
-    "1. Use searchCode to find patterns matching the analysis criteria",
-    "2. Use readFile on the most relevant files found",
-    "3. Once you have enough evidence, STOP making tool calls",
-    "4. Write a detailed Markdown report with file paths, line numbers, and code snippets",
+    "DO NOT call any more tools after step 18. Write the report immediately.",
+    "If in doubt whether to read one more file or write the report — WRITE THE REPORT.",
     "",
-    "Your final message MUST be the complete report. Do NOT end with a tool call.",
+    "Your final message MUST be a complete Markdown report with:",
+    "- Specific file paths and line numbers",
+    "- Code snippets showing violations or compliance",
+    "- A summary table of findings",
+    "",
+    "NEVER end your response with a tool call. Always end with the report text.",
   ].join("\n");
 
   const userPrompt = inputPath
@@ -635,36 +638,74 @@ const runSkill = (
         );
 
         let result;
-        try {
-          result = await agent.generate(userPrompt, {
-            maxSteps: 25,
-          });
-        } catch (agentErr) {
-          const errMsg =
-            agentErr instanceof Error ? agentErr.message : String(agentErr);
-          await log(`[Mastra] runSkill: agent.generate THREW — ${errMsg}`);
-          console.error("[runSkill] agent.generate error:", agentErr);
-          return generateFallbackReport();
+        const MAX_ATTEMPTS = 2;
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+          try {
+            result = await agent.generate(userPrompt, {
+              maxSteps: 25,
+              ...(attempt > 1
+                ? {
+                    providerOptions: {
+                      openai: { reasoning_effort: "none" },
+                    },
+                  }
+                : {}),
+            });
+            break; // success
+          } catch (agentErr) {
+            const errMsg =
+              agentErr instanceof Error ? agentErr.message : String(agentErr);
+            const isThinkingError = errMsg.includes("reasoning_content");
+            await log(
+              `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`,
+            );
+
+            if (isThinkingError && attempt < MAX_ATTEMPTS) {
+              await log(
+                `[Mastra] runSkill: Retrying with reasoning disabled...`,
+              );
+              continue;
+            }
+
+            return generateFallbackReport();
+          }
         }
+
+        if (!result) return generateFallbackReport();
 
         const stepCount = result.steps?.length ?? 0;
         const toolCallCount = (result.steps ?? []).reduce(
           (acc, step) => acc + (step.toolCalls?.length ?? 0),
           0,
         );
+
+        // If result.text is empty, try to salvage text from intermediate steps
+        let outputText = result.text;
+        if (!outputText && result.steps?.length) {
+          const stepTexts = result.steps
+            .map((s) => s.text ?? "")
+            .filter((t) => t.length > 50);
+          if (stepTexts.length > 0) {
+            outputText = stepTexts[stepTexts.length - 1];
+            await log(
+              `[Mastra] runSkill: Salvaged ${outputText.length} chars from step text`,
+            );
+          }
+        }
+
         await log(
-          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${result.text.length} chars`,
+          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${outputText.length} chars`,
         );
 
-        if (onChunk) await onChunk(result.text);
+        if (onChunk) await onChunk(outputText);
 
-        if (result.text.length === 0) {
+        if (outputText.length === 0) {
           await log(
             `[Mastra] runSkill: WARNING — Agent returned empty output, using fallback report`,
           );
           return generateFallbackReport();
         }
-        return result.text;
+        return outputText;
       }
 
       // Fallback to streaming without tools if no project path
@@ -703,7 +744,6 @@ const runSkill = (
   ).orElse((cause) => {
     const errMsg = cause instanceof Error ? cause.message : String(cause);
     log(`[Mastra] runSkill: Agent call FAILED — ${errMsg}`);
-    console.error("[runSkill] Agent call failed:", cause);
     return ok(generateFallbackReport());
   });
 };
@@ -1128,7 +1168,10 @@ const executePipeline = async (opts: {
 
   // Cleanup temp directories
   for (const dir of tempDirs) {
-    await rm(dir, { recursive: true, force: true }).catch(() => {});
+    await ResultAsync.fromPromise(
+      rm(dir, { recursive: true, force: true }),
+      () => undefined,
+    );
   }
 
   return { ok: true, summary };

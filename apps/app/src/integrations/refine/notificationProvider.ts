@@ -1,5 +1,5 @@
 import { type NotificationProvider } from "@refinedev/core";
-import { useToastStore } from "@/hooks/useToastStore";
+import { useToastStore } from "@/store/toastStore";
 
 export const notificationProvider: NotificationProvider = {
   open: ({ message, description, type, key }) => {

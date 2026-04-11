@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Folder, File, Ban, RotateCw } from "lucide-react";
 import { Button } from "@repo/ui/button";
+import { ResultAsync } from "neverthrow";
 
 interface DirectoryEntry {
   name: string;
@@ -30,20 +31,27 @@ export const FolderTreePreview = ({
     let cancelled = false;
     setLoading(true);
 
-    fetch(`/api/filesystem/tree?path=${encodeURIComponent(folderPath)}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch");
-        return res.json() as Promise<DirectoryEntry[]>;
-      })
-      .then((data) => {
-        if (!cancelled) setEntries(data);
-      })
-      .catch(() => {
-        if (!cancelled) setEntries([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    const fetchTree = async () => {
+      const result = await ResultAsync.fromPromise(
+        fetch(
+          `/api/filesystem/tree?path=${encodeURIComponent(folderPath)}`,
+        ).then((res) => {
+          if (!res.ok) return Promise.reject(new Error("Failed to fetch"));
+          return res.json() as Promise<DirectoryEntry[]>;
+        }),
+        () => "fetch-error" as const,
+      );
+
+      if (cancelled) return;
+
+      result.match(
+        (data) => setEntries(data),
+        () => setEntries([]),
+      );
+      setLoading(false);
+    };
+
+    void fetchTree();
 
     return () => {
       cancelled = true;
