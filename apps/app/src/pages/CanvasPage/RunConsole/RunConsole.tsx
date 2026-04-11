@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Terminal,
   X,
@@ -86,7 +86,7 @@ const parseStructuredLogs = (
     onNodeDone: (nodeId: string) => void;
     onNodeFail: (nodeId: string) => void;
     onLlmContent: (nodeId: string, content: string) => void;
-  }
+  },
 ) => {
   for (const log of logs) {
     const msg = log.replace(/^\[[^\]]+\]\s*/, "");
@@ -123,8 +123,16 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const processedLogCount = useRef(0);
+  const prevJobId = useRef(jobId);
 
-  const isTerminalStatus = (s: JobStatus) => s === "done" || s === "failed" || s === "cancelled";
+  // Reset processed count when jobId changes
+  if (prevJobId.current !== jobId) {
+    prevJobId.current = jobId;
+    processedLogCount.current = 0;
+  }
+
+  const isTerminalStatus = (s: JobStatus) =>
+    s === "done" || s === "failed" || s === "cancelled";
 
   const { data: job } = useQuery({
     queryKey: ["job", jobId],
@@ -141,35 +149,22 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
     },
   });
 
-  // Process new structured log lines when job data updates
-  const processStructuredLogs = useCallback(
-    (data: JobData) => {
-      const newLogs = data.logs.slice(processedLogCount.current);
-      processedLogCount.current = data.logs.length;
+  // Process new structured log lines during render (ref-driven, no useEffect)
+  if (job && job.logs.length > processedLogCount.current) {
+    const newLogs = job.logs.slice(processedLogCount.current);
+    processedLogCount.current = job.logs.length;
 
-      parseStructuredLogs(newLogs, {
-        onNodeStart: markNodeRunning,
-        onNodeDone: markNodePassed,
-        onNodeFail: markNodeFailed,
-        onLlmContent: setNodeLlmContent,
-      });
+    parseStructuredLogs(newLogs, {
+      onNodeStart: markNodeRunning,
+      onNodeDone: markNodePassed,
+      onNodeFail: markNodeFailed,
+      onLlmContent: setNodeLlmContent,
+    });
 
-      if (isTerminalStatus(data.status)) {
-        stopTestRun();
-      }
-    },
-    [markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent, stopTestRun]
-  );
-
-  // Process logs whenever job data changes
-  useEffect(() => {
-    if (job) processStructuredLogs(job);
-  }, [job, processStructuredLogs]);
-
-  // Reset state when jobId changes
-  useEffect(() => {
-    processedLogCount.current = 0;
-  }, [jobId]);
+    if (isTerminalStatus(job.status)) {
+      stopTestRun();
+    }
+  }
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -187,7 +182,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
     <div
       className={cn(
         "absolute bottom-0 left-0 right-0 z-30 border-t bg-background shadow-lg transition-all",
-        collapsed ? "h-9" : "h-64"
+        collapsed ? "h-9" : "h-64",
       )}
     >
       {/* Status bar */}
@@ -204,27 +199,39 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                   "font-medium",
                   job.status === "running" && "text-blue-600",
                   job.status === "done" && "text-green-600",
-                  job.status === "failed" && "text-red-600"
+                  job.status === "failed" && "text-red-600",
                 )}
               >
                 {statusLabel[job.status]}
               </span>
               {job.status === "running" && (
-                <span className="text-muted-foreground">({job.logs.length} logs)</span>
+                <span className="text-muted-foreground">
+                  ({job.logs.length} logs)
+                </span>
               )}
             </>
           )}
         </div>
 
         <div className="flex items-center gap-0.5">
-          <Button className="h-6 w-6" size="icon" variant="ghost" onClick={handleToggleCollapse}>
+          <Button
+            className="h-6 w-6"
+            size="icon"
+            variant="ghost"
+            onClick={handleToggleCollapse}
+          >
             {collapsed ? (
               <ChevronUp className="h-3.5 w-3.5" />
             ) : (
               <ChevronDown className="h-3.5 w-3.5" />
             )}
           </Button>
-          <Button className="h-6 w-6" size="icon" variant="ghost" onClick={handleClose}>
+          <Button
+            className="h-6 w-6"
+            size="icon"
+            variant="ghost"
+            onClick={handleClose}
+          >
             <X className="h-3.5 w-3.5" />
           </Button>
         </div>
@@ -233,7 +240,10 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
       {/* Log area */}
       {!collapsed && (
         <ScrollArea className="h-[calc(100%-2.25rem)]">
-          <div ref={scrollRef} className="h-full overflow-auto p-2 font-mono text-xs">
+          <div
+            ref={scrollRef}
+            className="h-full overflow-auto p-2 font-mono text-xs"
+          >
             {!job && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -251,9 +261,10 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                     className={cn(
                       "break-all",
                       log.includes("ERROR") && "text-red-600 font-medium",
-                      log.includes("Pipeline complete") && "text-green-600 font-medium",
+                      log.includes("Pipeline complete") &&
+                        "text-green-600 font-medium",
                       log.includes("Cloned to") && "text-blue-600",
-                      log.includes("Skill output") && "text-violet-600"
+                      log.includes("Skill output") && "text-violet-600",
                     )}
                   >
                     {parseMessage(log)}

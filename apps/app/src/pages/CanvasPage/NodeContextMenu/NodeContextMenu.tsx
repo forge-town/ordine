@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useStore } from "zustand";
+import { useHotkeys } from "react-hotkeys-hook";
 import {
   Copy,
   Trash2,
@@ -62,17 +63,15 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "d" && e.metaKey) {
-        e.preventDefault();
-        duplicateNode(nodeId);
-        onCloseRef.current();
-      }
-    };
-    globalThis.addEventListener("keydown", handler);
-    return () => globalThis.removeEventListener("keydown", handler);
-  }, [duplicateNode, nodeId]);
+  useHotkeys(
+    "mod+d",
+    (e) => {
+      e.preventDefault();
+      duplicateNode(nodeId);
+      onCloseRef.current();
+    },
+    [duplicateNode, nodeId]
+  );
 
   if (!node) return null;
 

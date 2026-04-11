@@ -1,5 +1,6 @@
-import { useMemo, useRef, useEffect, useCallback } from "react";
+import { useMemo, useRef, useCallback } from "react";
 import { useStore } from "zustand";
+import { useHotkeys } from "react-hotkeys-hook";
 import {
   ReactFlow,
   Background,
@@ -42,22 +43,22 @@ export const CanvasFlow = () => {
   const handleRedo = useStore(store, (state) => state.handleRedo);
 
   // ─── Undo / Redo keyboard shortcuts ──────────────────────────────────────────
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const isUndo = (e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey;
-      const isRedo = (e.metaKey || e.ctrlKey) && (e.key === "y" || (e.key === "z" && e.shiftKey));
-
-      if (isUndo) {
-        e.preventDefault();
-        handleUndo();
-      } else if (isRedo) {
-        e.preventDefault();
-        handleRedo();
-      }
-    };
-    globalThis.addEventListener("keydown", handler);
-    return () => globalThis.removeEventListener("keydown", handler);
-  }, [handleUndo, handleRedo]);
+  useHotkeys(
+    "mod+z",
+    (e) => {
+      e.preventDefault();
+      handleUndo();
+    },
+    { preventDefault: false }
+  );
+  useHotkeys(
+    "mod+shift+z, mod+y",
+    (e) => {
+      e.preventDefault();
+      handleRedo();
+    },
+    { preventDefault: false }
+  );
 
   const { screenToFlowPosition } = useReactFlow();
 
