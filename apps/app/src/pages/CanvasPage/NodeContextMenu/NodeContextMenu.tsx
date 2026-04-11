@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useStore } from "zustand";
 import {
   Copy,
@@ -59,17 +59,20 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
   const onConnect = useStore(store, (s) => s.handleConnect);
   const node = nodes.find((n) => n.id === nodeId);
 
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "d" && e.metaKey) {
         e.preventDefault();
         duplicateNode(nodeId);
-        onClose();
+        onCloseRef.current();
       }
     };
     globalThis.addEventListener("keydown", handler);
     return () => globalThis.removeEventListener("keydown", handler);
-  }, [onClose, duplicateNode, nodeId]);
+  }, [duplicateNode, nodeId]);
 
   if (!node) return null;
 

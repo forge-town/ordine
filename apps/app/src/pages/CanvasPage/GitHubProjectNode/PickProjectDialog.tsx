@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Search, GitBranch, Lock, Globe, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { ResultAsync } from "neverthrow";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import { getGithubProjects } from "@/services/githubProjectsService";
 import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
@@ -24,20 +24,12 @@ interface PickProjectDialogProps {
 }
 
 export const PickProjectDialog = ({ open, onClose, onPick }: PickProjectDialogProps) => {
-  const [projects, setProjects] = useState<GithubProjectEntity[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { data: projects = [], isLoading: loading } = useQuery({
+    queryKey: ["github-projects"],
+    queryFn: () => getGithubProjects(),
+    enabled: open,
+  });
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    if (!open) return;
-    setLoading(true);
-    void ResultAsync.fromPromise(getGithubProjects(), () => [] as GithubProjectEntity[])
-      .match(
-        (data) => setProjects(data as GithubProjectEntity[]),
-        () => setProjects([])
-      )
-      .then(() => setLoading(false));
-  }, [open]);
 
   const filtered = projects.filter(
     (p) =>

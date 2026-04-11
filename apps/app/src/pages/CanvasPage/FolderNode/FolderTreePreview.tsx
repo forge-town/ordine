@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
 import { Folder, File, Ban, RotateCw } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@repo/ui/button";
-import { ResultAsync } from "neverthrow";
 
 interface DirectoryEntry {
   name: string;
@@ -17,44 +16,22 @@ interface FolderTreePreviewProps {
 
 const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
+const fetchDirectoryTree = async (folderPath: string): Promise<DirectoryEntry[]> => {
+  const res = await fetch(`/api/filesystem/tree?path=${encodeURIComponent(folderPath)}`);
+  if (!res.ok) return [];
+  return res.json() as Promise<DirectoryEntry[]>;
+};
+
 export const FolderTreePreview = ({
   folderPath,
   excludedPaths,
   onExclude,
 }: FolderTreePreviewProps) => {
-  const [entries, setEntries] = useState<DirectoryEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!folderPath) return;
-
-    let cancelled = false;
-    setLoading(true);
-
-    const fetchTree = async () => {
-      const result = await ResultAsync.fromPromise(
-        fetch(`/api/filesystem/tree?path=${encodeURIComponent(folderPath)}`).then((res) => {
-          if (!res.ok) return Promise.reject(new Error("Failed to fetch"));
-          return res.json() as Promise<DirectoryEntry[]>;
-        }),
-        () => "fetch-error" as const
-      );
-
-      if (cancelled) return;
-
-      result.match(
-        (data) => setEntries(data),
-        () => setEntries([])
-      );
-      setLoading(false);
-    };
-
-    void fetchTree();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [folderPath]);
+  const { data: entries = [], isLoading: loading } = useQuery({
+    queryKey: ["folder-tree", folderPath],
+    queryFn: () => fetchDirectoryTree(folderPath),
+    enabled: !!folderPath,
+  });
 
   if (!folderPath) return null;
 

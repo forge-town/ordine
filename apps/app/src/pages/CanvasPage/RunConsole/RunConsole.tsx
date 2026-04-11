@@ -13,6 +13,7 @@ import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { cn } from "@repo/ui/lib/utils";
 import { useStore } from "zustand";
+import { useQuery } from "@tanstack/react-query";
 import { useHarnessCanvasStore } from "../_store";
 
 type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled";
@@ -119,69 +120,56 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
   const setNodeLlmContent = useStore(store, (s) => s.setNodeLlmContent);
   const stopTestRun = useStore(store, (s) => s.stopTestRun);
 
-  const [job, setJob] = useState<JobData | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const isTerminal = useRef(false);
   const processedLogCount = useRef(0);
 
-  const fetchJob = useCallback(
-    async (id: string) => {
-      const res = await fetch(`/api/jobs/${id}`);
-      if (!res.ok) return;
-      const data = (await res.json()) as JobData;
-      setJob(data);
+  const isTerminalStatus = (s: JobStatus) => s === "done" || s === "failed" || s === "cancelled";
 
-      // Parse new structured log lines since last fetch
+  const { data: job } = useQuery({
+    queryKey: ["job", jobId],
+    queryFn: async () => {
+      const res = await fetch(`/api/jobs/${jobId}`);
+      if (!res.ok) return null;
+      return (await res.json()) as JobData;
+    },
+    enabled: !!jobId,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      if (status && isTerminalStatus(status)) return false;
+      return POLL_INTERVAL;
+    },
+  });
+
+  // Process new structured log lines when job data updates
+  const processStructuredLogs = useCallback(
+    (data: JobData) => {
       const newLogs = data.logs.slice(processedLogCount.current);
       processedLogCount.current = data.logs.length;
 
       parseStructuredLogs(newLogs, {
-        onNodeStart: (nodeId) => {
-          markNodeRunning(nodeId);
-        },
-        onNodeDone: (nodeId) => {
-          markNodePassed(nodeId);
-        },
-        onNodeFail: (nodeId) => {
-          markNodeFailed(nodeId);
-        },
-        onLlmContent: (nodeId, content) => {
-          setNodeLlmContent(nodeId, content);
-        },
+        onNodeStart: markNodeRunning,
+        onNodeDone: markNodePassed,
+        onNodeFail: markNodeFailed,
+        onLlmContent: setNodeLlmContent,
       });
 
-      if (data.status === "done" || data.status === "failed" || data.status === "cancelled") {
-        isTerminal.current = true;
+      if (isTerminalStatus(data.status)) {
         stopTestRun();
       }
     },
     [markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent, stopTestRun]
   );
 
-  // Initial fetch + polling
+  // Process logs whenever job data changes
   useEffect(() => {
-    if (!jobId) {
-      setJob(null);
-      isTerminal.current = false;
-      processedLogCount.current = 0;
-      return;
-    }
+    if (job) processStructuredLogs(job);
+  }, [job, processStructuredLogs]);
 
-    isTerminal.current = false;
+  // Reset state when jobId changes
+  useEffect(() => {
     processedLogCount.current = 0;
-    void fetchJob(jobId);
-
-    const timer = setInterval(() => {
-      if (isTerminal.current) {
-        clearInterval(timer);
-        return;
-      }
-      void fetchJob(jobId);
-    }, POLL_INTERVAL);
-
-    return () => clearInterval(timer);
-  }, [jobId, fetchJob]);
+  }, [jobId]);
 
   // Auto-scroll to bottom
   useEffect(() => {

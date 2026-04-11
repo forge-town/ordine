@@ -22,7 +22,8 @@
     "./toast": "./src/toast.tsx",
     "./tooltip": "./src/tooltip.tsx",
     "./select": "./src/select.tsx",
-    "./form": "./src/form.tsx"
+    "./form": "./src/form.tsx",
+    "./popover": "./src/popover.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

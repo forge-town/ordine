@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect, useCallback } from "react";
 import { useStore } from "zustand";
 import {
   ReactFlow,
@@ -6,6 +6,7 @@ import {
   Controls,
   BackgroundVariant,
   useReactFlow,
+  type OnInit,
   type OnConnectStart,
   type OnConnectEnd,
 } from "@xyflow/react";
@@ -33,10 +34,22 @@ export const CanvasFlow = () => {
   const focusNode = useStore(store, (state) => state.focusNode);
   const focusEdge = useStore(store, (state) => state.focusEdge);
   const clearSelection = useStore(store, (state) => state.clearSelection);
-  const openConnectionMenu = useStore(store, (state) => state.openConnectionMenu);
-  const storeHandleConnectStart = useStore(store, (state) => state.handleConnectStart);
-  const showPaneContextMenu = useStore(store, (state) => state.showPaneContextMenu);
-  const showNodeContextMenu = useStore(store, (state) => state.showNodeContextMenu);
+  const openConnectionMenu = useStore(
+    store,
+    (state) => state.openConnectionMenu,
+  );
+  const storeHandleConnectStart = useStore(
+    store,
+    (state) => state.handleConnectStart,
+  );
+  const showPaneContextMenu = useStore(
+    store,
+    (state) => state.showPaneContextMenu,
+  );
+  const showNodeContextMenu = useStore(
+    store,
+    (state) => state.showNodeContextMenu,
+  );
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
 
@@ -44,7 +57,9 @@ export const CanvasFlow = () => {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const isUndo = (e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey;
-      const isRedo = (e.metaKey || e.ctrlKey) && (e.key === "y" || (e.key === "z" && e.shiftKey));
+      const isRedo =
+        (e.metaKey || e.ctrlKey) &&
+        (e.key === "y" || (e.key === "z" && e.shiftKey));
 
       if (isUndo) {
         e.preventDefault();
@@ -58,15 +73,18 @@ export const CanvasFlow = () => {
     return () => globalThis.removeEventListener("keydown", handler);
   }, [handleUndo, handleRedo]);
 
-  const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow();
+  const { screenToFlowPosition } = useReactFlow();
 
-  useEffect(() => {
-    store.setState({
-      fitView: (options?: { padding?: number }) => fitView(options),
-      handleZoomIn: () => zoomIn(),
-      handleZoomOut: () => zoomOut(),
-    });
-  }, [store, fitView, zoomIn, zoomOut]);
+  const handleInit: OnInit<PipelineNode, PipelineEdge> = useCallback(
+    (instance) => {
+      store.setState({
+        fitView: (options?: { padding?: number }) => instance.fitView(options),
+        handleZoomIn: () => instance.zoomIn(),
+        handleZoomOut: () => instance.zoomOut(),
+      });
+    },
+    [store],
+  );
 
   // 使用 useMemo 缓存 nodeTypes - React Flow 最佳实践
   const nodeTypes = useMemo(
@@ -79,7 +97,7 @@ export const CanvasFlow = () => {
       "output-project-path": OutputProjectPathNode,
       "output-local-path": OutputLocalPathNode,
     }),
-    []
+    [],
   );
 
   // 使用 useMemo 缓存 defaultEdgeOptions
@@ -89,7 +107,7 @@ export const CanvasFlow = () => {
       animated: true,
       style: { stroke: "#94a3b8", strokeWidth: 2 },
     }),
-    []
+    [],
   );
 
   const handleConnectStart: OnConnectStart = (_, params) => {
@@ -116,7 +134,9 @@ export const CanvasFlow = () => {
 
     if (fromNode) {
       const { clientX, clientY } =
-        "changedTouches" in event ? (event as TouchEvent).changedTouches[0] : (event as MouseEvent);
+        "changedTouches" in event
+          ? (event as TouchEvent).changedTouches[0]
+          : (event as MouseEvent);
 
       // Re-set connectStart from live connectionState data
       storeHandleConnectStart({
@@ -192,13 +212,19 @@ export const CanvasFlow = () => {
       onConnectStart={handleConnectStart}
       onEdgeClick={handleEdgeClick}
       onEdgesChange={handleEdgesChange}
+      onInit={handleInit}
       onNodeClick={handleNodeClick}
       onNodeContextMenu={handleNodeContextMenu}
       onNodesChange={handleNodesChange}
       onPaneClick={handlePaneClick}
       onPaneContextMenu={handlePaneContextMenu}
     >
-      <Background color="#cbd5e1" gap={24} size={1.5} variant={BackgroundVariant.Dots} />
+      <Background
+        color="#cbd5e1"
+        gap={24}
+        size={1.5}
+        variant={BackgroundVariant.Dots}
+      />
       <Controls
         showInteractive
         className="border-gray-200! bg-white! shadow-sm!"
