@@ -121,19 +121,157 @@ export const computeAutoLayout = (
     if (!childToLoop.has(loopId)) layoutChildren(loopId);
   }
 
-  // ── Trunk: toposort + straight horizontal line ─────────────────────────────
+  // ── Trunk: main path + side branches ─────────────────────────────────────
   const trunkIds = nodes.filter((n) => !childToLoop.has(n.id)).map((n) => n.id);
   const trunkEdges = edges.filter(
     (e) => !childToLoop.has(e.source) && !childToLoop.has(e.target),
   );
   const trunkOrder = topoSort(trunkIds, trunkEdges);
 
+  // Build adjacency for trunk
+  const trunkSet = new Set(trunkIds);
+  const fwd = new Map<string, string[]>();
+  const rev = new Map<string, string[]>();
+  for (const id of trunkIds) {
+    fwd.set(id, []);
+    rev.set(id, []);
+  }
+  for (const e of trunkEdges) {
+    if (!trunkSet.has(e.source) || !trunkSet.has(e.target)) continue;
+    if (e.source === e.target) continue;
+    fwd.get(e.source)!.push(e.target);
+    rev.get(e.target)!.push(e.source);
+  }
+
+  // ── Find main path (longest path DP in topo order) ─────────────────────────
+  const dist = new Map<string, number>();
+  const parentOf = new Map<string, string | null>();
+
+  for (const id of trunkOrder) {
+    const preds = rev.get(id) ?? [];
+    if (preds.length === 0) {
+      dist.set(id, 0);
+      parentOf.set(id, null);
+    } else {
+      let maxDist = -1;
+      let bestPred: string | null = null;
+      for (const p of preds) {
+        const d = dist.get(p) ?? 0;
+        if (d > maxDist) {
+          maxDist = d;
+          bestPred = p;
+        }
+      }
+      dist.set(id, maxDist + 1);
+      parentOf.set(id, bestPred);
+    }
+  }
+
+  let mainEnd = trunkOrder[0];
+  let maxD = 0;
+  for (const id of trunkOrder) {
+    const d = dist.get(id) ?? 0;
+    if (d > maxD) {
+      maxD = d;
+      mainEnd = id;
+    }
+  }
+
+  const mainPath: string[] = [];
+  let cur: string | null = mainEnd;
+  while (cur !== null) {
+    mainPath.unshift(cur);
+    cur = parentOf.get(cur) ?? null;
+  }
+  const mainPathSet = new Set(mainPath);
+
+  // ── Find anchors for side nodes ────────────────────────────────────────────
+  const sideNodes = trunkOrder.filter((id) => !mainPathSet.has(id));
+  const nodeToAnchor = new Map<string, string>();
+
+  for (const sideId of sideNodes) {
+    let anchor: string | null = null;
+
+    // BFS forward: first main-path successor
+    const queue = [...(fwd.get(sideId) ?? [])];
+    const visited = new Set<string>([sideId]);
+    while (queue.length > 0 && anchor === null) {
+      const n = queue.shift()!;
+      if (visited.has(n)) continue;
+      visited.add(n);
+      if (mainPathSet.has(n)) {
+        anchor = n;
+      } else {
+        for (const next of fwd.get(n) ?? []) {
+          if (!visited.has(next)) queue.push(next);
+        }
+      }
+    }
+
+    if (anchor === null) {
+      // BFS backward: first main-path predecessor
+      const bQueue = [...(rev.get(sideId) ?? [])];
+      const bVisited = new Set<string>([sideId]);
+      while (bQueue.length > 0 && anchor === null) {
+        const n = bQueue.shift()!;
+        if (bVisited.has(n)) continue;
+        bVisited.add(n);
+        if (mainPathSet.has(n)) {
+          anchor = n;
+        } else {
+          for (const prev of rev.get(n) ?? []) {
+            if (!bVisited.has(prev)) bQueue.push(prev);
+          }
+        }
+      }
+    }
+
+    if (anchor === null) anchor = mainPath[0];
+    nodeToAnchor.set(sideId, anchor);
+  }
+
+  // Group by anchor
+  const anchorGroups = new Map<string, string[]>();
+  for (const [sideId, anchor] of nodeToAnchor) {
+    if (!anchorGroups.has(anchor)) anchorGroups.set(anchor, []);
+    anchorGroups.get(anchor)!.push(sideId);
+  }
+
+  // ── Layout main path at Y=0 ───────────────────────────────────────────────
   const positionMap = new Map<string, { x: number; y: number }>();
   let tx = 0;
-  for (const id of trunkOrder) {
+  for (const id of mainPath) {
     const w = expandedW.get(id) ?? getSize(id).w;
     positionMap.set(id, { x: tx, y: 0 });
     tx += w + H_GAP;
+  }
+
+  // ── Fishbone: alternate side groups above/below their anchors ────────────
+  for (const [anchor, group] of anchorGroups) {
+    const anchorPos = positionMap.get(anchor)!;
+    const anchorH = expandedH.get(anchor) ?? getSize(anchor).h;
+    const groupEdges = trunkEdges.filter(
+      (e) => group.includes(e.source) && group.includes(e.target),
+    );
+    const groupOrder = topoSort(group, groupEdges);
+
+    // Alternating: even index → above (negative Y), odd → below (positive Y)
+    let aboveCy = 0;
+    let belowCy = anchorH;
+    for (let i = 0; i < groupOrder.length; i++) {
+      const sid = groupOrder[i];
+      const h = expandedH.get(sid) ?? getSize(sid).h;
+      if (i % 2 === 0) {
+        // above spine
+        aboveCy -= V_GAP + h;
+        positionMap.set(sid, { x: anchorPos.x, y: aboveCy });
+      } else {
+        // below spine
+        belowCy += V_GAP;
+        positionMap.set(sid, { x: anchorPos.x, y: belowCy });
+        belowCy += h;
+      }
+    }
   }
 
   // ── Offset children to absolute positions (top-down BFS) ───────────────────

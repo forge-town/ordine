@@ -360,4 +360,86 @@ describe("computeAutoLayout", () => {
     // Trunk order preserved
     expect(pos.before.x).toBeLessThan(pos.loop.x);
   });
+
+  it("side input: extra predecessor stacked above main path", () => {
+    // A → B → C (main path), D → B (side input)
+    const nodes = [makeNode("a"), makeNode("b"), makeNode("c"), makeNode("d")];
+    const edges = [makeEdge("a", "b"), makeEdge("b", "c"), makeEdge("d", "b")];
+    const result = computeAutoLayout(nodes, edges);
+    const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
+
+    // Main path: A → B → C at Y=0
+    expect(pos.a.y).toBe(0);
+    expect(pos.b.y).toBe(0);
+    expect(pos.c.y).toBe(0);
+    expect(pos.a.x).toBeLessThan(pos.b.x);
+    expect(pos.b.x).toBeLessThan(pos.c.x);
+
+    // D is stacked above B (negative Y)
+    expect(pos.d.y).toBeLessThan(0);
+    // D is at B's X column
+    expect(pos.d.x).toBe(pos.b.x);
+  });
+
+  it("diamond: one branch becomes side, stacked above anchor", () => {
+    // A → B → D, A → C → D
+    // Main path = A → B → D (tie-break), C is side above D
+    const nodes = [makeNode("a"), makeNode("b"), makeNode("c"), makeNode("d")];
+    const edges = [
+      makeEdge("a", "b"),
+      makeEdge("b", "d"),
+      makeEdge("a", "c"),
+      makeEdge("c", "d"),
+    ];
+    const result = computeAutoLayout(nodes, edges);
+    const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
+
+    // Main path at Y=0
+    expect(pos.a.y).toBe(0);
+
+    // The side node (C) should be above main path
+    // One of B or C is side — the other is on main path
+    const mainY = 0;
+    const sideNode = pos.b.y < 0 ? "b" : pos.c.y < 0 ? "c" : null;
+    expect(sideNode).not.toBeNull();
+    // The side node is above (negative Y)
+    expect(pos[sideNode!].y).toBeLessThan(mainY);
+  });
+
+  it("multiple side inputs: fishbone alternating above/below", () => {
+    // A → B → C (main path), D → B, E → B (two side inputs)
+    const nodes = [
+      makeNode("a"),
+      makeNode("b"),
+      makeNode("c"),
+      makeNode("d"),
+      makeNode("e"),
+    ];
+    const edges = [
+      makeEdge("a", "b"),
+      makeEdge("b", "c"),
+      makeEdge("d", "b"),
+      makeEdge("e", "b"),
+    ];
+    const result = computeAutoLayout(nodes, edges);
+    const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
+
+    // Main path at Y=0
+    expect(pos.a.y).toBe(0);
+    expect(pos.b.y).toBe(0);
+    expect(pos.c.y).toBe(0);
+
+    // Fishbone: first input above (Y<0), second input below (Y>0)
+    expect(pos.d.y).toBeLessThan(0);
+    expect(pos.e.y).toBeGreaterThan(0);
+
+    // Both ribs at same X column (B's X)
+    expect(pos.d.x).toBe(pos.b.x);
+    expect(pos.e.x).toBe(pos.b.x);
+
+    // D and E don't overlap vertically (one above, one below spine)
+    const dBottom = pos.d.y + 120;
+    const eTop = pos.e.y;
+    expect(dBottom).toBeLessThanOrEqual(eTop);
+  });
 });
