@@ -15,7 +15,9 @@ export type FilesystemError =
   | { type: "NotADirectory"; message: string }
   | { type: "PermissionDenied"; message: string };
 
-export const listDirectory = (dirPath?: string): ResultAsync<DirectoryEntry[], FilesystemError> => {
+export const listDirectory = (
+  dirPath?: string,
+): ResultAsync<DirectoryEntry[], FilesystemError> => {
   const resolvedPath = dirPath ?? homedir();
 
   return ResultAsync.fromPromise(stat(resolvedPath), () => ({
@@ -32,10 +34,13 @@ export const listDirectory = (dirPath?: string): ResultAsync<DirectoryEntry[], F
       return ok(stats);
     })
     .andThen(() =>
-      ResultAsync.fromPromise(readdir(resolvedPath, { withFileTypes: true }), () => ({
-        type: "PermissionDenied" as const,
-        message: `Cannot read directory: ${resolvedPath}`,
-      }))
+      ResultAsync.fromPromise(
+        readdir(resolvedPath, { withFileTypes: true }),
+        () => ({
+          type: "PermissionDenied" as const,
+          message: `Cannot read directory: ${resolvedPath}`,
+        }),
+      ),
     )
     .map((dirents) => {
       const entries: DirectoryEntry[] = dirents.map((d) => ({
@@ -63,7 +68,7 @@ const DEFAULT_MAX_DEPTH = 4;
 
 export const listDirTree = async (
   rootDir: string,
-  options?: ListDirTreeOptions
+  options?: ListDirTreeOptions,
 ): Promise<string> => {
   if (!existsSync(rootDir)) return "";
 
@@ -71,12 +76,18 @@ export const listDirTree = async (
   const maxDepth = options?.maxDepth ?? DEFAULT_MAX_DEPTH;
   const allExcluded = [...DEFAULT_EXCLUDED, ...excludedPaths];
 
-  const walk = async (dir: string, prefix: string, depth: number): Promise<string> => {
+  const walk = async (
+    dir: string,
+    prefix: string,
+    depth: number,
+  ): Promise<string> => {
     if (depth >= maxDepth) return `${prefix}...\n`;
     const entries = await readdir(dir, { withFileTypes: true });
     const filtered = entries.filter((e) => {
       const rel = relative(rootDir, join(dir, e.name));
-      return !allExcluded.some((excluded) => rel === excluded || rel.startsWith(`${excluded}/`));
+      return !allExcluded.some(
+        (excluded) => rel === excluded || rel.startsWith(`${excluded}/`),
+      );
     });
     const lines: string[] = [];
     for (const entry of filtered) {
@@ -154,7 +165,7 @@ export interface ReadProjectFilesOptions {
 
 export const readProjectFiles = async (
   rootDir: string,
-  options?: ReadProjectFilesOptions
+  options?: ReadProjectFilesOptions,
 ): Promise<string> => {
   if (!existsSync(rootDir)) return "";
 
@@ -191,8 +202,11 @@ export const readProjectFiles = async (
           const content = await readFile(join(dir, entry.name), "utf8");
           totalSize += content.length;
           files.push({ rel, content });
-        } catch {
-          // skip unreadable files
+        } catch (error: unknown) {
+          console.warn(
+            `[readProjectFiles] Skipping unreadable file: ${rel}`,
+            error,
+          );
         }
       }
     }
@@ -204,7 +218,7 @@ export const readProjectFiles = async (
 
   if (totalSize >= MAX_TOTAL_SIZE) {
     parts.push(
-      `\n... (truncated at ${MAX_TOTAL_SIZE} chars total, ${files.length} files included)`
+      `\n... (truncated at ${MAX_TOTAL_SIZE} chars total, ${files.length} files included)`,
     );
   }
 
