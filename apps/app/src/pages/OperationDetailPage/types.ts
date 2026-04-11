@@ -25,6 +25,7 @@ export interface ExecutorConfig {
   prompt?: string;
   command?: string;
   language?: ScriptLanguage;
+  writeEnabled?: boolean;
 }
 
 export interface OperationConfig {

@@ -17,7 +17,7 @@ import { Separator } from "@repo/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
 import { updatePipeline } from "@/services/pipelinesService";
 import { useToastStore } from "@/store/toastStore";
-import { ResultAsync } from "neverthrow";
+import { ResultAsync, err } from "neverthrow";
 
 export const CanvasToolbar = () => {
   const { t } = useTranslation();
@@ -92,15 +92,24 @@ export const CanvasToolbar = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
-      }).then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || `HTTP ${res.status}`);
-        }
-        return res.json() as Promise<{ jobId: string }>;
       }),
-      (cause) => (cause instanceof Error ? cause.message : String(cause)),
-    );
+      () => "Failed to start pipeline"
+    )
+      .andThen((res) =>
+        ResultAsync.fromPromise(
+          res.text(),
+          () => "Failed to read response"
+        ).map((text) => ({ res, text }))
+      )
+      .andThen(({ res, text }) => {
+        if (!res.ok) {
+          return err(text || `HTTP ${res.status}`);
+        }
+        return ResultAsync.fromPromise(
+          Promise.resolve().then(() => JSON.parse(text) as { jobId: string }),
+          () => "Failed to parse response"
+        );
+      });
 
     runResult.match(
       ({ jobId }) => {

@@ -1,4 +1,5 @@
 import { type Result, ok, err } from "neverthrow";
+import { safeJsonParse } from "@/lib/safeJson";
 
 export interface ChecklistExportItem {
   title: string;
@@ -14,25 +15,23 @@ export const toJson = (items: ChecklistExportItem[]): string =>
 export const fromJson = (
   text: string,
 ): Result<ChecklistExportItem[], string> => {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    return err("Invalid JSON");
-  }
-  if (!Array.isArray(parsed)) return err("Expected an array");
-  return ok(
-    parsed.map((item: Record<string, unknown>, idx: number) => ({
-      title: String(item.title ?? ""),
-      description: String(item.description ?? ""),
-      checkType:
-        item.checkType === "script" || item.checkType === "llm"
-          ? item.checkType
-          : "llm",
-      script: item.script == null ? null : String(item.script),
-      sortOrder: typeof item.sortOrder === "number" ? item.sortOrder : idx,
-    })),
-  );
+  return safeJsonParse<unknown>(text)
+    .mapErr(() => "Invalid JSON")
+    .andThen((parsed) => {
+      if (!Array.isArray(parsed)) return err("Expected an array");
+      return ok(
+        parsed.map((item: Record<string, unknown>, idx: number) => ({
+          title: String(item.title ?? ""),
+          description: String(item.description ?? ""),
+          checkType:
+            item.checkType === "script" || item.checkType === "llm"
+              ? item.checkType
+              : "llm",
+          script: item.script == null ? null : String(item.script),
+          sortOrder: typeof item.sortOrder === "number" ? item.sortOrder : idx,
+        })),
+      );
+    });
 };
 
 const escapeCsvField = (value: string): string => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, GitBranch, Lock, Globe, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { ResultAsync } from "neverthrow";
 import {
   Dialog,
   DialogContent,
@@ -39,12 +40,14 @@ export const PickProjectDialog = ({
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    getGithubProjects()
-      .then((data) => setProjects(data as GithubProjectEntity[]))
-      .catch(() => {
-        setProjects([]);
-      })
-      .finally(() => setLoading(false));
+    ResultAsync.fromPromise(
+      getGithubProjects(),
+      () => [] as GithubProjectEntity[]
+    ).map((data) => {
+      setProjects(data as GithubProjectEntity[]);
+    }).mapErr(() => {
+      setProjects([]);
+    }).finally(() => setLoading(false));
   }, [open]);
 
   const filtered = projects.filter(

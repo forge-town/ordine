@@ -1,4 +1,4 @@
-import { ok, err, type Result } from "neverthrow";
+import { ok, err, type Result, ResultAsync } from "neverthrow";
 
 export const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -8,11 +8,9 @@ export const json = (data: unknown, status = 200) =>
 
 export const errorResponse = (message: string, status: number) => json({ error: message }, status);
 
-export const parseJsonBody = async (request: Request): Promise<Result<unknown, Response>> => {
-  try {
-    const body: unknown = await request.json();
-    return ok(body);
-  } catch {
-    return err(errorResponse("Invalid JSON body", 400));
-  }
+export const parseJsonBody = (request: Request): ResultAsync<unknown, Response> => {
+  return ResultAsync.fromPromise(
+    request.json(),
+    () => errorResponse("Invalid JSON body", 400)
+  );
 };

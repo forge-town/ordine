@@ -8,7 +8,7 @@ import { Separator } from "@repo/ui/separator";
 import { cn } from "@repo/ui/lib/utils";
 import type { NodeType } from "../nodeSchemas";
 import { safeJsonParse } from "@/lib/safeJson";
-import { ResultAsync } from "neverthrow";
+import { ResultAsync, err, ok } from "neverthrow";
 
 const MASTRA_BASE = "http://localhost:4111";
 const AGENT_ID = "harnessDesignAgent";
@@ -137,25 +137,31 @@ export const AiAssistantPanel = () => {
     });
 
     const result = await ResultAsync.fromPromise(
-      (async () => {
-        const res = await fetch(`${MASTRA_BASE}/api/agents/${AGENT_ID}/generate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: [
-              ...messages.map((m) => ({ role: m.role, content: m.content })),
-              {
-                role: "user",
-                content: `当前 Pipeline 状态:\n${pipelineContext}\n\n用户请求: ${userMsg.content}\n\n如果需要修改 Pipeline，请在回复末尾用 \`\`\`actions [...] \`\`\` JSON 块描述操作，支持的 type: addNode (需 nodeType, label, skillName?), clearCanvas, connectNodes (需 sourceId, targetId)。`,
-              },
-            ],
-          }),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return (await res.json()) as { text?: string; content?: string };
-      })(),
+      fetch(`${MASTRA_BASE}/api/agents/${AGENT_ID}/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [
+            ...messages.map((m) => ({ role: m.role, content: m.content })),
+            {
+              role: "user",
+              content: `当前 Pipeline 状态:\n${pipelineContext}\n\n用户请求: ${userMsg.content}\n\n如果需要修改 Pipeline，请在回复末尾用 \`\`\`actions [...] \`\`\` JSON 块描述操作，支持的 type: addNode (需 nodeType, label, skillName?), clearCanvas, connectNodes (需 sourceId, targetId)。`,
+            },
+          ],
+        }),
+      }),
       () => "连接 Mastra 服务失败。请确保 `apps/mastra` 已在端口 4111 启动。"
-    );
+    )
+      .andThen((res) => {
+        if (!res.ok) {
+          return err(`HTTP ${res.status}`);
+        }
+        return ResultAsync.fromPromise(
+          res.json() as Promise<{ text?: string; content?: string }>,
+          () => "解析响应失败"
+        );
+      })
+      .andThen((data) => ok(data));
 
     result.match(
       (data) => {

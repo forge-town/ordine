@@ -25,7 +25,7 @@ import "@xyflow/react/dist/style.css";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { ResultAsync } from "neverthrow";
+import { ResultAsync, err, ok } from "neverthrow";
 import type { PipelineEntity } from "@/models/daos/pipelinesDao";
 import type { OperationEntity } from "@/models/daos/operationsDao";
 import type { PipelineNode } from "@/models/types/pipelineGraph";
@@ -127,18 +127,25 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
     setRunError(null);
     setJobId(null);
     const result = await ResultAsync.fromPromise(
-      (async () => {
-        const res = await fetch(`/api/pipelines/${pipeline.id}/run`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ inputPath: inputPath || undefined }),
-        });
-        const data = (await res.json()) as { jobId?: string; error?: string };
-        if (!res.ok) throw new Error(data.error ?? "Failed to start pipeline");
-        return data.jobId!;
-      })(),
-      (e) => (e instanceof Error ? e.message : String(e))
-    );
+      fetch(`/api/pipelines/${pipeline.id}/run`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inputPath: inputPath || undefined }),
+      }),
+      () => "Failed to start pipeline"
+    )
+      .andThen((res) =>
+        ResultAsync.fromPromise(
+          res.json() as Promise<{ jobId?: string; error?: string }>,
+          () => "Failed to parse response"
+        ).map((data) => ({ res, data }))
+      )
+      .andThen(({ res, data }) => {
+        if (!res.ok) {
+          return err(data.error ?? "Failed to start pipeline");
+        }
+        return ok(data.jobId!);
+      });
     await result.match(
       async (id) => {
         setJobId(id);

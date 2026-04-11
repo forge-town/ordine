@@ -401,7 +401,10 @@ const cloneGitHubRepo = (
 
 // ─── skill executor helper (Mastra Agent) ────────────────────────────────────
 
-const buildSkillTools = (projectRoot: string) => {
+const buildSkillTools = (
+  projectRoot: string,
+  opts?: { writeEnabled?: boolean },
+) => {
   const MAX_READ_SIZE = 100_000;
 
   const readFileTool = createTool({
@@ -533,7 +536,90 @@ const buildSkillTools = (projectRoot: string) => {
     },
   });
 
-  return { readFileTool, listDirectoryTool, searchCodeTool };
+  if (!opts?.writeEnabled) {
+    return {
+      readFileTool,
+      listDirectoryTool,
+      searchCodeTool,
+      writeEnabled: false as const,
+    };
+  }
+
+  // ── Write tools (only for implement-mode operations) ──────────────────
+
+  const writeFileTool = createTool({
+    id: "writeFile",
+    description:
+      "Write content to a file. Creates the file if it does not exist, or overwrites it entirely. Use replaceInFile for surgical edits.",
+    inputSchema: z.object({
+      path: z
+        .string()
+        .describe(
+          "Relative file path from the project root, e.g. 'src/utils/helpers.ts'",
+        ),
+      content: z.string().describe("The full file content to write"),
+    }),
+    execute: async ({ path: relPath, content }) => {
+      const fullPath = join(projectRoot, relPath);
+      if (!fullPath.startsWith(projectRoot)) {
+        return { error: "Access denied: path outside project root" };
+      }
+      try {
+        await mkdir(dirname(fullPath), { recursive: true });
+        await writeFile(fullPath, content, "utf8");
+        return { written: true, path: relPath, size: content.length };
+      } catch {
+        return { error: `Failed to write: ${relPath}` };
+      }
+    },
+  });
+
+  const replaceInFileTool = createTool({
+    id: "replaceInFile",
+    description:
+      "Replace an exact string occurrence in a file. The oldString must match exactly (including whitespace and indentation). Safer than writeFile for small edits.",
+    inputSchema: z.object({
+      path: z.string().describe("Relative file path from the project root"),
+      oldString: z
+        .string()
+        .describe(
+          "The exact literal text to find and replace. Must appear exactly once in the file.",
+        ),
+      newString: z.string().describe("The replacement text"),
+    }),
+    execute: async ({ path: relPath, oldString, newString }) => {
+      const fullPath = join(projectRoot, relPath);
+      if (!fullPath.startsWith(projectRoot)) {
+        return { error: "Access denied: path outside project root" };
+      }
+      try {
+        const content = await readFile(fullPath, "utf8");
+        const count = content.split(oldString).length - 1;
+        if (count === 0) {
+          return { error: "oldString not found in file" };
+        }
+        if (count > 1) {
+          return {
+            error: `oldString appears ${count} times — must be unique. Add more context.`,
+          };
+        }
+        const updated = content.replace(oldString, newString);
+        await writeFile(fullPath, updated, "utf8");
+        return { replaced: true, path: relPath };
+      } catch {
+        return { error: `Failed to edit: ${relPath}` };
+      }
+    },
+  });
+
+  return {
+    readFileTool,
+    listDirectoryTool,
+    searchCodeTool,
+    writeFileTool,
+    replaceInFileTool,
+    writeEnabled: true as const,
+  };
 };
 
 const runSkill = (
@@ -544,8 +630,11 @@ const runSkill = (
   override?: LlmOverride,
   onChunk?: StreamCallback,
   log: LogFn = noopLog,
+  opts?: { writeEnabled?: boolean },
 ): ResultAsync<string, never> => {
-  const instructions = [
+  const isImplementMode = opts?.writeEnabled === true;
+
+  const checkInstructions = [
     `You are an expert code analysis agent executing the skill "${skillId}".`,
     `Skill description: ${skillDescription}`,
     "",
@@ -569,6 +658,38 @@ const runSkill = (
     "",
     "NEVER end your response with a tool call. Always end with the report text.",
   ].join("\n");
+
+  const implementInstructions = [
+    `You are an expert code refactoring agent executing the skill "${skillId}".`,
+    `Skill description: ${skillDescription}`,
+    "",
+    "You have access to tools that let you read AND WRITE files in the project.",
+    "Your goal is to FIX the violations described in the input report.",
+    "",
+    "Available tools:",
+    "  - readFile: read a file's content",
+    "  - listDirectory: list directory contents",
+    "  - searchCode: search for text patterns in files",
+    "  - replaceInFile: replace an exact string in a file (preferred for surgical edits)",
+    "  - writeFile: write entire file content (use for new files or full rewrites)",
+    "",
+    "CRITICAL CONSTRAINT — You have a HARD LIMIT of 25 tool-call steps.",
+    "Budget your steps wisely:",
+    "  Phase 1 (steps 1-3): Read the violation report to understand what needs fixing",
+    "  Phase 2 (steps 4-20): Read affected files, then use replaceInFile to fix each violation",
+    "  Phase 3 (step 21+): STOP all tool calls and write a summary of changes made",
+    "",
+    "RULES:",
+    "- Always use replaceInFile when possible (safer than writeFile)",
+    "- Read the file first before editing to ensure correct context",
+    "- Do NOT change code that is not directly related to the violations",
+    "- Skip violations that are allowable exceptions (framework boundaries, startup validators, React context hooks)",
+    "- After fixing, your final message MUST be a Markdown summary listing each file changed and what was fixed",
+  ].join("\n");
+
+  const instructions = isImplementMode
+    ? implementInstructions
+    : checkInstructions;
 
   const userPrompt = inputPath
     ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
@@ -618,19 +739,28 @@ const runSkill = (
           return generateFallbackReport();
         }
 
-        const { readFileTool, listDirectoryTool, searchCodeTool } =
-          buildSkillTools(inputPath);
+        const skillTools = buildSkillTools(inputPath, {
+          writeEnabled: isImplementMode,
+        });
 
         const agent = new Agent({
           id: `skill-${skillId}`,
           name: `Skill: ${skillId}`,
           instructions,
           model: modelConfig,
-          tools: {
-            readFile: readFileTool,
-            listDirectory: listDirectoryTool,
-            searchCode: searchCodeTool,
-          },
+          tools: skillTools.writeEnabled
+            ? {
+                readFile: skillTools.readFileTool,
+                listDirectory: skillTools.listDirectoryTool,
+                searchCode: skillTools.searchCodeTool,
+                writeFile: skillTools.writeFileTool,
+                replaceInFile: skillTools.replaceInFileTool,
+              }
+            : {
+                readFile: skillTools.readFileTool,
+                listDirectory: skillTools.listDirectoryTool,
+                searchCode: skillTools.searchCodeTool,
+              },
         });
 
         await log(
@@ -1145,6 +1275,7 @@ const executePipeline = async (opts: {
           llmOverride,
           handleChunk,
           log,
+          { writeEnabled: executor.writeEnabled === true },
         );
         currentContent = skillResult.isOk() ? skillResult.value : "";
         await log(`@@LLM_CONTENT::${node.id}::${currentContent}`);
@@ -1155,7 +1286,18 @@ const executePipeline = async (opts: {
       continue;
     }
 
-    // Skip other node types (github-project, condition, output-project-path)
+    // ── Output-to-project node ───────────────────────────────────────────
+    if (node.type === "output-project-path") {
+      // The implement-mode operation already wrote files to the project root
+      // via writeFile/replaceInFile tools. This node simply acknowledges that
+      // the project was modified and logs a summary.
+      const projPath = (data as Record<string, unknown>).path ?? inputPath;
+      await log(`Output-to-project: changes written directly to ${projPath}`);
+      await log(`@@NODE_DONE::${node.id}`);
+      continue;
+    }
+
+    // Skip unknown node types
     await log(`Skipped node type: ${node.type}`);
     await log(`@@NODE_DONE::${node.id}`);
   }
