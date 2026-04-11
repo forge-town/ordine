@@ -1,9 +1,5 @@
 import { type ReactNode } from "react";
-import {
-  PipelinesStoreContext,
-  createPipelinesStore,
-  type Pipeline,
-} from "./pipelinesStore";
+import { PipelinesStoreContext, createPipelinesStore, type Pipeline } from "./pipelinesStore";
 import { useInit } from "@/hooks/useInit";
 
 interface Props {
@@ -11,15 +7,8 @@ interface Props {
   initialPipelines?: Pipeline[];
 }
 
-export const PipelinesStoreProvider = ({
-  children,
-  initialPipelines = [],
-}: Props) => {
+export const PipelinesStoreProvider = ({ children, initialPipelines = [] }: Props) => {
   const store = useInit(() => createPipelinesStore(initialPipelines));
 
-  return (
-    <PipelinesStoreContext.Provider value={store}>
-      {children}
-    </PipelinesStoreContext.Provider>
-  );
+  return <PipelinesStoreContext.Provider value={store}>{children}</PipelinesStoreContext.Provider>;
 };

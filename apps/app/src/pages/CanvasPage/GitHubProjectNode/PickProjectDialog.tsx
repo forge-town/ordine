@@ -40,14 +40,15 @@ export const PickProjectDialog = ({
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    ResultAsync.fromPromise(
+    void ResultAsync.fromPromise(
       getGithubProjects(),
-      () => [] as GithubProjectEntity[]
-    ).map((data) => {
-      setProjects(data as GithubProjectEntity[]);
-    }).mapErr(() => {
-      setProjects([]);
-    }).finally(() => setLoading(false));
+      () => [] as GithubProjectEntity[],
+    )
+      .match(
+        (data) => setProjects(data as GithubProjectEntity[]),
+        () => setProjects([]),
+      )
+      .then(() => setLoading(false));
   }, [open]);
 
   const filtered = projects.filter(

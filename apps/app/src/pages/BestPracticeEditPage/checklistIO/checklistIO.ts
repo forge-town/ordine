@@ -23,10 +23,9 @@ export const fromJson = (
         parsed.map((item: Record<string, unknown>, idx: number) => ({
           title: String(item.title ?? ""),
           description: String(item.description ?? ""),
-          checkType:
-            item.checkType === "script" || item.checkType === "llm"
-              ? item.checkType
-              : "llm",
+          checkType: (item.checkType === "script" || item.checkType === "llm"
+            ? item.checkType
+            : "llm") as "script" | "llm",
           script: item.script == null ? null : String(item.script),
           sortOrder: typeof item.sortOrder === "number" ? item.sortOrder : idx,
         })),

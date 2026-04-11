@@ -2,9 +2,7 @@ import { Result, ResultAsync, errAsync } from "neverthrow";
 
 const GITHUB_API_BASE = "https://api.github.com";
 
-export type GitHubTokenStatus =
-  | { valid: true; login: string }
-  | { valid: false; error: string };
+export type GitHubTokenStatus = { valid: true; login: string } | { valid: false; error: string };
 
 export interface GitHubRepoInfo {
   owner: string;
@@ -26,9 +24,7 @@ export const getGitHubHeaders = (token?: string | null): HeadersInit => {
   return headers;
 };
 
-export const verifyGitHubToken = async (
-  token: string | null,
-): Promise<GitHubTokenStatus> => {
+export const verifyGitHubToken = async (token: string | null): Promise<GitHubTokenStatus> => {
   if (!token?.trim()) {
     return { valid: false, error: "TOKEN_EMPTY:Token 不能为空" };
   }
@@ -37,7 +33,7 @@ export const verifyGitHubToken = async (
     fetch(`${GITHUB_API_BASE}/user`, {
       headers: getGitHubHeaders(token),
     }),
-    () => "NETWORK_ERROR:网络错误，无法验证 Token",
+    () => "NETWORK_ERROR:网络错误，无法验证 Token"
   );
 
   if (result.isErr()) {
@@ -61,7 +57,7 @@ export const verifyGitHubToken = async (
   if (res.status === 403) {
     const jsonResult = await ResultAsync.fromPromise(
       res.json() as Promise<Record<string, unknown>>,
-      () => ({}),
+      () => ({})
     );
     const data = jsonResult.unwrapOr({});
     const msg = (data as { message?: string }).message ?? "";
@@ -89,7 +85,7 @@ export interface ParsedGitHubUrl {
 export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
   const urlResult = Result.fromThrowable(
     () => new URL(url.trim()),
-    () => null,
+    () => null
   )();
   if (urlResult.isErr()) return null;
 
@@ -103,9 +99,7 @@ export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
   if (!owner || !repo) return null;
 
   const branch =
-    treeKeyword === "tree" && branchParts.length > 0
-      ? branchParts.join("/")
-      : undefined;
+    treeKeyword === "tree" && branchParts.length > 0 ? branchParts.join("/") : undefined;
 
   return { owner, repo, branch };
 };
@@ -113,7 +107,7 @@ export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
 export class GitHubApiError extends Error {
   constructor(
     message: string,
-    public readonly statusCode?: number,
+    public readonly statusCode?: number
   ) {
     super(message);
     this.name = "GitHubApiError";
@@ -124,18 +118,18 @@ export const fetchRepoInfo = (
   owner: string,
   repo: string,
   token?: string | null,
-  branchHint?: string,
+  branchHint?: string
 ): ResultAsync<GitHubRepoInfo, string> => {
   const headers = getGitHubHeaders(token);
 
   return ResultAsync.fromPromise(
     fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}`, { headers }),
-    () => "网络错误，无法连接 GitHub",
+    () => "网络错误，无法连接 GitHub"
   ).andThen((repoRes) => {
     if (repoRes.ok) {
       return ResultAsync.fromPromise(
         repoRes.json() as Promise<Record<string, unknown>>,
-        () => "解析仓库数据失败",
+        () => "解析仓库数据失败"
       ).map((repoData) => {
         const defaultBranch = repoData.default_branch as string;
         const targetBranch = branchHint ?? defaultBranch;
@@ -155,7 +149,7 @@ export const fetchRepoInfo = (
       return errAsync(
         token
           ? "仓库不存在，请检查 owner/repo 是否正确"
-          : "仓库不存在或为私有仓库，请先配置 GitHub Token",
+          : "仓库不存在或为私有仓库，请先配置 GitHub Token"
       );
     }
 

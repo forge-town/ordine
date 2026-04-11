@@ -32,14 +32,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@repo/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import type { ChecklistItemEntity } from "@/models/daos/checklistItemsDao";
 import { updateBestPractice } from "@/services/bestPracticesService";
@@ -49,14 +42,7 @@ import {
   deleteChecklistItem,
 } from "@/services/checklistService";
 import { CATEGORIES, LANGUAGES } from "@/pages/BestPracticesPage/constants";
-import {
-  toJson,
-  fromJson,
-  toCsv,
-  fromCsv,
-  downloadFile,
-  readFileContent,
-} from "../checklistIO";
+import { toJson, fromJson, toCsv, fromCsv, downloadFile, readFileContent } from "../checklistIO";
 import { ok } from "neverthrow";
 
 const editFormSchema = z.object({
@@ -106,7 +92,7 @@ export const BestPracticeEditPageContent = ({
       isNew: false,
       isDeleted: false,
       isDirty: false,
-    })),
+    }))
   );
 
   const form = useForm<EditFormValues>({
@@ -160,21 +146,15 @@ export const BestPracticeEditPageContent = ({
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number,
+    value: string | number
   ) => {
     setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, [field]: value, isDirty: true } : item,
-      ),
+      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item))
     );
   };
 
   const handleDeleteChecklistItem = (id: string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, isDeleted: true } : item,
-      ),
-    );
+    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, isDeleted: true } : item)));
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -187,11 +167,7 @@ export const BestPracticeEditPageContent = ({
       script: item.checkType === "script" ? item.script || null : null,
       sortOrder: item.sortOrder,
     }));
-    downloadFile(
-      toJson(exportItems),
-      `checklist-${bestPractice.id}.json`,
-      "application/json",
-    );
+    downloadFile(toJson(exportItems), `checklist-${bestPractice.id}.json`, "application/json");
   };
 
   const handleExportCsv = () => {
@@ -202,11 +178,7 @@ export const BestPracticeEditPageContent = ({
       script: item.checkType === "script" ? item.script || null : null,
       sortOrder: item.sortOrder,
     }));
-    downloadFile(
-      toCsv(exportItems),
-      `checklist-${bestPractice.id}.csv`,
-      "text/csv",
-    );
+    downloadFile(toCsv(exportItems), `checklist-${bestPractice.id}.csv`, "text/csv");
   };
 
   const handleImport = async (file: File) => {
@@ -311,18 +283,13 @@ export const BestPracticeEditPageContent = ({
           <h1 className="truncate text-sm font-semibold text-foreground">
             {t("bestPractices.editTitle")}
           </h1>
-          <p className="font-mono text-[11px] text-muted-foreground">
-            {bestPractice.id}
-          </p>
+          <p className="font-mono text-[11px] text-muted-foreground">{bestPractice.id}</p>
         </div>
       </div>
 
       {/* Body */}
       <Form {...form}>
-        <form
-          className="flex-1 overflow-y-auto"
-          onSubmit={form.handleSubmit(onSubmit)}
-        >
+        <form className="flex-1 overflow-y-auto" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="mx-auto max-w-3xl space-y-6 p-6">
             {/* Basic Info Fields */}
             <div className="rounded-xl border border-border bg-card p-5 space-y-4">
@@ -335,10 +302,7 @@ export const BestPracticeEditPageContent = ({
                       {t("bestPractices.titleLabel")}
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder={t("bestPractices.titlePlaceholder")}
-                        {...field}
-                      />
+                      <Input placeholder={t("bestPractices.titlePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage className="text-xs" />
                   </FormItem>
@@ -408,17 +372,12 @@ export const BestPracticeEditPageContent = ({
                             onOpenChange={handleCategoryOpenChange}
                             onValueChange={handleChange}
                           >
-                            <SelectTrigger
-                              className="w-full"
-                              onClick={handleCategoryToggle}
-                            >
+                            <SelectTrigger className="w-full" onClick={handleCategoryToggle}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectGroup>
-                                {CATEGORIES.filter(
-                                  (c) => c.value !== "all",
-                                ).map((c) => (
+                                {CATEGORIES.filter((c) => c.value !== "all").map((c) => (
                                   <SelectItem key={c.value} value={c.value}>
                                     {c.label}
                                   </SelectItem>
@@ -453,10 +412,7 @@ export const BestPracticeEditPageContent = ({
                             onOpenChange={handleLanguageOpenChange}
                             onValueChange={handleChange}
                           >
-                            <SelectTrigger
-                              className="w-full"
-                              onClick={handleLanguageToggle}
-                            >
+                            <SelectTrigger className="w-full" onClick={handleLanguageToggle}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -536,12 +492,7 @@ export const BestPracticeEditPageContent = ({
                     type="file"
                     onChange={handleFileChange}
                   />
-                  <Button
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                    onClick={handleImportClick}
-                  >
+                  <Button size="sm" type="button" variant="outline" onClick={handleImportClick}>
                     <Upload className="h-3.5 w-3.5" />
                     {t("bestPractices.checklistImport")}
                   </Button>
@@ -598,9 +549,7 @@ export const BestPracticeEditPageContent = ({
                 {t("common.cancel")}
               </Button>
               <Button disabled={form.formState.isSubmitting} type="submit">
-                {form.formState.isSubmitting
-                  ? t("common.saving")
-                  : t("common.save")}
+                {form.formState.isSubmitting ? t("common.saving") : t("common.save")}
               </Button>
             </div>
           </div>
@@ -621,17 +570,12 @@ interface ChecklistItemEditorProps {
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number,
+    value: string | number
   ) => void;
   onDelete: (id: string) => void;
 }
 
-const ChecklistItemEditor = ({
-  item,
-  index,
-  onUpdate,
-  onDelete,
-}: ChecklistItemEditorProps) => {
+const ChecklistItemEditor = ({ item, index, onUpdate, onDelete }: ChecklistItemEditorProps) => {
   const { t } = useTranslation();
 
   const [checkTypeOpen, setCheckTypeOpen] = useState(false);
@@ -696,10 +640,7 @@ const ChecklistItemEditor = ({
             onOpenChange={handleCheckTypeOpenChange}
             onValueChange={handleCheckTypeChange}
           >
-            <SelectTrigger
-              className="h-8 text-xs"
-              onClick={handleCheckTypeToggle}
-            >
+            <SelectTrigger className="h-8 text-xs" onClick={handleCheckTypeToggle}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

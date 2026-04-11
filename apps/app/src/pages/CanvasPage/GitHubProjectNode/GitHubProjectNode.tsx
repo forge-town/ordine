@@ -122,8 +122,10 @@ export const GitHubProjectNode = ({
   const handleConnectClose = () => setConnectOpen(false);
   const handleLocalFolderClose = () => setLocalFolderOpen(false);
 
-  const handleDisclosureModeChange = (value: string) =>
-    update({ disclosureMode: value as "tree" | "full" | "files-only" });
+  const handleDisclosureModeChange = (value: string | null) => {
+    if (value)
+      update({ disclosureMode: value as "tree" | "full" | "files-only" });
+  };
   const handleRemoveExcluded = (path: string) =>
     update({ excludedPaths: excludedPaths.filter((p) => p !== path) });
   const handleAddExcluded = (path: string) => {

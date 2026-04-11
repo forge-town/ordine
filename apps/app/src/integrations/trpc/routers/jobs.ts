@@ -29,7 +29,7 @@ export const jobsRouter = router({
         status: JobStatusSchema.default("queued"),
         startedAt: z.number().nullable().default(null),
         finishedAt: z.number().nullable().default(null),
-      }),
+      })
     )
     .mutation(({ input }) => jobsDao.create(input)),
 
@@ -48,7 +48,7 @@ export const jobsRouter = router({
           .optional(),
         startedAt: z.number().optional(),
         finishedAt: z.number().optional(),
-      }),
+      })
     )
     .mutation(({ input }) => {
       const { id, status, ...extra } = input;

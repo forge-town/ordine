@@ -47,12 +47,7 @@ export const OperationsPageContent = () => {
   const initialOperations = useLoaderData({
     from: "/_layout/operations/",
   }) as OperationEntity[];
-  type SortKey =
-    | "default"
-    | "name-asc"
-    | "name-desc"
-    | "date-asc"
-    | "date-desc";
+  type SortKey = "default" | "name-asc" | "name-desc" | "date-asc" | "date-desc";
 
   const { t } = useTranslation();
 
@@ -82,10 +77,7 @@ export const OperationsPageContent = () => {
     .filter((op) => {
       const q = searchQuery.trim().toLowerCase();
       if (!q) return true;
-      return (
-        op.name.toLowerCase().includes(q) ||
-        (op.description ?? "").toLowerCase().includes(q)
-      );
+      return op.name.toLowerCase().includes(q) || (op.description ?? "").toLowerCase().includes(q);
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -138,8 +130,7 @@ export const OperationsPageContent = () => {
 
   const handleDeleteClick = (id: string) => () => void handleDelete(id);
 
-  const handleExportOperation = (op: OperationEntity) => () =>
-    exportOperation(op);
+  const handleExportOperation = (op: OperationEntity) => () => exportOperation(op);
 
   const handleImportClick = () => {
     importInputRef.current?.click();
@@ -163,11 +154,7 @@ export const OperationsPageContent = () => {
       return;
     }
     const parsed = parseResult.value;
-    if (
-      !parsed.name ||
-      typeof parsed.name !== "string" ||
-      !parsed.name.trim()
-    ) {
+    if (!parsed.name || typeof parsed.name !== "string" || !parsed.name.trim()) {
       addToast({
         type: "error",
         title: t("common.import"),
@@ -183,11 +170,7 @@ export const OperationsPageContent = () => {
         name: parsed.name,
         description: parsed.description ?? null,
         config: parsed.config ?? "{}",
-        acceptedObjectTypes: parsed.acceptedObjectTypes ?? [
-          "file",
-          "folder",
-          "project",
-        ],
+        acceptedObjectTypes: parsed.acceptedObjectTypes ?? ["file", "folder", "project"],
       },
     });
     if (created) {
@@ -207,20 +190,11 @@ export const OperationsPageContent = () => {
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
         <div>
-          <h1 className="text-base font-semibold text-foreground">
-            {t("operations.title")}
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            {t("operations.noOperations")}
-          </p>
+          <h1 className="text-base font-semibold text-foreground">{t("operations.title")}</h1>
+          <p className="text-xs text-muted-foreground">{t("operations.noOperations")}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            disabled={importing}
-            size="sm"
-            variant="outline"
-            onClick={handleImportClick}
-          >
+          <Button disabled={importing} size="sm" variant="outline" onClick={handleImportClick}>
             <Upload className="h-4 w-4" />
             {importing ? t("common.loading") : t("common.import")}
           </Button>
@@ -269,27 +243,15 @@ export const OperationsPageContent = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="default">
-                {t("operations.sortDefault")}
-              </SelectItem>
-              <SelectItem value="name-asc">
-                {t("operations.sortNameAsc")}
-              </SelectItem>
-              <SelectItem value="name-desc">
-                {t("operations.sortNameDesc")}
-              </SelectItem>
-              <SelectItem value="date-desc">
-                {t("operations.sortDateDesc")}
-              </SelectItem>
-              <SelectItem value="date-asc">
-                {t("operations.sortDateAsc")}
-              </SelectItem>
+              <SelectItem value="default">{t("operations.sortDefault")}</SelectItem>
+              <SelectItem value="name-asc">{t("operations.sortNameAsc")}</SelectItem>
+              <SelectItem value="name-desc">{t("operations.sortNameDesc")}</SelectItem>
+              <SelectItem value="date-desc">{t("operations.sortDateDesc")}</SelectItem>
+              <SelectItem value="date-asc">{t("operations.sortDateAsc")}</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
-        <span className="text-xs text-muted-foreground">
-          {filteredOperations.length}
-        </span>
+        <span className="text-xs text-muted-foreground">{filteredOperations.length}</span>
       </div>
 
       <div className="flex-1 overflow-auto p-6">
@@ -300,17 +262,13 @@ export const OperationsPageContent = () => {
               <Zap className="h-6 w-6 text-muted-foreground" />
             </div>
             {searchQuery.trim() ? (
-              <p className="text-sm font-medium text-muted-foreground">
-                {t("common.notFound")}
-              </p>
+              <p className="text-sm font-medium text-muted-foreground">{t("common.notFound")}</p>
             ) : (
               <>
                 <p className="text-sm font-medium text-muted-foreground">
                   {t("operations.noOperations")}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground/60">
-                  {t("operations.createNew")}
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground/60">{t("operations.createNew")}</p>
               </>
             )}
           </div>
@@ -327,9 +285,7 @@ export const OperationsPageContent = () => {
                       <Zap className="h-4 w-4 text-primary" />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">
-                        {op.name}
-                      </p>
+                      <p className="truncate text-sm font-semibold text-foreground">{op.name}</p>
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -379,9 +335,7 @@ export const OperationsPageContent = () => {
                       ? op.acceptedObjectTypes
                       : ["file", "folder", "project"]
                     ).map((type) => {
-                      const config = OBJECT_TYPE_OPTIONS.find(
-                        (o) => o.value === type,
-                      );
+                      const config = OBJECT_TYPE_OPTIONS.find((o) => o.value === type);
                       if (!config) return null;
                       const Icon = config.icon;
                       return (

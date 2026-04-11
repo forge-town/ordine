@@ -33,20 +33,18 @@ export const FolderTreePreview = ({
 
     const fetchTree = async () => {
       const result = await ResultAsync.fromPromise(
-        fetch(
-          `/api/filesystem/tree?path=${encodeURIComponent(folderPath)}`,
-        ).then((res) => {
+        fetch(`/api/filesystem/tree?path=${encodeURIComponent(folderPath)}`).then((res) => {
           if (!res.ok) return Promise.reject(new Error("Failed to fetch"));
           return res.json() as Promise<DirectoryEntry[]>;
         }),
-        () => "fetch-error" as const,
+        () => "fetch-error" as const
       );
 
       if (cancelled) return;
 
       result.match(
         (data) => setEntries(data),
-        () => setEntries([]),
+        () => setEntries([])
       );
       setLoading(false);
     };

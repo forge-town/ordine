@@ -15,9 +15,6 @@ export const BestPracticeDetailPage = () => {
   }
 
   return (
-    <BestPracticeDetailPageContent
-      bestPractice={bestPractice}
-      checklistItems={checklistItems}
-    />
+    <BestPracticeDetailPageContent bestPractice={bestPractice} checklistItems={checklistItems} />
   );
 };
