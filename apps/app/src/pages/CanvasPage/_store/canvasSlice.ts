@@ -20,6 +20,7 @@ import {
   type OperationNodeData,
   type OutputProjectPathNodeData,
   type OutputLocalPathNodeData,
+  type LoopNodeData,
   type PipelineNodeData,
   type PipelineEdgeData,
 } from "../nodeSchemas";
@@ -34,6 +35,7 @@ export type {
   OperationNodeData,
   OutputProjectPathNodeData,
   OutputLocalPathNodeData,
+  LoopNodeData,
   PipelineNodeData,
   PipelineEdgeData,
 };
@@ -76,7 +78,7 @@ export const createCanvasSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
   get: Parameters<HarnessCanvasStoreSlice>[1],
   overrideNodes?: PipelineNode[],
-  overrideEdges?: PipelineEdge[]
+  overrideEdges?: PipelineEdge[],
 ): CanvasSlice => ({
   nodes: overrideNodes ?? initialNodes,
   edges: overrideEdges ?? initialEdges,
@@ -122,9 +124,9 @@ export const createCanvasSlice = (
       (draft) => {
         draft.edges = addEdge(
           { ...connection, type: "default", animated: true, data: {} },
-          draft.edges
+          draft.edges,
         );
-      }
+      },
     );
   },
 
@@ -137,7 +139,7 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes.push(node);
-      }
+      },
     );
   },
 
@@ -173,7 +175,7 @@ export const createCanvasSlice = (
       (draft) => {
         draft.nodes.push(newNode);
         draft.edges.push(newEdge);
-      }
+      },
     );
   },
 
@@ -192,8 +194,10 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes = draft.nodes.filter((n) => n.id !== nodeId);
-        draft.edges = draft.edges.filter((e) => e.source !== nodeId && e.target !== nodeId);
-      }
+        draft.edges = draft.edges.filter(
+          (e) => e.source !== nodeId && e.target !== nodeId,
+        );
+      },
     );
     // Clear selection outside of history-tracked state
     set((s) => ({
@@ -219,13 +223,15 @@ export const createCanvasSlice = (
         if (n) {
           n.data = { ...n.data, ...data } as PipelineNodeData;
         }
-      }
+      },
     );
   },
 
   updateEdgeData: (edgeId, data) => {
     set((state) => ({
-      edges: state.edges.map((e) => (e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e)),
+      edges: state.edges.map((e) =>
+        e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e,
+      ),
     }));
   },
 
@@ -261,16 +267,19 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes.push(newNode);
-      }
+      },
     );
   },
 
   clearCanvas: () => {
     const state = get();
-    state.recordCommand({ type: "CLEAR_CANVAS", label: "清空画布" }, (draft) => {
-      draft.nodes = [];
-      draft.edges = [];
-    });
+    state.recordCommand(
+      { type: "CLEAR_CANVAS", label: "清空画布" },
+      (draft) => {
+        draft.nodes = [];
+        draft.edges = [];
+      },
+    );
     set({ selectedNodeId: null, selectedEdgeId: null });
   },
 });

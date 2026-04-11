@@ -20,6 +20,7 @@ import { GitHubProjectNode } from "../GitHubProjectNode";
 import { OperationNode } from "../OperationNode";
 import { OutputProjectPathNode } from "../OutputProjectPathNode";
 import { OutputLocalPathNode } from "../OutputLocalPathNode";
+import { LoopNode } from "../LoopNode";
 
 export const CanvasFlow = () => {
   const store = useHarnessCanvasStore();
@@ -35,10 +36,22 @@ export const CanvasFlow = () => {
   const focusNode = useStore(store, (state) => state.focusNode);
   const focusEdge = useStore(store, (state) => state.focusEdge);
   const clearSelection = useStore(store, (state) => state.clearSelection);
-  const openConnectionMenu = useStore(store, (state) => state.openConnectionMenu);
-  const storeHandleConnectStart = useStore(store, (state) => state.handleConnectStart);
-  const showPaneContextMenu = useStore(store, (state) => state.showPaneContextMenu);
-  const showNodeContextMenu = useStore(store, (state) => state.showNodeContextMenu);
+  const openConnectionMenu = useStore(
+    store,
+    (state) => state.openConnectionMenu,
+  );
+  const storeHandleConnectStart = useStore(
+    store,
+    (state) => state.handleConnectStart,
+  );
+  const showPaneContextMenu = useStore(
+    store,
+    (state) => state.showPaneContextMenu,
+  );
+  const showNodeContextMenu = useStore(
+    store,
+    (state) => state.showNodeContextMenu,
+  );
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
 
@@ -49,7 +62,7 @@ export const CanvasFlow = () => {
       e.preventDefault();
       handleUndo();
     },
-    { preventDefault: false }
+    { preventDefault: false },
   );
   useHotkeys(
     "mod+shift+z, mod+y",
@@ -57,7 +70,7 @@ export const CanvasFlow = () => {
       e.preventDefault();
       handleRedo();
     },
-    { preventDefault: false }
+    { preventDefault: false },
   );
 
   const { screenToFlowPosition } = useReactFlow();
@@ -70,7 +83,7 @@ export const CanvasFlow = () => {
         handleZoomOut: () => instance.zoomOut(),
       });
     },
-    [store]
+    [store],
   );
 
   // 使用 useMemo 缓存 nodeTypes - React Flow 最佳实践
@@ -83,8 +96,9 @@ export const CanvasFlow = () => {
       "github-project": GitHubProjectNode,
       "output-project-path": OutputProjectPathNode,
       "output-local-path": OutputLocalPathNode,
+      loop: LoopNode,
     }),
-    []
+    [],
   );
 
   // 使用 useMemo 缓存 defaultEdgeOptions
@@ -94,7 +108,7 @@ export const CanvasFlow = () => {
       animated: true,
       style: { stroke: "#94a3b8", strokeWidth: 2 },
     }),
-    []
+    [],
   );
 
   const handleConnectStart: OnConnectStart = (_, params) => {
@@ -121,7 +135,9 @@ export const CanvasFlow = () => {
 
     if (fromNode) {
       const { clientX, clientY } =
-        "changedTouches" in event ? (event as TouchEvent).changedTouches[0] : (event as MouseEvent);
+        "changedTouches" in event
+          ? (event as TouchEvent).changedTouches[0]
+          : (event as MouseEvent);
 
       // Re-set connectStart from live connectionState data
       storeHandleConnectStart({
@@ -204,7 +220,12 @@ export const CanvasFlow = () => {
       onPaneClick={handlePaneClick}
       onPaneContextMenu={handlePaneContextMenu}
     >
-      <Background color="#cbd5e1" gap={24} size={1.5} variant={BackgroundVariant.Dots} />
+      <Background
+        color="#cbd5e1"
+        gap={24}
+        size={1.5}
+        variant={BackgroundVariant.Dots}
+      />
       <Controls
         showInteractive
         className="border-gray-200! bg-white! shadow-sm!"

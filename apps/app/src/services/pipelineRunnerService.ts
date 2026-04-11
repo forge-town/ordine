@@ -1209,7 +1209,30 @@ const executePipeline = async (opts: {
 
   const nodes = pipeline.nodes as PipelineNode[];
   const edges = pipeline.edges as PipelineEdge[];
-  const ordered = topoSort(nodes, edges);
+
+  // Collect loop-child IDs so we can strip loop-internal edges before topoSort
+  const loopChildIdSet = new Set<string>();
+  const loopNodeIds = new Set<string>();
+  for (const n of nodes) {
+    if (n.type === "loop") {
+      loopNodeIds.add(n.id);
+      const loopData = n.data as unknown as LoopNodeData;
+      for (const childId of loopData.childNodeIds) {
+        loopChildIdSet.add(childId);
+      }
+    }
+  }
+
+  // Filter out: edges between loop children, and back-edges from children → loop node
+  const mainEdges = edges.filter((e) => {
+    if (loopChildIdSet.has(e.source) && loopChildIdSet.has(e.target))
+      return false;
+    if (loopChildIdSet.has(e.source) && loopNodeIds.has(e.target)) return false;
+    if (loopNodeIds.has(e.source) && loopChildIdSet.has(e.target)) return false;
+    return true;
+  });
+
+  const ordered = topoSort(nodes, mainEdges);
 
   await log(
     `Pipeline "${pipeline.name}" loaded. Processing ${ordered.length} nodes.`,
@@ -1231,16 +1254,8 @@ const executePipeline = async (opts: {
   let currentContent = "";
   let outputLocalPath = "";
 
-  // Collect child node IDs from loop nodes (they'll be skipped in the main walk)
-  const loopChildIds = new Set<string>();
-  for (const n of nodes) {
-    if (n.type === "loop") {
-      const loopData = n.data as unknown as LoopNodeData;
-      for (const childId of loopData.childNodeIds) {
-        loopChildIds.add(childId);
-      }
-    }
-  }
+  // Reuse the loop-child set computed above (used to skip children in the main walk)
+  const loopChildIds = loopChildIdSet;
 
   // Helper: execute a single operation node. Returns { ok, content } or error.
   const executeOperationNode = async (

@@ -9,7 +9,11 @@ export const NodeRunStatusSchema = z.enum(["idle", "running", "pass", "fail"]);
 export type NodeRunStatus = z.infer<typeof NodeRunStatusSchema>;
 
 // Static node types (objects)
-export const ObjectNodeTypeSchema = z.enum(["code-file", "folder", "github-project"]);
+export const ObjectNodeTypeSchema = z.enum([
+  "code-file",
+  "folder",
+  "github-project",
+]);
 export type ObjectNodeType = z.infer<typeof ObjectNodeTypeSchema>;
 
 // Operation node type (dynamic)
@@ -17,14 +21,22 @@ export const OperationNodeTypeSchema = z.literal("operation");
 export type OperationNodeType = z.infer<typeof OperationNodeTypeSchema>;
 
 // Output node types (pipeline endpoints)
-export const OutputNodeTypeSchema = z.enum(["output-project-path", "output-local-path"]);
+export const OutputNodeTypeSchema = z.enum([
+  "output-project-path",
+  "output-local-path",
+]);
 export type OutputNodeType = z.infer<typeof OutputNodeTypeSchema>;
+
+// Loop node type
+export const LoopNodeTypeSchema = z.literal("loop");
+export type LoopNodeType = z.infer<typeof LoopNodeTypeSchema>;
 
 // All node types
 export const NodeTypeSchema = z.union([
   ObjectNodeTypeSchema,
   OperationNodeTypeSchema,
   OutputNodeTypeSchema,
+  LoopNodeTypeSchema,
 ]);
 export type NodeType = z.infer<typeof NodeTypeSchema>;
 
@@ -92,12 +104,34 @@ export const OperationNodeDataSchema = z.object({
   operationId: z.string(), // Reference to OperationEntity.id
   operationName: z.string(), // Display name
   status: NodeRunStatusSchema,
-  config: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
+  config: z
+    .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+    .optional(),
   notes: z.string().optional(),
   llmProvider: z.enum(LLM_PROVIDERS).optional(),
   llmModel: z.string().optional(),
   bestPracticeId: z.string().optional(),
   bestPracticeName: z.string().optional(),
+});
+
+// ─── Loop node data schema ──────────────────────────────────────────────────
+
+export const LoopPassOperatorSchema = z.enum(["eq", "lte", "gte", "lt", "gt"]);
+
+export const LoopPassConditionSchema = z.object({
+  field: z.string(),
+  operator: LoopPassOperatorSchema,
+  value: z.number(),
+});
+
+export const LoopNodeDataSchema = z.object({
+  label: z.string(),
+  nodeType: z.literal("loop"),
+  childNodeIds: z.array(z.string()),
+  maxIterations: z.number().int().min(1).max(20),
+  passCondition: LoopPassConditionSchema,
+  status: NodeRunStatusSchema.optional(),
+  description: z.string().optional(),
 });
 
 // Note: Discriminated union requires at least 2 options with different literal values
@@ -109,20 +143,33 @@ export const PipelineNodeDataSchema = z.union([
   OperationNodeDataSchema,
   OutputProjectPathNodeDataSchema,
   OutputLocalPathNodeDataSchema,
+  LoopNodeDataSchema,
 ]);
 
 // React Flow requires node data to extend Record<string, unknown>.
 // Intersecting with it adds the index signature TypeScript needs.
-export type CodeFileNodeData = z.infer<typeof CodeFileNodeDataSchema> & Record<string, unknown>;
-export type FolderNodeData = z.infer<typeof FolderNodeDataSchema> & Record<string, unknown>;
-export type GitHubProjectNodeData = z.infer<typeof GitHubProjectNodeDataSchema> &
+export type CodeFileNodeData = z.infer<typeof CodeFileNodeDataSchema> &
   Record<string, unknown>;
-export type OperationNodeData = z.infer<typeof OperationNodeDataSchema> & Record<string, unknown>;
-export type OutputProjectPathNodeData = z.infer<typeof OutputProjectPathNodeDataSchema> &
+export type FolderNodeData = z.infer<typeof FolderNodeDataSchema> &
   Record<string, unknown>;
-export type OutputLocalPathNodeData = z.infer<typeof OutputLocalPathNodeDataSchema> &
+export type GitHubProjectNodeData = z.infer<
+  typeof GitHubProjectNodeDataSchema
+> &
   Record<string, unknown>;
-export type PipelineNodeData = z.infer<typeof PipelineNodeDataSchema> & Record<string, unknown>;
+export type OperationNodeData = z.infer<typeof OperationNodeDataSchema> &
+  Record<string, unknown>;
+export type OutputProjectPathNodeData = z.infer<
+  typeof OutputProjectPathNodeDataSchema
+> &
+  Record<string, unknown>;
+export type OutputLocalPathNodeData = z.infer<
+  typeof OutputLocalPathNodeDataSchema
+> &
+  Record<string, unknown>;
+export type LoopNodeData = z.infer<typeof LoopNodeDataSchema> &
+  Record<string, unknown>;
+export type PipelineNodeData = z.infer<typeof PipelineNodeDataSchema> &
+  Record<string, unknown>;
 
 // ─── Edge data schema ─────────────────────────────────────────────────────────
 
@@ -130,18 +177,26 @@ export const PipelineEdgeDataSchema = z.object({
   label: z.string().optional(),
   dataType: z.string().optional(),
 });
-export type PipelineEdgeData = z.infer<typeof PipelineEdgeDataSchema> & Record<string, unknown>;
+export type PipelineEdgeData = z.infer<typeof PipelineEdgeDataSchema> &
+  Record<string, unknown>;
 
 // ─── Node categories ─────────────────────────────────────────────────────────
 
 /** Object nodes — the subjects being operated on. */
-export const OBJECT_TYPES: ObjectNodeType[] = ["code-file", "folder", "github-project"];
+export const OBJECT_TYPES: ObjectNodeType[] = [
+  "code-file",
+  "folder",
+  "github-project",
+];
 
 /** The single operation node type. */
 export const OPERATION_TYPE: OperationNodeType = "operation";
 
 /** Output node types — pipeline endpoints (no outgoing connections). */
-export const OUTPUT_TYPES: OutputNodeType[] = ["output-project-path", "output-local-path"];
+export const OUTPUT_TYPES: OutputNodeType[] = [
+  "output-project-path",
+  "output-local-path",
+];
 
 // ─── Connectivity rules (schema-first) ───────────────────────────────────────
 
@@ -156,6 +211,7 @@ export const NodeConnectionRulesSchema = z.object({
   folder: z.array(NodeTypeSchema),
   "github-project": z.array(NodeTypeSchema),
   operation: z.array(NodeTypeSchema),
+  loop: z.array(NodeTypeSchema),
   "output-project-path": z.array(NodeTypeSchema),
   "output-local-path": z.array(NodeTypeSchema),
 });
@@ -166,32 +222,43 @@ export type NodeConnectionRules = z.infer<typeof NodeConnectionRulesSchema>;
  * Edit ONLY this object to change which node types can connect to which.
  * Validated by NodeConnectionRulesSchema at module load.
  */
-export const NODE_CONNECTION_RULES: NodeConnectionRules = NodeConnectionRulesSchema.parse({
-  // Objects can only feed into operations
-  "code-file": ["operation"],
-  folder: ["operation"],
-  "github-project": ["operation"],
-  // Operations can chain or terminate at an output node
-  operation: ["operation", "output-project-path", "output-local-path"],
-  // Output nodes are pipeline endpoints — no outgoing edges
-  "output-project-path": [],
-  "output-local-path": [],
-} satisfies Record<NodeType, NodeType[]>);
+export const NODE_CONNECTION_RULES: NodeConnectionRules =
+  NodeConnectionRulesSchema.parse({
+    // Objects can only feed into operations
+    "code-file": ["operation"],
+    folder: ["operation"],
+    "github-project": ["operation"],
+    // Operations can chain, loop, or terminate at an output node
+    operation: [
+      "operation",
+      "loop",
+      "output-project-path",
+      "output-local-path",
+    ],
+    // Loop nodes connect to their children and to output nodes
+    loop: ["operation", "output-project-path", "output-local-path"],
+    // Output nodes are pipeline endpoints — no outgoing edges
+    "output-project-path": [],
+    "output-local-path": [],
+  } satisfies Record<NodeType, NodeType[]>);
 
 /**
  * Returns the connection-topology rules.
  * The optional `_operations` param is kept for API compatibility;
  * which *instances* to show in a menu is a UI concern separate from topology.
  */
-export const getAllowedConnections = (_operations?: OperationEntity[]): NodeConnectionRules =>
-  NODE_CONNECTION_RULES;
+export const getAllowedConnections = (
+  _operations?: OperationEntity[],
+): NodeConnectionRules => NODE_CONNECTION_RULES;
 
 /** Alias for direct lookup without a function call. */
 export const allowedConnections = NODE_CONNECTION_RULES;
 
 /** Returns true when sourceType → targetType is a permitted edge. */
-export const isConnectionAllowed = (sourceType: NodeType, targetType: NodeType): boolean =>
-  NODE_CONNECTION_RULES[sourceType]?.includes(targetType) ?? false;
+export const isConnectionAllowed = (
+  sourceType: NodeType,
+  targetType: NodeType,
+): boolean => NODE_CONNECTION_RULES[sourceType]?.includes(targetType) ?? false;
 
 /**
  * Runtime validator for a manual edge drag.
@@ -202,9 +269,13 @@ export const ConnectionRuleSchema = z
     sourceType: NodeTypeSchema,
     targetType: NodeTypeSchema,
   })
-  .refine(({ sourceType, targetType }) => NODE_CONNECTION_RULES[sourceType]?.includes(targetType), {
-    message: "此节点类型间不允许连接",
-  });
+  .refine(
+    ({ sourceType, targetType }) =>
+      NODE_CONNECTION_RULES[sourceType]?.includes(targetType),
+    {
+      message: "此节点类型间不允许连接",
+    },
+  );
 
 // ─── Default data factories ────────────────────────────────────────────────────
 
@@ -264,11 +335,22 @@ export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
         description: "",
       };
     }
+    case "loop": {
+      return {
+        label: "Loop",
+        nodeType: "loop",
+        childNodeIds: [],
+        maxIterations: 3,
+        passCondition: { field: "", operator: "eq", value: 0 },
+      };
+    }
   }
 };
 
 /** Create operation node data from an OperationEntity. */
-export const makeOperationNodeData = (operation: OperationEntity): OperationNodeData => ({
+export const makeOperationNodeData = (
+  operation: OperationEntity,
+): OperationNodeData => ({
   label: operation.name,
   nodeType: "operation",
   operationId: operation.id,
@@ -345,6 +427,17 @@ export const nodeTypeMeta = {
     iconBg: "bg-teal-600",
     handle: "!border-teal-400",
     plusBg: "bg-teal-100 text-teal-700 hover:bg-teal-200",
+  },
+  loop: {
+    label: "Loop",
+    shortLabel: "LP",
+    border: "border-indigo-200",
+    selectedBorder: "border-indigo-500",
+    header: "bg-indigo-50",
+    headerText: "text-indigo-700",
+    iconBg: "bg-indigo-500",
+    handle: "!border-indigo-400",
+    plusBg: "bg-indigo-100 text-indigo-700 hover:bg-indigo-200",
   },
 } as const satisfies Record<NodeType, object>;
 

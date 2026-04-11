@@ -1,6 +1,15 @@
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { Plus, Zap, FileCode, Folder, HardDrive, FolderOutput, BookOpen } from "lucide-react";
+import {
+  Plus,
+  Zap,
+  FileCode,
+  Folder,
+  HardDrive,
+  FolderOutput,
+  BookOpen,
+  Repeat,
+} from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -28,6 +37,7 @@ const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
   "github-project": SiGitHubIcon,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
+  loop: Repeat,
 };
 
 interface Props {
@@ -38,7 +48,13 @@ interface Props {
   onClose: () => void;
 }
 
-export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Props) => {
+export const ConnectionMenu = ({
+  screenX,
+  screenY,
+  flowX,
+  flowY,
+  onClose,
+}: Props) => {
   const { t } = useTranslation();
   const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
@@ -48,10 +64,14 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
   const onConnect = useStore(store, (s) => s.handleConnect);
   const addNode = useStore(store, (s) => s.addNode);
 
-  const sourceNode = connectStart ? nodes.find((n) => n.id === connectStart.nodeId) : null;
+  const sourceNode = connectStart
+    ? nodes.find((n) => n.id === connectStart.nodeId)
+    : null;
 
   const allowedConnections = getAllowedConnections(operations);
-  const availableTypes: NodeType[] = sourceNode ? (allowedConnections[sourceNode.type] ?? []) : [];
+  const availableTypes: NodeType[] = sourceNode
+    ? (allowedConnections[sourceNode.type] ?? [])
+    : [];
 
   // Filter operations based on source type
   const availableOperations = (() => {
@@ -64,7 +84,9 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
     const objectType = objectTypeMap[sourceNode.type];
     if (!objectType) return operations;
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "project",
+      ),
     );
   })();
 
@@ -226,18 +248,20 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
           <span
             className={cn(
               "flex size-4 shrink-0 items-center justify-center rounded",
-              sourceMeta.iconBg
+              sourceMeta.iconBg,
             )}
           >
             <SourceIcon className="size-2.5 text-white" />
           </span>
-          <span className="text-xs font-medium text-foreground">{sourceMeta.label}</span>
+          <span className="text-xs font-medium text-foreground">
+            {sourceMeta.label}
+          </span>
           <span className="ml-auto text-xs text-muted-foreground">连接到</span>
         </div>
 
         {/* Object types */}
         {["code-file", "folder", "github-project"].some((t) =>
-          availableTypes.includes(t as NodeType)
+          availableTypes.includes(t as NodeType),
         ) && (
           <ContextMenuGroup>
             <ContextMenuLabel>处理对象</ContextMenuLabel>
@@ -255,12 +279,14 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
                     <span
                       className={cn(
                         "flex size-4 shrink-0 items-center justify-center rounded",
-                        typeMeta.iconBg
+                        typeMeta.iconBg,
                       )}
                     >
                       <Icon className="size-2.5 text-white" />
                     </span>
-                    <span className="text-xs font-medium text-foreground">{typeMeta.label}</span>
+                    <span className="text-xs font-medium text-foreground">
+                      {typeMeta.label}
+                    </span>
                     <Plus className="ml-auto size-3 text-muted-foreground" />
                   </ContextMenuItem>
                 );
@@ -273,7 +299,9 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
           <>
             <ContextMenuSeparator />
             <ContextMenuGroup>
-              <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
+              <ContextMenuLabel>
+                {t("canvas.contextMenu.operationNode")}
+              </ContextMenuLabel>
               {availableOperations.map((operation) => (
                 <ContextMenuItem
                   key={operation.id}
@@ -332,8 +360,8 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
         )}
 
         {/* Output node types */}
-        {(["output-project-path", "output-local-path"] as NodeType[]).some((t) =>
-          availableTypes.includes(t)
+        {(["output-project-path", "output-local-path"] as NodeType[]).some(
+          (t) => availableTypes.includes(t),
         ) && (
           <>
             <ContextMenuSeparator />
@@ -353,12 +381,14 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
                       <span
                         className={cn(
                           "flex size-4 shrink-0 items-center justify-center rounded",
-                          typeMeta.iconBg
+                          typeMeta.iconBg,
                         )}
                       >
                         <Icon className="size-2.5 text-white" />
                       </span>
-                      <span className="text-xs font-medium text-foreground">{typeMeta.label}</span>
+                      <span className="text-xs font-medium text-foreground">
+                        {typeMeta.label}
+                      </span>
                       <Plus className="ml-auto size-3 text-muted-foreground" />
                     </ContextMenuItem>
                   );
