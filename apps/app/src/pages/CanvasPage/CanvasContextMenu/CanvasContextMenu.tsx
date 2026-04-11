@@ -1,4 +1,5 @@
 import { ArrowRight, FileCode, Folder, HardDrive, FolderOutput, Zap, BookOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import {
   ContextMenu,
@@ -40,6 +41,7 @@ interface Props {
 }
 
 export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: Props) => {
+  const { t } = useTranslation();
   const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
   const connectStart = useStore(store, (s) => s.connectStart);
@@ -314,7 +316,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
           <>
             <ContextMenuSeparator />
             <ContextMenuGroup>
-              <ContextMenuLabel>操作节点 (Operation)</ContextMenuLabel>
+              <ContextMenuLabel>{t("canvas.contextMenu.operationNodes")}</ContextMenuLabel>
               {availableOperations.map((operation) => (
                 <ContextMenuItem
                   key={operation.id}
@@ -349,7 +351,7 @@ export const CanvasContextMenu = ({ screenX, screenY, flowX, flowY, onClose }: P
           <>
             <ContextMenuSeparator />
             <ContextMenuGroup>
-              <ContextMenuLabel>快捷配方 (Recipe)</ContextMenuLabel>
+              <ContextMenuLabel>{t("canvas.contextMenu.recipeNodes")}</ContextMenuLabel>
               {recipes.map((recipe) => (
                 <ContextMenuItem
                   key={recipe.id}

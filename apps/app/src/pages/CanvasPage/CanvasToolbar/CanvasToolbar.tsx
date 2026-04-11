@@ -55,7 +55,7 @@ export const CanvasToolbar = () => {
         data: {
           id: pipelineId,
           patch: {
-            name: pipelineName || "无标题 Pipeline",
+            name: pipelineName || t("canvas.unsavedPipeline"),
             nodes: nodes as unknown[],
             edges: edges as unknown[],
             updatedAt: Date.now(),

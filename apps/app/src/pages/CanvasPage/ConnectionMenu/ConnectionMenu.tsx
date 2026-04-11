@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { Plus, Zap, FileCode, Folder, HardDrive, FolderOutput, BookOpen } from "lucide-react";
 import {
@@ -38,6 +39,7 @@ interface Props {
 }
 
 export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Props) => {
+  const { t } = useTranslation();
   const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
   const connectStart = useStore(store, (s) => s.connectStart);
@@ -271,7 +273,7 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
           <>
             <ContextMenuSeparator />
             <ContextMenuGroup>
-              <ContextMenuLabel>操作节点</ContextMenuLabel>
+              <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
               {availableOperations.map((operation) => (
                 <ContextMenuItem
                   key={operation.id}
@@ -298,7 +300,7 @@ export const ConnectionMenu = ({ screenX, screenY, flowX, flowY, onClose }: Prop
             <ContextMenuGroup>
               <ContextMenuLabel>操作节点</ContextMenuLabel>
               <p className="px-1.5 py-1 text-xs text-muted-foreground">
-                没有接受此类型的 Operation
+                {t("canvas.contextMenu.noOperationsForType")}
               </p>
             </ContextMenuGroup>
           </>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useList } from "@refinedev/core";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,7 @@ export const FolderBrowser = ({
   onSelect,
   mode = "folder",
 }: FolderBrowserProps) => {
+  const { t } = useTranslation();
   const [currentPath, setCurrentPath] = useState<string | undefined>(undefined);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
@@ -102,9 +104,15 @@ export const FolderBrowser = ({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{mode === "file" ? "选择文件" : "选择文件夹"}</DialogTitle>
+          <DialogTitle>
+            {mode === "file"
+              ? t("nodes.outputLocalPath.selectFile")
+              : t("nodes.outputLocalPath.selectFolder")}
+          </DialogTitle>
           <DialogDescription>
-            {mode === "file" ? "浏览并选择代码文件" : "浏览并选择输出目录"}
+            {mode === "file"
+              ? t("nodes.outputLocalPath.browseFileDesc")
+              : t("nodes.outputLocalPath.browseFolderDesc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -142,12 +150,12 @@ export const FolderBrowser = ({
         <ScrollArea className="h-[280px] rounded-md border">
           {query.isLoading && (
             <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-              加载中...
+              {t("nodes.outputLocalPath.loading")}
             </div>
           )}
           {query.isError && (
             <div className="flex items-center justify-center h-full text-sm text-destructive">
-              {query.error?.message ?? "加载失败"}
+              {query.error?.message ?? t("nodes.outputLocalPath.loadFailed")}
             </div>
           )}
           {!query.isLoading && !query.isError && (
@@ -181,7 +189,7 @@ export const FolderBrowser = ({
               ))}
               {entries.length === 0 && !query.isLoading && (
                 <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
-                  空文件夹
+                  {t("nodes.outputLocalPath.emptyFolder")}
                 </div>
               )}
             </div>
@@ -190,7 +198,9 @@ export const FolderBrowser = ({
 
         {/* Current selection display */}
         <div className="rounded-md border border-teal-200 bg-teal-50 px-3 py-2 text-xs">
-          <span className="text-teal-600 font-medium">当前选择：</span>
+          <span className="text-teal-600 font-medium">
+            {t("nodes.outputLocalPath.currentSelection")}
+          </span>
           <span className="font-mono text-teal-800">
             {mode === "file" && selectedFile ? selectedFile : displayPath}
           </span>
@@ -198,10 +208,12 @@ export const FolderBrowser = ({
 
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel}>
-            取消
+            {t("common.cancel")}
           </Button>
           <Button disabled={mode === "file" && !selectedFile} onClick={handleConfirm}>
-            {mode === "file" ? "选择此文件" : "选择此文件夹"}
+            {mode === "file"
+              ? t("nodes.outputLocalPath.selectThisFile")
+              : t("nodes.outputLocalPath.selectThisFolder")}
           </Button>
         </DialogFooter>
       </DialogContent>

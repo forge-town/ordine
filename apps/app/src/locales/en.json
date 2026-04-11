@@ -1,5 +1,7 @@
 {
   "common": {
+    "startTime": "Start Time",
+    "endTime": "End Time",
     "save": "Save",
     "saving": "Saving...",
     "cancel": "Cancel",
@@ -8,6 +10,7 @@
     "create": "Create",
     "back": "Back",
     "backToList": "Back to list",
+    "openInCanvas": "Open in Canvas",
     "search": "Search",
     "loading": "Loading...",
     "confirm": "Confirm",
@@ -22,7 +25,8 @@
     "description": "Description",
     "category": "Category",
     "language": "Language",
-    "tags": "Tags"
+    "tags": "Tags",
+    "new": "New"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -78,7 +82,18 @@
     "logs": "Logs",
     "noLogs": "No logs",
     "status": "Status",
+    "statusQueued": "Queued",
+    "statusRunning": "Running",
+    "statusDone": "Done",
+    "statusFailed": "Failed",
+    "statusCancelled": "Cancelled",
     "id": "ID",
+    "basicInfo": "Basic Info",
+    "viewProject": "View Project",
+    "errorInfo": "Error Info",
+    "executionResult": "Result",
+    "logOutput": "Logs",
+    "linesCount": "lines",
     "typeCodeAnalysis": "Code Analysis",
     "typeSkillExecution": "Skill Execution",
     "typeFileScan": "File Scan",
@@ -128,6 +143,7 @@
     "sortDateDesc": "Newest first",
     "sortDateAsc": "Oldest first",
     "sortCategoryAsc": "Category A → Z",
+    "count": "",
     "descriptionPlaceholder": "Briefly describe what this operation does",
     "promptPlaceholder": "You are a code review expert, please analyze the following code..."
   },
@@ -146,6 +162,7 @@
   "canvas": {
     "title": "Canvas",
     "pipelineTitle": "Pipeline title",
+    "pipelineTitlePlaceholder": "Untitled Pipeline",
     "unsavedPipeline": "Unsaved Pipeline",
     "saveSuccess": "Pipeline saved",
     "saveFailed": "Save failed",
@@ -154,7 +171,26 @@
     "runFailed": "Pipeline validation failed, please retry",
     "runSaveFailed": "Failed to save pipeline validation result",
     "runCompleted": "Pipeline run completed",
+    "runTest": "Run Test",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar",
+    "nodeLibrary": "Node Library",
+    "clickToAdd": "Click to add to canvas",
+    "objectTypes": "Object Types (Object)",
+    "operationNodes": "Operation Nodes",
+    "outputEndpoint": "Output Endpoints",
+    "recipeNodes": "Recipe Nodes",
+    "connectNodesHint": "Connect node ports to define data flow",
     "aiAssistant": "AI Pipeline Assistant",
+    "aiAssistantWelcome": "Hello! I'm the Pipeline AI Assistant.\n\nTell me what kind of Pipeline you want to build, and I'll help you design the node structure, add Skills, or adjust connections.",
+    "aiAssistantInputPlaceholder": "Tell me how to modify this Pipeline...",
+    "aiAssistantTitle": "AI Pipeline Assistant",
+    "aiAssistantSubtitle": "Click to influence canvas",
+    "aiAssistantThinking": "Thinking...",
+    "aiAssistantActionAdd": "Add",
+    "aiAssistantActionClear": "Clear canvas",
+    "aiAssistantActionConnect": "Connect nodes",
+    "aiAssistantSendHint": "Enter to send · Shift+Enter for new line",
     "addNode": "Add node",
     "addNodeTypes": {
       "codeFile": "Code File",
@@ -178,7 +214,18 @@
       "addCodeFile": "Add Code File",
       "addFolder": "Add Folder",
       "addCondition": "Add Condition",
-      "addOperation": "Add Operation"
+      "addOperation": "Add Operation",
+      "objectTypes": "Object Types",
+      "operationNodes": "Operation Nodes",
+      "recipeNodes": "Recipe Nodes",
+      "connectTo": "Connect to",
+      "connectNewNode": "Connect New Node",
+      "processingObject": "Object",
+      "operationNode": "Operation",
+      "recipeNode": "Recipe",
+      "outputEndpoint": "Output",
+      "noOperationsForType": "No operations accept this type",
+      "newNode": "New Node"
     },
     "folderDescPlaceholder": "Folder description...",
     "clickToSwitchRepo": "Click to switch repo",
@@ -254,6 +301,7 @@
     "severity": "Severity",
     "patternPlaceholder": "Rule pattern (regex or keyword, optional)",
     "tagsPlaceholder": "Tags (comma-separated, optional)",
+    "searchPlaceholder": "Search by name, description or tags...",
     "enable": "Enable",
     "disable": "Disable"
   },
@@ -376,9 +424,23 @@
     "outputLocalPath": {
       "label": "Path",
       "selectFolder": "Select folder",
+      "selectFile": "Select file",
       "descriptionPlaceholder": "Describe this output...",
-      "localPathPlaceholder": "/home/user/output/"
+      "localPathPlaceholder": "/home/user/output/",
+      "browseFileDesc": "Browse and select a code file",
+      "browseFolderDesc": "Browse and select an output directory",
+      "loading": "Loading...",
+      "loadFailed": "Failed to load",
+      "emptyFolder": "Empty folder",
+      "currentSelection": "Current selection:",
+      "selectThisFile": "Select this file",
+      "selectThisFolder": "Select this folder"
     }
+  },
+  "time": {
+    "minutesAgo": "{{minutes}} minutes ago",
+    "hoursAgo": "{{hours}} hours ago",
+    "daysAgo": "{{days}} days ago"
   },
   "work": {
     "pending": "Pending",

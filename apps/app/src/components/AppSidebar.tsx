@@ -79,7 +79,7 @@ export const AppSidebar = () => {
           <Workflow className="h-4 w-4 shrink-0" />
           <span className="group-data-[state=collapsed]/sidebar:hidden">Canvas</span>
           <span className="ml-auto rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-bold leading-none group-data-[state=collapsed]/sidebar:hidden">
-            新
+            {t("common.new")}
           </span>
         </Link>
       </div>

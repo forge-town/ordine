@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { Bot, X, Send, Loader2, Sparkles } from "lucide-react";
@@ -53,6 +54,7 @@ const parseActions = (
 };
 
 export const AiAssistantPanel = () => {
+  const { t } = useTranslation();
   const store = useHarnessCanvasStore();
   const isOpen = useStore(store, (state) => state.isAiAssistantOpen);
   const nodes = useStore(store, (state) => state.nodes);
@@ -314,7 +316,7 @@ export const AiAssistantPanel = () => {
             ? "bg-primary text-primary-foreground shadow-primary/30"
             : "bg-primary text-primary-foreground hover:scale-110 hover:shadow-xl hover:shadow-primary/30"
         )}
-        title="AI Pipeline 助手"
+        title={t("canvas.aiAssistantTitle")}
         onClick={handleToggle}
       >
         {/* Pulse ring when closed */}

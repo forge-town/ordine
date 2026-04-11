@@ -1,5 +1,10 @@
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type PipelineNode, type NodeType } from "../_store";
+import { useTranslation } from "react-i18next";
+import {
+  useHarnessCanvasStore,
+  type PipelineNode,
+  type NodeType,
+} from "../_store";
 import { Route } from "@/routes/canvas";
 import { cn } from "@repo/ui/lib/utils";
 import {
@@ -83,11 +88,15 @@ const outputItems: NodeTypeItem[] = [
 let nodeCounter = 100;
 
 export const SkillPalette = () => {
+  const { t } = useTranslation();
   const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
   const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
   const addNode = useStore(store, (state) => state.addNode);
-  const handleToggleSidebar = useStore(store, (state) => state.handleToggleSidebar);
+  const handleToggleSidebar = useStore(
+    store,
+    (state) => state.handleToggleSidebar,
+  );
 
   const handleAddRecipe = (recipeId: string) => {
     const recipe = recipes.find((r) => r.id === recipeId);
@@ -177,12 +186,16 @@ export const SkillPalette = () => {
     <div
       className={cn(
         "relative flex h-full flex-col border-r border-gray-200 bg-white transition-all duration-200",
-        isSidebarOpen ? "w-64" : "w-10"
+        isSidebarOpen ? "w-64" : "w-10",
       )}
     >
       <button
         className="absolute -right-3 top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm hover:bg-gray-50"
-        title={isSidebarOpen ? "收起侧栏" : "展开侧栏"}
+        title={
+          isSidebarOpen
+            ? t("canvas.collapseSidebar")
+            : t("canvas.expandSidebar")
+        }
         onClick={handleToggleSidebar}
       >
         {isSidebarOpen ? (
@@ -195,8 +208,12 @@ export const SkillPalette = () => {
       {isSidebarOpen && (
         <>
           <div className="border-b border-gray-100 px-4 py-3">
-            <h2 className="text-sm font-semibold text-gray-700">节点库</h2>
-            <p className="mt-0.5 text-xs text-gray-400">点击添加到画布</p>
+            <h2 className="text-sm font-semibold text-gray-700">
+              {t("canvas.nodeLibrary")}
+            </h2>
+            <p className="mt-0.5 text-xs text-gray-400">
+              {t("canvas.clickToAdd")}
+            </p>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-4">
@@ -213,21 +230,25 @@ export const SkillPalette = () => {
                       key={item.type}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass
+                        item.colorClass,
                       )}
                       onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg
+                          item.iconBg,
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
-                        <div className="text-[10px] text-gray-500">{item.description}</div>
+                        <div className="text-xs font-semibold text-gray-700">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          {item.description}
+                        </div>
                       </div>
                     </button>
                   );
@@ -248,21 +269,25 @@ export const SkillPalette = () => {
                       key={item.type}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass
+                        item.colorClass,
                       )}
                       onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg
+                          item.iconBg,
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
-                        <div className="text-[10px] text-gray-500">{item.description}</div>
+                        <div className="text-xs font-semibold text-gray-700">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          {item.description}
+                        </div>
                       </div>
                     </button>
                   );
@@ -283,21 +308,25 @@ export const SkillPalette = () => {
                       key={item.type}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        item.colorClass
+                        item.colorClass,
                       )}
                       onClick={() => handleAddNodeType(item)}
                     >
                       <div
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-                          item.iconBg
+                          item.iconBg,
                         )}
                       >
                         <Icon className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-700">{item.label}</div>
-                        <div className="text-[10px] text-gray-500">{item.description}</div>
+                        <div className="text-xs font-semibold text-gray-700">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          {item.description}
+                        </div>
                       </div>
                     </button>
                   );
@@ -309,7 +338,7 @@ export const SkillPalette = () => {
             {recipes.length > 0 && (
               <div>
                 <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                  快捷配方 (Recipe)
+                  {t("canvas.recipeNodes")}
                 </p>
                 <div className="space-y-1.5">
                   {recipes.map((recipe) => (
@@ -317,7 +346,7 @@ export const SkillPalette = () => {
                       key={recipe.id}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-                        "border-amber-200 bg-amber-50 hover:border-amber-400"
+                        "border-amber-200 bg-amber-50 hover:border-amber-400",
                       )}
                       onClick={() => handleAddRecipe(recipe.id)}
                     >
@@ -340,7 +369,9 @@ export const SkillPalette = () => {
           </div>
 
           <div className="border-t border-gray-100 p-3">
-            <p className="text-center text-[10px] text-gray-400">连接节点端口以定义数据流向</p>
+            <p className="text-center text-[10px] text-gray-400">
+              {t("canvas.connectNodesHint")}
+            </p>
           </div>
         </>
       )}

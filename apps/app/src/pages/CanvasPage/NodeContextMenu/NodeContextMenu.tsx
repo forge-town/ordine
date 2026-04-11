@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { useStore } from "zustand";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useTranslation } from "react-i18next";
 import {
   Copy,
   Trash2,
@@ -51,6 +52,7 @@ interface Props {
 }
 
 export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) => {
+  const { t } = useTranslation();
   const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
   const nodes = useStore(store, (s) => s.nodes);
@@ -261,7 +263,7 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
               <>
                 <ContextMenuSeparator />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>操作节点</ContextMenuLabel>
+                  <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
                   {availableOperations.map((operation) => (
                     <ContextMenuItem
                       key={operation.id}
@@ -283,7 +285,7 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
               <>
                 <ContextMenuSeparator />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>操作节点</ContextMenuLabel>
+                  <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
                   <p className="px-1.5 py-1 text-xs text-muted-foreground">
                     没有接受此类型的 Operation
                   </p>

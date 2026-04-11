@@ -1,14 +1,9 @@
 import { useTranslation } from "react-i18next";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
-import type { ChecklistItemEntity } from "@/models/daos/checklistItemsDao";
 import { Route } from "@/routes/_layout/best-practices.$bestPracticeId.edit";
 import { BestPracticeEditPageContent } from "./BestPracticeEditPageContent";
 
 export const BestPracticeEditPage = () => {
-  const { bestPractice, checklistItems } = Route.useLoaderData() as {
-    bestPractice: BestPracticeEntity | null;
-    checklistItems: ChecklistItemEntity[];
-  };
+  const { bestPractice, checklistItems } = Route.useLoaderData();
   const { t } = useTranslation();
 
   if (!bestPractice) {

@@ -1,4 +1,5 @@
 import { useStore } from "zustand";
+import { useTranslation } from "react-i18next";
 import { useHarnessCanvasStore } from "../_store";
 import { Input } from "@repo/ui/input";
 import { CanvasToolbar } from "../CanvasToolbar";
@@ -12,6 +13,7 @@ import { RunConsole } from "../RunConsole";
 import { LlmContentCard } from "../LlmContentCard/LlmContentCard";
 
 export const CanvasInner = () => {
+  const { t } = useTranslation();
   const store = useHarnessCanvasStore();
 
   const pipelineName = useStore(store, (state) => state.pipelineName);
@@ -38,7 +40,7 @@ export const CanvasInner = () => {
         <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-gray-200 bg-white/90 px-4 py-1.5 shadow-sm backdrop-blur-sm">
           <Input
             className="w-48 bg-transparent text-sm font-medium text-gray-700 outline-none placeholder:text-gray-400 border-none shadow-none"
-            placeholder="无标题 Pipeline"
+            placeholder={t("canvas.pipelineTitlePlaceholder")}
             value={pipelineName}
             onChange={handleNameChange}
           />
