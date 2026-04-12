@@ -87,7 +87,7 @@ export const createCanvasSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
   get: Parameters<HarnessCanvasStoreSlice>[1],
   overrideNodes?: PipelineNode[],
-  overrideEdges?: PipelineEdge[]
+  overrideEdges?: PipelineEdge[],
 ): CanvasSlice => ({
   nodes: overrideNodes ?? initialNodes,
   edges: overrideEdges ?? initialEdges,
@@ -134,9 +134,9 @@ export const createCanvasSlice = (
       (draft) => {
         draft.edges = addEdge(
           { ...connection, type: "default", animated: true, data: {} },
-          draft.edges
+          draft.edges,
         );
-      }
+      },
     );
   },
 
@@ -149,7 +149,7 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes.push(node);
-      }
+      },
     );
   },
 
@@ -185,7 +185,7 @@ export const createCanvasSlice = (
       (draft) => {
         draft.nodes.push(newNode);
         draft.edges.push(newEdge);
-      }
+      },
     );
   },
 
@@ -204,8 +204,10 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes = draft.nodes.filter((n) => n.id !== nodeId);
-        draft.edges = draft.edges.filter((e) => e.source !== nodeId && e.target !== nodeId);
-      }
+        draft.edges = draft.edges.filter(
+          (e) => e.source !== nodeId && e.target !== nodeId,
+        );
+      },
     );
     // Clear selection outside of history-tracked state
     set((s) => ({
@@ -231,13 +233,15 @@ export const createCanvasSlice = (
         if (n) {
           n.data = { ...n.data, ...data } as PipelineNodeData;
         }
-      }
+      },
     );
   },
 
   updateEdgeData: (edgeId, data) => {
     set((state) => ({
-      edges: state.edges.map((e) => (e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e)),
+      edges: state.edges.map((e) =>
+        e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e,
+      ),
     }));
   },
 
@@ -273,16 +277,19 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes.push(newNode);
-      }
+      },
     );
   },
 
   clearCanvas: () => {
     const state = get();
-    state.recordCommand({ type: "CLEAR_CANVAS", label: "清空画布" }, (draft) => {
-      draft.nodes = [];
-      draft.edges = [];
-    });
+    state.recordCommand(
+      { type: "CLEAR_CANVAS", label: "清空画布" },
+      (draft) => {
+        draft.nodes = [];
+        draft.edges = [];
+      },
+    );
     set({ selectedNodeId: null, selectedEdgeId: null });
   },
 
@@ -319,8 +326,9 @@ export const createCanvasSlice = (
         const child = draft.nodes.find((n) => n.id === nodeId);
         if (child) {
           child.parentId = compoundId;
+          child.extent = "parent";
         }
-      }
+      },
     );
   },
 
@@ -345,7 +353,9 @@ export const createCanvasSlice = (
         const child = draft.nodes.find((n) => n.id === nodeId);
         if (child) {
           // Convert relative position to absolute before detaching
-          const compoundPos = draft.nodes.find((n) => n.id === compoundId)?.position;
+          const compoundPos = draft.nodes.find(
+            (n) => n.id === compoundId,
+          )?.position;
           if (compoundPos) {
             child.position = {
               x: child.position.x + compoundPos.x,
@@ -353,8 +363,9 @@ export const createCanvasSlice = (
             };
           }
           child.parentId = undefined;
+          child.extent = undefined;
         }
-      }
+      },
     );
   },
 
@@ -391,13 +402,14 @@ export const createCanvasSlice = (
           const child = draft.nodes.find((n) => n.id === nid);
           if (child) {
             child.parentId = compoundId;
+            child.extent = "parent";
             child.position = {
               x: child.position.x - compoundPos.x,
               y: child.position.y - compoundPos.y,
             };
           }
         }
-      }
+      },
     );
   },
 
@@ -416,7 +428,9 @@ export const createCanvasSlice = (
         payload: { compoundId, childIds },
       },
       (draft) => {
-        const compoundPos = draft.nodes.find((n) => n.id === compoundId)?.position;
+        const compoundPos = draft.nodes.find(
+          (n) => n.id === compoundId,
+        )?.position;
         for (const cid of childIds) {
           const child = draft.nodes.find((n) => n.id === cid);
           if (child && compoundPos) {
@@ -425,12 +439,15 @@ export const createCanvasSlice = (
               y: child.position.y + compoundPos.y,
             };
             child.parentId = undefined;
+            child.extent = undefined;
           }
         }
         // Remove compound node and its edges
         draft.nodes = draft.nodes.filter((n) => n.id !== compoundId);
-        draft.edges = draft.edges.filter((e) => e.source !== compoundId && e.target !== compoundId);
-      }
+        draft.edges = draft.edges.filter(
+          (e) => e.source !== compoundId && e.target !== compoundId,
+        );
+      },
     );
   },
 });

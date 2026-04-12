@@ -54,7 +54,12 @@ interface Props {
   onClose: () => void;
 }
 
-export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) => {
+export const NodeContextMenu = ({
+  screenX,
+  screenY,
+  nodeId,
+  onClose,
+}: Props) => {
   const { t } = useTranslation();
   const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
@@ -64,6 +69,10 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
   const addNode = useStore(store, (s) => s.addNode);
   const onConnect = useStore(store, (s) => s.handleConnect);
   const ungroupCompound = useStore(store, (s) => s.ungroupCompound);
+  const removeNodeFromCompound = useStore(
+    store,
+    (s) => s.removeNodeFromCompound,
+  );
   const node = nodes.find((n) => n.id === nodeId);
 
   const onCloseRef = useRef(onClose);
@@ -76,7 +85,7 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
       duplicateNode(nodeId);
       onCloseRef.current();
     },
-    [duplicateNode, nodeId]
+    [duplicateNode, nodeId],
   );
 
   if (!node) return null;
@@ -95,7 +104,9 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
     const objectType = objectTypeMap[node.type];
     if (!objectType) return operations;
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "project",
+      ),
     );
   })();
 
@@ -132,6 +143,13 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
 
   const handleUngroup = () => {
     ungroupCompound(nodeId);
+    onClose();
+  };
+
+  const handleDetachFromCompound = () => {
+    if (node?.parentId) {
+      removeNodeFromCompound(nodeId, node.parentId);
+    }
     onClose();
   };
 
@@ -218,12 +236,14 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
           <span
             className={cn(
               "flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold text-white",
-              meta.iconBg
+              meta.iconBg,
             )}
           >
             {meta.shortLabel.charAt(0)}
           </span>
-          <span className="text-xs font-medium text-foreground">{meta.label}</span>
+          <span className="text-xs font-medium text-foreground">
+            {meta.label}
+          </span>
         </div>
 
         {/* Actions submenu */}
@@ -233,11 +253,13 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
             Actions
           </ContextMenuSubTrigger>
           <ContextMenuSubContent className="min-w-52">
-            <ContextMenuLabel>连接新节点</ContextMenuLabel>
+            <ContextMenuGroup>
+              <ContextMenuLabel>连接新节点</ContextMenuLabel>
+            </ContextMenuGroup>
 
             {/* Object types */}
             {["code-file", "folder", "github-project"].some((t) =>
-              availableTypes.includes(t as NodeType)
+              availableTypes.includes(t as NodeType),
             ) && (
               <ContextMenuGroup>
                 <ContextMenuLabel>处理对象</ContextMenuLabel>
@@ -255,7 +277,7 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
                         <span
                           className={cn(
                             "flex size-4 shrink-0 items-center justify-center rounded",
-                            m.iconBg
+                            m.iconBg,
                           )}
                         >
                           <Icon className="size-2.5 text-white" />
@@ -272,7 +294,9 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
               <>
                 <ContextMenuSeparator />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
+                  <ContextMenuLabel>
+                    {t("canvas.contextMenu.operationNode")}
+                  </ContextMenuLabel>
                   {availableOperations.map((operation) => (
                     <ContextMenuItem
                       key={operation.id}
@@ -294,7 +318,9 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
               <>
                 <ContextMenuSeparator />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
+                  <ContextMenuLabel>
+                    {t("canvas.contextMenu.operationNode")}
+                  </ContextMenuLabel>
                   <p className="px-1.5 py-1 text-xs text-muted-foreground">
                     没有接受此类型的 Operation
                   </p>
@@ -325,8 +351,8 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
             )}
 
             {/* Output nodes */}
-            {(["output-project-path", "output-local-path"] as NodeType[]).some((t) =>
-              availableTypes.includes(t)
+            {(["output-project-path", "output-local-path"] as NodeType[]).some(
+              (t) => availableTypes.includes(t),
             ) && (
               <>
                 <ContextMenuSeparator />
@@ -346,7 +372,7 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
                           <span
                             className={cn(
                               "flex size-4 shrink-0 items-center justify-center rounded",
-                              m.iconBg
+                              m.iconBg,
                             )}
                           >
                             <Icon className="size-2.5 text-white" />
@@ -365,9 +391,12 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
         <ContextMenuItem closeOnClick={false} onClick={handleDuplicate}>
           <Copy className="size-4 text-muted-foreground" />
           Duplicate
-          <span className="ml-auto text-xs tracking-widest text-muted-foreground">⌘D</span>
+          <span className="ml-auto text-xs tracking-widest text-muted-foreground">
+            ⌘D
+          </span>
         </ContextMenuItem>
 
+        {/* Ungroup (compound only) */}
         {/* Ungroup (compound only) */}
         {node.type === "compound" && (
           <ContextMenuItem closeOnClick={false} onClick={handleUngroup}>
@@ -376,13 +405,30 @@ export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) =>
           </ContextMenuItem>
         )}
 
+        {/* Detach from compound (child nodes only) */}
+        {node.parentId && (
+          <ContextMenuItem
+            closeOnClick={false}
+            onClick={handleDetachFromCompound}
+          >
+            <Ungroup className="size-4 text-muted-foreground" />
+            从编组中移除
+          </ContextMenuItem>
+        )}
+
         <ContextMenuSeparator />
 
         {/* Delete */}
-        <ContextMenuItem closeOnClick={false} variant="destructive" onClick={handleDelete}>
+        <ContextMenuItem
+          closeOnClick={false}
+          variant="destructive"
+          onClick={handleDelete}
+        >
           <Trash2 className="size-4" />
           Delete
-          <span className="ml-auto text-xs tracking-widest text-destructive/40">⌫</span>
+          <span className="ml-auto text-xs tracking-widest text-destructive/40">
+            ⌫
+          </span>
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

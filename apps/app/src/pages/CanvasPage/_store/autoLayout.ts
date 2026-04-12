@@ -45,7 +45,10 @@ const topoSort = (nodeIds: string[], edgeList: PipelineEdge[]): string[] => {
   return result;
 };
 
-export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]): PipelineNode[] => {
+export const computeAutoLayout = (
+  nodes: PipelineNode[],
+  edges: PipelineEdge[],
+): PipelineNode[] => {
   if (nodes.length === 0) return [];
 
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
@@ -75,7 +78,9 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
     if (validChildren.length === 0) continue;
 
     const cSet = new Set(validChildren);
-    const internalEdges = edges.filter((e) => cSet.has(e.source) && cSet.has(e.target));
+    const internalEdges = edges.filter(
+      (e) => cSet.has(e.source) && cSet.has(e.target),
+    );
 
     const childOrder = topoSort(validChildren, internalEdges);
     let cx = COMPOUND_PAD;
@@ -232,7 +237,9 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
   for (const [anchor, group] of anchorGroups) {
     const anchorPos = positionMap.get(anchor)!;
     const anchorH = getSize(anchor).h;
-    const groupEdges = edges.filter((e) => group.includes(e.source) && group.includes(e.target));
+    const groupEdges = edges.filter(
+      (e) => group.includes(e.source) && group.includes(e.target),
+    );
     const groupOrder = topoSort(group, groupEdges);
 
     // Alternating: even index → above (negative Y), odd → below (positive Y)
@@ -261,6 +268,7 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
       return {
         ...n,
         parentId: compoundId,
+        extent: "parent" as const,
         position: childRelPos.get(n.id) ?? n.position,
       };
     }
