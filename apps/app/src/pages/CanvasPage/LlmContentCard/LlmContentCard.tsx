@@ -8,7 +8,10 @@ import { useHarnessCanvasStore } from "../_store";
 export const LlmContentCard = () => {
   const store = useHarnessCanvasStore();
   const inspectingNodeId = useStore(store, (s) => s.inspectingNodeId);
-  const handleDismissInspection = useStore(store, (s) => s.handleDismissInspection);
+  const handleDismissInspection = useStore(
+    store,
+    (s) => s.handleDismissInspection,
+  );
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
   const nodeRunStatuses = useStore(store, (s) => s.nodeRunStatuses);
   const nodes = useStore(store, (s) => s.nodes);
@@ -18,15 +21,21 @@ export const LlmContentCard = () => {
   const content = nodeLlmContent[inspectingNodeId];
   const status = nodeRunStatuses[inspectingNodeId];
   const node = nodes.find((n) => n.id === inspectingNodeId);
-  const nodeLabel = (node?.data as Record<string, unknown>)?.label as string | undefined;
+  const nodeLabel = (node?.data as Record<string, unknown>)?.label as
+    | string
+    | undefined;
 
   return (
     <div className="absolute right-4 top-14 z-40 flex w-[480px] max-w-[calc(100vw-2rem)] flex-col rounded-xl border bg-background shadow-2xl">
       <div className="flex shrink-0 items-center justify-between border-b px-4 py-2.5">
         <div className="flex items-center gap-2">
           <Brain className="h-4 w-4 text-violet-500" />
-          <span className="text-sm font-semibold truncate">{nodeLabel ?? "LLM"} — 思考内容</span>
-          {status === "running" && <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />}
+          <span className="text-sm font-semibold truncate">
+            {nodeLabel ?? "LLM"} — 思考内容
+          </span>
+          {status === "running" && (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
+          )}
         </div>
         <Button
           className="h-6 w-6 shrink-0"

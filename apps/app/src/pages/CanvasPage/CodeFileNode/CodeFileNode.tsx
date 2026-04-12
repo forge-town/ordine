@@ -2,10 +2,7 @@ import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { FileCode, FolderOpen } from "lucide-react";
 import { useStore } from "zustand";
-import {
-  useHarnessCanvasStore,
-  type CodeFileNodeData,
-} from "../_store";
+import { useHarnessCanvasStore, type CodeFileNodeData } from "../_store";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";

@@ -8,7 +8,8 @@ import { useHarnessCanvasStore } from "../_store";
 import { updatePipeline } from "@/services/pipelinesService";
 import { ResultAsync } from "neverthrow";
 
-const handleNavigateSettings = () => void (globalThis.location.href = "/settings");
+const handleNavigateSettings = () =>
+  void (globalThis.location.href = "/settings");
 
 export const HarnessCanvasHeader = () => {
   const { t } = useTranslation();
@@ -18,7 +19,9 @@ export const HarnessCanvasHeader = () => {
   const nodes = useStore(store, (s) => s.nodes);
   const edges = useStore(store, (s) => s.edges);
 
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
+    "idle",
+  );
 
   const handleSave = async () => {
     if (!pipelineId) return;
@@ -35,14 +38,14 @@ export const HarnessCanvasHeader = () => {
           },
         },
       }),
-      () => "save-failed" as const
+      () => "save-failed" as const,
     );
     result.match(
       () => {
         setSaveState("saved");
         setTimeout(() => setSaveState("idle"), 2000);
       },
-      () => setSaveState("idle")
+      () => setSaveState("idle"),
     );
   };
 

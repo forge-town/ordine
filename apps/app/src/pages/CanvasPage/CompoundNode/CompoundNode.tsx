@@ -30,11 +30,15 @@ export const CompoundNode = ({ id, data, selected }: CompoundNodeProps) => {
       className={cn(
         "relative rounded-xl border-2 border-dashed bg-indigo-50/30 transition-all duration-200",
         selected ? "border-indigo-500 shadow-lg" : "border-indigo-300/60",
-        isHovered && "border-indigo-400 bg-indigo-50/50 shadow-md"
+        isHovered && "border-indigo-400 bg-indigo-50/50 shadow-md",
       )}
       style={{ width: "100%", height: "100%", minWidth: 200, minHeight: 120 }}
     >
-      <Handle className="!bg-indigo-400 !w-3 !h-3" position={Position.Left} type="target" />
+      <Handle
+        className="!bg-indigo-400 !w-3 !h-3"
+        position={Position.Left}
+        type="target"
+      />
 
       <div className="flex items-center gap-1.5 px-3 py-2">
         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-100">
@@ -53,7 +57,11 @@ export const CompoundNode = ({ id, data, selected }: CompoundNodeProps) => {
         )}
       </div>
 
-      <Handle className="!bg-indigo-400 !w-3 !h-3" position={Position.Right} type="source" />
+      <Handle
+        className="!bg-indigo-400 !w-3 !h-3"
+        position={Position.Right}
+        type="source"
+      />
     </div>
   );
 };
