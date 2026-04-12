@@ -4,65 +4,19 @@ import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { useLoaderData } from "@tanstack/react-router";
+import { useLoaderData, useNavigate } from "@tanstack/react-router";
 import type { RuleEntity, RuleCategory } from "@/models/daos/rulesDao";
-import { createRule, updateRule, deleteRule, toggleRule } from "@/services/rulesService";
-import { CATEGORY_FILTERS, getEditForm, type RuleFormState } from "../types";
+import { deleteRule, toggleRule } from "@/services/rulesService";
+import { CATEGORY_FILTERS } from "../types";
 import { RuleCard } from "../RuleCard";
-import { RuleForm } from "../RuleForm";
 
 export const RulesPageContent = () => {
-  const initial = useLoaderData({ from: "/_layout/rules" }) as RuleEntity[];
+  const initial = useLoaderData({ from: "/_layout/rules/" }) as RuleEntity[];
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [rules, setRules] = useState(initial);
   const [categoryFilter, setCategoryFilter] = useState<RuleCategory | "all">("all");
   const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  const handleCreate = async (form: RuleFormState) => {
-    const rule = await createRule({
-      data: {
-        id: crypto.randomUUID(),
-        name: form.name,
-        description: form.description || null,
-        category: form.category,
-        severity: form.severity,
-        pattern: form.pattern || null,
-        enabled: true,
-        tags: form.tags
-          ? form.tags
-              .split(",")
-              .map((t) => t.trim())
-              .filter(Boolean)
-          : [],
-      },
-    });
-    setRules((prev) => [rule, ...prev]);
-    setShowForm(false);
-  };
-
-  const handleUpdate = async (form: RuleFormState) => {
-    if (!editingId) return;
-    const rule = await updateRule({
-      data: {
-        id: editingId,
-        name: form.name,
-        description: form.description || null,
-        category: form.category,
-        severity: form.severity,
-        pattern: form.pattern || null,
-        tags: form.tags
-          ? form.tags
-              .split(",")
-              .map((t) => t.trim())
-              .filter(Boolean)
-          : [],
-      },
-    });
-    setRules((prev) => prev.map((r) => (r.id === editingId && rule ? rule : r)));
-    setEditingId(null);
-  };
 
   const handleDelete = async (id: string) => {
     await deleteRule({ data: { id } });
@@ -93,19 +47,13 @@ export const RulesPageContent = () => {
 
   const handleCategoryFilterClick = (value: RuleCategory | "all") => () => setCategoryFilter(value);
 
-  const handleShowForm = () => {
-    setEditingId(null);
-    setShowForm(true);
-  };
+  const handleNavigateToCreate = () => void navigate({ to: "/rules/create" });
 
-  const handleHideForm = () => setShowForm(false);
+  const handleNavigateToDetail = (id: string) =>
+    void navigate({ to: "/rules/$ruleId", params: { ruleId: id } });
 
-  const handleEdit = (r: RuleEntity) => {
-    setShowForm(false);
-    setEditingId(r.id);
-  };
-
-  const handleCancelEdit = () => setEditingId(null);
+  const handleNavigateToEdit = (id: string) =>
+    void navigate({ to: "/rules/$ruleId/edit", params: { ruleId: id } });
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -116,7 +64,7 @@ export const RulesPageContent = () => {
           {enabledCount} {t("rules.enabled")} / {rules.length} {t("common.all")}
         </span>
         <div className="ml-auto">
-          <Button size="sm" onClick={handleShowForm}>
+          <Button size="sm" onClick={handleNavigateToCreate}>
             <Plus className="h-3.5 w-3.5" />
             {t("rules.createNew")}
           </Button>
@@ -124,8 +72,6 @@ export const RulesPageContent = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
-        {showForm && <RuleForm onCancel={handleHideForm} onSave={handleCreate} />}
-
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1">
             {CATEGORY_FILTERS.map((f) => (
@@ -135,7 +81,7 @@ export const RulesPageContent = () => {
                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                   categoryFilter === f.value
                     ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
                 onClick={handleCategoryFilterClick(f.value)}
               >
@@ -158,31 +104,26 @@ export const RulesPageContent = () => {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <ShieldCheck className="h-8 w-8 text-muted-foreground/30" />
             <p className="mt-2 text-sm text-muted-foreground">{t("rules.noRules")}</p>
-            <Button className="mt-2 h-auto p-0 text-xs" variant="link" onClick={handleShowForm}>
+            <Button
+              className="mt-2 h-auto p-0 text-xs"
+              variant="link"
+              onClick={handleNavigateToCreate}
+            >
               {t("rules.createNew")}
             </Button>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {filtered.map((rule) =>
-              editingId === rule.id ? (
-                <div key={rule.id} className="col-span-2">
-                  <RuleForm
-                    initial={getEditForm(rule)}
-                    onCancel={handleCancelEdit}
-                    onSave={handleUpdate}
-                  />
-                </div>
-              ) : (
-                <RuleCard
-                  key={rule.id}
-                  rule={rule}
-                  onDelete={handleDelete}
-                  onEdit={handleEdit}
-                  onToggle={handleToggle}
-                />
-              )
-            )}
+            {filtered.map((rule) => (
+              <RuleCard
+                key={rule.id}
+                rule={rule}
+                onDelete={handleDelete}
+                onNavigateToDetail={handleNavigateToDetail}
+                onNavigateToEdit={handleNavigateToEdit}
+                onToggle={handleToggle}
+              />
+            ))}
           </div>
         )}
       </div>

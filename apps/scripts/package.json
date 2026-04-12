@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "seed": "tsx src/seeds/operations.ts",
-    "seed:operations": "tsx src/seeds/operations.ts"
+    "seed:operations": "tsx src/seeds/operations.ts",
+    "seed:rules": "tsx src/seeds/rules.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",

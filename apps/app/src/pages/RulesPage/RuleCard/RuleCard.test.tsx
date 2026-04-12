@@ -19,45 +19,51 @@ const mockRule: RuleEntity = {
 describe("RuleCard", () => {
   it("renders rule name", () => {
     const handleDelete = vi.fn();
-    const handleEdit = vi.fn();
     const handleToggle = vi.fn();
+    const handleNavigateToDetail = vi.fn();
+    const handleNavigateToEdit = vi.fn();
     render(
       <RuleCard
         rule={mockRule}
         onDelete={handleDelete}
-        onEdit={handleEdit}
+        onNavigateToDetail={handleNavigateToDetail}
+        onNavigateToEdit={handleNavigateToEdit}
         onToggle={handleToggle}
-      />
+      />,
     );
     expect(screen.getByText("No console.log")).toBeTruthy();
   });
 
   it("renders description", () => {
     const handleDelete = vi.fn();
-    const handleEdit = vi.fn();
     const handleToggle = vi.fn();
+    const handleNavigateToDetail = vi.fn();
+    const handleNavigateToEdit = vi.fn();
     render(
       <RuleCard
         rule={mockRule}
         onDelete={handleDelete}
-        onEdit={handleEdit}
+        onNavigateToDetail={handleNavigateToDetail}
+        onNavigateToEdit={handleNavigateToEdit}
         onToggle={handleToggle}
-      />
+      />,
     );
     expect(screen.getByText("禁止使用 console.log")).toBeTruthy();
   });
 
   it("renders tags", () => {
     const handleDelete = vi.fn();
-    const handleEdit = vi.fn();
     const handleToggle = vi.fn();
+    const handleNavigateToDetail = vi.fn();
+    const handleNavigateToEdit = vi.fn();
     render(
       <RuleCard
         rule={mockRule}
         onDelete={handleDelete}
-        onEdit={handleEdit}
+        onNavigateToDetail={handleNavigateToDetail}
+        onNavigateToEdit={handleNavigateToEdit}
         onToggle={handleToggle}
-      />
+      />,
     );
     expect(screen.getByText("debug")).toBeTruthy();
     expect(screen.getByText("style")).toBeTruthy();

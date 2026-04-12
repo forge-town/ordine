@@ -24,8 +24,9 @@ export const Default: Story = {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     },
-    onEdit: () => {},
     onDelete: () => {},
     onToggle: () => {},
+    onNavigateToDetail: () => {},
+    onNavigateToEdit: () => {},
   },
 };

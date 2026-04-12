@@ -1,7 +1,7 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
-import { timestamp, text, pgTable, jsonb } from "drizzle-orm/pg-core";
+import { timestamp, text, pgTable, jsonb, boolean } from "drizzle-orm/pg-core";
 
 // ─── Operations Table (mirrors apps/app/src/models/tables/operations_table.ts) ─
 
@@ -82,6 +82,29 @@ export const recipesTable = pgTable("recipes", {
 
 export type NewRecipeRow = typeof recipesTable.$inferInsert;
 
+// ─── Rules Table (mirrors apps/app/src/models/tables/rules_table.ts) ─────────
+
+export type RuleSeverity = "error" | "warning" | "info";
+export type RuleCategory = "lint" | "security" | "style" | "performance" | "custom";
+
+export const rulesTable = pgTable("rules", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").$type<RuleCategory>().notNull().default("custom"),
+  severity: text("severity").$type<RuleSeverity>().notNull().default("warning"),
+  pattern: text("pattern"),
+  enabled: boolean("enabled").notNull().default(true),
+  tags: text("tags")
+    .array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type NewRuleRow = typeof rulesTable.$inferInsert;
+
 // ─── DB Connection ────────────────────────────────────────────────────────────
 
 const databaseUrl = process.env["DATABASE_URL"];
@@ -91,6 +114,6 @@ if (!databaseUrl) {
 
 const client = postgres(databaseUrl);
 export const db = drizzle(client, {
-  schema: { operationsTable, pipelinesTable, bestPracticesTable, recipesTable },
+  schema: { operationsTable, pipelinesTable, bestPracticesTable, recipesTable, rulesTable },
 });
 export { client };

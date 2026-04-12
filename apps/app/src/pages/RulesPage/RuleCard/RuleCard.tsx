@@ -6,16 +6,24 @@ import { SEVERITY_CONFIG, CATEGORY_CONFIG } from "../types";
 
 export type RuleCardProps = {
   rule: RuleEntity;
-  onEdit: (rule: RuleEntity) => void;
   onDelete: (id: string) => void;
   onToggle: (id: string, enabled: boolean) => void;
+  onNavigateToDetail: (id: string) => void;
+  onNavigateToEdit: (id: string) => void;
 };
 
-export const RuleCard = ({ rule, onEdit, onDelete, onToggle }: RuleCardProps) => {
+export const RuleCard = ({
+  rule,
+  onDelete,
+  onToggle,
+  onNavigateToDetail,
+  onNavigateToEdit,
+}: RuleCardProps) => {
   const { t } = useTranslation();
   const handleToggle = () => onToggle(rule.id, !rule.enabled);
-  const handleEdit = () => onEdit(rule);
+  const handleEdit = () => onNavigateToEdit(rule.id);
   const handleDelete = () => onDelete(rule.id);
+  const handleClickName = () => onNavigateToDetail(rule.id);
   const s = SEVERITY_CONFIG[rule.severity];
   const c = CATEGORY_CONFIG[rule.category];
   const SeverityIcon = s.icon;
@@ -24,14 +32,19 @@ export const RuleCard = ({ rule, onEdit, onDelete, onToggle }: RuleCardProps) =>
     <div
       className={cn(
         "group rounded-xl border border-border bg-card p-4 transition-all",
-        !rule.enabled && "opacity-50"
+        !rule.enabled && "opacity-50",
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <SeverityIcon className={cn("mt-0.5 h-4 w-4 shrink-0", s.cls)} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-foreground">{rule.name}</p>
+            <p
+              className="truncate text-sm font-semibold text-foreground cursor-pointer hover:underline"
+              onClick={handleClickName}
+            >
+              {rule.name}
+            </p>
             {rule.description && (
               <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
                 {rule.description}
