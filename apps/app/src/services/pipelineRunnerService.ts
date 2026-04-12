@@ -16,7 +16,7 @@ import { readFile, readdir, mkdir, writeFile, rm } from "node:fs/promises";
 import { existsSync, statSync } from "node:fs";
 import { basename, dirname, extname, join, relative, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { streamText } from "ai";
+import { generateText, streamText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { Agent } from "@mastra/core/agent";
 import { createTool } from "@mastra/core/tools";
@@ -1180,6 +1180,33 @@ const executePipeline = async (opts: {
   let currentContent = "";
   let outputLocalPath = "";
 
+  // Helper: evaluate whether a loop condition is met (returns true = condition passed)
+  const evaluateLoopCondition = async (
+    conditionPrompt: string,
+    operationOutput: string,
+    override?: LlmOverride,
+  ): Promise<boolean> => {
+    const model = await getLlmModel(override, log);
+    if (!model) {
+      await log(`[Loop] No LLM configured — treating condition as PASS`);
+      return true;
+    }
+    const evalPrompt = `You are a strict evaluator. Given the following acceptance criteria and the operation output, determine if the output meets the criteria.
+
+## Acceptance Criteria
+${conditionPrompt}
+
+## Operation Output
+${operationOutput}
+
+Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not. Do not explain.`;
+
+    const { text } = await generateText({ model, prompt: evalPrompt });
+    const verdict = text.trim().toUpperCase();
+    await log(`[Loop] Condition evaluation result: ${verdict}`);
+    return verdict.startsWith("PASS");
+  };
+
   // Helper: execute a single operation node. Returns { ok, content } or error.
   const executeOperationNode = async (
     node: PipelineNode,
@@ -1530,11 +1557,58 @@ const executePipeline = async (opts: {
 
     // ── Operation nodes ──────────────────────────────────────────────────
     if (node.type === "operation") {
-      const opResult = await executeOperationNode(node);
-      if (opResult.ok) {
-        currentContent = opResult.content;
-      } else if (opResult.error) {
-        return { ok: false, error: opResult.error };
+      const opData = node.data as unknown as {
+        loopEnabled?: boolean;
+        maxLoopCount?: number;
+        loopConditionPrompt?: string;
+        llmProvider?: LlmProvider;
+        llmModel?: string;
+      };
+      const loopEnabled = opData.loopEnabled === true;
+      const maxLoops = opData.maxLoopCount ?? 3;
+      const conditionPrompt = opData.loopConditionPrompt ?? "";
+
+      if (loopEnabled && conditionPrompt) {
+        const llmOverride: LlmOverride | undefined =
+          opData.llmProvider || opData.llmModel
+            ? { llmProvider: opData.llmProvider, llmModel: opData.llmModel }
+            : undefined;
+
+        for (let attempt = 1; attempt <= maxLoops; attempt++) {
+          await log(
+            `[Loop] Iteration ${attempt}/${maxLoops} for "${(node.data as unknown as Record<string, unknown>).label}"`,
+          );
+          const opResult = await executeOperationNode(node);
+          if (!opResult.ok) {
+            if (opResult.error) return { ok: false, error: opResult.error };
+            break;
+          }
+          currentContent = opResult.content;
+
+          const passed = await evaluateLoopCondition(
+            conditionPrompt,
+            currentContent,
+            llmOverride,
+          );
+          if (passed) {
+            await log(`[Loop] Condition PASSED on iteration ${attempt}`);
+            break;
+          }
+          if (attempt === maxLoops) {
+            await log(
+              `[Loop] Max iterations (${maxLoops}) reached — proceeding with last result`,
+            );
+          } else {
+            await log(`[Loop] Condition FAILED — retrying...`);
+          }
+        }
+      } else {
+        const opResult = await executeOperationNode(node);
+        if (opResult.ok) {
+          currentContent = opResult.content;
+        } else if (opResult.error) {
+          return { ok: false, error: opResult.error };
+        }
       }
 
       await log(`@@NODE_DONE::${node.id}`);

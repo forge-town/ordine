@@ -112,6 +112,10 @@ export const OperationNodeDataSchema = z.object({
   llmModel: z.string().optional(),
   bestPracticeId: z.string().optional(),
   bestPracticeName: z.string().optional(),
+  // ─── Loop / retry settings ─────────────────────────────────────────────────
+  loopEnabled: z.boolean().optional(),
+  maxLoopCount: z.number().int().min(1).max(20).optional(),
+  loopConditionPrompt: z.string().optional(),
 });
 
 // ─── Compound node data schema ────────────────────────────────────────────────
