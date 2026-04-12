@@ -15,9 +15,18 @@
  *   3. Clears the redo stack
  */
 
-import { produceWithPatches, applyPatches, enablePatches, type Patch } from "immer";
+import {
+  produceWithPatches,
+  applyPatches,
+  enablePatches,
+  type Patch,
+} from "immer";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
-import type { PipelineNode, PipelineEdge } from "./canvasSlice";
+import {
+  sortParentBeforeChildren,
+  type PipelineNode,
+  type PipelineEdge,
+} from "./canvasSlice";
 
 // Enable immer's patch plugin (must be called once, at module level)
 enablePatches();
@@ -88,7 +97,10 @@ export interface HistorySlice {
    *
    * Returns the next state so the caller can merge it with `set(...)`.
    */
-  recordCommand: (command: CommandMeta, mutate: (draft: CanvasHistoryState) => void) => void;
+  recordCommand: (
+    command: CommandMeta,
+    mutate: (draft: CanvasHistoryState) => void,
+  ) => void;
 
   handleUndo: () => void;
   handleRedo: () => void;
@@ -99,7 +111,7 @@ export interface HistorySlice {
 
 export const createHistorySlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
-  get: Parameters<HarnessCanvasStoreSlice>[1]
+  get: Parameters<HarnessCanvasStoreSlice>[1],
 ): HistorySlice => ({
   _history: [],
   _future: [],
@@ -115,9 +127,12 @@ export const createHistorySlice = (
       edges: state.edges,
     };
 
-    const [next, patches, inversePatches] = produceWithPatches(current, (draft) => {
-      mutate(draft);
-    });
+    const [next, patches, inversePatches] = produceWithPatches(
+      current,
+      (draft) => {
+        mutate(draft);
+      },
+    );
 
     // Nothing changed — skip recording
     if (patches.length === 0) return;
@@ -155,6 +170,8 @@ export const createHistorySlice = (
     };
 
     const prev = applyPatches(current, entry.inversePatches);
+    // Ensure parent-before-children ordering after undo
+    sortParentBeforeChildren(prev.nodes);
     const history = _history.slice(0, -1);
     const future = [entry, ..._future];
 
@@ -180,6 +197,8 @@ export const createHistorySlice = (
     };
 
     const next = applyPatches(current, entry.patches);
+    // Ensure parent-before-children ordering after redo
+    sortParentBeforeChildren(next.nodes);
     const history = [..._history, entry];
     const future = _future.slice(1);
 
