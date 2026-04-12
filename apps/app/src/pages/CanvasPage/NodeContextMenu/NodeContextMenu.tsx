@@ -73,7 +73,11 @@ export const NodeContextMenu = ({
     store,
     (s) => s.removeNodeFromCompound,
   );
+  const groupSelectedNodes = useStore(store, (s) => s.groupSelectedNodes);
   const node = nodes.find((n) => n.id === nodeId);
+  const selectedIds = nodes
+    .filter((n) => n.selected && n.type !== "compound")
+    .map((n) => n.id);
 
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -150,6 +154,11 @@ export const NodeContextMenu = ({
     if (node?.parentId) {
       removeNodeFromCompound(nodeId, node.parentId);
     }
+    onClose();
+  };
+
+  const handleGroupSelected = () => {
+    groupSelectedNodes(selectedIds);
     onClose();
   };
 
@@ -396,7 +405,14 @@ export const NodeContextMenu = ({
           </span>
         </ContextMenuItem>
 
-        {/* Ungroup (compound only) */}
+        {/* Group selected nodes */}
+        {selectedIds.length >= 2 && (
+          <ContextMenuItem closeOnClick={false} onClick={handleGroupSelected}>
+            <Group className="size-4 text-muted-foreground" />
+            编组 {selectedIds.length} 个选中节点
+          </ContextMenuItem>
+        )}
+
         {/* Ungroup (compound only) */}
         {node.type === "compound" && (
           <ContextMenuItem closeOnClick={false} onClick={handleUngroup}>
