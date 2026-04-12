@@ -8,6 +8,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "quality": "turbo quality",
+    "knip": "knip",
     "storybook": "turbo run storybook",
     "build-storybook": "turbo run build-storybook",
     "sync-skills": "bunx skills add https://github.com/forge-town/skills"
@@ -15,6 +16,7 @@
   "devDependencies": {
     "@oxlint/binding-darwin-arm64": "^1.59.0",
     "@rollup/rollup-darwin-arm64": "^4.60.1",
+    "knip": "^6.4.0",
     "prettier": "^3.7.4",
     "turbo": "^2.8.21",
     "typescript": "5.9.2"

@@ -1,0 +1,51 @@
+{
+  "workspaces": {
+    "apps/app": {
+      "entry": ["src/router.tsx", "src/routes/**/*.tsx"],
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignore": ["src/routeTree.gen.ts", "src/vite-env.d.ts"]
+    },
+    "apps/web": {
+      "entry": ["app/**/*.{ts,tsx}"],
+      "project": ["app/**/*.{ts,tsx}"]
+    },
+    "apps/mastra": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "apps/scripts": {
+      "entry": ["src/**/*.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/ui": {
+      "includeEntryExports": true,
+      "entry": ["src/**/*.{ts,tsx}"],
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "packages/eslint-config": {
+      "entry": ["*.js"],
+      "project": ["*.js"]
+    },
+    "packages/oxlint-config": {
+      "entry": ["plugins/**/*.js"],
+      "project": ["plugins/**/*.js"]
+    }
+  },
+  "ignoreDependencies": [
+    "@fontsource-variable/geist",
+    "@base-ui/react",
+    "class-variance-authority",
+    "clsx",
+    "tailwind-merge",
+    "tailwindcss",
+    "tw-animate-css",
+    "shadcn",
+    "@oxfmt/binding-darwin-arm64",
+    "@oxlint/binding-darwin-arm64",
+    "@rollup/rollup-darwin-arm64",
+    "@repo/oxlint-config",
+    "@tanstack/router-plugin"
+  ],
+  "ignoreBinaries": ["tsx"],
+  "ignore": ["**/*.stories.tsx"]
+}
