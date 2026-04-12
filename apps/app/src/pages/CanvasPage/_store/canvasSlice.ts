@@ -113,24 +113,20 @@ export const createCanvasSlice = (
     selectedEdgeId: null,
     hoveredCompoundId: null,
 
-    handleNodesChange: (changes) => {
-      // Position drags — bypass history (noisy), React Flow manages these internally.
-      // Only non-position changes (select, remove) go through normal set.
+    handleNodesChange: (changes) =>
       set((state) => ({
         nodes: applyNodeChanges(changes, state.nodes),
-      }));
-    },
+      })),
 
-    handleEdgesChange: (changes) => {
+    handleEdgesChange: (changes) =>
       set((state) => ({
         edges: applyEdgeChanges(changes, state.edges),
-      }));
-    },
+      })),
 
     handleConnect: (connection) => {
-      const state = get();
-      const sourceNode = state.nodes.find((n) => n.id === connection.source);
-      const targetNode = state.nodes.find((n) => n.id === connection.target);
+      const { nodes, recordCommand } = get();
+      const sourceNode = nodes.find((n) => n.id === connection.source);
+      const targetNode = nodes.find((n) => n.id === connection.target);
       if (!sourceNode || !targetNode) {
         return;
       }
@@ -143,7 +139,7 @@ export const createCanvasSlice = (
         return;
       }
 
-      state.recordCommand(
+      recordCommand(
         {
           type: "ADD_EDGE",
           label: `连接 ${sourceNode.data.label} → ${targetNode.data.label}`,
@@ -159,7 +155,9 @@ export const createCanvasSlice = (
     },
 
     addNode: (node) => {
-      get().recordCommand(
+      const { recordCommand } = get();
+
+      recordCommand(
         {
           type: "ADD_NODE",
           label: `添加节点 ${node.data.label}`,
@@ -172,8 +170,8 @@ export const createCanvasSlice = (
     },
 
     addNodeWithEdge: (sourceId, targetType) => {
-      const state = get();
-      const source = state.nodes.find((n) => n.id === sourceId);
+      const { nodes, recordCommand } = get();
+      const source = nodes.find((n) => n.id === sourceId);
       if (!source) {
         return;
       }
@@ -194,7 +192,7 @@ export const createCanvasSlice = (
         data: {},
       };
 
-      state.recordCommand(
+      recordCommand(
         {
           type: "ADD_NODE_WITH_EDGE",
           label: `添加 ${newNode.data.label} 并连接`,
@@ -208,13 +206,13 @@ export const createCanvasSlice = (
     },
 
     removeNode: (nodeId) => {
-      const state = get();
-      const node = state.nodes.find((n) => n.id === nodeId);
+      const { nodes, recordCommand } = get();
+      const node = nodes.find((n) => n.id === nodeId);
       if (!node) {
         return;
       }
 
-      state.recordCommand(
+      recordCommand(
         {
           type: "REMOVE_NODE",
           label: `删除节点 ${node.data.label}`,
@@ -232,13 +230,13 @@ export const createCanvasSlice = (
     },
 
     updateNodeData: (nodeId, data) => {
-      const state = get();
-      const node = state.nodes.find((n) => n.id === nodeId);
+      const { nodes, recordCommand } = get();
+      const node = nodes.find((n) => n.id === nodeId);
       if (!node) {
         return;
       }
 
-      state.recordCommand(
+      recordCommand(
         {
           type: "UPDATE_NODE_DATA",
           label: `编辑 ${node.data.label}`,
@@ -253,25 +251,20 @@ export const createCanvasSlice = (
       );
     },
 
-    updateEdgeData: (edgeId, data) => {
+    updateEdgeData: (edgeId, data) =>
       set((state) => ({
         edges: state.edges.map((e) =>
           e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e
         ),
-      }));
-    },
+      })),
 
-    selectNode: (nodeId) => {
-      set({ selectedNodeId: nodeId, selectedEdgeId: null });
-    },
+    selectNode: (nodeId) => set({ selectedNodeId: nodeId, selectedEdgeId: null }),
 
-    selectEdge: (edgeId) => {
-      set({ selectedEdgeId: edgeId, selectedNodeId: null });
-    },
+    selectEdge: (edgeId) => set({ selectedEdgeId: edgeId, selectedNodeId: null }),
 
     duplicateNode: (nodeId) => {
-      const state = get();
-      const source = state.nodes.find((n) => n.id === nodeId);
+      const { nodes, recordCommand } = get();
+      const source = nodes.find((n) => n.id === nodeId);
       if (!source) {
         return;
       }
@@ -285,7 +278,7 @@ export const createCanvasSlice = (
         data: { ...source.data },
       };
 
-      state.recordCommand(
+      recordCommand(
         {
           type: "DUPLICATE_NODE",
           label: `复制节点 ${source.data.label}`,
@@ -298,8 +291,8 @@ export const createCanvasSlice = (
     },
 
     clearCanvas: () => {
-      const state = get();
-      state.recordCommand({ type: "CLEAR_CANVAS", label: "清空画布" }, (draft) => {
+      const { recordCommand } = get();
+      recordCommand({ type: "CLEAR_CANVAS", label: "清空画布" }, (draft) => {
         draft.nodes = [];
         draft.edges = [];
       });

@@ -534,9 +534,12 @@ export const createActionsSlice = (
   },
 
   nodeContextUngroup: () => {
-    const { nodeContextMenu } = get();
+    const { nodeContextMenu, ungroupCompound } = get();
+
     if (!nodeContextMenu) return;
-    get().ungroupCompound(nodeContextMenu.nodeId);
+
+    ungroupCompound(nodeContextMenu.nodeId);
+
     set({ nodeContextMenu: null });
   },
 
@@ -669,8 +672,8 @@ export const createActionsSlice = (
   handleNodeAddExcludedPath: (nodeId, path) => {
     const node = get().nodes.find((n) => n.id === nodeId);
     if (!node) return;
-    const current = Array.isArray((node.data as Record<string, unknown>).excludedPaths)
-      ? ((node.data as Record<string, unknown>).excludedPaths as string[])
+    const current = Array.isArray(node.data.excludedPaths)
+      ? (node.data.excludedPaths as string[])
       : [];
     if (!current.includes(path)) {
       get().updateNodeData(nodeId, { excludedPaths: [...current, path] });
@@ -680,8 +683,8 @@ export const createActionsSlice = (
   handleNodeRemoveExcludedPath: (nodeId, path) => {
     const node = get().nodes.find((n) => n.id === nodeId);
     if (!node) return;
-    const current = Array.isArray((node.data as Record<string, unknown>).excludedPaths)
-      ? ((node.data as Record<string, unknown>).excludedPaths as string[])
+    const current = Array.isArray(node.data.excludedPaths)
+      ? (node.data.excludedPaths as string[])
       : [];
     get().updateNodeData(nodeId, {
       excludedPaths: current.filter((p) => p !== path),
