@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store/harnessCanvasStore";
 import { NodeContextMenu } from "./NodeContextMenu";
 
 vi.mock("@/routes/canvas", () => ({
@@ -14,18 +14,15 @@ vi.mock("@/routes/canvas", () => ({
   },
 }));
 
-const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
-);
-
 describe("NodeContextMenu", () => {
   it("renders without crashing", () => {
-    const handleClose = vi.fn();
+    const store = createHarnessCanvasStore();
     const { container } = render(
-      <NodeContextMenu nodeId="node-1" screenX={200} screenY={200} onClose={handleClose} />,
-      { wrapper }
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <NodeContextMenu />
+      </HarnessCanvasStoreContext.Provider>
     );
-    // Returns null when node not found in store – that's expected
+    // Returns null when nodeContextMenu is null in store – that's expected
     expect(container).toBeTruthy();
   });
 });

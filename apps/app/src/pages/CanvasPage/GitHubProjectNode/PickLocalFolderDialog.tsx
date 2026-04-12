@@ -35,7 +35,7 @@ export const PickLocalFolderDialog = ({
   const handleConfirm = () => {
     if (!path.trim()) return;
     const parts = path.trim().split("/").filter(Boolean);
-    const folderName = parts.length > 0 ? (parts[parts.length - 1] as string) : path.trim();
+    const folderName = parts.length > 0 ? (parts.at(-1) as string) : path.trim();
     onPick({ localPath: path.trim(), label: folderName });
     onClose();
   };

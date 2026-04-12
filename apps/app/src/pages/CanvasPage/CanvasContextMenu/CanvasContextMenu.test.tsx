@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store/harnessCanvasStore";
 import { CanvasContextMenu } from "./CanvasContextMenu";
 
 vi.mock("@/routes/canvas", () => ({
@@ -14,22 +14,21 @@ vi.mock("@/routes/canvas", () => ({
   },
 }));
 
-const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
-);
+const createTestStore = () => {
+  const store = createHarnessCanvasStore();
+  store.setState({
+    contextMenu: { screenX: 200, screenY: 200, flowX: 100, flowY: 100 },
+  });
+  return store;
+};
 
 describe("CanvasContextMenu", () => {
   it("renders without crashing", () => {
-    const handleClose = vi.fn();
+    const store = createTestStore();
     render(
-      <CanvasContextMenu
-        flowX={100}
-        flowY={100}
-        screenX={200}
-        screenY={200}
-        onClose={handleClose}
-      />,
-      { wrapper }
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <CanvasContextMenu />
+      </HarnessCanvasStoreContext.Provider>
     );
     expect(screen.getByText("新建节点")).toBeTruthy();
   });

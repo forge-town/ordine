@@ -18,26 +18,11 @@ export const CanvasInner = () => {
 
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const contextMenu = useStore(store, (state) => state.contextMenu);
-  const handleCloseContextMenu = useStore(
-    store,
-    (state) => state.closeContextMenu,
-  );
   const connectionMenu = useStore(store, (state) => state.connectionMenu);
-  const handleCloseConnectionMenu = useStore(
-    store,
-    (state) => state.closeConnectionMenu,
-  );
   const nodeContextMenu = useStore(store, (state) => state.nodeContextMenu);
-  const handleCloseNodeContextMenu = useStore(
-    store,
-    (state) => state.closeNodeContextMenu,
-  );
   const activeJobId = useStore(store, (state) => state.activeJobId);
   const isConsoleOpen = useStore(store, (state) => state.isConsoleOpen);
-  const handleCloseConsole = useStore(
-    store,
-    (state) => state.handleCloseConsole,
-  );
+  const handleCloseConsole = useStore(store, (state) => state.handleCloseConsole);
   const setPipelineName = useStore(store, (state) => state.setPipelineName);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,42 +48,17 @@ export const CanvasInner = () => {
 
       <CanvasFlow />
 
-      {contextMenu && (
-        <CanvasContextMenu
-          flowX={contextMenu.flowX}
-          flowY={contextMenu.flowY}
-          screenX={contextMenu.screenX}
-          screenY={contextMenu.screenY}
-          onClose={handleCloseContextMenu}
-        />
-      )}
+      {contextMenu && <CanvasContextMenu />}
 
-      {connectionMenu && (
-        <ConnectionMenu
-          flowX={connectionMenu.flowX}
-          flowY={connectionMenu.flowY}
-          screenX={connectionMenu.screenX}
-          screenY={connectionMenu.screenY}
-          onClose={handleCloseConnectionMenu}
-        />
-      )}
+      {connectionMenu && <ConnectionMenu />}
 
-      {nodeContextMenu && (
-        <NodeContextMenu
-          nodeId={nodeContextMenu.nodeId}
-          screenX={nodeContextMenu.screenX}
-          screenY={nodeContextMenu.screenY}
-          onClose={handleCloseNodeContextMenu}
-        />
-      )}
+      {nodeContextMenu && <NodeContextMenu />}
 
       <AiAssistantPanel />
 
       <LlmContentCard />
 
-      {isConsoleOpen && (
-        <RunConsole jobId={activeJobId} onClose={handleCloseConsole} />
-      )}
+      {isConsoleOpen && <RunConsole jobId={activeJobId} onClose={handleCloseConsole} />}
     </div>
   );
 };

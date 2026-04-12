@@ -35,9 +35,11 @@ export interface UISlice {
   connectionMenu: ContextMenuState | null;
   nodeContextMenu: NodeContextMenuState | null;
   connectStart: ConnectStartState | null;
+  shouldIgnorePaneClick: boolean;
 
   // Pipeline test run state
   isTestRunning: boolean;
+  isRunning: boolean;
   runningNodeId: string | null;
   nodeRunStatuses: Record<string, NodeRunStatus>;
   nodeLlmContent: Record<string, string>;
@@ -96,8 +98,10 @@ export const createUISlice = (
   connectionMenu: null,
   nodeContextMenu: null,
   connectStart: null,
+  shouldIgnorePaneClick: false,
   // Pipeline test run state defaults
   isTestRunning: false,
+  isRunning: false,
   runningNodeId: null,
   nodeRunStatuses: {},
   nodeLlmContent: {},

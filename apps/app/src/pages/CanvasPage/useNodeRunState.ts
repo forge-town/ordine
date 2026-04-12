@@ -15,10 +15,7 @@ export const useNodeRunState = (nodeId: string): NodeRunState => {
 
   const runStatus = nodeRunStatuses[nodeId];
   const dimmed =
-    isTestRunning &&
-    runningNodeId !== null &&
-    runningNodeId !== nodeId &&
-    runStatus !== "running";
+    isTestRunning && runningNodeId !== null && runningNodeId !== nodeId && runStatus !== "running";
 
   return { runStatus, dimmed };
 };

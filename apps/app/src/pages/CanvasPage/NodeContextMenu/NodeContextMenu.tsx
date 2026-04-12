@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useTranslation } from "react-i18next";
 import {
@@ -28,13 +27,7 @@ import { SiGitHubIcon } from "../GitHubProjectNode/SiGitHubIcon";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { Route } from "@/routes/canvas";
-import {
-  nodeTypeMeta,
-  makeDefaultNodeData,
-  makeOperationNodeData,
-  getAllowedConnections,
-  type NodeType,
-} from "../nodeSchemas";
+import { nodeTypeMeta, getAllowedConnections, type NodeType } from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
@@ -47,52 +40,36 @@ const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
   "output-local-path": HardDrive,
 };
 
-interface Props {
-  screenX: number;
-  screenY: number;
-  nodeId: string;
-  onClose: () => void;
-}
-
-export const NodeContextMenu = ({
-  screenX,
-  screenY,
-  nodeId,
-  onClose,
-}: Props) => {
+export const NodeContextMenu = () => {
   const { t } = useTranslation();
   const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
+  const nodeContextMenu = useStore(store, (s) => s.nodeContextMenu);
   const nodes = useStore(store, (s) => s.nodes);
-  const duplicateNode = useStore(store, (s) => s.duplicateNode);
-  const removeNode = useStore(store, (s) => s.removeNode);
-  const addNode = useStore(store, (s) => s.addNode);
-  const onConnect = useStore(store, (s) => s.handleConnect);
-  const ungroupCompound = useStore(store, (s) => s.ungroupCompound);
-  const removeNodeFromCompound = useStore(
-    store,
-    (s) => s.removeNodeFromCompound,
-  );
-  const groupSelectedNodes = useStore(store, (s) => s.groupSelectedNodes);
-  const node = nodes.find((n) => n.id === nodeId);
-  const selectedIds = nodes
-    .filter((n) => n.selected && n.type !== "compound")
-    .map((n) => n.id);
+  const handleNodeContextDuplicate = useStore(store, (s) => s.nodeContextDuplicate);
+  const handleNodeContextDelete = useStore(store, (s) => s.nodeContextDelete);
+  const handleNodeContextUngroup = useStore(store, (s) => s.nodeContextUngroup);
+  const handleNodeContextDetach = useStore(store, (s) => s.nodeContextDetach);
+  const handleNodeContextGroupSelected = useStore(store, (s) => s.nodeContextGroupSelected);
+  const handleNodeContextAddObject = useStore(store, (s) => s.nodeContextAddObject);
+  const nodeContextAddOperation = useStore(store, (s) => s.nodeContextAddOperation);
+  const nodeContextAddRecipe = useStore(store, (s) => s.nodeContextAddRecipe);
+  const handleNodeContextMenuOpenChange = useStore(store, (s) => s.handleNodeContextMenuOpenChange);
 
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  const nodeId = nodeContextMenu?.nodeId;
+  const node = nodes.find((n) => n.id === nodeId);
+  const selectedIds = nodes.filter((n) => n.selected && n.type !== "compound").map((n) => n.id);
 
   useHotkeys(
     "mod+d",
     (e) => {
       e.preventDefault();
-      duplicateNode(nodeId);
-      onCloseRef.current();
+      handleNodeContextDuplicate();
     },
-    [duplicateNode, nodeId],
+    [handleNodeContextDuplicate]
   );
 
-  if (!node) return null;
+  if (!nodeContextMenu || !node) return null;
 
   const meta = nodeTypeMeta[node.type];
   const allowedConnections = getAllowedConnections(operations);
@@ -108,16 +85,14 @@ export const NodeContextMenu = ({
     const objectType = objectTypeMap[node.type];
     if (!objectType) return operations;
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(
-        objectType as "file" | "folder" | "project",
-      ),
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
     );
   })();
 
   const canAddOperation = availableTypes.includes("operation");
 
-  const left = Math.min(screenX, window.innerWidth - 232);
-  const top = Math.min(screenY, window.innerHeight - 280);
+  const left = Math.min(nodeContextMenu.screenX, window.innerWidth - 232);
+  const top = Math.min(nodeContextMenu.screenY, window.innerHeight - 280);
 
   const virtualAnchor = {
     getBoundingClientRect: () => ({
@@ -135,68 +110,10 @@ export const NodeContextMenu = ({
     }),
   };
 
-  const handleDuplicate = () => {
-    duplicateNode(nodeId);
-    onClose();
-  };
-
-  const handleDelete = () => {
-    removeNode(nodeId);
-    onClose();
-  };
-
-  const handleUngroup = () => {
-    ungroupCompound(nodeId);
-    onClose();
-  };
-
-  const handleDetachFromCompound = () => {
-    if (node?.parentId) {
-      removeNodeFromCompound(nodeId, node.parentId);
-    }
-    onClose();
-  };
-
-  const handleGroupSelected = () => {
-    groupSelectedNodes(selectedIds);
-    onClose();
-  };
-
-  const handleAddObject = (type: NodeType) => {
-    const newId = `${type}-${Date.now()}`;
-    addNode({
-      id: newId,
-      type,
-      position: { x: node.position.x + 280, y: node.position.y },
-      data: makeDefaultNodeData(type),
-    });
-    onConnect({
-      source: nodeId,
-      sourceHandle: null,
-      target: newId,
-      targetHandle: null,
-    });
-    onClose();
-  };
-
   const handleAddOperation = (operationId: string) => {
     const operation = operations.find((op) => op.id === operationId);
     if (!operation) return;
-
-    const newId = `op-${operationId}-${Date.now()}`;
-    addNode({
-      id: newId,
-      type: "operation",
-      position: { x: node.position.x + 280, y: node.position.y },
-      data: makeOperationNodeData(operation),
-    });
-    onConnect({
-      source: nodeId,
-      sourceHandle: null,
-      target: newId,
-      targetHandle: null,
-    });
-    onClose();
+    nodeContextAddOperation(operation);
   };
 
   const handleAddRecipe = (recipeId: string) => {
@@ -204,34 +121,11 @@ export const NodeContextMenu = ({
     if (!recipe) return;
     const operation = operations.find((op) => op.id === recipe.operationId);
     if (!operation) return;
-
-    const newId = `op-recipe-${Date.now()}`;
-    addNode({
-      id: newId,
-      type: "operation",
-      position: { x: node.position.x + 280, y: node.position.y },
-      data: {
-        ...makeOperationNodeData(operation),
-        label: recipe.name,
-        bestPracticeId: recipe.bestPracticeId,
-        bestPracticeName: recipe.name,
-      },
-    });
-    onConnect({
-      source: nodeId,
-      sourceHandle: null,
-      target: newId,
-      targetHandle: null,
-    });
-    onClose();
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    if (!open) onClose();
+    nodeContextAddRecipe(recipe, operation);
   };
 
   return (
-    <ContextMenu open onOpenChange={handleOpenChange}>
+    <ContextMenu open onOpenChange={handleNodeContextMenuOpenChange}>
       <ContextMenuContent
         align="start"
         anchor={virtualAnchor}
@@ -245,14 +139,12 @@ export const NodeContextMenu = ({
           <span
             className={cn(
               "flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold text-white",
-              meta.iconBg,
+              meta.iconBg
             )}
           >
             {meta.shortLabel.charAt(0)}
           </span>
-          <span className="text-xs font-medium text-foreground">
-            {meta.label}
-          </span>
+          <span className="text-xs font-medium text-foreground">{meta.label}</span>
         </div>
 
         {/* Actions submenu */}
@@ -268,7 +160,7 @@ export const NodeContextMenu = ({
 
             {/* Object types */}
             {["code-file", "folder", "github-project"].some((t) =>
-              availableTypes.includes(t as NodeType),
+              availableTypes.includes(t as NodeType)
             ) && (
               <ContextMenuGroup>
                 <ContextMenuLabel>处理对象</ContextMenuLabel>
@@ -281,12 +173,12 @@ export const NodeContextMenu = ({
                       <ContextMenuItem
                         key={type}
                         closeOnClick={false}
-                        onClick={() => handleAddObject(type as NodeType)}
+                        onClick={() => handleNodeContextAddObject(type as NodeType)}
                       >
                         <span
                           className={cn(
                             "flex size-4 shrink-0 items-center justify-center rounded",
-                            m.iconBg,
+                            m.iconBg
                           )}
                         >
                           <Icon className="size-2.5 text-white" />
@@ -303,9 +195,7 @@ export const NodeContextMenu = ({
               <>
                 <ContextMenuSeparator />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>
-                    {t("canvas.contextMenu.operationNode")}
-                  </ContextMenuLabel>
+                  <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
                   {availableOperations.map((operation) => (
                     <ContextMenuItem
                       key={operation.id}
@@ -327,9 +217,7 @@ export const NodeContextMenu = ({
               <>
                 <ContextMenuSeparator />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>
-                    {t("canvas.contextMenu.operationNode")}
-                  </ContextMenuLabel>
+                  <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
                   <p className="px-1.5 py-1 text-xs text-muted-foreground">
                     没有接受此类型的 Operation
                   </p>
@@ -360,8 +248,8 @@ export const NodeContextMenu = ({
             )}
 
             {/* Output nodes */}
-            {(["output-project-path", "output-local-path"] as NodeType[]).some(
-              (t) => availableTypes.includes(t),
+            {(["output-project-path", "output-local-path"] as NodeType[]).some((t) =>
+              availableTypes.includes(t)
             ) && (
               <>
                 <ContextMenuSeparator />
@@ -376,12 +264,12 @@ export const NodeContextMenu = ({
                         <ContextMenuItem
                           key={type}
                           closeOnClick={false}
-                          onClick={() => handleAddObject(type)}
+                          onClick={() => handleNodeContextAddObject(type)}
                         >
                           <span
                             className={cn(
                               "flex size-4 shrink-0 items-center justify-center rounded",
-                              m.iconBg,
+                              m.iconBg
                             )}
                           >
                             <Icon className="size-2.5 text-white" />
@@ -397,17 +285,15 @@ export const NodeContextMenu = ({
         </ContextMenuSub>
 
         {/* Duplicate */}
-        <ContextMenuItem closeOnClick={false} onClick={handleDuplicate}>
+        <ContextMenuItem closeOnClick={false} onClick={handleNodeContextDuplicate}>
           <Copy className="size-4 text-muted-foreground" />
           Duplicate
-          <span className="ml-auto text-xs tracking-widest text-muted-foreground">
-            ⌘D
-          </span>
+          <span className="ml-auto text-xs tracking-widest text-muted-foreground">⌘D</span>
         </ContextMenuItem>
 
         {/* Group selected nodes */}
         {selectedIds.length >= 2 && (
-          <ContextMenuItem closeOnClick={false} onClick={handleGroupSelected}>
+          <ContextMenuItem closeOnClick={false} onClick={handleNodeContextGroupSelected}>
             <Group className="size-4 text-muted-foreground" />
             编组 {selectedIds.length} 个选中节点
           </ContextMenuItem>
@@ -415,7 +301,7 @@ export const NodeContextMenu = ({
 
         {/* Ungroup (compound only) */}
         {node.type === "compound" && (
-          <ContextMenuItem closeOnClick={false} onClick={handleUngroup}>
+          <ContextMenuItem closeOnClick={false} onClick={handleNodeContextUngroup}>
             <Ungroup className="size-4 text-muted-foreground" />
             解散编组
           </ContextMenuItem>
@@ -423,10 +309,7 @@ export const NodeContextMenu = ({
 
         {/* Detach from compound (child nodes only) */}
         {node.parentId && (
-          <ContextMenuItem
-            closeOnClick={false}
-            onClick={handleDetachFromCompound}
-          >
+          <ContextMenuItem closeOnClick={false} onClick={handleNodeContextDetach}>
             <Ungroup className="size-4 text-muted-foreground" />
             从编组中移除
           </ContextMenuItem>
@@ -438,13 +321,11 @@ export const NodeContextMenu = ({
         <ContextMenuItem
           closeOnClick={false}
           variant="destructive"
-          onClick={handleDelete}
+          onClick={handleNodeContextDelete}
         >
           <Trash2 className="size-4" />
           Delete
-          <span className="ml-auto text-xs tracking-widest text-destructive/40">
-            ⌫
-          </span>
+          <span className="ml-auto text-xs tracking-widest text-destructive/40">⌫</span>
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

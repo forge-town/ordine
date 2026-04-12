@@ -8,8 +8,7 @@ import { useHarnessCanvasStore } from "../_store";
 import { updatePipeline } from "@/services/pipelinesService";
 import { ResultAsync } from "neverthrow";
 
-const handleNavigateSettings = () =>
-  void (globalThis.location.href = "/settings");
+const handleNavigateSettings = () => void (globalThis.location.href = "/settings");
 
 export const HarnessCanvasHeader = () => {
   const { t } = useTranslation();
@@ -19,9 +18,7 @@ export const HarnessCanvasHeader = () => {
   const nodes = useStore(store, (s) => s.nodes);
   const edges = useStore(store, (s) => s.edges);
 
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
-    "idle",
-  );
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
 
   const handleSave = async () => {
     if (!pipelineId) return;
@@ -38,18 +35,16 @@ export const HarnessCanvasHeader = () => {
           },
         },
       }),
-      () => "save-failed" as const,
+      () => "save-failed" as const
     );
     result.match(
       () => {
         setSaveState("saved");
         setTimeout(() => setSaveState("idle"), 2000);
       },
-      () => setSaveState("idle"),
+      () => setSaveState("idle")
     );
   };
-
-  const handleClickSave = () => void handleSave();
 
   return (
     <header className="flex h-11 shrink-0 items-center justify-between border-b bg-background px-4">
@@ -70,7 +65,7 @@ export const HarnessCanvasHeader = () => {
             disabled={saveState === "saving"}
             size="sm"
             variant="ghost"
-            onClick={handleClickSave}
+            onClick={handleSave}
           >
             {saveState === "saving" ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />

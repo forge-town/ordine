@@ -1,13 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import {
-  Zap,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  Circle,
-  Brain,
-  Repeat,
-} from "lucide-react";
+import { Zap, CheckCircle2, XCircle, Loader2, Circle, Brain, Repeat } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@repo/ui/lib/utils";
 import {
@@ -20,11 +12,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { useStore } from "zustand";
-import {
-  useHarnessCanvasStore,
-  type OperationNodeData,
-  type NodeRunStatus,
-} from "../_store";
+import { useHarnessCanvasStore, type OperationNodeData, type NodeRunStatus } from "../_store";
 import { Route } from "@/routes/canvas";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
@@ -78,16 +66,11 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
   const setInspectingNodeId = useStore(store, (s) => s.setInspectingNodeId);
 
-  const {
-    icon: StatusIcon,
-    color,
-    label: statusLabel,
-  } = statusConfig[data.status ?? "idle"];
+  const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
 
   const operation = operations.find((op) => op.id === data.operationId);
 
-  const handleLabelChange = (v: string) =>
-    updateNodeData(id, { label: v, operationName: v });
+  const handleLabelChange = (v: string) => updateNodeData(id, { label: v, operationName: v });
 
   const selectedProvider = data.llmProvider ?? "";
   const selectedModel = data.llmModel ?? "";
@@ -118,10 +101,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const handleModelOpenChange = (v: boolean) => setModelOpen(v);
   const handleModelToggle = () => setModelOpen((prev) => !prev);
 
-  const handleBestPracticeChange = (
-    bpId: string | undefined,
-    bpName: string | undefined,
-  ) => {
+  const handleBestPracticeChange = (bpId: string | undefined, bpName: string | undefined) => {
     updateNodeData(id, { bestPracticeId: bpId, bestPracticeName: bpName });
   };
 
@@ -140,9 +120,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
 
   const hasLlmContent = !!nodeLlmContent[id];
   const canInspect = isTestRunning || hasLlmContent;
-  const handleCardClick = canInspect
-    ? () => setInspectingNodeId(id)
-    : undefined;
+  const handleCardClick = canInspect ? () => setInspectingNodeId(id) : undefined;
 
   return (
     <div
@@ -164,14 +142,11 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               data.status === "pass" && "bg-green-50 border-green-100",
               data.status === "fail" && "bg-red-50 border-red-100",
               data.status === "running" && "bg-blue-50 border-blue-100",
-              (!data.status || data.status === "idle") &&
-                "bg-white border-slate-100",
+              (!data.status || data.status === "idle") && "bg-white border-slate-100"
             )}
           >
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span
-              className={cn("text-[10px] font-semibold tracking-wide", color)}
-            >
+            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
               {statusLabel}
             </span>
           </div>
@@ -299,7 +274,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               "flex w-full items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-medium transition-colors",
               data.loopEnabled
                 ? "border-amber-200 bg-amber-50 text-amber-700"
-                : "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100",
+                : "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100"
             )}
             type="button"
             onClick={handleLoopToggle}
@@ -324,9 +299,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
                 />
               </div>
               <div className="space-y-0.5">
-                <span className="text-[10px] font-medium text-amber-700">
-                  验收条件
-                </span>
+                <span className="text-[10px] font-medium text-amber-700">验收条件</span>
                 <textarea
                   className="nodrag nopan w-full rounded border border-amber-200 bg-white px-1.5 py-1 text-[10px] text-amber-800 placeholder:text-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-300"
                   placeholder="描述输出需要满足的条件..."

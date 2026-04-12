@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import {
@@ -16,9 +15,6 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
-import { updatePipeline } from "@/services/pipelinesService";
-import { useToastStore } from "@/store/toastStore";
-import { ResultAsync, err } from "neverthrow";
 
 export const CanvasToolbar = () => {
   const { t } = useTranslation();
@@ -27,117 +23,17 @@ export const CanvasToolbar = () => {
   const isAiAssistantOpen = useStore(store, (state) => state.isAiAssistantOpen);
   const canUndo = useStore(store, (state) => state.canUndo);
   const canRedo = useStore(store, (state) => state.canRedo);
-  const fitView = useStore(store, (state) => state.fitView);
-  const handleFitView = () => fitView({ padding: 0.1 });
+  const handleFitView = useStore(store, (state) => state.handleFitView);
   const handleZoomIn = useStore(store, (state) => state.handleZoomIn);
   const handleZoomOut = useStore(store, (state) => state.handleZoomOut);
   const pipelineId = useStore(store, (state) => state.pipelineId);
-  const pipelineName = useStore(store, (state) => state.pipelineName);
-  const nodes = useStore(store, (state) => state.nodes);
-  const edges = useStore(store, (state) => state.edges);
-  const handleDeleteSelected = useStore(
-    store,
-    (state) => state.handleDeleteSelected,
-  );
+  const isRunning = useStore(store, (state) => state.isRunning);
+  const handleDeleteSelected = useStore(store, (state) => state.handleDeleteSelected);
   const handleToggleAi = useStore(store, (state) => state.handleToggleAi);
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
-  const setActiveJobId = useStore(store, (state) => state.setActiveJobId);
-  const startTestRun = useStore(store, (state) => state.startTestRun);
-  const isTestRunning = useStore(store, (state) => state.isTestRunning);
   const handleFormatLayout = useStore(store, (state) => state.formatLayout);
-
-  const [isRunning, setIsRunning] = useState(false);
-
-  const handleRunTest = async () => {
-    if (isRunning || isTestRunning) return;
-
-    if (!pipelineId) {
-      useToastStore.getState().addToast({
-        type: "error",
-        title: t("canvas.runFailed"),
-        description: t("canvas.saveFailed"),
-      });
-      return;
-    }
-
-    setIsRunning(true);
-    startTestRun();
-
-    const saveResult = await ResultAsync.fromPromise(
-      updatePipeline({
-        data: {
-          id: pipelineId,
-          patch: {
-            name: pipelineName || t("canvas.unsavedPipeline"),
-            nodes: nodes as unknown[],
-            edges: edges as unknown[],
-            updatedAt: Date.now(),
-          },
-        },
-      }),
-      () => "save-failed" as const,
-    );
-
-    if (saveResult.isErr()) {
-      useToastStore.getState().addToast({
-        type: "error",
-        title: t("canvas.runFailed"),
-        description: t("canvas.saveFailed"),
-      });
-      setIsRunning(false);
-      return;
-    }
-
-    const runResult = await ResultAsync.fromPromise(
-      fetch(`/api/pipelines/${pipelineId}/run`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      }),
-      () => "Failed to start pipeline",
-    )
-      .andThen((res) =>
-        ResultAsync.fromPromise(
-          res.text(),
-          () => "Failed to read response",
-        ).map((text) => ({
-          res,
-          text,
-        })),
-      )
-      .andThen(({ res, text }) => {
-        if (!res.ok) {
-          return err(text || `HTTP ${res.status}`);
-        }
-        return ResultAsync.fromPromise(
-          Promise.resolve().then(() => JSON.parse(text) as { jobId: string }),
-          () => "Failed to parse response",
-        );
-      });
-
-    runResult.match(
-      ({ jobId }) => {
-        setActiveJobId(jobId);
-        useToastStore.getState().addToast({
-          type: "success",
-          title: t("canvas.runCompleted"),
-          description: `Job ${jobId} ${t("canvas.runSuccess")}`,
-        });
-      },
-      (error) => {
-        useToastStore.getState().addToast({
-          type: "error",
-          title: t("canvas.runFailed"),
-          description: error,
-        });
-      },
-    );
-
-    setIsRunning(false);
-  };
-
-  const handleClickRun = () => void handleRunTest();
+  const handleRunTest = useStore(store, (state) => state.handleRunTest);
 
   return (
     <div className="absolute left-1/2 top-3 z-10 -translate-x-1/2">
@@ -146,12 +42,7 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button
-                className="h-7 w-7"
-                size="icon"
-                variant="ghost"
-                onClick={handleZoomOut}
-              />
+              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomOut} />
             }
           >
             <ZoomOut className="h-4 w-4" />
@@ -161,12 +52,7 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button
-                className="h-7 w-7"
-                size="icon"
-                variant="ghost"
-                onClick={handleZoomIn}
-              />
+              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleZoomIn} />
             }
           >
             <ZoomIn className="h-4 w-4" />
@@ -176,12 +62,7 @@ export const CanvasToolbar = () => {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button
-                className="h-7 w-7"
-                size="icon"
-                variant="ghost"
-                onClick={handleFitView}
-              />
+              <Button className="h-7 w-7" size="icon" variant="ghost" onClick={handleFitView} />
             }
           >
             <Maximize2 className="h-4 w-4" />
@@ -273,7 +154,7 @@ export const CanvasToolbar = () => {
                 size="sm"
                 title="运行测试"
                 variant="ghost"
-                onClick={handleClickRun}
+                onClick={handleRunTest}
               />
             }
           >

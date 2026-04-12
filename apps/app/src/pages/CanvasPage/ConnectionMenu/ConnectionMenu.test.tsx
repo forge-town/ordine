@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store/harnessCanvasStore";
 import { ConnectionMenu } from "./ConnectionMenu";
 
 vi.mock("@/routes/canvas", () => ({
@@ -14,16 +14,13 @@ vi.mock("@/routes/canvas", () => ({
   },
 }));
 
-const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
-);
-
 describe("ConnectionMenu", () => {
   it("renders without crashing", () => {
-    const handleClose = vi.fn();
+    const store = createHarnessCanvasStore();
     const { container } = render(
-      <ConnectionMenu flowX={100} flowY={100} screenX={200} screenY={200} onClose={handleClose} />,
-      { wrapper }
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <ConnectionMenu />
+      </HarnessCanvasStoreContext.Provider>
     );
     // Returns null when no connectStart in store – that's expected
     expect(container).toBeTruthy();

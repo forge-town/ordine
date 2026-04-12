@@ -21,13 +21,7 @@ import {
 } from "@repo/ui/context-menu";
 import { SiGitHubIcon } from "../GitHubProjectNode/SiGitHubIcon";
 import { Route } from "@/routes/canvas";
-import {
-  makeDefaultNodeData,
-  makeOperationNodeData,
-  nodeTypeMeta,
-  getAllowedConnections,
-  type NodeType,
-} from "../nodeSchemas";
+import { nodeTypeMeta, getAllowedConnections, type NodeType } from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
@@ -42,29 +36,17 @@ const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
 
 const OBJECT_TYPES: NodeType[] = ["code-file", "folder", "github-project"];
 
-interface Props {
-  screenX: number;
-  screenY: number;
-  flowX: number;
-  flowY: number;
-  onClose: () => void;
-}
-
-export const CanvasContextMenu = ({
-  screenX,
-  screenY,
-  flowX,
-  flowY,
-  onClose,
-}: Props) => {
+export const CanvasContextMenu = () => {
   const { t } = useTranslation();
   const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
+  const contextMenu = useStore(store, (s) => s.contextMenu);
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);
-  const addNode = useStore(store, (s) => s.addNode);
-  const onConnect = useStore(store, (s) => s.handleConnect);
-  const handleConnectStart = useStore(store, (s) => s.handleConnectStart);
+  const handleCreateObjectNode = useStore(store, (s) => s.createObjectNode);
+  const createOperationNode = useStore(store, (s) => s.createOperationNode);
+  const createRecipeNode = useStore(store, (s) => s.createRecipeNode);
+  const handleContextMenuOpenChange = useStore(store, (s) => s.handleContextMenuOpenChange);
   const groupSelectedNodes = useStore(store, (s) => s.groupSelectedNodes);
 
   // Get allowed connections based on current operations
@@ -99,9 +81,7 @@ export const CanvasContextMenu = ({
 
     // Only show operations that accept this object type
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(
-        objectType as "file" | "folder" | "project",
-      ),
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
     );
   })();
 
@@ -111,81 +91,10 @@ export const CanvasContextMenu = ({
   // Determine if in connection mode
   const isConnectMode = connectStart !== null;
 
-  const handleCreateObject = (type: NodeType) => {
-    const newId = `${type}-${Date.now()}`;
-
-    // Create new node
-    addNode({
-      id: newId,
-      type,
-      position: { x: flowX, y: flowY },
-      data: makeDefaultNodeData(type),
-    });
-
-    // If in connection mode, auto-create connection
-    if (connectStart) {
-      const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
-      if (sourceNode) {
-        if (connectStart.handleType === "source") {
-          onConnect({
-            source: connectStart.nodeId,
-            sourceHandle: connectStart.handleId,
-            target: newId,
-            targetHandle: null,
-          });
-        } else {
-          onConnect({
-            source: newId,
-            sourceHandle: null,
-            target: connectStart.nodeId,
-            targetHandle: connectStart.handleId,
-          });
-        }
-      }
-    }
-
-    handleConnectStart(null);
-    onClose();
-  };
-
   const handleCreateOperation = (operationId: string) => {
     const operation = operations.find((op) => op.id === operationId);
     if (!operation) return;
-
-    const newId = `op-${operationId}-${Date.now()}`;
-
-    // Create new operation node
-    addNode({
-      id: newId,
-      type: "operation",
-      position: { x: flowX, y: flowY },
-      data: makeOperationNodeData(operation),
-    });
-
-    // If in connection mode, auto-create connection
-    if (connectStart) {
-      const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
-      if (sourceNode) {
-        if (connectStart.handleType === "source") {
-          onConnect({
-            source: connectStart.nodeId,
-            sourceHandle: connectStart.handleId,
-            target: newId,
-            targetHandle: null,
-          });
-        } else {
-          onConnect({
-            source: newId,
-            sourceHandle: null,
-            target: connectStart.nodeId,
-            targetHandle: connectStart.handleId,
-          });
-        }
-      }
-    }
-
-    handleConnectStart(null);
-    onClose();
+    createOperationNode(operation);
   };
 
   const handleCreateRecipe = (recipeId: string) => {
@@ -193,61 +102,25 @@ export const CanvasContextMenu = ({
     if (!recipe) return;
     const operation = operations.find((op) => op.id === recipe.operationId);
     if (!operation) return;
-
-    const newId = `op-recipe-${Date.now()}`;
-    addNode({
-      id: newId,
-      type: "operation",
-      position: { x: flowX, y: flowY },
-      data: {
-        ...makeOperationNodeData(operation),
-        label: recipe.name,
-        bestPracticeId: recipe.bestPracticeId,
-        bestPracticeName: recipe.name,
-      },
-    });
-
-    if (connectStart) {
-      const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
-      if (sourceNode) {
-        if (connectStart.handleType === "source") {
-          onConnect({
-            source: connectStart.nodeId,
-            sourceHandle: connectStart.handleId,
-            target: newId,
-            targetHandle: null,
-          });
-        } else {
-          onConnect({
-            source: newId,
-            sourceHandle: null,
-            target: connectStart.nodeId,
-            targetHandle: connectStart.handleId,
-          });
-        }
-      }
-    }
-
-    handleConnectStart(null);
-    onClose();
+    createRecipeNode(recipe, operation);
   };
 
+  if (!contextMenu) return null;
+
   // Clamp to viewport edges
-  const left = Math.min(screenX, window.innerWidth - 220);
-  const top = Math.min(screenY, window.innerHeight - 300);
+  const left = Math.min(contextMenu.screenX, window.innerWidth - 220);
+  const top = Math.min(contextMenu.screenY, window.innerHeight - 300);
 
   // Get source node info for display
   const sourceNodeInfo = (() => {
     if (!connectStart) return null;
     const node = nodes.find((n) => n.id === connectStart.nodeId);
-    return node
-      ? { type: node.type, label: nodeTypeMeta[node.type].label }
-      : null;
+    return node ? { type: node.type, label: nodeTypeMeta[node.type].label } : null;
   })();
 
   // Filter object types based on available connections
   const visibleObjectTypes = OBJECT_TYPES.filter((t) =>
-    isConnectMode ? availableTypes.includes(t) : true,
+    isConnectMode ? availableTypes.includes(t) : true
   );
 
   const virtualAnchor = {
@@ -266,24 +139,15 @@ export const CanvasContextMenu = ({
     }),
   };
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      handleConnectStart(null);
-      onClose();
-    }
-  };
-
-  const selectedIds = nodes
-    .filter((n) => n.selected && n.type !== "compound")
-    .map((n) => n.id);
+  const selectedIds = nodes.filter((n) => n.selected && n.type !== "compound").map((n) => n.id);
 
   const handleGroupSelected = () => {
     groupSelectedNodes(selectedIds);
-    onClose();
+    handleContextMenuOpenChange(false);
   };
 
   return (
-    <ContextMenu open onOpenChange={handleOpenChange}>
+    <ContextMenu open onOpenChange={handleContextMenuOpenChange}>
       <ContextMenuContent
         align="start"
         alignOffset={0}
@@ -298,7 +162,7 @@ export const CanvasContextMenu = ({
             <span
               className={cn(
                 "flex size-4 shrink-0 items-center justify-center rounded",
-                nodeTypeMeta[sourceNodeInfo.type].iconBg,
+                nodeTypeMeta[sourceNodeInfo.type].iconBg
               )}
             >
               {(() => {
@@ -307,14 +171,10 @@ export const CanvasContextMenu = ({
               })()}
             </span>
             <ArrowRight className="size-3 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground">
-              连接到...
-            </span>
+            <span className="text-xs font-medium text-muted-foreground">连接到...</span>
           </div>
         ) : (
-          <div className="px-1.5 py-1 text-xs font-medium text-muted-foreground">
-            新建节点
-          </div>
+          <div className="px-1.5 py-1 text-xs font-medium text-muted-foreground">新建节点</div>
         )}
 
         {/* Object types group */}
@@ -328,12 +188,12 @@ export const CanvasContextMenu = ({
                 <ContextMenuItem
                   key={type}
                   closeOnClick={false}
-                  onClick={() => handleCreateObject(type)}
+                  onClick={() => handleCreateObjectNode(type)}
                 >
                   <span
                     className={cn(
                       "flex size-4 shrink-0 items-center justify-center rounded",
-                      typeMeta.iconBg,
+                      typeMeta.iconBg
                     )}
                   >
                     <Icon className="size-2.5 text-white" />
@@ -350,9 +210,7 @@ export const CanvasContextMenu = ({
           <>
             <ContextMenuSeparator />
             <ContextMenuGroup>
-              <ContextMenuLabel>
-                {t("canvas.contextMenu.operationNodes")}
-              </ContextMenuLabel>
+              <ContextMenuLabel>{t("canvas.contextMenu.operationNodes")}</ContextMenuLabel>
               {availableOperations.map((operation) => (
                 <ContextMenuItem
                   key={operation.id}
@@ -362,9 +220,7 @@ export const CanvasContextMenu = ({
                   <span className="flex size-4 shrink-0 items-center justify-center rounded bg-violet-500">
                     <Zap className="size-2.5 text-white" />
                   </span>
-                  <span className="truncate text-xs font-medium">
-                    {operation.name}
-                  </span>
+                  <span className="truncate text-xs font-medium">{operation.name}</span>
                 </ContextMenuItem>
               ))}
             </ContextMenuGroup>
@@ -389,9 +245,7 @@ export const CanvasContextMenu = ({
           <>
             <ContextMenuSeparator />
             <ContextMenuGroup>
-              <ContextMenuLabel>
-                {t("canvas.contextMenu.recipeNodes")}
-              </ContextMenuLabel>
+              <ContextMenuLabel>{t("canvas.contextMenu.recipeNodes")}</ContextMenuLabel>
               {recipes.map((recipe) => (
                 <ContextMenuItem
                   key={recipe.id}
@@ -401,9 +255,7 @@ export const CanvasContextMenu = ({
                   <span className="flex size-4 shrink-0 items-center justify-center rounded bg-amber-500">
                     <BookOpen className="size-2.5 text-white" />
                   </span>
-                  <span className="truncate text-xs font-medium">
-                    {recipe.name}
-                  </span>
+                  <span className="truncate text-xs font-medium">{recipe.name}</span>
                 </ContextMenuItem>
               ))}
             </ContextMenuGroup>
@@ -414,10 +266,7 @@ export const CanvasContextMenu = ({
         <ContextMenuSeparator />
         <ContextMenuGroup>
           <ContextMenuLabel>编组</ContextMenuLabel>
-          <ContextMenuItem
-            closeOnClick={false}
-            onClick={() => handleCreateObject("compound")}
-          >
+          <ContextMenuItem closeOnClick={false} onClick={() => handleCreateObjectNode("compound")}>
             <span className="flex size-4 shrink-0 items-center justify-center rounded bg-indigo-500">
               <Group className="size-2.5 text-white" />
             </span>
@@ -426,16 +275,11 @@ export const CanvasContextMenu = ({
           {(() => {
             if (selectedIds.length < 2) return null;
             return (
-              <ContextMenuItem
-                closeOnClick={false}
-                onClick={handleGroupSelected}
-              >
+              <ContextMenuItem closeOnClick={false} onClick={handleGroupSelected}>
                 <span className="flex size-4 shrink-0 items-center justify-center rounded bg-indigo-500">
                   <Group className="size-2.5 text-white" />
                 </span>
-                <span className="text-xs font-medium">
-                  编组 {selectedIds.length} 个选中节点
-                </span>
+                <span className="text-xs font-medium">编组 {selectedIds.length} 个选中节点</span>
               </ContextMenuItem>
             );
           })()}

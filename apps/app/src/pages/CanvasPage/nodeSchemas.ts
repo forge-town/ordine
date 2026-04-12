@@ -9,11 +9,7 @@ export const NodeRunStatusSchema = z.enum(["idle", "running", "pass", "fail"]);
 export type NodeRunStatus = z.infer<typeof NodeRunStatusSchema>;
 
 // Static node types (objects)
-export const ObjectNodeTypeSchema = z.enum([
-  "code-file",
-  "folder",
-  "github-project",
-]);
+export const ObjectNodeTypeSchema = z.enum(["code-file", "folder", "github-project"]);
 export type ObjectNodeType = z.infer<typeof ObjectNodeTypeSchema>;
 
 // Operation node type (dynamic)
@@ -21,10 +17,7 @@ export const OperationNodeTypeSchema = z.literal("operation");
 export type OperationNodeType = z.infer<typeof OperationNodeTypeSchema>;
 
 // Output node types (pipeline endpoints)
-export const OutputNodeTypeSchema = z.enum([
-  "output-project-path",
-  "output-local-path",
-]);
+export const OutputNodeTypeSchema = z.enum(["output-project-path", "output-local-path"]);
 export type OutputNodeType = z.infer<typeof OutputNodeTypeSchema>;
 
 // Compound node type
@@ -104,9 +97,7 @@ export const OperationNodeDataSchema = z.object({
   operationId: z.string(), // Reference to OperationEntity.id
   operationName: z.string(), // Display name
   status: NodeRunStatusSchema,
-  config: z
-    .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-    .optional(),
+  config: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
   notes: z.string().optional(),
   llmProvider: z.enum(LLM_PROVIDERS).optional(),
   llmModel: z.string().optional(),
@@ -139,28 +130,17 @@ export const PipelineNodeDataSchema = z.union([
 
 // React Flow requires node data to extend Record<string, unknown>.
 // Intersecting with it adds the index signature TypeScript needs.
-export type CodeFileNodeData = z.infer<typeof CodeFileNodeDataSchema> &
+export type CodeFileNodeData = z.infer<typeof CodeFileNodeDataSchema> & Record<string, unknown>;
+export type FolderNodeData = z.infer<typeof FolderNodeDataSchema> & Record<string, unknown>;
+export type GitHubProjectNodeData = z.infer<typeof GitHubProjectNodeDataSchema> &
   Record<string, unknown>;
-export type FolderNodeData = z.infer<typeof FolderNodeDataSchema> &
+export type OperationNodeData = z.infer<typeof OperationNodeDataSchema> & Record<string, unknown>;
+export type OutputProjectPathNodeData = z.infer<typeof OutputProjectPathNodeDataSchema> &
   Record<string, unknown>;
-export type GitHubProjectNodeData = z.infer<
-  typeof GitHubProjectNodeDataSchema
-> &
+export type OutputLocalPathNodeData = z.infer<typeof OutputLocalPathNodeDataSchema> &
   Record<string, unknown>;
-export type OperationNodeData = z.infer<typeof OperationNodeDataSchema> &
-  Record<string, unknown>;
-export type OutputProjectPathNodeData = z.infer<
-  typeof OutputProjectPathNodeDataSchema
-> &
-  Record<string, unknown>;
-export type OutputLocalPathNodeData = z.infer<
-  typeof OutputLocalPathNodeDataSchema
-> &
-  Record<string, unknown>;
-export type CompoundNodeData = z.infer<typeof CompoundNodeDataSchema> &
-  Record<string, unknown>;
-export type PipelineNodeData = z.infer<typeof PipelineNodeDataSchema> &
-  Record<string, unknown>;
+export type CompoundNodeData = z.infer<typeof CompoundNodeDataSchema> & Record<string, unknown>;
+export type PipelineNodeData = z.infer<typeof PipelineNodeDataSchema> & Record<string, unknown>;
 
 // ─── Edge data schema ─────────────────────────────────────────────────────────
 
@@ -168,26 +148,18 @@ export const PipelineEdgeDataSchema = z.object({
   label: z.string().optional(),
   dataType: z.string().optional(),
 });
-export type PipelineEdgeData = z.infer<typeof PipelineEdgeDataSchema> &
-  Record<string, unknown>;
+export type PipelineEdgeData = z.infer<typeof PipelineEdgeDataSchema> & Record<string, unknown>;
 
 // ─── Node categories ─────────────────────────────────────────────────────────
 
 /** Object nodes — the subjects being operated on. */
-export const OBJECT_TYPES: ObjectNodeType[] = [
-  "code-file",
-  "folder",
-  "github-project",
-];
+export const OBJECT_TYPES: ObjectNodeType[] = ["code-file", "folder", "github-project"];
 
 /** The single operation node type. */
 export const OPERATION_TYPE: OperationNodeType = "operation";
 
 /** Output node types — pipeline endpoints (no outgoing connections). */
-export const OUTPUT_TYPES: OutputNodeType[] = [
-  "output-project-path",
-  "output-local-path",
-];
+export const OUTPUT_TYPES: OutputNodeType[] = ["output-project-path", "output-local-path"];
 
 // ─── Connectivity rules (schema-first) ───────────────────────────────────────
 
@@ -213,44 +185,30 @@ export type NodeConnectionRules = z.infer<typeof NodeConnectionRulesSchema>;
  * Edit ONLY this object to change which node types can connect to which.
  * Validated by NodeConnectionRulesSchema at module load.
  */
-export const NODE_CONNECTION_RULES: NodeConnectionRules =
-  NodeConnectionRulesSchema.parse({
-    // Objects can only feed into operations or compound nodes
-    "code-file": ["operation", "compound"],
-    compound: [
-      "operation",
-      "compound",
-      "output-project-path",
-      "output-local-path",
-    ],
-    folder: ["operation", "compound"],
-    "github-project": ["operation", "compound"],
-    // Operations can chain, feed into compound, or terminate at an output node
-    operation: [
-      "operation",
-      "compound",
-      "output-project-path",
-      "output-local-path",
-    ],
-    // Output nodes are pipeline endpoints — no outgoing edges
-    "output-project-path": [],
-    "output-local-path": [],
-  } satisfies Record<NodeType, NodeType[]>);
+export const NODE_CONNECTION_RULES: NodeConnectionRules = NodeConnectionRulesSchema.parse({
+  // Objects can only feed into operations or compound nodes
+  "code-file": ["operation", "compound"],
+  compound: ["operation", "compound", "output-project-path", "output-local-path"],
+  folder: ["operation", "compound"],
+  "github-project": ["operation", "compound"],
+  // Operations can chain, feed into compound, or terminate at an output node
+  operation: ["operation", "compound", "output-project-path", "output-local-path"],
+  // Output nodes are pipeline endpoints — no outgoing edges
+  "output-project-path": [],
+  "output-local-path": [],
+} satisfies Record<NodeType, NodeType[]>);
 
 /**
  * Returns the connection-topology rules.
  * The optional `_operations` param is kept for API compatibility;
  * which *instances* to show in a menu is a UI concern separate from topology.
  */
-export const getAllowedConnections = (
-  _operations?: OperationEntity[],
-): NodeConnectionRules => NODE_CONNECTION_RULES;
+export const getAllowedConnections = (_operations?: OperationEntity[]): NodeConnectionRules =>
+  NODE_CONNECTION_RULES;
 
 /** Returns true when sourceType → targetType is a permitted edge. */
-export const isConnectionAllowed = (
-  sourceType: NodeType,
-  targetType: NodeType,
-): boolean => NODE_CONNECTION_RULES[sourceType]?.includes(targetType) ?? false;
+export const isConnectionAllowed = (sourceType: NodeType, targetType: NodeType): boolean =>
+  NODE_CONNECTION_RULES[sourceType]?.includes(targetType) ?? false;
 
 /**
  * Runtime validator for a manual edge drag.
@@ -261,13 +219,9 @@ export const ConnectionRuleSchema = z
     sourceType: NodeTypeSchema,
     targetType: NodeTypeSchema,
   })
-  .refine(
-    ({ sourceType, targetType }) =>
-      NODE_CONNECTION_RULES[sourceType]?.includes(targetType),
-    {
-      message: "此节点类型间不允许连接",
-    },
-  );
+  .refine(({ sourceType, targetType }) => NODE_CONNECTION_RULES[sourceType]?.includes(targetType), {
+    message: "此节点类型间不允许连接",
+  });
 
 // ─── Default data factories ────────────────────────────────────────────────────
 
@@ -339,9 +293,7 @@ export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
 };
 
 /** Create operation node data from an OperationEntity. */
-export const makeOperationNodeData = (
-  operation: OperationEntity,
-): OperationNodeData => ({
+export const makeOperationNodeData = (operation: OperationEntity): OperationNodeData => ({
   label: operation.name,
   nodeType: "operation",
   operationId: operation.id,

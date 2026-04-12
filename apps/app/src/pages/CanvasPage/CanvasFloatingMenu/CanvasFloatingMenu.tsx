@@ -1,16 +1,7 @@
 import { useState, useRef } from "react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
-import {
-  Menu,
-  Home,
-  Save,
-  FileDown,
-  FileUp,
-  Settings,
-  Undo,
-  Redo,
-} from "lucide-react";
+import { Menu, Home, Save, FileDown, FileUp, Settings, Undo, Redo } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useCreate, useUpdate } from "@refinedev/core";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
@@ -27,10 +18,7 @@ export const CanvasFloatingMenu = () => {
   const importCanvas = useStore(store, (state) => state.importCanvas);
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
-  const handlePipelineIdChange = useStore(
-    store,
-    (state) => state.handlePipelineIdChange,
-  );
+  const handlePipelineIdChange = useStore(store, (state) => state.handlePipelineIdChange);
 
   const { mutate: updateCanvas, mutation: updateMutation } = useUpdate();
   const { mutate: createCanvas, mutation: createMutation } = useCreate();
@@ -85,7 +73,7 @@ export const CanvasFloatingMenu = () => {
           onSuccess: () => {
             handlePipelineIdChange(newId);
           },
-        },
+        }
       );
     }
   };
@@ -147,17 +135,10 @@ export const CanvasFloatingMenu = () => {
           <Menu className="h-5 w-5 text-gray-700" />
         </PopoverTrigger>
 
-        <PopoverContent
-          align="start"
-          className="w-48 p-2"
-          side="bottom"
-          sideOffset={8}
-        >
+        <PopoverContent align="start" className="w-48 p-2" side="bottom" sideOffset={8}>
           {menuItems.map((item, index) => (
             <div key={item.label}>
-              {item.divider && index > 0 && (
-                <div className="my-1 border-t border-gray-100" />
-              )}
+              {item.divider && index > 0 && <div className="my-1 border-t border-gray-100" />}
               {item.to ? (
                 <Link
                   className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"

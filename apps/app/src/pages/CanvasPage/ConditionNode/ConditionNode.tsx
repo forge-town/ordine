@@ -1,11 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import {
-  ShieldCheck,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  Circle,
-} from "lucide-react";
+import { ShieldCheck, CheckCircle2, XCircle, Loader2, Circle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore, type NodeRunStatus } from "../_store";
@@ -68,9 +62,7 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
         headerRight={
           <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-white border border-slate-100 shadow-sm px-2 py-1">
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span
-              className={cn("text-[10px] font-semibold tracking-wide", color)}
-            >
+            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
               {statusLabel}
             </span>
           </div>

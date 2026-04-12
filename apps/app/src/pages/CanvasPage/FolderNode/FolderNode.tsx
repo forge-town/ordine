@@ -25,11 +25,11 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
+  const handleNodeAddExcludedPath = useStore(store, (s) => s.handleNodeAddExcludedPath);
+  const handleNodeRemoveExcludedPath = useStore(store, (s) => s.handleNodeRemoveExcludedPath);
   const [browserOpen, setBrowserOpen] = useState(false);
 
-  const excludedPaths: string[] = Array.isArray(data.excludedPaths)
-    ? data.excludedPaths
-    : [];
+  const excludedPaths: string[] = Array.isArray(data.excludedPaths) ? data.excludedPaths : [];
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
   const handleFolderPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -50,17 +50,9 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
     setBrowserOpen(open);
   };
 
-  const handleRemoveExcluded = (path: string) => {
-    updateNodeData(id, {
-      excludedPaths: excludedPaths.filter((p) => p !== path),
-    });
-  };
+  const handleRemoveExcluded = (path: string) => handleNodeRemoveExcludedPath(id, path);
 
-  const handleAddExcluded = (path: string) => {
-    if (!excludedPaths.includes(path)) {
-      updateNodeData(id, { excludedPaths: [...excludedPaths, path] });
-    }
-  };
+  const handleAddExcluded = (path: string) => handleNodeAddExcludedPath(id, path);
 
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
