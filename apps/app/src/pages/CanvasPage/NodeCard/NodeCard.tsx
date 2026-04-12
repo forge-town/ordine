@@ -9,14 +9,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import type { NodeRunStatus } from "../nodeSchemas";
 
-export type NodeTheme =
-  | "emerald"
-  | "violet"
-  | "amber"
-  | "sky"
-  | "orange"
-  | "teal"
-  | "indigo";
+export type NodeTheme = "emerald" | "violet" | "amber" | "sky" | "orange" | "teal" | "indigo";
 
 const themeMap = {
   emerald: {
@@ -115,24 +108,19 @@ export const NodeCard = ({
     <Card
       className={cn(
         "transition-all duration-200",
-        selected
-          ? cn("ring-2 shadow-lg", t.ringSelected)
-          : cn("ring-1 hover:ring-2", t.ring),
+        selected ? cn("ring-2 shadow-lg", t.ringSelected) : cn("ring-1 hover:ring-2", t.ring),
         runStatus === "running" &&
           "ring-2 ring-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.4)] animate-pulse",
         runStatus === "pass" && "ring-2 ring-green-500",
         runStatus === "fail" && "ring-2 ring-red-500",
-        dimmed && "opacity-40 pointer-events-none",
+        dimmed && "opacity-40 pointer-events-none"
       )}
       size="sm"
     >
       <CardHeader className={cn("pb-2", t.headerBg)}>
         <div className="flex items-center gap-2">
           <div
-            className={cn(
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-              t.iconBg,
-            )}
+            className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", t.iconBg)}
           >
             <Icon className={cn("h-4 w-4", t.iconColor)} />
           </div>
@@ -145,24 +133,16 @@ export const NodeCard = ({
                 onMouseDown={handleMouseDown}
               />
             ) : (
-              <CardTitle className="text-xs font-semibold truncate">
-                {label}
-              </CardTitle>
+              <CardTitle className="text-xs font-semibold truncate">{label}</CardTitle>
             )}
             {description && (
-              <CardDescription className="text-[10px] truncate">
-                {description}
-              </CardDescription>
+              <CardDescription className="text-[10px] truncate">{description}</CardDescription>
             )}
           </div>
           {headerRight && <CardAction>{headerRight}</CardAction>}
         </div>
       </CardHeader>
-      {children && (
-        <CardContent className={cn("pt-0", bodyClassName)}>
-          {children}
-        </CardContent>
-      )}
+      {children && <CardContent className={cn("pt-0", bodyClassName)}>{children}</CardContent>}
     </Card>
   );
 };

@@ -11,7 +11,8 @@ import {
   FolderOutput,
   HardDrive,
   BookOpen,
-  Repeat,
+  Group,
+  Ungroup,
 } from "lucide-react";
 import {
   ContextMenu,
@@ -38,12 +39,12 @@ import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
   operation: Zap,
+  compound: Group,
   "code-file": FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
-  loop: Repeat,
 };
 
 interface Props {
@@ -53,12 +54,7 @@ interface Props {
   onClose: () => void;
 }
 
-export const NodeContextMenu = ({
-  screenX,
-  screenY,
-  nodeId,
-  onClose,
-}: Props) => {
+export const NodeContextMenu = ({ screenX, screenY, nodeId, onClose }: Props) => {
   const { t } = useTranslation();
   const { operations, recipes } = Route.useLoaderData();
   const store = useHarnessCanvasStore();
@@ -67,6 +63,7 @@ export const NodeContextMenu = ({
   const removeNode = useStore(store, (s) => s.removeNode);
   const addNode = useStore(store, (s) => s.addNode);
   const onConnect = useStore(store, (s) => s.handleConnect);
+  const ungroupCompound = useStore(store, (s) => s.ungroupCompound);
   const node = nodes.find((n) => n.id === nodeId);
 
   const onCloseRef = useRef(onClose);
@@ -79,7 +76,7 @@ export const NodeContextMenu = ({
       duplicateNode(nodeId);
       onCloseRef.current();
     },
-    [duplicateNode, nodeId],
+    [duplicateNode, nodeId]
   );
 
   if (!node) return null;
@@ -98,9 +95,7 @@ export const NodeContextMenu = ({
     const objectType = objectTypeMap[node.type];
     if (!objectType) return operations;
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(
-        objectType as "file" | "folder" | "project",
-      ),
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
     );
   })();
 
@@ -132,6 +127,11 @@ export const NodeContextMenu = ({
 
   const handleDelete = () => {
     removeNode(nodeId);
+    onClose();
+  };
+
+  const handleUngroup = () => {
+    ungroupCompound(nodeId);
     onClose();
   };
 
@@ -218,14 +218,12 @@ export const NodeContextMenu = ({
           <span
             className={cn(
               "flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold text-white",
-              meta.iconBg,
+              meta.iconBg
             )}
           >
             {meta.shortLabel.charAt(0)}
           </span>
-          <span className="text-xs font-medium text-foreground">
-            {meta.label}
-          </span>
+          <span className="text-xs font-medium text-foreground">{meta.label}</span>
         </div>
 
         {/* Actions submenu */}
@@ -239,7 +237,7 @@ export const NodeContextMenu = ({
 
             {/* Object types */}
             {["code-file", "folder", "github-project"].some((t) =>
-              availableTypes.includes(t as NodeType),
+              availableTypes.includes(t as NodeType)
             ) && (
               <ContextMenuGroup>
                 <ContextMenuLabel>处理对象</ContextMenuLabel>
@@ -257,7 +255,7 @@ export const NodeContextMenu = ({
                         <span
                           className={cn(
                             "flex size-4 shrink-0 items-center justify-center rounded",
-                            m.iconBg,
+                            m.iconBg
                           )}
                         >
                           <Icon className="size-2.5 text-white" />
@@ -274,9 +272,7 @@ export const NodeContextMenu = ({
               <>
                 <ContextMenuSeparator />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>
-                    {t("canvas.contextMenu.operationNode")}
-                  </ContextMenuLabel>
+                  <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
                   {availableOperations.map((operation) => (
                     <ContextMenuItem
                       key={operation.id}
@@ -298,9 +294,7 @@ export const NodeContextMenu = ({
               <>
                 <ContextMenuSeparator />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>
-                    {t("canvas.contextMenu.operationNode")}
-                  </ContextMenuLabel>
+                  <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
                   <p className="px-1.5 py-1 text-xs text-muted-foreground">
                     没有接受此类型的 Operation
                   </p>
@@ -331,8 +325,8 @@ export const NodeContextMenu = ({
             )}
 
             {/* Output nodes */}
-            {(["output-project-path", "output-local-path"] as NodeType[]).some(
-              (t) => availableTypes.includes(t),
+            {(["output-project-path", "output-local-path"] as NodeType[]).some((t) =>
+              availableTypes.includes(t)
             ) && (
               <>
                 <ContextMenuSeparator />
@@ -352,7 +346,7 @@ export const NodeContextMenu = ({
                           <span
                             className={cn(
                               "flex size-4 shrink-0 items-center justify-center rounded",
-                              m.iconBg,
+                              m.iconBg
                             )}
                           >
                             <Icon className="size-2.5 text-white" />
@@ -371,24 +365,24 @@ export const NodeContextMenu = ({
         <ContextMenuItem closeOnClick={false} onClick={handleDuplicate}>
           <Copy className="size-4 text-muted-foreground" />
           Duplicate
-          <span className="ml-auto text-xs tracking-widest text-muted-foreground">
-            ⌘D
-          </span>
+          <span className="ml-auto text-xs tracking-widest text-muted-foreground">⌘D</span>
         </ContextMenuItem>
+
+        {/* Ungroup (compound only) */}
+        {node.type === "compound" && (
+          <ContextMenuItem closeOnClick={false} onClick={handleUngroup}>
+            <Ungroup className="size-4 text-muted-foreground" />
+            解散编组
+          </ContextMenuItem>
+        )}
 
         <ContextMenuSeparator />
 
         {/* Delete */}
-        <ContextMenuItem
-          closeOnClick={false}
-          variant="destructive"
-          onClick={handleDelete}
-        >
+        <ContextMenuItem closeOnClick={false} variant="destructive" onClick={handleDelete}>
           <Trash2 className="size-4" />
           Delete
-          <span className="ml-auto text-xs tracking-widest text-destructive/40">
-            ⌫
-          </span>
+          <span className="ml-auto text-xs tracking-widest text-destructive/40">⌫</span>
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

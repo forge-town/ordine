@@ -75,292 +75,6 @@ describe("computeAutoLayout", () => {
     expect(bLeft).toBeGreaterThanOrEqual(aRight);
   });
 
-  it("loop pipeline: trunk straight line, children below", () => {
-    const loopNode = {
-      id: "n_loop",
-      type: "loop" as const,
-      position: { x: 0, y: 0 },
-      measured: { width: 280, height: 200 },
-      data: {
-        label: "Loop",
-        nodeType: "loop",
-        childNodeIds: ["n_fix", "n_output", "n_recheck"],
-        maxIterations: 3,
-        passCondition: { field: "stats.errors", operator: "eq", value: 0 },
-      },
-    } as PipelineNode;
-
-    const nodes: PipelineNode[] = [
-      makeNode("n_project"),
-      makeNode("n_check"),
-      loopNode,
-      makeNode("n_fix"),
-      makeNode("n_output"),
-      makeNode("n_recheck"),
-      makeNode("n_report"),
-    ];
-    const edges: PipelineEdge[] = [
-      makeEdge("n_project", "n_check"),
-      makeEdge("n_check", "n_loop"),
-      makeEdge("n_loop", "n_fix"),
-      makeEdge("n_fix", "n_output"),
-      makeEdge("n_output", "n_recheck"),
-      makeEdge("n_recheck", "n_loop"),
-      makeEdge("n_loop", "n_report"),
-    ];
-    const result = computeAutoLayout(nodes, edges);
-    const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
-
-    // All positions are finite
-    for (const id of [
-      "n_project",
-      "n_check",
-      "n_loop",
-      "n_fix",
-      "n_output",
-      "n_recheck",
-      "n_report",
-    ]) {
-      expect(Number.isFinite(pos[id].x)).toBe(true);
-      expect(Number.isFinite(pos[id].y)).toBe(true);
-    }
-
-    // Trunk left-to-right: project → check → loop → report
-    expect(pos.n_project.x).toBeLessThan(pos.n_check.x);
-    expect(pos.n_check.x).toBeLessThan(pos.n_loop.x);
-    expect(pos.n_loop.x).toBeLessThan(pos.n_report.x);
-
-    // Trunk is a straight horizontal line — all at Y=0
-    expect(pos.n_project.y).toBe(0);
-    expect(pos.n_check.y).toBe(0);
-    expect(pos.n_loop.y).toBe(0);
-    expect(pos.n_report.y).toBe(0);
-
-    // Children are below and within loop bounds
-    expect(pos.n_fix.x).toBeGreaterThanOrEqual(pos.n_loop.x);
-    expect(pos.n_fix.y).toBeGreaterThan(pos.n_loop.y);
-  });
-
-  it("pipe_loop_fix_i18n: real dimensions, no overlaps", () => {
-    const nodes: PipelineNode[] = [
-      {
-        id: "n_project",
-        type: "github-project" as const,
-        position: { x: 0, y: 0 },
-        measured: { width: 1020, height: 310 },
-        data: { label: "GitHub Project", nodeType: "github-project" },
-      } as PipelineNode,
-      {
-        id: "n_initial_check",
-        type: "operation" as const,
-        position: { x: 0, y: 0 },
-        measured: { width: 131, height: 234 },
-        data: { label: "Initial Check", nodeType: "operation" },
-      } as PipelineNode,
-      {
-        id: "n_loop",
-        type: "loop" as const,
-        position: { x: 0, y: 0 },
-        measured: { width: 311, height: 217 },
-        data: {
-          label: "Loop",
-          nodeType: "loop",
-          childNodeIds: ["n_fix", "n_project_output", "n_recheck"],
-          maxIterations: 3,
-          passCondition: { field: "stats.errors", operator: "eq", value: 0 },
-        },
-      } as PipelineNode,
-      {
-        id: "n_fix",
-        type: "operation" as const,
-        position: { x: 0, y: 0 },
-        measured: { width: 131, height: 234 },
-        data: { label: "Fix i18n", nodeType: "operation" },
-      } as PipelineNode,
-      {
-        id: "n_project_output",
-        type: "output-project-path" as const,
-        position: { x: 0, y: 0 },
-        measured: { width: 257, height: 172 },
-        data: { label: "Project Output", nodeType: "output-project-path" },
-      } as PipelineNode,
-      {
-        id: "n_recheck",
-        type: "operation" as const,
-        position: { x: 0, y: 0 },
-        measured: { width: 131, height: 234 },
-        data: { label: "Recheck", nodeType: "operation" },
-      } as PipelineNode,
-      {
-        id: "n_final_report",
-        type: "output-local-path" as const,
-        position: { x: 0, y: 0 },
-        measured: { width: 224, height: 218 },
-        data: { label: "Final Report", nodeType: "output-local-path" },
-      } as PipelineNode,
-    ];
-
-    const edges: PipelineEdge[] = [
-      makeEdge("n_project", "n_initial_check"),
-      makeEdge("n_initial_check", "n_loop"),
-      makeEdge("n_loop", "n_fix"),
-      makeEdge("n_fix", "n_project_output"),
-      makeEdge("n_project_output", "n_recheck"),
-      makeEdge("n_recheck", "n_loop"),
-      makeEdge("n_loop", "n_final_report"),
-    ];
-
-    const result = computeAutoLayout(nodes, edges);
-    const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
-
-    // Trunk left-to-right
-    expect(pos.n_project.x).toBeLessThan(pos.n_initial_check.x);
-    expect(pos.n_initial_check.x).toBeLessThan(pos.n_loop.x);
-    expect(pos.n_loop.x).toBeLessThan(pos.n_final_report.x);
-
-    // Children ordered left-to-right within loop
-    expect(pos.n_fix.x).toBeGreaterThanOrEqual(pos.n_loop.x);
-    expect(pos.n_project_output.x).toBeGreaterThan(pos.n_fix.x);
-    expect(pos.n_recheck.x).toBeGreaterThan(pos.n_project_output.x);
-
-    // No overlaps
-    const allNodes = result;
-    for (let i = 0; i < allNodes.length; i++) {
-      for (let j = i + 1; j < allNodes.length; j++) {
-        const a = allNodes[i];
-        const b = allNodes[j];
-        const aw = a.measured?.width ?? 280;
-        const ah = a.measured?.height ?? 120;
-        const bw = b.measured?.width ?? 280;
-        const bh = b.measured?.height ?? 120;
-        const xOverlap =
-          a.position.x < b.position.x + bw && b.position.x < a.position.x + aw;
-        const yOverlap =
-          a.position.y < b.position.y + bh && b.position.y < a.position.y + ah;
-        expect(xOverlap && yOverlap, `Nodes ${a.id} and ${b.id} overlap`).toBe(
-          false,
-        );
-      }
-    }
-  });
-
-  it("nested loops: outer loop A contains inner loop B with child C", () => {
-    const innerLoop = {
-      id: "loop_b",
-      type: "loop" as const,
-      position: { x: 0, y: 0 },
-      measured: { width: 280, height: 150 },
-      data: {
-        label: "Inner Loop",
-        nodeType: "loop",
-        childNodeIds: ["c1", "c2"],
-        maxIterations: 2,
-        passCondition: { field: "ok", operator: "eq", value: 1 },
-      },
-    } as PipelineNode;
-
-    const outerLoop = {
-      id: "loop_a",
-      type: "loop" as const,
-      position: { x: 0, y: 0 },
-      measured: { width: 300, height: 180 },
-      data: {
-        label: "Outer Loop",
-        nodeType: "loop",
-        childNodeIds: ["pre", "loop_b", "post"],
-        maxIterations: 3,
-        passCondition: { field: "done", operator: "eq", value: 1 },
-      },
-    } as PipelineNode;
-
-    const nodes: PipelineNode[] = [
-      makeNode("start"),
-      outerLoop,
-      makeNode("pre"),
-      innerLoop,
-      makeNode("c1"),
-      makeNode("c2"),
-      makeNode("post"),
-      makeNode("end"),
-    ];
-
-    const edges: PipelineEdge[] = [
-      makeEdge("start", "loop_a"),
-      makeEdge("pre", "loop_b"),
-      makeEdge("c1", "c2"),
-      makeEdge("loop_b", "post"),
-      makeEdge("loop_a", "end"),
-    ];
-
-    const result = computeAutoLayout(nodes, edges);
-    const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
-
-    // All positions valid
-    for (const id of [
-      "start",
-      "loop_a",
-      "pre",
-      "loop_b",
-      "c1",
-      "c2",
-      "post",
-      "end",
-    ]) {
-      expect(Number.isFinite(pos[id].x), `${id}.x is finite`).toBe(true);
-      expect(Number.isFinite(pos[id].y), `${id}.y is finite`).toBe(true);
-    }
-
-    // Trunk: start → loop_a → end
-    expect(pos.start.x).toBeLessThan(pos.loop_a.x);
-    expect(pos.loop_a.x).toBeLessThan(pos.end.x);
-
-    // Outer children within loop_a
-    expect(pos.pre.x).toBeGreaterThanOrEqual(pos.loop_a.x);
-    expect(pos.post.x).toBeGreaterThanOrEqual(pos.loop_a.x);
-
-    // Inner children within loop_b
-    expect(pos.c1.x).toBeGreaterThanOrEqual(pos.loop_b.x);
-    expect(pos.c1.x).toBeLessThan(pos.c2.x);
-  });
-
-  it("cross-loop edge: child → outside does not crash", () => {
-    const loopNode = {
-      id: "loop",
-      type: "loop" as const,
-      position: { x: 0, y: 0 },
-      measured: { width: 280, height: 150 },
-      data: {
-        label: "Loop",
-        nodeType: "loop",
-        childNodeIds: ["c_a"],
-        maxIterations: 1,
-        passCondition: { field: "x", operator: "eq", value: 0 },
-      },
-    } as PipelineNode;
-
-    const nodes: PipelineNode[] = [
-      makeNode("before"),
-      loopNode,
-      makeNode("c_a"),
-      makeNode("after"),
-    ];
-
-    const edges: PipelineEdge[] = [
-      makeEdge("before", "loop"),
-      makeEdge("c_a", "after"),
-    ];
-
-    const result = computeAutoLayout(nodes, edges);
-    const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
-
-    for (const id of ["before", "loop", "c_a", "after"]) {
-      expect(Number.isFinite(pos[id].x), `${id}.x is finite`).toBe(true);
-    }
-
-    // Trunk order preserved
-    expect(pos.before.x).toBeLessThan(pos.loop.x);
-  });
-
   it("side input: extra predecessor stacked above main path", () => {
     // A → B → C (main path), D → B (side input)
     const nodes = [makeNode("a"), makeNode("b"), makeNode("c"), makeNode("d")];
@@ -385,12 +99,7 @@ describe("computeAutoLayout", () => {
     // A → B → D, A → C → D
     // Main path = A → B → D (tie-break), C is side above D
     const nodes = [makeNode("a"), makeNode("b"), makeNode("c"), makeNode("d")];
-    const edges = [
-      makeEdge("a", "b"),
-      makeEdge("b", "d"),
-      makeEdge("a", "c"),
-      makeEdge("c", "d"),
-    ];
+    const edges = [makeEdge("a", "b"), makeEdge("b", "d"), makeEdge("a", "c"), makeEdge("c", "d")];
     const result = computeAutoLayout(nodes, edges);
     const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
 
@@ -408,19 +117,8 @@ describe("computeAutoLayout", () => {
 
   it("multiple side inputs: fishbone alternating above/below", () => {
     // A → B → C (main path), D → B, E → B (two side inputs)
-    const nodes = [
-      makeNode("a"),
-      makeNode("b"),
-      makeNode("c"),
-      makeNode("d"),
-      makeNode("e"),
-    ];
-    const edges = [
-      makeEdge("a", "b"),
-      makeEdge("b", "c"),
-      makeEdge("d", "b"),
-      makeEdge("e", "b"),
-    ];
+    const nodes = [makeNode("a"), makeNode("b"), makeNode("c"), makeNode("d"), makeNode("e")];
+    const edges = [makeEdge("a", "b"), makeEdge("b", "c"), makeEdge("d", "b"), makeEdge("e", "b")];
     const result = computeAutoLayout(nodes, edges);
     const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
 
@@ -441,5 +139,107 @@ describe("computeAutoLayout", () => {
     const dBottom = pos.d.y + 120;
     const eTop = pos.e.y;
     expect(dBottom).toBeLessThanOrEqual(eTop);
+  });
+
+  // ── Compound node tests ───────────────────────────────────────────────────
+
+  const makeCompoundNode = (
+    id: string,
+    childNodeIds: string[],
+    x = 0,
+    y = 0,
+    w = 280,
+    h = 120
+  ): PipelineNode =>
+    ({
+      id,
+      type: "compound",
+      position: { x, y },
+      measured: { width: w, height: h },
+      data: {
+        label: id,
+        nodeType: "compound",
+        childNodeIds,
+      },
+    }) as PipelineNode;
+
+  it("compound node with children: children positioned inside compound", () => {
+    // A → [compound G contains B, C] → D
+    const g = makeCompoundNode("g", ["b", "c"]);
+    const b = makeNode("b");
+    const c = makeNode("c");
+    const a = makeNode("a");
+    const d = makeNode("d");
+
+    const edges = [
+      makeEdge("a", "g"),
+      makeEdge("g", "d"),
+      makeEdge("b", "c"), // internal edge inside compound
+    ];
+
+    const result = computeAutoLayout([a, g, b, c, d], edges);
+    const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
+
+    // Main path: A → G → D at Y=0
+    expect(pos.a.y).toBe(0);
+    expect(pos.g.y).toBe(0);
+    expect(pos.d.y).toBe(0);
+    expect(pos.a.x).toBeLessThan(pos.g.x);
+    expect(pos.g.x).toBeLessThan(pos.d.x);
+
+    // Children B and C are positioned relative to compound G
+    // (parentId-based: positions relative to G's top-left)
+    const resultNodes = Object.fromEntries(result.map((n) => [n.id, n]));
+    expect(resultNodes.b.parentId).toBe("g");
+    expect(resultNodes.c.parentId).toBe("g");
+
+    // Children have positive relative positions (inside the container)
+    expect(pos.b.x).toBeGreaterThanOrEqual(0);
+    expect(pos.b.y).toBeGreaterThanOrEqual(0);
+    expect(pos.c.x).toBeGreaterThanOrEqual(0);
+    expect(pos.c.y).toBeGreaterThanOrEqual(0);
+  });
+
+  it("compound node expands to fit children", () => {
+    // Compound G contains B and C in a chain
+    const g = makeCompoundNode("g", ["b", "c"]);
+    const b = makeNode("b");
+    const c = makeNode("c");
+
+    const edges = [makeEdge("b", "c")]; // internal chain
+
+    const result = computeAutoLayout([g, b, c], edges);
+    const resultNodes = Object.fromEntries(result.map((n) => [n.id, n]));
+
+    // Compound node should have style.width and style.height set
+    expect(resultNodes.g.style?.width).toBeGreaterThan(0);
+    expect(resultNodes.g.style?.height).toBeGreaterThan(0);
+
+    // Width should fit two nodes side by side + gaps + padding
+    // At minimum: 2 * nodeWidth + gap + 2 * padding
+    const minExpectedWidth = 2 * 280 + 80 + 2 * 40; // 2 nodes + gap + padding
+    expect(resultNodes.g.style?.width).toBeGreaterThanOrEqual(minExpectedWidth);
+  });
+
+  it("compound node on main path takes expanded space", () => {
+    // A → [compound G contains B] → C
+    const a = makeNode("a");
+    const g = makeCompoundNode("g", ["b"]);
+    const b = makeNode("b");
+    const c = makeNode("c");
+
+    const edges = [makeEdge("a", "g"), makeEdge("g", "c")];
+
+    const result = computeAutoLayout([a, g, b, c], edges);
+    const pos = Object.fromEntries(result.map((n) => [n.id, n.position]));
+
+    // A → G → C on main path
+    expect(pos.a.x).toBeLessThan(pos.g.x);
+    expect(pos.g.x).toBeLessThan(pos.c.x);
+
+    // C should be far enough right to account for G's expanded width
+    const resultNodes = Object.fromEntries(result.map((n) => [n.id, n]));
+    const gWidth = (resultNodes.g.style?.width as number) ?? 0;
+    expect(pos.c.x).toBeGreaterThanOrEqual(pos.g.x + gWidth);
   });
 });

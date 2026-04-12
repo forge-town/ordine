@@ -1,11 +1,10 @@
 import type { PipelineNode, PipelineEdge } from "./canvasSlice";
-import type { LoopNodeData } from "../nodeSchemas";
 
 const DEFAULT_WIDTH = 280;
 const DEFAULT_HEIGHT = 120;
 const H_GAP = 80;
 const V_GAP = 60;
-const COMPOUND_PAD = 20;
+const COMPOUND_PAD = 40;
 
 // ── Kahn's topological sort (cycle-safe: leftover nodes appended) ────────────
 const topoSort = (nodeIds: string[], edgeList: PipelineEdge[]): string[] => {
@@ -46,27 +45,60 @@ const topoSort = (nodeIds: string[], edgeList: PipelineEdge[]): string[] => {
   return result;
 };
 
-export const computeAutoLayout = (
-  nodes: PipelineNode[],
-  edges: PipelineEdge[],
-): PipelineNode[] => {
+export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]): PipelineNode[] => {
   if (nodes.length === 0) return [];
 
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
 
-  // ── Loop structure ──────────────────────────────────────────────────────────
-  const loopChildren = new Map<string, string[]>();
-  const childToLoop = new Map<string, string>();
+  // ── Identify compound nodes and their children ────────────────────────────
+  const childToCompound = new Map<string, string>();
+  const compoundChildren = new Map<string, string[]>();
 
   for (const n of nodes) {
-    if (n.type === "loop") {
-      const children = (n.data as unknown as LoopNodeData).childNodeIds ?? [];
-      loopChildren.set(n.id, children);
-      for (const c of children) childToLoop.set(c, n.id);
+    if (n.type === "compound" && n.data && "childNodeIds" in n.data) {
+      const childIds = (n.data as { childNodeIds: string[] }).childNodeIds;
+      compoundChildren.set(n.id, childIds);
+      for (const cid of childIds) {
+        childToCompound.set(cid, n.id);
+      }
     }
   }
 
+  const childSet = new Set(childToCompound.keys());
+
+  // ── Layout children inside compounds & compute expanded sizes ─────────────
+  const compoundSizes = new Map<string, { w: number; h: number }>();
+  const childRelPos = new Map<string, { x: number; y: number }>();
+
+  for (const [compoundId, children] of compoundChildren) {
+    const validChildren = children.filter((cid) => nodeMap.has(cid));
+    if (validChildren.length === 0) continue;
+
+    const cSet = new Set(validChildren);
+    const internalEdges = edges.filter((e) => cSet.has(e.source) && cSet.has(e.target));
+
+    const childOrder = topoSort(validChildren, internalEdges);
+    let cx = COMPOUND_PAD;
+    let maxH = 0;
+
+    for (const cid of childOrder) {
+      const cn = nodeMap.get(cid);
+      const w = cn?.measured?.width ?? DEFAULT_WIDTH;
+      const h = cn?.measured?.height ?? DEFAULT_HEIGHT;
+      childRelPos.set(cid, { x: cx, y: COMPOUND_PAD });
+      cx += w + H_GAP;
+      maxH = Math.max(maxH, h);
+    }
+
+    const expandedW = cx - H_GAP + COMPOUND_PAD;
+    const expandedH = maxH + 2 * COMPOUND_PAD;
+    compoundSizes.set(compoundId, { w: expandedW, h: expandedH });
+  }
+
+  // ── Size helper (uses expanded size for compounds) ────────────────────────
   const getSize = (id: string) => {
+    const expanded = compoundSizes.get(id);
+    if (expanded) return expanded;
     const n = nodeMap.get(id);
     return {
       w: n?.measured?.width ?? DEFAULT_WIDTH,
@@ -74,70 +106,20 @@ export const computeAutoLayout = (
     };
   };
 
-  // ── Expanded sizes (after laying out children) ─────────────────────────────
-  const expandedW = new Map<string, number>();
-  const expandedH = new Map<string, number>();
-  const childRelPos = new Map<string, { x: number; y: number }>();
+  // ── Trunk: top-level nodes only (exclude compound children) ───────────────
+  const topLevelIds = nodes.filter((n) => !childSet.has(n.id)).map((n) => n.id);
+  const trunkOrder = topoSort(topLevelIds, edges);
 
-  // Recursive: layout children bottom-up (inner loops first)
-  const layoutChildren = (loopId: string) => {
-    const children = loopChildren.get(loopId) ?? [];
-    if (children.length === 0) return;
-
-    for (const cid of children) {
-      if (loopChildren.has(cid)) layoutChildren(cid);
-    }
-
-    const childSet = new Set(children);
-    const childEdges = edges.filter(
-      (e) =>
-        childSet.has(e.source) &&
-        childSet.has(e.target) &&
-        childToLoop.get(e.source) === loopId &&
-        childToLoop.get(e.target) === loopId,
-    );
-
-    const order = topoSort(children, childEdges);
-    const loopCardH = getSize(loopId).h;
-
-    let cx = COMPOUND_PAD;
-    let maxChildH = 0;
-
-    for (const cid of order) {
-      const w = expandedW.get(cid) ?? getSize(cid).w;
-      const h = expandedH.get(cid) ?? getSize(cid).h;
-      childRelPos.set(cid, { x: cx, y: loopCardH + V_GAP });
-      cx += w + H_GAP;
-      maxChildH = Math.max(maxChildH, h);
-    }
-
-    const totalW = cx - H_GAP + COMPOUND_PAD;
-    expandedW.set(loopId, Math.max(getSize(loopId).w, totalW));
-    expandedH.set(loopId, loopCardH + V_GAP + maxChildH + COMPOUND_PAD);
-  };
-
-  // Layout all top-level loops (recursion handles nesting)
-  for (const loopId of loopChildren.keys()) {
-    if (!childToLoop.has(loopId)) layoutChildren(loopId);
-  }
-
-  // ── Trunk: main path + side branches ─────────────────────────────────────
-  const trunkIds = nodes.filter((n) => !childToLoop.has(n.id)).map((n) => n.id);
-  const trunkEdges = edges.filter(
-    (e) => !childToLoop.has(e.source) && !childToLoop.has(e.target),
-  );
-  const trunkOrder = topoSort(trunkIds, trunkEdges);
-
-  // Build adjacency for trunk
-  const trunkSet = new Set(trunkIds);
+  // Build adjacency (top-level only)
+  const nodeSet = new Set(topLevelIds);
   const fwd = new Map<string, string[]>();
   const rev = new Map<string, string[]>();
-  for (const id of trunkIds) {
+  for (const id of topLevelIds) {
     fwd.set(id, []);
     rev.set(id, []);
   }
-  for (const e of trunkEdges) {
-    if (!trunkSet.has(e.source) || !trunkSet.has(e.target)) continue;
+  for (const e of edges) {
+    if (!nodeSet.has(e.source) || !nodeSet.has(e.target)) continue;
     if (e.source === e.target) continue;
     fwd.get(e.source)!.push(e.target);
     rev.get(e.target)!.push(e.source);
@@ -241,7 +223,7 @@ export const computeAutoLayout = (
   const positionMap = new Map<string, { x: number; y: number }>();
   let tx = 0;
   for (const id of mainPath) {
-    const w = expandedW.get(id) ?? getSize(id).w;
+    const w = getSize(id).w;
     positionMap.set(id, { x: tx, y: 0 });
     tx += w + H_GAP;
   }
@@ -249,10 +231,8 @@ export const computeAutoLayout = (
   // ── Fishbone: alternate side groups above/below their anchors ────────────
   for (const [anchor, group] of anchorGroups) {
     const anchorPos = positionMap.get(anchor)!;
-    const anchorH = expandedH.get(anchor) ?? getSize(anchor).h;
-    const groupEdges = trunkEdges.filter(
-      (e) => group.includes(e.source) && group.includes(e.target),
-    );
+    const anchorH = getSize(anchor).h;
+    const groupEdges = edges.filter((e) => group.includes(e.source) && group.includes(e.target));
     const groupOrder = topoSort(group, groupEdges);
 
     // Alternating: even index → above (negative Y), odd → below (positive Y)
@@ -260,7 +240,7 @@ export const computeAutoLayout = (
     let belowCy = anchorH;
     for (let i = 0; i < groupOrder.length; i++) {
       const sid = groupOrder[i];
-      const h = expandedH.get(sid) ?? getSize(sid).h;
+      const h = getSize(sid).h;
       if (i % 2 === 0) {
         // above spine
         aboveCy -= V_GAP + h;
@@ -274,28 +254,30 @@ export const computeAutoLayout = (
     }
   }
 
-  // ── Offset children to absolute positions (top-down BFS) ───────────────────
-  const loopQueue = [...loopChildren.keys()].filter(
-    (id) => !childToLoop.has(id),
-  );
-  while (loopQueue.length > 0) {
-    const loopId = loopQueue.shift()!;
-    const loopPos = positionMap.get(loopId);
-    if (!loopPos) continue;
-
-    for (const cid of loopChildren.get(loopId) ?? []) {
-      const rel = childRelPos.get(cid);
-      if (!rel) continue;
-      positionMap.set(cid, {
-        x: loopPos.x + rel.x,
-        y: loopPos.y + rel.y,
-      });
-      if (loopChildren.has(cid)) loopQueue.push(cid);
+  return nodes.map((n) => {
+    // Child of a compound: set parentId and relative position
+    const compoundId = childToCompound.get(n.id);
+    if (compoundId) {
+      return {
+        ...n,
+        parentId: compoundId,
+        position: childRelPos.get(n.id) ?? n.position,
+      };
     }
-  }
 
-  return nodes.map((n) => ({
-    ...n,
-    position: positionMap.get(n.id) ?? n.position,
-  }));
+    // Compound node: set expanded style
+    const expanded = compoundSizes.get(n.id);
+    if (expanded) {
+      return {
+        ...n,
+        position: positionMap.get(n.id) ?? n.position,
+        style: { ...n.style, width: expanded.w, height: expanded.h },
+      };
+    }
+
+    return {
+      ...n,
+      position: positionMap.get(n.id) ?? n.position,
+    };
+  });
 };

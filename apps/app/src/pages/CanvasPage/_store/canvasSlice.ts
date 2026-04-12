@@ -15,12 +15,12 @@ import {
   type NodeType,
   type NodeRunStatus,
   type CodeFileNodeData,
+  type CompoundNodeData,
   type FolderNodeData,
   type GitHubProjectNodeData,
   type OperationNodeData,
   type OutputProjectPathNodeData,
   type OutputLocalPathNodeData,
-  type LoopNodeData,
   type PipelineNodeData,
   type PipelineEdgeData,
 } from "../nodeSchemas";
@@ -32,12 +32,12 @@ export type {
   NodeType,
   NodeRunStatus,
   CodeFileNodeData,
+  CompoundNodeData,
   FolderNodeData,
   GitHubProjectNodeData,
   OperationNodeData,
   OutputProjectPathNodeData,
   OutputLocalPathNodeData,
-  LoopNodeData,
   PipelineNodeData,
   PipelineEdgeData,
 };
@@ -57,6 +57,7 @@ export interface CanvasSlice {
   edges: PipelineEdge[];
   selectedNodeId: string | null;
   selectedEdgeId: string | null;
+  hoveredCompoundId: string | null;
 
   handleNodesChange: (changes: NodeChange<PipelineNode>[]) => void;
   handleEdgesChange: (changes: EdgeChange<PipelineEdge>[]) => void;
@@ -71,6 +72,11 @@ export interface CanvasSlice {
   duplicateNode: (nodeId: string) => void;
   clearCanvas: () => void;
   formatLayout: () => void;
+  setHoveredCompound: (compoundId: string | null) => void;
+  addNodeToCompound: (nodeId: string, compoundId: string) => void;
+  removeNodeFromCompound: (nodeId: string, compoundId: string) => void;
+  groupSelectedNodes: (nodeIds: string[]) => void;
+  ungroupCompound: (compoundId: string) => void;
 }
 
 const initialNodes: PipelineNode[] = [];
@@ -81,12 +87,13 @@ export const createCanvasSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
   get: Parameters<HarnessCanvasStoreSlice>[1],
   overrideNodes?: PipelineNode[],
-  overrideEdges?: PipelineEdge[],
+  overrideEdges?: PipelineEdge[]
 ): CanvasSlice => ({
   nodes: overrideNodes ?? initialNodes,
   edges: overrideEdges ?? initialEdges,
   selectedNodeId: null,
   selectedEdgeId: null,
+  hoveredCompoundId: null,
 
   handleNodesChange: (changes) => {
     // Position drags — bypass history (noisy), React Flow manages these internally.
@@ -127,9 +134,9 @@ export const createCanvasSlice = (
       (draft) => {
         draft.edges = addEdge(
           { ...connection, type: "default", animated: true, data: {} },
-          draft.edges,
+          draft.edges
         );
-      },
+      }
     );
   },
 
@@ -142,7 +149,7 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes.push(node);
-      },
+      }
     );
   },
 
@@ -178,7 +185,7 @@ export const createCanvasSlice = (
       (draft) => {
         draft.nodes.push(newNode);
         draft.edges.push(newEdge);
-      },
+      }
     );
   },
 
@@ -197,10 +204,8 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes = draft.nodes.filter((n) => n.id !== nodeId);
-        draft.edges = draft.edges.filter(
-          (e) => e.source !== nodeId && e.target !== nodeId,
-        );
-      },
+        draft.edges = draft.edges.filter((e) => e.source !== nodeId && e.target !== nodeId);
+      }
     );
     // Clear selection outside of history-tracked state
     set((s) => ({
@@ -226,15 +231,13 @@ export const createCanvasSlice = (
         if (n) {
           n.data = { ...n.data, ...data } as PipelineNodeData;
         }
-      },
+      }
     );
   },
 
   updateEdgeData: (edgeId, data) => {
     set((state) => ({
-      edges: state.edges.map((e) =>
-        e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e,
-      ),
+      edges: state.edges.map((e) => (e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e)),
     }));
   },
 
@@ -270,19 +273,16 @@ export const createCanvasSlice = (
       },
       (draft) => {
         draft.nodes.push(newNode);
-      },
+      }
     );
   },
 
   clearCanvas: () => {
     const state = get();
-    state.recordCommand(
-      { type: "CLEAR_CANVAS", label: "清空画布" },
-      (draft) => {
-        draft.nodes = [];
-        draft.edges = [];
-      },
-    );
+    state.recordCommand({ type: "CLEAR_CANVAS", label: "清空画布" }, (draft) => {
+      draft.nodes = [];
+      draft.edges = [];
+    });
     set({ selectedNodeId: null, selectedEdgeId: null });
   },
 
@@ -290,5 +290,147 @@ export const createCanvasSlice = (
     const { nodes, edges } = get();
     const layouted = computeAutoLayout(nodes, edges);
     set({ nodes: layouted });
+  },
+
+  setHoveredCompound: (compoundId) => {
+    set({ hoveredCompoundId: compoundId });
+  },
+
+  addNodeToCompound: (nodeId, compoundId) => {
+    const state = get();
+    const node = state.nodes.find((n) => n.id === nodeId);
+    const compound = state.nodes.find((n) => n.id === compoundId);
+    if (!node || !compound || compound.type !== "compound") return;
+
+    const compoundData = compound.data as CompoundNodeData;
+    if (compoundData.childNodeIds.includes(nodeId)) return;
+
+    state.recordCommand(
+      {
+        type: "ADD_TO_COMPOUND",
+        label: `添加 ${node.data.label} 到 ${compound.data.label}`,
+        payload: { nodeId, compoundId },
+      },
+      (draft) => {
+        const cNode = draft.nodes.find((n) => n.id === compoundId);
+        if (cNode && cNode.data && "childNodeIds" in cNode.data) {
+          (cNode.data as CompoundNodeData).childNodeIds.push(nodeId);
+        }
+        const child = draft.nodes.find((n) => n.id === nodeId);
+        if (child) {
+          child.parentId = compoundId;
+        }
+      }
+    );
+  },
+
+  removeNodeFromCompound: (nodeId, compoundId) => {
+    const state = get();
+    const node = state.nodes.find((n) => n.id === nodeId);
+    const compound = state.nodes.find((n) => n.id === compoundId);
+    if (!node || !compound || compound.type !== "compound") return;
+
+    state.recordCommand(
+      {
+        type: "REMOVE_FROM_COMPOUND",
+        label: `从 ${compound.data.label} 移除 ${node.data.label}`,
+        payload: { nodeId, compoundId },
+      },
+      (draft) => {
+        const cNode = draft.nodes.find((n) => n.id === compoundId);
+        if (cNode && cNode.data && "childNodeIds" in cNode.data) {
+          const cData = cNode.data as CompoundNodeData;
+          cData.childNodeIds = cData.childNodeIds.filter((id) => id !== nodeId);
+        }
+        const child = draft.nodes.find((n) => n.id === nodeId);
+        if (child) {
+          // Convert relative position to absolute before detaching
+          const compoundPos = draft.nodes.find((n) => n.id === compoundId)?.position;
+          if (compoundPos) {
+            child.position = {
+              x: child.position.x + compoundPos.x,
+              y: child.position.y + compoundPos.y,
+            };
+          }
+          child.parentId = undefined;
+        }
+      }
+    );
+  },
+
+  groupSelectedNodes: (nodeIds) => {
+    const state = get();
+    if (nodeIds.length < 2) return;
+
+    const selectedNodes = state.nodes.filter((n) => nodeIds.includes(n.id));
+    if (selectedNodes.length < 2) return;
+
+    const compoundId = `compound-${Date.now()}`;
+    const compoundData = makeDefaultNodeData("compound") as CompoundNodeData;
+    compoundData.childNodeIds = [...nodeIds];
+    const newCompound: PipelineNode = {
+      id: compoundId,
+      type: "compound",
+      position: {
+        x: Math.min(...selectedNodes.map((n) => n.position.x)) - 40,
+        y: Math.min(...selectedNodes.map((n) => n.position.y)) - 40,
+      },
+      data: compoundData,
+    };
+
+    state.recordCommand(
+      {
+        type: "GROUP_NODES",
+        label: `编组 ${nodeIds.length} 个节点`,
+        payload: { compoundId, nodeIds },
+      },
+      (draft) => {
+        draft.nodes.push(newCompound);
+        const compoundPos = newCompound.position;
+        for (const nid of nodeIds) {
+          const child = draft.nodes.find((n) => n.id === nid);
+          if (child) {
+            child.parentId = compoundId;
+            child.position = {
+              x: child.position.x - compoundPos.x,
+              y: child.position.y - compoundPos.y,
+            };
+          }
+        }
+      }
+    );
+  },
+
+  ungroupCompound: (compoundId) => {
+    const state = get();
+    const compound = state.nodes.find((n) => n.id === compoundId);
+    if (!compound || compound.type !== "compound") return;
+
+    const compoundData = compound.data as CompoundNodeData;
+    const childIds = compoundData.childNodeIds;
+
+    state.recordCommand(
+      {
+        type: "UNGROUP_COMPOUND",
+        label: `解散编组 ${compound.data.label}`,
+        payload: { compoundId, childIds },
+      },
+      (draft) => {
+        const compoundPos = draft.nodes.find((n) => n.id === compoundId)?.position;
+        for (const cid of childIds) {
+          const child = draft.nodes.find((n) => n.id === cid);
+          if (child && compoundPos) {
+            child.position = {
+              x: child.position.x + compoundPos.x,
+              y: child.position.y + compoundPos.y,
+            };
+            child.parentId = undefined;
+          }
+        }
+        // Remove compound node and its edges
+        draft.nodes = draft.nodes.filter((n) => n.id !== compoundId);
+        draft.edges = draft.edges.filter((e) => e.source !== compoundId && e.target !== compoundId);
+      }
+    );
   },
 });

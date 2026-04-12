@@ -10,9 +10,11 @@ import {
   type OnInit,
   type OnConnectStart,
   type OnConnectEnd,
+  type OnNodeDrag,
 } from "@xyflow/react";
 import type { PipelineNode, PipelineEdge } from "../_store/canvasSlice";
 import { useHarnessCanvasStore } from "../_store";
+import { CompoundNode } from "../CompoundNode";
 import { ConditionNode } from "../ConditionNode";
 import { CodeFileNode } from "../CodeFileNode";
 import { FolderNode } from "../FolderNode";
@@ -20,7 +22,6 @@ import { GitHubProjectNode } from "../GitHubProjectNode";
 import { OperationNode } from "../OperationNode";
 import { OutputProjectPathNode } from "../OutputProjectPathNode";
 import { OutputLocalPathNode } from "../OutputLocalPathNode";
-import { LoopNode } from "../LoopNode";
 
 export const CanvasFlow = () => {
   const store = useHarnessCanvasStore();
@@ -36,24 +37,54 @@ export const CanvasFlow = () => {
   const focusNode = useStore(store, (state) => state.focusNode);
   const focusEdge = useStore(store, (state) => state.focusEdge);
   const clearSelection = useStore(store, (state) => state.clearSelection);
-  const openConnectionMenu = useStore(
-    store,
-    (state) => state.openConnectionMenu,
-  );
-  const storeHandleConnectStart = useStore(
-    store,
-    (state) => state.handleConnectStart,
-  );
-  const showPaneContextMenu = useStore(
-    store,
-    (state) => state.showPaneContextMenu,
-  );
-  const showNodeContextMenu = useStore(
-    store,
-    (state) => state.showNodeContextMenu,
-  );
+  const openConnectionMenu = useStore(store, (state) => state.openConnectionMenu);
+  const storeHandleConnectStart = useStore(store, (state) => state.handleConnectStart);
+  const showPaneContextMenu = useStore(store, (state) => state.showPaneContextMenu);
+  const showNodeContextMenu = useStore(store, (state) => state.showNodeContextMenu);
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
+  const setHoveredCompound = useStore(store, (state) => state.setHoveredCompound);
+  const addNodeToCompound = useStore(store, (state) => state.addNodeToCompound);
+
+  // ─── Drag-into-compound detection ────────────────────────────────────────────
+  const handleNodeDrag: OnNodeDrag<PipelineNode> = useCallback(
+    (_event, draggedNode) => {
+      if (draggedNode.type === "compound") return;
+
+      const compoundNodes = nodes.filter((n) => n.type === "compound" && n.id !== draggedNode.id);
+
+      let foundCompound: string | null = null;
+      for (const cn of compoundNodes) {
+        const cw = (cn.style?.width as number) ?? cn.measured?.width ?? 280;
+        const ch = (cn.style?.height as number) ?? cn.measured?.height ?? 120;
+        const cx = cn.position.x;
+        const cy = cn.position.y;
+
+        if (
+          draggedNode.position.x >= cx &&
+          draggedNode.position.x <= cx + cw &&
+          draggedNode.position.y >= cy &&
+          draggedNode.position.y <= cy + ch
+        ) {
+          foundCompound = cn.id;
+          break;
+        }
+      }
+      setHoveredCompound(foundCompound);
+    },
+    [nodes, setHoveredCompound]
+  );
+
+  const handleNodeDragStop: OnNodeDrag<PipelineNode> = useCallback(
+    (_event, draggedNode) => {
+      const hovered = store.getState().hoveredCompoundId;
+      if (hovered && draggedNode.id !== hovered && draggedNode.type !== "compound") {
+        addNodeToCompound(draggedNode.id, hovered);
+      }
+      setHoveredCompound(null);
+    },
+    [store, addNodeToCompound, setHoveredCompound]
+  );
 
   // ─── Undo / Redo keyboard shortcuts ──────────────────────────────────────────
   useHotkeys(
@@ -62,7 +93,7 @@ export const CanvasFlow = () => {
       e.preventDefault();
       handleUndo();
     },
-    { preventDefault: false },
+    { preventDefault: false }
   );
   useHotkeys(
     "mod+shift+z, mod+y",
@@ -70,7 +101,7 @@ export const CanvasFlow = () => {
       e.preventDefault();
       handleRedo();
     },
-    { preventDefault: false },
+    { preventDefault: false }
   );
 
   const { screenToFlowPosition } = useReactFlow();
@@ -83,22 +114,22 @@ export const CanvasFlow = () => {
         handleZoomOut: () => instance.zoomOut(),
       });
     },
-    [store],
+    [store]
   );
 
   // 使用 useMemo 缓存 nodeTypes - React Flow 最佳实践
   const nodeTypes = useMemo(
     () => ({
       operation: OperationNode,
+      compound: CompoundNode,
       condition: ConditionNode,
       "code-file": CodeFileNode,
       folder: FolderNode,
       "github-project": GitHubProjectNode,
       "output-project-path": OutputProjectPathNode,
       "output-local-path": OutputLocalPathNode,
-      loop: LoopNode,
     }),
-    [],
+    []
   );
 
   // 使用 useMemo 缓存 defaultEdgeOptions
@@ -108,7 +139,7 @@ export const CanvasFlow = () => {
       animated: true,
       style: { stroke: "#94a3b8", strokeWidth: 2 },
     }),
-    [],
+    []
   );
 
   const handleConnectStart: OnConnectStart = (_, params) => {
@@ -135,9 +166,7 @@ export const CanvasFlow = () => {
 
     if (fromNode) {
       const { clientX, clientY } =
-        "changedTouches" in event
-          ? (event as TouchEvent).changedTouches[0]
-          : (event as MouseEvent);
+        "changedTouches" in event ? (event as TouchEvent).changedTouches[0] : (event as MouseEvent);
 
       // Re-set connectStart from live connectionState data
       storeHandleConnectStart({
@@ -216,16 +245,13 @@ export const CanvasFlow = () => {
       onInit={handleInit}
       onNodeClick={handleNodeClick}
       onNodeContextMenu={handleNodeContextMenu}
+      onNodeDrag={handleNodeDrag}
+      onNodeDragStop={handleNodeDragStop}
       onNodesChange={handleNodesChange}
       onPaneClick={handlePaneClick}
       onPaneContextMenu={handlePaneContextMenu}
     >
-      <Background
-        color="#cbd5e1"
-        gap={24}
-        size={1.5}
-        variant={BackgroundVariant.Dots}
-      />
+      <Background color="#cbd5e1" gap={24} size={1.5} variant={BackgroundVariant.Dots} />
       <Controls
         showInteractive
         className="border-gray-200! bg-white! shadow-sm!"

@@ -27,7 +27,7 @@ export const getGitHubHeaders = (token?: string | null): HeadersInit => {
 
 export const verifyGitHubToken = async (token: string | null): Promise<GitHubTokenStatus> => {
   const t = i18n.t.bind(i18n);
-  
+
   if (!token?.trim()) {
     return { valid: false, error: `TOKEN_EMPTY:${t("github.tokenEmpty")}` };
   }
@@ -131,9 +131,8 @@ export const fetchRepoInfo = (
     () => t("github.connectError")
   ).andThen((repoRes) => {
     if (repoRes.ok) {
-      return ResultAsync.fromPromise(
-        repoRes.json() as Promise<Record<string, unknown>>,
-        () => t("github.parseRepoError")
+      return ResultAsync.fromPromise(repoRes.json() as Promise<Record<string, unknown>>, () =>
+        t("github.parseRepoError")
       ).map((repoData) => {
         const defaultBranch = repoData.default_branch as string;
         const targetBranch = branchHint ?? defaultBranch;
@@ -150,11 +149,7 @@ export const fetchRepoInfo = (
     }
 
     if (repoRes.status === 404) {
-      return errAsync(
-        token
-          ? t("github.repoNotFoundWithToken")
-          : t("github.repoNotFoundNoToken")
-      );
+      return errAsync(token ? t("github.repoNotFoundWithToken") : t("github.repoNotFoundNoToken"));
     }
 
     if (repoRes.status === 401 || repoRes.status === 403) {

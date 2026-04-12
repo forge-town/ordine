@@ -33,6 +33,10 @@ export type CommandType =
   | "ADD_EDGE"
   | "REMOVE_EDGE"
   | "ADD_NODE_WITH_EDGE"
+  | "ADD_TO_COMPOUND"
+  | "REMOVE_FROM_COMPOUND"
+  | "GROUP_NODES"
+  | "UNGROUP_COMPOUND"
   | "CLEAR_CANVAS";
 
 export interface CommandMeta {

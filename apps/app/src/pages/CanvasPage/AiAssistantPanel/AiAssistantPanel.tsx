@@ -207,7 +207,9 @@ export const AiAssistantPanel = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-primary-foreground">Pipeline AI</p>
-                <p className="text-[10px] text-primary-foreground/60">{t("canvas.aiAssistantSubtitle")}</p>
+                <p className="text-[10px] text-primary-foreground/60">
+                  {t("canvas.aiAssistantSubtitle")}
+                </p>
               </div>
             </div>
             <Button
@@ -272,7 +274,9 @@ export const AiAssistantPanel = () => {
                   </div>
                   <div className="flex items-center gap-1.5 rounded-xl rounded-tl-sm bg-muted px-3 py-2">
                     <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">{t("canvas.aiAssistantThinking")}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {t("canvas.aiAssistantThinking")}
+                    </span>
                   </div>
                 </div>
               )}
@@ -302,7 +306,9 @@ export const AiAssistantPanel = () => {
                 <Send className="h-3.5 w-3.5" />
               </Button>
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground">{t("canvas.aiAssistantSendHint")}</p>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {t("canvas.aiAssistantSendHint")}
+            </p>
           </div>
         </div>
       )}
