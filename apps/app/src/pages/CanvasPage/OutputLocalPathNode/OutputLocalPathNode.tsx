@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { AlertTriangle, FolderOpen, HardDrive } from "lucide-react";
-import { useStore } from "zustand";
 import { OUTPUT_MODES, type OutputMode } from "@/models/types/pipelineGraph";
+import { useStore } from "zustand";
 import { useHarnessCanvasStore, type OutputLocalPathNodeData } from "../_store";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
@@ -22,22 +22,25 @@ const MODE_LABELS: Record<OutputMode, string> = {
   auto_rename: "自动重命名",
 };
 
-export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeProps) => {
+export const OutputLocalPathNode = ({
+  id,
+  data,
+  selected,
+}: OutputLocalPathNodeProps) => {
   const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const [browserOpen, setBrowserOpen] = useState(false);
-  const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
 
-  const handleLabelChange = (v: string) => update({ label: v });
+  const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
   const handleLocalPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    update({ localPath: e.target.value });
+    updateNodeData(id, { localPath: e.target.value });
   const handleFileNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    update({ outputFileName: e.target.value });
+    updateNodeData(id, { outputFileName: e.target.value });
   const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    update({ outputMode: e.target.value as OutputMode });
+    updateNodeData(id, { outputMode: e.target.value as OutputMode });
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    update({ description: e.target.value });
+    updateNodeData(id, { description: e.target.value });
 
   const handleFolderButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -45,7 +48,7 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
   };
 
   const handleFolderSelect = (path: string) => {
-    update({ localPath: path });
+    updateNodeData(id, { localPath: path });
   };
 
   const handleBrowserOpenChange = (open: boolean) => {
@@ -68,7 +71,9 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
         onLabelChange={handleLabelChange}
       >
         <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">路径</span>
+          <span className="shrink-0 text-[10px] font-medium text-teal-500">
+            路径
+          </span>
           <input
             className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
             placeholder="/Users/you/Desktop/output"
@@ -90,7 +95,9 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
         </div>
 
         <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">文件名</span>
+          <span className="shrink-0 text-[10px] font-medium text-teal-500">
+            文件名
+          </span>
           <input
             className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
             placeholder="output.md"
@@ -103,7 +110,9 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
         </div>
 
         <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">写入模式</span>
+          <span className="shrink-0 text-[10px] font-medium text-teal-500">
+            写入模式
+          </span>
           <select
             className="nodrag nopan flex-1 min-w-0 bg-transparent text-[11px] font-semibold text-teal-800 focus:outline-none cursor-pointer"
             value={currentMode}

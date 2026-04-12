@@ -2,7 +2,10 @@ import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { FileCode, FolderOpen } from "lucide-react";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type CodeFileNodeData } from "../_store";
+import {
+  useHarnessCanvasStore,
+  type CodeFileNodeData,
+} from "../_store";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
@@ -20,15 +23,14 @@ export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const [browserOpen, setBrowserOpen] = useState(false);
-  const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
 
-  const handleLabelChange = (v: string) => update({ label: v });
+  const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
   const handleFilePathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    update({ filePath: e.target.value });
+    updateNodeData(id, { filePath: e.target.value });
   const handleLanguageChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    update({ language: e.target.value });
+    updateNodeData(id, { language: e.target.value });
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    update({ description: e.target.value });
+    updateNodeData(id, { description: e.target.value });
 
   const handleBrowseButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -36,7 +38,7 @@ export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
   };
 
   const handleFileSelect = (path: string) => {
-    update({ filePath: path });
+    updateNodeData(id, { filePath: path });
   };
 
   const handleBrowserOpenChange = (open: boolean) => {

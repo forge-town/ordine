@@ -1,7 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import { Group } from "lucide-react";
-import { useStore } from "zustand";
 import { cn } from "@repo/ui/lib/utils";
+import { useStore } from "zustand";
 import { useHarnessCanvasStore, type CompoundNodeData } from "../_store";
 
 export interface CompoundNodeProps {

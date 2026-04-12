@@ -12,8 +12,8 @@ import {
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { cn } from "@repo/ui/lib/utils";
-import { useStore } from "zustand";
 import { useQuery } from "@tanstack/react-query";
+import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 
 type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled";

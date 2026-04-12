@@ -1,5 +1,4 @@
 import { useRef } from "react";
-import { useStore } from "zustand";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useTranslation } from "react-i18next";
 import {
@@ -26,6 +25,7 @@ import {
   ContextMenuSubTrigger,
 } from "@repo/ui/context-menu";
 import { SiGitHubIcon } from "../GitHubProjectNode/SiGitHubIcon";
+import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { Route } from "@/routes/canvas";
 import {

@@ -33,7 +33,7 @@ interface PipelineAction {
 
 // Parse ```actions ... ``` blocks from the AI response
 const parseActions = (
-  text: string
+  text: string,
 ): {
   clean: string;
   actions: PipelineAction[];
@@ -43,9 +43,13 @@ const parseActions = (
   let clean = text;
   let match;
   while ((match = regex.exec(text)) !== null) {
-    const parseResult = safeJsonParse<PipelineAction | PipelineAction[]>(match[1].trim());
+    const parseResult = safeJsonParse<PipelineAction | PipelineAction[]>(
+      match[1].trim(),
+    );
     if (parseResult.isOk()) {
-      const list = Array.isArray(parseResult.value) ? parseResult.value : [parseResult.value];
+      const list = Array.isArray(parseResult.value)
+        ? parseResult.value
+        : [parseResult.value];
       actions.push(...list);
     }
     clean = clean.replace(match[0], "").trim();
@@ -105,7 +109,11 @@ export const AiAssistantPanel = () => {
           },
         });
       }
-    } else if (action.type === "connectNodes" && action.sourceId && action.targetId) {
+    } else if (
+      action.type === "connectNodes" &&
+      action.sourceId &&
+      action.targetId
+    ) {
       onConnect({
         source: action.sourceId,
         sourceHandle: null,
@@ -151,7 +159,7 @@ export const AiAssistantPanel = () => {
           ],
         }),
       }),
-      () => "连接 Mastra 服务失败。请确保 `apps/mastra` 已在端口 4111 启动。"
+      () => "连接 Mastra 服务失败。请确保 `apps/mastra` 已在端口 4111 启动。",
     )
       .andThen((res) => {
         if (!res.ok) {
@@ -159,7 +167,7 @@ export const AiAssistantPanel = () => {
         }
         return ResultAsync.fromPromise(
           res.json() as Promise<{ text?: string; content?: string }>,
-          () => "解析响应失败"
+          () => "解析响应失败",
         );
       })
       .andThen((data) => ok(data));
@@ -179,13 +187,14 @@ export const AiAssistantPanel = () => {
           ...prev,
           { id: `a-${Date.now()}`, role: "assistant", content: errorMsg },
         ]);
-      }
+      },
     );
     setIsLoading(false);
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
-  const handleChangeInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value);
+  const handleChangeInput = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    setInput(e.target.value);
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -206,7 +215,9 @@ export const AiAssistantPanel = () => {
                 <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-primary-foreground">Pipeline AI</p>
+                <p className="text-sm font-semibold text-primary-foreground">
+                  Pipeline AI
+                </p>
                 <p className="text-[10px] text-primary-foreground/60">
                   {t("canvas.aiAssistantSubtitle")}
                 </p>
@@ -230,7 +241,7 @@ export const AiAssistantPanel = () => {
                   key={msg.id}
                   className={cn(
                     "flex gap-2",
-                    msg.role === "user" ? "flex-row-reverse" : "flex-row"
+                    msg.role === "user" ? "flex-row-reverse" : "flex-row",
                   )}
                 >
                   {msg.role === "assistant" && (
@@ -243,7 +254,7 @@ export const AiAssistantPanel = () => {
                       "max-w-[80%] rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap",
                       msg.role === "user"
                         ? "rounded-tr-sm bg-primary text-primary-foreground"
-                        : "rounded-tl-sm bg-muted text-foreground"
+                        : "rounded-tl-sm bg-muted text-foreground",
                     )}
                   >
                     {msg.content}
@@ -319,14 +330,21 @@ export const AiAssistantPanel = () => {
           "group relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200",
           isOpen
             ? "bg-primary text-primary-foreground shadow-primary/30"
-            : "bg-primary text-primary-foreground hover:scale-110 hover:shadow-xl hover:shadow-primary/30"
+            : "bg-primary text-primary-foreground hover:scale-110 hover:shadow-xl hover:shadow-primary/30",
         )}
         title={t("canvas.aiAssistantTitle")}
         onClick={handleToggle}
       >
         {/* Pulse ring when closed */}
-        {!isOpen && <span className="absolute inset-0 animate-ping rounded-full bg-primary/30" />}
-        <Bot className={cn("h-6 w-6 transition-transform duration-200", isOpen && "scale-90")} />
+        {!isOpen && (
+          <span className="absolute inset-0 animate-ping rounded-full bg-primary/30" />
+        )}
+        <Bot
+          className={cn(
+            "h-6 w-6 transition-transform duration-200",
+            isOpen && "scale-90",
+          )}
+        />
       </button>
     </div>
   );

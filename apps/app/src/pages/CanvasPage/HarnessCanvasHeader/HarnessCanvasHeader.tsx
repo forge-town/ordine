@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Settings, Save, CheckCircle2, Loader2 } from "lucide-react";
-import { useStore } from "zustand";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
+import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { updatePipeline } from "@/services/pipelinesService";
 import { ResultAsync } from "neverthrow";

@@ -8,9 +8,9 @@ import {
   FolderOutput,
   Group,
 } from "lucide-react";
-import { useStore } from "zustand";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
 import { SiGitHubIcon } from "../GitHubProjectNode/SiGitHubIcon";
+import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import {
   NODE_CONNECTION_RULES,

@@ -1,5 +1,5 @@
-import { useStore } from "zustand";
 import { useTranslation } from "react-i18next";
+import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { Input } from "@repo/ui/input";
 import { CanvasToolbar } from "../CanvasToolbar";
@@ -18,14 +18,26 @@ export const CanvasInner = () => {
 
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const contextMenu = useStore(store, (state) => state.contextMenu);
-  const handleCloseContextMenu = useStore(store, (state) => state.closeContextMenu);
+  const handleCloseContextMenu = useStore(
+    store,
+    (state) => state.closeContextMenu,
+  );
   const connectionMenu = useStore(store, (state) => state.connectionMenu);
-  const handleCloseConnectionMenu = useStore(store, (state) => state.closeConnectionMenu);
+  const handleCloseConnectionMenu = useStore(
+    store,
+    (state) => state.closeConnectionMenu,
+  );
   const nodeContextMenu = useStore(store, (state) => state.nodeContextMenu);
-  const handleCloseNodeContextMenu = useStore(store, (state) => state.closeNodeContextMenu);
+  const handleCloseNodeContextMenu = useStore(
+    store,
+    (state) => state.closeNodeContextMenu,
+  );
   const activeJobId = useStore(store, (state) => state.activeJobId);
   const isConsoleOpen = useStore(store, (state) => state.isConsoleOpen);
-  const handleCloseConsole = useStore(store, (state) => state.handleCloseConsole);
+  const handleCloseConsole = useStore(
+    store,
+    (state) => state.handleCloseConsole,
+  );
   const setPipelineName = useStore(store, (state) => state.setPipelineName);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +96,9 @@ export const CanvasInner = () => {
 
       <LlmContentCard />
 
-      {isConsoleOpen && <RunConsole jobId={activeJobId} onClose={handleCloseConsole} />}
+      {isConsoleOpen && (
+        <RunConsole jobId={activeJobId} onClose={handleCloseConsole} />
+      )}
     </div>
   );
 };

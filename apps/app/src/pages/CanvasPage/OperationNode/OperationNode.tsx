@@ -9,7 +9,6 @@ import {
   Repeat,
 } from "lucide-react";
 import { useState } from "react";
-import { useStore } from "zustand";
 import { cn } from "@repo/ui/lib/utils";
 import {
   Select,
@@ -20,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
+import { useStore } from "zustand";
 import {
   useHarnessCanvasStore,
   type OperationNodeData,
@@ -78,8 +78,6 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
   const setInspectingNodeId = useStore(store, (s) => s.setInspectingNodeId);
 
-  const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
-
   const {
     icon: StatusIcon,
     color,
@@ -89,23 +87,26 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const operation = operations.find((op) => op.id === data.operationId);
 
   const handleLabelChange = (v: string) =>
-    update({ label: v, operationName: v });
+    updateNodeData(id, { label: v, operationName: v });
 
   const selectedProvider = data.llmProvider ?? "";
   const selectedModel = data.llmModel ?? "";
 
   const handleProviderChange = (value: string | null) => {
     if (!value || value === "__default__") {
-      update({ llmProvider: undefined, llmModel: undefined });
+      updateNodeData(id, { llmProvider: undefined, llmModel: undefined });
     } else {
       const models = MODEL_OPTIONS[value];
-      update({ llmProvider: value, llmModel: models?.[0]?.value ?? "" });
+      updateNodeData(id, {
+        llmProvider: value,
+        llmModel: models?.[0]?.value ?? "",
+      });
     }
     setProviderOpen(false);
   };
 
   const handleModelChange = (value: string | null) => {
-    if (value) update({ llmModel: value });
+    if (value) updateNodeData(id, { llmModel: value });
     setModelOpen(false);
   };
 
@@ -121,20 +122,20 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     bpId: string | undefined,
     bpName: string | undefined,
   ) => {
-    update({ bestPracticeId: bpId, bestPracticeName: bpName });
+    updateNodeData(id, { bestPracticeId: bpId, bestPracticeName: bpName });
   };
 
   const handleLoopToggle = () => {
-    update({ loopEnabled: !data.loopEnabled });
+    updateNodeData(id, { loopEnabled: !data.loopEnabled });
   };
 
   const handleMaxLoopChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number.parseInt(e.target.value, 10);
-    if (val >= 1 && val <= 20) update({ maxLoopCount: val });
+    if (val >= 1 && val <= 20) updateNodeData(id, { maxLoopCount: val });
   };
 
   const handleConditionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    update({ loopConditionPrompt: e.target.value });
+    updateNodeData(id, { loopConditionPrompt: e.target.value });
   };
 
   const hasLlmContent = !!nodeLlmContent[id];

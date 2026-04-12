@@ -26,15 +26,16 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const [browserOpen, setBrowserOpen] = useState(false);
-  const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
 
-  const excludedPaths: string[] = Array.isArray(data.excludedPaths) ? data.excludedPaths : [];
+  const excludedPaths: string[] = Array.isArray(data.excludedPaths)
+    ? data.excludedPaths
+    : [];
 
-  const handleLabelChange = (v: string) => update({ label: v });
+  const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
   const handleFolderPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    update({ folderPath: e.target.value });
+    updateNodeData(id, { folderPath: e.target.value });
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    update({ description: e.target.value });
+    updateNodeData(id, { description: e.target.value });
 
   const handleFolderButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -42,7 +43,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   };
 
   const handleFolderSelect = (path: string) => {
-    update({ folderPath: path });
+    updateNodeData(id, { folderPath: path });
   };
 
   const handleBrowserOpenChange = (open: boolean) => {
@@ -50,12 +51,14 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   };
 
   const handleRemoveExcluded = (path: string) => {
-    update({ excludedPaths: excludedPaths.filter((p) => p !== path) });
+    updateNodeData(id, {
+      excludedPaths: excludedPaths.filter((p) => p !== path),
+    });
   };
 
   const handleAddExcluded = (path: string) => {
     if (!excludedPaths.includes(path)) {
-      update({ excludedPaths: [...excludedPaths, path] });
+      updateNodeData(id, { excludedPaths: [...excludedPaths, path] });
     }
   };
 

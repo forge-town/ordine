@@ -1,5 +1,11 @@
 import { Handle, Position } from "@xyflow/react";
-import { ShieldCheck, CheckCircle2, XCircle, Loader2, Circle } from "lucide-react";
+import {
+  ShieldCheck,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Circle,
+} from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore, type NodeRunStatus } from "../_store";
@@ -44,15 +50,14 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
   const { runStatus: nodeRunStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
-  const update = (patch: Record<string, unknown>) => updateNodeData(id, patch);
   const status = data.status ?? "idle";
   const { icon: StatusIcon, color, label: statusLabel } = statusConfig[status];
 
-  const handleLabelChange = (v: string) => update({ label: v });
+  const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
   const handleExpressionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    update({ expression: e.target.value });
+    updateNodeData(id, { expression: e.target.value });
   const handleExpectedResultChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    update({ expectedResult: e.target.value });
+    updateNodeData(id, { expectedResult: e.target.value });
 
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
@@ -63,7 +68,9 @@ export const ConditionNode = ({ id, data, selected }: ConditionNodeProps) => {
         headerRight={
           <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-white border border-slate-100 shadow-sm px-2 py-1">
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
+            <span
+              className={cn("text-[10px] font-semibold tracking-wide", color)}
+            >
               {statusLabel}
             </span>
           </div>
