@@ -100,7 +100,7 @@ export const createCanvasSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
   get: Parameters<HarnessCanvasStoreSlice>[1],
   overrideNodes?: PipelineNode[],
-  overrideEdges?: PipelineEdge[],
+  overrideEdges?: PipelineEdge[]
 ): CanvasSlice => {
   // Ensure parent nodes appear before children on init (ReactFlow requirement)
   const sortedNodes = overrideNodes ? [...overrideNodes] : initialNodes;
@@ -152,9 +152,9 @@ export const createCanvasSlice = (
         (draft) => {
           draft.edges = addEdge(
             { ...connection, type: "default", animated: true, data: {} },
-            draft.edges,
+            draft.edges
           );
-        },
+        }
       );
     },
 
@@ -167,7 +167,7 @@ export const createCanvasSlice = (
         },
         (draft) => {
           draft.nodes.push(node);
-        },
+        }
       );
     },
 
@@ -203,7 +203,7 @@ export const createCanvasSlice = (
         (draft) => {
           draft.nodes.push(newNode);
           draft.edges.push(newEdge);
-        },
+        }
       );
     },
 
@@ -222,10 +222,8 @@ export const createCanvasSlice = (
         },
         (draft) => {
           draft.nodes = draft.nodes.filter((n) => n.id !== nodeId);
-          draft.edges = draft.edges.filter(
-            (e) => e.source !== nodeId && e.target !== nodeId,
-          );
-        },
+          draft.edges = draft.edges.filter((e) => e.source !== nodeId && e.target !== nodeId);
+        }
       );
       // Clear selection outside of history-tracked state
       set((s) => ({
@@ -251,14 +249,14 @@ export const createCanvasSlice = (
           if (n) {
             n.data = { ...n.data, ...data } as PipelineNodeData;
           }
-        },
+        }
       );
     },
 
     updateEdgeData: (edgeId, data) => {
       set((state) => ({
         edges: state.edges.map((e) =>
-          e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e,
+          e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e
         ),
       }));
     },
@@ -295,19 +293,16 @@ export const createCanvasSlice = (
         },
         (draft) => {
           draft.nodes.push(newNode);
-        },
+        }
       );
     },
 
     clearCanvas: () => {
       const state = get();
-      state.recordCommand(
-        { type: "CLEAR_CANVAS", label: "清空画布" },
-        (draft) => {
-          draft.nodes = [];
-          draft.edges = [];
-        },
-      );
+      state.recordCommand({ type: "CLEAR_CANVAS", label: "清空画布" }, (draft) => {
+        draft.nodes = [];
+        draft.edges = [];
+      });
       set({ selectedNodeId: null, selectedEdgeId: null });
     },
 
@@ -355,19 +350,13 @@ export const createCanvasSlice = (
             // Expand compound to fit all children
             const PAD = 40;
             const allChildIds = (cNode.data as CompoundNodeData).childNodeIds;
-            const children = draft.nodes.filter((n) =>
-              allChildIds.includes(n.id),
-            );
+            const children = draft.nodes.filter((n) => allChildIds.includes(n.id));
             const childW = 240;
             const childH = 120;
             const minX = Math.min(...children.map((c) => c.position.x));
             const minY = Math.min(...children.map((c) => c.position.y));
-            const maxX = Math.max(
-              ...children.map((c) => c.position.x + childW),
-            );
-            const maxY = Math.max(
-              ...children.map((c) => c.position.y + childH),
-            );
+            const maxX = Math.max(...children.map((c) => c.position.x + childW));
+            const maxY = Math.max(...children.map((c) => c.position.y + childH));
             cNode.style = {
               ...cNode.style,
               width: maxX - minX + PAD * 2,
@@ -377,7 +366,7 @@ export const createCanvasSlice = (
 
           // Ensure parent appears before children in array
           sortParentBeforeChildren(draft.nodes);
-        },
+        }
       );
     },
 
@@ -397,16 +386,12 @@ export const createCanvasSlice = (
           const cNode = draft.nodes.find((n) => n.id === compoundId);
           if (cNode && cNode.data && "childNodeIds" in cNode.data) {
             const cData = cNode.data as CompoundNodeData;
-            cData.childNodeIds = cData.childNodeIds.filter(
-              (id) => id !== nodeId,
-            );
+            cData.childNodeIds = cData.childNodeIds.filter((id) => id !== nodeId);
           }
           const child = draft.nodes.find((n) => n.id === nodeId);
           if (child) {
             // Convert relative position to absolute before detaching
-            const compoundPos = draft.nodes.find(
-              (n) => n.id === compoundId,
-            )?.position;
+            const compoundPos = draft.nodes.find((n) => n.id === compoundId)?.position;
             if (compoundPos) {
               child.position = {
                 x: child.position.x + compoundPos.x,
@@ -416,7 +401,7 @@ export const createCanvasSlice = (
             child.parentId = undefined;
             child.extent = undefined;
           }
-        },
+        }
       );
     },
 
@@ -473,7 +458,7 @@ export const createCanvasSlice = (
           }
           // Ensure parent appears before children in array
           sortParentBeforeChildren(draft.nodes);
-        },
+        }
       );
     },
 
@@ -492,9 +477,7 @@ export const createCanvasSlice = (
           payload: { compoundId, childIds },
         },
         (draft) => {
-          const compoundPos = draft.nodes.find(
-            (n) => n.id === compoundId,
-          )?.position;
+          const compoundPos = draft.nodes.find((n) => n.id === compoundId)?.position;
           for (const cid of childIds) {
             const child = draft.nodes.find((n) => n.id === cid);
             if (child && compoundPos) {
@@ -509,9 +492,9 @@ export const createCanvasSlice = (
           // Remove compound node and its edges
           draft.nodes = draft.nodes.filter((n) => n.id !== compoundId);
           draft.edges = draft.edges.filter(
-            (e) => e.source !== compoundId && e.target !== compoundId,
+            (e) => e.source !== compoundId && e.target !== compoundId
           );
-        },
+        }
       );
     },
   };

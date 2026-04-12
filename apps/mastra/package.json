@@ -13,12 +13,10 @@
     "quality": "bun run check-types"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^1.0.0",
     "@mastra/core": "1.2.0",
     "@mastra/libsql": "1.0.0",
     "@mastra/loggers": "1.0.0",
     "@mastra/memory": "1.0.0",
-    "ai": "^4.0.0",
     "hono": "^4.11.9",
     "mastra": "1.2.0",
     "zod": "^4.0.0"
