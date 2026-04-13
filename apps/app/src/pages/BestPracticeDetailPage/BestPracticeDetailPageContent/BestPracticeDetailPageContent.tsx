@@ -1,4 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
+import CodeMirror from "@uiw/react-codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+import { oneDark } from "@codemirror/theme-one-dark";
 import {
   ArrowLeft,
   BookOpen,
@@ -79,7 +82,7 @@ export const BestPracticeDetailPageContent = ({ bestPractice, checklistItems }: 
             <span
               className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-                CATEGORY_COLORS[bestPractice.category] ?? "bg-muted text-muted-foreground"
+                CATEGORY_COLORS[bestPractice.category] ?? "bg-muted text-muted-foreground",
               )}
             >
               {CATEGORIES.find((c) => c.value === bestPractice.category)?.label ??
@@ -125,13 +128,31 @@ export const BestPracticeDetailPageContent = ({ bestPractice, checklistItems }: 
         {/* Code snippet */}
         {hasCode && (
           <div className="rounded-xl border border-border bg-card p-4">
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <Code2 className="h-4 w-4" />
-              {t("bestPractices.codeSnippetBtn")}
+            <div className="mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <Code2 className="h-4 w-4" />
+                {t("bestPractices.codeSnippetBtn")}
+              </div>
+              <span className="rounded bg-muted px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
+                {bestPractice.language}
+              </span>
             </div>
-            <pre className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">
-              {bestPractice.codeSnippet}
-            </pre>
+            <div className="overflow-hidden rounded-md border border-border text-xs">
+              <CodeMirror
+                readOnly
+                editable={false}
+                extensions={
+                  bestPractice.language === "typescript" ||
+                  bestPractice.language === "tsx" ||
+                  bestPractice.language === "javascript"
+                    ? [javascript({ typescript: true, jsx: true })]
+                    : []
+                }
+                height="auto"
+                theme={oneDark}
+                value={bestPractice.codeSnippet}
+              />
+            </div>
           </div>
         )}
 
@@ -167,7 +188,7 @@ export const BestPracticeDetailPageContent = ({ bestPractice, checklistItems }: 
                           "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
                           item.checkType === "script"
                             ? "bg-blue-100 text-blue-700"
-                            : "bg-purple-100 text-purple-700"
+                            : "bg-purple-100 text-purple-700",
                         )}
                       >
                         {item.checkType === "script" ? (

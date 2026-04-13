@@ -3,11 +3,6 @@
  *
  * Seeds the `best_practices` table with entries derived from `.agents/skills/*-best-practice/`.
  * Also includes 3 workflow-level practices referenced by recipes.
- *
- * Requirements:
- *   - Title must be "xxx最佳实践"
- *   - Must have codeSnippet
- *   - Checklist items seeded separately in checklist-items.ts
  */
 
 import { apiPut, apiDelete } from "../api";
@@ -23,8 +18,6 @@ interface BestPracticeSeed {
   tags: string[];
 }
 
-// ─── Best Practices Data ─────────────────────────────────────────────────────
-
 const BEST_PRACTICES: BestPracticeSeed[] = [
   {
     id: "bp_barrel_export",
@@ -33,15 +26,10 @@ const BEST_PRACTICES: BestPracticeSeed[] = [
     content: "确保所有导出遵循只做 re-export、无业务逻辑、命名导出等规范。",
     category: "architecture",
     language: "typescript",
-    codeSnippet: `// ✅ Good: Pure re-exports only
-export * from './Button'
-export * from './Input'
-
-// ❌ Bad: Business logic in index
-export const API_BASE = '/api/v1'
-
-// ❌ Bad: Default export
-export default Button`,
+    codeSnippet: `export * from "./Button";
+export * from "./Input";
+export * from "./Select";
+export * from "./Dialog";`,
     tags: ["barrel-export", "index", "module"],
   },
   {
@@ -51,12 +39,12 @@ export default Button`,
     content: "确保每一项可判断、有示例、结构清晰、支持自动化验证。",
     category: "process",
     language: "markdown",
-    codeSnippet: `// ✅ Good: 可判定 + 有示例
-// - [ ] 1.1 文件名格式为 {feature}Dao.ts
-//   - ❌ 错误：CatsDAO.ts
-//   - ✅ 正确：catsDao.ts
-// ❌ Bad: 模糊不可判定
-// - [ ] 命名要规范`,
+    codeSnippet: `- [ ] 1.1 文件名格式为 {feature}Dao.ts
+  - 正确：catsDao.ts
+  - 错误：CatsDAO.ts
+- [ ] 1.2 查询单条返回 T | null
+  - 正确：findById(id: string): Promise<UserRow | null>
+  - 错误：findById(id: string): Promise<UserRow>`,
     tags: ["checklist", "quality"],
   },
   {
@@ -65,14 +53,19 @@ export default Button`,
     condition: "设计或审查 React 组件",
     content: "确保组件符合 shadcn/ui 设计哲学：单一职责、可组合、可访问、可复制粘贴。",
     category: "frontend",
-    language: "typescript",
-    codeSnippet: `// ❌ Bad: 配置驱动
-// <Tabs tabs={[{ id: "profile", label: "资料", content: <Profile /> }]} />
-// ✅ Good: 组合驱动
-// <Tabs defaultValue="profile">
-//   <TabsList><TabsTrigger value="profile">资料</TabsTrigger></TabsList>
-//   <TabsContent value="profile"><Profile /></TabsContent>
-// </Tabs>`,
+    language: "tsx",
+    codeSnippet: `<Tabs defaultValue="profile">
+  <TabsList>
+    <TabsTrigger value="profile">资料</TabsTrigger>
+    <TabsTrigger value="settings">设置</TabsTrigger>
+  </TabsList>
+  <TabsContent value="profile">
+    <Profile />
+  </TabsContent>
+  <TabsContent value="settings">
+    <Settings />
+  </TabsContent>
+</Tabs>`,
     tags: ["react", "component", "shadcn"],
   },
   {
@@ -81,14 +74,12 @@ export default Button`,
     condition: "创建或审查 React 组件文件夹单元",
     content: "强制每个组件以独立文件夹形式存在，包含组件本身、单元测试和 Storybook 故事文件。",
     category: "frontend",
-    language: "typescript",
-    codeSnippet: `// ComponentName/
-// ├── index.ts                    // export * from './ComponentName'
-// ├── ComponentName.tsx           // 组件本身
-// ├── ComponentName.test.tsx      // 单元测试
-// └── ComponentName.stories.tsx   // Storybook 故事
-// ❌ Bad: 单文件无文件夹
-// ❌ Bad: 测试放在 __tests__/`,
+    language: "tsx",
+    codeSnippet: `UserCard/
+├── index.ts                   -> export * from "./UserCard";
+├── UserCard.tsx
+├── UserCard.test.tsx
+└── UserCard.stories.tsx`,
     tags: ["react", "component", "test", "storybook"],
   },
   {
@@ -100,14 +91,19 @@ export default Button`,
     language: "typescript",
     codeSnippet: `export const usersDao = {
   async findById(id: string): Promise<UserRow | null> {
-    const result = await db.select().from(usersTable)
-      .where(eq(usersTable.id, id)).limit(1);
+    const result = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, id))
+      .limit(1);
     return result[0] ?? null;
   },
+
   async create(data: NewUserRow): Promise<UserRow> {
     const result = await db.insert(usersTable).values(data).returning();
     return result[0];
   },
+
   async createWithTx(tx: DbExecutor, data: NewUserRow): Promise<UserRow> {
     const result = await tx.insert(usersTable).values(data).returning();
     return result[0];
@@ -122,13 +118,13 @@ export default Button`,
     content: "确保表名、列名、索引和关系配置均遵循项目命名规范与表结构规范。",
     category: "backend",
     language: "typescript",
-    codeSnippet: `// ✅ Good: SQL snake_case 复数 + TS camelCase + Table 后缀
-export const usersTable = pgTable("users", {
-  createdAt: timestamp("created_at"),
-  emailVerified: boolean("email_verified"),
-});
-// ❌ Bad: 驼峰表名 / 单数 / 缺 Table 后缀
-// export const user = pgTable("User", { createdAt: timestamp("createdAt") });`,
+    codeSnippet: `export const usersTable = pgTable("users", {
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  emailVerified: boolean("email_verified").default(false),
+});`,
     tags: ["database", "schema", "drizzle", "naming"],
   },
   {
@@ -138,17 +134,20 @@ export const usersTable = pgTable("users", {
     content: "必须使用 neverthrow 库进行函数式错误处理，禁止使用原生 try-catch。",
     category: "backend",
     language: "typescript",
-    codeSnippet: `// ✅ Good: neverthrow Result 类型
+    codeSnippet: `import { ok, err, Result } from "neverthrow";
+
 function parseJSON(raw: string): Result<Data, ParseError> {
-  try { return ok(JSON.parse(raw)); }
-  catch { return err(new ParseError("Invalid JSON", raw)); }
+  try {
+    return ok(JSON.parse(raw));
+  } catch {
+    return err(new ParseError("Invalid JSON", raw));
+  }
 }
-result.match(
-  (user) => console.log(user.name),
-  (error) => console.error(error.message)
-);
-// ❌ Bad: 原生 try-catch + 静默捕获
-// try { await fetchUser() } catch (e) { console.log(e) }`,
+
+parseJSON(input).match(
+  (data) => handleSuccess(data),
+  (error) => handleError(error.message),
+);`,
     tags: ["error-handling", "neverthrow", "result"],
   },
   {
@@ -157,10 +156,10 @@ result.match(
     condition: "创建或重构前端表单组件",
     content: "确保表单结构、字段验证逻辑和状态管理遵循项目表单设计规范与组件化标准。",
     category: "frontend",
-    language: "typescript",
+    language: "tsx",
     codeSnippet: `const FormSchema = z.object({
-  name: z.string().min(1, "Required"),
-  email: z.string().email("Invalid"),
+  name: z.string().min(1, "必填"),
+  email: z.string().email("邮箱格式不正确"),
 });
 
 export function MyForm({ initialData, onSubmit }: MyFormProps) {
@@ -168,9 +167,26 @@ export function MyForm({ initialData, onSubmit }: MyFormProps) {
     resolver: zodResolver(FormSchema),
     defaultValues: { ...initialData },
   });
-  // <Form {...form}><form onSubmit={form.handleSubmit(onSubmit)}>
-  //   <FormField control={form.control} name="name" render={...} />
-  // </form></Form>
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>名称</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </form>
+    </Form>
+  );
 }`,
     tags: ["form", "validation", "react"],
   },
@@ -184,13 +200,16 @@ export function MyForm({ initialData, onSubmit }: MyFormProps) {
     codeSnippet: `import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-i18n.use(LanguageDetector).use(initReactI18next).init({
-  resources,
-  lng: getSavedLanguage() || undefined,
-  fallbackLng: "zh",
-  interpolation: { escapeValue: false },
-  detection: { order: ["cookie", "localStorage", "navigator"] },
-});`,
+
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: "zh",
+    interpolation: { escapeValue: false },
+    detection: { order: ["cookie", "localStorage", "navigator"] },
+  });`,
     tags: ["i18n", "react-i18next", "localization"],
   },
   {
@@ -199,14 +218,19 @@ i18n.use(LanguageDetector).use(initReactI18next).init({
     condition: "检查或重构 React/Vue 组件文件",
     content: "强制每个文件只包含一个组件，不允许多组件共存于同一文件。",
     category: "frontend",
-    language: "typescript",
-    codeSnippet: `// ✅ Good: 每个文件只导出一个组件
-// UserCard.tsx -> export const UserCard = () => { ... };
-// Avatar.tsx  -> export const Avatar = () => { ... };
-// ❌ Bad: 一个文件多组件
-// UserCard.tsx
-// export const UserCard = () => { ... };
-// export const Avatar = () => { ... }; // 必须拆到 Avatar.tsx`,
+    language: "tsx",
+    codeSnippet: `export const UserCard = ({ userId }: UserCardProps) => {
+  const user = useUserStore((s) => s.users[userId]);
+
+  return (
+    <Card>
+      <CardHeader>
+        <Avatar src={user.avatar} />
+      </CardHeader>
+      <CardContent>{user.name}</CardContent>
+    </Card>
+  );
+};`,
     tags: ["react", "component", "file-structure"],
   },
   {
@@ -215,17 +239,20 @@ i18n.use(LanguageDetector).use(initReactI18next).init({
     condition: "创建或审查前端页面结构",
     content: "确保遵循 Anatomy 规范，正确分离 Wrapper、Content 和 Optional Store 模块。",
     category: "frontend",
-    language: "typescript",
-    codeSnippet: `// ConfigPage/
-// ├── index.ts
-// ├── ConfigPage.tsx           // Wrapper
-// ├── ConfigPageContent.tsx    // Content
-// └── _store/
-//     ├── provider.tsx
-//     ├── configPageSlice.ts
-//     └── configPageStore.ts
+    language: "tsx",
+    codeSnippet: `ConfigPage/
+├── index.ts
+├── ConfigPage.tsx
+├── ConfigPageContent.tsx
+└── _store/
+    ├── provider.tsx
+    ├── configPageSlice.ts
+    └── configPageStore.ts
+
 export const ConfigPage = () => (
-  <ConfigPageStoreProvider><ConfigPageContent /></ConfigPageStoreProvider>
+  <ConfigPageStoreProvider>
+    <ConfigPageContent />
+  </ConfigPageStoreProvider>
 );`,
     tags: ["page", "architecture", "anatomy"],
   },
@@ -235,14 +262,17 @@ export const ConfigPage = () => (
     condition: "在 React 组件中进行数据获取",
     content: "确保通过 Refine hooks 经由 DataProvider 访问数据，禁止直接调用 trpc 客户端。",
     category: "frontend",
-    language: "typescript",
-    codeSnippet: `// ✅ Good: 通过 Refine hooks 访问数据
-// const { data } = useList({ resource: "users" });
-// const { mutate } = useCreate();
-// ❌ Bad: 直接使用 tRPC 客户端
-// const { data } = trpc.users.list.useQuery();
-// ❌ Bad: 绕过 Refine
-// import { useQuery } from "@tanstack/react-query";`,
+    language: "tsx",
+    codeSnippet: `const { data: users } = useList({
+  resource: "users",
+  filters: [{ field: "role", operator: "eq", value: "admin" }],
+});
+
+const { mutate: createUser } = useCreate();
+
+const handleSubmit = (values: CreateUserInput) => {
+  createUser({ resource: "users", values });
+};`,
     tags: ["refine", "trpc", "data-provider"],
   },
   {
@@ -252,14 +282,16 @@ export const ConfigPage = () => (
     content: "确保数据访问模式、方法命名、返回类型和接口定义符合项目规范。",
     category: "backend",
     language: "typescript",
-    codeSnippet: `export const FreeBattleRepository = {
+    codeSnippet: `export const freeBattleRepository = {
   async create(input: CreateFreeBattleInput): Promise<{ id: number }> {
     return await db.transaction(async (tx) => {
-      const battleId = await battlesDAO.createWithTx(tx, {
-        title: input.title, type: "free",
+      const battleId = await battlesDao.createWithTx(tx, {
+        title: input.title,
+        type: "free",
       });
-      await freeBattlesDAO.createWithTx(tx, {
-        battle_id: battleId, rules: input.rules,
+      await freeBattlesDao.createWithTx(tx, {
+        battleId,
+        rules: input.rules,
       });
       return { id: battleId };
     });
@@ -274,13 +306,16 @@ export const ConfigPage = () => (
     content: "确保 Drizzle ORM schema 中的命名、关系和索引配置均符合规范。",
     category: "backend",
     language: "typescript",
-    codeSnippet: `// ✅ Good: 一文件一 Schema + z.infer 派生
-export const CatSchema = z.object({ id: z.string(), name: z.string() });
+    codeSnippet: `export const CatSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1),
+  breed: z.string().optional(),
+  ownerId: z.string(),
+});
 export type Cat = z.infer<typeof CatSchema>;
+
 export const CreateCatInputSchema = CatSchema.omit({ id: true });
-export type CreateCatInput = z.infer<typeof CreateCatInputSchema>;
-// ❌ Bad: 手写 interface
-// interface Cat { id: string; name: string }`,
+export type CreateCatInput = z.infer<typeof CreateCatInputSchema>;`,
     tags: ["schema", "drizzle", "database"],
   },
   {
@@ -293,12 +328,16 @@ export type CreateCatInput = z.infer<typeof CreateCatInputSchema>;
     codeSnippet: `export const catsService = {
   async create(userId: string, data: CreateCatInput): Promise<Cat> {
     const existing = await catsDao.findByName(data.name);
-    if (existing) throw new Error("Cat already exists");
-    return await catsDao.create({ ...data, userId });
+    if (existing) {
+      throw new TRPCError({ code: "CONFLICT", message: "Cat already exists" });
+    }
+    return await catsDao.create({ ...data, ownerId: userId });
   },
-};
-// ❌ Bad: Service 直接 import db
-// ❌ Bad: 业务校验下沉到 DAO`,
+
+  async listByOwner(ownerId: string): Promise<Cat[]> {
+    return await catsDao.findByOwnerId(ownerId);
+  },
+};`,
     tags: ["service", "trpc", "architecture"],
   },
   {
@@ -307,14 +346,13 @@ export type CreateCatInput = z.infer<typeof CreateCatInputSchema>;
     condition: "创建或修改 Skill 后执行质量验证",
     content: "涵盖命名、目录结构、元数据完整性、临时文件清理和依赖格式共 16 项检查。",
     category: "process",
-    language: "markdown",
-    codeSnippet: `// ---
-// name: dao-best-practice
-// description: Must follow when 创建或重构 DAO 文件。
-// ---
-// ❌ Bad: name 与目录名不一致
-// ❌ Bad: description 未以 Must follow 开头
-// ❌ Bad: 目录名用大写或下划线`,
+    language: "yaml",
+    codeSnippet: `---
+name: dao-best-practice
+description: >-
+  Must follow when 创建或重构 DAO 文件，确保遵循 Drizzle ORM
+  最佳实践（文件结构、方法命名、类型安全、性能优化）。
+---`,
     tags: ["skill", "quality", "validation"],
   },
   {
@@ -328,12 +366,11 @@ export type CreateCatInput = z.infer<typeof CreateCatInputSchema>;
   sidebarOpen: boolean;
   handleSetSidebarOpen: (open: boolean) => void;
 }
+
 export const createAppLayoutSlice: StateCreator<AppLayoutSlice> = (set) => ({
   sidebarOpen: false,
   handleSetSidebarOpen: (open) => set({ sidebarOpen: open }),
-});
-// ❌ Bad: Store 包含 loading/error 异步状态
-// ❌ Bad: 方法命名 setXxx 而非 handleXxx`,
+});`,
     tags: ["zustand", "store", "state-management"],
   },
   {
@@ -342,7 +379,7 @@ export const createAppLayoutSlice: StateCreator<AppLayoutSlice> = (set) => ({
     condition: "创建或维护 Storybook Stories",
     content: "确保组件文档命名、参数定义和装饰器配置符合项目 Storybook 编写规范。",
     category: "frontend",
-    language: "typescript",
+    language: "tsx",
     codeSnippet: `const meta: Meta<typeof CatCard> = {
   title: "Components/CatCard",
   component: CatCard,
@@ -350,7 +387,11 @@ export const createAppLayoutSlice: StateCreator<AppLayoutSlice> = (set) => ({
 };
 export default meta;
 type Story = StoryObj<typeof CatCard>;
-export const Base: Story = { args: { name: "柠檬", desc: "慵懒的橘猫" } };
+
+export const Base: Story = {
+  args: { name: "柠檬", desc: "慵懒的橘猫" },
+};
+
 export const Default: Story = { args: {} };`,
     tags: ["storybook", "documentation", "component"],
   },
@@ -360,14 +401,14 @@ export const Default: Story = { args: {} };`,
     condition: "管理或新增 React TypeScript 项目中的 SVG 图标组件",
     content: "确保命名、封装方式和导出规范遵循项目标准规范。",
     category: "frontend",
-    language: "typescript",
+    language: "tsx",
     codeSnippet: `import type { SVGProps } from "react";
+
 export const ArrowRightIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
     <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth={2} />
   </svg>
-);
-// ❌ Bad: 内联 <svg> / 硬编码 fill / export default`,
+);`,
     tags: ["svg", "icon", "component"],
   },
   {
@@ -376,14 +417,18 @@ export const ArrowRightIcon = (props: SVGProps<SVGSVGElement>) => (
     condition: "创建或审查 UI 组件代码",
     content: "确保在标准场景下使用项目组件库组件（shadcn/ui），禁止直接使用原生 HTML 元素。",
     category: "frontend",
-    language: "typescript",
-    codeSnippet: `// ❌ Bad: 原生 HTML 元素
-// <button onClick={handleClick}>提交</button>
-// <input type="text" value={v} onChange={onChange} />
-// ✅ Good: 组件库组件
-// <Button onClick={handleClick}>提交</Button>
-// <Input value={v} onChange={onChange} />
-// <Select><SelectTrigger /><SelectContent>...</SelectContent></Select>`,
+    language: "tsx",
+    codeSnippet: `<Button onClick={handleClick}>提交</Button>
+<Input value={name} onChange={handleChange} />
+<Select>
+  <SelectTrigger>
+    <SelectValue placeholder="选择角色" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="admin">管理员</SelectItem>
+    <SelectItem value="user">普通用户</SelectItem>
+  </SelectContent>
+</Select>`,
     tags: ["ui", "shadcn", "component-library"],
   },
   {
@@ -392,14 +437,18 @@ export const ArrowRightIcon = (props: SVGProps<SVGSVGElement>) => (
     condition: "设计组件数据流",
     content: "优先通过 Store 访问全局状态，不得通过 Props 层层传递。",
     category: "frontend",
-    language: "typescript",
-    codeSnippet: `// ❌ Bad: 从 store 读出再通过 props 传入
-// const selectedCat = useCatsStore(s => s.selectedCat);
-// return <CatCard cat={selectedCat} />;
-// ✅ Good: 子组件直接从 store 读取
-const CatCard = () => {
-  const cat = useCatsPageStore(s => s.selectedCat);
-  return <div>{cat.name}</div>;
+    language: "tsx",
+    codeSnippet: `const CatCard = () => {
+  const cat = useCatsPageStore((s) => s.selectedCat);
+
+  return (
+    <Card>
+      <CardContent>
+        <h3>{cat.name}</h3>
+        <p>{cat.breed}</p>
+      </CardContent>
+    </Card>
+  );
 };`,
     tags: ["zustand", "props", "data-flow"],
   },
@@ -410,13 +459,18 @@ const CatCard = () => {
     content: "禁止另建 type.ts 文件重复声明类型；所有类型须直接用 z.infer 从 schema 派生。",
     category: "architecture",
     language: "typescript",
-    codeSnippet: `// ✅ Good: 从 Zod schema 派生
-export const UserSchema = z.object({ id: z.string(), name: z.string() });
+    codeSnippet: `export const UserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+});
 export type User = z.infer<typeof UserSchema>;
+
 export const CreateUserSchema = UserSchema.omit({ id: true });
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
-// ❌ Bad: 手写 interface
-// export interface User { id: string; name: string }`,
+
+export const UpdateUserSchema = UserSchema.partial().required({ id: true });
+export type UpdateUserInput = z.infer<typeof UpdateUserSchema>;`,
     tags: ["zod", "type", "schema"],
   },
   {
@@ -426,12 +480,17 @@ export type CreateUserInput = z.infer<typeof CreateUserSchema>;
     content: "包括未使用导入、注释代码段、console.log、死代码、空函数、重复代码等。",
     category: "lint",
     language: "typescript",
-    codeSnippet: `// ❌ Bad examples:
-// import { unused } from './utils';  // 未使用的导入
-// console.log("debug:", data);       // console 残留
-// const oldHandler = () => { ... };  // 注释掉的代码
-// function onReady() {}              // 空函数
-// ✅ Good: 干净的代码，无以上问题`,
+    codeSnippet: `import { usersDao } from "@/models/daos/usersDao";
+
+export const usersService = {
+  async findById(id: string): Promise<UserRow | null> {
+    return await usersDao.findById(id);
+  },
+
+  async create(data: CreateUserInput): Promise<UserRow> {
+    return await usersDao.create(data);
+  },
+};`,
     tags: ["clean-code", "hardcode", "lint"],
   },
   {
@@ -440,14 +499,21 @@ export type CreateUserInput = z.infer<typeof CreateUserSchema>;
     condition: "检查 className 是否使用模板字符串",
     content: "所有动态 className 必须使用 cn() 函数，禁止模板字符串拼接。",
     category: "frontend",
-    language: "typescript",
+    language: "tsx",
     codeSnippet: `import { cn } from "@/lib/utils";
-// ✅ Good: cn() 函数
-// <div className={cn("px-4", isActive && "bg-blue-500")} />
-// ❌ Bad: 模板字符串拼接
-// <div className={\`px-4 \${isActive ? "bg-blue-500" : ""}\`} />
-// ❌ Bad: 字符串连接
-// <div className={"base " + conditionalClass} />`,
+
+<div className={cn("px-4 py-2", isActive && "bg-blue-500", className)} />
+
+<Button
+  className={cn(
+    "rounded-lg font-medium",
+    variant === "primary" && "bg-primary text-white",
+    variant === "ghost" && "bg-transparent",
+    disabled && "opacity-50 cursor-not-allowed",
+  )}
+>
+  {children}
+</Button>`,
     tags: ["classname", "cn", "tailwind"],
   },
   {
@@ -457,16 +523,21 @@ export type CreateUserInput = z.infer<typeof CreateUserSchema>;
     content: "自动发现并依次执行所有以 best-practice 结尾的技能，输出汇总报告。",
     category: "process",
     language: "typescript",
-    codeSnippet: `// 1. 扫描 .agents/skills/*-best-practice/
-// 2. 对每个 best-practice 依次执行检查
-// 3. 收集所有违规项，输出汇总报告
-// { "total": 22, "passed": 18, "failed": 4,
-//   "violations": [{ "practice": "barrel-export", "file": "...", "message": "..." }] }`,
+    codeSnippet: `const skills = discoverSkills(".agents/skills/*-best-practice/");
+
+const results = await Promise.all(
+  skills.map((skill) => runBestPracticeCheck(skill)),
+);
+
+const report = {
+  total: results.length,
+  passed: results.filter((r) => r.status === "passed").length,
+  failed: results.filter((r) => r.status === "failed").length,
+  violations: results.flatMap((r) => r.violations),
+};`,
     tags: ["full-check", "workflow", "automation"],
   },
 ];
-
-// ─── Runner ──────────────────────────────────────────────────────────────────
 
 async function seed() {
   console.log("🌱 Seeding best practices via REST API...\n");
@@ -479,7 +550,6 @@ async function seed() {
     upserted++;
   }
 
-  // Cleanup known duplicate entries
   const DUPLICATES = [
     "bp_useeffect",
     "bp_service_layer",

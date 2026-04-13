@@ -4,6 +4,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
+import CodeMirror from "@uiw/react-codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+import { oneDark } from "@codemirror/theme-one-dark";
 import {
   ArrowLeft,
   Brain,
@@ -447,23 +450,41 @@ export const BestPracticeEditPageContent = ({
               <FormField
                 control={form.control}
                 name="codeSnippet"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium text-muted-foreground">
-                      {t("bestPractices.codeSnippetLabel")}
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        className="resize-y font-mono text-xs leading-relaxed"
-                        placeholder={t("bestPractices.codeSnippetPlaceholder")}
-                        rows={6}
-                        spellCheck={false}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const lang = form.watch("language");
+                  const extensions =
+                    lang === "typescript" || lang === "tsx" || lang === "javascript"
+                      ? [javascript({ typescript: true, jsx: true })]
+                      : [];
+                  const handleCodeChange = (value: string) => {
+                    field.onChange(value);
+                  };
+                  return (
+                    <FormItem>
+                      <div className="flex items-center justify-between">
+                        <FormLabel className="text-xs font-medium text-muted-foreground">
+                          {t("bestPractices.codeSnippetLabel")}
+                        </FormLabel>
+                        <span className="rounded bg-muted px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
+                          {lang}
+                        </span>
+                      </div>
+                      <FormControl>
+                        <div className="overflow-hidden rounded-md border border-border text-xs">
+                          <CodeMirror
+                            extensions={extensions}
+                            height="240px"
+                            placeholder={t("bestPractices.codeSnippetPlaceholder")}
+                            theme={oneDark}
+                            value={field.value}
+                            onChange={handleCodeChange}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField
