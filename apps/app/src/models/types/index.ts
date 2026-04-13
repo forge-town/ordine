@@ -1,1 +1,1 @@
-export * from "./pipelineGraph";
+export * from "@ordine/db-schema";

@@ -1,21 +1,27 @@
 {
-  "name": "@ordine/scripts",
+  "name": "@ordine/db",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
   "scripts": {
-    "seed": "tsx src/seeds/operations.ts",
-    "seed:operations": "tsx src/seeds/operations.ts",
-    "seed:rules": "tsx src/seeds/rules.ts"
+    "check-types": "tsc --noEmit",
+    "quality": "tsc --noEmit"
   },
   "dependencies": {
-    "@ordine/db": "workspace:*",
     "@ordine/db-schema": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.8"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^22.10.2",
     "typescript": "5.9.2"
   }
 }

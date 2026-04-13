@@ -28,6 +28,8 @@
     "@fontsource-variable/geist": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",
     "@mastra/core": "1.2.0",
+    "@ordine/db": "workspace:*",
+    "@ordine/db-schema": "workspace:*",
     "@refinedev/core": "^5.0.12",
     "@repo/ui": "*",
     "@tailwindcss/vite": "^4.2.2",

@@ -115,8 +115,7 @@ const OPERATIONS: NewOperationRow[] = [
   {
     id: "op_clean_junk_code",
     name: "清理垃圾代码",
-    description:
-      "根据违规清单执行代码清理，删除确认无用的代码，输出清理报告和修改后的文件列表。",
+    description: "根据违规清单执行代码清理，删除确认无用的代码，输出清理报告和修改后的文件列表。",
     acceptedObjectTypes: ["file", "folder", "project"],
     config: cfg({
       executor: {
@@ -322,8 +321,7 @@ Markdown 列表：
   {
     id: "op_run_best_practice_checks",
     name: "执行最佳实践检查",
-    description:
-      "按技能列表依次对项目执行每个 best-practice 检查，生成汇总报告。",
+    description: "按技能列表依次对项目执行每个 best-practice 检查，生成汇总报告。",
     acceptedObjectTypes: ["project"],
     config: cfg({
       executor: {
@@ -441,7 +439,7 @@ const PIPELINES: NewPipelineRow[] = [
         data: {
           label: "清理报告",
           nodeType: "output-local-path",
-          path: "",
+          localPath: "",
           description: "清理执行报告输出路径",
           outputMode: "overwrite",
         },
@@ -470,8 +468,7 @@ const PIPELINES: NewPipelineRow[] = [
   {
     id: "pl_refactor_classname",
     name: "ClassName 规范化",
-    description:
-      "扫描 React/Vue 文件中的 className 模板字符串并转换为 cn() 函数调用。",
+    description: "扫描 React/Vue 文件中的 className 模板字符串并转换为 cn() 函数调用。",
     tags: ["refactor", "react", "className"],
     nodes: [
       {
@@ -516,7 +513,7 @@ const PIPELINES: NewPipelineRow[] = [
         data: {
           label: "转换报告",
           nodeType: "output-local-path",
-          path: "",
+          localPath: "",
           description: "className 转换报告输出路径",
           outputMode: "overwrite",
         },
@@ -545,8 +542,7 @@ const PIPELINES: NewPipelineRow[] = [
   {
     id: "pl_check_best_practices",
     name: "全量最佳实践检查",
-    description:
-      "自动发现所有 best-practice 技能并依次对项目执行检查，输出汇总质量报告。",
+    description: "自动发现所有 best-practice 技能并依次对项目执行检查，输出汇总质量报告。",
     tags: ["check", "quality", "best-practice"],
     nodes: [
       {
@@ -556,6 +552,8 @@ const PIPELINES: NewPipelineRow[] = [
         data: {
           label: "项目",
           nodeType: "github-project",
+          owner: "",
+          repo: "",
           description: "要检查的项目",
         },
       },
@@ -590,7 +588,7 @@ const PIPELINES: NewPipelineRow[] = [
         data: {
           label: "质量报告",
           nodeType: "output-local-path",
-          path: "",
+          localPath: "",
           description: "全量最佳实践检查报告输出路径",
           outputMode: "overwrite",
         },
@@ -643,9 +641,7 @@ async function seed() {
     opsInserted++;
   }
 
-  console.log(
-    `\n  Operations — Inserted: ${opsInserted}, Skipped: ${opsSkipped}\n`,
-  );
+  console.log(`\n  Operations — Inserted: ${opsInserted}, Skipped: ${opsSkipped}\n`);
 
   // ── Seed Pipelines ──
   let plInserted = 0;
