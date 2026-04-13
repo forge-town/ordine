@@ -1,0 +1,42 @@
+[
+  {
+    "id": "cl_storybook_1",
+    "title": "stories 文件与组件同目录",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_storybook_2",
+    "title": "使用 CSF3 格式，title 为 Components/{Name}",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_storybook_3",
+    "title": "包含 Base 和 Default 故事",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_storybook_4",
+    "title": "回调 props 使用 fn()，禁止箭头函数",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_storybook_5",
+    "title": "禁止无意义占位符，使用中文业务数据",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  }
+]

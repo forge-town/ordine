@@ -1,0 +1,34 @@
+[
+  {
+    "id": "cl_one_comp_1",
+    "title": "每个 .tsx/.jsx 文件只有一个导出组件",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_one_comp_2",
+    "title": "拆分出的文件名与组件名一致（PascalCase）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_one_comp_3",
+    "title": "子组件定义已从父组件中移除，改为 import",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_one_comp_4",
+    "title": "index.ts 桶导出已同步更新",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  }
+]

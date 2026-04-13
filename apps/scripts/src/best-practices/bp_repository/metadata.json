@@ -1,0 +1,11 @@
+{
+  "id": "bp_repository",
+  "title": "Repository 层最佳实践",
+  "condition": "创建或重构 Repository 层",
+  "category": "backend",
+  "language": "typescript",
+  "tags": [
+    "repository",
+    "data-access"
+  ]
+}

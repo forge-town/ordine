@@ -1,0 +1,12 @@
+{
+  "id": "bp_classname_convention",
+  "title": "ClassName 转换最佳实践",
+  "condition": "检查 className 是否使用模板字符串",
+  "category": "frontend",
+  "language": "tsx",
+  "tags": [
+    "classname",
+    "cn",
+    "tailwind"
+  ]
+}

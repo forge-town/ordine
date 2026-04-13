@@ -42,6 +42,8 @@ import { Route as ApiOperationsIdRouteImport } from './routes/api/operations.$id
 import { Route as ApiJobsIdRouteImport } from './routes/api/jobs.$id'
 import { Route as ApiFilesystemTreeRouteImport } from './routes/api/filesystem.tree'
 import { Route as ApiFilesystemBrowseRouteImport } from './routes/api/filesystem.browse'
+import { Route as ApiBestPracticesImportRouteImport } from './routes/api/best-practices.import'
+import { Route as ApiBestPracticesExportRouteImport } from './routes/api/best-practices.export'
 import { Route as ApiBestPracticesIdRouteImport } from './routes/api/best-practices.$id'
 import { Route as LayoutRulesCreateRouteImport } from './routes/_layout/rules.create'
 import { Route as LayoutPipelinesPipelineIdRouteImport } from './routes/_layout/pipelines.$pipelineId'
@@ -222,6 +224,16 @@ const ApiFilesystemBrowseRoute = ApiFilesystemBrowseRouteImport.update({
   path: '/api/filesystem/browse',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBestPracticesImportRoute = ApiBestPracticesImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => ApiBestPracticesRoute,
+} as any)
+const ApiBestPracticesExportRoute = ApiBestPracticesExportRouteImport.update({
+  id: '/export',
+  path: '/export',
+  getParentRoute: () => ApiBestPracticesRoute,
+} as any)
 const ApiBestPracticesIdRoute = ApiBestPracticesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -323,6 +335,8 @@ export interface FileRoutesByFullPath {
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/rules/create': typeof LayoutRulesCreateRoute
   '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
+  '/api/best-practices/export': typeof ApiBestPracticesExportRoute
+  '/api/best-practices/import': typeof ApiBestPracticesImportRoute
   '/api/filesystem/browse': typeof ApiFilesystemBrowseRoute
   '/api/filesystem/tree': typeof ApiFilesystemTreeRoute
   '/api/jobs/$id': typeof ApiJobsIdRoute
@@ -369,6 +383,8 @@ export interface FileRoutesByTo {
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/rules/create': typeof LayoutRulesCreateRoute
   '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
+  '/api/best-practices/export': typeof ApiBestPracticesExportRoute
+  '/api/best-practices/import': typeof ApiBestPracticesImportRoute
   '/api/filesystem/browse': typeof ApiFilesystemBrowseRoute
   '/api/filesystem/tree': typeof ApiFilesystemTreeRoute
   '/api/jobs/$id': typeof ApiJobsIdRoute
@@ -419,6 +435,8 @@ export interface FileRoutesById {
   '/_layout/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/_layout/rules/create': typeof LayoutRulesCreateRoute
   '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
+  '/api/best-practices/export': typeof ApiBestPracticesExportRoute
+  '/api/best-practices/import': typeof ApiBestPracticesImportRoute
   '/api/filesystem/browse': typeof ApiFilesystemBrowseRoute
   '/api/filesystem/tree': typeof ApiFilesystemTreeRoute
   '/api/jobs/$id': typeof ApiJobsIdRoute
@@ -469,6 +487,8 @@ export interface FileRouteTypes {
     | '/pipelines/$pipelineId'
     | '/rules/create'
     | '/api/best-practices/$id'
+    | '/api/best-practices/export'
+    | '/api/best-practices/import'
     | '/api/filesystem/browse'
     | '/api/filesystem/tree'
     | '/api/jobs/$id'
@@ -515,6 +535,8 @@ export interface FileRouteTypes {
     | '/pipelines/$pipelineId'
     | '/rules/create'
     | '/api/best-practices/$id'
+    | '/api/best-practices/export'
+    | '/api/best-practices/import'
     | '/api/filesystem/browse'
     | '/api/filesystem/tree'
     | '/api/jobs/$id'
@@ -564,6 +586,8 @@ export interface FileRouteTypes {
     | '/_layout/pipelines/$pipelineId'
     | '/_layout/rules/create'
     | '/api/best-practices/$id'
+    | '/api/best-practices/export'
+    | '/api/best-practices/import'
     | '/api/filesystem/browse'
     | '/api/filesystem/tree'
     | '/api/jobs/$id'
@@ -840,6 +864,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFilesystemBrowseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/best-practices/import': {
+      id: '/api/best-practices/import'
+      path: '/import'
+      fullPath: '/api/best-practices/import'
+      preLoaderRoute: typeof ApiBestPracticesImportRouteImport
+      parentRoute: typeof ApiBestPracticesRoute
+    }
+    '/api/best-practices/export': {
+      id: '/api/best-practices/export'
+      path: '/export'
+      fullPath: '/api/best-practices/export'
+      preLoaderRoute: typeof ApiBestPracticesExportRouteImport
+      parentRoute: typeof ApiBestPracticesRoute
+    }
     '/api/best-practices/$id': {
       id: '/api/best-practices/$id'
       path: '/$id'
@@ -1024,10 +1062,14 @@ const LayoutRouteWithChildren =
 
 interface ApiBestPracticesRouteChildren {
   ApiBestPracticesIdRoute: typeof ApiBestPracticesIdRoute
+  ApiBestPracticesExportRoute: typeof ApiBestPracticesExportRoute
+  ApiBestPracticesImportRoute: typeof ApiBestPracticesImportRoute
 }
 
 const ApiBestPracticesRouteChildren: ApiBestPracticesRouteChildren = {
   ApiBestPracticesIdRoute: ApiBestPracticesIdRoute,
+  ApiBestPracticesExportRoute: ApiBestPracticesExportRoute,
+  ApiBestPracticesImportRoute: ApiBestPracticesImportRoute,
 }
 
 const ApiBestPracticesRouteWithChildren =

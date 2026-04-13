@@ -4,6 +4,7 @@ import {
   Code2,
   ChevronDown,
   ChevronUp,
+  Download,
   FileText,
   Pencil,
   Trash2,
@@ -13,6 +14,7 @@ import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
+import { exportSingleBestPractice } from "@/lib/exportBestPractice";
 import { CATEGORIES, CATEGORY_COLORS } from "../constants";
 
 export type PracticeCardProps = {
@@ -29,6 +31,7 @@ export const PracticeCard = ({ practice, onDelete }: PracticeCardProps) => {
   const handleToggleExpanded = () => setExpanded((v) => !v);
   const handleToggleContent = () => setContentExpanded((v) => !v);
   const handleDelete = onDelete;
+  const handleExport = () => void exportSingleBestPractice(practice.id, practice.title);
 
   return (
     <div className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/50 hover:shadow-sm transition-all">
@@ -57,6 +60,12 @@ export const PracticeCard = ({ practice, onDelete }: PracticeCardProps) => {
                 <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
               </Link>
               <button
+                className="flex h-6 w-6 items-center justify-center rounded hover:bg-accent"
+                onClick={handleExport}
+              >
+                <Download className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+              <button
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-destructive/10"
                 onClick={handleDelete}
               >
@@ -70,7 +79,7 @@ export const PracticeCard = ({ practice, onDelete }: PracticeCardProps) => {
             <span
               className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-                CATEGORY_COLORS[practice.category] ?? "bg-muted text-muted-foreground"
+                CATEGORY_COLORS[practice.category] ?? "bg-muted text-muted-foreground",
               )}
             >
               {CATEGORIES.find((c) => c.value === practice.category)?.label ?? practice.category}

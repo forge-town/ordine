@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_barrel_1",
+    "title": "index.ts 仅包含 export * from 语句",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_barrel_2",
+    "title": "无业务逻辑、函数、变量、类定义",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_barrel_3",
+    "title": "禁止 export default",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_barrel_4",
+    "title": "使用相对路径，禁止别名路径（@/）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_barrel_5",
+    "title": "导出项与实际文件一一对应，无重复导出",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_barrel_6",
+    "title": "无循环依赖",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

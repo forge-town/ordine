@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_ui_comp_1",
+    "title": "按钮用 <Button>，禁止 <button>",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_ui_comp_2",
+    "title": "输入框用 <Input>，复选框用 <Checkbox>",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_ui_comp_3",
+    "title": "下拉选择用 <Select> 组件族，禁止 <select>",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_ui_comp_4",
+    "title": "文本域用 <Textarea>，标签用 <Label>",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_ui_comp_5",
+    "title": "表格用 <Table> 组件族，分隔线用 <Separator>",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_ui_comp_6",
+    "title": "对话框用 <Dialog>，禁止 <dialog> 或手动遮罩",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

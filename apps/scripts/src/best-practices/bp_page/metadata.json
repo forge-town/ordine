@@ -1,0 +1,12 @@
+{
+  "id": "bp_page",
+  "title": "页面结构最佳实践",
+  "condition": "创建或审查前端页面结构",
+  "category": "frontend",
+  "language": "tsx",
+  "tags": [
+    "page",
+    "architecture",
+    "anatomy"
+  ]
+}

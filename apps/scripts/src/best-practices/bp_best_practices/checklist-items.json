@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_bp_meta_1",
+    "title": "title 以「最佳实践」结尾",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_bp_meta_2",
+    "title": "codeSnippet 非空，只含正确示范代码",
+    "description": "无注释，无错误示例",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_bp_meta_3",
+    "title": "前端代码使用真实 JSX，language 为 tsx",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_bp_meta_4",
+    "title": "checklist_items 至少 3 条可判定检查项",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_bp_meta_5",
+    "title": "id 格式为 bp_{snake_case}",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_bp_meta_6",
+    "title": "tags 至少 2 个",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

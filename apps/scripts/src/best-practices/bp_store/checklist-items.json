@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_store_1",
+    "title": "Store 位于页面 _store/ 目录",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_store_2",
+    "title": "Slice 文件 {name}Slice.ts，Store 文件 {name}Store.ts",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_store_3",
+    "title": "不包含 loading/error 等异步状态字段",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_store_4",
+    "title": "Slice 只含同步状态修改，无副作用",
+    "description": "禁止 fetch/toast/DOM",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_store_5",
+    "title": "方法命名 handle{Action}，不用 set{Field}",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_store_6",
+    "title": "Provider 在 Wrapper 组件中使用",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

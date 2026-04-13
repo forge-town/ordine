@@ -1,0 +1,12 @@
+{
+  "id": "bp_zod_infer_type",
+  "title": "Zod 类型派生最佳实践",
+  "condition": "项目中存在 Zod schema 定义时",
+  "category": "architecture",
+  "language": "typescript",
+  "tags": [
+    "zod",
+    "type",
+    "schema"
+  ]
+}

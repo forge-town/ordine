@@ -1,0 +1,26 @@
+[
+  {
+    "id": "cl_fullcheck_1",
+    "title": "扫描所有 *-best-practice/ 目录",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_fullcheck_2",
+    "title": "对每个 best-practice 执行检查",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_fullcheck_3",
+    "title": "输出汇总报告（通过/失败/违规项）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  }
+]

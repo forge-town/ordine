@@ -1,14 +1,25 @@
-import { useState } from "react";
-import { BookOpen, Plus, Search } from "lucide-react";
+import { type ChangeEvent, useRef, useState } from "react";
+import { BookOpen, Download, Plus, Search, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
+import { exportAllBestPractices, importBestPracticesFromZip } from "@/lib/exportBestPractice";
 import { deleteBestPractice } from "@/services/bestPracticesService";
 import { Route } from "@/routes/_layout/best-practices.index";
 import { CATEGORIES } from "../constants";
 import { PracticeFormDialog } from "../PracticeFormDialog";
 import { PracticeCard } from "../PracticeCard";
+
+const handleExport = () => void exportAllBestPractices();
+
+const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  await importBestPracticesFromZip(file);
+  globalThis.location.reload();
+  e.target.value = "";
+};
 
 export const BestPracticesPageContent = () => {
   const { t } = useTranslation();
@@ -52,15 +63,36 @@ export const BestPracticesPageContent = () => {
     setShowForm(false);
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportClick = () => fileInputRef.current?.click();
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
         <h1 className="text-base font-semibold text-foreground">{t("bestPractices.title")}</h1>
-        <Button size="sm" onClick={handleAddPractice}>
-          <Plus className="h-4 w-4" />
-          {t("bestPractices.addNew")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            accept=".bestpractice"
+            className="hidden"
+            type="file"
+            onChange={handleFileChange}
+          />
+          <Button size="sm" variant="outline" onClick={handleImportClick}>
+            <Upload className="h-4 w-4" />
+            {t("common.import")}
+          </Button>
+          <Button size="sm" variant="outline" onClick={handleExport}>
+            <Download className="h-4 w-4" />
+            {t("common.export")}
+          </Button>
+          <Button size="sm" onClick={handleAddPractice}>
+            <Plus className="h-4 w-4" />
+            {t("bestPractices.addNew")}
+          </Button>
+        </div>
       </div>
 
       {/* Toolbar */}

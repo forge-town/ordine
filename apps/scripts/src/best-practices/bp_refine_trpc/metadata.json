@@ -1,0 +1,12 @@
+{
+  "id": "bp_refine_trpc",
+  "title": "Refine tRPC 数据获取最佳实践",
+  "condition": "在 React 组件中进行数据获取",
+  "category": "frontend",
+  "language": "tsx",
+  "tags": [
+    "refine",
+    "trpc",
+    "data-provider"
+  ]
+}

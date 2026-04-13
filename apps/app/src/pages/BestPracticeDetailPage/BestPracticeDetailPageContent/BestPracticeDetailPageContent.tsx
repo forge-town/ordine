@@ -7,6 +7,7 @@ import {
   BookOpen,
   Code2,
   ClipboardCheck,
+  Download,
   FileText,
   Info,
   Pencil,
@@ -19,6 +20,7 @@ import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import type { ChecklistItemEntity } from "@/models/daos/checklistItemsDao";
+import { exportSingleBestPractice } from "@/lib/exportBestPractice";
 import { CATEGORIES, CATEGORY_COLORS } from "@/pages/BestPracticesPage/constants";
 
 interface Props {
@@ -37,6 +39,8 @@ export const BestPracticeDetailPageContent = ({ bestPractice, checklistItems }: 
       to: "/best-practices/$bestPracticeId/edit",
       params: { bestPracticeId: bestPractice.id },
     });
+
+  const handleExport = () => void exportSingleBestPractice(bestPractice.id, bestPractice.title);
 
   const hasContent = bestPractice.content.trim().length > 0;
   const hasCode = bestPractice.codeSnippet.trim().length > 0;
@@ -58,6 +62,10 @@ export const BestPracticeDetailPageContent = ({ bestPractice, checklistItems }: 
           <h1 className="truncate text-sm font-semibold text-foreground">{bestPractice.title}</h1>
           <p className="font-mono text-[11px] text-muted-foreground">{bestPractice.id}</p>
         </div>
+        <Button aria-label={t("common.export")} size="sm" variant="outline" onClick={handleExport}>
+          <Download className="h-4 w-4" />
+          {t("common.export")}
+        </Button>
         <Button
           aria-label={t("common.edit")}
           size="sm"

@@ -1,0 +1,12 @@
+{
+  "id": "bp_ui_components",
+  "title": "UI 组件库使用最佳实践",
+  "condition": "创建或审查 UI 组件代码",
+  "category": "frontend",
+  "language": "tsx",
+  "tags": [
+    "ui",
+    "shadcn",
+    "component-library"
+  ]
+}

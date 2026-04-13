@@ -1,0 +1,12 @@
+{
+  "id": "bp_error_handling",
+  "title": "错误处理最佳实践",
+  "condition": "编写错误处理代码",
+  "category": "backend",
+  "language": "typescript",
+  "tags": [
+    "error-handling",
+    "neverthrow",
+    "result"
+  ]
+}

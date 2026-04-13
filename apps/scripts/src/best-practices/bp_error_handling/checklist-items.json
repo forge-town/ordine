@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_error_1",
+    "title": "必须使用 neverthrow，禁止原生 try-catch",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_error_2",
+    "title": "可能失败的函数返回 Result<T, E> 或 ResultAsync",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_error_3",
+    "title": "调用方必须处理错误（match/map/mapErr）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_error_4",
+    "title": "定义具体错误类，禁止 err(\"string\")",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_error_5",
+    "title": "使用 andThen 组合多个可能失败的操作",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_error_6",
+    "title": "不存在忽略 Result 或返回裸值的函数",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "id": "bp_schema",
+  "title": "Schema 定义最佳实践",
+  "condition": "创建或重构数据库 Schema 定义",
+  "category": "backend",
+  "language": "typescript",
+  "tags": [
+    "schema",
+    "drizzle",
+    "database"
+  ]
+}
