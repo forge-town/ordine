@@ -1,1 +1,1 @@
-export * from "@ordine/db-schema";
+export * from "@repo/db-schema";

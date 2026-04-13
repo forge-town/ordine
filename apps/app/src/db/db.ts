@@ -1,1 +1,1 @@
-export { db } from "@ordine/db";
+export { db } from "@repo/db";

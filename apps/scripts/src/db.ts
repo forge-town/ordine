@@ -1,9 +1,9 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import * as schema from "@ordine/db-schema";
+import * as schema from "@repo/db-schema";
 
-// Re-export all schema tables and types for seed scripts
-export * from "@ordine/db-schema";
+// Re-export all schema for seed scripts
+export * from "@repo/db-schema";
 
 // ─── DB Connection ────────────────────────────────────────────────────────────
 

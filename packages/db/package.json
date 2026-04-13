@@ -1,5 +1,5 @@
 {
-  "name": "@ordine/db",
+  "name": "@repo/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
     "quality": "tsc --noEmit"
   },
   "dependencies": {
-    "@ordine/db-schema": "workspace:*",
+    "@repo/db-schema": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.8"
   },

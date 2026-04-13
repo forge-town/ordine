@@ -8,14 +8,12 @@
     "seed:rules": "tsx src/seeds/rules.ts"
   },
   "dependencies": {
-    "@ordine/db": "workspace:*",
-    "@ordine/db-schema": "workspace:*",
+    "@repo/db-schema": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.8"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.10.2",
-    "typescript": "5.9.2"
+    "typescript": "^5.7.2"
   }
 }

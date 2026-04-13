@@ -439,7 +439,7 @@ const PIPELINES: NewPipelineRow[] = [
         data: {
           label: "清理报告",
           nodeType: "output-local-path",
-          localPath: "",
+          path: "",
           description: "清理执行报告输出路径",
           outputMode: "overwrite",
         },
@@ -513,7 +513,7 @@ const PIPELINES: NewPipelineRow[] = [
         data: {
           label: "转换报告",
           nodeType: "output-local-path",
-          localPath: "",
+          path: "",
           description: "className 转换报告输出路径",
           outputMode: "overwrite",
         },
@@ -552,8 +552,6 @@ const PIPELINES: NewPipelineRow[] = [
         data: {
           label: "项目",
           nodeType: "github-project",
-          owner: "",
-          repo: "",
           description: "要检查的项目",
         },
       },
@@ -588,7 +586,7 @@ const PIPELINES: NewPipelineRow[] = [
         data: {
           label: "质量报告",
           nodeType: "output-local-path",
-          localPath: "",
+          path: "",
           description: "全量最佳实践检查报告输出路径",
           outputMode: "overwrite",
         },

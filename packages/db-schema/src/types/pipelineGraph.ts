@@ -1,5 +1,7 @@
 import type { LlmProvider } from "../tables/settings_table";
 
+// Pipeline graph node/edge types for DB and business logic (decoupled from page store)
+
 export type NodeType =
   | "compound"
   | "condition"

@@ -2,6 +2,11 @@ import { sql } from "drizzle-orm";
 import { text, timestamp, jsonb, pgTable } from "drizzle-orm/pg-core";
 import { githubProjectsTable } from "./github_projects_table";
 
+/**
+ * A Work represents a pipeline execution triggered on a specific object
+ * (file, folder, or entire project) within a GitHub project.
+ */
+
 export type WorkObjectType = "file" | "folder" | "project";
 export type WorkStatus = "pending" | "running" | "success" | "failed";
 
@@ -17,6 +22,7 @@ export const worksTable = pgTable("works", {
     .references(() => githubProjectsTable.id, { onDelete: "cascade" }),
   pipelineId: text("pipeline_id").notNull(),
   pipelineName: text("pipeline_name").notNull(),
+  /** The object (file/folder/project) this work was triggered on */
   object: jsonb("object").$type<WorkObject>().notNull(),
   status: text("status").$type<WorkStatus>().notNull().default("pending"),
   logs: text("logs")
