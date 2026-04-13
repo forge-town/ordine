@@ -28,7 +28,7 @@ const RULES: NewRuleRow[] = [
     severity: "warning",
     checkScript: `import { readdir, readFile } from "fs/promises";
 import { join } from "path";
-const inputPath = process.env["INPUT_PATH"] ?? ".";
+interface RuleTarget { path: string; type: string }
 async function walk(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -40,15 +40,13 @@ async function walk(dir: string): Promise<string[]> {
   }
   return files;
 }
-const files = await walk(inputPath);
-const hits: string[] = [];
-for (const f of files) {
-  const src = await readFile(f, "utf8");
-  if (/\\bconsole\\.log\\(/.test(src)) hits.push(f);
-}
-if (hits.length > 0) {
-  console.error("FAIL: console.log found in:\\n" + hits.join("\\n"));
-  process.exit(1);
+export default async function check(target: RuleTarget): Promise<boolean> {
+  const files = await walk(target.path);
+  for (const f of files) {
+    const src = await readFile(f, "utf8");
+    if (/\\bconsole\\.log\\(/.test(src)) return false;
+  }
+  return true;
 }`,
     scriptLanguage: "typescript",
     acceptedObjectTypes: ["file", "folder", "project"],
@@ -63,11 +61,14 @@ if (hits.length > 0) {
     category: "lint",
     severity: "warning",
     checkScript: `import { execSync } from "child_process";
-const inputPath = process.env["INPUT_PATH"] ?? ".";
-try {
-  execSync(\`npx oxlint --deny no-unused-vars "\${inputPath}"\`, { stdio: "inherit" });
-} catch {
-  process.exit(1);
+interface RuleTarget { path: string; type: string }
+export default function check(target: RuleTarget): boolean {
+  try {
+    execSync(\`npx oxlint --deny no-unused-vars "\${target.path}"\`, { stdio: "pipe" });
+    return true;
+  } catch {
+    return false;
+  }
 }`,
     scriptLanguage: "typescript",
     acceptedObjectTypes: ["file", "folder"],
@@ -83,7 +84,7 @@ try {
     severity: "error",
     checkScript: `import { readdir, readFile } from "fs/promises";
 import { join } from "path";
-const inputPath = process.env["INPUT_PATH"] ?? ".";
+interface RuleTarget { path: string; type: string }
 async function walk(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -95,15 +96,13 @@ async function walk(dir: string): Promise<string[]> {
   }
   return files;
 }
-const files = await walk(inputPath);
-const hits: string[] = [];
-for (const f of files) {
-  const src = await readFile(f, "utf8");
-  if (/: any[\\s;,)<>]/.test(src)) hits.push(f);
-}
-if (hits.length > 0) {
-  console.error("FAIL: \\"any\\" type found in:\\n" + hits.join("\\n"));
-  process.exit(1);
+export default async function check(target: RuleTarget): Promise<boolean> {
+  const files = await walk(target.path);
+  for (const f of files) {
+    const src = await readFile(f, "utf8");
+    if (/: any[\\s;,)<>]/.test(src)) return false;
+  }
+  return true;
 }`,
     scriptLanguage: "typescript",
     acceptedObjectTypes: ["file", "folder", "project"],
@@ -121,7 +120,7 @@ if (hits.length > 0) {
     severity: "error",
     checkScript: `import { readdir, readFile } from "fs/promises";
 import { join } from "path";
-const inputPath = process.env["INPUT_PATH"] ?? ".";
+interface RuleTarget { path: string; type: string }
 async function walk(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -133,15 +132,13 @@ async function walk(dir: string): Promise<string[]> {
   }
   return files;
 }
-const files = await walk(inputPath);
-const hits: string[] = [];
-for (const f of files) {
-  const src = await readFile(f, "utf8");
-  if (/\\beval\\s*\\(/.test(src) || /new Function\\(/.test(src)) hits.push(f);
-}
-if (hits.length > 0) {
-  console.error("FAIL: eval() or new Function() found in:\\n" + hits.join("\\n"));
-  process.exit(1);
+export default async function check(target: RuleTarget): Promise<boolean> {
+  const files = await walk(target.path);
+  for (const f of files) {
+    const src = await readFile(f, "utf8");
+    if (/\\beval\\s*\\(/.test(src) || /new Function\\(/.test(src)) return false;
+  }
+  return true;
 }`,
     scriptLanguage: "typescript",
     acceptedObjectTypes: ["file", "folder", "project"],
@@ -156,8 +153,8 @@ if (hits.length > 0) {
     category: "security",
     severity: "error",
     checkScript: `import { readdir, readFile } from "fs/promises";
-import { join } from "path";
-const inputPath = process.env["INPUT_PATH"] ?? ".";
+import { join, basename } from "path";
+interface RuleTarget { path: string; type: string }
 async function walk(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -169,16 +166,14 @@ async function walk(dir: string): Promise<string[]> {
   }
   return files;
 }
-const files = await walk(inputPath);
-const pattern = /(api_key|secret|password|token)\\s*[:=]\\s*['"][^'"]{4,}/i;
-const hits: string[] = [];
-for (const f of files) {
-  const src = await readFile(f, "utf8");
-  if (pattern.test(src)) hits.push(f);
-}
-if (hits.length > 0) {
-  console.error("FAIL: Potential hardcoded secrets in:\\n" + hits.join("\\n"));
-  process.exit(1);
+export default async function check(target: RuleTarget): Promise<boolean> {
+  const pattern = /(api_key|secret|password|token)\\s*[:=]\\s*['"][^'"]{4,}/i;
+  const files = await walk(target.path);
+  for (const f of files) {
+    const src = await readFile(f, "utf8");
+    if (pattern.test(src)) return false;
+  }
+  return true;
 }`,
     scriptLanguage: "typescript",
     acceptedObjectTypes: ["file", "folder", "project"],
@@ -194,9 +189,9 @@ if (hits.length > 0) {
       "变量和函数使用 camelCase，组件和类使用 PascalCase，常量使用 UPPER_SNAKE_CASE，文件名与默认导出一致。",
     category: "style",
     severity: "info",
-    checkScript: `import { readdir, stat } from "fs/promises";
+    checkScript: `import { readdir } from "fs/promises";
 import { join, basename, extname } from "path";
-const inputPath = process.env["INPUT_PATH"] ?? ".";
+interface RuleTarget { path: string; type: string }
 async function walk(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -208,18 +203,14 @@ async function walk(dir: string): Promise<string[]> {
   }
   return files;
 }
-const files = await walk(inputPath);
-const hits: string[] = [];
-for (const f of files) {
-  const name = basename(f, extname(f));
-  if (name === "index") continue;
-  if (!/^[a-zA-Z][a-zA-Z0-9._-]*$/.test(name)) {
-    hits.push(\`Invalid filename: \${f}\`);
+export default async function check(target: RuleTarget): Promise<boolean> {
+  const files = await walk(target.path);
+  for (const f of files) {
+    const name = basename(f, extname(f));
+    if (name === "index") continue;
+    if (!/^[a-zA-Z][a-zA-Z0-9._-]*$/.test(name)) return false;
   }
-}
-if (hits.length > 0) {
-  console.error("FAIL: Naming issues:\\n" + hits.join("\\n"));
-  process.exit(1);
+  return true;
 }`,
     scriptLanguage: "typescript",
     acceptedObjectTypes: ["folder", "project"],
@@ -234,7 +225,7 @@ if (hits.length > 0) {
     severity: "warning",
     checkScript: `import { readdir, readFile } from "fs/promises";
 import { join } from "path";
-const inputPath = process.env["INPUT_PATH"] ?? ".";
+interface RuleTarget { path: string; type: string }
 const THRESHOLD = 300;
 async function walk(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -247,16 +238,13 @@ async function walk(dir: string): Promise<string[]> {
   }
   return files;
 }
-const files = await walk(inputPath);
-const hits: string[] = [];
-for (const f of files) {
-  const src = await readFile(f, "utf8");
-  const lines = src.split("\\n").length;
-  if (lines > THRESHOLD) hits.push(\`\${f} (\${lines} lines)\`);
-}
-if (hits.length > 0) {
-  console.error(\`FAIL: Files exceeding \${THRESHOLD} lines:\\n\` + hits.join("\\n"));
-  process.exit(1);
+export default async function check(target: RuleTarget): Promise<boolean> {
+  const files = await walk(target.path);
+  for (const f of files) {
+    const src = await readFile(f, "utf8");
+    if (src.split("\\n").length > THRESHOLD) return false;
+  }
+  return true;
 }`,
     scriptLanguage: "typescript",
     acceptedObjectTypes: ["folder", "project"],
@@ -273,7 +261,7 @@ if (hits.length > 0) {
     severity: "error",
     checkScript: `import { readdir, readFile } from "fs/promises";
 import { join } from "path";
-const inputPath = process.env["INPUT_PATH"] ?? ".";
+interface RuleTarget { path: string; type: string }
 async function walk(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -285,24 +273,20 @@ async function walk(dir: string): Promise<string[]> {
   }
   return files;
 }
-const files = await walk(inputPath);
-const hits: string[] = [];
-for (const f of files) {
-  const src = await readFile(f, "utf8");
-  const lines = src.split("\\n");
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i] ?? "";
-    if (/(for|forEach|map|filter|reduce)\\s*[\\(\\{]/.test(line)) {
-      const ctx = lines.slice(Math.max(0, i-1), Math.min(lines.length, i+5)).join(" ");
-      if (/\\b(findOne|findFirst|findById|db\\.)/.test(ctx)) {
-        hits.push(\`\${f}:\${i + 1}\`);
+export default async function check(target: RuleTarget): Promise<boolean> {
+  const files = await walk(target.path);
+  for (const f of files) {
+    const src = await readFile(f, "utf8");
+    const lines = src.split("\\n");
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i] ?? "";
+      if (/(for|forEach|map|filter|reduce)\\s*[\\(\\{]/.test(line)) {
+        const ctx = lines.slice(Math.max(0, i - 1), Math.min(lines.length, i + 5)).join(" ");
+        if (/\\b(findOne|findFirst|findById|db\\.)/.test(ctx)) return false;
       }
     }
   }
-}
-if (hits.length > 0) {
-  console.error("FAIL: Potential N+1 patterns at:\\n" + hits.join("\\n"));
-  process.exit(1);
+  return true;
 }`,
     scriptLanguage: "typescript",
     acceptedObjectTypes: ["file", "folder"],
@@ -318,7 +302,7 @@ if (hits.length > 0) {
     severity: "info",
     checkScript: `import { readdir, readFile } from "fs/promises";
 import { join } from "path";
-const inputPath = process.env["INPUT_PATH"] ?? ".";
+interface RuleTarget { path: string; type: string }
 async function walk(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -330,18 +314,16 @@ async function walk(dir: string): Promise<string[]> {
   }
   return files;
 }
-const files = await walk(inputPath);
-const hits: string[] = [];
-for (const f of files) {
-  const src = await readFile(f, "utf8");
-  const imgTags = src.match(/<img[^>]+>/g) ?? [];
-  for (const tag of imgTags) {
-    if (!tag.includes("loading=")) hits.push(\`\${f}: \${tag.slice(0, 60)}\`);
+export default async function check(target: RuleTarget): Promise<boolean> {
+  const files = await walk(target.path);
+  for (const f of files) {
+    const src = await readFile(f, "utf8");
+    const imgTags = src.match(/<img[^>]+>/g) ?? [];
+    for (const tag of imgTags) {
+      if (!tag.includes("loading=")) return false;
+    }
   }
-}
-if (hits.length > 0) {
-  console.error("FAIL: <img> without loading= found:\\n" + hits.join("\\n"));
-  process.exit(1);
+  return true;
 }`,
     scriptLanguage: "typescript",
     acceptedObjectTypes: ["file", "folder"],
@@ -358,7 +340,7 @@ if (hits.length > 0) {
     severity: "warning",
     checkScript: `import { readdir, readFile } from "fs/promises";
 import { join } from "path";
-const inputPath = process.env["INPUT_PATH"] ?? ".";
+interface RuleTarget { path: string; type: string }
 async function walk(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -370,17 +352,17 @@ async function walk(dir: string): Promise<string[]> {
   }
   return files;
 }
-const files = await walk(inputPath);
-const hits: string[] = [];
-for (const f of files) {
-  const src = await readFile(f, "utf8");
-  const lines = src.split("\\n").filter(l => l.trim() && !l.trim().startsWith("//") && !l.trim().startsWith("*") && !l.trim().startsWith("/*"));
-  const nonExport = lines.filter(l => !l.trim().startsWith("export"));
-  if (nonExport.length > 0) hits.push(\`\${f}: non-export lines: \${nonExport.length}\`);
-}
-if (hits.length > 0) {
-  console.error("FAIL: index files with non-export statements:\\n" + hits.join("\\n"));
-  process.exit(1);
+export default async function check(target: RuleTarget): Promise<boolean> {
+  const files = await walk(target.path);
+  for (const f of files) {
+    const src = await readFile(f, "utf8");
+    const lines = src.split("\\n").filter(
+      l => l.trim() && !l.trim().startsWith("//") && !l.trim().startsWith("*") && !l.trim().startsWith("/*")
+    );
+    const nonExport = lines.filter(l => !l.trim().startsWith("export"));
+    if (nonExport.length > 0) return false;
+  }
+  return true;
 }`,
     scriptLanguage: "typescript",
     acceptedObjectTypes: ["folder", "project"],

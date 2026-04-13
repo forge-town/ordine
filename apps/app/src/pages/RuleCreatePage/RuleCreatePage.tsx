@@ -22,6 +22,7 @@ export const RuleCreatePage = () => {
         severity: form.severity,
         checkScript: form.checkScript || null,
         scriptLanguage: form.scriptLanguage,
+        acceptedObjectTypes: form.acceptedObjectTypes,
         enabled: true,
         tags: form.tags
           ? form.tags

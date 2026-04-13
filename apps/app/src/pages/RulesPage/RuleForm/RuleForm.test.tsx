@@ -36,11 +36,12 @@ describe("RuleForm", () => {
           severity: "error",
           checkScript: "",
           scriptLanguage: "typescript" as const,
+          acceptedObjectTypes: ["file"] as ("file" | "folder")[],
           tags: "",
         }}
         onCancel={handleCancel}
         onSave={handleSave}
-      />
+      />,
     );
     const input = screen.getByPlaceholderText("规则名称 *") as HTMLInputElement;
     expect(input.value).toBe("Test Rule");

@@ -1,16 +1,25 @@
 /**
  * Rule Check Runner
  *
- * Executes each enabled rule's check script against the input path.
- * Each rule has its own TypeScript script that runs via `bun -e` with
- * INPUT_PATH as context. Exit code 0 = pass, non-zero = fail.
- * Stdout is captured as the rule's output/message.
+ * Executes each enabled rule's check script against the target object.
+ *
+ * Each rule's `checkScript` must be a TypeScript module that exports a default function:
+ *   export default function check(target: RuleTarget): boolean | Promise<boolean>
+ *
+ * Return true = pass, false = fail.
+ *
+ * The runner writes the script to a temp file, then uses `bun -e` to dynamically
+ * import and invoke the default export with the RuleTarget object.
  */
 
 import { exec } from "node:child_process";
+import { writeFile, unlink } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { promisify } from "node:util";
 import { rulesDao, type RuleEntity } from "@/models/daos/rulesDao";
 import type { CheckOutput, Finding } from "@/schemas/OperationOutputSchema";
+import type { RuleTarget } from "@/schemas/RuleSchema";
 
 const execAsync = promisify(exec);
 
@@ -23,20 +32,23 @@ interface RuleCheckResult {
   exitCode: number;
 }
 
-function buildCommand(rule: RuleEntity): string {
-  const script = rule.checkScript!;
-  return `bun -e ${JSON.stringify(script)}`;
-}
+async function executeRule(rule: RuleEntity, target: RuleTarget): Promise<RuleCheckResult> {
+  const tmpFile = join(tmpdir(), `rule_${rule.id}_${Date.now()}.ts`);
+  await writeFile(tmpFile, rule.checkScript!);
 
-async function executeRule(rule: RuleEntity, inputPath: string): Promise<RuleCheckResult> {
-  const cmd = buildCommand(rule);
-  const env = { ...process.env, INPUT_PATH: inputPath };
+  const wrapper = `
+const { default: check } = await import(${JSON.stringify(tmpFile)});
+const result = await check(${JSON.stringify(target)});
+process.exit(result ? 0 : 1);
+`;
 
   try {
-    const { stdout } = await execAsync(cmd, { env, timeout: SCRIPT_TIMEOUT_MS });
+    const { stdout } = await execAsync(`bun -e ${JSON.stringify(wrapper)}`, {
+      timeout: SCRIPT_TIMEOUT_MS,
+    });
     return { rule, passed: true, output: stdout.trim(), exitCode: 0 };
-  } catch (err: unknown) {
-    const execErr = err as { code?: number; stdout?: string; stderr?: string };
+  } catch (error: unknown) {
+    const execErr = error as { code?: number; stdout?: string; stderr?: string };
     const output = (execErr.stdout ?? execErr.stderr ?? "").trim();
     return {
       rule,
@@ -44,6 +56,8 @@ async function executeRule(rule: RuleEntity, inputPath: string): Promise<RuleChe
       output: output || "Rule check failed",
       exitCode: execErr.code ?? 1,
     };
+  } finally {
+    await unlink(tmpFile).catch(() => {});
   }
 }
 
@@ -62,12 +76,13 @@ function resultToFinding(result: RuleCheckResult): Finding | null {
 }
 
 export async function runRuleCheck(inputPath: string): Promise<CheckOutput> {
+  const target: RuleTarget = { path: inputPath, type: "project" };
   const rules = await rulesDao.findMany({ enabled: true });
   const activeRules = rules.filter((r) => r.checkScript != null && r.checkScript.trim() !== "");
 
   const results: RuleCheckResult[] = [];
   for (const rule of activeRules) {
-    const result = await executeRule(rule, inputPath);
+    const result = await executeRule(rule, target);
     results.push(result);
   }
 

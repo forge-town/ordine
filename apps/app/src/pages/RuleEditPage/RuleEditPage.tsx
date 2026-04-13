@@ -33,6 +33,7 @@ export const RuleEditPage = () => {
         severity: form.severity,
         checkScript: form.checkScript || null,
         scriptLanguage: form.scriptLanguage,
+        acceptedObjectTypes: form.acceptedObjectTypes,
         tags: form.tags
           ? form.tags
               .split(",")

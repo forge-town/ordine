@@ -1,6 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Info, Pencil, Tag, ToggleLeft, ToggleRight, Code2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import CodeMirror from "@uiw/react-codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+import { oneDark } from "@codemirror/theme-one-dark";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import type { RuleEntity } from "@/models/daos/rulesDao";
@@ -104,6 +107,26 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
           )}
         </div>
 
+        {/* Object Types */}
+        {rule.acceptedObjectTypes.length > 0 && (
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <Code2 className="h-4 w-4" />
+              {t("rules.objectTypes")}
+            </div>
+            <div className="flex gap-2">
+              {rule.acceptedObjectTypes.map((type) => (
+                <span
+                  key={type}
+                  className="rounded-md border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                >
+                  {type}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Check Script */}
         {rule.checkScript && (
           <div className="rounded-xl border border-border bg-card p-4">
@@ -116,9 +139,14 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
                 {rule.scriptLanguage ?? "typescript"}
               </span>
             </div>
-            <pre className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">
-              {rule.checkScript}
-            </pre>
+            <div className="overflow-hidden rounded-lg border border-border">
+              <CodeMirror
+                editable={false}
+                extensions={[javascript({ typescript: true, jsx: true })]}
+                theme={oneDark}
+                value={rule.checkScript}
+              />
+            </div>
           </div>
         )}
 

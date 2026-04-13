@@ -21,8 +21,10 @@ import {
   SEVERITIES,
   CATEGORY_CONFIG,
   SEVERITY_CONFIG,
+  OBJECT_TYPES,
   emptyForm,
   type RuleFormState,
+  type ObjectType,
 } from "../types";
 
 export type RuleFormProps = {
@@ -59,6 +61,14 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
   const handleSeverityToggle = () => setSeverityOpen((prev) => !prev);
 
   const handleCheckScriptChange = (value: string) => set("checkScript", value);
+
+  const handleToggleObjectType = (type: ObjectType) => {
+    setForm((prev) => {
+      const current = prev.acceptedObjectTypes;
+      const next = current.includes(type) ? current.filter((t) => t !== type) : [...current, type];
+      return { ...prev, acceptedObjectTypes: next };
+    });
+  };
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => set("tags", e.target.value);
   const handleCancel = onCancel;
 
@@ -133,6 +143,31 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
               </SelectGroup>
             </SelectContent>
           </Select>
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-[11px] text-muted-foreground">
+          {t("rules.objectTypes")}
+        </label>
+        <div className="flex gap-2">
+          {OBJECT_TYPES.map((type) => {
+            const active = form.acceptedObjectTypes.includes(type);
+            return (
+              <button
+                key={type}
+                type="button"
+                className={`rounded-md border px-3 py-1 text-xs font-medium transition-colors ${
+                  active
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                }`}
+                onClick={() => handleToggleObjectType(type as ObjectType)}
+              >
+                {type}
+              </button>
+            );
+          })}
         </div>
       </div>
 

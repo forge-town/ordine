@@ -44,6 +44,9 @@ export const CATEGORY_FILTERS = [
   })),
 ];
 
+export const OBJECT_TYPES = ["file", "folder"] as const;
+export type ObjectType = (typeof OBJECT_TYPES)[number];
+
 export const SCRIPT_LANGUAGES = ["typescript"] as const;
 
 export const RuleFormStateSchema = z.object({
@@ -53,6 +56,7 @@ export const RuleFormStateSchema = z.object({
   severity: RuleSeveritySchema,
   checkScript: z.string(),
   scriptLanguage: RuleScriptLanguageSchema,
+  acceptedObjectTypes: z.array(z.enum(["file", "folder"])),
   tags: z.string(),
 });
 
@@ -65,6 +69,7 @@ export const emptyForm = (): RuleFormState => ({
   severity: "warning",
   checkScript: "",
   scriptLanguage: "typescript" as const,
+  acceptedObjectTypes: [] as ("file" | "folder")[],
   tags: "",
 });
 
@@ -75,5 +80,8 @@ export const getEditForm = (rule: RuleEntity): RuleFormState => ({
   severity: rule.severity,
   checkScript: rule.checkScript ?? "",
   scriptLanguage: (rule.scriptLanguage ?? "typescript") as "typescript",
+  acceptedObjectTypes: (rule.acceptedObjectTypes as ("file" | "folder")[]).filter(
+    (t): t is "file" | "folder" => t === "file" || t === "folder",
+  ),
   tags: rule.tags.join(", "),
 });

@@ -8,3 +8,13 @@ export type RuleSeverity = z.infer<typeof RuleSeveritySchema>;
 
 export const RuleScriptLanguageSchema = z.enum(["typescript"]);
 export type RuleScriptLanguage = z.infer<typeof RuleScriptLanguageSchema>;
+
+/**
+ * The object passed to a rule's default-export check function.
+ * The script must export default: (target: RuleTarget) => boolean | Promise<boolean>
+ * Return true = pass, false = fail.
+ */
+export interface RuleTarget {
+  path: string;
+  type: "file" | "folder" | "project";
+}
