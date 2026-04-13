@@ -34,6 +34,16 @@ export const Route = createFileRoute("/api/checklist-items")({
         const item = await checklistItemsDao.create(parsed.data);
         return json(item, 201);
       },
+
+      DELETE: async ({ request }) => {
+        const url = new URL(request.url);
+        const id = url.searchParams.get("id");
+        if (!id) {
+          return errorResponse("id query param is required", 400);
+        }
+        await checklistItemsDao.delete(id);
+        return json({ deleted: id });
+      },
     },
   },
 });
