@@ -20,7 +20,8 @@ export const RuleCreatePage = () => {
         description: form.description || null,
         category: form.category,
         severity: form.severity,
-        pattern: form.pattern || null,
+        checkScript: form.checkScript || null,
+        scriptLanguage: form.scriptLanguage,
         enabled: true,
         tags: form.tags
           ? form.tags

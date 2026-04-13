@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { rulesDao } from "@/models/daos/rulesDao";
-import { RuleCategorySchema, RuleSeveritySchema } from "@/schemas";
+import { RuleCategorySchema, RuleSeveritySchema, ScriptLanguageSchema } from "@/schemas";
 
 export const rulesRouter = router({
   getMany: publicProcedure
@@ -11,7 +11,7 @@ export const rulesRouter = router({
           category: RuleCategorySchema.optional(),
           enabled: z.boolean().optional(),
         })
-        .optional()
+        .optional(),
     )
     .query(({ input }) => rulesDao.findMany(input ?? {})),
 
@@ -27,10 +27,12 @@ export const rulesRouter = router({
         description: z.string().nullable().default(null),
         category: RuleCategorySchema.default("custom"),
         severity: RuleSeveritySchema.default("warning"),
-        pattern: z.string().nullable().default(null),
+        checkScript: z.string().nullable().default(null),
+        scriptLanguage: ScriptLanguageSchema.default("bash"),
+        acceptedObjectTypes: z.array(z.string()).default(["file", "folder", "project"]),
         enabled: z.boolean().default(true),
         tags: z.array(z.string()).default([]),
-      })
+      }),
     )
     .mutation(({ input }) => rulesDao.create(input)),
 
@@ -42,10 +44,12 @@ export const rulesRouter = router({
         description: z.string().nullable().optional(),
         category: RuleCategorySchema.optional(),
         severity: RuleSeveritySchema.optional(),
-        pattern: z.string().nullable().optional(),
+        checkScript: z.string().nullable().optional(),
+        scriptLanguage: ScriptLanguageSchema.optional(),
+        acceptedObjectTypes: z.array(z.string()).optional(),
         enabled: z.boolean().optional(),
         tags: z.array(z.string()).optional(),
-      })
+      }),
     )
     .mutation(({ input }) => {
       const { id, ...rest } = input;

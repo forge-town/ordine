@@ -2,10 +2,11 @@
  * Pipeline execution engine.
  *
  * Traverses pipeline nodes in topological order and executes each one,
- * passing results between nodes. Supports three executor types:
- *   - script  → runs a shell/python/js command via child_process
- *   - prompt  → sends input to an AI model via @ai-sdk/openai
- *   - skill   → looks up skill metadata and delegates to an AI model
+ * passing results between nodes. Supports four executor types:
+ *   - script     → runs a shell/python/js command via child_process
+ *   - prompt     → sends input to an AI model via @ai-sdk/openai
+ *   - skill      → looks up skill metadata and delegates to an AI model
+ *   - rule-check → scans files against enabled rules with regex patterns
  *
  * Progress is tracked through a Job record in the DB.
  */
@@ -1178,6 +1179,17 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
     if (rawType === "skill" || rawType === "prompt") {
       executor.agentMode = rawType as "skill" | "prompt";
       executor.type = "agent";
+    }
+
+    if (executor.type === "rule-check") {
+      const { runRuleCheck } = await import("@/services/ruleCheckRunner");
+      await log(`Running rule-check on path: ${inputPath}`);
+      const checkOutput = await runRuleCheck(inputPath);
+      const result = JSON.stringify(checkOutput, null, 2);
+      await log(
+        `Rule-check: ${checkOutput.stats.totalFindings} findings in ${checkOutput.stats.totalFiles} files`
+      );
+      return { ok: true, content: result };
     }
 
     await log(`Executing operation "${operation.name}" (${executor.type})`);

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { rulesDao } from "@/models/daos/rulesDao";
-import { RuleCategorySchema, RuleSeveritySchema } from "@/schemas";
+import { RuleCategorySchema, RuleSeveritySchema, ScriptLanguageSchema } from "@/schemas";
 
 export const getRules = createServerFn({ method: "GET" })
   .inputValidator(
@@ -26,7 +26,9 @@ export const createRule = createServerFn({ method: "POST" })
       description: z.string().nullable().default(null),
       category: RuleCategorySchema.default("custom"),
       severity: RuleSeveritySchema.default("warning"),
-      pattern: z.string().nullable().default(null),
+      checkScript: z.string().nullable().default(null),
+      scriptLanguage: ScriptLanguageSchema.default("bash"),
+      acceptedObjectTypes: z.array(z.string()).default(["file", "folder", "project"]),
       enabled: z.boolean().default(true),
       tags: z.array(z.string()).default([]),
     })
@@ -41,7 +43,9 @@ export const updateRule = createServerFn({ method: "POST" })
       description: z.string().nullable().optional(),
       category: RuleCategorySchema.optional(),
       severity: RuleSeveritySchema.optional(),
-      pattern: z.string().nullable().optional(),
+      checkScript: z.string().nullable().optional(),
+      scriptLanguage: ScriptLanguageSchema.optional(),
+      acceptedObjectTypes: z.array(z.string()).optional(),
       enabled: z.boolean().optional(),
       tags: z.array(z.string()).optional(),
     })

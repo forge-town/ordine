@@ -1,8 +1,9 @@
 import { sql } from "drizzle-orm";
-import { text, timestamp, boolean, pgTable } from "drizzle-orm/pg-core";
+import { text, timestamp, boolean, pgTable, jsonb } from "drizzle-orm/pg-core";
 
 export type RuleSeverity = "error" | "warning" | "info";
 export type RuleCategory = "lint" | "security" | "style" | "performance" | "custom";
+export type ScriptLanguage = "bash" | "python" | "javascript";
 
 export const rulesTable = pgTable("rules", {
   id: text("id").primaryKey(),
@@ -10,7 +11,12 @@ export const rulesTable = pgTable("rules", {
   description: text("description"),
   category: text("category").$type<RuleCategory>().notNull().default("custom"),
   severity: text("severity").$type<RuleSeverity>().notNull().default("warning"),
-  pattern: text("pattern"),
+  checkScript: text("check_script"),
+  scriptLanguage: text("script_language").$type<ScriptLanguage>().default("bash"),
+  acceptedObjectTypes: jsonb("accepted_object_types")
+    .$type<string[]>()
+    .notNull()
+    .default(["file", "folder", "project"]),
   enabled: boolean("enabled").notNull().default(true),
   tags: text("tags")
     .array()

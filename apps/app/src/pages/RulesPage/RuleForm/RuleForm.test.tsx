@@ -34,12 +34,13 @@ describe("RuleForm", () => {
           description: "desc",
           category: "lint",
           severity: "error",
-          pattern: "",
+          checkScript: "",
+          scriptLanguage: "bash" as const,
           tags: "",
         }}
         onCancel={handleCancel}
         onSave={handleSave}
-      />
+      />,
     );
     const input = screen.getByPlaceholderText("规则名称 *") as HTMLInputElement;
     expect(input.value).toBe("Test Rule");

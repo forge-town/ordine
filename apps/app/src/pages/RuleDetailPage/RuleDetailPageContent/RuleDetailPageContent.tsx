@@ -74,7 +74,7 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
             <span
               className={cn(
                 "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
-                s.cls,
+                s.cls
               )}
             >
               <SeverityIcon className="h-3 w-3" />
@@ -104,15 +104,20 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
           )}
         </div>
 
-        {/* Pattern */}
-        {rule.pattern && (
+        {/* Check Script */}
+        {rule.checkScript && (
           <div className="rounded-xl border border-border bg-card p-4">
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <Code2 className="h-4 w-4" />
-              {t("rules.pattern")}
+            <div className="mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <Code2 className="h-4 w-4" />
+                {t("rules.checkScript")}
+              </div>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                {rule.scriptLanguage ?? "bash"}
+              </span>
             </div>
             <pre className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">
-              {rule.pattern}
+              {rule.checkScript}
             </pre>
           </div>
         )}

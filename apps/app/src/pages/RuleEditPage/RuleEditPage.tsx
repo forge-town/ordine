@@ -31,7 +31,8 @@ export const RuleEditPage = () => {
         description: form.description || null,
         category: form.category,
         severity: form.severity,
-        pattern: form.pattern || null,
+        checkScript: form.checkScript || null,
+        scriptLanguage: form.scriptLanguage,
         tags: form.tags
           ? form.tags
               .split(",")

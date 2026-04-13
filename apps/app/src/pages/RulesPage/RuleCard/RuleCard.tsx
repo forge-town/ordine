@@ -32,7 +32,7 @@ export const RuleCard = ({
     <div
       className={cn(
         "group rounded-xl border border-border bg-card p-4 transition-all",
-        !rule.enabled && "opacity-50",
+        !rule.enabled && "opacity-50"
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -50,9 +50,9 @@ export const RuleCard = ({
                 {rule.description}
               </p>
             )}
-            {rule.pattern && (
+            {rule.checkScript && (
               <p className="mt-1 rounded bg-muted/50 px-2 py-1 font-mono text-[11px] text-muted-foreground truncate">
-                {rule.pattern}
+                {rule.scriptLanguage ?? "bash"}: {rule.checkScript.split("\n")[0]}
               </p>
             )}
             <div className="mt-2 flex flex-wrap items-center gap-1.5">

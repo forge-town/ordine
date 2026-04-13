@@ -31,7 +31,7 @@ interface OutputPort {
 }
 
 interface ExecutorConfig {
-  type: "skill" | "prompt" | "script";
+  type: "skill" | "prompt" | "script" | "rule-check";
   skillId?: string;
   prompt?: string;
   command?: string;
@@ -70,8 +70,7 @@ const OPERATIONS: NewOperationRow[] = [
           name: "teamContext",
           kind: "text",
           required: false,
-          description:
-            "Optional: team size, experience level, and working conventions.",
+          description: "Optional: team size, experience level, and working conventions.",
         },
         {
           name: "techPreferences",
@@ -112,15 +111,13 @@ const OPERATIONS: NewOperationRow[] = [
           name: "featureDescription",
           kind: "text",
           required: true,
-          description:
-            "Free-form description of the feature — what & why, not how.",
+          description: "Free-form description of the feature — what & why, not how.",
         },
         {
           name: "constitutionDocument",
           kind: "file",
           required: false,
-          description:
-            "Path to constitution.md so the spec stays within project guidelines.",
+          description: "Path to constitution.md so the spec stays within project guidelines.",
         },
       ],
       outputs: [
@@ -154,8 +151,7 @@ const OPERATIONS: NewOperationRow[] = [
           name: "clarificationQuestions",
           kind: "text",
           required: false,
-          description:
-            "Optional: specific questions or concerns to address during clarification.",
+          description: "Optional: specific questions or concerns to address during clarification.",
         },
       ],
       outputs: [
@@ -163,15 +159,13 @@ const OPERATIONS: NewOperationRow[] = [
           name: "clarifiedSpecDocument",
           kind: "file",
           path: ".specify/{feature}/spec.md",
-          description:
-            "Updated spec.md with ambiguities resolved and open questions answered.",
+          description: "Updated spec.md with ambiguities resolved and open questions answered.",
         },
         {
           name: "clarificationLog",
           kind: "file",
           path: ".specify/{feature}/clarifications.md",
-          description:
-            "Log of questions raised and decisions made during the clarification pass.",
+          description: "Log of questions raised and decisions made during the clarification pass.",
         },
       ],
     }),
@@ -203,8 +197,7 @@ const OPERATIONS: NewOperationRow[] = [
           name: "constitutionDocument",
           kind: "file",
           required: false,
-          description:
-            "constitution.md to align the plan with project constraints.",
+          description: "constitution.md to align the plan with project constraints.",
         },
       ],
       outputs: [
@@ -232,8 +225,7 @@ const OPERATIONS: NewOperationRow[] = [
           name: "featureFolder",
           kind: "folder",
           required: true,
-          description:
-            "The feature folder containing spec.md, plan.md, and any clarifications.",
+          description: "The feature folder containing spec.md, plan.md, and any clarifications.",
         },
         {
           name: "constitutionDocument",
@@ -247,8 +239,7 @@ const OPERATIONS: NewOperationRow[] = [
           name: "analysisReport",
           kind: "file",
           path: ".specify/{feature}/analysis.md",
-          description:
-            "Report listing coverage gaps, inconsistencies, and recommended fixes.",
+          description: "Report listing coverage gaps, inconsistencies, and recommended fixes.",
         },
       ],
     }),
@@ -279,8 +270,7 @@ const OPERATIONS: NewOperationRow[] = [
           name: "checklistFocus",
           kind: "text",
           required: false,
-          description:
-            "Optional focus areas, e.g. 'security, accessibility, performance'.",
+          description: "Optional focus areas, e.g. 'security, accessibility, performance'.",
         },
       ],
       outputs: [
@@ -288,8 +278,7 @@ const OPERATIONS: NewOperationRow[] = [
           name: "checklistDocument",
           kind: "file",
           path: ".specify/{feature}/checklist.md",
-          description:
-            "Structured checklist with pass/fail criteria and human-review gates.",
+          description: "Structured checklist with pass/fail criteria and human-review gates.",
         },
       ],
     }),
@@ -349,15 +338,13 @@ const OPERATIONS: NewOperationRow[] = [
           name: "planDocument",
           kind: "file",
           required: true,
-          description:
-            "plan.md providing the architectural context for each task.",
+          description: "plan.md providing the architectural context for each task.",
         },
         {
           name: "specDocument",
           kind: "file",
           required: false,
-          description:
-            "Optional spec.md to verify each task output against acceptance criteria.",
+          description: "Optional spec.md to verify each task output against acceptance criteria.",
         },
         {
           name: "constitutionDocument",
@@ -378,8 +365,7 @@ const OPERATIONS: NewOperationRow[] = [
           name: "updatedTasksDocument",
           kind: "file",
           path: ".specify/{feature}/tasks.md",
-          description:
-            "tasks.md with completed items checked off and any blockers noted.",
+          description: "tasks.md with completed items checked off and any blockers noted.",
         },
       ],
     }),
@@ -419,6 +405,36 @@ const OPERATIONS: NewOperationRow[] = [
           path: ".ordine/check-report.md",
           description:
             "Markdown report listing all issues found with severity and suggested fixes.",
+        },
+      ],
+    }),
+  },
+
+  // ── 10. check-rules ─────────────────────────────────────────────────────
+  {
+    id: "op_check_rules",
+    name: "Check Rules",
+    description:
+      "Scan files against all enabled rules with regex patterns. Returns structured findings with severity, line numbers, and code snippets.",
+    acceptedObjectTypes: ["file", "folder", "project"],
+    config: cfg({
+      executor: {
+        type: "rule-check",
+      },
+      inputs: [
+        {
+          name: "target",
+          kind: "project",
+          required: true,
+          description: "The file, folder, or project to scan against rules.",
+        },
+      ],
+      outputs: [
+        {
+          name: "ruleCheckReport",
+          kind: "file",
+          path: ".ordine/rule-check-report.json",
+          description: "JSON report with all rule violations found (CheckOutput format).",
         },
       ],
     }),

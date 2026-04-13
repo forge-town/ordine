@@ -14,7 +14,7 @@ export interface OutputPort {
   description: string;
 }
 
-export type ExecutorType = "agent" | "script";
+export type ExecutorType = "agent" | "script" | "rule-check";
 export type AgentMode = "skill" | "prompt";
 export type ScriptLanguage = "bash" | "python" | "javascript";
 
