@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -92,7 +93,7 @@ export const BestPracticeEditPageContent = ({
       isNew: false,
       isDeleted: false,
       isDirty: false,
-    }))
+    })),
   );
 
   const form = useForm<EditFormValues>({
@@ -146,10 +147,10 @@ export const BestPracticeEditPageContent = ({
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number
+    value: string | number,
   ) => {
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item))
+      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item)),
     );
   };
 
@@ -338,14 +339,24 @@ export const BestPracticeEditPageContent = ({
                     <FormLabel className="text-xs font-medium text-muted-foreground">
                       {t("bestPractices.contentLabel")}
                     </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        className="resize-y text-xs leading-relaxed"
-                        placeholder={t("bestPractices.contentPlaceholder")}
-                        rows={10}
-                        {...field}
-                      />
-                    </FormControl>
+                    <div className="grid grid-cols-2 gap-3">
+                      <FormControl>
+                        <Textarea
+                          className="resize-none text-xs leading-relaxed h-60"
+                          placeholder={t("bestPractices.contentPlaceholder")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <div className="h-60 overflow-y-auto rounded-md border border-input bg-muted/30 px-3 py-2 text-xs leading-relaxed [&_h1]:text-sm [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-xs [&_h2]:font-semibold [&_h2]:mb-1.5 [&_h3]:text-xs [&_h3]:font-medium [&_h3]:mb-1 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:mb-2 [&_li]:mb-0.5 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_pre]:rounded-md [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:mb-2 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground [&_blockquote]:mb-2 [&_strong]:font-semibold [&_hr]:border-border [&_hr]:my-2">
+                        {field.value ? (
+                          <ReactMarkdown>{field.value}</ReactMarkdown>
+                        ) : (
+                          <span className="text-muted-foreground/50">
+                            {t("bestPractices.contentPlaceholder")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     <FormMessage className="text-xs" />
                   </FormItem>
                 )}
@@ -570,7 +581,7 @@ interface ChecklistItemEditorProps {
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number
+    value: string | number,
   ) => void;
   onDelete: (id: string) => void;
 }
