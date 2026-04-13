@@ -81,7 +81,7 @@ export const getEditForm = (rule: RuleEntity): RuleFormState => ({
   checkScript: rule.checkScript ?? "",
   scriptLanguage: (rule.scriptLanguage ?? "typescript") as "typescript",
   acceptedObjectTypes: (rule.acceptedObjectTypes as ("file" | "folder")[]).filter(
-    (t): t is "file" | "folder" => t === "file" || t === "folder",
+    (t): t is "file" | "folder" => t === "file" || t === "folder"
   ),
   tags: rule.tags.join(", "),
 });

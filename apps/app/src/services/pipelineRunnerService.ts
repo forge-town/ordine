@@ -134,7 +134,7 @@ const getLlmModel = async (override?: LlmOverride, log: LogFn = noopLog) => {
   const apiKey = settings.llmApiKey;
 
   await log(
-    `[LLM] Provider: ${provider}, Model: ${model}, API key: ${apiKey ? `configured (${apiKey.slice(0, 6)}...)` : "NOT SET"}`
+    `[LLM] Provider: ${provider}, Model: ${model}, API key: ${apiKey ? `configured (${apiKey.slice(0, 6)}...)` : "NOT SET"}`,
   );
 
   if (!apiKey) {
@@ -206,7 +206,7 @@ class PipelineNotFoundError extends Error {
 class ScriptExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown
+    public readonly cause?: unknown,
   ) {
     super(message);
     this.name = "ScriptExecutionError";
@@ -216,7 +216,7 @@ class ScriptExecutionError extends Error {
 class PromptExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown
+    public readonly cause?: unknown,
   ) {
     super(message);
     this.name = "PromptExecutionError";
@@ -226,7 +226,7 @@ class PromptExecutionError extends Error {
 class ConfigParseError extends Error {
   constructor(
     public readonly operationName: string,
-    public readonly cause?: unknown
+    public readonly cause?: unknown,
   ) {
     super(`Could not parse config for operation ${operationName}`);
     this.name = "ConfigParseError";
@@ -236,7 +236,7 @@ class ConfigParseError extends Error {
 class SkillExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown
+    public readonly cause?: unknown,
   ) {
     super(message);
     this.name = "SkillExecutionError";
@@ -246,7 +246,7 @@ class SkillExecutionError extends Error {
 class GitCloneError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown
+    public readonly cause?: unknown,
   ) {
     super(message);
     this.name = "GitCloneError";
@@ -301,15 +301,15 @@ const topoSort = (nodes: PipelineNode[], edges: PipelineEdge[]): PipelineNode[] 
 
 const safeParseJson = (
   raw: string,
-  operationName: string
+  operationName: string,
 ): ResultAsync<OperationConfig, ConfigParseError> =>
   ResultAsync.fromPromise(
     Promise.resolve(JSON.parse(raw) as OperationConfig),
-    (cause) => new ConfigParseError(operationName, cause)
+    (cause) => new ConfigParseError(operationName, cause),
   );
 
 const safeReadInputFile = (
-  path: string
+  path: string,
 ): ResultAsync<{ content: string; isFile: boolean }, never> =>
   ResultAsync.fromPromise(
     (async () => {
@@ -320,19 +320,19 @@ const safeReadInputFile = (
       }
       return { content: path, isFile: false };
     })(),
-    () => ({ content: path, isFile: false })
+    () => ({ content: path, isFile: false }),
   ).orElse((fallback) => ok(fallback));
 
 const runScript = (
   executor: ExecutorConfig,
   inputPath: string,
-  inputContent: string
+  inputContent: string,
 ): ResultAsync<string, ScriptExecutionError> => {
   const lang = executor.language ?? "bash";
   const command = executor.command ?? "";
   if (!command.trim()) {
     return ResultAsync.fromSafePromise<string, ScriptExecutionError>(
-      Promise.reject(new ScriptExecutionError("Script command is empty"))
+      Promise.reject(new ScriptExecutionError("Script command is empty")),
     );
   }
 
@@ -358,8 +358,8 @@ const runScript = (
     (cause) =>
       new ScriptExecutionError(
         `Script execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-        cause
-      )
+        cause,
+      ),
   );
 };
 
@@ -370,19 +370,19 @@ const runPrompt = (
   inputContent: string,
   override?: LlmOverride,
   onChunk?: StreamCallback,
-  log: LogFn = noopLog
+  log: LogFn = noopLog,
 ): ResultAsync<string, PromptExecutionError> => {
   const prompt = executor.prompt;
   if (!prompt?.trim()) {
     return ResultAsync.fromSafePromise<string, PromptExecutionError>(
-      Promise.reject(new PromptExecutionError("Prompt text is empty"))
+      Promise.reject(new PromptExecutionError("Prompt text is empty")),
     );
   }
 
   return ResultAsync.fromPromise(
     (async () => {
       await log(
-        `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`
+        `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`,
       );
       const model = await getLlmModel(override, log);
       if (!model) {
@@ -408,9 +408,9 @@ const runPrompt = (
         ? cause
         : new PromptExecutionError(
             `Prompt execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-            cause
+            cause,
           );
-    }
+    },
   );
 };
 
@@ -420,7 +420,7 @@ const cloneGitHubRepo = (
   owner: string,
   repo: string,
   branch: string,
-  githubToken?: string
+  githubToken?: string,
 ): ResultAsync<string, GitCloneError> => {
   const cloneDir = join(tmpdir(), `ordine-pipeline-${Date.now()}-${repo}`);
   const url = githubToken
@@ -440,8 +440,8 @@ const cloneGitHubRepo = (
     (cause) =>
       new GitCloneError(
         `Failed to clone ${owner}/${repo}@${branch}: ${cause instanceof Error ? cause.message : String(cause)}`,
-        cause
-      )
+        cause,
+      ),
   );
 };
 
@@ -615,7 +615,7 @@ const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean })
       oldString: z
         .string()
         .describe(
-          "The exact literal text to find and replace. Must appear exactly once in the file."
+          "The exact literal text to find and replace. Must appear exactly once in the file.",
         ),
       newString: z.string().describe("The replacement text"),
     }),
@@ -694,13 +694,13 @@ const extractStructuredOutput = (rawText: string, log: (line: string) => Promise
         result.data.type === "check"
           ? `${result.data.findings.length} findings`
           : `${result.data.changes.length} changes`
-      }`
+      }`,
     );
     return JSON.stringify(result.data, null, 2);
   }
 
   void log(
-    `[extractStructuredOutput] JSON parsed but schema validation failed — ${zv4.prettifyError(result.error)}. Returning raw text`
+    `[extractStructuredOutput] JSON parsed but schema validation failed — ${zv4.prettifyError(result.error)}. Returning raw text`,
   );
   return rawText;
 };
@@ -737,7 +737,7 @@ const structuredJsonToMarkdown = (content: string): string => {
       `| Warnings | ${data.stats.warnings} |`,
       `| Info | ${data.stats.infos} |`,
       `| Skipped | ${data.stats.skipped} |`,
-      ""
+      "",
     );
 
     if (data.findings.length > 0) {
@@ -765,14 +765,14 @@ const structuredJsonToMarkdown = (content: string): string => {
       `| Files modified | ${data.stats.filesModified} |`,
       `| Findings fixed | ${data.stats.findingsFixed} |`,
       `| Findings skipped | ${data.stats.findingsSkipped} |`,
-      ""
+      "",
     );
 
     if (data.changes.length > 0) {
       lines.push(`## Changes`, "");
       for (const c of data.changes) {
         lines.push(
-          `- **\`${c.file}\`** [${c.action}]: ${c.description}${c.findingId ? ` (fixes ${c.findingId})` : ""}`
+          `- **\`${c.file}\`** [${c.action}]: ${c.description}${c.findingId ? ` (fixes ${c.findingId})` : ""}`,
         );
       }
       lines.push("");
@@ -783,7 +783,7 @@ const structuredJsonToMarkdown = (content: string): string => {
       for (const f of data.remainingFindings) {
         const badge = f.severity === "error" ? "🔴" : f.severity === "warning" ? "🟡" : "🔵";
         lines.push(
-          `- ${badge} **${f.id}**: ${f.message} — \`${f.file}\`${f.line ? `:${f.line}` : ""}`
+          `- ${badge} **${f.id}**: ${f.message} — \`${f.file}\`${f.line ? `:${f.line}` : ""}`,
         );
       }
       lines.push("");
@@ -801,7 +801,7 @@ const runSkill = (
   override?: LlmOverride,
   onChunk?: StreamCallback,
   log: LogFn = noopLog,
-  opts?: { writeEnabled?: boolean }
+  opts?: { writeEnabled?: boolean },
 ): ResultAsync<string, never> => {
   const isImplementMode = opts?.writeEnabled === true;
 
@@ -910,7 +910,7 @@ const runSkill = (
   return ResultAsync.fromPromise(
     (async () => {
       await log(
-        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`
+        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`,
       );
       await log(`[Mastra] runSkill: instructions length=${instructions.length}`);
 
@@ -967,7 +967,7 @@ const runSkill = (
             const errMsg = error instanceof Error ? error.message : String(error);
             const isThinkingError = errMsg.includes("reasoning_content");
             await log(
-              `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`
+              `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`,
             );
 
             if (isThinkingError && attempt < MAX_ATTEMPTS) {
@@ -984,7 +984,7 @@ const runSkill = (
         const stepCount = result.steps?.length ?? 0;
         const toolCallCount = (result.steps ?? []).reduce(
           (acc, step) => acc + (step.toolCalls?.length ?? 0),
-          0
+          0,
         );
 
         // If result.text is empty, try to salvage text from intermediate steps
@@ -992,20 +992,20 @@ const runSkill = (
         if (!outputText && result.steps?.length) {
           const stepTexts = result.steps.map((s) => s.text ?? "").filter((t) => t.length > 50);
           if (stepTexts.length > 0) {
-            outputText = stepTexts[stepTexts.length - 1];
+            outputText = stepTexts.at(-1) ?? "";
             await log(`[Mastra] runSkill: Salvaged ${outputText.length} chars from step text`);
           }
         }
 
         await log(
-          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${outputText.length} chars`
+          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${outputText.length} chars`,
         );
 
         if (onChunk) await onChunk(outputText);
 
         if (outputText.length === 0) {
           await log(
-            `[Mastra] runSkill: WARNING — Agent returned empty output, using fallback report`
+            `[Mastra] runSkill: WARNING — Agent returned empty output, using fallback report`,
           );
           return generateFallbackReport();
         }
@@ -1032,7 +1032,7 @@ const runSkill = (
         if (onChunk) await onChunk(accumulated);
       }
       await log(
-        `[Mastra] runSkill: Stream complete, chunks=${chunkCount}, total output=${accumulated.length} chars`
+        `[Mastra] runSkill: Stream complete, chunks=${chunkCount}, total output=${accumulated.length} chars`,
       );
       if (accumulated.length === 0) {
         await log(`[Mastra] runSkill: WARNING — LLM returned empty output, using fallback report`);
@@ -1040,7 +1040,7 @@ const runSkill = (
       }
       return extractStructuredOutput(accumulated, log);
     })(),
-    (cause) => cause
+    (cause) => cause,
   ).orElse((cause) => {
     const errMsg = cause instanceof Error ? cause.message : String(cause);
     log(`[Mastra] runSkill: Agent call FAILED — ${errMsg}`);
@@ -1100,7 +1100,7 @@ const executePipeline = async (opts: {
   const evaluateLoopCondition = async (
     conditionPrompt: string,
     operationOutput: string,
-    override?: LlmOverride
+    override?: LlmOverride,
   ): Promise<boolean> => {
     const model = await getLlmModel(override, log);
     if (!model) {
@@ -1125,7 +1125,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
 
   // Helper: execute a single operation node. Returns { ok, content } or error.
   const executeOperationNode = async (
-    node: PipelineNode
+    node: PipelineNode,
   ): Promise<{ ok: true; content: string } | { ok: false; error: PipelineRunError | null }> => {
     const data = node.data as unknown as NodeData;
     const operationId = data.operationId ?? "";
@@ -1155,7 +1155,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         await log(`Loaded best practice "${bp.title}" (${bp.content.length} chars)`);
       } else {
         await log(
-          `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`
+          `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`,
         );
       }
     }
@@ -1187,7 +1187,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       const checkOutput = await runRuleCheck(inputPath);
       const result = JSON.stringify(checkOutput, null, 2);
       await log(
-        `Rule-check: ${checkOutput.stats.totalFindings} findings in ${checkOutput.stats.totalFiles} files`
+        `Rule-check: ${checkOutput.stats.totalFindings} findings in ${checkOutput.stats.totalFiles} files`,
       );
       return { ok: true, content: result };
     }
@@ -1249,7 +1249,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         llmOverride,
         handleChunk,
         log,
-        { writeEnabled: executor.writeEnabled === true }
+        { writeEnabled: executor.writeEnabled === true },
       );
       result = skillResult.isOk() ? skillResult.value : "";
       await log(`@@LLM_CONTENT::${node.id}::${result}`);
@@ -1275,7 +1275,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
   for (const node of ordered) {
     const data = node.data as unknown as NodeData;
     await log(
-      `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`
+      `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`,
     );
     await log(`@@NODE_START::${node.id}`);
 
@@ -1317,7 +1317,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         if (disclosureMode === "tree") {
           const tree = await listDirTree(dir, treeOpts);
           await log(
-            `Disclosure mode: tree (${tree.split("\n").length} entries, excluded: [${excludedPaths.join(", ")}])`
+            `Disclosure mode: tree (${tree.split("\n").length} entries, excluded: [${excludedPaths.join(", ")}])`,
           );
           return `${label}\n\nFile tree:\n${tree}`;
         }
@@ -1325,14 +1325,14 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           const tree = await listDirTree(dir, treeOpts);
           const fileContents = await readProjectFiles(dir, { excludedPaths });
           await log(
-            `Disclosure mode: full (tree + file contents, ${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`
+            `Disclosure mode: full (tree + file contents, ${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,
           );
           return `${label}\n\nFile tree:\n${tree}\n\n---\n\nFile contents:\n\n${fileContents}`;
         }
         // files-only: just file contents, no tree
         const fileContents = await readProjectFiles(dir, { excludedPaths });
         await log(
-          `Disclosure mode: files-only (${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`
+          `Disclosure mode: files-only (${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,
         );
         return `${label}\n\nFile contents:\n\n${fileContents}`;
       };
@@ -1376,7 +1376,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       inputPath = clonedDir;
       currentContent = await buildProjectContent(
         clonedDir,
-        `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}`
+        `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}`,
       );
       await log(`@@NODE_DONE::${node.id}`);
       continue;
@@ -1401,7 +1401,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           return {
             ok: false,
             error: new ScriptExecutionError(
-              `Output file already exists: ${resolvedPath}. Pipeline aborted (output mode: error_if_exists).`
+              `Output file already exists: ${resolvedPath}. Pipeline aborted (output mode: error_if_exists).`,
             ),
           };
         }
@@ -1459,7 +1459,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
 
         for (let attempt = 1; attempt <= maxLoops; attempt++) {
           await log(
-            `[Loop] Iteration ${attempt}/${maxLoops} for "${(node.data as unknown as Record<string, unknown>).label}"`
+            `[Loop] Iteration ${attempt}/${maxLoops} for "${(node.data as unknown as Record<string, unknown>).label}"`,
           );
           const opResult = await executeOperationNode(node);
           if (!opResult.ok) {
@@ -1533,8 +1533,8 @@ export const runPipeline = async (opts: {
     (cause) =>
       new ScriptExecutionError(
         cause instanceof Error ? cause.message : String(cause),
-        cause
-      ) as PipelineRunError
+        cause,
+      ) as PipelineRunError,
   );
 
   const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };

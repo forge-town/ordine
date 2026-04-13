@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/best-practices/export")({
                 sortOrder: item.sortOrder,
               })),
             };
-          }),
+          })
         );
         return json(result);
       },

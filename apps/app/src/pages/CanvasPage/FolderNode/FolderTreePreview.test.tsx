@@ -13,6 +13,8 @@ const mockEntries = [
   { name: "package.json", type: "file", path: "/project/package.json" },
 ];
 
+const handleExcludeNoop = () => {};
+
 describe("FolderTreePreview", () => {
   beforeEach(() => {
     mockFetch.mockReset();
@@ -23,9 +25,8 @@ describe("FolderTreePreview", () => {
   });
 
   it("fetches and displays directory entries", async () => {
-    const handleExclude = () => {};
     render(
-      <FolderTreePreview excludedPaths={[]} folderPath="/project" onExclude={handleExclude} />
+      <FolderTreePreview excludedPaths={[]} folderPath="/project" onExclude={handleExcludeNoop} />,
     );
 
     await waitFor(() => {
@@ -38,13 +39,12 @@ describe("FolderTreePreview", () => {
   });
 
   it("shows excluded entries with strikethrough style", async () => {
-    const handleExclude = () => {};
     render(
       <FolderTreePreview
         excludedPaths={["node_modules"]}
         folderPath="/project"
-        onExclude={handleExclude}
-      />
+        onExclude={handleExcludeNoop}
+      />,
     );
 
     await waitFor(() => {
@@ -60,7 +60,7 @@ describe("FolderTreePreview", () => {
     const handleExclude = vi.fn();
 
     render(
-      <FolderTreePreview excludedPaths={[]} folderPath="/project" onExclude={handleExclude} />
+      <FolderTreePreview excludedPaths={[]} folderPath="/project" onExclude={handleExclude} />,
     );
 
     await waitFor(() => {
@@ -74,9 +74,8 @@ describe("FolderTreePreview", () => {
   });
 
   it("does not render when folderPath is empty", () => {
-    const handleExclude = () => {};
     const { container } = render(
-      <FolderTreePreview excludedPaths={[]} folderPath="" onExclude={handleExclude} />
+      <FolderTreePreview excludedPaths={[]} folderPath="" onExclude={handleExcludeNoop} />,
     );
 
     expect(container.firstChild).toBeNull();

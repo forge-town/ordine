@@ -79,7 +79,7 @@ export const PracticeCard = ({ practice, onDelete }: PracticeCardProps) => {
             <span
               className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-                CATEGORY_COLORS[practice.category] ?? "bg-muted text-muted-foreground",
+                CATEGORY_COLORS[practice.category] ?? "bg-muted text-muted-foreground"
               )}
             >
               {CATEGORIES.find((c) => c.value === practice.category)?.label ?? practice.category}

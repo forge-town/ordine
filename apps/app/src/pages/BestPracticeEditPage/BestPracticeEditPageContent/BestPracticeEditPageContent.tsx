@@ -96,7 +96,7 @@ export const BestPracticeEditPageContent = ({
       isNew: false,
       isDeleted: false,
       isDirty: false,
-    })),
+    }))
   );
 
   const form = useForm<EditFormValues>({
@@ -150,10 +150,10 @@ export const BestPracticeEditPageContent = ({
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number,
+    value: string | number
   ) => {
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item)),
+      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item))
     );
   };
 
@@ -602,7 +602,7 @@ interface ChecklistItemEditorProps {
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number,
+    value: string | number
   ) => void;
   onDelete: (id: string) => void;
 }

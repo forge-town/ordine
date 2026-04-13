@@ -17,7 +17,8 @@
     "no-unused-vars": "warn",
     "typescript/consistent-type-imports": "error",
     "no-duplicate-imports": "error",
-    "no-var": "off",
+    "no-var": "error",
+    "prefer-const": "error",
     "consistent-type-exports": "error",
     "func-style": ["warn", "expression", { "allowArrowFunctions": true }],
 

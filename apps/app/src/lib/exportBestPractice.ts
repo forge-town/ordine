@@ -49,8 +49,8 @@ const addBPToZip = (zip: JSZip, bp: BPData, items: ChecklistItem[]) => {
         tags: bp.tags,
       },
       null,
-      2,
-    ),
+      2
+    )
   );
 
   folder.file("content.md", bp.content || "");
@@ -107,7 +107,7 @@ export const exportAllBestPractices = async () => {
 };
 
 export const importBestPracticesFromZip = async (
-  file: File,
+  file: File
 ): Promise<{ imported: number; checklistItems: number }> => {
   const zip = await JSZip.loadAsync(file);
   const folders = new Set<string>();

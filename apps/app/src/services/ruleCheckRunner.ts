@@ -32,7 +32,7 @@ interface RuleCheckResult {
   exitCode: number;
 }
 
-async function executeRule(rule: RuleEntity, target: RuleTarget): Promise<RuleCheckResult> {
+const executeRule = async (rule: RuleEntity, target: RuleTarget): Promise<RuleCheckResult> => {
   const tmpFile = join(tmpdir(), `rule_${rule.id}_${Date.now()}.ts`);
   await writeFile(tmpFile, rule.checkScript!);
 
@@ -59,9 +59,9 @@ process.exit(result ? 0 : 1);
   } finally {
     await unlink(tmpFile).catch(() => {});
   }
-}
+};
 
-function resultToFinding(result: RuleCheckResult): Finding | null {
+const resultToFinding = (result: RuleCheckResult): Finding | null => {
   if (result.passed) return null;
 
   return {
@@ -73,9 +73,9 @@ function resultToFinding(result: RuleCheckResult): Finding | null {
     snippet: result.output.slice(0, 500),
     suggestion: result.rule.description ?? undefined,
   };
-}
+};
 
-export async function runRuleCheck(inputPath: string): Promise<CheckOutput> {
+export const runRuleCheck = async (inputPath: string): Promise<CheckOutput> => {
   const target: RuleTarget = { path: inputPath, type: "project" };
   const rules = await rulesDao.findMany({ enabled: true });
   const activeRules = rules.filter((r) => r.checkScript != null && r.checkScript.trim() !== "");
@@ -107,4 +107,4 @@ export async function runRuleCheck(inputPath: string): Promise<CheckOutput> {
       skipped: 0,
     },
   };
-}
+};
