@@ -2,8 +2,8 @@
  * Rule Check Runner
  *
  * Executes each enabled rule's check script against the input path.
- * Each rule has its own script (bash/python/javascript) that runs
- * with INPUT_PATH as context. Exit code 0 = pass, non-zero = fail.
+ * Each rule has its own TypeScript script that runs via `bun -e` with
+ * INPUT_PATH as context. Exit code 0 = pass, non-zero = fail.
  * Stdout is captured as the rule's output/message.
  */
 
@@ -25,10 +25,7 @@ interface RuleCheckResult {
 
 function buildCommand(rule: RuleEntity): string {
   const script = rule.checkScript!;
-  const lang = rule.scriptLanguage ?? "bash";
-  if (lang === "python") return `python3 -c ${JSON.stringify(script)}`;
-  if (lang === "javascript") return `node -e ${JSON.stringify(script)}`;
-  return script;
+  return `bun -e ${JSON.stringify(script)}`;
 }
 
 async function executeRule(rule: RuleEntity, inputPath: string): Promise<RuleCheckResult> {

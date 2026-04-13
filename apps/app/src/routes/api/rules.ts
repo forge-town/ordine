@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { rulesDao } from "@/models/daos/rulesDao";
-import { RuleCategorySchema, RuleSeveritySchema, ScriptLanguageSchema } from "@/schemas";
+import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@/schemas";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const CreateRuleSchema = z.object({
@@ -11,7 +11,7 @@ const CreateRuleSchema = z.object({
   category: RuleCategorySchema.default("custom"),
   severity: RuleSeveritySchema.default("warning"),
   checkScript: z.string().nullable().default(null),
-  scriptLanguage: ScriptLanguageSchema.default("bash"),
+  scriptLanguage: RuleScriptLanguageSchema.default("typescript"),
   acceptedObjectTypes: z.array(z.string()).default(["file", "folder", "project"]),
   enabled: z.boolean().default(true),
   tags: z.array(z.string()).default([]),

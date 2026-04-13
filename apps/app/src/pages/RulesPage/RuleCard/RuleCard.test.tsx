@@ -10,7 +10,7 @@ const mockRule: RuleEntity = {
   category: "lint",
   severity: "warning",
   checkScript: "grep -rn 'console.log' $INPUT_PATH && exit 1 || exit 0",
-  scriptLanguage: "bash",
+  scriptLanguage: "typescript" as const,
   acceptedObjectTypes: ["file", "folder", "project"],
   enabled: true,
   tags: ["debug", "style"],

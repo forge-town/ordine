@@ -1,7 +1,7 @@
 import { ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
 import { z } from "zod/v4";
 import type { RuleCategory, RuleSeverity, RuleEntity } from "@/models/daos/rulesDao";
-import { RuleCategorySchema, RuleSeveritySchema, ScriptLanguageSchema } from "@/schemas";
+import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@/schemas";
 
 export const CATEGORY_CONFIG: Record<RuleCategory, { label: string; cls: string }> = {
   lint: { label: "Lint", cls: "bg-muted text-muted-foreground" },
@@ -44,7 +44,7 @@ export const CATEGORY_FILTERS = [
   })),
 ];
 
-export const SCRIPT_LANGUAGES = ["bash", "python", "javascript"] as const;
+export const SCRIPT_LANGUAGES = ["typescript"] as const;
 
 export const RuleFormStateSchema = z.object({
   name: z.string(),
@@ -52,7 +52,7 @@ export const RuleFormStateSchema = z.object({
   category: RuleCategorySchema,
   severity: RuleSeveritySchema,
   checkScript: z.string(),
-  scriptLanguage: ScriptLanguageSchema,
+  scriptLanguage: RuleScriptLanguageSchema,
   tags: z.string(),
 });
 
@@ -64,7 +64,7 @@ export const emptyForm = (): RuleFormState => ({
   category: "custom",
   severity: "warning",
   checkScript: "",
-  scriptLanguage: "bash",
+  scriptLanguage: "typescript" as const,
   tags: "",
 });
 
@@ -74,6 +74,6 @@ export const getEditForm = (rule: RuleEntity): RuleFormState => ({
   category: rule.category,
   severity: rule.severity,
   checkScript: rule.checkScript ?? "",
-  scriptLanguage: rule.scriptLanguage ?? "bash",
+  scriptLanguage: (rule.scriptLanguage ?? "typescript") as "typescript",
   tags: rule.tags.join(", "),
 });

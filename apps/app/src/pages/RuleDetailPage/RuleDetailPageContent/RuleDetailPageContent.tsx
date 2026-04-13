@@ -74,7 +74,7 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
             <span
               className={cn(
                 "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
-                s.cls
+                s.cls,
               )}
             >
               <SeverityIcon className="h-3 w-3" />
@@ -113,7 +113,7 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
                 {t("rules.checkScript")}
               </div>
               <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
-                {rule.scriptLanguage ?? "bash"}
+                {rule.scriptLanguage ?? "typescript"}
               </span>
             </div>
             <pre className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">

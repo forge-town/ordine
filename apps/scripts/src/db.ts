@@ -94,7 +94,7 @@ export const rulesTable = pgTable("rules", {
   category: text("category").$type<RuleCategory>().notNull().default("custom"),
   severity: text("severity").$type<RuleSeverity>().notNull().default("warning"),
   checkScript: text("check_script"),
-  scriptLanguage: text("script_language").notNull().default("bash"),
+  scriptLanguage: text("script_language").notNull().default("typescript"),
   acceptedObjectTypes: jsonb("accepted_object_types")
     .notNull()
     .default(["file", "folder", "project"]),

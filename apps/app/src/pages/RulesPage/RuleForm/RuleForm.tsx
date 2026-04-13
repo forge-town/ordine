@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { X, Check } from "lucide-react";
+import CodeMirror from "@uiw/react-codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+import { oneDark } from "@codemirror/theme-one-dark";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import {
@@ -13,13 +16,11 @@ import {
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import type { RuleCategory, RuleSeverity } from "@/models/daos/rulesDao";
-import type { ScriptLanguage } from "@/schemas";
 import {
   CATEGORIES,
   SEVERITIES,
   CATEGORY_CONFIG,
   SEVERITY_CONFIG,
-  SCRIPT_LANGUAGES,
   emptyForm,
   type RuleFormState,
 } from "../types";
@@ -57,15 +58,7 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
   const handleSeverityOpenChange = (v: boolean) => setSeverityOpen(v);
   const handleSeverityToggle = () => setSeverityOpen((prev) => !prev);
 
-  const [langOpen, setLangOpen] = useState(false);
-  const handleLangOpenChange = (v: boolean) => setLangOpen(v);
-  const handleLangToggle = () => setLangOpen((prev) => !prev);
-  const handleLangChange = (value: string | null) => {
-    set("scriptLanguage", (value ?? form.scriptLanguage) as ScriptLanguage);
-    setLangOpen(false);
-  };
-  const handleCheckScriptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    set("checkScript", e.target.value);
+  const handleCheckScriptChange = (value: string) => set("checkScript", value);
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => set("tags", e.target.value);
   const handleCancel = onCancel;
 
@@ -146,33 +139,20 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
       <div>
         <div className="mb-1 flex items-center justify-between">
           <label className="text-[11px] text-muted-foreground">{t("rules.checkScript")}</label>
-          <Select
-            open={langOpen}
-            value={form.scriptLanguage}
-            onOpenChange={handleLangOpenChange}
-            onValueChange={handleLangChange}
-          >
-            <SelectTrigger className="h-6 w-28 text-[11px]" onClick={handleLangToggle}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {SCRIPT_LANGUAGES.map((l) => (
-                  <SelectItem key={l} value={l}>
-                    {l}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <span className="rounded bg-muted px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
+            TypeScript
+          </span>
         </div>
-        <Textarea
-          className="resize-none font-mono text-xs"
-          placeholder={t("rules.checkScriptPlaceholder")}
-          rows={4}
-          value={form.checkScript}
-          onChange={handleCheckScriptChange}
-        />
+        <div className="overflow-hidden rounded-md border border-border text-xs">
+          <CodeMirror
+            extensions={[javascript({ typescript: true, jsx: true })]}
+            height="200px"
+            placeholder={t("rules.checkScriptPlaceholder")}
+            theme={oneDark}
+            value={form.checkScript}
+            onChange={handleCheckScriptChange}
+          />
+        </div>
       </div>
 
       <Input

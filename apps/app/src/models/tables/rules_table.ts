@@ -3,7 +3,7 @@ import { text, timestamp, boolean, pgTable, jsonb } from "drizzle-orm/pg-core";
 
 export type RuleSeverity = "error" | "warning" | "info";
 export type RuleCategory = "lint" | "security" | "style" | "performance" | "custom";
-export type ScriptLanguage = "bash" | "python" | "javascript";
+export type RuleScriptLanguage = "typescript";
 
 export const rulesTable = pgTable("rules", {
   id: text("id").primaryKey(),
@@ -12,7 +12,7 @@ export const rulesTable = pgTable("rules", {
   category: text("category").$type<RuleCategory>().notNull().default("custom"),
   severity: text("severity").$type<RuleSeverity>().notNull().default("warning"),
   checkScript: text("check_script"),
-  scriptLanguage: text("script_language").$type<ScriptLanguage>().default("bash"),
+  scriptLanguage: text("script_language").$type<RuleScriptLanguage>().default("typescript"),
   acceptedObjectTypes: jsonb("accepted_object_types")
     .$type<string[]>()
     .notNull()

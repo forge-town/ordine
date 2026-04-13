@@ -19,7 +19,7 @@ export const Default: Story = {
       category: "lint",
       severity: "warning",
       checkScript: "grep -rn 'console.log' $INPUT_PATH && exit 1 || exit 0",
-      scriptLanguage: "bash",
+      scriptLanguage: "typescript",
       acceptedObjectTypes: ["file", "folder", "project"],
       enabled: true,
       tags: ["debug"],
