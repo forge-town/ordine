@@ -48,6 +48,25 @@ export const Route = createFileRoute("/api/rules")({
         const rule = await rulesDao.create(parsed.data);
         return json(rule, 201);
       },
+
+      PUT: async ({ request }) => {
+        const bodyResult = await parseJsonBody(request);
+        if (bodyResult.isErr()) return bodyResult.error;
+
+        const parsed = CreateRuleSchema.safeParse(bodyResult.value);
+        if (!parsed.success) {
+          return errorResponse(parsed.error.message, 400);
+        }
+
+        const existing = await rulesDao.findById(parsed.data.id);
+        if (existing) {
+          const { id: _, ...patch } = parsed.data;
+          const updated = await rulesDao.update(parsed.data.id, patch);
+          return json(updated);
+        }
+        const rule = await rulesDao.create(parsed.data);
+        return json(rule, 201);
+      },
     },
   },
 });

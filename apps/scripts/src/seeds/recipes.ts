@@ -9,10 +9,17 @@
  *   5. Check 全量最佳实践 → op_check + bp_full_check_workflow
  */
 
-import { db, client, recipesTable, type NewRecipeRow } from "../db.ts";
-import { eq } from "drizzle-orm";
+import { apiPut } from "../api";
 
-const RECIPES: NewRecipeRow[] = [
+interface RecipeSeed {
+  id: string;
+  name: string;
+  description: string;
+  operationId: string;
+  bestPracticeId: string;
+}
+
+const RECIPES: RecipeSeed[] = [
   {
     id: "rcp_check_clean_code",
     name: "Check 代码清理",
@@ -51,42 +58,20 @@ const RECIPES: NewRecipeRow[] = [
 ];
 
 async function seed() {
-  console.log("🌱 Seeding recipes...\n");
+  console.log("🌱 Seeding recipes via REST API...\n");
 
   let upserted = 0;
 
   for (const recipe of RECIPES) {
-    const existing = await db
-      .select()
-      .from(recipesTable)
-      .where(eq(recipesTable.id, recipe.id!))
-      .limit(1);
-
-    if (existing.length > 0) {
-      await db
-        .update(recipesTable)
-        .set({
-          name: recipe.name,
-          description: recipe.description,
-          operationId: recipe.operationId,
-          bestPracticeId: recipe.bestPracticeId,
-          updatedAt: new Date(),
-        })
-        .where(eq(recipesTable.id, recipe.id!));
-      console.log(`  ✏️  Updated: ${recipe.id} — ${recipe.name}`);
-    } else {
-      await db.insert(recipesTable).values(recipe);
-      console.log(`  ✅ Created: ${recipe.id} — ${recipe.name}`);
-    }
+    await apiPut("/api/recipes", recipe);
+    console.log(`  ✅  ${recipe.id} — ${recipe.name} — upserted`);
     upserted++;
   }
 
   console.log(`\n🎉 Done — ${upserted} recipes upserted.`);
-  await client.end();
 }
 
 seed().catch((err) => {
   console.error("Seed failed:", err);
-  client.end();
   process.exit(1);
 });

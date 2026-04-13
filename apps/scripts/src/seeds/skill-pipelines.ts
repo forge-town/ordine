@@ -12,15 +12,7 @@
  *   - Output node (report)
  */
 
-import {
-  db,
-  client,
-  operationsTable,
-  pipelinesTable,
-  type NewOperationRow,
-  type NewPipelineRow,
-} from "../db.ts";
-import { eq } from "drizzle-orm";
+import { apiPut } from "../api";
 
 // ─── Config Helpers ──────────────────────────────────────────────────────────
 
@@ -57,7 +49,24 @@ function cfg(config: OperationConfig): string {
 
 // ─── Operations ──────────────────────────────────────────────────────────────
 
-const OPERATIONS: NewOperationRow[] = [
+interface OperationSeed {
+  id: string;
+  name: string;
+  description: string;
+  acceptedObjectTypes?: string[];
+  config: string;
+}
+
+interface PipelineSeed {
+  id: string;
+  name: string;
+  description: string;
+  nodes: unknown[];
+  edges: unknown[];
+  tags?: string[];
+}
+
+const OPERATIONS: OperationSeed[] = [
   // ── clean-hardcode: Op 1 — 扫描垃圾代码 ─────────────────────────────────
   {
     id: "op_scan_junk_code",
@@ -388,7 +397,7 @@ Markdown 汇总报告：
 
 // ─── Pipelines ───────────────────────────────────────────────────────────────
 
-const PIPELINES: NewPipelineRow[] = [
+const PIPELINES: PipelineSeed[] = [
   // ── Pipeline 1: 代码清理 ────────────────────────────────────────────────
   {
     id: "pl_clean_hardcode",
@@ -615,63 +624,33 @@ const PIPELINES: NewPipelineRow[] = [
 // ─── Runner ──────────────────────────────────────────────────────────────────
 
 async function seed() {
-  console.log("🌱  Seeding skill-based operations & pipelines...\n");
+  console.log("🌱  Seeding skill-based operations & pipelines via REST API...\n");
 
   // ── Seed Operations ──
-  let opsInserted = 0;
-  let opsSkipped = 0;
+  let opsUpserted = 0;
 
   for (const op of OPERATIONS) {
-    const existing = await db
-      .select({ id: operationsTable.id })
-      .from(operationsTable)
-      .where(eq(operationsTable.id, op.id!))
-      .limit(1);
-
-    if (existing.length > 0) {
-      console.log(`  ⏭   Op: ${op.name} (${op.id}) — already exists`);
-      opsSkipped++;
-      continue;
-    }
-
-    await db.insert(operationsTable).values(op);
-    console.log(`  ✅  Op: ${op.name} (${op.id}) — inserted`);
-    opsInserted++;
+    await apiPut("/api/operations", op);
+    console.log(`  ✅  Op: ${op.name} (${op.id}) — upserted`);
+    opsUpserted++;
   }
 
-  console.log(`\n  Operations — Inserted: ${opsInserted}, Skipped: ${opsSkipped}\n`);
+  console.log(`\n  Operations — Upserted: ${opsUpserted}\n`);
 
   // ── Seed Pipelines ──
-  let plInserted = 0;
-  let plSkipped = 0;
+  let plUpserted = 0;
 
   for (const pl of PIPELINES) {
-    const existing = await db
-      .select({ id: pipelinesTable.id })
-      .from(pipelinesTable)
-      .where(eq(pipelinesTable.id, pl.id!))
-      .limit(1);
-
-    if (existing.length > 0) {
-      console.log(`  ⏭   Pipeline: ${pl.name} (${pl.id}) — already exists`);
-      plSkipped++;
-      continue;
-    }
-
-    await db.insert(pipelinesTable).values(pl);
-    console.log(`  ✅  Pipeline: ${pl.name} (${pl.id}) — inserted`);
-    plInserted++;
+    await apiPut("/api/pipelines", pl);
+    console.log(`  ✅  Pipeline: ${pl.name} (${pl.id}) — upserted`);
+    plUpserted++;
   }
 
-  console.log(`\n  Pipelines — Inserted: ${plInserted}, Skipped: ${plSkipped}`);
-  console.log(
-    `\n✨  Done. ${opsInserted + plInserted} records inserted, ${opsSkipped + plSkipped} skipped.`,
-  );
+  console.log(`\n  Pipelines — Upserted: ${plUpserted}`);
+  console.log(`\n✨  Done. ${opsUpserted + plUpserted} records upserted.`);
 }
 
-seed()
-  .catch((err) => {
-    console.error("❌  Seed failed:", err);
-    process.exit(1);
-  })
-  .finally(() => client.end());
+seed().catch((err) => {
+  console.error("❌  Seed failed:", err);
+  process.exit(1);
+});

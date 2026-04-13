@@ -9,8 +9,15 @@
  *   - outputs: what the operation produces
  */
 
-import { db, client, operationsTable, type NewOperationRow } from "../db.ts";
-import { eq } from "drizzle-orm";
+import { apiPut } from "../api";
+
+interface OperationSeed {
+  id: string;
+  name: string;
+  description: string;
+  acceptedObjectTypes: string[];
+  config: string;
+}
 
 // ─── Config DSL ──────────────────────────────────────────────────────────────
 
@@ -50,7 +57,7 @@ function cfg(config: OperationConfig): string {
 
 // ─── Seed Data ───────────────────────────────────────────────────────────────
 
-const OPERATIONS: NewOperationRow[] = [
+const OPERATIONS: OperationSeed[] = [
   // ── 1. constitution ─────────────────────────────────────────────────────
   {
     id: "op_constitution",
@@ -444,37 +451,20 @@ const OPERATIONS: NewOperationRow[] = [
 // ─── Runner ──────────────────────────────────────────────────────────────────
 
 async function seed() {
-  console.log("🌱  Seeding spec-kit operations...\n");
+  console.log("🌱  Seeding spec-kit operations via REST API...\n");
 
-  let inserted = 0;
-  let skipped = 0;
+  let upserted = 0;
 
   for (const op of OPERATIONS) {
-    const existing = await db
-      .select({ id: operationsTable.id })
-      .from(operationsTable)
-      .where(eq(operationsTable.id, op.id!))
-      .limit(1);
-
-    if (existing.length > 0) {
-      console.log(`  ⏭   ${op.name} (${op.id}) — already exists, skipping`);
-      skipped++;
-      continue;
-    }
-
-    await db.insert(operationsTable).values(op);
-    console.log(`  ✅  ${op.name} (${op.id}) — inserted`);
-    inserted++;
+    await apiPut("/api/operations", op);
+    console.log(`  ✅  ${op.name} (${op.id}) — upserted`);
+    upserted++;
   }
 
-  console.log(
-    `\n✨  Done. Inserted: ${inserted}, Skipped: ${skipped}, Total: ${OPERATIONS.length}`,
-  );
+  console.log(`\n✨  Done. Upserted: ${upserted}, Total: ${OPERATIONS.length}`);
 }
 
-seed()
-  .catch((err) => {
-    console.error("❌  Seed failed:", err);
-    process.exit(1);
-  })
-  .finally(() => client.end());
+seed().catch((err) => {
+  console.error("❌  Seed failed:", err);
+  process.exit(1);
+});

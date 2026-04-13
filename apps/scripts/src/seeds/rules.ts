@@ -12,12 +12,24 @@
  * Exit code 0 = pass, non-zero = fail.
  */
 
-import { db, client, rulesTable, type NewRuleRow } from "../db.ts";
-import { eq } from "drizzle-orm";
+import { apiPut } from "../api";
+
+interface RuleSeed {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  severity: string;
+  checkScript: string;
+  scriptLanguage: string;
+  acceptedObjectTypes?: string[];
+  enabled?: boolean;
+  tags?: string[];
+}
 
 // ─── Rules Data ──────────────────────────────────────────────────────────────
 
-const RULES: NewRuleRow[] = [
+const RULES: RuleSeed[] = [
   // ── Lint ──
   {
     id: "rule_no_console_log",
@@ -374,39 +386,17 @@ export default async function check(target: RuleTarget): Promise<boolean> {
 // ─── Seed Runner ─────────────────────────────────────────────────────────────
 
 async function seed() {
-  console.log("🌱 Seeding rules...\n");
+  console.log("🌱 Seeding rules via REST API...\n");
 
   let upserted = 0;
 
   for (const rule of RULES) {
-    const existing = await db.select().from(rulesTable).where(eq(rulesTable.id, rule.id!)).limit(1);
-
-    if (existing.length > 0) {
-      await db
-        .update(rulesTable)
-        .set({
-          name: rule.name,
-          description: rule.description,
-          category: rule.category,
-          severity: rule.severity,
-          checkScript: rule.checkScript,
-          scriptLanguage: rule.scriptLanguage,
-          acceptedObjectTypes: rule.acceptedObjectTypes,
-          enabled: rule.enabled,
-          tags: rule.tags,
-          updatedAt: new Date(),
-        })
-        .where(eq(rulesTable.id, rule.id!));
-      console.log(`  ✏️  Updated: ${rule.id} — ${rule.name}`);
-    } else {
-      await db.insert(rulesTable).values(rule);
-      console.log(`  ✅ Created: ${rule.id} — ${rule.name}`);
-    }
+    await apiPut("/api/rules", rule);
+    console.log(`  ✅  ${rule.id} — ${rule.name} — upserted`);
     upserted++;
   }
 
   console.log(`\n🎉 Done — ${upserted} rules upserted.`);
-  await client.end();
 }
 
 seed().catch((err) => {

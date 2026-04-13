@@ -15,9 +15,11 @@ import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as ApiWorksRouteImport } from './routes/api/works'
 import { Route as ApiSkillsRouteImport } from './routes/api/skills'
 import { Route as ApiRulesRouteImport } from './routes/api/rules'
+import { Route as ApiRecipesRouteImport } from './routes/api/recipes'
 import { Route as ApiPipelinesRouteImport } from './routes/api/pipelines'
 import { Route as ApiOperationsRouteImport } from './routes/api/operations'
 import { Route as ApiJobsRouteImport } from './routes/api/jobs'
+import { Route as ApiChecklistItemsRouteImport } from './routes/api/checklist-items'
 import { Route as ApiBestPracticesRouteImport } from './routes/api/best-practices'
 import { Route as LayoutSkillsRouteImport } from './routes/_layout/skills'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
@@ -84,6 +86,11 @@ const ApiRulesRoute = ApiRulesRouteImport.update({
   path: '/api/rules',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRecipesRoute = ApiRecipesRouteImport.update({
+  id: '/api/recipes',
+  path: '/api/recipes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPipelinesRoute = ApiPipelinesRouteImport.update({
   id: '/api/pipelines',
   path: '/api/pipelines',
@@ -97,6 +104,11 @@ const ApiOperationsRoute = ApiOperationsRouteImport.update({
 const ApiJobsRoute = ApiJobsRouteImport.update({
   id: '/api/jobs',
   path: '/api/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChecklistItemsRoute = ApiChecklistItemsRouteImport.update({
+  id: '/api/checklist-items',
+  path: '/api/checklist-items',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiBestPracticesRoute = ApiBestPracticesRouteImport.update({
@@ -298,9 +310,11 @@ export interface FileRoutesByFullPath {
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
   '/api/best-practices': typeof ApiBestPracticesRouteWithChildren
+  '/api/checklist-items': typeof ApiChecklistItemsRoute
   '/api/jobs': typeof ApiJobsRouteWithChildren
   '/api/operations': typeof ApiOperationsRouteWithChildren
   '/api/pipelines': typeof ApiPipelinesRouteWithChildren
+  '/api/recipes': typeof ApiRecipesRoute
   '/api/rules': typeof ApiRulesRouteWithChildren
   '/api/skills': typeof ApiSkillsRouteWithChildren
   '/api/works': typeof ApiWorksRouteWithChildren
@@ -341,9 +355,11 @@ export interface FileRoutesByTo {
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
   '/api/best-practices': typeof ApiBestPracticesRouteWithChildren
+  '/api/checklist-items': typeof ApiChecklistItemsRoute
   '/api/jobs': typeof ApiJobsRouteWithChildren
   '/api/operations': typeof ApiOperationsRouteWithChildren
   '/api/pipelines': typeof ApiPipelinesRouteWithChildren
+  '/api/recipes': typeof ApiRecipesRoute
   '/api/rules': typeof ApiRulesRouteWithChildren
   '/api/skills': typeof ApiSkillsRouteWithChildren
   '/api/works': typeof ApiWorksRouteWithChildren
@@ -389,9 +405,11 @@ export interface FileRoutesById {
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/skills': typeof LayoutSkillsRoute
   '/api/best-practices': typeof ApiBestPracticesRouteWithChildren
+  '/api/checklist-items': typeof ApiChecklistItemsRoute
   '/api/jobs': typeof ApiJobsRouteWithChildren
   '/api/operations': typeof ApiOperationsRouteWithChildren
   '/api/pipelines': typeof ApiPipelinesRouteWithChildren
+  '/api/recipes': typeof ApiRecipesRoute
   '/api/rules': typeof ApiRulesRouteWithChildren
   '/api/skills': typeof ApiSkillsRouteWithChildren
   '/api/works': typeof ApiWorksRouteWithChildren
@@ -438,9 +456,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skills'
     | '/api/best-practices'
+    | '/api/checklist-items'
     | '/api/jobs'
     | '/api/operations'
     | '/api/pipelines'
+    | '/api/recipes'
     | '/api/rules'
     | '/api/skills'
     | '/api/works'
@@ -481,9 +501,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skills'
     | '/api/best-practices'
+    | '/api/checklist-items'
     | '/api/jobs'
     | '/api/operations'
     | '/api/pipelines'
+    | '/api/recipes'
     | '/api/rules'
     | '/api/skills'
     | '/api/works'
@@ -528,9 +550,11 @@ export interface FileRouteTypes {
     | '/_layout/settings'
     | '/_layout/skills'
     | '/api/best-practices'
+    | '/api/checklist-items'
     | '/api/jobs'
     | '/api/operations'
     | '/api/pipelines'
+    | '/api/recipes'
     | '/api/rules'
     | '/api/skills'
     | '/api/works'
@@ -570,9 +594,11 @@ export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
   CanvasRoute: typeof CanvasRoute
   ApiBestPracticesRoute: typeof ApiBestPracticesRouteWithChildren
+  ApiChecklistItemsRoute: typeof ApiChecklistItemsRoute
   ApiJobsRoute: typeof ApiJobsRouteWithChildren
   ApiOperationsRoute: typeof ApiOperationsRouteWithChildren
   ApiPipelinesRoute: typeof ApiPipelinesRouteWithChildren
+  ApiRecipesRoute: typeof ApiRecipesRoute
   ApiRulesRoute: typeof ApiRulesRouteWithChildren
   ApiSkillsRoute: typeof ApiSkillsRouteWithChildren
   ApiWorksRoute: typeof ApiWorksRouteWithChildren
@@ -625,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRulesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/recipes': {
+      id: '/api/recipes'
+      path: '/api/recipes'
+      fullPath: '/api/recipes'
+      preLoaderRoute: typeof ApiRecipesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/pipelines': {
       id: '/api/pipelines'
       path: '/api/pipelines'
@@ -644,6 +677,13 @@ declare module '@tanstack/react-router' {
       path: '/api/jobs'
       fullPath: '/api/jobs'
       preLoaderRoute: typeof ApiJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/checklist-items': {
+      id: '/api/checklist-items'
+      path: '/api/checklist-items'
+      fullPath: '/api/checklist-items'
+      preLoaderRoute: typeof ApiChecklistItemsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/best-practices': {
@@ -1080,9 +1120,11 @@ const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
   CanvasRoute: CanvasRoute,
   ApiBestPracticesRoute: ApiBestPracticesRouteWithChildren,
+  ApiChecklistItemsRoute: ApiChecklistItemsRoute,
   ApiJobsRoute: ApiJobsRouteWithChildren,
   ApiOperationsRoute: ApiOperationsRouteWithChildren,
   ApiPipelinesRoute: ApiPipelinesRouteWithChildren,
+  ApiRecipesRoute: ApiRecipesRoute,
   ApiRulesRoute: ApiRulesRouteWithChildren,
   ApiSkillsRoute: ApiSkillsRouteWithChildren,
   ApiWorksRoute: ApiWorksRouteWithChildren,

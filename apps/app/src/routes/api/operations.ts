@@ -34,6 +34,25 @@ export const Route = createFileRoute("/api/operations")({
         const operation = await operationsDao.create(parsed.data);
         return json(operation, 201);
       },
+
+      PUT: async ({ request }) => {
+        const bodyResult = await parseJsonBody(request);
+        if (bodyResult.isErr()) return bodyResult.error;
+
+        const parsed = CreateOperationSchema.safeParse(bodyResult.value);
+        if (!parsed.success) {
+          return errorResponse(parsed.error.message, 400);
+        }
+
+        const existing = await operationsDao.findById(parsed.data.id);
+        if (existing) {
+          const { id: _, ...patch } = parsed.data;
+          const updated = await operationsDao.update(parsed.data.id, patch);
+          return json(updated);
+        }
+        const operation = await operationsDao.create(parsed.data);
+        return json(operation, 201);
+      },
     },
   },
 });
