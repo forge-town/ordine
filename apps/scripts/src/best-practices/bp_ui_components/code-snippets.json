@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_ui_components_main",
+    "title": "UI 组件库使用最佳实践",
+    "language": "tsx",
+    "code": "<Button onClick={handleClick}>提交</Button>\n<Input value={name} onChange={handleChange} />\n<Select>\n  <SelectTrigger>\n    <SelectValue placeholder=\"选择角色\" />\n  </SelectTrigger>\n  <SelectContent>\n    <SelectItem value=\"admin\">管理员</SelectItem>\n    <SelectItem value=\"user\">普通用户</SelectItem>\n  </SelectContent>\n</Select>",
+    "sortOrder": 0
+  }
+]

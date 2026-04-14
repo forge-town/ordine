@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_schema_main",
+    "title": "Schema 定义最佳实践",
+    "language": "typescript",
+    "code": "export const CatSchema = z.object({\n  id: z.string(),\n  name: z.string().min(1),\n  breed: z.string().optional(),\n  ownerId: z.string(),\n});\nexport type Cat = z.infer<typeof CatSchema>;\n\nexport const CreateCatInputSchema = CatSchema.omit({ id: true });\nexport type CreateCatInput = z.infer<typeof CreateCatInputSchema>;",
+    "sortOrder": 0
+  }
+]

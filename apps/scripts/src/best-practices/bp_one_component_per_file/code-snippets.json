@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_one_component_per_file_main",
+    "title": "一文件一组件最佳实践",
+    "language": "tsx",
+    "code": "export const UserCard = ({ userId }: UserCardProps) => {\n  const user = useUserStore((s) => s.users[userId]);\n\n  return (\n    <Card>\n      <CardHeader>\n        <Avatar src={user.avatar} />\n      </CardHeader>\n      <CardContent>{user.name}</CardContent>\n    </Card>\n  );\n};",
+    "sortOrder": 0
+  }
+]

@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_full_check_workflow_main",
+    "title": "全量检查流程最佳实践",
+    "language": "typescript",
+    "code": "const skills = discoverSkills(\".agents/skills/*-best-practice/\");\n\nconst results = await Promise.all(\n  skills.map((skill) => runBestPracticeCheck(skill)),\n);\n\nconst report = {\n  total: results.length,\n  passed: results.filter((r) => r.status === \"passed\").length,\n  failed: results.filter((r) => r.status === \"failed\").length,\n  violations: results.flatMap((r) => r.violations),\n};",
+    "sortOrder": 0
+  }
+]

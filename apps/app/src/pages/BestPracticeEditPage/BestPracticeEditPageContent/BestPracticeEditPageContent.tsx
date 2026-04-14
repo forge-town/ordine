@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   Brain,
   ClipboardCheck,
+  Code2,
   Download,
   GripVertical,
   Plus,
@@ -39,12 +40,18 @@ import {
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import type { ChecklistItemEntity } from "@/models/daos/checklistItemsDao";
+import type { CodeSnippetEntity } from "@/models/daos/codeSnippetsDao";
 import { updateBestPractice } from "@/services/bestPracticesService";
 import {
   createChecklistItem,
   updateChecklistItem,
   deleteChecklistItem,
 } from "@/services/checklistService";
+import {
+  createCodeSnippet,
+  updateCodeSnippet,
+  deleteCodeSnippet,
+} from "@/services/codeSnippetsService";
 import { CATEGORIES, LANGUAGES } from "@/pages/BestPracticesPage/constants";
 import { toJson, fromJson, toCsv, fromCsv, downloadFile, readFileContent } from "../checklistIO";
 import { ok } from "neverthrow";
@@ -61,14 +68,27 @@ interface ChecklistItemDraft {
   isDirty: boolean;
 }
 
+interface CodeSnippetDraft {
+  id: string;
+  title: string;
+  language: string;
+  code: string;
+  sortOrder: number;
+  isNew: boolean;
+  isDeleted: boolean;
+  isDirty: boolean;
+}
+
 interface Props {
   bestPractice: BestPracticeEntity;
   checklistItems: ChecklistItemEntity[];
+  codeSnippets: CodeSnippetEntity[];
 }
 
 export const BestPracticeEditPageContent = ({
   bestPractice,
   checklistItems: initialChecklistItems,
+  codeSnippets: initialCodeSnippets,
 }: Props) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -79,7 +99,6 @@ export const BestPracticeEditPageContent = ({
     content: z.string(),
     category: z.string(),
     language: z.string(),
-    codeSnippet: z.string(),
     tags: z.string(),
   });
 
@@ -99,6 +118,19 @@ export const BestPracticeEditPageContent = ({
     }))
   );
 
+  const [snippets, setSnippets] = useState<CodeSnippetDraft[]>(
+    initialCodeSnippets.map((s) => ({
+      id: s.id,
+      title: s.title,
+      language: s.language,
+      code: s.code,
+      sortOrder: s.sortOrder,
+      isNew: false,
+      isDeleted: false,
+      isDirty: false,
+    }))
+  );
+
   const form = useForm<EditFormValues>({
     resolver: zodResolver(editFormSchema),
     defaultValues: {
@@ -107,7 +139,6 @@ export const BestPracticeEditPageContent = ({
       content: bestPractice.content,
       category: bestPractice.category,
       language: bestPractice.language,
-      codeSnippet: bestPractice.codeSnippet,
       tags: bestPractice.tags.join(", "),
     },
   });
@@ -160,6 +191,38 @@ export const BestPracticeEditPageContent = ({
   const handleDeleteChecklistItem = (id: string) => {
     setItems((prev) => prev.map((item) => (item.id === id ? { ...item, isDeleted: true } : item)));
   };
+
+  const handleAddCodeSnippet = () => {
+    setSnippets((prev) => [
+      ...prev,
+      {
+        id: `cs-${Date.now()}`,
+        title: "",
+        language: "typescript",
+        code: "",
+        sortOrder: prev.length,
+        isNew: true,
+        isDeleted: false,
+        isDirty: true,
+      },
+    ]);
+  };
+
+  const handleUpdateSnippetField = (
+    id: string,
+    field: keyof Pick<CodeSnippetDraft, "title" | "language" | "code" | "sortOrder">,
+    value: string | number
+  ) => {
+    setSnippets((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, [field]: value, isDirty: true } : s))
+    );
+  };
+
+  const handleDeleteCodeSnippet = (id: string) => {
+    setSnippets((prev) => prev.map((s) => (s.id === id ? { ...s, isDeleted: true } : s)));
+  };
+
+  const visibleSnippets = snippets.filter((s) => !s.isDeleted);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -258,6 +321,36 @@ export const BestPracticeEditPageContent = ({
               checkType: item.checkType,
               script: item.checkType === "script" ? item.script : null,
               sortOrder: item.sortOrder,
+            },
+          },
+        });
+      }
+    }
+
+    // Process code snippets
+    for (const snippet of snippets) {
+      if (snippet.isDeleted && !snippet.isNew) {
+        await deleteCodeSnippet({ data: { id: snippet.id } });
+      } else if (snippet.isNew && !snippet.isDeleted && snippet.code.trim()) {
+        await createCodeSnippet({
+          data: {
+            id: snippet.id,
+            bestPracticeId: bestPractice.id,
+            title: snippet.title,
+            language: snippet.language,
+            code: snippet.code,
+            sortOrder: snippet.sortOrder,
+          },
+        });
+      } else if (!snippet.isNew && !snippet.isDeleted && snippet.isDirty) {
+        await updateCodeSnippet({
+          data: {
+            id: snippet.id,
+            patch: {
+              title: snippet.title,
+              language: snippet.language,
+              code: snippet.code,
+              sortOrder: snippet.sortOrder,
             },
           },
         });
@@ -449,46 +542,6 @@ export const BestPracticeEditPageContent = ({
 
               <FormField
                 control={form.control}
-                name="codeSnippet"
-                render={({ field }) => {
-                  const lang = form.watch("language");
-                  const extensions =
-                    lang === "typescript" || lang === "tsx" || lang === "javascript"
-                      ? [javascript({ typescript: true, jsx: true })]
-                      : [];
-                  const handleCodeChange = (value: string) => {
-                    field.onChange(value);
-                  };
-                  return (
-                    <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel className="text-xs font-medium text-muted-foreground">
-                          {t("bestPractices.codeSnippetLabel")}
-                        </FormLabel>
-                        <span className="rounded bg-muted px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
-                          {lang}
-                        </span>
-                      </div>
-                      <FormControl>
-                        <div className="overflow-hidden rounded-md border border-border text-xs">
-                          <CodeMirror
-                            extensions={extensions}
-                            height="240px"
-                            placeholder={t("bestPractices.codeSnippetPlaceholder")}
-                            theme={oneDark}
-                            value={field.value}
-                            onChange={handleCodeChange}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
                 name="tags"
                 render={({ field }) => (
                   <FormItem>
@@ -569,6 +622,43 @@ export const BestPracticeEditPageContent = ({
                       item={item}
                       onDelete={handleDeleteChecklistItem}
                       onUpdate={handleUpdateChecklistField}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Code Snippets Section */}
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                  <Code2 className="h-4 w-4" />
+                  {t("bestPractices.codeSnippetBtn")}
+                  {visibleSnippets.length > 0 && (
+                    <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                      {visibleSnippets.length}
+                    </span>
+                  )}
+                </div>
+                <Button size="sm" type="button" variant="outline" onClick={handleAddCodeSnippet}>
+                  <Plus className="h-3.5 w-3.5" />
+                  {t("bestPractices.addCodeSnippet")}
+                </Button>
+              </div>
+
+              {visibleSnippets.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-4 text-center">
+                  {t("bestPractices.codeSnippetEmpty")}
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {visibleSnippets.map((snippet, idx) => (
+                    <CodeSnippetEditor
+                      key={snippet.id}
+                      index={idx}
+                      snippet={snippet}
+                      onDelete={handleDeleteCodeSnippet}
+                      onUpdate={handleUpdateSnippetField}
                     />
                   ))}
                 </div>
@@ -703,6 +793,104 @@ const ChecklistItemEditor = ({ item, index, onUpdate, onDelete }: ChecklistItemE
           onChange={handleScriptChange}
         />
       )}
+    </div>
+  );
+};
+
+// ─── CodeSnippetEditor ────────────────────────────────────────────────────────
+
+interface CodeSnippetEditorProps {
+  snippet: CodeSnippetDraft;
+  index: number;
+  onUpdate: (
+    id: string,
+    field: keyof Pick<CodeSnippetDraft, "title" | "language" | "code" | "sortOrder">,
+    value: string | number
+  ) => void;
+  onDelete: (id: string) => void;
+}
+
+const CodeSnippetEditor = ({ snippet, index, onUpdate, onDelete }: CodeSnippetEditorProps) => {
+  const { t } = useTranslation();
+
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const handleLanguageOpenChange = (v: boolean) => setLanguageOpen(v);
+  const handleLanguageToggle = () => setLanguageOpen((prev) => !prev);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    onUpdate(snippet.id, "title", e.target.value);
+
+  const handleLanguageChange = (value: string | null) => {
+    if (value) {
+      onUpdate(snippet.id, "language", value);
+      setLanguageOpen(false);
+    }
+  };
+
+  const handleCodeChange = (value: string) => onUpdate(snippet.id, "code", value);
+
+  const handleDelete = () => onDelete(snippet.id);
+
+  const extensions =
+    snippet.language === "typescript" ||
+    snippet.language === "tsx" ||
+    snippet.language === "javascript"
+      ? [javascript({ typescript: true, jsx: true })]
+      : [];
+
+  return (
+    <div className="rounded-lg border border-border bg-background p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground/50" />
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
+          {index + 1}
+        </span>
+        <Input
+          className="flex-1"
+          placeholder={t("bestPractices.codeSnippetTitlePlaceholder")}
+          value={snippet.title}
+          onChange={handleTitleChange}
+        />
+        <div className="w-32">
+          <Select
+            open={languageOpen}
+            value={snippet.language}
+            onOpenChange={handleLanguageOpenChange}
+            onValueChange={handleLanguageChange}
+          >
+            <SelectTrigger className="h-8 text-xs" onClick={handleLanguageToggle}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LANGUAGES.map((l) => (
+                <SelectItem key={l} value={l}>
+                  {l}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button
+          className="h-8 w-8 shrink-0"
+          size="icon"
+          type="button"
+          variant="ghost"
+          onClick={handleDelete}
+        >
+          <Trash2 className="h-3.5 w-3.5 text-red-400" />
+        </Button>
+      </div>
+
+      <div className="overflow-hidden rounded-md border border-border text-xs">
+        <CodeMirror
+          extensions={extensions}
+          height="200px"
+          placeholder={t("bestPractices.codeSnippetPlaceholder")}
+          theme={oneDark}
+          value={snippet.code}
+          onChange={handleCodeChange}
+        />
+      </div>
     </div>
   );
 };

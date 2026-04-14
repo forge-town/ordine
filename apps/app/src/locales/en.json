@@ -382,7 +382,10 @@
     "checklistExportCsv": "Export CSV",
     "checklistImport": "Import",
     "checklistImportSuccess": "Successfully imported {{count}} items",
-    "checklistImportError": "Import failed: invalid file format"
+    "checklistImportError": "Import failed: invalid file format",
+    "addCodeSnippet": "Add code snippet",
+    "codeSnippetEmpty": "No code snippets configured",
+    "codeSnippetTitlePlaceholder": "e.g. Good example / Bad example"
   },
   "skills": {
     "title": "Skills",

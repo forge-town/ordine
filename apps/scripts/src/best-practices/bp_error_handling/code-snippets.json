@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_error_handling_main",
+    "title": "错误处理最佳实践",
+    "language": "typescript",
+    "code": "import { ok, err, Result } from \"neverthrow\";\n\nfunction parseJSON(raw: string): Result<Data, ParseError> {\n  try {\n    return ok(JSON.parse(raw));\n  } catch {\n    return err(new ParseError(\"Invalid JSON\", raw));\n  }\n}\n\nparseJSON(input).match(\n  (data) => handleSuccess(data),\n  (error) => handleError(error.message),\n);",
+    "sortOrder": 0
+  }
+]

@@ -382,7 +382,10 @@
     "checklistExportCsv": "导出 CSV",
     "checklistImport": "导入",
     "checklistImportSuccess": "成功导入 {{count}} 个检查项",
-    "checklistImportError": "导入失败：文件格式不正确"
+    "checklistImportError": "导入失败：文件格式不正确",
+    "addCodeSnippet": "添加代码片段",
+    "codeSnippetEmpty": "暂无代码片段",
+    "codeSnippetTitlePlaceholder": "例如：正确示例 / 错误示例"
   },
   "skills": {
     "title": "技能",

@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_db_table_main",
+    "title": "数据库表定义最佳实践",
+    "language": "typescript",
+    "code": "export const usersTable = pgTable(\"users\", {\n  id: text(\"id\").primaryKey().$defaultFn(() => createId()),\n  name: text(\"name\").notNull(),\n  email: text(\"email\").notNull(),\n  createdAt: timestamp(\"created_at\").defaultNow().notNull(),\n  emailVerified: boolean(\"email_verified\").default(false),\n});",
+    "sortOrder": 0
+  }
+]

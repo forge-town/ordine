@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_barrel_export_main",
+    "title": "桶导出最佳实践",
+    "language": "typescript",
+    "code": "export * from \"./Button\";\nexport * from \"./Input\";\nexport * from \"./Select\";\nexport * from \"./Dialog\";",
+    "sortOrder": 0
+  }
+]

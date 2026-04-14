@@ -22,6 +22,15 @@ interface ChecklistItemSeed {
   sortOrder: number;
 }
 
+interface CodeSnippetSeed {
+  id: string;
+  bestPracticeId: string;
+  title: string;
+  language: string;
+  code: string;
+  sortOrder: number;
+}
+
 function readFolders(): string[] {
   return readdirSync(BP_DIR).filter((name) => {
     const full = join(BP_DIR, name);
@@ -55,6 +64,14 @@ function readChecklistItems(folder: string, bpId: string): ChecklistItemSeed[] {
   return items.map((item) => ({ ...item, bestPracticeId: bpId }));
 }
 
+function readCodeSnippets(folder: string, bpId: string): CodeSnippetSeed[] {
+  const p = join(BP_DIR, folder, "code-snippets.json");
+  if (!existsSync(p)) return [];
+  const raw = readFileSync(p, "utf-8");
+  const items = JSON.parse(raw) as Omit<CodeSnippetSeed, "bestPracticeId">[];
+  return items.map((item) => ({ ...item, bestPracticeId: bpId }));
+}
+
 async function seed() {
   console.log("🌱 Seeding best practices from folders...\n");
   console.log(`📁 Source: ${BP_DIR}\n`);
@@ -64,12 +81,14 @@ async function seed() {
 
   let bpCount = 0;
   let clCount = 0;
+  let csCount = 0;
 
   for (const folder of folders) {
     const meta = readMetadata(folder);
     const content = readContent(folder);
     const codeSnippet = readCodeSnippet(folder);
     const checklistItems = readChecklistItems(folder, meta.id);
+    const codeSnippets = readCodeSnippets(folder, meta.id);
 
     await apiPut("/api/best-practices", {
       ...meta,
@@ -85,6 +104,14 @@ async function seed() {
     }
     if (checklistItems.length > 0) {
       console.log(`      └─ ${checklistItems.length} checklist items`);
+    }
+
+    for (const snippet of codeSnippets) {
+      await apiPut("/api/code-snippets", snippet);
+      csCount++;
+    }
+    if (codeSnippets.length > 0) {
+      console.log(`      └─ ${codeSnippets.length} code snippets`);
     }
   }
 
@@ -104,7 +131,9 @@ async function seed() {
     }
   }
 
-  console.log(`\n🎉 Done — ${bpCount} best practices, ${clCount} checklist items upserted.`);
+  console.log(
+    `\n🎉 Done — ${bpCount} best practices, ${clCount} checklist items, ${csCount} code snippets upserted.`,
+  );
 }
 
 seed().catch((err) => {

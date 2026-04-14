@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_checklist_main",
+    "title": "检查清单最佳实践",
+    "language": "markdown",
+    "code": "- [ ] 1.1 文件名格式为 {feature}Dao.ts\n  - 正确：catsDao.ts\n  - 错误：CatsDAO.ts\n- [ ] 1.2 查询单条返回 T | null\n  - 正确：findById(id: string): Promise<UserRow | null>\n  - 错误：findById(id: string): Promise<UserRow>",
+    "sortOrder": 0
+  }
+]

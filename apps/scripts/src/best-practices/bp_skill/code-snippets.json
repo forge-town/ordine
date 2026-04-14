@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_skill_main",
+    "title": "Skill 质量验证最佳实践",
+    "language": "yaml",
+    "code": "---\nname: dao-best-practice\ndescription: >-\n  Must follow when 创建或重构 DAO 文件，确保遵循 Drizzle ORM\n  最佳实践（文件结构、方法命名、类型安全、性能优化）。\n---",
+    "sortOrder": 0
+  }
+]

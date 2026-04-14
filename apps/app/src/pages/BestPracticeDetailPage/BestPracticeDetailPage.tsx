@@ -3,7 +3,7 @@ import { Route } from "@/routes/_layout/best-practices.$bestPracticeId.index";
 import { BestPracticeDetailPageContent } from "./BestPracticeDetailPageContent";
 
 export const BestPracticeDetailPage = () => {
-  const { bestPractice, checklistItems } = Route.useLoaderData();
+  const { bestPractice, checklistItems, codeSnippets } = Route.useLoaderData();
   const { t } = useTranslation();
 
   if (!bestPractice) {
@@ -15,6 +15,10 @@ export const BestPracticeDetailPage = () => {
   }
 
   return (
-    <BestPracticeDetailPageContent bestPractice={bestPractice} checklistItems={checklistItems} />
+    <BestPracticeDetailPageContent
+      bestPractice={bestPractice}
+      checklistItems={checklistItems}
+      codeSnippets={codeSnippets}
+    />
   );
 };

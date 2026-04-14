@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_zod_infer_type_main",
+    "title": "Zod 类型派生最佳实践",
+    "language": "typescript",
+    "code": "export const UserSchema = z.object({\n  id: z.string(),\n  name: z.string(),\n  email: z.string().email(),\n});\nexport type User = z.infer<typeof UserSchema>;\n\nexport const CreateUserSchema = UserSchema.omit({ id: true });\nexport type CreateUserInput = z.infer<typeof CreateUserSchema>;\n\nexport const UpdateUserSchema = UserSchema.partial().required({ id: true });\nexport type UpdateUserInput = z.infer<typeof UpdateUserSchema>;",
+    "sortOrder": 0
+  }
+]

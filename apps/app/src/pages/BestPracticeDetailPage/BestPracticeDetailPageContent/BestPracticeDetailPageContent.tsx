@@ -20,15 +20,21 @@ import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
 import type { ChecklistItemEntity } from "@/models/daos/checklistItemsDao";
+import type { CodeSnippetEntity } from "@/models/daos/codeSnippetsDao";
 import { exportSingleBestPractice } from "@/lib/exportBestPractice";
 import { CATEGORIES, CATEGORY_COLORS } from "@/pages/BestPracticesPage/constants";
 
 interface Props {
   bestPractice: BestPracticeEntity;
   checklistItems: ChecklistItemEntity[];
+  codeSnippets: CodeSnippetEntity[];
 }
 
-export const BestPracticeDetailPageContent = ({ bestPractice, checklistItems }: Props) => {
+export const BestPracticeDetailPageContent = ({
+  bestPractice,
+  checklistItems,
+  codeSnippets,
+}: Props) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -43,7 +49,7 @@ export const BestPracticeDetailPageContent = ({ bestPractice, checklistItems }: 
   const handleExport = () => void exportSingleBestPractice(bestPractice.id, bestPractice.title);
 
   const hasContent = bestPractice.content.trim().length > 0;
-  const hasCode = bestPractice.codeSnippet.trim().length > 0;
+  const hasSnippets = codeSnippets.length > 0;
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -133,34 +139,42 @@ export const BestPracticeDetailPageContent = ({ bestPractice, checklistItems }: 
           </div>
         )}
 
-        {/* Code snippet */}
-        {hasCode && (
-          <div className="rounded-xl border border-border bg-card p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                <Code2 className="h-4 w-4" />
-                {t("bestPractices.codeSnippetBtn")}
-              </div>
-              <span className="rounded bg-muted px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
-                {bestPractice.language}
+        {/* Code snippets */}
+        {hasSnippets && (
+          <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <Code2 className="h-4 w-4" />
+              {t("bestPractices.codeSnippetBtn")}
+              <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                {codeSnippets.length}
               </span>
             </div>
-            <div className="overflow-hidden rounded-md border border-border text-xs">
-              <CodeMirror
-                readOnly
-                editable={false}
-                extensions={
-                  bestPractice.language === "typescript" ||
-                  bestPractice.language === "tsx" ||
-                  bestPractice.language === "javascript"
-                    ? [javascript({ typescript: true, jsx: true })]
-                    : []
-                }
-                height="auto"
-                theme={oneDark}
-                value={bestPractice.codeSnippet}
-              />
-            </div>
+            {codeSnippets.map((snippet) => (
+              <div key={snippet.id}>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-medium text-foreground">{snippet.title}</span>
+                  <span className="rounded bg-muted px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
+                    {snippet.language}
+                  </span>
+                </div>
+                <div className="overflow-hidden rounded-md border border-border text-xs">
+                  <CodeMirror
+                    readOnly
+                    editable={false}
+                    extensions={
+                      snippet.language === "typescript" ||
+                      snippet.language === "tsx" ||
+                      snippet.language === "javascript"
+                        ? [javascript({ typescript: true, jsx: true })]
+                        : []
+                    }
+                    height="auto"
+                    theme={oneDark}
+                    value={snippet.code}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

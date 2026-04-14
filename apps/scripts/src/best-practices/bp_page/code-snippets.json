@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_page_main",
+    "title": "页面结构最佳实践",
+    "language": "tsx",
+    "code": "ConfigPage/\n├── index.ts\n├── ConfigPage.tsx\n├── ConfigPageContent.tsx\n└── _store/\n    ├── provider.tsx\n    ├── configPageSlice.ts\n    └── configPageStore.ts\n\nexport const ConfigPage = () => (\n  <ConfigPageStoreProvider>\n    <ConfigPageContent />\n  </ConfigPageStoreProvider>\n);",
+    "sortOrder": 0
+  }
+]

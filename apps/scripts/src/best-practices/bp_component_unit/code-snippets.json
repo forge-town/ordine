@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_component_unit_main",
+    "title": "组件单元最佳实践",
+    "language": "tsx",
+    "code": "UserCard/\n├── index.ts                   -> export * from \"./UserCard\";\n├── UserCard.tsx\n├── UserCard.test.tsx\n└── UserCard.stories.tsx",
+    "sortOrder": 0
+  }
+]

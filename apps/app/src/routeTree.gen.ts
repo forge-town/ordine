@@ -19,6 +19,7 @@ import { Route as ApiRecipesRouteImport } from './routes/api/recipes'
 import { Route as ApiPipelinesRouteImport } from './routes/api/pipelines'
 import { Route as ApiOperationsRouteImport } from './routes/api/operations'
 import { Route as ApiJobsRouteImport } from './routes/api/jobs'
+import { Route as ApiCodeSnippetsRouteImport } from './routes/api/code-snippets'
 import { Route as ApiChecklistItemsRouteImport } from './routes/api/checklist-items'
 import { Route as ApiBestPracticesRouteImport } from './routes/api/best-practices'
 import { Route as LayoutSkillsRouteImport } from './routes/_layout/skills'
@@ -106,6 +107,11 @@ const ApiOperationsRoute = ApiOperationsRouteImport.update({
 const ApiJobsRoute = ApiJobsRouteImport.update({
   id: '/api/jobs',
   path: '/api/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCodeSnippetsRoute = ApiCodeSnippetsRouteImport.update({
+  id: '/api/code-snippets',
+  path: '/api/code-snippets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChecklistItemsRoute = ApiChecklistItemsRouteImport.update({
@@ -323,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/skills': typeof LayoutSkillsRoute
   '/api/best-practices': typeof ApiBestPracticesRouteWithChildren
   '/api/checklist-items': typeof ApiChecklistItemsRoute
+  '/api/code-snippets': typeof ApiCodeSnippetsRoute
   '/api/jobs': typeof ApiJobsRouteWithChildren
   '/api/operations': typeof ApiOperationsRouteWithChildren
   '/api/pipelines': typeof ApiPipelinesRouteWithChildren
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/skills': typeof LayoutSkillsRoute
   '/api/best-practices': typeof ApiBestPracticesRouteWithChildren
   '/api/checklist-items': typeof ApiChecklistItemsRoute
+  '/api/code-snippets': typeof ApiCodeSnippetsRoute
   '/api/jobs': typeof ApiJobsRouteWithChildren
   '/api/operations': typeof ApiOperationsRouteWithChildren
   '/api/pipelines': typeof ApiPipelinesRouteWithChildren
@@ -422,6 +430,7 @@ export interface FileRoutesById {
   '/_layout/skills': typeof LayoutSkillsRoute
   '/api/best-practices': typeof ApiBestPracticesRouteWithChildren
   '/api/checklist-items': typeof ApiChecklistItemsRoute
+  '/api/code-snippets': typeof ApiCodeSnippetsRoute
   '/api/jobs': typeof ApiJobsRouteWithChildren
   '/api/operations': typeof ApiOperationsRouteWithChildren
   '/api/pipelines': typeof ApiPipelinesRouteWithChildren
@@ -475,6 +484,7 @@ export interface FileRouteTypes {
     | '/skills'
     | '/api/best-practices'
     | '/api/checklist-items'
+    | '/api/code-snippets'
     | '/api/jobs'
     | '/api/operations'
     | '/api/pipelines'
@@ -522,6 +532,7 @@ export interface FileRouteTypes {
     | '/skills'
     | '/api/best-practices'
     | '/api/checklist-items'
+    | '/api/code-snippets'
     | '/api/jobs'
     | '/api/operations'
     | '/api/pipelines'
@@ -573,6 +584,7 @@ export interface FileRouteTypes {
     | '/_layout/skills'
     | '/api/best-practices'
     | '/api/checklist-items'
+    | '/api/code-snippets'
     | '/api/jobs'
     | '/api/operations'
     | '/api/pipelines'
@@ -619,6 +631,7 @@ export interface RootRouteChildren {
   CanvasRoute: typeof CanvasRoute
   ApiBestPracticesRoute: typeof ApiBestPracticesRouteWithChildren
   ApiChecklistItemsRoute: typeof ApiChecklistItemsRoute
+  ApiCodeSnippetsRoute: typeof ApiCodeSnippetsRoute
   ApiJobsRoute: typeof ApiJobsRouteWithChildren
   ApiOperationsRoute: typeof ApiOperationsRouteWithChildren
   ApiPipelinesRoute: typeof ApiPipelinesRouteWithChildren
@@ -701,6 +714,13 @@ declare module '@tanstack/react-router' {
       path: '/api/jobs'
       fullPath: '/api/jobs'
       preLoaderRoute: typeof ApiJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/code-snippets': {
+      id: '/api/code-snippets'
+      path: '/api/code-snippets'
+      fullPath: '/api/code-snippets'
+      preLoaderRoute: typeof ApiCodeSnippetsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/checklist-items': {
@@ -1163,6 +1183,7 @@ const rootRouteChildren: RootRouteChildren = {
   CanvasRoute: CanvasRoute,
   ApiBestPracticesRoute: ApiBestPracticesRouteWithChildren,
   ApiChecklistItemsRoute: ApiChecklistItemsRoute,
+  ApiCodeSnippetsRoute: ApiCodeSnippetsRoute,
   ApiJobsRoute: ApiJobsRouteWithChildren,
   ApiOperationsRoute: ApiOperationsRouteWithChildren,
   ApiPipelinesRoute: ApiPipelinesRouteWithChildren,

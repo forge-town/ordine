@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_i18n_main",
+    "title": "国际化最佳实践",
+    "language": "typescript",
+    "code": "import i18n from \"i18next\";\nimport { initReactI18next } from \"react-i18next\";\nimport LanguageDetector from \"i18next-browser-languagedetector\";\n\ni18n\n  .use(LanguageDetector)\n  .use(initReactI18next)\n  .init({\n    resources,\n    fallbackLng: \"zh\",\n    interpolation: { escapeValue: false },\n    detection: { order: [\"cookie\", \"localStorage\", \"navigator\"] },\n  });",
+    "sortOrder": 0
+  }
+]

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
 import { checklistItemsDao } from "@/models/daos/checklistItemsDao";
+import { codeSnippetsDao } from "@/models/daos/codeSnippetsDao";
 import { json } from "@/lib/apiResponse";
 
 export const Route = createFileRoute("/api/best-practices/export")({
@@ -10,7 +11,10 @@ export const Route = createFileRoute("/api/best-practices/export")({
         const practices = await bestPracticesDao.findMany();
         const result = await Promise.all(
           practices.map(async (bp) => {
-            const items = await checklistItemsDao.findByBestPracticeId(bp.id);
+            const [items, snippets] = await Promise.all([
+              checklistItemsDao.findByBestPracticeId(bp.id),
+              codeSnippetsDao.findByBestPracticeId(bp.id),
+            ]);
             return {
               ...bp,
               checklistItems: items.map((item) => ({
@@ -20,6 +24,13 @@ export const Route = createFileRoute("/api/best-practices/export")({
                 checkType: item.checkType,
                 script: item.script,
                 sortOrder: item.sortOrder,
+              })),
+              codeSnippets: snippets.map((s) => ({
+                id: s.id,
+                title: s.title,
+                language: s.language,
+                code: s.code,
+                sortOrder: s.sortOrder,
               })),
             };
           })
