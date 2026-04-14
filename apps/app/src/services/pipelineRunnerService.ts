@@ -1,8 +1,12 @@
 /**
- * Pipeline execution engine.
+ * Pipeline execution engine — DAG-based concurrent executor.
  *
- * Traverses pipeline nodes in topological order and executes each one,
- * passing results between nodes. Supports four executor types:
+ * Nodes are partitioned into execution levels via Kahn's algorithm.
+ * Nodes within the same level run concurrently via Promise.all.
+ * Each node maintains its own output context (NodeCtx), so fan-out
+ * branches receive isolated inputs from their parent nodes.
+ *
+ * Supports four executor types:
  *   - script     → runs a shell/python/js command via child_process
  *   - prompt     → sends input to an AI model via @ai-sdk/openai
  *   - skill      → looks up skill metadata and delegates to an AI model
@@ -40,6 +44,7 @@ import { settingsDao } from "@/models/daos/settingsDao";
 import type { ExecutorConfig } from "@/pages/OperationDetailPage/types";
 import { listDirTree, readProjectFiles } from "@/services/filesystemService";
 import { getModel } from "@/services/llmService";
+import { buildExecutionLevels, getParentIds } from "@/services/dagScheduler";
 
 const getSettings: SettingsResolver = async () => {
   const s = await settingsDao.get();
@@ -66,6 +71,11 @@ interface NodeData {
 
 interface OperationConfig {
   executor?: ExecutorConfig;
+}
+
+interface NodeCtx {
+  inputPath: string;
+  content: string;
 }
 
 // ─── error types ──────────────────────────────────────────────────────────────
@@ -112,42 +122,6 @@ type PipelineRunError =
   | ScriptExecutionError
   | ConfigParseError
   | GitCloneError;
-
-// ─── topological sort ─────────────────────────────────────────────────────────
-
-const topoSort = (nodes: PipelineNode[], edges: PipelineEdge[]): PipelineNode[] => {
-  const inDegree = new Map<string, number>();
-  const adjacency = new Map<string, string[]>();
-
-  for (const n of nodes) {
-    inDegree.set(n.id, 0);
-    adjacency.set(n.id, []);
-  }
-
-  for (const e of edges) {
-    adjacency.get(e.source)?.push(e.target);
-    inDegree.set(e.target, (inDegree.get(e.target) ?? 0) + 1);
-  }
-
-  const queue: string[] = [];
-  for (const [id, deg] of inDegree) {
-    if (deg === 0) queue.push(id);
-  }
-
-  const order: PipelineNode[] = [];
-  while (queue.length > 0) {
-    const id = queue.shift()!;
-    const node = nodes.find((n) => n.id === id);
-    if (node) order.push(node);
-    for (const neighbour of adjacency.get(id) ?? []) {
-      const newDeg = (inDegree.get(neighbour) ?? 1) - 1;
-      inDegree.set(neighbour, newDeg);
-      if (newDeg === 0) queue.push(neighbour);
-    }
-  }
-
-  return order;
-};
 
 // ─── executor helpers ─────────────────────────────────────────────────────────
 
@@ -255,8 +229,8 @@ const executePipeline = async (opts: {
   githubToken?: string;
 }): Promise<{ ok: true; summary: string } | { ok: false; error: PipelineRunError }> => {
   const { pipelineId, jobId, githubToken } = opts;
-  const ctx = { inputPath: opts.inputPath ?? "", currentContent: "", outputLocalPath: "" };
   const tempDirs: string[] = [];
+  const nodeOutputs = new Map<string, NodeCtx>();
 
   const log = async (line: string) => {
     await jobsDao.appendLog(jobId, `[${new Date().toISOString()}] ${line}`);
@@ -265,7 +239,6 @@ const executePipeline = async (opts: {
   await jobsDao.updateStatus(jobId, "running", { startedAt: Date.now() });
   await log(`Starting pipeline ${pipelineId}`);
 
-  // Load pipeline
   const pipeline = await pipelinesDao.findById(pipelineId);
   if (!pipeline) {
     return { ok: false, error: new PipelineNotFoundError(pipelineId) };
@@ -274,12 +247,13 @@ const executePipeline = async (opts: {
   const nodes = pipeline.nodes as PipelineNode[];
   const edges = pipeline.edges as PipelineEdge[];
 
-  const ordered = topoSort(nodes, edges);
+  const levels = buildExecutionLevels(nodes, edges);
 
-  await log(`Pipeline "${pipeline.name}" loaded. Processing ${ordered.length} nodes.`);
+  await log(
+    `Pipeline "${pipeline.name}" loaded. ${nodes.length} nodes in ${levels.length} levels.`
+  );
 
-  // Load all operations referenced in the pipeline
-  const operationIds = ordered
+  const operationIds = nodes
     .filter((n) => n.type === "operation")
     .map((n) => (n.data as unknown as NodeData).operationId)
     .filter((id): id is string => id !== undefined && id !== null && id !== "");
@@ -290,9 +264,30 @@ const executePipeline = async (opts: {
     if (op) operationsMap.set(id, op);
   }
 
-  // Context accumulates output across nodes — stored in ctx object above
+  // ── Resolve input for a node from its parent outputs ───────────────────
 
-  // Helper: evaluate whether a loop condition is met (returns true = condition passed)
+  const resolveNodeInput = (nodeId: string): NodeCtx => {
+    const parentIds = getParentIds(nodeId, edges);
+    if (parentIds.length === 0) {
+      const initial = nodeOutputs.get("__initial__");
+      return initial ?? { inputPath: "", content: "" };
+    }
+    if (parentIds.length === 1) {
+      return nodeOutputs.get(parentIds[0]!) ?? { inputPath: "", content: "" };
+    }
+    const parentCtxs = parentIds
+      .map((id) => nodeOutputs.get(id))
+      .filter((c): c is NodeCtx => c !== undefined);
+    const inputPath = parentCtxs.find((p) => p.inputPath)?.inputPath ?? "";
+    const content = parentCtxs
+      .map((p) => p.content)
+      .filter(Boolean)
+      .join("\n\n---\n\n");
+    return { inputPath, content };
+  };
+
+  // ── Loop condition evaluator ───────────────────────────────────────────
+
   const evaluateLoopCondition = async (
     conditionPrompt: string,
     operationOutput: string,
@@ -323,9 +318,11 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
     return verdict.startsWith("PASS");
   };
 
-  // Helper: execute a single operation node. Returns { ok, content } or error.
+  // ── Execute a single operation node with explicit input ────────────────
+
   const executeOperationNode = async (
-    node: PipelineNode
+    node: PipelineNode,
+    input: NodeCtx
   ): Promise<{ ok: true; content: string } | { ok: false; error: PipelineRunError | null }> => {
     const data = node.data as unknown as NodeData;
     const operationId = data.operationId ?? "";
@@ -379,13 +376,13 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
 
     if (executor.type === "rule-check") {
       const { runRuleCheck } = await import("@/services/ruleCheckRunner");
-      await log(`Running rule-check on path: ${ctx.inputPath}`);
-      const checkOutput = await runRuleCheck(ctx.inputPath);
-      const result = JSON.stringify(checkOutput, null, 2);
+      await log(`Running rule-check on path: ${input.inputPath}`);
+      const checkOutput = await runRuleCheck(input.inputPath);
+      const checkResult = JSON.stringify(checkOutput, null, 2);
       await log(
         `Rule-check: ${checkOutput.stats.totalFindings} findings in ${checkOutput.stats.totalFiles} files`
       );
-      return { ok: true, content: result };
+      return { ok: true, content: checkResult };
     }
 
     await log(`Executing operation "${operation.name}" (${executor.type})`);
@@ -401,13 +398,13 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
     };
 
     const effectiveInput = bestPracticeContent
-      ? `## Standards (Best Practice)\n\n${bestPracticeContent}\n\n---\n\n${ctx.currentContent}`
-      : ctx.currentContent;
+      ? `## Standards (Best Practice)\n\n${bestPracticeContent}\n\n---\n\n${input.content}`
+      : input.content;
 
     const opResult = { value: "" };
 
     if (executor.type === "script") {
-      const scriptResult = await runScript(executor, ctx.inputPath, ctx.currentContent);
+      const scriptResult = await runScript(executor, input.inputPath, input.content);
       if (scriptResult.isErr()) {
         await log(`@@NODE_FAIL::${node.id}`);
         return { ok: false, error: scriptResult.error };
@@ -454,7 +451,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         skillId,
         skillDescription,
         inputContent: effectiveInput,
-        inputPath: ctx.inputPath,
+        inputPath: input.inputPath,
         getSettings,
         modelOverride,
         onChunk: handleChunk,
@@ -469,27 +466,20 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
     return { ok: true, content: opResult.value };
   };
 
-  // Resolve initial input if a path was given
-  if (ctx.inputPath && existsSync(ctx.inputPath)) {
-    const readResult = await safeReadInputFile(ctx.inputPath);
-    if (readResult.isOk()) {
-      const { content, isFile } = readResult.value;
-      ctx.currentContent = content;
-      if (isFile) {
-        await log(`Read input file: ${ctx.inputPath} (${content.length} chars)`);
-      }
-    }
-  }
+  // ── Process a single node ──────────────────────────────────────────────
 
-  // Walk nodes
-  for (const node of ordered) {
+  const processNode = async (
+    node: PipelineNode
+  ): Promise<{ ok: true } | { ok: false; error: PipelineRunError }> => {
     const data = node.data as unknown as NodeData;
+    const input = resolveNodeInput(node.id);
+
     await log(
       `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`
     );
     await log(`@@NODE_START::${node.id}`);
 
-    // ── Input nodes ──────────────────────────────────────────────────────
+    // ── Input: folder ────────────────────────────────────────────────────
     if (node.type === "folder") {
       const p = data.folderPath ?? "";
       const excludedPaths: string[] = Array.isArray(data.excludedPaths) ? data.excludedPaths : [];
@@ -498,40 +488,47 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         : undefined;
       const disclosureMode = data.disclosureMode ?? "tree";
       if (p && existsSync(p)) {
-        ctx.inputPath = p;
         const tree = await listDirTree(p, { excludedPaths });
         const readOpts = { excludedPaths, includedExtensions };
-        if (disclosureMode === "full") {
-          const fileContents = await readProjectFiles(p, readOpts);
-          ctx.currentContent = `Folder: ${p}\n\nFile tree:\n${tree}\n\n---\n\nFile contents:\n\n${fileContents}`;
-          await log(
-            `Input folder: ${p} (disclosure: full, tree: ${tree.split("\n").length} entries, contents: ${fileContents.length} chars)`
-          );
-        } else if (disclosureMode === "files-only") {
-          const fileContents = await readProjectFiles(p, readOpts);
-          ctx.currentContent = `Folder: ${p}\n\nFile contents:\n\n${fileContents}`;
-          await log(`Input folder: ${p} (disclosure: files-only, ${fileContents.length} chars)`);
-        } else {
-          ctx.currentContent = `Folder: ${p}\n\nFile tree:\n${tree}`;
+        const content = await (async () => {
+          if (disclosureMode === "full") {
+            const fileContents = await readProjectFiles(p, readOpts);
+            await log(
+              `Input folder: ${p} (disclosure: full, tree: ${tree.split("\n").length} entries, contents: ${fileContents.length} chars)`
+            );
+            return `Folder: ${p}\n\nFile tree:\n${tree}\n\n---\n\nFile contents:\n\n${fileContents}`;
+          }
+          if (disclosureMode === "files-only") {
+            const fileContents = await readProjectFiles(p, readOpts);
+            await log(`Input folder: ${p} (disclosure: files-only, ${fileContents.length} chars)`);
+            return `Folder: ${p}\n\nFile contents:\n\n${fileContents}`;
+          }
           await log(`Input folder: ${p} (tree: ${tree.split("\n").length} entries)`);
-        }
+          return `Folder: ${p}\n\nFile tree:\n${tree}`;
+        })();
+        nodeOutputs.set(node.id, { inputPath: p, content });
+      } else {
+        nodeOutputs.set(node.id, { inputPath: p, content: "" });
       }
       await log(`@@NODE_DONE::${node.id}`);
-      continue;
+      return { ok: true };
     }
 
+    // ── Input: code-file ─────────────────────────────────────────────────
     if (node.type === "code-file") {
       const p = data.filePath ?? "";
       if (p && existsSync(p)) {
-        ctx.inputPath = p;
-        ctx.currentContent = await readFile(p, "utf8");
-        await log(`Read code file: ${p} (${ctx.currentContent.length} chars)`);
+        const content = await readFile(p, "utf8");
+        nodeOutputs.set(node.id, { inputPath: p, content });
+        await log(`Read code file: ${p} (${content.length} chars)`);
+      } else {
+        nodeOutputs.set(node.id, { inputPath: p, content: "" });
       }
       await log(`@@NODE_DONE::${node.id}`);
-      continue;
+      return { ok: true };
     }
 
-    // ── GitHub Project nodes ─────────────────────────────────────────────
+    // ── Input: github-project ────────────────────────────────────────────
     if (node.type === "github-project") {
       const ghData = node.data as unknown as GitHubProjectNodeData;
       const disclosureMode = ghData.disclosureMode ?? "tree";
@@ -556,7 +553,6 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           );
           return `${label}\n\nFile tree:\n${tree}\n\n---\n\nFile contents:\n\n${fileContents}`;
         }
-        // files-only: just file contents, no tree
         const fileContents = await readProjectFiles(dir, { excludedPaths });
         await log(
           `Disclosure mode: files-only (${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`
@@ -564,22 +560,21 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         return `${label}\n\nFile contents:\n\n${fileContents}`;
       };
 
-      // Local folder source
       if (ghData.sourceType === "local") {
         const localPath = ghData.localPath ?? "";
         if (!localPath) {
           await log(`WARNING: GitHub project node (local) missing localPath, skipping`);
           await log(`@@NODE_FAIL::${node.id}`);
-          continue;
+          nodeOutputs.set(node.id, { inputPath: "", content: "" });
+          return { ok: true };
         }
         await log(`Using local folder: ${localPath}`);
-        ctx.inputPath = localPath;
-        ctx.currentContent = await buildProjectContent(localPath, `Local Folder: ${localPath}`);
+        const content = await buildProjectContent(localPath, `Local Folder: ${localPath}`);
+        nodeOutputs.set(node.id, { inputPath: localPath, content });
         await log(`@@NODE_DONE::${node.id}`);
-        continue;
+        return { ok: true };
       }
 
-      // GitHub remote source
       const owner = ghData.owner;
       const repo = ghData.repo;
       const branch = ghData.branch ?? "main";
@@ -587,7 +582,8 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       if (!owner || !repo) {
         await log(`WARNING: GitHub project node missing owner/repo, skipping`);
         await log(`@@NODE_FAIL::${node.id}`);
-        continue;
+        nodeOutputs.set(node.id, { inputPath: "", content: "" });
+        return { ok: true };
       }
 
       await log(`Cloning GitHub repo ${owner}/${repo}@${branch}...`);
@@ -600,16 +596,16 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
 
       const clonedDir = cloneResult.value;
       tempDirs.push(clonedDir);
-      ctx.inputPath = clonedDir;
-      ctx.currentContent = await buildProjectContent(
+      const content = await buildProjectContent(
         clonedDir,
         `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}`
       );
+      nodeOutputs.set(node.id, { inputPath: clonedDir, content });
       await log(`@@NODE_DONE::${node.id}`);
-      continue;
+      return { ok: true };
     }
 
-    // ── Output nodes ─────────────────────────────────────────────────────
+    // ── Output: output-local-path ────────────────────────────────────────
     if (node.type === "output-local-path") {
       const rawPath: string =
         data.localPath ?? String((data as Record<string, unknown>).path ?? "");
@@ -636,7 +632,6 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         return withFile;
       })();
 
-      // Handle output mode
       if (resolvedPath && existsSync(resolvedPath)) {
         if (outputMode === "error_if_exists") {
           await log(`ERROR: Output file already exists: ${resolvedPath} (mode: error_if_exists)`);
@@ -651,53 +646,46 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         if (outputMode === "auto_rename") {
           await log(`Auto-renamed to avoid conflict: ${resolvedPath}`);
         }
-        // "overwrite" mode — no special handling, just overwrites below
       }
 
-      ctx.outputLocalPath = resolvedPath;
       await log(
-        `Output path set: ${ctx.outputLocalPath} (mode: ${outputMode}, dualOutput: ${dualOutput})`
+        `Output path set: ${resolvedPath} (mode: ${outputMode}, dualOutput: ${dualOutput})`
       );
-      // Write the current content to the output path
-      if (ctx.outputLocalPath && ctx.currentContent) {
+      if (resolvedPath && input.content) {
         if (dualOutput) {
-          // Dual output: write both .json and .md into the output directory
-          const outputDir = dirname(ctx.outputLocalPath);
-          const baseName = basename(ctx.outputLocalPath, extname(ctx.outputLocalPath));
+          const outputDir = dirname(resolvedPath);
+          const baseName = basename(resolvedPath, extname(resolvedPath));
           await mkdir(outputDir, { recursive: true });
 
-          // Strip code fences if present (LLM output may wrap JSON in ```json ... ```)
-          const cleanContent = ctx.currentContent
+          const cleanContent = input.content
             .replace(/^```json\s*\n?/, "")
             .replace(/\n?\s*```\s*$/, "")
             .trim();
 
-          // Write .json (structured content)
           const jsonPath = join(outputDir, `${baseName}.json`);
           await writeFile(jsonPath, cleanContent, "utf8");
           await log(`Wrote JSON output to: ${jsonPath} (${cleanContent.length} chars)`);
 
-          // Write .md (human-readable, converted from JSON if possible)
           const mdPath = join(outputDir, `${baseName}.md`);
           const mdContent = structuredJsonToMarkdown(cleanContent);
           await writeFile(mdPath, mdContent, "utf8");
           await log(`Wrote Markdown output to: ${mdPath} (${mdContent.length} chars)`);
         } else {
-          // Single output: auto-convert structured JSON to Markdown when outputting to .md files
           const outputContent =
-            extname(ctx.outputLocalPath) === ".md"
-              ? structuredJsonToMarkdown(ctx.currentContent)
-              : ctx.currentContent;
-          await mkdir(dirname(ctx.outputLocalPath), { recursive: true });
-          await writeFile(ctx.outputLocalPath, outputContent, "utf8");
-          await log(`Wrote output to: ${ctx.outputLocalPath} (${outputContent.length} chars)`);
+            extname(resolvedPath) === ".md"
+              ? structuredJsonToMarkdown(input.content)
+              : input.content;
+          await mkdir(dirname(resolvedPath), { recursive: true });
+          await writeFile(resolvedPath, outputContent, "utf8");
+          await log(`Wrote output to: ${resolvedPath} (${outputContent.length} chars)`);
         }
       }
+      nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
       await log(`@@NODE_DONE::${node.id}`);
-      continue;
+      return { ok: true };
     }
 
-    // ── Operation nodes ──────────────────────────────────────────────────
+    // ── Operation ────────────────────────────────────────────────────────
     if (node.type === "operation") {
       const opData = node.data as unknown as {
         loopEnabled?: boolean;
@@ -709,23 +697,27 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       const maxLoops = opData.maxLoopCount ?? 3;
       const conditionPrompt = opData.loopConditionPrompt ?? "";
 
+      const resultState = { content: "" };
+
       if (loopEnabled && conditionPrompt) {
         const modelOverride = opData.llmModel ?? undefined;
+        const loopState = { currentInput: input };
 
         for (const attempt of Array.from({ length: maxLoops }, (_, i) => i + 1)) {
           await log(
             `[Loop] Iteration ${attempt}/${maxLoops} for "${(node.data as unknown as Record<string, unknown>).label}"`
           );
-          const loopResult = await executeOperationNode(node);
+          const loopResult = await executeOperationNode(node, loopState.currentInput);
           if (!loopResult.ok) {
             if (loopResult.error) return { ok: false, error: loopResult.error };
             break;
           }
-          ctx.currentContent = loopResult.content;
+          resultState.content = loopResult.content;
+          loopState.currentInput = { inputPath: input.inputPath, content: resultState.content };
 
           const passed = await evaluateLoopCondition(
             conditionPrompt,
-            ctx.currentContent,
+            resultState.content,
             modelOverride
           );
           if (passed) {
@@ -739,45 +731,84 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           }
         }
       } else {
-        const nodeResult = await executeOperationNode(node);
+        const nodeResult = await executeOperationNode(node, input);
         if (nodeResult.ok) {
-          if (nodeResult.content) {
-            ctx.currentContent = nodeResult.content;
-          } else {
-            await log(`WARNING: Operation returned empty output — keeping previous content`);
+          resultState.content = nodeResult.content;
+          if (!resultState.content) {
+            await log(`WARNING: Operation returned empty output — using parent input`);
+            resultState.content = input.content;
           }
         } else if (nodeResult.error) {
           return { ok: false, error: nodeResult.error };
         }
       }
 
+      nodeOutputs.set(node.id, { inputPath: input.inputPath, content: resultState.content });
       await log(`@@NODE_DONE::${node.id}`);
-      continue;
+      return { ok: true };
     }
 
-    // ── Output-to-project node ───────────────────────────────────────────
+    // ── Output: output-project-path ──────────────────────────────────────
     if (node.type === "output-project-path") {
-      // The implement-mode operation already wrote files to the project root
-      // via writeFile/replaceInFile tools. This node simply acknowledges that
-      // the project was modified and logs a summary.
-      const projPath = (data as Record<string, unknown>).path ?? ctx.inputPath;
+      const projPath = (data as Record<string, unknown>).path ?? input.inputPath;
       await log(`Output-to-project: changes written directly to ${projPath}`);
+      nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
       await log(`@@NODE_DONE::${node.id}`);
-      continue;
+      return { ok: true };
     }
 
-    // Skip unknown node types
     await log(`Skipped node type: ${node.type}`);
+    nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
     await log(`@@NODE_DONE::${node.id}`);
+    return { ok: true };
+  };
+
+  // ── Resolve initial input if provided ──────────────────────────────────
+
+  if (opts.inputPath && existsSync(opts.inputPath)) {
+    const readResult = await safeReadInputFile(opts.inputPath);
+    if (readResult.isOk()) {
+      const { content, isFile } = readResult.value;
+      nodeOutputs.set("__initial__", { inputPath: opts.inputPath, content });
+      if (isFile) {
+        await log(`Read input file: ${opts.inputPath} (${content.length} chars)`);
+      }
+    }
   }
 
-  const summary = ctx.outputLocalPath
-    ? `Output written to ${ctx.outputLocalPath}`
-    : `Completed (no output-local-path node configured)`;
+  // ── Walk nodes level-by-level (concurrent within each level) ───────────
+
+  for (const [levelIndex, level] of levels.entries()) {
+    await log(`── Level ${levelIndex} (${level.length} node${level.length > 1 ? "s" : ""}) ──`);
+
+    const results = await Promise.all(level.map((node) => processNode(node)));
+
+    for (const result of results) {
+      if (!result.ok) {
+        await log(`Pipeline failed at level ${levelIndex}`);
+        for (const dir of tempDirs) {
+          await ResultAsync.fromPromise(rm(dir, { recursive: true, force: true }), () => undefined);
+        }
+        return { ok: false, error: result.error };
+      }
+    }
+  }
+
+  const outputPaths = nodes
+    .filter((n) => n.type === "output-local-path")
+    .map((n) => {
+      const d = n.data as unknown as NodeData;
+      return d.localPath ?? String((d as Record<string, unknown>).path ?? "");
+    })
+    .filter(Boolean);
+
+  const summary =
+    outputPaths.length > 0
+      ? `Output written to: ${outputPaths.join(", ")}`
+      : "Completed (no output-local-path node configured)";
 
   await log(`Pipeline complete. ${summary}`);
 
-  // Cleanup temp directories
   for (const dir of tempDirs) {
     await ResultAsync.fromPromise(rm(dir, { recursive: true, force: true }), () => undefined);
   }
