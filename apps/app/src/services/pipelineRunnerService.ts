@@ -13,16 +13,20 @@
 
 import { exec, execSync } from "node:child_process";
 import { promisify } from "node:util";
-import { readFile, readdir, mkdir, writeFile, rm } from "node:fs/promises";
+import { readFile, mkdir, writeFile, rm } from "node:fs/promises";
 import { existsSync, statSync } from "node:fs";
-import { basename, dirname, extname, join, relative, resolve } from "node:path";
+import { basename, dirname, extname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { generateText, streamText } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
-import { Agent } from "@mastra/core/agent";
-import { createTool } from "@mastra/core/tools";
-import { z } from "zod";
+import { streamText } from "ai";
 import { ResultAsync, ok } from "neverthrow";
+import {
+  runPrompt as runPromptAgent,
+  runSkill as runSkillAgent,
+  structuredJsonToMarkdown,
+  type LlmOverride,
+  type LlmProvider as AgentLlmProvider,
+  type SettingsResolver,
+} from "@repo/agent";
 import type {
   PipelineNode,
   PipelineEdge,
@@ -34,148 +38,21 @@ import { pipelinesDao } from "@/models/daos/pipelinesDao";
 import { jobsDao } from "@/models/daos/jobsDao";
 import { skillsDao } from "@/models/daos/skillsDao";
 import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
+import { settingsDao } from "@/models/daos/settingsDao";
 import type { ExecutorConfig } from "@/pages/OperationDetailPage/types";
 import { listDirTree, readProjectFiles } from "@/services/filesystemService";
-import {
-  OperationOutputSchema,
-  CheckOutputSchema,
-  FixOutputSchema,
-} from "@/schemas/OperationOutputSchema";
-import { z as zv4 } from "zod/v4";
+import { getLlmModel, type LlmProvider } from "@/services/llmService";
 
-// ─── Example instances for LLM instruction prompts ───────────────────────────
-// These are validated against the Zod schemas at import time to stay in sync.
-
-const CHECK_OUTPUT_EXAMPLE = {
-  type: "check" as const,
-  summary: "Executive summary of the check results",
-  findings: [
-    {
-      id: "FINDING_001",
-      severity: "error" as const,
-      message: "One-line description of the issue",
-      file: "relative/path/to/file.ts",
-      line: 42,
-      rule: "rule-name",
-      snippet: "short code snippet showing the violation",
-      suggestion: "how to fix the issue",
-      skipped: false,
-      skipReason: "reason if skipped (only when skipped=true)",
-    },
-  ],
-  stats: {
-    totalFiles: 10,
-    totalFindings: 5,
-    errors: 2,
-    warnings: 2,
-    infos: 1,
-    skipped: 1,
-  },
-};
-CheckOutputSchema.parse(CHECK_OUTPUT_EXAMPLE); // compile-time sync guard
-
-const FIX_OUTPUT_EXAMPLE = {
-  type: "fix" as const,
-  summary: "Summary of all changes made",
-  changes: [
-    {
-      file: "relative/path/to/file.ts",
-      action: "replace" as const,
-      description: "What was changed",
-      findingId: "FINDING_001",
-    },
-  ],
-  remainingFindings: [
-    {
-      id: "FINDING_002",
-      severity: "warning" as const,
-      message: "Issue that could not be auto-fixed",
-      file: "relative/path/to/other.ts",
-    },
-  ],
-  stats: {
-    totalChanges: 3,
-    filesModified: 2,
-    findingsFixed: 3,
-    findingsSkipped: 1,
-  },
-};
-FixOutputSchema.parse(FIX_OUTPUT_EXAMPLE); // compile-time sync guard
-
-const execAsync = promisify(exec);
-
-// ─── LLM provider ────────────────────────────────────────────────────────────
-
-import { settingsDao } from "@/models/daos/settingsDao";
-import type { LlmProvider } from "@/models/tables/settings_table";
-
-const PROVIDER_BASE_URLS: Record<string, string> = {
-  kimi: "https://api.kimi.com/coding/v1",
-  deepseek: "https://api.deepseek.com/v1",
-};
-
-const PROVIDER_MASTRA_PREFIX: Record<string, string> = {
-  kimi: "kimi-for-coding",
-  deepseek: "deepseek",
-};
-
-interface LlmOverride {
-  llmProvider?: LlmProvider;
-  llmModel?: string;
-}
-
-type LogFn = (msg: string) => Promise<void>;
-const noopLog: LogFn = async () => {};
-
-const getLlmModel = async (override?: LlmOverride, log: LogFn = noopLog) => {
-  const settings = await settingsDao.get();
-  const provider = override?.llmProvider ?? settings.llmProvider;
-  const model = override?.llmModel ?? settings.llmModel;
-  const apiKey = settings.llmApiKey;
-
-  await log(
-    `[LLM] Provider: ${provider}, Model: ${model}, API key: ${apiKey ? `configured (${apiKey.slice(0, 6)}...)` : "NOT SET"}`
-  );
-
-  if (!apiKey) {
-    await log(`[LLM] WARNING: No API key configured — LLM calls will be skipped`);
-    return null;
-  }
-
-  const baseURL = PROVIDER_BASE_URLS[provider] ?? PROVIDER_BASE_URLS.kimi;
-  await log(`[LLM] Base URL: ${baseURL}`);
-
-  const openai = createOpenAI({
-    apiKey,
-    baseURL,
-    headers: { "User-Agent": "claude-code/1.0" },
-  });
-  return openai(model);
-};
-
-const getMastraModelConfig = async (override?: LlmOverride, log: LogFn = noopLog) => {
-  const settings = await settingsDao.get();
-  const provider = override?.llmProvider ?? settings.llmProvider;
-  const model = override?.llmModel ?? settings.llmModel;
-  const apiKey = settings.llmApiKey;
-
-  if (!apiKey) {
-    await log(`[Mastra] No API key configured — agent calls will be skipped`);
-    return null;
-  }
-
-  const baseURL = PROVIDER_BASE_URLS[provider] ?? PROVIDER_BASE_URLS.kimi;
-  const prefix = PROVIDER_MASTRA_PREFIX[provider] ?? "kimi-for-coding";
-  const modelId = `${prefix}/${model}` as const;
-  await log(`[Mastra] Model: ${modelId}, URL: ${baseURL}`);
-
+const getSettings: SettingsResolver = async () => {
+  const s = await settingsDao.get();
   return {
-    id: modelId as `${string}/${string}`,
-    url: baseURL,
-    apiKey,
-    headers: { "User-Agent": "claude-code/1.0" },
+    llmProvider: s.llmProvider as AgentLlmProvider,
+    llmModel: s.llmModel,
+    llmApiKey: s.llmApiKey,
   };
 };
+
+const execAsync = promisify(exec);
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -213,16 +90,6 @@ class ScriptExecutionError extends Error {
   }
 }
 
-class PromptExecutionError extends Error {
-  constructor(
-    message: string,
-    public readonly cause?: unknown
-  ) {
-    super(message);
-    this.name = "PromptExecutionError";
-  }
-}
-
 class ConfigParseError extends Error {
   constructor(
     public readonly operationName: string,
@@ -230,16 +97,6 @@ class ConfigParseError extends Error {
   ) {
     super(`Could not parse config for operation ${operationName}`);
     this.name = "ConfigParseError";
-  }
-}
-
-class SkillExecutionError extends Error {
-  constructor(
-    message: string,
-    public readonly cause?: unknown
-  ) {
-    super(message);
-    this.name = "SkillExecutionError";
   }
 }
 
@@ -256,9 +113,7 @@ class GitCloneError extends Error {
 type PipelineRunError =
   | PipelineNotFoundError
   | ScriptExecutionError
-  | PromptExecutionError
   | ConfigParseError
-  | SkillExecutionError
   | GitCloneError;
 
 // ─── topological sort ─────────────────────────────────────────────────────────
@@ -363,58 +218,6 @@ const runScript = (
   );
 };
 
-type StreamCallback = (accumulated: string) => Promise<void>;
-
-const runPrompt = (
-  executor: ExecutorConfig,
-  inputContent: string,
-  override?: LlmOverride,
-  onChunk?: StreamCallback,
-  log: LogFn = noopLog
-): ResultAsync<string, PromptExecutionError> => {
-  const prompt = executor.prompt;
-  if (!prompt?.trim()) {
-    return ResultAsync.fromSafePromise<string, PromptExecutionError>(
-      Promise.reject(new PromptExecutionError("Prompt text is empty"))
-    );
-  }
-
-  return ResultAsync.fromPromise(
-    (async () => {
-      await log(
-        `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`
-      );
-      const model = await getLlmModel(override, log);
-      if (!model) {
-        await log(`[LLM] runPrompt: LLM not configured, throwing error`);
-        throw new PromptExecutionError("LLM not configured (API key missing in settings)");
-      }
-      await log(`[LLM] runPrompt: Starting streamText...`);
-      const result = streamText({
-        model,
-        prompt: `${prompt}\n\nInput:\n${inputContent}`,
-      });
-      const chunks: string[] = [];
-      for await (const chunk of result.textStream) {
-        chunks.push(chunk);
-        if (onChunk) await onChunk(chunks.join(""));
-      }
-      const accumulated = chunks.join("");
-      await log(`[LLM] runPrompt: Stream complete, total output=${accumulated.length} chars`);
-      return accumulated;
-    })(),
-    (cause) => {
-      log(`[LLM] runPrompt: Error — ${cause instanceof Error ? cause.message : String(cause)}`);
-      return cause instanceof PromptExecutionError
-        ? cause
-        : new PromptExecutionError(
-            `Prompt execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-            cause
-          );
-    }
-  );
-};
-
 // ─── github clone helper ──────────────────────────────────────────────────────
 
 const cloneGitHubRepo = (
@@ -444,613 +247,6 @@ const cloneGitHubRepo = (
         cause
       )
   );
-};
-
-// listDirTree is now imported from filesystemService
-
-// ─── skill executor helper (Mastra Agent) ────────────────────────────────────
-
-const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean }) => {
-  const MAX_READ_SIZE = 100_000;
-
-  const readFileTool = createTool({
-    id: "readFile",
-    description: "Read the contents of a file. Use relative paths from the project root.",
-    inputSchema: z.object({
-      path: z
-        .string()
-        .describe("Relative file path from the project root, e.g. 'src/components/Button.tsx'"),
-    }),
-    execute: async ({ path: relPath }) => {
-      const fullPath = join(projectRoot, relPath);
-      if (!fullPath.startsWith(projectRoot)) {
-        return { error: "Access denied: path outside project root" };
-      }
-      try {
-        const content = await readFile(fullPath, "utf8");
-        if (content.length > MAX_READ_SIZE) {
-          return {
-            content: content.slice(0, MAX_READ_SIZE),
-            truncated: true,
-            totalSize: content.length,
-          };
-        }
-        return { content, truncated: false, totalSize: content.length };
-      } catch {
-        return { error: `File not found or unreadable: ${relPath}` };
-      }
-    },
-  });
-
-  const listDirectoryTool = createTool({
-    id: "listDirectory",
-    description: "List entries in a directory. Returns file and folder names with types.",
-    inputSchema: z.object({
-      path: z.string().describe("Relative directory path from project root, e.g. 'src/pages'"),
-    }),
-    execute: async ({ path: relPath }) => {
-      const fullPath = join(projectRoot, relPath);
-      if (!fullPath.startsWith(projectRoot)) {
-        return { error: "Access denied: path outside project root" };
-      }
-      try {
-        const entries = await readdir(fullPath, { withFileTypes: true });
-        return entries.map((e) => ({
-          name: e.name,
-          type: e.isDirectory() ? "directory" : "file",
-        }));
-      } catch {
-        return { error: `Directory not found: ${relPath}` };
-      }
-    },
-  });
-
-  const searchCodeTool = createTool({
-    id: "searchCode",
-    description:
-      "Search for a text pattern in files under a directory. Returns matching file paths and line content.",
-    inputSchema: z.object({
-      pattern: z.string().describe("Text or regex pattern to search for"),
-      directory: z.string().describe("Relative directory to search in, e.g. 'src/pages'"),
-      fileExtensions: z
-        .array(z.string())
-        .optional()
-        .describe("File extensions to include, e.g. ['.tsx', '.ts']"),
-    }),
-    execute: async ({ pattern, directory, fileExtensions }) => {
-      const searchDir = join(projectRoot, directory);
-      if (!searchDir.startsWith(projectRoot)) {
-        return { error: "Access denied: path outside project root" };
-      }
-      try {
-        const exts = fileExtensions ?? [".ts", ".tsx", ".js", ".jsx"];
-        const results: { file: string; line: number; content: string }[] = [];
-        const MAX_RESULTS = 30;
-
-        const walkSearch = async (dir: string): Promise<void> => {
-          if (results.length >= MAX_RESULTS) return;
-          const entries = await readdir(dir, { withFileTypes: true });
-          for (const entry of entries) {
-            if (results.length >= MAX_RESULTS) break;
-            const full = join(dir, entry.name);
-            if (entry.isDirectory()) {
-              if (entry.name === "node_modules" || entry.name === ".git") continue;
-              await walkSearch(full);
-            } else if (exts.some((ext: string) => entry.name.endsWith(ext))) {
-              try {
-                const content = await readFile(full, "utf8");
-                const lines = content.split("\n");
-                const regex = new RegExp(pattern, "gi");
-                for (const [i, lineText] of lines.entries()) {
-                  if (regex.test(lineText)) {
-                    results.push({
-                      file: relative(projectRoot, full),
-                      line: i + 1,
-                      content: lineText.trim().slice(0, 200),
-                    });
-                    if (results.length >= MAX_RESULTS) break;
-                  }
-                  regex.lastIndex = 0;
-                }
-              } catch {
-                // skip unreadable files
-              }
-            }
-          }
-        };
-
-        await walkSearch(searchDir);
-        return {
-          matches: results,
-          totalMatches: results.length,
-          truncated: results.length >= MAX_RESULTS,
-        };
-      } catch {
-        return { error: `Search failed in ${directory}` };
-      }
-    },
-  });
-
-  if (!opts?.writeEnabled) {
-    return {
-      readFileTool,
-      listDirectoryTool,
-      searchCodeTool,
-      writeEnabled: false as const,
-    };
-  }
-
-  // ── Write tools (only for implement-mode operations) ──────────────────
-
-  const writeFileTool = createTool({
-    id: "writeFile",
-    description:
-      "Write content to a file. Creates the file if it does not exist, or overwrites it entirely. Use replaceInFile for surgical edits.",
-    inputSchema: z.object({
-      path: z
-        .string()
-        .describe("Relative file path from the project root, e.g. 'src/utils/helpers.ts'"),
-      content: z.string().describe("The full file content to write"),
-    }),
-    execute: async ({ path: relPath, content }) => {
-      const fullPath = join(projectRoot, relPath);
-      if (!fullPath.startsWith(projectRoot)) {
-        return { error: "Access denied: path outside project root" };
-      }
-      try {
-        await mkdir(dirname(fullPath), { recursive: true });
-        await writeFile(fullPath, content, "utf8");
-        return { written: true, path: relPath, size: content.length };
-      } catch {
-        return { error: `Failed to write: ${relPath}` };
-      }
-    },
-  });
-
-  const replaceInFileTool = createTool({
-    id: "replaceInFile",
-    description:
-      "Replace an exact string occurrence in a file. The oldString must match exactly (including whitespace and indentation). Safer than writeFile for small edits.",
-    inputSchema: z.object({
-      path: z.string().describe("Relative file path from the project root"),
-      oldString: z
-        .string()
-        .describe(
-          "The exact literal text to find and replace. Must appear exactly once in the file."
-        ),
-      newString: z.string().describe("The replacement text"),
-    }),
-    execute: async ({ path: relPath, oldString, newString }) => {
-      const fullPath = join(projectRoot, relPath);
-      if (!fullPath.startsWith(projectRoot)) {
-        return { error: "Access denied: path outside project root" };
-      }
-      try {
-        const content = await readFile(fullPath, "utf8");
-        const count = content.split(oldString).length - 1;
-        if (count === 0) {
-          return { error: "oldString not found in file" };
-        }
-        if (count > 1) {
-          return {
-            error: `oldString appears ${count} times — must be unique. Add more context.`,
-          };
-        }
-        const updated = content.replace(oldString, newString);
-        await writeFile(fullPath, updated, "utf8");
-        return { replaced: true, path: relPath };
-      } catch {
-        return { error: `Failed to edit: ${relPath}` };
-      }
-    },
-  });
-
-  return {
-    readFileTool,
-    listDirectoryTool,
-    searchCodeTool,
-    writeFileTool,
-    replaceInFileTool,
-    writeEnabled: true as const,
-  };
-};
-
-// ─── Structured JSON extraction ──────────────────────────────────────────────
-
-/**
- * Extracts structured JSON from an LLM response that may contain ```json fences
- * or surrounding prose. Validates against OperationOutputSchema.
- * Returns the clean JSON string if valid, otherwise returns the original text.
- */
-const tryParseJson = (text: string): unknown | undefined => {
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    return undefined;
-  }
-};
-
-const extractStructuredOutput = (rawText: string, log: (line: string) => Promise<void>): string => {
-  // Try to extract JSON from ```json ... ``` fenced block
-  const fenceMatch = rawText.match(/```json\s*\n?([\s\S]*?)\n?\s*```/);
-  const candidate = fenceMatch ? fenceMatch[1].trim() : rawText.trim();
-
-  // Try to parse as JSON
-  const parsed =
-    tryParseJson(candidate) ??
-    (() => {
-      const objectMatch = rawText.match(/\{[\s\S]*"type"\s*:\s*"(?:check|fix)"[\s\S]*\}/);
-      if (objectMatch) return tryParseJson(objectMatch[0]);
-      return undefined;
-    })();
-
-  if (parsed === undefined) {
-    void log("[extractStructuredOutput] No valid JSON found — returning raw text");
-    return rawText;
-  }
-
-  // Validate against schema
-  const result = OperationOutputSchema.safeParse(parsed);
-  if (result.success) {
-    void log(
-      `[extractStructuredOutput] Valid ${result.data.type} output with ${
-        result.data.type === "check"
-          ? `${result.data.findings.length} findings`
-          : `${result.data.changes.length} changes`
-      }`
-    );
-    return JSON.stringify(result.data, null, 2);
-  }
-
-  void log(
-    `[extractStructuredOutput] JSON parsed but schema validation failed — ${zv4.prettifyError(result.error)}. Returning raw text`
-  );
-  return rawText;
-};
-
-// ─── JSON → Markdown converter for structured operation output ───────────────
-
-/**
- * Converts structured CheckOutput/FixOutput JSON to human-readable Markdown.
- * Returns the original content unchanged if it's not valid structured JSON.
- */
-const structuredJsonToMarkdown = (content: string): string => {
-  const parsed = tryParseJson(content);
-  if (parsed === undefined) return content;
-
-  const result = OperationOutputSchema.safeParse(parsed);
-  if (!result.success) return content;
-
-  const data = result.data;
-  const lines: string[] = [];
-
-  if (data.type === "check") {
-    lines.push(`# Check Report`, "");
-    lines.push(`> ${data.summary}`, "");
-    lines.push(
-      `| Metric | Count |`,
-      `|--------|-------|`,
-      `| Files scanned | ${data.stats.totalFiles} |`,
-      `| Total findings | ${data.stats.totalFindings} |`,
-      `| Errors | ${data.stats.errors} |`,
-      `| Warnings | ${data.stats.warnings} |`,
-      `| Info | ${data.stats.infos} |`,
-      `| Skipped | ${data.stats.skipped} |`,
-      ""
-    );
-
-    if (data.findings.length > 0) {
-      lines.push(`## Findings`, "");
-      for (const f of data.findings) {
-        const badge = f.severity === "error" ? "🔴" : f.severity === "warning" ? "🟡" : "🔵";
-        const skip = f.skipped ? ` _(skipped: ${f.skipReason ?? "allowed exception"})_` : "";
-        lines.push(`### ${badge} ${f.id}: ${f.message}${skip}`, "");
-        lines.push(`- **File:** \`${f.file}\`${f.line ? ` (line ${f.line})` : ""}`);
-        if (f.rule) lines.push(`- **Rule:** \`${f.rule}\``);
-        if (f.snippet) lines.push(`- **Snippet:**`, `  \`\`\``, `  ${f.snippet}`, `  \`\`\``);
-        if (f.suggestion) lines.push(`- **Suggestion:** ${f.suggestion}`);
-        lines.push("");
-      }
-    } else {
-      lines.push("## Findings", "", "No findings.", "");
-    }
-  } else {
-    lines.push(`# Fix Report`, "");
-    lines.push(`> ${data.summary}`, "");
-    lines.push(
-      `| Metric | Count |`,
-      `|--------|-------|`,
-      `| Total changes | ${data.stats.totalChanges} |`,
-      `| Files modified | ${data.stats.filesModified} |`,
-      `| Findings fixed | ${data.stats.findingsFixed} |`,
-      `| Findings skipped | ${data.stats.findingsSkipped} |`,
-      ""
-    );
-
-    if (data.changes.length > 0) {
-      lines.push(`## Changes`, "");
-      for (const c of data.changes) {
-        lines.push(
-          `- **\`${c.file}\`** [${c.action}]: ${c.description}${c.findingId ? ` (fixes ${c.findingId})` : ""}`
-        );
-      }
-      lines.push("");
-    }
-
-    if (data.remainingFindings.length > 0) {
-      lines.push(`## Remaining Findings`, "");
-      for (const f of data.remainingFindings) {
-        const badge = f.severity === "error" ? "🔴" : f.severity === "warning" ? "🟡" : "🔵";
-        lines.push(
-          `- ${badge} **${f.id}**: ${f.message} — \`${f.file}\`${f.line ? `:${f.line}` : ""}`
-        );
-      }
-      lines.push("");
-    }
-  }
-
-  return lines.join("\n");
-};
-
-const runSkill = (
-  skillId: string,
-  skillDescription: string,
-  inputContent: string,
-  inputPath: string,
-  override?: LlmOverride,
-  onChunk?: StreamCallback,
-  log: LogFn = noopLog,
-  opts?: { writeEnabled?: boolean }
-): ResultAsync<string, never> => {
-  const isImplementMode = opts?.writeEnabled === true;
-
-  const CHECK_JSON_EXAMPLE = JSON.stringify(CHECK_OUTPUT_EXAMPLE, null, 2);
-  const FIX_JSON_EXAMPLE = JSON.stringify(FIX_OUTPUT_EXAMPLE, null, 2);
-
-  const checkInstructions = [
-    `You are an expert code analysis agent executing the skill "${skillId}".`,
-    `Skill description: ${skillDescription}`,
-    "",
-    "You have access to tools that let you read files and explore the project.",
-    "Use these tools to examine actual source code before making conclusions.",
-    "",
-    "CRITICAL CONSTRAINT — You have a HARD LIMIT of 25 tool-call steps.",
-    "If you exceed this limit, your response will be CUT OFF and LOST entirely.",
-    "Budget your steps wisely:",
-    "  Phase 1 (steps 1-5): Use searchCode and listDirectory to find relevant files",
-    "  Phase 2 (steps 6-18): Use readFile on the most important files found",
-    "  Phase 3 (step 19+): STOP all tool calls and write your report",
-    "",
-    "DO NOT call any more tools after step 18. Write the report immediately.",
-    "If in doubt whether to read one more file or write the report — WRITE THE REPORT.",
-    "",
-    "OUTPUT FORMAT: Your final message MUST be a single JSON object wrapped in ```json fences.",
-    "Output data conforming to this structure (replace example values with real data):",
-    "```json",
-    CHECK_JSON_EXAMPLE,
-    "```",
-    "",
-    "Include specific file paths, line numbers, code snippets, and suggestions.",
-    "Mark findings that are allowed exceptions with skipped: true and provide skipReason.",
-    "NEVER end your response with a tool call. Always end with the JSON output.",
-  ].join("\n");
-
-  const implementInstructions = [
-    `You are an expert code refactoring agent executing the skill "${skillId}".`,
-    `Skill description: ${skillDescription}`,
-    "",
-    "You have access to tools that let you read AND WRITE files in the project.",
-    "Your goal is to FIX the violations described in the input.",
-    "",
-    "Available tools:",
-    "  - readFile: read a file's content",
-    "  - listDirectory: list directory contents",
-    "  - searchCode: search for text patterns in files",
-    "  - replaceInFile: replace an exact string in a file (preferred for surgical edits)",
-    "  - writeFile: write entire file content (use for new files or full rewrites)",
-    "",
-    "CRITICAL CONSTRAINT — You have a HARD LIMIT of 25 tool-call steps.",
-    "Budget your steps wisely:",
-    "  Phase 1 (steps 1-3): Parse the input to understand what needs fixing",
-    "  Phase 2 (steps 4-20): Read affected files, then use replaceInFile to fix each violation",
-    "  Phase 3 (step 21+): STOP all tool calls and write the output",
-    "",
-    "RULES:",
-    "- Always use replaceInFile when possible (safer than writeFile)",
-    "- Read the file first before editing to ensure correct context",
-    "- Do NOT change code that is not directly related to the violations",
-    "- Skip violations that are allowable exceptions (framework boundaries, startup validators, React context hooks)",
-    "",
-    "OUTPUT FORMAT: Your final message MUST be a single JSON object wrapped in ```json fences.",
-    "Output data conforming to this structure (replace example values with real data):",
-    "```json",
-    FIX_JSON_EXAMPLE,
-    "```",
-    "",
-    "NEVER end your response with a tool call. Always end with the JSON output.",
-  ].join("\n");
-
-  const instructions = isImplementMode ? implementInstructions : checkInstructions;
-
-  const userPrompt = inputPath
-    ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
-    : `Input:\n${inputContent}`;
-
-  const generateFallbackReport = (): string => {
-    const fallback = isImplementMode
-      ? {
-          type: "fix" as const,
-          summary: `LLM analysis unavailable for skill "${skillId}". No changes made.`,
-          changes: [],
-          remainingFindings: [],
-          stats: {
-            totalChanges: 0,
-            filesModified: 0,
-            findingsFixed: 0,
-            findingsSkipped: 0,
-          },
-        }
-      : {
-          type: "check" as const,
-          summary: `LLM analysis unavailable for skill "${skillId}". Input forwarded as-is.`,
-          findings: [],
-          stats: {
-            totalFiles: 0,
-            totalFindings: 0,
-            errors: 0,
-            warnings: 0,
-            infos: 0,
-            skipped: 0,
-          },
-        };
-    return JSON.stringify(fallback, null, 2);
-  };
-
-  return ResultAsync.fromPromise(
-    (async () => {
-      await log(
-        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`
-      );
-      await log(`[Mastra] runSkill: instructions length=${instructions.length}`);
-
-      // Use Mastra Agent with tools if we have a project path
-      if (inputPath) {
-        const modelConfig = await getMastraModelConfig(override, log);
-        if (!modelConfig) {
-          await log(`[Mastra] runSkill: No model config — returning fallback report`);
-          return generateFallbackReport();
-        }
-
-        const skillTools = buildSkillTools(inputPath, {
-          writeEnabled: isImplementMode,
-        });
-
-        const agent = new Agent({
-          id: `skill-${skillId}`,
-          name: `Skill: ${skillId}`,
-          instructions,
-          model: modelConfig,
-          tools: skillTools.writeEnabled
-            ? {
-                readFile: skillTools.readFileTool,
-                listDirectory: skillTools.listDirectoryTool,
-                searchCode: skillTools.searchCodeTool,
-                writeFile: skillTools.writeFileTool,
-                replaceInFile: skillTools.replaceInFileTool,
-              }
-            : {
-                readFile: skillTools.readFileTool,
-                listDirectory: skillTools.listDirectoryTool,
-                searchCode: skillTools.searchCodeTool,
-              },
-        });
-
-        await log(`[Mastra] runSkill: Starting agent.generate (tool-use mode)...`);
-
-        const MAX_ATTEMPTS = 2;
-        const generateWithRetry = async (): Promise<Awaited<
-          ReturnType<typeof agent.generate>
-        > | null> => {
-          for (const attempt of Array.from({ length: MAX_ATTEMPTS }, (_, i) => i + 1)) {
-            try {
-              return await agent.generate(userPrompt, {
-                maxSteps: 25,
-                ...(attempt > 1
-                  ? {
-                      providerOptions: {
-                        openai: { reasoning_effort: "none" },
-                      },
-                    }
-                  : {}),
-              });
-            } catch (error) {
-              const errMsg = error instanceof Error ? error.message : String(error);
-              const isThinkingError = errMsg.includes("reasoning_content");
-              await log(
-                `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`
-              );
-
-              if (isThinkingError && attempt < MAX_ATTEMPTS) {
-                await log(`[Mastra] runSkill: Retrying with reasoning disabled...`);
-                continue;
-              }
-
-              return null;
-            }
-          }
-          return null;
-        };
-
-        const result = await generateWithRetry();
-        if (!result) return generateFallbackReport();
-
-        const stepCount = result.steps?.length ?? 0;
-        const toolCallCount = (result.steps ?? []).reduce(
-          (acc, step) => acc + (step.toolCalls?.length ?? 0),
-          0
-        );
-
-        // If result.text is empty, try to salvage text from intermediate steps
-        const outputText = (() => {
-          if (result.text) return result.text;
-          if (result.steps?.length) {
-            const stepTexts = result.steps.map((s) => s.text ?? "").filter((t) => t.length > 50);
-            if (stepTexts.length > 0) return stepTexts.at(-1) ?? "";
-          }
-          return "";
-        })();
-        if (!result.text && outputText) {
-          await log(`[Mastra] runSkill: Salvaged ${outputText.length} chars from step text`);
-        }
-
-        await log(
-          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${outputText.length} chars`
-        );
-
-        if (onChunk) await onChunk(outputText);
-
-        if (outputText.length === 0) {
-          await log(
-            `[Mastra] runSkill: WARNING — Agent returned empty output, using fallback report`
-          );
-          return generateFallbackReport();
-        }
-        return extractStructuredOutput(outputText, log);
-      }
-
-      // Fallback to streaming without tools if no project path
-      const model = await getLlmModel(override, log);
-      if (!model) {
-        await log(`[Mastra] runSkill: No LLM model — returning fallback report`);
-        return generateFallbackReport();
-      }
-      await log(`[Mastra] runSkill: Starting streamText (no project path)...`);
-      const result = streamText({
-        model,
-        system: instructions,
-        prompt: userPrompt,
-      });
-      const chunks: string[] = [];
-      for await (const chunk of result.textStream) {
-        chunks.push(chunk);
-        if (onChunk) await onChunk(chunks.join(""));
-      }
-      const accumulated = chunks.join("");
-      await log(
-        `[Mastra] runSkill: Stream complete, chunks=${chunks.length}, total output=${accumulated.length} chars`
-      );
-      if (accumulated.length === 0) {
-        await log(`[Mastra] runSkill: WARNING — LLM returned empty output, using fallback report`);
-        return generateFallbackReport();
-      }
-      return extractStructuredOutput(accumulated, log);
-    })(),
-    (cause) => cause
-  ).orElse((cause) => {
-    const errMsg = cause instanceof Error ? cause.message : String(cause);
-    log(`[Mastra] runSkill: Agent call FAILED — ${errMsg}`);
-    return ok(generateFallbackReport());
-  });
 };
 
 // ─── main runner ──────────────────────────────────────────────────────────────
@@ -1120,8 +316,12 @@ ${operationOutput}
 
 Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not. Do not explain.`;
 
-    const { text } = await generateText({ model, prompt: evalPrompt });
-    const verdict = text.trim().toUpperCase();
+    const result = streamText({ model, prompt: evalPrompt });
+    const chunks: string[] = [];
+    for await (const chunk of result.textStream) {
+      chunks.push(chunk);
+    }
+    const verdict = chunks.join("").trim().toUpperCase();
     await log(`[Loop] Condition evaluation result: ${verdict}`);
     return verdict.startsWith("PASS");
   };
@@ -1222,10 +422,23 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       opResult.value = scriptResult.value;
       await log(`Script output (${opResult.value.length} chars)`);
     } else if (executor.type === "agent" && executor.agentMode === "prompt") {
-      const promptResult = await runPrompt(executor, effectiveInput, llmOverride, handleChunk, log);
+      const prompt = executor.prompt ?? "";
+      if (!prompt.trim()) {
+        await log(`WARNING: Prompt text is empty for operation "${operation.name}", skipping`);
+        await log(`@@NODE_FAIL::${node.id}`);
+        return { ok: false, error: null };
+      }
+      const promptResult = await runPromptAgent(
+        prompt,
+        effectiveInput,
+        getSettings,
+        llmOverride,
+        handleChunk,
+        log
+      );
       if (promptResult.isErr()) {
         await log(`@@NODE_FAIL::${node.id}`);
-        return { ok: false, error: promptResult.error };
+        return { ok: false, error: new ScriptExecutionError(promptResult.error.message) };
       }
       opResult.value = promptResult.value;
       await log(`@@LLM_CONTENT::${node.id}::${opResult.value}`);
@@ -1244,11 +457,12 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         : `Skill "${skillId}" (no description available)`;
 
       await log(`Running skill "${skillId}"${skill ? ` (${skill.label})` : ""}...`);
-      const skillResult = await runSkill(
+      const skillResult = await runSkillAgent(
         skillId,
         skillDescription,
         effectiveInput,
         ctx.inputPath,
+        getSettings,
         llmOverride,
         handleChunk,
         log,
