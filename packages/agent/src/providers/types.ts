@@ -14,11 +14,4 @@ export interface LlmOverride {
 export type LogFn = (msg: string) => Promise<void>;
 export const noopLog: LogFn = async () => {};
 
-export interface MastraModelConfig {
-  id: `${string}/${string}`;
-  url: string;
-  apiKey: string;
-  headers: Record<string, string>;
-}
-
 export type SettingsResolver = () => Promise<LlmSettings>;

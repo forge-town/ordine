@@ -1,7 +1,7 @@
 import { Agent } from "@mastra/core/agent";
 import { CHECK_OUTPUT_EXAMPLE } from "../schemas";
 import { buildSkillTools } from "../tools";
-import type { MastraModelConfig } from "../providers";
+import type { MastraModelConfig } from "@mastra/core/llm";
 
 const CHECK_JSON_EXAMPLE = JSON.stringify(CHECK_OUTPUT_EXAMPLE, null, 2);
 

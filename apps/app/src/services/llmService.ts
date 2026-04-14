@@ -5,6 +5,7 @@
  * with `settingsDao.get()` pre-bound so callers don't need to pass it.
  */
 
+import type { MastraModelConfig } from "@mastra/core/llm";
 import {
   getLlmModel as getLlmModelRaw,
   getMastraModelConfig as getMastraModelConfigRaw,
@@ -12,7 +13,6 @@ import {
   type LlmOverride,
   type LlmProvider as AgentLlmProvider,
   type LogFn,
-  type MastraModelConfig,
   type SettingsResolver,
 } from "@repo/agent";
 import { settingsDao } from "@/models/daos/settingsDao";

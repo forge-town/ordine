@@ -1,6 +1,7 @@
+import type { MastraModelConfig } from "@mastra/core/llm";
 import { resolveSettings } from "./resolveSettings";
 import { DEFAULT_HEADERS, PROVIDER_MASTRA_PREFIX } from "./constants";
-import type { SettingsResolver, LlmOverride, LogFn, MastraModelConfig } from "./types";
+import type { SettingsResolver, LlmOverride, LogFn } from "./types";
 import { noopLog } from "./types";
 
 export const getMastraModelConfig = async (

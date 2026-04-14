@@ -1,7 +1,7 @@
 import { Agent } from "@mastra/core/agent";
 import { FIX_OUTPUT_EXAMPLE } from "../schemas";
 import { buildSkillTools } from "../tools";
-import type { MastraModelConfig } from "../providers";
+import type { MastraModelConfig } from "@mastra/core/llm";
 
 const FIX_JSON_EXAMPLE = JSON.stringify(FIX_OUTPUT_EXAMPLE, null, 2);
 

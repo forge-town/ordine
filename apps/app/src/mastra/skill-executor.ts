@@ -29,7 +29,7 @@ export const runSkill = (
   override?: LlmOverride,
   onChunk?: StreamCallback,
   log: LogFn = noopLog,
-  opts?: { writeEnabled?: boolean },
+  opts?: { writeEnabled?: boolean }
 ): ResultAsync<string, never> => {
   const isImplementMode = opts?.writeEnabled === true;
 
@@ -70,7 +70,7 @@ export const runSkill = (
   return ResultAsync.fromPromise(
     (async () => {
       await log(
-        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`,
+        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`
       );
       await log(`[Mastra] runSkill: mode=${isImplementMode ? "fix" : "check"}`);
 
@@ -112,7 +112,7 @@ export const runSkill = (
               const errMsg = error instanceof Error ? error.message : String(error);
               const isThinkingError = errMsg.includes("reasoning_content");
               await log(
-                `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`,
+                `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`
               );
 
               if (isThinkingError && attempt < MAX_ATTEMPTS) {
@@ -132,7 +132,7 @@ export const runSkill = (
         const stepCount = result.steps?.length ?? 0;
         const toolCallCount = (result.steps ?? []).reduce(
           (acc, step) => acc + (step.toolCalls?.length ?? 0),
-          0,
+          0
         );
 
         // If result.text is empty, try to salvage text from intermediate steps
@@ -149,14 +149,14 @@ export const runSkill = (
         }
 
         await log(
-          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${outputText.length} chars`,
+          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${outputText.length} chars`
         );
 
         if (onChunk) await onChunk(outputText);
 
         if (outputText.length === 0) {
           await log(
-            `[Mastra] runSkill: WARNING — Agent returned empty output, using fallback report`,
+            `[Mastra] runSkill: WARNING — Agent returned empty output, using fallback report`
           );
           return generateFallbackReport();
         }
@@ -183,7 +183,7 @@ export const runSkill = (
       }
       const accumulated = chunks.join("");
       await log(
-        `[Mastra] runSkill: Stream complete, chunks=${chunks.length}, total output=${accumulated.length} chars`,
+        `[Mastra] runSkill: Stream complete, chunks=${chunks.length}, total output=${accumulated.length} chars`
       );
       if (accumulated.length === 0) {
         await log(`[Mastra] runSkill: WARNING — LLM returned empty output, using fallback report`);
@@ -191,7 +191,7 @@ export const runSkill = (
       }
       return extractStructuredOutput(accumulated, log);
     })(),
-    (cause) => cause,
+    (cause) => cause
   ).orElse((cause) => {
     const errMsg = cause instanceof Error ? cause.message : String(cause);
     void log(`[Mastra] runSkill: Agent call FAILED — ${errMsg}`);
