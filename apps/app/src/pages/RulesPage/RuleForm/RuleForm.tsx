@@ -161,7 +161,7 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
                   "rounded-md border px-3 py-1 text-xs font-medium transition-colors",
                   active
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                    : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
                 )}
                 type="button"
                 onClick={() => handleToggleObjectType(type as ObjectType)}

@@ -69,7 +69,7 @@ export const FolderTreePreview = ({
             <span
               className={cn(
                 "flex-1 truncate font-mono",
-                isExcluded ? "line-through text-slate-400" : "text-slate-600",
+                isExcluded ? "line-through text-slate-400" : "text-slate-600"
               )}
             >
               {entry.name}

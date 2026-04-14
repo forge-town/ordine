@@ -88,32 +88,37 @@ export const runSkill = ({
 
       // Use claude -p CLI with tools if we have a project path
       if (inputPath) {
-        try {
-          const result = await runClaude({
+        const claudeResult = await ResultAsync.fromPromise(
+          runClaude({
             skillId,
             skillDescription,
             inputContent,
             projectRoot: inputPath,
             writeEnabled: isImplementMode,
             onProgress,
-          });
+          }),
+          (error) => error
+        );
 
-          logger.info({ len: result.length }, "runSkill: claude complete");
-          await onProgress?.(`runSkill: Claude complete, output=${result.length} chars`);
-          if (onChunk) await onChunk(result);
-
-          if (result.length === 0) {
-            logger.warn("runSkill: claude returned empty output — using fallback");
-            await onProgress?.("runSkill: WARNING — Claude returned empty output, using fallback");
-            return generateFallbackReport();
-          }
-          return result;
-        } catch (error) {
+        if (claudeResult.isErr()) {
+          const error = claudeResult.error;
           const errMsg = error instanceof Error ? error.message : String(error);
           logger.error({ err: errMsg }, "runSkill: claude -p failed");
           await onProgress?.(`runSkill: Claude FAILED — ${errMsg}`);
           return generateFallbackReport();
         }
+
+        const result = claudeResult.value;
+        logger.info({ len: result.length }, "runSkill: claude complete");
+        await onProgress?.(`runSkill: Claude complete, output=${result.length} chars`);
+        if (onChunk) await onChunk(result);
+
+        if (result.length === 0) {
+          logger.warn("runSkill: claude returned empty output — using fallback");
+          await onProgress?.("runSkill: WARNING — Claude returned empty output, using fallback");
+          return generateFallbackReport();
+        }
+        return result;
       }
 
       // Fallback to streaming without tools if no project path

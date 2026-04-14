@@ -174,6 +174,7 @@ export const readProjectFiles = async (
   };
 
   const files: { rel: string; content: string }[] = [];
+  const skippedFiles: string[] = [];
   const state = { totalSize: 0 };
 
   const walk = async (dir: string, depth: number): Promise<void> => {
@@ -188,15 +189,24 @@ export const readProjectFiles = async (
         await walk(join(dir, entry.name), depth + 1);
       } else if (isTextFile(entry.name)) {
         if (state.totalSize >= MAX_TOTAL_SIZE) break;
-        try {
-          const fileStat = await stat(join(dir, entry.name));
-          if (fileStat.size > MAX_FILE_SIZE) continue;
-          const content = await readFile(join(dir, entry.name), "utf8");
-          state.totalSize += content.length;
-          files.push({ rel, content });
-        } catch (error: unknown) {
-          console.warn(`[readProjectFiles] Skipping unreadable file: ${rel}`, error);
+        const statResult = await ResultAsync.fromPromise(stat(join(dir, entry.name)), () => null);
+        if (statResult.isErr()) {
+          skippedFiles.push(rel);
+          continue;
         }
+        const fileStat = statResult.value;
+        if (fileStat.size > MAX_FILE_SIZE) continue;
+        const readResult = await ResultAsync.fromPromise(
+          readFile(join(dir, entry.name), "utf8"),
+          () => null
+        );
+        if (readResult.isErr()) {
+          skippedFiles.push(rel);
+          continue;
+        }
+        const content = readResult.value;
+        state.totalSize += content.length;
+        files.push({ rel, content });
       }
     }
   };
@@ -208,6 +218,12 @@ export const readProjectFiles = async (
   if (state.totalSize >= MAX_TOTAL_SIZE) {
     parts.push(
       `\n... (truncated at ${MAX_TOTAL_SIZE} chars total, ${files.length} files included)`
+    );
+  }
+
+  if (skippedFiles.length > 0) {
+    parts.push(
+      `\n... (skipped ${skippedFiles.length} unreadable files: ${skippedFiles.join(", ")})`
     );
   }
 

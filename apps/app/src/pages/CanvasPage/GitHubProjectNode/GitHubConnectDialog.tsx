@@ -55,7 +55,7 @@ export const GitHubConnectDialog = ({
         setRepoInfo(info);
         setStep("confirm");
       },
-      (errorMsg) => setError(errorMsg),
+      (errorMsg) => setError(errorMsg)
     );
     setLoading(false);
   };
@@ -108,7 +108,7 @@ export const GitHubConnectDialog = ({
               <div
                 className={cn(
                   "flex items-center justify-between rounded-md px-3 py-2 text-xs",
-                  token ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700",
+                  token ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700"
                 )}
               >
                 <div className="flex items-center gap-1.5">

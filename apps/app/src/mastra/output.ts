@@ -6,16 +6,14 @@
  */
 
 import { z } from "zod/v4";
+import { Result } from "neverthrow";
 import { OperationOutputSchema, logger } from "@repo/agent";
 
 // ─── JSON extraction ──────────────────────────────────────────────────────────
 
 const tryParseJson = (text: string): unknown | undefined => {
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    return undefined;
-  }
+  const result = Result.fromThrowable(JSON.parse, () => undefined)(text);
+  return result.isOk() ? (result.value as unknown) : undefined;
 };
 
 export const extractStructuredOutput = (rawText: string): string => {

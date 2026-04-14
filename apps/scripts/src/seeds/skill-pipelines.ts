@@ -282,6 +282,38 @@ Markdown 转换报告：
     }),
   },
 
+  // ── refactor-classname: Op 3 — 实现修复 ─────────────────────────────────
+  {
+    id: "op_implement_classname",
+    name: "实现 className 修复",
+    description:
+      "根据扫描报告，使用 Claude CLI 实际修改代码：将模板字符串 className 转为 cn() 调用，并确保导入 cn。",
+    acceptedObjectTypes: ["file", "folder"],
+    config: cfg({
+      executor: {
+        type: "skill",
+        skillId: "sk_check_classname",
+        writeEnabled: true,
+      },
+      inputs: [
+        {
+          name: "checkReport",
+          kind: "text",
+          required: true,
+          description: "上一步扫描生成的 className 违规报告",
+        },
+      ],
+      outputs: [
+        {
+          name: "implementReport",
+          kind: "file",
+          path: "classname-implement-report.md",
+          description: "className 实现（修复）报告",
+        },
+      ],
+    }),
+  },
+
   // ── check-all-best-practices: Op 1 — 发现 best-practice 技能 ────────────
   {
     id: "op_discover_best_practices",
@@ -504,14 +536,14 @@ const PIPELINES: PipelineSeed[] = [
         },
       },
       {
-        id: "n_cn_refactor",
+        id: "n_cn_implement",
         type: "operation",
         position: { x: 700, y: 200 },
         data: {
-          label: "转换 className",
+          label: "实现 className 修复",
           nodeType: "operation",
-          operationId: "op_refactor_classname",
-          operationName: "转换 className 为 cn()",
+          operationId: "op_implement_classname",
+          operationName: "实现 className 修复",
           status: "idle",
         },
       },
@@ -537,11 +569,11 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "e_cn_2",
         source: "n_cn_scan",
-        target: "n_cn_refactor",
+        target: "n_cn_implement",
       },
       {
         id: "e_cn_3",
-        source: "n_cn_refactor",
+        source: "n_cn_implement",
         target: "n_cn_output",
       },
     ],

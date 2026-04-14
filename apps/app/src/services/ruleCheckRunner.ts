@@ -17,6 +17,7 @@ import { writeFile, unlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
+import { ResultAsync } from "neverthrow";
 import { rulesDao, type RuleEntity } from "@/models/daos/rulesDao";
 import type { CheckOutput, Finding } from "@/schemas/OperationOutputSchema";
 import type { RuleTarget } from "@/schemas/RuleSchema";
@@ -42,23 +43,36 @@ const result = await check(${JSON.stringify(target)});
 process.exit(result ? 0 : 1);
 `;
 
-  try {
-    const { stdout } = await execAsync(`bun -e ${JSON.stringify(wrapper)}`, {
+  const execResult = await ResultAsync.fromPromise(
+    execAsync(`bun -e ${JSON.stringify(wrapper)}`, {
       timeout: SCRIPT_TIMEOUT_MS,
-    });
-    return { rule, passed: true, output: stdout.trim(), exitCode: 0 };
-  } catch (error: unknown) {
-    const execErr = error as { code?: number; stdout?: string; stderr?: string };
-    const output = (execErr.stdout ?? execErr.stderr ?? "").trim();
-    return {
-      rule,
-      passed: false,
-      output: output || "Rule check failed",
-      exitCode: execErr.code ?? 1,
-    };
-  } finally {
-    await unlink(tmpFile).catch(() => {});
+    }),
+    (error) => error
+  );
+
+  const cleanupResult = await ResultAsync.fromPromise(unlink(tmpFile), (error) => error);
+  if (cleanupResult.isErr()) {
+    console.warn("Failed to clean up temp file:", cleanupResult.error);
   }
+
+  return execResult.match(
+    ({ stdout }) => ({
+      rule,
+      passed: true,
+      output: stdout.trim(),
+      exitCode: 0,
+    }),
+    (error) => {
+      const execErr = error as { code?: number; stdout?: string; stderr?: string };
+      const output = (execErr.stdout ?? execErr.stderr ?? "").trim();
+      return {
+        rule,
+        passed: false,
+        output: output || "Rule check failed",
+        exitCode: execErr.code ?? 1,
+      };
+    }
+  );
 };
 
 const resultToFinding = (result: RuleCheckResult): Finding | null => {

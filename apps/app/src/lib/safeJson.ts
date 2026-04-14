@@ -1,9 +1,6 @@
-import { ok, err, type Result } from "neverthrow";
+import { Result } from "neverthrow";
 
-export const safeJsonParse = <T = unknown>(raw: string): Result<T, SyntaxError> => {
-  try {
-    return ok(JSON.parse(raw) as T);
-  } catch (error) {
-    return err(error instanceof SyntaxError ? error : new SyntaxError(String(error)));
-  }
-};
+export const safeJsonParse = <T = unknown>(raw: string): Result<T, SyntaxError> =>
+  Result.fromThrowable(JSON.parse, (error) =>
+    error instanceof SyntaxError ? error : new SyntaxError(String(error))
+  )(raw).map((v) => v as T);

@@ -176,7 +176,7 @@ export const FolderBrowser = ({
                   key={entry.path}
                   className={cn(
                     "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-accent",
-                    selectedFile === entry.path && "bg-accent ring-1 ring-teal-400",
+                    selectedFile === entry.path && "bg-accent ring-1 ring-teal-400"
                   )}
                   type="button"
                   onClick={() => handleFileClick(entry)}
