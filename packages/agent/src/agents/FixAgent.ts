@@ -56,6 +56,10 @@ export const createFixAgent = ({
 }: CreateFixAgentOptions) => {
   const skillTools = buildSkillTools(projectRoot, { writeEnabled: true });
 
+  if (!skillTools.writeEnabled) {
+    throw new Error("FixAgent requires write-enabled tools");
+  }
+
   return new Agent({
     id: `fix-${skillId}`,
     name: `Fix: ${skillId}`,

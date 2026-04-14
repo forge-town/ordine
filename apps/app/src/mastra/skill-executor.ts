@@ -33,74 +33,6 @@ export const runSkill = (
 ): ResultAsync<string, never> => {
   const isImplementMode = opts?.writeEnabled === true;
 
-  const CHECK_JSON_EXAMPLE = JSON.stringify(CHECK_OUTPUT_EXAMPLE, null, 2);
-  const FIX_JSON_EXAMPLE = JSON.stringify(FIX_OUTPUT_EXAMPLE, null, 2);
-
-  const checkInstructions = [
-    `You are an expert code analysis agent executing the skill "${skillId}".`,
-    `Skill description: ${skillDescription}`,
-    "",
-    "You have access to tools that let you read files and explore the project.",
-    "Use these tools to examine actual source code before making conclusions.",
-    "",
-    "CRITICAL CONSTRAINT — You have a HARD LIMIT of 25 tool-call steps.",
-    "If you exceed this limit, your response will be CUT OFF and LOST entirely.",
-    "Budget your steps wisely:",
-    "  Phase 1 (steps 1-5): Use searchCode and listDirectory to find relevant files",
-    "  Phase 2 (steps 6-18): Use readFile on the most important files found",
-    "  Phase 3 (step 19+): STOP all tool calls and write your report",
-    "",
-    "DO NOT call any more tools after step 18. Write the report immediately.",
-    "If in doubt whether to read one more file or write the report — WRITE THE REPORT.",
-    "",
-    "OUTPUT FORMAT: Your final message MUST be a single JSON object wrapped in ```json fences.",
-    "Output data conforming to this structure (replace example values with real data):",
-    "```json",
-    CHECK_JSON_EXAMPLE,
-    "```",
-    "",
-    "Include specific file paths, line numbers, code snippets, and suggestions.",
-    "Mark findings that are allowed exceptions with skipped: true and provide skipReason.",
-    "NEVER end your response with a tool call. Always end with the JSON output.",
-  ].join("\n");
-
-  const implementInstructions = [
-    `You are an expert code refactoring agent executing the skill "${skillId}".`,
-    `Skill description: ${skillDescription}`,
-    "",
-    "You have access to tools that let you read AND WRITE files in the project.",
-    "Your goal is to FIX the violations described in the input.",
-    "",
-    "Available tools:",
-    "  - readFile: read a file's content",
-    "  - listDirectory: list directory contents",
-    "  - searchCode: search for text patterns in files",
-    "  - replaceInFile: replace an exact string in a file (preferred for surgical edits)",
-    "  - writeFile: write entire file content (use for new files or full rewrites)",
-    "",
-    "CRITICAL CONSTRAINT — You have a HARD LIMIT of 25 tool-call steps.",
-    "Budget your steps wisely:",
-    "  Phase 1 (steps 1-3): Parse the input to understand what needs fixing",
-    "  Phase 2 (steps 4-20): Read affected files, then use replaceInFile to fix each violation",
-    "  Phase 3 (step 21+): STOP all tool calls and write the output",
-    "",
-    "RULES:",
-    "- Always use replaceInFile when possible (safer than writeFile)",
-    "- Read the file first before editing to ensure correct context",
-    "- Do NOT change code that is not directly related to the violations",
-    "- Skip violations that are allowable exceptions (framework boundaries, startup validators, React context hooks)",
-    "",
-    "OUTPUT FORMAT: Your final message MUST be a single JSON object wrapped in ```json fences.",
-    "Output data conforming to this structure (replace example values with real data):",
-    "```json",
-    FIX_JSON_EXAMPLE,
-    "```",
-    "",
-    "NEVER end your response with a tool call. Always end with the JSON output.",
-  ].join("\n");
-
-  const instructions = isImplementMode ? implementInstructions : checkInstructions;
-
   const userPrompt = inputPath
     ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
     : `Input:\n${inputContent}`;
@@ -140,7 +72,7 @@ export const runSkill = (
       await log(
         `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`,
       );
-      await log(`[Mastra] runSkill: instructions length=${instructions.length}`);
+      await log(`[Mastra] runSkill: mode=${isImplementMode ? "fix" : "check"}`);
 
       // Use Mastra Agent with tools if we have a project path
       if (inputPath) {
@@ -150,29 +82,13 @@ export const runSkill = (
           return generateFallbackReport();
         }
 
-        const skillTools = buildSkillTools(inputPath, {
-          writeEnabled: isImplementMode,
-        });
-
-        const agent = new Agent({
-          id: `skill-${skillId}`,
-          name: `Skill: ${skillId}`,
-          instructions,
+        const agentOpts = {
+          skillId,
+          skillDescription,
           model: modelConfig,
-          tools: skillTools.writeEnabled
-            ? {
-                readFile: skillTools.readFileTool,
-                listDirectory: skillTools.listDirectoryTool,
-                searchCode: skillTools.searchCodeTool,
-                writeFile: skillTools.writeFileTool,
-                replaceInFile: skillTools.replaceInFileTool,
-              }
-            : {
-                readFile: skillTools.readFileTool,
-                listDirectory: skillTools.listDirectoryTool,
-                searchCode: skillTools.searchCodeTool,
-              },
-        });
+          projectRoot: inputPath,
+        };
+        const agent = isImplementMode ? createFixAgent(agentOpts) : createCheckAgent(agentOpts);
 
         await log(`[Mastra] runSkill: Starting agent.generate (tool-use mode)...`);
 
@@ -253,10 +169,11 @@ export const runSkill = (
         await log(`[Mastra] runSkill: No LLM model — returning fallback report`);
         return generateFallbackReport();
       }
+      const systemPrompt = `You are an expert code analysis agent executing the skill "${skillId}". Skill description: ${skillDescription}`;
       await log(`[Mastra] runSkill: Starting streamText (no project path)...`);
       const result = streamText({
         model,
-        system: instructions,
+        system: systemPrompt,
         prompt: userPrompt,
       });
       const chunks: string[] = [];
