@@ -37,6 +37,7 @@ yarn-error.log*
 .DS_Store
 *.pem
 
+.agents
 .adal
 .augment
 .claude
@@ -65,7 +66,6 @@ yarn-error.log*
 .vibe
 .windsurf
 .zencoder
-skills
 .tanstack
 
 .github
