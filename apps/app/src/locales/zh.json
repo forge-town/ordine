@@ -30,6 +30,8 @@
     "language": "语言",
     "tags": "标签",
     "new": "新",
+    "clear": "清除",
+    "noResults": "没有匹配的结果",
     "metadata": "元数据",
     "createdAt": "创建时间",
     "updatedAt": "更新时间"

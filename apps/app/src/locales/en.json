@@ -29,7 +29,9 @@
     "category": "Category",
     "language": "Language",
     "tags": "Tags",
-    "new": "New"
+    "new": "New",
+    "clear": "Clear",
+    "noResults": "No matching results"
   },
   "nav": {
     "dashboard": "Dashboard",
