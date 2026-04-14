@@ -1,5 +1,7 @@
 import { createContext, useContext } from "react";
-import { createStore, type StoreApi } from "zustand";
+import { createStore, type StoreApi, type StateCreator } from "zustand";
+import { createDataSlice, type DataSlice } from "./dataSlice";
+import { createMetaSlice, type MetaSlice } from "./metaSlice";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,19 +30,13 @@ export interface AppSettings {
   };
 }
 
-export interface SettingsState extends AppSettings {
-  saved: boolean;
-
-  updateSection: <K extends keyof AppSettings>(section: K, patch: Partial<AppSettings[K]>) => void;
-  save: () => void;
-  resetSaved: () => void;
-}
+export interface SettingsState extends DataSlice, MetaSlice {}
 
 export type SettingsStore = StoreApi<SettingsState>;
 
-// ─── Defaults ─────────────────────────────────────────────────────────────────
+export type SettingsStoreSlice<T = SettingsState> = StateCreator<SettingsState, [], [], T>;
 
-const STORAGE_KEY = "ordine_settings_v1";
+// ─── Defaults ─────────────────────────────────────────────────────────────────
 
 const defaultSettings: AppSettings = {
   profile: {
@@ -83,27 +79,11 @@ export const createSettingsStore = (initialOverrides?: Partial<AppSettings>): Se
   };
 
   return createStore<SettingsState>()((set, get) => ({
-    ...initial,
-    saved: false,
-
-    updateSection: (section, patch) =>
-      set((state) => ({
-        [section]: { ...state[section], ...patch },
-      })),
-
-    save: () => {
-      const {
-        saved: _saved,
-        updateSection: _updateSection,
-        save: _save,
-        resetSaved: _resetSaved,
-        ...settings
-      } = get();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-      set({ saved: true });
-    },
-
-    resetSaved: () => set({ saved: false }),
+    ...createDataSlice(initial),
+    ...createMetaSlice(
+      set as Parameters<SettingsStoreSlice>[0],
+      get as Parameters<SettingsStoreSlice>[1],
+    ),
   }));
 };
 

@@ -1,9 +1,12 @@
 import { type FC } from "react";
+import { useStore } from "zustand";
 import { Toast } from "@repo/ui/toast";
-import { useToastStore } from "@/store/toastStore";
+import { useToastStoreContext } from "@/store/toastStore";
 
 export const ToastContainer: FC = () => {
-  const { toasts, removeToast } = useToastStore();
+  const store = useToastStoreContext();
+  const toasts = useStore(store, (s) => s.toasts);
+  const removeToast = useStore(store, (s) => s.removeToast);
 
   return (
     <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">

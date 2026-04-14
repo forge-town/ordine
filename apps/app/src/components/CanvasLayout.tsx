@@ -1,4 +1,5 @@
 import { ToastContainer } from "./ToastContainer";
+import { ToastStoreProvider } from "@/store/toastProvider";
 
 interface CanvasLayoutProps {
   children: React.ReactNode;
@@ -6,9 +7,11 @@ interface CanvasLayoutProps {
 
 export const CanvasLayout = ({ children }: CanvasLayoutProps) => {
   return (
-    <div className="fixed inset-0 h-screen w-screen overflow-hidden bg-slate-50">
-      {children}
-      <ToastContainer />
-    </div>
+    <ToastStoreProvider>
+      <div className="fixed inset-0 h-screen w-screen overflow-hidden bg-slate-50">
+        {children}
+        <ToastContainer />
+      </div>
+    </ToastStoreProvider>
   );
 };
