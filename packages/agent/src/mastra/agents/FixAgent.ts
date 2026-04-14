@@ -1,5 +1,5 @@
 import { Agent } from "@mastra/core/agent";
-import { FIX_OUTPUT_EXAMPLE } from "../schemas";
+import { FIX_OUTPUT_EXAMPLE } from "../../schemas";
 import { buildSkillTools } from "../tools";
 import type { MastraModelConfig } from "@mastra/core/llm";
 

@@ -1,5 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { logger } from "../logger";
+import { logger } from "../../logger";
 
 const KIMI_BASE_URL = "https://api.kimi.com/coding/v1";
 

@@ -1,7 +1,7 @@
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod/v4";
-import { CheckOutputSchema } from "../schemas/CheckOutputSchema";
-import { FixOutputSchema } from "../schemas/FixOutputSchema";
+import { CheckOutputSchema } from "../../schemas/CheckOutputSchema";
+import { FixOutputSchema } from "../../schemas/FixOutputSchema";
 
 /**
  * A captured report holder. The agent calls submitReport as a tool,
