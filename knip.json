@@ -2,8 +2,7 @@
   "workspaces": {
     "apps/app": {
       "entry": ["src/router.tsx", "src/routes/**/*.tsx"],
-      "project": ["src/**/*.{ts,tsx}"],
-      "ignore": ["src/routeTree.gen.ts", "src/vite-env.d.ts"]
+      "project": ["src/**/*.{ts,tsx}"]
     },
     "apps/web": {
       "entry": ["app/**/*.{ts,tsx}"],
@@ -15,7 +14,8 @@
     },
     "apps/scripts": {
       "entry": ["src/**/*.ts"],
-      "project": ["src/**/*.ts"]
+      "project": ["src/**/*.ts"],
+      "ignore": ["src/best-practices/**/code-snippet.ts"]
     },
     "packages/ui": {
       "includeEntryExports": true,
@@ -44,7 +44,8 @@
     "@oxlint/binding-darwin-arm64",
     "@rollup/rollup-darwin-arm64",
     "@repo/oxlint-config",
-    "@tanstack/router-plugin"
+    "@tanstack/router-plugin",
+    "@mastra/core"
   ],
   "ignoreBinaries": ["tsx"],
   "ignore": ["**/*.stories.tsx"]

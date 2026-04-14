@@ -1,1 +1,1 @@
-export { BestPracticeSelect } from "./BestPracticeSelect";
+export * from "./BestPracticeSelect";
