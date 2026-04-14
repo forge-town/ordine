@@ -121,7 +121,7 @@ export const runClaude = async ({
     "--system-prompt",
     systemPrompt,
     "--allowedTools",
-    ...allowedTools,
+    allowedTools.join(","),
     "--dangerously-skip-permissions",
     "--no-session-persistence",
     "--max-budget-usd",
