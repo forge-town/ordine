@@ -22,10 +22,6 @@
       "entry": ["src/**/*.{ts,tsx}"],
       "project": ["src/**/*.{ts,tsx}"]
     },
-    "packages/eslint-config": {
-      "entry": ["*.js"],
-      "project": ["*.js"]
-    },
     "packages/oxlint-config": {
       "entry": ["plugins/**/*.js"],
       "project": ["plugins/**/*.js"]

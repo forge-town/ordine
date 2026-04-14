@@ -1,13 +1,13 @@
 {
   "name": "web",
   "version": "0.1.0",
-  "type": "module",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint --max-warnings 0",
+    "lint": "oxlint --config ./.oxlintrc.json app/",
     "check-types": "next typegen && tsc --noEmit",
     "quality": "bun run check-types && bun run lint"
   },
@@ -18,12 +18,10 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
     "@types/node": "^22.15.3",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
-    "eslint": "^9.39.1",
     "typescript": "5.9.2"
   }
 }

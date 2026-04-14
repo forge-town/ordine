@@ -1,0 +1,9 @@
+{
+  "extends": ["../../packages/oxlint-config/.oxlintrc.json"],
+  "rules": {
+    "ordine/jsx-sort-props": "off",
+    "react/jsx-handler-names": "off",
+    "ordine-vars/no-let": "off",
+    "func-style": "off"
+  }
+}
