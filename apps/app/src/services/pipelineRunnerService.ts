@@ -674,14 +674,20 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           const baseName = basename(ctx.outputLocalPath, extname(ctx.outputLocalPath));
           await mkdir(outputDir, { recursive: true });
 
-          // Write .json (raw structured content)
+          // Strip code fences if present (LLM output may wrap JSON in ```json ... ```)
+          const cleanContent = ctx.currentContent
+            .replace(/^```json\s*\n?/, "")
+            .replace(/\n?\s*```\s*$/, "")
+            .trim();
+
+          // Write .json (structured content)
           const jsonPath = join(outputDir, `${baseName}.json`);
-          await writeFile(jsonPath, ctx.currentContent, "utf8");
-          await log(`Wrote JSON output to: ${jsonPath} (${ctx.currentContent.length} chars)`);
+          await writeFile(jsonPath, cleanContent, "utf8");
+          await log(`Wrote JSON output to: ${jsonPath} (${cleanContent.length} chars)`);
 
           // Write .md (human-readable, converted from JSON if possible)
           const mdPath = join(outputDir, `${baseName}.md`);
-          const mdContent = structuredJsonToMarkdown(ctx.currentContent);
+          const mdContent = structuredJsonToMarkdown(cleanContent);
           await writeFile(mdPath, mdContent, "utf8");
           await log(`Wrote Markdown output to: ${mdPath} (${mdContent.length} chars)`);
         } else {
