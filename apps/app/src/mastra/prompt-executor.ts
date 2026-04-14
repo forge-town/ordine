@@ -4,12 +4,18 @@
 
 import { streamText } from "ai";
 import { ResultAsync } from "neverthrow";
-import { getLlmModel, type LlmOverride, type LogFn, type SettingsResolver, noopLog } from "./llm";
+import {
+  getLlmModel,
+  type LlmOverride,
+  type LogFn,
+  type SettingsResolver,
+  noopLog,
+} from "@repo/agent";
 
 export class PromptExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(message);
     this.name = "PromptExecutionError";
@@ -24,18 +30,18 @@ export const runPrompt = (
   getSettings: SettingsResolver,
   override?: LlmOverride,
   onChunk?: StreamCallback,
-  log: LogFn = noopLog,
+  log: LogFn = noopLog
 ): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return ResultAsync.fromSafePromise<string, PromptExecutionError>(
-      Promise.reject(new PromptExecutionError("Prompt text is empty")),
+      Promise.reject(new PromptExecutionError("Prompt text is empty"))
     );
   }
 
   return ResultAsync.fromPromise(
     (async () => {
       await log(
-        `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`,
+        `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`
       );
       const model = await getLlmModel(getSettings, override, log);
       if (!model) {
@@ -58,14 +64,14 @@ export const runPrompt = (
     })(),
     (cause) => {
       void log(
-        `[LLM] runPrompt: Error — ${cause instanceof Error ? cause.message : String(cause)}`,
+        `[LLM] runPrompt: Error — ${cause instanceof Error ? cause.message : String(cause)}`
       );
       return cause instanceof PromptExecutionError
         ? cause
         : new PromptExecutionError(
             `Prompt execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-            cause,
+            cause
           );
-    },
+    }
   );
 };

@@ -6,7 +6,7 @@
  */
 
 import { z } from "zod/v4";
-import { OperationOutputSchema } from "./schemas";
+import { OperationOutputSchema } from "@repo/agent";
 
 type AsyncLogFn = (line: string) => Promise<void>;
 
@@ -44,13 +44,13 @@ export const extractStructuredOutput = (rawText: string, log: AsyncLogFn): strin
         result.data.type === "check"
           ? `${result.data.findings.length} findings`
           : `${result.data.changes.length} changes`
-      }`,
+      }`
     );
     return JSON.stringify(result.data, null, 2);
   }
 
   void log(
-    `[extractStructuredOutput] JSON parsed but schema validation failed — ${z.prettifyError(result.error)}. Returning raw text`,
+    `[extractStructuredOutput] JSON parsed but schema validation failed — ${z.prettifyError(result.error)}. Returning raw text`
   );
   return rawText;
 };
@@ -79,7 +79,7 @@ export const structuredJsonToMarkdown = (content: string): string => {
       `| Warnings | ${data.stats.warnings} |`,
       `| Info | ${data.stats.infos} |`,
       `| Skipped | ${data.stats.skipped} |`,
-      "",
+      ""
     );
 
     if (data.findings.length > 0) {
@@ -107,14 +107,14 @@ export const structuredJsonToMarkdown = (content: string): string => {
       `| Files modified | ${data.stats.filesModified} |`,
       `| Findings fixed | ${data.stats.findingsFixed} |`,
       `| Findings skipped | ${data.stats.findingsSkipped} |`,
-      "",
+      ""
     );
 
     if (data.changes.length > 0) {
       lines.push(`## Changes`, "");
       for (const c of data.changes) {
         lines.push(
-          `- **\`${c.file}\`** [${c.action}]: ${c.description}${c.findingId ? ` (fixes ${c.findingId})` : ""}`,
+          `- **\`${c.file}\`** [${c.action}]: ${c.description}${c.findingId ? ` (fixes ${c.findingId})` : ""}`
         );
       }
       lines.push("");
@@ -125,7 +125,7 @@ export const structuredJsonToMarkdown = (content: string): string => {
       for (const f of data.remainingFindings) {
         const badge = f.severity === "error" ? "🔴" : f.severity === "warning" ? "🟡" : "🔵";
         lines.push(
-          `- ${badge} **${f.id}**: ${f.message} — \`${f.file}\`${f.line ? `:${f.line}` : ""}`,
+          `- ${badge} **${f.id}**: ${f.message} — \`${f.file}\`${f.line ? `:${f.line}` : ""}`
         );
       }
       lines.push("");

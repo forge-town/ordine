@@ -1,25 +1,23 @@
 /**
- * Skill executor — runs a skill using a Mastra Agent with tools.
+ * Skill executor — runs a skill using agents from @repo/agent.
  *
- * For project paths: creates an Agent with file-system tools (readFile,
- * listDirectory, searchCode, optionally writeFile/replaceInFile).
+ * For project paths: uses createCheckAgent or createFixAgent.
  * For non-project: falls back to streaming prompt without tools.
  */
 
 import { streamText } from "ai";
-import { Agent } from "@mastra/core/agent";
 import { ResultAsync, ok } from "neverthrow";
 import {
   getLlmModel,
   getMastraModelConfig,
+  createCheckAgent,
+  createFixAgent,
   type LlmOverride,
   type LogFn,
   type SettingsResolver,
   noopLog,
-} from "./llm";
-import { buildSkillTools } from "./tools";
+} from "@repo/agent";
 import { extractStructuredOutput } from "./output";
-import { CHECK_OUTPUT_EXAMPLE, FIX_OUTPUT_EXAMPLE } from "./schemas";
 import type { StreamCallback } from "./prompt-executor";
 
 export const runSkill = (
