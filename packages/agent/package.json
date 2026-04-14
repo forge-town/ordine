@@ -16,7 +16,7 @@
     "quality": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^3.0.52",
+    "@ai-sdk/anthropic": "^3.0.69",
     "@mastra/core": "1.24.1",
     "ai": "^6.0.158",
     "neverthrow": "^8.2.0",

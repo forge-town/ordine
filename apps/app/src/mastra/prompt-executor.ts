@@ -4,7 +4,7 @@
 
 import { streamText } from "ai";
 import { ResultAsync } from "neverthrow";
-import { getStreamModel, logger, type SettingsResolver } from "@repo/agent";
+import { getModel, logger, type SettingsResolver } from "@repo/agent";
 
 export class PromptExecutionError extends Error {
   constructor(
@@ -51,7 +51,7 @@ export const runPrompt = ({
       await onProgress?.(
         `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`
       );
-      const model = await getStreamModel(getSettings, modelOverride);
+      const model = await getModel(getSettings, modelOverride);
       if (!model) {
         logger.error("runPrompt: LLM not configured");
         await onProgress?.("[LLM] runPrompt: LLM not configured, throwing error");

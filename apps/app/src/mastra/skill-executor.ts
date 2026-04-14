@@ -8,8 +8,7 @@
 import { streamText } from "ai";
 import { ResultAsync, ok } from "neverthrow";
 import {
-  getStreamModel,
-  getModelConfig,
+  getModel,
   createCheckAgent,
   createFixAgent,
   logger,
@@ -17,6 +16,14 @@ import {
 } from "@repo/agent";
 import { extractStructuredOutput } from "./output";
 import type { StreamCallback, ProgressCallback } from "./prompt-executor";
+
+const isRetryableError = (msg: string) =>
+  msg.includes("reasoning_content") ||
+  msg.includes("other side closed") ||
+  msg.includes("ECONNRESET") ||
+  msg.includes("ETIMEDOUT") ||
+  msg.includes("fetch failed") ||
+  msg.includes("Cannot connect");
 
 export interface RunSkillOptions {
   skillId: string;
@@ -86,63 +93,56 @@ export const runSkill = ({
           inputPath,
           mode: isImplementMode ? "fix" : "check",
         },
-        "runSkill: starting"
+        "runSkill: starting",
       );
       await onProgress?.(
-        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`
+        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`,
       );
       await onProgress?.(`[Mastra] runSkill: mode=${isImplementMode ? "fix" : "check"}`);
 
       // Use Mastra Agent with tools if we have a project path
       if (inputPath) {
-        const modelConfig = await getModelConfig(getSettings, modelOverride);
-        if (!modelConfig) {
-          logger.warn("runSkill: No model config — returning fallback");
-          await onProgress?.("[Mastra] runSkill: No model config — returning fallback report");
+        const model = await getModel(getSettings, modelOverride);
+        if (!model) {
+          logger.warn("runSkill: No model — returning fallback");
+          await onProgress?.("[Mastra] runSkill: No model — returning fallback report");
           return generateFallbackReport();
         }
 
         const agentOpts = {
           skillId,
           skillDescription,
-          model: modelConfig,
+          model,
           projectRoot: inputPath,
         };
-        const agent = isImplementMode ? createFixAgent(agentOpts) : createCheckAgent(agentOpts);
+        const { agent, reportCapture } = isImplementMode
+          ? createFixAgent(agentOpts)
+          : createCheckAgent(agentOpts);
 
         logger.info("runSkill: starting agent.generate (tool-use mode)");
         await onProgress?.("[Mastra] runSkill: Starting agent.generate (tool-use mode)...");
 
-        const MAX_ATTEMPTS = 2;
+        const MAX_ATTEMPTS = 3;
+
         const generateWithRetry = async (): Promise<Awaited<
           ReturnType<typeof agent.generate>
         > | null> => {
           for (const attempt of Array.from({ length: MAX_ATTEMPTS }, (_, i) => i + 1)) {
             try {
-              return await agent.generate(userPrompt, {
-                maxSteps: 25,
-                ...(attempt > 1
-                  ? {
-                      providerOptions: {
-                        openai: { reasoning_effort: "none" },
-                      },
-                    }
-                  : {}),
-              });
+              return await agent.generate(userPrompt, { maxSteps: 40 });
             } catch (error) {
               const errMsg = error instanceof Error ? error.message : String(error);
-              const isThinkingError = errMsg.includes("reasoning_content");
               logger.error(
                 { attempt, maxAttempts: MAX_ATTEMPTS, err: errMsg },
-                "runSkill: agent.generate threw"
+                "runSkill: agent.generate threw",
               );
               await onProgress?.(
-                `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`
+                `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`,
               );
 
-              if (isThinkingError && attempt < MAX_ATTEMPTS) {
-                logger.info("runSkill: retrying with reasoning disabled");
-                await onProgress?.("[Mastra] runSkill: Retrying with reasoning disabled...");
+              if (isRetryableError(errMsg) && attempt < MAX_ATTEMPTS) {
+                logger.info("runSkill: retrying...");
+                await onProgress?.("[Mastra] runSkill: Retrying...");
                 continue;
               }
 
@@ -158,47 +158,61 @@ export const runSkill = ({
         const stepCount = result.steps?.length ?? 0;
         const toolCallCount = (result.steps ?? []).reduce(
           (acc, step) => acc + (step.toolCalls?.length ?? 0),
-          0
+          0,
         );
-
-        // If result.text is empty, try to salvage text from intermediate steps
-        const outputText = (() => {
-          if (result.text) return result.text;
-          if (result.steps?.length) {
-            const stepTexts = result.steps.map((s) => s.text ?? "").filter((t) => t.length > 50);
-            if (stepTexts.length > 0) return stepTexts.at(-1) ?? "";
-          }
-          return "";
-        })();
-        if (!result.text && outputText) {
-          logger.info({ salvagedLen: outputText.length }, "runSkill: salvaged text from steps");
-          await onProgress?.(
-            `[Mastra] runSkill: Salvaged ${outputText.length} chars from step text`
-          );
-        }
 
         logger.info(
-          { stepCount, toolCallCount, outputLen: outputText.length },
-          "runSkill: agent complete"
+          { stepCount, toolCallCount, capturedReport: !!reportCapture.report },
+          "runSkill: agent complete",
         );
         await onProgress?.(
-          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${outputText.length} chars`
+          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, captured=${!!reportCapture.report}`,
         );
 
-        if (onChunk) await onChunk(outputText);
-
-        if (outputText.length === 0) {
-          logger.warn("runSkill: agent returned empty output — using fallback");
-          await onProgress?.(
-            "[Mastra] runSkill: WARNING — Agent returned empty output, using fallback report"
+        // Priority 1: Use the captured report from submitReport tool
+        if (reportCapture.report) {
+          const captured = reportCapture.report;
+          logger.info(
+            { len: captured.length },
+            "runSkill: using captured report from submitReport tool",
           );
-          return generateFallbackReport();
+          await onProgress?.(`[Mastra] runSkill: Using captured report (${captured.length} chars)`);
+          if (onChunk) await onChunk(captured);
+          return captured;
         }
-        return extractStructuredOutput(outputText);
+
+        // Priority 2: Use result.text if available
+        if (result.text && result.text.length > 20) {
+          logger.info({ len: result.text.length }, "runSkill: using result.text");
+          await onProgress?.(`[Mastra] runSkill: Using result.text (${result.text.length} chars)`);
+          if (onChunk) await onChunk(result.text);
+          return extractStructuredOutput(result.text);
+        }
+
+        // Priority 3: Try to salvage from intermediate steps
+        if (result.steps?.length) {
+          const stepTexts = result.steps
+            .map((s) => s.text ?? "")
+            .filter((t) => t.length > 20)
+            .sort((a, b) => b.length - a.length);
+          if (stepTexts[0]) {
+            logger.info({ len: stepTexts[0].length }, "runSkill: salvaged from step text");
+            await onProgress?.(
+              `[Mastra] runSkill: Salvaged ${stepTexts[0].length} chars from step text`,
+            );
+            if (onChunk) await onChunk(stepTexts[0]);
+            return extractStructuredOutput(stepTexts[0]);
+          }
+        }
+
+        // Fallback
+        logger.warn("runSkill: no report captured and no text output — using fallback");
+        await onProgress?.("[Mastra] runSkill: WARNING — No output, using fallback report");
+        return generateFallbackReport();
       }
 
       // Fallback to streaming without tools if no project path
-      const model = await getStreamModel(getSettings, modelOverride);
+      const model = await getModel(getSettings, modelOverride);
       if (!model) {
         logger.warn("runSkill: No LLM model — returning fallback");
         await onProgress?.("[Mastra] runSkill: No LLM model — returning fallback report");
@@ -220,21 +234,21 @@ export const runSkill = ({
       const accumulated = chunks.join("");
       logger.info(
         { outputLen: accumulated.length, chunks: chunks.length },
-        "runSkill: stream complete"
+        "runSkill: stream complete",
       );
       await onProgress?.(
-        `[Mastra] runSkill: Stream complete, chunks=${chunks.length}, total output=${accumulated.length} chars`
+        `[Mastra] runSkill: Stream complete, chunks=${chunks.length}, total output=${accumulated.length} chars`,
       );
       if (accumulated.length === 0) {
         logger.warn("runSkill: LLM returned empty output — using fallback");
         await onProgress?.(
-          "[Mastra] runSkill: WARNING — LLM returned empty output, using fallback report"
+          "[Mastra] runSkill: WARNING — LLM returned empty output, using fallback report",
         );
         return generateFallbackReport();
       }
       return extractStructuredOutput(accumulated);
     })(),
-    (cause) => cause
+    (cause) => cause,
   ).orElse((cause) => {
     const errMsg = cause instanceof Error ? cause.message : String(cause);
     logger.error({ err: errMsg }, "runSkill: agent call failed");
