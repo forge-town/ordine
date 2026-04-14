@@ -35,7 +35,7 @@ export const listDirectory = (dirPath?: string): ResultAsync<DirectoryEntry[], F
       ResultAsync.fromPromise(readdir(resolvedPath, { withFileTypes: true }), () => ({
         type: "PermissionDenied" as const,
         message: `Cannot read directory: ${resolvedPath}`,
-      }))
+      })),
     )
     .map((dirents) => {
       const entries: DirectoryEntry[] = dirents.map((d) => ({
@@ -63,7 +63,7 @@ const DEFAULT_MAX_DEPTH = 4;
 
 export const listDirTree = async (
   rootDir: string,
-  options?: ListDirTreeOptions
+  options?: ListDirTreeOptions,
 ): Promise<string> => {
   if (!existsSync(rootDir)) return "";
 
@@ -149,16 +149,18 @@ const MAX_TOTAL_SIZE = 500_000; // 500KB total
 
 export interface ReadProjectFilesOptions {
   excludedPaths?: string[];
+  includedExtensions?: string[];
   maxDepth?: number;
 }
 
 export const readProjectFiles = async (
   rootDir: string,
-  options?: ReadProjectFilesOptions
+  options?: ReadProjectFilesOptions,
 ): Promise<string> => {
   if (!existsSync(rootDir)) return "";
 
   const excludedPaths = options?.excludedPaths ?? [];
+  const includedExtensions = options?.includedExtensions?.map((e) => e.toLowerCase());
   const maxDepth = options?.maxDepth ?? 6;
   const allExcluded = [...ALWAYS_EXCLUDED, ...excludedPaths];
 
@@ -167,6 +169,7 @@ export const readProjectFiles = async (
 
   const isTextFile = (name: string) => {
     const ext = extname(name).toLowerCase();
+    if (includedExtensions) return includedExtensions.includes(ext);
     return TEXT_EXTENSIONS.has(ext) || name.startsWith(".");
   };
 
@@ -204,7 +207,7 @@ export const readProjectFiles = async (
 
   if (state.totalSize >= MAX_TOTAL_SIZE) {
     parts.push(
-      `\n... (truncated at ${MAX_TOTAL_SIZE} chars total, ${files.length} files included)`
+      `\n... (truncated at ${MAX_TOTAL_SIZE} chars total, ${files.length} files included)`,
     );
   }
 

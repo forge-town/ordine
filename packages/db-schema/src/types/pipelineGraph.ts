@@ -36,6 +36,8 @@ export interface FolderNodeData {
   nodeType: "folder";
   folderPath: string;
   excludedPaths?: string[];
+  disclosureMode?: "tree" | "full" | "files-only";
+  includedExtensions?: string[];
   description?: string;
 }
 
@@ -85,6 +87,7 @@ export interface OutputLocalPathNodeData {
   localPath: string;
   outputFileName?: string;
   outputMode?: OutputMode;
+  dualOutput?: boolean;
   description?: string;
 }
 
