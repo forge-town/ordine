@@ -1,4 +1,4 @@
-import { ProjectsPageContent } from "./ProjectsPageContent/ProjectsPageContent";
+import { ProjectsPageContent } from "./ProjectsPageContent";
 
 export const ProjectsPage = () => {
   return <ProjectsPageContent />;

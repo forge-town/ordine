@@ -1,6 +1,6 @@
 import { safeJsonParse } from "@/lib/safeJson";
 import { SettingsStoreProvider, type AppSettings } from "./_store";
-import { SettingsPageContent } from "./SettingsPageContent/SettingsPageContent";
+import { SettingsPageContent } from "./SettingsPageContent";
 
 const STORAGE_KEY = "ordine_settings_v1";
 

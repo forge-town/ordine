@@ -1,4 +1,4 @@
-import { RulesPageContent } from "./RulesPageContent/RulesPageContent";
+import { RulesPageContent } from "./RulesPageContent";
 
 export const RulesPage = () => {
   return <RulesPageContent />;
