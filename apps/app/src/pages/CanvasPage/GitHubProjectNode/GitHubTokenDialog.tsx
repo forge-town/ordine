@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Key, Eye, EyeOff, ExternalLink, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
@@ -89,11 +90,12 @@ const GitHubTokenDialogContent = ({
       <div className="space-y-4">
         {/* 当前状态 */}
         <div
-          className={`flex items-start gap-2 rounded-lg p-3 text-sm ${
+          className={cn(
+            "flex items-start gap-2 rounded-lg p-3 text-sm",
             savedToken
               ? "bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
-              : "bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400"
-          }`}
+              : "bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400",
+          )}
         >
           {savedToken ? (
             <>

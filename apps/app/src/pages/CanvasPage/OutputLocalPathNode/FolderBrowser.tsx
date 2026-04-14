@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useList } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
+import { cn } from "@repo/ui/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -173,9 +174,10 @@ export const FolderBrowser = ({
               {entries.map((entry) => (
                 <button
                   key={entry.path}
-                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-accent ${
-                    selectedFile === entry.path ? "bg-accent ring-1 ring-teal-400" : ""
-                  }`}
+                  className={cn(
+                    "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-accent",
+                    selectedFile === entry.path && "bg-accent ring-1 ring-teal-400",
+                  )}
                   type="button"
                   onClick={() => handleFileClick(entry)}
                 >

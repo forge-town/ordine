@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { cn } from "@repo/ui/lib/utils";
 import { X, Check } from "lucide-react";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
@@ -156,11 +157,12 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
             return (
               <button
                 key={type}
-                className={`rounded-md border px-3 py-1 text-xs font-medium transition-colors ${
+                className={cn(
+                  "rounded-md border px-3 py-1 text-xs font-medium transition-colors",
                   active
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
-                }`}
+                    : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                )}
                 type="button"
                 onClick={() => handleToggleObjectType(type as ObjectType)}
               >

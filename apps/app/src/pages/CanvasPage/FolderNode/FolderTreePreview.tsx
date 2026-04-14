@@ -1,6 +1,7 @@
 import { Folder, File, Ban, RotateCw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@repo/ui/button";
+import { cn } from "@repo/ui/lib/utils";
 
 interface DirectoryEntry {
   name: string;
@@ -66,9 +67,10 @@ export const FolderTreePreview = ({
               <File className="h-3 w-3 shrink-0 text-slate-400" />
             )}
             <span
-              className={`flex-1 truncate font-mono ${
-                isExcluded ? "line-through text-slate-400" : "text-slate-600"
-              }`}
+              className={cn(
+                "flex-1 truncate font-mono",
+                isExcluded ? "line-through text-slate-400" : "text-slate-600",
+              )}
             >
               {entry.name}
             </span>

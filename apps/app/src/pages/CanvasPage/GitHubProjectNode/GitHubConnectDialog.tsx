@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link2, Loader2, AlertCircle, Lock, Globe, Key } from "lucide-react";
+import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
@@ -54,7 +55,7 @@ export const GitHubConnectDialog = ({
         setRepoInfo(info);
         setStep("confirm");
       },
-      (errorMsg) => setError(errorMsg)
+      (errorMsg) => setError(errorMsg),
     );
     setLoading(false);
   };
@@ -105,9 +106,10 @@ export const GitHubConnectDialog = ({
             <div className="space-y-4">
               {/* Token 状态提示 */}
               <div
-                className={`flex items-center justify-between rounded-md px-3 py-2 text-xs ${
-                  token ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700"
-                }`}
+                className={cn(
+                  "flex items-center justify-between rounded-md px-3 py-2 text-xs",
+                  token ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700",
+                )}
               >
                 <div className="flex items-center gap-1.5">
                   <Key className="h-3.5 w-3.5" />
