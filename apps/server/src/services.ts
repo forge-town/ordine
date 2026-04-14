@@ -1,5 +1,6 @@
 import { db } from "@repo/db";
-import { createSkillsDao, createSkillsService } from "@repo/services";
+import { createSkillsDao } from "@repo/models";
+import { createSkillsService } from "@repo/services";
 
 const skillsDao = createSkillsDao(db);
 

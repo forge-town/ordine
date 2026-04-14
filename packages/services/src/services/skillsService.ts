@@ -1,4 +1,4 @@
-import type { createSkillsDao, SkillEntity } from "../daos/skillsDao.js";
+import type { createSkillsDao, SkillEntity } from "@repo/models";
 
 type SkillsDao = ReturnType<typeof createSkillsDao>;
 
