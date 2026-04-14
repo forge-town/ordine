@@ -4,7 +4,7 @@ import { Activity, Search, Filter } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import type { JobEntity } from "@/models/daos/jobsDao";
+import type { JobEntity } from "@repo/models";
 import type { JobStatus } from "@/models/tables/jobs_table";
 import { Route } from "@/routes/_layout/jobs.index";
 import { deleteJob } from "@/services/jobsService";

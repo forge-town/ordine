@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SkillSchema } from "@/schemas";
-import { skillsDao } from "@/models/daos/skillsDao";
+import { skillsDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const UpdateSkillSchema = SkillSchema.partial().omit({ id: true });

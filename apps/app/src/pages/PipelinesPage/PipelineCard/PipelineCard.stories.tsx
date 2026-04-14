@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { PipelineCard } from "./PipelineCard";
-import type { StoredPipeline } from "@/models/daos/pipelinesDao";
+import type { StoredPipeline } from "@repo/models";
 
 const mockPipeline = {
   id: "pipe-001",

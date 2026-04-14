@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { JobDetailPageContent } from "./JobDetailPageContent";
-import type { JobEntity } from "@/models/daos/jobsDao";
+import type { JobEntity } from "@repo/models";
 
 const mockJob: JobEntity = {
   id: "job-1",

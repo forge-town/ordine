@@ -1,6 +1,6 @@
 import { ChevronRight, Layers } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import type { PipelineEntity } from "@/models/daos/pipelinesDao";
+import type { PipelineEntity } from "@repo/models";
 
 export type PipelineRowProps = {
   pipeline: PipelineEntity;

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
-import { operationsDao } from "@/models/daos/operationsDao";
+import { operationsDao } from "@repo/models";
 import { type ObjectType } from "@/models/tables/operations_table";
 import { ObjectTypeSchema as ObjectTypeEnum } from "@/schemas";
 

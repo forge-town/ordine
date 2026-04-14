@@ -3,7 +3,7 @@
  */
 
 import { getModel as getModelRaw, type SettingsResolver } from "@repo/agent";
-import { settingsDao } from "@/models/daos/settingsDao";
+import { settingsDao } from "@repo/models";
 
 const getSettings: SettingsResolver = async () => {
   const s = await settingsDao.get();

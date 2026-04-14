@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PipelineSchema } from "@/schemas";
-import { pipelinesDao } from "@/models/daos/pipelinesDao";
+import { pipelinesDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const UpdatePipelineSchema = PipelineSchema.partial().omit({ id: true });

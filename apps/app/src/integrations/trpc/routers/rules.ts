@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { rulesDao } from "@/models/daos/rulesDao";
+import { rulesDao } from "@repo/models";
 import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@/schemas";
 
 export const rulesRouter = router({

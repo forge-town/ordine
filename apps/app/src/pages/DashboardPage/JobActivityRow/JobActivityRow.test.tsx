@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { JobActivityRow } from "./JobActivityRow";
-import type { JobEntity } from "@/models/daos/jobsDao";
+import type { JobEntity } from "@repo/models";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({

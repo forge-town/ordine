@@ -1,7 +1,7 @@
 import { eq, desc, and } from "drizzle-orm";
 import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
-import { db } from "@/db";
-import { jobsTable, type JobRow, type NewJobRow, type JobStatus } from "@/models/tables/jobs_table";
+import { db } from "@repo/db";
+import { jobsTable, type JobRow, type NewJobRow, type JobStatus } from "@repo/db-schema";
 
 export type JobEntity = Omit<JobRow, "createdAt" | "updatedAt" | "startedAt" | "finishedAt"> & {
   createdAt: number;
@@ -43,7 +43,7 @@ export const jobsDao = {
 
   async findById(id: string): Promise<JobEntity | null> {
     const rows = await db.select().from(jobsTable).where(eq(jobsTable.id, id)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async create(data: Omit<JobEntity, "createdAt" | "updatedAt">): Promise<JobEntity> {
@@ -56,7 +56,7 @@ export const jobsDao = {
       updatedAt: now,
     };
     const [inserted] = await db.insert(jobsTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async createWithTx(
@@ -72,7 +72,7 @@ export const jobsDao = {
       updatedAt: now,
     };
     const [inserted] = await tx.insert(jobsTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async updateStatus(

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { OperationEditPage } from "./OperationEditPage";
-import type { OperationEntity } from "@/models/daos/operationsDao";
+import type { OperationEntity } from "@repo/models";
 
 const mockOp: OperationEntity = {
   id: "op-1",

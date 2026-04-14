@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { settingsDao } from "@/models/daos/settingsDao";
+import { settingsDao } from "@repo/models";
 import { LLM_PROVIDERS } from "@/models/tables/settings_table";
 
 const UpdateSettingsSchema = z.object({

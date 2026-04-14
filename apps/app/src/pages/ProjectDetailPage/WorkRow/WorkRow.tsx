@@ -1,7 +1,7 @@
 import { CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
-import type { WorkEntity } from "@/models/daos/worksDao";
+import type { WorkEntity } from "@repo/models";
 
 const STATUS_ICONS = {
   pending: Clock,

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { WorkRow } from "./WorkRow";
-import type { WorkEntity } from "@/models/daos/worksDao";
+import type { WorkEntity } from "@repo/models";
 
 const mockWork: WorkEntity = {
   id: "work-001",

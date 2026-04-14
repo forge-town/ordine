@@ -1,11 +1,11 @@
 import { eq, desc } from "drizzle-orm";
 import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
-import { db } from "@/db";
+import { db } from "@repo/db";
 import {
   bestPracticesTable,
   type BestPracticeRow,
   type NewBestPracticeRow,
-} from "@/models/tables/best_practices_table";
+} from "@repo/db-schema";
 
 export type BestPracticeEntity = Omit<BestPracticeRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
@@ -37,7 +37,7 @@ export const bestPracticesDao = {
       .from(bestPracticesTable)
       .where(eq(bestPracticesTable.id, id))
       .limit(1);
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async create(
@@ -46,7 +46,7 @@ export const bestPracticesDao = {
     const now = new Date();
     const row: NewBestPracticeRow = { ...data, createdAt: now, updatedAt: now };
     const [inserted] = await db.insert(bestPracticesTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async createWithTx(
@@ -56,7 +56,7 @@ export const bestPracticesDao = {
     const now = new Date();
     const row: NewBestPracticeRow = { ...data, createdAt: now, updatedAt: now };
     const [inserted] = await tx.insert(bestPracticesTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async update(

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { OperationDetailPageContent } from "./OperationDetailPageContent";
-import type { OperationEntity } from "@/models/daos/operationsDao";
+import type { OperationEntity } from "@repo/models";
 
 const mockUseLoaderData = vi.fn();
 

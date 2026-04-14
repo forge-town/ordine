@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { pipelinesDao } from "@/models/daos/pipelinesDao";
+import { pipelinesDao } from "@repo/models";
 import { PipelineSchema } from "@/schemas";
 
 export const pipelinesRouter = router({

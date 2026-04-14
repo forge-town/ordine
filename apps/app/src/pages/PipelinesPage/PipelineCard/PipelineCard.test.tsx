@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { PipelineCard } from "./PipelineCard";
-import type { StoredPipeline } from "@/models/daos/pipelinesDao";
+import type { StoredPipeline } from "@repo/models";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,

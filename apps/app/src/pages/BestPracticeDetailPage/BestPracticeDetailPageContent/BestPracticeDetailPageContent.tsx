@@ -18,9 +18,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
-import type { ChecklistItemEntity } from "@/models/daos/checklistItemsDao";
-import type { CodeSnippetEntity } from "@/models/daos/codeSnippetsDao";
+import type { BestPracticeEntity, ChecklistItemEntity, CodeSnippetEntity } from "@repo/models";
 import { exportSingleBestPractice } from "@/lib/exportBestPractice";
 import { CATEGORIES, CATEGORY_COLORS } from "@/pages/BestPracticesPage/constants";
 

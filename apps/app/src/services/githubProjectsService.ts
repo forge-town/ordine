@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
-import { githubProjectsDao } from "@/models/daos/githubProjectsDao";
+import { githubProjectsDao } from "@repo/models";
 import { GithubProjectSchema } from "@/schemas";
 
 export const getGithubProjects = createServerFn({ method: "GET" }).handler(async () =>

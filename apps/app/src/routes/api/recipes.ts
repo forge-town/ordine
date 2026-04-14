@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
-import { recipesDao } from "@/models/daos/recipesDao";
+import { recipesDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const CreateRecipeSchema = z.object({

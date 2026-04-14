@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { OperationsPageContent } from "./OperationsPageContent";
-import type { OperationEntity } from "@/models/daos/operationsDao";
+import type { OperationEntity } from "@repo/models";
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),

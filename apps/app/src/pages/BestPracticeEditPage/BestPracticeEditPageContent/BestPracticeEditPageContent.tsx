@@ -24,9 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
-import type { ChecklistItemEntity } from "@/models/daos/checklistItemsDao";
-import type { CodeSnippetEntity } from "@/models/daos/codeSnippetsDao";
+import type { BestPracticeEntity, ChecklistItemEntity, CodeSnippetEntity } from "@repo/models";
 import { updateBestPractice } from "@/services/bestPracticesService";
 import {
   createChecklistItem,

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Clock, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import type { JobEntity } from "@/models/daos/jobsDao";
+import type { JobEntity } from "@repo/models";
 
 const JOB_STATUS_ICON: Record<string, React.ElementType> = {
   queued: Clock,

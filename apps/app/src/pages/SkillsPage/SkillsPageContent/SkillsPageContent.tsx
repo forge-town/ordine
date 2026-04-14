@@ -5,7 +5,7 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
-import type { SkillEntity } from "@/models/daos/skillsDao";
+import type { SkillEntity } from "@repo/models";
 import { Route } from "@/routes/_layout/skills";
 
 export type Skill = SkillEntity;

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
-import { jobsDao } from "@/models/daos/jobsDao";
+import { jobsDao } from "@repo/models";
 import { JobStatusSchema, JobTypeSchema } from "@/schemas";
 
 export const getJobs = createServerFn({ method: "GET" })

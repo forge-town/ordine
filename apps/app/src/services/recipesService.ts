@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
-import { recipesDao } from "@/models/daos/recipesDao";
+import { recipesDao } from "@repo/models";
 import { RecipeSchema } from "@/schemas";
 
 export const getRecipes = createServerFn({ method: "GET" }).handler(() => recipesDao.findMany());

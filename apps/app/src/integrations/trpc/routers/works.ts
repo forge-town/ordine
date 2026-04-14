@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { worksDao } from "@/models/daos/worksDao";
+import { worksDao } from "@repo/models";
 import { WorkObjectSchema } from "@/schemas";
 
 export const worksRouter = router({

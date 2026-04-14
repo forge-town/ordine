@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { githubProjectsDao } from "@/models/daos/githubProjectsDao";
+import { githubProjectsDao } from "@repo/models";
 import { GithubProjectSchema } from "@/schemas";
 
 export const githubProjectsRouter = router({

@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { randomUUID } from "node:crypto";
-import { jobsDao } from "@/models/daos/jobsDao";
-import { pipelinesDao } from "@/models/daos/pipelinesDao";
+import { jobsDao, pipelinesDao } from "@repo/models";
 import { runPipeline } from "@/services/pipelineRunnerService";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 

@@ -1,7 +1,7 @@
 import { eq, desc } from "drizzle-orm";
 import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
-import { db } from "@/db";
-import { recipesTable, type RecipeRow, type NewRecipeRow } from "@/models/tables/recipes_table";
+import { db } from "@repo/db";
+import { recipesTable, type RecipeRow, type NewRecipeRow } from "@repo/db-schema";
 
 export type RecipeEntity = Omit<RecipeRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
@@ -26,7 +26,7 @@ export const recipesDao = {
 
   async findById(id: string): Promise<RecipeEntity | null> {
     const rows = await db.select().from(recipesTable).where(eq(recipesTable.id, id)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async findByOperationId(operationId: string): Promise<RecipeEntity[]> {
@@ -42,7 +42,7 @@ export const recipesDao = {
     const now = new Date();
     const row: NewRecipeRow = { ...data, createdAt: now, updatedAt: now };
     const [inserted] = await db.insert(recipesTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async createWithTx(
@@ -52,7 +52,7 @@ export const recipesDao = {
     const now = new Date();
     const row: NewRecipeRow = { ...data, createdAt: now, updatedAt: now };
     const [inserted] = await tx.insert(recipesTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async update(

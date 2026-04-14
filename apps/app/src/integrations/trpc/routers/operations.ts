@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { operationsDao } from "@/models/daos/operationsDao";
+import { operationsDao } from "@repo/models";
 import { OBJECT_TYPES } from "@/models/tables/operations_table";
 
 const ObjectTypeEnum = z.enum(OBJECT_TYPES);

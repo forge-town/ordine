@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { JobRow } from "./JobRow";
-import type { JobEntity } from "@/models/daos/jobsDao";
+import type { JobEntity } from "@repo/models";
 
 const baseJob: JobEntity = {
   id: "job-001",

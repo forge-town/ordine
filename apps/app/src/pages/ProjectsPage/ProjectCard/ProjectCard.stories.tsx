@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ProjectCard } from "./ProjectCard";
-import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
+import type { GithubProjectEntity } from "@repo/models";
 
 const mockProject = {
   id: "proj-001",

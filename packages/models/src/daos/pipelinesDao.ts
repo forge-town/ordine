@@ -1,12 +1,12 @@
 import { eq, desc } from "drizzle-orm";
 import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
-import { db } from "@/db";
+import { db } from "@repo/db";
 import {
   pipelinesTable,
   type NewPipelineRow,
   type PipelineRow,
-} from "@/models/tables/pipelines_table";
-import type { PipelineNode, PipelineEdge } from "@/models/types/pipelineGraph";
+} from "@repo/db-schema";
+import type { PipelineNode, PipelineEdge } from "@repo/db-schema";
 
 export type PipelineEntity = Omit<PipelineRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
@@ -44,7 +44,7 @@ export const pipelinesDao = {
 
   async findById(id: string): Promise<PipelineEntity | null> {
     const rows = await db.select().from(pipelinesTable).where(eq(pipelinesTable.id, id)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async create(
@@ -59,7 +59,7 @@ export const pipelinesDao = {
       updatedAt: now,
     };
     const [inserted] = await db.insert(pipelinesTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async createWithTx(
@@ -75,7 +75,7 @@ export const pipelinesDao = {
       updatedAt: now,
     };
     const [inserted] = await tx.insert(pipelinesTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async update(

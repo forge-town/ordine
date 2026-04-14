@@ -13,7 +13,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
+import type { BestPracticeEntity } from "@repo/models";
 import { exportSingleBestPractice } from "@/lib/exportBestPractice";
 import { CATEGORIES, CATEGORY_COLORS } from "../constants";
 

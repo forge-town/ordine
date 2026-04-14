@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import { getGithubProjects } from "@/services/githubProjectsService";
-import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
+import type { GithubProjectEntity } from "@repo/models";
 
 export interface PickedProject {
   githubProjectId: string;

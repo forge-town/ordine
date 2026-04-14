@@ -1,6 +1,5 @@
 import { publicProcedure, router } from "../init";
-import { checklistItemsDao } from "@/models/daos/checklistItemsDao";
-import { checklistResultsDao } from "@/models/daos/checklistResultsDao";
+import { checklistItemsDao, checklistResultsDao } from "@repo/models";
 import { ChecklistItemSchema, ChecklistResultSchema } from "@/schemas";
 import { z } from "zod/v4";
 

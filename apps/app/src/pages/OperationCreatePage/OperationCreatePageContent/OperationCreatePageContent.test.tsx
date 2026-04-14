@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { OperationCreatePageContent } from "./OperationCreatePageContent";
-import type { SkillEntity } from "@/models/daos/skillsDao";
+import type { SkillEntity } from "@repo/models";
 
 const mockNavigate = vi.fn();
 const mockCreateOperation = vi.fn();

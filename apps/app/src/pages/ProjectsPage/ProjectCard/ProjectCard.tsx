@@ -1,5 +1,5 @@
 import { FolderGit2, GitBranch, Clock, ExternalLink, X } from "lucide-react";
-import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
+import type { GithubProjectEntity } from "@repo/models";
 
 const handleExternalLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => e.stopPropagation();
 

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { OperationsPageContent } from "./OperationsPageContent";
-import type { OperationEntity } from "@/models/daos/operationsDao";
+import type { OperationEntity } from "@repo/models";
 import { createOperation } from "@/services/operationsService";
 import { useToastStore } from "@/store/toastStore";
 

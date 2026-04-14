@@ -1,9 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Layers, FolderGit2, Activity, Lightbulb, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { PipelineEntity } from "@/models/daos/pipelinesDao";
-import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
-import type { JobEntity } from "@/models/daos/jobsDao";
+import type { PipelineEntity, GithubProjectEntity, JobEntity } from "@repo/models";
 import { Route } from "@/routes/_layout/index";
 import { StatCard } from "../StatCard";
 import { JobActivityRow } from "../JobActivityRow";

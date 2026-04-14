@@ -6,7 +6,7 @@ import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
-import type { RuleEntity } from "@/models/daos/rulesDao";
+import type { RuleEntity } from "@repo/models";
 import { SEVERITY_CONFIG, CATEGORY_CONFIG } from "@/pages/RulesPage/types";
 
 interface Props {

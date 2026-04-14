@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { RuleCard } from "./RuleCard";
-import type { RuleEntity } from "@/models/daos/rulesDao";
+import type { RuleEntity } from "@repo/models";
 
 const mockRule: RuleEntity = {
   id: "rule-1",

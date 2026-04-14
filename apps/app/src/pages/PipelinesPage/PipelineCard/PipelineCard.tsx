@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Card } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
-import type { StoredPipeline } from "@/models/daos/pipelinesDao";
+import type { StoredPipeline } from "@repo/models";
 
 const NODE_TYPE_COLORS: Record<string, string> = {
   input: "bg-emerald-100 text-emerald-700",

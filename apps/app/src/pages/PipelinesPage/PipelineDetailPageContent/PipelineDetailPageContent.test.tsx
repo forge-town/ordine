@@ -2,8 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
-import type { PipelineEntity } from "@/models/daos/pipelinesDao";
-import type { OperationEntity } from "@/models/daos/operationsDao";
+import type { PipelineEntity, OperationEntity } from "@repo/models";
 
 const mockNavigate = vi.fn();
 

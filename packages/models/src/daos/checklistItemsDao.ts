@@ -1,11 +1,11 @@
 import { eq, asc } from "drizzle-orm";
 import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
-import { db } from "@/db";
+import { db } from "@repo/db";
 import {
   checklistItemsTable,
   type ChecklistItemRow,
   type NewChecklistItemRow,
-} from "@/models/tables/checklist_items_table";
+} from "@repo/db-schema";
 
 export type ChecklistItemEntity = Omit<ChecklistItemRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
@@ -38,7 +38,7 @@ export const checklistItemsDao = {
       .from(checklistItemsTable)
       .where(eq(checklistItemsTable.id, id))
       .limit(1);
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async create(
@@ -51,7 +51,7 @@ export const checklistItemsDao = {
       updatedAt: now,
     };
     const [inserted] = await db.insert(checklistItemsTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async createWithTx(
@@ -65,7 +65,7 @@ export const checklistItemsDao = {
       updatedAt: now,
     };
     const [inserted] = await tx.insert(checklistItemsTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async update(

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ProjectMeta } from "./ProjectMeta";
-import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
+import type { GithubProjectEntity } from "@repo/models";
 
 const mockProject = {
   id: "proj-001",

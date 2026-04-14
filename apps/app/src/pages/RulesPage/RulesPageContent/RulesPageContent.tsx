@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useLoaderData, useNavigate } from "@tanstack/react-router";
-import type { RuleEntity, RuleCategory } from "@/models/daos/rulesDao";
+import type { RuleEntity, RuleCategory } from "@repo/models";
 import { deleteRule, toggleRule } from "@/services/rulesService";
 import { CATEGORY_FILTERS } from "../types";
 import { RuleCard } from "../RuleCard";

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { WorkRow } from "./WorkRow";
-import type { WorkEntity } from "@/models/daos/worksDao";
+import type { WorkEntity } from "@repo/models";
 
 const mockWork = {
   id: "work-001",

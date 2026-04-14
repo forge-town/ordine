@@ -1,11 +1,11 @@
 import { eq, desc } from "drizzle-orm";
 import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
-import { db } from "@/db";
+import { db } from "@repo/db";
 import {
   githubProjectsTable,
   type GithubProjectRow,
   type NewGithubProjectRow,
-} from "@/models/tables/github_projects_table";
+} from "@repo/db-schema";
 
 export type GithubProjectEntity = Omit<GithubProjectRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
@@ -37,7 +37,7 @@ export const githubProjectsDao = {
       .from(githubProjectsTable)
       .where(eq(githubProjectsTable.id, id))
       .limit(1);
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async create(
@@ -50,7 +50,7 @@ export const githubProjectsDao = {
       updatedAt: now,
     };
     const [inserted] = await db.insert(githubProjectsTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async createWithTx(
@@ -64,7 +64,7 @@ export const githubProjectsDao = {
       updatedAt: now,
     };
     const [inserted] = await tx.insert(githubProjectsTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async update(

@@ -5,7 +5,7 @@ import { parseGitHubUrl, fetchRepoInfo, type GitHubRepoInfo } from "@/lib/github
 import { useGithubToken } from "@/hooks/useGithubToken";
 import { GitHubTokenDialog } from "@/pages/CanvasPage/GitHubProjectNode/GitHubTokenDialog";
 import { createGithubProject } from "@/services/githubProjectsService";
-import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
+import type { GithubProjectEntity } from "@repo/models";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";

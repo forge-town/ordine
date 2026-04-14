@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BestPracticeSchema } from "@/schemas";
-import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
+import { bestPracticesDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const UpdateBestPracticeSchema = BestPracticeSchema.partial().omit({

@@ -1,12 +1,12 @@
 import { eq, desc } from "drizzle-orm";
 import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
-import { db } from "@/db";
+import { db } from "@repo/db";
 import {
   operationsTable,
   type OperationRow,
   type NewOperationRow,
   type ObjectType,
-} from "@/models/tables/operations_table";
+} from "@repo/db-schema";
 
 export type OperationEntity = Omit<
   OperationRow,
@@ -40,12 +40,12 @@ export const operationsDao = {
 
   async findById(id: string): Promise<OperationEntity | null> {
     const rows = await db.select().from(operationsTable).where(eq(operationsTable.id, id)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async create(data: Omit<OperationEntity, "createdAt" | "updatedAt">): Promise<OperationEntity> {
     const [inserted] = await db.insert(operationsTable).values(entityToRow(data)).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async createWithTx(
@@ -53,7 +53,7 @@ export const operationsDao = {
     data: Omit<OperationEntity, "createdAt" | "updatedAt">
   ): Promise<OperationEntity> {
     const [inserted] = await tx.insert(operationsTable).values(entityToRow(data)).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async update(

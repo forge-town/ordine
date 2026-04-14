@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BestPracticesPageContent } from "./BestPracticesPageContent";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
+import type { BestPracticeEntity } from "@repo/models";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, ...props }: Record<string, unknown>) => (

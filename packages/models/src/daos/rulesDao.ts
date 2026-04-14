@@ -1,13 +1,13 @@
 import { eq, desc, and } from "drizzle-orm";
 import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
-import { db } from "@/db";
+import { db } from "@repo/db";
 import {
   rulesTable,
   type RuleRow,
   type NewRuleRow,
   type RuleCategory,
   type RuleSeverity,
-} from "@/models/tables/rules_table";
+} from "@repo/db-schema";
 
 export type RuleEntity = Omit<RuleRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
@@ -40,14 +40,14 @@ export const rulesDao = {
 
   async findById(id: string): Promise<RuleEntity | null> {
     const rows = await db.select().from(rulesTable).where(eq(rulesTable.id, id)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async create(data: Omit<RuleEntity, "createdAt" | "updatedAt">): Promise<RuleEntity> {
     const now = new Date();
     const row: NewRuleRow = { ...data, createdAt: now, updatedAt: now };
     const [inserted] = await db.insert(rulesTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async createWithTx(
@@ -57,7 +57,7 @@ export const rulesDao = {
     const now = new Date();
     const row: NewRuleRow = { ...data, createdAt: now, updatedAt: now };
     const [inserted] = await tx.insert(rulesTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async update(
@@ -69,7 +69,7 @@ export const rulesDao = {
       .set({ ...data, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async updateWithTx(
@@ -82,7 +82,7 @@ export const rulesDao = {
       .set({ ...data, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async toggleEnabled(id: string, enabled: boolean): Promise<RuleEntity | null> {
@@ -91,7 +91,7 @@ export const rulesDao = {
       .set({ enabled, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async toggleEnabledWithTx(
@@ -104,7 +104,7 @@ export const rulesDao = {
       .set({ enabled, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async delete(id: string): Promise<void> {

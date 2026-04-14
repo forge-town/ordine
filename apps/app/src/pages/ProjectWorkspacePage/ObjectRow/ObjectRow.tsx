@@ -1,6 +1,6 @@
 import { FileCode, Folder, FolderGit2, CheckCircle2, Circle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import type { WorkObject } from "@/models/daos/worksDao";
+import type { WorkObject } from "@repo/models";
 
 export type ObjectItem = {
   type: WorkObject["type"];

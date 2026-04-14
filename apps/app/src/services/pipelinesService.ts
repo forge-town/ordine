@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
-import { pipelinesDao } from "@/models/daos/pipelinesDao";
+import { pipelinesDao } from "@repo/models";
 import { PipelineSchema } from "@/schemas";
 
 export const getPipelines = createServerFn({ method: "GET" }).handler(async () => {

@@ -1,6 +1,6 @@
 import { ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
 import { z } from "zod/v4";
-import type { RuleCategory, RuleSeverity, RuleEntity } from "@/models/daos/rulesDao";
+import type { RuleCategory, RuleSeverity, RuleEntity } from "@repo/models";
 import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@/schemas";
 
 export const CATEGORY_CONFIG: Record<RuleCategory, { label: string; cls: string }> = {

@@ -1,5 +1,5 @@
 import { publicProcedure, router } from "../init";
-import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
+import { bestPracticesDao } from "@repo/models";
 import { BestPracticeSchema } from "@/schemas";
 import { z } from "zod/v4";
 

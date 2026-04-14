@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { PracticeFormDialog } from "./PracticeFormDialog";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
+import type { BestPracticeEntity } from "@repo/models";
 
 const mockPractice: BestPracticeEntity = {
   id: "bp-1",

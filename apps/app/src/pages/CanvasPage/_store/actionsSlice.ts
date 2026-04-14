@@ -1,7 +1,6 @@
 import type { PipelineEdge, PipelineNode } from "./canvasSlice";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
-import type { OperationEntity } from "@/models/daos/operationsDao";
-import type { RecipeEntity } from "@/models/daos/recipesDao";
+import type { OperationEntity, RecipeEntity } from "@repo/models";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";

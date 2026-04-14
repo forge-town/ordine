@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { PipelineEntity } from "./pipelinesDao";
+import type { PipelineEntity } from "@repo/models";
 import type * as DrizzleOrm from "drizzle-orm";
 
 // ─── Mock DB ─────────────────────────────────────────────────────────────────
@@ -9,7 +9,7 @@ const mockWhere = vi.fn(() => ({ returning: mockReturning }));
 const mockSet = vi.fn(() => ({ where: mockWhere }));
 const mockUpdate = vi.fn(() => ({ set: mockSet }));
 
-vi.mock("@/db", () => ({
+vi.mock("@repo/db", () => ({
   db: {
     select: vi.fn(),
     insert: vi.fn(),
@@ -50,7 +50,7 @@ describe("pipelinesDao.update", () => {
     mockReturning.mockResolvedValueOnce([returnedRow]);
 
     // Import after mocks are set up
-    const { pipelinesDao } = await import("./pipelinesDao");
+    const { pipelinesDao } = await import("@repo/models");
 
     const testNodes = [
       {
@@ -93,7 +93,7 @@ describe("pipelinesDao.update", () => {
   it("returns null when no rows are updated", async () => {
     mockReturning.mockResolvedValueOnce([]);
 
-    const { pipelinesDao } = await import("./pipelinesDao");
+    const { pipelinesDao } = await import("@repo/models");
 
     const result = await pipelinesDao.update("nonexistent-id", { name: "x" });
 
@@ -104,7 +104,7 @@ describe("pipelinesDao.update", () => {
     const returnedRow = makeRow("pipe-99");
     mockReturning.mockResolvedValueOnce([returnedRow]);
 
-    const { pipelinesDao } = await import("./pipelinesDao");
+    const { pipelinesDao } = await import("@repo/models");
 
     await pipelinesDao.update("pipe-99", {
       name: "Updated Name",

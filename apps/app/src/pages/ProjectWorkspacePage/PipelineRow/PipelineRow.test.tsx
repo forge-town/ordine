@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { PipelineRow } from "./PipelineRow";
-import type { PipelineEntity } from "@/models/daos/pipelinesDao";
+import type { PipelineEntity } from "@repo/models";
 
 const mockPipeline = {
   id: "pipe-001",

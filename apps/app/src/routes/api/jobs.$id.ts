@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
-import { jobsDao } from "@/models/daos/jobsDao";
+import { jobsDao } from "@repo/models";
 import { JobStatusSchema } from "@/schemas";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 

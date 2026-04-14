@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { skillsDao } from "@/models/daos/skillsDao";
+import { skillsDao } from "@repo/models";
 import { SkillSchema } from "@/schemas";
 
 export const skillsRouter = router({

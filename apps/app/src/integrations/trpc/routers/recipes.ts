@@ -1,5 +1,5 @@
 import { publicProcedure, router } from "../init";
-import { recipesDao } from "@/models/daos/recipesDao";
+import { recipesDao } from "@repo/models";
 import { RecipeSchema } from "@/schemas";
 import { z } from "zod/v4";
 

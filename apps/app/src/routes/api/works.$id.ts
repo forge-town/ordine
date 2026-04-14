@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
-import { worksDao } from "@/models/daos/worksDao";
+import { worksDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const UpdateWorkStatusSchema = z.object({

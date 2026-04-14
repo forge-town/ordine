@@ -8,7 +8,7 @@ import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import { Route } from "@/routes/_layout/pipelines.index";
 import { createPipeline, deletePipeline } from "@/services/pipelinesService";
-import type { StoredPipeline } from "@/models/daos/pipelinesDao";
+import type { StoredPipeline } from "@repo/models";
 import { PipelineCard } from "../PipelineCard";
 
 export const PipelinesPageContent = () => {

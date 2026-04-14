@@ -1,13 +1,13 @@
 import { eq, desc } from "drizzle-orm";
 import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
-import { db } from "@/db";
+import { db } from "@repo/db";
 import {
   worksTable,
   type WorkRow,
   type NewWorkRow,
   type WorkStatus,
   type WorkObject,
-} from "@/models/tables/works_table";
+} from "@repo/db-schema";
 
 export type WorkEntity = Omit<WorkRow, "createdAt" | "updatedAt" | "startedAt" | "finishedAt"> & {
   createdAt: number;
@@ -45,7 +45,7 @@ export const worksDao = {
 
   async findById(id: string): Promise<WorkEntity | null> {
     const rows = await db.select().from(worksTable).where(eq(worksTable.id, id)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async create(
@@ -60,7 +60,7 @@ export const worksDao = {
       finishedAt: null,
     };
     const [inserted] = await db.insert(worksTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async createWithTx(
@@ -76,7 +76,7 @@ export const worksDao = {
       finishedAt: null,
     };
     const [inserted] = await tx.insert(worksTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async updateStatus(

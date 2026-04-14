@@ -16,9 +16,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import type { RecipeEntity } from "@/models/daos/recipesDao";
-import type { OperationEntity } from "@/models/daos/operationsDao";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
+import type { RecipeEntity, OperationEntity, BestPracticeEntity } from "@repo/models";
 import { createRecipe, updateRecipe } from "@/services/recipesService";
 
 const formSchema = z.object({

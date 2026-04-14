@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CodeSnippetSchema } from "@/schemas";
-import { codeSnippetsDao } from "@/models/daos/codeSnippetsDao";
+import { codeSnippetsDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 export const Route = createFileRoute("/api/code-snippets")({

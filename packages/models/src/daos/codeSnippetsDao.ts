@@ -1,10 +1,10 @@
 import { eq, asc } from "drizzle-orm";
-import { db } from "@/db";
+import { db } from "@repo/db";
 import {
   codeSnippetsTable,
   type CodeSnippetRow,
   type NewCodeSnippetRow,
-} from "@/models/tables/code_snippets_table";
+} from "@repo/db-schema";
 
 export type CodeSnippetEntity = Omit<CodeSnippetRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
@@ -33,7 +33,7 @@ export const codeSnippetsDao = {
       .from(codeSnippetsTable)
       .where(eq(codeSnippetsTable.id, id))
       .limit(1);
-    return rows[0] ? rowToEntity(rows[0]) : null;
+    return rows[0] ? rowToEntity(rows[0]!) : null;
   },
 
   async create(
@@ -46,7 +46,7 @@ export const codeSnippetsDao = {
       updatedAt: now,
     };
     const [inserted] = await db.insert(codeSnippetsTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async update(

@@ -13,6 +13,7 @@
     "quality": "bun run check-types"
   },
   "dependencies": {
+    "@repo/db": "workspace:*",
     "@repo/db-schema": "workspace:*",
     "drizzle-orm": "^0.45.1"
   },

@@ -27,8 +27,7 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { ResultAsync, err, ok } from "neverthrow";
 import { useTranslation } from "react-i18next";
-import type { PipelineEntity } from "@/models/daos/pipelinesDao";
-import type { OperationEntity } from "@/models/daos/operationsDao";
+import type { PipelineEntity, OperationEntity } from "@repo/models";
 import type { PipelineNode } from "@/models/types/pipelineGraph";
 import { Stat } from "../Stat";
 

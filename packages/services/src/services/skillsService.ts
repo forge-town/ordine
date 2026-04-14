@@ -1,6 +1,16 @@
-import type { createSkillsDao, SkillEntity } from "@repo/models";
+import type { SkillEntity } from "@repo/models";
 
-type SkillsDao = ReturnType<typeof createSkillsDao>;
+type SkillsDao = {
+  findMany: () => Promise<SkillEntity[]>;
+  findById: (id: string) => Promise<SkillEntity | null>;
+  findByName: (name: string) => Promise<SkillEntity | null>;
+  create: (data: Omit<SkillEntity, "createdAt" | "updatedAt">) => Promise<SkillEntity>;
+  update: (
+    id: string,
+    patch: Partial<Omit<SkillEntity, "createdAt" | "updatedAt">>,
+  ) => Promise<SkillEntity | null>;
+  delete: (id: string) => Promise<void>;
+};
 
 export const createSkillsService = (dao: SkillsDao) => ({
   getAll: () => dao.findMany(),

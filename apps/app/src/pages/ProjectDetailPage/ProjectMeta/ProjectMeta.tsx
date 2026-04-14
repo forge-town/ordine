@@ -1,5 +1,5 @@
 import { FolderGit2, ExternalLink, GitBranch } from "lucide-react";
-import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
+import type { GithubProjectEntity } from "@repo/models";
 
 export type ProjectMetaProps = {
   project: GithubProjectEntity;

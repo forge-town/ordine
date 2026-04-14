@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { settingsTable, type SettingsRow } from "@/models/tables/settings_table";
+import { db } from "@repo/db";
+import { settingsTable, type SettingsRow } from "@repo/db-schema";
 
 export type SettingsEntity = Omit<SettingsRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
@@ -23,15 +23,15 @@ export const settingsDao = {
       .where(eq(settingsTable.id, DEFAULT_ID))
       .limit(1);
 
-    if (rows.length > 0) return rowToEntity(rows[0]);
+    if (rows.length > 0) return rowToEntity(rows[0]!);
 
     // Auto-create default row if none exists
     const [created] = await db.insert(settingsTable).values({ id: DEFAULT_ID }).returning();
-    return rowToEntity(created);
+    return rowToEntity(created!);
   },
 
   async update(
-    patch: Partial<Pick<SettingsRow, "llmProvider" | "llmApiKey" | "llmModel">>
+    patch: Partial<Pick<SettingsRow, "llmProvider" | "llmApiKey" | "llmModel">>,
   ): Promise<SettingsEntity> {
     // Ensure default row exists
     await this.get();
@@ -41,6 +41,6 @@ export const settingsDao = {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(settingsTable.id, DEFAULT_ID))
       .returning();
-    return rowToEntity(updated);
+    return rowToEntity(updated!);
   },
 };

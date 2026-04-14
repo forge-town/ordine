@@ -1,8 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { OperationEditPageContent } from "./OperationEditPageContent";
 import { Route } from "@/routes/_layout/operations.$operationId.edit";
-import type { SkillEntity } from "@/models/daos/skillsDao";
-import type { OperationEntity } from "@/models/daos/operationsDao";
+import type { SkillEntity, OperationEntity } from "@repo/models";
 
 export const OperationEditPage = () => {
   const { operation, skills } = Route.useLoaderData() as {

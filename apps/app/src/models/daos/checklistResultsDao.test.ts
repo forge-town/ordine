@@ -15,7 +15,7 @@ const mockFrom = vi.fn(() => ({
 const mockValues = vi.fn(() => ({ returning: mockReturning }));
 const mockSet = vi.fn(() => ({ where: mockWriteWhere }));
 
-vi.mock("@/db", () => ({
+vi.mock("@repo/db", () => ({
   db: {
     select: vi.fn(() => ({ from: mockFrom })),
     insert: vi.fn(() => ({ values: mockValues })),
@@ -54,7 +54,7 @@ describe("checklistResultsDao", () => {
     const row = makeRow("cr-1", "job-1");
     mockSelectWhere.mockResolvedValueOnce([row]);
 
-    const { checklistResultsDao } = await import("./checklistResultsDao");
+    const { checklistResultsDao } = await import("@repo/models");
     const result = await checklistResultsDao.findByJobId("job-1");
 
     expect(result).toHaveLength(1);
@@ -67,7 +67,7 @@ describe("checklistResultsDao", () => {
     const row = makeRow("cr-2");
     mockReturning.mockResolvedValueOnce([row]);
 
-    const { checklistResultsDao } = await import("./checklistResultsDao");
+    const { checklistResultsDao } = await import("@repo/models");
     const result = await checklistResultsDao.create({
       id: "cr-2",
       jobId: "job-1",
@@ -88,7 +88,7 @@ describe("checklistResultsDao", () => {
     };
     mockReturning.mockResolvedValueOnce([row]);
 
-    const { checklistResultsDao } = await import("./checklistResultsDao");
+    const { checklistResultsDao } = await import("@repo/models");
     const result = await checklistResultsDao.update("cr-3", {
       passed: false,
       output: "Failed: naming mismatch",
@@ -102,7 +102,7 @@ describe("checklistResultsDao", () => {
   it("update returns null when not found", async () => {
     mockReturning.mockResolvedValueOnce([]);
 
-    const { checklistResultsDao } = await import("./checklistResultsDao");
+    const { checklistResultsDao } = await import("@repo/models");
     const result = await checklistResultsDao.update("nonexistent", {
       passed: true,
     });
@@ -111,7 +111,7 @@ describe("checklistResultsDao", () => {
   });
 
   it("deleteByJobId calls db.delete", async () => {
-    const { checklistResultsDao } = await import("./checklistResultsDao");
+    const { checklistResultsDao } = await import("@repo/models");
     await checklistResultsDao.deleteByJobId("job-1");
 
     expect(mockDeleteWhere).toHaveBeenCalled();

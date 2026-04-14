@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
-import { rulesDao } from "@/models/daos/rulesDao";
+import { rulesDao } from "@repo/models";
 import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@/schemas";
 
 export const getRules = createServerFn({ method: "GET" })

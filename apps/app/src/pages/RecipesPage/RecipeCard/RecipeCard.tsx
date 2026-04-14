@@ -1,7 +1,5 @@
 import { ChefHat, Zap, Lightbulb, Pencil, Trash2 } from "lucide-react";
-import type { RecipeEntity } from "@/models/daos/recipesDao";
-import type { OperationEntity } from "@/models/daos/operationsDao";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
+import type { RecipeEntity, OperationEntity, BestPracticeEntity } from "@repo/models";
 
 export type RecipeCardProps = {
   recipe: RecipeEntity;

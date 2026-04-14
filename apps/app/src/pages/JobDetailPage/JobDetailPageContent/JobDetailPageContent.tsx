@@ -19,7 +19,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import type { JobEntity } from "@/models/daos/jobsDao";
+import type { JobEntity } from "@repo/models";
 import type { JobStatus, JobType } from "@/models/tables/jobs_table";
 import { Route } from "@/routes/_layout/jobs.$jobId";
 

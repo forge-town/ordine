@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DashboardPageContent } from "./DashboardPageContent";
-import type { JobEntity } from "@/models/daos/jobsDao";
+import type { JobEntity } from "@repo/models";
 
 // Route.useLoaderData is mocked via Storybook parameters or decorators
 const meta: Meta<typeof DashboardPageContent> = {

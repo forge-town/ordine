@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { updateOperation } from "@/services/operationsService";
-import type { OperationEntity } from "@/models/daos/operationsDao";
+import type { OperationEntity, SkillEntity } from "@repo/models";
 import type { ObjectType } from "@/models/tables/operations_table";
 import {
   ObjectTypeSchema as ObjectTypeEnum,
@@ -143,8 +143,6 @@ const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[]
   }
   return [...current, type];
 };
-
-import type { SkillEntity } from "@/models/daos/skillsDao";
 
 interface Props {
   operation: OperationEntity;

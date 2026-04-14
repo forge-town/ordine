@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { BestPracticeSchema, ChecklistItemSchema, CodeSnippetSchema } from "@/schemas";
-import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
-import { checklistItemsDao } from "@/models/daos/checklistItemsDao";
-import { codeSnippetsDao } from "@/models/daos/codeSnippetsDao";
+import { bestPracticesDao, checklistItemsDao, codeSnippetsDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const ImportItemSchema = BestPracticeSchema.extend({

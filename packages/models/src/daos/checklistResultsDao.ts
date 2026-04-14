@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
 import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
-import { db } from "@/db";
+import { db } from "@repo/db";
 import {
   checklistResultsTable,
   type ChecklistResultRow,
   type NewChecklistResultRow,
-} from "@/models/tables/checklist_results_table";
+} from "@repo/db-schema";
 
 export type ChecklistResultEntity = Omit<ChecklistResultRow, "createdAt"> & {
   createdAt: number;
@@ -33,7 +33,7 @@ export const checklistResultsDao = {
     const now = new Date();
     const row: NewChecklistResultRow = { ...data, createdAt: now };
     const [inserted] = await db.insert(checklistResultsTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async createWithTx(
@@ -43,7 +43,7 @@ export const checklistResultsDao = {
     const now = new Date();
     const row: NewChecklistResultRow = { ...data, createdAt: now };
     const [inserted] = await tx.insert(checklistResultsTable).values(row).returning();
-    return rowToEntity(inserted);
+    return rowToEntity(inserted!);
   },
 
   async createManyWithTx(

@@ -16,7 +16,7 @@ import {
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
+import type { BestPracticeEntity } from "@repo/models";
 import { createBestPractice, updateBestPractice } from "@/services/bestPracticesService";
 import { CATEGORIES, LANGUAGES } from "../constants";
 

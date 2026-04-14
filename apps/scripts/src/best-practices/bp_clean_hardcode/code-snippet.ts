@@ -1,4 +1,4 @@
-import { usersDao } from "@/models/daos/usersDao";
+import { usersDao } from "@repo/models";
 
 export const usersService = {
   async findById(id: string): Promise<UserRow | null> {

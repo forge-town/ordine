@@ -1,7 +1,7 @@
 import { Pencil, Trash2, Tag, ToggleLeft, ToggleRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
-import type { RuleEntity } from "@/models/daos/rulesDao";
+import type { RuleEntity } from "@repo/models";
 import { SEVERITY_CONFIG, CATEGORY_CONFIG } from "../types";
 
 export type RuleCardProps = {

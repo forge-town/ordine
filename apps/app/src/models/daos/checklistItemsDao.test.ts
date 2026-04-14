@@ -18,7 +18,7 @@ const mockFrom = vi.fn(() => ({
 const mockValues = vi.fn(() => ({ returning: mockReturning }));
 const mockSet = vi.fn(() => ({ where: mockWhere }));
 
-vi.mock("@/db", () => ({
+vi.mock("@repo/db", () => ({
   db: {
     select: vi.fn(() => ({ from: mockFrom })),
     insert: vi.fn(() => ({ values: mockValues })),
@@ -61,7 +61,7 @@ describe("checklistItemsDao", () => {
     const row = makeRow("ci-1", "bp-1");
     mockOrderBy.mockResolvedValueOnce([row]);
 
-    const { checklistItemsDao } = await import("./checklistItemsDao");
+    const { checklistItemsDao } = await import("@repo/models");
     const result = await checklistItemsDao.findByBestPracticeId("bp-1");
 
     expect(result).toHaveLength(1);
@@ -74,7 +74,7 @@ describe("checklistItemsDao", () => {
     const row = makeRow("ci-2");
     mockLimit.mockResolvedValueOnce([row]);
 
-    const { checklistItemsDao } = await import("./checklistItemsDao");
+    const { checklistItemsDao } = await import("@repo/models");
     const result = await checklistItemsDao.findById("ci-2");
 
     expect(result).not.toBeNull();
@@ -85,7 +85,7 @@ describe("checklistItemsDao", () => {
   it("findById returns null when not found", async () => {
     mockLimit.mockResolvedValueOnce([]);
 
-    const { checklistItemsDao } = await import("./checklistItemsDao");
+    const { checklistItemsDao } = await import("@repo/models");
     const result = await checklistItemsDao.findById("nonexistent");
 
     expect(result).toBeNull();
@@ -95,7 +95,7 @@ describe("checklistItemsDao", () => {
     const row = makeRow("ci-3");
     mockReturning.mockResolvedValueOnce([row]);
 
-    const { checklistItemsDao } = await import("./checklistItemsDao");
+    const { checklistItemsDao } = await import("@repo/models");
     const result = await checklistItemsDao.create({
       id: "ci-3",
       bestPracticeId: "bp-1",
@@ -114,7 +114,7 @@ describe("checklistItemsDao", () => {
     const row = makeRow("ci-4");
     mockReturning.mockResolvedValueOnce([row]);
 
-    const { checklistItemsDao } = await import("./checklistItemsDao");
+    const { checklistItemsDao } = await import("@repo/models");
     const result = await checklistItemsDao.update("ci-4", {
       title: "Updated title",
     });
@@ -126,7 +126,7 @@ describe("checklistItemsDao", () => {
   it("update returns null when not found", async () => {
     mockReturning.mockResolvedValueOnce([]);
 
-    const { checklistItemsDao } = await import("./checklistItemsDao");
+    const { checklistItemsDao } = await import("@repo/models");
     const result = await checklistItemsDao.update("nonexistent", {
       title: "x",
     });
@@ -135,7 +135,7 @@ describe("checklistItemsDao", () => {
   });
 
   it("delete calls db.delete with correct id", async () => {
-    const { checklistItemsDao } = await import("./checklistItemsDao");
+    const { checklistItemsDao } = await import("@repo/models");
     await checklistItemsDao.delete("ci-5");
 
     expect(mockWhere).toHaveBeenCalled();
@@ -149,7 +149,7 @@ describe("checklistItemsDao", () => {
     };
     mockReturning.mockResolvedValueOnce([row]);
 
-    const { checklistItemsDao } = await import("./checklistItemsDao");
+    const { checklistItemsDao } = await import("@repo/models");
     const result = await checklistItemsDao.create({
       id: "ci-6",
       bestPracticeId: "bp-1",

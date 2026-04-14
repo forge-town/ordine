@@ -18,7 +18,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { ResultAsync } from "neverthrow";
-import { rulesDao, type RuleEntity } from "@/models/daos/rulesDao";
+import { rulesDao, type RuleEntity } from "@repo/models";
 import type { CheckOutput, Finding } from "@/schemas/OperationOutputSchema";
 import type { RuleTarget } from "@/schemas/RuleSchema";
 

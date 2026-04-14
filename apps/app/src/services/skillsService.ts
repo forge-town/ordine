@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
-import { skillsDao } from "@/models/daos/skillsDao";
+import { skillsDao } from "@repo/models";
 import { SkillSchema } from "@/schemas";
 
 export const getSkills = createServerFn({ method: "GET" }).handler(async () => {

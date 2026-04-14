@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
-import { checklistItemsDao } from "@/models/daos/checklistItemsDao";
-import { codeSnippetsDao } from "@/models/daos/codeSnippetsDao";
+import { bestPracticesDao, checklistItemsDao, codeSnippetsDao } from "@repo/models";
 import { json } from "@/lib/apiResponse";
 
 export const Route = createFileRoute("/api/best-practices/export")({

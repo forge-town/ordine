@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ChecklistItemSchema } from "@/schemas";
-import { checklistItemsDao } from "@/models/daos/checklistItemsDao";
+import { checklistItemsDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 export const Route = createFileRoute("/api/checklist-items")({

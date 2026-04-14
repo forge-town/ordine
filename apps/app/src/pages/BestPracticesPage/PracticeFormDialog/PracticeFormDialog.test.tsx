@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { PracticeFormDialog } from "./PracticeFormDialog";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
+import type { BestPracticeEntity } from "@repo/models";
 
 vi.mock("@/services/bestPracticesService", () => ({
   createBestPractice: vi.fn(),

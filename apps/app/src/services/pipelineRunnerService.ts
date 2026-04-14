@@ -35,12 +35,15 @@ import type {
   GitHubProjectNodeData,
   OutputMode,
 } from "@/models/types/pipelineGraph";
-import { type OperationEntity, operationsDao } from "@/models/daos/operationsDao";
-import { pipelinesDao } from "@/models/daos/pipelinesDao";
-import { jobsDao } from "@/models/daos/jobsDao";
-import { skillsDao } from "@/models/daos/skillsDao";
-import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
-import { settingsDao } from "@/models/daos/settingsDao";
+import {
+  operationsDao,
+  pipelinesDao,
+  jobsDao,
+  skillsDao,
+  bestPracticesDao,
+  settingsDao,
+  type OperationEntity,
+} from "@repo/models";
 import type { ExecutorConfig } from "@/pages/OperationDetailPage/types";
 import { listDirTree, readProjectFiles } from "@/services/filesystemService";
 import { getModel } from "@/services/llmService";

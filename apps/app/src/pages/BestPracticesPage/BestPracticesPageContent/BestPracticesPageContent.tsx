@@ -3,7 +3,7 @@ import { BookOpen, Download, Plus, Search, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import type { BestPracticeEntity } from "@/models/daos/bestPracticesDao";
+import type { BestPracticeEntity } from "@repo/models";
 import { exportAllBestPractices, importBestPracticesFromZip } from "@/lib/exportBestPractice";
 import { deleteBestPractice } from "@/services/bestPracticesService";
 import { Route } from "@/routes/_layout/best-practices.index";

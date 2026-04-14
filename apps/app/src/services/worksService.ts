@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
-import { worksDao } from "@/models/daos/worksDao";
+import { worksDao } from "@repo/models";
 import { WorkObjectSchema } from "@/schemas";
 
 export const getWorks = createServerFn({ method: "GET" }).handler(() => worksDao.findMany());

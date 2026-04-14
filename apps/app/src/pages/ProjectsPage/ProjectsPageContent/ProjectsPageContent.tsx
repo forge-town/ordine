@@ -4,7 +4,7 @@ import { Plus, Search, Folder } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.index";
 import { deleteGithubProject } from "@/services/githubProjectsService";
-import type { GithubProjectEntity } from "@/models/daos/githubProjectsDao";
+import type { GithubProjectEntity } from "@repo/models";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { CreateProjectDialog } from "../CreateProjectDialog";
