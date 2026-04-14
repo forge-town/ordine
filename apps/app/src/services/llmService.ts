@@ -9,17 +9,14 @@ import type { MastraModelConfig } from "@mastra/core/llm";
 import {
   getLlmModel as getLlmModelRaw,
   getMastraModelConfig as getMastraModelConfigRaw,
-  noopLog,
   type LlmOverride,
   type LlmProvider as AgentLlmProvider,
-  type LogFn,
   type SettingsResolver,
 } from "@repo/agent";
 import { settingsDao } from "@/models/daos/settingsDao";
 import type { LlmProvider } from "@/models/tables/settings_table";
 
-export type { LlmProvider, LlmOverride, LogFn, MastraModelConfig };
-export { noopLog };
+export type { LlmProvider, LlmOverride, MastraModelConfig };
 
 const getSettings: SettingsResolver = async () => {
   const s = await settingsDao.get();
@@ -30,10 +27,7 @@ const getSettings: SettingsResolver = async () => {
   };
 };
 
-export const getLlmModel = (override?: LlmOverride, log: LogFn = noopLog) =>
-  getLlmModelRaw(getSettings, override, log);
+export const getLlmModel = (override?: LlmOverride) => getLlmModelRaw(getSettings, override);
 
-export const getMastraModelConfig = (
-  override?: LlmOverride,
-  log: LogFn = noopLog
-): Promise<MastraModelConfig | null> => getMastraModelConfigRaw(getSettings, override, log);
+export const getMastraModelConfig = (override?: LlmOverride): Promise<MastraModelConfig | null> =>
+  getMastraModelConfigRaw(getSettings, override);

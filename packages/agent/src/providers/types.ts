@@ -11,7 +11,4 @@ export interface LlmOverride {
   llmModel?: string;
 }
 
-export type LogFn = (msg: string) => Promise<void>;
-export const noopLog: LogFn = async () => {};
-
 export type SettingsResolver = () => Promise<LlmSettings>;

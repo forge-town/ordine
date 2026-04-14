@@ -6,9 +6,7 @@
  */
 
 import { z } from "zod/v4";
-import { OperationOutputSchema } from "@repo/agent";
-
-type AsyncLogFn = (line: string) => Promise<void>;
+import { OperationOutputSchema, logger } from "@repo/agent";
 
 // ─── JSON extraction ──────────────────────────────────────────────────────────
 
@@ -20,7 +18,7 @@ const tryParseJson = (text: string): unknown | undefined => {
   }
 };
 
-export const extractStructuredOutput = (rawText: string, log: AsyncLogFn): string => {
+export const extractStructuredOutput = (rawText: string): string => {
   const fenceMatch = rawText.match(/```json\s*\n?([\s\S]*?)\n?\s*```/);
   const candidate = fenceMatch?.[1]?.trim() ?? rawText.trim();
 
@@ -33,24 +31,26 @@ export const extractStructuredOutput = (rawText: string, log: AsyncLogFn): strin
     })();
 
   if (parsed === undefined) {
-    void log("[extractStructuredOutput] No valid JSON found — returning raw text");
+    logger.warn("No valid JSON found in agent output — returning raw text");
     return rawText;
   }
 
   const result = OperationOutputSchema.safeParse(parsed);
   if (result.success) {
-    void log(
-      `[extractStructuredOutput] Valid ${result.data.type} output with ${
-        result.data.type === "check"
-          ? `${result.data.findings.length} findings`
-          : `${result.data.changes.length} changes`
-      }`
+    logger.info(
+      {
+        type: result.data.type,
+        count:
+          result.data.type === "check" ? result.data.findings.length : result.data.changes.length,
+      },
+      "Validated structured output"
     );
     return JSON.stringify(result.data, null, 2);
   }
 
-  void log(
-    `[extractStructuredOutput] JSON parsed but schema validation failed — ${z.prettifyError(result.error)}. Returning raw text`
+  logger.warn(
+    { error: z.prettifyError(result.error) },
+    "JSON parsed but schema validation failed — returning raw text"
   );
   return rawText;
 };

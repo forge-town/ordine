@@ -4,13 +4,7 @@
 
 import { streamText } from "ai";
 import { ResultAsync } from "neverthrow";
-import {
-  getLlmModel,
-  type LlmOverride,
-  type LogFn,
-  type SettingsResolver,
-  noopLog,
-} from "@repo/agent";
+import { getLlmModel, logger, type LlmOverride, type SettingsResolver } from "@repo/agent";
 
 export class PromptExecutionError extends Error {
   constructor(
@@ -23,6 +17,7 @@ export class PromptExecutionError extends Error {
 }
 
 export type StreamCallback = (accumulated: string) => Promise<void>;
+export type ProgressCallback = (line: string) => Promise<void>;
 
 export const runPrompt = (
   prompt: string,
@@ -30,7 +25,7 @@ export const runPrompt = (
   getSettings: SettingsResolver,
   override?: LlmOverride,
   onChunk?: StreamCallback,
-  log: LogFn = noopLog
+  onProgress?: ProgressCallback
 ): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return ResultAsync.fromSafePromise<string, PromptExecutionError>(
@@ -40,15 +35,21 @@ export const runPrompt = (
 
   return ResultAsync.fromPromise(
     (async () => {
-      await log(
+      logger.info(
+        { promptLen: prompt.length, inputLen: inputContent.length },
+        "runPrompt: starting"
+      );
+      await onProgress?.(
         `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`
       );
-      const model = await getLlmModel(getSettings, override, log);
+      const model = await getLlmModel(getSettings, override);
       if (!model) {
-        await log(`[LLM] runPrompt: LLM not configured, throwing error`);
+        logger.error("runPrompt: LLM not configured");
+        await onProgress?.("[LLM] runPrompt: LLM not configured, throwing error");
         throw new PromptExecutionError("LLM not configured (API key missing in settings)");
       }
-      await log(`[LLM] runPrompt: Starting streamText...`);
+      logger.info("runPrompt: streaming");
+      await onProgress?.("[LLM] runPrompt: Starting streamText...");
       const result = streamText({
         model,
         prompt: `${prompt}\n\nInput:\n${inputContent}`,
@@ -59,11 +60,15 @@ export const runPrompt = (
         if (onChunk) await onChunk(chunks.join(""));
       }
       const accumulated = chunks.join("");
-      await log(`[LLM] runPrompt: Stream complete, total output=${accumulated.length} chars`);
+      logger.info({ outputLen: accumulated.length, chunks: chunks.length }, "runPrompt: complete");
+      await onProgress?.(
+        `[LLM] runPrompt: Stream complete, total output=${accumulated.length} chars`
+      );
       return accumulated;
     })(),
     (cause) => {
-      void log(
+      logger.error({ err: cause }, "runPrompt: failed");
+      void onProgress?.(
         `[LLM] runPrompt: Error — ${cause instanceof Error ? cause.message : String(cause)}`
       );
       return cause instanceof PromptExecutionError
