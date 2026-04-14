@@ -2,14 +2,14 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { createSettingsStore } from "./settingsStore";
 
 describe("settingsStore", () => {
-  let store: ReturnType<typeof createSettingsStore>;
+  const ctx = { store: null as ReturnType<typeof createSettingsStore> | null };
 
   beforeEach(() => {
-    store = createSettingsStore();
+    ctx.store = createSettingsStore();
   });
 
   it("is initialized with default settings", () => {
-    const state = store.getState();
+    const state = ctx.store!.getState();
     expect(state.profile.displayName).toBe("Ordine 用户");
     expect(state.appearance.theme).toBe("light");
     expect(state.notifications.pipeline).toBe(true);
@@ -18,26 +18,26 @@ describe("settingsStore", () => {
   });
 
   it("updates a section via updateSection", () => {
-    store.getState().updateSection("profile", { displayName: "New Name" });
-    expect(store.getState().profile.displayName).toBe("New Name");
-    expect(store.getState().profile.email).toBe("user@ordine.app");
+    ctx.store!.getState().updateSection("profile", { displayName: "New Name" });
+    expect(ctx.store!.getState().profile.displayName).toBe("New Name");
+    expect(ctx.store!.getState().profile.email).toBe("user@ordine.app");
   });
 
   it("updates appearance section", () => {
-    store.getState().updateSection("appearance", { theme: "dark" });
-    expect(store.getState().appearance.theme).toBe("dark");
+    ctx.store!.getState().updateSection("appearance", { theme: "dark" });
+    expect(ctx.store!.getState().appearance.theme).toBe("dark");
   });
 
   it("updates notifications section", () => {
-    store.getState().updateSection("notifications", { pipeline: false });
-    expect(store.getState().notifications.pipeline).toBe(false);
-    expect(store.getState().notifications.mention).toBe(true);
+    ctx.store!.getState().updateSection("notifications", { pipeline: false });
+    expect(ctx.store!.getState().notifications.pipeline).toBe(false);
+    expect(ctx.store!.getState().notifications.mention).toBe(true);
   });
 
   it("saves settings and sets saved flag", () => {
-    store.getState().updateSection("profile", { displayName: "Saved User" });
-    store.getState().save();
-    expect(store.getState().saved).toBe(true);
+    ctx.store!.getState().updateSection("profile", { displayName: "Saved User" });
+    ctx.store!.getState().save();
+    expect(ctx.store!.getState().saved).toBe(true);
   });
 
   it("loads initial settings from provided values", () => {

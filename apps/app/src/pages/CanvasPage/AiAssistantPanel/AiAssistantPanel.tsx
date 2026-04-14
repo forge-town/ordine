@@ -40,16 +40,15 @@ const parseActions = (
 } => {
   const regex = /```actions\s*([\s\S]*?)```/g;
   const actions: PipelineAction[] = [];
-  let clean = text;
-  let match;
-  while ((match = regex.exec(text)) !== null) {
+  const matches = [...text.matchAll(regex)];
+  for (const match of matches) {
     const parseResult = safeJsonParse<PipelineAction | PipelineAction[]>(match[1].trim());
     if (parseResult.isOk()) {
       const list = Array.isArray(parseResult.value) ? parseResult.value : [parseResult.value];
       actions.push(...list);
     }
-    clean = clean.replace(match[0], "").trim();
   }
+  const clean = matches.reduce((acc, match) => acc.replace(match[0], "").trim(), text);
   return { clean, actions };
 };
 

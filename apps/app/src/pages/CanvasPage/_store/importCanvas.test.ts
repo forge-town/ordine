@@ -21,29 +21,29 @@ const makeEdge = (id: string): PipelineEdge =>
   }) as unknown as PipelineEdge;
 
 describe("importCanvas store action", () => {
-  let store: ReturnType<typeof createHarnessCanvasStore>;
+  const ctx = { store: null as ReturnType<typeof createHarnessCanvasStore> | null };
 
   beforeEach(() => {
-    store = createHarnessCanvasStore([], [], null, "");
+    ctx.store = createHarnessCanvasStore([], [], null, "");
   });
 
   it("sets nodes and edges from imported data", () => {
     const importedNodes = [makeNode("n1"), makeNode("n2")];
     const importedEdges = [makeEdge("e1")];
 
-    store.getState().importCanvas({ nodes: importedNodes, edges: importedEdges });
+    ctx.store!.getState().importCanvas({ nodes: importedNodes, edges: importedEdges });
 
-    expect(store.getState().nodes).toEqual(importedNodes);
-    expect(store.getState().edges).toEqual(importedEdges);
+    expect(ctx.store!.getState().nodes).toEqual(importedNodes);
+    expect(ctx.store!.getState().edges).toEqual(importedEdges);
   });
 
   it("replaces existing canvas content", () => {
     const initialNode = makeNode("old");
-    store = createHarnessCanvasStore([initialNode], [], null, "");
-    expect(store.getState().nodes).toHaveLength(1);
+    ctx.store = createHarnessCanvasStore([initialNode], [], null, "");
+    expect(ctx.store.getState().nodes).toHaveLength(1);
 
-    store.getState().importCanvas({ nodes: [], edges: [] });
+    ctx.store.getState().importCanvas({ nodes: [], edges: [] });
 
-    expect(store.getState().nodes).toHaveLength(0);
+    expect(ctx.store.getState().nodes).toHaveLength(0);
   });
 });

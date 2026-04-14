@@ -171,10 +171,10 @@ export const readProjectFiles = async (
   };
 
   const files: { rel: string; content: string }[] = [];
-  let totalSize = 0;
+  const state = { totalSize: 0 };
 
   const walk = async (dir: string, depth: number): Promise<void> => {
-    if (depth >= maxDepth || totalSize >= MAX_TOTAL_SIZE) return;
+    if (depth >= maxDepth || state.totalSize >= MAX_TOTAL_SIZE) return;
     const entries = await readdir(dir, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -184,12 +184,12 @@ export const readProjectFiles = async (
       if (entry.isDirectory()) {
         await walk(join(dir, entry.name), depth + 1);
       } else if (isTextFile(entry.name)) {
-        if (totalSize >= MAX_TOTAL_SIZE) break;
+        if (state.totalSize >= MAX_TOTAL_SIZE) break;
         try {
           const fileStat = await stat(join(dir, entry.name));
           if (fileStat.size > MAX_FILE_SIZE) continue;
           const content = await readFile(join(dir, entry.name), "utf8");
-          totalSize += content.length;
+          state.totalSize += content.length;
           files.push({ rel, content });
         } catch (error: unknown) {
           console.warn(`[readProjectFiles] Skipping unreadable file: ${rel}`, error);
@@ -202,7 +202,7 @@ export const readProjectFiles = async (
 
   const parts = files.map((f) => `--- ${f.rel} ---\n${f.content}`);
 
-  if (totalSize >= MAX_TOTAL_SIZE) {
+  if (state.totalSize >= MAX_TOTAL_SIZE) {
     parts.push(
       `\n... (truncated at ${MAX_TOTAL_SIZE} chars total, ${files.length} files included)`
     );

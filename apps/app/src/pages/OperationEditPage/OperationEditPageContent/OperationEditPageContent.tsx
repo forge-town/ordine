@@ -106,22 +106,21 @@ const parseExecutorDefaults = (
   if (!ex) return defaults;
 
   // Backward compat: legacy "skill"/"prompt" types → "agent" with agentMode
-  let executorType: ExecutorType = "script";
-  let agentMode: AgentMode = "skill";
-  if (ex.type === "skill") {
-    executorType = "agent";
-    agentMode = "skill";
-  } else if (ex.type === "prompt") {
-    executorType = "agent";
-    agentMode = "prompt";
-  } else if (ex.type === "agent") {
-    executorType = "agent";
-    agentMode = (
-      ["skill", "prompt"].includes(ex.agentMode ?? "") ? ex.agentMode : "skill"
-    ) as AgentMode;
-  } else {
-    executorType = "script";
-  }
+  const { executorType, agentMode } = (() => {
+    if (ex.type === "skill")
+      return { executorType: "agent" as ExecutorType, agentMode: "skill" as AgentMode };
+    if (ex.type === "prompt")
+      return { executorType: "agent" as ExecutorType, agentMode: "prompt" as AgentMode };
+    if (ex.type === "agent") {
+      return {
+        executorType: "agent" as ExecutorType,
+        agentMode: (["skill", "prompt"].includes(ex.agentMode ?? "")
+          ? ex.agentMode
+          : "skill") as AgentMode,
+      };
+    }
+    return { executorType: "script" as ExecutorType, agentMode: "skill" as AgentMode };
+  })();
 
   return {
     executorType,

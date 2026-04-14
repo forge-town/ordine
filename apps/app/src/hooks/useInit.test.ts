@@ -19,11 +19,11 @@ describe("useBeginning", () => {
   });
 
   it("returns undefined on subsequent renders", () => {
-    let callCount = 0;
+    const counter = { value: 0 };
     const { result, rerender } = renderHook(() =>
       useBeginning(() => {
-        callCount++;
-        return callCount;
+        counter.value++;
+        return counter.value;
       })
     );
     expect(result.current).toBe(1);

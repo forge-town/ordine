@@ -5,22 +5,22 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 describe("filesystemService", () => {
-  let tempDir: string;
+  const ctx = { tempDir: "" };
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "fs-test-"));
-    await mkdir(join(tempDir, "sub-folder"));
-    await writeFile(join(tempDir, "file.txt"), "hello");
-    await writeFile(join(tempDir, "readme.md"), "world");
+    ctx.tempDir = await mkdtemp(join(tmpdir(), "fs-test-"));
+    await mkdir(join(ctx.tempDir, "sub-folder"));
+    await writeFile(join(ctx.tempDir, "file.txt"), "hello");
+    await writeFile(join(ctx.tempDir, "readme.md"), "world");
   });
 
   afterEach(async () => {
-    await rm(tempDir, { recursive: true, force: true });
+    await rm(ctx.tempDir, { recursive: true, force: true });
   });
 
   describe("listDirectory", () => {
     it("returns entries with name, type, and path", async () => {
-      const result = await listDirectory(tempDir);
+      const result = await listDirectory(ctx.tempDir);
 
       expect(result.isOk()).toBe(true);
       const entries = result._unsafeUnwrap();
@@ -31,19 +31,19 @@ describe("filesystemService", () => {
       expect(folder).toMatchObject({
         name: "sub-folder",
         type: "directory",
-        path: join(tempDir, "sub-folder"),
+        path: join(ctx.tempDir, "sub-folder"),
       });
 
       const file = entries.find((e) => e.name === "file.txt");
       expect(file).toMatchObject({
         name: "file.txt",
         type: "file",
-        path: join(tempDir, "file.txt"),
+        path: join(ctx.tempDir, "file.txt"),
       });
     });
 
     it("sorts directories before files", async () => {
-      const result = await listDirectory(tempDir);
+      const result = await listDirectory(ctx.tempDir);
       const entries = result._unsafeUnwrap();
 
       const types = entries.map((e) => e.type);
@@ -70,7 +70,7 @@ describe("filesystemService", () => {
     });
 
     it("returns error for a file path (not directory)", async () => {
-      const result = await listDirectory(join(tempDir, "file.txt"));
+      const result = await listDirectory(join(ctx.tempDir, "file.txt"));
 
       expect(result.isErr()).toBe(true);
       const error = result._unsafeUnwrapErr();
@@ -79,10 +79,10 @@ describe("filesystemService", () => {
   });
 
   describe("listDirTree", () => {
-    let treeDir: string;
+    const treeCtx = { dir: "" };
 
     beforeEach(async () => {
-      treeDir = await mkdtemp(join(tmpdir(), "tree-test-"));
+      treeCtx.dir = await mkdtemp(join(tmpdir(), "tree-test-"));
       // Create structure:
       // treeDir/
       //   src/
@@ -95,22 +95,22 @@ describe("filesystemService", () => {
       //   .git/
       //     HEAD
       //   README.md
-      await mkdir(join(treeDir, "src", "utils"), { recursive: true });
-      await mkdir(join(treeDir, "node_modules", "pkg"), { recursive: true });
-      await mkdir(join(treeDir, ".git"), { recursive: true });
-      await writeFile(join(treeDir, "src", "index.ts"), "");
-      await writeFile(join(treeDir, "src", "utils", "helper.ts"), "");
-      await writeFile(join(treeDir, "node_modules", "pkg", "index.js"), "");
-      await writeFile(join(treeDir, ".git", "HEAD"), "");
-      await writeFile(join(treeDir, "README.md"), "");
+      await mkdir(join(treeCtx.dir, "src", "utils"), { recursive: true });
+      await mkdir(join(treeCtx.dir, "node_modules", "pkg"), { recursive: true });
+      await mkdir(join(treeCtx.dir, ".git"), { recursive: true });
+      await writeFile(join(treeCtx.dir, "src", "index.ts"), "");
+      await writeFile(join(treeCtx.dir, "src", "utils", "helper.ts"), "");
+      await writeFile(join(treeCtx.dir, "node_modules", "pkg", "index.js"), "");
+      await writeFile(join(treeCtx.dir, ".git", "HEAD"), "");
+      await writeFile(join(treeCtx.dir, "README.md"), "");
     });
 
     afterEach(async () => {
-      await rm(treeDir, { recursive: true, force: true });
+      await rm(treeCtx.dir, { recursive: true, force: true });
     });
 
     it("generates tree string excluding .git by default", async () => {
-      const tree = await listDirTree(treeDir);
+      const tree = await listDirTree(treeCtx.dir);
       expect(tree).toContain("src/");
       expect(tree).toContain("node_modules/");
       expect(tree).toContain("README.md");
@@ -118,7 +118,7 @@ describe("filesystemService", () => {
     });
 
     it("excludes paths listed in excludedPaths", async () => {
-      const tree = await listDirTree(treeDir, {
+      const tree = await listDirTree(treeCtx.dir, {
         excludedPaths: ["node_modules"],
       });
       expect(tree).toContain("src/");
@@ -127,7 +127,7 @@ describe("filesystemService", () => {
     });
 
     it("excludes multiple paths", async () => {
-      const tree = await listDirTree(treeDir, {
+      const tree = await listDirTree(treeCtx.dir, {
         excludedPaths: ["node_modules", "src/utils"],
       });
       expect(tree).toContain("src/");
@@ -138,7 +138,7 @@ describe("filesystemService", () => {
     });
 
     it("respects maxDepth option", async () => {
-      const tree = await listDirTree(treeDir, { maxDepth: 1 });
+      const tree = await listDirTree(treeCtx.dir, { maxDepth: 1 });
       expect(tree).toContain("src/");
       expect(tree).toContain("node_modules/");
       // depth 1 should not show contents of subdirs

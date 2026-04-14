@@ -23,8 +23,7 @@ export const Route = createFileRoute("/api/best-practices/import")({
           return errorResponse(parsed.error.message, 400);
         }
 
-        let bpCount = 0;
-        let clCount = 0;
+        const counts = { bp: 0, cl: 0 };
 
         for (const entry of parsed.data) {
           const { checklistItems, ...bpData } = entry;
@@ -36,7 +35,7 @@ export const Route = createFileRoute("/api/best-practices/import")({
           } else {
             await bestPracticesDao.create(bpData);
           }
-          bpCount++;
+          counts.bp++;
 
           for (const item of checklistItems) {
             const itemData = { ...item, bestPracticeId: bpData.id };
@@ -47,11 +46,11 @@ export const Route = createFileRoute("/api/best-practices/import")({
             } else {
               await checklistItemsDao.create(itemData);
             }
-            clCount++;
+            counts.cl++;
           }
         }
 
-        return json({ imported: bpCount, checklistItems: clCount });
+        return json({ imported: counts.bp, checklistItems: counts.cl });
       },
     },
   },

@@ -59,11 +59,11 @@ const addBPToZip = (zip: JSZip, bp: BPData, items: ChecklistItem[]) => {
   folder.file(`code-snippet.${ext}`, bp.codeSnippet || "");
 
   const checklistLines = items.map((item, idx) => {
-    let line = `- [ ] ${idx + 1}. ${item.title}`;
-    if (item.description) line += `\n  ${item.description}`;
+    const parts = [`- [ ] ${idx + 1}. ${item.title}`];
+    if (item.description) parts.push(`\n  ${item.description}`);
     if (item.checkType === "script" && item.script)
-      line += `\n  \`\`\`\n  ${item.script}\n  \`\`\``;
-    return line;
+      parts.push(`\n  \`\`\`\n  ${item.script}\n  \`\`\``);
+    return parts.join("");
   });
   folder.file("checklist.md", `# ${bp.title} 检查清单\n\n${checklistLines.join("\n\n")}\n`);
 
@@ -129,25 +129,24 @@ export const importBestPracticesFromZip = async (
     const contentFile = zip.file(`${folderId}/content.md`);
     const content = contentFile ? await contentFile.async("string") : "";
 
-    let codeSnippet = "";
-    for (const ext of Object.values(LANG_EXT)) {
-      const codeFile = zip.file(`${folderId}/code-snippet.${ext}`);
-      if (codeFile) {
-        codeSnippet = await codeFile.async("string");
-        break;
+    const codeSnippet = await (async () => {
+      for (const ext of Object.values(LANG_EXT)) {
+        const codeFile = zip.file(`${folderId}/code-snippet.${ext}`);
+        if (codeFile) return await codeFile.async("string");
       }
-    }
+      return "";
+    })();
 
-    const checklistJsonFile = zip.file(`${folderId}/checklist-items.json`);
-    let checklistItems: Record<string, unknown>[] = [];
-    if (checklistJsonFile) {
+    const checklistItems: Record<string, unknown>[] = await (async () => {
+      const checklistJsonFile = zip.file(`${folderId}/checklist-items.json`);
+      if (!checklistJsonFile) return [];
       const jsonText = await checklistJsonFile.async("string");
       const parsed = JSON.parse(jsonText) as Record<string, unknown>[];
-      checklistItems = parsed.map((item) => ({
+      return parsed.map((item) => ({
         ...item,
         bestPracticeId: meta.id,
       }));
-    }
+    })();
 
     bestPractices.push({
       ...meta,

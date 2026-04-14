@@ -59,15 +59,14 @@ export const fromCsv = (text: string): ChecklistExportItem[] => {
 
   const items: ChecklistExportItem[] = [];
 
-  for (let i = 1; i < rows.length; i++) {
-    const fields = rows[i];
+  for (const [i, fields] of rows.slice(1).entries()) {
     if (fields.length < 3) continue;
     items.push({
       title: fields[0] ?? "",
       description: fields[1] ?? "",
       checkType: fields[2] === "script" || fields[2] === "llm" ? fields[2] : "llm",
       script: fields[3] || null,
-      sortOrder: Number(fields[4]) || i - 1,
+      sortOrder: Number(fields[4]) || i,
     });
   }
 
@@ -76,40 +75,40 @@ export const fromCsv = (text: string): ChecklistExportItem[] => {
 
 const parseCsvRows = (text: string): string[][] => {
   const rows: string[][] = [];
-  let current = "";
-  let inQuotes = false;
+  const state = { current: "", inQuotes: false, pos: 0 };
   const fields: string[] = [];
 
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    if (inQuotes) {
-      if (char === '"' && text[i + 1] === '"') {
-        current += '"';
-        i++;
+  while (state.pos < text.length) {
+    const char = text[state.pos];
+    if (state.inQuotes) {
+      if (char === '"' && text[state.pos + 1] === '"') {
+        state.current += '"';
+        state.pos++;
       } else if (char === '"') {
-        inQuotes = false;
+        state.inQuotes = false;
       } else {
-        current += char;
+        state.current += char;
       }
     } else {
       if (char === '"') {
-        inQuotes = true;
+        state.inQuotes = true;
       } else if (char === ",") {
-        fields.push(current);
-        current = "";
+        fields.push(state.current);
+        state.current = "";
       } else if (char === "\n" || char === "\r") {
-        if (char === "\r" && text[i + 1] === "\n") i++;
-        fields.push(current);
-        current = "";
+        if (char === "\r" && text[state.pos + 1] === "\n") state.pos++;
+        fields.push(state.current);
+        state.current = "";
         if (fields.some((f) => f.trim())) rows.push([...fields]);
         fields.length = 0;
       } else {
-        current += char;
+        state.current += char;
       }
     }
+    state.pos++;
   }
 
-  fields.push(current);
+  fields.push(state.current);
   if (fields.some((f) => f.trim())) rows.push([...fields]);
 
   return rows;

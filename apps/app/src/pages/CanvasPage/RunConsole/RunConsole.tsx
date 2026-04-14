@@ -86,7 +86,7 @@ const parseStructuredLogs = (
     onNodeDone: (nodeId: string) => void;
     onNodeFail: (nodeId: string) => void;
     onLlmContent: (nodeId: string, content: string) => void;
-  },
+  }
 ) => {
   for (const log of logs) {
     const msg = log.replace(/^\[[^\]]+\]\s*/, "");
@@ -181,7 +181,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
     <div
       className={cn(
         "absolute bottom-0 left-0 right-0 z-30 border-t bg-background shadow-lg transition-all",
-        collapsed ? "h-9" : "h-64",
+        collapsed ? "h-9" : "h-64"
       )}
     >
       {/* Status bar */}
@@ -198,7 +198,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                   "font-medium",
                   job.status === "running" && "text-blue-600",
                   job.status === "done" && "text-green-600",
-                  job.status === "failed" && "text-red-600",
+                  job.status === "failed" && "text-red-600"
                 )}
               >
                 {statusLabel[job.status]}
@@ -247,7 +247,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                       log.includes("ERROR") && "text-red-600 font-medium",
                       log.includes("Pipeline complete") && "text-green-600 font-medium",
                       log.includes("Cloned to") && "text-blue-600",
-                      log.includes("Skill output") && "text-violet-600",
+                      log.includes("Skill output") && "text-violet-600"
                     )}
                   >
                     {parseMessage(log)}

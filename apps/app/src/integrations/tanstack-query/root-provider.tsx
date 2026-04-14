@@ -11,16 +11,16 @@ const makeQueryClient = () => {
   });
 };
 
-let browserQueryClient: QueryClient | undefined = undefined;
+const browserState: { queryClient: QueryClient | undefined } = { queryClient: undefined };
 
 const getQueryClient = () => {
   if (typeof globalThis === "undefined") {
     return makeQueryClient();
   }
-  if (!browserQueryClient) {
-    browserQueryClient = makeQueryClient();
+  if (!browserState.queryClient) {
+    browserState.queryClient = makeQueryClient();
   }
-  return browserQueryClient;
+  return browserState.queryClient;
 };
 
 interface ProviderProps {

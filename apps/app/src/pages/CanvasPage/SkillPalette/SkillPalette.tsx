@@ -81,7 +81,7 @@ const outputItems: NodeTypeItem[] = [
   },
 ];
 
-let nodeCounter = 100;
+const nodeIdCounter = { value: 100 };
 
 export const SkillPalette = () => {
   const { t } = useTranslation();
@@ -95,8 +95,8 @@ export const SkillPalette = () => {
     const recipe = recipes.find((r) => r.id === recipeId);
     if (!recipe) return;
     const operation = operations.find((op) => op.id === recipe.operationId);
-    nodeCounter++;
-    const id = `operation-${nodeCounter}`;
+    nodeIdCounter.value++;
+    const id = `operation-${nodeIdCounter.value}`;
     const pos = { x: 250 + Math.random() * 200, y: 150 + Math.random() * 200 };
     const data: PipelineNode["data"] = {
       label: recipe.name,
@@ -112,65 +112,71 @@ export const SkillPalette = () => {
   };
 
   const handleAddNodeType = (item: NodeTypeItem) => {
-    nodeCounter++;
-    const id = `${item.type}-${nodeCounter}`;
+    nodeIdCounter.value++;
+    const id = `${item.type}-${nodeIdCounter.value}`;
     const pos = { x: 250 + Math.random() * 200, y: 150 + Math.random() * 200 };
 
-    let data: PipelineNode["data"];
+    const data: PipelineNode["data"] | null = (() => {
+      if (item.type === "code-file") {
+        return {
+          label: "代码文件",
+          nodeType: "code-file" as const,
+          filePath: "",
+          language: "typescript",
+          description: "",
+        };
+      }
+      if (item.type === "folder") {
+        return {
+          label: "文件夹",
+          nodeType: "folder" as const,
+          folderPath: "",
+          description: "",
+        };
+      }
+      if (item.type === "github-project") {
+        return {
+          label: "GitHub 项目",
+          nodeType: "github-project" as const,
+          owner: "",
+          repo: "",
+          branch: "main",
+          description: "",
+        };
+      }
+      if (item.type === "operation") {
+        const opData: PipelineNode["data"] = {
+          label: "Operation",
+          nodeType: "operation",
+          operationId: "",
+          operationName: "Operation",
+          status: "idle",
+          config: {},
+        };
+        addNode({ id, type: "operation", position: pos, data: opData });
+        return null;
+      }
+      if (item.type === "output-project-path") {
+        return {
+          label: "项目路径输出",
+          nodeType: "output-project-path" as const,
+          projectId: "",
+          path: "",
+          description: "",
+        };
+      }
+      if (item.type === "output-local-path") {
+        return {
+          label: "本地路径输出",
+          nodeType: "output-local-path" as const,
+          localPath: "",
+          description: "",
+        };
+      }
+      return null;
+    })();
 
-    if (item.type === "code-file") {
-      data = {
-        label: "代码文件",
-        nodeType: "code-file",
-        filePath: "",
-        language: "typescript",
-        description: "",
-      };
-    } else if (item.type === "folder") {
-      data = {
-        label: "文件夹",
-        nodeType: "folder",
-        folderPath: "",
-        description: "",
-      };
-    } else if (item.type === "github-project") {
-      data = {
-        label: "GitHub 项目",
-        nodeType: "github-project",
-        owner: "",
-        repo: "",
-        branch: "main",
-        description: "",
-      };
-    } else if (item.type === "operation") {
-      data = {
-        label: "Operation",
-        nodeType: "operation",
-        operationId: "",
-        operationName: "Operation",
-        status: "idle",
-        config: {},
-      };
-      addNode({ id, type: "operation", position: pos, data });
-      return;
-    } else if (item.type === "output-project-path") {
-      data = {
-        label: "项目路径输出",
-        nodeType: "output-project-path",
-        projectId: "",
-        path: "",
-        description: "",
-      };
-    } else if (item.type === "output-local-path") {
-      data = {
-        label: "本地路径输出",
-        nodeType: "output-local-path",
-        localPath: "",
-        description: "",
-      };
-    } else {
-      return;
-    }
+    if (!data) return;
 
     addNode({ id, type: item.type, position: pos, data });
   };

@@ -134,7 +134,7 @@ const getLlmModel = async (override?: LlmOverride, log: LogFn = noopLog) => {
   const apiKey = settings.llmApiKey;
 
   await log(
-    `[LLM] Provider: ${provider}, Model: ${model}, API key: ${apiKey ? `configured (${apiKey.slice(0, 6)}...)` : "NOT SET"}`,
+    `[LLM] Provider: ${provider}, Model: ${model}, API key: ${apiKey ? `configured (${apiKey.slice(0, 6)}...)` : "NOT SET"}`
   );
 
   if (!apiKey) {
@@ -206,7 +206,7 @@ class PipelineNotFoundError extends Error {
 class ScriptExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(message);
     this.name = "ScriptExecutionError";
@@ -216,7 +216,7 @@ class ScriptExecutionError extends Error {
 class PromptExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(message);
     this.name = "PromptExecutionError";
@@ -226,7 +226,7 @@ class PromptExecutionError extends Error {
 class ConfigParseError extends Error {
   constructor(
     public readonly operationName: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(`Could not parse config for operation ${operationName}`);
     this.name = "ConfigParseError";
@@ -236,7 +236,7 @@ class ConfigParseError extends Error {
 class SkillExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(message);
     this.name = "SkillExecutionError";
@@ -246,7 +246,7 @@ class SkillExecutionError extends Error {
 class GitCloneError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(message);
     this.name = "GitCloneError";
@@ -301,15 +301,15 @@ const topoSort = (nodes: PipelineNode[], edges: PipelineEdge[]): PipelineNode[] 
 
 const safeParseJson = (
   raw: string,
-  operationName: string,
+  operationName: string
 ): ResultAsync<OperationConfig, ConfigParseError> =>
   ResultAsync.fromPromise(
     Promise.resolve(JSON.parse(raw) as OperationConfig),
-    (cause) => new ConfigParseError(operationName, cause),
+    (cause) => new ConfigParseError(operationName, cause)
   );
 
 const safeReadInputFile = (
-  path: string,
+  path: string
 ): ResultAsync<{ content: string; isFile: boolean }, never> =>
   ResultAsync.fromPromise(
     (async () => {
@@ -320,19 +320,19 @@ const safeReadInputFile = (
       }
       return { content: path, isFile: false };
     })(),
-    () => ({ content: path, isFile: false }),
+    () => ({ content: path, isFile: false })
   ).orElse((fallback) => ok(fallback));
 
 const runScript = (
   executor: ExecutorConfig,
   inputPath: string,
-  inputContent: string,
+  inputContent: string
 ): ResultAsync<string, ScriptExecutionError> => {
   const lang = executor.language ?? "bash";
   const command = executor.command ?? "";
   if (!command.trim()) {
     return ResultAsync.fromSafePromise<string, ScriptExecutionError>(
-      Promise.reject(new ScriptExecutionError("Script command is empty")),
+      Promise.reject(new ScriptExecutionError("Script command is empty"))
     );
   }
 
@@ -358,8 +358,8 @@ const runScript = (
     (cause) =>
       new ScriptExecutionError(
         `Script execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-        cause,
-      ),
+        cause
+      )
   );
 };
 
@@ -370,19 +370,19 @@ const runPrompt = (
   inputContent: string,
   override?: LlmOverride,
   onChunk?: StreamCallback,
-  log: LogFn = noopLog,
+  log: LogFn = noopLog
 ): ResultAsync<string, PromptExecutionError> => {
   const prompt = executor.prompt;
   if (!prompt?.trim()) {
     return ResultAsync.fromSafePromise<string, PromptExecutionError>(
-      Promise.reject(new PromptExecutionError("Prompt text is empty")),
+      Promise.reject(new PromptExecutionError("Prompt text is empty"))
     );
   }
 
   return ResultAsync.fromPromise(
     (async () => {
       await log(
-        `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`,
+        `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`
       );
       const model = await getLlmModel(override, log);
       if (!model) {
@@ -394,11 +394,12 @@ const runPrompt = (
         model,
         prompt: `${prompt}\n\nInput:\n${inputContent}`,
       });
-      let accumulated = "";
+      const chunks: string[] = [];
       for await (const chunk of result.textStream) {
-        accumulated += chunk;
-        if (onChunk) await onChunk(accumulated);
+        chunks.push(chunk);
+        if (onChunk) await onChunk(chunks.join(""));
       }
+      const accumulated = chunks.join("");
       await log(`[LLM] runPrompt: Stream complete, total output=${accumulated.length} chars`);
       return accumulated;
     })(),
@@ -408,9 +409,9 @@ const runPrompt = (
         ? cause
         : new PromptExecutionError(
             `Prompt execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-            cause,
+            cause
           );
-    },
+    }
   );
 };
 
@@ -420,7 +421,7 @@ const cloneGitHubRepo = (
   owner: string,
   repo: string,
   branch: string,
-  githubToken?: string,
+  githubToken?: string
 ): ResultAsync<string, GitCloneError> => {
   const cloneDir = join(tmpdir(), `ordine-pipeline-${Date.now()}-${repo}`);
   const url = githubToken
@@ -440,8 +441,8 @@ const cloneGitHubRepo = (
     (cause) =>
       new GitCloneError(
         `Failed to clone ${owner}/${repo}@${branch}: ${cause instanceof Error ? cause.message : String(cause)}`,
-        cause,
-      ),
+        cause
+      )
   );
 };
 
@@ -540,12 +541,12 @@ const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean })
                 const content = await readFile(full, "utf8");
                 const lines = content.split("\n");
                 const regex = new RegExp(pattern, "gi");
-                for (let i = 0; i < lines.length; i++) {
-                  if (regex.test(lines[i])) {
+                for (const [i, lineText] of lines.entries()) {
+                  if (regex.test(lineText)) {
                     results.push({
                       file: relative(projectRoot, full),
                       line: i + 1,
-                      content: lines[i].trim().slice(0, 200),
+                      content: lineText.trim().slice(0, 200),
                     });
                     if (results.length >= MAX_RESULTS) break;
                   }
@@ -615,7 +616,7 @@ const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean })
       oldString: z
         .string()
         .describe(
-          "The exact literal text to find and replace. Must appear exactly once in the file.",
+          "The exact literal text to find and replace. Must appear exactly once in the file."
         ),
       newString: z.string().describe("The replacement text"),
     }),
@@ -661,29 +662,31 @@ const buildSkillTools = (projectRoot: string, opts?: { writeEnabled?: boolean })
  * or surrounding prose. Validates against OperationOutputSchema.
  * Returns the clean JSON string if valid, otherwise returns the original text.
  */
+const tryParseJson = (text: string): unknown | undefined => {
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return undefined;
+  }
+};
+
 const extractStructuredOutput = (rawText: string, log: (line: string) => Promise<void>): string => {
   // Try to extract JSON from ```json ... ``` fenced block
   const fenceMatch = rawText.match(/```json\s*\n?([\s\S]*?)\n?\s*```/);
   const candidate = fenceMatch ? fenceMatch[1].trim() : rawText.trim();
 
   // Try to parse as JSON
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(candidate);
-  } catch {
-    // If fenced extraction failed, try to find a top-level JSON object in the text
-    const objectMatch = rawText.match(/\{[\s\S]*"type"\s*:\s*"(?:check|fix)"[\s\S]*\}/);
-    if (objectMatch) {
-      try {
-        parsed = JSON.parse(objectMatch[0]);
-      } catch {
-        void log("[extractStructuredOutput] No valid JSON found — returning raw text");
-        return rawText;
-      }
-    } else {
-      void log("[extractStructuredOutput] No JSON-like content found — returning raw text");
-      return rawText;
-    }
+  const parsed =
+    tryParseJson(candidate) ??
+    (() => {
+      const objectMatch = rawText.match(/\{[\s\S]*"type"\s*:\s*"(?:check|fix)"[\s\S]*\}/);
+      if (objectMatch) return tryParseJson(objectMatch[0]);
+      return undefined;
+    })();
+
+  if (parsed === undefined) {
+    void log("[extractStructuredOutput] No valid JSON found — returning raw text");
+    return rawText;
   }
 
   // Validate against schema
@@ -694,13 +697,13 @@ const extractStructuredOutput = (rawText: string, log: (line: string) => Promise
         result.data.type === "check"
           ? `${result.data.findings.length} findings`
           : `${result.data.changes.length} changes`
-      }`,
+      }`
     );
     return JSON.stringify(result.data, null, 2);
   }
 
   void log(
-    `[extractStructuredOutput] JSON parsed but schema validation failed — ${zv4.prettifyError(result.error)}. Returning raw text`,
+    `[extractStructuredOutput] JSON parsed but schema validation failed — ${zv4.prettifyError(result.error)}. Returning raw text`
   );
   return rawText;
 };
@@ -712,12 +715,8 @@ const extractStructuredOutput = (rawText: string, log: (line: string) => Promise
  * Returns the original content unchanged if it's not valid structured JSON.
  */
 const structuredJsonToMarkdown = (content: string): string => {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(content);
-  } catch {
-    return content;
-  }
+  const parsed = tryParseJson(content);
+  if (parsed === undefined) return content;
 
   const result = OperationOutputSchema.safeParse(parsed);
   if (!result.success) return content;
@@ -737,7 +736,7 @@ const structuredJsonToMarkdown = (content: string): string => {
       `| Warnings | ${data.stats.warnings} |`,
       `| Info | ${data.stats.infos} |`,
       `| Skipped | ${data.stats.skipped} |`,
-      "",
+      ""
     );
 
     if (data.findings.length > 0) {
@@ -765,14 +764,14 @@ const structuredJsonToMarkdown = (content: string): string => {
       `| Files modified | ${data.stats.filesModified} |`,
       `| Findings fixed | ${data.stats.findingsFixed} |`,
       `| Findings skipped | ${data.stats.findingsSkipped} |`,
-      "",
+      ""
     );
 
     if (data.changes.length > 0) {
       lines.push(`## Changes`, "");
       for (const c of data.changes) {
         lines.push(
-          `- **\`${c.file}\`** [${c.action}]: ${c.description}${c.findingId ? ` (fixes ${c.findingId})` : ""}`,
+          `- **\`${c.file}\`** [${c.action}]: ${c.description}${c.findingId ? ` (fixes ${c.findingId})` : ""}`
         );
       }
       lines.push("");
@@ -783,7 +782,7 @@ const structuredJsonToMarkdown = (content: string): string => {
       for (const f of data.remainingFindings) {
         const badge = f.severity === "error" ? "🔴" : f.severity === "warning" ? "🟡" : "🔵";
         lines.push(
-          `- ${badge} **${f.id}**: ${f.message} — \`${f.file}\`${f.line ? `:${f.line}` : ""}`,
+          `- ${badge} **${f.id}**: ${f.message} — \`${f.file}\`${f.line ? `:${f.line}` : ""}`
         );
       }
       lines.push("");
@@ -801,7 +800,7 @@ const runSkill = (
   override?: LlmOverride,
   onChunk?: StreamCallback,
   log: LogFn = noopLog,
-  opts?: { writeEnabled?: boolean },
+  opts?: { writeEnabled?: boolean }
 ): ResultAsync<string, never> => {
   const isImplementMode = opts?.writeEnabled === true;
 
@@ -910,7 +909,7 @@ const runSkill = (
   return ResultAsync.fromPromise(
     (async () => {
       await log(
-        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`,
+        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`
       );
       await log(`[Mastra] runSkill: instructions length=${instructions.length}`);
 
@@ -948,64 +947,71 @@ const runSkill = (
 
         await log(`[Mastra] runSkill: Starting agent.generate (tool-use mode)...`);
 
-        let result;
         const MAX_ATTEMPTS = 2;
-        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-          try {
-            result = await agent.generate(userPrompt, {
-              maxSteps: 25,
-              ...(attempt > 1
-                ? {
-                    providerOptions: {
-                      openai: { reasoning_effort: "none" },
-                    },
-                  }
-                : {}),
-            });
-            break; // success
-          } catch (error) {
-            const errMsg = error instanceof Error ? error.message : String(error);
-            const isThinkingError = errMsg.includes("reasoning_content");
-            await log(
-              `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`,
-            );
+        const generateWithRetry = async (): Promise<Awaited<
+          ReturnType<typeof agent.generate>
+        > | null> => {
+          for (const attempt of Array.from({ length: MAX_ATTEMPTS }, (_, i) => i + 1)) {
+            try {
+              return await agent.generate(userPrompt, {
+                maxSteps: 25,
+                ...(attempt > 1
+                  ? {
+                      providerOptions: {
+                        openai: { reasoning_effort: "none" },
+                      },
+                    }
+                  : {}),
+              });
+            } catch (error) {
+              const errMsg = error instanceof Error ? error.message : String(error);
+              const isThinkingError = errMsg.includes("reasoning_content");
+              await log(
+                `[Mastra] runSkill: agent.generate THREW (attempt ${attempt}/${MAX_ATTEMPTS}) — ${errMsg}`
+              );
 
-            if (isThinkingError && attempt < MAX_ATTEMPTS) {
-              await log(`[Mastra] runSkill: Retrying with reasoning disabled...`);
-              continue;
+              if (isThinkingError && attempt < MAX_ATTEMPTS) {
+                await log(`[Mastra] runSkill: Retrying with reasoning disabled...`);
+                continue;
+              }
+
+              return null;
             }
-
-            return generateFallbackReport();
           }
-        }
+          return null;
+        };
 
+        const result = await generateWithRetry();
         if (!result) return generateFallbackReport();
 
         const stepCount = result.steps?.length ?? 0;
         const toolCallCount = (result.steps ?? []).reduce(
           (acc, step) => acc + (step.toolCalls?.length ?? 0),
-          0,
+          0
         );
 
         // If result.text is empty, try to salvage text from intermediate steps
-        let outputText = result.text;
-        if (!outputText && result.steps?.length) {
-          const stepTexts = result.steps.map((s) => s.text ?? "").filter((t) => t.length > 50);
-          if (stepTexts.length > 0) {
-            outputText = stepTexts.at(-1) ?? "";
-            await log(`[Mastra] runSkill: Salvaged ${outputText.length} chars from step text`);
+        const outputText = (() => {
+          if (result.text) return result.text;
+          if (result.steps?.length) {
+            const stepTexts = result.steps.map((s) => s.text ?? "").filter((t) => t.length > 50);
+            if (stepTexts.length > 0) return stepTexts.at(-1) ?? "";
           }
+          return "";
+        })();
+        if (!result.text && outputText) {
+          await log(`[Mastra] runSkill: Salvaged ${outputText.length} chars from step text`);
         }
 
         await log(
-          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${outputText.length} chars`,
+          `[Mastra] runSkill: Agent complete, steps=${stepCount}, tool calls=${toolCallCount}, output=${outputText.length} chars`
         );
 
         if (onChunk) await onChunk(outputText);
 
         if (outputText.length === 0) {
           await log(
-            `[Mastra] runSkill: WARNING — Agent returned empty output, using fallback report`,
+            `[Mastra] runSkill: WARNING — Agent returned empty output, using fallback report`
           );
           return generateFallbackReport();
         }
@@ -1024,15 +1030,14 @@ const runSkill = (
         system: instructions,
         prompt: userPrompt,
       });
-      let accumulated = "";
-      let chunkCount = 0;
+      const chunks: string[] = [];
       for await (const chunk of result.textStream) {
-        chunkCount++;
-        accumulated += chunk;
-        if (onChunk) await onChunk(accumulated);
+        chunks.push(chunk);
+        if (onChunk) await onChunk(chunks.join(""));
       }
+      const accumulated = chunks.join("");
       await log(
-        `[Mastra] runSkill: Stream complete, chunks=${chunkCount}, total output=${accumulated.length} chars`,
+        `[Mastra] runSkill: Stream complete, chunks=${chunks.length}, total output=${accumulated.length} chars`
       );
       if (accumulated.length === 0) {
         await log(`[Mastra] runSkill: WARNING — LLM returned empty output, using fallback report`);
@@ -1040,7 +1045,7 @@ const runSkill = (
       }
       return extractStructuredOutput(accumulated, log);
     })(),
-    (cause) => cause,
+    (cause) => cause
   ).orElse((cause) => {
     const errMsg = cause instanceof Error ? cause.message : String(cause);
     log(`[Mastra] runSkill: Agent call FAILED — ${errMsg}`);
@@ -1057,7 +1062,7 @@ const executePipeline = async (opts: {
   githubToken?: string;
 }): Promise<{ ok: true; summary: string } | { ok: false; error: PipelineRunError }> => {
   const { pipelineId, jobId, githubToken } = opts;
-  let inputPath = opts.inputPath ?? "";
+  const ctx = { inputPath: opts.inputPath ?? "", currentContent: "", outputLocalPath: "" };
   const tempDirs: string[] = [];
 
   const log = async (line: string) => {
@@ -1092,15 +1097,13 @@ const executePipeline = async (opts: {
     if (op) operationsMap.set(id, op);
   }
 
-  // Context accumulates output across nodes
-  let currentContent = "";
-  let outputLocalPath = "";
+  // Context accumulates output across nodes — stored in ctx object above
 
   // Helper: evaluate whether a loop condition is met (returns true = condition passed)
   const evaluateLoopCondition = async (
     conditionPrompt: string,
     operationOutput: string,
-    override?: LlmOverride,
+    override?: LlmOverride
   ): Promise<boolean> => {
     const model = await getLlmModel(override, log);
     if (!model) {
@@ -1125,7 +1128,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
 
   // Helper: execute a single operation node. Returns { ok, content } or error.
   const executeOperationNode = async (
-    node: PipelineNode,
+    node: PipelineNode
   ): Promise<{ ok: true; content: string } | { ok: false; error: PipelineRunError | null }> => {
     const data = node.data as unknown as NodeData;
     const operationId = data.operationId ?? "";
@@ -1147,18 +1150,18 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         ? { llmProvider: opData.llmProvider, llmModel: opData.llmModel }
         : undefined;
 
-    let bestPracticeContent = "";
-    if (opData.bestPracticeId) {
+    const bestPracticeContent = await (async () => {
+      if (!opData.bestPracticeId) return "";
       const bp = await bestPracticesDao.findById(opData.bestPracticeId);
       if (bp) {
-        bestPracticeContent = bp.content;
         await log(`Loaded best practice "${bp.title}" (${bp.content.length} chars)`);
-      } else {
-        await log(
-          `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`,
-        );
+        return bp.content;
       }
-    }
+      await log(
+        `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`
+      );
+      return "";
+    })();
 
     const configResult = await safeParseJson(operation.config, operation.name);
     if (configResult.isErr()) {
@@ -1183,50 +1186,50 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
 
     if (executor.type === "rule-check") {
       const { runRuleCheck } = await import("@/services/ruleCheckRunner");
-      await log(`Running rule-check on path: ${inputPath}`);
-      const checkOutput = await runRuleCheck(inputPath);
+      await log(`Running rule-check on path: ${ctx.inputPath}`);
+      const checkOutput = await runRuleCheck(ctx.inputPath);
       const result = JSON.stringify(checkOutput, null, 2);
       await log(
-        `Rule-check: ${checkOutput.stats.totalFindings} findings in ${checkOutput.stats.totalFiles} files`,
+        `Rule-check: ${checkOutput.stats.totalFindings} findings in ${checkOutput.stats.totalFiles} files`
       );
       return { ok: true, content: result };
     }
 
     await log(`Executing operation "${operation.name}" (${executor.type})`);
 
-    let lastChunkTime = 0;
+    const chunkState = { lastTime: 0 };
     const CHUNK_THROTTLE_MS = 2000;
     const handleChunk = async (accumulated: string) => {
       const now = Date.now();
-      if (now - lastChunkTime >= CHUNK_THROTTLE_MS) {
-        lastChunkTime = now;
+      if (now - chunkState.lastTime >= CHUNK_THROTTLE_MS) {
+        chunkState.lastTime = now;
         await log(`@@LLM_CONTENT::${node.id}::${accumulated}`);
       }
     };
 
     const effectiveInput = bestPracticeContent
-      ? `## Standards (Best Practice)\n\n${bestPracticeContent}\n\n---\n\n${currentContent}`
-      : currentContent;
+      ? `## Standards (Best Practice)\n\n${bestPracticeContent}\n\n---\n\n${ctx.currentContent}`
+      : ctx.currentContent;
 
-    let result = "";
+    const opResult = { value: "" };
 
     if (executor.type === "script") {
-      const scriptResult = await runScript(executor, inputPath, currentContent);
+      const scriptResult = await runScript(executor, ctx.inputPath, ctx.currentContent);
       if (scriptResult.isErr()) {
         await log(`@@NODE_FAIL::${node.id}`);
         return { ok: false, error: scriptResult.error };
       }
-      result = scriptResult.value;
-      await log(`Script output (${result.length} chars)`);
+      opResult.value = scriptResult.value;
+      await log(`Script output (${opResult.value.length} chars)`);
     } else if (executor.type === "agent" && executor.agentMode === "prompt") {
       const promptResult = await runPrompt(executor, effectiveInput, llmOverride, handleChunk, log);
       if (promptResult.isErr()) {
         await log(`@@NODE_FAIL::${node.id}`);
         return { ok: false, error: promptResult.error };
       }
-      result = promptResult.value;
-      await log(`@@LLM_CONTENT::${node.id}::${result}`);
-      await log(`Prompt output (${result.length} chars)`);
+      opResult.value = promptResult.value;
+      await log(`@@LLM_CONTENT::${node.id}::${opResult.value}`);
+      await log(`Prompt output (${opResult.value.length} chars)`);
     } else if (executor.type === "agent" && executor.agentMode === "skill") {
       const skillId = executor.skillId ?? "";
       if (!skillId) {
@@ -1245,28 +1248,28 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         skillId,
         skillDescription,
         effectiveInput,
-        inputPath,
+        ctx.inputPath,
         llmOverride,
         handleChunk,
         log,
-        { writeEnabled: executor.writeEnabled === true },
+        { writeEnabled: executor.writeEnabled === true }
       );
-      result = skillResult.isOk() ? skillResult.value : "";
-      await log(`@@LLM_CONTENT::${node.id}::${result}`);
-      await log(`Skill output (${result.length} chars)`);
+      opResult.value = skillResult.isOk() ? skillResult.value : "";
+      await log(`@@LLM_CONTENT::${node.id}::${opResult.value}`);
+      await log(`Skill output (${opResult.value.length} chars)`);
     }
 
-    return { ok: true, content: result };
+    return { ok: true, content: opResult.value };
   };
 
   // Resolve initial input if a path was given
-  if (inputPath && existsSync(inputPath)) {
-    const readResult = await safeReadInputFile(inputPath);
+  if (ctx.inputPath && existsSync(ctx.inputPath)) {
+    const readResult = await safeReadInputFile(ctx.inputPath);
     if (readResult.isOk()) {
       const { content, isFile } = readResult.value;
-      currentContent = content;
+      ctx.currentContent = content;
       if (isFile) {
-        await log(`Read input file: ${inputPath} (${content.length} chars)`);
+        await log(`Read input file: ${ctx.inputPath} (${content.length} chars)`);
       }
     }
   }
@@ -1275,7 +1278,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
   for (const node of ordered) {
     const data = node.data as unknown as NodeData;
     await log(
-      `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`,
+      `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`
     );
     await log(`@@NODE_START::${node.id}`);
 
@@ -1284,9 +1287,9 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       const p = data.folderPath ?? "";
       const excludedPaths: string[] = Array.isArray(data.excludedPaths) ? data.excludedPaths : [];
       if (p && existsSync(p)) {
-        inputPath = p;
+        ctx.inputPath = p;
         const tree = await listDirTree(p, { excludedPaths });
-        currentContent = `Folder: ${p}\n\nFile tree:\n${tree}`;
+        ctx.currentContent = `Folder: ${p}\n\nFile tree:\n${tree}`;
         await log(`Input folder: ${p} (tree: ${tree.split("\n").length} entries)`);
       }
       await log(`@@NODE_DONE::${node.id}`);
@@ -1296,9 +1299,9 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
     if (node.type === "code-file") {
       const p = data.filePath ?? "";
       if (p && existsSync(p)) {
-        inputPath = p;
-        currentContent = await readFile(p, "utf8");
-        await log(`Read code file: ${p} (${currentContent.length} chars)`);
+        ctx.inputPath = p;
+        ctx.currentContent = await readFile(p, "utf8");
+        await log(`Read code file: ${p} (${ctx.currentContent.length} chars)`);
       }
       await log(`@@NODE_DONE::${node.id}`);
       continue;
@@ -1317,7 +1320,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         if (disclosureMode === "tree") {
           const tree = await listDirTree(dir, treeOpts);
           await log(
-            `Disclosure mode: tree (${tree.split("\n").length} entries, excluded: [${excludedPaths.join(", ")}])`,
+            `Disclosure mode: tree (${tree.split("\n").length} entries, excluded: [${excludedPaths.join(", ")}])`
           );
           return `${label}\n\nFile tree:\n${tree}`;
         }
@@ -1325,14 +1328,14 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           const tree = await listDirTree(dir, treeOpts);
           const fileContents = await readProjectFiles(dir, { excludedPaths });
           await log(
-            `Disclosure mode: full (tree + file contents, ${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,
+            `Disclosure mode: full (tree + file contents, ${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`
           );
           return `${label}\n\nFile tree:\n${tree}\n\n---\n\nFile contents:\n\n${fileContents}`;
         }
         // files-only: just file contents, no tree
         const fileContents = await readProjectFiles(dir, { excludedPaths });
         await log(
-          `Disclosure mode: files-only (${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,
+          `Disclosure mode: files-only (${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`
         );
         return `${label}\n\nFile contents:\n\n${fileContents}`;
       };
@@ -1346,8 +1349,8 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           continue;
         }
         await log(`Using local folder: ${localPath}`);
-        inputPath = localPath;
-        currentContent = await buildProjectContent(localPath, `Local Folder: ${localPath}`);
+        ctx.inputPath = localPath;
+        ctx.currentContent = await buildProjectContent(localPath, `Local Folder: ${localPath}`);
         await log(`@@NODE_DONE::${node.id}`);
         continue;
       }
@@ -1373,10 +1376,10 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
 
       const clonedDir = cloneResult.value;
       tempDirs.push(clonedDir);
-      inputPath = clonedDir;
-      currentContent = await buildProjectContent(
+      ctx.inputPath = clonedDir;
+      ctx.currentContent = await buildProjectContent(
         clonedDir,
-        `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}`,
+        `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}`
       );
       await log(`@@NODE_DONE::${node.id}`);
       continue;
@@ -1387,11 +1390,25 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       const rawPath = data.localPath ?? "";
       const outputFileName = data.outputFileName?.trim() || "output.md";
       const outputMode: OutputMode = data.outputMode ?? "overwrite";
-      let resolvedPath = rawPath ? resolve(rawPath) : "";
-      // If the path points to an existing directory, append the filename
-      if (resolvedPath && existsSync(resolvedPath) && statSync(resolvedPath).isDirectory()) {
-        resolvedPath = join(resolvedPath, outputFileName);
-      }
+      const resolvedPath = (() => {
+        const initial = rawPath ? resolve(rawPath) : "";
+        const withFile =
+          initial && existsSync(initial) && statSync(initial).isDirectory()
+            ? join(initial, outputFileName)
+            : initial;
+        if (withFile && existsSync(withFile) && outputMode === "auto_rename") {
+          const dir = dirname(withFile);
+          const ext = extname(withFile);
+          const base = basename(withFile, ext);
+          const rename = { counter: 1, candidate: withFile };
+          while (existsSync(rename.candidate)) {
+            rename.candidate = join(dir, `${base}_${rename.counter}${ext}`);
+            rename.counter++;
+          }
+          return rename.candidate;
+        }
+        return withFile;
+      })();
 
       // Handle output mode
       if (resolvedPath && existsSync(resolvedPath)) {
@@ -1401,38 +1418,28 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           return {
             ok: false,
             error: new ScriptExecutionError(
-              `Output file already exists: ${resolvedPath}. Pipeline aborted (output mode: error_if_exists).`,
+              `Output file already exists: ${resolvedPath}. Pipeline aborted (output mode: error_if_exists).`
             ),
           };
         }
         if (outputMode === "auto_rename") {
-          const dir = dirname(resolvedPath);
-          const ext = extname(resolvedPath);
-          const base = basename(resolvedPath, ext);
-          let counter = 1;
-          let candidate = resolvedPath;
-          while (existsSync(candidate)) {
-            candidate = join(dir, `${base}_${counter}${ext}`);
-            counter++;
-          }
-          resolvedPath = candidate;
           await log(`Auto-renamed to avoid conflict: ${resolvedPath}`);
         }
         // "overwrite" mode — no special handling, just overwrites below
       }
 
-      outputLocalPath = resolvedPath;
-      await log(`Output path set: ${outputLocalPath} (mode: ${outputMode})`);
+      ctx.outputLocalPath = resolvedPath;
+      await log(`Output path set: ${ctx.outputLocalPath} (mode: ${outputMode})`);
       // Write the current content to the output path
-      if (outputLocalPath && currentContent) {
+      if (ctx.outputLocalPath && ctx.currentContent) {
         // Auto-convert structured JSON to Markdown when outputting to .md files
         const outputContent =
-          extname(outputLocalPath) === ".md"
-            ? structuredJsonToMarkdown(currentContent)
-            : currentContent;
-        await mkdir(dirname(outputLocalPath), { recursive: true });
-        await writeFile(outputLocalPath, outputContent, "utf8");
-        await log(`Wrote output to: ${outputLocalPath} (${outputContent.length} chars)`);
+          extname(ctx.outputLocalPath) === ".md"
+            ? structuredJsonToMarkdown(ctx.currentContent)
+            : ctx.currentContent;
+        await mkdir(dirname(ctx.outputLocalPath), { recursive: true });
+        await writeFile(ctx.outputLocalPath, outputContent, "utf8");
+        await log(`Wrote output to: ${ctx.outputLocalPath} (${outputContent.length} chars)`);
       }
       await log(`@@NODE_DONE::${node.id}`);
       continue;
@@ -1457,18 +1464,22 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
             ? { llmProvider: opData.llmProvider, llmModel: opData.llmModel }
             : undefined;
 
-        for (let attempt = 1; attempt <= maxLoops; attempt++) {
+        for (const attempt of Array.from({ length: maxLoops }, (_, i) => i + 1)) {
           await log(
-            `[Loop] Iteration ${attempt}/${maxLoops} for "${(node.data as unknown as Record<string, unknown>).label}"`,
+            `[Loop] Iteration ${attempt}/${maxLoops} for "${(node.data as unknown as Record<string, unknown>).label}"`
           );
-          const opResult = await executeOperationNode(node);
-          if (!opResult.ok) {
-            if (opResult.error) return { ok: false, error: opResult.error };
+          const loopResult = await executeOperationNode(node);
+          if (!loopResult.ok) {
+            if (loopResult.error) return { ok: false, error: loopResult.error };
             break;
           }
-          currentContent = opResult.content;
+          ctx.currentContent = loopResult.content;
 
-          const passed = await evaluateLoopCondition(conditionPrompt, currentContent, llmOverride);
+          const passed = await evaluateLoopCondition(
+            conditionPrompt,
+            ctx.currentContent,
+            llmOverride
+          );
           if (passed) {
             await log(`[Loop] Condition PASSED on iteration ${attempt}`);
             break;
@@ -1480,11 +1491,11 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           }
         }
       } else {
-        const opResult = await executeOperationNode(node);
-        if (opResult.ok) {
-          currentContent = opResult.content;
-        } else if (opResult.error) {
-          return { ok: false, error: opResult.error };
+        const nodeResult = await executeOperationNode(node);
+        if (nodeResult.ok) {
+          ctx.currentContent = nodeResult.content;
+        } else if (nodeResult.error) {
+          return { ok: false, error: nodeResult.error };
         }
       }
 
@@ -1497,7 +1508,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       // The implement-mode operation already wrote files to the project root
       // via writeFile/replaceInFile tools. This node simply acknowledges that
       // the project was modified and logs a summary.
-      const projPath = (data as Record<string, unknown>).path ?? inputPath;
+      const projPath = (data as Record<string, unknown>).path ?? ctx.inputPath;
       await log(`Output-to-project: changes written directly to ${projPath}`);
       await log(`@@NODE_DONE::${node.id}`);
       continue;
@@ -1508,8 +1519,8 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
     await log(`@@NODE_DONE::${node.id}`);
   }
 
-  const summary = outputLocalPath
-    ? `Output written to ${outputLocalPath}`
+  const summary = ctx.outputLocalPath
+    ? `Output written to ${ctx.outputLocalPath}`
     : `Completed (no output-local-path node configured)`;
 
   await log(`Pipeline complete. ${summary}`);
@@ -1533,8 +1544,8 @@ export const runPipeline = async (opts: {
     (cause) =>
       new ScriptExecutionError(
         cause instanceof Error ? cause.message : String(cause),
-        cause,
-      ) as PipelineRunError,
+        cause
+      ) as PipelineRunError
   );
 
   const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };

@@ -78,20 +78,19 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
     const internalEdges = edges.filter((e) => cSet.has(e.source) && cSet.has(e.target));
 
     const childOrder = topoSort(validChildren, internalEdges);
-    let cx = COMPOUND_PAD;
-    let maxH = 0;
+    const compound = { cx: COMPOUND_PAD, maxH: 0 };
 
     for (const cid of childOrder) {
       const cn = nodeMap.get(cid);
       const w = cn?.measured?.width ?? DEFAULT_WIDTH;
       const h = cn?.measured?.height ?? DEFAULT_HEIGHT;
-      childRelPos.set(cid, { x: cx, y: COMPOUND_PAD });
-      cx += w + H_GAP;
-      maxH = Math.max(maxH, h);
+      childRelPos.set(cid, { x: compound.cx, y: COMPOUND_PAD });
+      compound.cx += w + H_GAP;
+      compound.maxH = Math.max(compound.maxH, h);
     }
 
-    const expandedW = cx - H_GAP + COMPOUND_PAD;
-    const expandedH = maxH + 2 * COMPOUND_PAD;
+    const expandedW = compound.cx - H_GAP + COMPOUND_PAD;
+    const expandedH = compound.maxH + 2 * COMPOUND_PAD;
     compoundSizes.set(compoundId, { w: expandedW, h: expandedH });
   }
 
@@ -135,35 +134,31 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
       dist.set(id, 0);
       parentOf.set(id, null);
     } else {
-      let maxDist = -1;
-      let bestPred: string | null = null;
-      for (const p of preds) {
-        const d = dist.get(p) ?? 0;
-        if (d > maxDist) {
-          maxDist = d;
-          bestPred = p;
-        }
-      }
-      dist.set(id, maxDist + 1);
-      parentOf.set(id, bestPred);
+      const best = preds.reduce(
+        (acc, p) => {
+          const d = dist.get(p) ?? 0;
+          return d > acc.maxDist ? { maxDist: d, bestPred: p } : acc;
+        },
+        { maxDist: -1, bestPred: null as string | null }
+      );
+      dist.set(id, best.maxDist + 1);
+      parentOf.set(id, best.bestPred);
     }
   }
 
-  let mainEnd = trunkOrder[0];
-  let maxD = 0;
-  for (const id of trunkOrder) {
-    const d = dist.get(id) ?? 0;
-    if (d > maxD) {
-      maxD = d;
-      mainEnd = id;
-    }
-  }
+  const mainEnd = trunkOrder.reduce(
+    (acc, id) => {
+      const d = dist.get(id) ?? 0;
+      return d > acc.maxD ? { id, maxD: d } : acc;
+    },
+    { id: trunkOrder[0], maxD: 0 }
+  ).id;
 
   const mainPath: string[] = [];
-  let cur: string | null = mainEnd;
-  while (cur !== null) {
-    mainPath.unshift(cur);
-    cur = parentOf.get(cur) ?? null;
+  const walk = { cur: mainEnd as string | null };
+  while (walk.cur !== null) {
+    mainPath.unshift(walk.cur);
+    walk.cur = parentOf.get(walk.cur) ?? null;
   }
   const mainPathSet = new Set(mainPath);
 
@@ -172,17 +167,17 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
   const nodeToAnchor = new Map<string, string>();
 
   for (const sideId of sideNodes) {
-    let anchor: string | null = null;
+    const search = { anchor: null as string | null };
 
     // BFS forward: first main-path successor
     const queue = [...(fwd.get(sideId) ?? [])];
     const visited = new Set<string>([sideId]);
-    while (queue.length > 0 && anchor === null) {
+    while (queue.length > 0 && search.anchor === null) {
       const n = queue.shift()!;
       if (visited.has(n)) continue;
       visited.add(n);
       if (mainPathSet.has(n)) {
-        anchor = n;
+        search.anchor = n;
       } else {
         for (const next of fwd.get(n) ?? []) {
           if (!visited.has(next)) queue.push(next);
@@ -190,16 +185,16 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
       }
     }
 
-    if (anchor === null) {
+    if (search.anchor === null) {
       // BFS backward: first main-path predecessor
       const bQueue = [...(rev.get(sideId) ?? [])];
       const bVisited = new Set<string>([sideId]);
-      while (bQueue.length > 0 && anchor === null) {
+      while (bQueue.length > 0 && search.anchor === null) {
         const n = bQueue.shift()!;
         if (bVisited.has(n)) continue;
         bVisited.add(n);
         if (mainPathSet.has(n)) {
-          anchor = n;
+          search.anchor = n;
         } else {
           for (const prev of rev.get(n) ?? []) {
             if (!bVisited.has(prev)) bQueue.push(prev);
@@ -208,8 +203,8 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
       }
     }
 
-    if (anchor === null) anchor = mainPath[0];
-    nodeToAnchor.set(sideId, anchor);
+    if (search.anchor === null) search.anchor = mainPath[0];
+    nodeToAnchor.set(sideId, search.anchor);
   }
 
   // Group by anchor
@@ -221,11 +216,11 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
 
   // ── Layout main path at Y=0 ───────────────────────────────────────────────
   const positionMap = new Map<string, { x: number; y: number }>();
-  let tx = 0;
+  const mainLayout = { tx: 0 };
   for (const id of mainPath) {
     const w = getSize(id).w;
-    positionMap.set(id, { x: tx, y: 0 });
-    tx += w + H_GAP;
+    positionMap.set(id, { x: mainLayout.tx, y: 0 });
+    mainLayout.tx += w + H_GAP;
   }
 
   // ── Fishbone: alternate side groups above/below their anchors ────────────
@@ -236,20 +231,18 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
     const groupOrder = topoSort(group, groupEdges);
 
     // Alternating: even index → above (negative Y), odd → below (positive Y)
-    let aboveCy = 0;
-    let belowCy = anchorH;
-    for (let i = 0; i < groupOrder.length; i++) {
-      const sid = groupOrder[i];
+    const offsets = { aboveCy: 0, belowCy: anchorH };
+    for (const [i, sid] of groupOrder.entries()) {
       const h = getSize(sid).h;
       if (i % 2 === 0) {
         // above spine
-        aboveCy -= V_GAP + h;
-        positionMap.set(sid, { x: anchorPos.x, y: aboveCy });
+        offsets.aboveCy -= V_GAP + h;
+        positionMap.set(sid, { x: anchorPos.x, y: offsets.aboveCy });
       } else {
         // below spine
-        belowCy += V_GAP;
-        positionMap.set(sid, { x: anchorPos.x, y: belowCy });
-        belowCy += h;
+        offsets.belowCy += V_GAP;
+        positionMap.set(sid, { x: anchorPos.x, y: offsets.belowCy });
+        offsets.belowCy += h;
       }
     }
   }

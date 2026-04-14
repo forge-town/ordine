@@ -168,19 +168,14 @@ export const createActionsSlice = (
     const { nodes } = get();
     const compoundNodes = nodes.filter((n) => n.type === "compound" && n.id !== draggedNodeId);
 
-    let foundCompound: string | null = null;
-    for (const cn of compoundNodes) {
+    const foundCompound = compoundNodes.find((cn) => {
       const cw = (cn.style?.width as number) ?? cn.measured?.width ?? 280;
       const ch = (cn.style?.height as number) ?? cn.measured?.height ?? 120;
       const cx = cn.position.x;
       const cy = cn.position.y;
-
-      if (position.x >= cx && position.x <= cx + cw && position.y >= cy && position.y <= cy + ch) {
-        foundCompound = cn.id;
-        break;
-      }
-    }
-    get().setHoveredCompound(foundCompound);
+      return position.x >= cx && position.x <= cx + cw && position.y >= cy && position.y <= cy + ch;
+    });
+    get().setHoveredCompound(foundCompound?.id ?? null);
   },
 
   handleDragEndOnCompound: (draggedNodeId, isCompound) => {

@@ -26,7 +26,7 @@ describe("FolderTreePreview", () => {
 
   it("fetches and displays directory entries", async () => {
     render(
-      <FolderTreePreview excludedPaths={[]} folderPath="/project" onExclude={handleExcludeNoop} />,
+      <FolderTreePreview excludedPaths={[]} folderPath="/project" onExclude={handleExcludeNoop} />
     );
 
     await waitFor(() => {
@@ -44,7 +44,7 @@ describe("FolderTreePreview", () => {
         excludedPaths={["node_modules"]}
         folderPath="/project"
         onExclude={handleExcludeNoop}
-      />,
+      />
     );
 
     await waitFor(() => {
@@ -60,7 +60,7 @@ describe("FolderTreePreview", () => {
     const handleExclude = vi.fn();
 
     render(
-      <FolderTreePreview excludedPaths={[]} folderPath="/project" onExclude={handleExclude} />,
+      <FolderTreePreview excludedPaths={[]} folderPath="/project" onExclude={handleExclude} />
     );
 
     await waitFor(() => {
@@ -75,7 +75,7 @@ describe("FolderTreePreview", () => {
 
   it("does not render when folderPath is empty", () => {
     const { container } = render(
-      <FolderTreePreview excludedPaths={[]} folderPath="" onExclude={handleExcludeNoop} />,
+      <FolderTreePreview excludedPaths={[]} folderPath="" onExclude={handleExcludeNoop} />
     );
 
     expect(container.firstChild).toBeNull();
