@@ -59,8 +59,8 @@ export const worksDao = {
       startedAt: null,
       finishedAt: null,
     };
-    const inserted = await db.insert(worksTable).values(row).returning();
-    return rowToEntity(inserted[0]!);
+    const [inserted] = await db.insert(worksTable).values(row).returning();
+    return rowToEntity(inserted);
   },
 
   async createWithTx(
@@ -75,21 +75,21 @@ export const worksDao = {
       startedAt: null,
       finishedAt: null,
     };
-    const inserted = await tx.insert(worksTable).values(row).returning();
-    return rowToEntity(inserted[0]!);
+    const [inserted] = await tx.insert(worksTable).values(row).returning();
+    return rowToEntity(inserted);
   },
 
   async updateStatus(
     id: string,
     status: WorkStatus,
     extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date }
-  ): Promise<WorkEntity> {
-    const rows = await db
+  ): Promise<WorkEntity | null> {
+    const [updated] = await db
       .update(worksTable)
       .set({ status, updatedAt: new Date(), ...extra })
       .where(eq(worksTable.id, id))
       .returning();
-    return rowToEntity(rows[0]!);
+    return updated ? rowToEntity(updated) : null;
   },
 
   async updateStatusWithTx(
@@ -97,13 +97,13 @@ export const worksDao = {
     id: string,
     status: WorkStatus,
     extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date }
-  ): Promise<WorkEntity> {
-    const rows = await tx
+  ): Promise<WorkEntity | null> {
+    const [updated] = await tx
       .update(worksTable)
       .set({ status, updatedAt: new Date(), ...extra })
       .where(eq(worksTable.id, id))
       .returning();
-    return rowToEntity(rows[0]!);
+    return updated ? rowToEntity(updated) : null;
   },
 
   async appendLog(id: string, line: string): Promise<void> {

@@ -1,26 +1,8 @@
-import { Outlet, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { createRootRoute } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import "@/lib/i18n";
-
-const NotFound = () => (
-  <div className="flex h-screen items-center justify-center text-muted-foreground">
-    <p>404 — 页面不存在</p>
-  </div>
-);
-
-const RootDocument = () => {
-  return (
-    <html lang="zh-CN">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <Outlet />
-        <Scripts />
-      </body>
-    </html>
-  );
-};
+import { NotFound } from "./NotFound";
+import { RootDocument } from "./RootDocument";
 
 export const Route = createRootRoute({
   head: () => ({

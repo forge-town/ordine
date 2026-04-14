@@ -49,8 +49,8 @@ export const githubProjectsDao = {
       createdAt: now,
       updatedAt: now,
     };
-    const inserted = await db.insert(githubProjectsTable).values(row).returning();
-    return rowToEntity(inserted[0]!);
+    const [inserted] = await db.insert(githubProjectsTable).values(row).returning();
+    return rowToEntity(inserted);
   },
 
   async createWithTx(
@@ -63,33 +63,33 @@ export const githubProjectsDao = {
       createdAt: now,
       updatedAt: now,
     };
-    const inserted = await tx.insert(githubProjectsTable).values(row).returning();
-    return rowToEntity(inserted[0]!);
+    const [inserted] = await tx.insert(githubProjectsTable).values(row).returning();
+    return rowToEntity(inserted);
   },
 
   async update(
     id: string,
     patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>
-  ): Promise<GithubProjectEntity> {
-    const rows = await db
+  ): Promise<GithubProjectEntity | null> {
+    const [updated] = await db
       .update(githubProjectsTable)
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(githubProjectsTable.id, id))
       .returning();
-    return rowToEntity(rows[0]!);
+    return updated ? rowToEntity(updated) : null;
   },
 
   async updateWithTx(
     tx: DbExecutor,
     id: string,
     patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>
-  ): Promise<GithubProjectEntity> {
-    const rows = await tx
+  ): Promise<GithubProjectEntity | null> {
+    const [updated] = await tx
       .update(githubProjectsTable)
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(githubProjectsTable.id, id))
       .returning();
-    return rowToEntity(rows[0]!);
+    return updated ? rowToEntity(updated) : null;
   },
 
   async delete(id: string): Promise<void> {

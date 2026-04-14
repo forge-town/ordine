@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { timestamp, text, pgTable, jsonb } from "drizzle-orm/pg-core";
 
 export const OBJECT_TYPES = ["file", "folder", "project"] as const;
@@ -10,7 +11,7 @@ export const operationsTable = pgTable("operations", {
   config: text("config").notNull().default("{}"),
   acceptedObjectTypes: jsonb("accepted_object_types")
     .notNull()
-    .default(["file", "folder", "project"]),
+    .default(sql`'["file","folder","project"]'::jsonb`),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

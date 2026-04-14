@@ -19,7 +19,7 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
 } from "@repo/ui/context-menu";
-import { SiGitHubIcon } from "../GitHubProjectNode/SiGitHubIcon";
+import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { Route } from "@/routes/canvas";
 import { nodeTypeMeta, getAllowedConnections, type NodeType } from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";

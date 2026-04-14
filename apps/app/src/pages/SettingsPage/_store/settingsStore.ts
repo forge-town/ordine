@@ -82,7 +82,7 @@ export const createSettingsStore = (initialOverrides?: Partial<AppSettings>): Se
     ...createDataSlice(initial),
     ...createMetaSlice(
       set as Parameters<SettingsStoreSlice>[0],
-      get as Parameters<SettingsStoreSlice>[1],
+      get as Parameters<SettingsStoreSlice>[1]
     ),
   }));
 };

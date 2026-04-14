@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { text, timestamp, jsonb, pgTable } from "drizzle-orm/pg-core";
 import { githubProjectsTable } from "./github_projects_table";
+import { pipelinesTable } from "./pipelines_table";
 
 /**
  * A Work represents a pipeline execution triggered on a specific object
@@ -20,7 +21,9 @@ export const worksTable = pgTable("works", {
   projectId: text("project_id")
     .notNull()
     .references(() => githubProjectsTable.id, { onDelete: "cascade" }),
-  pipelineId: text("pipeline_id").notNull(),
+  pipelineId: text("pipeline_id")
+    .notNull()
+    .references(() => pipelinesTable.id, { onDelete: "cascade" }),
   pipelineName: text("pipeline_name").notNull(),
   /** The object (file/folder/project) this work was triggered on */
   object: jsonb("object").$type<WorkObject>().notNull(),

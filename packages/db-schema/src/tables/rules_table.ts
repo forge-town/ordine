@@ -16,7 +16,7 @@ export const rulesTable = pgTable("rules", {
   acceptedObjectTypes: jsonb("accepted_object_types")
     .$type<string[]>()
     .notNull()
-    .default(["file", "folder", "project"]),
+    .default(sql`'["file","folder","project"]'::jsonb`),
   enabled: boolean("enabled").notNull().default(true),
   tags: text("tags")
     .array()

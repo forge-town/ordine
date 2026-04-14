@@ -17,7 +17,7 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
 } from "@repo/ui/context-menu";
-import { SiGitHubIcon } from "../GitHubProjectNode/SiGitHubIcon";
+import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { Route } from "@/routes/canvas";

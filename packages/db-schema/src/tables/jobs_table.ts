@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
-import { text, timestamp, jsonb, pgTable } from "drizzle-orm/pg-core";
+import { text, timestamp, jsonb, pgTable, index } from "drizzle-orm/pg-core";
 import { worksTable } from "./works_table";
+import { githubProjectsTable } from "./github_projects_table";
+import { pipelinesTable } from "./pipelines_table";
 
 export type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled";
 export type JobType = "pipeline_run" | "code_analysis" | "skill_execution" | "file_scan" | "custom";
@@ -10,27 +12,37 @@ export interface JobResult {
   summary?: string;
 }
 
-export const jobsTable = pgTable("jobs", {
-  id: text("id").primaryKey(),
-  title: text("title").notNull(),
-  type: text("type").$type<JobType>().notNull().default("custom"),
-  status: text("status").$type<JobStatus>().notNull().default("queued"),
-  workId: text("work_id").references(() => worksTable.id, {
-    onDelete: "set null",
+export const jobsTable = pgTable(
+  "jobs",
+  {
+    id: text("id").primaryKey(),
+    title: text("title").notNull(),
+    type: text("type").$type<JobType>().notNull().default("custom"),
+    status: text("status").$type<JobStatus>().notNull().default("queued"),
+    workId: text("work_id").references(() => worksTable.id, {
+      onDelete: "set null",
+    }),
+    projectId: text("project_id").references(() => githubProjectsTable.id),
+    pipelineId: text("pipeline_id").references(() => pipelinesTable.id),
+    logs: text("logs")
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
+    result: jsonb("result").$type<JobResult>(),
+    error: text("error"),
+    startedAt: timestamp("started_at"),
+    finishedAt: timestamp("finished_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    workIdx: index("jobs_work_id_idx").on(table.workId),
+    projectIdx: index("jobs_project_id_idx").on(table.projectId),
+    pipelineIdx: index("jobs_pipeline_id_idx").on(table.pipelineId),
+    statusIdx: index("jobs_status_idx").on(table.status),
+    typeIdx: index("jobs_type_idx").on(table.type),
   }),
-  projectId: text("project_id"),
-  pipelineId: text("pipeline_id"),
-  logs: text("logs")
-    .array()
-    .notNull()
-    .default(sql`ARRAY[]::text[]`),
-  result: jsonb("result").$type<JobResult>(),
-  error: text("error"),
-  startedAt: timestamp("started_at"),
-  finishedAt: timestamp("finished_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+);
 
 export type JobRow = typeof jobsTable.$inferSelect;
 export type NewJobRow = typeof jobsTable.$inferInsert;

@@ -1,59 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  Terminal,
-  X,
-  ChevronUp,
-  ChevronDown,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  Clock,
-} from "lucide-react";
+import { Terminal, X, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { cn } from "@repo/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
-
-type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled";
-
-interface JobData {
-  id: string;
-  status: JobStatus;
-  logs: string[];
-  error: string | null;
-  result: { summary?: string } | null;
-  startedAt: number | null;
-  finishedAt: number | null;
-}
-
-export interface RunConsoleProps {
-  jobId: string | null;
-  onClose?: () => void;
-}
+import { StatusIcon } from "./StatusIcon";
+import type { JobData, JobStatus, RunConsoleProps } from "./types";
 
 const POLL_INTERVAL = 1500;
-
-const StatusIcon = ({ status }: { status: JobStatus }) => {
-  switch (status) {
-    case "running": {
-      return <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />;
-    }
-    case "done": {
-      return <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />;
-    }
-    case "failed": {
-      return <XCircle className="h-3.5 w-3.5 text-red-500" />;
-    }
-    case "queued": {
-      return <Clock className="h-3.5 w-3.5 text-amber-500" />;
-    }
-    default: {
-      return <Terminal className="h-3.5 w-3.5 text-muted-foreground" />;
-    }
-  }
-};
 
 const statusLabel: Record<JobStatus, string> = {
   queued: "Queued",
@@ -86,7 +42,7 @@ const parseStructuredLogs = (
     onNodeDone: (nodeId: string) => void;
     onNodeFail: (nodeId: string) => void;
     onLlmContent: (nodeId: string, content: string) => void;
-  }
+  },
 ) => {
   for (const log of logs) {
     const msg = log.replace(/^\[[^\]]+\]\s*/, "");
@@ -181,7 +137,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
     <div
       className={cn(
         "absolute bottom-0 left-0 right-0 z-30 border-t bg-background shadow-lg transition-all",
-        collapsed ? "h-9" : "h-64"
+        collapsed ? "h-9" : "h-64",
       )}
     >
       {/* Status bar */}
@@ -198,7 +154,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                   "font-medium",
                   job.status === "running" && "text-blue-600",
                   job.status === "done" && "text-green-600",
-                  job.status === "failed" && "text-red-600"
+                  job.status === "failed" && "text-red-600",
                 )}
               >
                 {statusLabel[job.status]}
@@ -247,7 +203,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                       log.includes("ERROR") && "text-red-600 font-medium",
                       log.includes("Pipeline complete") && "text-green-600 font-medium",
                       log.includes("Cloned to") && "text-blue-600",
-                      log.includes("Skill output") && "text-violet-600"
+                      log.includes("Skill output") && "text-violet-600",
                     )}
                   >
                     {parseMessage(log)}

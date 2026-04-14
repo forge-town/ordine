@@ -1,4 +1,4 @@
-import { JobDetailPageContent } from "./JobDetailPageContent";
+import { JobDetailPageContent } from "./JobDetailPageContent/JobDetailPageContent";
 
 export const JobDetailPage = () => {
   return <JobDetailPageContent />;

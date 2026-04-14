@@ -7,7 +7,7 @@ import { useHarnessCanvasStore, type GitHubProjectNodeData } from "../_store";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
 import { FolderTreePreview } from "../FolderNode/FolderTreePreview";
-import { SiGitHubIcon } from "./SiGitHubIcon";
+import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { GitHubConnectDialog, type ConnectedRepoInfo } from "./GitHubConnectDialog";
 import { PickProjectDialog, type PickedProject } from "./PickProjectDialog";
 import { PickLocalFolderDialog, type LocalFolderInfo } from "./PickLocalFolderDialog";

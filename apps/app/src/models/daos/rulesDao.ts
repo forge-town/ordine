@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@/db";
 import {
@@ -26,14 +26,16 @@ const rowToEntity = (row: RuleRow): RuleEntity => ({
 
 export const rulesDao = {
   async findMany(filter?: { category?: RuleCategory; enabled?: boolean }): Promise<RuleEntity[]> {
-    const rows = await db.select().from(rulesTable).orderBy(desc(rulesTable.createdAt));
-    return rows
-      .filter((r) => {
-        if (filter?.category && r.category !== filter.category) return false;
-        if (filter?.enabled !== undefined && r.enabled !== filter.enabled) return false;
-        return true;
-      })
-      .map(rowToEntity);
+    const conditions = [];
+    if (filter?.category) conditions.push(eq(rulesTable.category, filter.category));
+    if (filter?.enabled !== undefined) conditions.push(eq(rulesTable.enabled, filter.enabled));
+
+    const rows = await db
+      .select()
+      .from(rulesTable)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(rulesTable.createdAt));
+    return rows.map(rowToEntity);
   },
 
   async findById(id: string): Promise<RuleEntity | null> {
@@ -44,8 +46,8 @@ export const rulesDao = {
   async create(data: Omit<RuleEntity, "createdAt" | "updatedAt">): Promise<RuleEntity> {
     const now = new Date();
     const row: NewRuleRow = { ...data, createdAt: now, updatedAt: now };
-    const inserted = await db.insert(rulesTable).values(row).returning();
-    return rowToEntity(inserted[0]!);
+    const [inserted] = await db.insert(rulesTable).values(row).returning();
+    return rowToEntity(inserted);
   },
 
   async createWithTx(
@@ -54,8 +56,8 @@ export const rulesDao = {
   ): Promise<RuleEntity> {
     const now = new Date();
     const row: NewRuleRow = { ...data, createdAt: now, updatedAt: now };
-    const inserted = await tx.insert(rulesTable).values(row).returning();
-    return rowToEntity(inserted[0]!);
+    const [inserted] = await tx.insert(rulesTable).values(row).returning();
+    return rowToEntity(inserted);
   },
 
   async update(
