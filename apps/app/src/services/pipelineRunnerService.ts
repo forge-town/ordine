@@ -19,11 +19,7 @@ import { basename, dirname, extname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { streamText } from "ai";
 import { ResultAsync, ok } from "neverthrow";
-import {
-  type LlmOverride,
-  type LlmProvider as AgentLlmProvider,
-  type SettingsResolver,
-} from "@repo/agent";
+import { type SettingsResolver } from "@repo/agent";
 import {
   runPrompt as runPromptAgent,
   runSkill as runSkillAgent,
@@ -43,15 +39,11 @@ import { bestPracticesDao } from "@/models/daos/bestPracticesDao";
 import { settingsDao } from "@/models/daos/settingsDao";
 import type { ExecutorConfig } from "@/pages/OperationDetailPage/types";
 import { listDirTree, readProjectFiles } from "@/services/filesystemService";
-import { getLlmModel, type LlmProvider } from "@/services/llmService";
+import { getStreamModel } from "@/services/llmService";
 
 const getSettings: SettingsResolver = async () => {
   const s = await settingsDao.get();
-  return {
-    llmProvider: s.llmProvider as AgentLlmProvider,
-    llmModel: s.llmModel,
-    llmApiKey: s.llmApiKey,
-  };
+  return { apiKey: s.llmApiKey, model: s.llmModel };
 };
 
 const execAsync = promisify(exec);
@@ -303,9 +295,9 @@ const executePipeline = async (opts: {
   const evaluateLoopCondition = async (
     conditionPrompt: string,
     operationOutput: string,
-    override?: LlmOverride,
+    modelOverride?: string,
   ): Promise<boolean> => {
-    const model = await getLlmModel(override);
+    const model = await getStreamModel(modelOverride);
     if (!model) {
       await log(`[Loop] No LLM configured — treating condition as PASS`);
       return true;
@@ -345,14 +337,10 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
     }
 
     const opData = node.data as unknown as {
-      llmProvider?: LlmProvider;
       llmModel?: string;
       bestPracticeId?: string;
     };
-    const llmOverride: LlmOverride | undefined =
-      opData.llmProvider || opData.llmModel
-        ? { llmProvider: opData.llmProvider, llmModel: opData.llmModel }
-        : undefined;
+    const modelOverride = opData.llmModel ?? undefined;
 
     const bestPracticeContent = await (async () => {
       if (!opData.bestPracticeId) return "";
@@ -432,14 +420,14 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         await log(`@@NODE_FAIL::${node.id}`);
         return { ok: false, error: null };
       }
-      const promptResult = await runPromptAgent(
+      const promptResult = await runPromptAgent({
         prompt,
-        effectiveInput,
+        inputContent: effectiveInput,
         getSettings,
-        llmOverride,
-        handleChunk,
-        log,
-      );
+        modelOverride,
+        onChunk: handleChunk,
+        onProgress: log,
+      });
       if (promptResult.isErr()) {
         await log(`@@NODE_FAIL::${node.id}`);
         return { ok: false, error: new ScriptExecutionError(promptResult.error.message) };
@@ -461,17 +449,17 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         : `Skill "${skillId}" (no description available)`;
 
       await log(`Running skill "${skillId}"${skill ? ` (${skill.label})` : ""}...`);
-      const skillResult = await runSkillAgent(
+      const skillResult = await runSkillAgent({
         skillId,
         skillDescription,
-        effectiveInput,
-        ctx.inputPath,
+        inputContent: effectiveInput,
+        inputPath: ctx.inputPath,
         getSettings,
-        llmOverride,
-        handleChunk,
-        log,
-        { writeEnabled: executor.writeEnabled === true },
-      );
+        modelOverride,
+        onChunk: handleChunk,
+        onProgress: log,
+        writeEnabled: executor.writeEnabled === true,
+      });
       opResult.value = skillResult.isOk() ? skillResult.value : "";
       await log(`@@LLM_CONTENT::${node.id}::${opResult.value}`);
       await log(`Skill output (${opResult.value.length} chars)`);
@@ -713,7 +701,6 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         loopEnabled?: boolean;
         maxLoopCount?: number;
         loopConditionPrompt?: string;
-        llmProvider?: LlmProvider;
         llmModel?: string;
       };
       const loopEnabled = opData.loopEnabled === true;
@@ -721,10 +708,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       const conditionPrompt = opData.loopConditionPrompt ?? "";
 
       if (loopEnabled && conditionPrompt) {
-        const llmOverride: LlmOverride | undefined =
-          opData.llmProvider || opData.llmModel
-            ? { llmProvider: opData.llmProvider, llmModel: opData.llmModel }
-            : undefined;
+        const modelOverride = opData.llmModel ?? undefined;
 
         for (const attempt of Array.from({ length: maxLoops }, (_, i) => i + 1)) {
           await log(
@@ -740,7 +724,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           const passed = await evaluateLoopCondition(
             conditionPrompt,
             ctx.currentContent,
-            llmOverride,
+            modelOverride,
           );
           if (passed) {
             await log(`[Loop] Condition PASSED on iteration ${attempt}`);

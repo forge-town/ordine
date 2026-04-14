@@ -8,29 +8,40 @@
 import { streamText } from "ai";
 import { ResultAsync, ok } from "neverthrow";
 import {
-  getLlmModel,
-  getMastraModelConfig,
+  getStreamModel,
+  getModelConfig,
   createCheckAgent,
   createFixAgent,
   logger,
-  type LlmOverride,
   type SettingsResolver,
 } from "@repo/agent";
 import { extractStructuredOutput } from "./output";
 import type { StreamCallback, ProgressCallback } from "./prompt-executor";
 
-export const runSkill = (
-  skillId: string,
-  skillDescription: string,
-  inputContent: string,
-  inputPath: string,
-  getSettings: SettingsResolver,
-  override?: LlmOverride,
-  onChunk?: StreamCallback,
-  onProgress?: ProgressCallback,
-  opts?: { writeEnabled?: boolean }
-): ResultAsync<string, never> => {
-  const isImplementMode = opts?.writeEnabled === true;
+export interface RunSkillOptions {
+  skillId: string;
+  skillDescription: string;
+  inputContent: string;
+  inputPath: string;
+  getSettings: SettingsResolver;
+  modelOverride?: string;
+  onChunk?: StreamCallback;
+  onProgress?: ProgressCallback;
+  writeEnabled?: boolean;
+}
+
+export const runSkill = ({
+  skillId,
+  skillDescription,
+  inputContent,
+  inputPath,
+  getSettings,
+  modelOverride,
+  onChunk,
+  onProgress,
+  writeEnabled,
+}: RunSkillOptions): ResultAsync<string, never> => {
+  const isImplementMode = writeEnabled === true;
 
   const userPrompt = inputPath
     ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
@@ -84,7 +95,7 @@ export const runSkill = (
 
       // Use Mastra Agent with tools if we have a project path
       if (inputPath) {
-        const modelConfig = await getMastraModelConfig(getSettings, override);
+        const modelConfig = await getModelConfig(getSettings, modelOverride);
         if (!modelConfig) {
           logger.warn("runSkill: No model config — returning fallback");
           await onProgress?.("[Mastra] runSkill: No model config — returning fallback report");
@@ -187,7 +198,7 @@ export const runSkill = (
       }
 
       // Fallback to streaming without tools if no project path
-      const model = await getLlmModel(getSettings, override);
+      const model = await getStreamModel(getSettings, modelOverride);
       if (!model) {
         logger.warn("runSkill: No LLM model — returning fallback");
         await onProgress?.("[Mastra] runSkill: No LLM model — returning fallback report");

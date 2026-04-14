@@ -1,6 +1,6 @@
 import { text, pgTable, timestamp } from "drizzle-orm/pg-core";
 
-export const LLM_PROVIDERS = ["kimi", "deepseek"] as const;
+export const LLM_PROVIDERS = ["kimi"] as const;
 export type LlmProvider = (typeof LLM_PROVIDERS)[number];
 
 export const settingsTable = pgTable("settings", {

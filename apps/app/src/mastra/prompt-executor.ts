@@ -4,7 +4,7 @@
 
 import { streamText } from "ai";
 import { ResultAsync } from "neverthrow";
-import { getLlmModel, logger, type LlmOverride, type SettingsResolver } from "@repo/agent";
+import { getStreamModel, logger, type SettingsResolver } from "@repo/agent";
 
 export class PromptExecutionError extends Error {
   constructor(
@@ -19,14 +19,23 @@ export class PromptExecutionError extends Error {
 export type StreamCallback = (accumulated: string) => Promise<void>;
 export type ProgressCallback = (line: string) => Promise<void>;
 
-export const runPrompt = (
-  prompt: string,
-  inputContent: string,
-  getSettings: SettingsResolver,
-  override?: LlmOverride,
-  onChunk?: StreamCallback,
-  onProgress?: ProgressCallback
-): ResultAsync<string, PromptExecutionError> => {
+export interface RunPromptOptions {
+  prompt: string;
+  inputContent: string;
+  getSettings: SettingsResolver;
+  modelOverride?: string;
+  onChunk?: StreamCallback;
+  onProgress?: ProgressCallback;
+}
+
+export const runPrompt = ({
+  prompt,
+  inputContent,
+  getSettings,
+  modelOverride,
+  onChunk,
+  onProgress,
+}: RunPromptOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return ResultAsync.fromSafePromise<string, PromptExecutionError>(
       Promise.reject(new PromptExecutionError("Prompt text is empty"))
@@ -42,7 +51,7 @@ export const runPrompt = (
       await onProgress?.(
         `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`
       );
-      const model = await getLlmModel(getSettings, override);
+      const model = await getStreamModel(getSettings, modelOverride);
       if (!model) {
         logger.error("runPrompt: LLM not configured");
         await onProgress?.("[LLM] runPrompt: LLM not configured, throwing error");
