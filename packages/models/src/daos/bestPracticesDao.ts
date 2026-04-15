@@ -2,8 +2,6 @@ import { eq, desc } from "drizzle-orm";
 import { bestPracticesTable, type BestPracticeRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type BestPracticeEntity = BestPracticeRow;
-
 class BestPracticesDao {
   constructor(readonly executor: DbExecutor) {}
 

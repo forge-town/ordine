@@ -2,8 +2,6 @@ import { eq } from "drizzle-orm";
 import { settingsTable, type SettingsRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type SettingsEntity = SettingsRow;
-
 const DEFAULT_ID = "default";
 
 class SettingsDao {

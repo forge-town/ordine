@@ -2,8 +2,6 @@ import { eq, desc } from "drizzle-orm";
 import { recipesTable, type RecipeRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type RecipeEntity = RecipeRow;
-
 class RecipesDao {
   constructor(readonly executor: DbExecutor) {}
 

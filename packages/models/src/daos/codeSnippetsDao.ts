@@ -2,8 +2,6 @@ import { eq, asc } from "drizzle-orm";
 import { codeSnippetsTable, type CodeSnippetRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type CodeSnippetEntity = CodeSnippetRow;
-
 class CodeSnippetsDao {
   constructor(readonly executor: DbExecutor) {}
 

@@ -1,16 +1,10 @@
 import { eq, desc } from "drizzle-orm";
 import { pipelinesTable, type PipelineRow } from "@repo/db-schema";
-import type { PipelineNode } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
 export type PipelineEntity = PipelineRow & {
   nodeCount: number;
 };
-
-/** @deprecated Use PipelineEntity */
-export type StoredPipeline = PipelineEntity;
-/** @deprecated Use PipelineNode from @/models/types/pipelineGraph */
-export type StoredNode = PipelineNode;
 
 const rowToEntity = (row: PipelineRow): PipelineEntity => ({
   ...row,
