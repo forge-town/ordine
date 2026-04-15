@@ -22,6 +22,8 @@ type BPData = {
   language: string;
   codeSnippet: string;
   tags: string[];
+  createdAt?: number;
+  updatedAt?: number;
 };
 
 type ChecklistItem = {
@@ -32,6 +34,8 @@ type ChecklistItem = {
   checkType: string;
   script: string | null;
   sortOrder: number;
+  createdAt?: number;
+  updatedAt?: number;
 };
 
 type CodeSnippetItem = {
@@ -40,6 +44,9 @@ type CodeSnippetItem = {
   language: string;
   code: string;
   sortOrder: number;
+  bestPracticeId?: string;
+  createdAt?: number;
+  updatedAt?: number;
 };
 
 const addBPToZip = (
@@ -71,8 +78,7 @@ const addBPToZip = (
 
   // Write code snippets as JSON array
   if (snippets.length > 0) {
-    const snippetsData = snippets.map(({ ...rest }) => rest);
-    folder.file("code-snippets.json", JSON.stringify(snippetsData, null, 2) + "\n");
+    folder.file("code-snippets.json", JSON.stringify(snippets, null, 2) + "\n");
   } else if (bp.codeSnippet) {
     // Fallback: write legacy single snippet file for backward compat
     const ext = LANG_EXT[bp.language] ?? "txt";
@@ -112,12 +118,7 @@ export const exportSingleBestPractice = async (id: string, title: string) => {
   if (!bp) return;
 
   const zip = new JSZip();
-  addBPToZip(
-    zip,
-    bp as unknown as BPData,
-    items as unknown as ChecklistItem[],
-    snippets as unknown as CodeSnippetItem[],
-  );
+  addBPToZip(zip, bp as BPData, items as ChecklistItem[], snippets as CodeSnippetItem[]);
   await downloadZip(zip, `${title || id}.bestpractice`);
 };
 
@@ -128,9 +129,9 @@ export const exportAllBestPractices = async () => {
   for (const { checklistItems, codeSnippets, ...bp } of data) {
     addBPToZip(
       zip,
-      bp as unknown as BPData,
-      checklistItems as unknown as ChecklistItem[],
-      codeSnippets as unknown as CodeSnippetItem[],
+      bp as BPData,
+      checklistItems as ChecklistItem[],
+      codeSnippets as CodeSnippetItem[],
     );
   }
   await downloadZip(zip, `best-practices-${new Date().toISOString().slice(0, 10)}.bestpractice`);
@@ -193,14 +194,8 @@ export const importBestPracticesFromZip = async (
       return [];
     })();
 
-    // Still read legacy codeSnippet for backward compat with the BP schema
-    const codeSnippet = await (async () => {
-      for (const ext of Object.values(LANG_EXT)) {
-        const codeFile = zip.file(`${folderId}/code-snippet.${ext}`);
-        if (codeFile) return await codeFile.async("string");
-      }
-      return "";
-    })();
+    // Derive legacy codeSnippet field from the first snippet (if any)
+    const codeSnippet = codeSnippets.length > 0 ? ((codeSnippets[0]!["code"] as string) ?? "") : "";
 
     const checklistItems: Record<string, unknown>[] = await (async () => {
       const checklistJsonFile = zip.file(`${folderId}/checklist-items.json`);

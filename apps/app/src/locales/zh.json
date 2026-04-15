@@ -200,6 +200,7 @@
     "saveFailed": "保存失败",
     "runStart": "Pipeline 测试运行",
     "runSuccess": "Pipeline 验证已完成",
+    "noPipelineId": "Pipeline 尚未保存",
     "runFailed": "Pipeline 验证失败，请重试",
     "runSaveFailed": "Pipeline 验证结果保存失败",
     "runCompleted": "Pipeline 运行完成提醒",

@@ -200,6 +200,7 @@
     "saveFailed": "Save failed",
     "runStart": "Pipeline test run",
     "runSuccess": "Pipeline validation complete",
+    "noPipelineId": "Pipeline has not been saved yet",
     "runFailed": "Pipeline validation failed, please retry",
     "runSaveFailed": "Failed to save pipeline validation result",
     "runCompleted": "Pipeline run completed",

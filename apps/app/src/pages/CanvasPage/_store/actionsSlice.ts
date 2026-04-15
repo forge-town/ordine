@@ -303,7 +303,7 @@ export const createActionsSlice = (
       useToastStore.getState().addToast({
         type: "error",
         title: t("canvas.runFailed"),
-        description: t("canvas.saveFailed"),
+        description: t("canvas.noPipelineId"),
       });
       return;
     }
@@ -335,7 +335,7 @@ export const createActionsSlice = (
     }
 
     const runResult = await ResultAsync.fromPromise(
-      trpcClient.pipelines.run.mutate({ pipelineId }),
+      trpcClient.pipelines.run.mutate({ id: pipelineId }),
       () => "Failed to start pipeline",
     );
 

@@ -13,8 +13,10 @@ import {
   skillsDao,
   worksDao,
 } from "@repo/models";
+import { db } from "@repo/db";
 import {
   createBestPracticesService,
+  createBestPracticesBulkService,
   createChecklistService,
   createCodeSnippetsService,
   createGithubProjectsService,
@@ -31,6 +33,16 @@ import {
 export const bestPracticesService = createBestPracticesService(bestPracticesDao);
 export const checklistService = createChecklistService(checklistItemsDao, checklistResultsDao);
 export const codeSnippetsService = createCodeSnippetsService(codeSnippetsDao);
+
+export const bestPracticesBulkService = createBestPracticesBulkService({
+  bpDao: bestPracticesDao,
+  checklistDao: checklistItemsDao,
+  snippetsDao: codeSnippetsDao,
+  bpService: bestPracticesService,
+  checklistService,
+  codeSnippetsService,
+  runTransaction: db.transaction.bind(db),
+});
 export const githubProjectsService = createGithubProjectsService(githubProjectsDao);
 export const jobsService = createJobsService(jobsDao);
 export const operationsService = createOperationsService(operationsDao);

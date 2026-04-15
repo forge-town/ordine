@@ -1,4 +1,5 @@
 export * from "./bestPracticesService.js";
+export * from "./bestPracticesBulkService.js";
 export * from "./checklistService.js";
 export * from "./codeSnippetsService.js";
 export * from "./dagScheduler.js";
