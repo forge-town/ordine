@@ -13,10 +13,6 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
-vi.mock("@/services/worksService", () => ({
-  createWork: vi.fn().mockResolvedValue({}),
-}));
-
 describe("ProjectWorkspacePageContent", () => {
   it("shows not found when project is null", () => {
     render(<ProjectWorkspacePageContent />);

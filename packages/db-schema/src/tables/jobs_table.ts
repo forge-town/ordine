@@ -1,6 +1,5 @@
 import { sql } from "drizzle-orm";
 import { text, timestamp, jsonb, pgTable, index } from "drizzle-orm/pg-core";
-import { worksTable } from "./works_table";
 import { githubProjectsTable } from "./github_projects_table";
 import { pipelinesTable } from "./pipelines_table";
 
@@ -19,9 +18,6 @@ export const jobsTable = pgTable(
     title: text("title").notNull(),
     type: text("type").$type<JobType>().notNull().default("custom"),
     status: text("status").$type<JobStatus>().notNull().default("queued"),
-    workId: text("work_id").references(() => worksTable.id, {
-      onDelete: "set null",
-    }),
     projectId: text("project_id").references(() => githubProjectsTable.id),
     pipelineId: text("pipeline_id").references(() => pipelinesTable.id),
     logs: text("logs")
@@ -36,7 +32,6 @@ export const jobsTable = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
-    workIdx: index("jobs_work_id_idx").on(table.workId),
     projectIdx: index("jobs_project_id_idx").on(table.projectId),
     pipelineIdx: index("jobs_pipeline_id_idx").on(table.pipelineId),
     statusIdx: index("jobs_status_idx").on(table.status),

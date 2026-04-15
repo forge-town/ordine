@@ -10,4 +10,3 @@ export * from "./recipes_table";
 export * from "./rules_table";
 export * from "./settings_table";
 export * from "./skills_table";
-export * from "./works_table";

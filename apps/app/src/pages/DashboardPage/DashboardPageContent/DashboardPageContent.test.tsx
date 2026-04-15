@@ -9,7 +9,6 @@ const mockJobs: JobEntity[] = [
     title: "运行 Pipeline",
     type: "pipeline_run",
     status: "done",
-    workId: null,
     projectId: null,
     pipelineId: "p-1",
     logs: [],

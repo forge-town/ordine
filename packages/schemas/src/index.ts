@@ -8,4 +8,3 @@ export * from "./PipelineSchema.js";
 export * from "./RecipeSchema.js";
 export * from "./RuleSchema.js";
 export * from "./SkillSchema.js";
-export * from "./WorkSchema.js";

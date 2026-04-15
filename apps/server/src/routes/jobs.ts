@@ -6,12 +6,10 @@ export const jobsRoutes = new Hono();
 
 jobsRoutes.get("/", async (c) => {
   const status = c.req.query("status") as JobStatus | undefined;
-  const workId = c.req.query("workId");
   const projectId = c.req.query("projectId");
 
-  const filter: { status?: JobStatus; workId?: string; projectId?: string } = {};
+  const filter: { status?: JobStatus; projectId?: string } = {};
   if (status) filter.status = status;
-  if (workId) filter.workId = workId;
   if (projectId) filter.projectId = projectId;
 
   const jobs = await jobsService.getAll(filter);

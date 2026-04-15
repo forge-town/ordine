@@ -3,11 +3,7 @@ import type { JobEntity } from "@repo/models";
 type JobStatus = JobEntity["status"];
 
 type JobsDao = {
-  findMany: (filter?: {
-    status?: JobStatus;
-    workId?: string;
-    projectId?: string;
-  }) => Promise<JobEntity[]>;
+  findMany: (filter?: { status?: JobStatus; projectId?: string }) => Promise<JobEntity[]>;
   findById: (id: string) => Promise<JobEntity | null>;
   create: (data: Omit<JobEntity, "createdAt" | "updatedAt">) => Promise<JobEntity>;
   updateStatus: (
@@ -25,8 +21,7 @@ type JobsDao = {
 };
 
 export const createJobsService = (dao: JobsDao) => ({
-  getAll: (filter?: { status?: JobStatus; workId?: string; projectId?: string }) =>
-    dao.findMany(filter),
+  getAll: (filter?: { status?: JobStatus; projectId?: string }) => dao.findMany(filter),
   getById: (id: string) => dao.findById(id),
   create: (data: Omit<JobEntity, "createdAt" | "updatedAt">) => dao.create(data),
   updateStatus: (

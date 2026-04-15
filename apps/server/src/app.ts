@@ -11,7 +11,6 @@ import { pipelinesRoutes } from "./routes/pipelines.js";
 import { recipesRoutes } from "./routes/recipes.js";
 import { rulesRoutes } from "./routes/rules.js";
 import { skillsRoutes } from "./routes/skills.js";
-import { worksRoutes } from "./routes/works.js";
 
 export const app = new Hono();
 
@@ -28,6 +27,5 @@ app.route("/api/pipelines", pipelinesRoutes);
 app.route("/api/recipes", recipesRoutes);
 app.route("/api/rules", rulesRoutes);
 app.route("/api/skills", skillsRoutes);
-app.route("/api/works", worksRoutes);
 
 app.get("/health", (c) => c.json({ status: "ok" }));

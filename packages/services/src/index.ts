@@ -18,4 +18,3 @@ export * from "./settingsService.js";
 export * from "./skillExecutor.js";
 export * from "./skillsService.js";
 export * from "./structuredOutput.js";
-export * from "./worksService.js";

@@ -66,7 +66,6 @@ pipelinesRoutes.post("/:id/run", async (c) => {
     title: `Run: ${pipeline.name}`,
     type: "pipeline_run",
     pipelineId: id,
-    workId: null,
     projectId: null,
     logs: [],
     result: null,

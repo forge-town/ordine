@@ -1,14 +1,15 @@
 import { FileCode, Folder, FolderGit2, CheckCircle2, Circle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import type { WorkObject } from "@repo/models";
+
+type ObjectType = "project" | "folder" | "file";
 
 export type ObjectItem = {
-  type: WorkObject["type"];
+  type: ObjectType;
   path: string;
   label: string;
 };
 
-const OBJECT_ICONS: Record<WorkObject["type"], React.ElementType> = {
+const OBJECT_ICONS: Record<ObjectType, React.ElementType> = {
   project: FolderGit2,
   folder: Folder,
   file: FileCode,
@@ -29,7 +30,7 @@ export const ObjectRow = ({ item, selected, onToggle }: ObjectRowProps) => {
         "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
         selected
           ? "border-primary/50 bg-primary/5"
-          : "border-border bg-card hover:border-primary/50 hover:bg-accent"
+          : "border-border bg-card hover:border-primary/50 hover:bg-accent",
       )}
       onClick={handleToggle}
     >
@@ -38,7 +39,7 @@ export const ObjectRow = ({ item, selected, onToggle }: ObjectRowProps) => {
           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
           item.type === "project" && "bg-gray-900",
           item.type === "folder" && "bg-orange-400",
-          item.type === "file" && "bg-orange-500"
+          item.type === "file" && "bg-orange-500",
         )}
       >
         <Icon className="h-3.5 w-3.5 text-white" />

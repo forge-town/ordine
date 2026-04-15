@@ -6,7 +6,6 @@ vi.mock("@/routes/_layout/projects.$projectId.index", () => ({
   Route: {
     useLoaderData: () => ({
       project: null,
-      works: [],
       pipelines: [],
     }),
   },

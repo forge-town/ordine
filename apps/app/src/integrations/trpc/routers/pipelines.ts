@@ -55,7 +55,6 @@ export const pipelinesRouter = router({
         title: `Run: ${pipeline.name}`,
         type: "pipeline_run",
         pipelineId: input.id,
-        workId: null,
         projectId: null,
         logs: [],
         result: null,

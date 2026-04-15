@@ -8,35 +8,16 @@ import { jobsTable } from "./tables/jobs_table";
 import { operationsTable } from "./tables/operations_table";
 import { pipelinesTable } from "./tables/pipelines_table";
 import { recipesTable } from "./tables/recipes_table";
-import { worksTable } from "./tables/works_table";
 
 export const githubProjectsRelations = relations(githubProjectsTable, ({ many }) => ({
-  works: many(worksTable),
   jobs: many(jobsTable),
 }));
 
 export const pipelinesRelations = relations(pipelinesTable, ({ many }) => ({
-  works: many(worksTable),
-  jobs: many(jobsTable),
-}));
-
-export const worksRelations = relations(worksTable, ({ one, many }) => ({
-  project: one(githubProjectsTable, {
-    fields: [worksTable.projectId],
-    references: [githubProjectsTable.id],
-  }),
-  pipeline: one(pipelinesTable, {
-    fields: [worksTable.pipelineId],
-    references: [pipelinesTable.id],
-  }),
   jobs: many(jobsTable),
 }));
 
 export const jobsRelations = relations(jobsTable, ({ one, many }) => ({
-  work: one(worksTable, {
-    fields: [jobsTable.workId],
-    references: [worksTable.id],
-  }),
   project: one(githubProjectsTable, {
     fields: [jobsTable.projectId],
     references: [githubProjectsTable.id],

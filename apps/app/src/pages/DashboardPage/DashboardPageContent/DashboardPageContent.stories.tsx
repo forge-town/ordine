@@ -21,7 +21,6 @@ export const WithJobs: Story = {
         title: "运行 Pipeline",
         type: "pipeline_run",
         status: "running",
-        workId: null,
         projectId: null,
         pipelineId: "p-1",
         logs: [],

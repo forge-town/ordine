@@ -4,7 +4,7 @@ import { ProjectDetailPage } from "./ProjectDetailPage";
 
 vi.mock("@/routes/_layout/projects.$projectId.index", () => ({
   Route: {
-    useLoaderData: () => ({ project: null, works: [], pipelines: [] }),
+    useLoaderData: () => ({ project: null, pipelines: [] }),
   },
 }));
 

@@ -19,8 +19,8 @@ Operation (原子操作: 检查/修复)
 Pipeline (DAG 流水线)    Recipe (操作 + 规范绑定)
   ↓ 触发运行              ↑ 引用
 Job (运行记录)    Best Practice (编码规范)
-  ↓ 属于                    ├── Checklist Items
-Work (工作任务)              └── Code Snippets
+                            ├── Checklist Items
+                            └── Code Snippets
 ```
 
 ### 实体关系
@@ -33,7 +33,6 @@ Work (工作任务)              └── Code Snippets
 | **Best Practice** | 编码规范 | `bp_classname_convention` |
 | **Recipe** | 绑定 Operation + Best Practice | `rcp_check_classname` |
 | **Rule** | 自定义检查规则（含脚本） | `rule_no_template_classname` |
-| **Work** | 面向项目的工作任务 | `work_quality_review` |
 | **Job** | Pipeline 的一次运行记录 | `job_abc123` |
 | **Checklist Item** | Best Practice 的检查项 | `cli_cn_1` |
 | **Code Snippet** | Best Practice 的代码示例 | `cs_cn_good` |
@@ -86,8 +85,6 @@ export ORDINE_API_URL=http://localhost:9433
 | Rules | `/api/rules/:id` | GET, PATCH, DELETE |
 | Skills | `/api/skills` | GET, POST |
 | Skills | `/api/skills/:id` | GET, PATCH, DELETE |
-| Works | `/api/works` | GET, POST |
-| Works | `/api/works/:id` | GET, PATCH, DELETE |
 | Jobs | `/api/jobs` | GET, POST |
 | Jobs | `/api/jobs/:id` | GET, PATCH, DELETE |
 | Checklist Items | `/api/checklist-items` | GET(?bestPracticeId), PUT, DELETE(?id) |
@@ -147,7 +144,6 @@ curl -s "http://localhost:9433/api/jobs?status=completed" | python3 -m json.tool
 | `ordine-create-recipe` | 创建 Recipe |
 | `ordine-create-rule` | 创建 Rule |
 | `ordine-create-skill` | 注册 Skill |
-| `ordine-create-work` | 创建 Work |
 | `ordine-manage-job` | 管理 Job |
 | `ordine-manage-checklist` | 管理 Checklist Items |
 | `ordine-manage-codesnippet` | 管理 Code Snippets |

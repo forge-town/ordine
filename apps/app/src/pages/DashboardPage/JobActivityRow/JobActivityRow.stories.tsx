@@ -7,7 +7,6 @@ const baseJob: JobEntity = {
   title: "运行 Pipeline: 代码分析",
   type: "pipeline_run",
   status: "done",
-  workId: null,
   projectId: null,
   pipelineId: "pipeline-1",
   logs: [],

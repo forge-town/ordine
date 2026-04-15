@@ -9,7 +9,6 @@ const baseJob: JobEntity = {
   type: "pipeline_run",
   projectId: "proj-001",
   pipelineId: null,
-  workId: null,
   logs: [],
   result: null,
   error: null,

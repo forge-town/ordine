@@ -178,11 +178,10 @@ export const JobDetailPageContent = () => {
             <MetaRow label={t("jobs.duration")} value={duration} />
             <MetaRow mono label="Project ID" value={job.projectId} />
             <MetaRow mono label="Pipeline ID" value={job.pipelineId} />
-            <MetaRow mono label="Work ID" value={job.workId} />
           </div>
 
           {/* Related links */}
-          {(job.workId ?? job.projectId) && (
+          {job.projectId && (
             <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
               <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
               {job.projectId && (

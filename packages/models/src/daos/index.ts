@@ -10,4 +10,3 @@ export * from "./recipesDao.js";
 export * from "./rulesDao.js";
 export * from "./settingsDao.js";
 export * from "./skillsDao.js";
-export * from "./worksDao.js";

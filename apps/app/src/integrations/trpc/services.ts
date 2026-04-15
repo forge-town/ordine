@@ -11,7 +11,6 @@ import {
   rulesDao,
   settingsDao,
   skillsDao,
-  worksDao,
 } from "@repo/models";
 import { db } from "@repo/db";
 import {
@@ -27,7 +26,6 @@ import {
   createRulesService,
   createSettingsService,
   createSkillsService,
-  createWorksService,
 } from "@repo/services";
 
 export const bestPracticesService = createBestPracticesService(bestPracticesDao);
@@ -51,4 +49,3 @@ export const recipesService = createRecipesService(recipesDao);
 export const rulesService = createRulesService(rulesDao);
 export const settingsService = createSettingsService(settingsDao);
 export const skillsService = createSkillsService(skillsDao);
-export const worksService = createWorksService(worksDao);

@@ -3,10 +3,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, FolderGit2, ChevronRight, Play, GitBranch, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.$projectId.workspace";
-import { useCreate, useOne, useList } from "@refinedev/core";
+import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { GithubProjectEntity, StoredPipeline } from "@repo/models";
-import { ResultAsync } from "neverthrow";
 import { Button } from "@repo/ui/button";
 import { ObjectRow, type ObjectItem } from "../ObjectRow";
 import { PipelineRow } from "../PipelineRow";
@@ -34,8 +33,6 @@ export const ProjectWorkspacePageContent = () => {
 
   const [selectedObjects, setSelectedObjects] = useState<Set<string>>(new Set());
   const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
-  const [triggering, setTriggering] = useState(false);
-  const { mutateAsync: createWorkMutate } = useCreate();
 
   if (!project) {
     return (
@@ -57,36 +54,14 @@ export const ProjectWorkspacePageContent = () => {
     });
   };
 
-  const canTrigger = selectedObjects.size > 0 && selectedPipelineId !== null && !triggering;
+  const canTrigger = selectedObjects.size > 0 && selectedPipelineId !== null;
 
-  const handleTrigger = async () => {
+  const handleTrigger = () => {
     if (!canTrigger || !selectedPipeline) return;
-    setTriggering(true);
-    const result = await ResultAsync.fromPromise(
-      (async () => {
-        for (const path of selectedObjects) {
-          const obj = objects.find((o) => o.path === path)!;
-          await createWorkMutate({
-            resource: ResourceName.works,
-            values: {
-              id: `work-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-              projectId: project.id,
-              pipelineId: selectedPipeline.id,
-              pipelineName: selectedPipeline.name,
-              object: { type: obj.type, path: obj.path },
-            },
-          });
-        }
-      })(),
-      () => "trigger-failed" as const,
-    );
-    setTriggering(false);
-    if (result.isOk()) {
-      void navigate({
-        to: "/projects/$projectId",
-        params: { projectId: project.id },
-      });
-    }
+    void navigate({
+      to: "/projects/$projectId",
+      params: { projectId: project.id },
+    });
   };
 
   const handleNavigateBack = () =>
@@ -95,7 +70,7 @@ export const ProjectWorkspacePageContent = () => {
       params: { projectId: project.id },
     });
 
-  const handleTriggerClick = () => void handleTrigger();
+  const handleTriggerClick = () => handleTrigger();
 
   const handleToggleObject = (path: string) => () => toggleObject(path);
 

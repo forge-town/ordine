@@ -28,7 +28,6 @@ const mockJobRunning = {
   updatedAt: Date.now(),
   startedAt: Date.now(),
   finishedAt: null,
-  workId: null,
   projectId: null,
   pipelineId: null,
 };

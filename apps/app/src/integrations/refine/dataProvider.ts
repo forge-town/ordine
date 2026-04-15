@@ -19,7 +19,6 @@ export const ResourceName = {
   operations: "operations",
   pipelines: "pipelines",
   jobs: "jobs",
-  works: "works",
   rules: "rules",
   bestPractices: "bestPractices",
   githubProjects: "githubProjects",
@@ -51,19 +50,6 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.pipelines: {
         const data = await trpcClient.pipelines.getMany.query();
-        return { data: data as unknown as TData[], total: data.length };
-      }
-      case ResourceName.works: {
-        const projectIdFilter = params.filters?.find(
-          (f) => "field" in f && f.field === "projectId",
-        );
-        const projectId =
-          projectIdFilter && "value" in projectIdFilter
-            ? (projectIdFilter.value as string | undefined)
-            : undefined;
-        const data = projectId
-          ? await trpcClient.works.getByProject.query({ projectId })
-          : await trpcClient.works.getMany.query();
         return { data: data as unknown as TData[], total: data.length };
       }
       case ResourceName.rules: {
@@ -134,10 +120,6 @@ export const dataProvider: DataProvider = {
         });
         return { data: data as unknown as TData };
       }
-      case ResourceName.works: {
-        const data = await trpcClient.works.getById.query({ id: String(id) });
-        return { data: data as unknown as TData };
-      }
       case ResourceName.jobs: {
         const data = await trpcClient.jobs.getById.query({ id: String(id) });
         return { data: data as unknown as TData };
@@ -201,12 +183,6 @@ export const dataProvider: DataProvider = {
       case ResourceName.jobs: {
         const data = await trpcClient.jobs.create.mutate(
           variables as Parameters<typeof trpcClient.jobs.create.mutate>[0],
-        );
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.works: {
-        const data = await trpcClient.works.create.mutate(
-          variables as Parameters<typeof trpcClient.works.create.mutate>[0],
         );
         return { data: data as unknown as TData };
       }
@@ -285,13 +261,6 @@ export const dataProvider: DataProvider = {
         } as unknown as Parameters<typeof trpcClient.jobs.updateStatus.mutate>[0]);
         return { data: data as unknown as TData };
       }
-      case ResourceName.works: {
-        const data = await trpcClient.works.updateStatus.mutate({
-          id: String(id),
-          ...variables,
-        } as unknown as Parameters<typeof trpcClient.works.updateStatus.mutate>[0]);
-        return { data: data as unknown as TData };
-      }
       case ResourceName.rules: {
         const data = await trpcClient.rules.update.mutate({
           id: String(id),
@@ -363,10 +332,6 @@ export const dataProvider: DataProvider = {
         const data = await trpcClient.pipelines.delete.mutate({
           id: String(id),
         });
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.works: {
-        const data = await trpcClient.works.delete.mutate({ id: String(id) });
         return { data: data as unknown as TData };
       }
       case ResourceName.rules: {

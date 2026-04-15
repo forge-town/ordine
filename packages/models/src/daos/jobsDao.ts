@@ -19,14 +19,9 @@ const rowToEntity = (row: JobRow): JobEntity => ({
 });
 
 export const jobsDao = {
-  async findMany(filter?: {
-    status?: JobStatus;
-    workId?: string;
-    projectId?: string;
-  }): Promise<JobEntity[]> {
+  async findMany(filter?: { status?: JobStatus; projectId?: string }): Promise<JobEntity[]> {
     const conditions = [];
     if (filter?.status) conditions.push(eq(jobsTable.status, filter.status));
-    if (filter?.workId) conditions.push(eq(jobsTable.workId, filter.workId));
     if (filter?.projectId) conditions.push(eq(jobsTable.projectId, filter.projectId));
 
     const rows = await db

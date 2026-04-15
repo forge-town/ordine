@@ -10,7 +10,6 @@ const mockJob: JobEntity = {
   type: "pipeline_run",
   projectId: "proj-001",
   pipelineId: null,
-  workId: null,
   logs: [],
   result: null,
   error: null,
@@ -54,7 +53,7 @@ describe("JobRow", () => {
         job={{ ...mockJob, status: "failed" }}
         onClick={handleClick}
         onDelete={handleDelete}
-      />
+      />,
     );
     expect(screen.getByText("失败")).toBeInTheDocument();
   });

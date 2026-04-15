@@ -33,9 +33,6 @@ curl -s http://localhost:9433/api/jobs | python3 -m json.tool
 curl -s "http://localhost:9433/api/jobs?status=running" | python3 -m json.tool
 curl -s "http://localhost:9433/api/jobs?status=failed" | python3 -m json.tool
 
-# 按 Work 过滤
-curl -s "http://localhost:9433/api/jobs?workId=work_xxx" | python3 -m json.tool
-
 # 按项目过滤
 curl -s "http://localhost:9433/api/jobs?projectId=proj_xxx" | python3 -m json.tool
 
@@ -66,7 +63,6 @@ curl -X DELETE http://localhost:9433/api/jobs/job_manual_001
 |---|---|---|
 | `id` | `string` | 唯一标识 |
 | `pipelineId` | `string \| null` | 关联的 Pipeline ID |
-| `workId` | `string \| null` | 关联的 Work ID |
 | `projectId` | `string \| null` | 关联的项目 ID |
 | `status` | `JobStatus` | 状态：`pending`, `running`, `completed`, `failed` |
 | `result` | `JSON \| null` | 运行结果（summary, output 等） |

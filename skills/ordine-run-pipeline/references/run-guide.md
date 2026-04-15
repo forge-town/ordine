@@ -138,9 +138,6 @@ curl -s http://localhost:9433/api/jobs | python3 -m json.tool
 # 按状态过滤
 curl -s "http://localhost:9433/api/jobs?status=running" | python3 -m json.tool
 curl -s "http://localhost:9433/api/jobs?status=failed" | python3 -m json.tool
-
-# 按 Pipeline 过滤（通过 workId）
-curl -s "http://localhost:9433/api/jobs?workId=<work-id>" | python3 -m json.tool
 ```
 
 ## 删除 Job

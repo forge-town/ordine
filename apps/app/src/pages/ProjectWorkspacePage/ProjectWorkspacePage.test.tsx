@@ -12,10 +12,6 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
-vi.mock("@/services/worksService", () => ({
-  createWork: vi.fn().mockResolvedValue({}),
-}));
-
 describe("ProjectWorkspacePage", () => {
   it("renders without crashing", () => {
     render(<ProjectWorkspacePage />);

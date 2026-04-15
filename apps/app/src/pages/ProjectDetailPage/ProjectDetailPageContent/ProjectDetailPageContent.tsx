@@ -1,13 +1,12 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Play, Clock, Wrench, ArrowLeft } from "lucide-react";
+import { Wrench, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.$projectId.index";
 import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { GithubProjectEntity, WorkEntity, StoredPipeline } from "@repo/models";
+import type { GithubProjectEntity, StoredPipeline } from "@repo/models";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
-import { WorkRow } from "../WorkRow";
 import { ProjectMeta } from "../ProjectMeta";
 
 export const ProjectDetailPageContent = () => {
@@ -16,13 +15,8 @@ export const ProjectDetailPageContent = () => {
     resource: ResourceName.githubProjects,
     id: projectId,
   });
-  const { result: worksResult } = useList<WorkEntity>({
-    resource: ResourceName.works,
-    filters: [{ field: "projectId", operator: "eq", value: projectId }],
-  });
   const { result: pipelinesResult } = useList<StoredPipeline>({ resource: ResourceName.pipelines });
   const project = projectResult ?? null;
-  const works = worksResult?.data ?? [];
   const pipelines = pipelinesResult?.data ?? [];
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -43,13 +37,6 @@ export const ProjectDetailPageContent = () => {
       </div>
     );
   }
-
-  const activeWorks = works.filter(
-    (w: WorkEntity) => w.status === "pending" || w.status === "running",
-  );
-  const finishedWorks = works.filter(
-    (w: WorkEntity) => w.status === "success" || w.status === "failed",
-  );
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -76,67 +63,14 @@ export const ProjectDetailPageContent = () => {
         <ProjectMeta project={project} />
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            {
-              label: t("projects.availablePipelines"),
-              value: pipelines.length,
-              color: "text-violet-600",
-            },
-            {
-              label: t("projects.activeWorks"),
-              value: activeWorks.length,
-              color: "text-blue-600",
-            },
-            {
-              label: t("projects.historyWorks"),
-              value: works.length,
-              color: "text-gray-700",
-            },
-          ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-border bg-card px-5 py-4">
-              <p className={cn("text-2xl font-bold", s.color)}>{s.value}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">{s.label}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 gap-4">
+          <div className="rounded-xl border border-border bg-card px-5 py-4">
+            <p className={cn("text-2xl font-bold", "text-violet-600")}>{pipelines.length}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {t("projects.availablePipelines")}
+            </p>
+          </div>
         </div>
-
-        {/* Active works */}
-        {activeWorks.length > 0 && (
-          <section>
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
-              <Play className="h-4 w-4 text-blue-500" />
-              {t("projects.activeSection")}
-            </h3>
-            <div className="space-y-2">
-              {activeWorks.map((w) => (
-                <WorkRow key={w.id} work={w} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* History */}
-        <section>
-          <h3 className="mb-3 text-sm font-semibold text-foreground">
-            {t("projects.historyWorks")}
-          </h3>
-          {finishedWorks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-10 text-center">
-              <Clock className="h-8 w-8 text-muted-foreground/30" />
-              <p className="mt-2 text-sm text-muted-foreground">{t("projects.noHistory")}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground/60">
-                {t("projects.noHistoryHint")}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {finishedWorks.map((w) => (
-                <WorkRow key={w.id} work={w} />
-              ))}
-            </div>
-          )}
-        </section>
       </div>
     </div>
   );

@@ -16,7 +16,6 @@ export const jobsRouter = router({
         id: z.string(),
         title: z.string(),
         type: JobTypeSchema.default("custom"),
-        workId: z.string().nullable().default(null),
         projectId: z.string().nullable().default(null),
         pipelineId: z.string().nullable().default(null),
         logs: z.array(z.string()).default([]),
