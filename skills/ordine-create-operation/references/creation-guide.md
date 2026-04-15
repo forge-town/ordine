@@ -9,7 +9,7 @@
 ### 1. 创建 Operation
 
 ```bash
-curl -X POST http://localhost:9431/api/operations \
+curl -X POST http://localhost:9433/api/operations \
   -H "Content-Type: application/json" \
   -d '{
     "id": "op_check_naming",
@@ -24,16 +24,16 @@ curl -X POST http://localhost:9431/api/operations \
 
 ```bash
 # 列出所有
-curl -s http://localhost:9431/api/operations | python3 -m json.tool
+curl -s http://localhost:9433/api/operations | python3 -m json.tool
 
 # 查看单个
-curl -s http://localhost:9431/api/operations/op_check_naming | python3 -m json.tool
+curl -s http://localhost:9433/api/operations/op_check_naming | python3 -m json.tool
 ```
 
 ### 3. 更新 Operation（PUT = upsert）
 
 ```bash
-curl -X PUT http://localhost:9431/api/operations \
+curl -X PUT http://localhost:9433/api/operations \
   -H "Content-Type: application/json" \
   -d '{
     "id": "op_check_naming",
@@ -47,7 +47,7 @@ curl -X PUT http://localhost:9431/api/operations \
 ### 4. 删除 Operation
 
 ```bash
-curl -X DELETE http://localhost:9431/api/operations/op_check_naming
+curl -X DELETE http://localhost:9433/api/operations/op_check_naming
 ```
 
 ## 创建步骤

@@ -6,7 +6,7 @@
 
 ```bash
 # 设置 API 地址（默认 http://localhost:3000）
-export ORDINE_API_URL=http://localhost:9431
+export ORDINE_API_URL=http://localhost:9433
 ```
 
 ### 列出可运行的 Pipeline
@@ -65,7 +65,7 @@ Pipeline completed in 12s
 ### 1. 触发 Pipeline 运行
 
 ```bash
-curl -X POST http://localhost:9431/api/pipelines/<pipeline-id>/run \
+curl -X POST http://localhost:9433/api/pipelines/<pipeline-id>/run \
   -H "Content-Type: application/json"
 ```
 
@@ -80,7 +80,7 @@ curl -X POST http://localhost:9431/api/pipelines/<pipeline-id>/run \
 ### 2. 查看 Job 状态
 
 ```bash
-curl -s http://localhost:9431/api/jobs/<job-id> | python3 -m json.tool
+curl -s http://localhost:9433/api/jobs/<job-id> | python3 -m json.tool
 ```
 
 返回示例：
@@ -103,7 +103,7 @@ curl -s http://localhost:9431/api/jobs/<job-id> | python3 -m json.tool
 # 简单轮询脚本
 JOB_ID="job_xxxxxxxx"
 while true; do
-  STATUS=$(curl -s http://localhost:9431/api/jobs/$JOB_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+  STATUS=$(curl -s http://localhost:9433/api/jobs/$JOB_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
   echo "Status: $STATUS"
   if [ "$STATUS" = "completed" ] || [ "$STATUS" = "failed" ]; then
     break
@@ -112,7 +112,7 @@ while true; do
 done
 
 # 查看最终结果
-curl -s http://localhost:9431/api/jobs/$JOB_ID | python3 -m json.tool
+curl -s http://localhost:9433/api/jobs/$JOB_ID | python3 -m json.tool
 ```
 
 ## Job 状态流转
@@ -133,20 +133,20 @@ pending → running → completed
 
 ```bash
 # 查看所有 Job
-curl -s http://localhost:9431/api/jobs | python3 -m json.tool
+curl -s http://localhost:9433/api/jobs | python3 -m json.tool
 
 # 按状态过滤
-curl -s "http://localhost:9431/api/jobs?status=running" | python3 -m json.tool
-curl -s "http://localhost:9431/api/jobs?status=failed" | python3 -m json.tool
+curl -s "http://localhost:9433/api/jobs?status=running" | python3 -m json.tool
+curl -s "http://localhost:9433/api/jobs?status=failed" | python3 -m json.tool
 
 # 按 Pipeline 过滤（通过 workId）
-curl -s "http://localhost:9431/api/jobs?workId=<work-id>" | python3 -m json.tool
+curl -s "http://localhost:9433/api/jobs?workId=<work-id>" | python3 -m json.tool
 ```
 
 ## 删除 Job
 
 ```bash
-curl -X DELETE http://localhost:9431/api/jobs/<job-id>
+curl -X DELETE http://localhost:9433/api/jobs/<job-id>
 ```
 
 ## 运行前检查
@@ -155,32 +155,32 @@ curl -X DELETE http://localhost:9431/api/jobs/<job-id>
 
 1. **Pipeline 存在且配置正确**
    ```bash
-   curl -s http://localhost:9431/api/pipelines/<pipeline-id> | python3 -m json.tool
+   curl -s http://localhost:9433/api/pipelines/<pipeline-id> | python3 -m json.tool
    ```
 
 2. **Pipeline 中引用的 Operation 都存在**
    ```bash
    # 检查 pipeline 的 nodes，找到 type=operation 的节点
    # 确认其 data.operationId 对应的 Operation 存在
-   curl -s http://localhost:9431/api/operations/<operation-id> | python3 -m json.tool
+   curl -s http://localhost:9433/api/operations/<operation-id> | python3 -m json.tool
    ```
 
 3. **Operation 引用的 Skill 存在**
    ```bash
-   curl -s http://localhost:9431/api/skills/<skill-id> | python3 -m json.tool
+   curl -s http://localhost:9433/api/skills/<skill-id> | python3 -m json.tool
    ```
 
 ## 完整运行示例
 
 ```bash
 # 1. 确认 Pipeline
-curl -s http://localhost:9431/api/pipelines/pipe_multi_quality_check | python3 -m json.tool
+curl -s http://localhost:9433/api/pipelines/pipe_multi_quality_check | python3 -m json.tool
 
 # 2. 运行
-JOB_ID=$(curl -s -X POST http://localhost:9431/api/pipelines/pipe_multi_quality_check/run | python3 -c "import sys,json; print(json.load(sys.stdin)['jobId'])")
+JOB_ID=$(curl -s -X POST http://localhost:9433/api/pipelines/pipe_multi_quality_check/run | python3 -c "import sys,json; print(json.load(sys.stdin)['jobId'])")
 echo "Job started: $JOB_ID"
 
 # 3. 等待完成
 sleep 5
-curl -s http://localhost:9431/api/jobs/$JOB_ID | python3 -m json.tool
+curl -s http://localhost:9433/api/jobs/$JOB_ID | python3 -m json.tool
 ```

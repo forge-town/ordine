@@ -48,12 +48,12 @@ cp .env.example .env  # 配置 DATABASE_URL
 bun dev
 ```
 
-默认端口 9431。
+默认端口 9433。
 
 ### 配置 CLI
 
 ```bash
-export ORDINE_API_URL=http://localhost:9431
+export ORDINE_API_URL=http://localhost:9433
 ```
 
 ## CLI 命令速查
@@ -68,7 +68,7 @@ export ORDINE_API_URL=http://localhost:9431
 
 ## REST API 速查
 
-基础 URL: `http://localhost:9431`
+基础 URL: `http://localhost:9433`
 
 | 资源 | 端点 | 方法 |
 |---|---|---|
@@ -131,7 +131,7 @@ ordine ls
 ordine run pipe_multi_quality_check -i ./src
 
 # 查看运行结果
-curl -s "http://localhost:9431/api/jobs?status=completed" | python3 -m json.tool
+curl -s "http://localhost:9433/api/jobs?status=completed" | python3 -m json.tool
 ```
 
 ## 相关 Skill

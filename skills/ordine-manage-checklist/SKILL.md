@@ -18,13 +18,13 @@ Checklist Item 是 Best Practice 的子资源，每条代表一个 yes/no 可判
 ### 查看某个 Best Practice 的所有检查项
 
 ```bash
-curl -s "http://localhost:9431/api/checklist-items?bestPracticeId=bp_classname_convention" | python3 -m json.tool
+curl -s "http://localhost:9433/api/checklist-items?bestPracticeId=bp_classname_convention" | python3 -m json.tool
 ```
 
 ### 添加/更新检查项（PUT = upsert）
 
 ```bash
-curl -X PUT http://localhost:9431/api/checklist-items \
+curl -X PUT http://localhost:9433/api/checklist-items \
   -H "Content-Type: application/json" \
   -d '{
     "id": "cli_cn_1",
@@ -37,14 +37,14 @@ curl -X PUT http://localhost:9431/api/checklist-items \
 ### 删除检查项
 
 ```bash
-curl -X DELETE "http://localhost:9431/api/checklist-items?id=cli_cn_1"
+curl -X DELETE "http://localhost:9433/api/checklist-items?id=cli_cn_1"
 ```
 
 ### 批量添加
 
 ```bash
 for i in 0 1 2; do
-  curl -X PUT http://localhost:9431/api/checklist-items \
+  curl -X PUT http://localhost:9433/api/checklist-items \
     -H "Content-Type: application/json" \
     -d "{
       \"id\": \"cli_barrel_${i}\",

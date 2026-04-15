@@ -18,13 +18,13 @@ Code Snippet 是 Best Practice 的子资源，提供详细的代码示例（正�
 ### 查看某个 Best Practice 的所有代码片段
 
 ```bash
-curl -s "http://localhost:9431/api/code-snippets?bestPracticeId=bp_classname_convention" | python3 -m json.tool
+curl -s "http://localhost:9433/api/code-snippets?bestPracticeId=bp_classname_convention" | python3 -m json.tool
 ```
 
 ### 添加/更新代码片段（PUT = upsert）
 
 ```bash
-curl -X PUT http://localhost:9431/api/code-snippets \
+curl -X PUT http://localhost:9433/api/code-snippets \
   -H "Content-Type: application/json" \
   -d '{
     "id": "cs_cn_good",
@@ -39,7 +39,7 @@ curl -X PUT http://localhost:9431/api/code-snippets \
 ### 删除代码片段
 
 ```bash
-curl -X DELETE "http://localhost:9431/api/code-snippets?id=cs_cn_good"
+curl -X DELETE "http://localhost:9433/api/code-snippets?id=cs_cn_good"
 ```
 
 ## 数据结构

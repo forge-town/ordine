@@ -13,10 +13,10 @@
 **排查步骤**：
 ```bash
 # 检查 server 是否正常运行
-curl -s http://localhost:9431/health
+curl -s http://localhost:9433/health
 
 # 检查 Job 详情
-curl -s http://localhost:9431/api/jobs/<job-id> | python3 -m json.tool
+curl -s http://localhost:9433/api/jobs/<job-id> | python3 -m json.tool
 ```
 
 ### 2. Job 状态变为 failed
@@ -26,7 +26,7 @@ curl -s http://localhost:9431/api/jobs/<job-id> | python3 -m json.tool
 **排查步骤**：
 ```bash
 # 查看 Job 详情，关注 result 字段
-curl -s http://localhost:9431/api/jobs/<job-id> | python3 -m json.tool
+curl -s http://localhost:9433/api/jobs/<job-id> | python3 -m json.tool
 
 # result 字段可能包含错误信息
 ```
@@ -40,7 +40,7 @@ curl -s http://localhost:9431/api/jobs/<job-id> | python3 -m json.tool
 
 ```bash
 # 确认 Pipeline ID 正确
-curl -s http://localhost:9431/api/pipelines | python3 -m json.tool
+curl -s http://localhost:9433/api/pipelines | python3 -m json.tool
 
 # 查看所有 Pipeline 列表
 ```
@@ -51,7 +51,7 @@ curl -s http://localhost:9431/api/pipelines | python3 -m json.tool
 
 ```bash
 # 1. 看 Pipeline 中有哪些 operation 节点
-curl -s http://localhost:9431/api/pipelines/<pipeline-id> | python3 -c "
+curl -s http://localhost:9433/api/pipelines/<pipeline-id> | python3 -c "
 import sys, json
 p = json.load(sys.stdin)
 nodes = json.loads(p.get('nodes','[]')) if isinstance(p.get('nodes'), str) else p.get('nodes', [])
@@ -61,11 +61,11 @@ for n in nodes:
 "
 
 # 2. 检查具体 Operation
-curl -s http://localhost:9431/api/operations/<operation-id> | python3 -m json.tool
+curl -s http://localhost:9433/api/operations/<operation-id> | python3 -m json.tool
 
 # 3. 检查 Operation 的 executor skill
 # 从 operation 的 config 中提取 skillId
-curl -s http://localhost:9431/api/skills/<skill-id> | python3 -m json.tool
+curl -s http://localhost:9433/api/skills/<skill-id> | python3 -m json.tool
 ```
 
 ## 调试技巧
@@ -80,7 +80,7 @@ curl -s http://localhost:9431/api/skills/<skill-id> | python3 -m json.tool
 
 ```bash
 # 创建最简 Pipeline
-curl -X POST http://localhost:9431/api/pipelines \
+curl -X POST http://localhost:9433/api/pipelines \
   -H "Content-Type: application/json" \
   -d '{
     "id": "pipe_test_single",
@@ -90,11 +90,11 @@ curl -X POST http://localhost:9431/api/pipelines \
   }'
 
 # 运行
-curl -X POST http://localhost:9431/api/pipelines/pipe_test_single/run
+curl -X POST http://localhost:9433/api/pipelines/pipe_test_single/run
 
 # 检查结果
 # ...
 
 # 清理
-curl -X DELETE http://localhost:9431/api/pipelines/pipe_test_single
+curl -X DELETE http://localhost:9433/api/pipelines/pipe_test_single
 ```

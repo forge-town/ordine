@@ -19,13 +19,13 @@ Skill 是 Ordine 中 AI Agent 的能力单元。Operation 通过 executor 引用
 
 ```bash
 # 列出所有（首次调用会自动 seed）
-curl -s http://localhost:9431/api/skills | python3 -m json.tool
+curl -s http://localhost:9433/api/skills | python3 -m json.tool
 
 # 查看单个
-curl -s http://localhost:9431/api/skills/skill_check_dao | python3 -m json.tool
+curl -s http://localhost:9433/api/skills/skill_check_dao | python3 -m json.tool
 
 # 创建
-curl -X POST http://localhost:9431/api/skills \
+curl -X POST http://localhost:9433/api/skills \
   -H "Content-Type: application/json" \
   -d '{
     "id": "skill_check_naming",
@@ -34,12 +34,12 @@ curl -X POST http://localhost:9431/api/skills \
   }'
 
 # 部分更新
-curl -X PATCH http://localhost:9431/api/skills/skill_check_naming \
+curl -X PATCH http://localhost:9433/api/skills/skill_check_naming \
   -H "Content-Type: application/json" \
   -d '{ "description": "升级版命名规范检查" }'
 
 # 删除
-curl -X DELETE http://localhost:9431/api/skills/skill_check_naming
+curl -X DELETE http://localhost:9433/api/skills/skill_check_naming
 ```
 
 ## 数据结构

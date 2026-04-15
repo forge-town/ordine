@@ -19,10 +19,10 @@ Ordine 支持将 Best Practice（连同关联的 Checklist Items 和 Code Snippe
 
 ```bash
 # 导出到文件
-curl -s http://localhost:9431/api/best-practices/export > best-practices-export.json
+curl -s http://localhost:9433/api/best-practices/export > best-practices-export.json
 
 # 预览导出内容
-curl -s http://localhost:9431/api/best-practices/export | python3 -m json.tool
+curl -s http://localhost:9433/api/best-practices/export | python3 -m json.tool
 ```
 
 导出格式：
@@ -52,7 +52,7 @@ curl -s http://localhost:9431/api/best-practices/export | python3 -m json.tool
 
 ```bash
 # 从文件导入
-curl -X POST http://localhost:9431/api/best-practices/import \
+curl -X POST http://localhost:9433/api/best-practices/import \
   -H "Content-Type: application/json" \
   -d @best-practices-export.json
 ```
@@ -76,18 +76,18 @@ curl -X POST http://localhost:9431/api/best-practices/import \
 ```bash
 # 定期备份
 DATE=$(date +%Y%m%d)
-curl -s http://localhost:9431/api/best-practices/export > "backups/bp-${DATE}.json"
+curl -s http://localhost:9433/api/best-practices/export > "backups/bp-${DATE}.json"
 ```
 
 #### 环境迁移
 
 ```bash
 # 从开发环境导出
-ORDINE_API_URL=http://localhost:9431 \
-  curl -s http://localhost:9431/api/best-practices/export > bp-export.json
+ORDINE_API_URL=http://localhost:9433 \
+  curl -s http://localhost:9433/api/best-practices/export > bp-export.json
 
 # 导入到生产环境
-curl -X POST http://production-server:9431/api/best-practices/import \
+curl -X POST http://production-server:9433/api/best-practices/import \
   -H "Content-Type: application/json" \
   -d @bp-export.json
 ```
@@ -98,7 +98,7 @@ curl -X POST http://production-server:9431/api/best-practices/import \
 
 ```bash
 # 从仓库中的共享文件导入
-curl -X POST http://localhost:9431/api/best-practices/import \
+curl -X POST http://localhost:9433/api/best-practices/import \
   -H "Content-Type: application/json" \
   -d @shared/best-practices.json
 ```

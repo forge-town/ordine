@@ -19,19 +19,19 @@ Rule 是 Ordine 中的自定义检查规则，包含可执行的检查脚本（c
 
 ```bash
 # 列出所有规则
-curl -s http://localhost:9431/api/rules | python3 -m json.tool
+curl -s http://localhost:9433/api/rules | python3 -m json.tool
 
 # 按分类过滤
-curl -s "http://localhost:9431/api/rules?category=naming" | python3 -m json.tool
+curl -s "http://localhost:9433/api/rules?category=naming" | python3 -m json.tool
 
 # 按启用状态过滤
-curl -s "http://localhost:9431/api/rules?enabled=true" | python3 -m json.tool
+curl -s "http://localhost:9433/api/rules?enabled=true" | python3 -m json.tool
 
 # 查看单个
-curl -s http://localhost:9431/api/rules/rule_xxx | python3 -m json.tool
+curl -s http://localhost:9433/api/rules/rule_xxx | python3 -m json.tool
 
 # 创建
-curl -X POST http://localhost:9431/api/rules \
+curl -X POST http://localhost:9433/api/rules \
   -H "Content-Type: application/json" \
   -d '{
     "id": "rule_no_template_classname",
@@ -47,17 +47,17 @@ curl -X POST http://localhost:9431/api/rules \
   }'
 
 # 更新（PUT = upsert）
-curl -X PUT http://localhost:9431/api/rules \
+curl -X PUT http://localhost:9433/api/rules \
   -H "Content-Type: application/json" \
   -d '{ "id": "rule_no_template_classname", "severity": "error" }'
 
 # 部分更新
-curl -X PATCH http://localhost:9431/api/rules/rule_no_template_classname \
+curl -X PATCH http://localhost:9433/api/rules/rule_no_template_classname \
   -H "Content-Type: application/json" \
   -d '{ "enabled": false }'
 
 # 删除
-curl -X DELETE http://localhost:9431/api/rules/rule_no_template_classname
+curl -X DELETE http://localhost:9433/api/rules/rule_no_template_classname
 ```
 
 ## 数据结构

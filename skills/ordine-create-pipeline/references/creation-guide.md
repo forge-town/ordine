@@ -6,7 +6,7 @@
 
 ```bash
 # 设置 API 地址（默认 http://localhost:3000）
-export ORDINE_API_URL=http://localhost:9431
+export ORDINE_API_URL=http://localhost:9433
 
 # 列出所有 Pipeline
 ordine pipelines

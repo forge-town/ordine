@@ -19,18 +19,18 @@ Ordine 提供 filesystem API 用于浏览服务端可访问的文件系统目录
 
 ```bash
 # 浏览根目录（默认）
-curl -s http://localhost:9431/api/filesystem/browse | python3 -m json.tool
+curl -s http://localhost:9433/api/filesystem/browse | python3 -m json.tool
 
 # 浏览指定目录
-curl -s "http://localhost:9431/api/filesystem/browse?path=./src" | python3 -m json.tool
-curl -s "http://localhost:9431/api/filesystem/browse?path=./packages/models/src/daos" | python3 -m json.tool
+curl -s "http://localhost:9433/api/filesystem/browse?path=./src" | python3 -m json.tool
+curl -s "http://localhost:9433/api/filesystem/browse?path=./packages/models/src/daos" | python3 -m json.tool
 ```
 
 ### 获取递归目录树
 
 ```bash
 # 获取目录树
-curl -s "http://localhost:9431/api/filesystem/tree?path=./src" | python3 -m json.tool
+curl -s "http://localhost:9433/api/filesystem/tree?path=./src" | python3 -m json.tool
 ```
 
 ## 使用场景
@@ -41,10 +41,10 @@ curl -s "http://localhost:9431/api/filesystem/tree?path=./src" | python3 -m json
 
 ```bash
 # 1. 浏览查看有哪些顶层目录
-curl -s http://localhost:9431/api/filesystem/browse | python3 -m json.tool
+curl -s http://localhost:9433/api/filesystem/browse | python3 -m json.tool
 
 # 2. 深入查看具体路径
-curl -s "http://localhost:9431/api/filesystem/browse?path=./packages" | python3 -m json.tool
+curl -s "http://localhost:9433/api/filesystem/browse?path=./packages" | python3 -m json.tool
 
 # 3. 确认目标路径后运行 Pipeline
 ordine run pipe_check_dao -i ./packages/models/src/daos
@@ -55,5 +55,5 @@ ordine run pipe_check_dao -i ./packages/models/src/daos
 运行 Pipeline 后，检查输出是否生成：
 
 ```bash
-curl -s "http://localhost:9431/api/filesystem/browse?path=./.ordine/results" | python3 -m json.tool
+curl -s "http://localhost:9433/api/filesystem/browse?path=./.ordine/results" | python3 -m json.tool
 ```

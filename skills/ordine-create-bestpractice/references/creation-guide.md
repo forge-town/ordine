@@ -9,7 +9,7 @@
 ### 1. 创建 Best Practice
 
 ```bash
-curl -X POST http://localhost:9431/api/best-practices \
+curl -X POST http://localhost:9433/api/best-practices \
   -H "Content-Type: application/json" \
   -d '{
     "id": "bp_barrel_export",
@@ -26,7 +26,7 @@ curl -X POST http://localhost:9431/api/best-practices \
 ### 2. 添加 Checklist Items
 
 ```bash
-curl -X PUT http://localhost:9431/api/checklist-items \
+curl -X PUT http://localhost:9433/api/checklist-items \
   -H "Content-Type: application/json" \
   -d '{
     "id": "cli_barrel_1",
@@ -35,7 +35,7 @@ curl -X PUT http://localhost:9431/api/checklist-items \
     "sortOrder": 0
   }'
 
-curl -X PUT http://localhost:9431/api/checklist-items \
+curl -X PUT http://localhost:9433/api/checklist-items \
   -H "Content-Type: application/json" \
   -d '{
     "id": "cli_barrel_2",
@@ -48,7 +48,7 @@ curl -X PUT http://localhost:9431/api/checklist-items \
 ### 3. 添加 Code Snippets
 
 ```bash
-curl -X PUT http://localhost:9431/api/code-snippets \
+curl -X PUT http://localhost:9433/api/code-snippets \
   -H "Content-Type: application/json" \
   -d '{
     "id": "cs_barrel_good",
@@ -64,26 +64,26 @@ curl -X PUT http://localhost:9431/api/code-snippets \
 
 ```bash
 # 列出所有
-curl -s http://localhost:9431/api/best-practices | python3 -m json.tool
+curl -s http://localhost:9433/api/best-practices | python3 -m json.tool
 
 # 查看单个
-curl -s http://localhost:9431/api/best-practices/bp_barrel_export | python3 -m json.tool
+curl -s http://localhost:9433/api/best-practices/bp_barrel_export | python3 -m json.tool
 
 # 查看其 checklist items
-curl -s "http://localhost:9431/api/checklist-items?bestPracticeId=bp_barrel_export" | python3 -m json.tool
+curl -s "http://localhost:9433/api/checklist-items?bestPracticeId=bp_barrel_export" | python3 -m json.tool
 
 # 查看其 code snippets
-curl -s "http://localhost:9431/api/code-snippets?bestPracticeId=bp_barrel_export" | python3 -m json.tool
+curl -s "http://localhost:9433/api/code-snippets?bestPracticeId=bp_barrel_export" | python3 -m json.tool
 ```
 
 ### 5. 导出 / 导入
 
 ```bash
 # 导出所有 Best Practice（含 checklistItems + codeSnippets）
-curl -s http://localhost:9431/api/best-practices/export | python3 -m json.tool > best-practices-export.json
+curl -s http://localhost:9433/api/best-practices/export | python3 -m json.tool > best-practices-export.json
 
 # 导入
-curl -X POST http://localhost:9431/api/best-practices/import \
+curl -X POST http://localhost:9433/api/best-practices/import \
   -H "Content-Type: application/json" \
   -d @best-practices-export.json
 ```

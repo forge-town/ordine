@@ -12,16 +12,16 @@
 
 ```bash
 # 确认 Operation 存在
-curl -s http://localhost:9431/api/operations/<operation-id> | python3 -m json.tool
+curl -s http://localhost:9433/api/operations/<operation-id> | python3 -m json.tool
 
 # 确认 Best Practice 存在
-curl -s http://localhost:9431/api/best-practices/<best-practice-id> | python3 -m json.tool
+curl -s http://localhost:9433/api/best-practices/<best-practice-id> | python3 -m json.tool
 ```
 
 ### 2. 创建 Recipe
 
 ```bash
-curl -X POST http://localhost:9431/api/recipes \
+curl -X POST http://localhost:9433/api/recipes \
   -H "Content-Type: application/json" \
   -d '{
     "id": "rcp_check_classname",
@@ -36,13 +36,13 @@ curl -X POST http://localhost:9431/api/recipes \
 
 ```bash
 # 列出所有
-curl -s http://localhost:9431/api/recipes | python3 -m json.tool
+curl -s http://localhost:9433/api/recipes | python3 -m json.tool
 ```
 
 ### 4. 更新 Recipe（PUT = upsert）
 
 ```bash
-curl -X PUT http://localhost:9431/api/recipes \
+curl -X PUT http://localhost:9433/api/recipes \
   -H "Content-Type: application/json" \
   -d '{
     "id": "rcp_check_classname",
@@ -65,7 +65,7 @@ curl -X PUT http://localhost:9431/api/recipes \
 
 ```bash
 # 列出所有 recipe，检查是否已有同样的 operationId + bestPracticeId 组合
-curl -s http://localhost:9431/api/recipes | python3 -c "
+curl -s http://localhost:9433/api/recipes | python3 -c "
 import sys, json
 recipes = json.load(sys.stdin)
 for r in recipes:
@@ -89,7 +89,7 @@ for r in recipes:
 
 ```bash
 # 检查 Recipe
-curl -X POST http://localhost:9431/api/recipes \
+curl -X POST http://localhost:9433/api/recipes \
   -H "Content-Type: application/json" \
   -d '{
     "id": "rcp_check_barrel",
@@ -99,7 +99,7 @@ curl -X POST http://localhost:9431/api/recipes \
   }'
 
 # 修复 Recipe
-curl -X POST http://localhost:9431/api/recipes \
+curl -X POST http://localhost:9433/api/recipes \
   -H "Content-Type: application/json" \
   -d '{
     "id": "rcp_fix_barrel",
@@ -115,7 +115,7 @@ curl -X POST http://localhost:9431/api/recipes \
 
 ```bash
 for bp in bp_classname_convention bp_barrel_export bp_one_component_per_file; do
-  curl -X POST http://localhost:9431/api/recipes \
+  curl -X POST http://localhost:9433/api/recipes \
     -H "Content-Type: application/json" \
     -d "{
       \"id\": \"rcp_all_${bp#bp_}\",
