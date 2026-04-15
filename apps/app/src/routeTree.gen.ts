@@ -12,16 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
-import { Route as ApiWorksRouteImport } from './routes/api/works'
-import { Route as ApiSkillsRouteImport } from './routes/api/skills'
-import { Route as ApiRulesRouteImport } from './routes/api/rules'
-import { Route as ApiRecipesRouteImport } from './routes/api/recipes'
-import { Route as ApiPipelinesRouteImport } from './routes/api/pipelines'
-import { Route as ApiOperationsRouteImport } from './routes/api/operations'
-import { Route as ApiJobsRouteImport } from './routes/api/jobs'
-import { Route as ApiCodeSnippetsRouteImport } from './routes/api/code-snippets'
-import { Route as ApiChecklistItemsRouteImport } from './routes/api/checklist-items'
-import { Route as ApiBestPracticesRouteImport } from './routes/api/best-practices'
 import { Route as LayoutSkillsRouteImport } from './routes/_layout/skills'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutRecipesRouteImport } from './routes/_layout/recipes'
@@ -34,18 +24,7 @@ import { Route as LayoutPipelinesIndexRouteImport } from './routes/_layout/pipel
 import { Route as LayoutOperationsIndexRouteImport } from './routes/_layout/operations.index'
 import { Route as LayoutJobsIndexRouteImport } from './routes/_layout/jobs.index'
 import { Route as LayoutBestPracticesIndexRouteImport } from './routes/_layout/best-practices.index'
-import { Route as ApiWorksIdRouteImport } from './routes/api/works.$id'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
-import { Route as ApiSkillsIdRouteImport } from './routes/api/skills.$id'
-import { Route as ApiRulesIdRouteImport } from './routes/api/rules.$id'
-import { Route as ApiPipelinesIdRouteImport } from './routes/api/pipelines.$id'
-import { Route as ApiOperationsIdRouteImport } from './routes/api/operations.$id'
-import { Route as ApiJobsIdRouteImport } from './routes/api/jobs.$id'
-import { Route as ApiFilesystemTreeRouteImport } from './routes/api/filesystem.tree'
-import { Route as ApiFilesystemBrowseRouteImport } from './routes/api/filesystem.browse'
-import { Route as ApiBestPracticesImportRouteImport } from './routes/api/best-practices.import'
-import { Route as ApiBestPracticesExportRouteImport } from './routes/api/best-practices.export'
-import { Route as ApiBestPracticesIdRouteImport } from './routes/api/best-practices.$id'
 import { Route as LayoutRulesCreateRouteImport } from './routes/_layout/rules.create'
 import { Route as LayoutPipelinesPipelineIdRouteImport } from './routes/_layout/pipelines.$pipelineId'
 import { Route as LayoutOperationsNewRouteImport } from './routes/_layout/operations.new'
@@ -54,7 +33,6 @@ import { Route as LayoutRulesRuleIdIndexRouteImport } from './routes/_layout/rul
 import { Route as LayoutProjectsProjectIdIndexRouteImport } from './routes/_layout/projects.$projectId.index'
 import { Route as LayoutOperationsOperationIdIndexRouteImport } from './routes/_layout/operations.$operationId.index'
 import { Route as LayoutBestPracticesBestPracticeIdIndexRouteImport } from './routes/_layout/best-practices.$bestPracticeId.index'
-import { Route as ApiPipelinesIdRunRouteImport } from './routes/api/pipelines.$id.run'
 import { Route as LayoutRulesRuleIdEditRouteImport } from './routes/_layout/rules.$ruleId.edit'
 import { Route as LayoutProjectsProjectIdWorkspaceRouteImport } from './routes/_layout/projects.$projectId.workspace'
 import { Route as LayoutOperationsOperationIdEditRouteImport } from './routes/_layout/operations.$operationId.edit'
@@ -73,56 +51,6 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LayoutRoute,
-} as any)
-const ApiWorksRoute = ApiWorksRouteImport.update({
-  id: '/api/works',
-  path: '/api/works',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSkillsRoute = ApiSkillsRouteImport.update({
-  id: '/api/skills',
-  path: '/api/skills',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiRulesRoute = ApiRulesRouteImport.update({
-  id: '/api/rules',
-  path: '/api/rules',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiRecipesRoute = ApiRecipesRouteImport.update({
-  id: '/api/recipes',
-  path: '/api/recipes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPipelinesRoute = ApiPipelinesRouteImport.update({
-  id: '/api/pipelines',
-  path: '/api/pipelines',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiOperationsRoute = ApiOperationsRouteImport.update({
-  id: '/api/operations',
-  path: '/api/operations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiJobsRoute = ApiJobsRouteImport.update({
-  id: '/api/jobs',
-  path: '/api/jobs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCodeSnippetsRoute = ApiCodeSnippetsRouteImport.update({
-  id: '/api/code-snippets',
-  path: '/api/code-snippets',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiChecklistItemsRoute = ApiChecklistItemsRouteImport.update({
-  id: '/api/checklist-items',
-  path: '/api/checklist-items',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiBestPracticesRoute = ApiBestPracticesRouteImport.update({
-  id: '/api/best-practices',
-  path: '/api/best-practices',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutSkillsRoute = LayoutSkillsRouteImport.update({
   id: '/skills',
@@ -185,65 +113,10 @@ const LayoutBestPracticesIndexRoute =
     path: '/best-practices/',
     getParentRoute: () => LayoutRoute,
   } as any)
-const ApiWorksIdRoute = ApiWorksIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiWorksRoute,
-} as any)
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: '/api/trpc/$',
   path: '/api/trpc/$',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSkillsIdRoute = ApiSkillsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiSkillsRoute,
-} as any)
-const ApiRulesIdRoute = ApiRulesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiRulesRoute,
-} as any)
-const ApiPipelinesIdRoute = ApiPipelinesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiPipelinesRoute,
-} as any)
-const ApiOperationsIdRoute = ApiOperationsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiOperationsRoute,
-} as any)
-const ApiJobsIdRoute = ApiJobsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiJobsRoute,
-} as any)
-const ApiFilesystemTreeRoute = ApiFilesystemTreeRouteImport.update({
-  id: '/api/filesystem/tree',
-  path: '/api/filesystem/tree',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiFilesystemBrowseRoute = ApiFilesystemBrowseRouteImport.update({
-  id: '/api/filesystem/browse',
-  path: '/api/filesystem/browse',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiBestPracticesImportRoute = ApiBestPracticesImportRouteImport.update({
-  id: '/import',
-  path: '/import',
-  getParentRoute: () => ApiBestPracticesRoute,
-} as any)
-const ApiBestPracticesExportRoute = ApiBestPracticesExportRouteImport.update({
-  id: '/export',
-  path: '/export',
-  getParentRoute: () => ApiBestPracticesRoute,
-} as any)
-const ApiBestPracticesIdRoute = ApiBestPracticesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiBestPracticesRoute,
 } as any)
 const LayoutRulesCreateRoute = LayoutRulesCreateRouteImport.update({
   id: '/rules/create',
@@ -289,11 +162,6 @@ const LayoutBestPracticesBestPracticeIdIndexRoute =
     path: '/best-practices/$bestPracticeId/',
     getParentRoute: () => LayoutRoute,
   } as any)
-const ApiPipelinesIdRunRoute = ApiPipelinesIdRunRouteImport.update({
-  id: '/run',
-  path: '/run',
-  getParentRoute: () => ApiPipelinesIdRoute,
-} as any)
 const LayoutRulesRuleIdEditRoute = LayoutRulesRuleIdEditRouteImport.update({
   id: '/rules/$ruleId/edit',
   path: '/rules/$ruleId/edit',
@@ -327,32 +195,11 @@ export interface FileRoutesByFullPath {
   '/recipes': typeof LayoutRecipesRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
-  '/api/best-practices': typeof ApiBestPracticesRouteWithChildren
-  '/api/checklist-items': typeof ApiChecklistItemsRoute
-  '/api/code-snippets': typeof ApiCodeSnippetsRoute
-  '/api/jobs': typeof ApiJobsRouteWithChildren
-  '/api/operations': typeof ApiOperationsRouteWithChildren
-  '/api/pipelines': typeof ApiPipelinesRouteWithChildren
-  '/api/recipes': typeof ApiRecipesRoute
-  '/api/rules': typeof ApiRulesRouteWithChildren
-  '/api/skills': typeof ApiSkillsRouteWithChildren
-  '/api/works': typeof ApiWorksRouteWithChildren
   '/jobs/$jobId': typeof LayoutJobsJobIdRoute
   '/operations/new': typeof LayoutOperationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/rules/create': typeof LayoutRulesCreateRoute
-  '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
-  '/api/best-practices/export': typeof ApiBestPracticesExportRoute
-  '/api/best-practices/import': typeof ApiBestPracticesImportRoute
-  '/api/filesystem/browse': typeof ApiFilesystemBrowseRoute
-  '/api/filesystem/tree': typeof ApiFilesystemTreeRoute
-  '/api/jobs/$id': typeof ApiJobsIdRoute
-  '/api/operations/$id': typeof ApiOperationsIdRoute
-  '/api/pipelines/$id': typeof ApiPipelinesIdRouteWithChildren
-  '/api/rules/$id': typeof ApiRulesIdRoute
-  '/api/skills/$id': typeof ApiSkillsIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
-  '/api/works/$id': typeof ApiWorksIdRoute
   '/best-practices/': typeof LayoutBestPracticesIndexRoute
   '/jobs/': typeof LayoutJobsIndexRoute
   '/operations/': typeof LayoutOperationsIndexRoute
@@ -363,7 +210,6 @@ export interface FileRoutesByFullPath {
   '/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
   '/rules/$ruleId/edit': typeof LayoutRulesRuleIdEditRoute
-  '/api/pipelines/$id/run': typeof ApiPipelinesIdRunRoute
   '/best-practices/$bestPracticeId/': typeof LayoutBestPracticesBestPracticeIdIndexRoute
   '/operations/$operationId/': typeof LayoutOperationsOperationIdIndexRoute
   '/projects/$projectId/': typeof LayoutProjectsProjectIdIndexRoute
@@ -375,33 +221,12 @@ export interface FileRoutesByTo {
   '/recipes': typeof LayoutRecipesRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
-  '/api/best-practices': typeof ApiBestPracticesRouteWithChildren
-  '/api/checklist-items': typeof ApiChecklistItemsRoute
-  '/api/code-snippets': typeof ApiCodeSnippetsRoute
-  '/api/jobs': typeof ApiJobsRouteWithChildren
-  '/api/operations': typeof ApiOperationsRouteWithChildren
-  '/api/pipelines': typeof ApiPipelinesRouteWithChildren
-  '/api/recipes': typeof ApiRecipesRoute
-  '/api/rules': typeof ApiRulesRouteWithChildren
-  '/api/skills': typeof ApiSkillsRouteWithChildren
-  '/api/works': typeof ApiWorksRouteWithChildren
   '/': typeof LayoutIndexRoute
   '/jobs/$jobId': typeof LayoutJobsJobIdRoute
   '/operations/new': typeof LayoutOperationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/rules/create': typeof LayoutRulesCreateRoute
-  '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
-  '/api/best-practices/export': typeof ApiBestPracticesExportRoute
-  '/api/best-practices/import': typeof ApiBestPracticesImportRoute
-  '/api/filesystem/browse': typeof ApiFilesystemBrowseRoute
-  '/api/filesystem/tree': typeof ApiFilesystemTreeRoute
-  '/api/jobs/$id': typeof ApiJobsIdRoute
-  '/api/operations/$id': typeof ApiOperationsIdRoute
-  '/api/pipelines/$id': typeof ApiPipelinesIdRouteWithChildren
-  '/api/rules/$id': typeof ApiRulesIdRoute
-  '/api/skills/$id': typeof ApiSkillsIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
-  '/api/works/$id': typeof ApiWorksIdRoute
   '/best-practices': typeof LayoutBestPracticesIndexRoute
   '/jobs': typeof LayoutJobsIndexRoute
   '/operations': typeof LayoutOperationsIndexRoute
@@ -412,7 +237,6 @@ export interface FileRoutesByTo {
   '/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
   '/rules/$ruleId/edit': typeof LayoutRulesRuleIdEditRoute
-  '/api/pipelines/$id/run': typeof ApiPipelinesIdRunRoute
   '/best-practices/$bestPracticeId': typeof LayoutBestPracticesBestPracticeIdIndexRoute
   '/operations/$operationId': typeof LayoutOperationsOperationIdIndexRoute
   '/projects/$projectId': typeof LayoutProjectsProjectIdIndexRoute
@@ -428,33 +252,12 @@ export interface FileRoutesById {
   '/_layout/recipes': typeof LayoutRecipesRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/skills': typeof LayoutSkillsRoute
-  '/api/best-practices': typeof ApiBestPracticesRouteWithChildren
-  '/api/checklist-items': typeof ApiChecklistItemsRoute
-  '/api/code-snippets': typeof ApiCodeSnippetsRoute
-  '/api/jobs': typeof ApiJobsRouteWithChildren
-  '/api/operations': typeof ApiOperationsRouteWithChildren
-  '/api/pipelines': typeof ApiPipelinesRouteWithChildren
-  '/api/recipes': typeof ApiRecipesRoute
-  '/api/rules': typeof ApiRulesRouteWithChildren
-  '/api/skills': typeof ApiSkillsRouteWithChildren
-  '/api/works': typeof ApiWorksRouteWithChildren
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/jobs/$jobId': typeof LayoutJobsJobIdRoute
   '/_layout/operations/new': typeof LayoutOperationsNewRoute
   '/_layout/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/_layout/rules/create': typeof LayoutRulesCreateRoute
-  '/api/best-practices/$id': typeof ApiBestPracticesIdRoute
-  '/api/best-practices/export': typeof ApiBestPracticesExportRoute
-  '/api/best-practices/import': typeof ApiBestPracticesImportRoute
-  '/api/filesystem/browse': typeof ApiFilesystemBrowseRoute
-  '/api/filesystem/tree': typeof ApiFilesystemTreeRoute
-  '/api/jobs/$id': typeof ApiJobsIdRoute
-  '/api/operations/$id': typeof ApiOperationsIdRoute
-  '/api/pipelines/$id': typeof ApiPipelinesIdRouteWithChildren
-  '/api/rules/$id': typeof ApiRulesIdRoute
-  '/api/skills/$id': typeof ApiSkillsIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
-  '/api/works/$id': typeof ApiWorksIdRoute
   '/_layout/best-practices/': typeof LayoutBestPracticesIndexRoute
   '/_layout/jobs/': typeof LayoutJobsIndexRoute
   '/_layout/operations/': typeof LayoutOperationsIndexRoute
@@ -465,7 +268,6 @@ export interface FileRoutesById {
   '/_layout/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/_layout/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
   '/_layout/rules/$ruleId/edit': typeof LayoutRulesRuleIdEditRoute
-  '/api/pipelines/$id/run': typeof ApiPipelinesIdRunRoute
   '/_layout/best-practices/$bestPracticeId/': typeof LayoutBestPracticesBestPracticeIdIndexRoute
   '/_layout/operations/$operationId/': typeof LayoutOperationsOperationIdIndexRoute
   '/_layout/projects/$projectId/': typeof LayoutProjectsProjectIdIndexRoute
@@ -482,32 +284,11 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/skills'
-    | '/api/best-practices'
-    | '/api/checklist-items'
-    | '/api/code-snippets'
-    | '/api/jobs'
-    | '/api/operations'
-    | '/api/pipelines'
-    | '/api/recipes'
-    | '/api/rules'
-    | '/api/skills'
-    | '/api/works'
     | '/jobs/$jobId'
     | '/operations/new'
     | '/pipelines/$pipelineId'
     | '/rules/create'
-    | '/api/best-practices/$id'
-    | '/api/best-practices/export'
-    | '/api/best-practices/import'
-    | '/api/filesystem/browse'
-    | '/api/filesystem/tree'
-    | '/api/jobs/$id'
-    | '/api/operations/$id'
-    | '/api/pipelines/$id'
-    | '/api/rules/$id'
-    | '/api/skills/$id'
     | '/api/trpc/$'
-    | '/api/works/$id'
     | '/best-practices/'
     | '/jobs/'
     | '/operations/'
@@ -518,7 +299,6 @@ export interface FileRouteTypes {
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
     | '/rules/$ruleId/edit'
-    | '/api/pipelines/$id/run'
     | '/best-practices/$bestPracticeId/'
     | '/operations/$operationId/'
     | '/projects/$projectId/'
@@ -530,33 +310,12 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/skills'
-    | '/api/best-practices'
-    | '/api/checklist-items'
-    | '/api/code-snippets'
-    | '/api/jobs'
-    | '/api/operations'
-    | '/api/pipelines'
-    | '/api/recipes'
-    | '/api/rules'
-    | '/api/skills'
-    | '/api/works'
     | '/'
     | '/jobs/$jobId'
     | '/operations/new'
     | '/pipelines/$pipelineId'
     | '/rules/create'
-    | '/api/best-practices/$id'
-    | '/api/best-practices/export'
-    | '/api/best-practices/import'
-    | '/api/filesystem/browse'
-    | '/api/filesystem/tree'
-    | '/api/jobs/$id'
-    | '/api/operations/$id'
-    | '/api/pipelines/$id'
-    | '/api/rules/$id'
-    | '/api/skills/$id'
     | '/api/trpc/$'
-    | '/api/works/$id'
     | '/best-practices'
     | '/jobs'
     | '/operations'
@@ -567,7 +326,6 @@ export interface FileRouteTypes {
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
     | '/rules/$ruleId/edit'
-    | '/api/pipelines/$id/run'
     | '/best-practices/$bestPracticeId'
     | '/operations/$operationId'
     | '/projects/$projectId'
@@ -582,33 +340,12 @@ export interface FileRouteTypes {
     | '/_layout/recipes'
     | '/_layout/settings'
     | '/_layout/skills'
-    | '/api/best-practices'
-    | '/api/checklist-items'
-    | '/api/code-snippets'
-    | '/api/jobs'
-    | '/api/operations'
-    | '/api/pipelines'
-    | '/api/recipes'
-    | '/api/rules'
-    | '/api/skills'
-    | '/api/works'
     | '/_layout/'
     | '/_layout/jobs/$jobId'
     | '/_layout/operations/new'
     | '/_layout/pipelines/$pipelineId'
     | '/_layout/rules/create'
-    | '/api/best-practices/$id'
-    | '/api/best-practices/export'
-    | '/api/best-practices/import'
-    | '/api/filesystem/browse'
-    | '/api/filesystem/tree'
-    | '/api/jobs/$id'
-    | '/api/operations/$id'
-    | '/api/pipelines/$id'
-    | '/api/rules/$id'
-    | '/api/skills/$id'
     | '/api/trpc/$'
-    | '/api/works/$id'
     | '/_layout/best-practices/'
     | '/_layout/jobs/'
     | '/_layout/operations/'
@@ -619,7 +356,6 @@ export interface FileRouteTypes {
     | '/_layout/operations/$operationId/edit'
     | '/_layout/projects/$projectId/workspace'
     | '/_layout/rules/$ruleId/edit'
-    | '/api/pipelines/$id/run'
     | '/_layout/best-practices/$bestPracticeId/'
     | '/_layout/operations/$operationId/'
     | '/_layout/projects/$projectId/'
@@ -629,18 +365,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
   CanvasRoute: typeof CanvasRoute
-  ApiBestPracticesRoute: typeof ApiBestPracticesRouteWithChildren
-  ApiChecklistItemsRoute: typeof ApiChecklistItemsRoute
-  ApiCodeSnippetsRoute: typeof ApiCodeSnippetsRoute
-  ApiJobsRoute: typeof ApiJobsRouteWithChildren
-  ApiOperationsRoute: typeof ApiOperationsRouteWithChildren
-  ApiPipelinesRoute: typeof ApiPipelinesRouteWithChildren
-  ApiRecipesRoute: typeof ApiRecipesRoute
-  ApiRulesRoute: typeof ApiRulesRouteWithChildren
-  ApiSkillsRoute: typeof ApiSkillsRouteWithChildren
-  ApiWorksRoute: typeof ApiWorksRouteWithChildren
-  ApiFilesystemBrowseRoute: typeof ApiFilesystemBrowseRoute
-  ApiFilesystemTreeRoute: typeof ApiFilesystemTreeRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
 
@@ -666,76 +390,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
-    }
-    '/api/works': {
-      id: '/api/works'
-      path: '/api/works'
-      fullPath: '/api/works'
-      preLoaderRoute: typeof ApiWorksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/skills': {
-      id: '/api/skills'
-      path: '/api/skills'
-      fullPath: '/api/skills'
-      preLoaderRoute: typeof ApiSkillsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/rules': {
-      id: '/api/rules'
-      path: '/api/rules'
-      fullPath: '/api/rules'
-      preLoaderRoute: typeof ApiRulesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/recipes': {
-      id: '/api/recipes'
-      path: '/api/recipes'
-      fullPath: '/api/recipes'
-      preLoaderRoute: typeof ApiRecipesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/pipelines': {
-      id: '/api/pipelines'
-      path: '/api/pipelines'
-      fullPath: '/api/pipelines'
-      preLoaderRoute: typeof ApiPipelinesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/operations': {
-      id: '/api/operations'
-      path: '/api/operations'
-      fullPath: '/api/operations'
-      preLoaderRoute: typeof ApiOperationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/jobs': {
-      id: '/api/jobs'
-      path: '/api/jobs'
-      fullPath: '/api/jobs'
-      preLoaderRoute: typeof ApiJobsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/code-snippets': {
-      id: '/api/code-snippets'
-      path: '/api/code-snippets'
-      fullPath: '/api/code-snippets'
-      preLoaderRoute: typeof ApiCodeSnippetsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/checklist-items': {
-      id: '/api/checklist-items'
-      path: '/api/checklist-items'
-      fullPath: '/api/checklist-items'
-      preLoaderRoute: typeof ApiChecklistItemsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/best-practices': {
-      id: '/api/best-practices'
-      path: '/api/best-practices'
-      fullPath: '/api/best-practices'
-      preLoaderRoute: typeof ApiBestPracticesRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_layout/skills': {
       id: '/_layout/skills'
@@ -821,89 +475,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutBestPracticesIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/api/works/$id': {
-      id: '/api/works/$id'
-      path: '/$id'
-      fullPath: '/api/works/$id'
-      preLoaderRoute: typeof ApiWorksIdRouteImport
-      parentRoute: typeof ApiWorksRoute
-    }
     '/api/trpc/$': {
       id: '/api/trpc/$'
       path: '/api/trpc/$'
       fullPath: '/api/trpc/$'
       preLoaderRoute: typeof ApiTrpcSplatRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/api/skills/$id': {
-      id: '/api/skills/$id'
-      path: '/$id'
-      fullPath: '/api/skills/$id'
-      preLoaderRoute: typeof ApiSkillsIdRouteImport
-      parentRoute: typeof ApiSkillsRoute
-    }
-    '/api/rules/$id': {
-      id: '/api/rules/$id'
-      path: '/$id'
-      fullPath: '/api/rules/$id'
-      preLoaderRoute: typeof ApiRulesIdRouteImport
-      parentRoute: typeof ApiRulesRoute
-    }
-    '/api/pipelines/$id': {
-      id: '/api/pipelines/$id'
-      path: '/$id'
-      fullPath: '/api/pipelines/$id'
-      preLoaderRoute: typeof ApiPipelinesIdRouteImport
-      parentRoute: typeof ApiPipelinesRoute
-    }
-    '/api/operations/$id': {
-      id: '/api/operations/$id'
-      path: '/$id'
-      fullPath: '/api/operations/$id'
-      preLoaderRoute: typeof ApiOperationsIdRouteImport
-      parentRoute: typeof ApiOperationsRoute
-    }
-    '/api/jobs/$id': {
-      id: '/api/jobs/$id'
-      path: '/$id'
-      fullPath: '/api/jobs/$id'
-      preLoaderRoute: typeof ApiJobsIdRouteImport
-      parentRoute: typeof ApiJobsRoute
-    }
-    '/api/filesystem/tree': {
-      id: '/api/filesystem/tree'
-      path: '/api/filesystem/tree'
-      fullPath: '/api/filesystem/tree'
-      preLoaderRoute: typeof ApiFilesystemTreeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/filesystem/browse': {
-      id: '/api/filesystem/browse'
-      path: '/api/filesystem/browse'
-      fullPath: '/api/filesystem/browse'
-      preLoaderRoute: typeof ApiFilesystemBrowseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/best-practices/import': {
-      id: '/api/best-practices/import'
-      path: '/import'
-      fullPath: '/api/best-practices/import'
-      preLoaderRoute: typeof ApiBestPracticesImportRouteImport
-      parentRoute: typeof ApiBestPracticesRoute
-    }
-    '/api/best-practices/export': {
-      id: '/api/best-practices/export'
-      path: '/export'
-      fullPath: '/api/best-practices/export'
-      preLoaderRoute: typeof ApiBestPracticesExportRouteImport
-      parentRoute: typeof ApiBestPracticesRoute
-    }
-    '/api/best-practices/$id': {
-      id: '/api/best-practices/$id'
-      path: '/$id'
-      fullPath: '/api/best-practices/$id'
-      preLoaderRoute: typeof ApiBestPracticesIdRouteImport
-      parentRoute: typeof ApiBestPracticesRoute
     }
     '/_layout/rules/create': {
       id: '/_layout/rules/create'
@@ -960,13 +537,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/best-practices/$bestPracticeId/'
       preLoaderRoute: typeof LayoutBestPracticesBestPracticeIdIndexRouteImport
       parentRoute: typeof LayoutRoute
-    }
-    '/api/pipelines/$id/run': {
-      id: '/api/pipelines/$id/run'
-      path: '/run'
-      fullPath: '/api/pipelines/$id/run'
-      preLoaderRoute: typeof ApiPipelinesIdRunRouteImport
-      parentRoute: typeof ApiPipelinesIdRoute
     }
     '/_layout/rules/$ruleId/edit': {
       id: '/_layout/rules/$ruleId/edit'
@@ -1080,119 +650,9 @@ const LayoutRouteChildren: LayoutRouteChildren = {
 const LayoutRouteWithChildren =
   LayoutRoute._addFileChildren(LayoutRouteChildren)
 
-interface ApiBestPracticesRouteChildren {
-  ApiBestPracticesIdRoute: typeof ApiBestPracticesIdRoute
-  ApiBestPracticesExportRoute: typeof ApiBestPracticesExportRoute
-  ApiBestPracticesImportRoute: typeof ApiBestPracticesImportRoute
-}
-
-const ApiBestPracticesRouteChildren: ApiBestPracticesRouteChildren = {
-  ApiBestPracticesIdRoute: ApiBestPracticesIdRoute,
-  ApiBestPracticesExportRoute: ApiBestPracticesExportRoute,
-  ApiBestPracticesImportRoute: ApiBestPracticesImportRoute,
-}
-
-const ApiBestPracticesRouteWithChildren =
-  ApiBestPracticesRoute._addFileChildren(ApiBestPracticesRouteChildren)
-
-interface ApiJobsRouteChildren {
-  ApiJobsIdRoute: typeof ApiJobsIdRoute
-}
-
-const ApiJobsRouteChildren: ApiJobsRouteChildren = {
-  ApiJobsIdRoute: ApiJobsIdRoute,
-}
-
-const ApiJobsRouteWithChildren =
-  ApiJobsRoute._addFileChildren(ApiJobsRouteChildren)
-
-interface ApiOperationsRouteChildren {
-  ApiOperationsIdRoute: typeof ApiOperationsIdRoute
-}
-
-const ApiOperationsRouteChildren: ApiOperationsRouteChildren = {
-  ApiOperationsIdRoute: ApiOperationsIdRoute,
-}
-
-const ApiOperationsRouteWithChildren = ApiOperationsRoute._addFileChildren(
-  ApiOperationsRouteChildren,
-)
-
-interface ApiPipelinesIdRouteChildren {
-  ApiPipelinesIdRunRoute: typeof ApiPipelinesIdRunRoute
-}
-
-const ApiPipelinesIdRouteChildren: ApiPipelinesIdRouteChildren = {
-  ApiPipelinesIdRunRoute: ApiPipelinesIdRunRoute,
-}
-
-const ApiPipelinesIdRouteWithChildren = ApiPipelinesIdRoute._addFileChildren(
-  ApiPipelinesIdRouteChildren,
-)
-
-interface ApiPipelinesRouteChildren {
-  ApiPipelinesIdRoute: typeof ApiPipelinesIdRouteWithChildren
-}
-
-const ApiPipelinesRouteChildren: ApiPipelinesRouteChildren = {
-  ApiPipelinesIdRoute: ApiPipelinesIdRouteWithChildren,
-}
-
-const ApiPipelinesRouteWithChildren = ApiPipelinesRoute._addFileChildren(
-  ApiPipelinesRouteChildren,
-)
-
-interface ApiRulesRouteChildren {
-  ApiRulesIdRoute: typeof ApiRulesIdRoute
-}
-
-const ApiRulesRouteChildren: ApiRulesRouteChildren = {
-  ApiRulesIdRoute: ApiRulesIdRoute,
-}
-
-const ApiRulesRouteWithChildren = ApiRulesRoute._addFileChildren(
-  ApiRulesRouteChildren,
-)
-
-interface ApiSkillsRouteChildren {
-  ApiSkillsIdRoute: typeof ApiSkillsIdRoute
-}
-
-const ApiSkillsRouteChildren: ApiSkillsRouteChildren = {
-  ApiSkillsIdRoute: ApiSkillsIdRoute,
-}
-
-const ApiSkillsRouteWithChildren = ApiSkillsRoute._addFileChildren(
-  ApiSkillsRouteChildren,
-)
-
-interface ApiWorksRouteChildren {
-  ApiWorksIdRoute: typeof ApiWorksIdRoute
-}
-
-const ApiWorksRouteChildren: ApiWorksRouteChildren = {
-  ApiWorksIdRoute: ApiWorksIdRoute,
-}
-
-const ApiWorksRouteWithChildren = ApiWorksRoute._addFileChildren(
-  ApiWorksRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
   CanvasRoute: CanvasRoute,
-  ApiBestPracticesRoute: ApiBestPracticesRouteWithChildren,
-  ApiChecklistItemsRoute: ApiChecklistItemsRoute,
-  ApiCodeSnippetsRoute: ApiCodeSnippetsRoute,
-  ApiJobsRoute: ApiJobsRouteWithChildren,
-  ApiOperationsRoute: ApiOperationsRouteWithChildren,
-  ApiPipelinesRoute: ApiPipelinesRouteWithChildren,
-  ApiRecipesRoute: ApiRecipesRoute,
-  ApiRulesRoute: ApiRulesRouteWithChildren,
-  ApiSkillsRoute: ApiSkillsRouteWithChildren,
-  ApiWorksRoute: ApiWorksRouteWithChildren,
-  ApiFilesystemBrowseRoute: ApiFilesystemBrowseRoute,
-  ApiFilesystemTreeRoute: ApiFilesystemTreeRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }
 export const routeTree = rootRouteImport

@@ -13,9 +13,12 @@
   "dependencies": {
     "@hono/node-server": "^1.14.3",
     "@repo/db": "workspace:*",
+    "@repo/db-schema": "workspace:*",
     "@repo/models": "workspace:*",
+    "@repo/schemas": "workspace:*",
     "@repo/services": "workspace:*",
-    "hono": "^4.7.10"
+    "hono": "^4.7.10",
+    "neverthrow": "^8.2.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
