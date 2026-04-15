@@ -21,6 +21,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { JobEntity } from "@repo/models";
 import type { JobStatus, JobType } from "@repo/db-schema";
+import { useOne } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/jobs.$jobId";
 
 const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; bar: string }> = {
@@ -82,7 +84,9 @@ const getJobTypeLabel = (type: JobType, t: (key: string) => string): string => {
 };
 
 export const JobDetailPageContent = () => {
-  const job = Route.useLoaderData() as JobEntity | null;
+  const { jobId } = Route.useParams();
+  const { result: jobResult } = useOne<JobEntity>({ resource: ResourceName.jobs, id: jobId });
+  const job = jobResult ?? null;
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -131,7 +135,7 @@ export const JobDetailPageContent = () => {
         <span
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-            s.cls
+            s.cls,
           )}
         >
           <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />

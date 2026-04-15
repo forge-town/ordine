@@ -1,9 +1,27 @@
 import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/best-practices.$bestPracticeId.index";
+import { useOne, useList } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import type { BestPracticeEntity, ChecklistItemEntity, CodeSnippetEntity } from "@repo/models";
 import { BestPracticeDetailPageContent } from "./BestPracticeDetailPageContent";
 
 export const BestPracticeDetailPage = () => {
-  const { bestPractice, checklistItems, codeSnippets } = Route.useLoaderData();
+  const { bestPracticeId } = Route.useParams();
+  const { result: bpResult } = useOne<BestPracticeEntity>({
+    resource: ResourceName.bestPractices,
+    id: bestPracticeId,
+  });
+  const { result: checklistResult } = useList<ChecklistItemEntity>({
+    resource: ResourceName.checklistItems,
+    filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
+  });
+  const { result: snippetsResult } = useList<CodeSnippetEntity>({
+    resource: ResourceName.codeSnippets,
+    filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
+  });
+  const bestPractice = bpResult ?? null;
+  const checklistItems = checklistResult?.data ?? [];
+  const codeSnippets = snippetsResult?.data ?? [];
   const { t } = useTranslation();
 
   if (!bestPractice) {

@@ -20,7 +20,9 @@ import {
   ContextMenuSeparator,
 } from "@repo/ui/context-menu";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
-import { Route } from "@/routes/canvas";
+import { useList } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import type { OperationEntity, RecipeEntity } from "@repo/models";
 import { nodeTypeMeta, getAllowedConnections, type NodeType } from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
@@ -38,7 +40,12 @@ const OBJECT_TYPES: NodeType[] = ["code-file", "folder", "github-project"];
 
 export const CanvasContextMenu = () => {
   const { t } = useTranslation();
-  const { operations, recipes } = Route.useLoaderData();
+  const { result: operationsResult } = useList<OperationEntity>({
+    resource: ResourceName.operations,
+  });
+  const { result: recipesResult } = useList<RecipeEntity>({ resource: ResourceName.recipes });
+  const operations = operationsResult?.data ?? [];
+  const recipes = recipesResult?.data ?? [];
   const store = useHarnessCanvasStore();
   const contextMenu = useStore(store, (s) => s.contextMenu);
   const connectStart = useStore(store, (s) => s.connectStart);
@@ -81,7 +88,7 @@ export const CanvasContextMenu = () => {
 
     // Only show operations that accept this object type
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project"),
     );
   })();
 
@@ -120,7 +127,7 @@ export const CanvasContextMenu = () => {
 
   // Filter object types based on available connections
   const visibleObjectTypes = OBJECT_TYPES.filter((t) =>
-    isConnectMode ? availableTypes.includes(t) : true
+    isConnectMode ? availableTypes.includes(t) : true,
   );
 
   const virtualAnchor = {
@@ -162,7 +169,7 @@ export const CanvasContextMenu = () => {
             <span
               className={cn(
                 "flex size-4 shrink-0 items-center justify-center rounded",
-                nodeTypeMeta[sourceNodeInfo.type].iconBg
+                nodeTypeMeta[sourceNodeInfo.type].iconBg,
               )}
             >
               {(() => {
@@ -193,7 +200,7 @@ export const CanvasContextMenu = () => {
                   <span
                     className={cn(
                       "flex size-4 shrink-0 items-center justify-center rounded",
-                      typeMeta.iconBg
+                      typeMeta.iconBg,
                     )}
                   >
                     <Icon className="size-2.5 text-white" />

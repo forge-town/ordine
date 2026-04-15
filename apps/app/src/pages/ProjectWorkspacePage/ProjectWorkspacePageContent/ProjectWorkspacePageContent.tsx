@@ -3,8 +3,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, FolderGit2, ChevronRight, Play, GitBranch, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.$projectId.workspace";
-import { useCreate } from "@refinedev/core";
+import { useCreate, useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import type { GithubProjectEntity, StoredPipeline } from "@repo/models";
 import { ResultAsync } from "neverthrow";
 import { Button } from "@repo/ui/button";
 import { ObjectRow, type ObjectItem } from "../ObjectRow";
@@ -20,7 +21,14 @@ const buildObjectTree = (owner: string, repo: string, entireProject: string): Ob
 ];
 
 export const ProjectWorkspacePageContent = () => {
-  const { project, pipelines } = Route.useLoaderData();
+  const { projectId } = Route.useParams();
+  const { result: projectResult } = useOne<GithubProjectEntity>({
+    resource: ResourceName.githubProjects,
+    id: projectId,
+  });
+  const { result: pipelinesResult } = useList<StoredPipeline>({ resource: ResourceName.pipelines });
+  const project = projectResult ?? null;
+  const pipelines = pipelinesResult?.data ?? [];
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -38,7 +46,7 @@ export const ProjectWorkspacePageContent = () => {
   }
 
   const objects = buildObjectTree(project.owner, project.repo, t("workspace.entireProject"));
-  const selectedPipeline = pipelines.find((p) => p.id === selectedPipelineId);
+  const selectedPipeline = pipelines.find((p: StoredPipeline) => p.id === selectedPipelineId);
 
   const toggleObject = (path: string) => {
     setSelectedObjects((prev) => {

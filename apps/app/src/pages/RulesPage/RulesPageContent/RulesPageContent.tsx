@@ -4,18 +4,18 @@ import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { useLoaderData, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import type { RuleEntity, RuleCategory } from "@repo/models";
-import { useDelete, useCustomMutation } from "@refinedev/core";
+import { useDelete, useCustomMutation, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CATEGORY_FILTERS } from "../types";
 import { RuleCard } from "../RuleCard";
 
 export const RulesPageContent = () => {
-  const initial = useLoaderData({ from: "/_layout/rules/" }) as RuleEntity[];
+  const { result: rulesResult } = useList<RuleEntity>({ resource: ResourceName.rules });
+  const rules = rulesResult?.data ?? [];
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [rules, setRules] = useState(initial);
   const { mutate: deleteRuleMutate } = useDelete();
   const { mutate: toggleRuleMutate } = useCustomMutation();
   const [categoryFilter, setCategoryFilter] = useState<RuleCategory | "all">("all");
@@ -23,22 +23,13 @@ export const RulesPageContent = () => {
 
   const handleDelete = (id: string) => {
     deleteRuleMutate({ resource: ResourceName.rules, id });
-    setRules((prev) => prev.filter((r) => r.id !== id));
   };
 
   const handleToggle = (id: string, enabled: boolean) => {
-    toggleRuleMutate(
-      { url: "rules/toggle", method: "post", values: { id, enabled } },
-      {
-        onSuccess: (data) => {
-          const rule = data?.data as RuleEntity | undefined;
-          if (rule) setRules((prev) => prev.map((r) => (r.id === id ? rule : r)));
-        },
-      },
-    );
+    toggleRuleMutate({ url: "rules/toggle", method: "post", values: { id, enabled } });
   };
 
-  const filtered = rules.filter((r) => {
+  const filtered = rules.filter((r: RuleEntity) => {
     if (categoryFilter !== "all" && r.category !== categoryFilter) return false;
     if (search) {
       const q = search.toLowerCase();
@@ -51,7 +42,7 @@ export const RulesPageContent = () => {
     return true;
   });
 
-  const enabledCount = rules.filter((r) => r.enabled).length;
+  const enabledCount = rules.filter((r: RuleEntity) => r.enabled).length;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
 

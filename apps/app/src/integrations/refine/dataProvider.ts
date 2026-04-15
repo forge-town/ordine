@@ -54,7 +54,16 @@ export const dataProvider: DataProvider = {
         return { data: data as unknown as TData[], total: data.length };
       }
       case ResourceName.works: {
-        const data = await trpcClient.works.getMany.query();
+        const projectIdFilter = params.filters?.find(
+          (f) => "field" in f && f.field === "projectId",
+        );
+        const projectId =
+          projectIdFilter && "value" in projectIdFilter
+            ? (projectIdFilter.value as string | undefined)
+            : undefined;
+        const data = projectId
+          ? await trpcClient.works.getByProject.query({ projectId })
+          : await trpcClient.works.getMany.query();
         return { data: data as unknown as TData[], total: data.length };
       }
       case ResourceName.rules: {
@@ -75,6 +84,30 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.recipes: {
         const data = await trpcClient.recipes.getMany.query();
+        return { data: data as unknown as TData[], total: data.length };
+      }
+      case ResourceName.checklistItems: {
+        const bpFilter = params.filters?.find((f) => "field" in f && f.field === "bestPracticeId");
+        const bestPracticeId =
+          bpFilter && "value" in bpFilter ? (bpFilter.value as string) : undefined;
+        if (!bestPracticeId) {
+          return { data: [] as unknown as TData[], total: 0 };
+        }
+        const data = await trpcClient.checklist.getItemsByBestPracticeId.query({ bestPracticeId });
+        return { data: data as unknown as TData[], total: data.length };
+      }
+      case ResourceName.codeSnippets: {
+        const bpFilter = params.filters?.find((f) => "field" in f && f.field === "bestPracticeId");
+        const bestPracticeId =
+          bpFilter && "value" in bpFilter ? (bpFilter.value as string) : undefined;
+        if (!bestPracticeId) {
+          return { data: [] as unknown as TData[], total: 0 };
+        }
+        const data = await trpcClient.codeSnippets.getByBestPracticeId.query({ bestPracticeId });
+        return { data: data as unknown as TData[], total: data.length };
+      }
+      case ResourceName.jobs: {
+        const data = await trpcClient.jobs.getMany.query();
         return { data: data as unknown as TData[], total: data.length };
       }
       default: {

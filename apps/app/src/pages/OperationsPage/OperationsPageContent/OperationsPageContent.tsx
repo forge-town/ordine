@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Link, useNavigate, useLoaderData } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Plus,
   Pencil,
@@ -14,7 +14,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useCreate, useDelete } from "@refinedev/core";
+import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { OperationEntity } from "@repo/models";
 import type { ObjectType } from "@repo/schemas";
@@ -45,9 +45,10 @@ const exportOperation = (op: OperationEntity) => {
 };
 
 export const OperationsPageContent = () => {
-  const initialOperations = useLoaderData({
-    from: "/_layout/operations/",
-  }) as OperationEntity[];
+  const { result: operationsResult } = useList<OperationEntity>({
+    resource: ResourceName.operations,
+  });
+  const operations = operationsResult?.data ?? [];
   type SortKey = "default" | "name-asc" | "name-desc" | "date-asc" | "date-desc";
 
   const { t } = useTranslation();
@@ -70,19 +71,18 @@ export const OperationsPageContent = () => {
   const addToast = useToastStore((s) => s.addToast);
   const { mutate: deleteOpMutate } = useDelete();
   const { mutateAsync: createOpMutate } = useCreate();
-  const [operations, setOperations] = useState(initialOperations);
   const [importing, setImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("default");
 
   const filteredOperations = operations
-    .filter((op) => {
+    .filter((op: OperationEntity) => {
       const q = searchQuery.trim().toLowerCase();
       if (!q) return true;
       return op.name.toLowerCase().includes(q) || (op.description ?? "").toLowerCase().includes(q);
     })
-    .sort((a, b) => {
+    .sort((a: OperationEntity, b: OperationEntity) => {
       switch (sortBy) {
         case "name-asc": {
           return a.name.localeCompare(b.name);
@@ -108,7 +108,6 @@ export const OperationsPageContent = () => {
 
   const handleDelete = (id: string) => {
     deleteOpMutate({ resource: ResourceName.operations, id });
-    setOperations((prev) => prev.filter((o) => o.id !== id));
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -179,7 +178,6 @@ export const OperationsPageContent = () => {
     });
     const created = result.data;
     if (created) {
-      setOperations((prev) => [created as OperationEntity, ...prev]);
       addToast({
         type: "success",
         title: t("common.import"),

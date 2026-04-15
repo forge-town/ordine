@@ -11,10 +11,9 @@ import { Input } from "@repo/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import { useCreate } from "@refinedev/core";
+import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { SkillEntity } from "@repo/models";
-import { Route } from "@/routes/_layout/operations.new";
 import {
   ObjectTypeSchema as ObjectTypeEnum,
   ExecutorTypeSchema as ExecutorTypeEnum,
@@ -90,7 +89,8 @@ const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[]
 };
 
 export const OperationCreatePageContent = () => {
-  const skills = Route.useLoaderData() as SkillEntity[];
+  const { result: skillsResult } = useList<SkillEntity>({ resource: ResourceName.skills });
+  const skills = skillsResult?.data ?? [];
   const { t } = useTranslation();
   const navigate = useNavigate();
 

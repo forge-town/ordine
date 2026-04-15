@@ -6,16 +6,15 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
-import { Route } from "@/routes/_layout/pipelines.index";
-import { useCreate, useDelete } from "@refinedev/core";
+import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { StoredPipeline } from "@repo/models";
 import { PipelineCard } from "../PipelineCard";
 
 export const PipelinesPageContent = () => {
   const { t } = useTranslation();
-  const loaderPipelines = Route.useLoaderData();
-  const [pipelines, setPipelines] = React.useState<StoredPipeline[]>(loaderPipelines);
+  const { result: pipelinesResult } = useList<StoredPipeline>({ resource: ResourceName.pipelines });
+  const pipelines = pipelinesResult?.data ?? [];
   const [search, setSearch] = React.useState("");
   const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
   const navigate = useNavigate();
@@ -43,7 +42,7 @@ export const PipelinesPageContent = () => {
 
   const filtered = React.useMemo(() => {
     const q = search.toLowerCase();
-    return pipelines.filter((p) => {
+    return pipelines.filter((p: StoredPipeline) => {
       const matchesSearch =
         !q ||
         p.name.toLowerCase().includes(q) ||
@@ -91,12 +90,10 @@ export const PipelinesPageContent = () => {
       values: newPipeline,
     });
     const saved = result.data as StoredPipeline;
-    setPipelines((prev) => [saved, ...prev]);
     void navigate({ to: "/canvas", search: { id: saved.id } });
   };
 
   const handleDelete = (id: string) => {
-    setPipelines((prev) => prev.filter((p) => p.id !== id));
     deletePipelineMutate({ resource: ResourceName.pipelines, id });
   };
 

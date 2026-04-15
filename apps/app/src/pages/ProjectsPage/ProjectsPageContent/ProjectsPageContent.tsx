@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Search, Folder } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Route } from "@/routes/_layout/projects.index";
-import { useDelete } from "@refinedev/core";
+import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { GithubProjectEntity } from "@repo/models";
 import { Button } from "@repo/ui/button";
@@ -13,17 +12,17 @@ import { ProjectCard } from "../ProjectCard";
 
 export const ProjectsPageContent = () => {
   const { t } = useTranslation();
-  const loaderProjects = Route.useLoaderData();
-  const [projects, setProjects] = useState<GithubProjectEntity[]>(
-    loaderProjects as GithubProjectEntity[],
-  );
+  const { result: projectsResult } = useList<GithubProjectEntity>({
+    resource: ResourceName.githubProjects,
+  });
+  const projects = projectsResult?.data ?? [];
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const navigate = useNavigate();
   const { mutate: deleteProjectMutate } = useDelete();
 
   const filtered = projects.filter(
-    (p) =>
+    (p: GithubProjectEntity) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.description.toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
@@ -31,14 +30,13 @@ export const ProjectsPageContent = () => {
   );
 
   const handleDelete = (id: string) => {
-    setProjects((prev) => prev.filter((p) => p.id !== id));
     deleteProjectMutate({ resource: ResourceName.githubProjects, id });
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
   const handleShowCreate = () => setShowCreate(true);
   const handleHideCreate = () => setShowCreate(false);
-  const handleCreateProject = (p: GithubProjectEntity) => setProjects((prev) => [p, ...prev]);
+  const handleCreateProject = (_p: GithubProjectEntity) => {};
   const handleProjectClick = (projectId: string) => () =>
     void navigate({
       to: "/projects/$projectId",

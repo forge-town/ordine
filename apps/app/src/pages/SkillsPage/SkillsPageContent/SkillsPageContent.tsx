@@ -6,7 +6,8 @@ import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import type { SkillEntity } from "@repo/models";
-import { Route } from "@/routes/_layout/skills";
+import { useList } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 
 export type Skill = SkillEntity;
 
@@ -21,7 +22,8 @@ const categoryColors: Record<string, string> = {
 };
 
 export const SkillsPageContent = () => {
-  const skills = Route.useLoaderData() as Skill[];
+  const { result: skillsResult } = useList<SkillEntity>({ resource: ResourceName.skills });
+  const skills = skillsResult?.data ?? ([] as Skill[]);
   const { t } = useTranslation();
 
   const categoryLabels: Record<SkillCategory, string> = {
@@ -39,7 +41,7 @@ export const SkillsPageContent = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
   const handleCategoryClick = (cat: SkillCategory) => () => setCategory(cat);
 
-  const filtered = skills.filter((s) => {
+  const filtered = skills.filter((s: SkillEntity) => {
     const matchesSearch =
       s.label.toLowerCase().includes(search.toLowerCase()) ||
       s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -106,7 +108,7 @@ export const SkillsPageContent = () => {
                   <Badge
                     className={cn(
                       "text-[10px]",
-                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600"
+                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600",
                     )}
                     variant="secondary"
                   >

@@ -2,13 +2,28 @@ import { useNavigate } from "@tanstack/react-router";
 import { Play, Clock, Wrench, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.$projectId.index";
+import { useOne, useList } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import type { GithubProjectEntity, WorkEntity, StoredPipeline } from "@repo/models";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { WorkRow } from "../WorkRow";
 import { ProjectMeta } from "../ProjectMeta";
 
 export const ProjectDetailPageContent = () => {
-  const { project, works, pipelines } = Route.useLoaderData();
+  const { projectId } = Route.useParams();
+  const { result: projectResult } = useOne<GithubProjectEntity>({
+    resource: ResourceName.githubProjects,
+    id: projectId,
+  });
+  const { result: worksResult } = useList<WorkEntity>({
+    resource: ResourceName.works,
+    filters: [{ field: "projectId", operator: "eq", value: projectId }],
+  });
+  const { result: pipelinesResult } = useList<StoredPipeline>({ resource: ResourceName.pipelines });
+  const project = projectResult ?? null;
+  const works = worksResult?.data ?? [];
+  const pipelines = pipelinesResult?.data ?? [];
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -29,8 +44,12 @@ export const ProjectDetailPageContent = () => {
     );
   }
 
-  const activeWorks = works.filter((w) => w.status === "pending" || w.status === "running");
-  const finishedWorks = works.filter((w) => w.status === "success" || w.status === "failed");
+  const activeWorks = works.filter(
+    (w: WorkEntity) => w.status === "pending" || w.status === "running",
+  );
+  const finishedWorks = works.filter(
+    (w: WorkEntity) => w.status === "success" || w.status === "failed",
+  );
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

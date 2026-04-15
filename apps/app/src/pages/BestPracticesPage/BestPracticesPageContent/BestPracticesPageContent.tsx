@@ -5,9 +5,8 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { BestPracticeEntity } from "@repo/models";
 import { exportAllBestPractices, importBestPracticesFromZip } from "@/lib/exportBestPractice";
-import { useDelete } from "@refinedev/core";
+import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Route } from "@/routes/_layout/best-practices.index";
 import { CATEGORIES } from "../constants";
 import { PracticeFormDialog } from "../PracticeFormDialog";
 import { PracticeCard } from "../PracticeCard";
@@ -24,14 +23,16 @@ const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
 
 export const BestPracticesPageContent = () => {
   const { t } = useTranslation();
-  const initialPractices = Route.useLoaderData() as BestPracticeEntity[];
-  const [practices, setPractices] = useState<BestPracticeEntity[]>(initialPractices);
+  const { result: practicesResult } = useList<BestPracticeEntity>({
+    resource: ResourceName.bestPractices,
+  });
+  const practices = practicesResult?.data ?? [];
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const { mutate: deleteBpMutate } = useDelete();
 
-  const filtered = practices.filter((p) => {
+  const filtered = practices.filter((p: BestPracticeEntity) => {
     const matchCat = activeCategory === "all" || p.category === activeCategory;
     const q = search.toLowerCase();
     const matchSearch =
@@ -42,12 +43,9 @@ export const BestPracticesPageContent = () => {
     return matchCat && matchSearch;
   });
 
-  const handleSave = (p: BestPracticeEntity) => {
-    setPractices((prev) => [p, ...prev]);
-  };
+  const handleSave = (_p: BestPracticeEntity) => {};
 
   const handleDelete = (id: string) => {
-    setPractices((prev) => prev.filter((p) => p.id !== id));
     deleteBpMutate({ resource: ResourceName.bestPractices, id });
   };
 

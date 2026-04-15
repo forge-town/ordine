@@ -4,47 +4,37 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { RecipeEntity, OperationEntity, BestPracticeEntity } from "@repo/models";
-import { useDelete } from "@refinedev/core";
+import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Route } from "@/routes/_layout/recipes";
 import { RecipeFormDialog } from "../RecipeFormDialog";
 import { RecipeCard } from "../RecipeCard";
 
 export const RecipesPageContent = () => {
   const { t } = useTranslation();
-  const loaderData = Route.useLoaderData() as {
-    recipes: RecipeEntity[];
-    operations: OperationEntity[];
-    bestPractices: BestPracticeEntity[];
-  };
-  const [recipes, setRecipes] = useState<RecipeEntity[]>(loaderData.recipes);
-  const operations = loaderData.operations;
-  const bestPractices = loaderData.bestPractices;
+  const { result: recipesResult } = useList<RecipeEntity>({ resource: ResourceName.recipes });
+  const { result: operationsResult } = useList<OperationEntity>({
+    resource: ResourceName.operations,
+  });
+  const { result: bestPracticesResult } = useList<BestPracticeEntity>({
+    resource: ResourceName.bestPractices,
+  });
+  const recipes = recipesResult?.data ?? [];
+  const operations = operationsResult?.data ?? [];
+  const bestPractices = bestPracticesResult?.data ?? [];
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<RecipeEntity | null>(null);
   const { mutate: deleteRecipeMutate } = useDelete();
 
-  const filtered = recipes.filter((r) => {
+  const filtered = recipes.filter((r: RecipeEntity) => {
     const q = search.toLowerCase();
     if (!q) return true;
     return r.name.toLowerCase().includes(q) || r.description.toLowerCase().includes(q);
   });
 
-  const handleSave = (r: RecipeEntity) => {
-    setRecipes((prev) => {
-      const idx = prev.findIndex((x) => x.id === r.id);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = r;
-        return next;
-      }
-      return [r, ...prev];
-    });
-  };
+  const handleSave = (_r: RecipeEntity) => {};
 
   const handleDelete = (id: string) => {
-    setRecipes((prev) => prev.filter((r) => r.id !== id));
     deleteRecipeMutate({ resource: ResourceName.recipes, id });
   };
 
@@ -67,8 +57,10 @@ export const RecipesPageContent = () => {
     setEditing(null);
   };
 
-  const opMap = new Map<string, OperationEntity>(operations.map((o) => [o.id, o]));
-  const bpMap = new Map<string, BestPracticeEntity>(bestPractices.map((bp) => [bp.id, bp]));
+  const opMap = new Map<string, OperationEntity>(operations.map((o: OperationEntity) => [o.id, o]));
+  const bpMap = new Map<string, BestPracticeEntity>(
+    bestPractices.map((bp: BestPracticeEntity) => [bp.id, bp]),
+  );
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

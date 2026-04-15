@@ -17,6 +17,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { OperationEntity } from "@repo/models";
 import type { ObjectType } from "@repo/schemas";
+import { useOne } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/operations.$operationId.index";
 import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
@@ -113,7 +115,12 @@ const ExecutorCard = ({ executor: raw }: { executor: ExecutorConfig }) => {
 };
 
 export const OperationDetailPageContent = () => {
-  const operation = Route.useLoaderData() as OperationEntity | null;
+  const { operationId } = Route.useParams();
+  const { result: operationResult } = useOne<OperationEntity>({
+    resource: ResourceName.operations,
+    id: operationId,
+  });
+  const operation = operationResult ?? null;
   const { t } = useTranslation();
   const navigate = useNavigate();
 

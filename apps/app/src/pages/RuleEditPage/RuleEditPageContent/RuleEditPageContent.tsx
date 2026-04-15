@@ -3,13 +3,16 @@ import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Route } from "@/routes/_layout/rules.$ruleId.edit";
-import { useUpdate } from "@refinedev/core";
+import { useOne, useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import type { RuleEntity } from "@repo/models";
 import { RuleForm } from "@/pages/RulesPage/RuleForm";
 import { getEditForm, type RuleFormState } from "@/pages/RulesPage/types";
 
 export const RuleEditPageContent = () => {
-  const rule = Route.useLoaderData();
+  const { ruleId } = Route.useParams();
+  const { result: ruleResult } = useOne<RuleEntity>({ resource: ResourceName.rules, id: ruleId });
+  const rule = ruleResult ?? null;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { mutateAsync: updateRuleMutate } = useUpdate();
