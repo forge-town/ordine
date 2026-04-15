@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import { trpcClient } from "@/integrations/trpc/client";
 
 const LANG_EXT: Record<string, string> = {
   typescript: "ts",
@@ -45,7 +46,7 @@ const addBPToZip = (
   zip: JSZip,
   bp: BPData,
   items: ChecklistItem[],
-  snippets: CodeSnippetItem[]
+  snippets: CodeSnippetItem[],
 ) => {
   const folder = zip.folder(bp.id);
   if (!folder) return;
@@ -62,8 +63,8 @@ const addBPToZip = (
         tags: bp.tags,
       },
       null,
-      2
-    )
+      2,
+    ),
   );
 
   folder.file("content.md", bp.content || "");
@@ -102,37 +103,41 @@ const downloadZip = async (zip: JSZip, filename: string) => {
 };
 
 export const exportSingleBestPractice = async (id: string, title: string) => {
-  const [bpResp, itemsResp, snippetsResp] = await Promise.all([
-    fetch(`/api/best-practices/${id}`),
-    fetch(`/api/checklist-items?bestPracticeId=${id}`),
-    fetch(`/api/code-snippets?bestPracticeId=${id}`),
+  const [bp, items, snippets] = await Promise.all([
+    trpcClient.bestPractices.getById.query({ id }),
+    trpcClient.checklist.getItemsByBestPracticeId.query({ bestPracticeId: id }),
+    trpcClient.codeSnippets.getByBestPracticeId.query({ bestPracticeId: id }),
   ]);
 
-  const bp = (await bpResp.json()) as BPData;
-  const items = (await itemsResp.json()) as ChecklistItem[];
-  const snippets = (await snippetsResp.json()) as CodeSnippetItem[];
+  if (!bp) return;
 
   const zip = new JSZip();
-  addBPToZip(zip, bp, items, snippets);
+  addBPToZip(
+    zip,
+    bp as unknown as BPData,
+    items as unknown as ChecklistItem[],
+    snippets as unknown as CodeSnippetItem[],
+  );
   await downloadZip(zip, `${title || id}.bestpractice`);
 };
 
 export const exportAllBestPractices = async () => {
-  const resp = await fetch("/api/best-practices/export");
-  const data = (await resp.json()) as (BPData & {
-    checklistItems: ChecklistItem[];
-    codeSnippets: CodeSnippetItem[];
-  })[];
+  const data = await trpcClient.bestPractices.exportAll.query();
 
   const zip = new JSZip();
   for (const { checklistItems, codeSnippets, ...bp } of data) {
-    addBPToZip(zip, bp, checklistItems, codeSnippets);
+    addBPToZip(
+      zip,
+      bp as unknown as BPData,
+      checklistItems as unknown as ChecklistItem[],
+      codeSnippets as unknown as CodeSnippetItem[],
+    );
   }
   await downloadZip(zip, `best-practices-${new Date().toISOString().slice(0, 10)}.bestpractice`);
 };
 
 export const importBestPracticesFromZip = async (
-  file: File
+  file: File,
 ): Promise<{ imported: number; checklistItems: number; codeSnippets: number }> => {
   const zip = await JSZip.loadAsync(file);
   const folders = new Set<string>();
@@ -217,11 +222,8 @@ export const importBestPracticesFromZip = async (
     });
   }
 
-  const resp = await fetch("/api/best-practices/import", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(bestPractices),
-  });
-
-  return (await resp.json()) as { imported: number; checklistItems: number; codeSnippets: number };
+  const result = await trpcClient.bestPractices.importBulk.mutate(
+    bestPractices as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0],
+  );
+  return result;
 };
