@@ -1,5 +1,4 @@
 import { eq, desc } from "drizzle-orm";
-import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@repo/db";
 import {
   operationsTable,
@@ -7,6 +6,7 @@ import {
   type NewOperationRow,
   type ObjectType,
 } from "@repo/db-schema";
+import type { DbExecutor } from "../types.js";
 
 export type OperationEntity = Omit<
   OperationRow,
@@ -16,10 +16,6 @@ export type OperationEntity = Omit<
   updatedAt: number;
   acceptedObjectTypes: ObjectType[];
 };
-
-type DbExecutor =
-  | PostgresJsDatabase<Record<string, unknown>>
-  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: OperationRow): OperationEntity => ({
   ...row,
@@ -50,7 +46,7 @@ export const operationsDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<OperationEntity, "createdAt" | "updatedAt">
+    data: Omit<OperationEntity, "createdAt" | "updatedAt">,
   ): Promise<OperationEntity> {
     const [inserted] = await tx.insert(operationsTable).values(entityToRow(data)).returning();
     return rowToEntity(inserted!);
@@ -58,7 +54,7 @@ export const operationsDao = {
 
   async update(
     id: string,
-    data: Partial<Omit<OperationEntity, "id" | "createdAt" | "updatedAt">>
+    data: Partial<Omit<OperationEntity, "id" | "createdAt" | "updatedAt">>,
   ): Promise<OperationEntity | null> {
     const [updated] = await db
       .update(operationsTable)
@@ -71,7 +67,7 @@ export const operationsDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    data: Partial<Omit<OperationEntity, "id" | "createdAt" | "updatedAt">>
+    data: Partial<Omit<OperationEntity, "id" | "createdAt" | "updatedAt">>,
   ): Promise<OperationEntity | null> {
     const [updated] = await tx
       .update(operationsTable)

@@ -1,12 +1,8 @@
 import { eq, desc } from "drizzle-orm";
-import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@repo/db";
-import {
-  pipelinesTable,
-  type NewPipelineRow,
-  type PipelineRow,
-} from "@repo/db-schema";
+import { pipelinesTable, type NewPipelineRow, type PipelineRow } from "@repo/db-schema";
 import type { PipelineNode, PipelineEdge } from "@repo/db-schema";
+import type { DbExecutor } from "../types.js";
 
 export type PipelineEntity = Omit<PipelineRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
@@ -15,10 +11,6 @@ export type PipelineEntity = Omit<PipelineRow, "createdAt" | "updatedAt"> & {
   nodes: PipelineNode[];
   edges: PipelineEdge[];
 };
-
-type DbExecutor =
-  | PostgresJsDatabase<Record<string, unknown>>
-  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 /** @deprecated Use PipelineEntity */
 export type StoredPipeline = PipelineEntity;
@@ -48,7 +40,7 @@ export const pipelinesDao = {
   },
 
   async create(
-    data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">
+    data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">,
   ): Promise<PipelineEntity> {
     const now = new Date();
     const row: NewPipelineRow = {
@@ -64,7 +56,7 @@ export const pipelinesDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">
+    data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">,
   ): Promise<PipelineEntity> {
     const now = new Date();
     const row: NewPipelineRow = {
@@ -80,7 +72,7 @@ export const pipelinesDao = {
 
   async update(
     id: string,
-    patch: Partial<Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">>
+    patch: Partial<Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">>,
   ): Promise<PipelineEntity | null> {
     const updates: Partial<NewPipelineRow> = { updatedAt: new Date() };
     if (patch.name !== undefined) updates.name = patch.name;
@@ -99,7 +91,7 @@ export const pipelinesDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    patch: Partial<Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">>
+    patch: Partial<Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">>,
   ): Promise<PipelineEntity | null> {
     const updates: Partial<NewPipelineRow> = { updatedAt: new Date() };
     if (patch.name !== undefined) updates.name = patch.name;

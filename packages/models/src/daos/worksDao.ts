@@ -1,5 +1,4 @@
 import { eq, desc } from "drizzle-orm";
-import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@repo/db";
 import {
   worksTable,
@@ -8,6 +7,7 @@ import {
   type WorkStatus,
   type WorkObject,
 } from "@repo/db-schema";
+import type { DbExecutor } from "../types.js";
 
 export type WorkEntity = Omit<WorkRow, "createdAt" | "updatedAt" | "startedAt" | "finishedAt"> & {
   createdAt: number;
@@ -15,10 +15,6 @@ export type WorkEntity = Omit<WorkRow, "createdAt" | "updatedAt" | "startedAt" |
   startedAt: number | null;
   finishedAt: number | null;
 };
-
-type DbExecutor =
-  | PostgresJsDatabase<Record<string, unknown>>
-  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: WorkRow): WorkEntity => ({
   ...row,
@@ -49,7 +45,7 @@ export const worksDao = {
   },
 
   async create(
-    data: Omit<WorkEntity, "createdAt" | "updatedAt" | "startedAt" | "finishedAt">
+    data: Omit<WorkEntity, "createdAt" | "updatedAt" | "startedAt" | "finishedAt">,
   ): Promise<WorkEntity> {
     const now = new Date();
     const row: NewWorkRow = {
@@ -65,7 +61,7 @@ export const worksDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<WorkEntity, "createdAt" | "updatedAt" | "startedAt" | "finishedAt">
+    data: Omit<WorkEntity, "createdAt" | "updatedAt" | "startedAt" | "finishedAt">,
   ): Promise<WorkEntity> {
     const now = new Date();
     const row: NewWorkRow = {
@@ -82,7 +78,7 @@ export const worksDao = {
   async updateStatus(
     id: string,
     status: WorkStatus,
-    extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date }
+    extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date },
   ): Promise<WorkEntity | null> {
     const [updated] = await db
       .update(worksTable)
@@ -96,7 +92,7 @@ export const worksDao = {
     tx: DbExecutor,
     id: string,
     status: WorkStatus,
-    extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date }
+    extra?: { logs?: string[]; startedAt?: Date; finishedAt?: Date },
   ): Promise<WorkEntity | null> {
     const [updated] = await tx
       .update(worksTable)

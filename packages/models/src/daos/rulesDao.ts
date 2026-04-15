@@ -1,5 +1,4 @@
 import { eq, desc, and } from "drizzle-orm";
-import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@repo/db";
 import {
   rulesTable,
@@ -8,15 +7,12 @@ import {
   type RuleCategory,
   type RuleSeverity,
 } from "@repo/db-schema";
+import type { DbExecutor } from "../types.js";
 
 export type RuleEntity = Omit<RuleRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
   updatedAt: number;
 };
-
-type DbExecutor =
-  | PostgresJsDatabase<Record<string, unknown>>
-  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: RuleRow): RuleEntity => ({
   ...row,
@@ -52,7 +48,7 @@ export const rulesDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<RuleEntity, "createdAt" | "updatedAt">
+    data: Omit<RuleEntity, "createdAt" | "updatedAt">,
   ): Promise<RuleEntity> {
     const now = new Date();
     const row: NewRuleRow = { ...data, createdAt: now, updatedAt: now };
@@ -62,7 +58,7 @@ export const rulesDao = {
 
   async update(
     id: string,
-    data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>
+    data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>,
   ): Promise<RuleEntity | null> {
     const rows = await db
       .update(rulesTable)
@@ -75,7 +71,7 @@ export const rulesDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>
+    data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>,
   ): Promise<RuleEntity | null> {
     const rows = await tx
       .update(rulesTable)
@@ -97,7 +93,7 @@ export const rulesDao = {
   async toggleEnabledWithTx(
     tx: DbExecutor,
     id: string,
-    enabled: boolean
+    enabled: boolean,
   ): Promise<RuleEntity | null> {
     const rows = await tx
       .update(rulesTable)

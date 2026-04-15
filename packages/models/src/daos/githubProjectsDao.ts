@@ -1,20 +1,16 @@
 import { eq, desc } from "drizzle-orm";
-import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@repo/db";
 import {
   githubProjectsTable,
   type GithubProjectRow,
   type NewGithubProjectRow,
 } from "@repo/db-schema";
+import type { DbExecutor } from "../types.js";
 
 export type GithubProjectEntity = Omit<GithubProjectRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
   updatedAt: number;
 };
-
-type DbExecutor =
-  | PostgresJsDatabase<Record<string, unknown>>
-  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: GithubProjectRow): GithubProjectEntity => ({
   ...row,
@@ -41,7 +37,7 @@ export const githubProjectsDao = {
   },
 
   async create(
-    data: Omit<GithubProjectEntity, "createdAt" | "updatedAt">
+    data: Omit<GithubProjectEntity, "createdAt" | "updatedAt">,
   ): Promise<GithubProjectEntity> {
     const now = new Date();
     const row: NewGithubProjectRow = {
@@ -55,7 +51,7 @@ export const githubProjectsDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<GithubProjectEntity, "createdAt" | "updatedAt">
+    data: Omit<GithubProjectEntity, "createdAt" | "updatedAt">,
   ): Promise<GithubProjectEntity> {
     const now = new Date();
     const row: NewGithubProjectRow = {
@@ -69,7 +65,7 @@ export const githubProjectsDao = {
 
   async update(
     id: string,
-    patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>
+    patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>,
   ): Promise<GithubProjectEntity | null> {
     const [updated] = await db
       .update(githubProjectsTable)
@@ -82,7 +78,7 @@ export const githubProjectsDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>
+    patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>,
   ): Promise<GithubProjectEntity | null> {
     const [updated] = await tx
       .update(githubProjectsTable)

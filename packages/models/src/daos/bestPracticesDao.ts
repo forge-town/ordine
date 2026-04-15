@@ -1,20 +1,12 @@
 import { eq, desc } from "drizzle-orm";
-import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@repo/db";
-import {
-  bestPracticesTable,
-  type BestPracticeRow,
-  type NewBestPracticeRow,
-} from "@repo/db-schema";
+import { bestPracticesTable, type BestPracticeRow, type NewBestPracticeRow } from "@repo/db-schema";
+import type { DbExecutor } from "../types.js";
 
 export type BestPracticeEntity = Omit<BestPracticeRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
   updatedAt: number;
 };
-
-type DbExecutor =
-  | PostgresJsDatabase<Record<string, unknown>>
-  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: BestPracticeRow): BestPracticeEntity => ({
   ...row,
@@ -41,7 +33,7 @@ export const bestPracticesDao = {
   },
 
   async create(
-    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">
+    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">,
   ): Promise<BestPracticeEntity> {
     const now = new Date();
     const row: NewBestPracticeRow = { ...data, createdAt: now, updatedAt: now };
@@ -51,7 +43,7 @@ export const bestPracticesDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">
+    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">,
   ): Promise<BestPracticeEntity> {
     const now = new Date();
     const row: NewBestPracticeRow = { ...data, createdAt: now, updatedAt: now };
@@ -61,7 +53,7 @@ export const bestPracticesDao = {
 
   async update(
     id: string,
-    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>
+    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>,
   ): Promise<BestPracticeEntity | null> {
     const [updated] = await db
       .update(bestPracticesTable)
@@ -74,7 +66,7 @@ export const bestPracticesDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>
+    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>,
   ): Promise<BestPracticeEntity | null> {
     const [updated] = await tx
       .update(bestPracticesTable)

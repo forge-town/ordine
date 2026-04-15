@@ -1,7 +1,7 @@
 import { eq, desc, and } from "drizzle-orm";
-import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@repo/db";
 import { jobsTable, type JobRow, type NewJobRow, type JobStatus } from "@repo/db-schema";
+import type { DbExecutor } from "../types.js";
 
 export type JobEntity = Omit<JobRow, "createdAt" | "updatedAt" | "startedAt" | "finishedAt"> & {
   createdAt: number;
@@ -9,10 +9,6 @@ export type JobEntity = Omit<JobRow, "createdAt" | "updatedAt" | "startedAt" | "
   startedAt: number | null;
   finishedAt: number | null;
 };
-
-type DbExecutor =
-  | PostgresJsDatabase<Record<string, unknown>>
-  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: JobRow): JobEntity => ({
   ...row,
@@ -61,7 +57,7 @@ export const jobsDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<JobEntity, "createdAt" | "updatedAt">
+    data: Omit<JobEntity, "createdAt" | "updatedAt">,
   ): Promise<JobEntity> {
     const now = new Date();
     const row: NewJobRow = {
@@ -84,7 +80,7 @@ export const jobsDao = {
       result?: JobEntity["result"];
       startedAt?: number;
       finishedAt?: number;
-    }
+    },
   ): Promise<JobEntity | null> {
     const patch: Partial<JobRow> = {
       status,
@@ -113,7 +109,7 @@ export const jobsDao = {
       result?: JobEntity["result"];
       startedAt?: number;
       finishedAt?: number;
-    }
+    },
   ): Promise<JobEntity | null> {
     const patch: Partial<JobRow> = {
       status,

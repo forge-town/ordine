@@ -1,11 +1,7 @@
 import { eq, asc } from "drizzle-orm";
-import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@repo/db";
 import { codeSnippetsTable, type CodeSnippetRow, type NewCodeSnippetRow } from "@repo/db-schema";
-
-type DbExecutor =
-  | PostgresJsDatabase<Record<string, unknown>>
-  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
+import type { DbExecutor } from "../types.js";
 
 export type CodeSnippetEntity = Omit<CodeSnippetRow, "createdAt" | "updatedAt"> & {
   createdAt: number;

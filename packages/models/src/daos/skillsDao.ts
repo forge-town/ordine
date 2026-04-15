@@ -1,16 +1,12 @@
 import { eq, desc } from "drizzle-orm";
-import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@repo/db";
 import { skillsTable, type NewSkillRow, type SkillRow } from "@repo/db-schema";
+import type { DbExecutor } from "../types.js";
 
 export type SkillEntity = Omit<SkillRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
   updatedAt: number;
 };
-
-type DbExecutor =
-  | PostgresJsDatabase<Record<string, unknown>>
-  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: SkillRow): SkillEntity => {
   return {
@@ -49,7 +45,7 @@ export const skillsDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<SkillEntity, "createdAt" | "updatedAt">
+    data: Omit<SkillEntity, "createdAt" | "updatedAt">,
   ): Promise<SkillEntity> {
     const now = new Date();
     const row: NewSkillRow = {
@@ -63,7 +59,7 @@ export const skillsDao = {
 
   async update(
     id: string,
-    patch: Partial<Omit<SkillEntity, "createdAt" | "updatedAt">>
+    patch: Partial<Omit<SkillEntity, "createdAt" | "updatedAt">>,
   ): Promise<SkillEntity | null> {
     const updates: Partial<NewSkillRow> = { updatedAt: new Date() };
     if (patch.name !== undefined) updates.name = patch.name;
@@ -82,7 +78,7 @@ export const skillsDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    patch: Partial<Omit<SkillEntity, "createdAt" | "updatedAt">>
+    patch: Partial<Omit<SkillEntity, "createdAt" | "updatedAt">>,
   ): Promise<SkillEntity | null> {
     const updates: Partial<NewSkillRow> = { updatedAt: new Date() };
     if (patch.name !== undefined) updates.name = patch.name;

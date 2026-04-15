@@ -1,20 +1,16 @@
 import { eq, asc } from "drizzle-orm";
-import type { PostgresJsDatabase, PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { db } from "@repo/db";
 import {
   checklistItemsTable,
   type ChecklistItemRow,
   type NewChecklistItemRow,
 } from "@repo/db-schema";
+import type { DbExecutor } from "../types.js";
 
 export type ChecklistItemEntity = Omit<ChecklistItemRow, "createdAt" | "updatedAt"> & {
   createdAt: number;
   updatedAt: number;
 };
-
-type DbExecutor =
-  | PostgresJsDatabase<Record<string, unknown>>
-  | PostgresJsTransaction<Record<string, unknown>, Record<string, never>>;
 
 const rowToEntity = (row: ChecklistItemRow): ChecklistItemEntity => ({
   ...row,
@@ -42,7 +38,7 @@ export const checklistItemsDao = {
   },
 
   async create(
-    data: Omit<ChecklistItemEntity, "createdAt" | "updatedAt">
+    data: Omit<ChecklistItemEntity, "createdAt" | "updatedAt">,
   ): Promise<ChecklistItemEntity> {
     const now = new Date();
     const row: NewChecklistItemRow = {
@@ -56,7 +52,7 @@ export const checklistItemsDao = {
 
   async createWithTx(
     tx: DbExecutor,
-    data: Omit<ChecklistItemEntity, "createdAt" | "updatedAt">
+    data: Omit<ChecklistItemEntity, "createdAt" | "updatedAt">,
   ): Promise<ChecklistItemEntity> {
     const now = new Date();
     const row: NewChecklistItemRow = {
@@ -70,7 +66,7 @@ export const checklistItemsDao = {
 
   async update(
     id: string,
-    patch: Partial<Omit<ChecklistItemEntity, "id" | "bestPracticeId" | "createdAt" | "updatedAt">>
+    patch: Partial<Omit<ChecklistItemEntity, "id" | "bestPracticeId" | "createdAt" | "updatedAt">>,
   ): Promise<ChecklistItemEntity | null> {
     const [updated] = await db
       .update(checklistItemsTable)
@@ -83,7 +79,7 @@ export const checklistItemsDao = {
   async updateWithTx(
     tx: DbExecutor,
     id: string,
-    patch: Partial<Omit<ChecklistItemEntity, "id" | "bestPracticeId" | "createdAt" | "updatedAt">>
+    patch: Partial<Omit<ChecklistItemEntity, "id" | "bestPracticeId" | "createdAt" | "updatedAt">>,
   ): Promise<ChecklistItemEntity | null> {
     const [updated] = await tx
       .update(checklistItemsTable)
