@@ -1,0 +1,23 @@
+{
+  "name": "@ordine/cli",
+  "version": "0.0.0",
+  "private": true,
+  "bin": {
+    "ordine": "./src/index.ts"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "bun src/index.ts",
+    "check-types": "tsc --noEmit",
+    "lint": "oxlint --config ./.oxlintrc.json src/",
+    "quality": "bun run check-types && bun run lint"
+  },
+  "dependencies": {
+    "commander": "^14.0.0"
+  },
+  "devDependencies": {
+    "@repo/oxlint-config": "workspace:*",
+    "@repo/typescript-config": "*",
+    "typescript": "5.9.2"
+  }
+}
