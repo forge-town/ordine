@@ -36,7 +36,7 @@ export const PickProjectDialog = ({ open, onClose, onPick }: PickProjectDialogPr
     (p) =>
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
       p.repo.toLowerCase().includes(search.toLowerCase()) ||
-      p.description.toLowerCase().includes(search.toLowerCase()),
+      p.description.toLowerCase().includes(search.toLowerCase())
   );
 
   const handlePick = (p: GithubProjectEntity) => {

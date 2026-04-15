@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { Result } from "neverthrow";
 import { logger } from "../logger";
 import { CheckOutputSchema, CHECK_OUTPUT_EXAMPLE } from "../schemas/CheckOutputSchema";
 import { FixOutputSchema, FIX_OUTPUT_EXAMPLE } from "../schemas/FixOutputSchema";
@@ -60,26 +61,23 @@ const WRITE_TOOLS = [...READ_ONLY_TOOLS, "Edit", "Write", "Bash(sed:*)"];
  * Extract JSON from text that may contain markdown fences or surrounding prose.
  * Tries: direct parse → fenced code block → first `{...}` substring.
  */
+const safeJsonParse = Result.fromThrowable(
+  (text: string) => JSON.parse(text) as unknown,
+  () => "invalid JSON",
+);
+
 const extractJsonFromText = (text: string): string => {
   const trimmed = text.trim();
 
   // 1. Direct JSON parse
-  try {
-    const obj = JSON.parse(trimmed);
-    return JSON.stringify(obj, null, 2);
-  } catch {
-    /* continue */
-  }
+  const direct = safeJsonParse(trimmed);
+  if (direct.isOk()) return JSON.stringify(direct.value, null, 2);
 
   // 2. Fenced code block: ```json ... ``` or ``` ... ```
   const fenceMatch = /```(?:json)?\s*\n?([\s\S]*?)```/.exec(trimmed);
   if (fenceMatch?.[1]) {
-    try {
-      const obj = JSON.parse(fenceMatch[1].trim());
-      return JSON.stringify(obj, null, 2);
-    } catch {
-      /* continue */
-    }
+    const fenced = safeJsonParse(fenceMatch[1].trim());
+    if (fenced.isOk()) return JSON.stringify(fenced.value, null, 2);
   }
 
   // 3. Find first { ... } substring (greedy last })
@@ -87,12 +85,8 @@ const extractJsonFromText = (text: string): string => {
   const braceEnd = trimmed.lastIndexOf("}");
   if (braceStart !== -1 && braceEnd > braceStart) {
     const candidate = trimmed.substring(braceStart, braceEnd + 1);
-    try {
-      const obj = JSON.parse(candidate);
-      return JSON.stringify(obj, null, 2);
-    } catch {
-      /* continue */
-    }
+    const braced = safeJsonParse(candidate);
+    if (braced.isOk()) return JSON.stringify(braced.value, null, 2);
   }
 
   // 4. Return as-is
@@ -111,7 +105,15 @@ export const runClaude = async ({
   const systemPrompt = buildSystemPrompt(skillId, skillDescription, mode);
   const allowedTools = writeEnabled ? WRITE_TOOLS : READ_ONLY_TOOLS;
 
-  const userPrompt = `Project path: ${projectRoot}\n\nInput:\n${inputContent}`;
+  // Truncate input to avoid exceeding claude CLI stdin limits.
+  // Claude can explore the project via tools (Read, Bash) so a summary suffices.
+  const MAX_INPUT_CHARS = 50_000;
+  const truncatedInput =
+    inputContent.length > MAX_INPUT_CHARS
+      ? `${inputContent.substring(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${inputContent.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
+      : inputContent;
+
+  const userPrompt = `Project path: ${projectRoot}\n\nInput:\n${truncatedInput}`;
 
   const args = [
     "-p",
@@ -125,7 +127,7 @@ export const runClaude = async ({
     "--dangerously-skip-permissions",
     "--no-session-persistence",
     "--max-budget-usd",
-    "1",
+    "5",
   ];
 
   logger.info({ skillId, mode, projectRoot }, "runClaude: starting");
@@ -177,31 +179,42 @@ export const runClaude = async ({
         logger.debug({ stderr: stderr.substring(0, 500) }, "runClaude: stderr");
       }
 
-      try {
-        const parsed = JSON.parse(stdout);
-        const resultText: string =
-          typeof parsed.result === "string"
-            ? parsed.result
-            : typeof parsed.content === "string"
-              ? parsed.content
-              : stdout;
-
-        const reportJson = extractJsonFromText(resultText);
-        const schema = mode === "check" ? CheckOutputSchema : FixOutputSchema;
-        const validation = schema.safeParse(JSON.parse(reportJson));
-        if (validation.success) {
-          logger.info({ len: reportJson.length }, "runClaude: valid report");
-          void onProgress?.(`[Claude] Valid ${mode} report (${reportJson.length} chars)`);
-          resolve(reportJson);
-        } else {
-          logger.warn({ errors: validation.error }, "runClaude: schema validation failed");
-          void onProgress?.("[Claude] Schema validation warning, using raw output");
-          resolve(reportJson);
-        }
-      } catch {
+      const parsedResult = safeJsonParse(stdout);
+      if (parsedResult.isErr()) {
         logger.warn({ len: stdout.length }, "runClaude: non-JSON output, returning raw");
         void onProgress?.(`[Claude] Non-JSON output (${stdout.length} chars)`);
         resolve(stdout);
+        return;
+      }
+
+      const parsed = parsedResult.value as Record<string, unknown>;
+      const resultText: string =
+        typeof parsed.result === "string"
+          ? parsed.result
+          : typeof parsed.content === "string"
+            ? (parsed.content as string)
+            : stdout;
+
+      const reportJson = extractJsonFromText(resultText);
+
+      const reportParsed = safeJsonParse(reportJson);
+      if (reportParsed.isErr()) {
+        logger.warn("runClaude: extracted text is not valid JSON, using as-is");
+        void onProgress?.("[Claude] Schema validation warning, using raw output");
+        resolve(reportJson);
+        return;
+      }
+
+      const schema = mode === "check" ? CheckOutputSchema : FixOutputSchema;
+      const validation = schema.safeParse(reportParsed.value);
+      if (validation.success) {
+        logger.info({ len: reportJson.length }, "runClaude: valid report");
+        void onProgress?.(`[Claude] Valid ${mode} report (${reportJson.length} chars)`);
+        resolve(reportJson);
+      } else {
+        logger.warn({ errors: validation.error }, "runClaude: schema validation failed");
+        void onProgress?.("[Claude] Schema validation warning, using raw output");
+        resolve(reportJson);
       }
     });
   });

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createTool } from "@mastra/core/tools";
+import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 
 const MAX_READ_SIZE = 100_000;
@@ -19,18 +20,19 @@ export const createReadFileTool = (projectRoot: string) =>
       if (!fullPath.startsWith(projectRoot)) {
         return { error: "Access denied: path outside project root" };
       }
-      try {
-        const content = await readFile(fullPath, "utf8");
-        if (content.length > MAX_READ_SIZE) {
-          return {
-            content: content.slice(0, MAX_READ_SIZE),
-            truncated: true,
-            totalSize: content.length,
-          };
-        }
-        return { content, truncated: false, totalSize: content.length };
-      } catch {
-        return { error: `File not found or unreadable: ${relPath}` };
+      const result = await ResultAsync.fromPromise(
+        readFile(fullPath, "utf8"),
+        () => `File not found or unreadable: ${relPath}`,
+      );
+      if (result.isErr()) return { error: result.error };
+      const content = result.value;
+      if (content.length > MAX_READ_SIZE) {
+        return {
+          content: content.slice(0, MAX_READ_SIZE),
+          truncated: true,
+          totalSize: content.length,
+        };
       }
+      return { content, truncated: false, totalSize: content.length };
     },
   });

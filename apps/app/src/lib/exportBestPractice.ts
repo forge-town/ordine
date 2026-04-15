@@ -53,7 +53,7 @@ const addBPToZip = (
   zip: JSZip,
   bp: BPData,
   items: ChecklistItem[],
-  snippets: CodeSnippetItem[],
+  snippets: CodeSnippetItem[]
 ) => {
   const folder = zip.folder(bp.id);
   if (!folder) return;
@@ -70,8 +70,8 @@ const addBPToZip = (
         tags: bp.tags,
       },
       null,
-      2,
-    ),
+      2
+    )
   );
 
   folder.file("content.md", bp.content || "");
@@ -131,14 +131,14 @@ export const exportAllBestPractices = async () => {
       zip,
       bp as BPData,
       checklistItems as ChecklistItem[],
-      codeSnippets as CodeSnippetItem[],
+      codeSnippets as CodeSnippetItem[]
     );
   }
   await downloadZip(zip, `best-practices-${new Date().toISOString().slice(0, 10)}.bestpractice`);
 };
 
 export const importBestPracticesFromZip = async (
-  file: File,
+  file: File
 ): Promise<{ imported: number; checklistItems: number; codeSnippets: number }> => {
   const zip = await JSZip.loadAsync(file);
   const folders = new Set<string>();
@@ -218,7 +218,7 @@ export const importBestPracticesFromZip = async (
   }
 
   const result = await trpcClient.bestPractices.importBulk.mutate(
-    bestPractices as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0],
+    bestPractices as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0]
   );
   return result;
 };

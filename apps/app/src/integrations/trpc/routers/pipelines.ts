@@ -18,7 +18,7 @@ export const pipelinesRouter = router({
       ...input,
       nodes: input.nodes as never,
       edges: input.edges as never,
-    }),
+    })
   ),
 
   update: publicProcedure
@@ -28,7 +28,7 @@ export const pipelinesRouter = router({
         ...input.patch,
         nodes: input.patch.nodes as never,
         edges: input.patch.edges as never,
-      }),
+      })
     ),
 
   delete: publicProcedure
@@ -41,7 +41,7 @@ export const pipelinesRouter = router({
         id: z.string(),
         inputPath: z.string().optional(),
         githubToken: z.string().optional(),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       const pipeline = await pipelinesService.getById(input.id);

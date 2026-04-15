@@ -1,6 +1,7 @@
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { createTool } from "@mastra/core/tools";
+import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 
 export const createListDirectoryTool = (projectRoot: string) =>
@@ -15,14 +16,14 @@ export const createListDirectoryTool = (projectRoot: string) =>
       if (!fullPath.startsWith(projectRoot)) {
         return { error: "Access denied: path outside project root" };
       }
-      try {
-        const entries = await readdir(fullPath, { withFileTypes: true });
-        return entries.map((e) => ({
-          name: e.name,
-          type: e.isDirectory() ? "directory" : "file",
-        }));
-      } catch {
-        return { error: `Directory not found: ${relPath}` };
-      }
+      const result = await ResultAsync.fromPromise(
+        readdir(fullPath, { withFileTypes: true }),
+        () => `Directory not found: ${relPath}`,
+      );
+      if (result.isErr()) return { error: result.error };
+      return result.value.map((e) => ({
+        name: e.name,
+        type: e.isDirectory() ? "directory" : "file",
+      }));
     },
   });

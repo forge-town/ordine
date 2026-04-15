@@ -30,7 +30,7 @@ export const ObjectRow = ({ item, selected, onToggle }: ObjectRowProps) => {
         "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
         selected
           ? "border-primary/50 bg-primary/5"
-          : "border-border bg-card hover:border-primary/50 hover:bg-accent",
+          : "border-border bg-card hover:border-primary/50 hover:bg-accent"
       )}
       onClick={handleToggle}
     >
@@ -39,7 +39,7 @@ export const ObjectRow = ({ item, selected, onToggle }: ObjectRowProps) => {
           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
           item.type === "project" && "bg-gray-900",
           item.type === "folder" && "bg-orange-400",
-          item.type === "file" && "bg-orange-500",
+          item.type === "file" && "bg-orange-500"
         )}
       >
         <Icon className="h-3.5 w-3.5 text-white" />

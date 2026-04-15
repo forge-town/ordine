@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createTool } from "@mastra/core/tools";
+import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 
 export const createReplaceInFileTool = (projectRoot: string) =>
@@ -22,22 +23,25 @@ export const createReplaceInFileTool = (projectRoot: string) =>
       if (!fullPath.startsWith(projectRoot)) {
         return { error: "Access denied: path outside project root" };
       }
-      try {
-        const content = await readFile(fullPath, "utf8");
-        const count = content.split(oldString).length - 1;
-        if (count === 0) {
-          return { error: "oldString not found in file" };
-        }
-        if (count > 1) {
-          return {
-            error: `oldString appears ${count} times — must be unique. Add more context.`,
-          };
-        }
-        const updated = content.replace(oldString, newString);
-        await writeFile(fullPath, updated, "utf8");
-        return { replaced: true, path: relPath };
-      } catch {
-        return { error: `Failed to edit: ${relPath}` };
+      const result = await ResultAsync.fromPromise(
+        readFile(fullPath, "utf8"),
+        () => `Failed to read: ${relPath}`,
+      );
+      if (result.isErr()) return { error: result.error };
+      const content = result.value;
+      const count = content.split(oldString).length - 1;
+      if (count === 0) return { error: "oldString not found in file" };
+      if (count > 1) {
+        return {
+          error: `oldString appears ${count} times — must be unique. Add more context.`,
+        };
       }
+      const updated = content.replace(oldString, newString);
+      const writeResult = await ResultAsync.fromPromise(
+        writeFile(fullPath, updated, "utf8"),
+        () => `Failed to write: ${relPath}`,
+      );
+      if (writeResult.isErr()) return { error: writeResult.error };
+      return { replaced: true, path: relPath };
     },
   });

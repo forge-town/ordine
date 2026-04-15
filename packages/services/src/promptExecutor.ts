@@ -3,7 +3,7 @@
  */
 
 import { streamText } from "ai";
-import { ResultAsync } from "neverthrow";
+import { ResultAsync, errAsync } from "neverthrow";
 import { getModel, logger, type SettingsResolver } from "@repo/agent";
 
 export class PromptExecutionError extends Error {
@@ -37,9 +37,7 @@ export const runPrompt = ({
   onProgress,
 }: RunPromptOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
-    return ResultAsync.fromSafePromise<string, PromptExecutionError>(
-      Promise.reject(new PromptExecutionError("Prompt text is empty")),
-    );
+    return errAsync(new PromptExecutionError("Prompt text is empty"));
   }
 
   return ResultAsync.fromPromise(

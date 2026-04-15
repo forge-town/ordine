@@ -6,6 +6,8 @@
  * nodes execute in parallel.
  */
 
+import { ok, err, type Result } from "neverthrow";
+
 export interface DagNode {
   id: string;
 }
@@ -15,6 +17,13 @@ export interface DagEdge {
   target: string;
 }
 
+export class CycleDetectedError extends Error {
+  constructor() {
+    super("Cycle detected in pipeline graph");
+    this.name = "CycleDetectedError";
+  }
+}
+
 /**
  * Partition nodes into execution levels using Kahn's algorithm.
  *
@@ -22,9 +31,12 @@ export interface DagEdge {
  * Level N: nodes whose parents are all at level < N.
  *
  * Returns an array of levels, each containing the node IDs that can run concurrently.
- * Throws if a cycle is detected.
+ * Returns err if a cycle is detected.
  */
-export const buildExecutionLevels = <N extends DagNode>(nodes: N[], edges: DagEdge[]): N[][] => {
+export const buildExecutionLevels = <N extends DagNode>(
+  nodes: N[],
+  edges: DagEdge[],
+): Result<N[][], CycleDetectedError> => {
   const nodeMap = new Map<string, N>();
   const inDegree = new Map<string, number>();
   const adjacency = new Map<string, string[]>();
@@ -70,10 +82,10 @@ export const buildExecutionLevels = <N extends DagNode>(nodes: N[], edges: DagEd
   }
 
   if (counter.remaining > 0) {
-    throw new Error("Cycle detected in pipeline graph");
+    return err(new CycleDetectedError());
   }
 
-  return levels;
+  return ok(levels);
 };
 
 /**

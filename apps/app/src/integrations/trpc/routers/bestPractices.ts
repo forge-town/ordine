@@ -30,8 +30,8 @@ export const bestPracticesRouter = router({
         BestPracticeSchema.extend({
           checklistItems: z.array(ChecklistItemSchema.omit({ bestPracticeId: true })).default([]),
           codeSnippets: z.array(CodeSnippetSchema.omit({ bestPracticeId: true })).default([]),
-        }),
-      ),
+        })
+      )
     )
     .mutation(({ input }) => bestPracticesBulkService.importBulk(input)),
 });

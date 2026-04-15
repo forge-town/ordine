@@ -1,4 +1,5 @@
 import { Agent } from "@mastra/core/agent";
+import { ok, err, type Result } from "neverthrow";
 import { FIX_OUTPUT_EXAMPLE } from "../../schemas";
 import { buildSkillTools } from "../tools";
 import type { MastraModelConfig } from "@mastra/core/llm";
@@ -56,14 +57,17 @@ export const createFixAgent = ({
   skillDescription,
   model,
   projectRoot,
-}: CreateFixAgentOptions) => {
+}: CreateFixAgentOptions): Result<
+  { agent: Agent; reportCapture: ReturnType<typeof buildSkillTools>["reportCapture"] },
+  Error
+> => {
   const skillTools = buildSkillTools(projectRoot, { writeEnabled: true });
 
   if (!skillTools.writeEnabled) {
-    throw new Error("FixAgent requires write-enabled tools");
+    return err(new Error("FixAgent requires write-enabled tools"));
   }
 
-  return {
+  return ok({
     agent: new Agent({
       id: `fix-${skillId}`,
       name: `Fix: ${skillId}`,
@@ -79,5 +83,5 @@ export const createFixAgent = ({
       },
     }),
     reportCapture: skillTools.reportCapture,
-  };
+  });
 };

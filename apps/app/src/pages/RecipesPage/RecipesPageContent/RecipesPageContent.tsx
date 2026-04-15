@@ -59,7 +59,7 @@ export const RecipesPageContent = () => {
 
   const opMap = new Map<string, OperationEntity>(operations.map((o: OperationEntity) => [o.id, o]));
   const bpMap = new Map<string, BestPracticeEntity>(
-    bestPractices.map((bp: BestPracticeEntity) => [bp.id, bp]),
+    bestPractices.map((bp: BestPracticeEntity) => [bp.id, bp])
   );
 
   return (

@@ -10,7 +10,9 @@ describe("dagScheduler", () => {
   describe("buildExecutionLevels", () => {
     it("returns a single level for a single node", () => {
       const nodes: TestNode[] = [{ id: "a", type: "folder" }];
-      const levels = buildExecutionLevels(nodes, []);
+      const result = buildExecutionLevels(nodes, []);
+      expect(result.isOk()).toBe(true);
+      const levels = result._unsafeUnwrap();
       expect(levels).toEqual([[{ id: "a", type: "folder" }]]);
     });
 
@@ -24,11 +26,13 @@ describe("dagScheduler", () => {
         { source: "a", target: "b" },
         { source: "b", target: "c" },
       ];
-      const levels = buildExecutionLevels(nodes, edges);
+      const result = buildExecutionLevels(nodes, edges);
+      expect(result.isOk()).toBe(true);
+      const levels = result._unsafeUnwrap();
       expect(levels).toHaveLength(3);
-      expect(levels[0]!.map((n) => n.id)).toEqual(["a"]);
-      expect(levels[1]!.map((n) => n.id)).toEqual(["b"]);
-      expect(levels[2]!.map((n) => n.id)).toEqual(["c"]);
+      expect(levels[0]!.map((n: TestNode) => n.id)).toEqual(["a"]);
+      expect(levels[1]!.map((n: TestNode) => n.id)).toEqual(["b"]);
+      expect(levels[2]!.map((n: TestNode) => n.id)).toEqual(["c"]);
     });
 
     it("places fan-out targets at the same level", () => {
@@ -43,10 +47,16 @@ describe("dagScheduler", () => {
         { source: "input", target: "check_b" },
         { source: "input", target: "check_c" },
       ];
-      const levels = buildExecutionLevels(nodes, edges);
+      const result = buildExecutionLevels(nodes, edges);
+      expect(result.isOk()).toBe(true);
+      const levels = result._unsafeUnwrap();
       expect(levels).toHaveLength(2);
-      expect(levels[0]!.map((n) => n.id)).toEqual(["input"]);
-      expect(levels[1]!.map((n) => n.id).sort()).toEqual(["check_a", "check_b", "check_c"]);
+      expect(levels[0]!.map((n: TestNode) => n.id)).toEqual(["input"]);
+      expect(levels[1]!.map((n: TestNode) => n.id).sort()).toEqual([
+        "check_a",
+        "check_b",
+        "check_c",
+      ]);
     });
 
     it("handles full fan-out + fan-in DAG", () => {
@@ -67,15 +77,17 @@ describe("dagScheduler", () => {
         { source: "check_schema", target: "output_schema" },
         { source: "check_store", target: "output_store" },
       ];
-      const levels = buildExecutionLevels(nodes, edges);
+      const result = buildExecutionLevels(nodes, edges);
+      expect(result.isOk()).toBe(true);
+      const levels = result._unsafeUnwrap();
       expect(levels).toHaveLength(3);
-      expect(levels[0]!.map((n) => n.id)).toEqual(["input"]);
-      expect(levels[1]!.map((n) => n.id).sort()).toEqual([
+      expect(levels[0]!.map((n: TestNode) => n.id)).toEqual(["input"]);
+      expect(levels[1]!.map((n: TestNode) => n.id).sort()).toEqual([
         "check_dao",
         "check_schema",
         "check_store",
       ]);
-      expect(levels[2]!.map((n) => n.id).sort()).toEqual([
+      expect(levels[2]!.map((n: TestNode) => n.id).sort()).toEqual([
         "output_dao",
         "output_schema",
         "output_store",
@@ -95,14 +107,16 @@ describe("dagScheduler", () => {
         { source: "B", target: "D" },
         { source: "C", target: "D" },
       ];
-      const levels = buildExecutionLevels(nodes, edges);
+      const result = buildExecutionLevels(nodes, edges);
+      expect(result.isOk()).toBe(true);
+      const levels = result._unsafeUnwrap();
       expect(levels).toHaveLength(3);
-      expect(levels[0]!.map((n) => n.id)).toEqual(["A"]);
-      expect(levels[1]!.map((n) => n.id).sort()).toEqual(["B", "C"]);
-      expect(levels[2]!.map((n) => n.id)).toEqual(["D"]);
+      expect(levels[0]!.map((n: TestNode) => n.id)).toEqual(["A"]);
+      expect(levels[1]!.map((n: TestNode) => n.id).sort()).toEqual(["B", "C"]);
+      expect(levels[2]!.map((n: TestNode) => n.id)).toEqual(["D"]);
     });
 
-    it("throws on cyclic graph", () => {
+    it("returns err on cyclic graph", () => {
       const nodes: TestNode[] = [
         { id: "a", type: "op" },
         { id: "b", type: "op" },
@@ -111,7 +125,8 @@ describe("dagScheduler", () => {
         { source: "a", target: "b" },
         { source: "b", target: "a" },
       ];
-      expect(() => buildExecutionLevels(nodes, edges)).toThrow("Cycle detected");
+      const result = buildExecutionLevels(nodes, edges);
+      expect(result.isErr()).toBe(true);
     });
 
     it("handles multiple root nodes", () => {
@@ -124,15 +139,18 @@ describe("dagScheduler", () => {
         { source: "root1", target: "merge" },
         { source: "root2", target: "merge" },
       ];
-      const levels = buildExecutionLevels(nodes, edges);
+      const result = buildExecutionLevels(nodes, edges);
+      expect(result.isOk()).toBe(true);
+      const levels = result._unsafeUnwrap();
       expect(levels).toHaveLength(2);
-      expect(levels[0]!.map((n) => n.id).sort()).toEqual(["root1", "root2"]);
-      expect(levels[1]!.map((n) => n.id)).toEqual(["merge"]);
+      expect(levels[0]!.map((n: TestNode) => n.id).sort()).toEqual(["root1", "root2"]);
+      expect(levels[1]!.map((n: TestNode) => n.id)).toEqual(["merge"]);
     });
 
     it("handles empty graph", () => {
-      const levels = buildExecutionLevels([], []);
-      expect(levels).toEqual([]);
+      const result = buildExecutionLevels([], []);
+      expect(result.isOk()).toBe(true);
+      expect(result._unsafeUnwrap()).toEqual([]);
     });
   });
 

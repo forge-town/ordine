@@ -22,7 +22,7 @@ import { existsSync, statSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { streamText } from "ai";
-import { ResultAsync, ok } from "neverthrow";
+import { ResultAsync, ok, errAsync } from "neverthrow";
 import { runPrompt as runPromptAgent } from "./promptExecutor.js";
 import { runSkill as runSkillAgent } from "./skillExecutor.js";
 import { structuredJsonToMarkdown } from "./structuredOutput.js";
@@ -45,7 +45,7 @@ import {
 import type { ExecutorConfig } from "@repo/schemas";
 import { listDirTree, readProjectFiles } from "./filesystemService.js";
 import { createLlmService } from "./llmService.js";
-import { buildExecutionLevels, getParentIds } from "./dagScheduler.js";
+import { buildExecutionLevels, getParentIds, CycleDetectedError } from "./dagScheduler.js";
 import { runRuleCheck } from "./ruleCheckRunner.js";
 
 const llmService = createLlmService(settingsDao);
@@ -121,7 +121,8 @@ type PipelineRunError =
   | PipelineNotFoundError
   | ScriptExecutionError
   | ConfigParseError
-  | GitCloneError;
+  | GitCloneError
+  | CycleDetectedError;
 
 // ─── executor helpers ─────────────────────────────────────────────────────────
 
@@ -157,9 +158,7 @@ const runScript = (
   const lang = executor.language ?? "bash";
   const command = executor.command ?? "";
   if (!command.trim()) {
-    return ResultAsync.fromSafePromise<string, ScriptExecutionError>(
-      Promise.reject(new ScriptExecutionError("Script command is empty")),
-    );
+    return errAsync(new ScriptExecutionError("Script command is empty"));
   }
 
   const env = {
@@ -172,12 +171,15 @@ const runScript = (
     if (lang === "python") return `python3 -c ${JSON.stringify(command)}`;
     if (lang === "javascript") return `node -e ${JSON.stringify(command)}`;
     if (lang === "bash") return command;
-    throw new ScriptExecutionError(`Unknown script language: ${lang}`);
+    return `__UNSUPPORTED_LANG_${lang}__`;
   };
 
   return ResultAsync.fromPromise(
     (async () => {
       const cmd = buildCmd();
+      if (cmd.startsWith("__UNSUPPORTED_LANG_")) {
+        return Promise.reject(new ScriptExecutionError(`Unknown script language: ${lang}`));
+      }
       const { stdout } = await execAsync(cmd, { env, timeout: 60_000 });
       return stdout;
     })(),
@@ -247,7 +249,11 @@ const executePipeline = async (opts: {
   const nodes = pipeline.nodes as PipelineNode[];
   const edges = pipeline.edges as PipelineEdge[];
 
-  const levels = buildExecutionLevels(nodes, edges);
+  const levelsResult = buildExecutionLevels(nodes, edges);
+  if (levelsResult.isErr()) {
+    return { ok: false, error: levelsResult.error };
+  }
+  const levels = levelsResult.value;
 
   await log(
     `Pipeline "${pipeline.name}" loaded. ${nodes.length} nodes in ${levels.length} levels.`,
