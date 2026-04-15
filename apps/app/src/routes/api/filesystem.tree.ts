@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { json, errorResponse } from "@/lib/apiResponse";
-import { listDirectory } from "@/services/filesystemService";
+import { listDirectory } from "@repo/services";
 
 export const Route = createFileRoute("/api/filesystem/tree")({
   server: {

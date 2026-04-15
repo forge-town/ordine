@@ -19,8 +19,12 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { ResultAsync } from "neverthrow";
 import { rulesDao, type RuleEntity } from "@repo/models";
-import type { CheckOutput, Finding } from "@/schemas/OperationOutputSchema";
-import type { RuleTarget } from "@/schemas/RuleSchema";
+import type { CheckOutput, Finding } from "@repo/agent";
+
+export interface RuleTarget {
+  path: string;
+  type: "file" | "folder" | "project";
+}
 
 const execAsync = promisify(exec);
 
@@ -47,7 +51,7 @@ process.exit(result ? 0 : 1);
     execAsync(`bun -e ${JSON.stringify(wrapper)}`, {
       timeout: SCRIPT_TIMEOUT_MS,
     }),
-    (error) => error
+    (error) => error,
   );
 
   const cleanupResult = await ResultAsync.fromPromise(unlink(tmpFile), (error) => error);
@@ -71,7 +75,7 @@ process.exit(result ? 0 : 1);
         output: output || "Rule check failed",
         exitCode: execErr.code ?? 1,
       };
-    }
+    },
   );
 };
 

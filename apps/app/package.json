@@ -31,6 +31,8 @@
     "@repo/agent": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/db-schema": "workspace:*",
+    "@repo/models": "workspace:*",
+    "@repo/services": "workspace:*",
     "@repo/ui": "*",
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/react-query": "^5.95.2",

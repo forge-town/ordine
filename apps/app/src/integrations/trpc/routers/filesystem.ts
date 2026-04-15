@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../init";
-import { listDirectory } from "@/services/filesystemService";
+import { listDirectory } from "@repo/services";
 
 export const filesystemRouter = router({
   browse: publicProcedure

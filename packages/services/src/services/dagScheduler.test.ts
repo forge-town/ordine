@@ -32,7 +32,6 @@ describe("dagScheduler", () => {
     });
 
     it("places fan-out targets at the same level", () => {
-      // input → check_a, check_b, check_c (all at level 1)
       const nodes: TestNode[] = [
         { id: "input", type: "folder" },
         { id: "check_a", type: "operation" },
@@ -51,9 +50,6 @@ describe("dagScheduler", () => {
     });
 
     it("handles full fan-out + fan-in DAG", () => {
-      //       ┌→ check_dao    → output_dao
-      // input ┼→ check_schema → output_schema
-      //       └→ check_store  → output_store
       const nodes: TestNode[] = [
         { id: "input", type: "folder" },
         { id: "check_dao", type: "operation" },
@@ -87,9 +83,6 @@ describe("dagScheduler", () => {
     });
 
     it("handles diamond dependency (fan-out then fan-in)", () => {
-      //       ┌→ B ─┐
-      // A ────┤      ├── D
-      //       └→ C ─┘
       const nodes: TestNode[] = [
         { id: "A", type: "input" },
         { id: "B", type: "op" },

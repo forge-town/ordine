@@ -35,7 +35,7 @@ export const listDirectory = (dirPath?: string): ResultAsync<DirectoryEntry[], F
       ResultAsync.fromPromise(readdir(resolvedPath, { withFileTypes: true }), () => ({
         type: "PermissionDenied" as const,
         message: `Cannot read directory: ${resolvedPath}`,
-      }))
+      })),
     )
     .map((dirents) => {
       const entries: DirectoryEntry[] = dirents.map((d) => ({
@@ -63,7 +63,7 @@ const DEFAULT_MAX_DEPTH = 4;
 
 export const listDirTree = async (
   rootDir: string,
-  options?: ListDirTreeOptions
+  options?: ListDirTreeOptions,
 ): Promise<string> => {
   if (!existsSync(rootDir)) return "";
 
@@ -155,7 +155,7 @@ export interface ReadProjectFilesOptions {
 
 export const readProjectFiles = async (
   rootDir: string,
-  options?: ReadProjectFilesOptions
+  options?: ReadProjectFilesOptions,
 ): Promise<string> => {
   if (!existsSync(rootDir)) return "";
 
@@ -198,7 +198,7 @@ export const readProjectFiles = async (
         if (fileStat.size > MAX_FILE_SIZE) continue;
         const readResult = await ResultAsync.fromPromise(
           readFile(join(dir, entry.name), "utf8"),
-          () => null
+          () => null,
         );
         if (readResult.isErr()) {
           skippedFiles.push(rel);
@@ -217,13 +217,13 @@ export const readProjectFiles = async (
 
   if (state.totalSize >= MAX_TOTAL_SIZE) {
     parts.push(
-      `\n... (truncated at ${MAX_TOTAL_SIZE} chars total, ${files.length} files included)`
+      `\n... (truncated at ${MAX_TOTAL_SIZE} chars total, ${files.length} files included)`,
     );
   }
 
   if (skippedFiles.length > 0) {
     parts.push(
-      `\n... (skipped ${skippedFiles.length} unreadable files: ${skippedFiles.join(", ")})`
+      `\n... (skipped ${skippedFiles.length} unreadable files: ${skippedFiles.join(", ")})`,
     );
   }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { listDirectory, listDirTree } from "@repo/services";
+import { listDirectory, listDirTree } from "./filesystemService";
 import { mkdtemp, writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -83,18 +83,6 @@ describe("filesystemService", () => {
 
     beforeEach(async () => {
       treeCtx.dir = await mkdtemp(join(tmpdir(), "tree-test-"));
-      // Create structure:
-      // treeDir/
-      //   src/
-      //     index.ts
-      //     utils/
-      //       helper.ts
-      //   node_modules/
-      //     pkg/
-      //       index.js
-      //   .git/
-      //     HEAD
-      //   README.md
       await mkdir(join(treeCtx.dir, "src", "utils"), { recursive: true });
       await mkdir(join(treeCtx.dir, "node_modules", "pkg"), { recursive: true });
       await mkdir(join(treeCtx.dir, ".git"), { recursive: true });
@@ -141,7 +129,6 @@ describe("filesystemService", () => {
       const tree = await listDirTree(treeCtx.dir, { maxDepth: 1 });
       expect(tree).toContain("src/");
       expect(tree).toContain("node_modules/");
-      // depth 1 should not show contents of subdirs
       expect(tree).not.toContain("index.ts");
       expect(tree).not.toContain("helper.ts");
     });
