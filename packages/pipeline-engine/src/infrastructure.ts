@@ -4,8 +4,7 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { ResultAsync } from "neverthrow";
-import type { ExecutorConfig } from "@/pages/OperationDetailPage/types";
-import { ScriptExecutionError, GitCloneError } from "./types";
+import { ScriptExecutionError, GitCloneError, type ExecutorConfig } from "./types";
 
 const execAsync = promisify(exec);
 

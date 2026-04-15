@@ -2,7 +2,23 @@ import type { LanguageModel } from "ai";
 import type { PipelineEdge, OutputMode } from "@repo/db-schema";
 import type { OperationEntity } from "@repo/models";
 import type { SettingsResolver } from "@repo/agent";
-import type { ExecutorConfig } from "@/pages/OperationDetailPage/types";
+import type { ResultAsync } from "neverthrow";
+
+// ─── executor config (moved from app) ─────────────────────────────────────────
+
+export type ExecutorType = "agent" | "script" | "rule-check";
+export type AgentMode = "skill" | "prompt";
+export type ScriptLanguage = "bash" | "python" | "javascript";
+
+export interface ExecutorConfig {
+  type: ExecutorType;
+  agentMode?: AgentMode;
+  skillId?: string;
+  prompt?: string;
+  command?: string;
+  language?: ScriptLanguage;
+  writeEnabled?: boolean;
+}
 
 // ─── node data shapes ─────────────────────────────────────────────────────────
 
@@ -85,4 +101,33 @@ export interface PipelineExecutionCtx {
   log: (line: string) => Promise<void>;
   getSettings: SettingsResolver;
   getModel: (override?: string) => Promise<LanguageModel | null>;
+}
+
+// ─── dependency injection: external functions provided by the host app ─────────
+
+export interface RunPromptOptions {
+  prompt: string;
+  inputContent: string;
+  getSettings: SettingsResolver;
+  modelOverride?: string;
+  onChunk?: (accumulated: string) => Promise<void>;
+  onProgress?: (line: string) => Promise<void>;
+}
+
+export interface RunSkillOptions {
+  skillId: string;
+  skillDescription: string;
+  inputContent: string;
+  inputPath: string;
+  getSettings: SettingsResolver;
+  modelOverride?: string;
+  onChunk?: (accumulated: string) => Promise<void>;
+  onProgress?: (line: string) => Promise<void>;
+  writeEnabled?: boolean;
+}
+
+export interface PipelineEngineDeps {
+  runPrompt: (opts: RunPromptOptions) => ResultAsync<string, Error>;
+  runSkill: (opts: RunSkillOptions) => ResultAsync<string, never>;
+  structuredJsonToMarkdown: (content: string) => string;
 }

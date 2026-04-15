@@ -34,6 +34,7 @@ import {
   type NodeCtx,
   type PipelineRunError,
   type PipelineExecutionCtx,
+  type PipelineEngineDeps,
 } from "./types";
 import { processNode } from "./nodeDispatcher";
 
@@ -54,12 +55,15 @@ const safeReadInputFile = (
     () => ({ content: path, isFile: false }),
   ).orElse((fallback) => ok(fallback));
 
-const executePipeline = async (opts: {
-  pipelineId: string;
-  inputPath?: string;
-  jobId: string;
-  githubToken?: string;
-}): Promise<{ ok: true; summary: string } | { ok: false; error: PipelineRunError }> => {
+const executePipeline = async (
+  opts: {
+    pipelineId: string;
+    inputPath?: string;
+    jobId: string;
+    githubToken?: string;
+  },
+  deps: PipelineEngineDeps,
+): Promise<{ ok: true; summary: string } | { ok: false; error: PipelineRunError }> => {
   const { pipelineId, jobId, githubToken } = opts;
 
   const ctx: PipelineExecutionCtx = {
@@ -122,7 +126,7 @@ const executePipeline = async (opts: {
   for (const [levelIndex, level] of levels.entries()) {
     await ctx.log(`── Level ${levelIndex} (${level.length} node${level.length > 1 ? "s" : ""}) ──`);
 
-    const results = await Promise.all(level.map((node) => processNode(ctx, node)));
+    const results = await Promise.all(level.map((node) => processNode(ctx, node, deps)));
 
     for (const result of results) {
       if (!result.ok) {
@@ -157,34 +161,36 @@ const executePipeline = async (opts: {
   return { ok: true, summary };
 };
 
-export const runPipeline = async (opts: {
-  pipelineId: string;
-  inputPath?: string;
-  jobId: string;
-  githubToken?: string;
-}): Promise<void> => {
-  const result = await ResultAsync.fromPromise(
-    executePipeline(opts),
-    (cause) =>
-      new ScriptExecutionError(
-        cause instanceof Error ? cause.message : String(cause),
-        cause,
-      ) as PipelineRunError,
-  );
+export const createPipelineRunner = (deps: PipelineEngineDeps) => {
+  return async (opts: {
+    pipelineId: string;
+    inputPath?: string;
+    jobId: string;
+    githubToken?: string;
+  }): Promise<void> => {
+    const result = await ResultAsync.fromPromise(
+      executePipeline(opts, deps),
+      (cause) =>
+        new ScriptExecutionError(
+          cause instanceof Error ? cause.message : String(cause),
+          cause,
+        ) as PipelineRunError,
+    );
 
-  const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };
+    const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };
 
-  if (outcome.ok) {
-    await jobsDao.updateStatus(opts.jobId, "done", {
-      finishedAt: Date.now(),
-      result: { summary: outcome.summary },
-    });
-  } else {
-    const message = outcome.error.message;
-    await jobsDao.appendLog(opts.jobId, `[${new Date().toISOString()}] ERROR: ${message}`);
-    await jobsDao.updateStatus(opts.jobId, "failed", {
-      finishedAt: Date.now(),
-      error: message,
-    });
-  }
+    if (outcome.ok) {
+      await jobsDao.updateStatus(opts.jobId, "done", {
+        finishedAt: Date.now(),
+        result: { summary: outcome.summary },
+      });
+    } else {
+      const message = outcome.error.message;
+      await jobsDao.appendLog(opts.jobId, `[${new Date().toISOString()}] ERROR: ${message}`);
+      await jobsDao.updateStatus(opts.jobId, "failed", {
+        finishedAt: Date.now(),
+        error: message,
+      });
+    }
+  };
 };

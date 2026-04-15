@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../init";
 import { pipelinesService, jobsService } from "../services";
 import { PipelineSchema } from "@repo/schemas";
-import { runPipeline } from "@/services/pipeline";
+import { runPipeline } from "@/services/pipeline-bridge";
 
 export const pipelinesRouter = router({
   getMany: publicProcedure.query(() => pipelinesService.getAll()),

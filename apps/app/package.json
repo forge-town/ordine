@@ -32,6 +32,7 @@
     "@repo/db": "workspace:*",
     "@repo/db-schema": "workspace:*",
     "@repo/models": "workspace:*",
+    "@repo/pipeline-engine": "workspace:*",
     "@repo/schemas": "workspace:*",
     "@repo/services": "workspace:*",
     "@repo/ui": "*",

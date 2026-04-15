@@ -1,6 +1,5 @@
 import { streamText } from "ai";
 import { ResultAsync } from "neverthrow";
-import { runPrompt as runPromptAgent, runSkill as runSkillAgent } from "@/mastra";
 import { skillsDao, bestPracticesDao, rulesDao } from "@repo/models";
 import type { PipelineNode } from "@repo/db-schema";
 import {
@@ -11,6 +10,7 @@ import {
   type OperationConfig,
   type PipelineRunError,
   type PipelineExecutionCtx,
+  type PipelineEngineDeps,
 } from "./types";
 import { runScript } from "./infrastructure";
 
@@ -58,6 +58,7 @@ export const executeOperationNode = async (
   ctx: PipelineExecutionCtx,
   node: PipelineNode,
   input: NodeCtx,
+  deps: PipelineEngineDeps,
 ): Promise<{ ok: true; content: string } | { ok: false; error: PipelineRunError | null }> => {
   const data = node.data as unknown as NodeData;
   const operationId = data.operationId ?? "";
@@ -153,7 +154,7 @@ export const executeOperationNode = async (
       await ctx.log(`@@NODE_FAIL::${node.id}`);
       return { ok: false, error: null };
     }
-    const promptResult = await runPromptAgent({
+    const promptResult = await deps.runPrompt({
       prompt,
       inputContent: effectiveInput,
       getSettings: ctx.getSettings,
@@ -182,7 +183,7 @@ export const executeOperationNode = async (
       : `Skill "${skillId}" (no description available)`;
 
     await ctx.log(`Running skill "${skillId}"${skill ? ` (${skill.label})` : ""}...`);
-    const skillResult = await runSkillAgent({
+    const skillResult = await deps.runSkill({
       skillId,
       skillDescription,
       inputContent: effectiveInput,

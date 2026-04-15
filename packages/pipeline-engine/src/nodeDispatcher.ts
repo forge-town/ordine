@@ -1,7 +1,6 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { existsSync, statSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
-import { structuredJsonToMarkdown } from "@/mastra";
 import type { PipelineNode, GitHubProjectNodeData, OutputMode } from "@repo/db-schema";
 import { listDirTree, readProjectFiles, getParentIds } from "@repo/services";
 import {
@@ -10,6 +9,7 @@ import {
   type NodeCtx,
   type PipelineRunError,
   type PipelineExecutionCtx,
+  type PipelineEngineDeps,
 } from "./types";
 import { cloneGitHubRepo } from "./infrastructure";
 import { executeOperationNode, evaluateLoopCondition } from "./operationExecutor";
@@ -37,6 +37,7 @@ export const resolveNodeInput = (ctx: PipelineExecutionCtx, nodeId: string): Nod
 export const processNode = async (
   ctx: PipelineExecutionCtx,
   node: PipelineNode,
+  deps: PipelineEngineDeps,
 ): Promise<{ ok: true } | { ok: false; error: PipelineRunError }> => {
   const data = node.data as unknown as NodeData;
   const input = resolveNodeInput(ctx, node.id);
@@ -234,12 +235,14 @@ export const processNode = async (
         await ctx.log(`Wrote JSON output to: ${jsonPath} (${cleanContent.length} chars)`);
 
         const mdPath = join(outputDir, `${baseName}.md`);
-        const mdContent = structuredJsonToMarkdown(cleanContent);
+        const mdContent = deps.structuredJsonToMarkdown(cleanContent);
         await writeFile(mdPath, mdContent, "utf8");
         await ctx.log(`Wrote Markdown output to: ${mdPath} (${mdContent.length} chars)`);
       } else {
         const outputContent =
-          extname(resolvedPath) === ".md" ? structuredJsonToMarkdown(input.content) : input.content;
+          extname(resolvedPath) === ".md"
+            ? deps.structuredJsonToMarkdown(input.content)
+            : input.content;
         await mkdir(dirname(resolvedPath), { recursive: true });
         await writeFile(resolvedPath, outputContent, "utf8");
         await ctx.log(`Wrote output to: ${resolvedPath} (${outputContent.length} chars)`);
@@ -272,7 +275,7 @@ export const processNode = async (
         await ctx.log(
           `[Loop] Iteration ${attempt}/${maxLoops} for "${(node.data as unknown as Record<string, unknown>).label}"`,
         );
-        const loopResult = await executeOperationNode(ctx, node, loopState.currentInput);
+        const loopResult = await executeOperationNode(ctx, node, loopState.currentInput, deps);
         if (!loopResult.ok) {
           if (loopResult.error) return { ok: false, error: loopResult.error };
           break;
@@ -299,7 +302,7 @@ export const processNode = async (
         }
       }
     } else {
-      const nodeResult = await executeOperationNode(ctx, node, input);
+      const nodeResult = await executeOperationNode(ctx, node, input, deps);
       if (nodeResult.ok) {
         resultState.content = nodeResult.content;
         if (!resultState.content) {
