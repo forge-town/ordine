@@ -608,15 +608,22 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
     if (node.type === "output-local-path") {
       const rawPath: string =
         data.localPath ?? String((data as Record<string, unknown>).path ?? "");
-      const outputFileName = data.outputFileName?.trim() || "output.md";
+      const baseOutputFileName = data.outputFileName?.trim() || "output.md";
       const outputMode: OutputMode = data.outputMode ?? "overwrite";
       const dualOutput = (data as Record<string, unknown>).dualOutput === true;
+
+      // Inject job ID (first 8 chars) + timestamp into filename
+      const shortJobId = jobId.slice(0, 8);
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const fnExt = extname(baseOutputFileName);
+      const fnBase = basename(baseOutputFileName, fnExt);
+      const outputFileName = `${fnBase}_${shortJobId}_${timestamp}${fnExt}`;
+
       const resolvedPath = (() => {
         const initial = rawPath ? resolve(rawPath) : "";
-        const withFile =
-          initial && existsSync(initial) && statSync(initial).isDirectory()
-            ? join(initial, outputFileName)
-            : initial;
+        // Always output to results/ subdirectory
+        const resultsDir = initial ? join(initial, "results") : "";
+        const withFile = resultsDir ? join(resultsDir, outputFileName) : initial;
         if (withFile && existsSync(withFile) && outputMode === "auto_rename") {
           const dir = dirname(withFile);
           const ext = extname(withFile);

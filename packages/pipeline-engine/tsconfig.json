@@ -1,9 +1,0 @@
-{
-  "extends": "@repo/typescript-config/base.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "module": "preserve",
-    "moduleResolution": "bundler"
-  },
-  "include": ["src"]
-}
