@@ -16,6 +16,7 @@
     "quality": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/pipeline-engine": "workspace:*",
     "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {

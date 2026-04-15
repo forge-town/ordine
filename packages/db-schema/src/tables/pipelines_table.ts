@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { text, timestamp, jsonb, pgTable } from "drizzle-orm/pg-core";
-import type { PipelineNode, PipelineEdge } from "../types/pipelineGraph";
+import type { PipelineNode, PipelineEdge } from "@repo/pipeline-engine";
 
 export const pipelinesTable = pgTable("pipelines", {
   id: text("id").primaryKey(),
