@@ -66,7 +66,7 @@ export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
   };
   const duration =
     job.startedAt && job.finishedAt
-      ? ((job.finishedAt - job.startedAt) / 1000).toFixed(1) + "s"
+      ? ((job.finishedAt.getTime() - job.startedAt.getTime()) / 1000).toFixed(1) + "s"
       : job.startedAt
         ? t("jobs.inProgress")
         : null;

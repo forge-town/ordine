@@ -1,25 +1,9 @@
-import type { PipelineEntity } from "@repo/models";
+import type { PipelinesDaoInstance } from "@repo/models";
 
-type PipelinesDao = {
-  findMany: () => Promise<PipelineEntity[]>;
-  findById: (id: string) => Promise<PipelineEntity | null>;
-  create: (
-    data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">,
-  ) => Promise<PipelineEntity>;
-  update: (
-    id: string,
-    patch: Partial<Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">>,
-  ) => Promise<PipelineEntity | null>;
-  delete: (id: string) => Promise<void>;
-};
-
-export const createPipelinesService = (dao: PipelinesDao) => ({
+export const createPipelinesService = (dao: PipelinesDaoInstance) => ({
   getAll: () => dao.findMany(),
   getById: (id: string) => dao.findById(id),
-  create: (data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">) => dao.create(data),
-  update: (
-    id: string,
-    patch: Partial<Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">>,
-  ) => dao.update(id, patch),
+  create: (...args: Parameters<typeof dao.create>) => dao.create(...args),
+  update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
   delete: (id: string) => dao.delete(id),
 });

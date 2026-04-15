@@ -14,8 +14,8 @@ const mockSkills: SkillEntity[] = [
     description: "",
     category: "lint",
     tags: [],
-    createdAt: 1000,
-    updatedAt: 2000,
+    createdAt: new Date(1000),
+    updatedAt: new Date(2000),
   },
 ];
 
@@ -86,7 +86,7 @@ describe("OperationCreatePageContent", () => {
       expect(mockCreateOperation).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ name: "Test Op" }),
-        })
+        }),
       );
     });
   });
@@ -105,7 +105,7 @@ describe("OperationCreatePageContent", () => {
         expect.objectContaining({
           to: "/operations/$operationId",
           params: { operationId: "new-op-id" },
-        })
+        }),
       );
     });
   });

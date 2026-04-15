@@ -13,10 +13,10 @@ const mockJob: JobEntity = {
   logs: [],
   result: null,
   error: null,
-  startedAt: Date.now() - 5000,
+  startedAt: new Date(Date.now() - 5000),
   finishedAt: null,
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe("JobRow", () => {
@@ -53,7 +53,7 @@ describe("JobRow", () => {
         job={{ ...mockJob, status: "failed" }}
         onClick={handleClick}
         onDelete={handleDelete}
-      />
+      />,
     );
     expect(screen.getByText("失败")).toBeInTheDocument();
   });

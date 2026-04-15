@@ -46,8 +46,8 @@ const makeOp = (id: string, name: string, description?: string): OperationEntity
   description: description ?? null,
   config: "{}",
   acceptedObjectTypes: ["file"],
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 const makePipeline = (overrides: Partial<PipelineEntity> = {}): PipelineEntity => ({
@@ -58,8 +58,8 @@ const makePipeline = (overrides: Partial<PipelineEntity> = {}): PipelineEntity =
   nodeCount: 0,
   nodes: [],
   edges: [],
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
   ...overrides,
 });
 
@@ -85,7 +85,7 @@ describe("PipelineDetailPageContent", () => {
       <PipelineDetailPageContent
         operations={ops}
         pipeline={makePipeline({ tags: ["ci", "lint"] })}
-      />
+      />,
     );
     expect(screen.getByText("ci")).toBeInTheDocument();
     expect(screen.getByText("lint")).toBeInTheDocument();

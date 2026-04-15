@@ -10,6 +10,7 @@ export const operationsTable = pgTable("operations", {
   description: text("description"),
   config: text("config").notNull().default("{}"),
   acceptedObjectTypes: jsonb("accepted_object_types")
+    .$type<ObjectType[]>()
     .notNull()
     .default(sql`'["file","folder","project"]'::jsonb`),
   createdAt: timestamp("created_at").notNull().defaultNow(),

@@ -1,70 +1,37 @@
 import { eq, desc, and } from "drizzle-orm";
-import { db } from "@repo/db";
-import { jobsTable, type JobRow, type NewJobRow, type JobStatus } from "@repo/db-schema";
+import { jobsTable, type JobRow, type JobStatus } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type JobEntity = Omit<JobRow, "createdAt" | "updatedAt" | "startedAt" | "finishedAt"> & {
-  createdAt: number;
-  updatedAt: number;
-  startedAt: number | null;
-  finishedAt: number | null;
-};
+export type JobEntity = JobRow;
 
-const rowToEntity = (row: JobRow): JobEntity => ({
-  ...row,
-  createdAt: row.createdAt.getTime(),
-  updatedAt: row.updatedAt.getTime(),
-  startedAt: row.startedAt?.getTime() ?? null,
-  finishedAt: row.finishedAt?.getTime() ?? null,
-});
+class JobsDao {
+  constructor(readonly executor: DbExecutor) {}
 
-export const jobsDao = {
-  async findMany(filter?: { status?: JobStatus; projectId?: string }): Promise<JobEntity[]> {
+  async findMany(filter?: { status?: JobStatus; projectId?: string }) {
     const conditions = [];
     if (filter?.status) conditions.push(eq(jobsTable.status, filter.status));
     if (filter?.projectId) conditions.push(eq(jobsTable.projectId, filter.projectId));
 
-    const rows = await db
+    return this.executor
       .select()
       .from(jobsTable)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(jobsTable.createdAt));
-    return rows.map(rowToEntity);
-  },
+  }
 
-  async findById(id: string): Promise<JobEntity | null> {
-    const rows = await db.select().from(jobsTable).where(eq(jobsTable.id, id)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+  async findById(id: string) {
+    const rows = await this.executor.select().from(jobsTable).where(eq(jobsTable.id, id)).limit(1);
+    return rows[0] ?? null;
+  }
 
-  async create(data: Omit<JobEntity, "createdAt" | "updatedAt">): Promise<JobEntity> {
+  async create(data: typeof jobsTable.$inferInsert) {
     const now = new Date();
-    const row: NewJobRow = {
-      ...data,
-      startedAt: data.startedAt == null ? null : new Date(data.startedAt),
-      finishedAt: data.finishedAt == null ? null : new Date(data.finishedAt),
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await db.insert(jobsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
-
-  async createWithTx(
-    tx: DbExecutor,
-    data: Omit<JobEntity, "createdAt" | "updatedAt">,
-  ): Promise<JobEntity> {
-    const now = new Date();
-    const row: NewJobRow = {
-      ...data,
-      startedAt: data.startedAt == null ? null : new Date(data.startedAt),
-      finishedAt: data.finishedAt == null ? null : new Date(data.finishedAt),
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await tx.insert(jobsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
+    const [inserted] = await this.executor
+      .insert(jobsTable)
+      .values({ ...data, createdAt: now, updatedAt: now })
+      .returning();
+    return inserted!;
+  }
 
   async updateStatus(
     id: string,
@@ -72,82 +39,44 @@ export const jobsDao = {
     extra?: {
       logs?: string[];
       error?: string;
-      result?: JobEntity["result"];
-      startedAt?: number;
-      finishedAt?: number;
+      result?: JobRow["result"];
+      startedAt?: Date;
+      finishedAt?: Date;
     },
-  ): Promise<JobEntity | null> {
+  ) {
     const patch: Partial<JobRow> = {
       status,
       updatedAt: new Date(),
       ...(extra?.error !== undefined && { error: extra.error }),
       ...(extra?.result !== undefined && { result: extra.result }),
       ...(extra?.logs !== undefined && { logs: extra.logs }),
-      ...(extra?.startedAt !== undefined && {
-        startedAt: new Date(extra.startedAt),
-      }),
-      ...(extra?.finishedAt !== undefined && {
-        finishedAt: new Date(extra.finishedAt),
-      }),
+      ...(extra?.startedAt !== undefined && { startedAt: extra.startedAt }),
+      ...(extra?.finishedAt !== undefined && { finishedAt: extra.finishedAt }),
     };
-    const [updated] = await db.update(jobsTable).set(patch).where(eq(jobsTable.id, id)).returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+    const [updated] = await this.executor
+      .update(jobsTable)
+      .set(patch)
+      .where(eq(jobsTable.id, id))
+      .returning();
+    return updated ?? null;
+  }
 
-  async updateStatusWithTx(
-    tx: DbExecutor,
-    id: string,
-    status: JobStatus,
-    extra?: {
-      logs?: string[];
-      error?: string;
-      result?: JobEntity["result"];
-      startedAt?: number;
-      finishedAt?: number;
-    },
-  ): Promise<JobEntity | null> {
-    const patch: Partial<JobRow> = {
-      status,
-      updatedAt: new Date(),
-      ...(extra?.error !== undefined && { error: extra.error }),
-      ...(extra?.result !== undefined && { result: extra.result }),
-      ...(extra?.logs !== undefined && { logs: extra.logs }),
-      ...(extra?.startedAt !== undefined && {
-        startedAt: new Date(extra.startedAt),
-      }),
-      ...(extra?.finishedAt !== undefined && {
-        finishedAt: new Date(extra.finishedAt),
-      }),
-    };
-    const [updated] = await tx.update(jobsTable).set(patch).where(eq(jobsTable.id, id)).returning();
-    return updated ? rowToEntity(updated) : null;
-  },
-
-  async appendLog(id: string, line: string): Promise<void> {
-    // append by fetching then updating
-    const job = await jobsDao.findById(id);
+  async appendLog(id: string, line: string) {
+    const job = await this.findById(id);
     if (!job) return;
-    await db
+    await this.executor
       .update(jobsTable)
       .set({ logs: [...job.logs, line], updatedAt: new Date() })
       .where(eq(jobsTable.id, id));
-  },
+  }
 
-  async appendLogWithTx(tx: DbExecutor, id: string, line: string): Promise<void> {
-    const rows = await tx.select().from(jobsTable).where(eq(jobsTable.id, id)).limit(1);
-    const row = rows[0];
-    if (!row) return;
-    await tx
-      .update(jobsTable)
-      .set({ logs: [...row.logs, line], updatedAt: new Date() })
-      .where(eq(jobsTable.id, id));
-  },
+  async delete(id: string) {
+    await this.executor.delete(jobsTable).where(eq(jobsTable.id, id));
+  }
+}
 
-  async delete(id: string): Promise<void> {
-    await db.delete(jobsTable).where(eq(jobsTable.id, id));
-  },
-
-  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
-    await tx.delete(jobsTable).where(eq(jobsTable.id, id));
-  },
+export const createJobsDao = (executor: DbExecutor) => {
+  return new JobsDao(executor);
 };
+
+export type JobsDaoInstance = ReturnType<typeof createJobsDao>;

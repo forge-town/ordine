@@ -28,10 +28,10 @@ const mockJobs: JobEntity[] = [
     logs: [],
     result: null,
     error: null,
-    startedAt: Date.now() - 3000,
+    startedAt: new Date(Date.now() - 3000),
     finishedAt: null,
-    createdAt: Date.now() - 5000,
-    updatedAt: Date.now(),
+    createdAt: new Date(Date.now() - 5000),
+    updatedAt: new Date(),
   },
   {
     id: "job-002",
@@ -43,10 +43,10 @@ const mockJobs: JobEntity[] = [
     logs: [],
     result: null,
     error: null,
-    startedAt: Date.now() - 10_000,
-    finishedAt: Date.now() - 2000,
-    createdAt: Date.now() - 12_000,
-    updatedAt: Date.now(),
+    startedAt: new Date(Date.now() - 10_000),
+    finishedAt: new Date(Date.now() - 2000),
+    createdAt: new Date(Date.now() - 12_000),
+    updatedAt: new Date(),
   },
 ];
 

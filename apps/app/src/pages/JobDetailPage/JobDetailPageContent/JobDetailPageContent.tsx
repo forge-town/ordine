@@ -118,7 +118,7 @@ export const JobDetailPageContent = () => {
 
   const duration =
     job.startedAt && job.finishedAt
-      ? ((job.finishedAt - job.startedAt) / 1000).toFixed(2) + "s"
+      ? ((job.finishedAt.getTime() - job.startedAt.getTime()) / 1000).toFixed(2) + "s"
       : null;
 
   return (
@@ -135,7 +135,7 @@ export const JobDetailPageContent = () => {
         <span
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-            s.cls
+            s.cls,
           )}
         >
           <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />

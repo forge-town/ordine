@@ -1,39 +1,9 @@
-import type { JobEntity } from "@repo/models";
+import type { JobsDaoInstance } from "@repo/models";
 
-type JobStatus = JobEntity["status"];
-
-type JobsDao = {
-  findMany: (filter?: { status?: JobStatus; projectId?: string }) => Promise<JobEntity[]>;
-  findById: (id: string) => Promise<JobEntity | null>;
-  create: (data: Omit<JobEntity, "createdAt" | "updatedAt">) => Promise<JobEntity>;
-  updateStatus: (
-    id: string,
-    status: JobStatus,
-    extra?: {
-      logs?: string[];
-      error?: string;
-      result?: JobEntity["result"];
-      startedAt?: number;
-      finishedAt?: number;
-    },
-  ) => Promise<JobEntity | null>;
-  delete: (id: string) => Promise<void>;
-};
-
-export const createJobsService = (dao: JobsDao) => ({
-  getAll: (filter?: { status?: JobStatus; projectId?: string }) => dao.findMany(filter),
+export const createJobsService = (dao: JobsDaoInstance) => ({
+  getAll: (...args: Parameters<typeof dao.findMany>) => dao.findMany(...args),
   getById: (id: string) => dao.findById(id),
-  create: (data: Omit<JobEntity, "createdAt" | "updatedAt">) => dao.create(data),
-  updateStatus: (
-    id: string,
-    status: JobStatus,
-    extra?: {
-      logs?: string[];
-      error?: string;
-      result?: JobEntity["result"];
-      startedAt?: number;
-      finishedAt?: number;
-    },
-  ) => dao.updateStatus(id, status, extra),
+  create: (...args: Parameters<typeof dao.create>) => dao.create(...args),
+  updateStatus: (...args: Parameters<typeof dao.updateStatus>) => dao.updateStatus(...args),
   delete: (id: string) => dao.delete(id),
 });

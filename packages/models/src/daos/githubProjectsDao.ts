@@ -1,98 +1,53 @@
 import { eq, desc } from "drizzle-orm";
-import { db } from "@repo/db";
-import {
-  githubProjectsTable,
-  type GithubProjectRow,
-  type NewGithubProjectRow,
-} from "@repo/db-schema";
+import { githubProjectsTable, type GithubProjectRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type GithubProjectEntity = Omit<GithubProjectRow, "createdAt" | "updatedAt"> & {
-  createdAt: number;
-  updatedAt: number;
-};
+export type GithubProjectEntity = GithubProjectRow;
 
-const rowToEntity = (row: GithubProjectRow): GithubProjectEntity => ({
-  ...row,
-  createdAt: row.createdAt.getTime(),
-  updatedAt: row.updatedAt.getTime(),
-});
+class GithubProjectsDao {
+  constructor(readonly executor: DbExecutor) {}
 
-export const githubProjectsDao = {
-  async findMany(): Promise<GithubProjectEntity[]> {
-    const rows = await db
+  async findMany() {
+    return this.executor
       .select()
       .from(githubProjectsTable)
       .orderBy(desc(githubProjectsTable.updatedAt));
-    return rows.map(rowToEntity);
-  },
+  }
 
-  async findById(id: string): Promise<GithubProjectEntity | null> {
-    const rows = await db
+  async findById(id: string) {
+    const rows = await this.executor
       .select()
       .from(githubProjectsTable)
       .where(eq(githubProjectsTable.id, id))
       .limit(1);
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+    return rows[0] ?? null;
+  }
 
-  async create(
-    data: Omit<GithubProjectEntity, "createdAt" | "updatedAt">,
-  ): Promise<GithubProjectEntity> {
+  async create(data: typeof githubProjectsTable.$inferInsert) {
     const now = new Date();
-    const row: NewGithubProjectRow = {
-      ...data,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await db.insert(githubProjectsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
+    const [inserted] = await this.executor
+      .insert(githubProjectsTable)
+      .values({ ...data, createdAt: now, updatedAt: now })
+      .returning();
+    return inserted!;
+  }
 
-  async createWithTx(
-    tx: DbExecutor,
-    data: Omit<GithubProjectEntity, "createdAt" | "updatedAt">,
-  ): Promise<GithubProjectEntity> {
-    const now = new Date();
-    const row: NewGithubProjectRow = {
-      ...data,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await tx.insert(githubProjectsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
-
-  async update(
-    id: string,
-    patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<GithubProjectEntity | null> {
-    const [updated] = await db
+  async update(id: string, patch: Partial<Omit<typeof githubProjectsTable.$inferInsert, "id">>) {
+    const [updated] = await this.executor
       .update(githubProjectsTable)
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(githubProjectsTable.id, id))
       .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+    return updated ?? null;
+  }
 
-  async updateWithTx(
-    tx: DbExecutor,
-    id: string,
-    patch: Partial<Omit<GithubProjectEntity, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<GithubProjectEntity | null> {
-    const [updated] = await tx
-      .update(githubProjectsTable)
-      .set({ ...patch, updatedAt: new Date() })
-      .where(eq(githubProjectsTable.id, id))
-      .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+  async delete(id: string) {
+    await this.executor.delete(githubProjectsTable).where(eq(githubProjectsTable.id, id));
+  }
+}
 
-  async delete(id: string): Promise<void> {
-    await db.delete(githubProjectsTable).where(eq(githubProjectsTable.id, id));
-  },
-
-  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
-    await tx.delete(githubProjectsTable).where(eq(githubProjectsTable.id, id));
-  },
+export const createGithubProjectsDao = (executor: DbExecutor) => {
+  return new GithubProjectsDao(executor);
 };
+
+export type GithubProjectsDaoInstance = ReturnType<typeof createGithubProjectsDao>;

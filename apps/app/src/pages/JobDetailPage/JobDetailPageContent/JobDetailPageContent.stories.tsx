@@ -12,10 +12,10 @@ const mockJob: JobEntity = {
   logs: [],
   result: null,
   error: null,
-  startedAt: Date.now() - 5000,
-  finishedAt: Date.now(),
-  createdAt: Date.now() - 10000,
-  updatedAt: Date.now(),
+  startedAt: new Date(Date.now() - 5000),
+  finishedAt: new Date(),
+  createdAt: new Date(Date.now() - 10000),
+  updatedAt: new Date(),
 };
 
 const meta: Meta<typeof JobDetailPageContent> = {

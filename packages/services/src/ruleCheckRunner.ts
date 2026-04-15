@@ -18,7 +18,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { ResultAsync } from "neverthrow";
-import type { RuleEntity } from "@repo/models";
+import type { RulesDaoInstance, RuleEntity } from "@repo/models";
 import type { CheckOutput, Finding } from "@repo/agent";
 
 export interface RuleTarget {
@@ -26,9 +26,7 @@ export interface RuleTarget {
   type: "file" | "folder" | "project";
 }
 
-type RulesDao = {
-  findMany: (filter?: { enabled?: boolean }) => Promise<RuleEntity[]>;
-};
+type RulesDao = Pick<RulesDaoInstance, "findMany">;
 
 const execAsync = promisify(exec);
 

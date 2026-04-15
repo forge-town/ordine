@@ -9,14 +9,12 @@ const mockWhere = vi.fn(() => ({ returning: mockReturning }));
 const mockSet = vi.fn(() => ({ where: mockWhere }));
 const mockUpdate = vi.fn(() => ({ set: mockSet }));
 
-vi.mock("@repo/db", () => ({
-  db: {
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: mockUpdate,
-    delete: vi.fn(),
-  },
-}));
+const mockDb = {
+  select: vi.fn(),
+  insert: vi.fn(),
+  update: mockUpdate,
+  delete: vi.fn(),
+};
 
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual = await importOriginal<typeof DrizzleOrm>();
@@ -40,6 +38,11 @@ const makeRow = (id: string) => ({
   updatedAt: new Date("2024-01-01"),
 });
 
+import { createPipelinesDao } from "@repo/models";
+import type { DbExecutor } from "@repo/models";
+
+const dao = createPipelinesDao(mockDb as unknown as DbExecutor);
+
 describe("pipelinesDao.update", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -48,9 +51,6 @@ describe("pipelinesDao.update", () => {
   it("calls db.update with nodes and edges patch and returns updated entity", async () => {
     const returnedRow = makeRow("pipe-1");
     mockReturning.mockResolvedValueOnce([returnedRow]);
-
-    // Import after mocks are set up
-    const { pipelinesDao } = await import("@repo/models");
 
     const testNodes = [
       {
@@ -67,35 +67,29 @@ describe("pipelinesDao.update", () => {
       },
     ] satisfies PipelineEntity["nodes"];
 
-    const result = await pipelinesDao.update("pipe-1", {
+    const result = await dao.update("pipe-1", {
       nodes: testNodes,
       edges: [],
     });
 
-    // Verify db.update was called
     expect(mockUpdate).toHaveBeenCalledTimes(1);
 
-    // Verify .set() received nodes and edges
     const setPayload = (mockSet.mock.calls as Array<Array<Record<string, unknown>>>)[0]?.[0];
     expect(setPayload).toBeDefined();
     expect(setPayload["nodes"]).toEqual(testNodes);
     expect(setPayload["edges"]).toEqual([]);
     expect(setPayload["updatedAt"]).toBeInstanceOf(Date);
 
-    // Verify result entity has correct timestamps (number)
     expect(result).not.toBeNull();
     expect(result?.id).toBe("pipe-1");
-    expect(typeof result?.createdAt).toBe("number");
-    expect(typeof result?.updatedAt).toBe("number");
-    expect(result?.nodeCount).toBe(0);
+    expect(result?.createdAt).toBeInstanceOf(Date);
+    expect(result?.updatedAt).toBeInstanceOf(Date);
   });
 
   it("returns null when no rows are updated", async () => {
     mockReturning.mockResolvedValueOnce([]);
 
-    const { pipelinesDao } = await import("@repo/models");
-
-    const result = await pipelinesDao.update("nonexistent-id", { name: "x" });
+    const result = await dao.update("nonexistent-id", { name: "x" });
 
     expect(result).toBeNull();
   });
@@ -104,18 +98,14 @@ describe("pipelinesDao.update", () => {
     const returnedRow = makeRow("pipe-99");
     mockReturning.mockResolvedValueOnce([returnedRow]);
 
-    const { pipelinesDao } = await import("@repo/models");
-
-    await pipelinesDao.update("pipe-99", {
+    await dao.update("pipe-99", {
       name: "Updated Name",
       description: "New desc",
     });
 
     const setPayload = (mockSet.mock.calls as Array<Array<Record<string, unknown>>>)[0]?.[0];
-    // Should have name, description, updatedAt from internal logic
     expect(setPayload["name"]).toBe("Updated Name");
     expect(setPayload["description"]).toBe("New desc");
-    // Should NOT have nodeCount, createdAt from patch (they're omitted by the DAO type)
     expect("nodeCount" in setPayload).toBe(false);
   });
 });

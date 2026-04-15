@@ -91,10 +91,10 @@ export const OperationsPageContent = () => {
           return b.name.localeCompare(a.name);
         }
         case "date-asc": {
-          return a.createdAt - b.createdAt;
+          return a.createdAt.getTime() - b.createdAt.getTime();
         }
         case "date-desc": {
-          return b.createdAt - a.createdAt;
+          return b.createdAt.getTime() - a.createdAt.getTime();
         }
         default: {
           return 0;

@@ -1,23 +1,10 @@
-import type { SkillEntity } from "@repo/models";
+import type { SkillsDaoInstance } from "@repo/models";
 
-type SkillsDao = {
-  findMany: () => Promise<SkillEntity[]>;
-  findById: (id: string) => Promise<SkillEntity | null>;
-  findByName: (name: string) => Promise<SkillEntity | null>;
-  create: (data: Omit<SkillEntity, "createdAt" | "updatedAt">) => Promise<SkillEntity>;
-  update: (
-    id: string,
-    patch: Partial<Omit<SkillEntity, "createdAt" | "updatedAt">>,
-  ) => Promise<SkillEntity | null>;
-  delete: (id: string) => Promise<void>;
-};
-
-export const createSkillsService = (dao: SkillsDao) => ({
+export const createSkillsService = (dao: SkillsDaoInstance) => ({
   getAll: () => dao.findMany(),
   getById: (id: string) => dao.findById(id),
   getByName: (name: string) => dao.findByName(name),
-  create: (data: Omit<SkillEntity, "createdAt" | "updatedAt">) => dao.create(data),
-  update: (id: string, patch: Partial<Omit<SkillEntity, "createdAt" | "updatedAt">>) =>
-    dao.update(id, patch),
+  create: (...args: Parameters<typeof dao.create>) => dao.create(...args),
+  update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
   delete: (id: string) => dao.delete(id),
 });

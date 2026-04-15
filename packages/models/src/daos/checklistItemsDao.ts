@@ -1,105 +1,63 @@
 import { eq, asc } from "drizzle-orm";
-import { db } from "@repo/db";
-import {
-  checklistItemsTable,
-  type ChecklistItemRow,
-  type NewChecklistItemRow,
-} from "@repo/db-schema";
+import { checklistItemsTable, type ChecklistItemRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type ChecklistItemEntity = Omit<ChecklistItemRow, "createdAt" | "updatedAt"> & {
-  createdAt: number;
-  updatedAt: number;
-};
+export type ChecklistItemEntity = ChecklistItemRow;
 
-const rowToEntity = (row: ChecklistItemRow): ChecklistItemEntity => ({
-  ...row,
-  createdAt: row.createdAt.getTime(),
-  updatedAt: row.updatedAt.getTime(),
-});
+class ChecklistItemsDao {
+  constructor(readonly executor: DbExecutor) {}
 
-export const checklistItemsDao = {
-  async findByBestPracticeId(bestPracticeId: string): Promise<ChecklistItemEntity[]> {
-    const rows = await db
+  async findByBestPracticeId(bestPracticeId: string) {
+    return this.executor
       .select()
       .from(checklistItemsTable)
       .where(eq(checklistItemsTable.bestPracticeId, bestPracticeId))
       .orderBy(asc(checklistItemsTable.sortOrder));
-    return rows.map(rowToEntity);
-  },
+  }
 
-  async findById(id: string): Promise<ChecklistItemEntity | null> {
-    const rows = await db
+  async findById(id: string) {
+    const rows = await this.executor
       .select()
       .from(checklistItemsTable)
       .where(eq(checklistItemsTable.id, id))
       .limit(1);
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+    return rows[0] ?? null;
+  }
 
-  async create(
-    data: Omit<ChecklistItemEntity, "createdAt" | "updatedAt">,
-  ): Promise<ChecklistItemEntity> {
+  async create(data: typeof checklistItemsTable.$inferInsert) {
     const now = new Date();
-    const row: NewChecklistItemRow = {
-      ...data,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await db.insert(checklistItemsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
-
-  async createWithTx(
-    tx: DbExecutor,
-    data: Omit<ChecklistItemEntity, "createdAt" | "updatedAt">,
-  ): Promise<ChecklistItemEntity> {
-    const now = new Date();
-    const row: NewChecklistItemRow = {
-      ...data,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await tx.insert(checklistItemsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
+    const [inserted] = await this.executor
+      .insert(checklistItemsTable)
+      .values({ ...data, createdAt: now, updatedAt: now })
+      .returning();
+    return inserted!;
+  }
 
   async update(
     id: string,
-    patch: Partial<Omit<ChecklistItemEntity, "id" | "bestPracticeId" | "createdAt" | "updatedAt">>,
-  ): Promise<ChecklistItemEntity | null> {
-    const [updated] = await db
+    patch: Partial<Omit<typeof checklistItemsTable.$inferInsert, "id" | "bestPracticeId">>,
+  ) {
+    const [updated] = await this.executor
       .update(checklistItemsTable)
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(checklistItemsTable.id, id))
       .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+    return updated ?? null;
+  }
 
-  async updateWithTx(
-    tx: DbExecutor,
-    id: string,
-    patch: Partial<Omit<ChecklistItemEntity, "id" | "bestPracticeId" | "createdAt" | "updatedAt">>,
-  ): Promise<ChecklistItemEntity | null> {
-    const [updated] = await tx
-      .update(checklistItemsTable)
-      .set({ ...patch, updatedAt: new Date() })
-      .where(eq(checklistItemsTable.id, id))
-      .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+  async delete(id: string) {
+    await this.executor.delete(checklistItemsTable).where(eq(checklistItemsTable.id, id));
+  }
 
-  async delete(id: string): Promise<void> {
-    await db.delete(checklistItemsTable).where(eq(checklistItemsTable.id, id));
-  },
-
-  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
-    await tx.delete(checklistItemsTable).where(eq(checklistItemsTable.id, id));
-  },
-
-  async deleteByBestPracticeId(bestPracticeId: string): Promise<void> {
-    await db
+  async deleteByBestPracticeId(bestPracticeId: string) {
+    await this.executor
       .delete(checklistItemsTable)
       .where(eq(checklistItemsTable.bestPracticeId, bestPracticeId));
-  },
+  }
+}
+
+export const createChecklistItemsDao = (executor: DbExecutor) => {
+  return new ChecklistItemsDao(executor);
 };
+
+export type ChecklistItemsDaoInstance = ReturnType<typeof createChecklistItemsDao>;

@@ -28,9 +28,17 @@ export const jobsRouter = router({
           .default(null),
         error: z.string().nullable().default(null),
         status: JobStatusSchema.default("queued"),
-        startedAt: z.number().nullable().default(null),
-        finishedAt: z.number().nullable().default(null),
-      })
+        startedAt: z
+          .number()
+          .nullable()
+          .default(null)
+          .transform((v) => (v != null ? new Date(v) : null)),
+        finishedAt: z
+          .number()
+          .nullable()
+          .default(null)
+          .transform((v) => (v != null ? new Date(v) : null)),
+      }),
     )
     .mutation(({ input }) => jobsService.create(input)),
 
@@ -47,9 +55,15 @@ export const jobsRouter = router({
             summary: z.string().optional(),
           })
           .optional(),
-        startedAt: z.number().optional(),
-        finishedAt: z.number().optional(),
-      })
+        startedAt: z
+          .number()
+          .optional()
+          .transform((v) => (v != null ? new Date(v) : undefined)),
+        finishedAt: z
+          .number()
+          .optional()
+          .transform((v) => (v != null ? new Date(v) : undefined)),
+      }),
     )
     .mutation(({ input }) => {
       const { id, status, ...extra } = input;

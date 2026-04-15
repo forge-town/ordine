@@ -23,8 +23,8 @@ const mockOp: OperationEntity = {
   description: "Lints the code",
   config: '{"command":"eslint src/"}',
   acceptedObjectTypes: ["file", "folder"],
-  createdAt: 1000,
-  updatedAt: 2000,
+  createdAt: new Date(1000),
+  updatedAt: new Date(2000),
 };
 
 const mockSkills: SkillEntity[] = [
@@ -35,8 +35,8 @@ const mockSkills: SkillEntity[] = [
     description: "",
     category: "lint",
     tags: [],
-    createdAt: 1000,
-    updatedAt: 2000,
+    createdAt: new Date(1000),
+    updatedAt: new Date(2000),
   },
 ];
 
@@ -48,7 +48,7 @@ describe("OperationEditPageContent", () => {
 
   it("renders inside a <form> element (react-hook-form)", () => {
     const { container } = render(
-      <OperationEditPageContent operation={mockOp} skills={mockSkills} />
+      <OperationEditPageContent operation={mockOp} skills={mockSkills} />,
     );
     expect(container.querySelector("form")).not.toBeNull();
   });
@@ -102,7 +102,7 @@ describe("OperationEditPageContent", () => {
       expect(mockUpdateOperation).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ id: "op-123", name: "Run ESLint" }),
-        })
+        }),
       );
     });
   });

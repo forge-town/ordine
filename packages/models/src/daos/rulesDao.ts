@@ -1,115 +1,69 @@
 import { eq, desc, and } from "drizzle-orm";
-import { db } from "@repo/db";
-import {
-  rulesTable,
-  type RuleRow,
-  type NewRuleRow,
-  type RuleCategory,
-  type RuleSeverity,
-} from "@repo/db-schema";
+import { rulesTable, type RuleRow, type RuleCategory, type RuleSeverity } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type RuleEntity = Omit<RuleRow, "createdAt" | "updatedAt"> & {
-  createdAt: number;
-  updatedAt: number;
-};
+export type RuleEntity = RuleRow;
 
-const rowToEntity = (row: RuleRow): RuleEntity => ({
-  ...row,
-  createdAt: row.createdAt.getTime(),
-  updatedAt: row.updatedAt.getTime(),
-});
+class RulesDao {
+  constructor(readonly executor: DbExecutor) {}
 
-export const rulesDao = {
-  async findMany(filter?: { category?: RuleCategory; enabled?: boolean }): Promise<RuleEntity[]> {
+  async findMany(filter?: { category?: RuleCategory; enabled?: boolean }) {
     const conditions = [];
     if (filter?.category) conditions.push(eq(rulesTable.category, filter.category));
     if (filter?.enabled !== undefined) conditions.push(eq(rulesTable.enabled, filter.enabled));
 
-    const rows = await db
+    return this.executor
       .select()
       .from(rulesTable)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(rulesTable.createdAt));
-    return rows.map(rowToEntity);
-  },
+  }
 
-  async findById(id: string): Promise<RuleEntity | null> {
-    const rows = await db.select().from(rulesTable).where(eq(rulesTable.id, id)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+  async findById(id: string) {
+    const rows = await this.executor
+      .select()
+      .from(rulesTable)
+      .where(eq(rulesTable.id, id))
+      .limit(1);
+    return rows[0] ?? null;
+  }
 
-  async create(data: Omit<RuleEntity, "createdAt" | "updatedAt">): Promise<RuleEntity> {
+  async create(data: typeof rulesTable.$inferInsert) {
     const now = new Date();
-    const row: NewRuleRow = { ...data, createdAt: now, updatedAt: now };
-    const [inserted] = await db.insert(rulesTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
+    const [inserted] = await this.executor
+      .insert(rulesTable)
+      .values({ ...data, createdAt: now, updatedAt: now })
+      .returning();
+    return inserted!;
+  }
 
-  async createWithTx(
-    tx: DbExecutor,
-    data: Omit<RuleEntity, "createdAt" | "updatedAt">,
-  ): Promise<RuleEntity> {
-    const now = new Date();
-    const row: NewRuleRow = { ...data, createdAt: now, updatedAt: now };
-    const [inserted] = await tx.insert(rulesTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
-
-  async update(
-    id: string,
-    data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<RuleEntity | null> {
-    const rows = await db
+  async update(id: string, data: Partial<Omit<typeof rulesTable.$inferInsert, "id">>) {
+    const rows = await this.executor
       .update(rulesTable)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+    return rows[0] ?? null;
+  }
 
-  async updateWithTx(
-    tx: DbExecutor,
-    id: string,
-    data: Partial<Omit<RuleEntity, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<RuleEntity | null> {
-    const rows = await tx
-      .update(rulesTable)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(rulesTable.id, id))
-      .returning();
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
-
-  async toggleEnabled(id: string, enabled: boolean): Promise<RuleEntity | null> {
-    const rows = await db
+  async toggleEnabled(id: string, enabled: boolean) {
+    const rows = await this.executor
       .update(rulesTable)
       .set({ enabled, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+    return rows[0] ?? null;
+  }
 
-  async toggleEnabledWithTx(
-    tx: DbExecutor,
-    id: string,
-    enabled: boolean,
-  ): Promise<RuleEntity | null> {
-    const rows = await tx
-      .update(rulesTable)
-      .set({ enabled, updatedAt: new Date() })
-      .where(eq(rulesTable.id, id))
-      .returning();
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+  async delete(id: string) {
+    await this.executor.delete(rulesTable).where(eq(rulesTable.id, id));
+  }
+}
 
-  async delete(id: string): Promise<void> {
-    await db.delete(rulesTable).where(eq(rulesTable.id, id));
-  },
-
-  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
-    await tx.delete(rulesTable).where(eq(rulesTable.id, id));
-  },
+export const createRulesDao = (executor: DbExecutor) => {
+  return new RulesDao(executor);
 };
+
+export type RulesDaoInstance = ReturnType<typeof createRulesDao>;
 
 export type { RuleCategory, RuleSeverity };

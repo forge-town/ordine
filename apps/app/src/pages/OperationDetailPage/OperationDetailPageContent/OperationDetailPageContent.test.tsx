@@ -42,8 +42,8 @@ const mockOp: OperationEntity = {
     ],
   }),
   acceptedObjectTypes: ["file"],
-  createdAt: 1_712_000_000_000,
-  updatedAt: 1_712_000_000_000,
+  createdAt: new Date(1_712_000_000_000),
+  updatedAt: new Date(1_712_000_000_000),
 };
 
 describe("OperationDetailPageContent", () => {

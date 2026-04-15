@@ -1,14 +1,14 @@
 import {
   createBestPracticesDao,
-  checklistItemsDao,
-  checklistResultsDao,
-  codeSnippetsDao,
-  jobsDao,
-  operationsDao,
-  pipelinesDao,
-  recipesDao,
-  rulesDao,
-  skillsDao,
+  createChecklistItemsDao,
+  createChecklistResultsDao,
+  createCodeSnippetsDao,
+  createJobsDao,
+  createOperationsDao,
+  createPipelinesDao,
+  createRecipesDao,
+  createRulesDao,
+  createSkillsDao,
 } from "@repo/models";
 import { db } from "@repo/db";
 import {
@@ -25,6 +25,15 @@ import {
 } from "@repo/services";
 
 const bestPracticesDao = createBestPracticesDao(db);
+const checklistItemsDao = createChecklistItemsDao(db);
+const checklistResultsDao = createChecklistResultsDao(db);
+const codeSnippetsDao = createCodeSnippetsDao(db);
+const jobsDao = createJobsDao(db);
+const operationsDao = createOperationsDao(db);
+const pipelinesDao = createPipelinesDao(db);
+const recipesDao = createRecipesDao(db);
+const rulesDao = createRulesDao(db);
+const skillsDao = createSkillsDao(db);
 export const bestPracticesService = createBestPracticesService(bestPracticesDao);
 export const checklistService = createChecklistService(checklistItemsDao, checklistResultsDao);
 export const codeSnippetsService = createCodeSnippetsService(codeSnippetsDao);

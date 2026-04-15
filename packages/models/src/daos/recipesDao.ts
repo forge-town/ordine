@@ -1,86 +1,58 @@
 import { eq, desc } from "drizzle-orm";
-import { db } from "@repo/db";
-import { recipesTable, type RecipeRow, type NewRecipeRow } from "@repo/db-schema";
+import { recipesTable, type RecipeRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type RecipeEntity = Omit<RecipeRow, "createdAt" | "updatedAt"> & {
-  createdAt: number;
-  updatedAt: number;
-};
+export type RecipeEntity = RecipeRow;
 
-const rowToEntity = (row: RecipeRow): RecipeEntity => ({
-  ...row,
-  createdAt: row.createdAt.getTime(),
-  updatedAt: row.updatedAt.getTime(),
-});
+class RecipesDao {
+  constructor(readonly executor: DbExecutor) {}
 
-export const recipesDao = {
-  async findMany(): Promise<RecipeEntity[]> {
-    const rows = await db.select().from(recipesTable).orderBy(desc(recipesTable.updatedAt));
-    return rows.map(rowToEntity);
-  },
+  async findMany() {
+    return this.executor.select().from(recipesTable).orderBy(desc(recipesTable.updatedAt));
+  }
 
-  async findById(id: string): Promise<RecipeEntity | null> {
-    const rows = await db.select().from(recipesTable).where(eq(recipesTable.id, id)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+  async findById(id: string) {
+    const rows = await this.executor
+      .select()
+      .from(recipesTable)
+      .where(eq(recipesTable.id, id))
+      .limit(1);
+    return rows[0] ?? null;
+  }
 
-  async findByOperationId(operationId: string): Promise<RecipeEntity[]> {
-    const rows = await db
+  async findByOperationId(operationId: string) {
+    return this.executor
       .select()
       .from(recipesTable)
       .where(eq(recipesTable.operationId, operationId))
       .orderBy(desc(recipesTable.updatedAt));
-    return rows.map(rowToEntity);
-  },
+  }
 
-  async create(data: Omit<RecipeEntity, "createdAt" | "updatedAt">): Promise<RecipeEntity> {
+  async create(data: typeof recipesTable.$inferInsert) {
     const now = new Date();
-    const row: NewRecipeRow = { ...data, createdAt: now, updatedAt: now };
-    const [inserted] = await db.insert(recipesTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
+    const [inserted] = await this.executor
+      .insert(recipesTable)
+      .values({ ...data, createdAt: now, updatedAt: now })
+      .returning();
+    return inserted!;
+  }
 
-  async createWithTx(
-    tx: DbExecutor,
-    data: Omit<RecipeEntity, "createdAt" | "updatedAt">,
-  ): Promise<RecipeEntity> {
-    const now = new Date();
-    const row: NewRecipeRow = { ...data, createdAt: now, updatedAt: now };
-    const [inserted] = await tx.insert(recipesTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
-
-  async update(
-    id: string,
-    patch: Partial<Omit<RecipeEntity, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<RecipeEntity | null> {
-    const [updated] = await db
+  async update(id: string, patch: Partial<Omit<typeof recipesTable.$inferInsert, "id">>) {
+    const [updated] = await this.executor
       .update(recipesTable)
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(recipesTable.id, id))
       .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+    return updated ?? null;
+  }
 
-  async updateWithTx(
-    tx: DbExecutor,
-    id: string,
-    patch: Partial<Omit<RecipeEntity, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<RecipeEntity | null> {
-    const [updated] = await tx
-      .update(recipesTable)
-      .set({ ...patch, updatedAt: new Date() })
-      .where(eq(recipesTable.id, id))
-      .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+  async delete(id: string) {
+    await this.executor.delete(recipesTable).where(eq(recipesTable.id, id));
+  }
+}
 
-  async delete(id: string): Promise<void> {
-    await db.delete(recipesTable).where(eq(recipesTable.id, id));
-  },
-
-  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
-    await tx.delete(recipesTable).where(eq(recipesTable.id, id));
-  },
+export const createRecipesDao = (executor: DbExecutor) => {
+  return new RecipesDao(executor);
 };
+
+export type RecipesDaoInstance = ReturnType<typeof createRecipesDao>;

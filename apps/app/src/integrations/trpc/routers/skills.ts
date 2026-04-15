@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { skillsService } from "../services";
-import { skillsDao } from "@repo/models";
+import { skillsService, skillsDao } from "../services";
 import { SkillSchema } from "@repo/schemas";
 
 export const skillsRouter = router({
@@ -14,10 +13,17 @@ export const skillsRouter = router({
     .input(z.object({ id: z.string() }))
     .query(({ input }) => skillsService.getById(input.id)),
 
-  create: publicProcedure.input(SkillSchema).mutation(({ input }) => skillsService.create(input)),
+  create: publicProcedure
+    .input(SkillSchema.omit({ createdAt: true, updatedAt: true }))
+    .mutation(({ input }) => skillsService.create(input)),
 
   update: publicProcedure
-    .input(z.object({ id: z.string(), patch: SkillSchema.partial() }))
+    .input(
+      z.object({
+        id: z.string(),
+        patch: SkillSchema.omit({ createdAt: true, updatedAt: true }).partial(),
+      }),
+    )
     .mutation(({ input }) => skillsService.update(input.id, input.patch)),
 
   delete: publicProcedure

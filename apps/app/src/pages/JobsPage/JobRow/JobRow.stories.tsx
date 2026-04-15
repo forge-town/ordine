@@ -12,10 +12,10 @@ const baseJob: JobEntity = {
   logs: [],
   result: null,
   error: null,
-  startedAt: Date.now() - 5000,
+  startedAt: new Date(Date.now() - 5000),
   finishedAt: null,
-  createdAt: Date.now() - 10000,
-  updatedAt: Date.now(),
+  createdAt: new Date(Date.now() - 10000),
+  updatedAt: new Date(),
 };
 
 const meta: Meta<typeof JobRow> = {
@@ -36,13 +36,13 @@ export const Default: Story = {
 
 export const Done: Story = {
   args: {
-    job: { ...baseJob, status: "done", finishedAt: Date.now() },
+    job: { ...baseJob, status: "done", finishedAt: new Date() },
   },
 };
 
 export const Failed: Story = {
   args: {
-    job: { ...baseJob, status: "failed", finishedAt: Date.now() },
+    job: { ...baseJob, status: "failed", finishedAt: new Date() },
   },
 };
 

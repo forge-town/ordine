@@ -1,42 +1,18 @@
 import type {
   BestPracticesDaoInstance,
   ChecklistItemEntity,
+  ChecklistItemsDaoInstance,
   CodeSnippetEntity,
+  CodeSnippetsDaoInstance,
 } from "@repo/models";
 import type { BestPracticeRow } from "@repo/db-schema";
 
-type BpDaoFactory<Tx> = {
-  (executor: Tx): BestPracticesDaoInstance;
+type DaoFactory<D, Tx> = {
+  (executor: Tx): D;
 };
 
 type BpDaoWithFind = {
   findById(id: string): Promise<BestPracticeRow | null>;
-};
-
-type ChecklistDaoWithTx<Tx> = {
-  findById(id: string): Promise<ChecklistItemEntity | null>;
-  createWithTx(
-    tx: Tx,
-    data: Omit<ChecklistItemEntity, "createdAt" | "updatedAt">,
-  ): Promise<ChecklistItemEntity>;
-  updateWithTx(
-    tx: Tx,
-    id: string,
-    patch: Partial<Omit<ChecklistItemEntity, "id" | "bestPracticeId" | "createdAt" | "updatedAt">>,
-  ): Promise<ChecklistItemEntity | null>;
-};
-
-type SnippetsDaoWithTx<Tx> = {
-  findById(id: string): Promise<CodeSnippetEntity | null>;
-  createWithTx(
-    tx: Tx,
-    data: Omit<CodeSnippetEntity, "createdAt" | "updatedAt">,
-  ): Promise<CodeSnippetEntity>;
-  updateWithTx(
-    tx: Tx,
-    id: string,
-    patch: Partial<Omit<CodeSnippetEntity, "id" | "bestPracticeId" | "createdAt" | "updatedAt">>,
-  ): Promise<CodeSnippetEntity | null>;
 };
 
 type BpService = {
@@ -81,9 +57,11 @@ export interface BulkImportEntry {
 
 export const createBestPracticesBulkService = <Tx>(deps: {
   bpDao: BpDaoWithFind;
-  bpDaoFactory: BpDaoFactory<Tx>;
-  checklistDao: ChecklistDaoWithTx<Tx>;
-  snippetsDao: SnippetsDaoWithTx<Tx>;
+  bpDaoFactory: DaoFactory<BestPracticesDaoInstance, Tx>;
+  checklistDao: ChecklistItemsDaoInstance;
+  checklistDaoFactory: DaoFactory<ChecklistItemsDaoInstance, Tx>;
+  snippetsDao: CodeSnippetsDaoInstance;
+  snippetsDaoFactory: DaoFactory<CodeSnippetsDaoInstance, Tx>;
   bpService: BpService;
   checklistService: ChecklistItemService;
   codeSnippetsService: CodeSnippetsService;
@@ -123,6 +101,8 @@ export const createBestPracticesBulkService = <Tx>(deps: {
     return deps.runTransaction(async (tx: Tx) => {
       const counts = { imported: 0, checklistItems: 0, codeSnippets: 0 };
       const txBpDao = deps.bpDaoFactory(tx);
+      const txChecklistDao = deps.checklistDaoFactory(tx);
+      const txSnippetsDao = deps.snippetsDaoFactory(tx);
 
       for (const entry of entries) {
         const { checklistItems, codeSnippets, ...bpData } = entry;
@@ -141,9 +121,9 @@ export const createBestPracticesBulkService = <Tx>(deps: {
           const existingItem = await deps.checklistDao.findById(item.id);
           if (existingItem) {
             const { id: _id, bestPracticeId: _bpId, ...patch } = itemData;
-            await deps.checklistDao.updateWithTx(tx, item.id, patch);
+            await txChecklistDao.update(item.id, patch);
           } else {
-            await deps.checklistDao.createWithTx(tx, itemData);
+            await txChecklistDao.create(itemData);
           }
           counts.checklistItems++;
         }
@@ -153,9 +133,9 @@ export const createBestPracticesBulkService = <Tx>(deps: {
           const existingSnippet = await deps.snippetsDao.findById(snippet.id);
           if (existingSnippet) {
             const { id: _id, bestPracticeId: _bpId, ...patch } = snippetData;
-            await deps.snippetsDao.updateWithTx(tx, snippet.id, patch);
+            await txSnippetsDao.update(snippet.id, patch);
           } else {
-            await deps.snippetsDao.createWithTx(tx, snippetData);
+            await txSnippetsDao.create(snippetData);
           }
           counts.codeSnippets++;
         }

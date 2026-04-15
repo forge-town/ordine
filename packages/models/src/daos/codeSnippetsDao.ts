@@ -1,99 +1,63 @@
 import { eq, asc } from "drizzle-orm";
-import { db } from "@repo/db";
-import { codeSnippetsTable, type CodeSnippetRow, type NewCodeSnippetRow } from "@repo/db-schema";
+import { codeSnippetsTable, type CodeSnippetRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type CodeSnippetEntity = Omit<CodeSnippetRow, "createdAt" | "updatedAt"> & {
-  createdAt: number;
-  updatedAt: number;
-};
+export type CodeSnippetEntity = CodeSnippetRow;
 
-const rowToEntity = (row: CodeSnippetRow): CodeSnippetEntity => ({
-  ...row,
-  createdAt: row.createdAt.getTime(),
-  updatedAt: row.updatedAt.getTime(),
-});
+class CodeSnippetsDao {
+  constructor(readonly executor: DbExecutor) {}
 
-export const codeSnippetsDao = {
-  async findByBestPracticeId(bestPracticeId: string): Promise<CodeSnippetEntity[]> {
-    const rows = await db
+  async findByBestPracticeId(bestPracticeId: string) {
+    return this.executor
       .select()
       .from(codeSnippetsTable)
       .where(eq(codeSnippetsTable.bestPracticeId, bestPracticeId))
       .orderBy(asc(codeSnippetsTable.sortOrder));
-    return rows.map(rowToEntity);
-  },
+  }
 
-  async findById(id: string): Promise<CodeSnippetEntity | null> {
-    const rows = await db
+  async findById(id: string) {
+    const rows = await this.executor
       .select()
       .from(codeSnippetsTable)
       .where(eq(codeSnippetsTable.id, id))
       .limit(1);
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+    return rows[0] ?? null;
+  }
 
-  async create(
-    data: Omit<CodeSnippetEntity, "createdAt" | "updatedAt">,
-  ): Promise<CodeSnippetEntity> {
+  async create(data: typeof codeSnippetsTable.$inferInsert) {
     const now = new Date();
-    const row: NewCodeSnippetRow = {
-      ...data,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await db.insert(codeSnippetsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
-
-  async createWithTx(
-    tx: DbExecutor,
-    data: Omit<CodeSnippetEntity, "createdAt" | "updatedAt">,
-  ): Promise<CodeSnippetEntity> {
-    const now = new Date();
-    const row: NewCodeSnippetRow = {
-      ...data,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await tx.insert(codeSnippetsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
+    const [inserted] = await this.executor
+      .insert(codeSnippetsTable)
+      .values({ ...data, createdAt: now, updatedAt: now })
+      .returning();
+    return inserted!;
+  }
 
   async update(
     id: string,
-    patch: Partial<Omit<CodeSnippetEntity, "id" | "bestPracticeId" | "createdAt" | "updatedAt">>,
-  ): Promise<CodeSnippetEntity | null> {
-    const [updated] = await db
+    patch: Partial<Omit<typeof codeSnippetsTable.$inferInsert, "id" | "bestPracticeId">>,
+  ) {
+    const [updated] = await this.executor
       .update(codeSnippetsTable)
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(codeSnippetsTable.id, id))
       .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+    return updated ?? null;
+  }
 
-  async updateWithTx(
-    tx: DbExecutor,
-    id: string,
-    patch: Partial<Omit<CodeSnippetEntity, "id" | "bestPracticeId" | "createdAt" | "updatedAt">>,
-  ): Promise<CodeSnippetEntity | null> {
-    const [updated] = await tx
-      .update(codeSnippetsTable)
-      .set({ ...patch, updatedAt: new Date() })
-      .where(eq(codeSnippetsTable.id, id))
-      .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+  async delete(id: string) {
+    await this.executor.delete(codeSnippetsTable).where(eq(codeSnippetsTable.id, id));
+  }
 
-  async delete(id: string): Promise<void> {
-    await db.delete(codeSnippetsTable).where(eq(codeSnippetsTable.id, id));
-  },
+  async deleteByBestPracticeId(bestPracticeId: string) {
+    await this.executor
+      .delete(codeSnippetsTable)
+      .where(eq(codeSnippetsTable.bestPracticeId, bestPracticeId));
+  }
+}
 
-  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
-    await tx.delete(codeSnippetsTable).where(eq(codeSnippetsTable.id, id));
-  },
-
-  async deleteByBestPracticeId(bestPracticeId: string): Promise<void> {
-    await db.delete(codeSnippetsTable).where(eq(codeSnippetsTable.bestPracticeId, bestPracticeId));
-  },
+export const createCodeSnippetsDao = (executor: DbExecutor) => {
+  return new CodeSnippetsDao(executor);
 };
+
+export type CodeSnippetsDaoInstance = ReturnType<typeof createCodeSnippetsDao>;

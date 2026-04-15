@@ -2,14 +2,16 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RecipeCard } from "./RecipeCard";
 
+import type { ObjectType } from "@repo/db-schema";
+
 const mockRecipe = {
   id: "rcp-1",
   name: "Check ClassName 规范",
   description: "检查 className 模板字符串",
   operationId: "op-1",
   bestPracticeId: "bp-1",
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 const mockOperation = {
@@ -17,9 +19,9 @@ const mockOperation = {
   name: "Check",
   description: "",
   config: "{}",
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  acceptedObjectTypes: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  acceptedObjectTypes: [] as ObjectType[],
 };
 
 const mockBestPractice = {

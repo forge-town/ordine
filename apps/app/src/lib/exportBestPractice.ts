@@ -34,8 +34,8 @@ type ChecklistItem = {
   checkType: string;
   script: string | null;
   sortOrder: number;
-  createdAt?: number;
-  updatedAt?: number;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 type CodeSnippetItem = {
@@ -45,8 +45,8 @@ type CodeSnippetItem = {
   code: string;
   sortOrder: number;
   bestPracticeId?: string;
-  createdAt?: number;
-  updatedAt?: number;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 const addBPToZip = (

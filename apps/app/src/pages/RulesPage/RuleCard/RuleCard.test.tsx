@@ -14,8 +14,8 @@ const mockRule: RuleEntity = {
   acceptedObjectTypes: ["file", "folder", "project"],
   enabled: true,
   tags: ["debug", "style"],
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe("RuleCard", () => {
@@ -31,7 +31,7 @@ describe("RuleCard", () => {
         onNavigateToDetail={handleNavigateToDetail}
         onNavigateToEdit={handleNavigateToEdit}
         onToggle={handleToggle}
-      />
+      />,
     );
     expect(screen.getByText("No console.log")).toBeTruthy();
   });
@@ -48,7 +48,7 @@ describe("RuleCard", () => {
         onNavigateToDetail={handleNavigateToDetail}
         onNavigateToEdit={handleNavigateToEdit}
         onToggle={handleToggle}
-      />
+      />,
     );
     expect(screen.getByText("禁止使用 console.log")).toBeTruthy();
   });
@@ -65,7 +65,7 @@ describe("RuleCard", () => {
         onNavigateToDetail={handleNavigateToDetail}
         onNavigateToEdit={handleNavigateToEdit}
         onToggle={handleToggle}
-      />
+      />,
     );
     expect(screen.getByText("debug")).toBeTruthy();
     expect(screen.getByText("style")).toBeTruthy();

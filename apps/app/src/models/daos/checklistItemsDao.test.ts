@@ -18,14 +18,12 @@ const mockFrom = vi.fn(() => ({
 const mockValues = vi.fn(() => ({ returning: mockReturning }));
 const mockSet = vi.fn(() => ({ where: mockWhere }));
 
-vi.mock("@repo/db", () => ({
-  db: {
-    select: vi.fn(() => ({ from: mockFrom })),
-    insert: vi.fn(() => ({ values: mockValues })),
-    update: vi.fn(() => ({ set: mockSet })),
-    delete: vi.fn(() => ({ where: mockWhere })),
-  },
-}));
+const mockDb = {
+  select: vi.fn(() => ({ from: mockFrom })),
+  insert: vi.fn(() => ({ values: mockValues })),
+  update: vi.fn(() => ({ set: mockSet })),
+  delete: vi.fn(() => ({ where: mockWhere })),
+};
 
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual = await importOriginal<typeof DrizzleOrm>();
@@ -52,30 +50,33 @@ const makeRow = (id: string, bestPracticeId = "bp-1") => ({
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
+import { createChecklistItemsDao } from "@repo/models";
+import type { DbExecutor } from "@repo/models";
+
+const dao = createChecklistItemsDao(mockDb as unknown as DbExecutor);
+
 describe("checklistItemsDao", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("findByBestPracticeId returns entities with numeric timestamps", async () => {
+  it("findByBestPracticeId returns entities with Date timestamps", async () => {
     const row = makeRow("ci-1", "bp-1");
     mockOrderBy.mockResolvedValueOnce([row]);
 
-    const { checklistItemsDao } = await import("@repo/models");
-    const result = await checklistItemsDao.findByBestPracticeId("bp-1");
+    const result = await dao.findByBestPracticeId("bp-1");
 
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe("ci-1");
-    expect(typeof result[0].createdAt).toBe("number");
-    expect(typeof result[0].updatedAt).toBe("number");
+    expect(result[0].createdAt).toBeInstanceOf(Date);
+    expect(result[0].updatedAt).toBeInstanceOf(Date);
   });
 
   it("findById returns entity when found", async () => {
     const row = makeRow("ci-2");
     mockLimit.mockResolvedValueOnce([row]);
 
-    const { checklistItemsDao } = await import("@repo/models");
-    const result = await checklistItemsDao.findById("ci-2");
+    const result = await dao.findById("ci-2");
 
     expect(result).not.toBeNull();
     expect(result?.id).toBe("ci-2");
@@ -85,8 +86,7 @@ describe("checklistItemsDao", () => {
   it("findById returns null when not found", async () => {
     mockLimit.mockResolvedValueOnce([]);
 
-    const { checklistItemsDao } = await import("@repo/models");
-    const result = await checklistItemsDao.findById("nonexistent");
+    const result = await dao.findById("nonexistent");
 
     expect(result).toBeNull();
   });
@@ -95,8 +95,7 @@ describe("checklistItemsDao", () => {
     const row = makeRow("ci-3");
     mockReturning.mockResolvedValueOnce([row]);
 
-    const { checklistItemsDao } = await import("@repo/models");
-    const result = await checklistItemsDao.create({
+    const result = await dao.create({
       id: "ci-3",
       bestPracticeId: "bp-1",
       title: "Check naming",
@@ -107,15 +106,14 @@ describe("checklistItemsDao", () => {
     });
 
     expect(result.id).toBe("ci-3");
-    expect(typeof result.createdAt).toBe("number");
+    expect(result.createdAt).toBeInstanceOf(Date);
   });
 
   it("update returns entity on success", async () => {
     const row = makeRow("ci-4");
     mockReturning.mockResolvedValueOnce([row]);
 
-    const { checklistItemsDao } = await import("@repo/models");
-    const result = await checklistItemsDao.update("ci-4", {
+    const result = await dao.update("ci-4", {
       title: "Updated title",
     });
 
@@ -126,8 +124,7 @@ describe("checklistItemsDao", () => {
   it("update returns null when not found", async () => {
     mockReturning.mockResolvedValueOnce([]);
 
-    const { checklistItemsDao } = await import("@repo/models");
-    const result = await checklistItemsDao.update("nonexistent", {
+    const result = await dao.update("nonexistent", {
       title: "x",
     });
 
@@ -135,8 +132,7 @@ describe("checklistItemsDao", () => {
   });
 
   it("delete calls db.delete with correct id", async () => {
-    const { checklistItemsDao } = await import("@repo/models");
-    await checklistItemsDao.delete("ci-5");
+    await dao.delete("ci-5");
 
     expect(mockWhere).toHaveBeenCalled();
   });
@@ -149,8 +145,7 @@ describe("checklistItemsDao", () => {
     };
     mockReturning.mockResolvedValueOnce([row]);
 
-    const { checklistItemsDao } = await import("@repo/models");
-    const result = await checklistItemsDao.create({
+    const result = await dao.create({
       id: "ci-6",
       bestPracticeId: "bp-1",
       title: "File extension check",

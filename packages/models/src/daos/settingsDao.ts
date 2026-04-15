@@ -1,46 +1,44 @@
 import { eq } from "drizzle-orm";
-import { db } from "@repo/db";
 import { settingsTable, type SettingsRow } from "@repo/db-schema";
+import type { DbExecutor } from "../types.js";
 
-export type SettingsEntity = Omit<SettingsRow, "createdAt" | "updatedAt"> & {
-  createdAt: number;
-  updatedAt: number;
-};
-
-const rowToEntity = (row: SettingsRow): SettingsEntity => ({
-  ...row,
-  createdAt: row.createdAt.getTime(),
-  updatedAt: row.updatedAt.getTime(),
-});
+export type SettingsEntity = SettingsRow;
 
 const DEFAULT_ID = "default";
 
-export const settingsDao = {
-  async get(): Promise<SettingsEntity> {
-    const rows = await db
+class SettingsDao {
+  constructor(readonly executor: DbExecutor) {}
+
+  async get() {
+    const rows = await this.executor
       .select()
       .from(settingsTable)
       .where(eq(settingsTable.id, DEFAULT_ID))
       .limit(1);
 
-    if (rows.length > 0) return rowToEntity(rows[0]!);
+    if (rows.length > 0) return rows[0]!;
 
-    // Auto-create default row if none exists
-    const [created] = await db.insert(settingsTable).values({ id: DEFAULT_ID }).returning();
-    return rowToEntity(created!);
-  },
+    const [created] = await this.executor
+      .insert(settingsTable)
+      .values({ id: DEFAULT_ID })
+      .returning();
+    return created!;
+  }
 
-  async update(
-    patch: Partial<Pick<SettingsRow, "llmProvider" | "llmApiKey" | "llmModel">>,
-  ): Promise<SettingsEntity> {
-    // Ensure default row exists
+  async update(patch: Partial<Pick<SettingsRow, "llmProvider" | "llmApiKey" | "llmModel">>) {
     await this.get();
 
-    const [updated] = await db
+    const [updated] = await this.executor
       .update(settingsTable)
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(settingsTable.id, DEFAULT_ID))
       .returning();
-    return rowToEntity(updated!);
-  },
+    return updated!;
+  }
+}
+
+export const createSettingsDao = (executor: DbExecutor) => {
+  return new SettingsDao(executor);
 };
+
+export type SettingsDaoInstance = ReturnType<typeof createSettingsDao>;

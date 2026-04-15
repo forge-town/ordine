@@ -23,8 +23,8 @@ const makeOp = (id: string, name: string): OperationEntity => ({
   description: null,
   config: "{}",
   acceptedObjectTypes: ["file"],
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 const ops: OperationEntity[] = [

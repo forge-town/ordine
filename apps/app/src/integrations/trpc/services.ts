@@ -1,16 +1,16 @@
 import {
   createBestPracticesDao,
-  checklistItemsDao,
-  checklistResultsDao,
-  codeSnippetsDao,
-  githubProjectsDao,
-  jobsDao,
-  operationsDao,
-  pipelinesDao,
-  recipesDao,
-  rulesDao,
-  settingsDao,
-  skillsDao,
+  createChecklistItemsDao,
+  createChecklistResultsDao,
+  createCodeSnippetsDao,
+  createGithubProjectsDao,
+  createJobsDao,
+  createOperationsDao,
+  createPipelinesDao,
+  createRecipesDao,
+  createRulesDao,
+  createSettingsDao,
+  createSkillsDao,
 } from "@repo/models";
 import { db } from "@repo/db";
 import {
@@ -29,6 +29,9 @@ import {
 } from "@repo/services";
 
 const bestPracticesDao = createBestPracticesDao(db);
+const checklistItemsDao = createChecklistItemsDao(db);
+const checklistResultsDao = createChecklistResultsDao(db);
+const codeSnippetsDao = createCodeSnippetsDao(db);
 export const bestPracticesService = createBestPracticesService(bestPracticesDao);
 export const checklistService = createChecklistService(checklistItemsDao, checklistResultsDao);
 export const codeSnippetsService = createCodeSnippetsService(codeSnippetsDao);
@@ -37,17 +40,21 @@ export const bestPracticesBulkService = createBestPracticesBulkService({
   bpDao: bestPracticesDao,
   bpDaoFactory: createBestPracticesDao,
   checklistDao: checklistItemsDao,
+  checklistDaoFactory: createChecklistItemsDao,
   snippetsDao: codeSnippetsDao,
+  snippetsDaoFactory: createCodeSnippetsDao,
   bpService: bestPracticesService,
   checklistService,
   codeSnippetsService,
   runTransaction: db.transaction.bind(db),
 });
-export const githubProjectsService = createGithubProjectsService(githubProjectsDao);
-export const jobsService = createJobsService(jobsDao);
-export const operationsService = createOperationsService(operationsDao);
-export const pipelinesService = createPipelinesService(pipelinesDao);
-export const recipesService = createRecipesService(recipesDao);
-export const rulesService = createRulesService(rulesDao);
-export const settingsService = createSettingsService(settingsDao);
+export const githubProjectsService = createGithubProjectsService(createGithubProjectsDao(db));
+export const jobsService = createJobsService(createJobsDao(db));
+export const operationsService = createOperationsService(createOperationsDao(db));
+export const pipelinesService = createPipelinesService(createPipelinesDao(db));
+export const recipesService = createRecipesService(createRecipesDao(db));
+export const rulesService = createRulesService(createRulesDao(db));
+export const settingsService = createSettingsService(createSettingsDao(db));
+const skillsDao = createSkillsDao(db);
+export { skillsDao };
 export const skillsService = createSkillsService(skillsDao);

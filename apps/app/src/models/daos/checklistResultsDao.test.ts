@@ -15,14 +15,12 @@ const mockFrom = vi.fn(() => ({
 const mockValues = vi.fn(() => ({ returning: mockReturning }));
 const mockSet = vi.fn(() => ({ where: mockWriteWhere }));
 
-vi.mock("@repo/db", () => ({
-  db: {
-    select: vi.fn(() => ({ from: mockFrom })),
-    insert: vi.fn(() => ({ values: mockValues })),
-    update: vi.fn(() => ({ set: mockSet })),
-    delete: vi.fn(() => ({ where: mockDeleteWhere })),
-  },
-}));
+const mockDb = {
+  select: vi.fn(() => ({ from: mockFrom })),
+  insert: vi.fn(() => ({ values: mockValues })),
+  update: vi.fn(() => ({ set: mockSet })),
+  delete: vi.fn(() => ({ where: mockDeleteWhere })),
+};
 
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual = await importOriginal<typeof DrizzleOrm>();
@@ -45,21 +43,25 @@ const makeRow = (id: string, jobId = "job-1") => ({
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
+import { createChecklistResultsDao } from "@repo/models";
+import type { DbExecutor } from "@repo/models";
+
+const dao = createChecklistResultsDao(mockDb as unknown as DbExecutor);
+
 describe("checklistResultsDao", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("findByJobId returns entities with numeric timestamps", async () => {
+  it("findByJobId returns entities with Date timestamps", async () => {
     const row = makeRow("cr-1", "job-1");
     mockSelectWhere.mockResolvedValueOnce([row]);
 
-    const { checklistResultsDao } = await import("@repo/models");
-    const result = await checklistResultsDao.findByJobId("job-1");
+    const result = await dao.findByJobId("job-1");
 
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe("cr-1");
-    expect(typeof result[0].createdAt).toBe("number");
+    expect(result[0].createdAt).toBeInstanceOf(Date);
     expect(result[0].passed).toBe(true);
   });
 
@@ -67,8 +69,7 @@ describe("checklistResultsDao", () => {
     const row = makeRow("cr-2");
     mockReturning.mockResolvedValueOnce([row]);
 
-    const { checklistResultsDao } = await import("@repo/models");
-    const result = await checklistResultsDao.create({
+    const result = await dao.create({
       id: "cr-2",
       jobId: "job-1",
       checklistItemId: "ci-1",
@@ -77,7 +78,7 @@ describe("checklistResultsDao", () => {
     });
 
     expect(result.id).toBe("cr-2");
-    expect(typeof result.createdAt).toBe("number");
+    expect(result.createdAt).toBeInstanceOf(Date);
   });
 
   it("update returns entity on success", async () => {
@@ -88,8 +89,7 @@ describe("checklistResultsDao", () => {
     };
     mockReturning.mockResolvedValueOnce([row]);
 
-    const { checklistResultsDao } = await import("@repo/models");
-    const result = await checklistResultsDao.update("cr-3", {
+    const result = await dao.update("cr-3", {
       passed: false,
       output: "Failed: naming mismatch",
     });
@@ -102,8 +102,7 @@ describe("checklistResultsDao", () => {
   it("update returns null when not found", async () => {
     mockReturning.mockResolvedValueOnce([]);
 
-    const { checklistResultsDao } = await import("@repo/models");
-    const result = await checklistResultsDao.update("nonexistent", {
+    const result = await dao.update("nonexistent", {
       passed: true,
     });
 
@@ -111,8 +110,7 @@ describe("checklistResultsDao", () => {
   });
 
   it("deleteByJobId calls db.delete", async () => {
-    const { checklistResultsDao } = await import("@repo/models");
-    await checklistResultsDao.deleteByJobId("job-1");
+    await dao.deleteByJobId("job-1");
 
     expect(mockDeleteWhere).toHaveBeenCalled();
   });

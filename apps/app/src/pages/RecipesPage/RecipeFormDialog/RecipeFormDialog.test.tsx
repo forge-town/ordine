@@ -2,6 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RecipeFormDialog } from "./RecipeFormDialog";
 
+import type { ObjectType } from "@repo/db-schema";
+
 vi.mock("@/services/recipesService", () => ({
   createRecipe: vi.fn(),
   updateRecipe: vi.fn(),
@@ -13,9 +15,9 @@ const mockOperations = [
     name: "Check",
     description: "",
     config: "{}",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-    acceptedObjectTypes: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    acceptedObjectTypes: [] as ObjectType[],
   },
 ];
 
@@ -40,8 +42,8 @@ const mockRecipe = {
   description: "",
   operationId: "op-1",
   bestPracticeId: "bp-1",
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe("RecipeFormDialog", () => {

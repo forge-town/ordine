@@ -33,13 +33,13 @@ import type {
   OutputMode,
 } from "@repo/db-schema";
 import {
-  operationsDao,
-  pipelinesDao,
-  jobsDao,
-  skillsDao,
+  createOperationsDao,
+  createPipelinesDao,
+  createJobsDao,
+  createSkillsDao,
   createBestPracticesDao,
-  settingsDao,
-  rulesDao,
+  createSettingsDao,
+  createRulesDao,
   type OperationEntity,
 } from "@repo/models";
 import { db } from "@repo/db";
@@ -49,7 +49,13 @@ import { createLlmService } from "./llmService.js";
 import { buildExecutionLevels, getParentIds, CycleDetectedError } from "./dagScheduler.js";
 import { runRuleCheck } from "./ruleCheckRunner.js";
 
+const operationsDao = createOperationsDao(db);
+const pipelinesDao = createPipelinesDao(db);
+const jobsDao = createJobsDao(db);
+const skillsDao = createSkillsDao(db);
 const bestPracticesDao = createBestPracticesDao(db);
+const settingsDao = createSettingsDao(db);
+const rulesDao = createRulesDao(db);
 const llmService = createLlmService(settingsDao);
 const getSettings = llmService.getSettings;
 const getModel = llmService.getModel;
@@ -240,7 +246,7 @@ const executePipeline = async (opts: {
     await jobsDao.appendLog(jobId, `[${new Date().toISOString()}] ${line}`);
   };
 
-  await jobsDao.updateStatus(jobId, "running", { startedAt: Date.now() });
+  await jobsDao.updateStatus(jobId, "running", { startedAt: new Date() });
   await log(`Starting pipeline ${pipelineId}`);
 
   const pipeline = await pipelinesDao.findById(pipelineId);
@@ -849,14 +855,14 @@ export const runPipeline = async (opts: {
 
   if (outcome.ok) {
     await jobsDao.updateStatus(opts.jobId, "done", {
-      finishedAt: Date.now(),
+      finishedAt: new Date(),
       result: { summary: outcome.summary },
     });
   } else {
     const message = outcome.error.message;
     await jobsDao.appendLog(opts.jobId, `[${new Date().toISOString()}] ERROR: ${message}`);
     await jobsDao.updateStatus(opts.jobId, "failed", {
-      finishedAt: Date.now(),
+      finishedAt: new Date(),
       error: message,
     });
   }

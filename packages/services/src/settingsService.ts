@@ -1,14 +1,6 @@
-import type { SettingsEntity } from "@repo/models";
+import type { SettingsDaoInstance } from "@repo/models";
 
-type SettingsDao = {
-  get: () => Promise<SettingsEntity>;
-  update: (
-    patch: Partial<Pick<SettingsEntity, "llmProvider" | "llmApiKey" | "llmModel">>,
-  ) => Promise<SettingsEntity>;
-};
-
-export const createSettingsService = (dao: SettingsDao) => ({
+export const createSettingsService = (dao: SettingsDaoInstance) => ({
   get: () => dao.get(),
-  update: (patch: Partial<Pick<SettingsEntity, "llmProvider" | "llmApiKey" | "llmModel">>) =>
-    dao.update(patch),
+  update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
 });

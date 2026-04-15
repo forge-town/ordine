@@ -9,8 +9,8 @@ const mockOp: OperationEntity = {
   description: null,
   config: "{}",
   acceptedObjectTypes: ["file"],
-  createdAt: 1000,
-  updatedAt: 1000,
+  createdAt: new Date(1000),
+  updatedAt: new Date(1000),
 };
 
 vi.mock("@tanstack/react-router", () => ({

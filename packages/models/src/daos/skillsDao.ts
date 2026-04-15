@@ -1,109 +1,58 @@
 import { eq, desc } from "drizzle-orm";
-import { db } from "@repo/db";
-import { skillsTable, type NewSkillRow, type SkillRow } from "@repo/db-schema";
+import { skillsTable, type SkillRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type SkillEntity = Omit<SkillRow, "createdAt" | "updatedAt"> & {
-  createdAt: number;
-  updatedAt: number;
-};
+export type SkillEntity = SkillRow;
 
-const rowToEntity = (row: SkillRow): SkillEntity => {
-  return {
-    ...row,
-    createdAt: row.createdAt.getTime(),
-    updatedAt: row.updatedAt.getTime(),
-  };
-};
+class SkillsDao {
+  constructor(readonly executor: DbExecutor) {}
 
-export const skillsDao = {
-  async findMany(): Promise<SkillEntity[]> {
-    const rows = await db.select().from(skillsTable).orderBy(desc(skillsTable.updatedAt));
-    return rows.map(rowToEntity);
-  },
+  async findMany() {
+    return this.executor.select().from(skillsTable).orderBy(desc(skillsTable.updatedAt));
+  }
 
-  async findById(id: string): Promise<SkillEntity | null> {
-    const rows = await db.select().from(skillsTable).where(eq(skillsTable.id, id)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+  async findById(id: string) {
+    const rows = await this.executor
+      .select()
+      .from(skillsTable)
+      .where(eq(skillsTable.id, id))
+      .limit(1);
+    return rows[0] ?? null;
+  }
 
-  async findByName(name: string): Promise<SkillEntity | null> {
-    const rows = await db.select().from(skillsTable).where(eq(skillsTable.name, name)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+  async findByName(name: string) {
+    const rows = await this.executor
+      .select()
+      .from(skillsTable)
+      .where(eq(skillsTable.name, name))
+      .limit(1);
+    return rows[0] ?? null;
+  }
 
-  async create(data: Omit<SkillEntity, "createdAt" | "updatedAt">): Promise<SkillEntity> {
+  async create(data: typeof skillsTable.$inferInsert) {
     const now = new Date();
-    const row: NewSkillRow = {
-      ...data,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await db.insert(skillsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
+    const [inserted] = await this.executor
+      .insert(skillsTable)
+      .values({ ...data, createdAt: now, updatedAt: now })
+      .returning();
+    return inserted!;
+  }
 
-  async createWithTx(
-    tx: DbExecutor,
-    data: Omit<SkillEntity, "createdAt" | "updatedAt">,
-  ): Promise<SkillEntity> {
-    const now = new Date();
-    const row: NewSkillRow = {
-      ...data,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await tx.insert(skillsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
-
-  async update(
-    id: string,
-    patch: Partial<Omit<SkillEntity, "createdAt" | "updatedAt">>,
-  ): Promise<SkillEntity | null> {
-    const updates: Partial<NewSkillRow> = { updatedAt: new Date() };
-    if (patch.name !== undefined) updates.name = patch.name;
-    if (patch.label !== undefined) updates.label = patch.label;
-    if (patch.description !== undefined) updates.description = patch.description;
-    if (patch.category !== undefined) updates.category = patch.category;
-    if (patch.tags !== undefined) updates.tags = patch.tags;
-    const [updated] = await db
+  async update(id: string, patch: Partial<Omit<typeof skillsTable.$inferInsert, "id">>) {
+    const [updated] = await this.executor
       .update(skillsTable)
-      .set(updates)
+      .set({ ...patch, updatedAt: new Date() })
       .where(eq(skillsTable.id, id))
       .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+    return updated ?? null;
+  }
 
-  async updateWithTx(
-    tx: DbExecutor,
-    id: string,
-    patch: Partial<Omit<SkillEntity, "createdAt" | "updatedAt">>,
-  ): Promise<SkillEntity | null> {
-    const updates: Partial<NewSkillRow> = { updatedAt: new Date() };
-    if (patch.name !== undefined) updates.name = patch.name;
-    if (patch.label !== undefined) updates.label = patch.label;
-    if (patch.description !== undefined) updates.description = patch.description;
-    if (patch.category !== undefined) updates.category = patch.category;
-    if (patch.tags !== undefined) updates.tags = patch.tags;
-    const [updated] = await tx
-      .update(skillsTable)
-      .set(updates)
-      .where(eq(skillsTable.id, id))
-      .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+  async delete(id: string) {
+    await this.executor.delete(skillsTable).where(eq(skillsTable.id, id));
+  }
 
-  async delete(id: string): Promise<void> {
-    await db.delete(skillsTable).where(eq(skillsTable.id, id));
-  },
-
-  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
-    await tx.delete(skillsTable).where(eq(skillsTable.id, id));
-  },
-
-  async seedIfEmpty(): Promise<void> {
-    const existing = await db.select().from(skillsTable).limit(1);
+  async seedIfEmpty() {
+    const existing = await this.executor.select().from(skillsTable).limit(1);
     if (existing.length > 0) return;
 
     const seedData = [
@@ -218,12 +167,18 @@ export const skillsDao = {
     ];
 
     const now = new Date();
-    const rows: NewSkillRow[] = seedData.map((s) => ({
+    const rows = seedData.map((s) => ({
       ...s,
       createdAt: now,
       updatedAt: now,
     }));
 
-    await db.insert(skillsTable).values(rows);
-  },
+    await this.executor.insert(skillsTable).values(rows);
+  }
+}
+
+export const createSkillsDao = (executor: DbExecutor) => {
+  return new SkillsDao(executor);
 };
+
+export type SkillsDaoInstance = ReturnType<typeof createSkillsDao>;

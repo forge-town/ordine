@@ -1,87 +1,46 @@
 import { eq, desc } from "drizzle-orm";
-import { db } from "@repo/db";
-import {
-  operationsTable,
-  type OperationRow,
-  type NewOperationRow,
-  type ObjectType,
-} from "@repo/db-schema";
+import { operationsTable, type OperationRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type OperationEntity = Omit<
-  OperationRow,
-  "createdAt" | "updatedAt" | "acceptedObjectTypes"
-> & {
-  createdAt: number;
-  updatedAt: number;
-  acceptedObjectTypes: ObjectType[];
-};
+export type OperationEntity = OperationRow;
 
-const rowToEntity = (row: OperationRow): OperationEntity => ({
-  ...row,
-  acceptedObjectTypes: (row.acceptedObjectTypes as ObjectType[]) ?? ["file", "folder", "project"],
-  createdAt: row.createdAt.getTime(),
-  updatedAt: row.updatedAt.getTime(),
-});
+class OperationsDao {
+  constructor(readonly executor: DbExecutor) {}
 
-const entityToRow = (data: Omit<OperationEntity, "createdAt" | "updatedAt">): NewOperationRow => ({
-  ...data,
-});
+  async findMany() {
+    return this.executor.select().from(operationsTable).orderBy(desc(operationsTable.createdAt));
+  }
 
-export const operationsDao = {
-  async findMany(): Promise<OperationEntity[]> {
-    const rows = await db.select().from(operationsTable).orderBy(desc(operationsTable.createdAt));
-    return rows.map(rowToEntity);
-  },
+  async findById(id: string) {
+    const rows = await this.executor
+      .select()
+      .from(operationsTable)
+      .where(eq(operationsTable.id, id))
+      .limit(1);
+    return rows[0] ?? null;
+  }
 
-  async findById(id: string): Promise<OperationEntity | null> {
-    const rows = await db.select().from(operationsTable).where(eq(operationsTable.id, id)).limit(1);
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+  async create(data: typeof operationsTable.$inferInsert) {
+    const [inserted] = await this.executor.insert(operationsTable).values(data).returning();
+    return inserted!;
+  }
 
-  async create(data: Omit<OperationEntity, "createdAt" | "updatedAt">): Promise<OperationEntity> {
-    const [inserted] = await db.insert(operationsTable).values(entityToRow(data)).returning();
-    return rowToEntity(inserted!);
-  },
-
-  async createWithTx(
-    tx: DbExecutor,
-    data: Omit<OperationEntity, "createdAt" | "updatedAt">,
-  ): Promise<OperationEntity> {
-    const [inserted] = await tx.insert(operationsTable).values(entityToRow(data)).returning();
-    return rowToEntity(inserted!);
-  },
-
-  async update(
-    id: string,
-    data: Partial<Omit<OperationEntity, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<OperationEntity | null> {
-    const [updated] = await db
+  async update(id: string, data: Partial<Omit<typeof operationsTable.$inferInsert, "id">>) {
+    const [updated] = await this.executor
       .update(operationsTable)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(operationsTable.id, id))
       .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+    return updated ?? null;
+  }
 
-  async updateWithTx(
-    tx: DbExecutor,
-    id: string,
-    data: Partial<Omit<OperationEntity, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<OperationEntity | null> {
-    const [updated] = await tx
-      .update(operationsTable)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(operationsTable.id, id))
-      .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+  async delete(id: string) {
+    await this.executor.delete(operationsTable).where(eq(operationsTable.id, id));
+  }
+}
 
-  async delete(id: string): Promise<void> {
-    await db.delete(operationsTable).where(eq(operationsTable.id, id));
-  },
-
-  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
-    await tx.delete(operationsTable).where(eq(operationsTable.id, id));
-  },
+export const createOperationsDao = (executor: DbExecutor) => {
+  return new OperationsDao(executor);
 };
+
+export type OperationsDaoInstance = ReturnType<typeof createOperationsDao>;

@@ -1,77 +1,50 @@
 import { eq } from "drizzle-orm";
-import { db } from "@repo/db";
-import {
-  checklistResultsTable,
-  type ChecklistResultRow,
-  type NewChecklistResultRow,
-} from "@repo/db-schema";
+import { checklistResultsTable, type ChecklistResultRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type ChecklistResultEntity = Omit<ChecklistResultRow, "createdAt"> & {
-  createdAt: number;
-};
+export type ChecklistResultEntity = ChecklistResultRow;
 
-const rowToEntity = (row: ChecklistResultRow): ChecklistResultEntity => ({
-  ...row,
-  createdAt: row.createdAt.getTime(),
-});
+class ChecklistResultsDao {
+  constructor(readonly executor: DbExecutor) {}
 
-export const checklistResultsDao = {
-  async findByJobId(jobId: string): Promise<ChecklistResultEntity[]> {
-    const rows = await db
+  async findByJobId(jobId: string) {
+    return this.executor
       .select()
       .from(checklistResultsTable)
       .where(eq(checklistResultsTable.jobId, jobId));
-    return rows.map(rowToEntity);
-  },
+  }
 
-  async create(data: Omit<ChecklistResultEntity, "createdAt">): Promise<ChecklistResultEntity> {
+  async create(data: typeof checklistResultsTable.$inferInsert) {
     const now = new Date();
-    const row: NewChecklistResultRow = { ...data, createdAt: now };
-    const [inserted] = await db.insert(checklistResultsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
+    const [inserted] = await this.executor
+      .insert(checklistResultsTable)
+      .values({ ...data, createdAt: now })
+      .returning();
+    return inserted!;
+  }
 
-  async createWithTx(
-    tx: DbExecutor,
-    data: Omit<ChecklistResultEntity, "createdAt">,
-  ): Promise<ChecklistResultEntity> {
+  async createMany(data: (typeof checklistResultsTable.$inferInsert)[]) {
     const now = new Date();
-    const row: NewChecklistResultRow = { ...data, createdAt: now };
-    const [inserted] = await tx.insert(checklistResultsTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
+    const rows = data.map((d) => ({ ...d, createdAt: now }));
+    return this.executor.insert(checklistResultsTable).values(rows).returning();
+  }
 
-  async createManyWithTx(
-    tx: DbExecutor,
-    data: Omit<ChecklistResultEntity, "createdAt">[],
-  ): Promise<ChecklistResultEntity[]> {
-    const now = new Date();
-    const rows: NewChecklistResultRow[] = data.map((d) => ({
-      ...d,
-      createdAt: now,
-    }));
-    const inserted = await tx.insert(checklistResultsTable).values(rows).returning();
-    return inserted.map(rowToEntity);
-  },
-
-  async update(
-    id: string,
-    patch: Partial<Pick<ChecklistResultEntity, "passed" | "output">>,
-  ): Promise<ChecklistResultEntity | null> {
-    const [updated] = await db
+  async update(id: string, patch: Partial<Pick<ChecklistResultRow, "passed" | "output">>) {
+    const [updated] = await this.executor
       .update(checklistResultsTable)
       .set(patch)
       .where(eq(checklistResultsTable.id, id))
       .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+    return updated ?? null;
+  }
 
-  async deleteByJobId(jobId: string): Promise<void> {
-    await db.delete(checklistResultsTable).where(eq(checklistResultsTable.jobId, jobId));
-  },
+  async deleteByJobId(jobId: string) {
+    await this.executor.delete(checklistResultsTable).where(eq(checklistResultsTable.jobId, jobId));
+  }
+}
 
-  async deleteByJobIdWithTx(tx: DbExecutor, jobId: string): Promise<void> {
-    await tx.delete(checklistResultsTable).where(eq(checklistResultsTable.jobId, jobId));
-  },
+export const createChecklistResultsDao = (executor: DbExecutor) => {
+  return new ChecklistResultsDao(executor);
 };
+
+export type ChecklistResultsDaoInstance = ReturnType<typeof createChecklistResultsDao>;

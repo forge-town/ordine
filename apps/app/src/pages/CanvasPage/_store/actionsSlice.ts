@@ -26,7 +26,7 @@ export interface ActionsSlice {
   handleFlowConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void;
   handleFlowConnectEnd: (
     event: MouseEvent | TouchEvent,
-    connectionState: FinalConnectionState
+    connectionState: FinalConnectionState,
   ) => void;
   handleFlowNodeClick: (event: React.MouseEvent, node: PipelineNode) => void;
   handleFlowNodeContextMenu: (event: React.MouseEvent, node: PipelineNode) => void;
@@ -37,7 +37,7 @@ export interface ActionsSlice {
   handleFlowNodeDragStop: (
     event: React.MouseEvent,
     node: PipelineNode,
-    nodes: PipelineNode[]
+    nodes: PipelineNode[],
   ) => void;
 
   // Cross-slice semantic actions
@@ -82,7 +82,7 @@ export interface ActionsSlice {
 
 export const createActionsSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
-  get: Parameters<HarnessCanvasStoreSlice>[1]
+  get: Parameters<HarnessCanvasStoreSlice>[1],
 ): ActionsSlice => ({
   exportCanvas: () => {
     const state = get();
@@ -318,10 +318,9 @@ export const createActionsSlice = (
           name: pipelineName || t("canvas.unsavedPipeline"),
           nodes: nodes as unknown[],
           edges: edges as unknown[],
-          updatedAt: Date.now(),
         },
       }),
-      () => "save-failed" as const
+      () => "save-failed" as const,
     );
 
     if (saveResult.isErr()) {
@@ -336,7 +335,7 @@ export const createActionsSlice = (
 
     const runResult = await ResultAsync.fromPromise(
       trpcClient.pipelines.run.mutate({ id: pipelineId }),
-      () => "Failed to start pipeline"
+      () => "Failed to start pipeline",
     );
 
     runResult.match(
@@ -354,7 +353,7 @@ export const createActionsSlice = (
           title: t("canvas.runFailed"),
           description: error,
         });
-      }
+      },
     );
 
     set({ isRunning: false });

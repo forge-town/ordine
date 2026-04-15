@@ -49,7 +49,7 @@ vi.mock("@repo/ui/select", () => ({
   SelectScrollDownButton: () => null,
 }));
 
-const makeOp = (id: string, name: string, createdAt: number): OperationEntity => ({
+const makeOp = (id: string, name: string, createdAt: Date): OperationEntity => ({
   id,
   name,
   description: null,
@@ -61,9 +61,9 @@ const makeOp = (id: string, name: string, createdAt: number): OperationEntity =>
 
 // Declared oldest → newest, names out-of-order
 const ops: OperationEntity[] = [
-  makeOp("op3", "Zebra Task", 1000),
-  makeOp("op1", "Alpha Task", 3000),
-  makeOp("op2", "Mango Task", 2000),
+  makeOp("op3", "Zebra Task", new Date(1000)),
+  makeOp("op1", "Alpha Task", new Date(3000)),
+  makeOp("op2", "Mango Task", new Date(2000)),
 ];
 
 const getCardNames = () => {

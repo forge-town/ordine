@@ -1,15 +1,10 @@
 import { eq, desc } from "drizzle-orm";
-import { db } from "@repo/db";
-import { pipelinesTable, type NewPipelineRow, type PipelineRow } from "@repo/db-schema";
-import type { PipelineNode, PipelineEdge } from "@repo/db-schema";
+import { pipelinesTable, type PipelineRow } from "@repo/db-schema";
+import type { PipelineNode } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type PipelineEntity = Omit<PipelineRow, "createdAt" | "updatedAt"> & {
-  createdAt: number;
-  updatedAt: number;
+export type PipelineEntity = PipelineRow & {
   nodeCount: number;
-  nodes: PipelineNode[];
-  edges: PipelineEdge[];
 };
 
 /** @deprecated Use PipelineEntity */
@@ -17,101 +12,56 @@ export type StoredPipeline = PipelineEntity;
 /** @deprecated Use PipelineNode from @/models/types/pipelineGraph */
 export type StoredNode = PipelineNode;
 
-const rowToEntity = (row: PipelineRow): PipelineEntity => {
-  return {
-    ...row,
-    nodeCount: row.nodes.length,
-    createdAt: row.createdAt.getTime(),
-    updatedAt: row.updatedAt.getTime(),
-    nodes: row.nodes,
-    edges: row.edges,
-  };
-};
+const rowToEntity = (row: PipelineRow): PipelineEntity => ({
+  ...row,
+  nodeCount: row.nodes.length,
+});
 
-export const pipelinesDao = {
-  async findMany(): Promise<PipelineEntity[]> {
-    const rows = await db.select().from(pipelinesTable).orderBy(desc(pipelinesTable.updatedAt));
+class PipelinesDao {
+  constructor(readonly executor: DbExecutor) {}
+
+  async findMany() {
+    const rows = await this.executor
+      .select()
+      .from(pipelinesTable)
+      .orderBy(desc(pipelinesTable.updatedAt));
     return rows.map(rowToEntity);
-  },
+  }
 
-  async findById(id: string): Promise<PipelineEntity | null> {
-    const rows = await db.select().from(pipelinesTable).where(eq(pipelinesTable.id, id)).limit(1);
+  async findById(id: string) {
+    const rows = await this.executor
+      .select()
+      .from(pipelinesTable)
+      .where(eq(pipelinesTable.id, id))
+      .limit(1);
     return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+  }
 
-  async create(
-    data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">,
-  ): Promise<PipelineEntity> {
+  async create(data: typeof pipelinesTable.$inferInsert) {
     const now = new Date();
-    const row: NewPipelineRow = {
-      ...data,
-      nodes: data.nodes,
-      edges: data.edges,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await db.insert(pipelinesTable).values(row).returning();
+    const [inserted] = await this.executor
+      .insert(pipelinesTable)
+      .values({ ...data, createdAt: now, updatedAt: now })
+      .returning();
     return rowToEntity(inserted!);
-  },
+  }
 
-  async createWithTx(
-    tx: DbExecutor,
-    data: Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">,
-  ): Promise<PipelineEntity> {
-    const now = new Date();
-    const row: NewPipelineRow = {
-      ...data,
-      nodes: data.nodes,
-      edges: data.edges,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const [inserted] = await tx.insert(pipelinesTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
-
-  async update(
-    id: string,
-    patch: Partial<Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">>,
-  ): Promise<PipelineEntity | null> {
-    const updates: Partial<NewPipelineRow> = { updatedAt: new Date() };
-    if (patch.name !== undefined) updates.name = patch.name;
-    if (patch.description !== undefined) updates.description = patch.description;
-    if (patch.tags !== undefined) updates.tags = patch.tags;
-    if (patch.nodes !== undefined) updates.nodes = patch.nodes;
-    if (patch.edges !== undefined) updates.edges = patch.edges;
-    const [updated] = await db
+  async update(id: string, patch: Partial<Omit<typeof pipelinesTable.$inferInsert, "id">>) {
+    const [updated] = await this.executor
       .update(pipelinesTable)
-      .set(updates)
+      .set({ ...patch, updatedAt: new Date() })
       .where(eq(pipelinesTable.id, id))
       .returning();
     return updated ? rowToEntity(updated) : null;
-  },
+  }
 
-  async updateWithTx(
-    tx: DbExecutor,
-    id: string,
-    patch: Partial<Omit<PipelineEntity, "createdAt" | "updatedAt" | "nodeCount">>,
-  ): Promise<PipelineEntity | null> {
-    const updates: Partial<NewPipelineRow> = { updatedAt: new Date() };
-    if (patch.name !== undefined) updates.name = patch.name;
-    if (patch.description !== undefined) updates.description = patch.description;
-    if (patch.tags !== undefined) updates.tags = patch.tags;
-    if (patch.nodes !== undefined) updates.nodes = patch.nodes;
-    if (patch.edges !== undefined) updates.edges = patch.edges;
-    const [updated] = await tx
-      .update(pipelinesTable)
-      .set(updates)
-      .where(eq(pipelinesTable.id, id))
-      .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+  async delete(id: string) {
+    await this.executor.delete(pipelinesTable).where(eq(pipelinesTable.id, id));
+  }
+}
 
-  async delete(id: string): Promise<void> {
-    await db.delete(pipelinesTable).where(eq(pipelinesTable.id, id));
-  },
-
-  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
-    await tx.delete(pipelinesTable).where(eq(pipelinesTable.id, id));
-  },
+export const createPipelinesDao = (executor: DbExecutor) => {
+  return new PipelinesDao(executor);
 };
+
+export type PipelinesDaoInstance = ReturnType<typeof createPipelinesDao>;

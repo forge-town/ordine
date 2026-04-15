@@ -24,8 +24,8 @@ const existingOp: OperationEntity = {
   description: "Runs ESLint",
   config: "{}",
   acceptedObjectTypes: ["file"],
-  createdAt: 1000,
-  updatedAt: 1000,
+  createdAt: new Date(1000),
+  updatedAt: new Date(1000),
 };
 
 describe("OperationsPageContent - edit button navigates to edit page", () => {
