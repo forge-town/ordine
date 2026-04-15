@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { createOperation } from "@/services/operationsService";
-import type { ObjectType } from "@/models/tables/operations_table";
 import type { SkillEntity } from "@repo/models";
 import { Route } from "@/routes/_layout/operations.new";
 import {
@@ -20,7 +19,8 @@ import {
   ExecutorTypeSchema as ExecutorTypeEnum,
   AgentModeSchema as AgentModeEnum,
   ScriptLanguageSchema as ScriptLanguageEnum,
-} from "@/schemas";
+  type ObjectType,
+} from "@repo/schemas";
 
 const EXECUTOR_ICONS = {
   agent: Wand2,

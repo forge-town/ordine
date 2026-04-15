@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { checklistItemsDao, checklistResultsDao } from "@repo/models";
-import { ChecklistItemSchema, ChecklistResultSchema } from "@/schemas";
+import { ChecklistItemSchema, ChecklistResultSchema } from "@repo/schemas";
 
 export const getChecklistItemsByBestPracticeId = createServerFn({
   method: "GET",

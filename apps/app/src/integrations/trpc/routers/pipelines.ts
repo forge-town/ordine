@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { pipelinesDao } from "@repo/models";
-import { PipelineSchema } from "@/schemas";
+import { PipelineSchema } from "@repo/schemas";
 
 export const pipelinesRouter = router({
   getMany: publicProcedure.query(() => pipelinesDao.findMany()),

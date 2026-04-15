@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { skillsDao } from "@repo/models";
-import { SkillSchema } from "@/schemas";
+import { SkillSchema } from "@repo/schemas";
 
 export const getSkills = createServerFn({ method: "GET" }).handler(async () => {
   // 确保初始化 seed 数据

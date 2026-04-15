@@ -16,7 +16,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { createOperation, deleteOperation } from "@/services/operationsService";
 import type { OperationEntity } from "@repo/models";
-import type { ObjectType } from "@/models/tables/operations_table";
+import type { ObjectType } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useToastStore } from "@/store/toastStore";

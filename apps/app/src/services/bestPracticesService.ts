@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { bestPracticesDao } from "@repo/models";
-import { BestPracticeSchema } from "@/schemas";
+import { BestPracticeSchema } from "@repo/schemas";
 
 export const getBestPractices = createServerFn({ method: "GET" }).handler(() =>
   bestPracticesDao.findMany()

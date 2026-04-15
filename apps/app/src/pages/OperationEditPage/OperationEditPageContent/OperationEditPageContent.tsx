@@ -13,15 +13,15 @@ import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { updateOperation } from "@/services/operationsService";
 import type { OperationEntity, SkillEntity } from "@repo/models";
-import type { ObjectType } from "@/models/tables/operations_table";
 import {
   ObjectTypeSchema as ObjectTypeEnum,
   ExecutorTypeSchema as ExecutorTypeEnum,
   AgentModeSchema as AgentModeEnum,
   ScriptLanguageSchema as ScriptLanguageEnum,
+  type ObjectType,
   type ExecutorType,
   type AgentMode,
-} from "@/schemas";
+} from "@repo/schemas";
 import { safeJsonParse } from "@/lib/safeJson";
 
 const EXECUTOR_ICONS = {

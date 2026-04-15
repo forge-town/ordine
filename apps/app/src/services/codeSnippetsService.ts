@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { codeSnippetsDao } from "@repo/models";
-import { CodeSnippetSchema } from "@/schemas";
+import { CodeSnippetSchema } from "@repo/schemas";
 
 export const getCodeSnippetsByBestPracticeId = createServerFn({
   method: "GET",

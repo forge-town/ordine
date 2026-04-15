@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BestPracticeSchema } from "@/schemas";
+import { BestPracticeSchema } from "@repo/schemas";
 import { bestPracticesDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 

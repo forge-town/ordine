@@ -1,6 +1,6 @@
 import { publicProcedure, router } from "../init";
 import { checklistItemsDao, checklistResultsDao } from "@repo/models";
-import { ChecklistItemSchema, ChecklistResultSchema } from "@/schemas";
+import { ChecklistItemSchema, ChecklistResultSchema } from "@repo/schemas";
 import { z } from "zod/v4";
 
 export const checklistRouter = router({

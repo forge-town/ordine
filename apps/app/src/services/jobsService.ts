@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { jobsDao } from "@repo/models";
-import { JobStatusSchema, JobTypeSchema } from "@/schemas";
+import { JobStatusSchema, JobTypeSchema } from "@repo/schemas";
 
 export const getJobs = createServerFn({ method: "GET" })
   .inputValidator(

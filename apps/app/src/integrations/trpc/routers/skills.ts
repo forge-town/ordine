@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { skillsDao } from "@repo/models";
-import { SkillSchema } from "@/schemas";
+import { SkillSchema } from "@repo/schemas";
 
 export const skillsRouter = router({
   getMany: publicProcedure.query(async () => {

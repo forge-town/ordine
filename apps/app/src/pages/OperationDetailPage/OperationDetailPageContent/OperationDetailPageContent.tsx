@@ -16,7 +16,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { OperationEntity } from "@repo/models";
-import type { ObjectType } from "@/models/tables/operations_table";
+import type { ObjectType } from "@repo/schemas";
 import { Route } from "@/routes/_layout/operations.$operationId.index";
 import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";

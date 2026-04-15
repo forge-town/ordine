@@ -1,7 +1,7 @@
 import { ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
 import { z } from "zod/v4";
 import type { RuleCategory, RuleSeverity, RuleEntity } from "@repo/models";
-import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@/schemas";
+import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@repo/schemas";
 
 export const CATEGORY_CONFIG: Record<RuleCategory, { label: string; cls: string }> = {
   lint: { label: "Lint", cls: "bg-muted text-muted-foreground" },

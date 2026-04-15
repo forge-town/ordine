@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { worksDao } from "@repo/models";
-import { WorkObjectSchema } from "@/schemas";
+import { WorkObjectSchema } from "@repo/schemas";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const CreateWorkSchema = z.object({

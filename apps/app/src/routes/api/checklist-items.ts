@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ChecklistItemSchema } from "@/schemas";
+import { ChecklistItemSchema } from "@repo/schemas";
 import { checklistItemsDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 

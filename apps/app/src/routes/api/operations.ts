@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { operationsDao } from "@repo/models";
-import { OBJECT_TYPES } from "@/models/tables/operations_table";
+import { OBJECT_TYPES } from "@repo/db-schema";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const ObjectTypeEnum = z.enum(OBJECT_TYPES);

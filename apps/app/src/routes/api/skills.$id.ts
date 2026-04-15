@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SkillSchema } from "@/schemas";
+import { SkillSchema } from "@repo/schemas";
 import { skillsDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { pipelinesDao } from "@repo/models";
-import { PipelineSchema } from "@/schemas";
+import { PipelineSchema } from "@repo/schemas";
 
 export const getPipelines = createServerFn({ method: "GET" }).handler(async () => {
   return pipelinesDao.findMany();

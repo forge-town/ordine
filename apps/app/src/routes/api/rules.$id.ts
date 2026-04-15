@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { rulesDao } from "@repo/models";
-import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@/schemas";
+import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@repo/schemas";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const UpdateRuleSchema = z.object({

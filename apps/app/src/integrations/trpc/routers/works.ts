@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { worksDao } from "@repo/models";
-import { WorkObjectSchema } from "@/schemas";
+import { WorkObjectSchema } from "@repo/schemas";
 
 export const worksRouter = router({
   getMany: publicProcedure.query(() => worksDao.findMany()),

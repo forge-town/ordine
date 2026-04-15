@@ -1,6 +1,6 @@
 import { publicProcedure, router } from "../init";
 import { recipesDao } from "@repo/models";
-import { RecipeSchema } from "@/schemas";
+import { RecipeSchema } from "@repo/schemas";
 import { z } from "zod/v4";
 
 export const recipesRouter = router({

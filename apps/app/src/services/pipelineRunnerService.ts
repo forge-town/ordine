@@ -97,7 +97,7 @@ class PipelineNotFoundError extends Error {
 class ScriptExecutionError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(message);
     this.name = "ScriptExecutionError";
@@ -107,7 +107,7 @@ class ScriptExecutionError extends Error {
 class ConfigParseError extends Error {
   constructor(
     public readonly operationName: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(`Could not parse config for operation ${operationName}`);
     this.name = "ConfigParseError";
@@ -117,7 +117,7 @@ class ConfigParseError extends Error {
 class GitCloneError extends Error {
   constructor(
     message: string,
-    public readonly cause?: unknown,
+    public readonly cause?: unknown
   ) {
     super(message);
     this.name = "GitCloneError";
@@ -134,15 +134,15 @@ type PipelineRunError =
 
 const safeParseJson = (
   raw: string,
-  operationName: string,
+  operationName: string
 ): ResultAsync<OperationConfig, ConfigParseError> =>
   ResultAsync.fromPromise(
     Promise.resolve(JSON.parse(raw) as OperationConfig),
-    (cause) => new ConfigParseError(operationName, cause),
+    (cause) => new ConfigParseError(operationName, cause)
   );
 
 const safeReadInputFile = (
-  path: string,
+  path: string
 ): ResultAsync<{ content: string; isFile: boolean }, never> =>
   ResultAsync.fromPromise(
     (async () => {
@@ -153,19 +153,19 @@ const safeReadInputFile = (
       }
       return { content: path, isFile: false };
     })(),
-    () => ({ content: path, isFile: false }),
+    () => ({ content: path, isFile: false })
   ).orElse((fallback) => ok(fallback));
 
 const runScript = (
   executor: ExecutorConfig,
   inputPath: string,
-  inputContent: string,
+  inputContent: string
 ): ResultAsync<string, ScriptExecutionError> => {
   const lang = executor.language ?? "bash";
   const command = executor.command ?? "";
   if (!command.trim()) {
     return ResultAsync.fromSafePromise<string, ScriptExecutionError>(
-      Promise.reject(new ScriptExecutionError("Script command is empty")),
+      Promise.reject(new ScriptExecutionError("Script command is empty"))
     );
   }
 
@@ -191,8 +191,8 @@ const runScript = (
     (cause) =>
       new ScriptExecutionError(
         `Script execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-        cause,
-      ),
+        cause
+      )
   );
 };
 
@@ -202,7 +202,7 @@ const cloneGitHubRepo = (
   owner: string,
   repo: string,
   branch: string,
-  githubToken?: string,
+  githubToken?: string
 ): ResultAsync<string, GitCloneError> => {
   const cloneDir = join(tmpdir(), `ordine-pipeline-${Date.now()}-${repo}`);
   const url = githubToken
@@ -222,8 +222,8 @@ const cloneGitHubRepo = (
     (cause) =>
       new GitCloneError(
         `Failed to clone ${owner}/${repo}@${branch}: ${cause instanceof Error ? cause.message : String(cause)}`,
-        cause,
-      ),
+        cause
+      )
   );
 };
 
@@ -257,7 +257,7 @@ const executePipeline = async (opts: {
   const levels = buildExecutionLevels(nodes, edges);
 
   await log(
-    `Pipeline "${pipeline.name}" loaded. ${nodes.length} nodes in ${levels.length} levels.`,
+    `Pipeline "${pipeline.name}" loaded. ${nodes.length} nodes in ${levels.length} levels.`
   );
 
   const operationIds = nodes
@@ -298,7 +298,7 @@ const executePipeline = async (opts: {
   const evaluateLoopCondition = async (
     conditionPrompt: string,
     operationOutput: string,
-    modelOverride?: string,
+    modelOverride?: string
   ): Promise<boolean> => {
     const model = await getModel(modelOverride);
     if (!model) {
@@ -329,7 +329,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
 
   const executeOperationNode = async (
     node: PipelineNode,
-    input: NodeCtx,
+    input: NodeCtx
   ): Promise<{ ok: true; content: string } | { ok: false; error: PipelineRunError | null }> => {
     const data = node.data as unknown as NodeData;
     const operationId = data.operationId ?? "";
@@ -355,7 +355,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         return bp.content;
       }
       await log(
-        `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`,
+        `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`
       );
       return "";
     })();
@@ -387,7 +387,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       const checkOutput = await runRuleCheck(input.inputPath);
       const checkResult = JSON.stringify(checkOutput, null, 2);
       await log(
-        `Rule-check: ${checkOutput.stats.totalFindings} findings in ${checkOutput.stats.totalFiles} files`,
+        `Rule-check: ${checkOutput.stats.totalFindings} findings in ${checkOutput.stats.totalFiles} files`
       );
       return { ok: true, content: checkResult };
     }
@@ -476,13 +476,13 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
   // ── Process a single node ──────────────────────────────────────────────
 
   const processNode = async (
-    node: PipelineNode,
+    node: PipelineNode
   ): Promise<{ ok: true } | { ok: false; error: PipelineRunError }> => {
     const data = node.data as unknown as NodeData;
     const input = resolveNodeInput(node.id);
 
     await log(
-      `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`,
+      `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`
     );
     await log(`@@NODE_START::${node.id}`);
 
@@ -501,7 +501,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           if (disclosureMode === "full") {
             const fileContents = await readProjectFiles(p, readOpts);
             await log(
-              `Input folder: ${p} (disclosure: full, tree: ${tree.split("\n").length} entries, contents: ${fileContents.length} chars)`,
+              `Input folder: ${p} (disclosure: full, tree: ${tree.split("\n").length} entries, contents: ${fileContents.length} chars)`
             );
             return `Folder: ${p}\n\nFile tree:\n${tree}\n\n---\n\nFile contents:\n\n${fileContents}`;
           }
@@ -548,7 +548,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
         if (disclosureMode === "tree") {
           const tree = await listDirTree(dir, treeOpts);
           await log(
-            `Disclosure mode: tree (${tree.split("\n").length} entries, excluded: [${excludedPaths.join(", ")}])`,
+            `Disclosure mode: tree (${tree.split("\n").length} entries, excluded: [${excludedPaths.join(", ")}])`
           );
           return `${label}\n\nFile tree:\n${tree}`;
         }
@@ -556,13 +556,13 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           const tree = await listDirTree(dir, treeOpts);
           const fileContents = await readProjectFiles(dir, { excludedPaths });
           await log(
-            `Disclosure mode: full (tree + file contents, ${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,
+            `Disclosure mode: full (tree + file contents, ${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`
           );
           return `${label}\n\nFile tree:\n${tree}\n\n---\n\nFile contents:\n\n${fileContents}`;
         }
         const fileContents = await readProjectFiles(dir, { excludedPaths });
         await log(
-          `Disclosure mode: files-only (${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,
+          `Disclosure mode: files-only (${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`
         );
         return `${label}\n\nFile contents:\n\n${fileContents}`;
       };
@@ -605,7 +605,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       tempDirs.push(clonedDir);
       const content = await buildProjectContent(
         clonedDir,
-        `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}`,
+        `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}`
       );
       nodeOutputs.set(node.id, { inputPath: clonedDir, content });
       await log(`@@NODE_DONE::${node.id}`);
@@ -646,7 +646,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           return {
             ok: false,
             error: new ScriptExecutionError(
-              `Output file already exists: ${resolvedPath}. Pipeline aborted (output mode: error_if_exists).`,
+              `Output file already exists: ${resolvedPath}. Pipeline aborted (output mode: error_if_exists).`
             ),
           };
         }
@@ -656,7 +656,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       }
 
       await log(
-        `Output path set: ${resolvedPath} (mode: ${outputMode}, dualOutput: ${dualOutput})`,
+        `Output path set: ${resolvedPath} (mode: ${outputMode}, dualOutput: ${dualOutput})`
       );
       if (resolvedPath && input.content) {
         if (dualOutput) {
@@ -712,7 +712,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
 
         for (const attempt of Array.from({ length: maxLoops }, (_, i) => i + 1)) {
           await log(
-            `[Loop] Iteration ${attempt}/${maxLoops} for "${(node.data as unknown as Record<string, unknown>).label}"`,
+            `[Loop] Iteration ${attempt}/${maxLoops} for "${(node.data as unknown as Record<string, unknown>).label}"`
           );
           const loopResult = await executeOperationNode(node, loopState.currentInput);
           if (!loopResult.ok) {
@@ -725,7 +725,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
           const passed = await evaluateLoopCondition(
             conditionPrompt,
             resultState.content,
-            modelOverride,
+            modelOverride
           );
           if (passed) {
             await log(`[Loop] Condition PASSED on iteration ${attempt}`);
@@ -834,8 +834,8 @@ export const runPipeline = async (opts: {
     (cause) =>
       new ScriptExecutionError(
         cause instanceof Error ? cause.message : String(cause),
-        cause,
-      ) as PipelineRunError,
+        cause
+      ) as PipelineRunError
   );
 
   const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PipelineSchema } from "@/schemas";
+import { PipelineSchema } from "@repo/schemas";
 import { pipelinesDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 

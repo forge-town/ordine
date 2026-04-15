@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { jobsDao } from "@repo/models";
-import { JobStatusSchema, JobTypeSchema } from "@/schemas";
+import { JobStatusSchema, JobTypeSchema } from "@repo/schemas";
 
 export const jobsRouter = router({
   getById: publicProcedure

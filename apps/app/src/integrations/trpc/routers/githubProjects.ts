@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { githubProjectsDao } from "@repo/models";
-import { GithubProjectSchema } from "@/schemas";
+import { GithubProjectSchema } from "@repo/schemas";
 
 export const githubProjectsRouter = router({
   getMany: publicProcedure.query(() => githubProjectsDao.findMany()),

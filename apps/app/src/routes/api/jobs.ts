@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { jobsDao } from "@repo/models";
-import { JobStatusSchema, JobTypeSchema } from "@/schemas";
+import { JobStatusSchema, JobTypeSchema } from "@repo/schemas";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
 const CreateJobSchema = z.object({

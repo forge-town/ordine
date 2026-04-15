@@ -1,6 +1,6 @@
 import { publicProcedure, router } from "../init";
 import { bestPracticesDao } from "@repo/models";
-import { BestPracticeSchema } from "@/schemas";
+import { BestPracticeSchema } from "@repo/schemas";
 import { z } from "zod/v4";
 
 export const bestPracticesRouter = router({

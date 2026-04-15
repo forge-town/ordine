@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CodeSnippetSchema } from "@/schemas";
+import { CodeSnippetSchema } from "@repo/schemas";
 import { codeSnippetsDao } from "@repo/models";
 import { json, errorResponse, parseJsonBody } from "@/lib/apiResponse";
 
