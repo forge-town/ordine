@@ -28,7 +28,7 @@ import { Input } from "@repo/ui/input";
 import { ResultAsync, err, ok } from "neverthrow";
 import { useTranslation } from "react-i18next";
 import type { PipelineEntity, OperationEntity } from "@repo/models";
-import type { PipelineNode } from "@/models/types/pipelineGraph";
+import type { PipelineNode } from "@repo/db-schema";
 import { Stat } from "../Stat";
 
 interface Props {

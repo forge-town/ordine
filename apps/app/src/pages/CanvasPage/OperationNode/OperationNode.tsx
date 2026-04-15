@@ -16,7 +16,7 @@ import { useHarnessCanvasStore, type OperationNodeData, type NodeRunStatus } fro
 import { Route } from "@/routes/canvas";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
-import { LLM_PROVIDERS } from "@/models/tables/settings_table";
+import { LLM_PROVIDERS } from "@repo/db-schema";
 import { BestPracticeSelect } from "./BestPracticeSelect";
 
 export interface OperationNodeProps {

@@ -20,7 +20,7 @@ import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { JobEntity } from "@repo/models";
-import type { JobStatus, JobType } from "@/models/tables/jobs_table";
+import type { JobStatus, JobType } from "@repo/db-schema";
 import { Route } from "@/routes/_layout/jobs.$jobId";
 
 const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; bar: string }> = {

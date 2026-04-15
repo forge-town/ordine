@@ -34,7 +34,7 @@ import type {
   PipelineEdge,
   GitHubProjectNodeData,
   OutputMode,
-} from "@/models/types/pipelineGraph";
+} from "@repo/db-schema";
 import {
   operationsDao,
   pipelinesDao,

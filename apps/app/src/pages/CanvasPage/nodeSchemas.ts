@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 import type { OperationEntity } from "@repo/models";
-import { OUTPUT_MODES } from "@/models/types/pipelineGraph";
-import { LLM_PROVIDERS } from "@/models/tables/settings_table";
+import { OUTPUT_MODES, LLM_PROVIDERS } from "@repo/db-schema";
 
 // ─── Primitive enums ──────────────────────────────────────────────────────────
 

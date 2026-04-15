@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { JobEntity } from "@repo/models";
-import type { JobStatus } from "@/models/tables/jobs_table";
+import type { JobStatus } from "@repo/db-schema";
 import { Route } from "@/routes/_layout/jobs.index";
 import { deleteJob } from "@/services/jobsService";
 import { StatCard } from "../StatCard";
