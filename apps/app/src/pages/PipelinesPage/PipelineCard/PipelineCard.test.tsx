@@ -1,13 +1,13 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { PipelineCard } from "./PipelineCard";
-import type { StoredPipeline } from "@repo/models";
+import type { PipelineEntity } from "@repo/models";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
 
-const mockPipeline: StoredPipeline = {
+const mockPipeline: PipelineEntity = {
   id: "pipe-001",
   name: "测试 Pipeline",
   description: "描述内容",
@@ -16,7 +16,7 @@ const mockPipeline: StoredPipeline = {
   edges: [],
   createdAt: Date.now(),
   updatedAt: Date.now(),
-} as unknown as StoredPipeline;
+} as unknown as PipelineEntity;
 
 describe("PipelineCard", () => {
   it("renders pipeline name", () => {

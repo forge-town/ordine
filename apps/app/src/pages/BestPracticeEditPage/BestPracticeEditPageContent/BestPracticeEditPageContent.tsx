@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import type { BestPracticeEntity, ChecklistItemEntity, CodeSnippetEntity } from "@repo/models";
+import type { BestPracticeRow, ChecklistItemRow, CodeSnippetRow } from "@repo/models";
 import { useUpdate, useCreate, useDelete } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CATEGORIES, LANGUAGES } from "@/pages/BestPracticesPage/constants";
@@ -35,9 +35,9 @@ import { CodeSnippetEditor } from "./CodeSnippetEditor";
 import type { ChecklistItemDraft, CodeSnippetDraft } from "./types";
 
 interface Props {
-  bestPractice: BestPracticeEntity;
-  checklistItems: ChecklistItemEntity[];
-  codeSnippets: CodeSnippetEntity[];
+  bestPractice: BestPracticeRow;
+  checklistItems: ChecklistItemRow[];
+  codeSnippets: CodeSnippetRow[];
 }
 
 export const BestPracticeEditPageContent = ({

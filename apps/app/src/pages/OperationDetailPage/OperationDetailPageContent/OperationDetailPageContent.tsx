@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import type { OperationEntity } from "@repo/models";
+import type { OperationRow } from "@repo/models";
 import type { ObjectType } from "@repo/schemas";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -116,7 +116,7 @@ const ExecutorCard = ({ executor: raw }: { executor: ExecutorConfig }) => {
 
 export const OperationDetailPageContent = () => {
   const { operationId } = Route.useParams();
-  const { result: operationResult } = useOne<OperationEntity>({
+  const { result: operationResult } = useOne<OperationRow>({
     resource: ResourceName.operations,
     id: operationId,
   });

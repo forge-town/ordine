@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { PracticeFormDialog } from "./PracticeFormDialog";
-import type { BestPracticeEntity } from "@repo/models";
+import type { BestPracticeRow } from "@repo/models";
 
-const mockPractice: BestPracticeEntity = {
+const mockPractice: BestPracticeRow = {
   id: "bp-1",
   title: "避免在 useEffect 中直接 setState",
   condition: "当需要在组件挂载后获取异步数据时",

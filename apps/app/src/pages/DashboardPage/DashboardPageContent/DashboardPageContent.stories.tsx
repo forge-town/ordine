@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DashboardPageContent } from "./DashboardPageContent";
-import type { JobEntity } from "@repo/models";
+import type { JobRow } from "@repo/models";
 
 // Route.useLoaderData is mocked via Storybook parameters or decorators
 const meta: Meta<typeof DashboardPageContent> = {
@@ -16,7 +16,7 @@ export const WithJobs: Story = {
   decorators: [
     (Story) => {
       const { Route } = require("@/routes/index");
-      const mockJob: JobEntity = {
+      const mockJob: JobRow = {
         id: "job-1",
         title: "运行 Pipeline",
         type: "pipeline_run",

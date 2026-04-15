@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import type { RecipeEntity, OperationEntity, BestPracticeEntity } from "@repo/models";
+import type { RecipeRow, OperationRow, BestPracticeRow } from "@repo/models";
 import { useCreate, useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 
@@ -30,11 +30,11 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export type RecipeFormDialogProps = {
-  initial?: RecipeEntity;
-  operations: OperationEntity[];
-  bestPractices: BestPracticeEntity[];
+  initial?: RecipeRow;
+  operations: OperationRow[];
+  bestPractices: BestPracticeRow[];
   onClose: () => void;
-  onSave: (r: RecipeEntity) => void;
+  onSave: (r: RecipeRow) => void;
 };
 
 export const RecipeFormDialog = ({
@@ -80,7 +80,7 @@ export const RecipeFormDialog = ({
         id: initial.id,
         values,
       });
-      const updated = result.data as RecipeEntity | undefined;
+      const updated = result.data as RecipeRow | undefined;
       if (updated) onSave(updated);
     } else {
       const result = await createRecipeMutate({
@@ -93,7 +93,7 @@ export const RecipeFormDialog = ({
           bestPracticeId: values.bestPracticeId,
         },
       });
-      const created = result.data as RecipeEntity | undefined;
+      const created = result.data as RecipeRow | undefined;
       if (created) onSave(created);
     }
     onClose();

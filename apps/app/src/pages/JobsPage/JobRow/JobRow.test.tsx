@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { JobRow } from "./JobRow";
-import type { JobEntity } from "@repo/models";
+import type { JobRow as JobRowData } from "@repo/models";
 
-const mockJob: JobEntity = {
+const mockJob: JobRowData = {
   id: "job-001",
   title: "测试 Job",
   status: "running",

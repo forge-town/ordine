@@ -15,7 +15,7 @@ import { useStore } from "zustand";
 import { useHarnessCanvasStore, type OperationNodeData, type NodeRunStatus } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { OperationEntity, BestPracticeEntity } from "@repo/models";
+import type { OperationRow, BestPracticeRow } from "@repo/models";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
 import { LLM_PROVIDERS } from "@repo/db-schema";
@@ -61,10 +61,10 @@ const MODEL_OPTIONS: Record<string, { value: string; label: string }[]> = {
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const { runStatus: nodeRunStatus, dimmed } = useNodeRunState(id);
-  const { result: operationsResult } = useList<OperationEntity>({
+  const { result: operationsResult } = useList<OperationRow>({
     resource: ResourceName.operations,
   });
-  const { result: bestPracticesResult } = useList<BestPracticeEntity>({
+  const { result: bestPracticesResult } = useList<BestPracticeRow>({
     resource: ResourceName.bestPractices,
   });
   const operations = operationsResult?.data ?? [];
@@ -77,7 +77,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
 
   const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
 
-  const operation = operations.find((op: OperationEntity) => op.id === data.operationId);
+  const operation = operations.find((op: OperationRow) => op.id === data.operationId);
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v, operationName: v });
 

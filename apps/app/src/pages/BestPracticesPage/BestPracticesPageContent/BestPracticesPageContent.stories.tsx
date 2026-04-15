@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { BestPracticesPageContent } from "./BestPracticesPageContent";
-import type { BestPracticeEntity } from "@repo/models";
+import type { BestPracticeRow } from "@repo/models";
 
-const mockPractices: BestPracticeEntity[] = [
+const mockPractices: BestPracticeRow[] = [
   {
     id: "bp-1",
     title: "避免在 useEffect 中直接 setState",

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Layers, FolderGit2, Activity, Lightbulb, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { PipelineEntity, GithubProjectEntity, JobEntity } from "@repo/models";
+import type { PipelineEntity, GithubProjectRow, JobRow } from "@repo/models";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { StatCard } from "../StatCard";
@@ -9,16 +9,16 @@ import { JobActivityRow } from "../JobActivityRow";
 
 export const DashboardPageContent = () => {
   const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
-  const { result: projectsResult } = useList<GithubProjectEntity>({
+  const { result: projectsResult } = useList<GithubProjectRow>({
     resource: ResourceName.githubProjects,
   });
-  const { result: jobsResult } = useList<JobEntity>({ resource: ResourceName.jobs });
+  const { result: jobsResult } = useList<JobRow>({ resource: ResourceName.jobs });
   const pipelines = pipelinesResult?.data ?? [];
   const projects = projectsResult?.data ?? [];
   const jobs = jobsResult?.data ?? [];
   const { t } = useTranslation();
-  const runningJobs = jobs.filter((j: JobEntity) => j.status === "running").length;
-  const failedJobs = jobs.filter((j: JobEntity) => j.status === "failed").length;
+  const runningJobs = jobs.filter((j: JobRow) => j.status === "running").length;
+  const failedJobs = jobs.filter((j: JobRow) => j.status === "failed").length;
   const recentJobs = jobs.slice(0, 8);
 
   return (
@@ -88,7 +88,7 @@ export const DashboardPageContent = () => {
             </div>
           ) : (
             <div className="py-1">
-              {recentJobs.map((j: JobEntity) => (
+              {recentJobs.map((j: JobRow) => (
                 <JobActivityRow key={j.id} job={j} />
               ))}
             </div>

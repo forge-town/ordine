@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { PipelineCard } from "./PipelineCard";
-import type { StoredPipeline } from "@repo/models";
+import type { PipelineEntity } from "@repo/models";
 
 const mockPipeline = {
   id: "pipe-001",
@@ -11,7 +11,7 @@ const mockPipeline = {
   edges: [],
   createdAt: Date.now(),
   updatedAt: Date.now(),
-} as unknown as StoredPipeline;
+} as unknown as PipelineEntity;
 
 const meta: Meta<typeof PipelineCard> = {
   title: "Pages/PipelinesPage/PipelineCard",

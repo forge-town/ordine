@@ -1,5 +1,5 @@
 import { eq, desc } from "drizzle-orm";
-import { recipesTable, type RecipeRow } from "@repo/db-schema";
+import { recipesTable } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
 class RecipesDao {

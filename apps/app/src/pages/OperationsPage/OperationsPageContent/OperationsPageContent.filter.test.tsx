@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { OperationsPageContent } from "./OperationsPageContent";
-import type { OperationEntity } from "@repo/models";
+import type { OperationRow } from "@repo/models";
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
@@ -17,7 +17,7 @@ vi.mock("@/services/operationsService", () => ({
   deleteOperation: vi.fn(),
 }));
 
-const makeOp = (id: string, name: string): OperationEntity => ({
+const makeOp = (id: string, name: string): OperationRow => ({
   id,
   name,
   description: null,
@@ -27,7 +27,7 @@ const makeOp = (id: string, name: string): OperationEntity => ({
   updatedAt: new Date(),
 });
 
-const ops: OperationEntity[] = [
+const ops: OperationRow[] = [
   makeOp("op1", "Alpha Op"),
   makeOp("op2", "Beta Op"),
   makeOp("op3", "Gamma Op"),

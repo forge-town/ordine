@@ -16,7 +16,7 @@ import {
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import type { BestPracticeEntity } from "@repo/models";
+import type { BestPracticeRow } from "@repo/models";
 import { useCreate, useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CATEGORIES, LANGUAGES } from "../constants";
@@ -34,9 +34,9 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export type PracticeFormDialogProps = {
-  initial?: BestPracticeEntity;
+  initial?: BestPracticeRow;
   onClose: () => void;
-  onSave: (p: BestPracticeEntity) => void;
+  onSave: (p: BestPracticeRow) => void;
 };
 
 export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDialogProps) => {
@@ -86,7 +86,7 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
         id: initial.id,
         values: { ...values, tags },
       });
-      const updated = result.data as BestPracticeEntity | undefined;
+      const updated = result.data as BestPracticeRow | undefined;
       if (updated) onSave(updated);
     } else {
       const result = await createBpMutate({
@@ -102,7 +102,7 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
           tags,
         },
       });
-      const created = result.data as BestPracticeEntity;
+      const created = result.data as BestPracticeRow;
       onSave(created);
     }
     onClose();

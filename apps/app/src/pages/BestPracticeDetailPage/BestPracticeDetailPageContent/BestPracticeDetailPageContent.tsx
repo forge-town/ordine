@@ -18,14 +18,14 @@ import {
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
-import type { BestPracticeEntity, ChecklistItemEntity, CodeSnippetEntity } from "@repo/models";
+import type { BestPracticeRow, ChecklistItemRow, CodeSnippetRow } from "@repo/models";
 import { exportSingleBestPractice } from "@/lib/exportBestPractice";
 import { CATEGORIES, CATEGORY_COLORS } from "@/pages/BestPracticesPage/constants";
 
 interface Props {
-  bestPractice: BestPracticeEntity;
-  checklistItems: ChecklistItemEntity[];
-  codeSnippets: CodeSnippetEntity[];
+  bestPractice: BestPracticeRow;
+  checklistItems: ChecklistItemRow[];
+  codeSnippets: CodeSnippetRow[];
 }
 
 export const BestPracticeDetailPageContent = ({

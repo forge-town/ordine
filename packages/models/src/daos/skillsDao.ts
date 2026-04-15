@@ -1,5 +1,5 @@
 import { eq, desc } from "drizzle-orm";
-import { skillsTable, type SkillRow } from "@repo/db-schema";
+import { skillsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
 class SkillsDao {

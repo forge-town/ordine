@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { JobDetailPageContent } from "./JobDetailPageContent";
-import type { JobEntity } from "@repo/models";
+import type { JobRow } from "@repo/models";
 
 const mockUseLoaderData = vi.fn();
 
@@ -13,7 +13,7 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
-const mockJob: JobEntity = {
+const mockJob: JobRow = {
   id: "job-1",
   title: "运行 Pipeline: 代码分析",
   type: "pipeline_run",

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.$projectId.workspace";
 import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { GithubProjectEntity, StoredPipeline } from "@repo/models";
+import type { GithubProjectRow, PipelineEntity } from "@repo/models";
 import { Button } from "@repo/ui/button";
 import { ObjectRow, type ObjectItem } from "../ObjectRow";
 import { PipelineRow } from "../PipelineRow";
@@ -21,11 +21,11 @@ const buildObjectTree = (owner: string, repo: string, entireProject: string): Ob
 
 export const ProjectWorkspacePageContent = () => {
   const { projectId } = Route.useParams();
-  const { result: projectResult } = useOne<GithubProjectEntity>({
+  const { result: projectResult } = useOne<GithubProjectRow>({
     resource: ResourceName.githubProjects,
     id: projectId,
   });
-  const { result: pipelinesResult } = useList<StoredPipeline>({ resource: ResourceName.pipelines });
+  const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
   const project = projectResult ?? null;
   const pipelines = pipelinesResult?.data ?? [];
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export const ProjectWorkspacePageContent = () => {
   }
 
   const objects = buildObjectTree(project.owner, project.repo, t("workspace.entireProject"));
-  const selectedPipeline = pipelines.find((p: StoredPipeline) => p.id === selectedPipelineId);
+  const selectedPipeline = pipelines.find((p: PipelineEntity) => p.id === selectedPipelineId);
 
   const toggleObject = (path: string) => {
     setSelectedObjects((prev) => {

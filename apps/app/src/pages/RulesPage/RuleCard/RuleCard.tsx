@@ -1,11 +1,11 @@
 import { Pencil, Trash2, Tag, ToggleLeft, ToggleRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
-import type { RuleEntity } from "@repo/models";
+import type { RuleRow } from "@repo/models";
 import { SEVERITY_CONFIG, CATEGORY_CONFIG } from "../types";
 
 export type RuleCardProps = {
-  rule: RuleEntity;
+  rule: RuleRow;
   onDelete: (id: string) => void;
   onToggle: (id: string, enabled: boolean) => void;
   onNavigateToDetail: (id: string) => void;

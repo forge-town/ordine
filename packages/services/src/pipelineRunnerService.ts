@@ -40,7 +40,7 @@ import {
   createBestPracticesDao,
   createSettingsDao,
   createRulesDao,
-  type OperationEntity,
+  type OperationRow,
 } from "@repo/models";
 import { db } from "@repo/db";
 import type { ExecutorConfig } from "@repo/schemas";
@@ -272,7 +272,7 @@ const executePipeline = async (opts: {
     .map((n) => (n.data as unknown as NodeData).operationId)
     .filter((id): id is string => id !== undefined && id !== null && id !== "");
 
-  const operationsMap = new Map<string, OperationEntity>();
+  const operationsMap = new Map<string, OperationRow>();
   for (const id of operationIds) {
     const op = await operationsDao.findById(id);
     if (op) operationsMap.set(id, op);

@@ -1,5 +1,5 @@
 import { eq, asc } from "drizzle-orm";
-import { codeSnippetsTable, type CodeSnippetRow } from "@repo/db-schema";
+import { codeSnippetsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
 class CodeSnippetsDao {

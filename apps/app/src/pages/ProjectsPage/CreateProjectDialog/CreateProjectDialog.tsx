@@ -6,7 +6,7 @@ import { useGithubToken } from "@/hooks/useGithubToken";
 import { GitHubTokenDialog } from "@/pages/CanvasPage/GitHubProjectNode/GitHubTokenDialog";
 import { useCreate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { GithubProjectEntity } from "@repo/models";
+import type { GithubProjectRow } from "@repo/models";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -14,7 +14,7 @@ import { ResultAsync } from "neverthrow";
 
 export type CreateProjectDialogProps = {
   onClose: () => void;
-  onCreate: (p: GithubProjectEntity) => void;
+  onCreate: (p: GithubProjectRow) => void;
 };
 
 export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogProps) => {
@@ -65,7 +65,7 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
     );
     result.match(
       (response) => {
-        onCreate(response.data as GithubProjectEntity);
+        onCreate(response.data as GithubProjectRow);
         onClose();
       },
       (errorMsg) => setError(errorMsg)

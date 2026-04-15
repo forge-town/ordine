@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
-import type { PipelineEntity, OperationEntity } from "@repo/models";
+import type { PipelineEntity, OperationRow } from "@repo/models";
 
 const mockNavigate = vi.fn();
 
@@ -40,7 +40,7 @@ vi.mock("@xyflow/react", () => ({
   ReactFlowProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }));
 
-const makeOp = (id: string, name: string, description?: string): OperationEntity => ({
+const makeOp = (id: string, name: string, description?: string): OperationRow => ({
   id,
   name,
   description: description ?? null,
@@ -63,7 +63,7 @@ const makePipeline = (overrides: Partial<PipelineEntity> = {}): PipelineEntity =
   ...overrides,
 });
 
-const ops: OperationEntity[] = [
+const ops: OperationRow[] = [
   makeOp("op-lint", "Run ESLint", "Lint the source code"),
   makeOp("op-build", "Build Project", "Compile the project"),
   makeOp("op-deploy", "Deploy", "Deploy to production"),

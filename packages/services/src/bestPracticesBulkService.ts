@@ -1,8 +1,8 @@
 import type {
   BestPracticesDaoInstance,
-  ChecklistItemEntity,
+  ChecklistItemRow,
   ChecklistItemsDaoInstance,
-  CodeSnippetEntity,
+  CodeSnippetRow,
   CodeSnippetsDaoInstance,
 } from "@repo/models";
 import type { BestPracticeRow } from "@repo/db-schema";
@@ -20,11 +20,11 @@ type BpService = {
 };
 
 type ChecklistItemService = {
-  getItemsByBestPracticeId(bestPracticeId: string): Promise<ChecklistItemEntity[]>;
+  getItemsByBestPracticeId(bestPracticeId: string): Promise<ChecklistItemRow[]>;
 };
 
 type CodeSnippetsService = {
-  getByBestPracticeId(bestPracticeId: string): Promise<CodeSnippetEntity[]>;
+  getByBestPracticeId(bestPracticeId: string): Promise<CodeSnippetRow[]>;
 };
 
 type TransactionRunner<Tx> = <T>(fn: (tx: Tx) => Promise<T>) => Promise<T>;

@@ -1,6 +1,6 @@
 import type { PipelineEdge, PipelineNode } from "./canvasSlice";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
-import type { OperationEntity, RecipeEntity } from "@repo/models";
+import type { OperationRow, RecipeRow } from "@repo/models";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
@@ -51,13 +51,13 @@ export interface ActionsSlice {
   handleRunTest: () => Promise<void>;
   addNodeAndAutoConnect: (node: PipelineNode) => void;
   createObjectNode: (type: NodeType) => void;
-  createOperationNode: (operation: OperationEntity) => void;
-  createRecipeNode: (recipe: RecipeEntity, operation: OperationEntity) => void;
+  createOperationNode: (operation: OperationRow) => void;
+  createRecipeNode: (recipe: RecipeRow, operation: OperationRow) => void;
   dismissContextMenu: () => void;
   handleContextMenuOpenChange: (open: boolean) => void;
   connectObjectNode: (type: NodeType) => void;
-  connectOperationNode: (operation: OperationEntity) => void;
-  connectRecipeNode: (recipe: RecipeEntity, operation: OperationEntity) => void;
+  connectOperationNode: (operation: OperationRow) => void;
+  connectRecipeNode: (recipe: RecipeRow, operation: OperationRow) => void;
   dismissConnectionMenu: () => void;
   handleConnectionMenuOpenChange: (open: boolean) => void;
 
@@ -69,8 +69,8 @@ export interface ActionsSlice {
   nodeContextDetach: () => void;
   nodeContextGroupSelected: () => void;
   nodeContextAddObject: (type: NodeType) => void;
-  nodeContextAddOperation: (operation: OperationEntity) => void;
-  nodeContextAddRecipe: (recipe: RecipeEntity, operation: OperationEntity) => void;
+  nodeContextAddOperation: (operation: OperationRow) => void;
+  nodeContextAddRecipe: (recipe: RecipeRow, operation: OperationRow) => void;
 
   // Node data actions
   handleGitHubProjectPick: (nodeId: string, picked: PickedProject) => void;

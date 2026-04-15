@@ -1,5 +1,5 @@
 import { eq, desc } from "drizzle-orm";
-import { githubProjectsTable, type GithubProjectRow } from "@repo/db-schema";
+import { githubProjectsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
 class GithubProjectsDao {

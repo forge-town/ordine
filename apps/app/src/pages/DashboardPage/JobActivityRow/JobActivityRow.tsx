@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Clock, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import type { JobEntity } from "@repo/models";
+import type { JobRow } from "@repo/models";
 
 const JOB_STATUS_ICON: Record<string, React.ElementType> = {
   queued: Clock,
@@ -18,7 +18,7 @@ const JOB_STATUS_CLS: Record<string, string> = {
 };
 
 export type JobActivityRowProps = {
-  job: JobEntity;
+  job: JobRow;
 };
 
 export const JobActivityRow = ({ job }: JobActivityRowProps) => {

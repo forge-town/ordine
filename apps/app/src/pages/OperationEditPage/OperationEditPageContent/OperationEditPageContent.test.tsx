@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { OperationEditPageContent } from "./OperationEditPageContent";
-import type { OperationEntity, SkillEntity } from "@repo/models";
+import type { OperationRow, SkillRow } from "@repo/models";
 
 const mockNavigate = vi.fn();
 const mockUpdateOperation = vi.fn();
@@ -17,7 +17,7 @@ vi.mock("@/services/operationsService", () => ({
   updateOperation: (...args: unknown[]) => mockUpdateOperation(...args),
 }));
 
-const mockOp: OperationEntity = {
+const mockOp: OperationRow = {
   id: "op-123",
   name: "Run ESLint",
   description: "Lints the code",
@@ -27,7 +27,7 @@ const mockOp: OperationEntity = {
   updatedAt: new Date(2000),
 };
 
-const mockSkills: SkillEntity[] = [
+const mockSkills: SkillRow[] = [
   {
     id: "skill-1",
     name: "lint-check",

@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { JobsPageContent } from "./JobsPageContent";
-import type { JobEntity } from "@repo/models";
+import type { JobRow } from "@repo/models";
 
-const mockUseLoaderData = vi.fn(() => [] as JobEntity[]);
+const mockUseLoaderData = vi.fn(() => [] as JobRow[]);
 
 vi.mock("@/routes/_layout/jobs.index", () => ({
   Route: { useLoaderData: () => mockUseLoaderData() },
@@ -17,7 +17,7 @@ vi.mock("@/services/jobsService", () => ({
   deleteJob: vi.fn().mockResolvedValue(undefined),
 }));
 
-const mockJobs: JobEntity[] = [
+const mockJobs: JobRow[] = [
   {
     id: "job-001",
     title: "Pipeline 运行",

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { OperationDetailPageContent } from "./OperationDetailPageContent";
-import type { OperationEntity } from "@repo/models";
+import type { OperationRow } from "@repo/models";
 
 const mockUseLoaderData = vi.fn();
 
@@ -13,7 +13,7 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
-const mockOp: OperationEntity = {
+const mockOp: OperationRow = {
   id: "op_plan",
   name: "Plan",
   description: "Produce a technical implementation plan.",

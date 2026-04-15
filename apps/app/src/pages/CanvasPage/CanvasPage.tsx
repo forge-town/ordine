@@ -4,11 +4,11 @@ import { CanvasPageContent } from "./CanvasPageContent";
 import { Route } from "@/routes/canvas";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { StoredPipeline } from "@repo/models";
+import type { PipelineEntity } from "@repo/models";
 
 export const CanvasPage = () => {
   const { id } = Route.useSearch();
-  const { result: pipelineResult } = useOne<StoredPipeline>({
+  const { result: pipelineResult } = useOne<PipelineEntity>({
     resource: ResourceName.pipelines,
     id: id ?? "",
     queryOptions: { enabled: !!id },

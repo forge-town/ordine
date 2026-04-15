@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { JobRow } from "./JobRow";
-import type { JobEntity } from "@repo/models";
+import type { JobRow as JobRowData } from "@repo/models";
 
-const baseJob: JobEntity = {
+const baseJob: JobRowData = {
   id: "job-001",
   title: "构建并测试 Pipeline",
   status: "running",

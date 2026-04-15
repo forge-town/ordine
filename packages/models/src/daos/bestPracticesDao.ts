@@ -1,5 +1,5 @@
 import { eq, desc } from "drizzle-orm";
-import { bestPracticesTable, type BestPracticeRow } from "@repo/db-schema";
+import { bestPracticesTable } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
 class BestPracticesDao {

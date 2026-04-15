@@ -1,10 +1,10 @@
 import { FolderGit2, GitBranch, Clock, ExternalLink, X } from "lucide-react";
-import type { GithubProjectEntity } from "@repo/models";
+import type { GithubProjectRow } from "@repo/models";
 
 const handleExternalLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => e.stopPropagation();
 
 export type ProjectCardProps = {
-  project: GithubProjectEntity;
+  project: GithubProjectRow;
   onClick: () => void;
   onDelete: () => void;
 };

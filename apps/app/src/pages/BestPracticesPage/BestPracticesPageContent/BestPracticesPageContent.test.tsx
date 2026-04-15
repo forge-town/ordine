@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BestPracticesPageContent } from "./BestPracticesPageContent";
-import type { BestPracticeEntity } from "@repo/models";
+import type { BestPracticeRow } from "@repo/models";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, ...props }: Record<string, unknown>) => (
@@ -20,7 +20,7 @@ vi.mock("@/routes/_layout/best-practices.index", () => ({
   Route: { useLoaderData: () => mockUseLoaderData() },
 }));
 
-const mockPractices: BestPracticeEntity[] = [
+const mockPractices: BestPracticeRow[] = [
   {
     id: "bp-1",
     title: "避免在 useEffect 中直接 setState",

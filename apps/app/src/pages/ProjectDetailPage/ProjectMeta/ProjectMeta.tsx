@@ -1,8 +1,8 @@
 import { FolderGit2, ExternalLink, GitBranch } from "lucide-react";
-import type { GithubProjectEntity } from "@repo/models";
+import type { GithubProjectRow } from "@repo/models";
 
 export type ProjectMetaProps = {
-  project: GithubProjectEntity;
+  project: GithubProjectRow;
 };
 
 export const ProjectMeta = ({ project }: ProjectMetaProps) => {

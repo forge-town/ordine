@@ -4,18 +4,18 @@ import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.$projectId.index";
 import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { GithubProjectEntity, StoredPipeline } from "@repo/models";
+import type { GithubProjectRow, PipelineEntity } from "@repo/models";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { ProjectMeta } from "../ProjectMeta";
 
 export const ProjectDetailPageContent = () => {
   const { projectId } = Route.useParams();
-  const { result: projectResult } = useOne<GithubProjectEntity>({
+  const { result: projectResult } = useOne<GithubProjectRow>({
     resource: ResourceName.githubProjects,
     id: projectId,
   });
-  const { result: pipelinesResult } = useList<StoredPipeline>({ resource: ResourceName.pipelines });
+  const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
   const project = projectResult ?? null;
   const pipelines = pipelinesResult?.data ?? [];
   const navigate = useNavigate();

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { OperationsPageContent } from "./OperationsPageContent";
-import type { OperationEntity } from "@repo/models";
+import type { OperationRow } from "@repo/models";
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
@@ -18,7 +18,7 @@ vi.mock("@/services/operationsService", () => ({
   deleteOperation: vi.fn(),
 }));
 
-const makeOp = (id: string, name: string, description: string | null): OperationEntity => ({
+const makeOp = (id: string, name: string, description: string | null): OperationRow => ({
   id,
   name,
   description,
@@ -28,7 +28,7 @@ const makeOp = (id: string, name: string, description: string | null): Operation
   updatedAt: new Date(),
 });
 
-const ops: OperationEntity[] = [
+const ops: OperationRow[] = [
   makeOp("op1", "Constitution Plan", "Set up project principles"),
   makeOp("op2", "Run ESLint", "Lint the source code"),
   makeOp("op3", "Deploy Build", null),

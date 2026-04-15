@@ -15,7 +15,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { useTranslation } from "react-i18next";
-import type { JobEntity } from "@repo/models";
+import type { JobRow as JobRowData } from "@repo/models";
 import type { JobStatus, JobType } from "@repo/db-schema";
 
 const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot: string }> = {
@@ -47,7 +47,7 @@ const TYPE_ICON: Record<JobType, React.ElementType> = {
 };
 
 export type JobRowProps = {
-  job: JobEntity;
+  job: JobRowData;
   onClick: () => void;
   onDelete: () => void;
 };

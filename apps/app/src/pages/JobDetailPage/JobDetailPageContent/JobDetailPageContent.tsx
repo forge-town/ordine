@@ -19,7 +19,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import type { JobEntity } from "@repo/models";
+import type { JobRow } from "@repo/models";
 import type { JobStatus, JobType } from "@repo/db-schema";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -85,7 +85,7 @@ const getJobTypeLabel = (type: JobType, t: (key: string) => string): string => {
 
 export const JobDetailPageContent = () => {
   const { jobId } = Route.useParams();
-  const { result: jobResult } = useOne<JobEntity>({ resource: ResourceName.jobs, id: jobId });
+  const { result: jobResult } = useOne<JobRow>({ resource: ResourceName.jobs, id: jobId });
   const job = jobResult ?? null;
   const { t } = useTranslation();
   const navigate = useNavigate();

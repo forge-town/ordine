@@ -8,12 +8,12 @@ import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { StoredPipeline } from "@repo/models";
+import type { PipelineEntity } from "@repo/models";
 import { PipelineCard } from "../PipelineCard";
 
 export const PipelinesPageContent = () => {
   const { t } = useTranslation();
-  const { result: pipelinesResult } = useList<StoredPipeline>({ resource: ResourceName.pipelines });
+  const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
   const pipelines = pipelinesResult?.data ?? [];
   const [search, setSearch] = React.useState("");
   const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
@@ -42,7 +42,7 @@ export const PipelinesPageContent = () => {
 
   const filtered = React.useMemo(() => {
     const q = search.toLowerCase();
-    return pipelines.filter((p: StoredPipeline) => {
+    return pipelines.filter((p: PipelineEntity) => {
       const matchesSearch =
         !q ||
         p.name.toLowerCase().includes(q) ||
@@ -60,7 +60,7 @@ export const PipelinesPageContent = () => {
   const handleCreate = async () => {
     const id = `pipeline-${Date.now()}`;
     const now = new Date();
-    const newPipeline: StoredPipeline = {
+    const newPipeline: PipelineEntity = {
       id,
       name: t("pipelines.createNew"),
       description: t("pipelines.newPipelineDescription"),
@@ -89,7 +89,7 @@ export const PipelinesPageContent = () => {
       resource: ResourceName.pipelines,
       values: newPipeline,
     });
-    const saved = result.data as StoredPipeline;
+    const saved = result.data as PipelineEntity;
     void navigate({ to: "/canvas", search: { id: saved.id } });
   };
 

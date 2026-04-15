@@ -4,7 +4,7 @@ import { Plus, Search, Folder } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { GithubProjectEntity } from "@repo/models";
+import type { GithubProjectRow } from "@repo/models";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { CreateProjectDialog } from "../CreateProjectDialog";
@@ -12,7 +12,7 @@ import { ProjectCard } from "../ProjectCard";
 
 export const ProjectsPageContent = () => {
   const { t } = useTranslation();
-  const { result: projectsResult } = useList<GithubProjectEntity>({
+  const { result: projectsResult } = useList<GithubProjectRow>({
     resource: ResourceName.githubProjects,
   });
   const projects = projectsResult?.data ?? [];
@@ -22,7 +22,7 @@ export const ProjectsPageContent = () => {
   const { mutate: deleteProjectMutate } = useDelete();
 
   const filtered = projects.filter(
-    (p: GithubProjectEntity) =>
+    (p: GithubProjectRow) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.description ?? "").toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
@@ -36,7 +36,7 @@ export const ProjectsPageContent = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
   const handleShowCreate = () => setShowCreate(true);
   const handleHideCreate = () => setShowCreate(false);
-  const handleCreateProject = (_p: GithubProjectEntity) => {};
+  const handleCreateProject = (_p: GithubProjectRow) => {};
   const handleProjectClick = (projectId: string) => () =>
     void navigate({
       to: "/projects/$projectId",

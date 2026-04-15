@@ -13,7 +13,7 @@ import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { SkillEntity } from "@repo/models";
+import type { SkillRow } from "@repo/models";
 import {
   ObjectTypeSchema as ObjectTypeEnum,
   ExecutorTypeSchema as ExecutorTypeEnum,
@@ -89,7 +89,7 @@ const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[]
 };
 
 export const OperationCreatePageContent = () => {
-  const { result: skillsResult } = useList<SkillEntity>({ resource: ResourceName.skills });
+  const { result: skillsResult } = useList<SkillRow>({ resource: ResourceName.skills });
   const skills = skillsResult?.data ?? [];
   const { t } = useTranslation();
   const navigate = useNavigate();

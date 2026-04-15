@@ -22,7 +22,7 @@ import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { OperationEntity, RecipeEntity } from "@repo/models";
+import type { OperationRow, RecipeRow } from "@repo/models";
 import { nodeTypeMeta, getAllowedConnections, type NodeType } from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
@@ -38,10 +38,10 @@ const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
 
 export const ConnectionMenu = () => {
   const { t } = useTranslation();
-  const { result: operationsResult } = useList<OperationEntity>({
+  const { result: operationsResult } = useList<OperationRow>({
     resource: ResourceName.operations,
   });
-  const { result: recipesResult } = useList<RecipeEntity>({ resource: ResourceName.recipes });
+  const { result: recipesResult } = useList<RecipeRow>({ resource: ResourceName.recipes });
   const operations = operationsResult?.data ?? [];
   const recipes = recipesResult?.data ?? [];
   const store = useHarnessCanvasStore();

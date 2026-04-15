@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { JobDetailPageContent } from "./JobDetailPageContent";
-import type { JobEntity } from "@repo/models";
+import type { JobRow } from "@repo/models";
 
-const mockJob: JobEntity = {
+const mockJob: JobRow = {
   id: "job-1",
   title: "运行 Pipeline: 代码分析",
   type: "pipeline_run",

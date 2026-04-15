@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useList } from "@refinedev/core";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { GithubProjectEntity } from "@repo/models";
+import type { GithubProjectRow } from "@repo/models";
 
 export interface PickedProject {
   githubProjectId: string;
@@ -24,7 +24,7 @@ interface PickProjectDialogProps {
 }
 
 export const PickProjectDialog = ({ open, onClose, onPick }: PickProjectDialogProps) => {
-  const { query } = useList<GithubProjectEntity>({
+  const { query } = useList<GithubProjectRow>({
     resource: ResourceName.githubProjects,
     queryOptions: { enabled: open },
   });
@@ -39,7 +39,7 @@ export const PickProjectDialog = ({ open, onClose, onPick }: PickProjectDialogPr
       p.description.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handlePick = (p: GithubProjectEntity) => {
+  const handlePick = (p: GithubProjectRow) => {
     onPick({
       githubProjectId: p.id,
       owner: p.owner,
@@ -48,7 +48,7 @@ export const PickProjectDialog = ({ open, onClose, onPick }: PickProjectDialogPr
       description: p.description,
       label: p.repo,
       githubUrl: p.githubUrl,
-      isPrivate: (p as GithubProjectEntity & { isPrivate?: boolean }).isPrivate ?? false,
+      isPrivate: (p as GithubProjectRow & { isPrivate?: boolean }).isPrivate ?? false,
     });
     onClose();
   };

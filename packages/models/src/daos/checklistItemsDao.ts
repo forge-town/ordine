@@ -1,5 +1,5 @@
 import { eq, asc } from "drizzle-orm";
-import { checklistItemsTable, type ChecklistItemRow } from "@repo/db-schema";
+import { checklistItemsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
 class ChecklistItemsDao {
