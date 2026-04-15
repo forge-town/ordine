@@ -3,7 +3,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, FolderGit2, ChevronRight, Play, GitBranch, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.$projectId.workspace";
-import { createWork } from "@/services/worksService";
+import { useCreate } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { ResultAsync } from "neverthrow";
 import { Button } from "@repo/ui/button";
 import { ObjectRow, type ObjectItem } from "../ObjectRow";
@@ -26,6 +27,7 @@ export const ProjectWorkspacePageContent = () => {
   const [selectedObjects, setSelectedObjects] = useState<Set<string>>(new Set());
   const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
   const [triggering, setTriggering] = useState(false);
+  const { mutateAsync: createWorkMutate } = useCreate();
 
   if (!project) {
     return (
@@ -56,8 +58,9 @@ export const ProjectWorkspacePageContent = () => {
       (async () => {
         for (const path of selectedObjects) {
           const obj = objects.find((o) => o.path === path)!;
-          await createWork({
-            data: {
+          await createWorkMutate({
+            resource: ResourceName.works,
+            values: {
               id: `work-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
               projectId: project.id,
               pipelineId: selectedPipeline.id,
@@ -67,7 +70,7 @@ export const ProjectWorkspacePageContent = () => {
           });
         }
       })(),
-      () => "trigger-failed" as const
+      () => "trigger-failed" as const,
     );
     setTriggering(false);
     if (result.isOk()) {

@@ -2,19 +2,22 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import { createRule } from "@/services/rulesService";
+import { useCreate } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { RuleForm } from "@/pages/RulesPage/RuleForm";
 import type { RuleFormState } from "@/pages/RulesPage/types";
 
 export const RuleCreatePageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { mutateAsync: createRuleMutate } = useCreate();
 
   const handleNavigateBack = () => void navigate({ to: "/rules" });
 
   const handleSave = async (form: RuleFormState) => {
-    const rule = await createRule({
-      data: {
+    const result = await createRuleMutate({
+      resource: ResourceName.rules,
+      values: {
         id: crypto.randomUUID(),
         name: form.name,
         description: form.description || null,
@@ -32,7 +35,8 @@ export const RuleCreatePageContent = () => {
           : [],
       },
     });
-    void navigate({ to: "/rules/$ruleId", params: { ruleId: rule.id } });
+    const rule = result.data;
+    void navigate({ to: "/rules/$ruleId", params: { ruleId: (rule as { id: string }).id } });
   };
 
   return (

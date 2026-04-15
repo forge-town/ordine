@@ -5,9 +5,9 @@ import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
 import { makeDefaultNodeData, makeOperationNodeData, type NodeType } from "../nodeSchemas";
-import { updatePipeline } from "@/services/pipelinesService";
+import { trpcClient } from "@/integrations/trpc/client";
 import { useToastStore } from "@/store/toastStore";
-import { ResultAsync, err } from "neverthrow";
+import { ResultAsync } from "neverthrow";
 import i18n from "@/lib/i18n";
 import type { ReactFlowInstance, OnConnectStartParams } from "@xyflow/react";
 import type { FinalConnectionState, XYPosition } from "@xyflow/system";
@@ -26,7 +26,7 @@ export interface ActionsSlice {
   handleFlowConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void;
   handleFlowConnectEnd: (
     event: MouseEvent | TouchEvent,
-    connectionState: FinalConnectionState
+    connectionState: FinalConnectionState,
   ) => void;
   handleFlowNodeClick: (event: React.MouseEvent, node: PipelineNode) => void;
   handleFlowNodeContextMenu: (event: React.MouseEvent, node: PipelineNode) => void;
@@ -37,7 +37,7 @@ export interface ActionsSlice {
   handleFlowNodeDragStop: (
     event: React.MouseEvent,
     node: PipelineNode,
-    nodes: PipelineNode[]
+    nodes: PipelineNode[],
   ) => void;
 
   // Cross-slice semantic actions
@@ -82,7 +82,7 @@ export interface ActionsSlice {
 
 export const createActionsSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
-  get: Parameters<HarnessCanvasStoreSlice>[1]
+  get: Parameters<HarnessCanvasStoreSlice>[1],
 ): ActionsSlice => ({
   exportCanvas: () => {
     const state = get();
@@ -312,18 +312,16 @@ export const createActionsSlice = (
     startTestRun();
 
     const saveResult = await ResultAsync.fromPromise(
-      updatePipeline({
-        data: {
-          id: pipelineId,
-          patch: {
-            name: pipelineName || t("canvas.unsavedPipeline"),
-            nodes: nodes as unknown[],
-            edges: edges as unknown[],
-            updatedAt: Date.now(),
-          },
+      trpcClient.pipelines.update.mutate({
+        id: pipelineId,
+        patch: {
+          name: pipelineName || t("canvas.unsavedPipeline"),
+          nodes: nodes as unknown[],
+          edges: edges as unknown[],
+          updatedAt: Date.now(),
         },
       }),
-      () => "save-failed" as const
+      () => "save-failed" as const,
     );
 
     if (saveResult.isErr()) {
@@ -337,36 +335,17 @@ export const createActionsSlice = (
     }
 
     const runResult = await ResultAsync.fromPromise(
-      fetch(`/api/pipelines/${pipelineId}/run`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      }),
-      () => "Failed to start pipeline"
-    )
-      .andThen((res) =>
-        ResultAsync.fromPromise(res.text(), () => "Failed to read response").map((text) => ({
-          res,
-          text,
-        }))
-      )
-      .andThen(({ res, text }) => {
-        if (!res.ok) {
-          return err(text || `HTTP ${res.status}`);
-        }
-        return ResultAsync.fromPromise(
-          Promise.resolve().then(() => JSON.parse(text) as { jobId: string }),
-          () => "Failed to parse response"
-        );
-      });
+      trpcClient.pipelines.run.mutate({ pipelineId }),
+      () => "Failed to start pipeline",
+    );
 
     runResult.match(
-      ({ jobId }) => {
-        setActiveJobId(jobId);
+      (data) => {
+        setActiveJobId(data.jobId);
         useToastStore.getState().addToast({
           type: "success",
           title: t("canvas.runCompleted"),
-          description: `Job ${jobId} ${t("canvas.runSuccess")}`,
+          description: `Job ${data.jobId} ${t("canvas.runSuccess")}`,
         });
       },
       (error) => {
@@ -375,7 +354,7 @@ export const createActionsSlice = (
           title: t("canvas.runFailed"),
           description: error,
         });
-      }
+      },
     );
 
     set({ isRunning: false });

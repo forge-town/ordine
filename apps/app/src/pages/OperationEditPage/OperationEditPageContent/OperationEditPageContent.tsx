@@ -11,7 +11,8 @@ import { Input } from "@repo/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import { updateOperation } from "@/services/operationsService";
+import { useUpdate } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { OperationEntity, SkillEntity } from "@repo/models";
 import {
   ObjectTypeSchema as ObjectTypeEnum,
@@ -81,7 +82,7 @@ const buildConfig = (values: EditFormValues): string => {
 };
 
 const parseExecutorDefaults = (
-  config: string
+  config: string,
 ): {
   executorType: ExecutorType;
   agentMode: AgentMode;
@@ -152,6 +153,7 @@ interface Props {
 export const OperationEditPageContent = ({ operation, skills }: Props) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { mutateAsync: updateOpMutate } = useUpdate();
 
   const EXECUTOR_TYPE_OPTIONS = [
     {
@@ -236,9 +238,10 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
   };
 
   const onSubmit = async (values: EditFormValues) => {
-    await updateOperation({
-      data: {
-        id: operation.id,
+    await updateOpMutate({
+      resource: ResourceName.operations,
+      id: operation.id,
+      values: {
         name: values.name,
         description: values.description || null,
         config: buildConfig(values),
@@ -329,7 +332,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                   "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                                   selected
                                     ? "border-primary/50 bg-primary/10 text-primary"
-                                    : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                    : "border-border bg-background text-muted-foreground hover:bg-muted",
                                 )}
                                 type="button"
                                 onClick={() => handleChange(toggleObjectType(field.value, value))}
@@ -370,7 +373,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                 "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
                                 selected
                                   ? "border-primary/50 bg-primary/10 text-primary"
-                                  : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                  : "border-border bg-background text-muted-foreground hover:bg-muted",
                               )}
                               type="button"
                               onClick={() => handleChange(value)}
@@ -409,7 +412,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                     "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                                     selected
                                       ? "border-primary/50 bg-primary/10 text-primary"
-                                      : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                      : "border-border bg-background text-muted-foreground hover:bg-muted",
                                   )}
                                   type="button"
                                   onClick={() => handleChange(value)}

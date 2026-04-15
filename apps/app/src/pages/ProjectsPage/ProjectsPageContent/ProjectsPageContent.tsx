@@ -3,7 +3,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { Plus, Search, Folder } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.index";
-import { deleteGithubProject } from "@/services/githubProjectsService";
+import { useDelete } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { GithubProjectEntity } from "@repo/models";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -14,23 +15,24 @@ export const ProjectsPageContent = () => {
   const { t } = useTranslation();
   const loaderProjects = Route.useLoaderData();
   const [projects, setProjects] = useState<GithubProjectEntity[]>(
-    loaderProjects as GithubProjectEntity[]
+    loaderProjects as GithubProjectEntity[],
   );
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const navigate = useNavigate();
+  const { mutate: deleteProjectMutate } = useDelete();
 
   const filtered = projects.filter(
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.description.toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
-      p.repo.toLowerCase().includes(search.toLowerCase())
+      p.repo.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     setProjects((prev) => prev.filter((p) => p.id !== id));
-    await deleteGithubProject({ data: { id } });
+    deleteProjectMutate({ resource: ResourceName.githubProjects, id });
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);

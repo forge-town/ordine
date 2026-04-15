@@ -25,17 +25,8 @@ import {
 } from "@repo/ui/dropdown-menu";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import type { BestPracticeEntity, ChecklistItemEntity, CodeSnippetEntity } from "@repo/models";
-import { updateBestPractice } from "@/services/bestPracticesService";
-import {
-  createChecklistItem,
-  updateChecklistItem,
-  deleteChecklistItem,
-} from "@/services/checklistService";
-import {
-  createCodeSnippet,
-  updateCodeSnippet,
-  deleteCodeSnippet,
-} from "@/services/codeSnippetsService";
+import { useUpdate, useCreate, useDelete } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CATEGORIES, LANGUAGES } from "@/pages/BestPracticesPage/constants";
 import { toJson, fromJson, toCsv, fromCsv, downloadFile, readFileContent } from "../checklistIO";
 import { ok } from "neverthrow";
@@ -56,6 +47,9 @@ export const BestPracticeEditPageContent = ({
 }: Props) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { mutateAsync: updateBpMutate } = useUpdate();
+  const { mutateAsync: createMutate } = useCreate();
+  const { mutateAsync: deleteMutate } = useDelete();
 
   const editFormSchema = z.object({
     title: z.string().min(1, t("validation.titleRequired")),
@@ -79,7 +73,7 @@ export const BestPracticeEditPageContent = ({
       isNew: false,
       isDeleted: false,
       isDirty: false,
-    }))
+    })),
   );
 
   const [snippets, setSnippets] = useState<CodeSnippetDraft[]>(
@@ -92,7 +86,7 @@ export const BestPracticeEditPageContent = ({
       isNew: false,
       isDeleted: false,
       isDirty: false,
-    }))
+    })),
   );
 
   const form = useForm<EditFormValues>({
@@ -145,10 +139,10 @@ export const BestPracticeEditPageContent = ({
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number
+    value: string | number,
   ) => {
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item))
+      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item)),
     );
   };
 
@@ -175,10 +169,10 @@ export const BestPracticeEditPageContent = ({
   const handleUpdateSnippetField = (
     id: string,
     field: keyof Pick<CodeSnippetDraft, "title" | "language" | "code" | "sortOrder">,
-    value: string | number
+    value: string | number,
   ) => {
     setSnippets((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, [field]: value, isDirty: true } : s))
+      prev.map((s) => (s.id === id ? { ...s, [field]: value, isDirty: true } : s)),
     );
   };
 
@@ -252,20 +246,20 @@ export const BestPracticeEditPageContent = ({
       .filter(Boolean);
 
     // Save best practice
-    await updateBestPractice({
-      data: {
-        id: bestPractice.id,
-        patch: { ...values, tags },
-      },
+    await updateBpMutate({
+      resource: ResourceName.bestPractices,
+      id: bestPractice.id,
+      values: { ...values, tags },
     });
 
     // Process checklist items
     for (const item of items) {
       if (item.isDeleted && !item.isNew) {
-        await deleteChecklistItem({ data: { id: item.id } });
+        await deleteMutate({ resource: ResourceName.checklistItems, id: item.id });
       } else if (item.isNew && !item.isDeleted && item.title.trim()) {
-        await createChecklistItem({
-          data: {
+        await createMutate({
+          resource: ResourceName.checklistItems,
+          values: {
             id: item.id,
             bestPracticeId: bestPractice.id,
             title: item.title.trim(),
@@ -276,16 +270,15 @@ export const BestPracticeEditPageContent = ({
           },
         });
       } else if (!item.isNew && !item.isDeleted && item.isDirty) {
-        await updateChecklistItem({
-          data: {
-            id: item.id,
-            patch: {
-              title: item.title.trim(),
-              description: item.description,
-              checkType: item.checkType,
-              script: item.checkType === "script" ? item.script : null,
-              sortOrder: item.sortOrder,
-            },
+        await updateBpMutate({
+          resource: ResourceName.checklistItems,
+          id: item.id,
+          values: {
+            title: item.title.trim(),
+            description: item.description,
+            checkType: item.checkType,
+            script: item.checkType === "script" ? item.script : null,
+            sortOrder: item.sortOrder,
           },
         });
       }
@@ -294,10 +287,11 @@ export const BestPracticeEditPageContent = ({
     // Process code snippets
     for (const snippet of snippets) {
       if (snippet.isDeleted && !snippet.isNew) {
-        await deleteCodeSnippet({ data: { id: snippet.id } });
+        await deleteMutate({ resource: ResourceName.codeSnippets, id: snippet.id });
       } else if (snippet.isNew && !snippet.isDeleted && snippet.code.trim()) {
-        await createCodeSnippet({
-          data: {
+        await createMutate({
+          resource: ResourceName.codeSnippets,
+          values: {
             id: snippet.id,
             bestPracticeId: bestPractice.id,
             title: snippet.title,
@@ -307,15 +301,14 @@ export const BestPracticeEditPageContent = ({
           },
         });
       } else if (!snippet.isNew && !snippet.isDeleted && snippet.isDirty) {
-        await updateCodeSnippet({
-          data: {
-            id: snippet.id,
-            patch: {
-              title: snippet.title,
-              language: snippet.language,
-              code: snippet.code,
-              sortOrder: snippet.sortOrder,
-            },
+        await updateBpMutate({
+          resource: ResourceName.codeSnippets,
+          id: snippet.id,
+          values: {
+            title: snippet.title,
+            language: snippet.language,
+            code: snippet.code,
+            sortOrder: snippet.sortOrder,
           },
         });
       }

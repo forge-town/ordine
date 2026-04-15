@@ -17,7 +17,8 @@ import {
 import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import type { BestPracticeEntity } from "@repo/models";
-import { createBestPractice, updateBestPractice } from "@/services/bestPracticesService";
+import { useCreate, useUpdate } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CATEGORIES, LANGUAGES } from "../constants";
 
 const formSchema = z.object({
@@ -41,6 +42,8 @@ export type PracticeFormDialogProps = {
 export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDialogProps) => {
   const { t } = useTranslation();
   const handleClose = onClose;
+  const { mutateAsync: createBpMutate } = useCreate();
+  const { mutateAsync: updateBpMutate } = useUpdate();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initial
@@ -78,16 +81,17 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
       .map((t) => t.trim())
       .filter(Boolean);
     if (initial) {
-      const updated = await updateBestPractice({
-        data: {
-          id: initial.id,
-          patch: { ...values, tags },
-        },
+      const result = await updateBpMutate({
+        resource: ResourceName.bestPractices,
+        id: initial.id,
+        values: { ...values, tags },
       });
+      const updated = result.data as BestPracticeEntity | undefined;
       if (updated) onSave(updated);
     } else {
-      const created = await createBestPractice({
-        data: {
+      const result = await createBpMutate({
+        resource: ResourceName.bestPractices,
+        values: {
           id: `bp-${Date.now()}`,
           title: values.title.trim(),
           condition: values.condition.trim(),
@@ -98,6 +102,7 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
           tags,
         },
       });
+      const created = result.data as BestPracticeEntity;
       onSave(created);
     }
     onClose();

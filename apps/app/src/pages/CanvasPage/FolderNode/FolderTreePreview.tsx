@@ -1,7 +1,8 @@
 import { Folder, File, Ban, RotateCw } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useList } from "@refinedev/core";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 
 interface DirectoryEntry {
   name: string;
@@ -17,22 +18,19 @@ interface FolderTreePreviewProps {
 
 const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
-const fetchDirectoryTree = async (folderPath: string): Promise<DirectoryEntry[]> => {
-  const res = await fetch(`/api/filesystem/tree?path=${encodeURIComponent(folderPath)}`);
-  if (!res.ok) return [];
-  return res.json() as Promise<DirectoryEntry[]>;
-};
-
 export const FolderTreePreview = ({
   folderPath,
   excludedPaths,
   onExclude,
 }: FolderTreePreviewProps) => {
-  const { data: entries = [], isLoading: loading } = useQuery({
-    queryKey: ["folder-tree", folderPath],
-    queryFn: () => fetchDirectoryTree(folderPath),
-    enabled: !!folderPath,
+  const { query } = useList<DirectoryEntry>({
+    resource: ResourceName.filesystem,
+    filters: folderPath ? [{ field: "path", operator: "eq", value: folderPath }] : [],
+    queryOptions: { enabled: !!folderPath },
   });
+
+  const entries = query.data?.data ?? [];
+  const loading = query.isLoading;
 
   if (!folderPath) return null;
 
@@ -69,7 +67,7 @@ export const FolderTreePreview = ({
             <span
               className={cn(
                 "flex-1 truncate font-mono",
-                isExcluded ? "line-through text-slate-400" : "text-slate-600"
+                isExcluded ? "line-through text-slate-400" : "text-slate-600",
               )}
             >
               {entry.name}

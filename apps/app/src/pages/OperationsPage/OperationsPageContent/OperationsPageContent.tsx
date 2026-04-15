@@ -14,7 +14,8 @@ import {
   Upload,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { createOperation, deleteOperation } from "@/services/operationsService";
+import { useCreate, useDelete } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { OperationEntity } from "@repo/models";
 import type { ObjectType } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
@@ -67,6 +68,8 @@ export const OperationsPageContent = () => {
 
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
+  const { mutate: deleteOpMutate } = useDelete();
+  const { mutateAsync: createOpMutate } = useCreate();
   const [operations, setOperations] = useState(initialOperations);
   const [importing, setImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -103,8 +106,8 @@ export const OperationsPageContent = () => {
     navigate({ to: "/operations/new" });
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteOperation({ data: { id } });
+  const handleDelete = (id: string) => {
+    deleteOpMutate({ resource: ResourceName.operations, id });
     setOperations((prev) => prev.filter((o) => o.id !== id));
   };
 
@@ -164,8 +167,9 @@ export const OperationsPageContent = () => {
       e.target.value = "";
       return;
     }
-    const created = await createOperation({
-      data: {
+    const result = await createOpMutate({
+      resource: ResourceName.operations,
+      values: {
         id: `op-${Date.now()}`,
         name: parsed.name,
         description: parsed.description ?? null,
@@ -173,6 +177,7 @@ export const OperationsPageContent = () => {
         acceptedObjectTypes: parsed.acceptedObjectTypes ?? ["file", "folder", "project"],
       },
     });
+    const created = result.data;
     if (created) {
       setOperations((prev) => [created as OperationEntity, ...prev]);
       addToast({

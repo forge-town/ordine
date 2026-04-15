@@ -17,7 +17,8 @@ import {
 } from "@repo/ui/select";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import type { RecipeEntity, OperationEntity, BestPracticeEntity } from "@repo/models";
-import { createRecipe, updateRecipe } from "@/services/recipesService";
+import { useCreate, useUpdate } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 
 const formSchema = z.object({
   name: z.string().min(1, "名称不能为空"),
@@ -45,6 +46,8 @@ export const RecipeFormDialog = ({
 }: RecipeFormDialogProps) => {
   const { t } = useTranslation();
   const handleClose = onClose;
+  const { mutateAsync: createRecipeMutate } = useCreate();
+  const { mutateAsync: updateRecipeMutate } = useUpdate();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initial
@@ -72,13 +75,17 @@ export const RecipeFormDialog = ({
 
   const onSubmit = async (values: FormValues) => {
     if (initial) {
-      const updated = await updateRecipe({
-        data: { id: initial.id, patch: values },
+      const result = await updateRecipeMutate({
+        resource: ResourceName.recipes,
+        id: initial.id,
+        values,
       });
+      const updated = result.data as RecipeEntity | undefined;
       if (updated) onSave(updated);
     } else {
-      const created = await createRecipe({
-        data: {
+      const result = await createRecipeMutate({
+        resource: ResourceName.recipes,
+        values: {
           id: `rcp-${Date.now()}`,
           name: values.name.trim(),
           description: values.description,
@@ -86,6 +93,7 @@ export const RecipeFormDialog = ({
           bestPracticeId: values.bestPracticeId,
         },
       });
+      const created = result.data as RecipeEntity | undefined;
       if (created) onSave(created);
     }
     onClose();

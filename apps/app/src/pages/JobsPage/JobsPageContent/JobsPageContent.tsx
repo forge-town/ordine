@@ -7,7 +7,8 @@ import { Input } from "@repo/ui/input";
 import type { JobEntity } from "@repo/models";
 import type { JobStatus } from "@repo/db-schema";
 import { Route } from "@/routes/_layout/jobs.index";
-import { deleteJob } from "@/services/jobsService";
+import { useDelete } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { StatCard } from "../StatCard";
 import { JobRow } from "../JobRow";
 
@@ -18,6 +19,7 @@ export const JobsPageContent = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<JobStatus | "all">("all");
   const navigate = useNavigate();
+  const { mutate: deleteJobMutate } = useDelete();
 
   const STATUS_FILTERS: { value: JobStatus | "all"; label: string }[] = [
     { value: "all", label: t("jobs.filterAll") },
@@ -45,9 +47,9 @@ export const JobsPageContent = () => {
     return matchStatus && matchSearch;
   });
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     setJobs((prev) => prev.filter((j) => j.id !== id));
-    await deleteJob({ data: { id } });
+    deleteJobMutate({ resource: ResourceName.jobs, id });
   };
 
   const counts: Record<JobStatus, number> = {

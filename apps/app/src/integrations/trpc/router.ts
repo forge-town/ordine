@@ -11,6 +11,7 @@ import { githubProjectsRouter } from "./routers/githubProjects";
 import { skillsRouter } from "./routers/skills";
 import { recipesRouter } from "./routers/recipes";
 import { checklistRouter } from "./routers/checklist";
+import { codeSnippetsRouter } from "./routers/codeSnippets";
 
 export const appRouter = router({
   filesystem: filesystemRouter,
@@ -25,6 +26,7 @@ export const appRouter = router({
   skills: skillsRouter,
   recipes: recipesRouter,
   checklist: checklistRouter,
+  codeSnippets: codeSnippetsRouter,
 });
 
 export type AppRouter = typeof appRouter;

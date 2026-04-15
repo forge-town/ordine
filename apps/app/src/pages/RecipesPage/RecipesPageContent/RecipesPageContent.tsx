@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { RecipeEntity, OperationEntity, BestPracticeEntity } from "@repo/models";
-import { deleteRecipe } from "@/services/recipesService";
+import { useDelete } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/recipes";
 import { RecipeFormDialog } from "../RecipeFormDialog";
 import { RecipeCard } from "../RecipeCard";
@@ -22,6 +23,7 @@ export const RecipesPageContent = () => {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<RecipeEntity | null>(null);
+  const { mutate: deleteRecipeMutate } = useDelete();
 
   const filtered = recipes.filter((r) => {
     const q = search.toLowerCase();
@@ -41,9 +43,9 @@ export const RecipesPageContent = () => {
     });
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     setRecipes((prev) => prev.filter((r) => r.id !== id));
-    await deleteRecipe({ data: { id } });
+    deleteRecipeMutate({ resource: ResourceName.recipes, id });
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);

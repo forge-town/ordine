@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Search, GitBranch, Lock, Globe, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useList } from "@refinedev/core";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
-import { getGithubProjects } from "@/services/githubProjectsService";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { GithubProjectEntity } from "@repo/models";
 
 export interface PickedProject {
@@ -24,18 +24,19 @@ interface PickProjectDialogProps {
 }
 
 export const PickProjectDialog = ({ open, onClose, onPick }: PickProjectDialogProps) => {
-  const { data: projects = [], isLoading: loading } = useQuery({
-    queryKey: ["github-projects"],
-    queryFn: () => getGithubProjects(),
-    enabled: open,
+  const { query } = useList<GithubProjectEntity>({
+    resource: ResourceName.githubProjects,
+    queryOptions: { enabled: open },
   });
+  const projects = query.data?.data ?? [];
+  const loading = query.isLoading;
   const [search, setSearch] = useState("");
 
   const filtered = projects.filter(
     (p) =>
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
       p.repo.toLowerCase().includes(search.toLowerCase()) ||
-      p.description.toLowerCase().includes(search.toLowerCase())
+      p.description.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handlePick = (p: GithubProjectEntity) => {

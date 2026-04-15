@@ -11,7 +11,8 @@ import { Input } from "@repo/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import { createOperation } from "@/services/operationsService";
+import { useCreate } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { SkillEntity } from "@repo/models";
 import { Route } from "@/routes/_layout/operations.new";
 import {
@@ -171,13 +172,16 @@ export const OperationCreatePageContent = () => {
   const handleScriptLangOpenChange = (v: boolean) => setScriptLangOpen(v);
   const handleScriptLangToggle = () => setScriptLangOpen((prev) => !prev);
 
+  const { mutateAsync: createOpMutate } = useCreate();
+
   const handleCancel = () => {
     void navigate({ to: "/operations" });
   };
 
   const onSubmit = async (values: CreateFormValues) => {
-    const created = await createOperation({
-      data: {
+    const result = await createOpMutate({
+      resource: ResourceName.operations,
+      values: {
         id: `op-${Date.now()}`,
         name: values.name,
         description: values.description || null,
@@ -185,6 +189,7 @@ export const OperationCreatePageContent = () => {
         acceptedObjectTypes: values.acceptedObjectTypes,
       },
     });
+    const created = result.data;
     if (created) {
       void navigate({
         to: "/operations/$operationId",
@@ -271,7 +276,7 @@ export const OperationCreatePageContent = () => {
                                   "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                                   selected
                                     ? "border-primary/50 bg-primary/10 text-primary"
-                                    : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                    : "border-border bg-background text-muted-foreground hover:bg-muted",
                                 )}
                                 type="button"
                                 onClick={() => handleChange(toggleObjectType(field.value, value))}
@@ -312,7 +317,7 @@ export const OperationCreatePageContent = () => {
                                 "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
                                 selected
                                   ? "border-primary/50 bg-primary/10 text-primary"
-                                  : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                  : "border-border bg-background text-muted-foreground hover:bg-muted",
                               )}
                               type="button"
                               onClick={() => handleChange(value)}
@@ -351,7 +356,7 @@ export const OperationCreatePageContent = () => {
                                     "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                                     selected
                                       ? "border-primary/50 bg-primary/10 text-primary"
-                                      : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                      : "border-border bg-background text-muted-foreground hover:bg-muted",
                                   )}
                                   type="button"
                                   onClick={() => handleChange(value)}

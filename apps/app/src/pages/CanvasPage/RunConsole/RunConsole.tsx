@@ -3,10 +3,11 @@ import { Terminal, X, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { cn } from "@repo/ui/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { StatusIcon } from "./StatusIcon";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { JobData, JobStatus, RunConsoleProps } from "./types";
 
 const POLL_INTERVAL = 1500;
@@ -42,7 +43,7 @@ const parseStructuredLogs = (
     onNodeDone: (nodeId: string) => void;
     onNodeFail: (nodeId: string) => void;
     onLlmContent: (nodeId: string, content: string) => void;
-  }
+  },
 ) => {
   for (const log of logs) {
     const msg = log.replace(/^\[[^\]]+\]\s*/, "");
@@ -89,20 +90,20 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
     processedLogCount.current = 0;
   }
 
-  const { data: job } = useQuery({
-    queryKey: ["job", jobId],
-    queryFn: async () => {
-      const res = await fetch(`/api/jobs/${jobId}`);
-      if (!res.ok) return null;
-      return (await res.json()) as JobData;
-    },
-    enabled: !!jobId,
-    refetchInterval: (query) => {
-      const status = query.state.data?.status;
-      if (status && isTerminalStatus(status)) return false;
-      return POLL_INTERVAL;
+  const { query: jobQuery } = useOne<JobData>({
+    resource: ResourceName.jobs,
+    id: jobId ?? "",
+    queryOptions: {
+      enabled: !!jobId,
+      refetchInterval: (query) => {
+        const status = (query.state.data?.data as JobData | undefined)?.status;
+        if (status && isTerminalStatus(status)) return false;
+        return POLL_INTERVAL;
+      },
     },
   });
+
+  const job = (jobQuery.data?.data as JobData | undefined) ?? null;
 
   // Process new structured log lines during render (ref-driven, no useEffect)
   if (job && job.logs.length > processedLogCount.current) {
@@ -137,7 +138,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
     <div
       className={cn(
         "absolute bottom-0 left-0 right-0 z-30 border-t bg-background shadow-lg transition-all",
-        collapsed ? "h-9" : "h-64"
+        collapsed ? "h-9" : "h-64",
       )}
     >
       {/* Status bar */}
@@ -154,7 +155,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                   "font-medium",
                   job.status === "running" && "text-blue-600",
                   job.status === "done" && "text-green-600",
-                  job.status === "failed" && "text-red-600"
+                  job.status === "failed" && "text-red-600",
                 )}
               >
                 {statusLabel[job.status]}
@@ -203,7 +204,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                       log.includes("ERROR") && "text-red-600 font-medium",
                       log.includes("Pipeline complete") && "text-green-600 font-medium",
                       log.includes("Cloned to") && "text-blue-600",
-                      log.includes("Skill output") && "text-violet-600"
+                      log.includes("Skill output") && "text-violet-600",
                     )}
                   >
                     {parseMessage(log)}

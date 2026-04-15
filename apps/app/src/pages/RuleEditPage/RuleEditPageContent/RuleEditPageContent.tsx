@@ -3,7 +3,8 @@ import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Route } from "@/routes/_layout/rules.$ruleId.edit";
-import { updateRule } from "@/services/rulesService";
+import { useUpdate } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { RuleForm } from "@/pages/RulesPage/RuleForm";
 import { getEditForm, type RuleFormState } from "@/pages/RulesPage/types";
 
@@ -11,6 +12,7 @@ export const RuleEditPageContent = () => {
   const rule = Route.useLoaderData();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { mutateAsync: updateRuleMutate } = useUpdate();
 
   if (!rule) {
     return (
@@ -24,9 +26,10 @@ export const RuleEditPageContent = () => {
     void navigate({ to: "/rules/$ruleId", params: { ruleId: rule.id } });
 
   const handleSave = async (form: RuleFormState) => {
-    await updateRule({
-      data: {
-        id: rule.id,
+    await updateRuleMutate({
+      resource: ResourceName.rules,
+      id: rule.id,
+      values: {
         name: form.name,
         description: form.description || null,
         category: form.category,

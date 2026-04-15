@@ -6,7 +6,8 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useLoaderData, useNavigate } from "@tanstack/react-router";
 import type { RuleEntity, RuleCategory } from "@repo/models";
-import { deleteRule, toggleRule } from "@/services/rulesService";
+import { useDelete, useCustomMutation } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CATEGORY_FILTERS } from "../types";
 import { RuleCard } from "../RuleCard";
 
@@ -15,17 +16,26 @@ export const RulesPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [rules, setRules] = useState(initial);
+  const { mutate: deleteRuleMutate } = useDelete();
+  const { mutate: toggleRuleMutate } = useCustomMutation();
   const [categoryFilter, setCategoryFilter] = useState<RuleCategory | "all">("all");
   const [search, setSearch] = useState("");
 
-  const handleDelete = async (id: string) => {
-    await deleteRule({ data: { id } });
+  const handleDelete = (id: string) => {
+    deleteRuleMutate({ resource: ResourceName.rules, id });
     setRules((prev) => prev.filter((r) => r.id !== id));
   };
 
-  const handleToggle = async (id: string, enabled: boolean) => {
-    const rule = await toggleRule({ data: { id, enabled } });
-    setRules((prev) => prev.map((r) => (r.id === id && rule ? rule : r)));
+  const handleToggle = (id: string, enabled: boolean) => {
+    toggleRuleMutate(
+      { url: "rules/toggle", method: "post", values: { id, enabled } },
+      {
+        onSuccess: (data) => {
+          const rule = data?.data as RuleEntity | undefined;
+          if (rule) setRules((prev) => prev.map((r) => (r.id === id ? rule : r)));
+        },
+      },
+    );
   };
 
   const filtered = rules.filter((r) => {
@@ -81,7 +91,7 @@ export const RulesPageContent = () => {
                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                   categoryFilter === f.value
                     ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
                 onClick={handleCategoryFilterClick(f.value)}
               >

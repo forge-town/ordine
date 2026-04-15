@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { parseGitHubUrl, fetchRepoInfo, type GitHubRepoInfo } from "@/lib/githubApi";
 import { useGithubToken } from "@/hooks/useGithubToken";
 import { GitHubTokenDialog } from "@/pages/CanvasPage/GitHubProjectNode/GitHubTokenDialog";
-import { createGithubProject } from "@/services/githubProjectsService";
+import { useCreate } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { GithubProjectEntity } from "@repo/models";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
@@ -19,6 +20,7 @@ export type CreateProjectDialogProps = {
 export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogProps) => {
   const { t } = useTranslation();
   const { token } = useGithubToken();
+  const { mutateAsync: createProjectMutate } = useCreate();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
     const result = await fetchRepoInfo(parsed.owner, parsed.repo, token ?? undefined);
     result.match(
       (info) => setRepoInfo(info),
-      (errorMsg) => setError(errorMsg)
+      (errorMsg) => setError(errorMsg),
     );
     setLoading(false);
   };
@@ -46,8 +48,9 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
     if (!repoInfo) return;
     setSaving(true);
     const result = await ResultAsync.fromPromise(
-      createGithubProject({
-        data: {
+      createProjectMutate({
+        resource: ResourceName.githubProjects,
+        values: {
           id: `proj-${Date.now()}`,
           name: repoInfo.fullName,
           description: repoInfo.description ?? "",
@@ -58,14 +61,14 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
           isPrivate: repoInfo.isPrivate ?? false,
         },
       }),
-      (e) => (e instanceof Error ? e.message : t("projects.saveFailed"))
+      (e) => (e instanceof Error ? e.message : t("projects.saveFailed")),
     );
     result.match(
-      (project) => {
-        onCreate(project as GithubProjectEntity);
+      (response) => {
+        onCreate(response.data as GithubProjectEntity);
         onClose();
       },
-      (errorMsg) => setError(errorMsg)
+      (errorMsg) => setError(errorMsg),
     );
     setSaving(false);
   };
@@ -104,7 +107,7 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
             <div
               className={cn(
                 "flex items-center gap-2 rounded-lg px-3 py-2 text-xs",
-                token ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+                token ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700",
               )}
             >
               <Key className="h-3.5 w-3.5 shrink-0" />

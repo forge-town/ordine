@@ -7,7 +7,8 @@ import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import { Route } from "@/routes/_layout/pipelines.index";
-import { createPipeline, deletePipeline } from "@/services/pipelinesService";
+import { useCreate, useDelete } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { StoredPipeline } from "@repo/models";
 import { PipelineCard } from "../PipelineCard";
 
@@ -18,6 +19,8 @@ export const PipelinesPageContent = () => {
   const [search, setSearch] = React.useState("");
   const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
   const navigate = useNavigate();
+  const { mutateAsync: createPipelineMutate } = useCreate();
+  const { mutate: deletePipelineMutate } = useDelete();
 
   const allTags = React.useMemo(() => {
     const tagSet = new Set<string>();
@@ -32,7 +35,7 @@ export const PipelinesPageContent = () => {
 
   const handleTagClick = (tag: string) => () => {
     setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
     );
   };
 
@@ -83,16 +86,18 @@ export const PipelinesPageContent = () => {
       ],
       edges: [],
     };
-    const saved = (await createPipeline({
-      data: newPipeline,
-    })) as StoredPipeline;
+    const result = await createPipelineMutate({
+      resource: ResourceName.pipelines,
+      values: newPipeline,
+    });
+    const saved = result.data as StoredPipeline;
     setPipelines((prev) => [saved, ...prev]);
     void navigate({ to: "/canvas", search: { id: saved.id } });
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     setPipelines((prev) => prev.filter((p) => p.id !== id));
-    await deletePipeline({ data: { id } });
+    deletePipelineMutate({ resource: ResourceName.pipelines, id });
   };
 
   const handleCreateClick = () => void handleCreate();
@@ -156,7 +161,7 @@ export const PipelinesPageContent = () => {
                   "cursor-pointer select-none text-[11px] transition-colors",
                   selectedTags.includes(tag)
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80",
                 )}
                 variant="secondary"
                 onClick={handleTagClick(tag)}

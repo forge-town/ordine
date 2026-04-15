@@ -19,16 +19,17 @@ import {
   XCircle,
   FolderOpen,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ReactFlow, Background, ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { ResultAsync, err, ok } from "neverthrow";
+import { useOne, useCustomMutation } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
 import type { PipelineEntity, OperationEntity } from "@repo/models";
 import type { PipelineNode } from "@repo/db-schema";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Stat } from "../Stat";
 
 interface Props {
@@ -104,65 +105,64 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   const [inputPath, setInputPath] = useState("");
   const [runState, setRunState] = useState<RunState>("idle");
   const [jobId, setJobId] = useState<string | null>(null);
-  const [logs, setLogs] = useState<string[]>([]);
   const [runError, setRunError] = useState<string | null>(null);
 
-  const pollJob = async (id: string) => {
-    const poll = async () => {
-      const res = await fetch(`/api/jobs/${id}`);
-      if (!res.ok) return;
-      const job = (await res.json()) as {
-        status: string;
-        logs: string[];
-        error: string | null;
-      };
-      setLogs(job.logs ?? []);
-      if (job.status === "done") {
-        setRunState("done");
-      } else if (job.status === "failed") {
-        setRunState("failed");
-        setRunError(job.error ?? "Unknown error");
-      } else {
-        setTimeout(() => void poll(), 1000);
-      }
-    };
-    await poll();
-  };
+  const { mutate: runMutate } = useCustomMutation();
 
-  const handleRun = async () => {
+  interface JobPollingData {
+    status: string;
+    logs: string[];
+    error: string | null;
+  }
+
+  const { query: jobQuery } = useOne<JobPollingData>({
+    resource: ResourceName.jobs,
+    id: jobId ?? "",
+    queryOptions: {
+      enabled: !!jobId && runState === "running",
+      refetchInterval: (query) => {
+        const status = (query.state.data?.data as JobPollingData | undefined)?.status;
+        if (status === "done" || status === "failed") return false;
+        return 1000;
+      },
+    },
+  });
+
+  const job = jobQuery.data?.data ?? null;
+  const logs: string[] = (job?.logs as string[] | undefined) ?? [];
+
+  useEffect(() => {
+    if (!job) return;
+    if (job.status === "done") {
+      setRunState("done");
+    } else if (job.status === "failed") {
+      setRunState("failed");
+      setRunError(job.error ?? "Unknown error");
+    }
+  }, [job]);
+
+  const handleRun = () => {
     setRunState("running");
-    setLogs([]);
     setRunError(null);
     setJobId(null);
-    const result = await ResultAsync.fromPromise(
-      fetch(`/api/pipelines/${pipeline.id}/run`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inputPath: inputPath || undefined }),
-      }),
-      () => "Failed to start pipeline"
-    )
-      .andThen((res) =>
-        ResultAsync.fromPromise(
-          res.json() as Promise<{ jobId?: string; error?: string }>,
-          () => "Failed to parse response"
-        ).map((data) => ({ res, data }))
-      )
-      .andThen(({ res, data }) => {
-        if (!res.ok) {
-          return err(data.error ?? "Failed to start pipeline");
-        }
-        return ok(data.jobId!);
-      });
-    await result.match(
-      async (id) => {
-        setJobId(id);
-        await pollJob(id);
+    runMutate(
+      {
+        url: "pipelines/run",
+        method: "post",
+        values: { id: pipeline.id, inputPath: inputPath || undefined },
       },
-      async (errorMsg) => {
-        setRunState("failed");
-        setRunError(errorMsg);
-      }
+      {
+        onSuccess: (data) => {
+          const result = data?.data as { jobId: string } | undefined;
+          if (result?.jobId) {
+            setJobId(result.jobId);
+          }
+        },
+        onError: (error) => {
+          setRunState("failed");
+          setRunError(error.message ?? "Failed to start pipeline");
+        },
+      },
     );
   };
 
@@ -170,7 +170,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
     setInputPath(e.target.value);
   };
 
-  const handleClickRun = () => void handleRun();
+  const handleClickRun = () => handleRun();
   const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
   const handleCanvasClick = () => void navigate({ to: "/canvas", search: { id: pipeline.id } });
 
@@ -282,7 +282,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     className={cn(
                       "flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium",
                       meta?.color ?? "text-gray-600 bg-gray-50",
-                      "border-current/20"
+                      "border-current/20",
                     )}
                   >
                     <Icon className="h-3 w-3" />
@@ -400,7 +400,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                       "text-xs font-medium",
                       runState === "running" && "text-blue-600",
                       runState === "done" && "text-green-600",
-                      runState === "failed" && "text-red-600"
+                      runState === "failed" && "text-red-600",
                     )}
                   >
                     {runState === "running" && t("pipelines.runningStatus")}
@@ -447,7 +447,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     <div
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-                        meta?.color ?? "text-gray-600 bg-gray-50"
+                        meta?.color ?? "text-gray-600 bg-gray-50",
                       )}
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -458,7 +458,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                         (() => {
                           const nodeData = node.data as unknown as Record<string, unknown>;
                           const op = operations.find(
-                            (o) => o.id === (nodeData["operationId"] as string)
+                            (o) => o.id === (nodeData["operationId"] as string),
                           );
                           return op?.description ? (
                             <p className="text-xs text-gray-400 truncate">{op.description}</p>
@@ -469,7 +469,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                       className={cn(
                         "shrink-0 rounded border px-2 py-0.5 text-[10px] font-medium",
                         meta?.color ?? "text-gray-500 bg-gray-50",
-                        "border-current/20"
+                        "border-current/20",
                       )}
                     >
                       {getNodeTypeLabel(node.type, t)}
