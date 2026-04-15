@@ -17,7 +17,9 @@
     "@repo/db-schema": "workspace:*",
     "@repo/models": "workspace:*",
     "@repo/schemas": "workspace:*",
-    "neverthrow": "^8.2.0"
+    "ai": "^6.0.158",
+    "neverthrow": "^8.2.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",

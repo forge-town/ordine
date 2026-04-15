@@ -12,3 +12,19 @@ export type AgentMode = z.infer<typeof AgentModeSchema>;
 
 export const ScriptLanguageSchema = z.enum(["bash", "python", "javascript"]);
 export type ScriptLanguage = z.infer<typeof ScriptLanguageSchema>;
+
+export const ExecutorConfigSchema = z.object({
+  type: z.enum(["agent", "script", "rule-check"]),
+  agentMode: AgentModeSchema.optional(),
+  skillId: z.string().optional(),
+  prompt: z.string().optional(),
+  command: z.string().optional(),
+  language: ScriptLanguageSchema.optional(),
+  writeEnabled: z.boolean().optional(),
+});
+export type ExecutorConfig = z.infer<typeof ExecutorConfigSchema>;
+
+export const OperationConfigSchema = z.object({
+  executor: ExecutorConfigSchema.optional(),
+});
+export type OperationConfig = z.infer<typeof OperationConfigSchema>;

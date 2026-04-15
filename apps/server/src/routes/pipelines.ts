@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { randomUUID } from "node:crypto";
 import { pipelinesService, jobsService } from "../services.js";
+import { runPipeline } from "@repo/services";
 
 export const pipelinesRoutes = new Hono();
 
@@ -54,6 +55,10 @@ pipelinesRoutes.post("/:id/run", async (c) => {
   const pipeline = await pipelinesService.getById(id);
   if (!pipeline) return c.json({ error: "Pipeline not found" }, 404);
 
+  const body = await c.req.json().catch(() => ({}));
+  const inputPath = (body as Record<string, unknown>).inputPath as string | undefined;
+  const githubToken = (body as Record<string, unknown>).githubToken as string | undefined;
+
   const jobId = randomUUID();
 
   await jobsService.create({
@@ -70,6 +75,8 @@ pipelinesRoutes.post("/:id/run", async (c) => {
     startedAt: null,
     finishedAt: null,
   });
+
+  void runPipeline({ pipelineId: id, inputPath, jobId, githubToken });
 
   return c.json({ jobId }, 202);
 });
