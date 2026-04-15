@@ -8,6 +8,8 @@ export const CATEGORY_CONFIG: Record<RuleCategory, { label: string; cls: string 
   security: { label: "安全", cls: "bg-muted text-muted-foreground" },
   style: { label: "风格", cls: "bg-muted text-muted-foreground" },
   performance: { label: "性能", cls: "bg-muted text-muted-foreground" },
+  structure: { label: "结构", cls: "bg-muted text-muted-foreground" },
+  testing: { label: "测试", cls: "bg-muted text-muted-foreground" },
   custom: { label: "自定义", cls: "bg-muted text-muted-foreground" },
 };
 
@@ -32,7 +34,15 @@ export const SEVERITY_CONFIG: Record<
   },
 };
 
-export const CATEGORIES: RuleCategory[] = ["lint", "security", "style", "performance", "custom"];
+export const CATEGORIES: RuleCategory[] = [
+  "lint",
+  "security",
+  "style",
+  "performance",
+  "structure",
+  "testing",
+  "custom",
+];
 
 export const SEVERITIES: RuleSeverity[] = ["error", "warning", "info"];
 
@@ -47,7 +57,7 @@ export const CATEGORY_FILTERS = [
 export const OBJECT_TYPES = ["file", "folder"] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
-export const SCRIPT_LANGUAGES = ["typescript"] as const;
+export const SCRIPT_LANGUAGES = ["typescript", "bash"] as const;
 
 export const RuleFormStateSchema = z.object({
   name: z.string(),
@@ -81,7 +91,7 @@ export const getEditForm = (rule: RuleEntity): RuleFormState => ({
   checkScript: rule.checkScript ?? "",
   scriptLanguage: (rule.scriptLanguage ?? "typescript") as "typescript",
   acceptedObjectTypes: (rule.acceptedObjectTypes as ("file" | "folder")[]).filter(
-    (t): t is "file" | "folder" => t === "file" || t === "folder"
+    (t): t is "file" | "folder" => t === "file" || t === "folder",
   ),
   tags: rule.tags.join(", "),
 });

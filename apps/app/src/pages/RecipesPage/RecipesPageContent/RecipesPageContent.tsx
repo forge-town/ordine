@@ -29,7 +29,7 @@ export const RecipesPageContent = () => {
   const filtered = recipes.filter((r: RecipeEntity) => {
     const q = search.toLowerCase();
     if (!q) return true;
-    return r.name.toLowerCase().includes(q) || r.description.toLowerCase().includes(q);
+    return r.name.toLowerCase().includes(q) || (r.description ?? "").toLowerCase().includes(q);
   });
 
   const handleSave = (_r: RecipeEntity) => {};

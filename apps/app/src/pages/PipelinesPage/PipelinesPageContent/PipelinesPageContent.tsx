@@ -46,7 +46,7 @@ export const PipelinesPageContent = () => {
       const matchesSearch =
         !q ||
         p.name.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
+        (p.description ?? "").toLowerCase().includes(q) ||
         p.id.toLowerCase().includes(q);
       const matchesTags = selectedTags.every((tag) => p.tags.includes(tag));
       return matchesSearch && matchesTags;
