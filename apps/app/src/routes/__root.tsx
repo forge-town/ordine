@@ -1,8 +1,8 @@
 import { createRootRoute } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import "@/lib/i18n";
-import { NotFound } from "./NotFound";
-import { RootDocument } from "./RootDocument";
+import { NotFound } from "./-NotFound";
+import { RootDocument } from "./-RootDocument";
 
 export const Route = createRootRoute({
   head: () => ({
