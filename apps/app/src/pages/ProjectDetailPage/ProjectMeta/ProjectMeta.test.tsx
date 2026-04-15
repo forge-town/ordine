@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ProjectMeta } from "./ProjectMeta";
-import type { GithubProjectRow } from "@repo/models";
+import type { GithubProjectRecord } from "@repo/db-schema";
 
 const mockProject = {
   id: "proj-001",
@@ -11,7 +11,7 @@ const mockProject = {
   branch: "main",
   description: "项目描述",
   githubUrl: "https://github.com/acme/ordine",
-} as unknown as GithubProjectRow;
+} as unknown as GithubProjectRecord;
 
 describe("ProjectMeta", () => {
   it("renders owner/repo", () => {

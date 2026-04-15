@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { OperationDetailPageContent } from "./OperationDetailPageContent";
-import type { OperationRow } from "@repo/models";
+import type { OperationRecord } from "@repo/db-schema";
 
 const mockUseLoaderData = vi.fn();
 
@@ -13,7 +13,7 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
-const baseOp: OperationRow = {
+const baseOp: OperationRecord = {
   id: "op_plan",
   name: "Plan",
   description: "Produce a technical implementation plan.",
@@ -41,7 +41,7 @@ describe("OperationDetailPageContent – executor display", () => {
   });
 
   it("shows skill id when executor type is skill", () => {
-    const op: OperationRow = {
+    const op: OperationRecord = {
       ...baseOp,
       config: JSON.stringify({
         executor: { type: "skill", skillId: "lint-check" },
@@ -55,7 +55,7 @@ describe("OperationDetailPageContent – executor display", () => {
   });
 
   it("shows prompt text when executor type is prompt", () => {
-    const op: OperationRow = {
+    const op: OperationRecord = {
       ...baseOp,
       config: JSON.stringify({
         executor: { type: "prompt", prompt: "You are a code reviewer" },

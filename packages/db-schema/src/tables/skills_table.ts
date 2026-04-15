@@ -15,5 +15,4 @@ export const skillsTable = pgTable("skills", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export type SkillRow = typeof skillsTable.$inferSelect;
-export type NewSkillRow = typeof skillsTable.$inferInsert;
+export type SkillRecord = typeof skillsTable.$inferSelect;

@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { RuleCard } from "./RuleCard";
-import type { RuleRow } from "@repo/models";
+import type { RuleRecord } from "@repo/db-schema";
 
-const mockRule: RuleRow = {
+const mockRule: RuleRecord = {
   id: "rule-1",
   name: "No console.log",
   description: "禁止使用 console.log",

@@ -16,7 +16,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { OperationRow } from "@repo/models";
+import type { OperationRecord } from "@repo/db-schema";
 import type { ObjectType } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 
-const exportOperation = (op: OperationRow) => {
+const exportOperation = (op: OperationRecord) => {
   const data = JSON.stringify(op, null, 2);
   const blob = new Blob([data], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -45,7 +45,7 @@ const exportOperation = (op: OperationRow) => {
 };
 
 export const OperationsPageContent = () => {
-  const { result: operationsResult } = useList<OperationRow>({
+  const { result: operationsResult } = useList<OperationRecord>({
     resource: ResourceName.operations,
   });
   const operations = operationsResult?.data ?? [];
@@ -77,12 +77,12 @@ export const OperationsPageContent = () => {
   const [sortBy, setSortBy] = useState<SortKey>("default");
 
   const filteredOperations = operations
-    .filter((op: OperationRow) => {
+    .filter((op: OperationRecord) => {
       const q = searchQuery.trim().toLowerCase();
       if (!q) return true;
       return op.name.toLowerCase().includes(q) || (op.description ?? "").toLowerCase().includes(q);
     })
-    .sort((a: OperationRow, b: OperationRow) => {
+    .sort((a: OperationRecord, b: OperationRecord) => {
       switch (sortBy) {
         case "name-asc": {
           return a.name.localeCompare(b.name);
@@ -124,7 +124,7 @@ export const OperationsPageContent = () => {
 
   const handleOpenCreate = () => openCreate();
 
-  const handleEditClick = (op: OperationRow) => () =>
+  const handleEditClick = (op: OperationRecord) => () =>
     navigate({
       to: "/operations/$operationId/edit",
       params: { operationId: op.id },
@@ -132,7 +132,7 @@ export const OperationsPageContent = () => {
 
   const handleDeleteClick = (id: string) => () => void handleDelete(id);
 
-  const handleExportOperation = (op: OperationRow) => () => exportOperation(op);
+  const handleExportOperation = (op: OperationRecord) => () => exportOperation(op);
 
   const handleImportClick = () => {
     importInputRef.current?.click();
@@ -144,7 +144,7 @@ export const OperationsPageContent = () => {
     setImporting(true);
 
     const text = await file.text();
-    const parseResult = safeJsonParse<Partial<OperationRow>>(text);
+    const parseResult = safeJsonParse<Partial<OperationRecord>>(text);
     if (parseResult.isErr()) {
       addToast({
         type: "error",

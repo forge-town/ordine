@@ -1,6 +1,6 @@
 import { ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
 import { z } from "zod/v4";
-import type { RuleCategory, RuleSeverity, RuleRow } from "@repo/models";
+import type { RuleCategory, RuleSeverity, RuleRecord } from "@repo/db-schema";
 import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@repo/schemas";
 
 export const CATEGORY_CONFIG: Record<RuleCategory, { label: string; cls: string }> = {
@@ -83,7 +83,7 @@ export const emptyForm = (): RuleFormState => ({
   tags: "",
 });
 
-export const getEditForm = (rule: RuleRow): RuleFormState => ({
+export const getEditForm = (rule: RuleRecord): RuleFormState => ({
   name: rule.name,
   description: rule.description ?? "",
   category: rule.category,

@@ -5,11 +5,11 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
-import type { SkillRow } from "@repo/models";
+import type { SkillRecord } from "@repo/db-schema";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 
-export type Skill = SkillRow;
+export type Skill = SkillRecord;
 
 type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
 
@@ -22,7 +22,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export const SkillsPageContent = () => {
-  const { result: skillsResult } = useList<SkillRow>({ resource: ResourceName.skills });
+  const { result: skillsResult } = useList<SkillRecord>({ resource: ResourceName.skills });
   const skills = skillsResult?.data ?? ([] as Skill[]);
   const { t } = useTranslation();
 
@@ -41,7 +41,7 @@ export const SkillsPageContent = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
   const handleCategoryClick = (cat: SkillCategory) => () => setCategory(cat);
 
-  const filtered = skills.filter((s: SkillRow) => {
+  const filtered = skills.filter((s: SkillRecord) => {
     const matchesSearch =
       s.label.toLowerCase().includes(search.toLowerCase()) ||
       s.name.toLowerCase().includes(search.toLowerCase()) ||

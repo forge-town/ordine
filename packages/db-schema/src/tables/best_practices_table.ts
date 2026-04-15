@@ -17,5 +17,4 @@ export const bestPracticesTable = pgTable("best_practices", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export type BestPracticeRow = typeof bestPracticesTable.$inferSelect;
-export type NewBestPracticeRow = typeof bestPracticesTable.$inferInsert;
+export type BestPracticeRecord = typeof bestPracticesTable.$inferSelect;

@@ -3,7 +3,7 @@ import { ChefHat, Plus, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import type { RecipeRow, OperationRow, BestPracticeRow } from "@repo/models";
+import type { RecipeRecord, OperationRecord, BestPracticeRecord } from "@repo/db-schema";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { RecipeFormDialog } from "../RecipeFormDialog";
@@ -11,11 +11,11 @@ import { RecipeCard } from "../RecipeCard";
 
 export const RecipesPageContent = () => {
   const { t } = useTranslation();
-  const { result: recipesResult } = useList<RecipeRow>({ resource: ResourceName.recipes });
-  const { result: operationsResult } = useList<OperationRow>({
+  const { result: recipesResult } = useList<RecipeRecord>({ resource: ResourceName.recipes });
+  const { result: operationsResult } = useList<OperationRecord>({
     resource: ResourceName.operations,
   });
-  const { result: bestPracticesResult } = useList<BestPracticeRow>({
+  const { result: bestPracticesResult } = useList<BestPracticeRecord>({
     resource: ResourceName.bestPractices,
   });
   const recipes = recipesResult?.data ?? [];
@@ -23,16 +23,16 @@ export const RecipesPageContent = () => {
   const bestPractices = bestPracticesResult?.data ?? [];
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<RecipeRow | null>(null);
+  const [editing, setEditing] = useState<RecipeRecord | null>(null);
   const { mutate: deleteRecipeMutate } = useDelete();
 
-  const filtered = recipes.filter((r: RecipeRow) => {
+  const filtered = recipes.filter((r: RecipeRecord) => {
     const q = search.toLowerCase();
     if (!q) return true;
     return r.name.toLowerCase().includes(q) || (r.description ?? "").toLowerCase().includes(q);
   });
 
-  const handleSave = (_r: RecipeRow) => {};
+  const handleSave = (_r: RecipeRecord) => {};
 
   const handleDelete = (id: string) => {
     deleteRecipeMutate({ resource: ResourceName.recipes, id });
@@ -45,7 +45,7 @@ export const RecipesPageContent = () => {
     setShowForm(true);
   };
 
-  const handleEditRecipe = (r: RecipeRow) => () => {
+  const handleEditRecipe = (r: RecipeRecord) => () => {
     setEditing(r);
     setShowForm(true);
   };
@@ -57,9 +57,9 @@ export const RecipesPageContent = () => {
     setEditing(null);
   };
 
-  const opMap = new Map<string, OperationRow>(operations.map((o: OperationRow) => [o.id, o]));
-  const bpMap = new Map<string, BestPracticeRow>(
-    bestPractices.map((bp: BestPracticeRow) => [bp.id, bp])
+  const opMap = new Map<string, OperationRecord>(operations.map((o: OperationRecord) => [o.id, o]));
+  const bpMap = new Map<string, BestPracticeRecord>(
+    bestPractices.map((bp: BestPracticeRecord) => [bp.id, bp])
   );
 
   return (

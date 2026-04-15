@@ -1,12 +1,12 @@
 import { eq, desc } from "drizzle-orm";
-import { pipelinesTable, type PipelineRow } from "@repo/db-schema";
+import { pipelinesTable, type PipelineRecord } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type PipelineEntity = PipelineRow & {
+export type PipelineEntity = PipelineRecord & {
   nodeCount: number;
 };
 
-const rowToEntity = (row: PipelineRow): PipelineEntity => ({
+const rowToEntity = (row: PipelineRecord): PipelineEntity => ({
   ...row,
   nodeCount: row.nodes.length,
 });

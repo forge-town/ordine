@@ -26,12 +26,7 @@ import { ResultAsync, ok, errAsync } from "neverthrow";
 import { runPrompt as runPromptAgent } from "./promptExecutor.js";
 import { runSkill as runSkillAgent } from "./skillExecutor.js";
 import { structuredJsonToMarkdown } from "./structuredOutput.js";
-import type {
-  PipelineNode,
-  PipelineEdge,
-  GitHubProjectNodeData,
-  OutputMode,
-} from "@repo/db-schema";
+import type { PipelineNode, GitHubProjectNodeData, OutputMode } from "@repo/db-schema";
 import {
   createOperationsDao,
   createPipelinesDao,
@@ -40,8 +35,8 @@ import {
   createBestPracticesDao,
   createSettingsDao,
   createRulesDao,
-  type OperationRow,
 } from "@repo/models";
+import type { OperationRecord } from "@repo/db-schema";
 import { db } from "@repo/db";
 import type { ExecutorConfig } from "@repo/schemas";
 import { listDirTree, readProjectFiles } from "./filesystemService.js";
@@ -254,8 +249,7 @@ const executePipeline = async (opts: {
     return { ok: false, error: new PipelineNotFoundError(pipelineId) };
   }
 
-  const nodes = pipeline.nodes as PipelineNode[];
-  const edges = pipeline.edges as PipelineEdge[];
+  const { nodes, edges } = pipeline;
 
   const levelsResult = buildExecutionLevels(nodes, edges);
   if (levelsResult.isErr()) {
@@ -272,7 +266,7 @@ const executePipeline = async (opts: {
     .map((n) => (n.data as unknown as NodeData).operationId)
     .filter((id): id is string => id !== undefined && id !== null && id !== "");
 
-  const operationsMap = new Map<string, OperationRow>();
+  const operationsMap = new Map<string, OperationRecord>();
   for (const id of operationIds) {
     const op = await operationsDao.findById(id);
     if (op) operationsMap.set(id, op);

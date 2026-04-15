@@ -23,5 +23,4 @@ export const githubProjectsTable = pgTable(
   }),
 );
 
-export type GithubProjectRow = typeof githubProjectsTable.$inferSelect;
-export type NewGithubProjectRow = typeof githubProjectsTable.$inferInsert;
+export type GithubProjectRecord = typeof githubProjectsTable.$inferSelect;

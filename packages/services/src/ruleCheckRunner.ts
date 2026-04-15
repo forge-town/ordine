@@ -18,7 +18,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { ResultAsync } from "neverthrow";
-import type { RulesDaoInstance, RuleRow } from "@repo/models";
+import type { RulesDaoInstance } from "@repo/models";
+import type { RuleRecord } from "@repo/db-schema";
 import type { CheckOutput, Finding } from "@repo/agent";
 
 export interface RuleTarget {
@@ -33,13 +34,13 @@ const execAsync = promisify(exec);
 const SCRIPT_TIMEOUT_MS = 30_000;
 
 interface RuleCheckResult {
-  rule: RuleRow;
+  rule: RuleRecord;
   passed: boolean;
   output: string;
   exitCode: number;
 }
 
-const executeRule = async (rule: RuleRow, target: RuleTarget): Promise<RuleCheckResult> => {
+const executeRule = async (rule: RuleRecord, target: RuleTarget): Promise<RuleCheckResult> => {
   const tmpFile = join(tmpdir(), `rule_${rule.id}_${Date.now()}.ts`);
   await writeFile(tmpFile, rule.checkScript!);
 

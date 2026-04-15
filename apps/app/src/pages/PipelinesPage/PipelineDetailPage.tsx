@@ -2,7 +2,8 @@ import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
 import { Route } from "@/routes/_layout/pipelines.$pipelineId";
 import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { PipelineEntity, OperationRow } from "@repo/models";
+import type { PipelineEntity } from "@repo/models";
+import type { OperationRecord } from "@repo/db-schema";
 
 export const PipelineDetailPage = () => {
   const { pipelineId } = Route.useParams();
@@ -10,7 +11,7 @@ export const PipelineDetailPage = () => {
     resource: ResourceName.pipelines,
     id: pipelineId,
   });
-  const { result: operationsResult } = useList<OperationRow>({
+  const { result: operationsResult } = useList<OperationRecord>({
     resource: ResourceName.operations,
   });
   const pipeline = pipelineResult ?? null;

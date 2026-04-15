@@ -1,5 +1,5 @@
 import { eq, desc, and } from "drizzle-orm";
-import { jobsTable, type JobRow, type JobStatus } from "@repo/db-schema";
+import { jobsTable, type JobRecord, type JobStatus } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
 class JobsDao {
@@ -37,12 +37,12 @@ class JobsDao {
     extra?: {
       logs?: string[];
       error?: string;
-      result?: JobRow["result"];
+      result?: JobRecord["result"];
       startedAt?: Date;
       finishedAt?: Date;
     },
   ) {
-    const patch: Partial<JobRow> = {
+    const patch: Partial<JobRecord> = {
       status,
       updatedAt: new Date(),
       ...(extra?.error !== undefined && { error: extra.error }),

@@ -22,5 +22,4 @@ export const checklistResultsTable = pgTable(
   }),
 );
 
-export type ChecklistResultRow = typeof checklistResultsTable.$inferSelect;
-export type NewChecklistResultRow = typeof checklistResultsTable.$inferInsert;
+export type ChecklistResultRecord = typeof checklistResultsTable.$inferSelect;

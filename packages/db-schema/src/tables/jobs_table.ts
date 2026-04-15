@@ -39,5 +39,4 @@ export const jobsTable = pgTable(
   }),
 );
 
-export type JobRow = typeof jobsTable.$inferSelect;
-export type NewJobRow = typeof jobsTable.$inferInsert;
+export type JobRecord = typeof jobsTable.$inferSelect;

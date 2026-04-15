@@ -1,10 +1,10 @@
 import { ChefHat, Zap, Lightbulb, Pencil, Trash2 } from "lucide-react";
-import type { RecipeRow, OperationRow, BestPracticeRow } from "@repo/models";
+import type { RecipeRecord, OperationRecord, BestPracticeRecord } from "@repo/db-schema";
 
 export type RecipeCardProps = {
-  recipe: RecipeRow;
-  operation?: OperationRow;
-  bestPractice?: BestPracticeRow;
+  recipe: RecipeRecord;
+  operation?: OperationRecord;
+  bestPractice?: BestPracticeRecord;
   onEdit: () => void;
   onDelete: () => void;
 };

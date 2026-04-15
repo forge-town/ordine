@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { settingsTable, type SettingsRow } from "@repo/db-schema";
+import { settingsTable, type SettingsRecord } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
 const DEFAULT_ID = "default";
@@ -23,7 +23,7 @@ class SettingsDao {
     return created!;
   }
 
-  async update(patch: Partial<Pick<SettingsRow, "llmProvider" | "llmApiKey" | "llmModel">>) {
+  async update(patch: Partial<Pick<SettingsRecord, "llmProvider" | "llmApiKey" | "llmModel">>) {
     await this.get();
 
     const [updated] = await this.executor

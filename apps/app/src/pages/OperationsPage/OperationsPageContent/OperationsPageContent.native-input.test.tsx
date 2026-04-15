@@ -1,7 +1,7 @@
 import { render, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { OperationsPageContent } from "./OperationsPageContent";
-import type { OperationRow } from "@repo/models";
+import type { OperationRecord } from "@repo/db-schema";
 
 const mockNavigate = vi.fn();
 
@@ -18,7 +18,7 @@ vi.mock("@/services/operationsService", () => ({
   deleteOperation: vi.fn(),
 }));
 
-const existingOp: OperationRow = {
+const existingOp: OperationRecord = {
   id: "op-1",
   name: "Lint Check",
   description: "Runs ESLint",

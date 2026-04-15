@@ -22,5 +22,4 @@ export const pipelinesTable = pgTable("pipelines", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export type PipelineRow = typeof pipelinesTable.$inferSelect;
-export type NewPipelineRow = typeof pipelinesTable.$inferInsert;
+export type PipelineRecord = typeof pipelinesTable.$inferSelect;

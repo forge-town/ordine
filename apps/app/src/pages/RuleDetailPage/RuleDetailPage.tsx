@@ -2,12 +2,12 @@ import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/rules.$ruleId.index";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { RuleRow } from "@repo/models";
+import type { RuleRecord } from "@repo/db-schema";
 import { RuleDetailPageContent } from "./RuleDetailPageContent";
 
 export const RuleDetailPage = () => {
   const { ruleId } = Route.useParams();
-  const { result: ruleResult } = useOne<RuleRow>({ resource: ResourceName.rules, id: ruleId });
+  const { result: ruleResult } = useOne<RuleRecord>({ resource: ResourceName.rules, id: ruleId });
   const rule = ruleResult ?? null;
   const { t } = useTranslation();
 

@@ -16,5 +16,4 @@ export const recipesTable = pgTable("recipes", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export type RecipeRow = typeof recipesTable.$inferSelect;
-export type NewRecipeRow = typeof recipesTable.$inferInsert;
+export type RecipeRecord = typeof recipesTable.$inferSelect;

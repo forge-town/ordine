@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { PracticeCard } from "./PracticeCard";
-import type { BestPracticeRow } from "@repo/models";
+import type { BestPracticeRecord } from "@repo/db-schema";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, ...props }: Record<string, unknown>) => (
@@ -9,7 +9,7 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
-const mockPractice: BestPracticeRow = {
+const mockPractice: BestPracticeRecord = {
   id: "bp-1",
   title: "避免在 useEffect 中直接 setState",
   condition: "当需要在组件挂载后获取异步数据时",

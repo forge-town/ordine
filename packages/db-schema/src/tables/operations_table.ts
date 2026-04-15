@@ -17,5 +17,4 @@ export const operationsTable = pgTable("operations", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export type OperationRow = typeof operationsTable.$inferSelect;
-export type NewOperationRow = typeof operationsTable.$inferInsert;
+export type OperationRecord = typeof operationsTable.$inferSelect;

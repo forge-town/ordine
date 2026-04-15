@@ -1,9 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { DashboardPageContent } from "./DashboardPageContent";
-import type { JobRow } from "@repo/models";
+import type { JobRecord } from "@repo/db-schema";
 
-const mockJobs: JobRow[] = [
+const mockJobs: JobRecord[] = [
   {
     id: "job-1",
     title: "运行 Pipeline",
@@ -24,7 +24,7 @@ const mockJobs: JobRow[] = [
 const useLoaderData = vi.fn(() => ({
   pipelines: [],
   projects: [],
-  jobs: [] as JobRow[],
+  jobs: [] as JobRecord[],
 }));
 
 vi.mock("@/routes/_layout/index", () => ({

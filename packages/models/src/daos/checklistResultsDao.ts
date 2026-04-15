@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { checklistResultsTable, type ChecklistResultRow } from "@repo/db-schema";
+import { checklistResultsTable, type ChecklistResultRecord } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
 class ChecklistResultsDao {
@@ -27,7 +27,7 @@ class ChecklistResultsDao {
     return this.executor.insert(checklistResultsTable).values(rows).returning();
   }
 
-  async update(id: string, patch: Partial<Pick<ChecklistResultRow, "passed" | "output">>) {
+  async update(id: string, patch: Partial<Pick<ChecklistResultRecord, "passed" | "output">>) {
     const [updated] = await this.executor
       .update(checklistResultsTable)
       .set(patch)

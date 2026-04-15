@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { OperationEditPage } from "./OperationEditPage";
-import type { OperationRow } from "@repo/models";
+import type { OperationRecord } from "@repo/db-schema";
 
-const mockOp: OperationRow = {
+const mockOp: OperationRecord = {
   id: "op-1",
   name: "Lint",
   description: null,

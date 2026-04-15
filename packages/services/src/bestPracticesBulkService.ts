@@ -1,30 +1,28 @@
 import type {
   BestPracticesDaoInstance,
-  ChecklistItemRow,
   ChecklistItemsDaoInstance,
-  CodeSnippetRow,
   CodeSnippetsDaoInstance,
 } from "@repo/models";
-import type { BestPracticeRow } from "@repo/db-schema";
+import type { BestPracticeRecord, ChecklistItemRecord, CodeSnippetRecord } from "@repo/db-schema";
 
 type DaoFactory<D, Tx> = {
   (executor: Tx): D;
 };
 
 type BpDaoWithFind = {
-  findById(id: string): Promise<BestPracticeRow | null>;
+  findById(id: string): Promise<BestPracticeRecord | null>;
 };
 
 type BpService = {
-  getAll(): Promise<BestPracticeRow[]>;
+  getAll(): Promise<BestPracticeRecord[]>;
 };
 
 type ChecklistItemService = {
-  getItemsByBestPracticeId(bestPracticeId: string): Promise<ChecklistItemRow[]>;
+  getItemsByBestPracticeId(bestPracticeId: string): Promise<ChecklistItemRecord[]>;
 };
 
 type CodeSnippetsService = {
-  getByBestPracticeId(bestPracticeId: string): Promise<CodeSnippetRow[]>;
+  getByBestPracticeId(bestPracticeId: string): Promise<CodeSnippetRecord[]>;
 };
 
 type TransactionRunner<Tx> = <T>(fn: (tx: Tx) => Promise<T>) => Promise<T>;

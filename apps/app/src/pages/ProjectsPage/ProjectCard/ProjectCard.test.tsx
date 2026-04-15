@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ProjectCard } from "./ProjectCard";
-import type { GithubProjectRow } from "@repo/models";
+import type { GithubProjectRecord } from "@repo/db-schema";
 
 const mockProject = {
   id: "proj-001",
@@ -14,7 +14,7 @@ const mockProject = {
   isPrivate: false,
   updatedAt: Date.now(),
   createdAt: Date.now(),
-} as unknown as GithubProjectRow;
+} as unknown as GithubProjectRecord;
 
 describe("ProjectCard", () => {
   it("renders owner/repo", () => {

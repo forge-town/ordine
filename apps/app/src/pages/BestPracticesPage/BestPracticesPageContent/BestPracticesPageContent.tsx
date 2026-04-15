@@ -3,7 +3,7 @@ import { BookOpen, Download, Plus, Search, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import type { BestPracticeRow } from "@repo/models";
+import type { BestPracticeRecord } from "@repo/db-schema";
 import { exportAllBestPractices, importBestPracticesFromZip } from "@/lib/exportBestPractice";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -23,7 +23,7 @@ const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
 
 export const BestPracticesPageContent = () => {
   const { t } = useTranslation();
-  const { result: practicesResult } = useList<BestPracticeRow>({
+  const { result: practicesResult } = useList<BestPracticeRecord>({
     resource: ResourceName.bestPractices,
   });
   const practices = practicesResult?.data ?? [];
@@ -32,7 +32,7 @@ export const BestPracticesPageContent = () => {
   const [showForm, setShowForm] = useState(false);
   const { mutate: deleteBpMutate } = useDelete();
 
-  const filtered = practices.filter((p: BestPracticeRow) => {
+  const filtered = practices.filter((p: BestPracticeRecord) => {
     const matchCat = activeCategory === "all" || p.category === activeCategory;
     const q = search.toLowerCase();
     const matchSearch =
@@ -43,7 +43,7 @@ export const BestPracticesPageContent = () => {
     return matchCat && matchSearch;
   });
 
-  const handleSave = (_p: BestPracticeRow) => {};
+  const handleSave = (_p: BestPracticeRecord) => {};
 
   const handleDelete = (id: string) => {
     deleteBpMutate({ resource: ResourceName.bestPractices, id });

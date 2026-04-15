@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import type { OperationRow } from "@repo/models";
+import type { OperationRecord } from "@repo/db-schema";
 import { OUTPUT_MODES, LLM_PROVIDERS } from "@repo/db-schema";
 
 // ─── Primitive enums ──────────────────────────────────────────────────────────
@@ -93,7 +93,7 @@ export const OutputLocalPathNodeDataSchema = z.object({
 export const OperationNodeDataSchema = z.object({
   label: z.string(),
   nodeType: z.literal("operation"),
-  operationId: z.string(), // Reference to OperationRow.id
+  operationId: z.string(), // Reference to OperationRecord.id
   operationName: z.string(), // Display name
   status: NodeRunStatusSchema,
   config: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
@@ -202,7 +202,7 @@ export const NODE_CONNECTION_RULES: NodeConnectionRules = NodeConnectionRulesSch
  * The optional `_operations` param is kept for API compatibility;
  * which *instances* to show in a menu is a UI concern separate from topology.
  */
-export const getAllowedConnections = (_operations?: OperationRow[]): NodeConnectionRules =>
+export const getAllowedConnections = (_operations?: OperationRecord[]): NodeConnectionRules =>
   NODE_CONNECTION_RULES;
 
 /** Returns true when sourceType → targetType is a permitted edge. */
@@ -291,8 +291,8 @@ export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
   }
 };
 
-/** Create operation node data from an OperationRow. */
-export const makeOperationNodeData = (operation: OperationRow): OperationNodeData => ({
+/** Create operation node data from an OperationRecord. */
+export const makeOperationNodeData = (operation: OperationRecord): OperationNodeData => ({
   label: operation.name,
   nodeType: "operation",
   operationId: operation.id,

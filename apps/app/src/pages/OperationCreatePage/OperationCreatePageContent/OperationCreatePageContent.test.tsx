@@ -1,12 +1,12 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { OperationCreatePageContent } from "./OperationCreatePageContent";
-import type { SkillRow } from "@repo/models";
+import type { SkillRecord } from "@repo/db-schema";
 
 const mockNavigate = vi.fn();
 const mockCreateOperation = vi.fn();
 
-const mockSkills: SkillRow[] = [
+const mockSkills: SkillRecord[] = [
   {
     id: "skill-1",
     name: "lint-check",

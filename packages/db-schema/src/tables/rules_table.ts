@@ -33,5 +33,4 @@ export const rulesTable = pgTable("rules", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export type RuleRow = typeof rulesTable.$inferSelect;
-export type NewRuleRow = typeof rulesTable.$inferInsert;
+export type RuleRecord = typeof rulesTable.$inferSelect;

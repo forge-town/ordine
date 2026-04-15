@@ -2,20 +2,20 @@ import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/best-practices.$bestPracticeId.edit";
 import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { BestPracticeRow, ChecklistItemRow, CodeSnippetRow } from "@repo/models";
+import type { BestPracticeRecord, ChecklistItemRecord, CodeSnippetRecord } from "@repo/db-schema";
 import { BestPracticeEditPageContent } from "./BestPracticeEditPageContent";
 
 export const BestPracticeEditPage = () => {
   const { bestPracticeId } = Route.useParams();
-  const { result: bpResult } = useOne<BestPracticeRow>({
+  const { result: bpResult } = useOne<BestPracticeRecord>({
     resource: ResourceName.bestPractices,
     id: bestPracticeId,
   });
-  const { result: checklistResult } = useList<ChecklistItemRow>({
+  const { result: checklistResult } = useList<ChecklistItemRecord>({
     resource: ResourceName.checklistItems,
     filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
   });
-  const { result: snippetsResult } = useList<CodeSnippetRow>({
+  const { result: snippetsResult } = useList<CodeSnippetRecord>({
     resource: ResourceName.codeSnippets,
     filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
   });

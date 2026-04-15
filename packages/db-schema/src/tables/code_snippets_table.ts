@@ -14,5 +14,4 @@ export const codeSnippetsTable = pgTable("code_snippets", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export type CodeSnippetRow = typeof codeSnippetsTable.$inferSelect;
-export type NewCodeSnippetRow = typeof codeSnippetsTable.$inferInsert;
+export type CodeSnippetRecord = typeof codeSnippetsTable.$inferSelect;
