@@ -1,34 +1,34 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { pipelinesDao } from "@repo/models";
+import { pipelinesService } from "../services";
 import { PipelineSchema } from "@repo/schemas";
 
 export const pipelinesRouter = router({
-  getMany: publicProcedure.query(() => pipelinesDao.findMany()),
+  getMany: publicProcedure.query(() => pipelinesService.getAll()),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(({ input }) => pipelinesDao.findById(input.id)),
+    .query(({ input }) => pipelinesService.getById(input.id)),
 
   create: publicProcedure.input(PipelineSchema).mutation(({ input }) =>
-    pipelinesDao.create({
+    pipelinesService.create({
       ...input,
-      nodes: input.nodes as Parameters<typeof pipelinesDao.create>[0]["nodes"],
-      edges: input.edges as Parameters<typeof pipelinesDao.create>[0]["edges"],
+      nodes: input.nodes as never,
+      edges: input.edges as never,
     })
   ),
 
   update: publicProcedure
     .input(z.object({ id: z.string(), patch: PipelineSchema.partial() }))
     .mutation(({ input }) =>
-      pipelinesDao.update(input.id, {
+      pipelinesService.update(input.id, {
         ...input.patch,
-        nodes: input.patch.nodes as Parameters<typeof pipelinesDao.update>[1]["nodes"] | undefined,
-        edges: input.patch.edges as Parameters<typeof pipelinesDao.update>[1]["edges"] | undefined,
+        nodes: input.patch.nodes as never,
+        edges: input.patch.edges as never,
       })
     ),
 
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(({ input }) => pipelinesDao.delete(input.id)),
+    .mutation(({ input }) => pipelinesService.delete(input.id)),
 });

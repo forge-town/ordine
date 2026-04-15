@@ -1,26 +1,26 @@
 import { publicProcedure, router } from "../init";
-import { recipesDao } from "@repo/models";
+import { recipesService } from "../services";
 import { RecipeSchema } from "@repo/schemas";
 import { z } from "zod/v4";
 
 export const recipesRouter = router({
-  getMany: publicProcedure.query(() => recipesDao.findMany()),
+  getMany: publicProcedure.query(() => recipesService.getAll()),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(({ input }) => recipesDao.findById(input.id)),
+    .query(({ input }) => recipesService.getById(input.id)),
 
   getByOperationId: publicProcedure
     .input(z.object({ operationId: z.string() }))
-    .query(({ input }) => recipesDao.findByOperationId(input.operationId)),
+    .query(({ input }) => recipesService.getByOperationId(input.operationId)),
 
-  create: publicProcedure.input(RecipeSchema).mutation(({ input }) => recipesDao.create(input)),
+  create: publicProcedure.input(RecipeSchema).mutation(({ input }) => recipesService.create(input)),
 
   update: publicProcedure
     .input(z.object({ id: z.string(), patch: RecipeSchema.partial() }))
-    .mutation(({ input }) => recipesDao.update(input.id, input.patch)),
+    .mutation(({ input }) => recipesService.update(input.id, input.patch)),
 
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(({ input }) => recipesDao.delete(input.id)),
+    .mutation(({ input }) => recipesService.delete(input.id)),
 });

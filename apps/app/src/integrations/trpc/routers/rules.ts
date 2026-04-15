@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { rulesDao } from "@repo/models";
+import { rulesService } from "../services";
 import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@repo/schemas";
 
 export const rulesRouter = router({
@@ -13,11 +13,11 @@ export const rulesRouter = router({
         })
         .optional()
     )
-    .query(({ input }) => rulesDao.findMany(input ?? {})),
+    .query(({ input }) => rulesService.getAll(input ?? {})),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(({ input }) => rulesDao.findById(input.id)),
+    .query(({ input }) => rulesService.getById(input.id)),
 
   create: publicProcedure
     .input(
@@ -34,7 +34,7 @@ export const rulesRouter = router({
         tags: z.array(z.string()).default([]),
       })
     )
-    .mutation(({ input }) => rulesDao.create(input)),
+    .mutation(({ input }) => rulesService.create(input)),
 
   update: publicProcedure
     .input(
@@ -53,14 +53,14 @@ export const rulesRouter = router({
     )
     .mutation(({ input }) => {
       const { id, ...rest } = input;
-      return rulesDao.update(id, rest);
+      return rulesService.update(id, rest);
     }),
 
   toggle: publicProcedure
     .input(z.object({ id: z.string(), enabled: z.boolean() }))
-    .mutation(({ input }) => rulesDao.toggleEnabled(input.id, input.enabled)),
+    .mutation(({ input }) => rulesService.toggleEnabled(input.id, input.enabled)),
 
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(({ input }) => rulesDao.delete(input.id)),
+    .mutation(({ input }) => rulesService.delete(input.id)),
 });

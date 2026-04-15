@@ -1,34 +1,34 @@
 import { publicProcedure, router } from "../init";
-import { checklistItemsDao, checklistResultsDao } from "@repo/models";
+import { checklistService } from "../services";
 import { ChecklistItemSchema, ChecklistResultSchema } from "@repo/schemas";
 import { z } from "zod/v4";
 
 export const checklistRouter = router({
   getItemsByBestPracticeId: publicProcedure
     .input(z.object({ bestPracticeId: z.string() }))
-    .query(({ input }) => checklistItemsDao.findByBestPracticeId(input.bestPracticeId)),
+    .query(({ input }) => checklistService.getItemsByBestPracticeId(input.bestPracticeId)),
 
   getItemById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(({ input }) => checklistItemsDao.findById(input.id)),
+    .query(({ input }) => checklistService.getItemById(input.id)),
 
   createItem: publicProcedure
     .input(ChecklistItemSchema)
-    .mutation(({ input }) => checklistItemsDao.create(input)),
+    .mutation(({ input }) => checklistService.createItem(input)),
 
   updateItem: publicProcedure
     .input(z.object({ id: z.string(), patch: ChecklistItemSchema.partial() }))
-    .mutation(({ input }) => checklistItemsDao.update(input.id, input.patch)),
+    .mutation(({ input }) => checklistService.updateItem(input.id, input.patch)),
 
   deleteItem: publicProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(({ input }) => checklistItemsDao.delete(input.id)),
+    .mutation(({ input }) => checklistService.deleteItem(input.id)),
 
   getResultsByJobId: publicProcedure
     .input(z.object({ jobId: z.string() }))
-    .query(({ input }) => checklistResultsDao.findByJobId(input.jobId)),
+    .query(({ input }) => checklistService.getResultsByJobId(input.jobId)),
 
   createResult: publicProcedure
     .input(ChecklistResultSchema)
-    .mutation(({ input }) => checklistResultsDao.create(input)),
+    .mutation(({ input }) => checklistService.createResult(input)),
 });

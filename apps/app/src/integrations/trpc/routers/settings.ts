@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { settingsDao } from "@repo/models";
+import { settingsService } from "../services";
 import { LLM_PROVIDERS } from "@repo/db-schema";
 
 const UpdateSettingsSchema = z.object({
@@ -10,9 +10,9 @@ const UpdateSettingsSchema = z.object({
 });
 
 export const settingsRouter = router({
-  get: publicProcedure.query(() => settingsDao.get()),
+  get: publicProcedure.query(() => settingsService.get()),
 
   update: publicProcedure
     .input(UpdateSettingsSchema)
-    .mutation(({ input }) => settingsDao.update(input)),
+    .mutation(({ input }) => settingsService.update(input)),
 });

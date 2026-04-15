@@ -1,24 +1,24 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { githubProjectsDao } from "@repo/models";
+import { githubProjectsService } from "../services";
 import { GithubProjectSchema } from "@repo/schemas";
 
 export const githubProjectsRouter = router({
-  getMany: publicProcedure.query(() => githubProjectsDao.findMany()),
+  getMany: publicProcedure.query(() => githubProjectsService.getAll()),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(({ input }) => githubProjectsDao.findById(input.id)),
+    .query(({ input }) => githubProjectsService.getById(input.id)),
 
   create: publicProcedure
     .input(GithubProjectSchema)
-    .mutation(({ input }) => githubProjectsDao.create(input)),
+    .mutation(({ input }) => githubProjectsService.create(input)),
 
   update: publicProcedure
     .input(z.object({ id: z.string(), patch: GithubProjectSchema.partial() }))
-    .mutation(({ input }) => githubProjectsDao.update(input.id, input.patch)),
+    .mutation(({ input }) => githubProjectsService.update(input.id, input.patch)),
 
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(({ input }) => githubProjectsDao.delete(input.id)),
+    .mutation(({ input }) => githubProjectsService.delete(input.id)),
 });

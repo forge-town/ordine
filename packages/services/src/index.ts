@@ -11,5 +11,6 @@ export * from "./pipelinesService.js";
 export * from "./recipesService.js";
 export * from "./ruleCheckRunner.js";
 export * from "./rulesService.js";
+export * from "./settingsService.js";
 export * from "./skillsService.js";
 export * from "./worksService.js";

@@ -1,18 +1,18 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { worksDao } from "@repo/models";
+import { worksService } from "../services";
 import { WorkObjectSchema } from "@repo/schemas";
 
 export const worksRouter = router({
-  getMany: publicProcedure.query(() => worksDao.findMany()),
+  getMany: publicProcedure.query(() => worksService.getAll()),
 
   getByProject: publicProcedure
     .input(z.object({ projectId: z.string() }))
-    .query(({ input }) => worksDao.findByProject(input.projectId)),
+    .query(({ input }) => worksService.getByProject(input.projectId)),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(({ input }) => worksDao.findById(input.id)),
+    .query(({ input }) => worksService.getById(input.id)),
 
   create: publicProcedure
     .input(
@@ -24,7 +24,7 @@ export const worksRouter = router({
         object: WorkObjectSchema,
       })
     )
-    .mutation(({ input }) => worksDao.create({ ...input, status: "pending", logs: [] })),
+    .mutation(({ input }) => worksService.create({ ...input, status: "pending", logs: [] })),
 
   updateStatus: publicProcedure
     .input(
@@ -33,9 +33,9 @@ export const worksRouter = router({
         status: z.enum(["pending", "running", "success", "failed"]),
       })
     )
-    .mutation(({ input }) => worksDao.updateStatus(input.id, input.status)),
+    .mutation(({ input }) => worksService.updateStatus(input.id, input.status)),
 
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(({ input }) => worksDao.delete(input.id)),
+    .mutation(({ input }) => worksService.delete(input.id)),
 });

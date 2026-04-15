@@ -1,24 +1,24 @@
 import { publicProcedure, router } from "../init";
-import { bestPracticesDao } from "@repo/models";
+import { bestPracticesService } from "../services";
 import { BestPracticeSchema } from "@repo/schemas";
 import { z } from "zod/v4";
 
 export const bestPracticesRouter = router({
-  getMany: publicProcedure.query(() => bestPracticesDao.findMany()),
+  getMany: publicProcedure.query(() => bestPracticesService.getAll()),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(({ input }) => bestPracticesDao.findById(input.id)),
+    .query(({ input }) => bestPracticesService.getById(input.id)),
 
   create: publicProcedure
     .input(BestPracticeSchema)
-    .mutation(({ input }) => bestPracticesDao.create(input)),
+    .mutation(({ input }) => bestPracticesService.create(input)),
 
   update: publicProcedure
     .input(z.object({ id: z.string(), patch: BestPracticeSchema.partial() }))
-    .mutation(({ input }) => bestPracticesDao.update(input.id, input.patch)),
+    .mutation(({ input }) => bestPracticesService.update(input.id, input.patch)),
 
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(({ input }) => bestPracticesDao.delete(input.id)),
+    .mutation(({ input }) => bestPracticesService.delete(input.id)),
 });

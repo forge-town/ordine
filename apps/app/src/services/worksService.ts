@@ -24,7 +24,7 @@ export const createWork = createServerFn({ method: "POST" })
       pipelineId: z.string(),
       pipelineName: z.string(),
       object: WorkObjectSchema,
-    }),
+    })
   )
   .handler(({ data }) => service.create({ ...data, status: "pending", logs: [] }));
 
@@ -33,7 +33,7 @@ export const updateWorkStatus = createServerFn({ method: "POST" })
     z.object({
       id: z.string(),
       status: z.enum(["pending", "running", "success", "failed"]),
-    }),
+    })
   )
   .handler(({ data }) => service.updateStatus(data.id, data.status));
 

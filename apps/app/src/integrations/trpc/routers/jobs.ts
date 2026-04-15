@@ -1,12 +1,12 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { jobsDao } from "@repo/models";
+import { jobsService } from "../services";
 import { JobStatusSchema, JobTypeSchema } from "@repo/schemas";
 
 export const jobsRouter = router({
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(({ input }) => jobsDao.findById(input.id)),
+    .query(({ input }) => jobsService.getById(input.id)),
 
   create: publicProcedure
     .input(
@@ -31,7 +31,7 @@ export const jobsRouter = router({
         finishedAt: z.number().nullable().default(null),
       })
     )
-    .mutation(({ input }) => jobsDao.create(input)),
+    .mutation(({ input }) => jobsService.create(input)),
 
   updateStatus: publicProcedure
     .input(
@@ -52,6 +52,6 @@ export const jobsRouter = router({
     )
     .mutation(({ input }) => {
       const { id, status, ...extra } = input;
-      return jobsDao.updateStatus(id, status, extra);
+      return jobsService.updateStatus(id, status, extra);
     }),
 });
