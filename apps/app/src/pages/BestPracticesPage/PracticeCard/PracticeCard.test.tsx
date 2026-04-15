@@ -18,8 +18,8 @@ const mockPractice: BestPracticeEntity = {
   language: "typescript",
   codeSnippet: "const [data, setData] = useState(null);",
   tags: ["react", "hooks"],
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe("PracticeCard", () => {
@@ -44,7 +44,7 @@ describe("PracticeCard", () => {
   it("does not show code snippet toggle when codeSnippet is empty", () => {
     const handleDelete = vi.fn();
     render(
-      <PracticeCard practice={{ ...mockPractice, codeSnippet: "" }} onDelete={handleDelete} />
+      <PracticeCard practice={{ ...mockPractice, codeSnippet: "" }} onDelete={handleDelete} />,
     );
     expect(screen.queryByText("代码片段")).not.toBeInTheDocument();
   });

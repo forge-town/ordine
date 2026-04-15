@@ -11,8 +11,8 @@ const mockPractice: BestPracticeEntity = {
   language: "typescript",
   codeSnippet: "useEffect(() => {\n  fetchData().then(setData);\n}, []);",
   tags: ["react", "hooks"],
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 const meta: Meta<typeof PracticeCard> = {

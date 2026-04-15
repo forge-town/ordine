@@ -37,17 +37,19 @@ import {
   pipelinesDao,
   jobsDao,
   skillsDao,
-  bestPracticesDao,
+  createBestPracticesDao,
   settingsDao,
   rulesDao,
   type OperationEntity,
 } from "@repo/models";
+import { db } from "@repo/db";
 import type { ExecutorConfig } from "@repo/schemas";
 import { listDirTree, readProjectFiles } from "./filesystemService.js";
 import { createLlmService } from "./llmService.js";
 import { buildExecutionLevels, getParentIds, CycleDetectedError } from "./dagScheduler.js";
 import { runRuleCheck } from "./ruleCheckRunner.js";
 
+const bestPracticesDao = createBestPracticesDao(db);
 const llmService = createLlmService(settingsDao);
 const getSettings = llmService.getSettings;
 const getModel = llmService.getModel;

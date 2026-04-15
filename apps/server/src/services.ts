@@ -1,5 +1,5 @@
 import {
-  bestPracticesDao,
+  createBestPracticesDao,
   checklistItemsDao,
   checklistResultsDao,
   codeSnippetsDao,
@@ -10,6 +10,7 @@ import {
   rulesDao,
   skillsDao,
 } from "@repo/models";
+import { db } from "@repo/db";
 import {
   createBestPracticesService,
   createChecklistService,
@@ -23,6 +24,7 @@ import {
   listDirectory,
 } from "@repo/services";
 
+const bestPracticesDao = createBestPracticesDao(db);
 export const bestPracticesService = createBestPracticesService(bestPracticesDao);
 export const checklistService = createChecklistService(checklistItemsDao, checklistResultsDao);
 export const codeSnippetsService = createCodeSnippetsService(codeSnippetsDao);

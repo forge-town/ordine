@@ -1,25 +1,9 @@
-import type { BestPracticeEntity } from "@repo/models";
+import type { BestPracticesDaoInstance } from "@repo/models";
 
-type BestPracticesDao = {
-  findMany: () => Promise<BestPracticeEntity[]>;
-  findById: (id: string) => Promise<BestPracticeEntity | null>;
-  create: (
-    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">,
-  ) => Promise<BestPracticeEntity>;
-  update: (
-    id: string,
-    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>,
-  ) => Promise<BestPracticeEntity | null>;
-  delete: (id: string) => Promise<void>;
-};
-
-export const createBestPracticesService = (dao: BestPracticesDao) => ({
+export const createBestPracticesService = (dao: BestPracticesDaoInstance) => ({
   getAll: () => dao.findMany(),
   getById: (id: string) => dao.findById(id),
-  create: (data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">) => dao.create(data),
-  update: (
-    id: string,
-    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>,
-  ) => dao.update(id, patch),
+  create: (data: Parameters<typeof dao.create>[0]) => dao.create(data),
+  update: (id: string, patch: Parameters<typeof dao.update>[1]) => dao.update(id, patch),
   delete: (id: string) => dao.delete(id),
 });

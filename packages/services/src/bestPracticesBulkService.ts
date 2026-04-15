@@ -1,16 +1,16 @@
-import type { BestPracticeEntity, ChecklistItemEntity, CodeSnippetEntity } from "@repo/models";
+import type {
+  BestPracticesDaoInstance,
+  ChecklistItemEntity,
+  CodeSnippetEntity,
+} from "@repo/models";
+import type { BestPracticeRow } from "@repo/db-schema";
 
-type BpDaoWithTx<Tx> = {
-  findById(id: string): Promise<BestPracticeEntity | null>;
-  createWithTx(
-    tx: Tx,
-    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">,
-  ): Promise<BestPracticeEntity>;
-  updateWithTx(
-    tx: Tx,
-    id: string,
-    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<BestPracticeEntity | null>;
+type BpDaoFactory<Tx> = {
+  (executor: Tx): BestPracticesDaoInstance;
+};
+
+type BpDaoWithFind = {
+  findById(id: string): Promise<BestPracticeRow | null>;
 };
 
 type ChecklistDaoWithTx<Tx> = {
@@ -40,7 +40,7 @@ type SnippetsDaoWithTx<Tx> = {
 };
 
 type BpService = {
-  getAll(): Promise<BestPracticeEntity[]>;
+  getAll(): Promise<BestPracticeRow[]>;
 };
 
 type ChecklistItemService = {
@@ -80,7 +80,8 @@ export interface BulkImportEntry {
 }
 
 export const createBestPracticesBulkService = <Tx>(deps: {
-  bpDao: BpDaoWithTx<Tx>;
+  bpDao: BpDaoWithFind;
+  bpDaoFactory: BpDaoFactory<Tx>;
   checklistDao: ChecklistDaoWithTx<Tx>;
   snippetsDao: SnippetsDaoWithTx<Tx>;
   bpService: BpService;
@@ -121,6 +122,7 @@ export const createBestPracticesBulkService = <Tx>(deps: {
   importBulk: async (entries: BulkImportEntry[]) => {
     return deps.runTransaction(async (tx: Tx) => {
       const counts = { imported: 0, checklistItems: 0, codeSnippets: 0 };
+      const txBpDao = deps.bpDaoFactory(tx);
 
       for (const entry of entries) {
         const { checklistItems, codeSnippets, ...bpData } = entry;
@@ -128,9 +130,9 @@ export const createBestPracticesBulkService = <Tx>(deps: {
         const existing = await deps.bpDao.findById(bpData.id);
         if (existing) {
           const { id: _, ...patch } = bpData;
-          await deps.bpDao.updateWithTx(tx, bpData.id, patch);
+          await txBpDao.update(bpData.id, patch);
         } else {
-          await deps.bpDao.createWithTx(tx, bpData);
+          await txBpDao.create(bpData);
         }
         counts.imported++;
 

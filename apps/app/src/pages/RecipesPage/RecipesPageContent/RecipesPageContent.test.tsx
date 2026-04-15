@@ -65,8 +65,8 @@ const mockBestPractices = [
     language: "tsx",
     codeSnippet: "",
     tags: [],
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: "bp-2",
@@ -77,8 +77,8 @@ const mockBestPractices = [
     language: "typescript",
     codeSnippet: "",
     tags: [],
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 ];
 

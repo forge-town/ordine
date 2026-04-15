@@ -1,86 +1,53 @@
 import { eq, desc } from "drizzle-orm";
-import { db } from "@repo/db";
-import { bestPracticesTable, type BestPracticeRow, type NewBestPracticeRow } from "@repo/db-schema";
+import { bestPracticesTable, type BestPracticeRow } from "@repo/db-schema";
 import type { DbExecutor } from "../types.js";
 
-export type BestPracticeEntity = Omit<BestPracticeRow, "createdAt" | "updatedAt"> & {
-  createdAt: number;
-  updatedAt: number;
-};
+export type BestPracticeEntity = BestPracticeRow;
 
-const rowToEntity = (row: BestPracticeRow): BestPracticeEntity => ({
-  ...row,
-  createdAt: row.createdAt.getTime(),
-  updatedAt: row.updatedAt.getTime(),
-});
+class BestPracticesDao {
+  constructor(readonly executor: DbExecutor) {}
 
-export const bestPracticesDao = {
-  async findMany(): Promise<BestPracticeEntity[]> {
-    const rows = await db
+  async findMany() {
+    return this.executor
       .select()
       .from(bestPracticesTable)
       .orderBy(desc(bestPracticesTable.updatedAt));
-    return rows.map(rowToEntity);
-  },
+  }
 
-  async findById(id: string): Promise<BestPracticeEntity | null> {
-    const rows = await db
+  async findById(id: string) {
+    const rows = await this.executor
       .select()
       .from(bestPracticesTable)
       .where(eq(bestPracticesTable.id, id))
       .limit(1);
-    return rows[0] ? rowToEntity(rows[0]!) : null;
-  },
+    return rows[0] ?? null;
+  }
 
-  async create(
-    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">,
-  ): Promise<BestPracticeEntity> {
+  async create(data: typeof bestPracticesTable.$inferInsert) {
     const now = new Date();
-    const row: NewBestPracticeRow = { ...data, createdAt: now, updatedAt: now };
-    const [inserted] = await db.insert(bestPracticesTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
+    const [inserted] = await this.executor
+      .insert(bestPracticesTable)
+      .values({ ...data, createdAt: now, updatedAt: now })
+      .returning();
+    return inserted!;
+  }
 
-  async createWithTx(
-    tx: DbExecutor,
-    data: Omit<BestPracticeEntity, "createdAt" | "updatedAt">,
-  ): Promise<BestPracticeEntity> {
-    const now = new Date();
-    const row: NewBestPracticeRow = { ...data, createdAt: now, updatedAt: now };
-    const [inserted] = await tx.insert(bestPracticesTable).values(row).returning();
-    return rowToEntity(inserted!);
-  },
-
-  async update(
-    id: string,
-    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<BestPracticeEntity | null> {
-    const [updated] = await db
+  async update(id: string, patch: Partial<Omit<typeof bestPracticesTable.$inferInsert, "id">>) {
+    const [updated] = await this.executor
       .update(bestPracticesTable)
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(bestPracticesTable.id, id))
       .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+    return updated ?? null;
+  }
 
-  async updateWithTx(
-    tx: DbExecutor,
-    id: string,
-    patch: Partial<Omit<BestPracticeEntity, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<BestPracticeEntity | null> {
-    const [updated] = await tx
-      .update(bestPracticesTable)
-      .set({ ...patch, updatedAt: new Date() })
-      .where(eq(bestPracticesTable.id, id))
-      .returning();
-    return updated ? rowToEntity(updated) : null;
-  },
+  async delete(id: string) {
+    await this.executor.delete(bestPracticesTable).where(eq(bestPracticesTable.id, id));
+  }
+}
 
-  async delete(id: string): Promise<void> {
-    await db.delete(bestPracticesTable).where(eq(bestPracticesTable.id, id));
-  },
-
-  async deleteWithTx(tx: DbExecutor, id: string): Promise<void> {
-    await tx.delete(bestPracticesTable).where(eq(bestPracticesTable.id, id));
-  },
+export const createBestPracticesDao = (executor: DbExecutor) => {
+  return new BestPracticesDao(executor);
 };
+
+export type BestPracticesDaoInstance = ReturnType<typeof createBestPracticesDao>;

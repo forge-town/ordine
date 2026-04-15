@@ -17,8 +17,8 @@ const mockPractice: BestPracticeEntity = {
   language: "typescript",
   codeSnippet: "",
   tags: ["react", "hooks"],
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe("PracticeFormDialog", () => {

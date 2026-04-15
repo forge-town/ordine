@@ -12,8 +12,8 @@ const mockPractices: BestPracticeEntity[] = [
     language: "typescript",
     codeSnippet: "useEffect(() => {\n  fetchData().then(setData);\n}, []);",
     tags: ["react", "hooks"],
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: "bp-2",
@@ -24,8 +24,8 @@ const mockPractices: BestPracticeEntity[] = [
     language: "typescript",
     codeSnippet: "",
     tags: ["performance"],
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 ];
 
