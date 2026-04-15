@@ -2,25 +2,28 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { recipesDao } from "@repo/models";
 import { RecipeSchema } from "@repo/schemas";
+import { createRecipesService } from "@repo/services";
 
-export const getRecipes = createServerFn({ method: "GET" }).handler(() => recipesDao.findMany());
+const service = createRecipesService(recipesDao);
+
+export const getRecipes = createServerFn({ method: "GET" }).handler(() => service.getAll());
 
 export const getRecipeById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(({ data }) => recipesDao.findById(data.id));
+  .handler(({ data }) => service.getById(data.id));
 
 export const getRecipesByOperationId = createServerFn({ method: "GET" })
   .inputValidator(z.object({ operationId: z.string() }))
-  .handler(({ data }) => recipesDao.findByOperationId(data.operationId));
+  .handler(({ data }) => service.getByOperationId(data.operationId));
 
 export const createRecipe = createServerFn({ method: "POST" })
   .inputValidator(RecipeSchema)
-  .handler(({ data }) => recipesDao.create(data));
+  .handler(({ data }) => service.create(data));
 
 export const updateRecipe = createServerFn({ method: "POST" })
   .inputValidator(z.object({ id: z.string(), patch: RecipeSchema.partial() }))
-  .handler(({ data }) => recipesDao.update(data.id, data.patch));
+  .handler(({ data }) => service.update(data.id, data.patch));
 
 export const deleteRecipe = createServerFn({ method: "POST" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(({ data }) => recipesDao.delete(data.id));
+  .handler(({ data }) => service.delete(data.id));

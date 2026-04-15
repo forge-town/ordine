@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { jobsDao } from "@repo/models";
 import { JobStatusSchema, JobTypeSchema } from "@repo/schemas";
+import { createJobsService } from "@repo/services";
+
+const service = createJobsService(jobsDao);
 
 export const getJobs = createServerFn({ method: "GET" })
   .inputValidator(
@@ -13,11 +16,11 @@ export const getJobs = createServerFn({ method: "GET" })
       })
       .optional()
   )
-  .handler(({ data }) => jobsDao.findMany(data ?? {}));
+  .handler(({ data }) => service.getAll(data ?? {}));
 
 export const getJobById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(({ data }) => jobsDao.findById(data.id));
+  .handler(({ data }) => service.getById(data.id));
 
 export const createJob = createServerFn({ method: "POST" })
   .inputValidator(
@@ -42,7 +45,7 @@ export const createJob = createServerFn({ method: "POST" })
       finishedAt: z.number().nullable().default(null),
     })
   )
-  .handler(({ data }) => jobsDao.create(data));
+  .handler(({ data }) => service.create(data));
 
 export const updateJobStatus = createServerFn({ method: "POST" })
   .inputValidator(
@@ -63,9 +66,9 @@ export const updateJobStatus = createServerFn({ method: "POST" })
   )
   .handler(({ data }) => {
     const { id, status, ...extra } = data;
-    return jobsDao.updateStatus(id, status, extra);
+    return service.updateStatus(id, status, extra);
   });
 
 export const deleteJob = createServerFn({ method: "POST" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(({ data }) => jobsDao.delete(data.id));
+  .handler(({ data }) => service.delete(data.id));

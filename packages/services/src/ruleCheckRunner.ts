@@ -18,13 +18,17 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { ResultAsync } from "neverthrow";
-import { rulesDao, type RuleEntity } from "@repo/models";
+import type { RuleEntity } from "@repo/models";
 import type { CheckOutput, Finding } from "@repo/agent";
 
 export interface RuleTarget {
   path: string;
   type: "file" | "folder" | "project";
 }
+
+type RulesDao = {
+  findMany: (filter?: { enabled?: boolean }) => Promise<RuleEntity[]>;
+};
 
 const execAsync = promisify(exec);
 
@@ -93,9 +97,9 @@ const resultToFinding = (result: RuleCheckResult): Finding | null => {
   };
 };
 
-export const runRuleCheck = async (inputPath: string): Promise<CheckOutput> => {
+export const runRuleCheck = async (dao: RulesDao, inputPath: string): Promise<CheckOutput> => {
   const target: RuleTarget = { path: inputPath, type: "project" };
-  const rules = await rulesDao.findMany({ enabled: true });
+  const rules = await dao.findMany({ enabled: true });
   const activeRules = rules.filter((r) => r.checkScript != null && r.checkScript.trim() !== "");
 
   const results: RuleCheckResult[] = [];

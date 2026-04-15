@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { rulesDao } from "@repo/models";
 import { RuleCategorySchema, RuleSeveritySchema, RuleScriptLanguageSchema } from "@repo/schemas";
+import { createRulesService } from "@repo/services";
+
+const service = createRulesService(rulesDao);
 
 export const getRules = createServerFn({ method: "GET" })
   .inputValidator(
@@ -12,11 +15,11 @@ export const getRules = createServerFn({ method: "GET" })
       })
       .optional()
   )
-  .handler(({ data }) => rulesDao.findMany(data ?? {}));
+  .handler(({ data }) => service.getAll(data ?? {}));
 
 export const getRuleById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(({ data }) => rulesDao.findById(data.id));
+  .handler(({ data }) => service.getById(data.id));
 
 export const createRule = createServerFn({ method: "POST" })
   .inputValidator(
@@ -33,7 +36,7 @@ export const createRule = createServerFn({ method: "POST" })
       tags: z.array(z.string()).default([]),
     })
   )
-  .handler(({ data }) => rulesDao.create(data));
+  .handler(({ data }) => service.create(data));
 
 export const updateRule = createServerFn({ method: "POST" })
   .inputValidator(
@@ -52,13 +55,13 @@ export const updateRule = createServerFn({ method: "POST" })
   )
   .handler(({ data }) => {
     const { id, ...rest } = data;
-    return rulesDao.update(id, rest);
+    return service.update(id, rest);
   });
 
 export const toggleRule = createServerFn({ method: "POST" })
   .inputValidator(z.object({ id: z.string(), enabled: z.boolean() }))
-  .handler(({ data }) => rulesDao.toggleEnabled(data.id, data.enabled));
+  .handler(({ data }) => service.toggleEnabled(data.id, data.enabled));
 
 export const deleteRule = createServerFn({ method: "POST" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(({ data }) => rulesDao.delete(data.id));
+  .handler(({ data }) => service.delete(data.id));

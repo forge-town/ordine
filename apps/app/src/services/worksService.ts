@@ -2,16 +2,19 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { worksDao } from "@repo/models";
 import { WorkObjectSchema } from "@repo/schemas";
+import { createWorksService } from "@repo/services";
 
-export const getWorks = createServerFn({ method: "GET" }).handler(() => worksDao.findMany());
+const service = createWorksService(worksDao);
+
+export const getWorks = createServerFn({ method: "GET" }).handler(() => service.getAll());
 
 export const getWorksByProject = createServerFn({ method: "GET" })
   .inputValidator(z.object({ projectId: z.string() }))
-  .handler(async ({ data }) => worksDao.findByProject(data.projectId));
+  .handler(({ data }) => service.getByProject(data.projectId));
 
 export const getWorkById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(async ({ data }) => worksDao.findById(data.id));
+  .handler(({ data }) => service.getById(data.id));
 
 export const createWork = createServerFn({ method: "POST" })
   .inputValidator(
@@ -21,19 +24,19 @@ export const createWork = createServerFn({ method: "POST" })
       pipelineId: z.string(),
       pipelineName: z.string(),
       object: WorkObjectSchema,
-    })
+    }),
   )
-  .handler(async ({ data }) => worksDao.create({ ...data, status: "pending", logs: [] }));
+  .handler(({ data }) => service.create({ ...data, status: "pending", logs: [] }));
 
 export const updateWorkStatus = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       id: z.string(),
       status: z.enum(["pending", "running", "success", "failed"]),
-    })
+    }),
   )
-  .handler(async ({ data }) => worksDao.updateStatus(data.id, data.status));
+  .handler(({ data }) => service.updateStatus(data.id, data.status));
 
 export const deleteWork = createServerFn({ method: "POST" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(async ({ data }) => worksDao.delete(data.id));
+  .handler(({ data }) => service.delete(data.id));

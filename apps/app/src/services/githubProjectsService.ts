@@ -2,23 +2,24 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { githubProjectsDao } from "@repo/models";
 import { GithubProjectSchema } from "@repo/schemas";
+import { createGithubProjectsService } from "@repo/services";
 
-export const getGithubProjects = createServerFn({ method: "GET" }).handler(async () =>
-  githubProjectsDao.findMany()
-);
+const service = createGithubProjectsService(githubProjectsDao);
+
+export const getGithubProjects = createServerFn({ method: "GET" }).handler(() => service.getAll());
 
 export const getGithubProjectById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(async ({ data }) => githubProjectsDao.findById(data.id));
+  .handler(({ data }) => service.getById(data.id));
 
 export const createGithubProject = createServerFn({ method: "POST" })
   .inputValidator(GithubProjectSchema)
-  .handler(async ({ data }) => githubProjectsDao.create(data));
+  .handler(({ data }) => service.create(data));
 
 export const updateGithubProject = createServerFn({ method: "POST" })
   .inputValidator(z.object({ id: z.string(), patch: GithubProjectSchema.partial() }))
-  .handler(async ({ data }) => githubProjectsDao.update(data.id, data.patch));
+  .handler(({ data }) => service.update(data.id, data.patch));
 
 export const deleteGithubProject = createServerFn({ method: "POST" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(async ({ data }) => githubProjectsDao.delete(data.id));
+  .handler(({ data }) => service.delete(data.id));

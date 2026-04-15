@@ -1,29 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { operationsDao } from "@repo/models";
-import { type ObjectType, ObjectTypeSchema as ObjectTypeEnum } from "@repo/schemas";
+import { ObjectTypeSchema as ObjectTypeEnum } from "@repo/schemas";
+import { createOperationsService } from "@repo/services";
 
-type OperationResult = {
-  id: string;
-  name: string;
-  description: string | null;
-  config: string;
-  acceptedObjectTypes: ObjectType[];
-  createdAt: number;
-  updatedAt: number;
-};
+const service = createOperationsService(operationsDao);
 
-export const getOperations = createServerFn({ method: "GET" }).handler(async () => {
-  const ops = await operationsDao.findMany();
-  return ops as OperationResult[];
-});
+export const getOperations = createServerFn({ method: "GET" }).handler(() => service.getAll());
 
 export const getOperationById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(async ({ data }) => {
-    const op = await operationsDao.findById(data.id);
-    return op as OperationResult | null;
-  });
+  .handler(({ data }) => service.getById(data.id));
 
 export const createOperation = createServerFn({ method: "POST" })
   .inputValidator(
@@ -35,10 +22,7 @@ export const createOperation = createServerFn({ method: "POST" })
       acceptedObjectTypes: z.array(ObjectTypeEnum).default(["file", "folder", "project"]),
     })
   )
-  .handler(async ({ data }) => {
-    const op = await operationsDao.create(data);
-    return op as OperationResult;
-  });
+  .handler(({ data }) => service.create(data));
 
 export const updateOperation = createServerFn({ method: "POST" })
   .inputValidator(
@@ -50,12 +34,11 @@ export const updateOperation = createServerFn({ method: "POST" })
       acceptedObjectTypes: z.array(ObjectTypeEnum).optional(),
     })
   )
-  .handler(async ({ data }) => {
+  .handler(({ data }) => {
     const { id, ...rest } = data;
-    const op = await operationsDao.update(id, rest);
-    return op as OperationResult;
+    return service.update(id, rest);
   });
 
 export const deleteOperation = createServerFn({ method: "POST" })
   .inputValidator(z.object({ id: z.string() }))
-  .handler(({ data }) => operationsDao.delete(data.id));
+  .handler(({ data }) => service.delete(data.id));

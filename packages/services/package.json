@@ -14,7 +14,9 @@
   },
   "dependencies": {
     "@repo/agent": "workspace:*",
+    "@repo/db-schema": "workspace:*",
     "@repo/models": "workspace:*",
+    "@repo/schemas": "workspace:*",
     "neverthrow": "^8.2.0"
   },
   "devDependencies": {
