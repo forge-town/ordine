@@ -16,10 +16,10 @@ export const checklistResultsTable = pgTable(
     output: text("output").notNull().default(""),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
-  (table) => ({
-    jobIdx: index("checklist_results_job_id_idx").on(table.jobId),
-    itemIdx: index("checklist_results_item_id_idx").on(table.checklistItemId),
-  }),
+  (table) => [
+    index("checklist_results_job_id_idx").on(table.jobId),
+    index("checklist_results_item_id_idx").on(table.checklistItemId),
+  ],
 );
 
 export type ChecklistResultRecord = typeof checklistResultsTable.$inferSelect;

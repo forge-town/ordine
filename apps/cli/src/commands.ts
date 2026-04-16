@@ -1,4 +1,4 @@
-import { api } from "./api.js";
+import { api } from "./api";
 
 interface Pipeline {
   id: string;
@@ -85,8 +85,7 @@ export const runPipeline = async (
   const { jobId } = result.data;
   console.log(`Job created: ${jobId}`);
 
-  if (options.follow === false)
- return;
+  if (options.follow === false) return;
 
   await pollJob(jobId);
 };

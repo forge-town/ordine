@@ -31,12 +31,12 @@ export const jobsTable = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (table) => ({
-    projectIdx: index("jobs_project_id_idx").on(table.projectId),
-    pipelineIdx: index("jobs_pipeline_id_idx").on(table.pipelineId),
-    statusIdx: index("jobs_status_idx").on(table.status),
-    typeIdx: index("jobs_type_idx").on(table.type),
-  }),
+  (table) => [
+    index("jobs_project_id_idx").on(table.projectId),
+    index("jobs_pipeline_id_idx").on(table.pipelineId),
+    index("jobs_status_idx").on(table.status),
+    index("jobs_type_idx").on(table.type),
+  ],
 );
 
 export type JobRecord = typeof jobsTable.$inferSelect;

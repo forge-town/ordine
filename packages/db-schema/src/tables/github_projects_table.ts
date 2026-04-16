@@ -14,13 +14,9 @@ export const githubProjectsTable = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (table) => ({
-    unq: unique("github_projects_owner_repo_branch_unique").on(
-      table.owner,
-      table.repo,
-      table.branch,
-    ),
-  }),
+  (table) => [
+    unique("github_projects_owner_repo_branch_unique").on(table.owner, table.repo, table.branch),
+  ],
 );
 
 export type GithubProjectRecord = typeof githubProjectsTable.$inferSelect;

@@ -17,10 +17,10 @@ export const jobTracesTable = pgTable(
       .notNull()
       .default(sql`now()`),
   },
-  (table) => ({
-    jobIdIdx: index("job_traces_job_id_idx").on(table.jobId),
-    createdAtIdx: index("job_traces_created_at_idx").on(table.createdAt),
-  }),
+  (table) => [
+    index("job_traces_job_id_idx").on(table.jobId),
+    index("job_traces_created_at_idx").on(table.createdAt),
+  ],
 );
 
 export type JobTraceRecord = typeof jobTracesTable.$inferSelect;
