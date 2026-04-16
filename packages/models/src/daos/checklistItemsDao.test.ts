@@ -67,9 +67,9 @@ describe("checklistItemsDao", () => {
     const result = await dao.findByBestPracticeId("bp-1");
 
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe("ci-1");
-    expect(result[0].createdAt).toBeInstanceOf(Date);
-    expect(result[0].updatedAt).toBeInstanceOf(Date);
+    expect(result[0]!.id).toBe("ci-1");
+    expect(result[0]!.createdAt).toBeInstanceOf(Date);
+    expect(result[0]!.updatedAt).toBeInstanceOf(Date);
   });
 
   it("findById returns entity when found", async () => {

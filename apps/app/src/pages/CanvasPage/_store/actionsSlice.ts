@@ -652,9 +652,8 @@ export const createActionsSlice = (
   handleNodeAddExcludedPath: (nodeId, path) => {
     const node = get().nodes.find((n) => n.id === nodeId);
     if (!node) return;
-    const current = Array.isArray(node.data.excludedPaths)
-      ? (node.data.excludedPaths as string[])
-      : [];
+    const data = node.data as Record<string, unknown>;
+    const current = Array.isArray(data.excludedPaths) ? (data.excludedPaths as string[]) : [];
     if (!current.includes(path)) {
       get().updateNodeData(nodeId, { excludedPaths: [...current, path] });
     }
@@ -663,9 +662,8 @@ export const createActionsSlice = (
   handleNodeRemoveExcludedPath: (nodeId, path) => {
     const node = get().nodes.find((n) => n.id === nodeId);
     if (!node) return;
-    const current = Array.isArray(node.data.excludedPaths)
-      ? (node.data.excludedPaths as string[])
-      : [];
+    const data = node.data as Record<string, unknown>;
+    const current = Array.isArray(data.excludedPaths) ? (data.excludedPaths as string[]) : [];
     get().updateNodeData(nodeId, {
       excludedPaths: current.filter((p) => p !== path),
     });

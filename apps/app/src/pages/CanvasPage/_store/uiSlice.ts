@@ -285,5 +285,6 @@ export const selectNodeRunState =
       state.runningNodeId !== null &&
       state.runningNodeId !== nodeId &&
       runStatus !== "running";
+
     return { runStatus, dimmed };
   };

@@ -1,10 +1,3 @@
-/**
- * Prompt executor — sends a prompt + input to the configured agent backend.
- *
- * Dispatches to local-claude (CLI) or kimi (streaming LLM) based on
- * the `agent` field. Default: "local-claude".
- */
-
 import { streamText } from "ai";
 import { ResultAsync, errAsync } from "neverthrow";
 import { getModel, runClaude, type SettingsResolver } from "@repo/agent";

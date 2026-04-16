@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createPipelinesDao } from "./pipelinesDao";
-import type { PipelineEntity } from "../types";
+import type { PipelineEntity } from "./pipelinesDao";
 import type { DbExecutor } from "../types";
 import type * as DrizzleOrm from "drizzle-orm";
 
@@ -76,9 +76,9 @@ describe("pipelinesDao.update", () => {
 
     const setPayload = (mockSet.mock.calls as Array<Array<Record<string, unknown>>>)[0]?.[0];
     expect(setPayload).toBeDefined();
-    expect(setPayload["nodes"]).toEqual(testNodes);
-    expect(setPayload["edges"]).toEqual([]);
-    expect(setPayload["updatedAt"]).toBeInstanceOf(Date);
+    expect(setPayload!["nodes"]).toEqual(testNodes);
+    expect(setPayload!["edges"]).toEqual([]);
+    expect(setPayload!["updatedAt"]).toBeInstanceOf(Date);
 
     expect(result).not.toBeNull();
     expect(result?.id).toBe("pipe-1");
@@ -104,8 +104,8 @@ describe("pipelinesDao.update", () => {
     });
 
     const setPayload = (mockSet.mock.calls as Array<Array<Record<string, unknown>>>)[0]?.[0];
-    expect(setPayload["name"]).toBe("Updated Name");
-    expect(setPayload["description"]).toBe("New desc");
-    expect("nodeCount" in setPayload).toBe(false);
+    expect(setPayload!["name"]).toBe("Updated Name");
+    expect(setPayload!["description"]).toBe("New desc");
+    expect("nodeCount" in setPayload!).toBe(false);
   });
 });

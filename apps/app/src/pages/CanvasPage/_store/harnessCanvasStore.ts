@@ -25,28 +25,28 @@ export const createHarnessCanvasStore = (
   initialNodes?: PipelineNode[],
   initialEdges?: PipelineEdge[],
   pipelineId?: string | null,
-  pipelineName?: string,
+  pipelineName?: string
 ) => {
   return createStore<HarnessCanvasState>()((set, get) => ({
     ...createCanvasSlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
       get as Parameters<HarnessCanvasStoreSlice>[1],
       initialNodes,
-      initialEdges,
+      initialEdges
     ),
     ...createUISlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
 
       pipelineId ?? null,
-      pipelineName ?? "",
+      pipelineName ?? ""
     ),
     ...createHistorySlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
-      get as Parameters<HarnessCanvasStoreSlice>[1],
+      get as Parameters<HarnessCanvasStoreSlice>[1]
     ),
     ...createActionsSlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
-      get as Parameters<HarnessCanvasStoreSlice>[1],
+      get as Parameters<HarnessCanvasStoreSlice>[1]
     ),
   }));
 };

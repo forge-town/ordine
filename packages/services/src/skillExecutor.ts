@@ -11,7 +11,6 @@ import {
   getModel,
   runClaude,
   READ_ONLY_TOOLS,
-  WEB_TOOLS,
   WRITE_TOOLS,
   extractJsonFromText,
   CHECK_OUTPUT_EXAMPLE,
@@ -23,7 +22,7 @@ import {
 import { logger } from "@repo/logger";
 import type { AgentBackend } from "@repo/pipeline-engine";
 import { extractStructuredOutput } from "./structuredOutput.js";
-import type { StreamCallback, ProgressCallback } from "./promptExecutor.js";
+import type { StreamCallback, ProgressCallback } from "./pipelineRunnerService/promptExecutor.js";
 
 export interface RunSkillOptions {
   skillId: string;

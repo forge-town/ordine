@@ -60,9 +60,9 @@ describe("checklistResultsDao", () => {
     const result = await dao.findByJobId("job-1");
 
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe("cr-1");
-    expect(result[0].createdAt).toBeInstanceOf(Date);
-    expect(result[0].passed).toBe(true);
+    expect(result[0]!.id).toBe("cr-1");
+    expect(result[0]!.createdAt).toBeInstanceOf(Date);
+    expect(result[0]!.passed).toBe(true);
   });
 
   it("create inserts and returns entity", async () => {

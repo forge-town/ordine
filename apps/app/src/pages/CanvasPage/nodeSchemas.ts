@@ -9,3 +9,4 @@ export {
 } from "./schemas";
 
 export type { NodeType, OperationNodeData, PipelineNodeData } from "./schemas";
+export type { NodeRunStatus } from "@repo/pipeline-engine/schemas";

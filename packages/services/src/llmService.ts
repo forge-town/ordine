@@ -1,8 +1,4 @@
-/**
- * LLM Service — thin adapter that binds `@repo/agent` to the app's settingsDao.
- */
-
-import { getModel as getModelRaw, type SettingsResolver } from "@repo/agent";
+import { getModel, type SettingsResolver } from "@repo/agent";
 import type { SettingsDaoInstance } from "@repo/models";
 
 export const createLlmService = (dao: SettingsDaoInstance) => {
@@ -12,7 +8,7 @@ export const createLlmService = (dao: SettingsDaoInstance) => {
   };
 
   return {
-    getModel: (modelOverride?: string) => getModelRaw(getSettings, modelOverride),
+    getModel: (modelOverride?: string) => getModel(getSettings, modelOverride),
     getSettings,
   };
 };
