@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = "http://localhost:3000";
+const DEFAULT_BASE_URL = "http://localhost:9433";
 
 const getBaseUrl = (): string => process.env["ORDINE_API_URL"] ?? DEFAULT_BASE_URL;
 

@@ -5,7 +5,7 @@
 > CLI 当前支持列出 Pipeline 和运行 Pipeline。创建 Pipeline 需要使用 REST API。
 
 ```bash
-# 设置 API 地址（默认 http://localhost:3000）
+# 设置 API 地址（默认 http://localhost:9433）
 export ORDINE_API_URL=http://localhost:9433
 
 # 列出所有 Pipeline

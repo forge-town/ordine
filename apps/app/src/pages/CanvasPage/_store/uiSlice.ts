@@ -1,5 +1,10 @@
-import type { NodeRunStatus } from "../nodeSchemas";
+import type { NodeRunStatus } from "@repo/pipeline-engine/schemas";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
+
+export interface NodeRunState {
+  runStatus: NodeRunStatus | undefined;
+  dimmed: boolean;
+}
 
 export type SidebarPanel = "components" | "properties" | "ai-assistant" | null;
 
@@ -83,8 +88,9 @@ export interface UISlice {
 
 export const createUISlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
+
   pipelineId: string | null = null,
-  pipelineName = ""
+  pipelineName = "",
 ): UISlice => ({
   pipelineId,
   pipelineName,
@@ -269,3 +275,15 @@ export const createUISlice = (
     }));
   },
 });
+
+export const selectNodeRunState =
+  (nodeId: string) =>
+  (state: UISlice): NodeRunState => {
+    const runStatus = state.nodeRunStatuses[nodeId];
+    const dimmed =
+      state.isTestRunning &&
+      state.runningNodeId !== null &&
+      state.runningNodeId !== nodeId &&
+      runStatus !== "running";
+    return { runStatus, dimmed };
+  };

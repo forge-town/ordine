@@ -3,9 +3,8 @@ import { Handle, Position } from "@xyflow/react";
 import { Link2, Lock, Globe, BookMarked, FolderOpen, FolderInput, X, Eye } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type GitHubProjectNodeData } from "../_store";
+import { useHarnessCanvasStore, selectNodeRunState, type GitHubProjectNodeData } from "../_store";
 import { NodeCard } from "../NodeCard";
-import { useNodeRunState } from "../useNodeRunState";
 import { FolderTreePreview } from "../FolderNode/FolderTreePreview";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { GitHubConnectDialog, type ConnectedRepoInfo } from "./GitHubConnectDialog";
@@ -25,8 +24,8 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps) => {
   const { t } = useTranslation();
-  const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
+  const { runStatus, dimmed } = useStore(store, selectNodeRunState(id));
   const [pickOpen, setPickOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
   const [localFolderOpen, setLocalFolderOpen] = useState(false);

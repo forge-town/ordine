@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { FileCode, FolderOpen } from "lucide-react";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type CodeFileNodeData } from "../_store";
+import { useHarnessCanvasStore, selectNodeRunState, type CodeFileNodeData } from "../_store";
 import { NodeCard } from "../NodeCard";
-import { useNodeRunState } from "../useNodeRunState";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
 
 export interface CodeFileNodeProps {
@@ -16,8 +15,8 @@ export interface CodeFileNodeProps {
 const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
 export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
-  const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
+  const { runStatus, dimmed } = useStore(store, selectNodeRunState(id));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const [browserOpen, setBrowserOpen] = useState(false);
 

@@ -1,9 +1,12 @@
 import { Handle, Position } from "@xyflow/react";
 import { FolderOutput } from "lucide-react";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type OutputProjectPathNodeData } from "../_store";
+import {
+  useHarnessCanvasStore,
+  selectNodeRunState,
+  type OutputProjectPathNodeData,
+} from "../_store";
 import { NodeCard } from "../NodeCard";
-import { useNodeRunState } from "../useNodeRunState";
 import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
 
@@ -16,8 +19,8 @@ export interface OutputProjectPathNodeProps {
 const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathNodeProps) => {
-  const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
+  const { runStatus, dimmed } = useStore(store, selectNodeRunState(id));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v });

@@ -12,12 +12,16 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type OperationNodeData, type NodeRunStatus } from "../_store";
+import {
+  useHarnessCanvasStore,
+  selectNodeRunState,
+  type OperationNodeData,
+  type NodeRunStatus,
+} from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { LLM_PROVIDERS, type OperationRecord, type BestPracticeRecord } from "@repo/db-schema";
 import { NodeCard } from "../NodeCard";
-import { useNodeRunState } from "../useNodeRunState";
 import { BestPracticeSelect } from "./BestPracticeSelect";
 
 export interface OperationNodeProps {
@@ -59,7 +63,8 @@ const MODEL_OPTIONS: Record<string, { value: string; label: string }[]> = {
 };
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
-  const { runStatus: nodeRunStatus, dimmed } = useNodeRunState(id);
+  const store = useHarnessCanvasStore();
+  const { runStatus: nodeRunStatus, dimmed } = useStore(store, selectNodeRunState(id));
   const { result: operationsResult } = useList<OperationRecord>({
     resource: ResourceName.operations,
   });
@@ -68,7 +73,6 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   });
   const operations = operationsResult?.data ?? [];
   const bestPractices = bestPracticesResult?.data ?? [];
-  const store = useHarnessCanvasStore();
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const isTestRunning = useStore(store, (s) => s.isTestRunning);
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
@@ -150,7 +154,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               data.status === "pass" && "bg-green-50 border-green-100",
               data.status === "fail" && "bg-red-50 border-red-100",
               data.status === "running" && "bg-blue-50 border-blue-100",
-              (!data.status || data.status === "idle") && "bg-white border-slate-100"
+              (!data.status || data.status === "idle") && "bg-white border-slate-100",
             )}
           >
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
@@ -282,7 +286,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               "flex w-full items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-medium transition-colors",
               data.loopEnabled
                 ? "border-amber-200 bg-amber-50 text-amber-700"
-                : "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100"
+                : "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100",
             )}
             type="button"
             onClick={handleLoopToggle}

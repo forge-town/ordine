@@ -5,7 +5,7 @@
 ### 环境配置
 
 ```bash
-# 设置 API 地址（默认 http://localhost:3000）
+# 设置 API 地址（默认 http://localhost:9433）
 export ORDINE_API_URL=http://localhost:9433
 ```
 

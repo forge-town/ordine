@@ -3,9 +3,8 @@ import { Handle, Position } from "@xyflow/react";
 import { Folder, FolderOpen, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, type FolderNodeData } from "../_store";
+import { useHarnessCanvasStore, selectNodeRunState, type FolderNodeData } from "../_store";
 import { NodeCard } from "../NodeCard";
-import { useNodeRunState } from "../useNodeRunState";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
 import { FolderTreePreview } from "./FolderTreePreview";
 import { Input } from "@repo/ui/input";
@@ -22,8 +21,8 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
 export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const { t } = useTranslation();
-  const { runStatus, dimmed } = useNodeRunState(id);
   const store = useHarnessCanvasStore();
+  const { runStatus, dimmed } = useStore(store, selectNodeRunState(id));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const handleNodeAddExcludedPath = useStore(store, (s) => s.handleNodeAddExcludedPath);
   const handleNodeRemoveExcludedPath = useStore(store, (s) => s.handleNodeRemoveExcludedPath);
