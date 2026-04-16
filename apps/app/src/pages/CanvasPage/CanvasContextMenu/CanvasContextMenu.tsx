@@ -7,6 +7,7 @@ import {
   Zap,
   BookOpen,
   Group,
+  GitBranch,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -29,6 +30,7 @@ import { cn } from "@repo/ui/lib/utils";
 const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
   operation: Zap,
   compound: Group,
+  condition: GitBranch,
   "code-file": FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
@@ -88,7 +90,7 @@ export const CanvasContextMenu = () => {
 
     // Only show operations that accept this object type
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project"),
     );
   })();
 
@@ -127,7 +129,7 @@ export const CanvasContextMenu = () => {
 
   // Filter object types based on available connections
   const visibleObjectTypes = OBJECT_TYPES.filter((t) =>
-    isConnectMode ? availableTypes.includes(t) : true
+    isConnectMode ? availableTypes.includes(t) : true,
   );
 
   const virtualAnchor = {
@@ -169,7 +171,7 @@ export const CanvasContextMenu = () => {
             <span
               className={cn(
                 "flex size-4 shrink-0 items-center justify-center rounded",
-                nodeTypeMeta[sourceNodeInfo.type].iconBg
+                nodeTypeMeta[sourceNodeInfo.type].iconBg,
               )}
             >
               {(() => {
@@ -200,7 +202,7 @@ export const CanvasContextMenu = () => {
                   <span
                     className={cn(
                       "flex size-4 shrink-0 items-center justify-center rounded",
-                      typeMeta.iconBg
+                      typeMeta.iconBg,
                     )}
                   >
                     <Icon className="size-2.5 text-white" />
