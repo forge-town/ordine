@@ -27,6 +27,7 @@ export type ProgressCallback = (line: string) => Promise<void>;
 export interface RunPromptOptions {
   prompt: string;
   inputContent: string;
+  inputPath: string;
   getSettings: SettingsResolver;
   modelOverride?: string;
   agent?: AgentBackend;
@@ -61,7 +62,7 @@ export const runPrompt = ({
         const claudeResult = await runClaude({
           systemPrompt: prompt,
           userPrompt: inputContent,
-          cwd: process.cwd(),
+          cwd: inputPath,
           allowedTools: [],
           onProgress,
         });

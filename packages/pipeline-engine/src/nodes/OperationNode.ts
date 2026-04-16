@@ -119,6 +119,7 @@ export const executeOperationNode = async (
     const promptResult = await deps.runPrompt({
       prompt,
       inputContent: effectiveInput,
+      inputPath: input.inputPath,
       modelOverride,
       agent: executor.agent,
       onChunk: handleChunk,

@@ -5,6 +5,7 @@ import { AgentBackendSchema } from "./ExecutorConfigSchema.js";
 export const RunPromptOptionsSchema = z.object({
   prompt: z.string(),
   inputContent: z.string(),
+  inputPath: z.string(),
   modelOverride: z.string().optional(),
   agent: AgentBackendSchema.optional(),
 });
