@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@repo/db-schema": "workspace:*",
+    "@types/node": "^25.6.0",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.8"
   },

@@ -1,8 +1,7 @@
 {
   "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "baseUrl": ".",
+    "types": ["node"],
     "module": "preserve",
     "moduleResolution": "bundler",
     "paths": {
