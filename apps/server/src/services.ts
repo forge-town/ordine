@@ -9,6 +9,7 @@ import {
   createPipelinesDao,
   createRecipesDao,
   createRulesDao,
+  createSettingsDao,
   createSkillsDao,
 } from "@repo/models";
 import { db } from "@repo/db";
@@ -19,6 +20,7 @@ import {
   createJobsService,
   createOperationsService,
   createPipelinesService,
+  createPipelineRunnerService,
   createRecipesService,
   createRulesService,
   createSkillsService,
@@ -35,6 +37,7 @@ const operationsDao = createOperationsDao(db);
 const pipelinesDao = createPipelinesDao(db);
 const recipesDao = createRecipesDao(db);
 const rulesDao = createRulesDao(db);
+const settingsDao = createSettingsDao(db);
 const skillsDao = createSkillsDao(db);
 export const bestPracticesService = createBestPracticesService(bestPracticesDao);
 export const checklistService = createChecklistService(checklistItemsDao, checklistResultsDao);
@@ -42,7 +45,17 @@ export const codeSnippetsService = createCodeSnippetsService(codeSnippetsDao);
 export const jobsService = createJobsService(jobsDao, jobTracesDao);
 export const operationsService = createOperationsService(operationsDao);
 export const pipelinesService = createPipelinesService(pipelinesDao);
+export const pipelineRunnerService = createPipelineRunnerService({
+  operationsDao,
+  pipelinesDao,
+  jobsDao,
+  jobTracesDao,
+  skillsDao,
+  bestPracticesDao,
+  settingsDao,
+  rulesDao,
+});
 export const recipesService = createRecipesService(recipesDao);
 export const rulesService = createRulesService(rulesDao);
 export const skillsService = createSkillsService(skillsDao);
-export { listDirectory, skillsDao, jobsDao, pipelinesDao };
+export { listDirectory, jobsDao, pipelinesDao };

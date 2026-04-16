@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import { skillsService, skillsDao } from "../services.js";
+import { skillsService } from "../services.js";
 
 export const skillsRoutes = new Hono();
 
 skillsRoutes.get("/", async (c) => {
-  await skillsDao.seedIfEmpty();
+  await skillsService.seedIfEmpty();
   const skills = await skillsService.getAll();
 
   return c.json(skills);
@@ -20,8 +20,7 @@ skillsRoutes.post("/", async (c) => {
 skillsRoutes.get("/:id", async (c) => {
   const id = c.req.param("id");
   const skill = await skillsService.getById(id);
-  if (!skill)
- return c.json({ error: "Skill not found" }, 404);
+  if (!skill) return c.json({ error: "Skill not found" }, 404);
 
   return c.json(skill);
 });
@@ -37,8 +36,7 @@ skillsRoutes.patch("/:id", async (c) => {
 skillsRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");
   const existing = await skillsService.getById(id);
-  if (!existing)
- return c.json({ error: "Skill not found" }, 404);
+  if (!existing) return c.json({ error: "Skill not found" }, 404);
   await skillsService.delete(id);
 
   return c.body(null, 204);

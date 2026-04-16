@@ -1,11 +1,11 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { skillsService, skillsDao } from "../services";
+import { skillsService } from "../services";
 import { SkillSchema } from "@repo/schemas";
 
 export const skillsRouter = router({
   getMany: publicProcedure.query(async () => {
-    await skillsDao.seedIfEmpty();
+    await skillsService.seedIfEmpty();
 
     return skillsService.getAll();
   }),
@@ -23,7 +23,7 @@ export const skillsRouter = router({
       z.object({
         id: z.string(),
         patch: SkillSchema.omit({ createdAt: true, updatedAt: true }).partial(),
-      })
+      }),
     )
     .mutation(({ input }) => skillsService.update(input.id, input.patch)),
 

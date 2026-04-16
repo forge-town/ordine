@@ -10,18 +10,17 @@ import { ResultAsync } from "neverthrow";
 import { runPrompt as runPromptAgent } from "./promptExecutor.js";
 import { runSkill as runSkillAgent } from "./skillExecutor.js";
 import { structuredJsonToMarkdown } from "./structuredOutput.js";
-import {
-  createOperationsDao,
-  createPipelinesDao,
-  createJobsDao,
-  createJobTracesDao,
-  createSkillsDao,
-  createBestPracticesDao,
-  createSettingsDao,
-  createRulesDao,
+import type {
+  OperationsDaoInstance,
+  PipelinesDaoInstance,
+  JobsDaoInstance,
+  JobTracesDaoInstance,
+  SkillsDaoInstance,
+  BestPracticesDaoInstance,
+  SettingsDaoInstance,
+  RulesDaoInstance,
 } from "@repo/models";
 import { initObs, trace } from "@repo/obs";
-import { db } from "@repo/db";
 import { listDirTree, readProjectFiles } from "./filesystemService.js";
 import { createLlmService } from "./llmService.js";
 import { runRuleCheck } from "./ruleCheckRunner.js";
@@ -33,62 +32,77 @@ import {
   type OperationInfo,
 } from "@repo/pipeline-engine";
 
-const operationsDao = createOperationsDao(db);
-const pipelinesDao = createPipelinesDao(db);
-const jobsDao = createJobsDao(db);
-const jobTracesDao = createJobTracesDao(db);
-initObs(jobTracesDao);
-const skillsDao = createSkillsDao(db);
-const bestPracticesDao = createBestPracticesDao(db);
-const settingsDao = createSettingsDao(db);
-const rulesDao = createRulesDao(db);
-const llmService = createLlmService(settingsDao);
-const getSettings = llmService.getSettings;
-const getModel = llmService.getModel;
+export interface PipelineRunnerDeps {
+  operationsDao: OperationsDaoInstance;
+  pipelinesDao: PipelinesDaoInstance;
+  jobsDao: JobsDaoInstance;
+  jobTracesDao: JobTracesDaoInstance;
+  skillsDao: SkillsDaoInstance;
+  bestPracticesDao: BestPracticesDaoInstance;
+  settingsDao: SettingsDaoInstance;
+  rulesDao: RulesDaoInstance;
+}
 
-export const runPipeline = async (opts: {
-  pipelineId: string;
-  inputPath?: string;
-  jobId: string;
-  githubToken?: string;
-}): Promise<void> => {
-  const { pipelineId, jobId, githubToken } = opts;
+export const createPipelineRunnerService = (deps: PipelineRunnerDeps) => {
+  const {
+    operationsDao,
+    pipelinesDao,
+    jobsDao,
+    jobTracesDao,
+    skillsDao,
+    bestPracticesDao,
+    settingsDao,
+    rulesDao,
+  } = deps;
 
-  await jobsDao.updateStatus(jobId, "running", { startedAt: new Date() });
-  await trace(jobId, `Starting pipeline ${pipelineId}`);
+  initObs(jobTracesDao);
+  const llmService = createLlmService(settingsDao);
+  const getSettings = llmService.getSettings;
+  const getModel = llmService.getModel;
 
-  const pipeline = await pipelinesDao.findById(pipelineId);
-  if (!pipeline) {
-    await trace(jobId, `ERROR: Pipeline ${pipelineId} not found`);
-    await jobsDao.updateStatus(jobId, "failed", {
-      finishedAt: new Date(),
-      error: `Pipeline ${pipelineId} not found`,
-    });
-    return;
-  }
+  const runPipeline = async (opts: {
+    pipelineId: string;
+    inputPath?: string;
+    jobId: string;
+    githubToken?: string;
+  }): Promise<void> => {
+    const { pipelineId, jobId, githubToken } = opts;
 
-  const operationIds = pipeline.nodes
-    .filter((n) => n.type === "operation")
-    .map((n) => (n.data as unknown as { operationId?: string }).operationId)
-    .filter((id): id is string => id !== undefined && id !== null && id !== "");
+    await jobsDao.updateStatus(jobId, "running", { startedAt: new Date() });
+    await trace(jobId, `Starting pipeline ${pipelineId}`);
 
-  const operationsMap = new Map<string, OperationInfo>();
-  for (const id of operationIds) {
-    const op = await operationsDao.findById(id);
-    if (op) operationsMap.set(id, { id: op.id, name: op.name, config: op.config });
-  }
-
-  const evaluateLoopCondition = async (
-    conditionPrompt: string,
-    operationOutput: string,
-    modelOverride?: string,
-  ): Promise<boolean> => {
-    const model = await getModel(modelOverride);
-    if (!model) {
-      await trace(jobId, `[Loop] No LLM configured — treating condition as PASS`);
-      return true;
+    const pipeline = await pipelinesDao.findById(pipelineId);
+    if (!pipeline) {
+      await trace(jobId, `ERROR: Pipeline ${pipelineId} not found`);
+      await jobsDao.updateStatus(jobId, "failed", {
+        finishedAt: new Date(),
+        error: `Pipeline ${pipelineId} not found`,
+      });
+      return;
     }
-    const evalPrompt = `You are a strict evaluator. Given the following acceptance criteria and the operation output, determine if the output meets the criteria.
+
+    const operationIds = pipeline.nodes
+      .filter((n) => n.type === "operation")
+      .map((n) => (n.data as unknown as { operationId?: string }).operationId)
+      .filter((id): id is string => id !== undefined && id !== null && id !== "");
+
+    const operationsMap = new Map<string, OperationInfo>();
+    for (const id of operationIds) {
+      const op = await operationsDao.findById(id);
+      if (op) operationsMap.set(id, { id: op.id, name: op.name, config: op.config });
+    }
+
+    const evaluateLoopCondition = async (
+      conditionPrompt: string,
+      operationOutput: string,
+      modelOverride?: string,
+    ): Promise<boolean> => {
+      const model = await getModel(modelOverride);
+      if (!model) {
+        await trace(jobId, `[Loop] No LLM configured — treating condition as PASS`);
+        return true;
+      }
+      const evalPrompt = `You are a strict evaluator. Given the following acceptance criteria and the operation output, determine if the output meets the criteria.
 
 ## Acceptance Criteria
 ${conditionPrompt}
@@ -98,80 +112,118 @@ ${operationOutput}
 
 Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not. Do not explain.`;
 
-    const result = streamText({ model, prompt: evalPrompt });
-    const chunks: string[] = [];
-    for await (const chunk of result.textStream) {
-      chunks.push(chunk);
+      const result = streamText({ model, prompt: evalPrompt });
+      const chunks: string[] = [];
+      for await (const chunk of result.textStream) {
+        chunks.push(chunk);
+      }
+      const verdict = chunks.join("").trim().toUpperCase();
+      await trace(jobId, `[Loop] Condition evaluation result: ${verdict}`);
+      return verdict.startsWith("PASS");
+    };
+
+    const deps: PipelineEngineDeps = {
+      runPrompt: (o) =>
+        runPromptAgent({
+          ...o,
+          getSettings,
+        }),
+      runSkill: (o) =>
+        runSkillAgent({
+          ...o,
+          getSettings,
+        }),
+      runRuleCheck: (inputPath) => runRuleCheck(rulesDao, inputPath),
+      structuredJsonToMarkdown,
+      listDirTree,
+      readProjectFiles,
+      evaluateLoopCondition,
+    };
+
+    const lookupSkill = async (skillId: string) => {
+      const skill = (await skillsDao.findById(skillId)) ?? (await skillsDao.findByName(skillId));
+      return skill ? { id: skill.id, label: skill.label, description: skill.description } : null;
+    };
+
+    const lookupBestPractice = async (bpId: string) => {
+      const bp = await bestPracticesDao.findById(bpId);
+      return bp ? { title: bp.title, content: bp.content } : null;
+    };
+
+    const result = await ResultAsync.fromPromise(
+      pipelineEngine.execute({
+        pipeline: {
+          id: pipeline.id,
+          name: pipeline.name,
+          nodes: pipeline.nodes,
+          edges: pipeline.edges,
+        },
+        jobId,
+        inputPath: opts.inputPath,
+        githubToken,
+        operations: operationsMap,
+        deps,
+        lookupSkill,
+        lookupBestPractice,
+      }),
+      (cause) =>
+        new ScriptExecutionError(
+          cause instanceof Error ? cause.message : String(cause),
+          cause,
+        ) as PipelineRunError,
+    );
+
+    const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };
+
+    if (outcome.ok) {
+      await jobsDao.updateStatus(jobId, "done", {
+        finishedAt: new Date(),
+        result: { summary: outcome.summary },
+      });
+    } else {
+      const message = outcome.error.message;
+      await trace(jobId, `ERROR: ${message}`, "error");
+      await jobsDao.updateStatus(jobId, "failed", {
+        finishedAt: new Date(),
+        error: message,
+      });
     }
-    const verdict = chunks.join("").trim().toUpperCase();
-    await trace(jobId, `[Loop] Condition evaluation result: ${verdict}`);
-    return verdict.startsWith("PASS");
   };
 
-  const deps: PipelineEngineDeps = {
-    runPrompt: (o) =>
-      runPromptAgent({
-        ...o,
-        getSettings,
-      }),
-    runSkill: (o) =>
-      runSkillAgent({
-        ...o,
-        getSettings,
-      }),
-    runRuleCheck: (inputPath) => runRuleCheck(rulesDao, inputPath),
-    structuredJsonToMarkdown,
-    listDirTree,
-    readProjectFiles,
-    evaluateLoopCondition,
-  };
+  const startRun = async (opts: {
+    pipelineId: string;
+    inputPath?: string;
+    githubToken?: string;
+  }): Promise<{ jobId: string }> => {
+    const pipeline = await pipelinesDao.findById(opts.pipelineId);
+    if (!pipeline) {
+      throw new Error(`Pipeline ${opts.pipelineId} not found`);
+    }
 
-  const lookupSkill = async (skillId: string) => {
-    const skill = (await skillsDao.findById(skillId)) ?? (await skillsDao.findByName(skillId));
-    return skill ? { id: skill.id, label: skill.label, description: skill.description } : null;
-  };
+    const jobId = crypto.randomUUID();
+    await jobsDao.create({
+      id: jobId,
+      title: `Run: ${pipeline.name}`,
+      type: "pipeline_run",
+      pipelineId: opts.pipelineId,
+      projectId: null,
+      logs: [],
+      result: null,
+      error: null,
+      status: "queued",
+      startedAt: null,
+      finishedAt: null,
+    });
 
-  const lookupBestPractice = async (bpId: string) => {
-    const bp = await bestPracticesDao.findById(bpId);
-    return bp ? { title: bp.title, content: bp.content } : null;
-  };
-
-  const result = await ResultAsync.fromPromise(
-    pipelineEngine.execute({
-      pipeline: {
-        id: pipeline.id,
-        name: pipeline.name,
-        nodes: pipeline.nodes,
-        edges: pipeline.edges,
-      },
-      jobId,
+    void runPipeline({
+      pipelineId: opts.pipelineId,
       inputPath: opts.inputPath,
-      githubToken,
-      operations: operationsMap,
-      deps,
-      lookupSkill,
-      lookupBestPractice,
-    }),
-    (cause) =>
-      new ScriptExecutionError(
-        cause instanceof Error ? cause.message : String(cause),
-        cause,
-      ) as PipelineRunError,
-  );
-
-  const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };
-
-  if (outcome.ok) {
-    await jobsDao.updateStatus(jobId, "done", {
-      finishedAt: new Date(),
-      result: { summary: outcome.summary },
+      githubToken: opts.githubToken,
+      jobId,
     });
-  } else {
-    const message = outcome.error.message;
-    await trace(jobId, `ERROR: ${message}`, "error");
-    await jobsDao.updateStatus(jobId, "failed", {
-      finishedAt: new Date(),
-      error: message,
-    });
-  }
+
+    return { jobId };
+  };
+
+  return { runPipeline, startRun };
 };

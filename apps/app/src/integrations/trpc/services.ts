@@ -23,6 +23,7 @@ import {
   createJobsService,
   createOperationsService,
   createPipelinesService,
+  createPipelineRunnerService,
   createRecipesService,
   createRulesService,
   createSettingsService,
@@ -33,6 +34,13 @@ const bestPracticesDao = createBestPracticesDao(db);
 const checklistItemsDao = createChecklistItemsDao(db);
 const checklistResultsDao = createChecklistResultsDao(db);
 const codeSnippetsDao = createCodeSnippetsDao(db);
+const jobsDao = createJobsDao(db);
+const jobTracesDao = createJobTracesDao(db);
+const operationsDao = createOperationsDao(db);
+const pipelinesDao = createPipelinesDao(db);
+const rulesDao = createRulesDao(db);
+const settingsDao = createSettingsDao(db);
+const skillsDao = createSkillsDao(db);
 export const bestPracticesService = createBestPracticesService(bestPracticesDao);
 export const checklistService = createChecklistService(checklistItemsDao, checklistResultsDao);
 export const codeSnippetsService = createCodeSnippetsService(codeSnippetsDao);
@@ -50,12 +58,20 @@ export const bestPracticesBulkService = createBestPracticesBulkService({
   runTransaction: db.transaction.bind(db),
 });
 export const githubProjectsService = createGithubProjectsService(createGithubProjectsDao(db));
-export const jobsService = createJobsService(createJobsDao(db), createJobTracesDao(db));
-export const operationsService = createOperationsService(createOperationsDao(db));
-export const pipelinesService = createPipelinesService(createPipelinesDao(db));
+export const jobsService = createJobsService(jobsDao, jobTracesDao);
+export const operationsService = createOperationsService(operationsDao);
+export const pipelinesService = createPipelinesService(pipelinesDao);
+export const pipelineRunnerService = createPipelineRunnerService({
+  operationsDao,
+  pipelinesDao,
+  jobsDao,
+  jobTracesDao,
+  skillsDao,
+  bestPracticesDao,
+  settingsDao,
+  rulesDao,
+});
 export const recipesService = createRecipesService(createRecipesDao(db));
-export const rulesService = createRulesService(createRulesDao(db));
-export const settingsService = createSettingsService(createSettingsDao(db));
-const skillsDao = createSkillsDao(db);
-export { skillsDao };
+export const rulesService = createRulesService(rulesDao);
+export const settingsService = createSettingsService(settingsDao);
 export const skillsService = createSkillsService(skillsDao);

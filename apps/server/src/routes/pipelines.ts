@@ -1,7 +1,5 @@
 import { Hono } from "hono";
-import { randomUUID } from "node:crypto";
-import { pipelinesService, jobsService } from "../services.js";
-import { runPipeline } from "@repo/services";
+import { pipelinesService, pipelineRunnerService } from "../services.js";
 
 export const pipelinesRoutes = new Hono();
 
@@ -35,8 +33,7 @@ pipelinesRoutes.put("/", async (c) => {
 pipelinesRoutes.get("/:id", async (c) => {
   const id = c.req.param("id");
   const pipeline = await pipelinesService.getById(id);
-  if (!pipeline)
- return c.json({ error: "Pipeline not found" }, 404);
+  if (!pipeline) return c.json({ error: "Pipeline not found" }, 404);
 
   return c.json(pipeline);
 });
@@ -52,8 +49,7 @@ pipelinesRoutes.patch("/:id", async (c) => {
 pipelinesRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");
   const existing = await pipelinesService.getById(id);
-  if (!existing)
- return c.json({ error: "Pipeline not found" }, 404);
+  if (!existing) return c.json({ error: "Pipeline not found" }, 404);
   await pipelinesService.delete(id);
 
   return c.body(null, 204);
@@ -62,30 +58,17 @@ pipelinesRoutes.delete("/:id", async (c) => {
 pipelinesRoutes.post("/:id/run", async (c) => {
   const id = c.req.param("id");
   const pipeline = await pipelinesService.getById(id);
-  if (!pipeline)
- return c.json({ error: "Pipeline not found" }, 404);
+  if (!pipeline) return c.json({ error: "Pipeline not found" }, 404);
 
   const body = await c.req.json().catch(() => ({}));
   const inputPath = (body as Record<string, unknown>).inputPath as string | undefined;
   const githubToken = (body as Record<string, unknown>).githubToken as string | undefined;
 
-  const jobId = randomUUID();
-
-  await jobsService.create({
-    id: jobId,
-    title: `Run: ${pipeline.name}`,
-    type: "pipeline_run",
+  const { jobId } = await pipelineRunnerService.startRun({
     pipelineId: id,
-    projectId: null,
-    logs: [],
-    result: null,
-    error: null,
-    status: "queued",
-    startedAt: null,
-    finishedAt: null,
+    inputPath,
+    githubToken,
   });
-
-  void runPipeline({ pipelineId: id, inputPath, jobId, githubToken });
 
   return c.json({ jobId }, 202);
 });

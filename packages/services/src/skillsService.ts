@@ -7,4 +7,5 @@ export const createSkillsService = (dao: SkillsDaoInstance) => ({
   create: (...args: Parameters<typeof dao.create>) => dao.create(...args),
   update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
   delete: (id: string) => dao.delete(id),
+  seedIfEmpty: () => dao.seedIfEmpty(),
 });
