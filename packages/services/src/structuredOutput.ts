@@ -7,7 +7,8 @@
 
 import { z } from "zod/v4";
 import { Result } from "neverthrow";
-import { OperationOutputSchema, logger } from "@repo/agent";
+import { OperationOutputSchema } from "@repo/agent";
+import { logger } from "@repo/logger";
 
 // ─── JSON extraction ──────────────────────────────────────────────────────────
 

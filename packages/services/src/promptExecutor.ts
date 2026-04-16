@@ -7,7 +7,8 @@
 
 import { streamText } from "ai";
 import { ResultAsync, errAsync } from "neverthrow";
-import { getModel, runClaude, logger, type SettingsResolver } from "@repo/agent";
+import { getModel, runClaude, type SettingsResolver } from "@repo/agent";
+import { logger } from "@repo/logger";
 import type { AgentBackend } from "@repo/pipeline-engine";
 
 export class PromptExecutionError extends Error {

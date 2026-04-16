@@ -15,6 +15,7 @@
   "dependencies": {
     "@repo/agent": "workspace:*",
     "@repo/db-schema": "workspace:*",
+    "@repo/logger": "workspace:*",
     "@repo/models": "workspace:*",
     "@repo/pipeline-engine": "workspace:*",
     "@repo/schemas": "workspace:*",

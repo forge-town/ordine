@@ -13,13 +13,13 @@ import {
   READ_ONLY_TOOLS,
   WRITE_TOOLS,
   extractJsonFromText,
-  logger,
   CHECK_OUTPUT_EXAMPLE,
   FIX_OUTPUT_EXAMPLE,
   CheckOutputSchema,
   FixOutputSchema,
   type SettingsResolver,
 } from "@repo/agent";
+import { logger } from "@repo/logger";
 import type { AgentBackend } from "@repo/pipeline-engine";
 import { extractStructuredOutput } from "./structuredOutput.js";
 import type { StreamCallback, ProgressCallback } from "./promptExecutor.js";
