@@ -3,7 +3,7 @@ export * from "./checklistItemsDao.js";
 export * from "./checklistResultsDao.js";
 export * from "./codeSnippetsDao.js";
 export * from "./githubProjectsDao.js";
-export * from "./jobLogsDao.js";
+export * from "./jobTracesDao.js";
 export * from "./jobsDao.js";
 export * from "./operationsDao.js";
 export * from "./pipelinesDao.js";

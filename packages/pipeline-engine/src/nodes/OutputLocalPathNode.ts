@@ -1,16 +1,16 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
+import { trace } from "@repo/obs";
 import type { NodeContext, NodeResult } from "./types.js";
 import type { NodeData, OutputMode } from "../schemas/index.js";
 import type { PipelineRunError } from "../errors.js";
 import { ScriptExecutionError } from "../errors.js";
 
 export const processOutputLocalPathNode = async (
-  ctx: NodeContext & { jobId: string },
+  ctx: NodeContext,
 ): Promise<NodeResult | { ok: false; error: PipelineRunError }> => {
   const { node, input, deps, nodeOutputs, jobId } = ctx;
-  const { log } = deps;
   const data = node.data as unknown as NodeData;
   const rawPath: string = data.localPath ?? String((data as Record<string, unknown>).path ?? "");
   const baseOutputFileName = data.outputFileName?.trim() || "output.md";
@@ -43,8 +43,11 @@ export const processOutputLocalPathNode = async (
 
   if (resolvedPath && existsSync(resolvedPath)) {
     if (outputMode === "error_if_exists") {
-      await log(`ERROR: Output file already exists: ${resolvedPath} (mode: error_if_exists)`);
-      await log(`@@NODE_FAIL::${node.id}`);
+      await trace(
+        jobId,
+        `ERROR: Output file already exists: ${resolvedPath} (mode: error_if_exists)`,
+      );
+      await trace(jobId, `@@NODE_FAIL::${node.id}`);
       return {
         ok: false,
         error: new ScriptExecutionError(
@@ -53,11 +56,14 @@ export const processOutputLocalPathNode = async (
       };
     }
     if (outputMode === "auto_rename") {
-      await log(`Auto-renamed to avoid conflict: ${resolvedPath}`);
+      await trace(jobId, `Auto-renamed to avoid conflict: ${resolvedPath}`);
     }
   }
 
-  await log(`Output path set: ${resolvedPath} (mode: ${outputMode}, dualOutput: ${dualOutput})`);
+  await trace(
+    jobId,
+    `Output path set: ${resolvedPath} (mode: ${outputMode}, dualOutput: ${dualOutput})`,
+  );
   if (resolvedPath && input.content) {
     if (dualOutput) {
       const outputDir = dirname(resolvedPath);
@@ -71,12 +77,12 @@ export const processOutputLocalPathNode = async (
 
       const jsonPath = join(outputDir, `${baseName}.json`);
       await writeFile(jsonPath, cleanContent, "utf8");
-      await log(`Wrote JSON output to: ${jsonPath} (${cleanContent.length} chars)`);
+      await trace(jobId, `Wrote JSON output to: ${jsonPath} (${cleanContent.length} chars)`);
 
       const mdPath = join(outputDir, `${baseName}.md`);
       const mdContent = deps.structuredJsonToMarkdown(cleanContent);
       await writeFile(mdPath, mdContent, "utf8");
-      await log(`Wrote Markdown output to: ${mdPath} (${mdContent.length} chars)`);
+      await trace(jobId, `Wrote Markdown output to: ${mdPath} (${mdContent.length} chars)`);
     } else {
       const outputContent =
         extname(resolvedPath) === ".md"
@@ -84,10 +90,10 @@ export const processOutputLocalPathNode = async (
           : input.content;
       await mkdir(dirname(resolvedPath), { recursive: true });
       await writeFile(resolvedPath, outputContent, "utf8");
-      await log(`Wrote output to: ${resolvedPath} (${outputContent.length} chars)`);
+      await trace(jobId, `Wrote output to: ${resolvedPath} (${outputContent.length} chars)`);
     }
   }
   nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
-  await log(`@@NODE_DONE::${node.id}`);
+  await trace(jobId, `@@NODE_DONE::${node.id}`);
   return { ok: true };
 };

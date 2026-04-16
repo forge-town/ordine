@@ -17,6 +17,7 @@
     "@repo/db-schema": "workspace:*",
     "@repo/logger": "workspace:*",
     "@repo/models": "workspace:*",
+    "@repo/obs": "workspace:*",
     "@repo/pipeline-engine": "workspace:*",
     "@repo/schemas": "workspace:*",
     "ai": "^6.0.158",

@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { ResultAsync } from "neverthrow";
+import { trace } from "@repo/obs";
 import type { PipelineNode, NodeData, NodeCtx } from "../schemas/index.js";
 import type { PipelineEngineDeps } from "../deps.js";
 import type { PipelineRunError } from "../errors.js";
@@ -51,8 +52,7 @@ export class Pipeline {
     this.tempDirs = [];
     this.nodeOutputs = new Map();
 
-    const { pipeline, deps } = this.opts;
-    const { log } = deps;
+    const { pipeline, jobId } = this.opts;
     const { nodes, edges } = pipeline;
 
     const levelsResult = buildExecutionLevels(nodes, edges);
@@ -61,7 +61,8 @@ export class Pipeline {
     }
     const levels = levelsResult.value;
 
-    await log(
+    await trace(
+      jobId,
       `Pipeline "${pipeline.name}" loaded. ${nodes.length} nodes in ${levels.length} levels.`,
     );
 
@@ -71,19 +72,22 @@ export class Pipeline {
         const { content, isFile } = readResult.value;
         this.nodeOutputs.set("__initial__", { inputPath: this.opts.inputPath, content });
         if (isFile) {
-          await log(`Read input file: ${this.opts.inputPath} (${content.length} chars)`);
+          await trace(jobId, `Read input file: ${this.opts.inputPath} (${content.length} chars)`);
         }
       }
     }
 
     for (const [levelIndex, level] of levels.entries()) {
-      await log(`── Level ${levelIndex} (${level.length} node${level.length > 1 ? "s" : ""}) ──`);
+      await trace(
+        jobId,
+        `── Level ${levelIndex} (${level.length} node${level.length > 1 ? "s" : ""}) ──`,
+      );
 
       const results = await Promise.all(level.map((node) => this.processNode(node)));
 
       for (const result of results) {
         if (!result.ok) {
-          await log(`Pipeline failed at level ${levelIndex}`);
+          await trace(jobId, `Pipeline failed at level ${levelIndex}`);
           await this.cleanupTempDirs();
           return { ok: false, error: result.error };
         }
@@ -103,7 +107,7 @@ export class Pipeline {
         ? `Output written to: ${outputPaths.join(", ")}`
         : "Completed (no output-local-path node configured)";
 
-    await log(`Pipeline complete. ${summary}`);
+    await trace(jobId, `Pipeline complete. ${summary}`);
     await this.cleanupTempDirs();
 
     return { ok: true, summary };
@@ -132,15 +136,15 @@ export class Pipeline {
   private async processNode(
     node: PipelineNode,
   ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
-    const { deps } = this.opts;
-    const { log } = deps;
+    const { deps, jobId } = this.opts;
     const data = node.data as unknown as NodeData;
     const input = this.resolveNodeInput(node.id);
 
-    await log(
+    await trace(
+      jobId,
       `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`,
     );
-    await log(`@@NODE_START::${node.id}`);
+    await trace(jobId, `@@NODE_START::${node.id}`);
 
     const baseCtx = {
       node,
@@ -148,6 +152,7 @@ export class Pipeline {
       deps,
       nodeOutputs: this.nodeOutputs,
       tempDirs: this.tempDirs,
+      jobId,
     };
 
     if (node.type === "folder") {
@@ -178,7 +183,7 @@ export class Pipeline {
     }
 
     if (node.type === "output-local-path") {
-      const result = await processOutputLocalPathNode({ ...baseCtx, jobId: this.opts.jobId });
+      const result = await processOutputLocalPathNode(baseCtx);
       if (!result.ok && result.error) return { ok: false, error: result.error };
       if (!result.ok)
         return { ok: false, error: new ScriptExecutionError(`Node ${node.id} failed`) };
@@ -191,7 +196,6 @@ export class Pipeline {
         operations: this.opts.operations,
         lookupSkill: this.opts.lookupSkill,
         lookupBestPractice: this.opts.lookupBestPractice,
-        jobId: this.opts.jobId,
         githubToken: this.opts.githubToken,
       };
       const result = await processOperationNode(node, input, opCtx);
@@ -203,15 +207,15 @@ export class Pipeline {
 
     if (node.type === "output-project-path") {
       const projPath = (data as Record<string, unknown>).path ?? input.inputPath;
-      await log(`Output-to-project: changes written directly to ${projPath}`);
+      await trace(jobId, `Output-to-project: changes written directly to ${projPath}`);
       this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
-      await log(`@@NODE_DONE::${node.id}`);
+      await trace(jobId, `@@NODE_DONE::${node.id}`);
       return { ok: true };
     }
 
-    await log(`Skipped node type: ${node.type}`);
+    await trace(jobId, `Skipped node type: ${node.type}`);
     this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
-    await log(`@@NODE_DONE::${node.id}`);
+    await trace(jobId, `@@NODE_DONE::${node.id}`);
     return { ok: true };
   }
 

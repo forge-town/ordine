@@ -4,7 +4,7 @@ import {
   createChecklistResultsDao,
   createCodeSnippetsDao,
   createJobsDao,
-  createJobLogsDao,
+  createJobTracesDao,
   createOperationsDao,
   createPipelinesDao,
   createRecipesDao,
@@ -30,7 +30,7 @@ const checklistItemsDao = createChecklistItemsDao(db);
 const checklistResultsDao = createChecklistResultsDao(db);
 const codeSnippetsDao = createCodeSnippetsDao(db);
 const jobsDao = createJobsDao(db);
-const jobLogsDao = createJobLogsDao(db);
+const jobTracesDao = createJobTracesDao(db);
 const operationsDao = createOperationsDao(db);
 const pipelinesDao = createPipelinesDao(db);
 const recipesDao = createRecipesDao(db);
@@ -39,7 +39,7 @@ const skillsDao = createSkillsDao(db);
 export const bestPracticesService = createBestPracticesService(bestPracticesDao);
 export const checklistService = createChecklistService(checklistItemsDao, checklistResultsDao);
 export const codeSnippetsService = createCodeSnippetsService(codeSnippetsDao);
-export const jobsService = createJobsService(jobsDao, jobLogsDao);
+export const jobsService = createJobsService(jobsDao, jobTracesDao);
 export const operationsService = createOperationsService(operationsDao);
 export const pipelinesService = createPipelinesService(pipelinesDao);
 export const recipesService = createRecipesService(recipesDao);

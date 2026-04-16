@@ -18,5 +18,4 @@ export interface PipelineEngineDeps {
     operationOutput: string,
     modelOverride?: string,
   ) => Promise<boolean>;
-  log: (line: string) => Promise<void>;
 }

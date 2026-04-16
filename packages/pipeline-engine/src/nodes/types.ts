@@ -14,13 +14,13 @@ export interface NodeContext {
   deps: PipelineEngineDeps;
   nodeOutputs: Map<string, NodeCtx>;
   tempDirs: string[];
+  jobId: string;
 }
 
 export interface OperationNodeContext extends NodeContext {
   operations: Map<string, OperationInfo>;
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
   lookupBestPractice: (id: string) => Promise<{ title: string; content: string } | null>;
-  jobId: string;
   githubToken?: string;
 }
 

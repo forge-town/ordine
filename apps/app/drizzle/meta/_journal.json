@@ -71,6 +71,13 @@
       "when": 1776316838161,
       "tag": "0009_add_job_logs_table",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776323766336,
+      "tag": "0010_long_white_tiger",
+      "breakpoints": true
     }
   ]
 }

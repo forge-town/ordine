@@ -10,9 +10,9 @@ export const jobsRouter = router({
     .input(z.object({ id: z.string() }))
     .query(({ input }) => jobsService.getById(input.id)),
 
-  getLogs: publicProcedure
+  getTraces: publicProcedure
     .input(z.object({ jobId: z.string() }))
-    .query(({ input }) => jobsService.getLogsByJobId(input.jobId)),
+    .query(({ input }) => jobsService.getTracesByJobId(input.jobId)),
 
   create: publicProcedure
     .input(
@@ -42,7 +42,7 @@ export const jobsRouter = router({
           .nullable()
           .default(null)
           .transform((v) => (v == null ? null : new Date(v))),
-      }),
+      })
     )
     .mutation(({ input }) => jobsService.create(input)),
 
@@ -67,7 +67,7 @@ export const jobsRouter = router({
           .number()
           .optional()
           .transform((v) => (v == null ? undefined : new Date(v))),
-      }),
+      })
     )
     .mutation(({ input }) => {
       const { id, status, ...extra } = input;

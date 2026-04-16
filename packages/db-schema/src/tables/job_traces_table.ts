@@ -4,8 +4,8 @@ import { jobsTable } from "./jobs_table";
 
 export type LogLevel = "info" | "warn" | "error" | "debug";
 
-export const jobLogsTable = pgTable(
-  "job_logs",
+export const jobTracesTable = pgTable(
+  "job_traces",
   {
     id: serial("id").primaryKey(),
     jobId: text("job_id")
@@ -18,9 +18,9 @@ export const jobLogsTable = pgTable(
       .default(sql`now()`),
   },
   (table) => ({
-    jobIdIdx: index("job_logs_job_id_idx").on(table.jobId),
-    createdAtIdx: index("job_logs_created_at_idx").on(table.createdAt),
+    jobIdIdx: index("job_traces_job_id_idx").on(table.jobId),
+    createdAtIdx: index("job_traces_created_at_idx").on(table.createdAt),
   }),
 );
 
-export type JobLogRecord = typeof jobLogsTable.$inferSelect;
+export type JobTraceRecord = typeof jobTracesTable.$inferSelect;

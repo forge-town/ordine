@@ -1,4 +1,5 @@
 import type { PipelineNode, ExecutorConfig, NodeData, NodeCtx } from "../schemas/index.js";
+import { trace } from "@repo/obs";
 import { ScriptExecutionError } from "../errors.js";
 import { runScript, safeParseJson } from "../infrastructure.js";
 import type { OperationNodeContext, OperationExecResult, NodeResult } from "./types.js";
@@ -10,15 +11,14 @@ export const executeOperationNode = async (
   input: NodeCtx,
   ctx: OperationNodeContext,
 ): Promise<OperationExecResult> => {
-  const { deps, operations } = ctx;
-  const { log } = deps;
+  const { deps, operations, jobId } = ctx;
   const data = node.data as NodeData;
   const operationId = data.operationId ?? "";
   const operation = operations.get(operationId);
 
   if (!operation) {
-    await log(`WARNING: Operation ${operationId} not found, skipping`);
-    await log(`@@NODE_FAIL::${node.id}`);
+    await trace(jobId, `WARNING: Operation ${operationId} not found, skipping`);
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
     return { ok: false, error: null };
   }
 
@@ -32,10 +32,11 @@ export const executeOperationNode = async (
     if (!opData.bestPracticeId) return "";
     const bp = await ctx.lookupBestPractice(opData.bestPracticeId);
     if (bp) {
-      await log(`Loaded best practice "${bp.title}" (${bp.content.length} chars)`);
+      await trace(jobId, `Loaded best practice "${bp.title}" (${bp.content.length} chars)`);
       return bp.content;
     }
-    await log(
+    await trace(
+      jobId,
       `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`,
     );
     return "";
@@ -43,16 +44,19 @@ export const executeOperationNode = async (
 
   const configResult = await safeParseJson(operation.config, operation.name);
   if (configResult.isErr()) {
-    await log(`WARNING: ${configResult.error.message}, skipping`);
-    await log(`@@NODE_FAIL::${node.id}`);
+    await trace(jobId, `WARNING: ${configResult.error.message}, skipping`);
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
     return { ok: false, error: null };
   }
 
   const config = configResult.value;
   const executor = config.executor;
   if (!executor) {
-    await log(`WARNING: No executor configured for operation "${operation.name}", skipping`);
-    await log(`@@NODE_FAIL::${node.id}`);
+    await trace(
+      jobId,
+      `WARNING: No executor configured for operation "${operation.name}", skipping`,
+    );
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
     return { ok: false, error: null };
   }
 
@@ -63,24 +67,29 @@ export const executeOperationNode = async (
   }
 
   if (executor.type === "rule-check") {
-    await log(`Running rule-check on path: ${input.inputPath}`);
+    await trace(jobId, `Running rule-check on path: ${input.inputPath}`);
     const checkOutput = await deps.runRuleCheck(input.inputPath);
     const checkResult = JSON.stringify(checkOutput, null, 2);
-    await log(
+    await trace(
+      jobId,
       `Rule-check: ${checkOutput.stats.totalFindings} findings in ${checkOutput.stats.totalFiles} files`,
     );
     return { ok: true, content: checkResult };
   }
 
-  await log(`Executing operation "${operation.name}" (${executor.type})`);
+  await trace(jobId, `Executing operation "${operation.name}" (${executor.type})`);
 
   const chunkState = { lastTime: 0 };
   const handleChunk = async (accumulated: string) => {
     const now = Date.now();
     if (now - chunkState.lastTime >= CHUNK_THROTTLE_MS) {
       chunkState.lastTime = now;
-      await log(`@@LLM_CONTENT::${node.id}::${accumulated}`);
+      await trace(jobId, `@@LLM_CONTENT::${node.id}::${accumulated}`);
     }
+  };
+
+  const onProgress = async (line: string) => {
+    await trace(jobId, line);
   };
 
   const effectiveInput = bestPracticeContent
@@ -92,16 +101,19 @@ export const executeOperationNode = async (
   if (executor.type === "script") {
     const scriptResult = await runScript(executor, input.inputPath, input.content);
     if (scriptResult.isErr()) {
-      await log(`@@NODE_FAIL::${node.id}`);
+      await trace(jobId, `@@NODE_FAIL::${node.id}`);
       return { ok: false, error: scriptResult.error };
     }
     opResult.value = scriptResult.value;
-    await log(`Script output (${opResult.value.length} chars)`);
+    await trace(jobId, `Script output (${opResult.value.length} chars)`);
   } else if (executor.type === "agent" && executor.agentMode === "prompt") {
     const prompt = (executor as ExecutorConfig & { prompt?: string }).prompt ?? "";
     if (!prompt.trim()) {
-      await log(`WARNING: Prompt text is empty for operation "${operation.name}", skipping`);
-      await log(`@@NODE_FAIL::${node.id}`);
+      await trace(
+        jobId,
+        `WARNING: Prompt text is empty for operation "${operation.name}", skipping`,
+      );
+      await trace(jobId, `@@NODE_FAIL::${node.id}`);
       return { ok: false, error: null };
     }
     const promptResult = await deps.runPrompt({
@@ -110,20 +122,23 @@ export const executeOperationNode = async (
       modelOverride,
       agent: executor.agent,
       onChunk: handleChunk,
-      onProgress: log,
+      onProgress,
     });
     if (promptResult.isErr()) {
-      await log(`@@NODE_FAIL::${node.id}`);
+      await trace(jobId, `@@NODE_FAIL::${node.id}`);
       return { ok: false, error: new ScriptExecutionError(promptResult.error.message) };
     }
     opResult.value = promptResult.value;
-    await log(`@@LLM_CONTENT::${node.id}::${opResult.value}`);
-    await log(`Prompt output (${opResult.value.length} chars)`);
+    await trace(jobId, `@@LLM_CONTENT::${node.id}::${opResult.value}`);
+    await trace(jobId, `Prompt output (${opResult.value.length} chars)`);
   } else if (executor.type === "agent" && executor.agentMode === "skill") {
     const skillId = (executor as ExecutorConfig & { skillId?: string }).skillId ?? "";
     if (!skillId) {
-      await log(`WARNING: No skillId configured for operation "${operation.name}", skipping`);
-      await log(`@@NODE_FAIL::${node.id}`);
+      await trace(
+        jobId,
+        `WARNING: No skillId configured for operation "${operation.name}", skipping`,
+      );
+      await trace(jobId, `@@NODE_FAIL::${node.id}`);
       return { ok: false, error: null };
     }
 
@@ -132,7 +147,7 @@ export const executeOperationNode = async (
       ? `${skill.label}: ${skill.description}`
       : `Skill "${skillId}" (no description available)`;
 
-    await log(`Running skill "${skillId}"${skill ? ` (${skill.label})` : ""}...`);
+    await trace(jobId, `Running skill "${skillId}"${skill ? ` (${skill.label})` : ""}...`);
     const skillResult = await deps.runSkill({
       skillId,
       skillDescription,
@@ -141,12 +156,12 @@ export const executeOperationNode = async (
       modelOverride,
       agent: executor.agent,
       onChunk: handleChunk,
-      onProgress: log,
+      onProgress,
       writeEnabled: (executor as ExecutorConfig & { writeEnabled?: boolean }).writeEnabled === true,
     });
     opResult.value = skillResult.isOk() ? skillResult.value : "";
-    await log(`@@LLM_CONTENT::${node.id}::${opResult.value}`);
-    await log(`Skill output (${opResult.value.length} chars)`);
+    await trace(jobId, `@@LLM_CONTENT::${node.id}::${opResult.value}`);
+    await trace(jobId, `Skill output (${opResult.value.length} chars)`);
   }
 
   return { ok: true, content: opResult.value };
@@ -157,8 +172,7 @@ export const processOperationNode = async (
   input: NodeCtx,
   ctx: OperationNodeContext,
 ): Promise<NodeResult> => {
-  const { deps, nodeOutputs } = ctx;
-  const { log } = deps;
+  const { deps, nodeOutputs, jobId } = ctx;
   const opData = node.data as unknown as {
     loopEnabled?: boolean;
     maxLoopCount?: number;
@@ -176,7 +190,8 @@ export const processOperationNode = async (
     const loopState = { currentInput: input };
 
     for (const attempt of Array.from({ length: maxLoops }, (_, i) => i + 1)) {
-      await log(
+      await trace(
+        jobId,
         `[Loop] Iteration ${attempt}/${maxLoops} for "${(node.data as unknown as Record<string, unknown>).label}"`,
       );
       const loopResult = await executeOperationNode(node, loopState.currentInput, ctx);
@@ -193,13 +208,16 @@ export const processOperationNode = async (
         modelOverride,
       );
       if (passed) {
-        await log(`[Loop] Condition PASSED on iteration ${attempt}`);
+        await trace(jobId, `[Loop] Condition PASSED on iteration ${attempt}`);
         break;
       }
       if (attempt === maxLoops) {
-        await log(`[Loop] Max iterations (${maxLoops}) reached — proceeding with last result`);
+        await trace(
+          jobId,
+          `[Loop] Max iterations (${maxLoops}) reached — proceeding with last result`,
+        );
       } else {
-        await log(`[Loop] Condition FAILED — retrying...`);
+        await trace(jobId, `[Loop] Condition FAILED — retrying...`);
       }
     }
   } else {
@@ -207,7 +225,7 @@ export const processOperationNode = async (
     if (nodeResult.ok) {
       resultState.content = nodeResult.content;
       if (!resultState.content) {
-        await log(`WARNING: Operation returned empty output — using parent input`);
+        await trace(jobId, `WARNING: Operation returned empty output — using parent input`);
         resultState.content = input.content;
       }
     } else if (nodeResult.error) {
@@ -216,6 +234,6 @@ export const processOperationNode = async (
   }
 
   nodeOutputs.set(node.id, { inputPath: input.inputPath, content: resultState.content });
-  await log(`@@NODE_DONE::${node.id}`);
+  await trace(jobId, `@@NODE_DONE::${node.id}`);
   return { ok: true };
 };

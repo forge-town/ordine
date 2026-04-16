@@ -6,7 +6,12 @@ import { okAsync } from "neverthrow";
 import { pipelineEngine } from "./engine";
 import type { PipelineEngineDeps } from "./deps";
 import type { PipelineNode, PipelineEdge } from "./schemas";
-import type { ExecutePipelineOpts } from "./engine";
+import { PipelineOptions } from ".";
+
+vi.mock("@repo/obs", () => ({
+  trace: vi.fn().mockResolvedValue(undefined),
+  initObs: vi.fn(),
+}));
 
 const testDir = join(tmpdir(), `engine-test-${Date.now()}`);
 
@@ -26,7 +31,6 @@ const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDe
   listDirTree: vi.fn().mockResolvedValue("file1.ts\nfile2.ts"),
   readProjectFiles: vi.fn().mockResolvedValue("// file1 content\n// file2 content"),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
-  log: vi.fn().mockResolvedValue(undefined),
   ...overrides,
 });
 
@@ -51,8 +55,8 @@ const makeOpts = (
   nodes: PipelineNode[],
   edges: PipelineEdge[],
   deps: PipelineEngineDeps,
-  extra: Partial<ExecutePipelineOpts> = {},
-): ExecutePipelineOpts => ({
+  extra: Partial<PipelineOptions> = {},
+): PipelineOptions => ({
   pipeline: { id: "p1", name: "Test Pipeline", nodes, edges },
   jobId: "job-12345678",
   operations: new Map(),

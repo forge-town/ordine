@@ -5,7 +5,7 @@ import {
   createCodeSnippetsDao,
   createGithubProjectsDao,
   createJobsDao,
-  createJobLogsDao,
+  createJobTracesDao,
   createOperationsDao,
   createPipelinesDao,
   createRecipesDao,
@@ -50,7 +50,7 @@ export const bestPracticesBulkService = createBestPracticesBulkService({
   runTransaction: db.transaction.bind(db),
 });
 export const githubProjectsService = createGithubProjectsService(createGithubProjectsDao(db));
-export const jobsService = createJobsService(createJobsDao(db), createJobLogsDao(db));
+export const jobsService = createJobsService(createJobsDao(db), createJobTracesDao(db));
 export const operationsService = createOperationsService(createOperationsDao(db));
 export const pipelinesService = createPipelinesService(createPipelinesDao(db));
 export const recipesService = createRecipesService(createRecipesDao(db));
