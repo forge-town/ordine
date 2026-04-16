@@ -11,7 +11,7 @@ export * from "./pipelinesService";
 export * from "./pipelineRunnerService/index";
 export * from "./pipelineRunnerService/promptExecutor";
 export * from "./recipesService";
-export * from "./ruleCheckRunner";
+export * from "./pipelineRunnerService/ruleCheckRunner";
 export * from "./rulesService";
 export * from "./settingsService";
 export * from "./skillExecutor";
