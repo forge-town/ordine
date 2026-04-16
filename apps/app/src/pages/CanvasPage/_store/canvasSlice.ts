@@ -13,17 +13,19 @@ import {
   makeDefaultNodeData,
   ConnectionRuleSchema,
   type NodeType,
-  type NodeRunStatus,
-  type CodeFileNodeData,
-  type CompoundNodeData,
-  type FolderNodeData,
-  type GitHubProjectNodeData,
   type OperationNodeData,
-  type OutputProjectPathNodeData,
-  type OutputLocalPathNodeData,
   type PipelineNodeData,
-  type PipelineEdgeData,
 } from "../nodeSchemas";
+import type {
+  NodeRunStatus,
+  CodeFileNodeData,
+  CompoundNodeData,
+  FolderNodeData,
+  GitHubProjectNodeData,
+  OutputProjectPathNodeData,
+  OutputLocalPathNodeData,
+  PipelineEdgeData,
+} from "@repo/pipeline-engine/schemas";
 
 import { computeAutoLayout } from "./autoLayout";
 
@@ -101,7 +103,7 @@ export const createCanvasSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
   get: Parameters<HarnessCanvasStoreSlice>[1],
   overrideNodes?: PipelineNode[],
-  overrideEdges?: PipelineEdge[]
+  overrideEdges?: PipelineEdge[],
 ): CanvasSlice => {
   // Ensure parent nodes appear before children on init (ReactFlow requirement)
   const sortedNodes = overrideNodes ? [...overrideNodes] : initialNodes;
@@ -149,9 +151,9 @@ export const createCanvasSlice = (
         (draft) => {
           draft.edges = addEdge(
             { ...connection, type: "default", animated: true, data: {} },
-            draft.edges
+            draft.edges,
           );
-        }
+        },
       );
     },
 
@@ -166,7 +168,7 @@ export const createCanvasSlice = (
         },
         (draft) => {
           draft.nodes.push(node);
-        }
+        },
       );
     },
 
@@ -202,7 +204,7 @@ export const createCanvasSlice = (
         (draft) => {
           draft.nodes.push(newNode);
           draft.edges.push(newEdge);
-        }
+        },
       );
     },
 
@@ -222,7 +224,7 @@ export const createCanvasSlice = (
         (draft) => {
           draft.nodes = draft.nodes.filter((n) => n.id !== nodeId);
           draft.edges = draft.edges.filter((e) => e.source !== nodeId && e.target !== nodeId);
-        }
+        },
       );
       // Clear selection outside of history-tracked state
       set((s) => ({
@@ -248,14 +250,14 @@ export const createCanvasSlice = (
           if (n) {
             n.data = { ...n.data, ...data } as PipelineNodeData;
           }
-        }
+        },
       );
     },
 
     updateEdgeData: (edgeId, data) =>
       set((state) => ({
         edges: state.edges.map((e) =>
-          e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e
+          e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e,
         ),
       })),
 
@@ -287,7 +289,7 @@ export const createCanvasSlice = (
         },
         (draft) => {
           draft.nodes.push(newNode);
-        }
+        },
       );
     },
 
@@ -360,7 +362,7 @@ export const createCanvasSlice = (
 
           // Ensure parent appears before children in array
           sortParentBeforeChildren(draft.nodes);
-        }
+        },
       );
     },
 
@@ -395,7 +397,7 @@ export const createCanvasSlice = (
             child.parentId = undefined;
             child.extent = undefined;
           }
-        }
+        },
       );
     },
 
@@ -452,7 +454,7 @@ export const createCanvasSlice = (
           }
           // Ensure parent appears before children in array
           sortParentBeforeChildren(draft.nodes);
-        }
+        },
       );
     },
 
@@ -486,9 +488,9 @@ export const createCanvasSlice = (
           // Remove compound node and its edges
           draft.nodes = draft.nodes.filter((n) => n.id !== compoundId);
           draft.edges = draft.edges.filter(
-            (e) => e.source !== compoundId && e.target !== compoundId
+            (e) => e.source !== compoundId && e.target !== compoundId,
           );
-        }
+        },
       );
     },
   };

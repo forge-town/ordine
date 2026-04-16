@@ -1,6 +1,6 @@
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "./_store";
-import type { NodeRunStatus } from "./nodeSchemas";
+import type { NodeRunStatus } from "@repo/pipeline-engine/schemas";
 
 interface NodeRunState {
   runStatus: NodeRunStatus | undefined;
