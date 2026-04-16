@@ -22,7 +22,7 @@ import {
 import { logger } from "@repo/logger";
 import type { AgentBackend } from "@repo/pipeline-engine";
 import { extractStructuredOutput } from "./structuredOutput.js";
-import type { StreamCallback, ProgressCallback } from "./pipelineRunnerService/promptExecutor.js";
+import type { StreamCallback, ProgressCallback } from "./promptExecutor.js";
 
 export interface RunSkillOptions {
   skillId: string;
