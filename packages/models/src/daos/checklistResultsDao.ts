@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { checklistResultsTable, type ChecklistResultRecord } from "@repo/db-schema";
-import type { DbExecutor } from "../types.js";
+import type { DbExecutor } from "../types";
 
 class ChecklistResultsDao {
   constructor(readonly executor: DbExecutor) {}

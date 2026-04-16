@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import { pipelinesTable, type PipelineRecord } from "@repo/db-schema";
-import type { DbExecutor } from "../types.js";
+import type { DbExecutor } from "../types";
 
 export type PipelineEntity = PipelineRecord & {
   nodeCount: number;

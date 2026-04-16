@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { settingsTable, type SettingsRecord } from "@repo/db-schema";
-import type { DbExecutor } from "../types.js";
+import type { DbExecutor } from "../types";
 
 const DEFAULT_ID = "default";
 

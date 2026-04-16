@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import { githubProjectsTable } from "@repo/db-schema";
-import type { DbExecutor } from "../types.js";
+import type { DbExecutor } from "../types";
 
 class GithubProjectsDao {
   constructor(readonly executor: DbExecutor) {}

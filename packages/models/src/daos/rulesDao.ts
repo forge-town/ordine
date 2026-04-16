@@ -1,6 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
 import { rulesTable, type RuleCategory, type RuleSeverity } from "@repo/db-schema";
-import type { DbExecutor } from "../types.js";
+import type { DbExecutor } from "../types";
 
 class RulesDao {
   constructor(readonly executor: DbExecutor) {}

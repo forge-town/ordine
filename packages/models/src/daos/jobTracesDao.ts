@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import { jobTracesTable, type LogLevel } from "@repo/db-schema";
-import type { DbExecutor } from "../types.js";
+import type { DbExecutor } from "../types";
 
 class JobTracesDao {
   constructor(readonly executor: DbExecutor) {}

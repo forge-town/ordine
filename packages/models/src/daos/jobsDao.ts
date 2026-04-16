@@ -1,6 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
 import { jobsTable, type JobRecord, type JobStatus } from "@repo/db-schema";
-import type { DbExecutor } from "../types.js";
+import type { DbExecutor } from "../types";
 
 class JobsDao {
   constructor(readonly executor: DbExecutor) {}

@@ -1,2 +1,2 @@
-export * from "./types.js";
-export * from "./daos/index.js";
+export * from "./types";
+export * from "./daos";
