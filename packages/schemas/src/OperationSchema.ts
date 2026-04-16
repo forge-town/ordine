@@ -6,7 +6,7 @@ import {
   AgentModeSchema,
   ScriptLanguageSchema,
   OperationConfigSchema,
-} from "@repo/pipeline-engine";
+} from "@repo/pipeline-engine/schemas";
 
 export {
   ExecutorConfigSchema,
@@ -21,7 +21,7 @@ export type {
   AgentMode,
   ScriptLanguage,
   OperationConfig,
-} from "@repo/pipeline-engine";
+} from "@repo/pipeline-engine/schemas";
 
 export const ObjectTypeSchema = z.enum(OBJECT_TYPES);
 export type ObjectType = z.infer<typeof ObjectTypeSchema>;
