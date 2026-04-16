@@ -3,7 +3,7 @@ import { writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
-import { executePipeline } from "./engine";
+import { pipelineEngine } from "./engine";
 import type { PipelineEngineDeps } from "./deps";
 import type { PipelineNode, PipelineEdge } from "./schemas";
 import type { ExecutePipelineOpts } from "./engine";
@@ -65,7 +65,7 @@ const makeOpts = (
 describe("executePipeline", () => {
   it("returns ok for an empty pipeline", async () => {
     const deps = makeDeps();
-    const result = await executePipeline(makeOpts([], [], deps));
+    const result = await pipelineEngine.execute(makeOpts([], [], deps));
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.summary).toContain("Completed");
@@ -76,7 +76,7 @@ describe("executePipeline", () => {
     const deps = makeDeps();
     const nodes = [makeNode("a", "operation"), makeNode("b", "operation")];
     const edges = [makeEdge("a", "b"), makeEdge("b", "a")];
-    const result = await executePipeline(makeOpts(nodes, edges, deps));
+    const result = await pipelineEngine.execute(makeOpts(nodes, edges, deps));
     expect(result.ok).toBe(false);
   });
 
@@ -88,7 +88,7 @@ describe("executePipeline", () => {
 
       const deps = makeDeps();
       const nodes = [makeNode("f1", "folder", { folderPath, disclosureMode: "tree" })];
-      const result = await executePipeline(makeOpts(nodes, [], deps));
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
       expect(deps.listDirTree).toHaveBeenCalledWith(folderPath, { excludedPaths: [] });
     });
@@ -99,7 +99,7 @@ describe("executePipeline", () => {
 
       const deps = makeDeps();
       const nodes = [makeNode("f1", "folder", { folderPath, disclosureMode: "full" })];
-      const result = await executePipeline(makeOpts(nodes, [], deps));
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
       expect(deps.listDirTree).toHaveBeenCalled();
       expect(deps.readProjectFiles).toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe("executePipeline", () => {
     it("handles non-existent folder gracefully", async () => {
       const deps = makeDeps();
       const nodes = [makeNode("f1", "folder", { folderPath: "/non-existent-xyz" })];
-      const result = await executePipeline(makeOpts(nodes, [], deps));
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
     });
   });
@@ -120,14 +120,14 @@ describe("executePipeline", () => {
 
       const deps = makeDeps();
       const nodes = [makeNode("cf", "code-file", { filePath })];
-      const result = await executePipeline(makeOpts(nodes, [], deps));
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
     });
 
     it("handles non-existent code file", async () => {
       const deps = makeDeps();
       const nodes = [makeNode("cf", "code-file", { filePath: "/no-file-12345.ts" })];
-      const result = await executePipeline(makeOpts(nodes, [], deps));
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
     });
   });
@@ -155,7 +155,7 @@ describe("executePipeline", () => {
       ];
       const edges = [makeEdge("input", "op")];
 
-      const result = await executePipeline(makeOpts(nodes, edges, deps, { operations }));
+      const result = await pipelineEngine.execute(makeOpts(nodes, edges, deps, { operations }));
       expect(result.ok).toBe(true);
     });
 
@@ -174,7 +174,7 @@ describe("executePipeline", () => {
       ]);
 
       const nodes = [makeNode("op", "operation", { operationId: opId, label: "Prompt Op" })];
-      const result = await executePipeline(makeOpts(nodes, [], deps, { operations }));
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps, { operations }));
       expect(result.ok).toBe(true);
       expect(deps.runPrompt).toHaveBeenCalled();
     });
@@ -197,7 +197,9 @@ describe("executePipeline", () => {
         .mockResolvedValue({ id: "sk-1", label: "Test Skill", description: "desc" });
 
       const nodes = [makeNode("op", "operation", { operationId: opId, label: "Skill Op" })];
-      const result = await executePipeline(makeOpts(nodes, [], deps, { operations, lookupSkill }));
+      const result = await pipelineEngine.execute(
+        makeOpts(nodes, [], deps, { operations, lookupSkill }),
+      );
       expect(result.ok).toBe(true);
       expect(deps.runSkill).toHaveBeenCalled();
     });
@@ -222,7 +224,7 @@ describe("executePipeline", () => {
       ];
       const edges = [makeEdge("input", "op")];
 
-      const result = await executePipeline(makeOpts(nodes, edges, deps, { operations }));
+      const result = await pipelineEngine.execute(makeOpts(nodes, edges, deps, { operations }));
       expect(result.ok).toBe(true);
       expect(deps.runRuleCheck).toHaveBeenCalled();
     });
@@ -230,7 +232,7 @@ describe("executePipeline", () => {
     it("skips operation when operationId is not found", async () => {
       const deps = makeDeps();
       const nodes = [makeNode("op", "operation", { operationId: "missing-op" })];
-      const result = await executePipeline(makeOpts(nodes, [], deps));
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
     });
 
@@ -249,7 +251,7 @@ describe("executePipeline", () => {
       ]);
 
       const nodes = [makeNode("op", "operation", { operationId: opId })];
-      const result = await executePipeline(makeOpts(nodes, [], deps, { operations }));
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps, { operations }));
       expect(result.ok).toBe(true);
       expect(deps.runPrompt).not.toHaveBeenCalled();
     });
@@ -272,7 +274,7 @@ describe("executePipeline", () => {
         .mockResolvedValue({ title: "DAO Guide", content: "Use class-based DAOs" });
 
       const nodes = [makeNode("op", "operation", { operationId: opId, bestPracticeId: "bp-1" })];
-      const result = await executePipeline(
+      const result = await pipelineEngine.execute(
         makeOpts(nodes, [], deps, { operations, lookupBestPractice }),
       );
       expect(result.ok).toBe(true);
@@ -307,7 +309,7 @@ describe("executePipeline", () => {
           loopConditionPrompt: "Is it good enough?",
         }),
       ];
-      const result = await executePipeline(makeOpts(nodes, [], deps, { operations }));
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps, { operations }));
       expect(result.ok).toBe(true);
       expect(deps.runPrompt).toHaveBeenCalledTimes(2);
       expect(evaluateLoopCondition).toHaveBeenCalledTimes(2);
@@ -336,7 +338,7 @@ describe("executePipeline", () => {
           loopConditionPrompt: "Done?",
         }),
       ];
-      const result = await executePipeline(makeOpts(nodes, [], deps, { operations }));
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps, { operations }));
       expect(result.ok).toBe(true);
       expect(deps.runPrompt).toHaveBeenCalledTimes(3);
     });
@@ -364,7 +366,7 @@ describe("executePipeline", () => {
       ];
       const edges = [makeEdge("input", "op"), makeEdge("op", "out")];
 
-      const result = await executePipeline(makeOpts(nodes, edges, deps, { operations }));
+      const result = await pipelineEngine.execute(makeOpts(nodes, edges, deps, { operations }));
       expect(result.ok).toBe(true);
     });
 
@@ -398,7 +400,7 @@ describe("executePipeline", () => {
       ];
       const edges = [makeEdge("input", "a"), makeEdge("input", "b")];
 
-      const result = await executePipeline(makeOpts(nodes, edges, deps, { operations }));
+      const result = await pipelineEngine.execute(makeOpts(nodes, edges, deps, { operations }));
       expect(result.ok).toBe(true);
       expect(deps.runPrompt).toHaveBeenCalledTimes(2);
     });
@@ -453,7 +455,7 @@ describe("executePipeline", () => {
         makeEdge("b", "merge"),
       ];
 
-      const result = await executePipeline(makeOpts(nodes, edges, deps, { operations }));
+      const result = await pipelineEngine.execute(makeOpts(nodes, edges, deps, { operations }));
       expect(result.ok).toBe(true);
       expect(runPrompt).toHaveBeenCalledTimes(3);
     });
@@ -483,7 +485,7 @@ describe("executePipeline", () => {
       ];
       const edges = [makeEdge("op", "out")];
 
-      const result = await executePipeline(makeOpts(nodes, edges, deps, { operations }));
+      const result = await pipelineEngine.execute(makeOpts(nodes, edges, deps, { operations }));
       expect(result.ok).toBe(true);
       if (result.ok) {
         expect(result.summary).toContain("Output written to");
@@ -506,7 +508,7 @@ describe("executePipeline", () => {
           disclosureMode: "tree",
         }),
       ];
-      const result = await executePipeline(makeOpts(nodes, [], deps));
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
       expect(deps.listDirTree).toHaveBeenCalledWith(localPath, { excludedPaths: [] });
     });
@@ -519,7 +521,9 @@ describe("executePipeline", () => {
 
       const deps = makeDeps();
       const nodes = [makeNode("op", "operation", { operationId: "missing" })];
-      const result = await executePipeline(makeOpts(nodes, [], deps, { inputPath: inputFile }));
+      const result = await pipelineEngine.execute(
+        makeOpts(nodes, [], deps, { inputPath: inputFile }),
+      );
       expect(result.ok).toBe(true);
     });
   });

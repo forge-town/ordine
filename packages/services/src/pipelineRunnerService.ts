@@ -24,7 +24,7 @@ import { listDirTree, readProjectFiles } from "./filesystemService.js";
 import { createLlmService } from "./llmService.js";
 import { runRuleCheck } from "./ruleCheckRunner.js";
 import {
-  executePipeline,
+  pipelineEngine,
   ScriptExecutionError,
   type PipelineEngineDeps,
   type PipelineRunError,
@@ -59,7 +59,10 @@ export const runPipeline = async (opts: {
 
   const pipeline = await pipelinesDao.findById(pipelineId);
   if (!pipeline) {
-    await jobsDao.appendLog(jobId, `[${new Date().toISOString()}] ERROR: Pipeline ${pipelineId} not found`);
+    await jobsDao.appendLog(
+      jobId,
+      `[${new Date().toISOString()}] ERROR: Pipeline ${pipelineId} not found`,
+    );
     await jobsDao.updateStatus(jobId, "failed", {
       finishedAt: new Date(),
       error: `Pipeline ${pipelineId} not found`,
@@ -138,7 +141,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
   };
 
   const result = await ResultAsync.fromPromise(
-    executePipeline({
+    pipelineEngine.execute({
       pipeline: {
         id: pipeline.id,
         name: pipeline.name,
