@@ -23,7 +23,16 @@ export { PipelineNodeDataSchema, type PipelineNodeData } from "./PipelineNodeDat
 export { PipelineEdgeDataSchema, type PipelineEdgeData } from "./PipelineEdgeData.js";
 export { PipelineNodeSchema, type PipelineNode } from "./PipelineNode.js";
 export { PipelineEdgeSchema, type PipelineEdge } from "./PipelineEdge.js";
-export { ExecutorConfigSchema, type ExecutorConfig } from "./ExecutorConfig.js";
+export {
+  ExecutorConfigSchema,
+  ExecutorTypeSchema,
+  AgentModeSchema,
+  ScriptLanguageSchema,
+  type ExecutorConfig,
+  type ExecutorType,
+  type AgentMode,
+  type ScriptLanguage,
+} from "./ExecutorConfig.js";
 export { OperationConfigSchema, type OperationConfig } from "./OperationConfig.js";
 export { NodeDataSchema, type NodeData } from "./NodeData.js";
 export { NodeCtxSchema, type NodeCtx } from "./NodeCtx.js";

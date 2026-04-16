@@ -1,29 +1,38 @@
 import { z } from "zod/v4";
 import type { OperationRecord } from "@repo/db-schema";
-import { OUTPUT_MODES, LLM_PROVIDERS } from "@repo/db-schema";
+import { LLM_PROVIDERS } from "@repo/db-schema";
+import {
+  NodeRunStatusSchema,
+  DisclosureModeSchema,
+  CodeFileNodeDataSchema,
+  FolderNodeDataSchema,
+  GitHubProjectNodeDataSchema,
+  OperationNodeDataSchema as EngineOperationNodeDataSchema,
+  OutputProjectPathNodeDataSchema,
+  OutputLocalPathNodeDataSchema,
+  CompoundNodeDataSchema,
+  PipelineEdgeDataSchema,
+  OUTPUT_MODES,
+} from "@repo/pipeline-engine";
 
-// ─── Primitive enums ──────────────────────────────────────────────────────────
-
-export const NodeRunStatusSchema = z.enum(["idle", "running", "pass", "fail"]);
+export { NodeRunStatusSchema, DisclosureModeSchema, OUTPUT_MODES };
+export type { DisclosureMode } from "@repo/pipeline-engine";
 export type NodeRunStatus = z.infer<typeof NodeRunStatusSchema>;
 
-// Static node types (objects)
+// ─── Node type sub-categories (Canvas-specific) ──────────────────────────────
+
 export const ObjectNodeTypeSchema = z.enum(["code-file", "folder", "github-project"]);
 export type ObjectNodeType = z.infer<typeof ObjectNodeTypeSchema>;
 
-// Operation node type (dynamic)
 export const OperationNodeTypeSchema = z.literal("operation");
 export type OperationNodeType = z.infer<typeof OperationNodeTypeSchema>;
 
-// Output node types (pipeline endpoints)
 export const OutputNodeTypeSchema = z.enum(["output-project-path", "output-local-path"]);
 export type OutputNodeType = z.infer<typeof OutputNodeTypeSchema>;
 
-// Compound node type
 export const CompoundNodeTypeSchema = z.literal("compound");
 export type CompoundNodeType = z.infer<typeof CompoundNodeTypeSchema>;
 
-// All node types
 export const NodeTypeSchema = z.union([
   ObjectNodeTypeSchema,
   OperationNodeTypeSchema,
@@ -32,90 +41,25 @@ export const NodeTypeSchema = z.union([
 ]);
 export type NodeType = z.infer<typeof NodeTypeSchema>;
 
-// ─── Node data schemas ────────────────────────────────────────────────────────
+// ─── Re-export schemas from engine ────────────────────────────────────────────
 
-// ─── Object node data schemas ─────────────────────────────────────────────────
+export {
+  CodeFileNodeDataSchema,
+  FolderNodeDataSchema,
+  GitHubProjectNodeDataSchema,
+  OutputProjectPathNodeDataSchema,
+  OutputLocalPathNodeDataSchema,
+  CompoundNodeDataSchema,
+  PipelineEdgeDataSchema,
+};
 
-export const CodeFileNodeDataSchema = z.object({
-  label: z.string(),
-  nodeType: z.literal("code-file"),
-  filePath: z.string(),
-  language: z.string().optional(),
-  description: z.string().optional(),
-});
+// ─── Operation node data schema (Canvas-specific: narrows llmProvider to LLM_PROVIDERS enum) ───
 
-export const FolderNodeDataSchema = z.object({
-  label: z.string(),
-  nodeType: z.literal("folder"),
-  folderPath: z.string(),
-  excludedPaths: z.array(z.string()).optional(),
-  description: z.string().optional(),
-});
-
-export const DisclosureModeSchema = z.enum(["tree", "full", "files-only"]);
-
-export const GitHubProjectNodeDataSchema = z.object({
-  label: z.string(),
-  nodeType: z.literal("github-project"),
-  sourceType: z.enum(["github", "local"]).optional(),
-  owner: z.string(),
-  repo: z.string(),
-  branch: z.string().optional(),
-  description: z.string().optional(),
-  isPrivate: z.boolean().optional(),
-  githubProjectId: z.string().optional(),
-  localPath: z.string().optional(),
-  disclosureMode: DisclosureModeSchema.optional(),
-  excludedPaths: z.array(z.string()).optional(),
-});
-
-// ─── Output node data schemas ────────────────────────────────────────────────
-
-export const OutputProjectPathNodeDataSchema = z.object({
-  label: z.string(),
-  nodeType: z.literal("output-project-path"),
-  projectId: z.string().optional(),
-  path: z.string(),
-  description: z.string().optional(),
-});
-
-export const OutputLocalPathNodeDataSchema = z.object({
-  label: z.string(),
-  nodeType: z.literal("output-local-path"),
-  localPath: z.string(),
-  outputFileName: z.string().optional(),
-  outputMode: z.enum(OUTPUT_MODES).optional(),
-  description: z.string().optional(),
-});
-
-// ─── Operation node data schema ────────────────────────────────────────────────
-
-export const OperationNodeDataSchema = z.object({
-  label: z.string(),
-  nodeType: z.literal("operation"),
-  operationId: z.string(), // Reference to OperationRecord.id
-  operationName: z.string(), // Display name
-  status: NodeRunStatusSchema,
-  config: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
-  notes: z.string().optional(),
+export const OperationNodeDataSchema = EngineOperationNodeDataSchema.extend({
   llmProvider: z.enum(LLM_PROVIDERS).optional(),
-  llmModel: z.string().optional(),
-  bestPracticeId: z.string().optional(),
-  bestPracticeName: z.string().optional(),
-  // ─── Loop / retry settings ─────────────────────────────────────────────────
-  loopEnabled: z.boolean().optional(),
-  maxLoopCount: z.number().int().min(1).max(20).optional(),
-  loopConditionPrompt: z.string().optional(),
 });
 
-// ─── Compound node data schema ────────────────────────────────────────────────
-
-export const CompoundNodeDataSchema = z.object({
-  label: z.string(),
-  nodeType: z.literal("compound"),
-  childNodeIds: z.array(z.string()),
-  description: z.string().optional(),
-});
+// ─── Pipeline node data union (Canvas version, includes Canvas OperationNodeData) ─
 
 export const PipelineNodeDataSchema = z.union([
   CodeFileNodeDataSchema,
@@ -141,12 +85,6 @@ export type OutputLocalPathNodeData = z.infer<typeof OutputLocalPathNodeDataSche
 export type CompoundNodeData = z.infer<typeof CompoundNodeDataSchema> & Record<string, unknown>;
 export type PipelineNodeData = z.infer<typeof PipelineNodeDataSchema> & Record<string, unknown>;
 
-// ─── Edge data schema ─────────────────────────────────────────────────────────
-
-export const PipelineEdgeDataSchema = z.object({
-  label: z.string().optional(),
-  dataType: z.string().optional(),
-});
 export type PipelineEdgeData = z.infer<typeof PipelineEdgeDataSchema> & Record<string, unknown>;
 
 // ─── Node categories ─────────────────────────────────────────────────────────
