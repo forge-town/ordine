@@ -1,7 +1,9 @@
 import { getModel, type SettingsResolver } from "@repo/agent";
-import type { SettingsDaoInstance } from "@repo/models";
+import { createSettingsDao, type DbConnection } from "@repo/models";
 
-export const createLlmService = (dao: SettingsDaoInstance) => {
+export const createLlmService = (db: DbConnection) => {
+  const dao = createSettingsDao(db);
+
   const getSettings: SettingsResolver = async () => {
     const s = await dao.get();
     return { apiKey: s.llmApiKey, model: s.llmModel };

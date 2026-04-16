@@ -3,42 +3,28 @@ import { createLlmService } from "../llmService";
 import { createLoopEvaluator } from "./loopEvaluator";
 import { buildEngineDeps } from "./engineDeps";
 import { runPipeline } from "./runPipeline";
-import type {
-  OperationsDaoInstance,
-  PipelinesDaoInstance,
-  JobsDaoInstance,
-  JobTracesDaoInstance,
-  SkillsDaoInstance,
-  BestPracticesDaoInstance,
-  SettingsDaoInstance,
-  RulesDaoInstance,
+import {
+  createOperationsDao,
+  createPipelinesDao,
+  createJobsDao,
+  createJobTracesDao,
+  createSkillsDao,
+  createBestPracticesDao,
+  createRulesDao,
+  type DbConnection,
 } from "@repo/models";
 
-export interface PipelineRunnerDeps {
-  operationsDao: OperationsDaoInstance;
-  pipelinesDao: PipelinesDaoInstance;
-  jobsDao: JobsDaoInstance;
-  jobTracesDao: JobTracesDaoInstance;
-  skillsDao: SkillsDaoInstance;
-  bestPracticesDao: BestPracticesDaoInstance;
-  settingsDao: SettingsDaoInstance;
-  rulesDao: RulesDaoInstance;
-}
-
-export const createPipelineRunnerService = (deps: PipelineRunnerDeps) => {
-  const {
-    operationsDao,
-    pipelinesDao,
-    jobsDao,
-    jobTracesDao,
-    skillsDao,
-    bestPracticesDao,
-    settingsDao,
-    rulesDao,
-  } = deps;
+export const createPipelineRunnerService = (db: DbConnection) => {
+  const operationsDao = createOperationsDao(db);
+  const pipelinesDao = createPipelinesDao(db);
+  const jobsDao = createJobsDao(db);
+  const jobTracesDao = createJobTracesDao(db);
+  const skillsDao = createSkillsDao(db);
+  const bestPracticesDao = createBestPracticesDao(db);
+  const rulesDao = createRulesDao(db);
 
   initObs(jobTracesDao);
-  const llmService = createLlmService(settingsDao);
+  const llmService = createLlmService(db);
   const { getSettings, getModel } = llmService;
 
   const loopEvaluatorFactory = createLoopEvaluator(getModel);

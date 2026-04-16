@@ -1,6 +1,10 @@
-import type { SettingsDaoInstance } from "@repo/models";
+import { createSettingsDao, type DbConnection } from "@repo/models";
 
-export const createSettingsService = (dao: SettingsDaoInstance) => ({
-  get: () => dao.get(),
-  update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
-});
+export const createSettingsService = (db: DbConnection) => {
+  const dao = createSettingsDao(db);
+
+  return {
+    get: () => dao.get(),
+    update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
+  };
+};
