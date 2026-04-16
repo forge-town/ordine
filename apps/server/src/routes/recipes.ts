@@ -29,3 +29,12 @@ recipesRoutes.put("/", async (c) => {
 
   return c.json(recipe, 201);
 });
+
+recipesRoutes.delete("/:id", async (c) => {
+  const id = c.req.param("id");
+  const existing = await recipesService.getById(id);
+  if (!existing) return c.json({ error: "Recipe not found" }, 404);
+  await recipesService.delete(id);
+
+  return c.body(null, 204);
+});
