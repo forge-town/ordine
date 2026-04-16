@@ -31,6 +31,14 @@ export const WRITE_TOOLS = [...DEFAULT_READ_ONLY_TOOLS, "Edit", "Write", "Bash(s
 
 export const READ_ONLY_TOOLS = DEFAULT_READ_ONLY_TOOLS;
 
+export const WEB_TOOLS = [
+  ...DEFAULT_READ_ONLY_TOOLS,
+  "Bash(curl:*)",
+  "Bash(python3:*)",
+  "WebSearch",
+  "WebFetch",
+];
+
 /**
  * Extract JSON from text that may contain markdown fences or surrounding prose.
  * Tries: direct parse → fenced code block → first `{...}` substring.

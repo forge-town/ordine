@@ -156,6 +156,8 @@ export const executeOperationNode = async (
       inputPath: input.inputPath,
       modelOverride,
       agent: executor.agent,
+      allowedTools: executor.allowedTools,
+      promptMode: executor.promptMode,
       onChunk: handleChunk,
       onProgress,
       writeEnabled: (executor as ExecutorConfig & { writeEnabled?: boolean }).writeEnabled === true,

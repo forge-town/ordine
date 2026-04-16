@@ -11,6 +11,7 @@ import {
   getModel,
   runClaude,
   READ_ONLY_TOOLS,
+  WEB_TOOLS,
   WRITE_TOOLS,
   extractJsonFromText,
   CHECK_OUTPUT_EXAMPLE,
@@ -35,13 +36,42 @@ export interface RunSkillOptions {
   onChunk?: StreamCallback;
   onProgress?: ProgressCallback;
   writeEnabled?: boolean;
+  allowedTools?: string[];
+  promptMode?: "code" | "research";
 }
 
 const buildSkillSystemPrompt = (
   skillId: string,
   skillDescription: string,
   mode: "check" | "fix",
+  promptMode: "code" | "research" = "code",
 ): string => {
+  if (promptMode === "research") {
+    return [
+      `You are a research agent executing the task "${skillId}".`,
+      `Task description: ${skillDescription}`,
+      "",
+      "Use the tools available to you (Bash with curl, WebSearch, WebFetch, etc.) to gather information from the web.",
+      "Do NOT analyze local source code files. Focus on web research.",
+      "",
+      "Execute the research task described above. Use curl, web search, and web fetch tools to find real data.",
+      "",
+      "Output your findings as a JSON object with this structure:",
+      JSON.stringify(
+        {
+          task: skillId,
+          summary: "Brief summary of what was found",
+          data: [{ example: "your structured data here" }],
+          stats: { totalItems: 0, sources: 0 },
+        },
+        null,
+        2,
+      ),
+      "",
+      "Your final message MUST be this JSON object and nothing else.",
+    ].join("\n");
+  }
+
   const example = mode === "check" ? CHECK_OUTPUT_EXAMPLE : FIX_OUTPUT_EXAMPLE;
   const lines = [
     `You are an expert code analysis agent executing the skill "${skillId}".`,
@@ -87,15 +117,31 @@ export const runSkill = ({
   onChunk,
   onProgress,
   writeEnabled,
+  allowedTools: customAllowedTools,
+  promptMode = "code",
 }: RunSkillOptions): ResultAsync<string, never> => {
   const isImplementMode = writeEnabled === true;
   const mode = isImplementMode ? "fix" : "check";
+  const isResearch = promptMode === "research";
 
-  const userPrompt = inputPath
-    ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
-    : `Input:\n${inputContent}`;
+  const userPrompt =
+    inputPath && !isResearch
+      ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
+      : `Input:\n${inputContent}`;
 
   const generateFallbackReport = (): string => {
+    if (isResearch) {
+      return JSON.stringify(
+        {
+          task: skillId,
+          summary: `Research agent unavailable for "${skillId}". Input forwarded as-is.`,
+          data: [],
+          stats: { totalItems: 0, sources: 0 },
+        },
+        null,
+        2,
+      );
+    }
     const fallback = isImplementMode
       ? {
           type: "fix" as const,
@@ -136,11 +182,12 @@ export const runSkill = ({
       );
       await onProgress?.(`runSkill: mode=${mode}`);
 
-      const systemPrompt = buildSkillSystemPrompt(skillId, skillDescription, mode);
+      const systemPrompt = buildSkillSystemPrompt(skillId, skillDescription, mode, promptMode);
 
       if (agent === "local-claude") {
         const cwd = inputPath || process.cwd();
-        const allowedTools = isImplementMode ? WRITE_TOOLS : READ_ONLY_TOOLS;
+        const allowedTools =
+          customAllowedTools ?? (isImplementMode ? WRITE_TOOLS : READ_ONLY_TOOLS);
 
         const claudeResult = await ResultAsync.fromPromise(
           runClaude({
@@ -171,7 +218,7 @@ export const runSkill = ({
           return generateFallbackReport();
         }
 
-        const result = validateSkillOutput(raw, mode);
+        const result = isResearch ? raw : validateSkillOutput(raw, mode);
         if (onChunk) await onChunk(result);
         return result;
       }

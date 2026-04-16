@@ -9,6 +9,8 @@ export const RunSkillOptionsSchema = z.object({
   inputPath: z.string(),
   modelOverride: z.string().optional(),
   writeEnabled: z.boolean().optional(),
+  allowedTools: z.array(z.string()).optional(),
+  promptMode: z.enum(["code", "research"]).optional(),
   agent: AgentBackendSchema.optional(),
 });
 export type RunSkillOptions = z.infer<typeof RunSkillOptionsSchema> & {
