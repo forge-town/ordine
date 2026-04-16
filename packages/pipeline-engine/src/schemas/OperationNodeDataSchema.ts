@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { NodeRunStatusSchema } from "./NodeRunStatus.js";
+import { NodeRunStatusSchema } from "./NodeRunStatusSchema.js";
 
 export const OperationNodeDataSchema = z.object({
   label: z.string(),

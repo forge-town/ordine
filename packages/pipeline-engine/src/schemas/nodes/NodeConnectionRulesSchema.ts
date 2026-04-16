@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { NodeTypeSchema, type NodeType } from "../NodeType.js";
+import { NodeTypeSchema, type NodeType } from "../NodeTypeSchema.js";
 
 const nodeTypeArray = z.array(NodeTypeSchema);
 

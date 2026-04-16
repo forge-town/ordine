@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { NodeTypeSchema } from "./NodeType.js";
-import { PipelineNodeDataSchema } from "./PipelineNodeData.js";
+import { NodeTypeSchema } from "./NodeTypeSchema.js";
+import { PipelineNodeDataSchema } from "./PipelineNodeDataSchema.js";
 
 export const PipelineNodeSchema = z.object({
   id: z.string(),

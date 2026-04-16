@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { DisclosureModeSchema } from "./DisclosureMode.js";
+import { DisclosureModeSchema } from "./DisclosureModeSchema.js";
 
 export const FolderNodeDataSchema = z.object({
   label: z.string(),

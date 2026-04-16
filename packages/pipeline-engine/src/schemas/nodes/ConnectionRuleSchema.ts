@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { NodeTypeSchema } from "../NodeType";
+import { NodeTypeSchema } from "../NodeTypeSchema";
 import { NODE_CONNECTION_RULES } from "./NodeConnectionRulesSchema";
 
 export const ConnectionRuleSchema = z

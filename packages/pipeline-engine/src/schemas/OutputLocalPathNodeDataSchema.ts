@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { OutputModeSchema } from "./OutputMode.js";
+import { OutputModeSchema } from "./OutputModeSchema.js";
 
 export const OutputLocalPathNodeDataSchema = z.object({
   label: z.string(),
