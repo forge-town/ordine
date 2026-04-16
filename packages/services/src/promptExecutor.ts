@@ -38,6 +38,7 @@ export interface RunPromptOptions {
 export const runPrompt = ({
   prompt,
   inputContent,
+  inputPath,
   getSettings,
   modelOverride,
   agent = "local-claude",
