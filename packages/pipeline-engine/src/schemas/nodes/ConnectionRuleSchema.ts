@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { NodeTypeSchema } from "../NodeType.js";
-import { NODE_CONNECTION_RULES } from "./NodeConnectionRulesSchema.js";
+import { NodeTypeSchema } from "../NodeType";
+import { NODE_CONNECTION_RULES } from "./NodeConnectionRulesSchema";
 
 export const ConnectionRuleSchema = z
   .object({
