@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createPipelinesDao, type PipelineEntity, type DbExecutor } from "@repo/models";
+import { createPipelinesDao } from "./pipelinesDao";
+import type { PipelineEntity } from "../types";
+import type { DbExecutor } from "../types";
 import type * as DrizzleOrm from "drizzle-orm";
 
 // ─── Mock DB ─────────────────────────────────────────────────────────────────

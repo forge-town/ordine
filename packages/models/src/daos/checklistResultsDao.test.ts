@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type * as DrizzleOrm from "drizzle-orm";
-import { createChecklistResultsDao, type DbExecutor } from "@repo/models";
+import { createChecklistResultsDao } from "./checklistResultsDao";
+import type { DbExecutor } from "../types";
 
 // ─── Mock DB ─────────────────────────────────────────────────────────────────
 

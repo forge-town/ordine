@@ -21,18 +21,29 @@ import { cn } from "@repo/ui/lib/utils";
 import type { BestPracticeRecord, ChecklistItemRecord, CodeSnippetRecord } from "@repo/db-schema";
 import { exportSingleBestPractice } from "@/lib/exportBestPractice";
 import { CATEGORIES, CATEGORY_COLORS } from "@/pages/BestPracticesPage/constants";
+import { useList } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { Route } from "@/routes/_layout/best-practices.$bestPracticeId.index";
 
 interface Props {
   bestPractice: BestPracticeRecord;
-  checklistItems: ChecklistItemRecord[];
-  codeSnippets: CodeSnippetRecord[];
 }
 
-export const BestPracticeDetailPageContent = ({
-  bestPractice,
-  checklistItems,
-  codeSnippets,
-}: Props) => {
+export const BestPracticeDetailPageContent = ({ bestPractice }: Props) => {
+  const { bestPracticeId } = Route.useParams();
+
+  const { result: checklistResult } = useList<ChecklistItemRecord>({
+    resource: ResourceName.checklistItems,
+    filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
+  });
+  const { result: snippetsResult } = useList<CodeSnippetRecord>({
+    resource: ResourceName.codeSnippets,
+    filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
+  });
+
+  const checklistItems = checklistResult?.data;
+  const codeSnippets = snippetsResult?.data;
+
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -94,7 +105,7 @@ export const BestPracticeDetailPageContent = ({
             <span
               className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-                CATEGORY_COLORS[bestPractice.category] ?? "bg-muted text-muted-foreground"
+                CATEGORY_COLORS[bestPractice.category] ?? "bg-muted text-muted-foreground",
               )}
             >
               {CATEGORIES.find((c) => c.value === bestPractice.category)?.label ??
@@ -208,7 +219,7 @@ export const BestPracticeDetailPageContent = ({
                           "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
                           item.checkType === "script"
                             ? "bg-blue-100 text-blue-700"
-                            : "bg-purple-100 text-purple-700"
+                            : "bg-purple-100 text-purple-700",
                         )}
                       >
                         {item.checkType === "script" ? (
