@@ -6,60 +6,51 @@ import {
 
 const makeDeps = () => {
   const bpDao = {
+    findMany: vi.fn().mockResolvedValue([
+      {
+        id: "bp1",
+        title: "BP1",
+        condition: "",
+        content: "",
+        category: "",
+        language: "",
+        codeSnippet: "",
+        tags: [],
+      },
+    ]),
     findById: vi.fn().mockResolvedValue(null),
   };
   const txBpDao = {
+    findById: vi.fn().mockResolvedValue(null),
     create: vi.fn().mockResolvedValue({ id: "bp1" }),
     update: vi.fn().mockResolvedValue({ id: "bp1" }),
   };
-  const checklistDao = {
-    findById: vi.fn().mockResolvedValue(null),
+  const checklistItemsDao = {
+    findByBestPracticeId: vi.fn().mockResolvedValue([
+      {
+        id: "ci1",
+        title: "Check",
+        description: "desc",
+        checkType: "llm",
+        script: null,
+        sortOrder: 0,
+      },
+    ]),
   };
   const txChecklistDao = {
+    findById: vi.fn().mockResolvedValue(null),
     create: vi.fn().mockResolvedValue({ id: "ci1" }),
     update: vi.fn().mockResolvedValue({ id: "ci1" }),
   };
-  const snippetsDao = {
-    findById: vi.fn().mockResolvedValue(null),
-  };
-  const txSnippetsDao = {
-    create: vi.fn().mockResolvedValue({ id: "s1" }),
-    update: vi.fn().mockResolvedValue({ id: "s1" }),
-  };
-  const bpService = {
-    getAll: vi
-      .fn()
-      .mockResolvedValue([
-        {
-          id: "bp1",
-          title: "BP1",
-          condition: "",
-          content: "",
-          category: "",
-          language: "",
-          codeSnippet: "",
-          tags: [],
-        },
-      ]),
-  };
-  const checklistService = {
-    getItemsByBestPracticeId: vi
-      .fn()
-      .mockResolvedValue([
-        {
-          id: "ci1",
-          title: "Check",
-          description: "desc",
-          checkType: "llm",
-          script: null,
-          sortOrder: 0,
-        },
-      ]),
-  };
-  const codeSnippetsService = {
-    getByBestPracticeId: vi
+  const codeSnippetsDao = {
+    findByBestPracticeId: vi
       .fn()
       .mockResolvedValue([{ id: "s1", title: "Snippet", language: "ts", code: "x", sortOrder: 0 }]),
+  };
+  const txSnippetsDao = {
+    findById: vi.fn().mockResolvedValue(null),
+    create: vi.fn().mockResolvedValue({ id: "s1" }),
+    update: vi.fn().mockResolvedValue({ id: "s1" }),
   };
   const runTransaction = vi
     .fn()
@@ -68,15 +59,11 @@ const makeDeps = () => {
   return {
     bpDao,
     bpDaoFactory: vi.fn().mockReturnValue(txBpDao),
-    checklistDao,
+    checklistItemsDao,
     checklistDaoFactory: vi.fn().mockReturnValue(txChecklistDao),
-    snippetsDao,
+    codeSnippetsDao,
     snippetsDaoFactory: vi.fn().mockReturnValue(txSnippetsDao),
-    bpService,
-    checklistService,
-    codeSnippetsService,
     runTransaction,
-    // expose tx daos for assertion
     _txBpDao: txBpDao,
     _txChecklistDao: txChecklistDao,
     _txSnippetsDao: txSnippetsDao,
@@ -90,9 +77,9 @@ describe("createBestPracticesBulkService", () => {
       const svc = createBestPracticesBulkService(deps as never);
       const result = await svc.exportAll();
 
-      expect(deps.bpService.getAll).toHaveBeenCalled();
-      expect(deps.checklistService.getItemsByBestPracticeId).toHaveBeenCalledWith("bp1");
-      expect(deps.codeSnippetsService.getByBestPracticeId).toHaveBeenCalledWith("bp1");
+      expect(deps.bpDao.findMany).toHaveBeenCalled();
+      expect(deps.checklistItemsDao.findByBestPracticeId).toHaveBeenCalledWith("bp1");
+      expect(deps.codeSnippetsDao.findByBestPracticeId).toHaveBeenCalledWith("bp1");
       expect(result).toHaveLength(1);
       expect(result[0]!.checklistItems).toHaveLength(1);
       expect(result[0]!.codeSnippets).toHaveLength(1);
@@ -136,9 +123,9 @@ describe("createBestPracticesBulkService", () => {
 
     it("updates existing records", async () => {
       const deps = makeDeps();
-      deps.bpDao.findById.mockResolvedValue({ id: "bp1" });
-      deps.checklistDao.findById.mockResolvedValue({ id: "ci1" });
-      deps.snippetsDao.findById.mockResolvedValue({ id: "s1" });
+      deps._txBpDao.findById.mockResolvedValue({ id: "bp1" });
+      deps._txChecklistDao.findById.mockResolvedValue({ id: "ci1" });
+      deps._txSnippetsDao.findById.mockResolvedValue({ id: "s1" });
 
       const svc = createBestPracticesBulkService(deps as never);
       const counts = await svc.importBulk([entry]);

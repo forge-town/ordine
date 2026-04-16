@@ -3,28 +3,8 @@ import type {
   ChecklistItemsDaoInstance,
   CodeSnippetsDaoInstance,
 } from "@repo/models";
-import type { BestPracticeRecord, ChecklistItemRecord, CodeSnippetRecord } from "@repo/db-schema";
 
-type DaoFactory<D, Tx> = {
-  (executor: Tx): D;
-};
-
-type BpDaoWithFind = {
-  findById(id: string): Promise<BestPracticeRecord | null>;
-};
-
-type BpService = {
-  getAll(): Promise<BestPracticeRecord[]>;
-};
-
-type ChecklistItemService = {
-  getItemsByBestPracticeId(bestPracticeId: string): Promise<ChecklistItemRecord[]>;
-};
-
-type CodeSnippetsService = {
-  getByBestPracticeId(bestPracticeId: string): Promise<CodeSnippetRecord[]>;
-};
-
+type DaoFactory<D, Tx> = (executor: Tx) => D;
 type TransactionRunner<Tx> = <T>(fn: (tx: Tx) => Promise<T>) => Promise<T>;
 
 export interface BulkImportEntry {
@@ -54,24 +34,21 @@ export interface BulkImportEntry {
 }
 
 export const createBestPracticesBulkService = <Tx>(deps: {
-  bpDao: BpDaoWithFind;
+  bpDao: BestPracticesDaoInstance;
   bpDaoFactory: DaoFactory<BestPracticesDaoInstance, Tx>;
-  checklistDao: ChecklistItemsDaoInstance;
+  checklistItemsDao: ChecklistItemsDaoInstance;
   checklistDaoFactory: DaoFactory<ChecklistItemsDaoInstance, Tx>;
-  snippetsDao: CodeSnippetsDaoInstance;
+  codeSnippetsDao: CodeSnippetsDaoInstance;
   snippetsDaoFactory: DaoFactory<CodeSnippetsDaoInstance, Tx>;
-  bpService: BpService;
-  checklistService: ChecklistItemService;
-  codeSnippetsService: CodeSnippetsService;
   runTransaction: TransactionRunner<Tx>;
 }) => ({
   exportAll: async () => {
-    const practices = await deps.bpService.getAll();
+    const practices = await deps.bpDao.findMany();
     return Promise.all(
       practices.map(async (bp) => {
         const [checklistItems, codeSnippets] = await Promise.all([
-          deps.checklistService.getItemsByBestPracticeId(bp.id),
-          deps.codeSnippetsService.getByBestPracticeId(bp.id),
+          deps.checklistItemsDao.findByBestPracticeId(bp.id),
+          deps.codeSnippetsDao.findByBestPracticeId(bp.id),
         ]);
         return {
           ...bp,
@@ -105,7 +82,7 @@ export const createBestPracticesBulkService = <Tx>(deps: {
       for (const entry of entries) {
         const { checklistItems, codeSnippets, ...bpData } = entry;
 
-        const existing = await deps.bpDao.findById(bpData.id);
+        const existing = await txBpDao.findById(bpData.id);
         if (existing) {
           const { id: _, ...patch } = bpData;
           await txBpDao.update(bpData.id, patch);
@@ -116,7 +93,7 @@ export const createBestPracticesBulkService = <Tx>(deps: {
 
         for (const item of checklistItems) {
           const itemData = { ...item, bestPracticeId: bpData.id };
-          const existingItem = await deps.checklistDao.findById(item.id);
+          const existingItem = await txChecklistDao.findById(item.id);
           if (existingItem) {
             const { id: _id, bestPracticeId: _bpId, ...patch } = itemData;
             await txChecklistDao.update(item.id, patch);
@@ -128,7 +105,7 @@ export const createBestPracticesBulkService = <Tx>(deps: {
 
         for (const snippet of codeSnippets) {
           const snippetData = { ...snippet, bestPracticeId: bpData.id };
-          const existingSnippet = await deps.snippetsDao.findById(snippet.id);
+          const existingSnippet = await txSnippetsDao.findById(snippet.id);
           if (existingSnippet) {
             const { id: _id, bestPracticeId: _bpId, ...patch } = snippetData;
             await txSnippetsDao.update(snippet.id, patch);

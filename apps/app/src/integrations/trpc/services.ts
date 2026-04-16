@@ -48,13 +48,10 @@ export const codeSnippetsService = createCodeSnippetsService(codeSnippetsDao);
 export const bestPracticesBulkService = createBestPracticesBulkService({
   bpDao: bestPracticesDao,
   bpDaoFactory: createBestPracticesDao,
-  checklistDao: checklistItemsDao,
+  checklistItemsDao: checklistItemsDao,
   checklistDaoFactory: createChecklistItemsDao,
-  snippetsDao: codeSnippetsDao,
+  codeSnippetsDao: codeSnippetsDao,
   snippetsDaoFactory: createCodeSnippetsDao,
-  bpService: bestPracticesService,
-  checklistService,
-  codeSnippetsService,
   runTransaction: db.transaction.bind(db),
 });
 export const githubProjectsService = createGithubProjectsService(createGithubProjectsDao(db));
