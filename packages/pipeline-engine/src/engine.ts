@@ -1,5 +1,5 @@
-import { Pipeline } from "./pipeline/Pipeline.js";
-import type { PipelineOptions, PipelineRunResult } from "./pipeline/Pipeline.js";
+import { Pipeline } from "./pipeline";
+import type { PipelineOptions, PipelineRunResult } from "./pipeline";
 
 export class PipelineEngine {
   async execute(opts: PipelineOptions): Promise<PipelineRunResult> {

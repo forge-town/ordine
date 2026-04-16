@@ -1,8 +1,8 @@
-import type { PipelineNode, ExecutorConfig, NodeData, NodeCtx } from "../schemas/index.js";
+import type { PipelineNode, ExecutorConfig, NodeData, NodeCtx } from "../schemas";
 import { trace } from "@repo/obs";
-import { ScriptExecutionError } from "../errors.js";
-import { runScript, safeParseJson } from "../infrastructure.js";
-import type { OperationNodeContext, OperationExecResult, NodeResult } from "./types.js";
+import { ScriptExecutionError } from "../errors";
+import { runScript, safeParseJson } from "../infrastructure";
+import type { OperationNodeContext, OperationExecResult, NodeResult } from "./types";
 
 const CHUNK_THROTTLE_MS = 2000;
 

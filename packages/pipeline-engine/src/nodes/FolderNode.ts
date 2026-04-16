@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { trace } from "@repo/obs";
-import type { NodeContext, NodeResult } from "./types.js";
-import type { NodeData } from "../schemas/index.js";
+import type { NodeContext, NodeResult } from "./types";
+import type { NodeData } from "../schemas";
 
 export const processFolderNode = async (ctx: NodeContext): Promise<NodeResult> => {
   const { node, deps, nodeOutputs, jobId } = ctx;

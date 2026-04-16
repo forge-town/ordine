@@ -1,8 +1,8 @@
 import { trace } from "@repo/obs";
-import type { NodeContext, NodeResult } from "./types.js";
-import type { GitHubProjectNodeData } from "../schemas/index.js";
-import type { PipelineRunError } from "../errors.js";
-import { cloneGitHubRepo } from "../infrastructure.js";
+import type { NodeContext, NodeResult } from "./types";
+import type { GitHubProjectNodeData } from "../schemas";
+import type { PipelineRunError } from "../errors";
+import { cloneGitHubRepo } from "../infrastructure";
 
 export const processGitHubProjectNode = async (
   ctx: NodeContext & { githubToken?: string },

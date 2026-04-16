@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { Result } from "neverthrow";
-import { logger } from "../logger";
+import { logger } from "@repo/logger";
 
 export interface RunClaudeOptions {
   systemPrompt: string;

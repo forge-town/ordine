@@ -2,18 +2,18 @@ import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { ResultAsync } from "neverthrow";
 import { trace } from "@repo/obs";
-import type { PipelineNode, NodeData, NodeCtx } from "../schemas/index.js";
-import type { PipelineEngineDeps } from "../deps.js";
-import type { PipelineRunError } from "../errors.js";
-import { ScriptExecutionError } from "../errors.js";
-import { buildExecutionLevels, getParentIds, CycleDetectedError } from "../dagScheduler.js";
-import { safeReadInputFile } from "../infrastructure.js";
-import type { OperationInfo, SkillInfo, OperationNodeContext } from "../nodes/types.js";
-import { processCodeFileNode } from "../nodes/CodeFileNode.js";
-import { processFolderNode } from "../nodes/FolderNode.js";
-import { processGitHubProjectNode } from "../nodes/GitHubProjectNode.js";
-import { processOutputLocalPathNode } from "../nodes/OutputLocalPathNode.js";
-import { processOperationNode } from "../nodes/OperationNode.js";
+import type { PipelineNode, NodeData, NodeCtx } from "../schemas";
+import type { PipelineEngineDeps } from "../deps";
+import type { PipelineRunError } from "../errors";
+import { ScriptExecutionError } from "../errors";
+import { buildExecutionLevels, getParentIds, CycleDetectedError } from "../dagScheduler";
+import { safeReadInputFile } from "../infrastructure";
+import type { OperationInfo, SkillInfo, OperationNodeContext } from "../nodes/types";
+import { processCodeFileNode } from "../nodes/CodeFileNode";
+import { processFolderNode } from "../nodes/FolderNode";
+import { processGitHubProjectNode } from "../nodes/GitHubProjectNode";
+import { processOutputLocalPathNode } from "../nodes/OutputLocalPathNode";
+import { processOperationNode } from "../nodes/OperationNode";
 
 export type PipelineRunResult =
   | { ok: true; summary: string }

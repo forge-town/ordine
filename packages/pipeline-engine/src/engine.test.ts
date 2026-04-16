@@ -6,7 +6,7 @@ import { okAsync } from "neverthrow";
 import { pipelineEngine } from "./engine";
 import type { PipelineEngineDeps } from "./deps";
 import type { PipelineNode, PipelineEdge } from "./schemas";
-import { PipelineOptions } from ".";
+import type { PipelineOptions } from "./pipeline";
 
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),

@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { NodeRunStatusSchema } from "./NodeRunStatusSchema.js";
+import { NodeRunStatusSchema } from "./NodeRunStatusSchema";
 
 export const ConditionNodeDataSchema = z.object({
   label: z.string(),

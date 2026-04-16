@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ExecutorConfigSchema } from "./ExecutorConfigSchema.js";
+import { ExecutorConfigSchema } from "./ExecutorConfigSchema";
 
 export const OperationConfigSchema = z.object({
   executor: ExecutorConfigSchema.optional(),

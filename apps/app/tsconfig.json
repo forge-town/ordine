@@ -5,11 +5,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "preserve",
-    "types": [
-      "vite/client",
-      "@tanstack/react-start",
-      "@testing-library/jest-dom"
-    ],
+    "types": ["vite/client", "@tanstack/react-start", "@testing-library/jest-dom"],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
@@ -19,7 +15,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noUncheckedSideEffectImports": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }

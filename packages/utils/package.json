@@ -1,5 +1,5 @@
 {
-  "name": "@repo/services",
+  "name": "@repo/utils",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,17 +13,7 @@
     "quality": "bun run check-types"
   },
   "dependencies": {
-    "@repo/agent": "workspace:*",
-    "@repo/db-schema": "workspace:*",
-    "@repo/logger": "workspace:*",
-    "@repo/models": "workspace:*",
-    "@repo/obs": "workspace:*",
-    "@repo/pipeline-engine": "workspace:*",
-    "@repo/schemas": "workspace:*",
-    "@repo/utils": "workspace:*",
-    "ai": "^6.0.158",
-    "neverthrow": "^8.2.0",
-    "zod": "^4.3.6"
+    "neverthrow": "^8.2.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",

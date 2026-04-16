@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { OutputModeSchema } from "./OutputModeSchema.js";
+import { OutputModeSchema } from "./OutputModeSchema";
 
 export const NodeDataSchema = z.object({
   nodeType: z.string().optional(),

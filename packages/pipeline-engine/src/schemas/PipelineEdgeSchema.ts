@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { PipelineEdgeDataSchema } from "./PipelineEdgeDataSchema.js";
+import { PipelineEdgeDataSchema } from "./PipelineEdgeDataSchema";
 
 export const PipelineEdgeSchema = z.object({
   id: z.string(),

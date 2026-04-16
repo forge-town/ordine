@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { DisclosureModeSchema } from "./DisclosureModeSchema.js";
+import { DisclosureModeSchema } from "./DisclosureModeSchema";
 
 export const GitHubProjectNodeDataSchema = z.object({
   label: z.string(),

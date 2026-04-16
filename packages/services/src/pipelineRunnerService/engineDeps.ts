@@ -1,7 +1,7 @@
 import { runPrompt as runPromptAgent } from "./promptExecutor";
 import { runSkill as runSkillAgent } from "./skillExecutor";
 import { structuredJsonToMarkdown } from "./structuredOutput";
-import { listDirTree, readProjectFiles } from "../filesystemService";
+import { listDirTree, readProjectFiles } from "@repo/utils";
 import { runRuleCheck } from "./ruleCheckRunner";
 import type { PipelineEngineDeps } from "@repo/pipeline-engine";
 import type { RulesDaoInstance } from "@repo/models";

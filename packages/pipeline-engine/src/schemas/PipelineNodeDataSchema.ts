@@ -1,12 +1,12 @@
 import { z } from "zod/v4";
-import { CompoundNodeDataSchema } from "./CompoundNodeDataSchema.js";
-import { ConditionNodeDataSchema } from "./ConditionNodeDataSchema.js";
-import { CodeFileNodeDataSchema } from "./CodeFileNodeDataSchema.js";
-import { FolderNodeDataSchema } from "./FolderNodeDataSchema.js";
-import { GitHubProjectNodeDataSchema } from "./GitHubProjectNodeDataSchema.js";
-import { OperationNodeDataSchema } from "./OperationNodeDataSchema.js";
-import { OutputProjectPathNodeDataSchema } from "./OutputProjectPathNodeDataSchema.js";
-import { OutputLocalPathNodeDataSchema } from "./OutputLocalPathNodeDataSchema.js";
+import { CompoundNodeDataSchema } from "./CompoundNodeDataSchema";
+import { ConditionNodeDataSchema } from "./ConditionNodeDataSchema";
+import { CodeFileNodeDataSchema } from "./CodeFileNodeDataSchema";
+import { FolderNodeDataSchema } from "./FolderNodeDataSchema";
+import { GitHubProjectNodeDataSchema } from "./GitHubProjectNodeDataSchema";
+import { OperationNodeDataSchema } from "./OperationNodeDataSchema";
+import { OutputProjectPathNodeDataSchema } from "./OutputProjectPathNodeDataSchema";
+import { OutputLocalPathNodeDataSchema } from "./OutputLocalPathNodeDataSchema";
 
 export const PipelineNodeDataSchema = z.union([
   CompoundNodeDataSchema,

@@ -1,7 +1,5 @@
 import type { ResultAsync } from "neverthrow";
-import type { RunPromptOptions } from "./schemas/RunPromptOptionsSchema.js";
-import type { RunSkillOptions } from "./schemas/RunSkillOptionsSchema.js";
-import type { RuleCheckOutput } from "./schemas/RuleCheckOutputSchema.js";
+import type { RunPromptOptions, RunSkillOptions, RuleCheckOutput } from "./schemas";
 
 export interface PipelineEngineDeps {
   runPrompt: (opts: RunPromptOptions) => ResultAsync<string, Error>;

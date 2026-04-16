@@ -2,10 +2,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { trace } from "@repo/obs";
-import type { NodeContext, NodeResult } from "./types.js";
-import type { NodeData, OutputMode } from "../schemas/index.js";
-import type { PipelineRunError } from "../errors.js";
-import { ScriptExecutionError } from "../errors.js";
+import type { NodeContext, NodeResult } from "./types";
+import type { NodeData, OutputMode } from "../schemas";
+import type { PipelineRunError } from "../errors";
+import { ScriptExecutionError } from "../errors";
 
 export const processOutputLocalPathNode = async (
   ctx: NodeContext,

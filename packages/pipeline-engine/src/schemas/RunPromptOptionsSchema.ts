@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { AgentBackendSchema } from "./ExecutorConfigSchema.js";
+import { AgentBackendSchema } from "./ExecutorConfigSchema";
 
 export const RunPromptOptionsSchema = z.object({
   prompt: z.string(),

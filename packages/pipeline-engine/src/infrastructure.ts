@@ -5,9 +5,8 @@ import { statSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { Result, ResultAsync, ok, okAsync, errAsync } from "neverthrow";
-import { ScriptExecutionError, GitCloneError, ConfigParseError } from "./errors.js";
-import type { OperationConfig } from "./schemas/index.js";
-import type { ExecutorConfig } from "./schemas/index.js";
+import { ScriptExecutionError, GitCloneError, ConfigParseError } from "./errors";
+import type { OperationConfig, ExecutorConfig } from "./schemas";
 
 const execAsync = promisify(exec);
 
