@@ -26,7 +26,7 @@ import {
   OUTPUT_TYPES,
   type NodeType,
   type DisclosureMode,
-} from "@repo/pipeline-engine";
+} from "@repo/pipeline-engine/schemas";
 
 export { NodeRunStatusSchema, DisclosureModeSchema, OUTPUT_MODES };
 export type { DisclosureMode };
@@ -45,10 +45,10 @@ export type {
   OperationNodeType,
   OutputNodeType,
   CompoundNodeType,
-} from "@repo/pipeline-engine";
+} from "@repo/pipeline-engine/schemas";
 
-export { NodeTypeSchema } from "@repo/pipeline-engine";
-export type { NodeType } from "@repo/pipeline-engine";
+export { NodeTypeSchema } from "@repo/pipeline-engine/schemas";
+export type { NodeType } from "@repo/pipeline-engine/schemas";
 
 // ─── Re-export schemas from engine ────────────────────────────────────────────
 
@@ -111,10 +111,10 @@ export {
   isConnectionAllowed,
   ConnectionRuleSchema,
 };
-export type { NodeConnectionRules } from "@repo/pipeline-engine";
+export type { NodeConnectionRules } from "@repo/pipeline-engine/schemas";
 
 export const getAllowedConnections = (
-  _operations?: OperationRecord[]
+  _operations?: OperationRecord[],
 ): z.infer<typeof NodeConnectionRulesSchema> => NODE_CONNECTION_RULES;
 
 // ─── Default data factories ────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { AlertTriangle, FolderOpen, HardDrive } from "lucide-react";
-import { OUTPUT_MODES, type OutputMode } from "@repo/pipeline-engine";
+import { OUTPUT_MODES, type OutputMode } from "@repo/pipeline-engine/schemas";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore, type OutputLocalPathNodeData } from "../_store";
 import { NodeCard } from "../NodeCard";

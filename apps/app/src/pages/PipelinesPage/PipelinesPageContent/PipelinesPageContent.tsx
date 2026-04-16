@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Layers, Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -16,13 +16,13 @@ export const PipelinesPageContent = () => {
   const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
   const pipelinesData = pipelinesResult?.data;
   const pipelines = pipelinesData ?? [];
-  const [search, setSearch] = React.useState("");
-  const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
+  const [search, setSearch] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const navigate = useNavigate();
   const { mutateAsync: createPipelineMutate } = useCreate();
   const { mutate: deletePipelineMutate } = useDelete();
 
-  const allTags = React.useMemo(() => {
+  const allTags = useMemo(() => {
     const items = pipelinesData ?? [];
     const tagSet = new Set<string>();
     for (const p of items) {
@@ -37,13 +37,13 @@ export const PipelinesPageContent = () => {
 
   const handleTagClick = (tag: string) => () => {
     setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
     );
   };
 
   const handleClearTags = () => setSelectedTags([]);
 
-  const filtered = React.useMemo(() => {
+  const filtered = useMemo(() => {
     const items = pipelinesData ?? [];
     const q = search.toLowerCase();
 
@@ -164,7 +164,7 @@ export const PipelinesPageContent = () => {
                   "cursor-pointer select-none text-[11px] transition-colors",
                   selectedTags.includes(tag)
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80",
                 )}
                 variant="secondary"
                 onClick={handleTagClick(tag)}

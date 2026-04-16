@@ -19,8 +19,9 @@ const NODE_TYPE_LABELS: Record<string, string> = {
   output: "输出",
 };
 
-const formatRelativeTime = (ts: Date): string => {
-  const diff = Date.now() - ts.getTime();
+const formatRelativeTime = (ts: Date | string): string => {
+  const date = ts instanceof Date ? ts : new Date(ts);
+  const diff = Date.now() - date.getTime();
   const minutes = Math.floor(diff / 60_000);
   if (minutes < 60) return `${minutes} 分钟前`;
   const hours = Math.floor(minutes / 60);
@@ -111,7 +112,7 @@ export const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) 
             key={type}
             className={cn(
               "rounded-full text-[11px]",
-              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground"
+              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground",
             )}
             variant="secondary"
           >
