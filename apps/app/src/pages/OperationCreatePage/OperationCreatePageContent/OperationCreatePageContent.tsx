@@ -14,13 +14,12 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { SkillRecord } from "@repo/db-schema";
+import { ObjectTypeSchema, type ObjectType } from "@repo/schemas";
 import {
-  ObjectTypeSchema as ObjectTypeEnum,
-  ExecutorTypeSchema as ExecutorTypeEnum,
-  AgentModeSchema as AgentModeEnum,
-  ScriptLanguageSchema as ScriptLanguageEnum,
-  type ObjectType,
-} from "@repo/schemas";
+  ExecutorTypeSchema,
+  AgentModeSchema,
+  ScriptLanguageSchema,
+} from "@repo/pipeline-engine/schemas";
 
 const EXECUTOR_ICONS = {
   agent: Wand2,
@@ -41,13 +40,13 @@ const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
 const createFormSchema = z.object({
   name: z.string().min(1, "名称不能为空"),
   description: z.string(),
-  acceptedObjectTypes: z.array(ObjectTypeEnum).min(1),
-  executorType: ExecutorTypeEnum,
-  agentMode: AgentModeEnum,
+  acceptedObjectTypes: z.array(ObjectTypeSchema).min(1),
+  executorType: ExecutorTypeSchema,
+  agentMode: AgentModeSchema,
   skillId: z.string(),
   promptText: z.string(),
   scriptCommand: z.string(),
-  scriptLanguage: ScriptLanguageEnum,
+  scriptLanguage: ScriptLanguageSchema,
 });
 
 const buildConfig = (values: CreateFormValues): string => {
@@ -282,7 +281,7 @@ export const OperationCreatePageContent = () => {
                                   "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                                   selected
                                     ? "border-primary/50 bg-primary/10 text-primary"
-                                    : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                    : "border-border bg-background text-muted-foreground hover:bg-muted",
                                 )}
                                 type="button"
                                 onClick={() => handleChange(toggleObjectType(field.value, value))}
@@ -325,7 +324,7 @@ export const OperationCreatePageContent = () => {
                                 "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
                                 selected
                                   ? "border-primary/50 bg-primary/10 text-primary"
-                                  : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                  : "border-border bg-background text-muted-foreground hover:bg-muted",
                               )}
                               type="button"
                               onClick={() => handleChange(value)}
@@ -366,7 +365,7 @@ export const OperationCreatePageContent = () => {
                                     "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                                     selected
                                       ? "border-primary/50 bg-primary/10 text-primary"
-                                      : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                      : "border-border bg-background text-muted-foreground hover:bg-muted",
                                   )}
                                   type="button"
                                   onClick={() => handleChange(value)}
