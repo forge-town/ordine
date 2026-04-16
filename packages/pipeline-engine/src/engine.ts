@@ -242,6 +242,7 @@ export class PipelineEngine {
         prompt,
         inputContent: effectiveInput,
         modelOverride,
+        agent: executor.agent,
         onChunk: handleChunk,
         onProgress: log,
       });
@@ -272,6 +273,7 @@ export class PipelineEngine {
         inputContent: effectiveInput,
         inputPath: input.inputPath,
         modelOverride,
+        agent: executor.agent,
         onChunk: handleChunk,
         onProgress: log,
         writeEnabled:

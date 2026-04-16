@@ -1,13 +1,26 @@
 /**
- * Skill executor — runs a skill using claude -p CLI.
+ * Skill executor — runs a skill using the configured agent backend.
  *
- * For project paths: uses claude -p with structured JSON output.
- * For non-project: falls back to streaming prompt without tools.
+ * Dispatches to local-claude (CLI) or kimi (streaming LLM) based on the
+ * `agent` field. Default: "local-claude".
  */
 
 import { streamText } from "ai";
 import { ResultAsync, ok } from "neverthrow";
-import { getModel, runClaude, logger, type SettingsResolver } from "@repo/agent";
+import {
+  getModel,
+  runClaude,
+  READ_ONLY_TOOLS,
+  WRITE_TOOLS,
+  extractJsonFromText,
+  logger,
+  CHECK_OUTPUT_EXAMPLE,
+  FIX_OUTPUT_EXAMPLE,
+  CheckOutputSchema,
+  FixOutputSchema,
+  type SettingsResolver,
+} from "@repo/agent";
+import type { AgentBackend } from "@repo/pipeline-engine";
 import { extractStructuredOutput } from "./structuredOutput.js";
 import type { StreamCallback, ProgressCallback } from "./promptExecutor.js";
 
@@ -18,10 +31,50 @@ export interface RunSkillOptions {
   inputPath: string;
   getSettings: SettingsResolver;
   modelOverride?: string;
+  agent?: AgentBackend;
   onChunk?: StreamCallback;
   onProgress?: ProgressCallback;
   writeEnabled?: boolean;
 }
+
+const buildSkillSystemPrompt = (
+  skillId: string,
+  skillDescription: string,
+  mode: "check" | "fix",
+): string => {
+  const example = mode === "check" ? CHECK_OUTPUT_EXAMPLE : FIX_OUTPUT_EXAMPLE;
+  const lines = [
+    `You are an expert code analysis agent executing the skill "${skillId}".`,
+    `Skill description: ${skillDescription}`,
+    "",
+    `Mode: ${mode}`,
+    "",
+    "Use the tools available to you (Read, Bash, etc.) to explore the project.",
+    "Examine actual source code before making conclusions.",
+    "",
+    mode === "check"
+      ? "Your task is to CHECK the code and report findings."
+      : "Your task is to FIX violations in the code and report what you changed.",
+    "",
+    "Output ONLY a JSON object matching this exact structure (no markdown fences, no extra text):",
+    JSON.stringify(example, null, 2),
+    "",
+    "Your final message MUST be this JSON object and nothing else.",
+  ];
+  return lines.join("\n");
+};
+
+const validateSkillOutput = (raw: string, mode: "check" | "fix"): string => {
+  const json = extractJsonFromText(raw);
+  const schema = mode === "check" ? CheckOutputSchema : FixOutputSchema;
+  const parsed = schema.safeParse(JSON.parse(json));
+  if (parsed.success) {
+    logger.info({ len: json.length }, "runSkill: valid report");
+    return json;
+  }
+  logger.warn({ errors: parsed.error }, "runSkill: schema validation failed, using raw");
+  return json;
+};
 
 export const runSkill = ({
   skillId,
@@ -30,11 +83,13 @@ export const runSkill = ({
   inputPath,
   getSettings,
   modelOverride,
+  agent = "local-claude",
   onChunk,
   onProgress,
   writeEnabled,
 }: RunSkillOptions): ResultAsync<string, never> => {
   const isImplementMode = writeEnabled === true;
+  const mode = isImplementMode ? "fix" : "check";
 
   const userPrompt = inputPath
     ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
@@ -73,27 +128,26 @@ export const runSkill = ({
   return ResultAsync.fromPromise(
     (async () => {
       logger.info(
-        {
-          skillId,
-          inputLen: inputContent.length,
-          inputPath,
-          mode: isImplementMode ? "fix" : "check",
-        },
+        { skillId, inputLen: inputContent.length, inputPath, mode, agent },
         "runSkill: starting",
       );
       await onProgress?.(
-        `[Mastra] runSkill: skillId=${skillId}, input length=${inputContent.length}, inputPath=${inputPath}`,
+        `[Mastra] runSkill: skillId=${skillId}, agent=${agent}, input length=${inputContent.length}, inputPath=${inputPath}`,
       );
-      await onProgress?.(`runSkill: mode=${isImplementMode ? "fix" : "check"}`);
+      await onProgress?.(`runSkill: mode=${mode}`);
 
-      if (inputPath) {
+      const systemPrompt = buildSkillSystemPrompt(skillId, skillDescription, mode);
+
+      if (agent === "local-claude") {
+        const cwd = inputPath || process.cwd();
+        const allowedTools = isImplementMode ? WRITE_TOOLS : READ_ONLY_TOOLS;
+
         const claudeResult = await ResultAsync.fromPromise(
           runClaude({
-            skillId,
-            skillDescription,
-            inputContent,
-            projectRoot: inputPath,
-            writeEnabled: isImplementMode,
+            systemPrompt,
+            userPrompt,
+            cwd,
+            allowedTools,
             onProgress,
           }),
           (error) => error,
@@ -107,28 +161,30 @@ export const runSkill = ({
           return generateFallbackReport();
         }
 
-        const result = claudeResult.value;
-        logger.info({ len: result.length }, "runSkill: claude complete");
-        await onProgress?.(`runSkill: Claude complete, output=${result.length} chars`);
-        if (onChunk) await onChunk(result);
+        const raw = claudeResult.value;
+        logger.info({ len: raw.length }, "runSkill: claude complete");
+        await onProgress?.(`runSkill: Claude complete, output=${raw.length} chars`);
 
-        if (result.length === 0) {
+        if (raw.length === 0) {
           logger.warn("runSkill: claude returned empty output — using fallback");
           await onProgress?.("runSkill: WARNING — Claude returned empty output, using fallback");
           return generateFallbackReport();
         }
+
+        const result = validateSkillOutput(raw, mode);
+        if (onChunk) await onChunk(result);
         return result;
       }
 
+      // agent === "kimi" — use streaming LLM
       const model = await getModel(getSettings, modelOverride);
       if (!model) {
         logger.warn("runSkill: No LLM model — returning fallback");
         await onProgress?.("[Mastra] runSkill: No LLM model — returning fallback report");
         return generateFallbackReport();
       }
-      const systemPrompt = `You are an expert code analysis agent executing the skill "${skillId}". Skill description: ${skillDescription}`;
-      logger.info("runSkill: starting streamText (no project path)");
-      await onProgress?.("[Mastra] runSkill: Starting streamText (no project path)...");
+      logger.info("runSkill: starting streamText (kimi)");
+      await onProgress?.("[Mastra] runSkill: Starting streamText (kimi)...");
       const result = streamText({
         model,
         system: systemPrompt,

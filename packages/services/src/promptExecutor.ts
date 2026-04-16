@@ -1,10 +1,14 @@
 /**
- * Prompt executor — sends a prompt + input to an LLM via streaming.
+ * Prompt executor — sends a prompt + input to the configured agent backend.
+ *
+ * Dispatches to local-claude (CLI) or kimi (streaming LLM) based on
+ * the `agent` field. Default: "local-claude".
  */
 
 import { streamText } from "ai";
 import { ResultAsync, errAsync } from "neverthrow";
-import { getModel, logger, type SettingsResolver } from "@repo/agent";
+import { getModel, runClaude, logger, type SettingsResolver } from "@repo/agent";
+import type { AgentBackend } from "@repo/pipeline-engine";
 
 export class PromptExecutionError extends Error {
   constructor(
@@ -24,6 +28,7 @@ export interface RunPromptOptions {
   inputContent: string;
   getSettings: SettingsResolver;
   modelOverride?: string;
+  agent?: AgentBackend;
   onChunk?: StreamCallback;
   onProgress?: ProgressCallback;
 }
@@ -33,6 +38,7 @@ export const runPrompt = ({
   inputContent,
   getSettings,
   modelOverride,
+  agent = "local-claude",
   onChunk,
   onProgress,
 }: RunPromptOptions): ResultAsync<string, PromptExecutionError> => {
@@ -43,20 +49,36 @@ export const runPrompt = ({
   return ResultAsync.fromPromise(
     (async () => {
       logger.info(
-        { promptLen: prompt.length, inputLen: inputContent.length },
+        { promptLen: prompt.length, inputLen: inputContent.length, agent },
         "runPrompt: starting",
       );
       await onProgress?.(
-        `[LLM] runPrompt: prompt length=${prompt.length}, input length=${inputContent.length}`,
+        `[LLM] runPrompt: agent=${agent}, prompt length=${prompt.length}, input length=${inputContent.length}`,
       );
+
+      if (agent === "local-claude") {
+        const claudeResult = await runClaude({
+          systemPrompt: prompt,
+          userPrompt: inputContent,
+          cwd: process.cwd(),
+          allowedTools: [],
+          onProgress,
+        });
+        logger.info({ outputLen: claudeResult.length }, "runPrompt: claude complete");
+        await onProgress?.(`[LLM] runPrompt: Claude complete, output=${claudeResult.length} chars`);
+        if (onChunk) await onChunk(claudeResult);
+        return claudeResult;
+      }
+
+      // agent === "kimi" — use streaming LLM
       const model = await getModel(getSettings, modelOverride);
       if (!model) {
         logger.error("runPrompt: LLM not configured");
         await onProgress?.("[LLM] runPrompt: LLM not configured, throwing error");
         throw new PromptExecutionError("LLM not configured (API key missing in settings)");
       }
-      logger.info("runPrompt: streaming");
-      await onProgress?.("[LLM] runPrompt: Starting streamText...");
+      logger.info("runPrompt: streaming (kimi)");
+      await onProgress?.("[LLM] runPrompt: Starting streamText (kimi)...");
       const result = streamText({
         model,
         prompt: `${prompt}\n\nInput:\n${inputContent}`,

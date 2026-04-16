@@ -1,48 +1,20 @@
 import { spawn } from "node:child_process";
 import { Result } from "neverthrow";
 import { logger } from "../logger";
-import { CheckOutputSchema, CHECK_OUTPUT_EXAMPLE } from "../schemas/CheckOutputSchema";
-import { FixOutputSchema, FIX_OUTPUT_EXAMPLE } from "../schemas/FixOutputSchema";
 
 export interface RunClaudeOptions {
-  skillId: string;
-  skillDescription: string;
-  inputContent: string;
-  projectRoot: string;
-  writeEnabled?: boolean;
+  systemPrompt: string;
+  userPrompt: string;
+  cwd: string;
+  allowedTools?: string[];
+  timeoutMs?: number;
+  maxBudgetUsd?: number;
   onProgress?: (line: string) => Promise<void>;
 }
 
 const CLAUDE_BIN = "/Users/amin/.local/bin/claude";
 
-const buildSystemPrompt = (
-  skillId: string,
-  skillDescription: string,
-  mode: "check" | "fix",
-): string => {
-  const example = mode === "check" ? CHECK_OUTPUT_EXAMPLE : FIX_OUTPUT_EXAMPLE;
-  const lines = [
-    `You are an expert code analysis agent executing the skill "${skillId}".`,
-    `Skill description: ${skillDescription}`,
-    "",
-    `Mode: ${mode}`,
-    "",
-    "Use the tools available to you (Read, Bash, etc.) to explore the project.",
-    "Examine actual source code before making conclusions.",
-    "",
-    mode === "check"
-      ? "Your task is to CHECK the code and report findings."
-      : "Your task is to FIX violations in the code and report what you changed.",
-    "",
-    "Output ONLY a JSON object matching this exact structure (no markdown fences, no extra text):",
-    JSON.stringify(example, null, 2),
-    "",
-    "Your final message MUST be this JSON object and nothing else.",
-  ];
-  return lines.join("\n");
-};
-
-const READ_ONLY_TOOLS = [
+const DEFAULT_READ_ONLY_TOOLS = [
   "Read",
   "Bash(find:*)",
   "Bash(grep:*)",
@@ -55,7 +27,9 @@ const READ_ONLY_TOOLS = [
   "Bash(tree:*)",
 ];
 
-const WRITE_TOOLS = [...READ_ONLY_TOOLS, "Edit", "Write", "Bash(sed:*)"];
+export const WRITE_TOOLS = [...DEFAULT_READ_ONLY_TOOLS, "Edit", "Write", "Bash(sed:*)"];
+
+export const READ_ONLY_TOOLS = DEFAULT_READ_ONLY_TOOLS;
 
 /**
  * Extract JSON from text that may contain markdown fences or surrounding prose.
@@ -66,21 +40,18 @@ const safeJsonParse = Result.fromThrowable(
   () => "invalid JSON",
 );
 
-const extractJsonFromText = (text: string): string => {
+export const extractJsonFromText = (text: string): string => {
   const trimmed = text.trim();
 
-  // 1. Direct JSON parse
   const direct = safeJsonParse(trimmed);
   if (direct.isOk()) return JSON.stringify(direct.value, null, 2);
 
-  // 2. Fenced code block: ```json ... ``` or ``` ... ```
   const fenceMatch = /```(?:json)?\s*\n?([\s\S]*?)```/.exec(trimmed);
   if (fenceMatch?.[1]) {
     const fenced = safeJsonParse(fenceMatch[1].trim());
     if (fenced.isOk()) return JSON.stringify(fenced.value, null, 2);
   }
 
-  // 3. Find first { ... } substring (greedy last })
   const braceStart = trimmed.indexOf("{");
   const braceEnd = trimmed.lastIndexOf("}");
   if (braceStart !== -1 && braceEnd > braceStart) {
@@ -89,31 +60,29 @@ const extractJsonFromText = (text: string): string => {
     if (braced.isOk()) return JSON.stringify(braced.value, null, 2);
   }
 
-  // 4. Return as-is
   return trimmed;
 };
 
+/**
+ * Pure Claude CLI driver. Spawns `claude -p` with the given system prompt,
+ * user prompt, and tool permissions. Returns the raw text output.
+ *
+ * No knowledge of skills, modes, or output schemas — that belongs in the caller.
+ */
 export const runClaude = async ({
-  skillId,
-  skillDescription,
-  inputContent,
-  projectRoot,
-  writeEnabled = false,
+  systemPrompt,
+  userPrompt,
+  cwd,
+  allowedTools = DEFAULT_READ_ONLY_TOOLS,
+  timeoutMs = 10 * 60 * 1000,
+  maxBudgetUsd = 5,
   onProgress,
 }: RunClaudeOptions): Promise<string> => {
-  const mode = writeEnabled ? "fix" : "check";
-  const systemPrompt = buildSystemPrompt(skillId, skillDescription, mode);
-  const allowedTools = writeEnabled ? WRITE_TOOLS : READ_ONLY_TOOLS;
-
-  // Truncate input to avoid exceeding claude CLI stdin limits.
-  // Claude can explore the project via tools (Read, Bash) so a summary suffices.
   const MAX_INPUT_CHARS = 50_000;
-  const truncatedInput =
-    inputContent.length > MAX_INPUT_CHARS
-      ? `${inputContent.substring(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${inputContent.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
-      : inputContent;
-
-  const userPrompt = `Project path: ${projectRoot}\n\nInput:\n${truncatedInput}`;
+  const truncatedPrompt =
+    userPrompt.length > MAX_INPUT_CHARS
+      ? `${userPrompt.substring(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${userPrompt.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
+      : userPrompt;
 
   const args = [
     "-p",
@@ -127,15 +96,15 @@ export const runClaude = async ({
     "--dangerously-skip-permissions",
     "--no-session-persistence",
     "--max-budget-usd",
-    "5",
+    String(maxBudgetUsd),
   ];
 
-  logger.info({ skillId, mode, projectRoot }, "runClaude: starting");
-  await onProgress?.(`[Claude] Starting claude -p for skill ${skillId} (${mode} mode)...`);
+  logger.info({ cwd }, "runClaude: starting");
+  await onProgress?.(`[Claude] Starting claude -p (cwd=${cwd})...`);
 
   return new Promise<string>((resolve, reject) => {
     const child = spawn(CLAUDE_BIN, args, {
-      cwd: projectRoot,
+      cwd,
       stdio: ["pipe", "pipe", "pipe"],
     });
 
@@ -145,16 +114,13 @@ export const runClaude = async ({
     child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
     child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
 
-    child.stdin.write(userPrompt);
+    child.stdin.write(truncatedPrompt);
     child.stdin.end();
 
-    const timer = setTimeout(
-      () => {
-        child.kill("SIGTERM");
-        reject(new Error("claude timed out after 10 minutes"));
-      },
-      10 * 60 * 1000,
-    );
+    const timer = setTimeout(() => {
+      child.kill("SIGTERM");
+      reject(new Error(`claude timed out after ${timeoutMs / 1000}s`));
+    }, timeoutMs);
 
     child.on("error", (error) => {
       clearTimeout(timer);
@@ -179,6 +145,7 @@ export const runClaude = async ({
         logger.debug({ stderr: stderr.substring(0, 500) }, "runClaude: stderr");
       }
 
+      // Parse the Claude CLI JSON envelope to extract the result text
       const parsedResult = safeJsonParse(stdout);
       if (parsedResult.isErr()) {
         logger.warn({ len: stdout.length }, "runClaude: non-JSON output, returning raw");
@@ -195,27 +162,9 @@ export const runClaude = async ({
             ? (parsed.content as string)
             : stdout;
 
-      const reportJson = extractJsonFromText(resultText);
-
-      const reportParsed = safeJsonParse(reportJson);
-      if (reportParsed.isErr()) {
-        logger.warn("runClaude: extracted text is not valid JSON, using as-is");
-        void onProgress?.("[Claude] Schema validation warning, using raw output");
-        resolve(reportJson);
-        return;
-      }
-
-      const schema = mode === "check" ? CheckOutputSchema : FixOutputSchema;
-      const validation = schema.safeParse(reportParsed.value);
-      if (validation.success) {
-        logger.info({ len: reportJson.length }, "runClaude: valid report");
-        void onProgress?.(`[Claude] Valid ${mode} report (${reportJson.length} chars)`);
-        resolve(reportJson);
-      } else {
-        logger.warn({ errors: validation.error }, "runClaude: schema validation failed");
-        void onProgress?.("[Claude] Schema validation warning, using raw output");
-        resolve(reportJson);
-      }
+      logger.info({ len: resultText.length }, "runClaude: complete");
+      void onProgress?.(`[Claude] Complete (${resultText.length} chars)`);
+      resolve(resultText);
     });
   });
 };

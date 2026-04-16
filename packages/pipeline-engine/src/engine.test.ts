@@ -204,6 +204,86 @@ describe("executePipeline", () => {
       expect(deps.runSkill).toHaveBeenCalled();
     });
 
+    it("passes agent backend to runSkill", async () => {
+      const deps = makeDeps();
+      const opId = "op-agent-cfg";
+      const operations = new Map([
+        [
+          opId,
+          {
+            id: opId,
+            name: "Agent Config Op",
+            config: JSON.stringify({
+              executor: { type: "skill", skillId: "sk-2", agent: "kimi" },
+            }),
+          },
+        ],
+      ]);
+      const lookupSkill = vi
+        .fn()
+        .mockResolvedValue({ id: "sk-2", label: "Test", description: "d" });
+
+      const nodes = [makeNode("op", "operation", { operationId: opId, label: "Agent Config Op" })];
+      const result = await pipelineEngine.execute(
+        makeOpts(nodes, [], deps, { operations, lookupSkill }),
+      );
+      expect(result.ok).toBe(true);
+      expect(deps.runSkill).toHaveBeenCalledWith(
+        expect.objectContaining({ agent: "kimi", skillId: "sk-2" }),
+      );
+    });
+
+    it("passes agent backend to runPrompt", async () => {
+      const deps = makeDeps();
+      const opId = "op-prompt-agent";
+      const operations = new Map([
+        [
+          opId,
+          {
+            id: opId,
+            name: "Prompt Agent Op",
+            config: JSON.stringify({
+              executor: { type: "prompt", prompt: "Analyze this", agent: "kimi" },
+            }),
+          },
+        ],
+      ]);
+
+      const nodes = [makeNode("op", "operation", { operationId: opId, label: "Prompt Agent Op" })];
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps, { operations }));
+      expect(result.ok).toBe(true);
+      expect(deps.runPrompt).toHaveBeenCalledWith(
+        expect.objectContaining({ agent: "kimi", prompt: "Analyze this" }),
+      );
+    });
+
+    it("defaults agent to undefined when not specified", async () => {
+      const deps = makeDeps();
+      const opId = "op-default-agent";
+      const operations = new Map([
+        [
+          opId,
+          {
+            id: opId,
+            name: "Default Agent Op",
+            config: JSON.stringify({ executor: { type: "skill", skillId: "sk-3" } }),
+          },
+        ],
+      ]);
+      const lookupSkill = vi
+        .fn()
+        .mockResolvedValue({ id: "sk-3", label: "Test", description: "d" });
+
+      const nodes = [makeNode("op", "operation", { operationId: opId, label: "Default Agent Op" })];
+      const result = await pipelineEngine.execute(
+        makeOpts(nodes, [], deps, { operations, lookupSkill }),
+      );
+      expect(result.ok).toBe(true);
+      expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ skillId: "sk-3" }));
+      const callArgs = (deps.runSkill as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(callArgs.agent).toBeUndefined();
+    });
+
     it("executes a rule-check operation", async () => {
       const deps = makeDeps();
       const opId = "op-rule";
