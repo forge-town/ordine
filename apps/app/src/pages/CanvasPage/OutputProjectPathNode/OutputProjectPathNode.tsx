@@ -1,6 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import { FolderOutput } from "lucide-react";
 import { useStore } from "zustand";
+import { useShallow } from "zustand/shallow";
 import {
   useHarnessCanvasStore,
   selectNodeRunState,
@@ -20,7 +21,7 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathNodeProps) => {
   const store = useHarnessCanvasStore();
-  const { runStatus, dimmed } = useStore(store, selectNodeRunState(id));
+  const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v });

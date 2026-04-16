@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { useStore } from "zustand";
+import { useShallow } from "zustand/shallow";
 import {
   useHarnessCanvasStore,
   selectNodeRunState,
@@ -64,7 +65,7 @@ const MODEL_OPTIONS: Record<string, { value: string; label: string }[]> = {
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const store = useHarnessCanvasStore();
-  const { runStatus: nodeRunStatus, dimmed } = useStore(store, selectNodeRunState(id));
+  const { runStatus: nodeRunStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const { result: operationsResult } = useList<OperationRecord>({
     resource: ResourceName.operations,
   });

@@ -3,6 +3,7 @@ import { Handle, Position } from "@xyflow/react";
 import { AlertTriangle, FolderOpen, HardDrive } from "lucide-react";
 import { OUTPUT_MODES, type OutputMode } from "@repo/pipeline-engine/schemas";
 import { useStore } from "zustand";
+import { useShallow } from "zustand/shallow";
 import { useHarnessCanvasStore, selectNodeRunState, type OutputLocalPathNodeData } from "../_store";
 import { NodeCard } from "../NodeCard";
 import { FolderBrowser } from "./FolderBrowser";
@@ -23,7 +24,7 @@ const MODE_LABELS: Record<OutputMode, string> = {
 
 export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeProps) => {
   const store = useHarnessCanvasStore();
-  const { runStatus, dimmed } = useStore(store, selectNodeRunState(id));
+  const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const [browserOpen, setBrowserOpen] = useState(false);
 
