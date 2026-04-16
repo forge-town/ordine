@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { PipelineEntity } from "@repo/models";
+import { createPipelinesDao, type PipelineEntity, type DbExecutor } from "@repo/models";
 import type * as DrizzleOrm from "drizzle-orm";
 
 // ─── Mock DB ─────────────────────────────────────────────────────────────────
@@ -18,6 +18,7 @@ const mockDb = {
 
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual = await importOriginal<typeof DrizzleOrm>();
+
   return {
     ...actual,
     eq: vi.fn((col, val) => ({ col, val, type: "eq" })),
@@ -37,9 +38,6 @@ const makeRow = (id: string) => ({
   createdAt: new Date("2024-01-01"),
   updatedAt: new Date("2024-01-01"),
 });
-
-import { createPipelinesDao } from "@repo/models";
-import type { DbExecutor } from "@repo/models";
 
 const dao = createPipelinesDao(mockDb as unknown as DbExecutor);
 

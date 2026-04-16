@@ -20,6 +20,7 @@ const getQueryClient = () => {
   if (!browserState.queryClient) {
     browserState.queryClient = makeQueryClient();
   }
+
   return browserState.queryClient;
 };
 

@@ -16,6 +16,7 @@ export const fromJson = (text: string): Result<ChecklistExportItem[], string> =>
     .mapErr(() => "Invalid JSON")
     .andThen((parsed) => {
       if (!Array.isArray(parsed)) return err("Expected an array");
+
       return ok(
         parsed.map((item: Record<string, unknown>, idx: number) => ({
           title: String(item.title ?? ""),
@@ -34,6 +35,7 @@ const escapeCsvField = (value: string): string => {
   if (value.includes(",") || value.includes('"') || value.includes("\n")) {
     return `"${value.replaceAll('"', '""')}"`;
   }
+
   return value;
 };
 
@@ -48,6 +50,7 @@ export const toCsv = (items: ChecklistExportItem[]): string => {
       String(item.sortOrder),
     ].join(",")
   );
+
   return [header, ...rows].join("\n");
 };
 

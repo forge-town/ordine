@@ -47,6 +47,7 @@ export const SkillsPageContent = () => {
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.description.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = category === "all" || s.category === category;
+
     return matchesSearch && matchesCategory;
   });
 

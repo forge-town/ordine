@@ -49,6 +49,7 @@ const parseActions = (
     }
   }
   const clean = matches.reduce((acc, match) => acc.replace(match[0], "").trim(), text);
+
   return { clean, actions };
 };
 
@@ -154,6 +155,7 @@ export const AiAssistantPanel = () => {
         if (!res.ok) {
           return err(`HTTP ${res.status}`);
         }
+
         return ResultAsync.fromPromise(
           res.json() as Promise<{ text?: string; content?: string }>,
           () => "解析响应失败"

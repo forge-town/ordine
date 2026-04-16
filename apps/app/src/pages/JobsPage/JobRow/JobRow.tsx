@@ -15,8 +15,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { useTranslation } from "react-i18next";
-import type { JobRecord } from "@repo/db-schema";
-import type { JobStatus, JobType } from "@repo/db-schema";
+import type { JobRecord, JobStatus, JobType } from "@repo/db-schema";
 
 const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot: string }> = {
   queued: { icon: Clock, cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400" },

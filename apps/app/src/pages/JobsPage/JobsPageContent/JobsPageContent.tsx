@@ -4,8 +4,7 @@ import { Activity, Search, Filter } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import type { JobRecord } from "@repo/db-schema";
-import type { JobStatus } from "@repo/db-schema";
+import type { JobRecord, JobStatus } from "@repo/db-schema";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { StatCard } from "../StatCard";
@@ -43,6 +42,7 @@ export const JobsPageContent = () => {
       j.title.toLowerCase().includes(q) ||
       j.id.toLowerCase().includes(q) ||
       j.type.toLowerCase().includes(q);
+
     return matchStatus && matchSearch;
   });
 

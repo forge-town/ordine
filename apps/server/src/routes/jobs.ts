@@ -13,20 +13,31 @@ jobsRoutes.get("/", async (c) => {
   if (projectId) filter.projectId = projectId;
 
   const jobs = await jobsService.getAll(filter);
+
   return c.json(jobs);
 });
 
 jobsRoutes.post("/", async (c) => {
   const body = await c.req.json();
   const job = await jobsService.create(body);
+
   return c.json(job, 201);
 });
 
 jobsRoutes.get("/:id", async (c) => {
   const id = c.req.param("id");
   const job = await jobsService.getById(id);
-  if (!job) return c.json({ error: "Job not found" }, 404);
+  if (!job)
+ return c.json({ error: "Job not found" }, 404);
+
   return c.json(job);
+});
+
+jobsRoutes.get("/:id/logs", async (c) => {
+  const id = c.req.param("id");
+  const logs = await jobsService.getLogsByJobId(id);
+
+  return c.json(logs);
 });
 
 jobsRoutes.patch("/:id", async (c) => {
@@ -34,14 +45,18 @@ jobsRoutes.patch("/:id", async (c) => {
   const body = await c.req.json();
   const { status: jobStatus, ...extra } = body;
   const job = await jobsService.updateStatus(id, jobStatus, extra);
-  if (!job) return c.json({ error: "Job not found" }, 404);
+  if (!job)
+ return c.json({ error: "Job not found" }, 404);
+
   return c.json(job);
 });
 
 jobsRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");
   const existing = await jobsService.getById(id);
-  if (!existing) return c.json({ error: "Job not found" }, 404);
+  if (!existing)
+ return c.json({ error: "Job not found" }, 404);
   await jobsService.delete(id);
+
   return c.body(null, 204);
 });

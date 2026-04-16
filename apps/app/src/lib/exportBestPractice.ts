@@ -53,7 +53,7 @@ const addBPToZip = (
   zip: JSZip,
   bp: BPData,
   items: ChecklistItem[],
-  snippets: CodeSnippetItem[],
+  snippets: CodeSnippetItem[]
 ) => {
   const folder = zip.folder(bp.id);
   if (!folder) return;
@@ -70,8 +70,8 @@ const addBPToZip = (
         tags: bp.tags,
       },
       null,
-      2,
-    ),
+      2
+    )
   );
 
   folder.file("content.md", bp.content || "");
@@ -90,6 +90,7 @@ const addBPToZip = (
     if (item.description) parts.push(`\n  ${item.description}`);
     if (item.checkType === "script" && item.script)
       parts.push(`\n  \`\`\`\n  ${item.script}\n  \`\`\``);
+
     return parts.join("");
   });
   folder.file("checklist.md", `# ${bp.title} 检查清单\n\n${checklistLines.join("\n\n")}\n`);
@@ -131,14 +132,14 @@ export const exportAllBestPractices = async () => {
       zip,
       bp as BPData,
       checklistItems as ChecklistItem[],
-      codeSnippets as CodeSnippetItem[],
+      codeSnippets as CodeSnippetItem[]
     );
   }
   await downloadZip(zip, `best-practices-${new Date().toISOString().slice(0, 10)}.bestpractice`);
 };
 
 export const importBestPracticesFromZip = async (
-  file: File,
+  file: File
 ): Promise<{ imported: number; checklistItems: number; codeSnippets: number }> => {
   const zip = await JSZip.loadAsync(file);
   const folders = new Set<string>();
@@ -166,6 +167,7 @@ export const importBestPracticesFromZip = async (
       if (snippetsJsonFile) {
         const jsonText = await snippetsJsonFile.async("string");
         const parsed = JSON.parse(jsonText) as Record<string, unknown>[];
+
         return parsed.map((item) => ({
           ...item,
           bestPracticeId: meta.id,
@@ -191,6 +193,7 @@ export const importBestPracticesFromZip = async (
           }
         }
       }
+
       return [];
     })();
 
@@ -202,6 +205,7 @@ export const importBestPracticesFromZip = async (
       if (!checklistJsonFile) return [];
       const jsonText = await checklistJsonFile.async("string");
       const parsed = JSON.parse(jsonText) as Record<string, unknown>[];
+
       return parsed.map((item) => ({
         ...item,
         bestPracticeId: meta.id,
@@ -218,7 +222,8 @@ export const importBestPracticesFromZip = async (
   }
 
   const result = await trpcClient.bestPractices.importBulk.mutate(
-    bestPractices as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0],
+    bestPractices as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0]
   );
+
   return result;
 };

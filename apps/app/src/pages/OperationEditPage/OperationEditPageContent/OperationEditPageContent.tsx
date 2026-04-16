@@ -64,6 +64,7 @@ const buildConfig = (values: EditFormValues): string => {
         },
       });
     }
+
     return JSON.stringify({
       executor: {
         type: "agent",
@@ -72,6 +73,7 @@ const buildConfig = (values: EditFormValues): string => {
       },
     });
   }
+
   return JSON.stringify({
     executor: {
       type: "script",
@@ -120,6 +122,7 @@ const parseExecutorDefaults = (
           : "skill") as AgentMode,
       };
     }
+
     return { executorType: "script" as ExecutorType, agentMode: "skill" as AgentMode };
   })();
 
@@ -140,8 +143,10 @@ type EditFormValues = z.infer<typeof editFormSchema>;
 const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[] => {
   if (current.includes(type)) {
     if (current.length === 1) return current;
+
     return current.filter((t) => t !== type);
   }
+
   return [...current, type];
 };
 
@@ -316,6 +321,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                 name="acceptedObjectTypes"
                 render={({ field }) => {
                   const handleChange = field.onChange;
+
                   return (
                     <FormItem>
                       <FormLabel className="text-xs font-medium text-muted-foreground">
@@ -325,6 +331,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                         <div className="flex gap-2">
                           {OBJECT_TYPE_OPTIONS.map(({ value, label, icon: Icon }) => {
                             const selected = field.value.includes(value);
+
                             return (
                               <button
                                 key={value}
@@ -362,10 +369,12 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                   name="executorType"
                   render={({ field }) => {
                     const handleChange = field.onChange;
+
                     return (
                       <div className="flex gap-2">
                         {EXECUTOR_TYPE_OPTIONS.map(({ value, label, icon: Icon, description }) => {
                           const selected = field.value === value;
+
                           return (
                             <button
                               key={value}
@@ -401,10 +410,12 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                       name="agentMode"
                       render={({ field }) => {
                         const handleChange = field.onChange;
+
                         return (
                           <div className="flex gap-2">
                             {AGENT_MODE_OPTIONS.map(({ value, label, icon: Icon, description }) => {
                               const selected = field.value === value;
+
                               return (
                                 <button
                                   key={value}
@@ -439,6 +450,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                             if (v) field.onChange(v);
                             setSkillOpen(false);
                           };
+
                           return (
                             <FormItem>
                               <FormLabel className="text-xs font-medium text-muted-foreground">
@@ -526,6 +538,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                           if (v) field.onChange(v);
                           setScriptLangOpen(false);
                         };
+
                         return (
                           <FormItem>
                             <FormLabel className="text-xs font-medium text-muted-foreground">

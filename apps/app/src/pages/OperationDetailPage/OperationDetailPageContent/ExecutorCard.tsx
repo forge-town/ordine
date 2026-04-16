@@ -27,6 +27,7 @@ const normalizeExecutor = (executor: ExecutorConfig): ExecutorConfig => {
       type: "agent",
     };
   }
+
   return executor;
 };
 
@@ -41,6 +42,7 @@ export const ExecutorCard = ({ executor: raw }: ExecutorCardProps) => {
   const modeLabel = executor.agentMode ? AGENT_MODE_LABEL[executor.agentMode] : undefined;
   const label = EXECUTOR_LABEL[executor.type] ?? executor.type;
   const displayLabel = modeLabel ? `${label} · ${modeLabel}` : label;
+
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <SectionHeader icon={Icon} label={`执行方式 · ${displayLabel}`} />

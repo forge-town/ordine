@@ -9,6 +9,7 @@ interface SaveButtonProps {
 export const SaveButton = ({ onSave, saved }: SaveButtonProps) => {
   const { t } = useTranslation();
   const handleSave = onSave;
+
   return (
     <Button className="mt-2" variant={saved ? "secondary" : "default"} onClick={handleSave}>
       {saved ? t("settings.saved") : t("settings.saveChanges")}

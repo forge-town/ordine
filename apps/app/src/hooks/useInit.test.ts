@@ -23,6 +23,7 @@ describe("useBeginning", () => {
     const { result, rerender } = renderHook(() =>
       useBeginning(() => {
         counter.value++;
+
         return counter.value;
       })
     );

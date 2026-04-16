@@ -24,6 +24,7 @@ const parseTimestamp = (log: string): string => {
   const match = /^\[([^\]]+)\]/.exec(log);
   if (!match) return "";
   const d = new Date(match[1]);
+
   return d.toLocaleTimeString("en-US", {
     hour12: false,
     fractionalSecondDigits: 3,
@@ -66,6 +67,7 @@ const parseStructuredLogs = (
 
 const isStructuredLog = (log: string): boolean => {
   const msg = log.replace(/^\[[^\]]+\]\s*/, "");
+
   return msg.startsWith(STRUCTURED_LOG_PREFIX);
 };
 
@@ -98,6 +100,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
       refetchInterval: (query) => {
         const status = (query.state.data?.data as JobData | undefined)?.status;
         if (status && isTerminalStatus(status)) return false;
+
         return POLL_INTERVAL;
       },
     },

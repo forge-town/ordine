@@ -19,6 +19,7 @@ const createTestStore = () => {
   store.setState({
     contextMenu: { screenX: 200, screenY: 200, flowX: 100, flowY: 100 },
   });
+
   return store;
 };
 

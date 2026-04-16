@@ -5,12 +5,14 @@ export const bestPracticesRoutes = new Hono();
 
 bestPracticesRoutes.get("/", async (c) => {
   const practices = await bestPracticesService.getAll();
+
   return c.json(practices);
 });
 
 bestPracticesRoutes.post("/", async (c) => {
   const body = await c.req.json();
   const practice = await bestPracticesService.create(body);
+
   return c.json(practice, 201);
 });
 
@@ -20,9 +22,11 @@ bestPracticesRoutes.put("/", async (c) => {
   if (existing) {
     const { id: _, ...patch } = body;
     const updated = await bestPracticesService.update(body.id, patch);
+
     return c.json(updated);
   }
   const practice = await bestPracticesService.create(body);
+
   return c.json(practice, 201);
 });
 
@@ -34,6 +38,7 @@ bestPracticesRoutes.get("/export", async (c) => {
         checklistService.getItemsByBestPracticeId(bp.id),
         codeSnippetsService.getByBestPracticeId(bp.id),
       ]);
+
       return {
         ...bp,
         checklistItems: items.map((item) => ({
@@ -54,6 +59,7 @@ bestPracticesRoutes.get("/export", async (c) => {
       };
     }),
   );
+
   return c.json(result);
 });
 
@@ -104,7 +110,9 @@ bestPracticesRoutes.post("/import", async (c) => {
 bestPracticesRoutes.get("/:id", async (c) => {
   const id = c.req.param("id");
   const practice = await bestPracticesService.getById(id);
-  if (!practice) return c.json({ error: "Best practice not found" }, 404);
+  if (!practice)
+ return c.json({ error: "Best practice not found" }, 404);
+
   return c.json(practice);
 });
 
@@ -112,13 +120,16 @@ bestPracticesRoutes.patch("/:id", async (c) => {
   const id = c.req.param("id");
   const body = await c.req.json();
   const practice = await bestPracticesService.update(id, body);
+
   return c.json(practice);
 });
 
 bestPracticesRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");
   const existing = await bestPracticesService.getById(id);
-  if (!existing) return c.json({ error: "Best practice not found" }, 404);
+  if (!existing)
+ return c.json({ error: "Best practice not found" }, 404);
   await bestPracticesService.delete(id);
+
   return c.body(null, 204);
 });

@@ -24,6 +24,7 @@ test.describe("Rules Page", () => {
 
     if (cardCount === 0) {
       test.skip(true, "No rules in database, nothing to verify");
+
       return;
     }
 

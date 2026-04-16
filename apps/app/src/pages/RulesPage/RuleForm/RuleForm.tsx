@@ -67,6 +67,7 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
     setForm((prev) => {
       const current = prev.acceptedObjectTypes;
       const next = current.includes(type) ? current.filter((t) => t !== type) : [...current, type];
+
       return { ...prev, acceptedObjectTypes: next };
     });
   };
@@ -154,6 +155,7 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
         <div className="flex gap-2">
           {OBJECT_TYPES.map((type) => {
             const active = form.acceptedObjectTypes.includes(type);
+
             return (
               <button
                 key={type}

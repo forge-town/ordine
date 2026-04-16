@@ -33,12 +33,14 @@ export const RulesPageContent = () => {
     if (categoryFilter !== "all" && r.category !== categoryFilter) return false;
     if (search) {
       const q = search.toLowerCase();
+
       return (
         r.name.toLowerCase().includes(q) ||
         (r.description?.toLowerCase().includes(q) ?? false) ||
         r.tags.some((t) => t.toLowerCase().includes(q))
       );
     }
+
     return true;
   });
 

@@ -96,5 +96,6 @@ export const useSettingsStore = (): SettingsStore => {
   if (!context) {
     throw new Error("useSettingsStore must be used within a SettingsStoreProvider");
   }
+
   return context;
 };

@@ -80,6 +80,7 @@ export const OperationsPageContent = () => {
     .filter((op: OperationRecord) => {
       const q = searchQuery.trim().toLowerCase();
       if (!q) return true;
+
       return op.name.toLowerCase().includes(q) || (op.description ?? "").toLowerCase().includes(q);
     })
     .sort((a: OperationRecord, b: OperationRecord) => {
@@ -153,6 +154,7 @@ export const OperationsPageContent = () => {
       });
       setImporting(false);
       e.target.value = "";
+
       return;
     }
     const parsed = parseResult.value;
@@ -164,6 +166,7 @@ export const OperationsPageContent = () => {
       });
       setImporting(false);
       e.target.value = "";
+
       return;
     }
     const result = await createOpMutate({
@@ -341,6 +344,7 @@ export const OperationsPageContent = () => {
                       const config = OBJECT_TYPE_OPTIONS.find((o) => o.value === type);
                       if (!config) return null;
                       const Icon = config.icon;
+
                       return (
                         <span
                           key={type}

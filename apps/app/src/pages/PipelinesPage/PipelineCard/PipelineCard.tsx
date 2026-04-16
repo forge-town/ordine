@@ -26,6 +26,7 @@ const formatRelativeTime = (ts: Date): string => {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours} 小时前`;
   const days = Math.floor(hours / 24);
+
   return `${days} 天前`;
 };
 
@@ -43,6 +44,7 @@ export const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) 
   const typeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     const t = n.type ?? "unknown";
     acc[t] = (acc[t] ?? 0) + 1;
+
     return acc;
   }, {});
 
@@ -109,7 +111,7 @@ export const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) 
             key={type}
             className={cn(
               "rounded-full text-[11px]",
-              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground",
+              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground"
             )}
             variant="secondary"
           >

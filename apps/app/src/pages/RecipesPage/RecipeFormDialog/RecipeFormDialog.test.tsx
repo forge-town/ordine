@@ -56,7 +56,7 @@ describe("RecipeFormDialog", () => {
         operations={mockOperations}
         onClose={handleClose}
         onSave={handleSave}
-      />,
+      />
     );
     expect(screen.getByText("新增配方")).toBeInTheDocument();
   });
@@ -71,7 +71,7 @@ describe("RecipeFormDialog", () => {
         operations={mockOperations}
         onClose={handleClose}
         onSave={handleSave}
-      />,
+      />
     );
     expect(screen.getByText("编辑配方")).toBeInTheDocument();
   });
@@ -85,7 +85,7 @@ describe("RecipeFormDialog", () => {
         operations={mockOperations}
         onClose={handleClose}
         onSave={handleSave}
-      />,
+      />
     );
     const closeBtn = screen.getByRole("button", { name: "" });
     closeBtn.click();

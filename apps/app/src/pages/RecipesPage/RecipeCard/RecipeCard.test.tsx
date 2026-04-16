@@ -48,7 +48,7 @@ describe("RecipeCard", () => {
         recipe={mockRecipe}
         onDelete={handleDelete}
         onEdit={handleEdit}
-      />,
+      />
     );
     expect(screen.getByText("Check ClassName 规范")).toBeInTheDocument();
   });
@@ -63,7 +63,7 @@ describe("RecipeCard", () => {
         recipe={mockRecipe}
         onDelete={handleDelete}
         onEdit={handleEdit}
-      />,
+      />
     );
     expect(screen.getByText("Check")).toBeInTheDocument();
     expect(screen.getByText("ClassName 转换规则")).toBeInTheDocument();
@@ -79,7 +79,7 @@ describe("RecipeCard", () => {
         recipe={mockRecipe}
         onDelete={handleDelete}
         onEdit={handleEdit}
-      />,
+      />
     );
     expect(screen.getByText("检查 className 模板字符串")).toBeInTheDocument();
   });

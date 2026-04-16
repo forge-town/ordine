@@ -14,6 +14,7 @@ export const filesystemRouter = router({
           message: result.error.message,
         });
       }
+
       return result.value;
     }),
 });

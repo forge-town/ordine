@@ -131,6 +131,7 @@ export const createHistorySlice = (
 
     set((s) => {
       const history = [...s._history.slice(-(s._maxHistory - 1)), entry];
+
       return {
         nodes: next.nodes,
         edges: next.edges,

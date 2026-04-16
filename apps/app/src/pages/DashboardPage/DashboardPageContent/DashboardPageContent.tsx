@@ -129,6 +129,7 @@ export const DashboardPageContent = () => {
               },
             ].map((a) => {
               const Icon = a.icon;
+
               return (
                 <Link key={a.to} to={a.to as "/"}>
                   <div className="group flex cursor-pointer flex-col gap-2 rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm">

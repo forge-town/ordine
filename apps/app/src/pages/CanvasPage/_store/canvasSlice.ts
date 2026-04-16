@@ -36,6 +36,7 @@ export const sortParentBeforeChildren = (nodes: PipelineNode[]): void => {
   nodes.sort((a, b) => {
     if (a.id === b.parentId) return -1;
     if (b.id === a.parentId) return 1;
+
     return 0;
   });
 };

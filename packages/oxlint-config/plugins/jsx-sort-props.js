@@ -10,6 +10,7 @@ function propName(prop) {
   if (prop.name.type === "JSXNamespacedName") {
     return `${prop.name.namespace.name}:${prop.name.name.name}`;
   }
+
   return prop.name.name;
 }
 
@@ -23,13 +24,16 @@ function elementType(node) {
       if (member.type === "JSXMemberExpression") {
         return `${memberName(member.object)}.${member.property.name}`;
       }
+
       return member.name;
     };
+
     return memberName(name);
   }
   if (name.type === "JSXNamespacedName") {
     return `${name.namespace.name}:${name.name.name}`;
   }
+
   return "";
 }
 
@@ -90,6 +94,7 @@ function getSortFirstIndex(name, sortFirstList, ignoreCase) {
       return i;
     }
   }
+
   return -1;
 }
 
@@ -98,6 +103,7 @@ let attributeMap;
 
 function shouldSortToEnd(node) {
   const attr = attributeMap.get(node);
+
   return !!attr && !!attr.hasComment;
 }
 
@@ -129,6 +135,7 @@ function contextCompare(a, b, options) {
       if (aSortFirstIndex !== bSortFirstIndex) {
         return aSortFirstIndex - bSortFirstIndex;
       }
+
       return 0;
     }
     if (aSortFirstIndex >= 0 && bSortFirstIndex < 0) {
@@ -192,6 +199,7 @@ function contextCompare(a, b, options) {
   if (options.ignoreCase) {
     aProp = aProp.toLowerCase();
     bProp = bProp.toLowerCase();
+
     return aProp.localeCompare(bProp, actualLocale);
   }
   if (aProp === bProp) {
@@ -200,6 +208,7 @@ function contextCompare(a, b, options) {
   if (options.locale === "auto") {
     return aProp < bProp ? -1 : 1;
   }
+
   return aProp.localeCompare(bProp, actualLocale);
 }
 
@@ -219,7 +228,7 @@ function getGroupsOfSortableAttributes(attributes, context) {
     let comment = [];
     try {
       comment = sourceCode.getCommentsAfter(attribute);
-    } catch (_e) {
+    } catch {
       // getCommentsAfter may not be available in all environments
     }
     const lastAttr = attributes[i - 1];
@@ -297,11 +306,12 @@ function getGroupsOfSortableAttributes(attributes, context) {
       }
     }
   }
+
   return sortableAttributeGroups;
 }
 
 function generateFixerFunction(node, context, reservedList) {
-  const attributes = node.attributes.slice(0);
+  const attributes = [...node.attributes];
   const configuration = context.options[0] || {};
   const ignoreCase = configuration.ignoreCase || false;
   const callbacksLast = configuration.callbacksLast || false;
@@ -330,8 +340,7 @@ function generateFixerFunction(node, context, reservedList) {
     attributes,
     context,
   );
-  const sortedAttributeGroups = sortableAttributeGroups
-    .slice(0)
+  const sortedAttributeGroups = [...sortableAttributeGroups]
     .map((group) => [...group].sort((a, b) => contextCompare(a, b, options)));
 
   return function fixFunction(fixer) {
@@ -356,7 +365,7 @@ function generateFixerFunction(node, context, reservedList) {
     fixers.sort((a, b) => b.range[0] - a.range[0]);
 
     const firstFixer = fixers[0];
-    const lastFixer = fixers[fixers.length - 1];
+    const lastFixer = fixers.at(-1);
     const rangeStart = lastFixer ? lastFixer.range[0] : 0;
     const rangeEnd = firstFixer ? firstFixer.range[1] : 0;
 
@@ -519,8 +528,10 @@ const jsxSortPropsRule = {
                   context,
                   nodeReservedList,
                 );
+
                 return memo;
               }
+
               return decl;
             }
 
@@ -536,6 +547,7 @@ const jsxSortPropsRule = {
                 context,
                 nodeReservedList,
               );
+
               return memo;
             }
           }
@@ -548,6 +560,7 @@ const jsxSortPropsRule = {
           if (reservedFirst) {
             if (reservedFirstError) {
               reservedFirstError(decl);
+
               return memo;
             }
 
@@ -571,6 +584,7 @@ const jsxSortPropsRule = {
                 context,
                 nodeReservedList,
               );
+
               return memo;
             }
           }
@@ -587,6 +601,7 @@ const jsxSortPropsRule = {
                 context,
                 nodeReservedList,
               );
+
               return memo;
             }
           }
@@ -603,6 +618,7 @@ const jsxSortPropsRule = {
                 context,
                 nodeReservedList,
               );
+
               return memo;
             }
           }
@@ -619,6 +635,7 @@ const jsxSortPropsRule = {
                 context,
                 nodeReservedList,
               );
+
               return memo;
             }
           }
@@ -638,6 +655,7 @@ const jsxSortPropsRule = {
                 context,
                 nodeReservedList,
               );
+
               return memo;
             }
           } else if (multiline === "last") {
@@ -652,6 +670,7 @@ const jsxSortPropsRule = {
                 context,
                 nodeReservedList,
               );
+
               return memo;
             }
           }
@@ -672,6 +691,7 @@ const jsxSortPropsRule = {
               context,
               nodeReservedList,
             );
+
             return memo;
           }
 

@@ -34,6 +34,7 @@ export const operationsRouter = router({
     )
     .mutation(({ input }) => {
       const { id, ...rest } = input;
+
       return operationsService.update(id, rest);
     }),
 

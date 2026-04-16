@@ -20,6 +20,7 @@ const safeRemoveItem = Result.fromThrowable(
 
 const readToken = (): string | null => {
   const result = safeGetItem(STORAGE_KEY);
+
   return result.isOk() ? result.value : null;
 };
 

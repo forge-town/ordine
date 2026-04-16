@@ -78,6 +78,7 @@ const GitHubTokenDialogContent = ({
     setVerifyError(null);
   };
   const handleToggleShowToken = () => setShowToken((v) => !v);
+
   return (
     <DialogContent className="max-w-lg">
       <DialogHeader>

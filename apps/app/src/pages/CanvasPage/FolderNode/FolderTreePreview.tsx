@@ -53,6 +53,7 @@ export const FolderTreePreview = ({
       {entries.map((entry) => {
         const isExcluded = excludedPaths.includes(entry.name);
         const handleExclude = () => onExclude(entry.name);
+
         return (
           <div
             key={entry.name}

@@ -10,6 +10,7 @@ export type PipelineRowProps = {
 
 export const PipelineRow = ({ pipeline, selected, onSelect }: PipelineRowProps) => {
   const handleSelect = () => onSelect();
+
   return (
     <button
       className={cn(

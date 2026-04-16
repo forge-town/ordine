@@ -22,6 +22,7 @@ export const getGitHubHeaders = (token?: string | null): HeadersInit => {
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
+
   return headers;
 };
 
@@ -47,6 +48,7 @@ export const verifyGitHubToken = async (token: string | null): Promise<GitHubTok
 
   if (res.ok) {
     const data = await res.json();
+
     return { valid: true, login: data.login as string };
   }
 
@@ -70,6 +72,7 @@ export const verifyGitHubToken = async (token: string | null): Promise<GitHubTok
         error: `RATE_LIMIT:${t("github.rateLimit")}`,
       };
     }
+
     return { valid: false, error: `AUTH_FAILED:${t("github.tokenInsufficient")}` };
   }
 
@@ -136,6 +139,7 @@ export const fetchRepoInfo = (
       ).map((repoData) => {
         const defaultBranch = repoData.default_branch as string;
         const targetBranch = branchHint ?? defaultBranch;
+
         return {
           owner,
           repo,

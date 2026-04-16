@@ -7,6 +7,7 @@ import { CanvasFlow } from "./CanvasFlow";
 
 vi.mock("@xyflow/react", async (importOriginal) => {
   const actual = await importOriginal<typeof XyFlowReact>();
+
   return {
     ...actual,
     ReactFlow: ({ children }: React.PropsWithChildren) => (

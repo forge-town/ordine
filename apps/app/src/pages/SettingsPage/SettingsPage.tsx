@@ -8,6 +8,7 @@ const loadInitialSettings = (): Partial<AppSettings> | undefined => {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return undefined;
   const result = safeJsonParse<Partial<AppSettings>>(raw);
+
   return result.isOk() ? result.value : undefined;
 };
 

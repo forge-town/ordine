@@ -280,7 +280,7 @@ describe("executePipeline", () => {
       );
       expect(result.ok).toBe(true);
       expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ skillId: "sk-3" }));
-      const callArgs = (deps.runSkill as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const callArgs = (deps.runSkill as ReturnType<typeof vi.fn>).mock.calls[0]![0];
       expect(callArgs.agent).toBeUndefined();
     });
 

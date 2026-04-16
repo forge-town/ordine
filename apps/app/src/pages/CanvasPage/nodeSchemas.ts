@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
-import type { OperationRecord } from "@repo/db-schema";
-import { LLM_PROVIDERS } from "@repo/db-schema";
+import { LLM_PROVIDERS, type OperationRecord } from "@repo/db-schema";
 import {
   NodeRunStatusSchema,
   DisclosureModeSchema,
@@ -25,11 +24,12 @@ import {
   OBJECT_TYPES,
   OPERATION_TYPE,
   OUTPUT_TYPES,
+  type NodeType,
+  type DisclosureMode,
 } from "@repo/pipeline-engine";
-import type { NodeType } from "@repo/pipeline-engine";
 
 export { NodeRunStatusSchema, DisclosureModeSchema, OUTPUT_MODES };
-export type { DisclosureMode } from "@repo/pipeline-engine";
+export type { DisclosureMode };
 export type NodeRunStatus = z.infer<typeof NodeRunStatusSchema>;
 
 // ─── Node type sub-categories (re-exported from engine) ──────────────────────
@@ -114,7 +114,7 @@ export {
 export type { NodeConnectionRules } from "@repo/pipeline-engine";
 
 export const getAllowedConnections = (
-  _operations?: OperationRecord[],
+  _operations?: OperationRecord[]
 ): z.infer<typeof NodeConnectionRulesSchema> => NODE_CONNECTION_RULES;
 
 // ─── Default data factories ────────────────────────────────────────────────────

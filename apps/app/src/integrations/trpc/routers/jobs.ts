@@ -10,6 +10,10 @@ export const jobsRouter = router({
     .input(z.object({ id: z.string() }))
     .query(({ input }) => jobsService.getById(input.id)),
 
+  getLogs: publicProcedure
+    .input(z.object({ jobId: z.string() }))
+    .query(({ input }) => jobsService.getLogsByJobId(input.jobId)),
+
   create: publicProcedure
     .input(
       z.object({
@@ -32,12 +36,12 @@ export const jobsRouter = router({
           .number()
           .nullable()
           .default(null)
-          .transform((v) => (v != null ? new Date(v) : null)),
+          .transform((v) => (v == null ? null : new Date(v))),
         finishedAt: z
           .number()
           .nullable()
           .default(null)
-          .transform((v) => (v != null ? new Date(v) : null)),
+          .transform((v) => (v == null ? null : new Date(v))),
       }),
     )
     .mutation(({ input }) => jobsService.create(input)),
@@ -58,15 +62,16 @@ export const jobsRouter = router({
         startedAt: z
           .number()
           .optional()
-          .transform((v) => (v != null ? new Date(v) : undefined)),
+          .transform((v) => (v == null ? undefined : new Date(v))),
         finishedAt: z
           .number()
           .optional()
-          .transform((v) => (v != null ? new Date(v) : undefined)),
+          .transform((v) => (v == null ? undefined : new Date(v))),
       }),
     )
     .mutation(({ input }) => {
       const { id, status, ...extra } = input;
+
       return jobsService.updateStatus(id, status, extra);
     }),
 });

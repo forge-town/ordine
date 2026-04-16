@@ -130,6 +130,7 @@ export const FolderBrowser = ({
           {pathSegments.map((seg, i) => {
             const fullPath =
               displayPath === "~" ? undefined : "/" + pathSegments.slice(0, i + 1).join("/");
+
             return (
               <span key={`${seg}-${i}`} className="flex items-center gap-1">
                 <button

@@ -19,8 +19,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import type { JobRecord } from "@repo/db-schema";
-import type { JobStatus, JobType } from "@repo/db-schema";
+import type { JobRecord, JobStatus, JobType } from "@repo/db-schema";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/jobs.$jobId";
@@ -69,6 +68,7 @@ const getStatusLabel = (status: JobStatus, t: (key: string) => string): string =
     failed: t("jobs.statusFailed"),
     cancelled: t("jobs.statusCancelled"),
   };
+
   return statusMap[status];
 };
 
@@ -80,6 +80,7 @@ const getJobTypeLabel = (type: JobType, t: (key: string) => string): string => {
     file_scan: t("jobs.typeFileScan"),
     custom: t("jobs.typeCustom"),
   };
+
   return typeMap[type];
 };
 
@@ -135,7 +136,7 @@ export const JobDetailPageContent = () => {
         <span
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-            s.cls,
+            s.cls
           )}
         >
           <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />

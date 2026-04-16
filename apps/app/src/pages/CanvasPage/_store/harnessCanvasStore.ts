@@ -57,5 +57,6 @@ export const useHarnessCanvasStore = () => {
   if (!context) {
     throw new Error("useHarnessCanvasStore must be used within HarnessCanvasStoreProvider");
   }
+
   return context;
 };

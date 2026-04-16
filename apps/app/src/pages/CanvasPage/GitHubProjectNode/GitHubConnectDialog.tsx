@@ -46,6 +46,7 @@ export const GitHubConnectDialog = ({
     if (!parsed) {
       setError("无法解析 GitHub URL，请输入完整的仓库链接");
       setLoading(false);
+
       return;
     }
 

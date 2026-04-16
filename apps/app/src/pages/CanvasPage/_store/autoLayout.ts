@@ -42,6 +42,7 @@ const topoSort = (nodeIds: string[], edgeList: PipelineEdge[]): string[] => {
   for (const id of nodeIds) {
     if (!result.includes(id)) result.push(id);
   }
+
   return result;
 };
 
@@ -99,6 +100,7 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
     const expanded = compoundSizes.get(id);
     if (expanded) return expanded;
     const n = nodeMap.get(id);
+
     return {
       w: n?.measured?.width ?? DEFAULT_WIDTH,
       h: n?.measured?.height ?? DEFAULT_HEIGHT,
@@ -137,6 +139,7 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
       const best = preds.reduce(
         (acc, p) => {
           const d = dist.get(p) ?? 0;
+
           return d > acc.maxDist ? { maxDist: d, bestPred: p } : acc;
         },
         { maxDist: -1, bestPred: null as string | null }
@@ -149,6 +152,7 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
   const mainEnd = trunkOrder.reduce(
     (acc, id) => {
       const d = dist.get(id) ?? 0;
+
       return d > acc.maxD ? { id, maxD: d } : acc;
     },
     { id: trunkOrder[0], maxD: 0 }

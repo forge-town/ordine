@@ -8,6 +8,7 @@ export type MetaRowProps = {
 
 export const MetaRow = ({ label, value, mono }: MetaRowProps) => {
   if (!value) return null;
+
   return (
     <div className="flex items-start gap-3 py-2.5 border-b border-border last:border-0">
       <span className="w-24 shrink-0 text-xs text-muted-foreground">{label}</span>

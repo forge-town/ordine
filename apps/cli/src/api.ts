@@ -29,10 +29,12 @@ const request = async <T>(method: string, path: string, body?: unknown): Promise
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
+
     return { ok: false, status: res.status, message: text || res.statusText };
   }
 
   const data = (await res.json()) as T;
+
   return { ok: true, data };
 };
 

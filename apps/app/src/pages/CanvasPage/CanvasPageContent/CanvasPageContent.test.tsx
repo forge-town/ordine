@@ -11,6 +11,7 @@ const mockMutate = vi.fn();
 vi.mock("../components/CanvasInner", () => ({
   CanvasInner: () => {
     const handleClick = () => mockMutate();
+
     return (
       <div data-testid="canvas-inner">
         <div data-testid="canvas-flow" />

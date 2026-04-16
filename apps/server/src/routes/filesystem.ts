@@ -10,6 +10,7 @@ filesystemRoutes.get("/browse", async (c) => {
   if (result.isErr()) {
     const error = result.error;
     const status = error.type === "DirectoryNotFound" ? 404 : 400;
+
     return c.json({ error: error.message }, status);
   }
 
@@ -27,6 +28,7 @@ filesystemRoutes.get("/tree", async (c) => {
   if (result.isErr()) {
     const error = result.error;
     const status = error.type === "DirectoryNotFound" ? 404 : 400;
+
     return c.json({ error: error.message }, status);
   }
 

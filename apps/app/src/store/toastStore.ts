@@ -62,5 +62,6 @@ export const useToastStoreContext = (): StoreApi<ToastSlice> => {
   if (!context) {
     throw new Error("useToastStoreContext must be used within ToastStoreProvider");
   }
+
   return context;
 };

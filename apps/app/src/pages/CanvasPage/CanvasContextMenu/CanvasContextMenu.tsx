@@ -67,7 +67,6 @@ export const CanvasContextMenu = () => {
 
     const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
     if (!sourceNode) return [...OBJECT_TYPES, "operation"] as NodeType[];
-
     // Return allowed target types for the source node
     return allowedConnections[sourceNode.type] ?? [];
   })();
@@ -87,10 +86,9 @@ export const CanvasContextMenu = () => {
     };
     const objectType = objectTypeMap[sourceNode.type];
     if (!objectType) return operations;
-
     // Only show operations that accept this object type
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project"),
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
     );
   })();
 
@@ -124,12 +122,13 @@ export const CanvasContextMenu = () => {
   const sourceNodeInfo = (() => {
     if (!connectStart) return null;
     const node = nodes.find((n) => n.id === connectStart.nodeId);
+
     return node ? { type: node.type, label: nodeTypeMeta[node.type].label } : null;
   })();
 
   // Filter object types based on available connections
   const visibleObjectTypes = OBJECT_TYPES.filter((t) =>
-    isConnectMode ? availableTypes.includes(t) : true,
+    isConnectMode ? availableTypes.includes(t) : true
   );
 
   const virtualAnchor = {
@@ -171,11 +170,12 @@ export const CanvasContextMenu = () => {
             <span
               className={cn(
                 "flex size-4 shrink-0 items-center justify-center rounded",
-                nodeTypeMeta[sourceNodeInfo.type].iconBg,
+                nodeTypeMeta[sourceNodeInfo.type].iconBg
               )}
             >
               {(() => {
                 const Icon = TYPE_ICONS[sourceNodeInfo.type];
+
                 return <Icon className="size-2.5 text-white" />;
               })()}
             </span>
@@ -193,6 +193,7 @@ export const CanvasContextMenu = () => {
             {visibleObjectTypes.map((type) => {
               const Icon = TYPE_ICONS[type];
               const typeMeta = nodeTypeMeta[type];
+
               return (
                 <ContextMenuItem
                   key={type}
@@ -202,7 +203,7 @@ export const CanvasContextMenu = () => {
                   <span
                     className={cn(
                       "flex size-4 shrink-0 items-center justify-center rounded",
-                      typeMeta.iconBg,
+                      typeMeta.iconBg
                     )}
                   >
                     <Icon className="size-2.5 text-white" />
@@ -283,6 +284,7 @@ export const CanvasContextMenu = () => {
           </ContextMenuItem>
           {(() => {
             if (selectedIds.length < 2) return null;
+
             return (
               <ContextMenuItem closeOnClick={false} onClick={handleGroupSelected}>
                 <span className="flex size-4 shrink-0 items-center justify-center rounded bg-indigo-500">

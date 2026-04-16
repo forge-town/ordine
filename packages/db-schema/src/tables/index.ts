@@ -3,6 +3,7 @@ export * from "./checklist_items_table";
 export * from "./checklist_results_table";
 export * from "./code_snippets_table";
 export * from "./github_projects_table";
+export * from "./job_logs_table";
 export * from "./jobs_table";
 export * from "./operations_table";
 export * from "./pipelines_table";

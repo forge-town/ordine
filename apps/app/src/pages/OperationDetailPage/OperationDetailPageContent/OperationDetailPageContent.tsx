@@ -51,6 +51,7 @@ const parseConfig = (raw: string): OperationConfig => {
   const result = safeJsonParse<Partial<OperationConfig>>(raw);
   if (result.isErr()) return { inputs: [], outputs: [] };
   const parsed = result.value;
+
   return {
     executor: parsed.executor,
     inputs: Array.isArray(parsed.inputs) ? parsed.inputs : [],
@@ -67,6 +68,7 @@ const normalizeExecutor = (executor: ExecutorConfig): ExecutorConfig => {
       type: "agent",
     };
   }
+
   return executor;
 };
 
@@ -77,6 +79,7 @@ const ExecutorCard = ({ executor: raw }: { executor: ExecutorConfig }) => {
   const modeLabel = executor.agentMode ? AGENT_MODE_LABEL[executor.agentMode] : undefined;
   const label = EXECUTOR_LABEL[executor.type] ?? executor.type;
   const displayLabel = modeLabel ? `${label} · ${modeLabel}` : label;
+
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <SectionHeader icon={Icon} label={`执行方式 · ${displayLabel}`} />
@@ -190,6 +193,7 @@ export const OperationDetailPageContent = () => {
             <div className="flex flex-wrap gap-1.5">
               {operation.acceptedObjectTypes.map((type) => {
                 const Icon = OBJECT_TYPE_ICONS[type];
+
                 return (
                   <span
                     key={type}

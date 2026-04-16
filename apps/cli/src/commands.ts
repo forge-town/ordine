@@ -41,6 +41,7 @@ const formatDuration = (ms: number): string => {
   const seconds = Math.floor(ms / 1000);
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
+
   return minutes > 0 ? `${minutes}m ${remainingSeconds}s` : `${remainingSeconds}s`;
 };
 
@@ -54,6 +55,7 @@ export const listPipelines = async (): Promise<void> => {
   const pipelines = result.data;
   if (pipelines.length === 0) {
     console.log("No pipelines found.");
+
     return;
   }
 
@@ -83,7 +85,8 @@ export const runPipeline = async (
   const { jobId } = result.data;
   console.log(`Job created: ${jobId}`);
 
-  if (options.follow === false) return;
+  if (options.follow === false)
+ return;
 
   await pollJob(jobId);
 };
@@ -124,10 +127,12 @@ const pollJob = async (jobId: string): Promise<void> => {
       } else {
         console.log(`Pipeline cancelled after ${elapsed}`);
       }
+
       return;
     }
 
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+
     return poll();
   };
 

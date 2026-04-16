@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/oxlint/configuration_schema.json",
-  "jsPlugins": ["./plugins/jsx-sort-props.js", "./plugins/no-let.js"],
+  "jsPlugins": ["./plugins/jsx-sort-props.js", "./plugins/no-let.js", "./plugins/newline-before-return.js"],
   "rules": {
     "ordine/jsx-sort-props": [
       "error",
@@ -20,6 +20,7 @@
     "no-var": "error",
     "prefer-const": "error",
     "ordine-vars/no-let": "error",
+    "ordine-return/newline-before-return": "error",
     "consistent-type-exports": "error",
     "func-style": ["warn", "expression", { "allowArrowFunctions": true }],
 

@@ -93,6 +93,7 @@ export const AppSidebar = () => {
                 const label = t(item.labelKey);
                 const isActive =
                   currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
+
                 return (
                   <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton

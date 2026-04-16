@@ -44,7 +44,7 @@ describe("PracticeCard", () => {
   it("does not show code snippet toggle when codeSnippet is empty", () => {
     const handleDelete = vi.fn();
     render(
-      <PracticeCard practice={{ ...mockPractice, codeSnippet: "" }} onDelete={handleDelete} />,
+      <PracticeCard practice={{ ...mockPractice, codeSnippet: "" }} onDelete={handleDelete} />
     );
     expect(screen.queryByText("代码片段")).not.toBeInTheDocument();
   });

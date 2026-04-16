@@ -424,6 +424,7 @@ export const BestPracticeEditPageContent = ({
                       if (v) field.onChange(v);
                       setCategoryOpen(false);
                     };
+
                     return (
                       <FormItem>
                         <FormLabel className="text-xs font-medium text-muted-foreground">
@@ -464,6 +465,7 @@ export const BestPracticeEditPageContent = ({
                       if (v) field.onChange(v);
                       setLanguageOpen(false);
                     };
+
                     return (
                       <FormItem>
                         <FormLabel className="text-xs font-medium text-muted-foreground">

@@ -24,6 +24,7 @@ export type ObjectRowProps = {
 export const ObjectRow = ({ item, selected, onToggle }: ObjectRowProps) => {
   const Icon = OBJECT_ICONS[item.type];
   const handleToggle = () => onToggle();
+
   return (
     <button
       className={cn(

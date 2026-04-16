@@ -21,6 +21,8 @@ const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
   e.target.value = "";
 };
 
+const handleSave = (_p: BestPracticeRecord) => {};
+
 export const BestPracticesPageContent = () => {
   const { t } = useTranslation();
   const { result: practicesResult } = useList<BestPracticeRecord>({
@@ -40,10 +42,9 @@ export const BestPracticesPageContent = () => {
       p.title.toLowerCase().includes(q) ||
       p.condition.toLowerCase().includes(q) ||
       p.tags.some((t) => t.toLowerCase().includes(q));
+
     return matchCat && matchSearch;
   });
-
-  const handleSave = (_p: BestPracticeRecord) => {};
 
   const handleDelete = (id: string) => {
     deleteBpMutate({ resource: ResourceName.bestPractices, id });

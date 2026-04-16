@@ -23,6 +23,7 @@ vi.mock("@tanstack/react-router", () => ({
     const href = search
       ? `${to ?? "#"}?${new URLSearchParams(Object.entries(search).map(([k, v]) => [k, String(v)])).toString()}`
       : (to ?? "#");
+
     return (
       <a href={href} {...props}>
         {children}
@@ -86,7 +87,7 @@ describe("PipelineDetailPageContent", () => {
       <PipelineDetailPageContent
         operations={ops}
         pipeline={makePipeline({ tags: ["ci", "lint"] })}
-      />,
+      />
     );
     expect(screen.getByText("ci")).toBeInTheDocument();
     expect(screen.getByText("lint")).toBeInTheDocument();

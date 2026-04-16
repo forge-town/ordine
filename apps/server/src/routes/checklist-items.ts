@@ -9,6 +9,7 @@ checklistItemsRoutes.get("/", async (c) => {
     return c.json({ error: "bestPracticeId query param is required" }, 400);
   }
   const items = await checklistService.getItemsByBestPracticeId(bestPracticeId);
+
   return c.json(items);
 });
 
@@ -18,9 +19,11 @@ checklistItemsRoutes.put("/", async (c) => {
   if (existing) {
     const { id: _, bestPracticeId: __, ...patch } = body;
     const updated = await checklistService.updateItem(body.id, patch);
+
     return c.json(updated);
   }
   const item = await checklistService.createItem(body);
+
   return c.json(item, 201);
 });
 
@@ -30,5 +33,6 @@ checklistItemsRoutes.delete("/", async (c) => {
     return c.json({ error: "id query param is required" }, 400);
   }
   await checklistService.deleteItem(id);
+
   return c.json({ deleted: id });
 });

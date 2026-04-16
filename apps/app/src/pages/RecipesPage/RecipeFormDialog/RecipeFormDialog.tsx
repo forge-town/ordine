@@ -157,6 +157,7 @@ export const RecipeFormDialog = ({
                   field.onChange(v);
                   setOperationOpen(false);
                 };
+
                 return (
                   <FormItem>
                     <FormLabel className="text-xs font-medium text-muted-foreground">
@@ -197,6 +198,7 @@ export const RecipeFormDialog = ({
                   field.onChange(v);
                   setBestPracticeOpen(false);
                 };
+
                 return (
                   <FormItem>
                     <FormLabel className="text-xs font-medium text-muted-foreground">

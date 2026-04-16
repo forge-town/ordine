@@ -10,6 +10,8 @@ import { Input } from "@repo/ui/input";
 import { CreateProjectDialog } from "../CreateProjectDialog";
 import { ProjectCard } from "../ProjectCard";
 
+const handleCreateProject = (_p: GithubProjectRecord) => {};
+
 export const ProjectsPageContent = () => {
   const { t } = useTranslation();
   const { result: projectsResult } = useList<GithubProjectRecord>({
@@ -36,7 +38,6 @@ export const ProjectsPageContent = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
   const handleShowCreate = () => setShowCreate(true);
   const handleHideCreate = () => setShowCreate(false);
-  const handleCreateProject = (_p: GithubProjectRecord) => {};
   const handleProjectClick = (projectId: string) => () =>
     void navigate({
       to: "/projects/$projectId",

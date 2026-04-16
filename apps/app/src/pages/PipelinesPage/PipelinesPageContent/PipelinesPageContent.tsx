@@ -14,7 +14,8 @@ import { PipelineCard } from "../PipelineCard";
 export const PipelinesPageContent = () => {
   const { t } = useTranslation();
   const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
-  const pipelines = pipelinesResult?.data ?? [];
+  const pipelinesData = pipelinesResult?.data;
+  const pipelines = pipelinesData ?? [];
   const [search, setSearch] = React.useState("");
   const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
   const navigate = useNavigate();
@@ -22,36 +23,41 @@ export const PipelinesPageContent = () => {
   const { mutate: deletePipelineMutate } = useDelete();
 
   const allTags = React.useMemo(() => {
+    const items = pipelinesData ?? [];
     const tagSet = new Set<string>();
-    for (const p of pipelines) {
+    for (const p of items) {
       for (const tag of p.tags) tagSet.add(tag);
     }
+
     return [...tagSet].sort();
-  }, [pipelines]);
+  }, [pipelinesData]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
   const handleClearSearch = () => setSearch("");
 
   const handleTagClick = (tag: string) => () => {
     setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
 
   const handleClearTags = () => setSelectedTags([]);
 
   const filtered = React.useMemo(() => {
+    const items = pipelinesData ?? [];
     const q = search.toLowerCase();
-    return pipelines.filter((p: PipelineEntity) => {
+
+    return items.filter((p: PipelineEntity) => {
       const matchesSearch =
         !q ||
         p.name.toLowerCase().includes(q) ||
         (p.description ?? "").toLowerCase().includes(q) ||
         p.id.toLowerCase().includes(q);
       const matchesTags = selectedTags.every((tag) => p.tags.includes(tag));
+
       return matchesSearch && matchesTags;
     });
-  }, [pipelines, search, selectedTags]);
+  }, [pipelinesData, search, selectedTags]);
 
   const openPipeline = (id: string) => {
     void navigate({ to: "/canvas", search: { id } });
@@ -158,7 +164,7 @@ export const PipelinesPageContent = () => {
                   "cursor-pointer select-none text-[11px] transition-colors",
                   selectedTags.includes(tag)
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80",
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
                 variant="secondary"
                 onClick={handleTagClick(tag)}

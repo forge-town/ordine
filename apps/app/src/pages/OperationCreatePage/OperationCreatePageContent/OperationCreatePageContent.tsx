@@ -61,6 +61,7 @@ const buildConfig = (values: CreateFormValues): string => {
         },
       });
     }
+
     return JSON.stringify({
       executor: {
         type: "agent",
@@ -69,6 +70,7 @@ const buildConfig = (values: CreateFormValues): string => {
       },
     });
   }
+
   return JSON.stringify({
     executor: {
       type: "script",
@@ -83,8 +85,10 @@ type CreateFormValues = z.infer<typeof createFormSchema>;
 const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[] => {
   if (current.includes(type)) {
     if (current.length === 1) return current;
+
     return current.filter((t) => t !== type);
   }
+
   return [...current, type];
 };
 
@@ -260,6 +264,7 @@ export const OperationCreatePageContent = () => {
                 name="acceptedObjectTypes"
                 render={({ field }) => {
                   const handleChange = field.onChange;
+
                   return (
                     <FormItem>
                       <FormLabel className="text-xs font-medium text-muted-foreground">
@@ -269,6 +274,7 @@ export const OperationCreatePageContent = () => {
                         <div className="flex gap-2">
                           {OBJECT_TYPE_OPTIONS.map(({ value, label, icon: Icon }) => {
                             const selected = field.value.includes(value);
+
                             return (
                               <button
                                 key={value}
@@ -306,10 +312,12 @@ export const OperationCreatePageContent = () => {
                   name="executorType"
                   render={({ field }) => {
                     const handleChange = field.onChange;
+
                     return (
                       <div className="flex gap-2">
                         {EXECUTOR_TYPE_OPTIONS.map(({ value, label, icon: Icon, description }) => {
                           const selected = field.value === value;
+
                           return (
                             <button
                               key={value}
@@ -345,10 +353,12 @@ export const OperationCreatePageContent = () => {
                       name="agentMode"
                       render={({ field }) => {
                         const handleChange = field.onChange;
+
                         return (
                           <div className="flex gap-2">
                             {AGENT_MODE_OPTIONS.map(({ value, label, icon: Icon, description }) => {
                               const selected = field.value === value;
+
                               return (
                                 <button
                                   key={value}
@@ -383,6 +393,7 @@ export const OperationCreatePageContent = () => {
                             if (v) field.onChange(v);
                             setSkillOpen(false);
                           };
+
                           return (
                             <FormItem>
                               <FormLabel className="text-xs font-medium text-muted-foreground">
@@ -470,6 +481,7 @@ export const OperationCreatePageContent = () => {
                           if (v) field.onChange(v);
                           setScriptLangOpen(false);
                         };
+
                         return (
                           <FormItem>
                             <FormLabel className="text-xs font-medium text-muted-foreground">

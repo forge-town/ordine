@@ -9,6 +9,8 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import { RecipeFormDialog } from "../RecipeFormDialog";
 import { RecipeCard } from "../RecipeCard";
 
+const handleSave = (_r: RecipeRecord) => {};
+
 export const RecipesPageContent = () => {
   const { t } = useTranslation();
   const { result: recipesResult } = useList<RecipeRecord>({ resource: ResourceName.recipes });
@@ -29,10 +31,9 @@ export const RecipesPageContent = () => {
   const filtered = recipes.filter((r: RecipeRecord) => {
     const q = search.toLowerCase();
     if (!q) return true;
+
     return r.name.toLowerCase().includes(q) || (r.description ?? "").toLowerCase().includes(q);
   });
-
-  const handleSave = (_r: RecipeRecord) => {};
 
   const handleDelete = (id: string) => {
     deleteRecipeMutate({ resource: ResourceName.recipes, id });

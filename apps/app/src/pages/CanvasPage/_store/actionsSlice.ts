@@ -26,7 +26,7 @@ export interface ActionsSlice {
   handleFlowConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void;
   handleFlowConnectEnd: (
     event: MouseEvent | TouchEvent,
-    connectionState: FinalConnectionState,
+    connectionState: FinalConnectionState
   ) => void;
   handleFlowNodeClick: (event: React.MouseEvent, node: PipelineNode) => void;
   handleFlowNodeContextMenu: (event: React.MouseEvent, node: PipelineNode) => void;
@@ -37,7 +37,7 @@ export interface ActionsSlice {
   handleFlowNodeDragStop: (
     event: React.MouseEvent,
     node: PipelineNode,
-    nodes: PipelineNode[],
+    nodes: PipelineNode[]
   ) => void;
 
   // Cross-slice semantic actions
@@ -82,7 +82,7 @@ export interface ActionsSlice {
 
 export const createActionsSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
-  get: Parameters<HarnessCanvasStoreSlice>[1],
+  get: Parameters<HarnessCanvasStoreSlice>[1]
 ): ActionsSlice => ({
   exportCanvas: () => {
     const state = get();
@@ -172,6 +172,7 @@ export const createActionsSlice = (
       const ch = (cn.style?.height as number) ?? cn.measured?.height ?? 120;
       const cx = cn.position.x;
       const cy = cn.position.y;
+
       return position.x >= cx && position.x <= cx + cw && position.y >= cy && position.y <= cy + ch;
     });
     get().setHoveredCompound(foundCompound?.id ?? null);
@@ -208,6 +209,7 @@ export const createActionsSlice = (
   handleFlowConnectEnd: (event, connectionState) => {
     if (connectionState.isValid === true) {
       get().handleConnectStart(null);
+
       return;
     }
 
@@ -235,6 +237,7 @@ export const createActionsSlice = (
       setTimeout(() => {
         set({ shouldIgnorePaneClick: false });
       }, 100);
+
       return;
     }
 
@@ -305,6 +308,7 @@ export const createActionsSlice = (
         title: t("canvas.runFailed"),
         description: t("canvas.noPipelineId"),
       });
+
       return;
     }
 
@@ -320,7 +324,7 @@ export const createActionsSlice = (
           edges: edges as unknown[],
         },
       }),
-      () => "save-failed" as const,
+      () => "save-failed" as const
     );
 
     if (saveResult.isErr()) {
@@ -330,12 +334,13 @@ export const createActionsSlice = (
         description: t("canvas.saveFailed"),
       });
       set({ isRunning: false });
+
       return;
     }
 
     const runResult = await ResultAsync.fromPromise(
       trpcClient.pipelines.run.mutate({ id: pipelineId }),
-      () => "Failed to start pipeline",
+      () => "Failed to start pipeline"
     );
 
     runResult.match(
@@ -353,7 +358,7 @@ export const createActionsSlice = (
           title: t("canvas.runFailed"),
           description: error,
         });
-      },
+      }
     );
 
     set({ isRunning: false });

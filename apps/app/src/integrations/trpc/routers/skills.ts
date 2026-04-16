@@ -6,6 +6,7 @@ import { SkillSchema } from "@repo/schemas";
 export const skillsRouter = router({
   getMany: publicProcedure.query(async () => {
     await skillsDao.seedIfEmpty();
+
     return skillsService.getAll();
   }),
 
@@ -22,7 +23,7 @@ export const skillsRouter = router({
       z.object({
         id: z.string(),
         patch: SkillSchema.omit({ createdAt: true, updatedAt: true }).partial(),
-      }),
+      })
     )
     .mutation(({ input }) => skillsService.update(input.id, input.patch)),
 

@@ -53,7 +53,7 @@ describe("JobRow", () => {
         job={{ ...mockJob, status: "failed" }}
         onClick={handleClick}
         onDelete={handleDelete}
-      />,
+      />
     );
     expect(screen.getByText("失败")).toBeInTheDocument();
   });

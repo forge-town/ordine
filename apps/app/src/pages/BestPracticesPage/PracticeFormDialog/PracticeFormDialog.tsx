@@ -188,6 +188,7 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
                     field.onChange(v);
                     setCategoryOpen(false);
                   };
+
                   return (
                     <FormItem>
                       <FormLabel className="text-xs font-medium text-muted-foreground">
@@ -227,6 +228,7 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
                     field.onChange(v);
                     setLanguageOpen(false);
                   };
+
                   return (
                     <FormItem>
                       <FormLabel className="text-xs font-medium text-muted-foreground">

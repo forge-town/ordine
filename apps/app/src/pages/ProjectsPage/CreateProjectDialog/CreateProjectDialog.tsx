@@ -32,6 +32,7 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
     const parsed = parseGitHubUrl(url.trim());
     if (!parsed) {
       setError(t("projects.invalidUrl"));
+
       return;
     }
     setLoading(true);

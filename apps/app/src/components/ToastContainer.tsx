@@ -12,6 +12,7 @@ export const ToastContainer: FC = () => {
     <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
       {toasts.map((toast, index) => {
         const handleClose = () => removeToast(toast.id);
+
         return (
           <Toast
             key={toast.id}

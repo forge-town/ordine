@@ -38,6 +38,7 @@ export const SettingsPageContent = () => {
             const Icon = SECTION_ICONS[id];
             const label = t(`settings.sections.${id}`);
             const handleClick = () => setActive(id);
+
             return (
               <button
                 key={id}

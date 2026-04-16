@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type * as DrizzleOrm from "drizzle-orm";
+import { createChecklistResultsDao, type DbExecutor } from "@repo/models";
 
 // ─── Mock DB ─────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,7 @@ const mockDb = {
 
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual = await importOriginal<typeof DrizzleOrm>();
+
   return {
     ...actual,
     eq: vi.fn((col, val) => ({ col, val, type: "eq" })),
@@ -42,9 +44,6 @@ const makeRow = (id: string, jobId = "job-1") => ({
 });
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
-
-import { createChecklistResultsDao } from "@repo/models";
-import type { DbExecutor } from "@repo/models";
 
 const dao = createChecklistResultsDao(mockDb as unknown as DbExecutor);
 

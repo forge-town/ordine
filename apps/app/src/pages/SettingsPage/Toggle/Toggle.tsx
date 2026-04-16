@@ -8,6 +8,7 @@ interface ToggleProps {
 
 export const Toggle = ({ enabled, onToggle, label }: ToggleProps) => {
   const handleToggle = onToggle;
+
   return (
     <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-3">
       <span className="text-sm">{label}</span>

@@ -15,10 +15,9 @@ import { useStore } from "zustand";
 import { useHarnessCanvasStore, type OperationNodeData, type NodeRunStatus } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { OperationRecord, BestPracticeRecord } from "@repo/db-schema";
+import { LLM_PROVIDERS, type OperationRecord, type BestPracticeRecord } from "@repo/db-schema";
 import { NodeCard } from "../NodeCard";
 import { useNodeRunState } from "../useNodeRunState";
-import { LLM_PROVIDERS } from "@repo/db-schema";
 import { BestPracticeSelect } from "./BestPracticeSelect";
 
 export interface OperationNodeProps {

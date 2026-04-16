@@ -14,6 +14,7 @@ import {
   createOperationsDao,
   createPipelinesDao,
   createJobsDao,
+  createJobLogsDao,
   createSkillsDao,
   createBestPracticesDao,
   createSettingsDao,
@@ -34,6 +35,7 @@ import {
 const operationsDao = createOperationsDao(db);
 const pipelinesDao = createPipelinesDao(db);
 const jobsDao = createJobsDao(db);
+const jobLogsDao = createJobLogsDao(db);
 const skillsDao = createSkillsDao(db);
 const bestPracticesDao = createBestPracticesDao(db);
 const settingsDao = createSettingsDao(db);
@@ -51,7 +53,7 @@ export const runPipeline = async (opts: {
   const { pipelineId, jobId, githubToken } = opts;
 
   const log = async (line: string) => {
-    await jobsDao.appendLog(jobId, `[${new Date().toISOString()}] ${line}`);
+    await jobLogsDao.append(jobId, line);
   };
 
   await jobsDao.updateStatus(jobId, "running", { startedAt: new Date() });
@@ -59,10 +61,7 @@ export const runPipeline = async (opts: {
 
   const pipeline = await pipelinesDao.findById(pipelineId);
   if (!pipeline) {
-    await jobsDao.appendLog(
-      jobId,
-      `[${new Date().toISOString()}] ERROR: Pipeline ${pipelineId} not found`,
-    );
+    await jobLogsDao.append(jobId, `ERROR: Pipeline ${pipelineId} not found`);
     await jobsDao.updateStatus(jobId, "failed", {
       finishedAt: new Date(),
       error: `Pipeline ${pipelineId} not found`,
@@ -172,7 +171,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
     });
   } else {
     const message = outcome.error.message;
-    await jobsDao.appendLog(jobId, `[${new Date().toISOString()}] ERROR: ${message}`);
+    await jobLogsDao.append(jobId, `ERROR: ${message}`, "error");
     await jobsDao.updateStatus(jobId, "failed", {
       finishedAt: new Date(),
       error: message,

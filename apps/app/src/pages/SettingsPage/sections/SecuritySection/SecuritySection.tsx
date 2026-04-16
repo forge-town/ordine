@@ -29,14 +29,17 @@ export const SecuritySection = () => {
     if (values.newPassword || values.confirmPassword) {
       if (values.newPassword.length < 6) {
         setError(t("settings.securitySection.errorMinLength"));
+
         return;
       }
       if (values.newPassword !== values.confirmPassword) {
         setError(t("settings.securitySection.errorMismatch"));
+
         return;
       }
       if (!values.currentPassword) {
         setError(t("settings.securitySection.errorCurrentRequired"));
+
         return;
       }
     }

@@ -53,6 +53,7 @@ export const rulesRouter = router({
     )
     .mutation(({ input }) => {
       const { id, ...rest } = input;
+
       return rulesService.update(id, rest);
     }),
 
