@@ -1,6 +1,6 @@
 import { streamText } from "ai";
 import { ResultAsync, errAsync } from "neverthrow";
-import { getModel, runClaude, type SettingsResolver } from "@repo/agent";
+import { getModel, runClaude, runCodex, type SettingsResolver } from "@repo/agent";
 import { logger } from "@repo/logger";
 import type { AgentBackend } from "@repo/pipeline-engine";
 
@@ -64,6 +64,19 @@ export const runPrompt = ({
         await onProgress?.(`[LLM] runPrompt: Claude complete, output=${claudeResult.length} chars`);
         if (onChunk) await onChunk(claudeResult);
         return claudeResult;
+      }
+
+      if (agent === "codex") {
+        const codexResult = await runCodex({
+          systemPrompt: prompt,
+          userPrompt: inputContent,
+          cwd: inputPath,
+          onProgress,
+        });
+        logger.info({ outputLen: codexResult.length }, "runPrompt: codex complete");
+        await onProgress?.(`[LLM] runPrompt: Codex complete, output=${codexResult.length} chars`);
+        if (onChunk) await onChunk(codexResult);
+        return codexResult;
       }
 
       // agent === "kimi" — use streaming LLM
