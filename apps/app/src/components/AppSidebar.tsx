@@ -55,6 +55,7 @@ const objectNavItems: NavItem[] = [{ labelKey: "nav.projects", icon: FolderGit2,
 
 const iconMap: Record<string, React.ElementType> = {
   globe: Globe,
+  github: FolderGit2,
   box: Box,
   puzzle: Puzzle,
 };
@@ -94,7 +95,7 @@ export const AppSidebar = () => {
           className={cn(
             "flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-semibold transition-colors",
             "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm hover:from-violet-500 hover:to-indigo-500",
-            "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0",
+            "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0"
           )}
           to="/canvas"
         >
