@@ -10,7 +10,7 @@
     "dev": "bun src/index.ts",
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
-    "quality": "bun run check-types && bun run lint",
+    "quality": "bun run check-types && bun run lint && bun run test",
     "test": "vitest run"
   },
   "dependencies": {

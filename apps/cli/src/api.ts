@@ -38,7 +38,23 @@ const request = async <T>(method: string, path: string, body?: unknown): Promise
   return { ok: true, data };
 };
 
+const requestNoBody = async (method: string, path: string): Promise<ApiResult<void>> => {
+  const url = `${getBaseUrl()}${path}`;
+  const res = await fetch(url, { method });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+
+    return { ok: false, status: res.status, message: text || res.statusText };
+  }
+
+  return { ok: true, data: undefined };
+};
+
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
+  put: <T>(path: string, body: unknown) => request<T>("PUT", path, body),
+  patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body),
+  del: (path: string) => requestNoBody("DELETE", path),
 };

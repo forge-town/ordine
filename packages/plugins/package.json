@@ -10,7 +10,7 @@
   "scripts": {
     "check-types": "tsc --noEmit",
     "test": "vitest run",
-    "quality": "bun run check-types"
+    "quality": "bun run check-types && bun run test"
   },
   "dependencies": {
     "@repo/plugin": "workspace:*",
