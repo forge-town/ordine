@@ -28,6 +28,7 @@ import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
 import { Route as LayoutRulesCreateRouteImport } from './routes/_layout/rules.create'
 import { Route as LayoutPipelinesPipelineIdRouteImport } from './routes/_layout/pipelines.$pipelineId'
 import { Route as LayoutOperationsNewRouteImport } from './routes/_layout/operations.new'
+import { Route as LayoutObjectsObjectTypeIdRouteImport } from './routes/_layout/objects.$objectTypeId'
 import { Route as LayoutJobsJobIdRouteImport } from './routes/_layout/jobs.$jobId'
 import { Route as LayoutRulesRuleIdIndexRouteImport } from './routes/_layout/rules.$ruleId.index'
 import { Route as LayoutProjectsProjectIdIndexRouteImport } from './routes/_layout/projects.$projectId.index'
@@ -134,6 +135,12 @@ const LayoutOperationsNewRoute = LayoutOperationsNewRouteImport.update({
   path: '/operations/new',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutObjectsObjectTypeIdRoute =
+  LayoutObjectsObjectTypeIdRouteImport.update({
+    id: '/objects/$objectTypeId',
+    path: '/objects/$objectTypeId',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 const LayoutJobsJobIdRoute = LayoutJobsJobIdRouteImport.update({
   id: '/$jobId',
   path: '/$jobId',
@@ -196,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
   '/jobs/$jobId': typeof LayoutJobsJobIdRoute
+  '/objects/$objectTypeId': typeof LayoutObjectsObjectTypeIdRoute
   '/operations/new': typeof LayoutOperationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/rules/create': typeof LayoutRulesCreateRoute
@@ -223,6 +231,7 @@ export interface FileRoutesByTo {
   '/skills': typeof LayoutSkillsRoute
   '/': typeof LayoutIndexRoute
   '/jobs/$jobId': typeof LayoutJobsJobIdRoute
+  '/objects/$objectTypeId': typeof LayoutObjectsObjectTypeIdRoute
   '/operations/new': typeof LayoutOperationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/rules/create': typeof LayoutRulesCreateRoute
@@ -254,6 +263,7 @@ export interface FileRoutesById {
   '/_layout/skills': typeof LayoutSkillsRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/jobs/$jobId': typeof LayoutJobsJobIdRoute
+  '/_layout/objects/$objectTypeId': typeof LayoutObjectsObjectTypeIdRoute
   '/_layout/operations/new': typeof LayoutOperationsNewRoute
   '/_layout/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/_layout/rules/create': typeof LayoutRulesCreateRoute
@@ -285,6 +295,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skills'
     | '/jobs/$jobId'
+    | '/objects/$objectTypeId'
     | '/operations/new'
     | '/pipelines/$pipelineId'
     | '/rules/create'
@@ -312,6 +323,7 @@ export interface FileRouteTypes {
     | '/skills'
     | '/'
     | '/jobs/$jobId'
+    | '/objects/$objectTypeId'
     | '/operations/new'
     | '/pipelines/$pipelineId'
     | '/rules/create'
@@ -342,6 +354,7 @@ export interface FileRouteTypes {
     | '/_layout/skills'
     | '/_layout/'
     | '/_layout/jobs/$jobId'
+    | '/_layout/objects/$objectTypeId'
     | '/_layout/operations/new'
     | '/_layout/pipelines/$pipelineId'
     | '/_layout/rules/create'
@@ -503,6 +516,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutOperationsNewRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/objects/$objectTypeId': {
+      id: '/_layout/objects/$objectTypeId'
+      path: '/objects/$objectTypeId'
+      fullPath: '/objects/$objectTypeId'
+      preLoaderRoute: typeof LayoutObjectsObjectTypeIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/jobs/$jobId': {
       id: '/_layout/jobs/$jobId'
       path: '/$jobId'
@@ -605,6 +625,7 @@ interface LayoutRouteChildren {
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutSkillsRoute: typeof LayoutSkillsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutObjectsObjectTypeIdRoute: typeof LayoutObjectsObjectTypeIdRoute
   LayoutOperationsNewRoute: typeof LayoutOperationsNewRoute
   LayoutRulesCreateRoute: typeof LayoutRulesCreateRoute
   LayoutBestPracticesIndexRoute: typeof LayoutBestPracticesIndexRoute
@@ -629,6 +650,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutSkillsRoute: LayoutSkillsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutObjectsObjectTypeIdRoute: LayoutObjectsObjectTypeIdRoute,
   LayoutOperationsNewRoute: LayoutOperationsNewRoute,
   LayoutRulesCreateRoute: LayoutRulesCreateRoute,
   LayoutBestPracticesIndexRoute: LayoutBestPracticesIndexRoute,

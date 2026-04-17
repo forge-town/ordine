@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { ResultAsync } from "neverthrow";
 import { trace } from "@repo/obs";
-import { pluginRegistry } from "@repo/plugins";
+import { pluginRegistry } from "@repo/plugin";
 import type { PipelineNode, NodeData, NodeCtx } from "../schemas";
 import type { PipelineEngineDeps } from "../deps";
 import type { PipelineRunError } from "../errors";

@@ -1,0 +1,1 @@
+export { ObjectTypePage } from "./ObjectTypePage";

@@ -2,7 +2,7 @@ import type { OrdinePlugin, ObjectTypeDefinition, PluginNodeHandler } from "./ty
 
 /**
  * Central registry for plugins and their contributed object types.
- * Designed as a singleton — import `pluginRegistry` from `@repo/plugins`.
+ * Designed as a singleton — import `pluginRegistry` from `@repo/plugin`.
  */
 export class PluginRegistry {
   private plugins = new Map<string, OrdinePlugin>();

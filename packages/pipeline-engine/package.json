@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@repo/obs": "workspace:*",
-    "@repo/plugins": "workspace:*",
+    "@repo/plugin": "workspace:*",
     "neverthrow": "^8.2.0",
     "zod": "^4.3.6"
   },

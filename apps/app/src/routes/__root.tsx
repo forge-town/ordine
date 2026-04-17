@@ -1,6 +1,7 @@
 import { createRootRoute } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import "@/lib/i18n";
+import "@/plugins/init";
 import { NotFound } from "./-NotFound";
 import { RootDocument } from "./-RootDocument";
 

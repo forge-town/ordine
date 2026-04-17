@@ -12,6 +12,8 @@ import {
   Zap,
   ChefHat,
   Box,
+  Globe,
+  Puzzle,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -29,6 +31,7 @@ import {
 } from "@repo/ui/sidebar";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
+import { pluginRegistry } from "@repo/plugin";
 
 interface NavItem {
   labelKey: string;
@@ -50,10 +53,26 @@ const mainNavItems: NavItem[] = [
 
 const objectNavItems: NavItem[] = [{ labelKey: "nav.projects", icon: FolderGit2, to: "/projects" }];
 
+const iconMap: Record<string, React.ElementType> = {
+  globe: Globe,
+  box: Box,
+  puzzle: Puzzle,
+};
+
+const getPluginObjectNavItems = (): NavItem[] => {
+  return pluginRegistry.getAllObjectTypes().map((objType) => ({
+    labelKey: objType.label,
+    icon: iconMap[objType.icon ?? ""] ?? Puzzle,
+    to: `/objects/${objType.id}`,
+  }));
+};
+
 export const AppSidebar = () => {
   const { location } = useRouterState();
   const { t } = useTranslation();
   const currentPath = location.pathname;
+  const pluginObjectItems = getPluginObjectNavItems();
+  const allObjectItems = [...objectNavItems, ...pluginObjectItems];
 
   return (
     <Sidebar className="border-r bg-sidebar" collapsible="icon">
@@ -75,7 +94,7 @@ export const AppSidebar = () => {
           className={cn(
             "flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-semibold transition-colors",
             "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm hover:from-violet-500 hover:to-indigo-500",
-            "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0"
+            "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0",
           )}
           to="/canvas"
         >
@@ -129,9 +148,9 @@ export const AppSidebar = () => {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {objectNavItems.map((item) => {
+              {allObjectItems.map((item) => {
                 const Icon = item.icon;
-                const label = t(item.labelKey);
+                const label = item.labelKey.startsWith("nav.") ? t(item.labelKey) : item.labelKey;
                 const isActive =
                   currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
 
