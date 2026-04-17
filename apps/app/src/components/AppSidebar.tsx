@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Zap,
   ChefHat,
+  Box,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -19,6 +20,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -35,9 +37,8 @@ interface NavItem {
   badge?: string;
 }
 
-const navItems: NavItem[] = [
+const mainNavItems: NavItem[] = [
   { labelKey: "nav.dashboard", icon: LayoutDashboard, to: "/" },
-  { labelKey: "nav.projects", icon: FolderGit2, to: "/projects" },
   { labelKey: "nav.pipelines", icon: Layers, to: "/pipelines" },
   { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
   { labelKey: "nav.bestPractices", icon: Lightbulb, to: "/best-practices" },
@@ -46,6 +47,8 @@ const navItems: NavItem[] = [
   { labelKey: "nav.rules", icon: ShieldCheck, to: "/rules" },
   { labelKey: "nav.jobs", icon: Activity, to: "/jobs" },
 ];
+
+const objectNavItems: NavItem[] = [{ labelKey: "nav.projects", icon: FolderGit2, to: "/projects" }];
 
 export const AppSidebar = () => {
   const { location } = useRouterState();
@@ -88,7 +91,45 @@ export const AppSidebar = () => {
         <SidebarGroup className="p-0 px-2">
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
+              {mainNavItems.map((item) => {
+                const Icon = item.icon;
+                const label = t(item.labelKey);
+                const isActive =
+                  currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
+
+                return (
+                  <SidebarMenuItem key={item.to}>
+                    <SidebarMenuButton
+                      className="h-8"
+                      isActive={isActive}
+                      render={<Link to={item.to as "/"} />}
+                      tooltip={label}
+                    >
+                      <Icon />
+                      <span>{label}</span>
+                      {item.badge && (
+                        <Badge
+                          className="ml-auto h-4 px-1.5 text-[10px] group-data-[state=collapsed]/sidebar:hidden"
+                          variant="secondary"
+                        >
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup className="p-0 px-2">
+          <SidebarGroupLabel>
+            <Box className="mr-1 h-3.5 w-3.5" />
+            {t("nav.objects")}
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {objectNavItems.map((item) => {
                 const Icon = item.icon;
                 const label = t(item.labelKey);
                 const isActive =

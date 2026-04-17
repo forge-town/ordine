@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { ResultAsync } from "neverthrow";
 import { trace } from "@repo/obs";
+import { pluginRegistry } from "@repo/plugins";
 import type { PipelineNode, NodeData, NodeCtx } from "../schemas";
 import type { PipelineEngineDeps } from "../deps";
 import type { PipelineRunError } from "../errors";
@@ -210,6 +211,26 @@ export class Pipeline {
       await trace(jobId, `Output-to-project: changes written directly to ${projPath}`);
       this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
       await trace(jobId, `@@NODE_DONE::${node.id}`);
+      return { ok: true };
+    }
+
+    // Check plugin registry for custom object types
+    const pluginHandler = pluginRegistry.getNodeHandler(node.type);
+    if (pluginHandler) {
+      await trace(jobId, `Executing plugin handler for node type: ${node.type}`);
+      const result = await pluginHandler({
+        nodeId: node.id,
+        jobId,
+        data: data as Record<string, unknown>,
+        input: { inputPath: input.inputPath, content: input.content },
+        setOutput: (output) => this.nodeOutputs.set(node.id, output),
+        trace: (message) => trace(jobId, message),
+      });
+      if (!result.ok) {
+        return { ok: false, error: new ScriptExecutionError(`Plugin node ${node.id} failed`) };
+      }
+      await trace(jobId, `@@NODE_DONE::${node.id}`);
+
       return { ok: true };
     }
 
