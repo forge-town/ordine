@@ -19,10 +19,12 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import type { JobRecord, JobStatus, JobType } from "@repo/db-schema";
+import type { JobRecord, JobStatus, JobType, JobTraceRecord, LogLevel } from "@repo/db-schema";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/jobs.$jobId";
+import { trpcClient } from "@/integrations/trpc/client";
+import { useEffect, useState } from "react";
 
 const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; bar: string }> = {
   queued: {
@@ -84,12 +86,24 @@ const getJobTypeLabel = (type: JobType, t: (key: string) => string): string => {
   return typeMap[type];
 };
 
+const LEVEL_COLOR: Record<LogLevel, string> = {
+  info: "text-blue-400",
+  warn: "text-yellow-400",
+  error: "text-red-400",
+  debug: "text-gray-500",
+};
+
 export const JobDetailPageContent = () => {
   const { jobId } = Route.useParams();
   const { result: jobResult } = useOne<JobRecord>({ resource: ResourceName.jobs, id: jobId });
   const job = jobResult ?? null;
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [traces, setTraces] = useState<JobTraceRecord[]>([]);
+
+  useEffect(() => {
+    void trpcClient.jobs.getTraces.query({ jobId }).then(setTraces);
+  }, [jobId]);
 
   const handleNavigateJobs = () => void navigate({ to: "/jobs" });
   const handleNavigateProject = () => {
@@ -136,7 +150,7 @@ export const JobDetailPageContent = () => {
         <span
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-            s.cls
+            s.cls,
           )}
         >
           <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />
@@ -220,26 +234,36 @@ export const JobDetailPageContent = () => {
           </div>
         )}
 
-        {/* Logs */}
+        {/* Traces */}
         <div className="rounded-xl border border-border bg-card overflow-hidden">
           <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-2.5">
             <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="text-xs font-semibold text-muted-foreground">{t("jobs.logs")}</span>
-            <span className="ml-auto text-[11px] text-muted-foreground">{job.logs.length}</span>
+            <span className="ml-auto text-[11px] text-muted-foreground">{traces.length}</span>
           </div>
-          {job.logs.length === 0 ? (
+          {traces.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <Terminal className="h-8 w-8 text-muted-foreground/30" />
               <p className="mt-2 text-xs text-muted-foreground">{t("jobs.noLogs")}</p>
             </div>
           ) : (
             <div className="bg-gray-950 p-4 overflow-x-auto max-h-96 overflow-y-auto">
-              {job.logs.map((line, i) => (
-                <div key={i} className="flex gap-3">
+              {traces.map((tr, i) => (
+                <div key={tr.id} className="flex gap-3">
                   <span className="shrink-0 w-8 text-right text-[10px] text-gray-600 font-mono select-none">
                     {i + 1}
                   </span>
-                  <span className="text-xs text-gray-200 font-mono whitespace-pre">{line}</span>
+                  <span
+                    className={cn(
+                      "shrink-0 w-12 text-[10px] font-mono uppercase",
+                      LEVEL_COLOR[tr.level],
+                    )}
+                  >
+                    {tr.level}
+                  </span>
+                  <span className="text-xs text-gray-200 font-mono whitespace-pre">
+                    {tr.message}
+                  </span>
                 </div>
               ))}
             </div>
