@@ -1,4 +1,4 @@
-import type { NodeType } from "@repo/pipeline-engine/schemas";
+import type { BuiltinNodeType } from "@repo/pipeline-engine/schemas";
 
 export const nodeTypeMeta = {
   operation: {
@@ -89,4 +89,10 @@ export const nodeTypeMeta = {
     handle: "!border-amber-400",
     plusBg: "bg-amber-100 text-amber-700 hover:bg-amber-200",
   },
-} as const satisfies Record<NodeType, object>;
+} as const satisfies Record<BuiltinNodeType, object>;
+
+type NodeMetaEntry = (typeof nodeTypeMeta)[BuiltinNodeType];
+
+/** Safe lookup — returns meta for known types, undefined for plugin types */
+export const getNodeMeta = (type: string): NodeMetaEntry | undefined =>
+  nodeTypeMeta[type as BuiltinNodeType] as NodeMetaEntry | undefined;

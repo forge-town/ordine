@@ -24,10 +24,15 @@ import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { OperationRecord, RecipeRecord } from "@repo/db-schema";
-import { nodeTypeMeta, getAllowedConnections, type NodeType } from "../nodeSchemas";
+import {
+  getAllowedConnections,
+  getNodeMeta,
+  type NodeType,
+  type BuiltinNodeType,
+} from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
-const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
+const TYPE_ICONS: Record<string, React.ElementType> = {
   operation: Zap,
   compound: Group,
   condition: GitBranch,
@@ -38,7 +43,7 @@ const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
   "output-local-path": HardDrive,
 };
 
-const OBJECT_TYPES: NodeType[] = ["code-file", "folder", "github-project"];
+const OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-project"];
 
 export const CanvasContextMenu = () => {
   const { t } = useTranslation();
@@ -68,7 +73,7 @@ export const CanvasContextMenu = () => {
     const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
     if (!sourceNode) return [...OBJECT_TYPES, "operation"] as NodeType[];
     // Return allowed target types for the source node
-    return allowedConnections[sourceNode.type] ?? [];
+    return allowedConnections[sourceNode.type as BuiltinNodeType] ?? [];
   })();
 
   // Filter operations based on source type (if in connect mode)
@@ -123,7 +128,7 @@ export const CanvasContextMenu = () => {
     if (!connectStart) return null;
     const node = nodes.find((n) => n.id === connectStart.nodeId);
 
-    return node ? { type: node.type, label: nodeTypeMeta[node.type].label } : null;
+    return node ? { type: node.type, label: getNodeMeta(node.type)!.label } : null;
   })();
 
   // Filter object types based on available connections
@@ -170,7 +175,7 @@ export const CanvasContextMenu = () => {
             <span
               className={cn(
                 "flex size-4 shrink-0 items-center justify-center rounded",
-                nodeTypeMeta[sourceNodeInfo.type].iconBg
+                getNodeMeta(sourceNodeInfo.type)!.iconBg
               )}
             >
               {(() => {
@@ -192,7 +197,7 @@ export const CanvasContextMenu = () => {
             <ContextMenuLabel>处理对象 (Object)</ContextMenuLabel>
             {visibleObjectTypes.map((type) => {
               const Icon = TYPE_ICONS[type];
-              const typeMeta = nodeTypeMeta[type];
+              const typeMeta = getNodeMeta(type)!;
 
               return (
                 <ContextMenuItem

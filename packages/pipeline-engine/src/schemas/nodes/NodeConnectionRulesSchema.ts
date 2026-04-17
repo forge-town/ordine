@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { NodeTypeSchema, type NodeType } from "../NodeTypeSchema";
+import { BuiltinNodeTypeSchema, type BuiltinNodeType } from "../NodeTypeSchema";
 
-const nodeTypeArray = z.array(NodeTypeSchema);
+const nodeTypeArray = z.array(BuiltinNodeTypeSchema);
 
 export const NodeConnectionRulesSchema = z.object({
   "code-file": nodeTypeArray,
@@ -24,7 +24,9 @@ export const NODE_CONNECTION_RULES: NodeConnectionRules = NodeConnectionRulesSch
   operation: ["operation", "compound", "output-project-path", "output-local-path"],
   "output-project-path": [],
   "output-local-path": [],
-} satisfies Record<NodeType, NodeType[]>);
+} satisfies Record<BuiltinNodeType, BuiltinNodeType[]>);
 
-export const isConnectionAllowed = (sourceType: NodeType, targetType: NodeType): boolean =>
-  NODE_CONNECTION_RULES[sourceType]?.includes(targetType) ?? false;
+export const isConnectionAllowed = (
+  sourceType: BuiltinNodeType,
+  targetType: BuiltinNodeType,
+): boolean => NODE_CONNECTION_RULES[sourceType]?.includes(targetType) ?? false;

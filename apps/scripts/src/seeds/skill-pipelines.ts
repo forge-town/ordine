@@ -441,6 +441,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_ch_input",
         type: "folder",
+        metaType: "object",
         position: { x: 100, y: 200 },
         data: {
           label: "源代码目录",
@@ -452,6 +453,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_ch_scan",
         type: "operation",
+        metaType: "operation",
         position: { x: 400, y: 200 },
         data: {
           label: "扫描垃圾代码",
@@ -464,6 +466,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_ch_clean",
         type: "operation",
+        metaType: "operation",
         position: { x: 700, y: 200 },
         data: {
           label: "清理垃圾代码",
@@ -476,6 +479,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_ch_output",
         type: "output-local-path",
+        metaType: "output",
         position: { x: 1000, y: 200 },
         data: {
           label: "清理报告",
@@ -515,6 +519,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_cn_input",
         type: "folder",
+        metaType: "object",
         position: { x: 100, y: 200 },
         data: {
           label: "源文件目录",
@@ -526,6 +531,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_cn_scan",
         type: "operation",
+        metaType: "operation",
         position: { x: 400, y: 200 },
         data: {
           label: "扫描 className 违规",
@@ -538,6 +544,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_cn_implement",
         type: "operation",
+        metaType: "operation",
         position: { x: 700, y: 200 },
         data: {
           label: "实现 className 修复",
@@ -550,6 +557,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_cn_output",
         type: "output-local-path",
+        metaType: "output",
         position: { x: 1000, y: 200 },
         data: {
           label: "转换报告",
@@ -589,6 +597,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_bp_input",
         type: "github-project",
+        metaType: "object",
         position: { x: 100, y: 200 },
         data: {
           label: "项目",
@@ -599,6 +608,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_bp_discover",
         type: "operation",
+        metaType: "operation",
         position: { x: 400, y: 200 },
         data: {
           label: "发现最佳实践技能",
@@ -611,6 +621,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_bp_check",
         type: "operation",
+        metaType: "operation",
         position: { x: 700, y: 200 },
         data: {
           label: "执行最佳实践检查",
@@ -623,6 +634,7 @@ const PIPELINES: PipelineSeed[] = [
       {
         id: "n_bp_output",
         type: "output-local-path",
+        metaType: "output",
         position: { x: 1000, y: 200 },
         data: {
           label: "质量报告",

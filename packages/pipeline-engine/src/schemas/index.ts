@@ -1,4 +1,6 @@
 export * from "./NodeTypeSchema";
+export * from "./MetaNodeTypeSchema";
+export * from "./resolveMetaType";
 export * from "./NodeRunStatusSchema";
 export * from "./DisclosureModeSchema";
 export * from "./OutputModeSchema";

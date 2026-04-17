@@ -13,6 +13,7 @@ import {
   makeDefaultNodeData,
   ConnectionRuleSchema,
   type NodeType,
+  type BuiltinNodeType,
   type OperationNodeData,
   type PipelineNodeData,
 } from "../nodeSchemas";
@@ -184,7 +185,7 @@ export const createCanvasSlice = (
         id: newId,
         type: targetType,
         position: { x: source.position.x + 300, y: source.position.y },
-        data: makeDefaultNodeData(targetType),
+        data: makeDefaultNodeData(targetType as BuiltinNodeType),
       };
       const newEdge: PipelineEdge = {
         id: `e-${sourceId}-${newId}`,

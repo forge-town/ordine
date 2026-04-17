@@ -1,7 +1,7 @@
-import type { NodeType } from "@repo/pipeline-engine/schemas";
+import type { BuiltinNodeType } from "@repo/pipeline-engine/schemas";
 import type { PipelineNodeData } from "./PipelineNodeDataSchema";
 
-export const makeDefaultNodeData = (type: NodeType): PipelineNodeData => {
+export const makeDefaultNodeData = (type: BuiltinNodeType): PipelineNodeData => {
   switch (type) {
     case "operation": {
       return {

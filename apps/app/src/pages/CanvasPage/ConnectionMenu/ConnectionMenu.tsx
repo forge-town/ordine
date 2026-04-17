@@ -24,10 +24,15 @@ import { useHarnessCanvasStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { OperationRecord, RecipeRecord } from "@repo/db-schema";
-import { nodeTypeMeta, getAllowedConnections, type NodeType } from "../nodeSchemas";
+import {
+  getAllowedConnections,
+  getNodeMeta,
+  type NodeType,
+  type BuiltinNodeType,
+} from "../nodeSchemas";
 import { cn } from "@repo/ui/lib/utils";
 
-const TYPE_ICONS: Record<NodeType | "operation", React.ElementType> = {
+const TYPE_ICONS: Record<string, React.ElementType> = {
   operation: Zap,
   compound: Group,
   condition: GitBranch,
@@ -58,7 +63,9 @@ export const ConnectionMenu = () => {
   const sourceNode = connectStart ? nodes.find((n) => n.id === connectStart.nodeId) : null;
 
   const allowedConnections = getAllowedConnections(operations);
-  const availableTypes: NodeType[] = sourceNode ? (allowedConnections[sourceNode.type] ?? []) : [];
+  const availableTypes: NodeType[] = sourceNode
+    ? (allowedConnections[sourceNode.type as BuiltinNodeType] ?? [])
+    : [];
 
   // Filter operations based on source type
   const availableOperations = (() => {
@@ -94,7 +101,7 @@ export const ConnectionMenu = () => {
 
   if (!connectionMenu || !sourceNode || availableTypes.length === 0) return null;
 
-  const sourceMeta = nodeTypeMeta[sourceNode.type];
+  const sourceMeta = getNodeMeta(sourceNode.type)!;
   const SourceIcon = TYPE_ICONS[sourceNode.type];
 
   // Clamp to viewport edges
@@ -144,15 +151,15 @@ export const ConnectionMenu = () => {
 
         {/* Object types */}
         {["code-file", "folder", "github-project"].some((t) =>
-          availableTypes.includes(t as NodeType)
+          availableTypes.includes(t as BuiltinNodeType)
         ) && (
           <ContextMenuGroup>
             <ContextMenuLabel>处理对象</ContextMenuLabel>
             {["code-file", "folder", "github-project"]
-              .filter((t) => availableTypes.includes(t as NodeType))
+              .filter((t) => availableTypes.includes(t as BuiltinNodeType))
               .map((type) => {
                 const Icon = TYPE_ICONS[type as NodeType];
-                const typeMeta = nodeTypeMeta[type as NodeType];
+                const typeMeta = getNodeMeta(type)!;
 
                 return (
                   <ContextMenuItem
@@ -240,18 +247,18 @@ export const ConnectionMenu = () => {
         )}
 
         {/* Output node types */}
-        {(["output-project-path", "output-local-path"] as NodeType[]).some((t) =>
+        {(["output-project-path", "output-local-path"] as BuiltinNodeType[]).some((t) =>
           availableTypes.includes(t)
         ) && (
           <>
             <ContextMenuSeparator />
             <ContextMenuGroup>
               <ContextMenuLabel>输出终点</ContextMenuLabel>
-              {(["output-project-path", "output-local-path"] as NodeType[])
+              {(["output-project-path", "output-local-path"] as BuiltinNodeType[])
                 .filter((t) => availableTypes.includes(t))
                 .map((type) => {
                   const Icon = TYPE_ICONS[type];
-                  const typeMeta = nodeTypeMeta[type];
+                  const typeMeta = getNodeMeta(type)!;
 
                   return (
                     <ContextMenuItem

@@ -4,6 +4,7 @@ import { ResultAsync } from "neverthrow";
 import { trace } from "@repo/obs";
 import { pluginRegistry } from "@repo/plugin";
 import type { PipelineNode, NodeData, NodeCtx } from "../schemas";
+import { resolveMetaType } from "../schemas";
 import type { PipelineEngineDeps } from "../deps";
 import type { PipelineRunError } from "../errors";
 import { ScriptExecutionError } from "../errors";
@@ -156,68 +157,89 @@ export class Pipeline {
       jobId,
     };
 
-    if (node.type === "folder") {
-      const result = await processFolderNode(baseCtx);
-      if (!result.ok && result.error) return { ok: false, error: result.error };
-      if (!result.ok)
-        return { ok: false, error: new ScriptExecutionError(`Node ${node.id} failed`) };
-      return { ok: true };
+    const metaType = resolveMetaType(node.type, node.metaType);
+
+    // ── object metaType ──────────────────────────────────────────────────
+    if (metaType === "object") {
+      return this.processObjectNode(node, baseCtx, data, input);
     }
 
-    if (node.type === "code-file") {
-      const result = await processCodeFileNode(baseCtx);
-      if (!result.ok && result.error) return { ok: false, error: result.error };
-      if (!result.ok)
-        return { ok: false, error: new ScriptExecutionError(`Node ${node.id} failed`) };
-      return { ok: true };
-    }
+    // ── operation metaType ───────────────────────────────────────────────
+    if (metaType === "operation") {
+      if (node.type === "operation") {
+        const opCtx: OperationNodeContext = {
+          ...baseCtx,
+          operations: this.opts.operations,
+          lookupSkill: this.opts.lookupSkill,
+          lookupBestPractice: this.opts.lookupBestPractice,
+          githubToken: this.opts.githubToken,
+        };
 
-    if (node.type === "github-project") {
-      const result = await processGitHubProjectNode({
-        ...baseCtx,
-        githubToken: this.opts.githubToken,
-      });
-      if (!result.ok && result.error) return { ok: false, error: result.error };
-      if (!result.ok)
-        return { ok: false, error: new ScriptExecutionError(`Node ${node.id} failed`) };
-      return { ok: true };
-    }
+        return this.wrapNodeResult(node.id, processOperationNode(node, input, opCtx));
+      }
 
-    if (node.type === "output-local-path") {
-      const result = await processOutputLocalPathNode(baseCtx);
-      if (!result.ok && result.error) return { ok: false, error: result.error };
-      if (!result.ok)
-        return { ok: false, error: new ScriptExecutionError(`Node ${node.id} failed`) };
-      return { ok: true };
-    }
-
-    if (node.type === "operation") {
-      const opCtx: OperationNodeContext = {
-        ...baseCtx,
-        operations: this.opts.operations,
-        lookupSkill: this.opts.lookupSkill,
-        lookupBestPractice: this.opts.lookupBestPractice,
-        githubToken: this.opts.githubToken,
-      };
-      const result = await processOperationNode(node, input, opCtx);
-      if (!result.ok && result.error) return { ok: false, error: result.error };
-      if (!result.ok)
-        return { ok: false, error: new ScriptExecutionError(`Node ${node.id} failed`) };
-      return { ok: true };
-    }
-
-    if (node.type === "output-project-path") {
-      const projPath = (data as Record<string, unknown>).path ?? input.inputPath;
-      await trace(jobId, `Output-to-project: changes written directly to ${projPath}`);
+      // compound / condition — passthrough for now
+      await trace(jobId, `Skipped ${node.type} node (metaType: operation)`);
       this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
       await trace(jobId, `@@NODE_DONE::${node.id}`);
+
       return { ok: true };
     }
 
-    // Check plugin registry for custom object types
+    // ── output metaType ──────────────────────────────────────────────────
+    if (metaType === "output") {
+      if (node.type === "output-local-path") {
+        return this.wrapNodeResult(node.id, processOutputLocalPathNode(baseCtx));
+      }
+
+      if (node.type === "output-project-path") {
+        const projPath = (data as Record<string, unknown>).path ?? input.inputPath;
+        await trace(jobId, `Output-to-project: changes written directly to ${projPath}`);
+        this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
+        await trace(jobId, `@@NODE_DONE::${node.id}`);
+
+        return { ok: true };
+      }
+
+      await trace(jobId, `Skipped output node type: ${node.type}`);
+      this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
+      await trace(jobId, `@@NODE_DONE::${node.id}`);
+
+      return { ok: true };
+    }
+
+    // fallback — skip
+    await trace(jobId, `Skipped node type: ${node.type}`);
+    this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
+    await trace(jobId, `@@NODE_DONE::${node.id}`);
+
+    return { ok: true };
+  }
+
+  /**
+   * Process an object-metaType node.
+   * Checks plugin registry first (allows overriding built-in types),
+   * then falls back to built-in handlers.
+   */
+  private async processObjectNode(
+    node: PipelineNode,
+    baseCtx: {
+      node: PipelineNode;
+      input: NodeCtx;
+      deps: PipelineEngineDeps;
+      nodeOutputs: Map<string, NodeCtx>;
+      tempDirs: string[];
+      jobId: string;
+    },
+    data: NodeData,
+    input: NodeCtx,
+  ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
+    const { jobId } = this.opts;
+
+    // Plugin handlers take priority — allows overriding built-in object types
     const pluginHandler = pluginRegistry.getNodeHandler(node.type);
     if (pluginHandler) {
-      await trace(jobId, `Executing plugin handler for node type: ${node.type}`);
+      await trace(jobId, `Executing plugin handler for object type: ${node.type}`);
       const result = await pluginHandler({
         nodeId: node.id,
         jobId,
@@ -234,9 +256,39 @@ export class Pipeline {
       return { ok: true };
     }
 
-    await trace(jobId, `Skipped node type: ${node.type}`);
+    // Built-in object handlers
+    if (node.type === "folder") {
+      return this.wrapNodeResult(node.id, processFolderNode(baseCtx));
+    }
+
+    if (node.type === "code-file") {
+      return this.wrapNodeResult(node.id, processCodeFileNode(baseCtx));
+    }
+
+    if (node.type === "github-project") {
+      return this.wrapNodeResult(
+        node.id,
+        processGitHubProjectNode({ ...baseCtx, githubToken: this.opts.githubToken }),
+      );
+    }
+
+    // Unknown object type — passthrough
+    await trace(jobId, `Skipped unknown object type: ${node.type}`);
     this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
     await trace(jobId, `@@NODE_DONE::${node.id}`);
+
+    return { ok: true };
+  }
+
+  /** Unwrap a node handler result, mapping failures to PipelineRunError */
+  private async wrapNodeResult(
+    nodeId: string,
+    promise: Promise<{ ok: true } | { ok: false; error: PipelineRunError | null }>,
+  ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
+    const result = await promise;
+    if (!result.ok && result.error) return { ok: false, error: result.error };
+    if (!result.ok) return { ok: false, error: new ScriptExecutionError(`Node ${nodeId} failed`) };
+
     return { ok: true };
   }
 

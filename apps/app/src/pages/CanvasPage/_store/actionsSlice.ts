@@ -4,7 +4,12 @@ import type { OperationRecord, RecipeRecord } from "@repo/db-schema";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
-import { makeDefaultNodeData, makeOperationNodeData, type NodeType } from "../nodeSchemas";
+import {
+  makeDefaultNodeData,
+  makeOperationNodeData,
+  type NodeType,
+  type BuiltinNodeType,
+} from "../nodeSchemas";
 import { trpcClient } from "@/integrations/trpc/client";
 import { toastStore } from "@/store/toastStore";
 import { ResultAsync } from "neverthrow";
@@ -401,7 +406,7 @@ export const createActionsSlice = (
       id: `${type}-${Date.now()}`,
       type,
       position: { x: contextMenu.flowX, y: contextMenu.flowY },
-      data: makeDefaultNodeData(type),
+      data: makeDefaultNodeData(type as BuiltinNodeType),
     });
   },
 
@@ -450,7 +455,7 @@ export const createActionsSlice = (
       id: `${type}-${Date.now()}`,
       type,
       position: { x: connectionMenu.flowX + 40, y: connectionMenu.flowY - 40 },
-      data: makeDefaultNodeData(type),
+      data: makeDefaultNodeData(type as BuiltinNodeType),
     });
   },
 
@@ -550,7 +555,7 @@ export const createActionsSlice = (
       id: newId,
       type,
       position: { x: node.position.x + 280, y: node.position.y },
-      data: makeDefaultNodeData(type),
+      data: makeDefaultNodeData(type as BuiltinNodeType),
     });
     get().handleConnect({
       source: nodeContextMenu.nodeId,
