@@ -1,10 +1,10 @@
 import { type FC } from "react";
 import { useStore } from "zustand";
 import { Toast } from "@repo/ui/toast";
-import { useToastStoreContext } from "@/store/toastStore";
+import { useToastStore } from "@/store/toastStore";
 
 export const ToastContainer: FC = () => {
-  const store = useToastStoreContext();
+  const store = useToastStore();
   const toasts = useStore(store, (s) => s.toasts);
   const removeToast = useStore(store, (s) => s.removeToast);
 

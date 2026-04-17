@@ -1,9 +1,9 @@
 import { type NotificationProvider } from "@refinedev/core";
-import { useToastStore } from "@/store/toastStore";
+import { toastStore } from "@/store/toastStore";
 
 export const notificationProvider: NotificationProvider = {
   open: ({ message, description, type, key }) => {
-    const { addToast } = useToastStore.getState();
+    const { addToast } = toastStore.getState();
 
     addToast({
       id: key,
@@ -13,7 +13,7 @@ export const notificationProvider: NotificationProvider = {
     });
   },
   close: (key) => {
-    const { removeToast } = useToastStore.getState();
+    const { removeToast } = toastStore.getState();
     removeToast(key);
   },
 };

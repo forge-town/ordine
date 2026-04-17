@@ -1,7 +1,7 @@
 import { render, screen, act } from "@testing-library/react";
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import { CanvasLayout } from "./CanvasLayout";
-import { useToastStore } from "@/store/toastStore";
+import { toastStore } from "@/store/toastStore";
 
 vi.mock("@repo/ui/toast", () => ({
   Toast: ({ title, description }: { title: string; description?: string }) => (
@@ -14,7 +14,7 @@ vi.mock("@repo/ui/toast", () => ({
 
 describe("CanvasLayout", () => {
   beforeEach(() => {
-    useToastStore.setState({ toasts: [] });
+    toastStore.setState({ toasts: [] });
   });
 
   it("renders children", () => {
@@ -34,7 +34,7 @@ describe("CanvasLayout", () => {
     );
 
     act(() => {
-      useToastStore.getState().addToast({
+      toastStore.getState().addToast({
         type: "success",
         title: "保存成功",
         description: "Pipeline 已保存",
@@ -52,7 +52,7 @@ describe("CanvasLayout", () => {
     );
 
     act(() => {
-      useToastStore.getState().addToast({
+      toastStore.getState().addToast({
         type: "error",
         title: "保存失败",
         description: "请稍后重试",

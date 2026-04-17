@@ -6,7 +6,7 @@ import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
 import { makeDefaultNodeData, makeOperationNodeData, type NodeType } from "../nodeSchemas";
 import { trpcClient } from "@/integrations/trpc/client";
-import { useToastStore } from "@/store/toastStore";
+import { toastStore } from "@/store/toastStore";
 import { ResultAsync } from "neverthrow";
 import i18n from "@/lib/i18n";
 import type { ReactFlowInstance, OnConnectStartParams } from "@xyflow/react";
@@ -305,7 +305,7 @@ export const createActionsSlice = (
     if (isRunning || isTestRunning) return;
 
     if (!pipelineId) {
-      useToastStore.getState().addToast({
+      toastStore.getState().addToast({
         type: "error",
         title: t("canvas.runFailed"),
         description: t("canvas.noPipelineId"),
@@ -330,7 +330,7 @@ export const createActionsSlice = (
     );
 
     if (saveResult.isErr()) {
-      useToastStore.getState().addToast({
+      toastStore.getState().addToast({
         type: "error",
         title: t("canvas.runFailed"),
         description: t("canvas.saveFailed"),
@@ -348,14 +348,14 @@ export const createActionsSlice = (
     runResult.match(
       (data) => {
         setActiveJobId(data.jobId);
-        useToastStore.getState().addToast({
+        toastStore.getState().addToast({
           type: "success",
           title: t("canvas.runCompleted"),
           description: `Job ${data.jobId} ${t("canvas.runSuccess")}`,
         });
       },
       (error) => {
-        useToastStore.getState().addToast({
+        toastStore.getState().addToast({
           type: "error",
           title: t("canvas.runFailed"),
           description: error,

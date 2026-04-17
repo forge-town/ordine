@@ -5,26 +5,21 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { BestPracticeRecord } from "@repo/db-schema";
 import { exportAllBestPractices, importBestPracticesFromZip } from "@/lib/exportBestPractice";
-import { useDelete, useList } from "@refinedev/core";
+import { useDelete, useInvalidate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { useToastStore } from "@/store/toastStore";
 import { CATEGORIES } from "../constants";
 import { PracticeFormDialog } from "../PracticeFormDialog";
 import { PracticeCard } from "../PracticeCard";
 
 const handleExport = () => void exportAllBestPractices();
 
-const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  await importBestPracticesFromZip(file);
-  globalThis.location.reload();
-  e.target.value = "";
-};
-
 const handleSave = (_p: BestPracticeRecord) => {};
 
 export const BestPracticesPageContent = () => {
   const { t } = useTranslation();
+  const invalidate = useInvalidate();
+  const toastStore = useToastStore();
   const { result: practicesResult } = useList<BestPracticeRecord>({
     resource: ResourceName.bestPractices,
   });
@@ -65,6 +60,20 @@ export const BestPracticesPageContent = () => {
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const result = await importBestPracticesFromZip(file);
+    toastStore.getState().addToast({
+      type: "success",
+      title: t("bestPractices.importSuccess", {
+        defaultValue: `导入成功: ${String(result.imported)} 条最佳实践`,
+      }),
+    });
+    void invalidate({ resource: ResourceName.bestPractices, invalidates: ["list"] });
+    e.target.value = "";
+  };
 
   const handleImportClick = () => fileInputRef.current?.click();
 

@@ -159,7 +159,7 @@ export const importBestPracticesFromZip = async (
     const contentFile = zip.file(`${folderId}/content.md`);
     const content = contentFile ? await contentFile.async("string") : "";
 
-    // Read code snippets: prefer new code-snippets.json, fallback to legacy code-snippet.*
+    // Read code snippets: prefer code-snippets.json, then code-snippets/ folder, then legacy code-snippet.*
     const codeSnippets: Record<string, unknown>[] = await (async () => {
       const snippetsJsonFile = zip.file(`${folderId}/code-snippets.json`);
       if (snippetsJsonFile) {
@@ -170,6 +170,31 @@ export const importBestPracticesFromZip = async (
           ...item,
           bestPracticeId: meta.id,
         }));
+      }
+
+      // New format: code-snippets/ folder with individual files
+      const snippetFiles = zip.file(new RegExp(`^${folderId}/code-snippets/[^/]+$`));
+      if (snippetFiles.length > 0) {
+        const results: Record<string, unknown>[] = [];
+        for (const [idx, sf] of snippetFiles.entries()) {
+          const fileName = sf.name.split("/").pop() ?? "";
+          const code = await sf.async("string");
+          const extMatch = fileName.match(/\.([^.]+)$/);
+          const ext = extMatch?.[1] ?? "txt";
+          const langEntry = Object.entries(LANG_EXT).find(([, v]) => v === ext);
+          const language = langEntry ? langEntry[0] : "typescript";
+          const baseName = fileName.replace(/\.[^.]+$/, "");
+          results.push({
+            id: `cs_${meta.id as string}_${idx}`,
+            bestPracticeId: meta.id,
+            title: baseName,
+            language,
+            code,
+            sortOrder: idx,
+          });
+        }
+
+        return results;
       }
 
       // Legacy: single code-snippet.* file

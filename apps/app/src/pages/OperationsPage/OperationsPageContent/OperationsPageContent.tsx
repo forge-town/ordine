@@ -21,6 +21,7 @@ import type { ObjectType } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useToastStore } from "@/store/toastStore";
+import { useStore } from "zustand";
 import { safeJsonParse } from "@/lib/safeJson";
 import {
   Select,
@@ -68,7 +69,8 @@ export const OperationsPageContent = () => {
   ];
 
   const navigate = useNavigate();
-  const addToast = useToastStore((s) => s.addToast);
+  const store = useToastStore();
+  const addToast = useStore(store, (s) => s.addToast);
   const { mutate: deleteOpMutate } = useDelete();
   const { mutateAsync: createOpMutate } = useCreate();
   const [importing, setImporting] = useState(false);

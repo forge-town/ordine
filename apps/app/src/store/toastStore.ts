@@ -1,4 +1,4 @@
-import { create, type StoreApi, type StateCreator } from "zustand";
+import { createStore, type StoreApi, type StateCreator } from "zustand";
 import { createContext, useContext } from "react";
 
 export interface ToastMessage {
@@ -14,6 +14,8 @@ export interface ToastSlice {
   addToast: (toast: Omit<ToastMessage, "id"> & { id?: string }) => void;
   removeToast: (id: string) => void;
 }
+
+export type ToastStore = StoreApi<ToastSlice>;
 
 export type ToastStoreSlice<T = ToastSlice> = StateCreator<ToastSlice, [], [], T>;
 
@@ -32,35 +34,17 @@ export const createToastSlice = (set: Parameters<ToastStoreSlice>[0]): ToastSlic
   },
 });
 
-export const createToastStore = () => create<ToastSlice>()((set) => createToastSlice(set));
+export const createToastStore = (): ToastStore =>
+  createStore<ToastSlice>()((set) => createToastSlice(set));
 
-/**
- * Global singleton store for toast notifications.
- *
- * Toast state is intentionally kept as an app-wide singleton because it is
- * consumed from both React components and non-React code paths (e.g. Refine
- * notification provider and canvas action slices). The slice and provider
- * patterns are still exposed below for consistency with the rest of the
- * codebase.
- */
 export const toastStore = createToastStore();
 
-/**
- * Backward-compatible hook alias.
- *
- * Zustand's `create` returns a function that works as a React hook and also
- * exposes the store API (`getState`, `setState`, `subscribe`). Existing code
- * relies on both behaviours, so we re-export the singleton instance under the
- * original name.
- */
-export const useToastStore = toastStore;
+export const ToastStoreContext = createContext<ToastStore | null>(null);
 
-export const ToastStoreContext = createContext<StoreApi<ToastSlice> | null>(null);
-
-export const useToastStoreContext = (): StoreApi<ToastSlice> => {
+export const useToastStore = (): ToastStore => {
   const context = useContext(ToastStoreContext);
   if (!context) {
-    throw new Error("useToastStoreContext must be used within ToastStoreProvider");
+    throw new Error("useToastStore must be used within ToastStoreProvider");
   }
 
   return context;

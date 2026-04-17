@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasToolbar } from "./CanvasToolbar";
 import { HarnessCanvasStoreProvider } from "../_store";
-import { useToastStore } from "@/store/toastStore";
+import { toastStore } from "@/store/toastStore";
 
 const mockUpdatePipeline = vi.fn();
 vi.mock("@/services/pipelinesService", () => ({
@@ -77,7 +77,7 @@ describe("CanvasToolbar - Run Test button", () => {
       ok: true,
       json: () => Promise.resolve({ jobId: "job-123" }),
     });
-    useToastStore.setState({ toasts: [] });
+    toastStore.setState({ toasts: [] });
   });
 
   it("renders the Run Test button", () => {
@@ -121,7 +121,7 @@ describe("CanvasToolbar - Run Test button", () => {
     render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
     await user.click(screen.getByTitle("运行测试"));
     await waitFor(() => {
-      expect(useToastStore.getState().toasts).toEqual(
+      expect(toastStore.getState().toasts).toEqual(
         expect.arrayContaining([expect.objectContaining({ type: "success" })])
       );
     });
@@ -133,7 +133,7 @@ describe("CanvasToolbar - Run Test button", () => {
     render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
     await user.click(screen.getByTitle("运行测试"));
     await waitFor(() => {
-      expect(useToastStore.getState().toasts).toEqual(
+      expect(toastStore.getState().toasts).toEqual(
         expect.arrayContaining([expect.objectContaining({ type: "error" })])
       );
     });
@@ -150,7 +150,7 @@ describe("CanvasToolbar - Run Test button", () => {
     render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
     await user.click(screen.getByTitle("运行测试"));
     await waitFor(() => {
-      expect(useToastStore.getState().toasts).toEqual(
+      expect(toastStore.getState().toasts).toEqual(
         expect.arrayContaining([expect.objectContaining({ type: "error" })])
       );
     });
