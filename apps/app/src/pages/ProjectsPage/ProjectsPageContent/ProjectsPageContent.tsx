@@ -32,7 +32,7 @@ export const ProjectsPageContent = () => {
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.description ?? "").toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
-      p.repo.toLowerCase().includes(search.toLowerCase()),
+      p.repo.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleDelete = (id: string) => {

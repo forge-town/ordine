@@ -28,7 +28,7 @@ export const useOperationCreatePageStore = () => {
   const context = useContext(OperationCreatePageStoreContext);
   if (!context) {
     throw new Error(
-      "useOperationCreatePageStore must be used within a OperationCreatePageStoreProvider",
+      "useOperationCreatePageStore must be used within a OperationCreatePageStoreProvider"
     );
   }
 
