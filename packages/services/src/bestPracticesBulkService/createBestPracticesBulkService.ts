@@ -50,6 +50,34 @@ export const createBestPracticesBulkService = (db: DbConnection) => {
   const codeSnippetsDao = createCodeSnippetsDao(db);
 
   return {
+    previewImport: async (entries: BulkImportEntry[]) => {
+      const items: Array<{
+        id: string;
+        title: string;
+        status: "new" | "update";
+        checklistItemCount: number;
+        codeSnippetCount: number;
+      }> = [];
+
+      for (const entry of entries) {
+        const existing = await bpDao.findById(entry.id);
+        items.push({
+          id: entry.id,
+          title: entry.title,
+          status: existing ? "update" : "new",
+          checklistItemCount: entry.checklistItems.length,
+          codeSnippetCount: entry.codeSnippets.length,
+        });
+      }
+
+      return {
+        total: items.length,
+        newCount: items.filter((i) => i.status === "new").length,
+        updateCount: items.filter((i) => i.status === "update").length,
+        items,
+      };
+    },
+
     exportAll: async () => {
       const practices = await bpDao.findMany();
 

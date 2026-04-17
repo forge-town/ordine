@@ -1,16 +1,24 @@
-import { type ChangeEvent, useRef, useState } from "react";
+import { type ChangeEvent, useRef } from "react";
+import { useStore } from "zustand";
 import { BookOpen, Download, Plus, Search, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { BestPracticeRecord } from "@repo/db-schema";
-import { exportAllBestPractices, importBestPracticesFromZip } from "@/lib/exportBestPractice";
+import {
+  exportAllBestPractices,
+  parseBestPracticesZip,
+  previewBestPracticesImport,
+  submitBestPracticesImport,
+} from "@/lib/exportBestPractice";
 import { useDelete, useInvalidate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useToastStore } from "@/store/toastStore";
+import { useBestPracticesPageStore } from "../_store";
 import { CATEGORIES } from "../constants";
 import { PracticeFormDialog } from "../PracticeFormDialog";
 import { PracticeCard } from "../PracticeCard";
+import { ImportPreviewDialog } from "../ImportPreviewDialog";
 
 const handleExport = () => void exportAllBestPractices();
 
@@ -20,13 +28,23 @@ export const BestPracticesPageContent = () => {
   const { t } = useTranslation();
   const invalidate = useInvalidate();
   const toastStore = useToastStore();
+  const store = useBestPracticesPageStore();
+  const search = useStore(store, (s) => s.search);
+  const activeCategory = useStore(store, (s) => s.activeCategory);
+  const showForm = useStore(store, (s) => s.showForm);
+  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
+  const handleSetActiveCategory = useStore(store, (s) => s.handleSetActiveCategory);
+  const handleSetShowForm = useStore(store, (s) => s.handleSetShowForm);
+  const handleSetImportPreview = useStore(store, (s) => s.handleSetImportPreview);
+  const handleSetPendingEntries = useStore(store, (s) => s.handleSetPendingEntries);
+  const pendingEntries = useStore(store, (s) => s.pendingEntries);
+  const handleSetImportLoading = useStore(store, (s) => s.handleSetImportLoading);
+  const handleResetImport = useStore(store, (s) => s.handleResetImport);
+
   const { result: practicesResult } = useList<BestPracticeRecord>({
     resource: ResourceName.bestPractices,
   });
   const practices = practicesResult?.data ?? [];
-  const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [showForm, setShowForm] = useState(false);
   const { mutate: deleteBpMutate } = useDelete();
 
   const filtered = practices.filter((p: BestPracticeRecord) => {
@@ -45,18 +63,19 @@ export const BestPracticesPageContent = () => {
     deleteBpMutate({ resource: ResourceName.bestPractices, id });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleSetSearch(e.target.value);
 
-  const handleCategoryClick = (catValue: string) => () => setActiveCategory(catValue);
+  const handleCategoryClick = (catValue: string) => () => handleSetActiveCategory(catValue);
 
   const handleAddPractice = () => {
-    setShowForm(true);
+    handleSetShowForm(true);
   };
 
   const handleDeletePractice = (id: string) => () => void handleDelete(id);
 
   const handleFormClose = () => {
-    setShowForm(false);
+    handleSetShowForm(false);
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,7 +83,18 @@ export const BestPracticesPageContent = () => {
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const result = await importBestPracticesFromZip(file);
+    e.target.value = "";
+    const entries = await parseBestPracticesZip(file);
+    const preview = await previewBestPracticesImport(entries);
+    handleSetPendingEntries(entries);
+    handleSetImportPreview(preview);
+  };
+
+  const handleImportConfirm = async () => {
+    if (!pendingEntries) return;
+    handleSetImportLoading(true);
+    const result = await submitBestPracticesImport(pendingEntries);
+    handleResetImport();
     toastStore.getState().addToast({
       type: "success",
       title: t("bestPractices.importSuccess", {
@@ -72,7 +102,6 @@ export const BestPracticesPageContent = () => {
       }),
     });
     void invalidate({ resource: ResourceName.bestPractices, invalidates: ["list"] });
-    e.target.value = "";
   };
 
   const handleImportClick = () => fileInputRef.current?.click();
@@ -175,6 +204,8 @@ export const BestPracticesPageContent = () => {
       </div>
 
       {showForm && <PracticeFormDialog onClose={handleFormClose} onSave={handleSave} />}
+
+      <ImportPreviewDialog onConfirm={handleImportConfirm} />
     </div>
   );
 };

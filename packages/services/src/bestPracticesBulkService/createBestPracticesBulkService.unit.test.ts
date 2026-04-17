@@ -83,6 +83,104 @@ const mockDb = {
 };
 
 describe("createBestPracticesBulkService", () => {
+  describe("previewImport", () => {
+    it("returns new status for non-existing best practices", async () => {
+      mockBpDao.findById.mockResolvedValue(null);
+      const svc = createBestPracticesBulkService(mockDb as never);
+      const result = await svc.previewImport([
+        {
+          id: "bp_new",
+          title: "New BP",
+          condition: "",
+          content: "",
+          category: "",
+          language: "typescript",
+          codeSnippet: "",
+          tags: [],
+          checklistItems: [
+            {
+              id: "ci1",
+              title: "Check",
+              description: "",
+              checkType: "llm" as const,
+              script: null,
+              sortOrder: 0,
+            },
+          ],
+          codeSnippets: [],
+        },
+      ]);
+
+      expect(result.total).toBe(1);
+      expect(result.newCount).toBe(1);
+      expect(result.updateCount).toBe(0);
+      expect(result.items[0]!.status).toBe("new");
+      expect(result.items[0]!.checklistItemCount).toBe(1);
+    });
+
+    it("returns update status for existing best practices", async () => {
+      mockBpDao.findById.mockResolvedValue({ id: "bp_existing" });
+      const svc = createBestPracticesBulkService(mockDb as never);
+      const result = await svc.previewImport([
+        {
+          id: "bp_existing",
+          title: "Existing BP",
+          condition: "",
+          content: "",
+          category: "",
+          language: "typescript",
+          codeSnippet: "",
+          tags: [],
+          checklistItems: [],
+          codeSnippets: [
+            { id: "s1", title: "Snippet", language: "typescript", code: "x", sortOrder: 0 },
+          ],
+        },
+      ]);
+
+      expect(result.total).toBe(1);
+      expect(result.newCount).toBe(0);
+      expect(result.updateCount).toBe(1);
+      expect(result.items[0]!.status).toBe("update");
+      expect(result.items[0]!.codeSnippetCount).toBe(1);
+    });
+
+    it("handles mixed new and existing entries", async () => {
+      mockBpDao.findById.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: "bp2" });
+      const svc = createBestPracticesBulkService(mockDb as never);
+      const result = await svc.previewImport([
+        {
+          id: "bp1",
+          title: "New",
+          condition: "",
+          content: "",
+          category: "",
+          language: "typescript",
+          codeSnippet: "",
+          tags: [],
+          checklistItems: [],
+          codeSnippets: [],
+        },
+        {
+          id: "bp2",
+          title: "Existing",
+          condition: "",
+          content: "",
+          category: "",
+          language: "typescript",
+          codeSnippet: "",
+          tags: [],
+          checklistItems: [],
+          codeSnippets: [],
+        },
+      ]);
+
+      expect(result.total).toBe(2);
+      expect(result.newCount).toBe(1);
+      expect(result.updateCount).toBe(1);
+    });
+  });
+
   describe("exportAll", () => {
     it("returns all best practices with checklist items and code snippets", async () => {
       const svc = createBestPracticesBulkService(mockDb as never);

@@ -1,5 +1,10 @@
+import { BestPracticesPageStoreProvider } from "./_store";
 import { BestPracticesPageContent } from "./BestPracticesPageContent";
 
 export const BestPracticesPage = () => {
-  return <BestPracticesPageContent />;
+  return (
+    <BestPracticesPageStoreProvider>
+      <BestPracticesPageContent />
+    </BestPracticesPageStoreProvider>
+  );
 };

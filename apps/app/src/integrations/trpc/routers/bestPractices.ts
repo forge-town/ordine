@@ -40,4 +40,15 @@ export const bestPracticesRouter = router({
       )
     )
     .mutation(({ input }) => bestPracticesBulkService.importBulk(input)),
+
+  previewImport: publicProcedure
+    .input(
+      z.array(
+        BestPracticeSchema.extend({
+          checklistItems: z.array(ChecklistItemSchema.omit({ bestPracticeId: true })).default([]),
+          codeSnippets: z.array(CodeSnippetSchema.omit({ bestPracticeId: true })).default([]),
+        })
+      )
+    )
+    .mutation(({ input }) => bestPracticesBulkService.previewImport(input)),
 });

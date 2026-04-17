@@ -53,7 +53,7 @@ const addBPToZip = (
   zip: JSZip,
   bp: BPData,
   items: ChecklistItem[],
-  snippets: CodeSnippetItem[]
+  snippets: CodeSnippetItem[],
 ) => {
   const folder = zip.folder(bp.id);
   if (!folder) return;
@@ -70,8 +70,8 @@ const addBPToZip = (
         tags: bp.tags,
       },
       null,
-      2
-    )
+      2,
+    ),
   );
 
   folder.file("content.md", bp.content || "");
@@ -136,9 +136,9 @@ export const exportAllBestPractices = async () => {
   URL.revokeObjectURL(url);
 };
 
-export const importBestPracticesFromZip = async (
-  file: File
-): Promise<{ imported: number; checklistItems: number; codeSnippets: number }> => {
+export type ParsedBestPractice = Record<string, unknown>;
+
+export const parseBestPracticesZip = async (file: File): Promise<ParsedBestPractice[]> => {
   const zip = await JSZip.loadAsync(file);
   const folders = new Set<string>();
 
@@ -244,9 +244,27 @@ export const importBestPracticesFromZip = async (
     });
   }
 
-  const result = await trpcClient.bestPractices.importBulk.mutate(
-    bestPractices as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0]
-  );
+  return bestPractices;
+};
 
-  return result;
+export const previewBestPracticesImport = async (entries: ParsedBestPractice[]) => {
+  return trpcClient.bestPractices.previewImport.mutate(
+    entries as Parameters<typeof trpcClient.bestPractices.previewImport.mutate>[0],
+  );
+};
+
+export const submitBestPracticesImport = async (
+  entries: ParsedBestPractice[],
+): Promise<{ imported: number; checklistItems: number; codeSnippets: number }> => {
+  return trpcClient.bestPractices.importBulk.mutate(
+    entries as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0],
+  );
+};
+
+export const importBestPracticesFromZip = async (
+  file: File,
+): Promise<{ imported: number; checklistItems: number; codeSnippets: number }> => {
+  const entries = await parseBestPracticesZip(file);
+
+  return submitBestPracticesImport(entries);
 };
