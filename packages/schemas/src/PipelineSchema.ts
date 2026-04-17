@@ -5,7 +5,6 @@ export const PipelineSchema = z.object({
   name: z.string(),
   description: z.string(),
   tags: z.array(z.string()),
-  nodeCount: z.number(),
   createdAt: z.number(),
   updatedAt: z.number(),
   nodes: z.array(z.unknown()),

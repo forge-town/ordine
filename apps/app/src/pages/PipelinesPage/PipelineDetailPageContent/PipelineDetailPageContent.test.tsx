@@ -57,7 +57,6 @@ const makePipeline = (overrides: Partial<PipelineEntity> = {}): PipelineEntity =
   name: "My Pipeline",
   description: "A test pipeline",
   tags: [],
-  nodeCount: 0,
   nodes: [],
   edges: [],
   createdAt: new Date(),
@@ -87,7 +86,7 @@ describe("PipelineDetailPageContent", () => {
       <PipelineDetailPageContent
         operations={ops}
         pipeline={makePipeline({ tags: ["ci", "lint"] })}
-      />
+      />,
     );
     expect(screen.getByText("ci")).toBeInTheDocument();
     expect(screen.getByText("lint")).toBeInTheDocument();

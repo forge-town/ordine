@@ -5,7 +5,6 @@ interface Pipeline {
   name: string;
   description: string;
   tags: string[];
-  nodeCount: number;
   createdAt: number;
   updatedAt: number;
 }

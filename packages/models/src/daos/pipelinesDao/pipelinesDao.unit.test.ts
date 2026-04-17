@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createPipelinesDao } from "./pipelinesDao";
-import type { PipelineEntity } from "./pipelinesDao";
+import type { PipelineRecord } from "./pipelinesDao";
 import type { DbExecutor } from "../../types";
 import type * as DrizzleOrm from "drizzle-orm";
 
@@ -65,7 +65,7 @@ describe("pipelinesDao.update", () => {
           status: "idle" as const,
         },
       },
-    ] satisfies PipelineEntity["nodes"];
+    ] satisfies PipelineRecord["nodes"];
 
     const result = await dao.update("pipe-1", {
       nodes: testNodes,

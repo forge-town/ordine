@@ -12,28 +12,28 @@ export const pipelinesRouter = router({
     .query(({ input }) => pipelinesService.getById(input.id)),
 
   create: publicProcedure
-    .input(PipelineSchema.omit({ createdAt: true, updatedAt: true, nodeCount: true }))
+    .input(PipelineSchema.omit({ createdAt: true, updatedAt: true }))
     .mutation(({ input }) =>
       pipelinesService.create({
         ...input,
         nodes: input.nodes as never,
         edges: input.edges as never,
-      })
+      }),
     ),
 
   update: publicProcedure
     .input(
       z.object({
         id: z.string(),
-        patch: PipelineSchema.omit({ createdAt: true, updatedAt: true, nodeCount: true }).partial(),
-      })
+        patch: PipelineSchema.omit({ createdAt: true, updatedAt: true }).partial(),
+      }),
     )
     .mutation(({ input }) =>
       pipelinesService.update(input.id, {
         ...input.patch,
         nodes: input.patch.nodes as never,
         edges: input.patch.edges as never,
-      })
+      }),
     ),
 
   delete: publicProcedure
@@ -46,7 +46,7 @@ export const pipelinesRouter = router({
         id: z.string(),
         inputPath: z.string().optional(),
         githubToken: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const pipeline = await pipelinesService.getById(input.id);

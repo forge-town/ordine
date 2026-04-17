@@ -1,15 +1,6 @@
 import { eq, desc } from "drizzle-orm";
-import { pipelinesTable, type PipelineRecord } from "@repo/db-schema";
+import { pipelinesTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
-
-export type PipelineEntity = PipelineRecord & {
-  nodeCount: number;
-};
-
-const rowToEntity = (row: PipelineRecord): PipelineEntity => ({
-  ...row,
-  nodeCount: row.nodes.length,
-});
 
 class PipelinesDao {
   constructor(readonly executor: DbExecutor) {}
@@ -19,7 +10,7 @@ class PipelinesDao {
       .select()
       .from(pipelinesTable)
       .orderBy(desc(pipelinesTable.updatedAt));
-    return rows.map(rowToEntity);
+    return rows;
   }
 
   async findById(id: string) {
@@ -28,7 +19,7 @@ class PipelinesDao {
       .from(pipelinesTable)
       .where(eq(pipelinesTable.id, id))
       .limit(1);
-    return rows[0] ? rowToEntity(rows[0]!) : null;
+    return rows[0] ?? null;
   }
 
   async create(data: typeof pipelinesTable.$inferInsert) {
@@ -37,7 +28,7 @@ class PipelinesDao {
       .insert(pipelinesTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
-    return rowToEntity(inserted!);
+    return inserted!;
   }
 
   async update(id: string, patch: Partial<Omit<typeof pipelinesTable.$inferInsert, "id">>) {
@@ -46,7 +37,7 @@ class PipelinesDao {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(pipelinesTable.id, id))
       .returning();
-    return updated ? rowToEntity(updated) : null;
+    return updated ?? null;
   }
 
   async delete(id: string) {

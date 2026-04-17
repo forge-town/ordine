@@ -52,7 +52,6 @@ export const CanvasFloatingMenu = () => {
             name: pipelineName || "无标题",
             description: "",
             tags: [],
-            nodeCount: nodes.length,
             createdAt: Date.now(),
             updatedAt: Date.now(),
             nodes,
@@ -73,7 +72,7 @@ export const CanvasFloatingMenu = () => {
           onSuccess: () => {
             handlePipelineIdChange(newId);
           },
-        }
+        },
       );
     }
   };
