@@ -8,7 +8,8 @@
     "start": "bun src/index.ts",
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
-    "quality": "bun run check-types && bun run lint"
+    "quality": "bun run check-types && bun run lint",
+    "test": "vitest run"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.3",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "^4.1.4"
   }
 }

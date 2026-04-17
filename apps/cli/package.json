@@ -10,7 +10,8 @@
     "dev": "bun src/index.ts",
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
-    "quality": "bun run check-types && bun run lint"
+    "quality": "bun run check-types && bun run lint",
+    "test": "vitest run"
   },
   "dependencies": {
     "commander": "^14.0.0"
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@repo/oxlint-config": "workspace:*",
     "@repo/typescript-config": "*",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "^4.1.4"
   }
 }
