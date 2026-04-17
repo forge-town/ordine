@@ -33,5 +33,6 @@ export const useBestPracticesPageStore = () => {
       "useBestPracticesPageStore must be used within a BestPracticesPageStoreProvider",
     );
   }
+
   return context;
 };

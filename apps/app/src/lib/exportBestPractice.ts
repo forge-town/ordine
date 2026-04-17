@@ -53,7 +53,7 @@ const addBPToZip = (
   zip: JSZip,
   bp: BPData,
   items: ChecklistItem[],
-  snippets: CodeSnippetItem[],
+  snippets: CodeSnippetItem[]
 ) => {
   const folder = zip.folder(bp.id);
   if (!folder) return;
@@ -70,8 +70,8 @@ const addBPToZip = (
         tags: bp.tags,
       },
       null,
-      2,
-    ),
+      2
+    )
   );
 
   folder.file("content.md", bp.content || "");
@@ -249,20 +249,20 @@ export const parseBestPracticesZip = async (file: File): Promise<ParsedBestPract
 
 export const previewBestPracticesImport = async (entries: ParsedBestPractice[]) => {
   return trpcClient.bestPractices.previewImport.mutate(
-    entries as Parameters<typeof trpcClient.bestPractices.previewImport.mutate>[0],
+    entries as Parameters<typeof trpcClient.bestPractices.previewImport.mutate>[0]
   );
 };
 
 export const submitBestPracticesImport = async (
-  entries: ParsedBestPractice[],
+  entries: ParsedBestPractice[]
 ): Promise<{ imported: number; checklistItems: number; codeSnippets: number }> => {
   return trpcClient.bestPractices.importBulk.mutate(
-    entries as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0],
+    entries as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0]
   );
 };
 
 export const importBestPracticesFromZip = async (
-  file: File,
+  file: File
 ): Promise<{ imported: number; checklistItems: number; codeSnippets: number }> => {
   const entries = await parseBestPracticesZip(file);
 
