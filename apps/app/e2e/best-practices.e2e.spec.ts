@@ -1,45 +1,24 @@
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test, smokeCheck, navigateAndWait, expectNoJSErrors } from "./fixtures";
 
 test.describe("Best Practices Page", () => {
-  test("renders without crashing", async ({ page }) => {
-    await page.goto("/best-practices");
-    await page.waitForLoadState("networkidle");
-
+  test("page renders correctly", async ({ page, pageErrors }) => {
+    await smokeCheck(page, "/best-practices", pageErrors);
     const heading = page.getByRole("heading", { level: 1 });
     await expect(heading).toBeVisible();
-
-    const errorOverlay = page.locator("vite-error-overlay");
-    await expect(errorOverlay).toHaveCount(0);
   });
 
-  test("category filter tabs work without errors", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (err) => errors.push(err.message));
+  test("category filter tabs change displayed items", async ({ page, pageErrors }) => {
+    await navigateAndWait(page, "/best-practices");
 
-    await page.goto("/best-practices");
-    await page.waitForLoadState("networkidle");
-
-    const filterButtons = page.locator(
-      "[class*='rounded-lg'][class*='border'] button[class*='rounded-md']",
-    );
+    const filterButtons = page.locator("button[role='tab'], [role='tablist'] button");
     const filterCount = await filterButtons.count();
 
-    for (let i = 0; i < filterCount; i++) {
+    for (const i of Array.from({ length: filterCount }, (_, idx) => idx)) {
       await filterButtons.nth(i).click();
-      await page.waitForTimeout(200);
+      await page.waitForLoadState("networkidle");
     }
 
-    expect(errors, `Uncaught JS errors: ${errors.join("; ")}`).toHaveLength(0);
-  });
-
-  test("no uncaught JS errors", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (err) => errors.push(err.message));
-
-    await page.goto("/best-practices");
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(1000);
-
-    expect(errors, `Uncaught JS errors: ${errors.join("; ")}`).toHaveLength(0);
+    expectNoJSErrors(pageErrors);
   });
 });

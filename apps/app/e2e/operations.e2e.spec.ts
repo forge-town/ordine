@@ -1,25 +1,10 @@
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test, smokeCheck } from "./fixtures";
 
 test.describe("Operations Page", () => {
-  test("renders without crashing", async ({ page }) => {
-    await page.goto("/operations");
-    await page.waitForLoadState("networkidle");
-
+  test("page renders correctly", async ({ page, pageErrors }) => {
+    await smokeCheck(page, "/operations", pageErrors);
     const heading = page.getByRole("heading", { level: 1 });
     await expect(heading).toBeVisible();
-
-    const errorOverlay = page.locator("vite-error-overlay");
-    await expect(errorOverlay).toHaveCount(0);
-  });
-
-  test("no uncaught JS errors", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (err) => errors.push(err.message));
-
-    await page.goto("/operations");
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(1000);
-
-    expect(errors, `Uncaught JS errors: ${errors.join("; ")}`).toHaveLength(0);
   });
 });

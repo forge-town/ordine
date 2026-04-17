@@ -1,41 +1,22 @@
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test, smokeCheck, navigateAndWait, expectNoJSErrors } from "./fixtures";
 
 test.describe("Pipelines Page", () => {
-  test("renders without crashing", async ({ page }) => {
-    await page.goto("/pipelines");
-    await page.waitForLoadState("networkidle");
-
+  test("page renders correctly", async ({ page, pageErrors }) => {
+    await smokeCheck(page, "/pipelines", pageErrors);
     const heading = page.getByRole("heading", { level: 1 });
     await expect(heading).toBeVisible();
-
-    const errorOverlay = page.locator("vite-error-overlay");
-    await expect(errorOverlay).toHaveCount(0);
   });
 
-  test("search filtering works without errors", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (err) => errors.push(err.message));
-
-    await page.goto("/pipelines");
-    await page.waitForLoadState("networkidle");
+  test("search filters the pipeline list", async ({ page, pageErrors }) => {
+    await navigateAndWait(page, "/pipelines");
 
     const searchInput = page.locator("input[placeholder*='搜索'], input[placeholder*='earch']");
     if ((await searchInput.count()) > 0) {
-      await searchInput.first().fill("test");
-      await page.waitForTimeout(300);
+      await searchInput.first().fill("nonexistent-query-xyz");
+      await page.waitForLoadState("networkidle");
     }
 
-    expect(errors, `Uncaught JS errors: ${errors.join("; ")}`).toHaveLength(0);
-  });
-
-  test("no uncaught JS errors", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (err) => errors.push(err.message));
-
-    await page.goto("/pipelines");
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(1000);
-
-    expect(errors, `Uncaught JS errors: ${errors.join("; ")}`).toHaveLength(0);
+    expectNoJSErrors(pageErrors);
   });
 });

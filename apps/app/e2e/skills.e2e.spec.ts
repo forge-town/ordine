@@ -1,43 +1,24 @@
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test, smokeCheck, navigateAndWait, expectNoJSErrors } from "./fixtures";
 
 test.describe("Skills Page", () => {
-  test("renders without crashing", async ({ page }) => {
-    await page.goto("/skills");
-    await page.waitForLoadState("networkidle");
-
+  test("page renders correctly", async ({ page, pageErrors }) => {
+    await smokeCheck(page, "/skills", pageErrors);
     const heading = page.getByRole("heading", { level: 1 });
     await expect(heading).toBeVisible();
-
-    const errorOverlay = page.locator("vite-error-overlay");
-    await expect(errorOverlay).toHaveCount(0);
   });
 
-  test("category filter buttons work without errors", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (err) => errors.push(err.message));
+  test("category filter buttons work", async ({ page, pageErrors }) => {
+    await navigateAndWait(page, "/skills");
 
-    await page.goto("/skills");
-    await page.waitForLoadState("networkidle");
-
-    const filterButtons = page.locator("button[class*='rounded-md']");
+    const filterButtons = page.locator("button[role='tab'], [role='tablist'] button");
     const filterCount = await filterButtons.count();
 
-    for (let i = 0; i < Math.min(filterCount, 10); i++) {
+    for (const i of Array.from({ length: Math.min(filterCount, 10) }, (_, idx) => idx)) {
       await filterButtons.nth(i).click();
-      await page.waitForTimeout(200);
+      await page.waitForLoadState("networkidle");
     }
 
-    expect(errors, `Uncaught JS errors: ${errors.join("; ")}`).toHaveLength(0);
-  });
-
-  test("no uncaught JS errors", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (err) => errors.push(err.message));
-
-    await page.goto("/skills");
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(1000);
-
-    expect(errors, `Uncaught JS errors: ${errors.join("; ")}`).toHaveLength(0);
+    expectNoJSErrors(pageErrors);
   });
 });

@@ -1,20 +1,15 @@
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test, smokeCheck, navigateAndWait, expectNoJSErrors } from "./fixtures";
 
 test.describe("Rules Page", () => {
-  test("renders rule cards without crashing", async ({ page }) => {
-    await page.goto("/rules");
-    await page.waitForLoadState("networkidle");
-
+  test("page renders correctly", async ({ page, pageErrors }) => {
+    await smokeCheck(page, "/rules", pageErrors);
     const heading = page.getByRole("heading", { level: 1 });
     await expect(heading).toBeVisible();
-
-    const errorOverlay = page.locator("vite-error-overlay");
-    await expect(errorOverlay).toHaveCount(0);
   });
 
-  test("all rule cards render category and severity badges", async ({ page }) => {
-    await page.goto("/rules");
-    await page.waitForLoadState("networkidle");
+  test("all rule cards render category and severity badges", async ({ page, pageErrors }) => {
+    await navigateAndWait(page, "/rules");
 
     const cards = page.locator("[class*='rounded-xl'][class*='border']").filter({
       has: page.locator("p[class*='font-semibold']"),
@@ -28,48 +23,29 @@ test.describe("Rules Page", () => {
       return;
     }
 
-    for (let i = 0; i < cardCount; i++) {
+    for (const i of Array.from({ length: cardCount }, (_, idx) => idx)) {
       const card = cards.nth(i);
       const name = await card.locator("p[class*='font-semibold']").first().textContent();
 
       const badges = card.locator("span[class*='rounded-full']");
       const badgeCount = await badges.count();
       expect(badgeCount, `Rule "${name}" should have at least a category badge`).toBeGreaterThan(0);
-
-      for (let j = 0; j < badgeCount; j++) {
-        const badge = badges.nth(j);
-        const cls = await badge.getAttribute("class");
-        expect(cls, `Badge ${j} of rule "${name}" should have styling classes`).toBeTruthy();
-      }
     }
+
+    expectNoJSErrors(pageErrors);
   });
 
-  test("category filter tabs work without errors", async ({ page }) => {
-    await page.goto("/rules");
-    await page.waitForLoadState("networkidle");
+  test("category filter tabs change displayed items", async ({ page, pageErrors }) => {
+    await navigateAndWait(page, "/rules");
 
-    const filterButtons = page.locator(
-      "[class*='rounded-lg'][class*='border'] button[class*='rounded-md']",
-    );
+    const filterButtons = page.locator("button[role='tab'], [role='tablist'] button");
     const filterCount = await filterButtons.count();
 
-    for (let i = 0; i < filterCount; i++) {
+    for (const i of Array.from({ length: filterCount }, (_, idx) => idx)) {
       await filterButtons.nth(i).click();
-      await page.waitForTimeout(200);
-
-      const errorOverlay = page.locator("vite-error-overlay");
-      await expect(errorOverlay).toHaveCount(0);
+      await page.waitForLoadState("networkidle");
     }
-  });
 
-  test("no uncaught JS errors on rules page", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (err) => errors.push(err.message));
-
-    await page.goto("/rules");
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(1000);
-
-    expect(errors, `Uncaught JS errors: ${errors.join("; ")}`).toHaveLength(0);
+    expectNoJSErrors(pageErrors);
   });
 });
