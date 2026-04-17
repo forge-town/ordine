@@ -30,7 +30,7 @@ export const useBestPracticesPageStore = () => {
   const context = useContext(BestPracticesPageStoreContext);
   if (!context) {
     throw new Error(
-      "useBestPracticesPageStore must be used within a BestPracticesPageStoreProvider",
+      "useBestPracticesPageStore must be used within a BestPracticesPageStoreProvider"
     );
   }
 

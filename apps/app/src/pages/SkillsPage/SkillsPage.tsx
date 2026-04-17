@@ -1,5 +1,10 @@
+import { SkillsPageStoreProvider } from "./_store";
 import { SkillsPageContent } from "./SkillsPageContent";
 
 export const SkillsPage = () => {
-  return <SkillsPageContent />;
+  return (
+    <SkillsPageStoreProvider>
+      <SkillsPageContent />
+    </SkillsPageStoreProvider>
+  );
 };

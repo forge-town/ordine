@@ -1,5 +1,10 @@
+import { RecipesPageStoreProvider } from "./_store";
 import { RecipesPageContent } from "./RecipesPageContent";
 
 export const RecipesPage = () => {
-  return <RecipesPageContent />;
+  return (
+    <RecipesPageStoreProvider>
+      <RecipesPageContent />
+    </RecipesPageStoreProvider>
+  );
 };

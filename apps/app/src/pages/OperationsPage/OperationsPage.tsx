@@ -1,5 +1,10 @@
+import { OperationsPageStoreProvider } from "./_store";
 import { OperationsPageContent } from "./OperationsPageContent";
 
 export const OperationsPage = () => {
-  return <OperationsPageContent />;
+  return (
+    <OperationsPageStoreProvider>
+      <OperationsPageContent />
+    </OperationsPageStoreProvider>
+  );
 };

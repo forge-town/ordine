@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useStore } from "zustand";
 import { useNavigate } from "@tanstack/react-router";
 import { Activity, Search, Filter } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,7 @@ import { Input } from "@repo/ui/input";
 import type { JobRecord, JobStatus } from "@repo/db-schema";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { useJobsPageStore } from "../_store";
 import { StatCard } from "../StatCard";
 import { JobRow } from "../JobRow";
 
@@ -14,8 +15,11 @@ export const JobsPageContent = () => {
   const { result: jobsResult } = useList<JobRecord>({ resource: ResourceName.jobs });
   const jobs = jobsResult?.data ?? [];
   const { t } = useTranslation();
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<JobStatus | "all">("all");
+  const store = useJobsPageStore();
+  const search = useStore(store, (s) => s.search);
+  const statusFilter = useStore(store, (s) => s.statusFilter);
+  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
+  const handleSetStatusFilter = useStore(store, (s) => s.handleSetStatusFilter);
   const navigate = useNavigate();
   const { mutate: deleteJobMutate } = useDelete();
 
@@ -28,8 +32,9 @@ export const JobsPageContent = () => {
     { value: "cancelled", label: t("jobs.filterCancelled") },
   ];
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
-  const handleStatusFilterClick = (value: JobStatus | "all") => () => setStatusFilter(value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleSetSearch(e.target.value);
+  const handleStatusFilterClick = (value: JobStatus | "all") => () => handleSetStatusFilter(value);
   const handleJobClick = (jobId: string) => () =>
     void navigate({ to: "/jobs/$jobId", params: { jobId } });
   const handleDeleteJob = (jobId: string) => () => void handleDelete(jobId);

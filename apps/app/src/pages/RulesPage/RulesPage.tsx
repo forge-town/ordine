@@ -1,5 +1,10 @@
+import { RulesPageStoreProvider } from "./_store";
 import { RulesPageContent } from "./RulesPageContent";
 
 export const RulesPage = () => {
-  return <RulesPageContent />;
+  return (
+    <RulesPageStoreProvider>
+      <RulesPageContent />
+    </RulesPageStoreProvider>
+  );
 };

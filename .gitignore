@@ -73,3 +73,5 @@ yarn-error.log*
 dist
 .ordine
 test-results
+
+*.log

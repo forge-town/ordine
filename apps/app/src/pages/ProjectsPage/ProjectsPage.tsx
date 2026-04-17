@@ -1,5 +1,10 @@
+import { ProjectsPageStoreProvider } from "./_store";
 import { ProjectsPageContent } from "./ProjectsPageContent";
 
 export const ProjectsPage = () => {
-  return <ProjectsPageContent />;
+  return (
+    <ProjectsPageStoreProvider>
+      <ProjectsPageContent />
+    </ProjectsPageStoreProvider>
+  );
 };

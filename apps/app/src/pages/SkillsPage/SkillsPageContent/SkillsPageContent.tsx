@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useStore } from "zustand";
 import { Search, Wand2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
@@ -8,6 +8,7 @@ import { cn } from "@repo/ui/lib/utils";
 import type { SkillRecord } from "@repo/db-schema";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { useSkillsPageStore } from "../_store";
 
 export type Skill = SkillRecord;
 
@@ -35,11 +36,15 @@ export const SkillsPageContent = () => {
     "code-quality": t("skills.categories.code-quality"),
   };
 
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<SkillCategory>("all");
+  const store = useSkillsPageStore();
+  const search = useStore(store, (s) => s.search);
+  const category = useStore(store, (s) => s.category);
+  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
+  const handleSetCategory = useStore(store, (s) => s.handleSetCategory);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
-  const handleCategoryClick = (cat: SkillCategory) => () => setCategory(cat);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleSetSearch(e.target.value);
+  const handleCategoryClick = (cat: SkillCategory) => () => handleSetCategory(cat);
 
   const filtered = skills.filter((s: SkillRecord) => {
     const matchesSearch =

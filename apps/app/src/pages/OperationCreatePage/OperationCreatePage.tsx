@@ -1,5 +1,10 @@
+import { OperationCreatePageStoreProvider } from "./_store";
 import { OperationCreatePageContent } from "./OperationCreatePageContent";
 
 export const OperationCreatePage = () => {
-  return <OperationCreatePageContent />;
+  return (
+    <OperationCreatePageStoreProvider>
+      <OperationCreatePageContent />
+    </OperationCreatePageStoreProvider>
+  );
 };

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, FolderGit2, ChevronRight, Play, GitBranch, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -8,8 +7,10 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { PipelineEntity } from "@repo/models";
 import type { GithubProjectRecord } from "@repo/db-schema";
 import { Button } from "@repo/ui/button";
+import { useStore } from "zustand";
 import { ObjectRow, type ObjectItem } from "../ObjectRow";
 import { PipelineRow } from "../PipelineRow";
+import { useProjectWorkspacePageStore } from "../_store";
 
 const buildObjectTree = (owner: string, repo: string, entireProject: string): ObjectItem[] => [
   { type: "project", path: "/", label: `${owner}/${repo} (${entireProject})` },
@@ -29,11 +30,13 @@ export const ProjectWorkspacePageContent = () => {
   const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
   const project = projectResult ?? null;
   const pipelines = pipelinesResult?.data ?? [];
+  const store = useProjectWorkspacePageStore();
+  const selectedObjects = useStore(store, (s) => s.selectedObjects);
+  const selectedPipelineId = useStore(store, (s) => s.selectedPipelineId);
+  const handleToggleObjectInStore = useStore(store, (s) => s.handleToggleObject);
+  const handleSelectPipelineInStore = useStore(store, (s) => s.handleSelectPipeline);
   const navigate = useNavigate();
   const { t } = useTranslation();
-
-  const [selectedObjects, setSelectedObjects] = useState<Set<string>>(new Set());
-  const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
 
   if (!project) {
     return (
@@ -47,13 +50,7 @@ export const ProjectWorkspacePageContent = () => {
   const selectedPipeline = pipelines.find((p: PipelineEntity) => p.id === selectedPipelineId);
 
   const toggleObject = (path: string) => {
-    setSelectedObjects((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) next.delete(path);
-      else next.add(path);
-
-      return next;
-    });
+    handleToggleObjectInStore(path);
   };
 
   const canTrigger = selectedObjects.size > 0 && selectedPipelineId !== null;
@@ -78,8 +75,7 @@ export const ProjectWorkspacePageContent = () => {
 
   const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
 
-  const handleSelectPipeline = (id: string) => () =>
-    setSelectedPipelineId(id === selectedPipelineId ? null : id);
+  const handleSelectPipeline = (id: string) => () => handleSelectPipelineInStore(id);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

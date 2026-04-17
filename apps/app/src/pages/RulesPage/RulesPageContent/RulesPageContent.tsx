@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useStore } from "zustand";
 import { Plus, Search, ShieldCheck } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { RuleRecord, RuleCategory } from "@repo/db-schema";
 import { useDelete, useCustomMutation, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { useRulesPageStore } from "../_store";
 import { CATEGORY_FILTERS } from "../types";
 import { RuleCard } from "../RuleCard";
 
@@ -18,8 +19,11 @@ export const RulesPageContent = () => {
   const navigate = useNavigate();
   const { mutate: deleteRuleMutate } = useDelete();
   const { mutate: toggleRuleMutate } = useCustomMutation();
-  const [categoryFilter, setCategoryFilter] = useState<RuleCategory | "all">("all");
-  const [search, setSearch] = useState("");
+  const store = useRulesPageStore();
+  const categoryFilter = useStore(store, (s) => s.categoryFilter);
+  const search = useStore(store, (s) => s.search);
+  const handleSetCategoryFilter = useStore(store, (s) => s.handleSetCategoryFilter);
+  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
 
   const handleDelete = (id: string) => {
     deleteRuleMutate({ resource: ResourceName.rules, id });
@@ -46,9 +50,11 @@ export const RulesPageContent = () => {
 
   const enabledCount = rules.filter((r: RuleRecord) => r.enabled).length;
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleSetSearch(e.target.value);
 
-  const handleCategoryFilterClick = (value: RuleCategory | "all") => () => setCategoryFilter(value);
+  const handleCategoryFilterClick = (value: RuleCategory | "all") => () =>
+    handleSetCategoryFilter(value);
 
   const handleNavigateToCreate = () => void navigate({ to: "/rules/create" });
 

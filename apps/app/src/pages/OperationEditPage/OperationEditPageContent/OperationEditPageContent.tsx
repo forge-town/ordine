@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,6 +22,8 @@ import {
   type AgentMode,
 } from "@repo/pipeline-engine/schemas";
 import { safeJsonParse } from "@/lib/safeJson";
+import { useStore } from "zustand";
+import { useOperationEditPageStore } from "../_store";
 
 const EXECUTOR_ICONS = {
   agent: Wand2,
@@ -226,13 +227,14 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
   const executorType = form.watch("executorType");
   const agentMode = form.watch("agentMode");
 
-  const [skillOpen, setSkillOpen] = useState(false);
-  const handleSkillOpenChange = (v: boolean) => setSkillOpen(v);
-  const handleSkillToggle = () => setSkillOpen((prev) => !prev);
+  const store = useOperationEditPageStore();
+  const skillOpen = useStore(store, (s) => s.skillOpen);
+  const handleSkillOpenChange = useStore(store, (s) => s.handleSetSkillOpen);
+  const handleSkillToggle = useStore(store, (s) => s.handleToggleSkillOpen);
 
-  const [scriptLangOpen, setScriptLangOpen] = useState(false);
-  const handleScriptLangOpenChange = (v: boolean) => setScriptLangOpen(v);
-  const handleScriptLangToggle = () => setScriptLangOpen((prev) => !prev);
+  const scriptLangOpen = useStore(store, (s) => s.scriptLangOpen);
+  const handleScriptLangOpenChange = useStore(store, (s) => s.handleSetScriptLangOpen);
+  const handleScriptLangToggle = useStore(store, (s) => s.handleToggleScriptLangOpen);
 
   const handleCancel = () => {
     void navigate({
@@ -447,7 +449,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                         render={({ field }) => {
                           const handleChange = (v: string | null) => {
                             if (v) field.onChange(v);
-                            setSkillOpen(false);
+                            handleSkillOpenChange(false);
                           };
 
                           return (
@@ -535,7 +537,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                       render={({ field }) => {
                         const handleChange = (v: string | null) => {
                           if (v) field.onChange(v);
-                          setScriptLangOpen(false);
+                          handleScriptLangOpenChange(false);
                         };
 
                         return (

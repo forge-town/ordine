@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Plus,
@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
+import { useOperationsPageStore } from "../_store";
 
 const exportOperation = (op: OperationRecord) => {
   const data = JSON.stringify(op, null, 2);
@@ -50,7 +51,6 @@ export const OperationsPageContent = () => {
     resource: ResourceName.operations,
   });
   const operations = operationsResult?.data ?? [];
-  type SortKey = "default" | "name-asc" | "name-desc" | "date-asc" | "date-desc";
 
   const { t } = useTranslation();
 
@@ -69,14 +69,21 @@ export const OperationsPageContent = () => {
   ];
 
   const navigate = useNavigate();
-  const store = useToastStore();
-  const addToast = useStore(store, (s) => s.addToast);
+  const toastStoreRef = useToastStore();
+  const addToast = useStore(toastStoreRef, (s) => s.addToast);
+  const pageStore = useOperationsPageStore();
+  const searchQuery = useStore(pageStore, (s) => s.searchQuery);
+  const sortBy = useStore(pageStore, (s) => s.sortBy);
+  const sortOpen = useStore(pageStore, (s) => s.sortOpen);
+  const importing = useStore(pageStore, (s) => s.importing);
+  const handleSetSearchQuery = useStore(pageStore, (s) => s.handleSetSearchQuery);
+  const handleSetSortBy = useStore(pageStore, (s) => s.handleSetSortBy);
+  const handleSetSortOpen = useStore(pageStore, (s) => s.handleSetSortOpen);
+  const handleToggleSortOpen = useStore(pageStore, (s) => s.handleToggleSortOpen);
+  const handleSetImporting = useStore(pageStore, (s) => s.handleSetImporting);
   const { mutate: deleteOpMutate } = useDelete();
   const { mutateAsync: createOpMutate } = useCreate();
-  const [importing, setImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<SortKey>("default");
 
   const filteredOperations = operations
     .filter((op: OperationRecord) => {
@@ -114,16 +121,15 @@ export const OperationsPageContent = () => {
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSearchQuery(e.target.value);
+    handleSetSearchQuery(e.target.value);
 
   const handleSortChange = (value: string | null) => {
-    setSortBy((value ?? "default") as SortKey);
-    setSortOpen(false);
+    handleSetSortBy((value ?? "default") as typeof sortBy);
+    handleSetSortOpen(false);
   };
 
-  const [sortOpen, setSortOpen] = useState(false);
-  const handleSortOpenChange = (v: boolean) => setSortOpen(v);
-  const handleSortToggle = () => setSortOpen((prev) => !prev);
+  const handleSortOpenChange = (v: boolean) => handleSetSortOpen(v);
+  const handleSortToggle = () => handleToggleSortOpen();
 
   const handleOpenCreate = () => openCreate();
 
@@ -144,7 +150,7 @@ export const OperationsPageContent = () => {
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setImporting(true);
+    handleSetImporting(true);
 
     const text = await file.text();
     const parseResult = safeJsonParse<Partial<OperationRecord>>(text);
@@ -154,7 +160,7 @@ export const OperationsPageContent = () => {
         title: t("common.import"),
         description: t("errors.networkError"),
       });
-      setImporting(false);
+      handleSetImporting(false);
       e.target.value = "";
 
       return;
@@ -166,7 +172,7 @@ export const OperationsPageContent = () => {
         title: t("common.import"),
         description: `JSON ${t("validation.nameRequired")}`,
       });
-      setImporting(false);
+      handleSetImporting(false);
       e.target.value = "";
 
       return;
@@ -189,7 +195,7 @@ export const OperationsPageContent = () => {
         description: `${t("operations.createNew")} ${parsed.name}`,
       });
     }
-    setImporting(false);
+    handleSetImporting(false);
     e.target.value = "";
   };
 

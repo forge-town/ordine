@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Layers, Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,8 @@ import { cn } from "@repo/ui/lib/utils";
 import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { PipelineEntity } from "@repo/models";
+import { useStore } from "zustand";
+import { usePipelinesPageStore } from "../_store";
 import { PipelineCard } from "../PipelineCard";
 
 export const PipelinesPageContent = () => {
@@ -16,8 +18,12 @@ export const PipelinesPageContent = () => {
   const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
   const pipelinesData = pipelinesResult?.data;
   const pipelines = pipelinesData ?? [];
-  const [search, setSearch] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const store = usePipelinesPageStore();
+  const search = useStore(store, (s) => s.search);
+  const selectedTags = useStore(store, (s) => s.selectedTags);
+  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
+  const handleToggleTag = useStore(store, (s) => s.handleToggleTag);
+  const handleClearTags = useStore(store, (s) => s.handleClearTags);
   const navigate = useNavigate();
   const { mutateAsync: createPipelineMutate } = useCreate();
   const { mutate: deletePipelineMutate } = useDelete();
@@ -32,16 +38,13 @@ export const PipelinesPageContent = () => {
     return [...tagSet].sort();
   }, [pipelinesData]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
-  const handleClearSearch = () => setSearch("");
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleSetSearch(e.target.value);
+  const handleClearSearch = () => handleSetSearch("");
 
   const handleTagClick = (tag: string) => () => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
+    handleToggleTag(tag);
   };
-
-  const handleClearTags = () => setSelectedTags([]);
 
   const filtered = useMemo(() => {
     const items = pipelinesData ?? [];

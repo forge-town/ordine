@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Search, Folder } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -7,8 +6,10 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { GithubProjectRecord } from "@repo/db-schema";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import { useStore } from "zustand";
 import { CreateProjectDialog } from "../CreateProjectDialog";
 import { ProjectCard } from "../ProjectCard";
+import { useProjectsPageStore } from "../_store";
 
 const handleCreateProject = (_p: GithubProjectRecord) => {};
 
@@ -18,8 +19,11 @@ export const ProjectsPageContent = () => {
     resource: ResourceName.githubProjects,
   });
   const projects = projectsResult?.data ?? [];
-  const [search, setSearch] = useState("");
-  const [showCreate, setShowCreate] = useState(false);
+  const store = useProjectsPageStore();
+  const search = useStore(store, (s) => s.search);
+  const showCreate = useStore(store, (s) => s.showCreate);
+  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
+  const handleSetShowCreate = useStore(store, (s) => s.handleSetShowCreate);
   const navigate = useNavigate();
   const { mutate: deleteProjectMutate } = useDelete();
 
@@ -28,16 +32,17 @@ export const ProjectsPageContent = () => {
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.description ?? "").toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
-      p.repo.toLowerCase().includes(search.toLowerCase())
+      p.repo.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleDelete = (id: string) => {
     deleteProjectMutate({ resource: ResourceName.githubProjects, id });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
-  const handleShowCreate = () => setShowCreate(true);
-  const handleHideCreate = () => setShowCreate(false);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleSetSearch(e.target.value);
+  const handleShowCreate = () => handleSetShowCreate(true);
+  const handleHideCreate = () => handleSetShowCreate(false);
   const handleProjectClick = (projectId: string) => () =>
     void navigate({
       to: "/projects/$projectId",

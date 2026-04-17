@@ -1,5 +1,10 @@
+import { JobsPageStoreProvider } from "./_store";
 import { JobsPageContent } from "./JobsPageContent";
 
 export const JobsPage = () => {
-  return <JobsPageContent />;
+  return (
+    <JobsPageStoreProvider>
+      <JobsPageContent />
+    </JobsPageStoreProvider>
+  );
 };

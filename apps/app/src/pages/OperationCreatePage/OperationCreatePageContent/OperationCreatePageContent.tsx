@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +19,8 @@ import {
   AgentModeSchema,
   ScriptLanguageSchema,
 } from "@repo/pipeline-engine/schemas";
+import { useStore } from "zustand";
+import { useOperationCreatePageStore } from "../_store";
 
 const EXECUTOR_ICONS = {
   agent: Wand2,
@@ -167,13 +168,14 @@ export const OperationCreatePageContent = () => {
   const executorType = form.watch("executorType");
   const agentMode = form.watch("agentMode");
 
-  const [skillOpen, setSkillOpen] = useState(false);
-  const handleSkillOpenChange = (v: boolean) => setSkillOpen(v);
-  const handleSkillToggle = () => setSkillOpen((prev) => !prev);
+  const store = useOperationCreatePageStore();
+  const skillOpen = useStore(store, (s) => s.skillOpen);
+  const handleSkillOpenChange = useStore(store, (s) => s.handleSetSkillOpen);
+  const handleSkillToggle = useStore(store, (s) => s.handleToggleSkillOpen);
 
-  const [scriptLangOpen, setScriptLangOpen] = useState(false);
-  const handleScriptLangOpenChange = (v: boolean) => setScriptLangOpen(v);
-  const handleScriptLangToggle = () => setScriptLangOpen((prev) => !prev);
+  const scriptLangOpen = useStore(store, (s) => s.scriptLangOpen);
+  const handleScriptLangOpenChange = useStore(store, (s) => s.handleSetScriptLangOpen);
+  const handleScriptLangToggle = useStore(store, (s) => s.handleToggleScriptLangOpen);
 
   const { mutateAsync: createOpMutate } = useCreate();
 
@@ -281,7 +283,7 @@ export const OperationCreatePageContent = () => {
                                   "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                                   selected
                                     ? "border-primary/50 bg-primary/10 text-primary"
-                                    : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                    : "border-border bg-background text-muted-foreground hover:bg-muted",
                                 )}
                                 type="button"
                                 onClick={() => handleChange(toggleObjectType(field.value, value))}
@@ -324,7 +326,7 @@ export const OperationCreatePageContent = () => {
                                 "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
                                 selected
                                   ? "border-primary/50 bg-primary/10 text-primary"
-                                  : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                  : "border-border bg-background text-muted-foreground hover:bg-muted",
                               )}
                               type="button"
                               onClick={() => handleChange(value)}
@@ -365,7 +367,7 @@ export const OperationCreatePageContent = () => {
                                     "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                                     selected
                                       ? "border-primary/50 bg-primary/10 text-primary"
-                                      : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                      : "border-border bg-background text-muted-foreground hover:bg-muted",
                                   )}
                                   type="button"
                                   onClick={() => handleChange(value)}
@@ -390,7 +392,7 @@ export const OperationCreatePageContent = () => {
                         render={({ field }) => {
                           const handleChange = (v: string | null) => {
                             if (v) field.onChange(v);
-                            setSkillOpen(false);
+                            handleSkillOpenChange(false);
                           };
 
                           return (
@@ -478,7 +480,7 @@ export const OperationCreatePageContent = () => {
                       render={({ field }) => {
                         const handleChange = (v: string | null) => {
                           if (v) field.onChange(v);
-                          setScriptLangOpen(false);
+                          handleScriptLangOpenChange(false);
                         };
 
                         return (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useStore } from "zustand";
 import { ChefHat, Plus, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@repo/ui/input";
 import type { RecipeRecord, OperationRecord, BestPracticeRecord } from "@repo/db-schema";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { useRecipesPageStore } from "../_store";
 import { RecipeFormDialog } from "../RecipeFormDialog";
 import { RecipeCard } from "../RecipeCard";
 
@@ -23,9 +24,13 @@ export const RecipesPageContent = () => {
   const recipes = recipesResult?.data ?? [];
   const operations = operationsResult?.data ?? [];
   const bestPractices = bestPracticesResult?.data ?? [];
-  const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<RecipeRecord | null>(null);
+  const store = useRecipesPageStore();
+  const search = useStore(store, (s) => s.search);
+  const showForm = useStore(store, (s) => s.showForm);
+  const editing = useStore(store, (s) => s.editing);
+  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
+  const handleSetShowForm = useStore(store, (s) => s.handleSetShowForm);
+  const handleSetEditing = useStore(store, (s) => s.handleSetEditing);
   const { mutate: deleteRecipeMutate } = useDelete();
 
   const filtered = recipes.filter((r: RecipeRecord) => {
@@ -39,23 +44,24 @@ export const RecipesPageContent = () => {
     deleteRecipeMutate({ resource: ResourceName.recipes, id });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleSetSearch(e.target.value);
 
   const handleAddRecipe = () => {
-    setEditing(null);
-    setShowForm(true);
+    handleSetEditing(null);
+    handleSetShowForm(true);
   };
 
   const handleEditRecipe = (r: RecipeRecord) => () => {
-    setEditing(r);
-    setShowForm(true);
+    handleSetEditing(r);
+    handleSetShowForm(true);
   };
 
   const handleDeleteRecipe = (id: string) => () => void handleDelete(id);
 
   const handleFormClose = () => {
-    setShowForm(false);
-    setEditing(null);
+    handleSetShowForm(false);
+    handleSetEditing(null);
   };
 
   const opMap = new Map<string, OperationRecord>(operations.map((o: OperationRecord) => [o.id, o]));
