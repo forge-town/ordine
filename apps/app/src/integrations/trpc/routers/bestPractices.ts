@@ -24,6 +24,12 @@ export const bestPracticesRouter = router({
 
   exportAll: publicProcedure.query(() => bestPracticesBulkService.exportAll()),
 
+  exportAsZip: publicProcedure.query(async () => {
+    const zipData = await bestPracticesBulkService.exportAsZip();
+
+    return Buffer.from(zipData).toString("base64");
+  }),
+
   importBulk: publicProcedure
     .input(
       z.array(

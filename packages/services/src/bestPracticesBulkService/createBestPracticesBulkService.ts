@@ -4,6 +4,19 @@ import {
   createCodeSnippetsDao,
   type DbConnection,
 } from "@repo/models";
+import JSZip from "jszip";
+
+const LANG_EXT: Record<string, string> = {
+  typescript: "ts",
+  tsx: "tsx",
+  javascript: "js",
+  python: "py",
+  sql: "sql",
+  bash: "sh",
+  json: "json",
+  yaml: "yaml",
+  markdown: "md",
+};
 
 export interface BulkImportEntry {
   id: string;
@@ -114,6 +127,71 @@ export const createBestPracticesBulkService = (db: DbConnection) => {
 
         return counts;
       });
+    },
+
+    exportAsZip: async (): Promise<Uint8Array> => {
+      const practices = await bpDao.findMany();
+      const zip = new JSZip();
+
+      for (const bp of practices) {
+        const [checklistItems, codeSnippets] = await Promise.all([
+          checklistItemsDao.findByBestPracticeId(bp.id),
+          codeSnippetsDao.findByBestPracticeId(bp.id),
+        ]);
+
+        const folder = zip.folder(bp.id);
+        if (!folder) continue;
+
+        folder.file(
+          "metadata.json",
+          JSON.stringify(
+            {
+              id: bp.id,
+              title: bp.title,
+              condition: bp.condition,
+              category: bp.category,
+              language: bp.language,
+              tags: bp.tags,
+            },
+            null,
+            2,
+          ),
+        );
+
+        folder.file("content.md", bp.content || "");
+
+        if (codeSnippets.length > 0) {
+          const snippetsFolder = folder.folder("code-snippets");
+          if (snippetsFolder) {
+            for (const s of codeSnippets) {
+              const ext = LANG_EXT[s.language] ?? "txt";
+              const shortTitle = s.title?.split(/\s*[—–-]\s*/)[0]?.trim();
+              const baseName = shortTitle
+                ? shortTitle.replace(/\.[^.]+$/, "").replace(/[/\\:*?"<>|]/g, "_")
+                : `snippet-${s.sortOrder}`;
+              snippetsFolder.file(`${baseName}.${ext}`, s.code);
+            }
+          }
+        } else if (bp.codeSnippet) {
+          const ext = LANG_EXT[bp.language] ?? "txt";
+          folder.file(`code-snippet.${ext}`, bp.codeSnippet || "");
+        }
+
+        const checklistLines = checklistItems.map((item, idx) => {
+          const parts = [`- [ ] ${idx + 1}. ${item.title}`];
+          if (item.description) parts.push(`\n  ${item.description}`);
+          if (item.checkType === "script" && item.script)
+            parts.push(`\n  \`\`\`\n  ${item.script}\n  \`\`\``);
+
+          return parts.join("");
+        });
+        folder.file("checklist.md", `# ${bp.title} 检查清单\n\n${checklistLines.join("\n\n")}\n`);
+
+        const itemsData = checklistItems.map(({ bestPracticeId: _, ...rest }) => rest);
+        folder.file("checklist-items.json", JSON.stringify(itemsData, null, 2) + "\n");
+      }
+
+      return zip.generateAsync({ type: "uint8array" });
     },
   };
 };

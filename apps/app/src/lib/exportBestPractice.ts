@@ -124,18 +124,16 @@ export const exportSingleBestPractice = async (id: string, title: string) => {
 };
 
 export const exportAllBestPractices = async () => {
-  const data = await trpcClient.bestPractices.exportAll.query();
-
-  const zip = new JSZip();
-  for (const { checklistItems, codeSnippets, ...bp } of data) {
-    addBPToZip(
-      zip,
-      bp as BPData,
-      checklistItems as ChecklistItem[],
-      codeSnippets as CodeSnippetItem[]
-    );
-  }
-  await downloadZip(zip, `best-practices-${new Date().toISOString().slice(0, 10)}.bestpractice`);
+  const base64 = await trpcClient.bestPractices.exportAsZip.query();
+  const binary = atob(base64);
+  const bytes = Uint8Array.from(binary, (c) => c.codePointAt(0) ?? 0);
+  const blob = new Blob([bytes], { type: "application/zip" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `best-practices-${new Date().toISOString().slice(0, 10)}.bestpractice`;
+  a.click();
+  URL.revokeObjectURL(url);
 };
 
 export const importBestPracticesFromZip = async (
