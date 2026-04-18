@@ -24,9 +24,11 @@ export const executeOperationNode = async (
 
   const opData = node.data as unknown as {
     llmModel?: string;
+    llmProvider?: string;
     bestPracticeId?: string;
   };
   const modelOverride = opData.llmModel ?? undefined;
+  const agentOverride = opData.llmProvider as ExecutorConfig["agent"] | undefined;
 
   const bestPracticeContent = await (async () => {
     if (!opData.bestPracticeId) return "";
@@ -121,7 +123,7 @@ export const executeOperationNode = async (
       inputContent: effectiveInput,
       inputPath: input.inputPath,
       modelOverride,
-      agent: executor.agent,
+      agent: agentOverride ?? executor.agent,
       onChunk: handleChunk,
       onProgress,
     });
@@ -155,7 +157,7 @@ export const executeOperationNode = async (
       inputContent: effectiveInput,
       inputPath: input.inputPath,
       modelOverride,
-      agent: executor.agent,
+      agent: agentOverride ?? executor.agent,
       allowedTools: executor.allowedTools,
       promptMode: executor.promptMode,
       onChunk: handleChunk,

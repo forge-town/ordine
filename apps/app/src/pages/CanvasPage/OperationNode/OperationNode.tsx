@@ -48,16 +48,17 @@ const statusConfig: Record<
 const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
 const PROVIDER_LABELS: Record<string, string> = {
-  kimi: "Kimi",
-  deepseek: "DeepSeek",
+  "local-claude": "Claude",
+  codex: "Codex",
+  mastra: "Mastra",
 };
 
 const MODEL_OPTIONS: Record<string, { value: string; label: string }[]> = {
-  kimi: [
+  "local-claude": [],
+  codex: [],
+  mastra: [
     { value: "kimi-k2-0711-preview", label: "Kimi K2 Preview" },
     { value: "kimi-for-coding", label: "Kimi for Coding" },
-  ],
-  deepseek: [
     { value: "deepseek-chat", label: "DeepSeek Chat" },
     { value: "deepseek-reasoner", label: "DeepSeek Reasoner" },
   ],
@@ -238,7 +239,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
                 </SelectGroup>
               </SelectContent>
             </Select>
-            {selectedProvider && (
+            {selectedProvider && (MODEL_OPTIONS[selectedProvider]?.length ?? 0) > 0 && (
               <Select
                 open={modelOpen}
                 value={selectedModel}

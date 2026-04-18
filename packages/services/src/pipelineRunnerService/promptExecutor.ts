@@ -79,15 +79,15 @@ export const runPrompt = ({
         return codexResult;
       }
 
-      // agent === "kimi" — use streaming LLM
+      // agent === "mastra" — use streaming LLM
       const model = await getModel(getSettings, modelOverride);
       if (!model) {
         logger.error("runPrompt: LLM not configured");
         await onProgress?.("[LLM] runPrompt: LLM not configured, throwing error");
         throw new PromptExecutionError("LLM not configured (API key missing in settings)");
       }
-      logger.info("runPrompt: streaming (kimi)");
-      await onProgress?.("[LLM] runPrompt: Starting streamText (kimi)...");
+      logger.info("runPrompt: streaming (mastra)");
+      await onProgress?.("[LLM] runPrompt: Starting streamText (mastra)...");
       const result = streamText({
         model,
         prompt: `${prompt}\n\nInput:\n${inputContent}`,

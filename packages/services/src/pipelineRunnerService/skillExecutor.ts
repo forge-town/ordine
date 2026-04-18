@@ -222,15 +222,15 @@ export const runSkill = ({
         return result;
       }
 
-      // agent === "kimi" — use streaming LLM
+      // agent === "mastra" — use streaming LLM
       const model = await getModel(getSettings, modelOverride);
       if (!model) {
         logger.warn("runSkill: No LLM model — returning fallback");
         await onProgress?.("[Mastra] runSkill: No LLM model — returning fallback report");
         return generateFallbackReport();
       }
-      logger.info("runSkill: starting streamText (kimi)");
-      await onProgress?.("[Mastra] runSkill: Starting streamText (kimi)...");
+      logger.info("runSkill: starting streamText (mastra)");
+      await onProgress?.("[Mastra] runSkill: Starting streamText (mastra)...");
       const result = streamText({
         model,
         system: systemPrompt,

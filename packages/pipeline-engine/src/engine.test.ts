@@ -218,7 +218,7 @@ describe("executePipeline", () => {
             id: opId,
             name: "Agent Config Op",
             config: JSON.stringify({
-              executor: { type: "skill", skillId: "sk-2", agent: "kimi" },
+              executor: { type: "skill", skillId: "sk-2", agent: "mastra" },
             }),
           },
         ],
@@ -233,7 +233,7 @@ describe("executePipeline", () => {
       );
       expect(result.ok).toBe(true);
       expect(deps.runSkill).toHaveBeenCalledWith(
-        expect.objectContaining({ agent: "kimi", skillId: "sk-2" }),
+        expect.objectContaining({ agent: "mastra", skillId: "sk-2" }),
       );
     });
 
@@ -247,7 +247,7 @@ describe("executePipeline", () => {
             id: opId,
             name: "Prompt Agent Op",
             config: JSON.stringify({
-              executor: { type: "prompt", prompt: "Analyze this", agent: "kimi" },
+              executor: { type: "prompt", prompt: "Analyze this", agent: "mastra" },
             }),
           },
         ],
@@ -257,7 +257,7 @@ describe("executePipeline", () => {
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps, { operations }));
       expect(result.ok).toBe(true);
       expect(deps.runPrompt).toHaveBeenCalledWith(
-        expect.objectContaining({ agent: "kimi", prompt: "Analyze this" }),
+        expect.objectContaining({ agent: "mastra", prompt: "Analyze this" }),
       );
     });
 

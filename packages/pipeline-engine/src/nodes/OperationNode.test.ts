@@ -287,3 +287,44 @@ describe("processOperationNode", () => {
     expect(trace).toHaveBeenCalledWith("job-1", "@@NODE_DONE::op-1");
   });
 });
+
+describe("executeOperationNode — agent override", () => {
+  it("uses llmProvider from node data as agent override for prompt mode", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({ type: "prompt", prompt: "Analyze", agent: "mastra" });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id", llmProvider: "codex" });
+    const ctx = makeCtx(deps, ops);
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
+  });
+
+  it("uses llmProvider from node data as agent override for skill mode", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({ type: "skill", skillId: "sk-1", agent: "mastra" });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id", llmProvider: "local-claude" });
+    const ctx = makeCtx(deps, ops);
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ agent: "local-claude" }));
+  });
+
+  it("falls back to executor.agent when llmProvider is not set", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({ type: "prompt", prompt: "Analyze", agent: "codex" });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id" });
+    const ctx = makeCtx(deps, ops);
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
+  });
+});
