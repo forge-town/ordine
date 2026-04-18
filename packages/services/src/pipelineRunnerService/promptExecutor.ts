@@ -83,8 +83,10 @@ export const runPrompt = ({
       const model = await getModel(getSettings, modelOverride);
       if (!model) {
         logger.error("runPrompt: LLM not configured");
-        await onProgress?.("[LLM] runPrompt: LLM not configured, throwing error");
-        throw new PromptExecutionError("LLM not configured (API key missing in settings)");
+        await onProgress?.("[LLM] runPrompt: LLM not configured, returning error");
+        return Promise.reject(
+          new PromptExecutionError("LLM not configured (API key missing in settings)"),
+        );
       }
       logger.info("runPrompt: streaming (mastra)");
       await onProgress?.("[LLM] runPrompt: Starting streamText (mastra)...");

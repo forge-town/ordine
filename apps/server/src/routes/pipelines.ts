@@ -64,11 +64,15 @@ pipelinesRoutes.post("/:id/run", async (c) => {
   const inputPath = (body as Record<string, unknown>).inputPath as string | undefined;
   const githubToken = (body as Record<string, unknown>).githubToken as string | undefined;
 
-  const { jobId } = await pipelineRunnerService.startRun({
+  const result = await pipelineRunnerService.startRun({
     pipelineId: id,
     inputPath,
     githubToken,
   });
 
-  return c.json({ jobId }, 202);
+  if (result.isErr()) {
+    return c.json({ error: result.error.message }, 404);
+  }
+
+  return c.json({ jobId: result.value.jobId }, 202);
 });

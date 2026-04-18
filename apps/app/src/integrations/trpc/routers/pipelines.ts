@@ -18,7 +18,7 @@ export const pipelinesRouter = router({
         ...input,
         nodes: input.nodes as never,
         edges: input.edges as never,
-      })
+      }),
     ),
 
   update: publicProcedure
@@ -26,14 +26,14 @@ export const pipelinesRouter = router({
       z.object({
         id: z.string(),
         patch: PipelineSchema.omit({ createdAt: true, updatedAt: true }).partial(),
-      })
+      }),
     )
     .mutation(({ input }) =>
       pipelinesService.update(input.id, {
         ...input.patch,
         nodes: input.patch.nodes as never,
         edges: input.patch.edges as never,
-      })
+      }),
     ),
 
   delete: publicProcedure
@@ -46,7 +46,7 @@ export const pipelinesRouter = router({
         id: z.string(),
         inputPath: z.string().optional(),
         githubToken: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const pipeline = await pipelinesService.getById(input.id);
@@ -54,10 +54,16 @@ export const pipelinesRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Pipeline not found" });
       }
 
-      return pipelineRunnerService.startRun({
+      const result = await pipelineRunnerService.startRun({
         pipelineId: input.id,
         inputPath: input.inputPath,
         githubToken: input.githubToken,
       });
+
+      if (result.isErr()) {
+        throw new TRPCError({ code: "NOT_FOUND", message: result.error.message });
+      }
+
+      return result.value;
     }),
 });

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { ok } from "neverthrow";
 
 vi.mock("../src/services.js", () => ({
   pipelinesService: {
@@ -212,7 +213,7 @@ describe("Pipelines API", () => {
 
   it("POST /api/pipelines/:id/run starts a run", async () => {
     mockPipelinesService.getById.mockResolvedValueOnce(mockPipeline as never);
-    mockPipelineRunnerService.startRun.mockResolvedValueOnce({ jobId: "job-1" } as never);
+    mockPipelineRunnerService.startRun.mockResolvedValueOnce(ok({ jobId: "job-1" }) as never);
     const res = await app.request("/api/pipelines/pipe-1/run", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

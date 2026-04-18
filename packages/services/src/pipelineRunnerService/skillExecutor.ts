@@ -10,6 +10,7 @@ import { ResultAsync, ok } from "neverthrow";
 import {
   getModel,
   runClaude,
+  runCodex,
   READ_ONLY_TOOLS,
   WRITE_TOOLS,
   extractJsonFromText,
@@ -220,6 +221,44 @@ export const runSkill = ({
         const result = isResearch ? raw : validateSkillOutput(raw, mode);
         if (onChunk) await onChunk(result);
         return result;
+      }
+
+      if (agent === "codex") {
+        const cwd = inputPath || process.cwd();
+        logger.info("runSkill: starting codex exec");
+        await onProgress?.("[Codex] runSkill: Starting codex exec...");
+
+        const codexResult = await ResultAsync.fromPromise(
+          runCodex({
+            systemPrompt,
+            userPrompt,
+            cwd,
+            onProgress,
+          }),
+          (error) => error,
+        );
+
+        if (codexResult.isErr()) {
+          const error = codexResult.error;
+          const errMsg = error instanceof Error ? error.message : String(error);
+          logger.error({ err: errMsg }, "runSkill: codex exec failed");
+          await onProgress?.(`runSkill: Codex FAILED — ${errMsg}`);
+          return generateFallbackReport();
+        }
+
+        const raw = codexResult.value;
+        logger.info({ len: raw.length }, "runSkill: codex complete");
+        await onProgress?.(`runSkill: Codex complete, output=${raw.length} chars`);
+
+        if (raw.length === 0) {
+          logger.warn("runSkill: codex returned empty output — using fallback");
+          await onProgress?.("runSkill: WARNING — Codex returned empty output, using fallback");
+          return generateFallbackReport();
+        }
+
+        const codexParsed = isResearch ? raw : validateSkillOutput(raw, mode);
+        if (onChunk) await onChunk(codexParsed);
+        return codexParsed;
       }
 
       // agent === "mastra" — use streaming LLM

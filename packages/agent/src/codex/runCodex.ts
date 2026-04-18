@@ -77,12 +77,20 @@ export const runCodex = async ({
       const stdout = Buffer.concat(stdoutChunks).toString("utf8");
       const stderr = Buffer.concat(stderrChunks).toString("utf8");
 
-      if (code !== 0) {
+      if (code !== 0 && stdout.trim().length === 0) {
         logger.error({ code, stderr: stderr.substring(0, 500) }, "runCodex: non-zero exit");
         void onProgress?.(`[Codex] Exit code ${code}: ${stderr.substring(0, 200)}`);
         reject(new Error(`codex exited with code ${code}: ${stderr.substring(0, 500)}`));
 
         return;
+      }
+
+      if (code !== 0) {
+        logger.warn(
+          { code, stdoutLen: stdout.length, stderr: stderr.substring(0, 300) },
+          "runCodex: non-zero exit but stdout present, using output",
+        );
+        void onProgress?.(`[Codex] Exit code ${code} (non-fatal, ${stdout.length} chars captured)`);
       }
 
       if (stderr) {

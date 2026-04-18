@@ -1,3 +1,4 @@
+import { ok, err, type Result } from "neverthrow";
 import { initObs } from "@repo/obs";
 import { createLlmService } from "../llmService";
 import { createLoopEvaluator } from "./loopEvaluator";
@@ -13,6 +14,13 @@ import {
   createRulesDao,
   type DbConnection,
 } from "@repo/models";
+
+export class PipelineNotFoundError extends Error {
+  constructor(pipelineId: string) {
+    super(`Pipeline ${pipelineId} not found`);
+    this.name = "PipelineNotFoundError";
+  }
+}
 
 export const createPipelineRunnerService = (db: DbConnection) => {
   const operationsDao = createOperationsDao(db);
@@ -36,10 +44,10 @@ export const createPipelineRunnerService = (db: DbConnection) => {
     pipelineId: string;
     inputPath?: string;
     githubToken?: string;
-  }): Promise<{ jobId: string }> => {
+  }): Promise<Result<{ jobId: string }, PipelineNotFoundError>> => {
     const pipeline = await pipelinesDao.findById(opts.pipelineId);
     if (!pipeline) {
-      throw new Error(`Pipeline ${opts.pipelineId} not found`);
+      return err(new PipelineNotFoundError(opts.pipelineId));
     }
 
     const jobId = crypto.randomUUID();
@@ -70,7 +78,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       engineDeps: buildDepsForJob(jobId),
     });
 
-    return { jobId };
+    return ok({ jobId });
   };
 
   return {
