@@ -1,6 +1,6 @@
 import { publicProcedure, router } from "../init";
 import { bestPracticesService, bestPracticesBulkService } from "../services";
-import { BestPracticeSchema, ChecklistItemSchema, CodeSnippetSchema } from "@repo/schemas";
+import { BestPracticeImportSchema, BestPracticeSchema } from "@repo/schemas";
 import { z } from "zod/v4";
 
 export const bestPracticesRouter = router({
@@ -31,24 +31,10 @@ export const bestPracticesRouter = router({
   }),
 
   importBulk: publicProcedure
-    .input(
-      z.array(
-        BestPracticeSchema.extend({
-          checklistItems: z.array(ChecklistItemSchema.omit({ bestPracticeId: true })).default([]),
-          codeSnippets: z.array(CodeSnippetSchema.omit({ bestPracticeId: true })).default([]),
-        })
-      )
-    )
+    .input(BestPracticeImportSchema)
     .mutation(({ input }) => bestPracticesBulkService.importBulk(input)),
 
   previewImport: publicProcedure
-    .input(
-      z.array(
-        BestPracticeSchema.extend({
-          checklistItems: z.array(ChecklistItemSchema.omit({ bestPracticeId: true })).default([]),
-          codeSnippets: z.array(CodeSnippetSchema.omit({ bestPracticeId: true })).default([]),
-        })
-      )
-    )
+    .input(BestPracticeImportSchema)
     .mutation(({ input }) => bestPracticesBulkService.previewImport(input)),
 });

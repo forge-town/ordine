@@ -4,6 +4,7 @@ import {
   createCodeSnippetsDao,
   type DbConnection,
 } from "@repo/models";
+import type { BestPracticeImportEntry } from "@repo/schemas";
 import JSZip from "jszip";
 
 const LANG_EXT: Record<string, string> = {
@@ -18,39 +19,13 @@ const LANG_EXT: Record<string, string> = {
   markdown: "md",
 };
 
-export interface BulkImportEntry {
-  id: string;
-  title: string;
-  condition: string;
-  content: string;
-  category: string;
-  language: string;
-  codeSnippet: string;
-  tags: string[];
-  checklistItems: Array<{
-    id: string;
-    title: string;
-    description: string;
-    checkType: "script" | "llm";
-    script: string | null;
-    sortOrder: number;
-  }>;
-  codeSnippets: Array<{
-    id: string;
-    title: string;
-    language: string;
-    code: string;
-    sortOrder: number;
-  }>;
-}
-
 export const createBestPracticesBulkService = (db: DbConnection) => {
   const bpDao = createBestPracticesDao(db);
   const checklistItemsDao = createChecklistItemsDao(db);
   const codeSnippetsDao = createCodeSnippetsDao(db);
 
   return {
-    previewImport: async (entries: BulkImportEntry[]) => {
+    previewImport: async (entries: BestPracticeImportEntry[]) => {
       const items: Array<{
         id: string;
         title: string;
@@ -110,7 +85,7 @@ export const createBestPracticesBulkService = (db: DbConnection) => {
       );
     },
 
-    importBulk: async (entries: BulkImportEntry[]) => {
+    importBulk: async (entries: BestPracticeImportEntry[]) => {
       return db.transaction(async (tx) => {
         const counts = { imported: 0, checklistItems: 0, codeSnippets: 0 };
         const txBpDao = createBestPracticesDao(tx);

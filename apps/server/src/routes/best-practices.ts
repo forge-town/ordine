@@ -2,9 +2,9 @@ import { Hono } from "hono";
 import {
   bestPracticesService,
   bestPracticesBulkService,
-  checklistService,
-  codeSnippetsService,
 } from "../services.js";
+import { BestPracticeImportSchema } from "@repo/schemas";
+import { z } from "zod/v4";
 
 export const bestPracticesRoutes = new Hono();
 
@@ -47,47 +47,14 @@ bestPracticesRoutes.get("/export", async () => {
 });
 
 bestPracticesRoutes.post("/import", async (c) => {
-  const entries = await c.req.json();
-  const counts = { bp: 0, cl: 0, cs: 0 };
-
-  for (const entry of entries) {
-    const { checklistItems = [], codeSnippets = [], ...bpData } = entry;
-
-    const existing = await bestPracticesService.getById(bpData.id);
-    if (existing) {
-      const { id: _, ...patch } = bpData;
-      await bestPracticesService.update(bpData.id, patch);
-    } else {
-      await bestPracticesService.create(bpData);
-    }
-    counts.bp++;
-
-    for (const item of checklistItems) {
-      const itemData = { ...item, bestPracticeId: bpData.id };
-      const existingItem = await checklistService.getItemById(item.id);
-      if (existingItem) {
-        const { id: _, bestPracticeId: __, ...patch } = itemData;
-        await checklistService.updateItem(item.id, patch);
-      } else {
-        await checklistService.createItem(itemData);
-      }
-      counts.cl++;
-    }
-
-    for (const snippet of codeSnippets) {
-      const snippetData = { ...snippet, bestPracticeId: bpData.id };
-      const existingSnippet = await codeSnippetsService.getById(snippet.id);
-      if (existingSnippet) {
-        const { id: _, bestPracticeId: __, ...patch } = snippetData;
-        await codeSnippetsService.update(snippet.id, patch);
-      } else {
-        await codeSnippetsService.create(snippetData);
-      }
-      counts.cs++;
-    }
+  const parsed = BestPracticeImportSchema.safeParse(await c.req.json());
+  if (!parsed.success) {
+    return c.json({ error: z.prettifyError(parsed.error) }, 400);
   }
 
-  return c.json({ imported: counts.bp, checklistItems: counts.cl, codeSnippets: counts.cs });
+  const counts = await bestPracticesBulkService.importBulk(parsed.data);
+
+  return c.json(counts);
 });
 
 bestPracticesRoutes.get("/:id", async (c) => {

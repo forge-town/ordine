@@ -24,25 +24,13 @@ import {
 } from "@repo/agent";
 import { logger } from "@repo/logger";
 import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
-import type { AgentBackend } from "@repo/pipeline-engine";
+import type { RunSkillOptions as EngineRunSkillOptions } from "@repo/pipeline-engine";
 import { extractStructuredOutput } from "./structuredOutput.js";
-import type { StreamCallback, ProgressCallback } from "./promptExecutor.js";
 
-export interface RunSkillOptions {
-  jobId?: string;
-  skillId: string;
-  skillDescription: string;
-  inputContent: string;
-  inputPath: string;
+type RunSkillExecutorOptions = EngineRunSkillOptions & {
   getSettings: SettingsResolver;
-  modelOverride?: string;
-  agent?: AgentBackend;
-  onChunk?: StreamCallback;
-  onProgress?: ProgressCallback;
-  writeEnabled?: boolean;
-  allowedTools?: string[];
-  promptMode?: "code" | "research";
-}
+  jobId?: string;
+};
 
 const buildSkillSystemPrompt = (
   skillId: string,
@@ -127,7 +115,7 @@ export const runSkill = ({
   writeEnabled,
   allowedTools: customAllowedTools,
   promptMode = "code",
-}: RunSkillOptions): ResultAsync<string, never> => {
+}: RunSkillExecutorOptions): ResultAsync<string, never> => {
   const isImplementMode = writeEnabled === true;
   const mode = isImplementMode ? "fix" : "check";
   const isResearch = promptMode === "research";
@@ -486,9 +474,9 @@ const buildSpansFromClaudeEvents = (
           const resultText =
             typeof block.content === "string"
               ? block.content
-              : block.content != null
-                ? JSON.stringify(block.content)
-                : null;
+              : block.content == null
+                ? null
+                : JSON.stringify(block.content);
           spans.push({
             jobId,
             rawExportId,

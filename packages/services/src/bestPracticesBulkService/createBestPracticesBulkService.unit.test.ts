@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import JSZip from "jszip";
+import type { BestPracticeImportEntry } from "@repo/schemas";
 
 const mockBpDao = {
   findMany: vi.fn().mockResolvedValue([
@@ -77,7 +78,6 @@ vi.mock("@repo/models", () => ({
 
 import {
   createBestPracticesBulkService,
-  type BulkImportEntry,
 } from "./createBestPracticesBulkService";
 
 const mockDb = {
@@ -198,7 +198,7 @@ describe("createBestPracticesBulkService", () => {
   });
 
   describe("importBulk", () => {
-    const entry: BulkImportEntry = {
+    const entry: BestPracticeImportEntry = {
       id: "bp1",
       title: "BP1",
       condition: "cond",

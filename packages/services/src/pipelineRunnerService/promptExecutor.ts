@@ -2,7 +2,7 @@ import { streamText } from "ai";
 import { ResultAsync, errAsync } from "neverthrow";
 import { getModel, runClaude, runCodex, type SettingsResolver } from "@repo/agent";
 import { logger } from "@repo/logger";
-import type { AgentBackend } from "@repo/pipeline-engine";
+import type { RunPromptOptions } from "@repo/pipeline-engine";
 
 export class PromptExecutionError extends Error {
   constructor(
@@ -14,19 +14,9 @@ export class PromptExecutionError extends Error {
   }
 }
 
-export type StreamCallback = (accumulated: string) => Promise<void>;
-export type ProgressCallback = (line: string) => Promise<void>;
-
-export interface RunPromptOptions {
-  prompt: string;
-  inputContent: string;
-  inputPath: string;
+type RunPromptExecutorOptions = RunPromptOptions & {
   getSettings: SettingsResolver;
-  modelOverride?: string;
-  agent?: AgentBackend;
-  onChunk?: StreamCallback;
-  onProgress?: ProgressCallback;
-}
+};
 
 export const runPrompt = ({
   prompt,
@@ -37,7 +27,7 @@ export const runPrompt = ({
   agent = "local-claude",
   onChunk,
   onProgress,
-}: RunPromptOptions): ResultAsync<string, PromptExecutionError> => {
+}: RunPromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
   }

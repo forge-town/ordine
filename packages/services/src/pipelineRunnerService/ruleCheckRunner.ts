@@ -18,14 +18,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { ResultAsync } from "neverthrow";
-import type { RulesDaoInstance } from "@repo/models";
-import type { RuleRecord } from "@repo/db-schema";
 import type { CheckOutput, Finding } from "@repo/agent";
-
-export interface RuleTarget {
-  path: string;
-  type: "file" | "folder" | "project";
-}
+import type { RuleRecord } from "@repo/db-schema";
+import type { RulesDaoInstance } from "@repo/models";
+import type { RuleTarget } from "@repo/schemas";
 
 type RulesDao = Pick<RulesDaoInstance, "findMany">;
 

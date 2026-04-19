@@ -59,6 +59,7 @@ vi.mock("../src/services.js", () => ({
   },
   bestPracticesBulkService: {
     exportAsZip: vi.fn(),
+    importBulk: vi.fn(),
   },
   checklistService: {
     getAll: vi.fn(),
@@ -617,12 +618,28 @@ describe("Best Practices API", () => {
   });
 
   it("POST /api/best-practices/import imports entries", async () => {
-    mockBestPracticesService.getById.mockResolvedValueOnce(null as never);
-    mockBestPracticesService.create.mockResolvedValueOnce(mockBp as never);
+    mockBestPracticesBulkService.importBulk.mockResolvedValueOnce({
+      imported: 1,
+      checklistItems: 0,
+      codeSnippets: 0,
+    } as never);
     const res = await app.request("/api/best-practices/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify([{ id: "bp-1", title: "Test", checklistItems: [], codeSnippets: [] }]),
+      body: JSON.stringify([
+        {
+          id: "bp-1",
+          title: "Test",
+          condition: "",
+          content: "",
+          category: "general",
+          language: "typescript",
+          codeSnippet: "",
+          tags: [],
+          checklistItems: [],
+          codeSnippets: [],
+        },
+      ]),
     });
     expect(res.status).toBe(200);
     const data = await res.json();
