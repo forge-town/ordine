@@ -32,12 +32,13 @@ interface OutputPort {
 
 interface OperationConfig {
   executor: {
-    type: "agent" | "script";
+    type: "agent" | "skill" | "prompt" | "script";
     agentMode?: "skill" | "prompt";
     prompt?: string;
     skillId?: string;
     command?: string;
     language?: string;
+    writeEnabled?: boolean;
   };
   inputs: InputPort[];
   outputs: OutputPort[];
@@ -694,7 +695,7 @@ async function seed() {
   console.log(`\n✨  Done. ${opsUpserted + plUpserted} records upserted.`);
 }
 
-seed().catch((err) => {
-  console.error("❌  Seed failed:", err);
+seed().catch((error) => {
+  console.error("❌  Seed failed:", error);
   process.exit(1);
 });

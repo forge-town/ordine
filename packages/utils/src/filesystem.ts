@@ -29,6 +29,7 @@ export const listDirectory = (dirPath?: string): ResultAsync<DirectoryEntry[], F
           message: `Not a directory: ${resolvedPath}`,
         });
       }
+
       return ok(stats);
     })
     .andThen(() =>
@@ -46,6 +47,7 @@ export const listDirectory = (dirPath?: string): ResultAsync<DirectoryEntry[], F
 
       return entries.sort((a, b) => {
         if (a.type === b.type) return a.name.localeCompare(b.name);
+
         return a.type === "directory" ? -1 : 1;
       });
     });
@@ -76,6 +78,7 @@ export const listDirTree = async (
     const entries = await readdir(dir, { withFileTypes: true });
     const filtered = entries.filter((e) => {
       const rel = relative(rootDir, join(dir, e.name));
+
       return !allExcluded.some((excluded) => rel === excluded || rel.startsWith(`${excluded}/`));
     });
     const lines: string[] = [];
@@ -87,6 +90,7 @@ export const listDirTree = async (
         lines.push(`${prefix}${entry.name}`);
       }
     }
+
     return lines.join("\n");
   };
 
@@ -170,6 +174,7 @@ export const readProjectFiles = async (
   const isTextFile = (name: string) => {
     const ext = extname(name).toLowerCase();
     if (includedExtensions) return includedExtensions.includes(ext);
+
     return TEXT_EXTENSIONS.has(ext) || name.startsWith(".");
   };
 

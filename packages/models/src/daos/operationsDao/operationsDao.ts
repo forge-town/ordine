@@ -15,11 +15,13 @@ class OperationsDao {
       .from(operationsTable)
       .where(eq(operationsTable.id, id))
       .limit(1);
+
     return rows[0] ?? null;
   }
 
   async create(data: typeof operationsTable.$inferInsert) {
     const [inserted] = await this.executor.insert(operationsTable).values(data).returning();
+
     return inserted!;
   }
 
@@ -29,6 +31,7 @@ class OperationsDao {
       .set({ ...data, updatedAt: new Date() })
       .where(eq(operationsTable.id, id))
       .returning();
+
     return updated ?? null;
   }
 

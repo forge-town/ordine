@@ -14,9 +14,11 @@ export const getModel = async (getSettings: SettingsResolver, modelOverride?: st
   const { apiKey, model } = await getSettings();
   if (!apiKey) {
     logger.warn("No Kimi API key configured");
+
     return null;
   }
   const finalModel = modelOverride ?? model;
   logger.info({ model: finalModel }, "Creating Kimi model via Anthropic SDK");
+
   return createAnthropic({ baseURL: KIMI_BASE_URL, apiKey })(finalModel);
 };

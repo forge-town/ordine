@@ -36,6 +36,7 @@ export async function apiGet<T>(path: string): Promise<T> {
   const result = await request<T>("GET", path);
   if (!result.ok)
     throw new Error(`GET ${path} failed (${result.status}): ${JSON.stringify(result.data)}`);
+
   return result.data;
 }
 
@@ -43,6 +44,7 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const result = await request<T>("POST", path, body);
   if (!result.ok)
     throw new Error(`POST ${path} failed (${result.status}): ${JSON.stringify(result.data)}`);
+
   return result.data;
 }
 
@@ -53,6 +55,7 @@ export async function apiPut<T>(path: string, body: unknown): Promise<T> {
   const result = await request<T>("PUT", path, body);
   if (!result.ok)
     throw new Error(`PUT ${path} failed (${result.status}): ${JSON.stringify(result.data)}`);
+
   return result.data;
 }
 

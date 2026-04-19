@@ -31,7 +31,7 @@ export const runCodex = async ({
   const MAX_INPUT_CHARS = 50_000;
   const truncatedPrompt =
     userPrompt.length > MAX_INPUT_CHARS
-      ? `${userPrompt.substring(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${userPrompt.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
+      ? `${userPrompt.slice(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${userPrompt.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
       : userPrompt;
 
   const args = ["exec", "--sandbox", sandbox, "--ephemeral", "--skip-git-repo-check", "-C", cwd];
@@ -78,23 +78,23 @@ export const runCodex = async ({
       const stderr = Buffer.concat(stderrChunks).toString("utf8");
 
       if (code !== 0 && stdout.trim().length === 0) {
-        logger.error({ code, stderr: stderr.substring(0, 500) }, "runCodex: non-zero exit");
-        void onProgress?.(`[Codex] Exit code ${code}: ${stderr.substring(0, 200)}`);
-        reject(new Error(`codex exited with code ${code}: ${stderr.substring(0, 500)}`));
+        logger.error({ code, stderr: stderr.slice(0, 500) }, "runCodex: non-zero exit");
+        void onProgress?.(`[Codex] Exit code ${code}: ${stderr.slice(0, 200)}`);
+        reject(new Error(`codex exited with code ${code}: ${stderr.slice(0, 500)}`));
 
         return;
       }
 
       if (code !== 0) {
         logger.warn(
-          { code, stdoutLen: stdout.length, stderr: stderr.substring(0, 300) },
+          { code, stdoutLen: stdout.length, stderr: stderr.slice(0, 300) },
           "runCodex: non-zero exit but stdout present, using output",
         );
         void onProgress?.(`[Codex] Exit code ${code} (non-fatal, ${stdout.length} chars captured)`);
       }
 
       if (stderr) {
-        logger.debug({ stderr: stderr.substring(0, 500) }, "runCodex: stderr");
+        logger.debug({ stderr: stderr.slice(0, 500) }, "runCodex: stderr");
       }
 
       logger.info({ len: stdout.length }, "runCodex: complete");

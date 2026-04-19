@@ -6,6 +6,7 @@ export const createLlmService = (db: DbConnection) => {
 
   const getSettings: SettingsResolver = async () => {
     const s = await dao.get();
+
     return { apiKey: s.llmApiKey, model: s.llmModel };
   };
 

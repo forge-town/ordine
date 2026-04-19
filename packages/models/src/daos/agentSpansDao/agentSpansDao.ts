@@ -26,11 +26,13 @@ class AgentSpansDao {
 
   async insert(data: InsertAgentSpan) {
     const [inserted] = await this.executor.insert(agentSpansTable).values(data).returning();
+
     return inserted!;
   }
 
   async insertMany(data: InsertAgentSpan[]) {
     if (data.length === 0) return [];
+
     return this.executor.insert(agentSpansTable).values(data).returning();
   }
 
@@ -62,6 +64,7 @@ class AgentSpansDao {
       .set({ status, finishedAt, durationMs, error })
       .where(eq(agentSpansTable.id, id))
       .returning();
+
     return updated ?? null;
   }
 

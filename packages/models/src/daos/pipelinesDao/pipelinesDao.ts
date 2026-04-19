@@ -10,6 +10,7 @@ class PipelinesDao {
       .select()
       .from(pipelinesTable)
       .orderBy(desc(pipelinesTable.updatedAt));
+
     return rows;
   }
 
@@ -19,6 +20,7 @@ class PipelinesDao {
       .from(pipelinesTable)
       .where(eq(pipelinesTable.id, id))
       .limit(1);
+
     return rows[0] ?? null;
   }
 
@@ -28,6 +30,7 @@ class PipelinesDao {
       .insert(pipelinesTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
@@ -37,6 +40,7 @@ class PipelinesDao {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(pipelinesTable.id, id))
       .returning();
+
     return updated ?? null;
   }
 

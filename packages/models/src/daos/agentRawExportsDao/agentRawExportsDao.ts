@@ -19,6 +19,7 @@ class AgentRawExportsDao {
 
   async insert(data: InsertAgentRawExport) {
     const [inserted] = await this.executor.insert(agentRawExportsTable).values(data).returning();
+
     return inserted!;
   }
 
@@ -36,6 +37,7 @@ class AgentRawExportsDao {
       .from(agentRawExportsTable)
       .where(eq(agentRawExportsTable.id, id))
       .limit(1);
+
     return row ?? null;
   }
 

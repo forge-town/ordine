@@ -36,12 +36,14 @@ import { runCodex, CODEX_SANDBOX_MODES, type RunCodexOptions } from "./runCodex"
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
 describe("runCodex", () => {
-  let mockProc: ReturnType<typeof createMockProcess>;
+  const testState = {
+    mockProc: createMockProcess(),
+  };
 
   beforeEach(() => {
-    mockProc = createMockProcess();
+    testState.mockProc = createMockProcess();
     spawnMock.mockClear();
-    spawnMock.mockReturnValue(mockProc);
+    spawnMock.mockReturnValue(testState.mockProc);
   });
 
   afterEach(() => {
@@ -58,10 +60,10 @@ describe("runCodex", () => {
     const promise = runCodex(opts);
 
     await tick();
-    mockProc.stdout.push("Hello from codex");
-    mockProc.stdout.push(null);
-    mockProc.stderr.push(null);
-    mockProc.emit("close", 0);
+    testState.mockProc.stdout.push("Hello from codex");
+    testState.mockProc.stdout.push(null);
+    testState.mockProc.stderr.push(null);
+    testState.mockProc.emit("close", 0);
 
     await promise;
 
@@ -86,10 +88,10 @@ describe("runCodex", () => {
     });
 
     await tick();
-    mockProc.stdout.push("result text");
-    mockProc.stdout.push(null);
-    mockProc.stderr.push(null);
-    mockProc.emit("close", 0);
+    testState.mockProc.stdout.push("result text");
+    testState.mockProc.stdout.push(null);
+    testState.mockProc.stderr.push(null);
+    testState.mockProc.emit("close", 0);
 
     const result = await promise;
     expect(result).toBe("result text");
@@ -103,10 +105,10 @@ describe("runCodex", () => {
     });
 
     await tick();
-    mockProc.stdout.push(null);
-    mockProc.stderr.push("error details");
-    mockProc.stderr.push(null);
-    mockProc.emit("close", 1);
+    testState.mockProc.stdout.push(null);
+    testState.mockProc.stderr.push("error details");
+    testState.mockProc.stderr.push(null);
+    testState.mockProc.emit("close", 1);
 
     await expect(promise).rejects.toThrow(/exited with code 1/);
   });
@@ -120,10 +122,10 @@ describe("runCodex", () => {
     });
 
     await tick();
-    mockProc.stdout.push("ok");
-    mockProc.stdout.push(null);
-    mockProc.stderr.push(null);
-    mockProc.emit("close", 0);
+    testState.mockProc.stdout.push("ok");
+    testState.mockProc.stdout.push(null);
+    testState.mockProc.stderr.push(null);
+    testState.mockProc.emit("close", 0);
 
     await promise;
 
@@ -140,10 +142,10 @@ describe("runCodex", () => {
     });
 
     await tick();
-    mockProc.stdout.push("ok");
-    mockProc.stdout.push(null);
-    mockProc.stderr.push(null);
-    mockProc.emit("close", 0);
+    testState.mockProc.stdout.push("ok");
+    testState.mockProc.stdout.push(null);
+    testState.mockProc.stderr.push(null);
+    testState.mockProc.emit("close", 0);
 
     await promise;
 
@@ -168,14 +170,14 @@ describe("runCodex", () => {
     await vi.advanceTimersByTimeAsync(1001);
     await rejectPromise;
 
-    expect(mockProc.kill).toHaveBeenCalledWith("SIGTERM");
+    expect(testState.mockProc.kill).toHaveBeenCalledWith("SIGTERM");
 
     vi.useRealTimers();
   });
 
   it("truncates long prompts", async () => {
     const written: string[] = [];
-    mockProc.stdin = new Writable({
+    testState.mockProc.stdin = new Writable({
       highWaterMark: 1024 * 1024,
       write(chunk, _enc, cb) {
         written.push(chunk.toString());
@@ -191,10 +193,10 @@ describe("runCodex", () => {
     });
 
     await tick();
-    mockProc.stdout.push("ok");
-    mockProc.stdout.push(null);
-    mockProc.stderr.push(null);
-    mockProc.emit("close", 0);
+    testState.mockProc.stdout.push("ok");
+    testState.mockProc.stdout.push(null);
+    testState.mockProc.stderr.push(null);
+    testState.mockProc.emit("close", 0);
 
     await promise;
 

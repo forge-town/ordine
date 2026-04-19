@@ -1,8 +1,7 @@
 import { spawn } from "node:child_process";
 import { Result } from "neverthrow";
 import { logger } from "@repo/logger";
-import { ClaudeStreamEventSchema } from "./schemas/ClaudeStreamEventSchema";
-import type { ClaudeStreamEvent } from "./schemas/ClaudeStreamEventSchema";
+import { ClaudeStreamEventSchema, type ClaudeStreamEvent } from "./schemas/ClaudeStreamEventSchema";
 import type { RunClaudeOptions } from "./schemas/RunClaudeOptionsSchema";
 import type { RunClaudeResult } from "./schemas/RunClaudeResultSchema";
 import type { ToolName } from "./schemas/ToolNameSchema";
@@ -63,7 +62,7 @@ export const extractJsonFromText = (text: string): string => {
   const braceStart = trimmed.indexOf("{");
   const braceEnd = trimmed.lastIndexOf("}");
   if (braceStart !== -1 && braceEnd > braceStart) {
-    const candidate = trimmed.substring(braceStart, braceEnd + 1);
+    const candidate = trimmed.slice(braceStart, braceEnd + 1);
     const braced = safeJsonParse(candidate);
     if (braced.isOk()) return JSON.stringify(braced.value, null, 2);
   }
@@ -77,8 +76,7 @@ export const extractJsonFromText = (text: string): string => {
  */
 const extractResultFromEvents = (events: ClaudeStreamEvent[]): string => {
   // Walk events in reverse to find the last assistant message with text
-  for (let i = events.length - 1; i >= 0; i--) {
-    const ev = events[i]!;
+  for (const ev of [...events].reverse()) {
     if (ev.type === "assistant" && ev.message?.content) {
       const textBlocks = ev.message.content.filter(
         (c): c is { type: "text"; text: string } => c.type === "text" && "text" in c,
@@ -114,7 +112,7 @@ export const runClaude = async ({
   const MAX_INPUT_CHARS = 50_000;
   const truncatedPrompt =
     userPrompt.length > MAX_INPUT_CHARS
-      ? `${userPrompt.substring(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${userPrompt.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
+      ? `${userPrompt.slice(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${userPrompt.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
       : userPrompt;
 
   const args = [
@@ -142,13 +140,13 @@ export const runClaude = async ({
     });
 
     const events: ClaudeStreamEvent[] = [];
-    let lineBuf = "";
+    const streamState = { lineBuf: "" };
     const stderrChunks: Buffer[] = [];
 
     child.stdout.on("data", (chunk: Buffer) => {
-      lineBuf += chunk.toString("utf8");
-      const lines = lineBuf.split("\n");
-      lineBuf = lines.pop() ?? "";
+      streamState.lineBuf += chunk.toString("utf8");
+      const lines = streamState.lineBuf.split("\n");
+      streamState.lineBuf = lines.pop() ?? "";
       for (const line of lines) {
         if (!line.trim()) continue;
         const parsed = safeJsonParse(line);
@@ -185,8 +183,8 @@ export const runClaude = async ({
       const stderr = Buffer.concat(stderrChunks).toString("utf8");
 
       // Flush remaining line buffer
-      if (lineBuf.trim()) {
-        const parsed = safeJsonParse(lineBuf.trim());
+      if (streamState.lineBuf.trim()) {
+        const parsed = safeJsonParse(streamState.lineBuf.trim());
         if (parsed.isOk()) {
           events.push(parsed.value as ClaudeStreamEvent);
         }
@@ -194,15 +192,15 @@ export const runClaude = async ({
 
       // stream-json may exit with non-zero on budget exceeded but still has valid events
       if (code !== 0 && events.length === 0) {
-        logger.error({ code, stderr: stderr.substring(0, 500) }, "runClaude: non-zero exit");
-        void onProgress?.(`[Claude] Exit code ${code}: ${stderr.substring(0, 200)}`);
-        reject(new Error(`claude exited with code ${code}: ${stderr.substring(0, 500)}`));
+        logger.error({ code, stderr: stderr.slice(0, 500) }, "runClaude: non-zero exit");
+        void onProgress?.(`[Claude] Exit code ${code}: ${stderr.slice(0, 200)}`);
+        reject(new Error(`claude exited with code ${code}: ${stderr.slice(0, 500)}`));
 
         return;
       }
 
       if (stderr) {
-        logger.debug({ stderr: stderr.substring(0, 500) }, "runClaude: stderr");
+        logger.debug({ stderr: stderr.slice(0, 500) }, "runClaude: stderr");
       }
 
       // Extract result text from events

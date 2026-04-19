@@ -15,6 +15,7 @@ class RecipesDao {
       .from(recipesTable)
       .where(eq(recipesTable.id, id))
       .limit(1);
+
     return rows[0] ?? null;
   }
 
@@ -32,6 +33,7 @@ class RecipesDao {
       .insert(recipesTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
@@ -41,6 +43,7 @@ class RecipesDao {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(recipesTable.id, id))
       .returning();
+
     return updated ?? null;
   }
 

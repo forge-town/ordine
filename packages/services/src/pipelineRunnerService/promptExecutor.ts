@@ -78,6 +78,7 @@ export const runPrompt = ({
         logger.info({ outputLen: codexResult.length }, "runPrompt: codex complete");
         await onProgress?.(`[LLM] runPrompt: Codex complete, output=${codexResult.length} chars`);
         if (onChunk) await onChunk(codexResult);
+
         return codexResult;
       }
 
@@ -86,9 +87,8 @@ export const runPrompt = ({
       if (!model) {
         logger.error("runPrompt: LLM not configured");
         await onProgress?.("[LLM] runPrompt: LLM not configured, returning error");
-        return Promise.reject(
-          new PromptExecutionError("LLM not configured (API key missing in settings)"),
-        );
+
+        throw new PromptExecutionError("LLM not configured (API key missing in settings)");
       }
       logger.info("runPrompt: streaming (mastra)");
       await onProgress?.("[LLM] runPrompt: Starting streamText (mastra)...");
@@ -106,6 +106,7 @@ export const runPrompt = ({
       await onProgress?.(
         `[LLM] runPrompt: Stream complete, total output=${accumulated.length} chars`,
       );
+
       return accumulated;
     })(),
     (cause) => {
@@ -113,6 +114,7 @@ export const runPrompt = ({
       void onProgress?.(
         `[LLM] runPrompt: Error — ${cause instanceof Error ? cause.message : String(cause)}`,
       );
+
       return cause instanceof PromptExecutionError
         ? cause
         : new PromptExecutionError(

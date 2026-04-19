@@ -24,6 +24,7 @@ export const createSubmitReportTool = (capture: ReportCapture) =>
     }),
     execute: async ({ report }) => {
       capture.report = JSON.stringify(report, null, 2);
+
       return { success: true, message: "Report submitted successfully." };
     },
   });

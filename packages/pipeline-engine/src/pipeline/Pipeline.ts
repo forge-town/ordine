@@ -3,12 +3,16 @@ import { rm } from "node:fs/promises";
 import { ResultAsync } from "neverthrow";
 import { trace } from "@repo/obs";
 import { pluginRegistry } from "@repo/plugin";
-import type { PipelineNode, NodeData, NodeCtx } from "../schemas";
-import { resolveMetaType } from "../schemas";
+import {
+  resolveMetaType,
+  type PipelineEdge,
+  type PipelineNode,
+  type NodeData,
+  type NodeCtx,
+} from "../schemas";
 import type { PipelineEngineDeps } from "../deps";
-import type { PipelineRunError } from "../errors";
-import { ScriptExecutionError } from "../errors";
-import { buildExecutionLevels, getParentIds, CycleDetectedError } from "../dagScheduler";
+import { ScriptExecutionError, type PipelineRunError } from "../errors";
+import { buildExecutionLevels, getParentIds, type CycleDetectedError } from "../dagScheduler";
 import { safeReadInputFile } from "../infrastructure";
 import type { OperationInfo, SkillInfo, OperationNodeContext } from "../nodes/types";
 import { processCodeFileNode } from "../nodes/CodeFileNode";
@@ -27,8 +31,6 @@ export interface PipelineDefinition {
   nodes: PipelineNode[];
   edges: PipelineEdge[];
 }
-
-import type { PipelineEdge } from "../schemas/index.js";
 
 export interface PipelineOptions {
   pipeline: PipelineDefinition;
@@ -91,6 +93,7 @@ export class Pipeline {
         if (!result.ok) {
           await trace(jobId, `Pipeline failed at level ${levelIndex}`);
           await this.cleanupTempDirs();
+
           return { ok: false, error: result.error };
         }
       }
@@ -100,6 +103,7 @@ export class Pipeline {
       .filter((n) => n.type === "output-local-path")
       .map((n) => {
         const d = n.data as unknown as NodeData;
+
         return d.localPath ?? String((d as Record<string, unknown>).path ?? "");
       })
       .filter(Boolean);
@@ -132,6 +136,7 @@ export class Pipeline {
       .map((p) => p.content)
       .filter(Boolean)
       .join("\n\n---\n\n");
+
     return { inputPath, content };
   }
 

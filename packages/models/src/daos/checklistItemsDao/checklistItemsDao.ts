@@ -19,6 +19,7 @@ class ChecklistItemsDao {
       .from(checklistItemsTable)
       .where(eq(checklistItemsTable.id, id))
       .limit(1);
+
     return rows[0] ?? null;
   }
 
@@ -28,6 +29,7 @@ class ChecklistItemsDao {
       .insert(checklistItemsTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
@@ -40,6 +42,7 @@ class ChecklistItemsDao {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(checklistItemsTable.id, id))
       .returning();
+
     return updated ?? null;
   }
 

@@ -4,10 +4,12 @@ export interface ObsDao {
   append: (jobId: string, message: string, level?: LogLevel) => Promise<unknown>;
 }
 
-let _dao: ObsDao | null = null;
+const obsState = {
+  dao: null as ObsDao | null,
+};
 
 export const initObs = (dao: ObsDao) => {
-  _dao = dao;
+  obsState.dao = dao;
 };
 
 export const trace = async (
@@ -15,8 +17,9 @@ export const trace = async (
   message: string,
   level: "info" | "warn" | "error" | "debug" = "info",
 ) => {
-  if (!_dao) {
+  if (!obsState.dao) {
     throw new Error("obs not initialized — call initObs(dao) first");
   }
-  await _dao.append(jobId, message, level);
+
+  await obsState.dao.append(jobId, message, level);
 };

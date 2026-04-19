@@ -5,7 +5,10 @@
   "scripts": {
     "seed": "tsx src/seeds/operations.ts",
     "seed:operations": "tsx src/seeds/operations.ts",
-    "seed:rules": "tsx src/seeds/rules.ts"
+    "seed:rules": "tsx src/seeds/rules.ts",
+    "check-types": "tsc --noEmit",
+    "lint": "oxlint --config ./.oxlintrc.json src/",
+    "quality": "bun run check-types && bun run lint"
   },
   "dependencies": {
     "@repo/db-schema": "workspace:*",

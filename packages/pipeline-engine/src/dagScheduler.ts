@@ -59,34 +59,31 @@ export class DagScheduler<N extends DagNode> {
     }
 
     const levels: N[][] = [];
-    let remaining = this.nodes.length;
-
-    let queue = [] as string[];
+    const queue: string[] = [];
     for (const [id, deg] of inDegree) {
       if (deg === 0) queue.push(id);
     }
 
     while (queue.length > 0) {
+      const currentLevelIds = queue.splice(0);
       const level: N[] = [];
-      const nextQueue: string[] = [];
 
-      for (const id of queue) {
+      for (const id of currentLevelIds) {
         const node = nodeMap.get(id);
         if (node) level.push(node);
-        remaining--;
 
         for (const child of adjacency.get(id) ?? []) {
           const newDeg = (inDegree.get(child) ?? 1) - 1;
           inDegree.set(child, newDeg);
-          if (newDeg === 0) nextQueue.push(child);
+          if (newDeg === 0) queue.push(child);
         }
       }
 
       if (level.length > 0) levels.push(level);
-      queue = nextQueue;
     }
 
-    if (remaining > 0) {
+    const scheduledCount = levels.reduce((count, level) => count + level.length, 0);
+    if (scheduledCount !== this.nodes.length) {
       return err(new CycleDetectedError());
     }
 

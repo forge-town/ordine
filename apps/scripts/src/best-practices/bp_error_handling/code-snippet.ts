@@ -1,4 +1,5 @@
-import { ok, err, Result } from "neverthrow";
+import type { Result } from "neverthrow";
+import { ok, err } from "neverthrow";
 
 function parseJSON(raw: string): Result<Data, ParseError> {
   try {

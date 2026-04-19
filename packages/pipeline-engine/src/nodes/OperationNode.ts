@@ -19,6 +19,7 @@ export const executeOperationNode = async (
   if (!operation) {
     await trace(jobId, `WARNING: Operation ${operationId} not found, skipping`);
     await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
     return { ok: false, error: null };
   }
 
@@ -35,12 +36,14 @@ export const executeOperationNode = async (
     const bp = await ctx.lookupBestPractice(opData.bestPracticeId);
     if (bp) {
       await trace(jobId, `Loaded best practice "${bp.title}" (${bp.content.length} chars)`);
+
       return bp.content;
     }
     await trace(
       jobId,
       `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`,
     );
+
     return "";
   })();
 
@@ -48,6 +51,7 @@ export const executeOperationNode = async (
   if (configResult.isErr()) {
     await trace(jobId, `WARNING: ${configResult.error.message}, skipping`);
     await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
     return { ok: false, error: null };
   }
 
@@ -59,6 +63,7 @@ export const executeOperationNode = async (
       `WARNING: No executor configured for operation "${operation.name}", skipping`,
     );
     await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
     return { ok: false, error: null };
   }
 
@@ -76,6 +81,7 @@ export const executeOperationNode = async (
       jobId,
       `Rule-check: ${checkOutput.stats.totalFindings} findings in ${checkOutput.stats.totalFiles} files`,
     );
+
     return { ok: true, content: checkResult };
   }
 
@@ -104,6 +110,7 @@ export const executeOperationNode = async (
     const scriptResult = await runScript(executor, input.inputPath, input.content);
     if (scriptResult.isErr()) {
       await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
       return { ok: false, error: scriptResult.error };
     }
     opResult.value = scriptResult.value;
@@ -116,6 +123,7 @@ export const executeOperationNode = async (
         `WARNING: Prompt text is empty for operation "${operation.name}", skipping`,
       );
       await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
       return { ok: false, error: null };
     }
     const promptResult = await deps.runPrompt({
@@ -129,6 +137,7 @@ export const executeOperationNode = async (
     });
     if (promptResult.isErr()) {
       await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
       return { ok: false, error: new ScriptExecutionError(promptResult.error.message) };
     }
     opResult.value = promptResult.value;
@@ -142,6 +151,7 @@ export const executeOperationNode = async (
         `WARNING: No skillId configured for operation "${operation.name}", skipping`,
       );
       await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
       return { ok: false, error: null };
     }
 
@@ -240,5 +250,6 @@ export const processOperationNode = async (
 
   nodeOutputs.set(node.id, { inputPath: input.inputPath, content: resultState.content });
   await trace(jobId, `@@NODE_DONE::${node.id}`);
+
   return { ok: true };
 };

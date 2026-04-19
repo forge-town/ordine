@@ -18,6 +18,7 @@ class GithubProjectsDao {
       .from(githubProjectsTable)
       .where(eq(githubProjectsTable.id, id))
       .limit(1);
+
     return rows[0] ?? null;
   }
 
@@ -27,6 +28,7 @@ class GithubProjectsDao {
       .insert(githubProjectsTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
@@ -36,6 +38,7 @@ class GithubProjectsDao {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(githubProjectsTable.id, id))
       .returning();
+
     return updated ?? null;
   }
 

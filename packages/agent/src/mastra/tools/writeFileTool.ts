@@ -30,6 +30,7 @@ export const createWriteFileTool = (projectRoot: string) =>
         () => `Failed to write: ${relPath}`,
       );
       if (writeResult.isErr()) return { error: writeResult.error };
+
       return { written: true, path: relPath, size: content.length };
     },
   });

@@ -19,6 +19,7 @@ class CodeSnippetsDao {
       .from(codeSnippetsTable)
       .where(eq(codeSnippetsTable.id, id))
       .limit(1);
+
     return rows[0] ?? null;
   }
 
@@ -28,6 +29,7 @@ class CodeSnippetsDao {
       .insert(codeSnippetsTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
@@ -40,6 +42,7 @@ class CodeSnippetsDao {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(codeSnippetsTable.id, id))
       .returning();
+
     return updated ?? null;
   }
 

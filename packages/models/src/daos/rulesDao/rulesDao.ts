@@ -23,6 +23,7 @@ class RulesDao {
       .from(rulesTable)
       .where(eq(rulesTable.id, id))
       .limit(1);
+
     return rows[0] ?? null;
   }
 
@@ -32,6 +33,7 @@ class RulesDao {
       .insert(rulesTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
@@ -41,6 +43,7 @@ class RulesDao {
       .set({ ...data, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
+
     return rows[0] ?? null;
   }
 
@@ -50,6 +53,7 @@ class RulesDao {
       .set({ enabled, updatedAt: new Date() })
       .where(eq(rulesTable.id, id))
       .returning();
+
     return rows[0] ?? null;
   }
 

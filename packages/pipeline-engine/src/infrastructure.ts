@@ -19,6 +19,7 @@ export const safeParseJson = (
     (cause) => new ConfigParseError(operationName, cause),
   );
   const result = parse(raw);
+
   return result.isOk() ? okAsync(result.value) : errAsync(result.error);
 };
 
@@ -30,8 +31,10 @@ export const safeReadInputFile = (
       const stat = statSync(path);
       if (stat.isFile()) {
         const content = await readFile(path, "utf8");
+
         return { content, isFile: true };
       }
+
       return { content: path, isFile: false };
     })(),
     () => ({ content: path, isFile: false }),
@@ -58,6 +61,7 @@ export const runScript = (
     if (lang === "python") return `python3 -c ${JSON.stringify(command)}`;
     if (lang === "javascript") return `node -e ${JSON.stringify(command)}`;
     if (lang === "bash") return command;
+
     return `__UNSUPPORTED_LANG_${lang}__`;
   };
 
@@ -65,9 +69,10 @@ export const runScript = (
     (async () => {
       const cmd = buildCmd();
       if (cmd.startsWith("__UNSUPPORTED_LANG_")) {
-        return Promise.reject(new ScriptExecutionError(`Unknown script language: ${lang}`));
+        throw new ScriptExecutionError(`Unknown script language: ${lang}`);
       }
       const { stdout } = await execAsync(cmd, { env, timeout: 60_000 });
+
       return stdout;
     })(),
     (cause) =>
@@ -97,6 +102,7 @@ export const cloneGitHubRepo = (
         env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
         stdio: ["ignore", "pipe", "pipe"],
       });
+
       return cloneDir;
     })(),
     (cause) =>

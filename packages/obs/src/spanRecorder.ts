@@ -9,15 +9,20 @@ export interface SpanRecorderDeps {
   agentSpansDao: AgentSpansDaoInstance;
 }
 
-let _deps: SpanRecorderDeps | null = null;
+const spanRecorderState = {
+  deps: null as SpanRecorderDeps | null,
+};
 
 export const initSpanRecorder = (deps: SpanRecorderDeps) => {
-  _deps = deps;
+  spanRecorderState.deps = deps;
 };
 
 const getDeps = (): SpanRecorderDeps => {
-  if (!_deps) throw new Error("spanRecorder not initialized — call initSpanRecorder(deps) first");
-  return _deps;
+  if (!spanRecorderState.deps) {
+    throw new Error("spanRecorder not initialized — call initSpanRecorder(deps) first");
+  }
+
+  return spanRecorderState.deps;
 };
 
 export interface RecordAgentRunOptions {
@@ -34,6 +39,7 @@ export interface RecordAgentRunOptions {
 
 export const recordAgentRun = async (options: RecordAgentRunOptions) => {
   const { agentRawExportsDao } = getDeps();
+
   return agentRawExportsDao.insert(options);
 };
 
@@ -58,11 +64,13 @@ export interface RecordSpanOptions {
 
 export const recordSpan = async (options: RecordSpanOptions) => {
   const { agentSpansDao } = getDeps();
+
   return agentSpansDao.insert(options);
 };
 
 export const recordSpans = async (spans: RecordSpanOptions[]) => {
   const { agentSpansDao } = getDeps();
+
   return agentSpansDao.insertMany(spans);
 };
 
@@ -76,5 +84,6 @@ export const recordAgentRunWithSpans = async (
   const rawExport = await recordAgentRun(runOptions);
   const spans = buildSpans(rawExport.id);
   const insertedSpans = await recordSpans(spans);
+
   return { rawExport, spans: insertedSpans };
 };

@@ -14,6 +14,7 @@ import { logger } from "@repo/logger";
 
 const tryParseJson = (text: string): unknown | undefined => {
   const result = Result.fromThrowable(JSON.parse, () => undefined)(text);
+
   return result.isOk() ? (result.value as unknown) : undefined;
 };
 
@@ -26,11 +27,13 @@ export const extractStructuredOutput = (rawText: string): string => {
     (() => {
       const objectMatch = rawText.match(/\{[\s\S]*"type"\s*:\s*"(?:check|fix)"[\s\S]*\}/);
       if (objectMatch) return tryParseJson(objectMatch[0]);
+
       return undefined;
     })();
 
   if (parsed === undefined) {
     logger.warn("No valid JSON found in agent output — returning raw text");
+
     return rawText;
   }
 
@@ -44,6 +47,7 @@ export const extractStructuredOutput = (rawText: string): string => {
       },
       "Validated structured output",
     );
+
     return JSON.stringify(result.data, null, 2);
   }
 
@@ -51,6 +55,7 @@ export const extractStructuredOutput = (rawText: string): string => {
     { error: z.prettifyError(result.error) },
     "JSON parsed but schema validation failed — returning raw text",
   );
+
   return rawText;
 };
 

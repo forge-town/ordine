@@ -53,7 +53,7 @@ async function migrate() {
   console.log(`\n🎉 Done — ${counts.migrated} migrated, ${counts.skipped} skipped.`);
 }
 
-migrate().catch((err) => {
-  console.error("❌ Migration failed:", err);
+migrate().catch((error) => {
+  console.error("❌ Migration failed:", error);
   process.exit(1);
 });

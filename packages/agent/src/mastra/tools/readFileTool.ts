@@ -33,6 +33,7 @@ export const createReadFileTool = (projectRoot: string) =>
           totalSize: content.length,
         };
       }
+
       return { content, truncated: false, totalSize: content.length };
     },
   });

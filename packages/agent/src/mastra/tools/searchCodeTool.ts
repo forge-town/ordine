@@ -68,6 +68,7 @@ export const createSearchCodeTool = (projectRoot: string) =>
         () => `Search failed in ${directory}`,
       );
       if (walkResult.isErr()) return { error: walkResult.error };
+
       return {
         matches: results,
         totalMatches: results.length,

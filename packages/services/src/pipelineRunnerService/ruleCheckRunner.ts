@@ -72,6 +72,7 @@ process.exit(result ? 0 : 1);
     (error) => {
       const execErr = error as { code?: number; stdout?: string; stderr?: string };
       const output = (execErr.stdout ?? execErr.stderr ?? "").trim();
+
       return {
         rule,
         passed: false,

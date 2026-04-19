@@ -57,18 +57,20 @@ const txSnippetsDao = {
   update: vi.fn().mockResolvedValue({ id: "s1" }),
 };
 
-let callCount = 0;
 vi.mock("@repo/models", () => ({
   createBestPracticesDao: (executor: unknown) => {
     if (executor === "tx") return txBpDao;
+
     return mockBpDao;
   },
   createChecklistItemsDao: (executor: unknown) => {
     if (executor === "tx") return txChecklistDao;
+
     return mockChecklistItemsDao;
   },
   createCodeSnippetsDao: (executor: unknown) => {
     if (executor === "tx") return txSnippetsDao;
+
     return mockCodeSnippetsDao;
   },
 }));

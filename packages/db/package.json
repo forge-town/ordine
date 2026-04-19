@@ -13,7 +13,8 @@
   },
   "scripts": {
     "check-types": "tsc --noEmit",
-    "quality": "tsc --noEmit"
+    "lint": "oxlint --config ./.oxlintrc.json src/",
+    "quality": "bun run check-types && bun run lint"
   },
   "dependencies": {
     "@repo/db-schema": "workspace:*",

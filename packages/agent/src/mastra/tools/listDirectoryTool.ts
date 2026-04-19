@@ -21,6 +21,7 @@ export const createListDirectoryTool = (projectRoot: string) =>
         () => `Directory not found: ${relPath}`,
       );
       if (result.isErr()) return { error: result.error };
+
       return result.value.map((e) => ({
         name: e.name,
         type: e.isDirectory() ? "directory" : "file",

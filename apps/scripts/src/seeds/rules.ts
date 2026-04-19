@@ -399,7 +399,7 @@ async function seed() {
   console.log(`\n🎉 Done — ${upserted} rules upserted.`);
 }
 
-seed().catch((err) => {
-  console.error("❌ Seed failed:", err);
+seed().catch((error) => {
+  console.error("❌ Seed failed:", error);
   process.exit(1);
 });

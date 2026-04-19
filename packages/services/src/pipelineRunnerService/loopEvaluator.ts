@@ -18,6 +18,7 @@ export const createLoopEvaluator = (getModel: ReturnType<typeof createLlmService
       const model = await getModel(modelOverride);
       if (!model) {
         await trace(jobId, `[Loop] No LLM configured — treating condition as PASS`);
+
         return true;
       }
       const evalPrompt = `You are a strict evaluator. Given the following acceptance criteria and the operation output, determine if the output meets the criteria.
@@ -37,6 +38,7 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       }
       const verdict = chunks.join("").trim().toUpperCase();
       await trace(jobId, `[Loop] Condition evaluation result: ${verdict}`);
+
       return verdict.startsWith("PASS");
     };
   };

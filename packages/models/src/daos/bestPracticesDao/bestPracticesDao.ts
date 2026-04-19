@@ -18,6 +18,7 @@ class BestPracticesDao {
       .from(bestPracticesTable)
       .where(eq(bestPracticesTable.id, id))
       .limit(1);
+
     return rows[0] ?? null;
   }
 
@@ -27,6 +28,7 @@ class BestPracticesDao {
       .insert(bestPracticesTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
@@ -36,6 +38,7 @@ class BestPracticesDao {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(bestPracticesTable.id, id))
       .returning();
+
     return updated ?? null;
   }
 

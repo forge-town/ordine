@@ -42,6 +42,7 @@ export const createReplaceInFileTool = (projectRoot: string) =>
         () => `Failed to write: ${relPath}`,
       );
       if (writeResult.isErr()) return { error: writeResult.error };
+
       return { replaced: true, path: relPath };
     },
   });

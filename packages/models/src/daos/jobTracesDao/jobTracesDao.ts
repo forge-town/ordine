@@ -10,6 +10,7 @@ class JobTracesDao {
       .insert(jobTracesTable)
       .values({ jobId, message, level })
       .returning();
+
     return inserted!;
   }
 

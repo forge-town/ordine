@@ -28,6 +28,7 @@ class SettingsDao {
       .from(settingsTable)
       .where(eq(settingsTable.id, DEFAULT_ID))
       .limit(1);
+
     return existingRows[0]!;
   }
 
@@ -39,6 +40,7 @@ class SettingsDao {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(settingsTable.id, DEFAULT_ID))
       .returning();
+
     return updated!;
   }
 }

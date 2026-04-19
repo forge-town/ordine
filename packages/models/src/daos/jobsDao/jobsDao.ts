@@ -19,6 +19,7 @@ class JobsDao {
 
   async findById(id: string) {
     const rows = await this.executor.select().from(jobsTable).where(eq(jobsTable.id, id)).limit(1);
+
     return rows[0] ?? null;
   }
 
@@ -28,6 +29,7 @@ class JobsDao {
       .insert(jobsTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
@@ -56,6 +58,7 @@ class JobsDao {
       .set(patch)
       .where(eq(jobsTable.id, id))
       .returning();
+
     return updated ?? null;
   }
 
@@ -86,6 +89,7 @@ class JobsDao {
         ),
       )
       .returning({ id: jobsTable.id });
+
     return rows;
   }
 }

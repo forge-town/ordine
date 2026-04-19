@@ -9,8 +9,9 @@
   },
   "scripts": {
     "check-types": "tsc --noEmit",
+    "lint": "oxlint --config ./.oxlintrc.json src/",
     "test": "vitest run",
-    "quality": "bun run check-types && bun run test"
+    "quality": "bun run check-types && bun run lint && bun run test"
   },
   "dependencies": {
     "@repo/agent": "workspace:*",

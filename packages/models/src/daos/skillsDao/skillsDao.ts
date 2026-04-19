@@ -15,6 +15,7 @@ class SkillsDao {
       .from(skillsTable)
       .where(eq(skillsTable.id, id))
       .limit(1);
+
     return rows[0] ?? null;
   }
 
@@ -24,6 +25,7 @@ class SkillsDao {
       .from(skillsTable)
       .where(eq(skillsTable.name, name))
       .limit(1);
+
     return rows[0] ?? null;
   }
 
@@ -33,6 +35,7 @@ class SkillsDao {
       .insert(skillsTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
@@ -42,6 +45,7 @@ class SkillsDao {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(skillsTable.id, id))
       .returning();
+
     return updated ?? null;
   }
 

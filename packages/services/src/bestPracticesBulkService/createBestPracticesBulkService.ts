@@ -87,6 +87,7 @@ export const createBestPracticesBulkService = (db: DbConnection) => {
             checklistItemsDao.findByBestPracticeId(bp.id),
             codeSnippetsDao.findByBestPracticeId(bp.id),
           ]);
+
           return {
             ...bp,
             checklistItems: checklistItems.map((item) => ({
@@ -195,7 +196,7 @@ export const createBestPracticesBulkService = (db: DbConnection) => {
               const ext = LANG_EXT[s.language] ?? "txt";
               const shortTitle = s.title?.split(/\s*[—–-]\s*/)[0]?.trim();
               const baseName = shortTitle
-                ? shortTitle.replace(/\.[^.]+$/, "").replace(/[/\\:*?"<>|]/g, "_")
+                ? shortTitle.replace(/\.[^.]+$/, "").replaceAll(/[/\\:*?"<>|]/g, "_")
                 : `snippet-${s.sortOrder}`;
               snippetsFolder.file(`${baseName}.${ext}`, s.code);
             }

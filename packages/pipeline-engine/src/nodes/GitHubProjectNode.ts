@@ -20,6 +20,7 @@ export const processGitHubProjectNode = async (
         jobId,
         `Disclosure mode: tree (${tree.split("\n").length} entries, excluded: [${excludedPaths.join(", ")}])`,
       );
+
       return `${label}\n\nFile tree:\n${tree}`;
     }
     if (disclosureMode === "full") {
@@ -29,6 +30,7 @@ export const processGitHubProjectNode = async (
         jobId,
         `Disclosure mode: full (tree + file contents, ${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,
       );
+
       return `${label}\n\nFile tree:\n${tree}\n\n---\n\nFile contents:\n\n${fileContents}`;
     }
     const fileContents = await deps.readProjectFiles(dir, { excludedPaths });
@@ -36,6 +38,7 @@ export const processGitHubProjectNode = async (
       jobId,
       `Disclosure mode: files-only (${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,
     );
+
     return `${label}\n\nFile contents:\n\n${fileContents}`;
   };
 
@@ -45,12 +48,14 @@ export const processGitHubProjectNode = async (
       await trace(jobId, `WARNING: GitHub project node (local) missing localPath, skipping`);
       await trace(jobId, `@@NODE_FAIL::${node.id}`);
       nodeOutputs.set(node.id, { inputPath: "", content: "" });
+
       return { ok: true };
     }
     await trace(jobId, `Using local folder: ${localPath}`);
     const content = await buildProjectContent(localPath, `Local Folder: ${localPath}`);
     nodeOutputs.set(node.id, { inputPath: localPath, content });
     await trace(jobId, `@@NODE_DONE::${node.id}`);
+
     return { ok: true };
   }
 
@@ -62,6 +67,7 @@ export const processGitHubProjectNode = async (
     await trace(jobId, `WARNING: GitHub project node missing owner/repo, skipping`);
     await trace(jobId, `@@NODE_FAIL::${node.id}`);
     nodeOutputs.set(node.id, { inputPath: "", content: "" });
+
     return { ok: true };
   }
 
@@ -70,6 +76,7 @@ export const processGitHubProjectNode = async (
   if (cloneResult.isErr()) {
     await trace(jobId, `ERROR: ${cloneResult.error.message}`);
     await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
     return { ok: false, error: cloneResult.error };
   }
 
@@ -81,5 +88,6 @@ export const processGitHubProjectNode = async (
   );
   nodeOutputs.set(node.id, { inputPath: clonedDir, content });
   await trace(jobId, `@@NODE_DONE::${node.id}`);
+
   return { ok: true };
 };

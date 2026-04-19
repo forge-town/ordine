@@ -9,6 +9,7 @@ export const freeBattleRepository = {
         battleId,
         rules: input.rules,
       });
+
       return { id: battleId };
     });
   },

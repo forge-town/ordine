@@ -95,6 +95,7 @@ const buildSkillSystemPrompt = (
     "",
     "Your final message MUST be this JSON object and nothing else.",
   ];
+
   return lines.join("\n");
 };
 
@@ -104,9 +105,11 @@ const validateSkillOutput = (raw: string, mode: "check" | "fix"): string => {
   const parsed = schema.safeParse(JSON.parse(json));
   if (parsed.success) {
     logger.info({ len: json.length }, "runSkill: valid report");
+
     return json;
   }
   logger.warn({ errors: parsed.error }, "runSkill: schema validation failed, using raw");
+
   return json;
 };
 
@@ -173,6 +176,7 @@ export const runSkill = ({
             skipped: 0,
           },
         };
+
     return JSON.stringify(fallback, null, 2);
   };
 
@@ -215,6 +219,7 @@ export const runSkill = ({
           const errMsg = error instanceof Error ? error.message : String(error);
           logger.error({ err: errMsg }, "runSkill: claude -p failed");
           await onProgress?.(`runSkill: Claude FAILED — ${errMsg}`);
+
           return generateFallbackReport();
         }
 
@@ -228,6 +233,7 @@ export const runSkill = ({
         if (raw.length === 0) {
           logger.warn("runSkill: claude returned empty output — using fallback");
           await onProgress?.("runSkill: WARNING — Claude returned empty output, using fallback");
+
           return generateFallbackReport();
         }
 
@@ -240,14 +246,13 @@ export const runSkill = ({
           const resultEvent = events.find((e) => e.type === "result");
           const totalCost = resultEvent?.total_cost_usd ?? null;
           const modelUsage = resultEvent?.modelUsage;
-          let totalInputTokens = 0;
-          let totalOutputTokens = 0;
-          if (modelUsage) {
-            for (const m of Object.values(modelUsage)) {
-              totalInputTokens += m.inputTokens ?? 0;
-              totalOutputTokens += m.outputTokens ?? 0;
-            }
-          }
+          const tokenTotals = Object.values(modelUsage ?? {}).reduce(
+            (totals, usageEntry) => ({
+              input: totals.input + (usageEntry.inputTokens ?? 0),
+              output: totals.output + (usageEntry.outputTokens ?? 0),
+            }),
+            { input: 0, output: 0 },
+          );
 
           await recordAgentRunWithSpans(
             {
@@ -261,15 +266,15 @@ export const runSkill = ({
                 events,
                 totalCost,
               },
-              tokenInput: totalInputTokens || null,
-              tokenOutput: totalOutputTokens || null,
+              tokenInput: tokenTotals.input || null,
+              tokenOutput: tokenTotals.output || null,
               durationMs: claudeDurationMs,
               status: "completed",
             },
             (rawExportId) =>
               buildSpansFromClaudeEvents(events, jobId!, rawExportId, skillId, claudeStartTime),
-          ).catch((e) =>
-            logger.warn({ err: e }, "runSkill: failed to record claude observability"),
+          ).catch((error) =>
+            logger.warn({ err: error }, "runSkill: failed to record claude observability"),
           );
         }
 
@@ -296,6 +301,7 @@ export const runSkill = ({
           const errMsg = error instanceof Error ? error.message : String(error);
           logger.error({ err: errMsg }, "runSkill: codex exec failed");
           await onProgress?.(`runSkill: Codex FAILED — ${errMsg}`);
+
           return generateFallbackReport();
         }
 
@@ -306,11 +312,13 @@ export const runSkill = ({
         if (raw.length === 0) {
           logger.warn("runSkill: codex returned empty output — using fallback");
           await onProgress?.("runSkill: WARNING — Codex returned empty output, using fallback");
+
           return generateFallbackReport();
         }
 
         const codexParsed = isResearch ? raw : validateSkillOutput(raw, mode);
         if (onChunk) await onChunk(codexParsed);
+
         return codexParsed;
       }
 
@@ -319,6 +327,7 @@ export const runSkill = ({
       if (!model) {
         logger.warn("runSkill: No LLM model — returning fallback");
         await onProgress?.("[Mastra] runSkill: No LLM model — returning fallback report");
+
         return generateFallbackReport();
       }
       logger.info("runSkill: starting streamText (mastra)");
@@ -370,8 +379,8 @@ export const runSkill = ({
               rawExportId,
               spanType: "agent_run" as const,
               name: skillId,
-              input: userPrompt.slice(0, 10000),
-              output: accumulated.slice(0, 10000),
+              input: userPrompt.slice(0, 10_000),
+              output: accumulated.slice(0, 10_000),
               modelId: modelOverride ?? "default",
               tokenInput: usage?.inputTokens ?? null,
               tokenOutput: usage?.outputTokens ?? null,
@@ -381,7 +390,7 @@ export const runSkill = ({
               finishedAt: new Date(),
             },
           ],
-        ).catch((e) => logger.warn({ err: e }, "runSkill: failed to record agent observability"));
+        ).catch((error) => logger.warn({ err: error }, "runSkill: failed to record agent observability"));
       }
 
       if (accumulated.length === 0) {
@@ -389,8 +398,10 @@ export const runSkill = ({
         await onProgress?.(
           "[Mastra] runSkill: WARNING — LLM returned empty output, using fallback report",
         );
+
         return generateFallbackReport();
       }
+
       return extractStructuredOutput(accumulated);
     })(),
     (cause) => cause,
@@ -398,6 +409,7 @@ export const runSkill = ({
     const errMsg = cause instanceof Error ? cause.message : String(cause);
     logger.error({ err: errMsg }, "runSkill: agent call failed");
     void onProgress?.(`[Mastra] runSkill: Agent call FAILED — ${errMsg}`);
+
     return ok(generateFallbackReport());
   });
 };
@@ -415,21 +427,21 @@ const buildSpansFromClaudeEvents = (
 ): RecordSpanOptions[] => {
   const spans: RecordSpanOptions[] = [];
   const baseTime = new Date(startTime);
-  let spanIndex = 0;
+  const spanCounter = { value: 0 };
 
   for (const ev of events) {
     if (ev.type === "assistant" && ev.message?.content) {
       const model = ev.message.model ?? null;
       for (const block of ev.message.content) {
-        spanIndex++;
+        spanCounter.value += 1;
         if (block.type === "thinking" && block.thinking) {
           spans.push({
             jobId,
             rawExportId,
             spanType: "llm_call",
-            name: `thinking-${spanIndex}`,
+            name: `thinking-${spanCounter.value}`,
             input: null,
-            output: block.thinking.slice(0, 10000),
+            output: block.thinking.slice(0, 10_000),
             modelId: model,
             status: "completed",
             startedAt: baseTime,
@@ -440,9 +452,9 @@ const buildSpansFromClaudeEvents = (
             jobId,
             rawExportId,
             spanType: "llm_call",
-            name: `text-${spanIndex}`,
+            name: `text-${spanCounter.value}`,
             input: null,
-            output: block.text.slice(0, 10000),
+            output: block.text.slice(0, 10_000),
             modelId: model,
             status: "completed",
             startedAt: baseTime,
@@ -453,8 +465,8 @@ const buildSpansFromClaudeEvents = (
             jobId,
             rawExportId,
             spanType: "tool_call",
-            name: block.name ?? `tool-${spanIndex}`,
-            input: block.input ? JSON.stringify(block.input).slice(0, 10000) : null,
+            name: block.name ?? `tool-${spanCounter.value}`,
+            input: block.input ? JSON.stringify(block.input).slice(0, 10_000) : null,
             output: null,
             modelId: model,
             status: "completed",
@@ -470,7 +482,7 @@ const buildSpansFromClaudeEvents = (
     if (ev.type === "user" && ev.message?.content) {
       for (const block of ev.message.content) {
         if (block.type === "tool_result") {
-          spanIndex++;
+          spanCounter.value += 1;
           const resultText =
             typeof block.content === "string"
               ? block.content
@@ -481,9 +493,9 @@ const buildSpansFromClaudeEvents = (
             jobId,
             rawExportId,
             spanType: "tool_result",
-            name: `result-${spanIndex}`,
+            name: `result-${spanCounter.value}`,
             input: null,
-            output: resultText ? resultText.slice(0, 10000) : null,
+            output: resultText ? resultText.slice(0, 10_000) : null,
             status: block.is_error ? "error" : "completed",
             startedAt: baseTime,
             finishedAt: new Date(),

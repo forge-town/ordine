@@ -4,8 +4,7 @@ import { basename, dirname, extname, join, resolve } from "node:path";
 import { trace } from "@repo/obs";
 import type { NodeContext, NodeResult } from "./types";
 import type { NodeData, OutputMode } from "../schemas";
-import type { PipelineRunError } from "../errors";
-import { ScriptExecutionError } from "../errors";
+import { ScriptExecutionError, type PipelineRunError } from "../errors";
 
 export const processOutputLocalPathNode = async (
   ctx: NodeContext,
@@ -18,7 +17,7 @@ export const processOutputLocalPathNode = async (
   const dualOutput = (data as Record<string, unknown>).dualOutput === true;
 
   const shortJobId = jobId.slice(0, 8);
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const timestamp = new Date().toISOString().replaceAll(/[:.]/g, "-").slice(0, 19);
   const fnExt = extname(baseOutputFileName);
   const fnBase = basename(baseOutputFileName, fnExt);
   const outputFileName = `${fnBase}_${shortJobId}_${timestamp}${fnExt}`;
@@ -36,8 +35,10 @@ export const processOutputLocalPathNode = async (
         rename.candidate = join(dir, `${base}_${rename.counter}${ext}`);
         rename.counter++;
       }
+
       return rename.candidate;
     }
+
     return withFile;
   })();
 
@@ -48,6 +49,7 @@ export const processOutputLocalPathNode = async (
         `ERROR: Output file already exists: ${resolvedPath} (mode: error_if_exists)`,
       );
       await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
       return {
         ok: false,
         error: new ScriptExecutionError(
@@ -95,5 +97,6 @@ export const processOutputLocalPathNode = async (
   }
   nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
   await trace(jobId, `@@NODE_DONE::${node.id}`);
+
   return { ok: true };
 };

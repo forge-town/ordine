@@ -4,6 +4,7 @@ export const catsService = {
     if (existing) {
       throw new TRPCError({ code: "CONFLICT", message: "Cat already exists" });
     }
+
     return await catsDao.create({ ...data, ownerId: userId });
   },
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { SettingsResolver } from "@repo/agent";
+import { runClaude, runCodex, type SettingsResolver } from "@repo/agent";
 
 vi.mock("@repo/agent", () => ({
   runClaude: vi.fn().mockResolvedValue({ text: "claude-output" }),
@@ -16,7 +16,6 @@ vi.mock("ai", () => ({
 }));
 
 import { runPrompt } from "./promptExecutor";
-import { runClaude, runCodex } from "@repo/agent";
 
 describe("promptExecutor", () => {
   const baseOpts = {

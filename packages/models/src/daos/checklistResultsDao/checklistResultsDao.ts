@@ -18,12 +18,14 @@ class ChecklistResultsDao {
       .insert(checklistResultsTable)
       .values({ ...data, createdAt: now })
       .returning();
+
     return inserted!;
   }
 
   async createMany(data: (typeof checklistResultsTable.$inferInsert)[]) {
     const now = new Date();
     const rows = data.map((d) => ({ ...d, createdAt: now }));
+
     return this.executor.insert(checklistResultsTable).values(rows).returning();
   }
 
@@ -33,6 +35,7 @@ class ChecklistResultsDao {
       .set(patch)
       .where(eq(checklistResultsTable.id, id))
       .returning();
+
     return updated ?? null;
   }
 

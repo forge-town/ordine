@@ -49,6 +49,7 @@ export const runPipeline = async (opts: {
       finishedAt: new Date(),
       error: `Pipeline ${pipelineId} not found`,
     });
+
     return;
   }
 
@@ -65,11 +66,13 @@ export const runPipeline = async (opts: {
 
   const lookupSkill = async (skillId: string) => {
     const skill = (await skillsDao.findById(skillId)) ?? (await skillsDao.findByName(skillId));
+
     return skill ? { id: skill.id, label: skill.label, description: skill.description } : null;
   };
 
   const lookupBestPractice = async (bpId: string) => {
     const bp = await bestPracticesDao.findById(bpId);
+
     return bp ? { title: bp.title, content: bp.content } : null;
   };
 

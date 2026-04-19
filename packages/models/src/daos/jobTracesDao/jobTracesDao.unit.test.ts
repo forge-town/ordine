@@ -23,6 +23,7 @@ const mockDb = {
 
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual = await importOriginal<typeof DrizzleOrm>();
+
   return {
     ...actual,
     eq: vi.fn((col, val) => ({ col, val, type: "eq" })),
