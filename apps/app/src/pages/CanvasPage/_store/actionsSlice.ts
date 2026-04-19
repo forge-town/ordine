@@ -327,8 +327,8 @@ export const createActionsSlice = (
         id: pipelineId,
         patch: {
           name: pipelineName || t("canvas.unsavedPipeline"),
-          nodes: nodes as unknown[],
-          edges: edges as unknown[],
+          nodes,
+          edges,
         },
       }),
       () => "save-failed" as const

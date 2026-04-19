@@ -1,9 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import { pipelinesTable } from "@repo/db-schema";
-import type { PipelineRecord } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
-
-export type { PipelineRecord };
 
 class PipelinesDao {
   constructor(readonly executor: DbExecutor) {}
@@ -53,6 +50,3 @@ export const createPipelinesDao = (executor: DbExecutor) => {
 };
 
 export type PipelinesDaoInstance = ReturnType<typeof createPipelinesDao>;
-
-/** @deprecated Use PipelineRecord from @repo/db-schema directly */
-export type PipelineEntity = PipelineRecord;

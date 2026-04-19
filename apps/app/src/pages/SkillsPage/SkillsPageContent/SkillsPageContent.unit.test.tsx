@@ -18,6 +18,13 @@ vi.mock("../_store", () => ({
     })),
 }));
 
+vi.mock("@refinedev/core", () => ({
+  useList: () => ({
+    result: { data: [], total: 0 },
+    query: { isLoading: false },
+  }),
+}));
+
 describe("SkillsPageContent", () => {
   it("renders with empty skills", () => {
     render(<SkillsPageContent />);

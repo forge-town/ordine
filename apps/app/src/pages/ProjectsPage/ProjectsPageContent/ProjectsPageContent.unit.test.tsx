@@ -20,6 +20,14 @@ vi.mock("@/services/githubProjectsService", () => ({
   createGithubProject: vi.fn(),
 }));
 
+vi.mock("@refinedev/core", () => ({
+  useList: () => ({
+    result: { data: [], total: 0 },
+    query: { isLoading: false },
+  }),
+  useDelete: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+}));
+
 vi.mock("../CreateProjectDialog", () => ({
   CreateProjectDialog: () => <div>CreateProjectDialog</div>,
 }));
@@ -56,6 +64,6 @@ describe("ProjectsPageContent", () => {
 
   it("renders connect button", () => {
     render(<ProjectsPageContent />);
-    expect(screen.getAllByText(/连接 GitHub|导入项目/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/导入项目/).length).toBeGreaterThan(0);
   });
 });

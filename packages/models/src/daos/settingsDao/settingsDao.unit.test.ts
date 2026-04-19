@@ -5,6 +5,7 @@ import type { DbExecutor } from "../../types";
 
 const mockReturning = vi.fn();
 const mockLimit = vi.fn((): Promise<Record<string, unknown>[]> => Promise.resolve([]));
+const mockOnConflictDoNothing = vi.fn(() => ({ returning: mockReturning }));
 const mockWhere = vi.fn(() => ({
   returning: mockReturning,
   limit: mockLimit,
@@ -12,7 +13,10 @@ const mockWhere = vi.fn(() => ({
 const mockFrom = vi.fn(() => ({
   where: mockWhere,
 }));
-const mockValues = vi.fn(() => ({ returning: mockReturning }));
+const mockValues = vi.fn(() => ({
+  onConflictDoNothing: mockOnConflictDoNothing,
+  returning: mockReturning,
+}));
 const mockSet = vi.fn(() => ({ where: mockWhere }));
 
 const mockDb = {
@@ -64,6 +68,17 @@ describe("settingsDao", () => {
 
     expect(result.id).toBe("default");
     expect(mockValues).toHaveBeenCalled();
+  });
+
+  it("get reloads settings when insert conflicts with another writer", async () => {
+    const row = makeRow();
+    mockLimit.mockResolvedValueOnce([]).mockResolvedValueOnce([row]);
+    mockReturning.mockResolvedValueOnce([]);
+
+    const result = await dao.get();
+
+    expect(result.id).toBe("default");
+    expect(mockOnConflictDoNothing).toHaveBeenCalled();
   });
 
   it("update returns updated settings", async () => {

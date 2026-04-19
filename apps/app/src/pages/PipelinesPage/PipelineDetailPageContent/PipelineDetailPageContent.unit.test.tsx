@@ -2,9 +2,8 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import type { OperationRecord, PipelineRecord } from "@repo/db-schema";
 import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
-import type { PipelineEntity } from "@repo/models";
-import type { OperationRecord } from "@repo/db-schema";
 
 const mockNavigate = vi.fn();
 
@@ -53,7 +52,7 @@ const makeOp = (id: string, name: string, description?: string): OperationRecord
   updatedAt: new Date(),
 });
 
-const makePipeline = (overrides: Partial<PipelineEntity> = {}): PipelineEntity => {
+const makePipeline = (overrides: Partial<PipelineRecord> = {}): PipelineRecord => {
   const { timeoutMs = null, ...rest } = overrides;
 
   return {

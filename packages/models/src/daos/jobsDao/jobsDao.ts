@@ -59,15 +59,6 @@ class JobsDao {
     return updated ?? null;
   }
 
-  async appendLog(id: string, line: string) {
-    const job = await this.findById(id);
-    if (!job) return;
-    await this.executor
-      .update(jobsTable)
-      .set({ logs: [...job.logs, line], updatedAt: new Date() })
-      .where(eq(jobsTable.id, id));
-  }
-
   async delete(id: string) {
     await this.executor.delete(jobsTable).where(eq(jobsTable.id, id));
   }

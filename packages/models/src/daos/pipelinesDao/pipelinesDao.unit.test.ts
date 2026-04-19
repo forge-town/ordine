@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { PipelineRecord } from "@repo/db-schema";
 import { createPipelinesDao } from "./pipelinesDao";
-import type { PipelineRecord } from "./pipelinesDao";
 import type { DbExecutor } from "../../types";
 import type * as DrizzleOrm from "drizzle-orm";
 

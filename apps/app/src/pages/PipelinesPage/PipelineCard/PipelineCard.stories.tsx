@@ -1,17 +1,25 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import type { PipelineRecord } from "@repo/db-schema";
+import { PipelineSchema } from "@repo/schemas";
 import { PipelineCard } from "./PipelineCard";
-import type { PipelineEntity } from "@repo/models";
 
-const mockPipeline = {
+const mockPipelineInput = PipelineSchema.parse({
   id: "pipe-001",
   name: "测试 Pipeline",
   description: "用于测试的示例 Pipeline",
   tags: ["test"],
+  timeoutMs: null,
   nodes: [],
   edges: [],
   createdAt: Date.now(),
   updatedAt: Date.now(),
-} as unknown as PipelineEntity;
+});
+
+const mockPipeline: PipelineRecord = {
+  ...mockPipelineInput,
+  createdAt: new Date(mockPipelineInput.createdAt),
+  updatedAt: new Date(mockPipelineInput.updatedAt),
+};
 
 const meta: Meta<typeof PipelineCard> = {
   title: "Pages/PipelinesPage/PipelineCard",

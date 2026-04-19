@@ -27,14 +27,13 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useOne, useCustomMutation } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
-import type { PipelineEntity } from "@repo/models";
-import type { OperationRecord } from "@repo/db-schema";
+import type { OperationRecord, PipelineRecord } from "@repo/db-schema";
 import type { PipelineNode } from "@repo/pipeline-engine/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Stat } from "../Stat";
 
 interface Props {
-  pipeline: PipelineEntity;
+  pipeline: PipelineRecord;
   operations: OperationRecord[];
 }
 

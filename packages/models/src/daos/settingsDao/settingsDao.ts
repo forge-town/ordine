@@ -19,8 +19,16 @@ class SettingsDao {
     const [created] = await this.executor
       .insert(settingsTable)
       .values({ id: DEFAULT_ID })
+      .onConflictDoNothing()
       .returning();
-    return created!;
+    if (created) return created;
+
+    const existingRows = await this.executor
+      .select()
+      .from(settingsTable)
+      .where(eq(settingsTable.id, DEFAULT_ID))
+      .limit(1);
+    return existingRows[0]!;
   }
 
   async update(patch: Partial<Pick<SettingsRecord, "llmProvider" | "llmApiKey" | "llmModel">>) {

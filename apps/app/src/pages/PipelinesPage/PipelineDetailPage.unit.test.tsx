@@ -15,6 +15,17 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
 
+vi.mock("@refinedev/core", () => ({
+  useList: () => ({
+    result: { data: [], total: 0 },
+    query: { isLoading: false },
+  }),
+  useOne: () => ({
+    result: null,
+    query: { isLoading: false },
+  }),
+}));
+
 describe("PipelineDetailPage", () => {
   it("shows not found message when pipeline is null", () => {
     render(<PipelineDetailPage />);

@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Layers, FolderGit2, Activity, Lightbulb, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { PipelineEntity } from "@repo/models";
-import type { GithubProjectRecord, JobRecord } from "@repo/db-schema";
+import type { GithubProjectRecord, JobRecord, PipelineRecord } from "@repo/db-schema";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -10,7 +9,7 @@ import { StatCard } from "../StatCard";
 import { JobActivityRow } from "../JobActivityRow";
 
 export const DashboardPageContent = () => {
-  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineEntity>({
+  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineRecord>({
     resource: ResourceName.pipelines,
   });
   const { result: projectsResult, query: projectsQuery } = useList<GithubProjectRecord>({

@@ -6,6 +6,7 @@ import type { DbExecutor } from "../../types";
 const mockReturning = vi.fn();
 const mockLimit = vi.fn((): Promise<Record<string, unknown>[]> => Promise.resolve([]));
 const mockOrderBy = vi.fn((): Promise<Record<string, unknown>[]> => Promise.resolve([]));
+const mockOnConflictDoNothing = vi.fn(() => Promise.resolve());
 const mockWhere = vi.fn(() => ({
   returning: mockReturning,
   limit: mockLimit,
@@ -16,7 +17,10 @@ const mockFrom = vi.fn(() => ({
   orderBy: mockOrderBy,
   limit: mockLimit,
 }));
-const mockValues = vi.fn(() => ({ returning: mockReturning }));
+const mockValues = vi.fn(() => ({
+  onConflictDoNothing: mockOnConflictDoNothing,
+  returning: mockReturning,
+}));
 const mockSet = vi.fn(() => ({ where: mockWhere }));
 
 const mockDb = {
@@ -119,6 +123,16 @@ describe("skillsDao", () => {
     await dao.seedIfEmpty();
 
     expect(mockValues).toHaveBeenCalled();
+    expect(mockOnConflictDoNothing).toHaveBeenCalled();
+    expect(mockValues).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "error-handling-best-practice",
+          description: expect.stringContaining("neverthrow"),
+          tags: expect.arrayContaining(["Neverthrow"]),
+        }),
+      ]),
+    );
   });
 
   it("seedIfEmpty does nothing when data exists", async () => {
@@ -127,5 +141,6 @@ describe("skillsDao", () => {
     await dao.seedIfEmpty();
 
     expect(mockValues).not.toHaveBeenCalled();
+    expect(mockOnConflictDoNothing).not.toHaveBeenCalled();
   });
 });

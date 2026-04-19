@@ -8,7 +8,7 @@ import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { PipelineEntity } from "@repo/models";
+import type { PipelineRecord } from "@repo/db-schema";
 import { useStore } from "zustand";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { usePipelinesPageStore } from "../_store";
@@ -16,7 +16,7 @@ import { PipelineCard } from "../PipelineCard";
 
 export const PipelinesPageContent = () => {
   const { t } = useTranslation();
-  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineEntity>({
+  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineRecord>({
     resource: ResourceName.pipelines,
   });
   const pipelinesData = pipelinesResult?.data;
@@ -53,7 +53,7 @@ export const PipelinesPageContent = () => {
     const items = pipelinesData ?? [];
     const q = search.toLowerCase();
 
-    return items.filter((p: PipelineEntity) => {
+    return items.filter((p: PipelineRecord) => {
       const matchesSearch =
         !q ||
         p.name.toLowerCase().includes(q) ||
@@ -72,7 +72,7 @@ export const PipelinesPageContent = () => {
   const handleCreate = async () => {
     const id = `pipeline-${Date.now()}`;
     const now = new Date();
-    const newPipeline: PipelineEntity = {
+    const newPipeline: PipelineRecord = {
       id,
       name: t("pipelines.createNew"),
       description: t("pipelines.newPipelineDescription"),
@@ -100,7 +100,7 @@ export const PipelinesPageContent = () => {
       resource: ResourceName.pipelines,
       values: newPipeline,
     });
-    const saved = result.data as PipelineEntity;
+    const saved = result.data as PipelineRecord;
     void navigate({ to: "/canvas", search: { id: saved.id } });
   };
 

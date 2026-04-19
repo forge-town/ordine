@@ -102,15 +102,6 @@ describe("jobsDao", () => {
     expect(result?.status).toBe("running");
   });
 
-  it("appendLog updates logs array", async () => {
-    const row = makeRow("job-5");
-    row.logs = ["line1"];
-    mockLimit.mockResolvedValueOnce([row]);
-
-    await dao.appendLog("job-5", "line2");
-    expect(mockSet).toHaveBeenCalled();
-  });
-
   it("delete calls db.delete", async () => {
     await dao.delete("job-6");
     expect(mockWhere).toHaveBeenCalled();

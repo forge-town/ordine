@@ -16,6 +16,14 @@ vi.mock("@/services/operationsService", () => ({
   createOperation: vi.fn().mockResolvedValue({}),
 }));
 
+vi.mock("@refinedev/core", () => ({
+  useList: () => ({
+    result: { data: [], total: 0 },
+    query: { isLoading: false },
+  }),
+  useCreate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+}));
+
 describe("OperationCreatePage", () => {
   it("renders the create form", () => {
     render(<OperationCreatePage />);

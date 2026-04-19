@@ -18,6 +18,17 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
+vi.mock("@refinedev/core", () => ({
+  useList: () => ({
+    result: { data: [], total: 0 },
+    query: { isLoading: false },
+  }),
+  useOne: () => ({
+    result: null,
+    query: { isLoading: false },
+  }),
+}));
+
 describe("ProjectDetailPageContent", () => {
   it("shows not found message when project is null", () => {
     render(<ProjectDetailPageContent />);

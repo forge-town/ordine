@@ -25,6 +25,13 @@ vi.mock("./CanvasPageContent", () => ({
   CanvasPageContent: () => <div data-testid="canvas-page-content" />,
 }));
 
+vi.mock("@refinedev/core", () => ({
+  useOne: () => ({
+    result: null,
+    query: { isLoading: false },
+  }),
+}));
+
 describe("CanvasPage", () => {
   it("renders inside CanvasLayout", () => {
     render(<CanvasPage />);

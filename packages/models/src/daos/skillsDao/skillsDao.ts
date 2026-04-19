@@ -122,9 +122,9 @@ class SkillsDao {
         name: "error-handling-best-practice",
         label: "Error Handling",
         description:
-          "Standardize try-catch usage, ensuring catch blocks have substantive handling logic, not empty or just logging.",
+          "Standardize neverthrow-based error handling, keeping errors explicit and eliminating try-catch from application code.",
         category: "code-quality",
-        tags: ["Error", "Try-Catch", "Safety"],
+        tags: ["Error", "Neverthrow", "Safety"],
       },
       {
         id: "skill-009",
@@ -171,7 +171,7 @@ class SkillsDao {
       updatedAt: now,
     }));
 
-    await this.executor.insert(skillsTable).values(rows);
+    await this.executor.insert(skillsTable).values(rows).onConflictDoNothing();
   }
 }
 

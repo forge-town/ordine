@@ -8,7 +8,7 @@ describe("PageLoadingState", () => {
     render(<PageLoadingState />);
 
     expect(screen.getByTestId("page-loading-state")).toBeInTheDocument();
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByText("加载中...")).toBeInTheDocument();
   });
 
   it("renders custom title and description", () => {
