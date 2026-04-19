@@ -1,16 +1,11 @@
 import { spawn } from "node:child_process";
 import { Result } from "neverthrow";
 import { logger } from "@repo/logger";
-
-export interface RunClaudeOptions {
-  systemPrompt: string;
-  userPrompt: string;
-  cwd: string;
-  allowedTools?: string[];
-  timeoutMs?: number;
-  maxBudgetUsd?: number;
-  onProgress?: (line: string) => Promise<void>;
-}
+import { ClaudeStreamEventSchema } from "./schemas/ClaudeStreamEventSchema";
+import type { ClaudeStreamEvent } from "./schemas/ClaudeStreamEventSchema";
+import type { RunClaudeOptions } from "./schemas/RunClaudeOptionsSchema";
+import type { RunClaudeResult } from "./schemas/RunClaudeResultSchema";
+import type { ToolName } from "./schemas/ToolNameSchema";
 
 const CLAUDE_BIN = "/Users/amin/.local/bin/claude";
 
@@ -25,9 +20,14 @@ const DEFAULT_READ_ONLY_TOOLS = [
   "Bash(wc:*)",
   "Bash(ls:*)",
   "Bash(tree:*)",
-];
+] as const satisfies readonly ToolName[];
 
-export const WRITE_TOOLS = [...DEFAULT_READ_ONLY_TOOLS, "Edit", "Write", "Bash(sed:*)"];
+export const WRITE_TOOLS = [
+  ...DEFAULT_READ_ONLY_TOOLS,
+  "Edit",
+  "Write",
+  "Bash(sed:*)",
+] as const satisfies readonly ToolName[];
 
 export const READ_ONLY_TOOLS = DEFAULT_READ_ONLY_TOOLS;
 
@@ -37,7 +37,7 @@ export const WEB_TOOLS = [
   "Bash(python3:*)",
   "WebSearch",
   "WebFetch",
-];
+] as const satisfies readonly ToolName[];
 
 /**
  * Extract JSON from text that may contain markdown fences or surrounding prose.
@@ -72,8 +72,33 @@ export const extractJsonFromText = (text: string): string => {
 };
 
 /**
+ * Extract the final text result from stream-json events.
+ * Looks at the last `assistant` message's text content blocks.
+ */
+const extractResultFromEvents = (events: ClaudeStreamEvent[]): string => {
+  // Walk events in reverse to find the last assistant message with text
+  for (let i = events.length - 1; i >= 0; i--) {
+    const ev = events[i]!;
+    if (ev.type === "assistant" && ev.message?.content) {
+      const textBlocks = ev.message.content.filter(
+        (c): c is { type: "text"; text: string } => c.type === "text" && "text" in c,
+      );
+      if (textBlocks.length > 0) {
+        return textBlocks.map((b) => b.text).join("\n");
+      }
+    }
+    if (ev.type === "result" && typeof ev.result === "string") {
+      return ev.result;
+    }
+  }
+
+  return "";
+};
+
+/**
  * Pure Claude CLI driver. Spawns `claude -p` with the given system prompt,
- * user prompt, and tool permissions. Returns the raw text output.
+ * user prompt, and tool permissions. Returns the raw text output plus all
+ * stream events for observability.
  *
  * No knowledge of skills, modes, or output schemas — that belongs in the caller.
  */
@@ -85,7 +110,7 @@ export const runClaude = async ({
   timeoutMs = 10 * 60 * 1000,
   maxBudgetUsd = 5,
   onProgress,
-}: RunClaudeOptions): Promise<string> => {
+}: RunClaudeOptions): Promise<RunClaudeResult> => {
   const MAX_INPUT_CHARS = 50_000;
   const truncatedPrompt =
     userPrompt.length > MAX_INPUT_CHARS
@@ -94,9 +119,9 @@ export const runClaude = async ({
 
   const args = [
     "-p",
-    "--bare",
+    "--verbose",
     "--output-format",
-    "json",
+    "stream-json",
     "--system-prompt",
     systemPrompt,
     "--allowedTools",
@@ -110,16 +135,34 @@ export const runClaude = async ({
   logger.info({ cwd }, "runClaude: starting");
   await onProgress?.(`[Claude] Starting claude -p (cwd=${cwd})...`);
 
-  return new Promise<string>((resolve, reject) => {
+  return new Promise<RunClaudeResult>((resolve, reject) => {
     const child = spawn(CLAUDE_BIN, args, {
       cwd,
       stdio: ["pipe", "pipe", "pipe"],
     });
 
-    const stdoutChunks: Buffer[] = [];
+    const events: ClaudeStreamEvent[] = [];
+    let lineBuf = "";
     const stderrChunks: Buffer[] = [];
 
-    child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
+    child.stdout.on("data", (chunk: Buffer) => {
+      lineBuf += chunk.toString("utf8");
+      const lines = lineBuf.split("\n");
+      lineBuf = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        const parsed = safeJsonParse(line);
+        if (parsed.isOk()) {
+          const validated = ClaudeStreamEventSchema.safeParse(parsed.value);
+          if (validated.success) {
+            events.push(validated.data);
+          } else {
+            logger.warn({ line }, "runClaude: unrecognised stream event shape, skipping");
+          }
+        }
+      }
+    });
+
     child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
 
     child.stdin.write(truncatedPrompt);
@@ -139,13 +182,22 @@ export const runClaude = async ({
 
     child.on("close", (code) => {
       clearTimeout(timer);
-      const stdout = Buffer.concat(stdoutChunks).toString("utf8");
       const stderr = Buffer.concat(stderrChunks).toString("utf8");
 
-      if (code !== 0) {
+      // Flush remaining line buffer
+      if (lineBuf.trim()) {
+        const parsed = safeJsonParse(lineBuf.trim());
+        if (parsed.isOk()) {
+          events.push(parsed.value as ClaudeStreamEvent);
+        }
+      }
+
+      // stream-json may exit with non-zero on budget exceeded but still has valid events
+      if (code !== 0 && events.length === 0) {
         logger.error({ code, stderr: stderr.substring(0, 500) }, "runClaude: non-zero exit");
         void onProgress?.(`[Claude] Exit code ${code}: ${stderr.substring(0, 200)}`);
         reject(new Error(`claude exited with code ${code}: ${stderr.substring(0, 500)}`));
+
         return;
       }
 
@@ -153,26 +205,12 @@ export const runClaude = async ({
         logger.debug({ stderr: stderr.substring(0, 500) }, "runClaude: stderr");
       }
 
-      // Parse the Claude CLI JSON envelope to extract the result text
-      const parsedResult = safeJsonParse(stdout);
-      if (parsedResult.isErr()) {
-        logger.warn({ len: stdout.length }, "runClaude: non-JSON output, returning raw");
-        void onProgress?.(`[Claude] Non-JSON output (${stdout.length} chars)`);
-        resolve(stdout);
-        return;
-      }
+      // Extract result text from events
+      const resultText = extractResultFromEvents(events);
 
-      const parsed = parsedResult.value as Record<string, unknown>;
-      const resultText: string =
-        typeof parsed.result === "string"
-          ? parsed.result
-          : typeof parsed.content === "string"
-            ? (parsed.content as string)
-            : stdout;
-
-      logger.info({ len: resultText.length }, "runClaude: complete");
-      void onProgress?.(`[Claude] Complete (${resultText.length} chars)`);
-      resolve(resultText);
+      logger.info({ len: resultText.length, eventCount: events.length }, "runClaude: complete");
+      void onProgress?.(`[Claude] Complete (${resultText.length} chars, ${events.length} events)`);
+      resolve({ text: resultText, events });
     });
   });
 };

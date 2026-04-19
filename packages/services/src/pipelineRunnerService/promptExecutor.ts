@@ -60,10 +60,12 @@ export const runPrompt = ({
           allowedTools: [],
           onProgress,
         });
-        logger.info({ outputLen: claudeResult.length }, "runPrompt: claude complete");
-        await onProgress?.(`[LLM] runPrompt: Claude complete, output=${claudeResult.length} chars`);
-        if (onChunk) await onChunk(claudeResult);
-        return claudeResult;
+        const raw = claudeResult.text;
+        logger.info({ outputLen: raw.length }, "runPrompt: claude complete");
+        await onProgress?.(`[LLM] runPrompt: Claude complete, output=${raw.length} chars`);
+        if (onChunk) await onChunk(raw);
+
+        return raw;
       }
 
       if (agent === "codex") {

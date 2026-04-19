@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { SettingsResolver } from "@repo/agent";
 
 vi.mock("@repo/agent", () => ({
-  runClaude: vi.fn().mockResolvedValue("claude-output"),
+  runClaude: vi.fn().mockResolvedValue({ text: "claude-output" }),
   runCodex: vi.fn().mockResolvedValue("codex-output"),
   getModel: vi.fn().mockResolvedValue(null),
 }));

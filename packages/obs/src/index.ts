@@ -1,1 +1,2 @@
-export * from "./trace.js";
+export * from "./trace";
+export * from "./spanRecorder";

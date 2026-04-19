@@ -1,5 +1,5 @@
 import { ok, err, type Result } from "neverthrow";
-import { initObs } from "@repo/obs";
+import { initObs, initSpanRecorder } from "@repo/obs";
 import { createLlmService } from "../llmService";
 import { createLoopEvaluator } from "./loopEvaluator";
 import { buildEngineDeps } from "./engineDeps";
@@ -12,6 +12,8 @@ import {
   createSkillsDao,
   createBestPracticesDao,
   createRulesDao,
+  createAgentRawExportsDao,
+  createAgentSpansDao,
   type DbConnection,
 } from "@repo/models";
 
@@ -30,15 +32,18 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   const skillsDao = createSkillsDao(db);
   const bestPracticesDao = createBestPracticesDao(db);
   const rulesDao = createRulesDao(db);
+  const agentRawExportsDao = createAgentRawExportsDao(db);
+  const agentSpansDao = createAgentSpansDao(db);
 
   initObs(jobTracesDao);
+  initSpanRecorder({ agentRawExportsDao, agentSpansDao });
   const llmService = createLlmService(db);
   const { getSettings, getModel } = llmService;
 
   const loopEvaluatorFactory = createLoopEvaluator(getModel);
 
   const buildDepsForJob = (jobId: string) =>
-    buildEngineDeps(getSettings, rulesDao, loopEvaluatorFactory(jobId));
+    buildEngineDeps(getSettings, rulesDao, loopEvaluatorFactory(jobId), jobId);
 
   const startRun = async (opts: {
     pipelineId: string;

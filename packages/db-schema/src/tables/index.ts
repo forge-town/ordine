@@ -1,3 +1,5 @@
+export * from "./agent_raw_exports_table";
+export * from "./agent_spans_table";
 export * from "./best_practices_table";
 export * from "./checklist_items_table";
 export * from "./checklist_results_table";

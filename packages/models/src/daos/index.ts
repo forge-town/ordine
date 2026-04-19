@@ -1,3 +1,5 @@
+export * from "./agentRawExportsDao";
+export * from "./agentSpansDao";
 export * from "./bestPracticesDao";
 export * from "./checklistItemsDao";
 export * from "./checklistResultsDao";

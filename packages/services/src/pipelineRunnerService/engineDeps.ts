@@ -12,6 +12,7 @@ export const buildEngineDeps = (
   getSettings: SettingsResolver,
   rulesDao: RulesDaoInstance,
   evaluateLoopCondition: LoopEvaluatorFn,
+  jobId?: string,
 ): PipelineEngineDeps => ({
   runPrompt: (o) =>
     runPromptAgent({
@@ -21,6 +22,7 @@ export const buildEngineDeps = (
   runSkill: (o) =>
     runSkillAgent({
       ...o,
+      jobId,
       getSettings,
     }),
   runRuleCheck: (inputPath) => runRuleCheck(rulesDao, inputPath),

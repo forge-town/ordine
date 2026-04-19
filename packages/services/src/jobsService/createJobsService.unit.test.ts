@@ -12,9 +12,21 @@ const mockTracesDao = {
   findByJobId: vi.fn().mockResolvedValue([{ id: "t1", jobId: "j1" }]),
 };
 
+const mockAgentRawExportsDao = {
+  findByJobId: vi.fn().mockResolvedValue([]),
+  findById: vi.fn().mockResolvedValue(null),
+};
+
+const mockAgentSpansDao = {
+  findByJobId: vi.fn().mockResolvedValue([]),
+  findByRawExportId: vi.fn().mockResolvedValue([]),
+};
+
 vi.mock("@repo/models", () => ({
   createJobsDao: () => mockJobsDao,
   createJobTracesDao: () => mockTracesDao,
+  createAgentRawExportsDao: () => mockAgentRawExportsDao,
+  createAgentSpansDao: () => mockAgentSpansDao,
 }));
 
 import { createJobsService } from "./createJobsService";

@@ -14,6 +14,14 @@ export const jobsRouter = router({
     .input(z.object({ jobId: z.string() }))
     .query(({ input }) => jobsService.getTracesByJobId(input.jobId)),
 
+  getAgentRuns: publicProcedure
+    .input(z.object({ jobId: z.string() }))
+    .query(({ input }) => jobsService.getAgentRunsByJobId(input.jobId)),
+
+  getAgentRunSpans: publicProcedure
+    .input(z.object({ rawExportId: z.number() }))
+    .query(({ input }) => jobsService.getSpansByRawExportId(input.rawExportId)),
+
   create: publicProcedure
     .input(
       z.object({
@@ -42,7 +50,7 @@ export const jobsRouter = router({
           .nullable()
           .default(null)
           .transform((v) => (v == null ? null : new Date(v))),
-      })
+      }),
     )
     .mutation(({ input }) => jobsService.create(input)),
 
@@ -67,7 +75,7 @@ export const jobsRouter = router({
           .number()
           .optional()
           .transform((v) => (v == null ? undefined : new Date(v))),
-      })
+      }),
     )
     .mutation(({ input }) => {
       const { id, status, ...extra } = input;

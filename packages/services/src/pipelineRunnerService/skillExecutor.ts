@@ -18,14 +18,19 @@ import {
   FIX_OUTPUT_EXAMPLE,
   CheckOutputSchema,
   FixOutputSchema,
+  ToolNameSchema,
   type SettingsResolver,
+  type ClaudeStreamEvent,
+  type ToolName,
 } from "@repo/agent";
 import { logger } from "@repo/logger";
+import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
 import type { AgentBackend } from "@repo/pipeline-engine";
 import { extractStructuredOutput } from "./structuredOutput.js";
 import type { StreamCallback, ProgressCallback } from "./promptExecutor.js";
 
 export interface RunSkillOptions {
+  jobId?: string;
   skillId: string;
   skillDescription: string;
   inputContent: string;
@@ -107,6 +112,7 @@ const validateSkillOutput = (raw: string, mode: "check" | "fix"): string => {
 };
 
 export const runSkill = ({
+  jobId,
   skillId,
   skillDescription,
   inputContent,
@@ -186,8 +192,13 @@ export const runSkill = ({
 
       if (agent === "local-claude") {
         const cwd = inputPath || process.cwd();
+        const parsedCustomTools = customAllowedTools
+          ? ToolNameSchema.array().readonly().safeParse(customAllowedTools)
+          : null;
         const allowedTools =
-          customAllowedTools ?? (isImplementMode ? WRITE_TOOLS : READ_ONLY_TOOLS);
+          (parsedCustomTools?.success ? parsedCustomTools.data : null) ??
+          (isImplementMode ? WRITE_TOOLS : READ_ONLY_TOOLS);
+        const claudeStartTime = Date.now();
 
         const claudeResult = await ResultAsync.fromPromise(
           runClaude({
@@ -208,9 +219,12 @@ export const runSkill = ({
           return generateFallbackReport();
         }
 
-        const raw = claudeResult.value;
-        logger.info({ len: raw.length }, "runSkill: claude complete");
-        await onProgress?.(`runSkill: Claude complete, output=${raw.length} chars`);
+        const raw = claudeResult.value.text;
+        const events = claudeResult.value.events;
+        logger.info({ len: raw.length, events: events.length }, "runSkill: claude complete");
+        await onProgress?.(
+          `runSkill: Claude complete, output=${raw.length} chars, ${events.length} events`,
+        );
 
         if (raw.length === 0) {
           logger.warn("runSkill: claude returned empty output — using fallback");
@@ -220,6 +234,46 @@ export const runSkill = ({
 
         const result = isResearch ? raw : validateSkillOutput(raw, mode);
         if (onChunk) await onChunk(result);
+
+        // Record observability for local-claude
+        if (jobId) {
+          const claudeDurationMs = Date.now() - claudeStartTime;
+          const resultEvent = events.find((e) => e.type === "result");
+          const totalCost = resultEvent?.total_cost_usd ?? null;
+          const modelUsage = resultEvent?.modelUsage;
+          let totalInputTokens = 0;
+          let totalOutputTokens = 0;
+          if (modelUsage) {
+            for (const m of Object.values(modelUsage)) {
+              totalInputTokens += m.inputTokens ?? 0;
+              totalOutputTokens += m.outputTokens ?? 0;
+            }
+          }
+
+          await recordAgentRunWithSpans(
+            {
+              jobId,
+              agentSystem: "local-claude",
+              agentId: skillId,
+              rawPayload: {
+                system: systemPrompt,
+                prompt: userPrompt,
+                output: raw,
+                events,
+                totalCost,
+              },
+              tokenInput: totalInputTokens || null,
+              tokenOutput: totalOutputTokens || null,
+              durationMs: claudeDurationMs,
+              status: "completed",
+            },
+            (rawExportId) =>
+              buildSpansFromClaudeEvents(events, jobId!, rawExportId, skillId, claudeStartTime),
+          ).catch((e) =>
+            logger.warn({ err: e }, "runSkill: failed to record claude observability"),
+          );
+        }
+
         return result;
       }
 
@@ -270,6 +324,7 @@ export const runSkill = ({
       }
       logger.info("runSkill: starting streamText (mastra)");
       await onProgress?.("[Mastra] runSkill: Starting streamText (mastra)...");
+      const mastraStartTime = Date.now();
       const result = streamText({
         model,
         system: systemPrompt,
@@ -281,6 +336,7 @@ export const runSkill = ({
         if (onChunk) await onChunk(chunks.join(""));
       }
       const accumulated = chunks.join("");
+      const usage = await result.usage;
       logger.info(
         { outputLen: accumulated.length, chunks: chunks.length },
         "runSkill: stream complete",
@@ -288,6 +344,47 @@ export const runSkill = ({
       await onProgress?.(
         `[Mastra] runSkill: Stream complete, chunks=${chunks.length}, total output=${accumulated.length} chars`,
       );
+
+      // Record observability data
+      if (jobId) {
+        const runDurationMs = Date.now() - mastraStartTime;
+        await recordAgentRunWithSpans(
+          {
+            jobId,
+            agentSystem: "mastra",
+            agentId: skillId,
+            modelId: modelOverride ?? "default",
+            rawPayload: {
+              system: systemPrompt,
+              prompt: userPrompt,
+              output: accumulated,
+              usage,
+            },
+            tokenInput: usage?.inputTokens ?? null,
+            tokenOutput: usage?.outputTokens ?? null,
+            durationMs: runDurationMs,
+            status: accumulated.length === 0 ? "error" : "completed",
+          },
+          (rawExportId) => [
+            {
+              jobId: jobId!,
+              rawExportId,
+              spanType: "agent_run" as const,
+              name: skillId,
+              input: userPrompt.slice(0, 10000),
+              output: accumulated.slice(0, 10000),
+              modelId: modelOverride ?? "default",
+              tokenInput: usage?.inputTokens ?? null,
+              tokenOutput: usage?.outputTokens ?? null,
+              durationMs: runDurationMs,
+              status: "completed" as const,
+              startedAt: new Date(Date.now() - runDurationMs),
+              finishedAt: new Date(),
+            },
+          ],
+        ).catch((e) => logger.warn({ err: e }, "runSkill: failed to record agent observability"));
+      }
+
       if (accumulated.length === 0) {
         logger.warn("runSkill: LLM returned empty output — using fallback");
         await onProgress?.(
@@ -304,4 +401,105 @@ export const runSkill = ({
     void onProgress?.(`[Mastra] runSkill: Agent call FAILED — ${errMsg}`);
     return ok(generateFallbackReport());
   });
+};
+
+/**
+ * Convert Claude stream-json events into span records for observability.
+ * Creates spans for: thinking, text output, tool_use, tool_result.
+ */
+const buildSpansFromClaudeEvents = (
+  events: ClaudeStreamEvent[],
+  jobId: string,
+  rawExportId: number,
+  skillId: string,
+  startTime: number,
+): RecordSpanOptions[] => {
+  const spans: RecordSpanOptions[] = [];
+  const baseTime = new Date(startTime);
+  let spanIndex = 0;
+
+  for (const ev of events) {
+    if (ev.type === "assistant" && ev.message?.content) {
+      const model = ev.message.model ?? null;
+      for (const block of ev.message.content) {
+        spanIndex++;
+        if (block.type === "thinking" && block.thinking) {
+          spans.push({
+            jobId,
+            rawExportId,
+            spanType: "llm_call",
+            name: `thinking-${spanIndex}`,
+            input: null,
+            output: block.thinking.slice(0, 10000),
+            modelId: model,
+            status: "completed",
+            startedAt: baseTime,
+            finishedAt: new Date(),
+          });
+        } else if (block.type === "text" && block.text) {
+          spans.push({
+            jobId,
+            rawExportId,
+            spanType: "llm_call",
+            name: `text-${spanIndex}`,
+            input: null,
+            output: block.text.slice(0, 10000),
+            modelId: model,
+            status: "completed",
+            startedAt: baseTime,
+            finishedAt: new Date(),
+          });
+        } else if (block.type === "tool_use") {
+          spans.push({
+            jobId,
+            rawExportId,
+            spanType: "tool_call",
+            name: block.name ?? `tool-${spanIndex}`,
+            input: block.input ? JSON.stringify(block.input).slice(0, 10000) : null,
+            output: null,
+            modelId: model,
+            status: "completed",
+            startedAt: baseTime,
+            finishedAt: new Date(),
+            metadata: block.id ? { toolUseId: block.id } : null,
+          });
+        } else if (block.type === "tool_result") {
+          spans.push({
+            jobId,
+            rawExportId,
+            spanType: "tool_result",
+            name: `result-${spanIndex}`,
+            input: null,
+            output: typeof block.text === "string" ? block.text.slice(0, 10000) : null,
+            status: "completed",
+            startedAt: baseTime,
+            finishedAt: new Date(),
+          });
+        }
+      }
+    }
+
+    // Result event with cost/usage summary
+    if (ev.type === "result") {
+      spans.push({
+        jobId,
+        rawExportId,
+        spanType: "agent_run",
+        name: skillId,
+        input: null,
+        output: null,
+        durationMs: ev.duration_ms ?? null,
+        status: "completed",
+        startedAt: baseTime,
+        finishedAt: new Date(),
+        metadata: {
+          totalCost: ev.total_cost_usd,
+          modelUsage: ev.modelUsage,
+          numTurns: ev.num_turns,
+        },
+      });
+    }
+  }
+
+  return spans;
 };

@@ -3,7 +3,7 @@ import { text, timestamp, jsonb, pgTable, index } from "drizzle-orm/pg-core";
 import { githubProjectsTable } from "./github_projects_table";
 import { pipelinesTable } from "./pipelines_table";
 
-export type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled";
+export type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled" | "expired";
 export type JobType = "pipeline_run" | "code_analysis" | "skill_execution" | "file_scan" | "custom";
 
 export interface JobResult {

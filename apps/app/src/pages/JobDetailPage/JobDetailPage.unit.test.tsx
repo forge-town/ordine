@@ -12,7 +12,13 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 vi.mock("@/integrations/trpc/client", () => ({
-  trpcClient: { jobs: { getTraces: { query: vi.fn().mockResolvedValue([]) } } },
+  trpcClient: {
+    jobs: {
+      getTraces: { query: vi.fn().mockResolvedValue([]) },
+      getAgentRuns: { query: vi.fn().mockResolvedValue([]) },
+      getAgentRunSpans: { query: vi.fn().mockResolvedValue([]) },
+    },
+  },
 }));
 
 vi.mock("@refinedev/core", () => ({

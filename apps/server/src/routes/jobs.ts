@@ -39,6 +39,21 @@ jobsRoutes.get("/:id/traces", async (c) => {
   return c.json(traces);
 });
 
+jobsRoutes.get("/:id/agent-runs", async (c) => {
+  const id = c.req.param("id");
+  const runs = await jobsService.getAgentRunsByJobId(id);
+
+  return c.json(runs);
+});
+
+jobsRoutes.get("/:id/agent-runs/:runId/spans", async (c) => {
+  const rawExportId = Number(c.req.param("runId"));
+  if (Number.isNaN(rawExportId)) return c.json({ error: "Invalid runId" }, 400);
+  const spans = await jobsService.getSpansByRawExportId(rawExportId);
+
+  return c.json(spans);
+});
+
 jobsRoutes.patch("/:id", async (c) => {
   const id = c.req.param("id");
   const body = await c.req.json();
