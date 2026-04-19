@@ -53,17 +53,22 @@ const makeOp = (id: string, name: string, description?: string): OperationRecord
   updatedAt: new Date(),
 });
 
-const makePipeline = (overrides: Partial<PipelineEntity> = {}): PipelineEntity => ({
-  id: "pipe-1",
-  name: "My Pipeline",
-  description: "A test pipeline",
-  tags: [],
-  nodes: [],
-  edges: [],
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  ...overrides,
-});
+const makePipeline = (overrides: Partial<PipelineEntity> = {}): PipelineEntity => {
+  const { timeoutMs = null, ...rest } = overrides;
+
+  return {
+    id: "pipe-1",
+    name: "My Pipeline",
+    description: "A test pipeline",
+    tags: [],
+    nodes: [],
+    edges: [],
+    timeoutMs,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...rest,
+  };
+};
 
 const ops: OperationRecord[] = [
   makeOp("op-lint", "Run ESLint", "Lint the source code"),

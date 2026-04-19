@@ -19,6 +19,9 @@ export const StatusIcon = ({ status }: StatusIconProps) => {
     case "queued": {
       return <Clock className="h-3.5 w-3.5 text-amber-500" />;
     }
+    case "expired": {
+      return <Clock className="h-3.5 w-3.5 text-slate-500" />;
+    }
     default: {
       return <Terminal className="h-3.5 w-3.5 text-muted-foreground" />;
     }

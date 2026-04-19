@@ -18,6 +18,7 @@ const statusLabel: Record<JobStatus, string> = {
   done: "Done",
   failed: "Failed",
   cancelled: "Cancelled",
+  expired: "Expired",
 };
 
 const parseTimestamp = (log: string): string => {
@@ -71,7 +72,8 @@ const isStructuredLog = (log: string): boolean => {
   return msg.startsWith(STRUCTURED_LOG_PREFIX);
 };
 
-const isTerminalStatus = (s: JobStatus) => s === "done" || s === "failed" || s === "cancelled";
+const isTerminalStatus = (s: JobStatus) =>
+  s === "done" || s === "failed" || s === "cancelled" || s === "expired";
 
 export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
   const store = useHarnessCanvasStore();
@@ -158,7 +160,8 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                   "font-medium",
                   job.status === "running" && "text-blue-600",
                   job.status === "done" && "text-green-600",
-                  job.status === "failed" && "text-red-600"
+                  job.status === "failed" && "text-red-600",
+                  job.status === "expired" && "text-slate-600"
                 )}
               >
                 {statusLabel[job.status]}

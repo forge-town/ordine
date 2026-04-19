@@ -243,7 +243,7 @@ const FindingsView = ({ output }: { output: string }) => {
         }>;
         stats?: Record<string, number>;
       },
-    () => null,
+    () => null
   )();
   if (parsed.isErr()) return null;
   const data = parsed.value;
@@ -325,7 +325,7 @@ const ConversationView = ({ payload }: { payload: Record<string, unknown> }) => 
 const OutputSection = ({ output }: { output: string }) => {
   const parsed = Result.fromThrowable(
     () => JSON.parse(output) as { findings?: unknown[] },
-    () => null,
+    () => null
   )();
   if (parsed.isOk() && parsed.value?.findings) {
     return <FindingsView output={output} />;

@@ -98,13 +98,13 @@ export const getPipeline = async (id: string): Promise<void> => {
 };
 
 export const createPipeline = async (jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   const pipeline = assertOk(await api.post<Pipeline>("/api/pipelines", body), "create pipeline");
   console.log(`Created pipeline: ${pipeline.id}`);
 };
 
 export const updatePipeline = async (id: string, jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   assertOk(await api.patch<Pipeline>(`/api/pipelines/${id}`, body), "update pipeline");
   console.log(`Updated pipeline: ${id}`);
 };
@@ -157,13 +157,13 @@ export const getRule = async (id: string): Promise<void> => {
 };
 
 export const createRule = async (jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   const rule = assertOk(await api.post<IdRecord>("/api/rules", body), "create rule");
   console.log(`Created rule: ${rule.id}`);
 };
 
 export const updateRule = async (id: string, jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   assertOk(await api.patch<IdRecord>(`/api/rules/${id}`, body), "update rule");
   console.log(`Updated rule: ${id}`);
 };
@@ -197,13 +197,13 @@ export const getSkill = async (id: string): Promise<void> => {
 };
 
 export const createSkill = async (jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   const skill = assertOk(await api.post<IdRecord>("/api/skills", body), "create skill");
   console.log(`Created skill: ${skill.id}`);
 };
 
 export const updateSkill = async (id: string, jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   assertOk(await api.patch<IdRecord>(`/api/skills/${id}`, body), "update skill");
   console.log(`Updated skill: ${id}`);
 };
@@ -237,13 +237,13 @@ export const getOperation = async (id: string): Promise<void> => {
 };
 
 export const createOperation = async (jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   const op = assertOk(await api.post<IdRecord>("/api/operations", body), "create operation");
   console.log(`Created operation: ${op.id}`);
 };
 
 export const updateOperation = async (id: string, jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   assertOk(await api.patch<IdRecord>(`/api/operations/${id}`, body), "update operation");
   console.log(`Updated operation: ${id}`);
 };
@@ -301,7 +301,7 @@ export const listRecipes = async (): Promise<void> => {
 };
 
 export const createRecipe = async (jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   const recipe = assertOk(await api.post<IdRecord>("/api/recipes", body), "create recipe");
   console.log(`Created recipe: ${recipe.id}`);
 };
@@ -335,7 +335,7 @@ export const getBestPractice = async (id: string): Promise<void> => {
 };
 
 export const createBestPractice = async (jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   const bp = assertOk(
     await api.post<IdRecord>("/api/best-practices", body),
     "create best practice",
@@ -344,7 +344,7 @@ export const createBestPractice = async (jsonPath: string): Promise<void> => {
 };
 
 export const updateBestPractice = async (id: string, jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   assertOk(await api.patch<IdRecord>(`/api/best-practices/${id}`, body), "update best practice");
   console.log(`Updated best practice: ${id}`);
 };
@@ -365,7 +365,7 @@ export const exportBestPractices = async (outPath: string): Promise<void> => {
 };
 
 export const importBestPractices = async (jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf-8")) as unknown;
+  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
   const result = assertOk(
     await api.post<{ imported: number; checklistItems: number; codeSnippets: number }>(
       "/api/best-practices/import",

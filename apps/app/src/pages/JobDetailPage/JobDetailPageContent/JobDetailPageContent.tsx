@@ -53,6 +53,11 @@ const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; b
     cls: "bg-amber-50 text-amber-700",
     bar: "bg-amber-400",
   },
+  expired: {
+    icon: Clock,
+    cls: "bg-slate-100 text-slate-700",
+    bar: "bg-slate-400",
+  },
 };
 
 const TYPE_CONFIG: Record<JobType, { icon: React.ElementType }> = {
@@ -70,6 +75,7 @@ const getStatusLabel = (status: JobStatus, t: (key: string) => string): string =
     done: t("jobs.statusDone"),
     failed: t("jobs.statusFailed"),
     cancelled: t("jobs.statusCancelled"),
+    expired: t("jobs.statusExpired"),
   };
 
   return statusMap[status];
@@ -151,7 +157,7 @@ export const JobDetailPageContent = () => {
         <span
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-            s.cls,
+            s.cls
           )}
         >
           <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />
@@ -261,7 +267,7 @@ export const JobDetailPageContent = () => {
                   <span
                     className={cn(
                       "shrink-0 w-12 text-[10px] font-mono uppercase",
-                      LEVEL_COLOR[tr.level],
+                      LEVEL_COLOR[tr.level]
                     )}
                   >
                     {tr.level}

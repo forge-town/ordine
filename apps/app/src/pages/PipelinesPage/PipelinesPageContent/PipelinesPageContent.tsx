@@ -73,10 +73,10 @@ export const PipelinesPageContent = () => {
       id,
       name: t("pipelines.createNew"),
       description: t("pipelines.newPipelineDescription"),
-
       tags: [],
       createdAt: now,
       updatedAt: now,
+      timeoutMs: null,
       nodes: [
         {
           id: `${id}-condition`,

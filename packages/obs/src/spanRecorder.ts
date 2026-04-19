@@ -1,8 +1,6 @@
 import type {
   AgentRawExportsDaoInstance,
   AgentSpansDaoInstance,
-  InsertAgentRawExport,
-  InsertAgentSpan,
 } from "@repo/models";
 import type { AgentSystem, SpanType, SpanStatus } from "@repo/db-schema";
 

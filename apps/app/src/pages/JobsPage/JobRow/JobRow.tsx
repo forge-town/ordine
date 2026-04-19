@@ -35,6 +35,11 @@ const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot
     cls: "bg-amber-50 text-amber-600",
     dot: "bg-amber-400",
   },
+  expired: {
+    icon: Clock,
+    cls: "bg-slate-100 text-slate-700",
+    dot: "bg-slate-400",
+  },
 };
 
 const TYPE_ICON: Record<JobType, React.ElementType> = {

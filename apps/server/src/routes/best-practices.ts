@@ -35,7 +35,7 @@ bestPracticesRoutes.put("/", async (c) => {
   return c.json(practice, 201);
 });
 
-bestPracticesRoutes.get("/export", async (c) => {
+bestPracticesRoutes.get("/export", async () => {
   const zipData = await bestPracticesBulkService.exportAsZip();
 
   return new Response(Buffer.from(zipData), {

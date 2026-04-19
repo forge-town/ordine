@@ -18,7 +18,8 @@ export const ClaudeContentBlockSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("tool_result"),
     tool_use_id: z.string().optional(),
-    text: z.string().optional(),
+    content: z.unknown().optional(),
+    is_error: z.boolean().optional(),
   }),
 ]);
 

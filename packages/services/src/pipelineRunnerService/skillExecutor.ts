@@ -21,7 +21,6 @@ import {
   ToolNameSchema,
   type SettingsResolver,
   type ClaudeStreamEvent,
-  type ToolName,
 } from "@repo/agent";
 import { logger } from "@repo/logger";
 import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
@@ -463,17 +462,32 @@ const buildSpansFromClaudeEvents = (
             finishedAt: new Date(),
             metadata: block.id ? { toolUseId: block.id } : null,
           });
-        } else if (block.type === "tool_result") {
+        }
+      }
+    }
+
+    // user events contain tool_result blocks with execution output
+    if (ev.type === "user" && ev.message?.content) {
+      for (const block of ev.message.content) {
+        if (block.type === "tool_result") {
+          spanIndex++;
+          const resultText =
+            typeof block.content === "string"
+              ? block.content
+              : block.content != null
+                ? JSON.stringify(block.content)
+                : null;
           spans.push({
             jobId,
             rawExportId,
             spanType: "tool_result",
             name: `result-${spanIndex}`,
             input: null,
-            output: typeof block.text === "string" ? block.text.slice(0, 10000) : null,
-            status: "completed",
+            output: resultText ? resultText.slice(0, 10000) : null,
+            status: block.is_error ? "error" : "completed",
             startedAt: baseTime,
             finishedAt: new Date(),
+            metadata: block.tool_use_id ? { toolUseId: block.tool_use_id } : null,
           });
         }
       }

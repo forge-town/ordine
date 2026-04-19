@@ -30,6 +30,7 @@ export const JobsPageContent = () => {
     { value: "done", label: t("jobs.filterDone") },
     { value: "failed", label: t("jobs.filterFailed") },
     { value: "cancelled", label: t("jobs.filterCancelled") },
+    { value: "expired", label: t("jobs.filterExpired") },
   ];
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -61,6 +62,7 @@ export const JobsPageContent = () => {
     done: jobs.filter((j: JobRecord) => j.status === "done").length,
     failed: jobs.filter((j: JobRecord) => j.status === "failed").length,
     cancelled: jobs.filter((j: JobRecord) => j.status === "cancelled").length,
+    expired: jobs.filter((j: JobRecord) => j.status === "expired").length,
   };
 
   return (
@@ -79,7 +81,7 @@ export const JobsPageContent = () => {
 
       {/* Stats */}
       <div className="shrink-0 border-b border-border bg-muted/50 px-6 py-4">
-        <div className="grid grid-cols-5 gap-3">
+        <div className="grid grid-cols-6 gap-3">
           <StatCard
             color="text-gray-700"
             dot="bg-gray-400"
@@ -109,6 +111,12 @@ export const JobsPageContent = () => {
             dot="bg-amber-400"
             label={t("jobs.filterCancelled")}
             value={counts.cancelled}
+          />
+          <StatCard
+            color="text-slate-700"
+            dot="bg-slate-400"
+            label={t("jobs.filterExpired")}
+            value={counts.expired}
           />
         </div>
       </div>
