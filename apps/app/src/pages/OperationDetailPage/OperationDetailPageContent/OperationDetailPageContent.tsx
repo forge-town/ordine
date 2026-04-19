@@ -25,6 +25,7 @@ import { InputPortRow } from "../InputPortRow";
 import { OutputPortRow } from "../OutputPortRow";
 import type { OperationConfig, ExecutorConfig } from "../types";
 import { safeJsonParse } from "@/lib/safeJson";
+import { PageLoadingState } from "@/components/PageLoadingState";
 
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
@@ -119,7 +120,7 @@ const ExecutorCard = ({ executor: raw }: { executor: ExecutorConfig }) => {
 
 export const OperationDetailPageContent = () => {
   const { operationId } = Route.useParams();
-  const { result: operationResult } = useOne<OperationRecord>({
+  const { result: operationResult, query: operationQuery } = useOne<OperationRecord>({
     resource: ResourceName.operations,
     id: operationId,
   });
@@ -128,6 +129,10 @@ export const OperationDetailPageContent = () => {
   const navigate = useNavigate();
 
   const handleNavigateBack = () => void navigate({ to: "/operations" });
+
+  if (operationQuery?.isLoading) {
+    return <PageLoadingState title={t("operations.title")} variant="detail" />;
+  }
 
   if (!operation) {
     return (

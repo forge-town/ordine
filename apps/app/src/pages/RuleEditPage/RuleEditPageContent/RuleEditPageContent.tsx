@@ -8,14 +8,22 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { RuleRecord } from "@repo/db-schema";
 import { RuleForm } from "@/pages/RulesPage/RuleForm";
 import { getEditForm, type RuleFormState } from "@/pages/RulesPage/types";
+import { PageLoadingState } from "@/components/PageLoadingState";
 
 export const RuleEditPageContent = () => {
   const { ruleId } = Route.useParams();
-  const { result: ruleResult } = useOne<RuleRecord>({ resource: ResourceName.rules, id: ruleId });
+  const { result: ruleResult, query: ruleQuery } = useOne<RuleRecord>({
+    resource: ResourceName.rules,
+    id: ruleId,
+  });
   const rule = ruleResult ?? null;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { mutateAsync: updateRuleMutate } = useUpdate();
+
+  if (ruleQuery?.isLoading) {
+    return <PageLoadingState title={t("rules.editTitle")} variant="detail" />;
+  }
 
   if (!rule) {
     return (

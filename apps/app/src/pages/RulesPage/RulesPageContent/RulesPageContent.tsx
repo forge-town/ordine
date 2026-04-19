@@ -8,12 +8,15 @@ import { useNavigate } from "@tanstack/react-router";
 import type { RuleRecord, RuleCategory } from "@repo/db-schema";
 import { useDelete, useCustomMutation, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { useRulesPageStore } from "../_store";
 import { CATEGORY_FILTERS } from "../types";
 import { RuleCard } from "../RuleCard";
 
 export const RulesPageContent = () => {
-  const { result: rulesResult } = useList<RuleRecord>({ resource: ResourceName.rules });
+  const { result: rulesResult, query: rulesQuery } = useList<RuleRecord>({
+    resource: ResourceName.rules,
+  });
   const rules = rulesResult?.data ?? [];
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -63,6 +66,10 @@ export const RulesPageContent = () => {
 
   const handleNavigateToEdit = (id: string) =>
     void navigate({ to: "/rules/$ruleId/edit", params: { ruleId: id } });
+
+  if (rulesQuery?.isLoading) {
+    return <PageLoadingState title={t("rules.title")} variant="list" />;
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

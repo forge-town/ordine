@@ -14,6 +14,7 @@ import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { SkillRecord } from "@repo/db-schema";
 import { ObjectTypeSchema, type ObjectType } from "@repo/schemas";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import {
   ExecutorTypeSchema,
   AgentModeSchema,
@@ -93,10 +94,16 @@ const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[]
 };
 
 export const OperationCreatePageContent = () => {
-  const { result: skillsResult } = useList<SkillRecord>({ resource: ResourceName.skills });
+  const { result: skillsResult, query: skillsQuery } = useList<SkillRecord>({
+    resource: ResourceName.skills,
+  });
   const skills = skillsResult?.data ?? [];
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  if (skillsQuery?.isLoading) {
+    return <PageLoadingState title={t("operations.createNew")} variant="detail" />;
+  }
 
   const EXECUTOR_TYPE_OPTIONS = [
     {

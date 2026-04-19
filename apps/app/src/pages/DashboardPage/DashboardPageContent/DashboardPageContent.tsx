@@ -5,22 +5,36 @@ import type { PipelineEntity } from "@repo/models";
 import type { GithubProjectRecord, JobRecord } from "@repo/db-schema";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { StatCard } from "../StatCard";
 import { JobActivityRow } from "../JobActivityRow";
 
 export const DashboardPageContent = () => {
-  const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
-  const { result: projectsResult } = useList<GithubProjectRecord>({
+  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineEntity>({
+    resource: ResourceName.pipelines,
+  });
+  const { result: projectsResult, query: projectsQuery } = useList<GithubProjectRecord>({
     resource: ResourceName.githubProjects,
   });
-  const { result: jobsResult } = useList<JobRecord>({ resource: ResourceName.jobs });
+  const { result: jobsResult, query: jobsQuery } = useList<JobRecord>({
+    resource: ResourceName.jobs,
+  });
   const pipelines = pipelinesResult?.data ?? [];
   const projects = projectsResult?.data ?? [];
   const jobs = jobsResult?.data ?? [];
   const { t } = useTranslation();
+  const isLoading = !!(
+    pipelinesQuery?.isLoading ||
+    projectsQuery?.isLoading ||
+    jobsQuery?.isLoading
+  );
   const runningJobs = jobs.filter((j: JobRecord) => j.status === "running").length;
   const failedJobs = jobs.filter((j: JobRecord) => j.status === "failed").length;
   const recentJobs = jobs.slice(0, 8);
+
+  if (isLoading) {
+    return <PageLoadingState title={t("dashboard.title")} variant="grid" />;
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

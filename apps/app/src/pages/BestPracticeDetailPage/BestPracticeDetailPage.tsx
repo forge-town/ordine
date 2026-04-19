@@ -4,15 +4,20 @@ import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { BestPracticeRecord } from "@repo/db-schema";
 import { BestPracticeDetailPageContent } from "./BestPracticeDetailPageContent";
+import { PageLoadingState } from "@/components/PageLoadingState";
 
 export const BestPracticeDetailPage = () => {
   const { bestPracticeId } = Route.useParams();
-  const { result: bestPracticeResult } = useOne<BestPracticeRecord>({
+  const { result: bestPracticeResult, query: bestPracticeQuery } = useOne<BestPracticeRecord>({
     resource: ResourceName.bestPractices,
     id: bestPracticeId,
   });
 
   const { t } = useTranslation();
+
+  if (bestPracticeQuery?.isLoading) {
+    return <PageLoadingState title={t("bestPractices.title")} variant="detail" />;
+  }
 
   if (!bestPracticeResult) {
     return (

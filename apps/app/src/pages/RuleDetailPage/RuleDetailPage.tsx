@@ -4,12 +4,20 @@ import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { RuleRecord } from "@repo/db-schema";
 import { RuleDetailPageContent } from "./RuleDetailPageContent";
+import { PageLoadingState } from "@/components/PageLoadingState";
 
 export const RuleDetailPage = () => {
   const { ruleId } = Route.useParams();
-  const { result: ruleResult } = useOne<RuleRecord>({ resource: ResourceName.rules, id: ruleId });
+  const { result: ruleResult, query: ruleQuery } = useOne<RuleRecord>({
+    resource: ResourceName.rules,
+    id: ruleId,
+  });
   const rule = ruleResult ?? null;
   const { t } = useTranslation();
+
+  if (ruleQuery?.isLoading) {
+    return <PageLoadingState title={t("rules.title")} variant="detail" />;
+  }
 
   if (!rule) {
     return (

@@ -6,6 +6,7 @@ import { Input } from "@repo/ui/input";
 import type { RecipeRecord, OperationRecord, BestPracticeRecord } from "@repo/db-schema";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { useRecipesPageStore } from "../_store";
 import { RecipeFormDialog } from "../RecipeFormDialog";
 import { RecipeCard } from "../RecipeCard";
@@ -14,11 +15,13 @@ const handleSave = (_r: RecipeRecord) => {};
 
 export const RecipesPageContent = () => {
   const { t } = useTranslation();
-  const { result: recipesResult } = useList<RecipeRecord>({ resource: ResourceName.recipes });
-  const { result: operationsResult } = useList<OperationRecord>({
+  const { result: recipesResult, query: recipesQuery } = useList<RecipeRecord>({
+    resource: ResourceName.recipes,
+  });
+  const { result: operationsResult, query: operationsQuery } = useList<OperationRecord>({
     resource: ResourceName.operations,
   });
-  const { result: bestPracticesResult } = useList<BestPracticeRecord>({
+  const { result: bestPracticesResult, query: bestPracticesQuery } = useList<BestPracticeRecord>({
     resource: ResourceName.bestPractices,
   });
   const recipes = recipesResult?.data ?? [];
@@ -68,6 +71,10 @@ export const RecipesPageContent = () => {
   const bpMap = new Map<string, BestPracticeRecord>(
     bestPractices.map((bp: BestPracticeRecord) => [bp.id, bp])
   );
+
+  if (recipesQuery?.isLoading || operationsQuery?.isLoading || bestPracticesQuery?.isLoading) {
+    return <PageLoadingState title={t("recipes.title")} variant="list" />;
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

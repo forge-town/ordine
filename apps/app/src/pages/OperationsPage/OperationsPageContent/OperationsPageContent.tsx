@@ -20,6 +20,7 @@ import type { OperationRecord } from "@repo/db-schema";
 import type { ObjectType } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { useToastStore } from "@/store/toastStore";
 import { useStore } from "zustand";
 import { safeJsonParse } from "@/lib/safeJson";
@@ -47,7 +48,7 @@ const exportOperation = (op: OperationRecord) => {
 };
 
 export const OperationsPageContent = () => {
-  const { result: operationsResult } = useList<OperationRecord>({
+  const { result: operationsResult, query: operationsQuery } = useList<OperationRecord>({
     resource: ResourceName.operations,
   });
   const operations = operationsResult?.data ?? [];
@@ -198,6 +199,10 @@ export const OperationsPageContent = () => {
     handleSetImporting(false);
     e.target.value = "";
   };
+
+  if (operationsQuery?.isLoading) {
+    return <PageLoadingState title={t("operations.title")} variant="list" />;
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

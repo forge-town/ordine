@@ -10,12 +10,15 @@ import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { PipelineEntity } from "@repo/models";
 import { useStore } from "zustand";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { usePipelinesPageStore } from "../_store";
 import { PipelineCard } from "../PipelineCard";
 
 export const PipelinesPageContent = () => {
   const { t } = useTranslation();
-  const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
+  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineEntity>({
+    resource: ResourceName.pipelines,
+  });
   const pipelinesData = pipelinesResult?.data;
   const pipelines = pipelinesData ?? [];
   const store = usePipelinesPageStore();
@@ -108,6 +111,10 @@ export const PipelinesPageContent = () => {
   const handleCreateClick = () => void handleCreate();
   const handleOpenPipeline = (id: string) => () => openPipeline(id);
   const handleDeletePipeline = (id: string) => () => void handleDelete(id);
+
+  if (pipelinesQuery?.isLoading) {
+    return <PageLoadingState title={t("pipelines.title")} variant="grid" />;
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

@@ -5,17 +5,24 @@ import { Route } from "@/routes/_layout/operations.$operationId.edit";
 import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { SkillRecord, OperationRecord } from "@repo/db-schema";
+import { PageLoadingState } from "@/components/PageLoadingState";
 
 export const OperationEditPage = () => {
   const { operationId } = Route.useParams();
-  const { result: operationResult } = useOne<OperationRecord>({
+  const { result: operationResult, query: operationQuery } = useOne<OperationRecord>({
     resource: ResourceName.operations,
     id: operationId,
   });
-  const { result: skillsResult } = useList<SkillRecord>({ resource: ResourceName.skills });
+  const { result: skillsResult, query: skillsQuery } = useList<SkillRecord>({
+    resource: ResourceName.skills,
+  });
   const operation = operationResult ?? null;
   const skills = skillsResult?.data ?? [];
   const { t } = useTranslation();
+
+  if (operationQuery?.isLoading || skillsQuery?.isLoading) {
+    return <PageLoadingState title={t("operations.editTitle")} variant="detail" />;
+  }
 
   if (!operation) {
     return (

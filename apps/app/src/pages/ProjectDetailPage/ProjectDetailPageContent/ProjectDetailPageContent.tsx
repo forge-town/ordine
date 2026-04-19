@@ -8,15 +8,18 @@ import type { PipelineEntity } from "@repo/models";
 import type { GithubProjectRecord } from "@repo/db-schema";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { ProjectMeta } from "../ProjectMeta";
 
 export const ProjectDetailPageContent = () => {
   const { projectId } = Route.useParams();
-  const { result: projectResult } = useOne<GithubProjectRecord>({
+  const { result: projectResult, query: projectQuery } = useOne<GithubProjectRecord>({
     resource: ResourceName.githubProjects,
     id: projectId,
   });
-  const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
+  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineEntity>({
+    resource: ResourceName.pipelines,
+  });
   const project = projectResult ?? null;
   const pipelines = pipelinesResult?.data ?? [];
   const navigate = useNavigate();
@@ -30,6 +33,10 @@ export const ProjectDetailPageContent = () => {
       params: { projectId: project.id },
     });
   };
+
+  if (projectQuery?.isLoading || pipelinesQuery?.isLoading) {
+    return <PageLoadingState title={t("projects.title")} variant="detail" />;
+  }
 
   if (!project) {
     return (

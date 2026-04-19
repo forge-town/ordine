@@ -26,6 +26,7 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/jobs.$jobId";
 import { trpcClient } from "@/integrations/trpc/client";
 import { useEffect, useState } from "react";
+import { PageLoadingState } from "@/components/PageLoadingState";
 
 const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; bar: string }> = {
   queued: {
@@ -102,7 +103,10 @@ const LEVEL_COLOR: Record<LogLevel, string> = {
 
 export const JobDetailPageContent = () => {
   const { jobId } = Route.useParams();
-  const { result: jobResult } = useOne<JobRecord>({ resource: ResourceName.jobs, id: jobId });
+  const { result: jobResult, query: jobQuery } = useOne<JobRecord>({
+    resource: ResourceName.jobs,
+    id: jobId,
+  });
   const job = jobResult ?? null;
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -120,6 +124,10 @@ export const JobDetailPageContent = () => {
       params: { projectId: job.projectId },
     });
   };
+
+  if (jobQuery?.isLoading) {
+    return <PageLoadingState title={t("jobs.title")} variant="detail" />;
+  }
 
   if (!job) {
     return (

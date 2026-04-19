@@ -7,12 +7,15 @@ import { Input } from "@repo/ui/input";
 import type { JobRecord, JobStatus } from "@repo/db-schema";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { useJobsPageStore } from "../_store";
 import { StatCard } from "../StatCard";
 import { JobRow } from "../JobRow";
 
 export const JobsPageContent = () => {
-  const { result: jobsResult } = useList<JobRecord>({ resource: ResourceName.jobs });
+  const { result: jobsResult, query: jobsQuery } = useList<JobRecord>({
+    resource: ResourceName.jobs,
+  });
   const jobs = jobsResult?.data ?? [];
   const { t } = useTranslation();
   const store = useJobsPageStore();
@@ -64,6 +67,10 @@ export const JobsPageContent = () => {
     cancelled: jobs.filter((j: JobRecord) => j.status === "cancelled").length,
     expired: jobs.filter((j: JobRecord) => j.status === "expired").length,
   };
+
+  if (jobsQuery?.isLoading) {
+    return <PageLoadingState title={t("jobs.title")} variant="list" />;
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

@@ -8,6 +8,7 @@ import type { PipelineEntity } from "@repo/models";
 import type { GithubProjectRecord } from "@repo/db-schema";
 import { Button } from "@repo/ui/button";
 import { useStore } from "zustand";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { ObjectRow, type ObjectItem } from "../ObjectRow";
 import { PipelineRow } from "../PipelineRow";
 import { useProjectWorkspacePageStore } from "../_store";
@@ -23,11 +24,13 @@ const buildObjectTree = (owner: string, repo: string, entireProject: string): Ob
 
 export const ProjectWorkspacePageContent = () => {
   const { projectId } = Route.useParams();
-  const { result: projectResult } = useOne<GithubProjectRecord>({
+  const { result: projectResult, query: projectQuery } = useOne<GithubProjectRecord>({
     resource: ResourceName.githubProjects,
     id: projectId,
   });
-  const { result: pipelinesResult } = useList<PipelineEntity>({ resource: ResourceName.pipelines });
+  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineEntity>({
+    resource: ResourceName.pipelines,
+  });
   const project = projectResult ?? null;
   const pipelines = pipelinesResult?.data ?? [];
   const store = useProjectWorkspacePageStore();
@@ -37,6 +40,10 @@ export const ProjectWorkspacePageContent = () => {
   const handleSelectPipelineInStore = useStore(store, (s) => s.handleSelectPipeline);
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  if (projectQuery?.isLoading || pipelinesQuery?.isLoading) {
+    return <PageLoadingState title={t("workspace.title")} variant="detail" />;
+  }
 
   if (!project) {
     return (

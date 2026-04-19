@@ -14,6 +14,7 @@ import {
 import { useDelete, useInvalidate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useToastStore } from "@/store/toastStore";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { useBestPracticesPageStore } from "../_store";
 import { CATEGORIES } from "../constants";
 import { PracticeFormDialog } from "../PracticeFormDialog";
@@ -41,7 +42,7 @@ export const BestPracticesPageContent = () => {
   const handleSetImportLoading = useStore(store, (s) => s.handleSetImportLoading);
   const handleResetImport = useStore(store, (s) => s.handleResetImport);
 
-  const { result: practicesResult } = useList<BestPracticeRecord>({
+  const { result: practicesResult, query: practicesQuery } = useList<BestPracticeRecord>({
     resource: ResourceName.bestPractices,
   });
   const practices = practicesResult?.data ?? [];
@@ -105,6 +106,10 @@ export const BestPracticesPageContent = () => {
   };
 
   const handleImportClick = () => fileInputRef.current?.click();
+
+  if (practicesQuery?.isLoading) {
+    return <PageLoadingState title={t("bestPractices.title")} variant="list" />;
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

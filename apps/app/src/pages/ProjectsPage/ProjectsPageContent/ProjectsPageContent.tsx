@@ -7,6 +7,7 @@ import type { GithubProjectRecord } from "@repo/db-schema";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useStore } from "zustand";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { CreateProjectDialog } from "../CreateProjectDialog";
 import { ProjectCard } from "../ProjectCard";
 import { useProjectsPageStore } from "../_store";
@@ -15,7 +16,7 @@ const handleCreateProject = (_p: GithubProjectRecord) => {};
 
 export const ProjectsPageContent = () => {
   const { t } = useTranslation();
-  const { result: projectsResult } = useList<GithubProjectRecord>({
+  const { result: projectsResult, query: projectsQuery } = useList<GithubProjectRecord>({
     resource: ResourceName.githubProjects,
   });
   const projects = projectsResult?.data ?? [];
@@ -49,6 +50,10 @@ export const ProjectsPageContent = () => {
       params: { projectId },
     });
   const handleDeleteProject = (id: string) => () => void handleDelete(id);
+
+  if (projectsQuery?.isLoading) {
+    return <PageLoadingState title={t("projects.title")} variant="grid" />;
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

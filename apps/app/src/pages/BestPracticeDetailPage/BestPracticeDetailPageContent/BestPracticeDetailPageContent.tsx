@@ -24,6 +24,7 @@ import { CATEGORIES, CATEGORY_COLORS } from "@/pages/BestPracticesPage/constants
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/best-practices.$bestPracticeId.index";
+import { PageLoadingState } from "@/components/PageLoadingState";
 
 interface Props {
   bestPractice: BestPracticeRecord;
@@ -32,20 +33,24 @@ interface Props {
 export const BestPracticeDetailPageContent = ({ bestPractice }: Props) => {
   const { bestPracticeId } = Route.useParams();
 
-  const { result: checklistResult } = useList<ChecklistItemRecord>({
+  const { result: checklistResult, query: checklistQuery } = useList<ChecklistItemRecord>({
     resource: ResourceName.checklistItems,
     filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
   });
-  const { result: snippetsResult } = useList<CodeSnippetRecord>({
+  const { result: snippetsResult, query: snippetsQuery } = useList<CodeSnippetRecord>({
     resource: ResourceName.codeSnippets,
     filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
   });
 
-  const checklistItems = checklistResult?.data;
-  const codeSnippets = snippetsResult?.data;
+  const checklistItems = checklistResult?.data ?? [];
+  const codeSnippets = snippetsResult?.data ?? [];
 
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  if (checklistQuery?.isLoading || snippetsQuery?.isLoading) {
+    return <PageLoadingState title={bestPractice.title} variant="detail" />;
+  }
 
   const handleNavigateBack = () => void navigate({ to: "/best-practices" });
 

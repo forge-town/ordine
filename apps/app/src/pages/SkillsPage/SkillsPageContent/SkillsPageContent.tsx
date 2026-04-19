@@ -8,6 +8,7 @@ import { cn } from "@repo/ui/lib/utils";
 import type { SkillRecord } from "@repo/db-schema";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { useSkillsPageStore } from "../_store";
 
 export type Skill = SkillRecord;
@@ -23,7 +24,9 @@ const categoryColors: Record<string, string> = {
 };
 
 export const SkillsPageContent = () => {
-  const { result: skillsResult } = useList<SkillRecord>({ resource: ResourceName.skills });
+  const { result: skillsResult, query: skillsQuery } = useList<SkillRecord>({
+    resource: ResourceName.skills,
+  });
   const skills = skillsResult?.data ?? ([] as Skill[]);
   const { t } = useTranslation();
 
@@ -55,6 +58,10 @@ export const SkillsPageContent = () => {
 
     return matchesSearch && matchesCategory;
   });
+
+  if (skillsQuery?.isLoading) {
+    return <PageLoadingState title={t("skills.title")} variant="grid" />;
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
