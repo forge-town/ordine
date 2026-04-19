@@ -68,7 +68,7 @@ describe("githubProjectsDao", () => {
 
     const result = await dao.findById("gp-2");
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.id).toBe("gp-2");
   });
 
@@ -93,7 +93,7 @@ describe("githubProjectsDao", () => {
 
     const result = await dao.update("gp-4", { repo: "updated" });
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
   });
 
   it("delete calls db.delete", async () => {

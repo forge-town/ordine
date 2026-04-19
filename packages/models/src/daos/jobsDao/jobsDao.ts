@@ -20,7 +20,7 @@ class JobsDao {
   async findById(id: string) {
     const rows = await this.executor.select().from(jobsTable).where(eq(jobsTable.id, id)).limit(1);
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async create(data: typeof jobsTable.$inferInsert) {
@@ -59,7 +59,7 @@ class JobsDao {
       .where(eq(jobsTable.id, id))
       .returning();
 
-    return updated ?? null;
+    return updated;
   }
 
   async delete(id: string) {

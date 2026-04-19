@@ -94,19 +94,19 @@ describe("checklistResultsDao", () => {
       output: "Failed: naming mismatch",
     });
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.passed).toBe(false);
     expect(result?.output).toBe("Failed: naming mismatch");
   });
 
-  it("update returns null when not found", async () => {
+  it("update returns undefined when not found", async () => {
     mockReturning.mockResolvedValueOnce([]);
 
     const result = await dao.update("nonexistent", {
       passed: true,
     });
 
-    expect(result).toBeNull();
+    expect(result).toBeUndefined();
   });
 
   it("deleteByJobId calls db.delete", async () => {

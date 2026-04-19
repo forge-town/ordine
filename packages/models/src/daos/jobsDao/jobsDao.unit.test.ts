@@ -75,7 +75,7 @@ describe("jobsDao", () => {
 
     const result = await dao.findById("job-2");
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.id).toBe("job-2");
   });
 
@@ -99,7 +99,7 @@ describe("jobsDao", () => {
 
     const result = await dao.updateStatus("job-4", "running", { startedAt: new Date() });
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.status).toBe("running");
   });
 

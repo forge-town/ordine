@@ -69,7 +69,7 @@ describe("rulesDao", () => {
 
     const result = await dao.findById("rule-2");
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.id).toBe("rule-2");
   });
 
@@ -94,7 +94,7 @@ describe("rulesDao", () => {
 
     const result = await dao.toggleEnabled("rule-4", false);
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.enabled).toBe(false);
   });
 

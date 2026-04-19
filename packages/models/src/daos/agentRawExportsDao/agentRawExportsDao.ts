@@ -38,7 +38,7 @@ class AgentRawExportsDao {
       .where(eq(agentRawExportsTable.id, id))
       .limit(1);
 
-    return row ?? null;
+    return row;
   }
 
   async deleteByJobId(jobId: string) {

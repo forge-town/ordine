@@ -36,7 +36,7 @@ class ChecklistResultsDao {
       .where(eq(checklistResultsTable.id, id))
       .returning();
 
-    return updated ?? null;
+    return updated;
   }
 
   async deleteByJobId(jobId: string) {

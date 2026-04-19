@@ -21,7 +21,7 @@ class PipelinesDao {
       .where(eq(pipelinesTable.id, id))
       .limit(1);
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async create(data: typeof pipelinesTable.$inferInsert) {
@@ -41,7 +41,7 @@ class PipelinesDao {
       .where(eq(pipelinesTable.id, id))
       .returning();
 
-    return updated ?? null;
+    return updated;
   }
 
   async delete(id: string) {

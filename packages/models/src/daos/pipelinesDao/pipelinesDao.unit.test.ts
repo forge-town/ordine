@@ -80,18 +80,18 @@ describe("pipelinesDao.update", () => {
     expect(setPayload!["edges"]).toEqual([]);
     expect(setPayload!["updatedAt"]).toBeInstanceOf(Date);
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.id).toBe("pipe-1");
     expect(result?.createdAt).toBeInstanceOf(Date);
     expect(result?.updatedAt).toBeInstanceOf(Date);
   });
 
-  it("returns null when no rows are updated", async () => {
+  it("returns undefined when no rows are updated", async () => {
     mockReturning.mockResolvedValueOnce([]);
 
     const result = await dao.update("nonexistent-id", { name: "x" });
 
-    expect(result).toBeNull();
+    expect(result).toBeUndefined();
   });
 
   it("only sends whitelisted fields (ignores id, nodeCount, createdAt, updatedAt from patch)", async () => {

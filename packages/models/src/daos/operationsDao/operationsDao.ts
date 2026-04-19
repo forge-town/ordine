@@ -16,7 +16,7 @@ class OperationsDao {
       .where(eq(operationsTable.id, id))
       .limit(1);
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async create(data: typeof operationsTable.$inferInsert) {
@@ -32,7 +32,7 @@ class OperationsDao {
       .where(eq(operationsTable.id, id))
       .returning();
 
-    return updated ?? null;
+    return updated;
   }
 
   async delete(id: string) {

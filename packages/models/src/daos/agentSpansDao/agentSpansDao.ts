@@ -65,7 +65,7 @@ class AgentSpansDao {
       .where(eq(agentSpansTable.id, id))
       .returning();
 
-    return updated ?? null;
+    return updated;
   }
 
   async deleteByJobId(jobId: string) {

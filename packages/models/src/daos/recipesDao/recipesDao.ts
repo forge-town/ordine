@@ -16,7 +16,7 @@ class RecipesDao {
       .where(eq(recipesTable.id, id))
       .limit(1);
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async findByOperationId(operationId: string) {
@@ -44,7 +44,7 @@ class RecipesDao {
       .where(eq(recipesTable.id, id))
       .returning();
 
-    return updated ?? null;
+    return updated;
   }
 
   async delete(id: string) {

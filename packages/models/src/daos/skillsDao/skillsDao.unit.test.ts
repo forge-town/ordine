@@ -74,7 +74,7 @@ describe("skillsDao", () => {
 
     const result = await dao.findById("skill-2");
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.id).toBe("skill-2");
   });
 
@@ -84,7 +84,7 @@ describe("skillsDao", () => {
 
     const result = await dao.findByName("skill");
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.name).toBe("skill");
   });
 
@@ -110,7 +110,7 @@ describe("skillsDao", () => {
 
     const result = await dao.update("skill-5", { label: "Updated" });
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
   });
 
   it("delete calls db.delete", async () => {

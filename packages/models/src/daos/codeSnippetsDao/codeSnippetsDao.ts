@@ -20,7 +20,7 @@ class CodeSnippetsDao {
       .where(eq(codeSnippetsTable.id, id))
       .limit(1);
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async create(data: typeof codeSnippetsTable.$inferInsert) {
@@ -43,7 +43,7 @@ class CodeSnippetsDao {
       .where(eq(codeSnippetsTable.id, id))
       .returning();
 
-    return updated ?? null;
+    return updated;
   }
 
   async delete(id: string) {

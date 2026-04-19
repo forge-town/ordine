@@ -19,7 +19,7 @@ class BestPracticesDao {
       .where(eq(bestPracticesTable.id, id))
       .limit(1);
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async create(data: typeof bestPracticesTable.$inferInsert) {
@@ -39,7 +39,7 @@ class BestPracticesDao {
       .where(eq(bestPracticesTable.id, id))
       .returning();
 
-    return updated ?? null;
+    return updated;
   }
 
   async delete(id: string) {

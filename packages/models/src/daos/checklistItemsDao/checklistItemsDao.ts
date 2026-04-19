@@ -20,7 +20,7 @@ class ChecklistItemsDao {
       .where(eq(checklistItemsTable.id, id))
       .limit(1);
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async create(data: typeof checklistItemsTable.$inferInsert) {
@@ -43,7 +43,7 @@ class ChecklistItemsDao {
       .where(eq(checklistItemsTable.id, id))
       .returning();
 
-    return updated ?? null;
+    return updated;
   }
 
   async delete(id: string) {

@@ -24,7 +24,7 @@ class RulesDao {
       .where(eq(rulesTable.id, id))
       .limit(1);
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async create(data: typeof rulesTable.$inferInsert) {
@@ -44,7 +44,7 @@ class RulesDao {
       .where(eq(rulesTable.id, id))
       .returning();
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async toggleEnabled(id: string, enabled: boolean) {
@@ -54,7 +54,7 @@ class RulesDao {
       .where(eq(rulesTable.id, id))
       .returning();
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async delete(id: string) {

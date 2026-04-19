@@ -71,16 +71,16 @@ describe("bestPracticesDao", () => {
 
     const result = await dao.findById("bp-2");
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.id).toBe("bp-2");
   });
 
-  it("findById returns null when not found", async () => {
+  it("findById returns undefined when not found", async () => {
     mockLimit.mockResolvedValueOnce([]);
 
     const result = await dao.findById("nonexistent");
 
-    expect(result).toBeNull();
+    expect(result).toBeUndefined();
   });
 
   it("create inserts and returns entity", async () => {
@@ -104,7 +104,7 @@ describe("bestPracticesDao", () => {
 
     const result = await dao.update("bp-4", { title: "Updated" });
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.id).toBe("bp-4");
   });
 

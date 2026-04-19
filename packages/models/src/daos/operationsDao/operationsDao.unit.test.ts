@@ -67,7 +67,7 @@ describe("operationsDao", () => {
 
     const result = await dao.findById("op-2");
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.id).toBe("op-2");
   });
 
@@ -91,7 +91,7 @@ describe("operationsDao", () => {
 
     const result = await dao.update("op-4", { name: "Updated" });
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
   });
 
   it("delete calls db.delete", async () => {

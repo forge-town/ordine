@@ -78,17 +78,17 @@ describe("checklistItemsDao", () => {
 
     const result = await dao.findById("ci-2");
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.id).toBe("ci-2");
     expect(result?.checkType).toBe("llm");
   });
 
-  it("findById returns null when not found", async () => {
+  it("findById returns undefined when not found", async () => {
     mockLimit.mockResolvedValueOnce([]);
 
     const result = await dao.findById("nonexistent");
 
-    expect(result).toBeNull();
+    expect(result).toBeUndefined();
   });
 
   it("create inserts and returns entity", async () => {
@@ -117,18 +117,18 @@ describe("checklistItemsDao", () => {
       title: "Updated title",
     });
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.id).toBe("ci-4");
   });
 
-  it("update returns null when not found", async () => {
+  it("update returns undefined when not found", async () => {
     mockReturning.mockResolvedValueOnce([]);
 
     const result = await dao.update("nonexistent", {
       title: "x",
     });
 
-    expect(result).toBeNull();
+    expect(result).toBeUndefined();
   });
 
   it("delete calls db.delete with correct id", async () => {

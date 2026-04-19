@@ -69,7 +69,7 @@ describe("codeSnippetsDao", () => {
 
     const result = await dao.findById("cs-2");
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
     expect(result?.id).toBe("cs-2");
   });
 
@@ -95,7 +95,7 @@ describe("codeSnippetsDao", () => {
 
     const result = await dao.update("cs-4", { title: "Updated" });
 
-    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
   });
 
   it("deleteByBestPracticeId calls db.delete", async () => {

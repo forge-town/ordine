@@ -16,7 +16,7 @@ class SkillsDao {
       .where(eq(skillsTable.id, id))
       .limit(1);
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async findByName(name: string) {
@@ -26,7 +26,7 @@ class SkillsDao {
       .where(eq(skillsTable.name, name))
       .limit(1);
 
-    return rows[0] ?? null;
+    return rows[0];
   }
 
   async create(data: typeof skillsTable.$inferInsert) {
@@ -46,7 +46,7 @@ class SkillsDao {
       .where(eq(skillsTable.id, id))
       .returning();
 
-    return updated ?? null;
+    return updated;
   }
 
   async delete(id: string) {
