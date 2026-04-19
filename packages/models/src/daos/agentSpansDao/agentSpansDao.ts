@@ -1,25 +1,8 @@
 import { eq, desc } from "drizzle-orm";
-import { agentSpansTable, type SpanType, type SpanStatus } from "@repo/db-schema";
+import { agentSpansTable, type SpanStatus } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-export interface InsertAgentSpan {
-  jobId: string;
-  rawExportId?: number | null;
-  parentSpanId?: number | null;
-  spanType: SpanType;
-  name: string;
-  input?: string | null;
-  output?: string | null;
-  modelId?: string | null;
-  tokenInput?: number | null;
-  tokenOutput?: number | null;
-  durationMs?: number | null;
-  status?: SpanStatus;
-  error?: string | null;
-  metadata?: unknown;
-  startedAt?: Date;
-  finishedAt?: Date | null;
-}
+export type InsertAgentSpan = Omit<typeof agentSpansTable.$inferInsert, "id">;
 
 class AgentSpansDao {
   constructor(readonly executor: DbExecutor) {}

@@ -1,18 +1,11 @@
 import { eq, desc } from "drizzle-orm";
-import { agentRawExportsTable, type AgentSystem, type AgentRunStatus } from "@repo/db-schema";
+import { agentRawExportsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-export interface InsertAgentRawExport {
-  jobId: string;
-  agentSystem: AgentSystem;
-  agentId: string;
-  modelId?: string | null;
-  rawPayload: unknown;
-  tokenInput?: number | null;
-  tokenOutput?: number | null;
-  durationMs?: number | null;
-  status?: AgentRunStatus;
-}
+export type InsertAgentRawExport = Omit<
+  typeof agentRawExportsTable.$inferInsert,
+  "id" | "createdAt"
+>;
 
 class AgentRawExportsDao {
   constructor(readonly executor: DbExecutor) {}
