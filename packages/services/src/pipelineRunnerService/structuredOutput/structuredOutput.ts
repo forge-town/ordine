@@ -12,21 +12,21 @@ import { logger } from "@repo/logger";
 
 // ─── JSON extraction ──────────────────────────────────────────────────────────
 
-const tryParseJson = (text: string): unknown | undefined => {
+const tryParseJson = ({ text }: { text: string }): unknown | undefined => {
   const result = Result.fromThrowable(JSON.parse, () => undefined)(text);
 
   return result.isOk() ? (result.value as unknown) : undefined;
 };
 
-const extract = (rawText: string): string => {
+const extract = ({ rawText }: { rawText: string }): string => {
   const fenceMatch = rawText.match(/```json\s*\n?([\s\S]*?)\n?\s*```/);
   const candidate = fenceMatch?.[1]?.trim() ?? rawText.trim();
 
   const parsed =
-    tryParseJson(candidate) ??
+    tryParseJson({ text: candidate }) ??
     (() => {
       const objectMatch = rawText.match(/\{[\s\S]*"type"\s*:\s*"(?:check|fix)"[\s\S]*\}/);
-      if (objectMatch) return tryParseJson(objectMatch[0]);
+      if (objectMatch) return tryParseJson({ text: objectMatch[0] });
 
       return undefined;
     })();
@@ -61,8 +61,8 @@ const extract = (rawText: string): string => {
 
 // ─── JSON → Markdown ──────────────────────────────────────────────────────────
 
-const toMarkdown = (content: string): string => {
-  const parsed = tryParseJson(content);
+const toMarkdown = ({ content }: { content: string }): string => {
+  const parsed = tryParseJson({ text: content });
   if (parsed === undefined) return content;
 
   const result = OperationOutputSchema.safeParse(parsed);

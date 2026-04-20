@@ -24,7 +24,7 @@ type RunPromptExecutorOptions = RunPromptOptions & {
  * Resolve inputPath to a valid cwd directory.
  * If it's a file path, use its parent directory.
  */
-const resolveCwd = (inputPath: string | undefined): string => {
+const resolveCwd = ({ inputPath }: { inputPath: string | undefined }): string => {
   if (!inputPath) return process.cwd();
   const result = Result.fromThrowable(
     () => statSync(inputPath),
@@ -62,7 +62,7 @@ const run = ({
         `[LLM] runPrompt: agent=${agent}, prompt length=${prompt.length}, input length=${inputContent.length}`,
       );
 
-      const cwd = resolveCwd(inputPath);
+      const cwd = resolveCwd({ inputPath });
 
       if (agent === "local-claude") {
         const claudeResult = await runClaude({

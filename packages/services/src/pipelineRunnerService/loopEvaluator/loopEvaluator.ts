@@ -8,8 +8,12 @@ export type LoopEvaluatorFn = (
   modelOverride?: string,
 ) => Promise<boolean>;
 
-const create = (getModel: ReturnType<typeof createLlmService>["getModel"]) => {
-  return (jobId: string): LoopEvaluatorFn => {
+const create = ({
+  getModel,
+}: {
+  getModel: ReturnType<typeof createLlmService>["getModel"];
+}) => {
+  return ({ jobId }: { jobId: string }): LoopEvaluatorFn => {
     return async (
       conditionPrompt: string,
       operationOutput: string,

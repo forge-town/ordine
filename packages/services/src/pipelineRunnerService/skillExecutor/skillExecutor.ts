@@ -37,12 +37,17 @@ type RunSkillExecutorOptions = EngineRunSkillOptions & {
   jobId?: string;
 };
 
-const buildSkillSystemPrompt = (
-  skillId: string,
-  skillDescription: string,
-  mode: "check" | "fix",
-  promptMode: "code" | "research" = "code",
-): string => {
+const buildSkillSystemPrompt = ({
+  skillId,
+  skillDescription,
+  mode,
+  promptMode = "code",
+}: {
+  skillId: string;
+  skillDescription: string;
+  mode: "check" | "fix";
+  promptMode?: "code" | "research";
+}): string => {
   if (promptMode === "research") {
     return [
       `You are a research agent executing the task "${skillId}".`,
@@ -92,7 +97,13 @@ const buildSkillSystemPrompt = (
   return lines.join("\n");
 };
 
-const validateSkillOutput = (raw: string, mode: "check" | "fix"): string => {
+const validateSkillOutput = ({
+  raw,
+  mode,
+}: {
+  raw: string;
+  mode: "check" | "fix";
+}): string => {
   const json = extractJsonFromText(raw);
   const schema = mode === "check" ? CheckOutputSchema : FixOutputSchema;
   const parsed = schema.safeParse(JSON.parse(json));
@@ -110,7 +121,7 @@ const validateSkillOutput = (raw: string, mode: "check" | "fix"): string => {
  * Resolve inputPath to a valid cwd directory.
  * If it's a file path, use its parent directory.
  */
-const resolveCwd = (inputPath: string | undefined): string => {
+const resolveCwd = ({ inputPath }: { inputPath: string | undefined }): string => {
   if (!inputPath) return process.cwd();
   const result = Result.fromThrowable(
     () => statSync(inputPath),
@@ -159,10 +170,15 @@ const run = ({
       );
       await onProgress?.(`runSkill: mode=${mode}`);
 
-      const systemPrompt = buildSkillSystemPrompt(skillId, skillDescription, mode, promptMode);
+      const systemPrompt = buildSkillSystemPrompt({
+        skillId,
+        skillDescription,
+        mode,
+        promptMode,
+      });
 
       if (agent === "local-claude") {
-        const cwd = resolveCwd(inputPath);
+        const cwd = resolveCwd({ inputPath });
         const parsedCustomTools = customAllowedTools
           ? ToolNameSchema.array().readonly().safeParse(customAllowedTools)
           : null;
@@ -210,7 +226,7 @@ const run = ({
           );
         }
 
-        const result = isResearch ? raw : validateSkillOutput(raw, mode);
+        const result = isResearch ? raw : validateSkillOutput({ raw, mode });
         if (onChunk) await onChunk(result);
 
         // Record observability for local-claude
@@ -246,7 +262,13 @@ const run = ({
                 status: "completed",
               },
               (rawExportId) =>
-                buildSpansFromClaudeEvents(events, jobId!, rawExportId, skillId, claudeStartTime),
+                buildSpansFromClaudeEvents({
+                  events,
+                  jobId: jobId!,
+                  rawExportId,
+                  skillId,
+                  startTime: claudeStartTime,
+                }),
             ),
             (e) => e,
           );
@@ -262,7 +284,7 @@ const run = ({
       }
 
       if (agent === "codex") {
-        const cwd = resolveCwd(inputPath);
+        const cwd = resolveCwd({ inputPath });
         logger.info("runSkill: starting codex exec");
         await onProgress?.("[Codex] runSkill: Starting codex exec...");
 
@@ -299,7 +321,7 @@ const run = ({
           throw new SkillExecutionError(`Codex agent returned empty output for skill "${skillId}"`);
         }
 
-        const codexParsed = isResearch ? raw : validateSkillOutput(raw, mode);
+        const codexParsed = isResearch ? raw : validateSkillOutput({ raw, mode });
         if (onChunk) await onChunk(codexParsed);
 
         return codexParsed;
@@ -389,7 +411,7 @@ const run = ({
         throw new SkillExecutionError(`LLM returned empty output for skill "${skillId}"`);
       }
 
-      return structuredOutput.extract(accumulated);
+      return structuredOutput.extract({ rawText: accumulated });
     })(),
     (cause) =>
       cause instanceof SkillExecutionError
@@ -409,13 +431,19 @@ export const skillExecutor = {
  * Convert Claude stream-json events into span records for observability.
  * Creates spans for: thinking, text output, tool_use, tool_result.
  */
-const buildSpansFromClaudeEvents = (
-  events: ClaudeStreamEvent[],
-  jobId: string,
-  rawExportId: number,
-  skillId: string,
-  startTime: number,
-): RecordSpanOptions[] => {
+const buildSpansFromClaudeEvents = ({
+  events,
+  jobId,
+  rawExportId,
+  skillId,
+  startTime,
+}: {
+  events: ClaudeStreamEvent[];
+  jobId: string;
+  rawExportId: number;
+  skillId: string;
+  startTime: number;
+}): RecordSpanOptions[] => {
   const spans: RecordSpanOptions[] = [];
   const baseTime = new Date(startTime);
   const spanCounter = { value: 0 };

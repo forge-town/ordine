@@ -8,12 +8,17 @@ import type { RulesDaoInstance } from "@repo/models";
 import type { SettingsResolver } from "@repo/agent";
 import type { LoopEvaluatorFn } from "../loopEvaluator";
 
-const build = (
-  getSettings: SettingsResolver,
-  rulesDao: RulesDaoInstance,
-  evaluateLoopCondition: LoopEvaluatorFn,
-  jobId?: string,
-): PipelineEngineDeps => ({
+const build = ({
+  getSettings,
+  rulesDao,
+  evaluateLoopCondition,
+  jobId,
+}: {
+  getSettings: SettingsResolver;
+  rulesDao: RulesDaoInstance;
+  evaluateLoopCondition: LoopEvaluatorFn;
+  jobId?: string;
+}): PipelineEngineDeps => ({
   runPrompt: (o) =>
     promptExecutor.run({
       ...o,
@@ -25,8 +30,8 @@ const build = (
       jobId,
       getSettings,
     }),
-  runRuleCheck: (inputPath) => ruleCheckRunner.run(rulesDao, inputPath),
-  structuredJsonToMarkdown: structuredOutput.toMarkdown,
+  runRuleCheck: (inputPath) => ruleCheckRunner.run({ dao: rulesDao, inputPath }),
+  structuredJsonToMarkdown: (content) => structuredOutput.toMarkdown({ content }),
   listDirTree,
   readProjectFiles,
   evaluateLoopCondition,

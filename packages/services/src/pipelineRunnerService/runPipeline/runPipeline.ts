@@ -20,11 +20,15 @@ import type {
  * Mark a job as failed. Swallows any DAO/trace errors to guarantee the caller
  * never sees an unhandled rejection from this helper.
  */
-const failJobSafely = async (
-  jobsDao: JobsDaoInstance,
-  jobId: string,
-  message: string,
-): Promise<void> => {
+const failJobSafely = async ({
+  jobsDao,
+  jobId,
+  message,
+}: {
+  jobsDao: JobsDaoInstance;
+  jobId: string;
+  message: string;
+}): Promise<void> => {
   const safeTrace = await ResultAsync.fromPromise(
     trace(jobId, `ERROR: ${message}`, "error"),
     (e) => e,
@@ -82,7 +86,7 @@ const run = async (opts: {
 
       const pipeline = await pipelinesDao.findById(pipelineId);
       if (!pipeline) {
-        await failJobSafely(jobsDao, jobId, `Pipeline ${pipelineId} not found`);
+        await failJobSafely({ jobsDao, jobId, message: `Pipeline ${pipelineId} not found` });
 
         return;
       }
@@ -141,7 +145,7 @@ const run = async (opts: {
           result: { summary: outcome.summary },
         });
       } else {
-        await failJobSafely(jobsDao, jobId, outcome.error.message);
+        await failJobSafely({ jobsDao, jobId, message: outcome.error.message });
       }
     })(),
     (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
@@ -149,7 +153,11 @@ const run = async (opts: {
 
   if (runResult.isErr()) {
     logger.error({ err: runResult.error, jobId }, "runPipeline: unhandled error in pipeline run");
-    await failJobSafely(jobsDao, jobId, `Unhandled error: ${runResult.error.message}`);
+    await failJobSafely({
+      jobsDao,
+      jobId,
+      message: `Unhandled error: ${runResult.error.message}`,
+    });
   }
 };
 

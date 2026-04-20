@@ -37,7 +37,13 @@ interface RuleCheckResult {
   exitCode: number;
 }
 
-const executeRule = async (rule: RuleRecord, target: RuleTarget): Promise<RuleCheckResult> => {
+const executeRule = async ({
+  rule,
+  target,
+}: {
+  rule: RuleRecord;
+  target: RuleTarget;
+}): Promise<RuleCheckResult> => {
   const tmpFile = join(tmpdir(), `rule_${rule.id}_${Date.now()}.ts`);
   await writeFile(tmpFile, rule.checkScript!);
 
@@ -80,7 +86,7 @@ process.exit(result ? 0 : 1);
   );
 };
 
-const resultToFinding = (result: RuleCheckResult): Finding | null => {
+const resultToFinding = ({ result }: { result: RuleCheckResult }): Finding | null => {
   if (result.passed) return null;
 
   return {
@@ -94,18 +100,26 @@ const resultToFinding = (result: RuleCheckResult): Finding | null => {
   };
 };
 
-const run = async (dao: RulesDao, inputPath: string): Promise<CheckOutput> => {
+const run = async ({
+  dao,
+  inputPath,
+}: {
+  dao: RulesDao;
+  inputPath: string;
+}): Promise<CheckOutput> => {
   const target: RuleTarget = { path: inputPath, type: "project" };
   const rules = await dao.findMany({ enabled: true });
   const activeRules = rules.filter((r) => r.checkScript != null && r.checkScript.trim() !== "");
 
   const results: RuleCheckResult[] = [];
   for (const rule of activeRules) {
-    const result = await executeRule(rule, target);
+    const result = await executeRule({ rule, target });
     results.push(result);
   }
 
-  const findings: Finding[] = results.map(resultToFinding).filter((f): f is Finding => f != null);
+  const findings: Finding[] = results
+    .map((result) => resultToFinding({ result }))
+    .filter((f): f is Finding => f != null);
 
   const passed = results.filter((r) => r.passed).length;
   const failed = results.filter((r) => !r.passed).length;

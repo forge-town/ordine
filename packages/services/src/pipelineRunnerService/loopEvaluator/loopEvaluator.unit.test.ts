@@ -12,7 +12,7 @@ import { loopEvaluator } from ".";
 
 describe("loopEvaluator", () => {
   const mockGetModel = vi.fn();
-  const factory = loopEvaluator.create(mockGetModel);
+  const factory = loopEvaluator.create({ getModel: mockGetModel });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -20,7 +20,7 @@ describe("loopEvaluator", () => {
 
   it("returns false when no model is configured", async () => {
     mockGetModel.mockResolvedValue(null);
-    const evaluator = factory("job-1");
+    const evaluator = factory({ jobId: "job-1" });
     const result = await evaluator("check quality", "some output");
 
     expect(result).toBe(false);
