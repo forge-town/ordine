@@ -6,6 +6,8 @@ import {
   getModel,
   runClaude,
   runCodex,
+  runClaudeTmux,
+  runCodexTmux,
   READ_ONLY_TOOLS,
   WRITE_TOOLS,
   extractJsonFromText,
@@ -35,6 +37,7 @@ export class SkillExecutionError extends Error {
 type RunSkillExecutorOptions = EngineRunSkillOptions & {
   getSettings: SettingsResolver;
   jobId?: string;
+  onTmuxSession?: (sessionName: string) => Promise<void>;
 };
 
 const buildSkillSystemPrompt = ({
@@ -97,13 +100,7 @@ const buildSkillSystemPrompt = ({
   return lines.join("\n");
 };
 
-const validateSkillOutput = ({
-  raw,
-  mode,
-}: {
-  raw: string;
-  mode: "check" | "fix";
-}): string => {
+const validateSkillOutput = ({ raw, mode }: { raw: string; mode: "check" | "fix" }): string => {
   const json = extractJsonFromText(raw);
   const schema = mode === "check" ? CheckOutputSchema : FixOutputSchema;
   const parsed = schema.safeParse(JSON.parse(json));
@@ -146,6 +143,7 @@ const run = ({
   agent = "local-claude",
   onChunk,
   onProgress,
+  onTmuxSession,
   writeEnabled,
   allowedTools: customAllowedTools,
   promptMode = "code",
@@ -188,12 +186,13 @@ const run = ({
         const claudeStartTime = Date.now();
 
         const claudeResult = await ResultAsync.fromPromise(
-          runClaude({
+          runClaudeTmux({
             systemPrompt,
             userPrompt,
             cwd,
             allowedTools,
             onProgress,
+            onSessionCreated: onTmuxSession,
           }),
           (error) => error,
         );
@@ -289,11 +288,12 @@ const run = ({
         await onProgress?.("[Codex] runSkill: Starting codex exec...");
 
         const codexResult = await ResultAsync.fromPromise(
-          runCodex({
+          runCodexTmux({
             systemPrompt,
             userPrompt,
             cwd,
             onProgress,
+            onSessionCreated: onTmuxSession,
           }),
           (error) => error,
         );
@@ -310,7 +310,7 @@ const run = ({
           );
         }
 
-        const raw = codexResult.value;
+        const raw = codexResult.value.output;
         logger.info({ len: raw.length }, "runSkill: codex complete");
         await onProgress?.(`runSkill: Codex complete, output=${raw.length} chars`);
 

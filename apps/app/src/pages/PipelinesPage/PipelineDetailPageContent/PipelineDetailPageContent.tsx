@@ -18,6 +18,8 @@ import {
   CheckCircle2,
   XCircle,
   FolderOpen,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ReactFlow, Background, ReactFlowProvider } from "@xyflow/react";
@@ -116,6 +118,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
     status: string;
     logs: string[];
     error: string | null;
+    tmuxSessionName: string | null;
   }
 
   const { query: jobQuery } = useOne<JobPollingData>({
@@ -134,6 +137,8 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
 
   const job = jobQuery.data?.data ?? null;
   const logs: string[] = (job?.logs as string[] | undefined) ?? [];
+  const tmuxSessionName = job?.tmuxSessionName ?? null;
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!job) return;
@@ -166,7 +171,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
           setRunState("failed");
           setRunError(error.message ?? "Failed to start pipeline");
         },
-      }
+      },
     );
   };
 
@@ -288,7 +293,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     className={cn(
                       "flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium",
                       meta?.color ?? "text-gray-600 bg-gray-50",
-                      "border-current/20"
+                      "border-current/20",
                     )}
                   >
                     <Icon className="h-3 w-3" />
@@ -406,7 +411,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                       "text-xs font-medium",
                       runState === "running" && "text-blue-600",
                       runState === "done" && "text-green-600",
-                      runState === "failed" && "text-red-600"
+                      runState === "failed" && "text-red-600",
                     )}
                   >
                     {runState === "running" && t("pipelines.runningStatus")}
@@ -419,6 +424,30 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     </span>
                   )}
                 </div>
+
+                {/* Tmux attach command */}
+                {tmuxSessionName && runState === "running" && (
+                  <div className="flex items-center gap-2 rounded-md bg-gray-900 px-3 py-1.5">
+                    <code className="flex-1 text-[11px] text-green-400 font-mono select-all">
+                      tmux attach -t {tmuxSessionName}
+                    </code>
+                    <button
+                      type="button"
+                      className="text-gray-400 hover:text-white transition-colors"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`tmux attach -t ${tmuxSessionName}`);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                    >
+                      {copied ? (
+                        <Check className="h-3.5 w-3.5 text-green-400" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </div>
+                )}
 
                 {/* Log viewer */}
                 {logs.length > 0 && (
@@ -454,7 +483,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     <div
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-                        meta?.color ?? "text-gray-600 bg-gray-50"
+                        meta?.color ?? "text-gray-600 bg-gray-50",
                       )}
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -465,7 +494,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                         (() => {
                           const nodeData = node.data as unknown as Record<string, unknown>;
                           const op = operations.find(
-                            (o) => o.id === (nodeData["operationId"] as string)
+                            (o) => o.id === (nodeData["operationId"] as string),
                           );
 
                           return op?.description ? (
@@ -477,7 +506,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                       className={cn(
                         "shrink-0 rounded border px-2 py-0.5 text-[10px] font-medium",
                         meta?.color ?? "text-gray-500 bg-gray-50",
-                        "border-current/20"
+                        "border-current/20",
                       )}
                     >
                       {getNodeTypeLabel(node.type, t)}

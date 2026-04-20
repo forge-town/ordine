@@ -1,14 +1,13 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { runClaude, runCodex, type SettingsResolver } from "@repo/agent";
+import { runClaudeTmux, runCodexTmux, type SettingsResolver } from "@repo/agent";
 
 vi.mock("@repo/agent", () => ({
-  runClaude: vi
-    .fn()
-    .mockResolvedValue({
-      text: '{"type":"check","summary":"ok","findings":[],"stats":{"totalFiles":1,"totalFindings":0,"errors":0,"warnings":0,"infos":0,"skipped":0}}',
-      events: [],
-    }),
-  runCodex: vi.fn().mockResolvedValue("codex-output"),
+  runClaudeTmux: vi.fn().mockResolvedValue({
+    text: '{"type":"check","summary":"ok","findings":[],"stats":{"totalFiles":1,"totalFindings":0,"errors":0,"warnings":0,"infos":0,"skipped":0}}',
+    events: [],
+    sessionName: "mock-session",
+  }),
+  runCodexTmux: vi.fn().mockResolvedValue({ output: "codex-output", sessionName: "mock-session" }),
   getModel: vi.fn().mockResolvedValue(null),
   extractJsonFromText: vi.fn((t: string) => t),
   READ_ONLY_TOOLS: ["Read", "Bash"],
@@ -61,7 +60,7 @@ describe("skillExecutor", () => {
   });
 
   it("returns SkillExecutionError when claude fails", async () => {
-    vi.mocked(runClaude).mockRejectedValueOnce(new Error("spawn failed"));
+    vi.mocked(runClaudeTmux).mockRejectedValueOnce(new Error("spawn failed"));
     const result = await skillExecutor.run({ ...baseOpts, agent: "local-claude" });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
@@ -71,7 +70,11 @@ describe("skillExecutor", () => {
   });
 
   it("returns SkillExecutionError when claude returns empty output", async () => {
-    vi.mocked(runClaude).mockResolvedValueOnce({ text: "", events: [] });
+    vi.mocked(runClaudeTmux).mockResolvedValueOnce({
+      text: "",
+      events: [],
+      sessionName: "mock-session",
+    });
     const result = await skillExecutor.run({ ...baseOpts, agent: "local-claude" });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
@@ -81,7 +84,7 @@ describe("skillExecutor", () => {
   });
 
   it("returns SkillExecutionError when codex fails", async () => {
-    vi.mocked(runCodex).mockRejectedValueOnce(new Error("codex boom"));
+    vi.mocked(runCodexTmux).mockRejectedValueOnce(new Error("codex boom"));
     const result = await skillExecutor.run({ ...baseOpts, agent: "codex" });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {

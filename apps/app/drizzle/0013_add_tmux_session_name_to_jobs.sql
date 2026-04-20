@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" ADD COLUMN "tmux_session_name" text;

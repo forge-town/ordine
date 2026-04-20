@@ -25,6 +25,7 @@ export const jobsTable = pgTable(
       .notNull()
       .default(sql`ARRAY[]::text[]`),
     result: jsonb("result").$type<JobResult>(),
+    tmuxSessionName: text("tmux_session_name"),
     error: text("error"),
     startedAt: timestamp("started_at"),
     finishedAt: timestamp("finished_at"),

@@ -92,6 +92,13 @@
       "when": 1776593031685,
       "tag": "0012_add_pipeline_timeout",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1776659627540,
+      "tag": "0013_add_tmux_session_name_to_jobs",
+      "breakpoints": true
     }
   ]
 }

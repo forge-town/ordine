@@ -15,6 +15,7 @@ export interface NodeContext {
   nodeOutputs: Map<string, NodeCtx>;
   tempDirs: string[];
   jobId: string;
+  onTmuxSession?: (sessionName: string) => Promise<void>;
 }
 
 export interface OperationNodeContext extends NodeContext {

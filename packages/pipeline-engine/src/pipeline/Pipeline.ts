@@ -41,6 +41,7 @@ export interface PipelineOptions {
   deps: PipelineEngineDeps;
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
   lookupBestPractice: (id: string) => Promise<{ title: string; content: string } | null>;
+  onTmuxSession?: (sessionName: string) => Promise<void>;
 }
 
 export class Pipeline {
@@ -160,6 +161,7 @@ export class Pipeline {
       nodeOutputs: this.nodeOutputs,
       tempDirs: this.tempDirs,
       jobId,
+      onTmuxSession: this.opts.onTmuxSession,
     };
 
     const metaType = resolveMetaType(node.type, node.metaType);
