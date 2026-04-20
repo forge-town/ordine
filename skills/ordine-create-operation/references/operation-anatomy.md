@@ -19,7 +19,8 @@
 ```json
 {
   "executor": {
-    "type": "skill",
+    "type": "agent",
+    "agentMode": "skill",
     "skillId": "skill_check_dao"
   },
   "inputs": [

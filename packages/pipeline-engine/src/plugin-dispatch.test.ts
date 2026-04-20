@@ -197,7 +197,7 @@ describe("Plugin dispatch in Pipeline engine", () => {
             id: opId,
             name: "Discover Best Practices",
             config: JSON.stringify({
-              executor: { type: "prompt", prompt: "List best practices for this project" },
+              executor: { type: "agent", agentMode: "prompt", prompt: "List best practices for this project" },
             }),
           },
         ],
@@ -242,7 +242,7 @@ describe("Plugin dispatch in Pipeline engine", () => {
             id: opId,
             name: "Run Checks",
             config: JSON.stringify({
-              executor: { type: "prompt", prompt: "Run quality checks on this project" },
+              executor: { type: "agent", agentMode: "prompt", prompt: "Run quality checks on this project" },
             }),
           },
         ],

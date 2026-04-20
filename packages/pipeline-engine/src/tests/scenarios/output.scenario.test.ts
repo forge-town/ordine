@@ -30,7 +30,7 @@ describe("pipeline scenario: output flow", () => {
             id: operationId,
             name: "Serialize",
             config: JSON.stringify({
-              executor: { type: "prompt", prompt: "Serialize the input" },
+              executor: { type: "agent", agentMode: "prompt", prompt: "Serialize the input" },
             }),
           },
         ],

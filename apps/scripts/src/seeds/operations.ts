@@ -38,7 +38,8 @@ interface OutputPort {
 }
 
 interface ExecutorConfig {
-  type: "skill" | "prompt" | "script" | "rule-check";
+  type: "agent" | "script" | "rule-check";
+  agentMode?: "skill" | "prompt";
   skillId?: string;
   prompt?: string;
   command?: string;
@@ -387,7 +388,8 @@ const OPERATIONS: OperationSeed[] = [
     acceptedObjectTypes: ["file", "folder", "project"],
     config: cfg({
       executor: {
-        type: "skill",
+        type: "agent",
+        agentMode: "skill",
         skillId: "code-check",
       },
       inputs: [

@@ -23,7 +23,7 @@ describe("pipeline scenario: failure flow", () => {
           id: "fail-op",
           name: "Fail Operation",
           config: JSON.stringify({
-            executor: { type: "prompt", prompt: "This will fail" },
+            executor: { type: "agent", agentMode: "prompt", prompt: "This will fail" },
           }),
         },
       ],
@@ -33,7 +33,7 @@ describe("pipeline scenario: failure flow", () => {
           id: "downstream-op",
           name: "Downstream Operation",
           config: JSON.stringify({
-            executor: { type: "prompt", prompt: "This should never run" },
+            executor: { type: "agent", agentMode: "prompt", prompt: "This should never run" },
           }),
         },
       ],

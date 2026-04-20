@@ -37,7 +37,8 @@ describe("pipeline scenario: linear flow", () => {
             name: "Analyze Folder",
             config: JSON.stringify({
               executor: {
-                type: "prompt",
+                type: "agent",
+                agentMode: "prompt",
                 prompt: "Analyze the provided folder",
               },
             }),

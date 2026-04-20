@@ -172,7 +172,7 @@ describe("executePipeline", () => {
           {
             id: opId,
             name: "Prompt Op",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "Analyze this code" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "Analyze this code" } }),
           },
         ],
       ]);
@@ -192,7 +192,7 @@ describe("executePipeline", () => {
           {
             id: opId,
             name: "Skill Op",
-            config: JSON.stringify({ executor: { type: "skill", skillId: "sk-1" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "skill", skillId: "sk-1" } }),
           },
         ],
       ]);
@@ -218,7 +218,7 @@ describe("executePipeline", () => {
             id: opId,
             name: "Agent Config Op",
             config: JSON.stringify({
-              executor: { type: "skill", skillId: "sk-2", agent: "mastra" },
+              executor: { type: "agent", agentMode: "skill", skillId: "sk-2", agent: "mastra" },
             }),
           },
         ],
@@ -247,7 +247,7 @@ describe("executePipeline", () => {
             id: opId,
             name: "Prompt Agent Op",
             config: JSON.stringify({
-              executor: { type: "prompt", prompt: "Analyze this", agent: "mastra" },
+              executor: { type: "agent", agentMode: "prompt", prompt: "Analyze this", agent: "mastra" },
             }),
           },
         ],
@@ -270,7 +270,7 @@ describe("executePipeline", () => {
           {
             id: opId,
             name: "Default Agent Op",
-            config: JSON.stringify({ executor: { type: "skill", skillId: "sk-3" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "skill", skillId: "sk-3" } }),
           },
         ],
       ]);
@@ -329,7 +329,7 @@ describe("executePipeline", () => {
           {
             id: opId,
             name: "Empty Prompt",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "" } }),
           },
         ],
       ]);
@@ -349,7 +349,7 @@ describe("executePipeline", () => {
           {
             id: opId,
             name: "BP Op",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "Check standards" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "Check standards" } }),
           },
         ],
       ]);
@@ -380,7 +380,7 @@ describe("executePipeline", () => {
           {
             id: opId,
             name: "Loop Op",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "Improve" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "Improve" } }),
           },
         ],
       ]);
@@ -409,7 +409,7 @@ describe("executePipeline", () => {
           {
             id: opId,
             name: "Loop Max",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "Keep going" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "Keep going" } }),
           },
         ],
       ]);
@@ -438,7 +438,7 @@ describe("executePipeline", () => {
           {
             id: opId,
             name: "Analyze",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "Analyze" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "Analyze" } }),
           },
         ],
       ]);
@@ -464,7 +464,7 @@ describe("executePipeline", () => {
           {
             id: opA,
             name: "Check A",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "Check A" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "Check A" } }),
           },
         ],
         [
@@ -472,7 +472,7 @@ describe("executePipeline", () => {
           {
             id: opB,
             name: "Check B",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "Check B" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "Check B" } }),
           },
         ],
       ]);
@@ -505,7 +505,7 @@ describe("executePipeline", () => {
           {
             id: opA,
             name: "A",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "A" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "A" } }),
           },
         ],
         [
@@ -513,7 +513,7 @@ describe("executePipeline", () => {
           {
             id: opB,
             name: "B",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "B" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "B" } }),
           },
         ],
         [
@@ -521,7 +521,7 @@ describe("executePipeline", () => {
           {
             id: opMerge,
             name: "Merge",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "Merge" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "Merge" } }),
           },
         ],
       ]);
@@ -558,7 +558,7 @@ describe("executePipeline", () => {
           {
             id: opId,
             name: "Gen",
-            config: JSON.stringify({ executor: { type: "prompt", prompt: "Generate" } }),
+            config: JSON.stringify({ executor: { type: "agent", agentMode: "prompt", prompt: "Generate" } }),
           },
         ],
       ]);

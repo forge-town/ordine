@@ -1,38 +1,11 @@
-export type PortKind = "text" | "file" | "folder" | "project";
-
-export interface InputPort {
-  name: string;
-  kind: PortKind;
-  required: boolean;
-  description: string;
-}
-
-export interface OutputPort {
-  name: string;
-  kind: PortKind;
-  path: string;
-  description: string;
-}
-
-export type ExecutorType = "agent" | "script" | "rule-check";
-export type AgentMode = "skill" | "prompt";
-export type ScriptLanguage = "bash" | "python" | "javascript";
-
-export interface ExecutorConfig {
-  type: ExecutorType;
-  agentMode?: AgentMode;
-  skillId?: string;
-  prompt?: string;
-  command?: string;
-  language?: ScriptLanguage;
-  writeEnabled?: boolean;
-}
-
-export interface OperationConfig {
-  executor?: ExecutorConfig;
-  inputs: InputPort[];
-  outputs: OutputPort[];
-}
+export type {
+  PortKind,
+  InputPort,
+  OutputPort,
+  ExecutorConfig,
+  OperationConfig,
+} from "@repo/pipeline-engine/schemas";
+import type { PortKind } from "@repo/pipeline-engine/schemas";
 
 export const KIND_LABEL: Record<PortKind, string> = {
   text: "text",

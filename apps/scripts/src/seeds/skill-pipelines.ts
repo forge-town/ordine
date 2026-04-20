@@ -292,7 +292,8 @@ Markdown 转换报告：
     acceptedObjectTypes: ["file", "folder"],
     config: cfg({
       executor: {
-        type: "skill",
+        type: "agent",
+        agentMode: "skill",
         skillId: "sk_check_classname",
         writeEnabled: true,
       },

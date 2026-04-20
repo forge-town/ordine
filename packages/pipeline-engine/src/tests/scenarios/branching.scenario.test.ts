@@ -23,7 +23,7 @@ describe("pipeline scenario: branching flow", () => {
           id: "lint",
           name: "Lint",
           config: JSON.stringify({
-            executor: { type: "prompt", prompt: "Lint the input" },
+            executor: { type: "agent", agentMode: "prompt", prompt: "Lint the input" },
           }),
         },
       ],
@@ -33,7 +33,7 @@ describe("pipeline scenario: branching flow", () => {
           id: "summarize",
           name: "Summarize",
           config: JSON.stringify({
-            executor: { type: "prompt", prompt: "Summarize the input" },
+            executor: { type: "agent", agentMode: "prompt", prompt: "Summarize the input" },
           }),
         },
       ],

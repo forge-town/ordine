@@ -102,7 +102,7 @@ export class Pipeline {
     const outputPaths = nodes
       .filter((n) => n.type === "output-local-path")
       .map((n) => {
-        const d = n.data as unknown as NodeData;
+        const d = n.data as NodeData;
 
         return d.localPath ?? String((d as Record<string, unknown>).path ?? "");
       })

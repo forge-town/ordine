@@ -18,26 +18,13 @@ const AGENT_MODE_LABEL: Record<string, string> = {
   prompt: "Prompt",
 };
 
-const normalizeExecutor = (executor: ExecutorConfig): ExecutorConfig => {
-  const rawType = executor.type as string;
-  if (rawType === "skill" || rawType === "prompt") {
-    return {
-      ...executor,
-      agentMode: rawType as "skill" | "prompt",
-      type: "agent",
-    };
-  }
-
-  return executor;
-};
-
 interface ExecutorCardProps {
   executor: ExecutorConfig;
 }
 
 export const ExecutorCard = ({ executor: raw }: ExecutorCardProps) => {
   const { t } = useTranslation();
-  const executor = normalizeExecutor(raw);
+  const executor = raw;
   const Icon = EXECUTOR_ICON[executor.type] ?? Wand2;
   const modeLabel = executor.agentMode ? AGENT_MODE_LABEL[executor.agentMode] : undefined;
   const label = EXECUTOR_LABEL[executor.type] ?? executor.type;

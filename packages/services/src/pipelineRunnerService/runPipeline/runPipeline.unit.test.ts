@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { okAsync } from "neverthrow";
-import type { PipelineEngineDeps } from "@repo/pipeline-engine";
+import { pipelineEngine, type PipelineEngineDeps } from "@repo/pipeline-engine";
+import type * as PipelineEngineModule from "@repo/pipeline-engine";
 import type {
   PipelinesDaoInstance,
   OperationsDaoInstance,
@@ -18,7 +19,7 @@ vi.mock("@repo/logger", () => ({
 }));
 
 vi.mock("@repo/pipeline-engine", async (importOriginal) => {
-  const orig = await importOriginal<typeof import("@repo/pipeline-engine")>();
+  const orig = await importOriginal<typeof PipelineEngineModule>();
 
   return {
     ...orig,
@@ -29,7 +30,6 @@ vi.mock("@repo/pipeline-engine", async (importOriginal) => {
 });
 
 import { runPipeline } from ".";
-import { pipelineEngine } from "@repo/pipeline-engine";
 
 const makeOpts = (overrides = {}) => ({
   pipelineId: "pipe-1",

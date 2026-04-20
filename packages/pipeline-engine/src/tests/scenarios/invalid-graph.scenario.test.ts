@@ -40,7 +40,7 @@ describe("pipeline scenario: invalid graph", () => {
           id: "op-a",
           name: "Operation A",
           config: JSON.stringify({
-            executor: { type: "prompt", prompt: "Run A" },
+            executor: { type: "agent", agentMode: "prompt", prompt: "Run A" },
           }),
         },
       ],
@@ -50,7 +50,7 @@ describe("pipeline scenario: invalid graph", () => {
           id: "op-b",
           name: "Operation B",
           config: JSON.stringify({
-            executor: { type: "prompt", prompt: "Run B" },
+            executor: { type: "agent", agentMode: "prompt", prompt: "Run B" },
           }),
         },
       ],

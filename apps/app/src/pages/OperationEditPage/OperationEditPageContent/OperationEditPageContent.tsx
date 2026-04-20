@@ -108,12 +108,7 @@ const parseExecutorDefaults = (
   const ex = result.value.executor;
   if (!ex) return defaults;
 
-  // Backward compat: legacy "skill"/"prompt" types → "agent" with agentMode
   const { executorType, agentMode } = (() => {
-    if (ex.type === "skill")
-      return { executorType: "agent" as ExecutorType, agentMode: "skill" as AgentMode };
-    if (ex.type === "prompt")
-      return { executorType: "agent" as ExecutorType, agentMode: "prompt" as AgentMode };
     if (ex.type === "agent") {
       return {
         executorType: "agent" as ExecutorType,

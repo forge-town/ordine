@@ -88,14 +88,20 @@ describe("ruleCheckRunner", () => {
   });
 
   it("handles multiple rules with mixed results", async () => {
-    let callCount = 0;
+    const execResults = [
+      { err: null, result: { stdout: "ok", stderr: "" } },
+      { err: { code: 1, stdout: "violation", stderr: "" }, result: null },
+    ] as const;
+    const queue = [...execResults];
     mockExec.mockImplementation((_cmd: string, _opts: unknown, cb: ExecCallback) => {
-      callCount++;
-      if (callCount === 1) {
+      const next = queue.shift();
+      if (!next) {
         cb(null, { stdout: "ok", stderr: "" });
-      } else {
-        cb({ code: 1, stdout: "violation", stderr: "" }, null);
+
+        return;
       }
+
+      cb(next.err, next.result);
     });
     const dao = {
       findMany: vi

@@ -79,7 +79,7 @@ describe("executeOperationNode", () => {
 
   it("executes a prompt-type operation", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "prompt", prompt: "Do analysis" });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Do analysis" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops);
@@ -93,7 +93,7 @@ describe("executeOperationNode", () => {
 
   it("executes a skill-type operation", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "skill", skillId: "sk-1" });
+    const op = makeOperation({ type: "agent", agentMode: "skill", skillId: "sk-1" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops);
@@ -124,7 +124,7 @@ describe("executeOperationNode", () => {
 
   it("fails when prompt text is empty", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "prompt", prompt: "  " });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "  " });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops);
@@ -137,7 +137,7 @@ describe("executeOperationNode", () => {
 
   it("fails when skill has no skillId", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "skill" });
+    const op = makeOperation({ type: "agent", agentMode: "skill" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops);
@@ -163,7 +163,7 @@ describe("executeOperationNode", () => {
 
   it("prepends best practice content when available", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "prompt", prompt: "Analyze" });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Analyze" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id", bestPracticeId: "bp-1" });
     const ctx = makeCtx(deps, ops, {
@@ -186,7 +186,7 @@ describe("executeOperationNode", () => {
     const deps = makeDeps({
       runPrompt: vi.fn().mockReturnValue(errAsync(new Error("LLM timeout"))),
     });
-    const op = makeOperation({ type: "prompt", prompt: "Go" });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Go" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops);
@@ -201,7 +201,7 @@ describe("executeOperationNode", () => {
 describe("processOperationNode", () => {
   it("stores operation output in nodeOutputs", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "prompt", prompt: "Go" });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Go" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops, { node });
@@ -218,7 +218,7 @@ describe("processOperationNode", () => {
     const deps = makeDeps({
       runPrompt: vi.fn().mockReturnValue(okAsync("")),
     });
-    const op = makeOperation({ type: "prompt", prompt: "Go" });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Go" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops, { node });
@@ -233,7 +233,7 @@ describe("processOperationNode", () => {
     const deps = makeDeps({
       evaluateLoopCondition: vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
     });
-    const op = makeOperation({ type: "prompt", prompt: "Iterate" });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Iterate" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({
       operationId: "op-id",
@@ -258,7 +258,7 @@ describe("processOperationNode", () => {
     const deps = makeDeps({
       evaluateLoopCondition: vi.fn().mockResolvedValue(false),
     });
-    const op = makeOperation({ type: "prompt", prompt: "Iterate" });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Iterate" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({
       operationId: "op-id",
@@ -277,7 +277,7 @@ describe("processOperationNode", () => {
 
   it("emits NODE_DONE on success", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "prompt", prompt: "Go" });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Go" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops, { node });
@@ -291,7 +291,7 @@ describe("processOperationNode", () => {
 describe("executeOperationNode — agent override", () => {
   it("uses llmProvider from node data as agent override for prompt mode", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "prompt", prompt: "Analyze", agent: "mastra" });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Analyze", agent: "mastra" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id", llmProvider: "codex" });
     const ctx = makeCtx(deps, ops);
@@ -304,7 +304,7 @@ describe("executeOperationNode — agent override", () => {
 
   it("uses llmProvider from node data as agent override for skill mode", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "skill", skillId: "sk-1", agent: "mastra" });
+    const op = makeOperation({ type: "agent", agentMode: "skill", skillId: "sk-1", agent: "mastra" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id", llmProvider: "local-claude" });
     const ctx = makeCtx(deps, ops);
@@ -317,7 +317,7 @@ describe("executeOperationNode — agent override", () => {
 
   it("falls back to executor.agent when llmProvider is not set", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "prompt", prompt: "Analyze", agent: "codex" });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Analyze", agent: "codex" });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops);

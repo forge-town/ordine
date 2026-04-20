@@ -23,12 +23,12 @@ export const executeOperationNode = async (
     return { ok: false, error: null };
   }
 
-  const opData = node.data as unknown as {
+  const opData = node.data as {
     llmModel?: string;
     llmProvider?: string;
     bestPracticeId?: string;
   };
-  const modelOverride = opData.llmModel ?? undefined;
+  const modelOverride = opData.llmModel;
   const agentOverride = opData.llmProvider as ExecutorConfig["agent"] | undefined;
 
   const bestPracticeContent = await (async () => {
@@ -65,12 +65,6 @@ export const executeOperationNode = async (
     await trace(jobId, `@@NODE_FAIL::${node.id}`);
 
     return { ok: false, error: null };
-  }
-
-  const rawType = executor.type as string;
-  if (rawType === "skill" || rawType === "prompt") {
-    executor.agentMode = rawType as "skill" | "prompt";
-    executor.type = "agent";
   }
 
   if (executor.type === "rule-check") {

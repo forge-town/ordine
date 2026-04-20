@@ -90,7 +90,7 @@ export const runPipeline = async (opts: {
       const operationIds = pipeline.nodes
         .filter((n) => n.type === "operation")
         .map((n) => (n.data as unknown as { operationId?: string }).operationId)
-        .filter((id): id is string => id !== undefined && id !== null && id !== "");
+        .filter((id): id is string => id !== undefined && id !== "");
 
       const operationsMap = new Map<string, OperationInfo>();
       for (const id of operationIds) {

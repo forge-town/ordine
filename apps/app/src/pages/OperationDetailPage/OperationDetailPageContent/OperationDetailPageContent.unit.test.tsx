@@ -154,7 +154,7 @@ describe("OperationDetailPageContent", () => {
       const op: OperationRecord = {
         ...executorOp,
         config: JSON.stringify({
-          executor: { type: "skill", skillId: "lint-check" },
+          executor: { type: "agent", agentMode: "skill", skillId: "lint-check" },
           inputs: [],
           outputs: [],
         }),
@@ -168,7 +168,7 @@ describe("OperationDetailPageContent", () => {
       const op: OperationRecord = {
         ...executorOp,
         config: JSON.stringify({
-          executor: { type: "prompt", prompt: "You are a code reviewer" },
+          executor: { type: "agent", agentMode: "prompt", prompt: "You are a code reviewer" },
           inputs: [],
           outputs: [],
         }),

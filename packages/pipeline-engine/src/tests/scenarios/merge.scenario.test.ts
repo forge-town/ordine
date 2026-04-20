@@ -37,7 +37,7 @@ describe("pipeline scenario: merge flow", () => {
             id: operationId,
             name: "Merge Review",
             config: JSON.stringify({
-              executor: { type: "prompt", prompt: "Review the merged content" },
+              executor: { type: "agent", agentMode: "prompt", prompt: "Review the merged content" },
             }),
           },
         ],
