@@ -1,5 +1,6 @@
-import { ok, err, type Result } from "neverthrow";
+import { ok, err, ResultAsync, type Result } from "neverthrow";
 import { initObs, initSpanRecorder } from "@repo/obs";
+import { logger } from "@repo/logger";
 import { createLlmService } from "../llmService";
 import { createLoopEvaluator } from "./loopEvaluator";
 import { buildEngineDeps } from "./engineDeps";
@@ -70,18 +71,29 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       finishedAt: null,
     });
 
-    void runPipeline({
-      pipelineId: opts.pipelineId,
-      inputPath: opts.inputPath,
-      githubToken: opts.githubToken,
-      jobId,
-      pipelinesDao,
-      operationsDao,
-      jobsDao,
-      skillsDao,
-      bestPracticesDao,
-      engineDeps: buildDepsForJob(jobId),
-    });
+    void ResultAsync.fromPromise(
+      runPipeline({
+        pipelineId: opts.pipelineId,
+        inputPath: opts.inputPath,
+        githubToken: opts.githubToken,
+        jobId,
+        pipelinesDao,
+        operationsDao,
+        jobsDao,
+        skillsDao,
+        bestPracticesDao,
+        engineDeps: buildDepsForJob(jobId),
+      }),
+      (error) => error,
+    ).match(
+      () => undefined,
+      (error) => {
+        logger.error(
+          { err: error, jobId },
+          "startRun: unhandled rejection from background pipeline run",
+        );
+      },
+    );
 
     return ok({ jobId });
   };

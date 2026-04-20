@@ -6,7 +6,9 @@
  */
 
 import { streamText } from "ai";
-import { ResultAsync, ok } from "neverthrow";
+import { ResultAsync, Result, ok, err } from "neverthrow";
+import { dirname } from "node:path";
+import { statSync } from "node:fs";
 import {
   getModel,
   runClaude,
@@ -26,6 +28,16 @@ import { logger } from "@repo/logger";
 import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
 import type { RunSkillOptions as EngineRunSkillOptions } from "@repo/pipeline-engine";
 import { extractStructuredOutput } from "./structuredOutput.js";
+
+export class SkillExecutionError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: unknown,
+  ) {
+    super(message);
+    this.name = "SkillExecutionError";
+  }
+}
 
 type RunSkillExecutorOptions = EngineRunSkillOptions & {
   getSettings: SettingsResolver;
@@ -101,6 +113,24 @@ const validateSkillOutput = (raw: string, mode: "check" | "fix"): string => {
   return json;
 };
 
+/**
+ * Resolve inputPath to a valid cwd directory.
+ * If it's a file path, use its parent directory.
+ */
+const resolveCwd = (inputPath: string | undefined): string => {
+  if (!inputPath) return process.cwd();
+  const result = Result.fromThrowable(
+    () => statSync(inputPath),
+    () => undefined,
+  )();
+
+  if (result.isOk() && !result.value.isDirectory()) {
+    return dirname(inputPath);
+  }
+
+  return inputPath;
+};
+
 export const runSkill = ({
   jobId,
   skillId,
@@ -115,7 +145,7 @@ export const runSkill = ({
   writeEnabled,
   allowedTools: customAllowedTools,
   promptMode = "code",
-}: RunSkillExecutorOptions): ResultAsync<string, never> => {
+}: RunSkillExecutorOptions): ResultAsync<string, SkillExecutionError> => {
   const isImplementMode = writeEnabled === true;
   const mode = isImplementMode ? "fix" : "check";
   const isResearch = promptMode === "research";
@@ -124,49 +154,6 @@ export const runSkill = ({
     inputPath && !isResearch
       ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
       : `Input:\n${inputContent}`;
-
-  const generateFallbackReport = (): string => {
-    if (isResearch) {
-      return JSON.stringify(
-        {
-          task: skillId,
-          summary: `Research agent unavailable for "${skillId}". Input forwarded as-is.`,
-          data: [],
-          stats: { totalItems: 0, sources: 0 },
-        },
-        null,
-        2,
-      );
-    }
-    const fallback = isImplementMode
-      ? {
-          type: "fix" as const,
-          summary: `LLM analysis unavailable for skill "${skillId}". No changes made.`,
-          changes: [],
-          remainingFindings: [],
-          stats: {
-            totalChanges: 0,
-            filesModified: 0,
-            findingsFixed: 0,
-            findingsSkipped: 0,
-          },
-        }
-      : {
-          type: "check" as const,
-          summary: `LLM analysis unavailable for skill "${skillId}". Input forwarded as-is.`,
-          findings: [],
-          stats: {
-            totalFiles: 0,
-            totalFindings: 0,
-            errors: 0,
-            warnings: 0,
-            infos: 0,
-            skipped: 0,
-          },
-        };
-
-    return JSON.stringify(fallback, null, 2);
-  };
 
   return ResultAsync.fromPromise(
     (async () => {
@@ -182,7 +169,7 @@ export const runSkill = ({
       const systemPrompt = buildSkillSystemPrompt(skillId, skillDescription, mode, promptMode);
 
       if (agent === "local-claude") {
-        const cwd = inputPath || process.cwd();
+        const cwd = resolveCwd(inputPath);
         const parsedCustomTools = customAllowedTools
           ? ToolNameSchema.array().readonly().safeParse(customAllowedTools)
           : null;
@@ -208,7 +195,10 @@ export const runSkill = ({
           logger.error({ err: errMsg }, "runSkill: claude -p failed");
           await onProgress?.(`runSkill: Claude FAILED — ${errMsg}`);
 
-          return generateFallbackReport();
+          throw new SkillExecutionError(
+            `Claude agent failed for skill "${skillId}": ${errMsg}`,
+            error,
+          );
         }
 
         const raw = claudeResult.value.text;
@@ -219,10 +209,12 @@ export const runSkill = ({
         );
 
         if (raw.length === 0) {
-          logger.warn("runSkill: claude returned empty output — using fallback");
-          await onProgress?.("runSkill: WARNING — Claude returned empty output, using fallback");
+          logger.warn("runSkill: claude returned empty output");
+          await onProgress?.("runSkill: WARNING — Claude returned empty output");
 
-          return generateFallbackReport();
+          throw new SkillExecutionError(
+            `Claude agent returned empty output for skill "${skillId}"`,
+          );
         }
 
         const result = isResearch ? raw : validateSkillOutput(raw, mode);
@@ -242,35 +234,42 @@ export const runSkill = ({
             { input: 0, output: 0 },
           );
 
-          await recordAgentRunWithSpans(
-            {
-              jobId,
-              agentSystem: "local-claude",
-              agentId: skillId,
-              rawPayload: {
-                system: systemPrompt,
-                prompt: userPrompt,
-                output: raw,
-                events,
-                totalCost,
+          const obsResult = await ResultAsync.fromPromise(
+            recordAgentRunWithSpans(
+              {
+                jobId,
+                agentSystem: "local-claude",
+                agentId: skillId,
+                rawPayload: {
+                  system: systemPrompt,
+                  prompt: userPrompt,
+                  output: raw,
+                  events,
+                  totalCost,
+                },
+                tokenInput: tokenTotals.input || null,
+                tokenOutput: tokenTotals.output || null,
+                durationMs: claudeDurationMs,
+                status: "completed",
               },
-              tokenInput: tokenTotals.input || null,
-              tokenOutput: tokenTotals.output || null,
-              durationMs: claudeDurationMs,
-              status: "completed",
-            },
-            (rawExportId) =>
-              buildSpansFromClaudeEvents(events, jobId!, rawExportId, skillId, claudeStartTime),
-          ).catch((error) =>
-            logger.warn({ err: error }, "runSkill: failed to record claude observability"),
+              (rawExportId) =>
+                buildSpansFromClaudeEvents(events, jobId!, rawExportId, skillId, claudeStartTime),
+            ),
+            (e) => e,
           );
+          if (obsResult.isErr()) {
+            logger.warn(
+              { err: obsResult.error },
+              "runSkill: failed to record claude observability",
+            );
+          }
         }
 
         return result;
       }
 
       if (agent === "codex") {
-        const cwd = inputPath || process.cwd();
+        const cwd = resolveCwd(inputPath);
         logger.info("runSkill: starting codex exec");
         await onProgress?.("[Codex] runSkill: Starting codex exec...");
 
@@ -290,7 +289,10 @@ export const runSkill = ({
           logger.error({ err: errMsg }, "runSkill: codex exec failed");
           await onProgress?.(`runSkill: Codex FAILED — ${errMsg}`);
 
-          return generateFallbackReport();
+          throw new SkillExecutionError(
+            `Codex agent failed for skill "${skillId}": ${errMsg}`,
+            error,
+          );
         }
 
         const raw = codexResult.value;
@@ -298,10 +300,10 @@ export const runSkill = ({
         await onProgress?.(`runSkill: Codex complete, output=${raw.length} chars`);
 
         if (raw.length === 0) {
-          logger.warn("runSkill: codex returned empty output — using fallback");
-          await onProgress?.("runSkill: WARNING — Codex returned empty output, using fallback");
+          logger.warn("runSkill: codex returned empty output");
+          await onProgress?.("runSkill: WARNING — Codex returned empty output");
 
-          return generateFallbackReport();
+          throw new SkillExecutionError(`Codex agent returned empty output for skill "${skillId}"`);
         }
 
         const codexParsed = isResearch ? raw : validateSkillOutput(raw, mode);
@@ -313,10 +315,10 @@ export const runSkill = ({
       // agent === "mastra" — use streaming LLM
       const model = await getModel(getSettings, modelOverride);
       if (!model) {
-        logger.warn("runSkill: No LLM model — returning fallback");
-        await onProgress?.("[Mastra] runSkill: No LLM model — returning fallback report");
+        logger.warn("runSkill: No LLM model configured");
+        await onProgress?.("[Mastra] runSkill: No LLM model configured");
 
-        return generateFallbackReport();
+        throw new SkillExecutionError(`No LLM model configured for skill "${skillId}"`);
       }
       logger.info("runSkill: starting streamText (mastra)");
       await onProgress?.("[Mastra] runSkill: Starting streamText (mastra)...");
@@ -344,62 +346,66 @@ export const runSkill = ({
       // Record observability data
       if (jobId) {
         const runDurationMs = Date.now() - mastraStartTime;
-        await recordAgentRunWithSpans(
-          {
-            jobId,
-            agentSystem: "mastra",
-            agentId: skillId,
-            modelId: modelOverride ?? "default",
-            rawPayload: {
-              system: systemPrompt,
-              prompt: userPrompt,
-              output: accumulated,
-              usage,
-            },
-            tokenInput: usage?.inputTokens ?? null,
-            tokenOutput: usage?.outputTokens ?? null,
-            durationMs: runDurationMs,
-            status: accumulated.length === 0 ? "error" : "completed",
-          },
-          (rawExportId) => [
+        const obsResult = await ResultAsync.fromPromise(
+          recordAgentRunWithSpans(
             {
-              jobId: jobId!,
-              rawExportId,
-              spanType: "agent_run" as const,
-              name: skillId,
-              input: userPrompt.slice(0, 10_000),
-              output: accumulated.slice(0, 10_000),
+              jobId,
+              agentSystem: "mastra",
+              agentId: skillId,
               modelId: modelOverride ?? "default",
+              rawPayload: {
+                system: systemPrompt,
+                prompt: userPrompt,
+                output: accumulated,
+                usage,
+              },
               tokenInput: usage?.inputTokens ?? null,
               tokenOutput: usage?.outputTokens ?? null,
               durationMs: runDurationMs,
-              status: "completed" as const,
-              startedAt: new Date(Date.now() - runDurationMs),
-              finishedAt: new Date(),
+              status: accumulated.length === 0 ? "error" : "completed",
             },
-          ],
-        ).catch((error) => logger.warn({ err: error }, "runSkill: failed to record agent observability"));
+            (rawExportId) => [
+              {
+                jobId: jobId!,
+                rawExportId,
+                spanType: "agent_run" as const,
+                name: skillId,
+                input: userPrompt.slice(0, 10_000),
+                output: accumulated.slice(0, 10_000),
+                modelId: modelOverride ?? "default",
+                tokenInput: usage?.inputTokens ?? null,
+                tokenOutput: usage?.outputTokens ?? null,
+                durationMs: runDurationMs,
+                status: "completed" as const,
+                startedAt: new Date(Date.now() - runDurationMs),
+                finishedAt: new Date(),
+              },
+            ],
+          ),
+          (e) => e,
+        );
+        if (obsResult.isErr()) {
+          logger.warn({ err: obsResult.error }, "runSkill: failed to record agent observability");
+        }
       }
 
       if (accumulated.length === 0) {
-        logger.warn("runSkill: LLM returned empty output — using fallback");
-        await onProgress?.(
-          "[Mastra] runSkill: WARNING — LLM returned empty output, using fallback report",
-        );
+        logger.warn("runSkill: LLM returned empty output");
+        await onProgress?.("[Mastra] runSkill: WARNING — LLM returned empty output");
 
-        return generateFallbackReport();
+        throw new SkillExecutionError(`LLM returned empty output for skill "${skillId}"`);
       }
 
       return extractStructuredOutput(accumulated);
     })(),
-    (cause) => cause,
-  ).orElse((cause) => {
-    const errMsg = cause instanceof Error ? cause.message : String(cause);
-    logger.error({ err: errMsg }, "runSkill: agent call failed");
-    void onProgress?.(`[Mastra] runSkill: Agent call FAILED — ${errMsg}`);
-
-    return ok(generateFallbackReport());
-  });
+    (cause) =>
+      cause instanceof SkillExecutionError
+        ? cause
+        : new SkillExecutionError(
+            `Skill execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+            cause,
+          ),
+  );
 };
 
 /**

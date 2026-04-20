@@ -175,6 +175,12 @@ export const executeOperationNode = async (
       writeEnabled: (executor as ExecutorConfig & { writeEnabled?: boolean }).writeEnabled === true,
     });
     opResult.value = skillResult.isOk() ? skillResult.value : "";
+    if (skillResult.isErr()) {
+      await trace(jobId, `Skill "${skillId}" failed: ${skillResult.error.message}`);
+      await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
+      return { ok: false, error: new ScriptExecutionError(skillResult.error.message) };
+    }
     await trace(jobId, `@@LLM_CONTENT::${node.id}::${opResult.value}`);
     await trace(jobId, `Skill output (${opResult.value.length} chars)`);
   }

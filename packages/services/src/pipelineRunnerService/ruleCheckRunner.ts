@@ -20,6 +20,7 @@ import { promisify } from "node:util";
 import { ResultAsync } from "neverthrow";
 import type { CheckOutput, Finding } from "@repo/agent";
 import type { RuleRecord } from "@repo/db-schema";
+import { logger } from "@repo/logger";
 import type { RulesDaoInstance } from "@repo/models";
 import type { RuleTarget } from "@repo/schemas";
 
@@ -55,7 +56,7 @@ process.exit(result ? 0 : 1);
 
   const cleanupResult = await ResultAsync.fromPromise(unlink(tmpFile), (error) => error);
   if (cleanupResult.isErr()) {
-    console.warn("Failed to clean up temp file:", cleanupResult.error);
+    logger.warn({ err: cleanupResult.error, tmpFile }, "ruleCheckRunner: failed to clean up temp file");
   }
 
   return execResult.match(

@@ -3,7 +3,7 @@ import type { RunPromptOptions, RunSkillOptions, RuleCheckOutput } from "./schem
 
 export interface PipelineEngineDeps {
   runPrompt: (opts: RunPromptOptions) => ResultAsync<string, Error>;
-  runSkill: (opts: RunSkillOptions) => ResultAsync<string, never>;
+  runSkill: (opts: RunSkillOptions) => ResultAsync<string, Error>;
   runRuleCheck: (inputPath: string) => Promise<RuleCheckOutput>;
   structuredJsonToMarkdown: (content: string) => string;
   listDirTree: (path: string, opts: { excludedPaths: string[] }) => Promise<string>;

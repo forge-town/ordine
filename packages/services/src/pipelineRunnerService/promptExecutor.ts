@@ -1,5 +1,7 @@
 import { streamText } from "ai";
-import { ResultAsync, errAsync } from "neverthrow";
+import { ResultAsync, Result, errAsync } from "neverthrow";
+import { dirname } from "node:path";
+import { statSync } from "node:fs";
 import { getModel, runClaude, runCodex, type SettingsResolver } from "@repo/agent";
 import { logger } from "@repo/logger";
 import type { RunPromptOptions } from "@repo/pipeline-engine";
@@ -16,6 +18,24 @@ export class PromptExecutionError extends Error {
 
 type RunPromptExecutorOptions = RunPromptOptions & {
   getSettings: SettingsResolver;
+};
+
+/**
+ * Resolve inputPath to a valid cwd directory.
+ * If it's a file path, use its parent directory.
+ */
+const resolveCwd = (inputPath: string | undefined): string => {
+  if (!inputPath) return process.cwd();
+  const result = Result.fromThrowable(
+    () => statSync(inputPath),
+    () => undefined,
+  )();
+
+  if (result.isOk() && !result.value.isDirectory()) {
+    return dirname(inputPath);
+  }
+
+  return inputPath;
 };
 
 export const runPrompt = ({
@@ -42,11 +62,13 @@ export const runPrompt = ({
         `[LLM] runPrompt: agent=${agent}, prompt length=${prompt.length}, input length=${inputContent.length}`,
       );
 
+      const cwd = resolveCwd(inputPath);
+
       if (agent === "local-claude") {
         const claudeResult = await runClaude({
           systemPrompt: prompt,
           userPrompt: inputContent,
-          cwd: inputPath,
+          cwd,
           allowedTools: [],
           onProgress,
         });
@@ -62,7 +84,7 @@ export const runPrompt = ({
         const codexResult = await runCodex({
           systemPrompt: prompt,
           userPrompt: inputContent,
-          cwd: inputPath,
+          cwd,
           onProgress,
         });
         logger.info({ outputLen: codexResult.length }, "runPrompt: codex complete");
