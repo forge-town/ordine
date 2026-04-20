@@ -15,7 +15,7 @@ vi.mock("ai", () => ({
   streamText: vi.fn(),
 }));
 
-import { runPrompt } from "./promptExecutor";
+import { runPrompt } from ".";
 
 describe("promptExecutor", () => {
   const baseOpts = {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractStructuredOutput, structuredJsonToMarkdown } from "./structuredOutput";
+import { extractStructuredOutput, structuredJsonToMarkdown } from ".";
 
 describe("structuredOutput", () => {
   describe("extractStructuredOutput", () => {

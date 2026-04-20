@@ -11,7 +11,7 @@ vi.mock("node:fs/promises", () => ({
 }));
 
 import { exec } from "node:child_process";
-import { runRuleCheck } from "./ruleCheckRunner";
+import { runRuleCheck } from ".";
 
 type ExecCallback = (err: unknown, result: unknown) => void;
 type MockExecImpl = (cmd: string, opts: unknown, cb: ExecCallback) => unknown;

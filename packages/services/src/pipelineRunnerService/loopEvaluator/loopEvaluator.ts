@@ -1,6 +1,6 @@
 import { streamText } from "ai";
 import { trace } from "@repo/obs";
-import type { createLlmService } from "../llmService";
+import type { createLlmService } from "../../llmService";
 
 export type LoopEvaluatorFn = (
   conditionPrompt: string,

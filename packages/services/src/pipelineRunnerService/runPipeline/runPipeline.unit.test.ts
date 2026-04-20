@@ -28,7 +28,7 @@ vi.mock("@repo/pipeline-engine", async (importOriginal) => {
   };
 });
 
-import { runPipeline } from "./runPipeline";
+import { runPipeline } from ".";
 import { pipelineEngine } from "@repo/pipeline-engine";
 
 const makeOpts = (overrides = {}) => ({

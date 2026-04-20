@@ -34,11 +34,11 @@ vi.mock("ai", () => ({
   streamText: vi.fn(),
 }));
 
-vi.mock("./structuredOutput.js", () => ({
+vi.mock("../structuredOutput", () => ({
   extractStructuredOutput: vi.fn((t: string) => t),
 }));
 
-import { runSkill, SkillExecutionError } from "./skillExecutor";
+import { runSkill, SkillExecutionError } from ".";
 
 describe("skillExecutor", () => {
   const baseOpts = {

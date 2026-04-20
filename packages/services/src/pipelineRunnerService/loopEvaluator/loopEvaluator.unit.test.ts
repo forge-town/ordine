@@ -8,7 +8,7 @@ vi.mock("@repo/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-import { createLoopEvaluator } from "./loopEvaluator";
+import { createLoopEvaluator } from ".";
 
 describe("loopEvaluator", () => {
   const mockGetModel = vi.fn();

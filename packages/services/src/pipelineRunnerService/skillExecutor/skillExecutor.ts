@@ -1,12 +1,5 @@
-/**
- * Skill executor — runs a skill using the configured agent backend.
- *
- * Dispatches to local-claude (CLI) or kimi (streaming LLM) based on the
- * `agent` field. Default: "local-claude".
- */
-
 import { streamText } from "ai";
-import { ResultAsync, Result, ok, err } from "neverthrow";
+import { ResultAsync, Result } from "neverthrow";
 import { dirname } from "node:path";
 import { statSync } from "node:fs";
 import {
@@ -27,7 +20,7 @@ import {
 import { logger } from "@repo/logger";
 import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
 import type { RunSkillOptions as EngineRunSkillOptions } from "@repo/pipeline-engine";
-import { extractStructuredOutput } from "./structuredOutput.js";
+import { extractStructuredOutput } from "../structuredOutput";
 
 export class SkillExecutionError extends Error {
   constructor(
