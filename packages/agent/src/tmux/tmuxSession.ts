@@ -5,6 +5,7 @@ const TMUX_BIN = "tmux";
 
 export const buildSessionName = (): string => {
   const id = Math.random().toString(36).slice(2, 10);
+
   return `ordine-codex-${id}`;
 };
 
@@ -14,8 +15,10 @@ const execTmux = (args: string[]): Promise<string> =>
       if (error) {
         logger.debug({ args, stderr }, "tmux: command failed");
         reject(error);
+
         return;
       }
+
       resolve(stdout);
     });
   });
@@ -36,14 +39,8 @@ export const createTmuxSession = async ({
 };
 
 export const capturePane = async (sessionName: string): Promise<string> => {
-  const content = await execTmux([
-    "capture-pane",
-    "-t",
-    sessionName,
-    "-p",
-    "-S",
-    "-",
-  ]);
+  const content = await execTmux(["capture-pane", "-t", sessionName, "-p", "-S", "-"]);
+
   return content;
 };
 
@@ -58,19 +55,15 @@ export const killTmuxSession = async (sessionName: string): Promise<void> => {
   }
 };
 
-export const isTmuxSessionAlive = async (
-  sessionName: string,
-): Promise<boolean> => {
+export const isTmuxSessionAlive = async (sessionName: string): Promise<boolean> => {
   const alive = await execTmux(["has-session", "-t", sessionName]).then(
     () => true,
     () => false,
   );
+
   return alive;
 };
 
-export const sendKeys = async (
-  sessionName: string,
-  text: string,
-): Promise<void> => {
+export const sendKeys = async (sessionName: string, text: string): Promise<void> => {
   await execTmux(["send-keys", "-t", sessionName, text, "Enter"]);
 };

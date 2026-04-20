@@ -17,7 +17,7 @@ const tmuxMocks = vi.hoisted(() => ({
         onProgress?: (line: string) => Promise<void>;
       }) => Promise<{ output: string; sessionName: string }>
     >(),
-  shellQuote: (s: string) => `'${s.replace(/'/g, "'\\''")}'`,
+  shellQuote: (s: string) => `'${s.replaceAll("'", "'\\''")}'`,
 }));
 
 vi.mock("../tmux/runInTmux", () => tmuxMocks);

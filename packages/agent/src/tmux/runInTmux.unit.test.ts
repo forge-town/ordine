@@ -16,7 +16,7 @@ const tmuxMocks = vi.hoisted(() => ({
 
 vi.mock("./tmuxSession", () => tmuxMocks);
 
-import { runInTmux, type RunInTmuxOptions } from "./runInTmux";
+import { runInTmux, shellQuote, type RunInTmuxOptions } from "./runInTmux";
 
 describe("runInTmux", () => {
   const defaults: RunInTmuxOptions = {
@@ -85,10 +85,11 @@ describe("runInTmux", () => {
     tmuxMocks.killTmuxSession.mockResolvedValue(undefined);
 
     const onProgress = vi.fn<(line: string) => Promise<void>>().mockResolvedValue(undefined);
-    let pollCount = 0;
+    const counter = { pollCount: 0 };
     tmuxMocks.isTmuxSessionAlive.mockImplementation(async () => {
-      pollCount++;
-      return pollCount < 3;
+      counter.pollCount++;
+
+      return counter.pollCount < 3;
     });
     tmuxMocks.capturePane
       .mockResolvedValueOnce("step 1")
@@ -140,7 +141,7 @@ describe("runInTmux", () => {
 
   it("strips ANSI escape sequences from output", async () => {
     tmuxMocks.isTmuxSessionAlive.mockResolvedValueOnce(false);
-    tmuxMocks.capturePane.mockResolvedValue("\x1b[32mgreen\x1b[0m text");
+    tmuxMocks.capturePane.mockResolvedValue("\u001B[32mgreen\u001B[0m text");
 
     const promise = runInTmux(defaults);
     await vi.advanceTimersByTimeAsync(20);
@@ -212,8 +213,6 @@ describe("runInTmux", () => {
     expect(tmuxMocks.killTmuxSession).toHaveBeenCalled();
   });
 });
-
-import { shellQuote } from "./runInTmux";
 
 describe("shellQuote", () => {
   it("wraps simple strings in single quotes", () => {

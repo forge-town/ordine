@@ -4,8 +4,6 @@ import { dirname } from "node:path";
 import { statSync } from "node:fs";
 import {
   getModel,
-  runClaude,
-  runCodex,
   runClaudeTmux,
   runCodexTmux,
   READ_ONLY_TOOLS,

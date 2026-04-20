@@ -1,5 +1,5 @@
 import { logger } from "@repo/logger";
-import { runInTmux, shellQuote, type RunInTmuxResult } from "../tmux/runInTmux";
+import { runInTmux, shellQuote } from "../tmux/runInTmux";
 import type { RunClaudeResult } from "./schemas/RunClaudeResultSchema";
 import type { ToolName } from "./schemas/ToolNameSchema";
 

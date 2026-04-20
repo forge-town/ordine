@@ -6,7 +6,7 @@
  * handler fallback path in processNode works end-to-end.
  */
 import { describe, it, expect, vi, beforeEach, afterAll } from "vitest";
-import { writeFile, mkdir, rm } from "node:fs/promises";
+import { mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
@@ -197,7 +197,11 @@ describe("Plugin dispatch in Pipeline engine", () => {
             id: opId,
             name: "Discover Best Practices",
             config: JSON.stringify({
-              executor: { type: "agent", agentMode: "prompt", prompt: "List best practices for this project" },
+              executor: {
+                type: "agent",
+                agentMode: "prompt",
+                prompt: "List best practices for this project",
+              },
             }),
           },
         ],
@@ -242,7 +246,11 @@ describe("Plugin dispatch in Pipeline engine", () => {
             id: opId,
             name: "Run Checks",
             config: JSON.stringify({
-              executor: { type: "agent", agentMode: "prompt", prompt: "Run quality checks on this project" },
+              executor: {
+                type: "agent",
+                agentMode: "prompt",
+                prompt: "Run quality checks on this project",
+              },
             }),
           },
         ],

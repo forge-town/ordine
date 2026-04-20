@@ -2,12 +2,11 @@ import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from "vites
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { okAsync, errAsync } from "neverthrow";
+import { okAsync } from "neverthrow";
 import { processGitHubProjectNode } from "./GitHubProjectNode";
 import type { PipelineEngineDeps } from "../deps";
 import type { PipelineNode } from "../schemas";
 import type { NodeContext } from "./types";
-import { ScriptExecutionError } from "../errors";
 
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),

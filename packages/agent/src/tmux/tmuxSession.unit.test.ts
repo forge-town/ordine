@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EventEmitter } from "node:stream";
 import type { ChildProcess } from "node:child_process";
 
-const execFileMock = vi.fn<
-  (
-    file: string,
-    args: string[],
-    callback: (error: Error | null, stdout: string, stderr: string) => void,
-  ) => ChildProcess
->();
+const execFileMock =
+  vi.fn<
+    (
+      file: string,
+      args: string[],
+      callback: (error: Error | null, stdout: string, stderr: string) => void,
+    ) => ChildProcess
+  >();
 
 vi.mock("node:child_process", () => ({
   execFile: (
@@ -56,12 +56,13 @@ describe("createTmuxSession", () => {
   it("calls tmux new-session with correct args", async () => {
     execFileMock.mockImplementation((_file, _args, cb) => {
       cb(null, "", "");
-      return new EventEmitter() as ChildProcess;
+
+      return {} as ChildProcess;
     });
 
     await createTmuxSession({
       sessionName: "ordine-codex-abc123",
-      command: 'codex exec --sandbox read-only',
+      command: "codex exec --sandbox read-only",
       cwd: "/tmp/project",
     });
 
@@ -74,13 +75,14 @@ describe("createTmuxSession", () => {
     expect(args).toContain("ordine-codex-abc123");
     expect(args).toContain("-c");
     expect(args).toContain("/tmp/project");
-    expect(args[args.length - 1]).toBe('codex exec --sandbox read-only');
+    expect(args.at(-1)).toBe("codex exec --sandbox read-only");
   });
 
   it("rejects when tmux command fails", async () => {
     execFileMock.mockImplementation((_file, _args, cb) => {
       cb(new Error("tmux not found"), "", "tmux not found");
-      return new EventEmitter() as ChildProcess;
+
+      return {} as ChildProcess;
     });
 
     await expect(
@@ -101,7 +103,8 @@ describe("capturePane", () => {
   it("returns captured pane content", async () => {
     execFileMock.mockImplementation((_file, _args, cb) => {
       cb(null, "line 1\nline 2\nline 3\n", "");
-      return new EventEmitter() as ChildProcess;
+
+      return {} as ChildProcess;
     });
 
     const content = await capturePane("ordine-codex-abc123");
@@ -118,7 +121,8 @@ describe("capturePane", () => {
   it("rejects when session does not exist", async () => {
     execFileMock.mockImplementation((_file, _args, cb) => {
       cb(new Error("session not found"), "", "session not found");
-      return new EventEmitter() as ChildProcess;
+
+      return {} as ChildProcess;
     });
 
     await expect(capturePane("nonexistent")).rejects.toThrow("session not found");
@@ -133,7 +137,8 @@ describe("killTmuxSession", () => {
   it("calls tmux kill-session", async () => {
     execFileMock.mockImplementation((_file, _args, cb) => {
       cb(null, "", "");
-      return new EventEmitter() as ChildProcess;
+
+      return {} as ChildProcess;
     });
 
     await killTmuxSession("ordine-codex-abc123");
@@ -148,7 +153,8 @@ describe("killTmuxSession", () => {
   it("does not throw when session already dead", async () => {
     execFileMock.mockImplementation((_file, _args, cb) => {
       cb(new Error("session not found"), "", "");
-      return new EventEmitter() as ChildProcess;
+
+      return {} as ChildProcess;
     });
 
     // Should not throw — killing a dead session is a no-op
@@ -164,7 +170,8 @@ describe("isTmuxSessionAlive", () => {
   it("returns true when session exists", async () => {
     execFileMock.mockImplementation((_file, _args, cb) => {
       cb(null, "", "");
-      return new EventEmitter() as ChildProcess;
+
+      return {} as ChildProcess;
     });
 
     const alive = await isTmuxSessionAlive("ordine-codex-abc123");
@@ -179,7 +186,8 @@ describe("isTmuxSessionAlive", () => {
   it("returns false when session does not exist", async () => {
     execFileMock.mockImplementation((_file, _args, cb) => {
       cb(new Error("session not found"), "", "");
-      return new EventEmitter() as ChildProcess;
+
+      return {} as ChildProcess;
     });
 
     const alive = await isTmuxSessionAlive("nonexistent");
@@ -195,7 +203,8 @@ describe("sendKeys", () => {
   it("calls tmux send-keys with the text and Enter", async () => {
     execFileMock.mockImplementation((_file, _args, cb) => {
       cb(null, "", "");
-      return new EventEmitter() as ChildProcess;
+
+      return {} as ChildProcess;
     });
 
     await sendKeys("ordine-codex-abc123", "hello world");

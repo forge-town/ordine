@@ -33,18 +33,18 @@ export interface RunInTmuxResult {
   sessionName: string;
 }
 
-const DEFAULT_POLL_INTERVAL_MS = 3_000;
+const DEFAULT_POLL_INTERVAL_MS = 3000;
 
 // eslint-disable-next-line no-control-regex
-const ANSI_REGEX = /\x1b\[[0-9;]*[a-zA-Z]/g;
+const ANSI_REGEX = /\u001B\[[0-9;]*[a-zA-Z]/g;
 
-const stripAnsi = (text: string): string => text.replace(ANSI_REGEX, "");
+const stripAnsi = (text: string): string => text.replaceAll(ANSI_REGEX, "");
 
 /**
  * Shell-quote a string using single quotes.
  * Single quotes inside the string are escaped as: '\''
  */
-export const shellQuote = (s: string): string => `'${s.replace(/'/g, "'\\''")}'`;
+export const shellQuote = (s: string): string => `'${s.replaceAll("'", "'\\''")}'`;
 
 const buildShellCommand = (command: string, stdinContent?: string): string => {
   if (!stdinContent) return command;
@@ -83,14 +83,12 @@ export const runInTmux = async ({
 
   await onSessionCreated?.(sessionName);
 
-  let lastContent = "";
+  const state = { lastContent: "", resolved: false };
 
   return new Promise<RunInTmuxResult>((resolve, reject) => {
-    let resolved = false;
-
     const timer = setTimeout(() => {
-      if (resolved) return;
-      resolved = true;
+      if (state.resolved) return;
+      state.resolved = true;
       logger.error({ sessionName, timeoutMs, label }, "runInTmux: timed out");
       void (async () => {
         await onProgress?.(`[${label}/tmux] Timed out after ${timeoutMs / 1000}s`).catch(() => {});
@@ -100,34 +98,35 @@ export const runInTmux = async ({
     }, timeoutMs);
 
     const poll = async () => {
-      if (resolved) return;
+      if (state.resolved) return;
 
       try {
         const alive = await isTmuxSessionAlive(sessionName);
 
-        const rawContent = await capturePane(sessionName).catch(() => lastContent);
+        const rawContent = await capturePane(sessionName).catch(() => state.lastContent);
         const content = stripAnsi(rawContent);
 
-        if (content !== lastContent) {
-          lastContent = content;
+        if (content !== state.lastContent) {
+          state.lastContent = content;
           await onProgress?.(`[${label}/tmux] ${content.slice(-200)}`);
         }
 
         if (!alive) {
-          resolved = true;
+          state.resolved = true;
           clearTimeout(timer);
 
           logger.info({ sessionName, len: content.length, label }, "runInTmux: session exited");
           await onProgress?.(`[${label}/tmux] Session exited (${content.length} chars captured)`);
           await cleanup();
           resolve({ output: content, sessionName });
+
           return;
         }
 
         setTimeout(() => void poll(), pollIntervalMs);
       } catch (error) {
-        if (resolved) return;
-        resolved = true;
+        if (state.resolved) return;
+        state.resolved = true;
         clearTimeout(timer);
         logger.error({ err: error, sessionName }, "runInTmux: poll error");
         await cleanup().catch(() => {});

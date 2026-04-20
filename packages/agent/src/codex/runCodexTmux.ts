@@ -16,7 +16,7 @@ export interface RunCodexTmuxOptions {
 const CODEX_BIN = "codex";
 const MAX_INPUT_CHARS = 50_000;
 const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
-const DEFAULT_POLL_INTERVAL_MS = 3_000;
+const DEFAULT_POLL_INTERVAL_MS = 3000;
 
 const buildCodexCommand = ({
   sandbox,

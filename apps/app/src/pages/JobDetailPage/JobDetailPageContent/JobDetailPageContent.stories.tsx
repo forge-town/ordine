@@ -14,6 +14,7 @@ const mockJob: JobRecord = {
   error: null,
   startedAt: new Date(Date.now() - 5000),
   finishedAt: new Date(),
+  tmuxSessionName: null,
   createdAt: new Date(Date.now() - 10000),
   updatedAt: new Date(),
 };

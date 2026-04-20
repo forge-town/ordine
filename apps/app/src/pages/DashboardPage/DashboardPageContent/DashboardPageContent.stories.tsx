@@ -28,6 +28,7 @@ export const WithJobs: Story = {
         error: null,
         startedAt: null,
         finishedAt: null,
+        tmuxSessionName: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };

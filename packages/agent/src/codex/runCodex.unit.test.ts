@@ -13,6 +13,7 @@ vi.mock("node:child_process", () => ({
 }));
 
 const createMockProcess = () => {
+  // eslint-disable-next-line unicorn/prefer-event-target -- ChildProcess extends EventEmitter, not EventTarget
   const proc = new EventEmitter() as ChildProcess & {
     stdin: Writable;
     stdout: Readable;
