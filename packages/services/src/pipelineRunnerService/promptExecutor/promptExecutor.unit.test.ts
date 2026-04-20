@@ -15,7 +15,7 @@ vi.mock("ai", () => ({
   streamText: vi.fn(),
 }));
 
-import { runPrompt } from ".";
+import { promptExecutor } from ".";
 
 describe("promptExecutor", () => {
   const baseOpts = {
@@ -30,14 +30,14 @@ describe("promptExecutor", () => {
   });
 
   it("dispatches to runClaude when agent is local-claude", async () => {
-    const result = await runPrompt({ ...baseOpts, agent: "local-claude" });
+    const result = await promptExecutor.run({ ...baseOpts, agent: "local-claude" });
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toBe("claude-output");
     expect(runClaude).toHaveBeenCalledOnce();
   });
 
   it("dispatches to runCodex when agent is codex", async () => {
-    const result = await runPrompt({ ...baseOpts, agent: "codex" });
+    const result = await promptExecutor.run({ ...baseOpts, agent: "codex" });
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toBe("codex-output");
     expect(runCodex).toHaveBeenCalledOnce();
@@ -51,7 +51,7 @@ describe("promptExecutor", () => {
   });
 
   it("returns error for empty prompt", async () => {
-    const result = await runPrompt({ ...baseOpts, prompt: "  " });
+    const result = await promptExecutor.run({ ...baseOpts, prompt: "  " });
     expect(result.isErr()).toBe(true);
   });
 });

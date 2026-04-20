@@ -38,7 +38,7 @@ const resolveCwd = (inputPath: string | undefined): string => {
   return inputPath;
 };
 
-export const runPrompt = ({
+const run = ({
   prompt,
   inputContent,
   inputPath,
@@ -135,4 +135,8 @@ export const runPrompt = ({
           );
     },
   );
+};
+
+export const promptExecutor = {
+  run,
 };

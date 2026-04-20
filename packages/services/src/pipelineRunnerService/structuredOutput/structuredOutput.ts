@@ -18,7 +18,7 @@ const tryParseJson = (text: string): unknown | undefined => {
   return result.isOk() ? (result.value as unknown) : undefined;
 };
 
-export const extractStructuredOutput = (rawText: string): string => {
+const extract = (rawText: string): string => {
   const fenceMatch = rawText.match(/```json\s*\n?([\s\S]*?)\n?\s*```/);
   const candidate = fenceMatch?.[1]?.trim() ?? rawText.trim();
 
@@ -61,7 +61,7 @@ export const extractStructuredOutput = (rawText: string): string => {
 
 // ─── JSON → Markdown ──────────────────────────────────────────────────────────
 
-export const structuredJsonToMarkdown = (content: string): string => {
+const toMarkdown = (content: string): string => {
   const parsed = tryParseJson(content);
   if (parsed === undefined) return content;
 
@@ -137,4 +137,9 @@ export const structuredJsonToMarkdown = (content: string): string => {
   }
 
   return lines.join("\n");
+};
+
+export const structuredOutput = {
+  extract,
+  toMarkdown,
 };

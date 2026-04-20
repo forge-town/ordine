@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractStructuredOutput, structuredJsonToMarkdown } from ".";
+import { structuredOutput } from ".";
 
 describe("structuredOutput", () => {
   describe("extractStructuredOutput", () => {
@@ -17,7 +17,7 @@ describe("structuredOutput", () => {
           skipped: 0,
         },
       });
-      const result = extractStructuredOutput(input);
+      const result = structuredOutput.extract(input);
       const parsed = JSON.parse(result);
       expect(parsed.type).toBe("check");
       expect(parsed.summary).toBe("All good");
@@ -29,14 +29,14 @@ describe("structuredOutput", () => {
 {"type":"check","summary":"found 2","findings":[{"id":"f1","severity":"error","message":"bad","file":"x.ts"}],"stats":{"totalFiles":1,"totalFindings":1,"errors":1,"warnings":0,"infos":0,"skipped":0}}
 \`\`\`
 Trailing text`;
-      const result = extractStructuredOutput(input);
+      const result = structuredOutput.extract(input);
       const parsed = JSON.parse(result);
       expect(parsed.type).toBe("check");
     });
 
     it("returns raw text when no valid JSON found", () => {
       const input = "This is just plain text with no JSON";
-      const result = extractStructuredOutput(input);
+      const result = structuredOutput.extract(input);
       expect(result).toBe(input);
     });
 
@@ -53,7 +53,7 @@ Trailing text`;
           findingsSkipped: 0,
         },
       });
-      const result = extractStructuredOutput(input);
+      const result = structuredOutput.extract(input);
       const parsed = JSON.parse(result);
       expect(parsed.type).toBe("fix");
     });
@@ -82,7 +82,7 @@ Trailing text`;
           skipped: 0,
         },
       });
-      const md = structuredJsonToMarkdown(input);
+      const md = structuredOutput.toMarkdown(input);
       expect(md).toContain("# Check Report");
       expect(md).toContain("Found 1 issue");
       expect(md).toContain("Missing return type");
@@ -102,7 +102,7 @@ Trailing text`;
           findingsSkipped: 0,
         },
       });
-      const md = structuredJsonToMarkdown(input);
+      const md = structuredOutput.toMarkdown(input);
       expect(md).toContain("# Fix Report");
       expect(md).toContain("Fixed 2 issues");
       expect(md).toContain("Added types");
@@ -110,7 +110,7 @@ Trailing text`;
 
     it("returns raw content for non-JSON input", () => {
       const input = "Just plain text";
-      expect(structuredJsonToMarkdown(input)).toBe(input);
+      expect(structuredOutput.toMarkdown(input)).toBe(input);
     });
   });
 });

@@ -35,10 +35,12 @@ vi.mock("ai", () => ({
 }));
 
 vi.mock("../structuredOutput", () => ({
-  extractStructuredOutput: vi.fn((t: string) => t),
+  structuredOutput: {
+    extract: vi.fn((t: string) => t),
+  },
 }));
 
-import { runSkill, SkillExecutionError } from ".";
+import { skillExecutor, SkillExecutionError } from ".";
 
 describe("skillExecutor", () => {
   const baseOpts = {
@@ -54,13 +56,13 @@ describe("skillExecutor", () => {
   });
 
   it("returns ok result when claude succeeds", async () => {
-    const result = await runSkill({ ...baseOpts, agent: "local-claude" });
+    const result = await skillExecutor.run({ ...baseOpts, agent: "local-claude" });
     expect(result.isOk()).toBe(true);
   });
 
   it("returns SkillExecutionError when claude fails", async () => {
     vi.mocked(runClaude).mockRejectedValueOnce(new Error("spawn failed"));
-    const result = await runSkill({ ...baseOpts, agent: "local-claude" });
+    const result = await skillExecutor.run({ ...baseOpts, agent: "local-claude" });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(SkillExecutionError);
@@ -70,7 +72,7 @@ describe("skillExecutor", () => {
 
   it("returns SkillExecutionError when claude returns empty output", async () => {
     vi.mocked(runClaude).mockResolvedValueOnce({ text: "", events: [] });
-    const result = await runSkill({ ...baseOpts, agent: "local-claude" });
+    const result = await skillExecutor.run({ ...baseOpts, agent: "local-claude" });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(SkillExecutionError);
@@ -80,7 +82,7 @@ describe("skillExecutor", () => {
 
   it("returns SkillExecutionError when codex fails", async () => {
     vi.mocked(runCodex).mockRejectedValueOnce(new Error("codex boom"));
-    const result = await runSkill({ ...baseOpts, agent: "codex" });
+    const result = await skillExecutor.run({ ...baseOpts, agent: "codex" });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(SkillExecutionError);
@@ -89,7 +91,7 @@ describe("skillExecutor", () => {
   });
 
   it("returns SkillExecutionError when no LLM model for mastra", async () => {
-    const result = await runSkill({ ...baseOpts, agent: "mastra" });
+    const result = await skillExecutor.run({ ...baseOpts, agent: "mastra" });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(SkillExecutionError);

@@ -29,7 +29,7 @@ vi.mock("@repo/pipeline-engine", async (importOriginal) => {
   };
 });
 
-import { runPipeline } from ".";
+import { pipelineRunExecutor } from ".";
 
 const makeOpts = (overrides = {}) => ({
   pipelineId: "pipe-1",
@@ -72,7 +72,7 @@ describe("runPipeline", () => {
       summary: "All good",
     });
     const opts = makeOpts();
-    await runPipeline(opts);
+    await pipelineRunExecutor.run(opts);
 
     expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith("job-1", "running", expect.anything());
     expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
@@ -90,7 +90,7 @@ describe("runPipeline", () => {
         findById: vi.fn().mockResolvedValue(null),
       } as unknown as PipelinesDaoInstance,
     });
-    await runPipeline(opts);
+    await pipelineRunExecutor.run(opts);
 
     expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
       "job-1",
@@ -102,7 +102,7 @@ describe("runPipeline", () => {
   it("marks job as failed when engine throws", async () => {
     vi.mocked(pipelineEngine.execute).mockRejectedValue(new Error("engine boom"));
     const opts = makeOpts();
-    await runPipeline(opts);
+    await pipelineRunExecutor.run(opts);
 
     expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
       "job-1",
@@ -122,7 +122,7 @@ describe("runPipeline", () => {
       } as unknown as JobsDaoInstance,
     });
     // First updateStatus("running") throws, but top-level catch should still try to mark failed
-    await runPipeline(opts);
+    await pipelineRunExecutor.run(opts);
 
     // Should not throw unhandled rejection
     expect(true).toBe(true);

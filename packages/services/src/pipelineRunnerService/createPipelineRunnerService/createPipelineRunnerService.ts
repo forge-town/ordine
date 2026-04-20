@@ -2,9 +2,9 @@ import { ok, err, ResultAsync, type Result } from "neverthrow";
 import { initObs, initSpanRecorder } from "@repo/obs";
 import { logger } from "@repo/logger";
 import { createLlmService } from "../../llmService";
-import { createLoopEvaluator } from "../loopEvaluator";
-import { buildEngineDeps } from "../engineDeps";
-import { runPipeline } from "../runPipeline";
+import { loopEvaluator } from "../loopEvaluator";
+import { pipelineRunnerEngineDeps } from "../engineDeps";
+import { pipelineRunExecutor } from "../runPipeline";
 import {
   createOperationsDao,
   createPipelinesDao,
@@ -41,10 +41,10 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   const llmService = createLlmService(db);
   const { getSettings, getModel } = llmService;
 
-  const loopEvaluatorFactory = createLoopEvaluator(getModel);
+  const loopEvaluatorFactory = loopEvaluator.create(getModel);
 
   const buildDepsForJob = (jobId: string) =>
-    buildEngineDeps(getSettings, rulesDao, loopEvaluatorFactory(jobId), jobId);
+    pipelineRunnerEngineDeps.build(getSettings, rulesDao, loopEvaluatorFactory(jobId), jobId);
 
   return {
     startRun: async (opts: {
@@ -73,7 +73,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       });
 
       void ResultAsync.fromPromise(
-        runPipeline({
+        pipelineRunExecutor.run({
           pipelineId: opts.pipelineId,
           inputPath: opts.inputPath,
           githubToken: opts.githubToken,

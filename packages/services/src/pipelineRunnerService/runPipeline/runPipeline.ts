@@ -51,7 +51,7 @@ const failJobSafely = async (
   }
 };
 
-export const runPipeline = async (opts: {
+const run = async (opts: {
   pipelineId: string;
   inputPath?: string;
   jobId: string;
@@ -151,4 +151,8 @@ export const runPipeline = async (opts: {
     logger.error({ err: runResult.error, jobId }, "runPipeline: unhandled error in pipeline run");
     await failJobSafely(jobsDao, jobId, `Unhandled error: ${runResult.error.message}`);
   }
+};
+
+export const pipelineRunExecutor = {
+  run,
 };

@@ -94,7 +94,7 @@ const resultToFinding = (result: RuleCheckResult): Finding | null => {
   };
 };
 
-export const runRuleCheck = async (dao: RulesDao, inputPath: string): Promise<CheckOutput> => {
+const run = async (dao: RulesDao, inputPath: string): Promise<CheckOutput> => {
   const target: RuleTarget = { path: inputPath, type: "project" };
   const rules = await dao.findMany({ enabled: true });
   const activeRules = rules.filter((r) => r.checkScript != null && r.checkScript.trim() !== "");
@@ -126,4 +126,8 @@ export const runRuleCheck = async (dao: RulesDao, inputPath: string): Promise<Ch
       skipped: 0,
     },
   };
+};
+
+export const ruleCheckRunner = {
+  run,
 };

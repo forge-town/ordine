@@ -20,7 +20,7 @@ import {
 import { logger } from "@repo/logger";
 import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
 import type { RunSkillOptions as EngineRunSkillOptions } from "@repo/pipeline-engine";
-import { extractStructuredOutput } from "../structuredOutput";
+import { structuredOutput } from "../structuredOutput";
 
 export class SkillExecutionError extends Error {
   constructor(
@@ -124,7 +124,7 @@ const resolveCwd = (inputPath: string | undefined): string => {
   return inputPath;
 };
 
-export const runSkill = ({
+const run = ({
   jobId,
   skillId,
   skillDescription,
@@ -389,7 +389,7 @@ export const runSkill = ({
         throw new SkillExecutionError(`LLM returned empty output for skill "${skillId}"`);
       }
 
-      return extractStructuredOutput(accumulated);
+      return structuredOutput.extract(accumulated);
     })(),
     (cause) =>
       cause instanceof SkillExecutionError
@@ -399,6 +399,10 @@ export const runSkill = ({
             cause,
           ),
   );
+};
+
+export const skillExecutor = {
+  run,
 };
 
 /**

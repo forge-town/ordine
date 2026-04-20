@@ -8,7 +8,7 @@ export type LoopEvaluatorFn = (
   modelOverride?: string,
 ) => Promise<boolean>;
 
-export const createLoopEvaluator = (getModel: ReturnType<typeof createLlmService>["getModel"]) => {
+const create = (getModel: ReturnType<typeof createLlmService>["getModel"]) => {
   return (jobId: string): LoopEvaluatorFn => {
     return async (
       conditionPrompt: string,
@@ -45,4 +45,8 @@ Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not.
       return verdict.startsWith("PASS");
     };
   };
+};
+
+export const loopEvaluator = {
+  create,
 };

@@ -1,33 +1,37 @@
-import { runPrompt as runPromptAgent } from "../promptExecutor";
-import { runSkill as runSkillAgent } from "../skillExecutor";
-import { structuredJsonToMarkdown } from "../structuredOutput";
+import { promptExecutor } from "../promptExecutor";
+import { skillExecutor } from "../skillExecutor";
+import { structuredOutput } from "../structuredOutput";
 import { listDirTree, readProjectFiles } from "@repo/utils";
-import { runRuleCheck } from "../ruleCheckRunner";
+import { ruleCheckRunner } from "../ruleCheckRunner";
 import type { PipelineEngineDeps } from "@repo/pipeline-engine";
 import type { RulesDaoInstance } from "@repo/models";
 import type { SettingsResolver } from "@repo/agent";
 import type { LoopEvaluatorFn } from "../loopEvaluator";
 
-export const buildEngineDeps = (
+const build = (
   getSettings: SettingsResolver,
   rulesDao: RulesDaoInstance,
   evaluateLoopCondition: LoopEvaluatorFn,
   jobId?: string,
 ): PipelineEngineDeps => ({
   runPrompt: (o) =>
-    runPromptAgent({
+    promptExecutor.run({
       ...o,
       getSettings,
     }),
   runSkill: (o) =>
-    runSkillAgent({
+    skillExecutor.run({
       ...o,
       jobId,
       getSettings,
     }),
-  runRuleCheck: (inputPath) => runRuleCheck(rulesDao, inputPath),
-  structuredJsonToMarkdown,
+  runRuleCheck: (inputPath) => ruleCheckRunner.run(rulesDao, inputPath),
+  structuredJsonToMarkdown: structuredOutput.toMarkdown,
   listDirTree,
   readProjectFiles,
   evaluateLoopCondition,
 });
+
+export const pipelineRunnerEngineDeps = {
+  build,
+};

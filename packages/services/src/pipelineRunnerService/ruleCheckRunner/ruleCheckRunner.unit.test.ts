@@ -11,7 +11,7 @@ vi.mock("node:fs/promises", () => ({
 }));
 
 import { exec } from "node:child_process";
-import { runRuleCheck } from ".";
+import { ruleCheckRunner } from ".";
 
 type ExecCallback = (err: unknown, result: unknown) => void;
 type MockExecImpl = (cmd: string, opts: unknown, cb: ExecCallback) => unknown;
@@ -40,7 +40,7 @@ describe("ruleCheckRunner", () => {
 
   it("returns empty findings when no rules are active", async () => {
     const dao = { findMany: vi.fn().mockResolvedValue([]) };
-    const result = await runRuleCheck(dao, "/tmp/project");
+    const result = await ruleCheckRunner.run(dao, "/tmp/project");
 
     expect(result.type).toBe("check");
     expect(result.findings).toHaveLength(0);
@@ -56,7 +56,7 @@ describe("ruleCheckRunner", () => {
           makeRule({ id: "rule-2", checkScript: "   " }),
         ]),
     };
-    const result = await runRuleCheck(dao, "/tmp/project");
+    const result = await ruleCheckRunner.run(dao, "/tmp/project");
     expect(result.findings).toHaveLength(0);
     expect(vi.mocked(exec)).not.toHaveBeenCalled();
   });
@@ -66,7 +66,7 @@ describe("ruleCheckRunner", () => {
       cb(null, { stdout: "ok\n", stderr: "" });
     });
     const dao = { findMany: vi.fn().mockResolvedValue([makeRule()]) };
-    const result = await runRuleCheck(dao, "/tmp/project");
+    const result = await ruleCheckRunner.run(dao, "/tmp/project");
 
     expect(result.findings).toHaveLength(0);
     expect(result.summary).toContain("1 passed");
@@ -79,7 +79,7 @@ describe("ruleCheckRunner", () => {
     const dao = {
       findMany: vi.fn().mockResolvedValue([makeRule({ severity: "error" })]),
     };
-    const result = await runRuleCheck(dao, "/tmp/project");
+    const result = await ruleCheckRunner.run(dao, "/tmp/project");
 
     expect(result.findings).toHaveLength(1);
     expect(result.findings[0]!.severity).toBe("error");
@@ -111,7 +111,7 @@ describe("ruleCheckRunner", () => {
           makeRule({ id: "r2", name: "fails" }),
         ]),
     };
-    const result = await runRuleCheck(dao, "/tmp/project");
+    const result = await ruleCheckRunner.run(dao, "/tmp/project");
 
     expect(result.findings).toHaveLength(1);
     expect(result.summary).toContain("1 passed");
