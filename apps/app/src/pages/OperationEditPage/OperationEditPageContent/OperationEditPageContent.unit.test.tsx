@@ -50,7 +50,7 @@ const mockOp: OperationRecord = {
   id: "op-123",
   name: "Run ESLint",
   description: "Lints the code",
-  config: '{"command":"eslint src/"}',
+  config: { executor: { type: "script", command: "eslint src/" } },
   acceptedObjectTypes: ["file", "folder"],
   createdAt: new Date(1000),
   updatedAt: new Date(2000),

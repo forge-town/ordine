@@ -4,23 +4,22 @@ import { readFile, mkdir } from "node:fs/promises";
 import { statSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { Result, ResultAsync, ok, okAsync, errAsync } from "neverthrow";
+import { ResultAsync, ok, okAsync, errAsync } from "neverthrow";
 import { ScriptExecutionError, GitCloneError, ConfigParseError } from "./errors";
-import type { OperationConfig, ExecutorConfig } from "./schemas";
+import { type OperationConfig, type OperationConfigInput, type ExecutorConfig, OperationConfigSchema } from "./schemas";
 
 const execAsync = promisify(exec);
 
-export const safeParseJson = (
-  raw: string,
+export const safeParseConfig = (
+  raw: OperationConfigInput,
   operationName: string,
 ): ResultAsync<OperationConfig, ConfigParseError> => {
-  const parse = Result.fromThrowable(
-    (r: string) => JSON.parse(r) as OperationConfig,
-    (cause) => new ConfigParseError(operationName, cause),
-  );
-  const result = parse(raw);
+  const result = OperationConfigSchema.safeParse(raw);
+  if (result.success) {
+    return okAsync(result.data);
+  }
 
-  return result.isOk() ? okAsync(result.value) : errAsync(result.error);
+  return errAsync(new ConfigParseError(operationName, result.error));
 };
 
 export const safeReadInputFile = (

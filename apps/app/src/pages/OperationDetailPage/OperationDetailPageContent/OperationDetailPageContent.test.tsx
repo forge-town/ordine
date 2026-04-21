@@ -36,7 +36,7 @@ const mockOp: OperationRecord = {
   id: "op_plan",
   name: "Plan",
   description: "Produce a technical implementation plan.",
-  config: JSON.stringify({
+  config: {
     inputs: [
       {
         name: "specDocument",
@@ -59,7 +59,7 @@ const mockOp: OperationRecord = {
         description: "Technical plan document.",
       },
     ],
-  }),
+  },
   acceptedObjectTypes: ["file"],
   createdAt: new Date(1_712_000_000_000),
   updatedAt: new Date(1_712_000_000_000),
@@ -128,11 +128,11 @@ describe("OperationDetailPageContent", () => {
       id: "op_plan",
       name: "Plan",
       description: "Produce a technical implementation plan.",
-      config: JSON.stringify({
+      config: {
         executor: { type: "script", command: "eslint src/", language: "bash" },
         inputs: [],
         outputs: [],
-      }),
+      },
       acceptedObjectTypes: ["file"],
       createdAt: new Date(1_712_000_000_000),
       updatedAt: new Date(1_712_000_000_000),
@@ -153,11 +153,11 @@ describe("OperationDetailPageContent", () => {
     it("shows skill id when executor type is skill", () => {
       const op: OperationRecord = {
         ...executorOp,
-        config: JSON.stringify({
+        config: {
           executor: { type: "agent", agentMode: "skill", skillId: "lint-check" },
           inputs: [],
           outputs: [],
-        }),
+        },
       };
       mockUseLoaderData.mockReturnValue(op);
       render(<OperationDetailPageContent />);
@@ -167,11 +167,11 @@ describe("OperationDetailPageContent", () => {
     it("shows prompt text when executor type is prompt", () => {
       const op: OperationRecord = {
         ...executorOp,
-        config: JSON.stringify({
+        config: {
           executor: { type: "agent", agentMode: "prompt", prompt: "You are a code reviewer" },
           inputs: [],
           outputs: [],
-        }),
+        },
       };
       mockUseLoaderData.mockReturnValue(op);
       render(<OperationDetailPageContent />);

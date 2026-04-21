@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { executeScenario } from "../helpers/makePipelineScenario";
 import { makeNode } from "../helpers/makeNode";
+import type { OperationInfo } from "../../nodes/types";
 import { makeEdge } from "../helpers/makeEdge";
 import { makeTestDeps } from "../helpers/makeTestDeps";
 
@@ -33,15 +34,15 @@ describe("pipeline scenario: invalid graph", () => {
 
   it("still executes disconnected source nodes as independent branches", async () => {
     const deps = makeTestDeps();
-    const operations = new Map([
+    const operations = new Map<string, OperationInfo>([
       [
         "op-a",
         {
           id: "op-a",
           name: "Operation A",
-          config: JSON.stringify({
+          config: {
             executor: { type: "agent", agentMode: "prompt", prompt: "Run A" },
-          }),
+          },
         },
       ],
       [
@@ -49,9 +50,9 @@ describe("pipeline scenario: invalid graph", () => {
         {
           id: "op-b",
           name: "Operation B",
-          config: JSON.stringify({
+          config: {
             executor: { type: "agent", agentMode: "prompt", prompt: "Run B" },
-          }),
+          },
         },
       ],
     ]);

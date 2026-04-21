@@ -16,6 +16,7 @@ import { pipelineEngine } from "./engine";
 import type { PipelineEngineDeps } from "./deps";
 import type { PipelineNode, PipelineEdge } from "./schemas";
 import type { PipelineOptions } from "./pipeline";
+import type { OperationInfo } from "./nodes/types";
 
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),
@@ -190,19 +191,19 @@ describe("Plugin dispatch in Pipeline engine", () => {
       pluginRegistry.register(testProjectPlugin);
       const deps = makeDeps();
       const opId = "op_discover";
-      const operations = new Map([
+      const operations = new Map<string, OperationInfo>([
         [
           opId,
           {
             id: opId,
             name: "Discover Best Practices",
-            config: JSON.stringify({
+            config: {
               executor: {
                 type: "agent",
                 agentMode: "prompt",
                 prompt: "List best practices for this project",
               },
-            }),
+            },
           },
         ],
       ]);
@@ -239,19 +240,19 @@ describe("Plugin dispatch in Pipeline engine", () => {
 
       const deps = makeDeps();
       const opId = "op_check";
-      const operations = new Map([
+      const operations = new Map<string, OperationInfo>([
         [
           opId,
           {
             id: opId,
             name: "Run Checks",
-            config: JSON.stringify({
+            config: {
               executor: {
                 type: "agent",
                 agentMode: "prompt",
                 prompt: "Run quality checks on this project",
               },
-            }),
+            },
           },
         ],
       ]);

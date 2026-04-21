@@ -9,3 +9,4 @@ export const OperationConfigSchema = z.object({
   outputs: z.array(OutputPortSchema).default([]),
 });
 export type OperationConfig = z.infer<typeof OperationConfigSchema>;
+export type OperationConfigInput = z.input<typeof OperationConfigSchema>;

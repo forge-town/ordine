@@ -16,7 +16,7 @@ interface OperationSeed {
   name: string;
   description: string;
   acceptedObjectTypes: string[];
-  config: string;
+  config: OperationConfig;
 }
 
 // ─── Config DSL ──────────────────────────────────────────────────────────────
@@ -52,8 +52,8 @@ interface OperationConfig {
   outputs: OutputPort[];
 }
 
-function cfg(config: OperationConfig): string {
-  return JSON.stringify(config);
+function cfg(config: OperationConfig): OperationConfig {
+  return config;
 }
 
 // ─── Seed Data ───────────────────────────────────────────────────────────────

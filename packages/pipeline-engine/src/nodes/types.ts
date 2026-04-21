@@ -1,5 +1,5 @@
 import type { PipelineEngineDeps } from "../deps";
-import type { NodeCtx, PipelineNode } from "../schemas";
+import type { NodeCtx, PipelineNode, OperationConfigInput } from "../schemas";
 import type { PipelineRunError } from "../errors";
 
 export type NodeResult = { ok: true } | { ok: false; error: PipelineRunError | null };
@@ -27,7 +27,7 @@ export interface OperationNodeContext extends NodeContext {
 export interface OperationInfo {
   id: string;
   name: string;
-  config: string;
+  config: OperationConfigInput;
 }
 
 export interface SkillInfo {

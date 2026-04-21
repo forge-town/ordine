@@ -15,7 +15,7 @@ const mockOperations = [
     id: "op-1",
     name: "Check",
     description: "",
-    config: "{}",
+    config: {},
     createdAt: new Date(),
     updatedAt: new Date(),
     acceptedObjectTypes: [] as ObjectType[],

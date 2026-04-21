@@ -44,8 +44,8 @@ interface OperationConfig {
   outputs: OutputPort[];
 }
 
-function cfg(config: OperationConfig): string {
-  return JSON.stringify(config);
+function cfg(config: OperationConfig): OperationConfig {
+  return config;
 }
 
 // ─── Operations ──────────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ interface OperationSeed {
   name: string;
   description: string;
   acceptedObjectTypes?: string[];
-  config: string;
+  config: OperationConfig;
 }
 
 interface PipelineSeed {

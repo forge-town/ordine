@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { safeParseJson, safeReadInputFile, runScript } from "./infrastructure";
-import { ScriptExecutionError, ConfigParseError } from "./errors";
+import { safeParseConfig, safeReadInputFile, runScript } from "./infrastructure";
+import { ScriptExecutionError } from "./errors";
 
 const testDir = join(tmpdir(), `pipeline-engine-test-${Date.now()}`);
 
@@ -15,19 +15,11 @@ afterAll(async () => {
   await rm(testDir, { recursive: true, force: true });
 });
 
-describe("safeParseJson", () => {
-  it("parses valid JSON", async () => {
-    const result = await safeParseJson('{"executor":{"type":"script"}}', "test-op");
+describe("safeParseConfig", () => {
+  it("parses valid config object", async () => {
+    const result = await safeParseConfig({ executor: { type: "script" } }, "test-op");
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toEqual({ executor: { type: "script" } });
-  });
-
-  it("returns ConfigParseError for invalid JSON", async () => {
-    const result = await safeParseJson("{broken", "my-op");
-    expect(result.isErr()).toBe(true);
-    const error = result._unsafeUnwrapErr();
-    expect(error).toBeInstanceOf(ConfigParseError);
-    expect(error.operationName).toBe("my-op");
+    expect(result._unsafeUnwrap()).toEqual({ executor: { type: "script" }, inputs: [], outputs: [] });
   });
 });
 

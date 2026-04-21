@@ -4,6 +4,7 @@ export * from "./ChecklistSchema";
 export * from "./CodeSnippetSchema";
 export * from "./GithubProjectSchema";
 export * from "./JobSchema";
+export * from "./ObjectTypeSchema";
 export * from "./OperationSchema";
 export * from "./PipelineSchema";
 export * from "./RecipeSchema";

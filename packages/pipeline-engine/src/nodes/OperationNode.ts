@@ -1,7 +1,7 @@
 import type { PipelineNode, ExecutorConfig, NodeData, NodeCtx } from "../schemas";
 import { trace } from "@repo/obs";
 import { ScriptExecutionError } from "../errors";
-import { runScript, safeParseJson } from "../infrastructure";
+import { runScript, safeParseConfig } from "../infrastructure";
 import type { OperationNodeContext, OperationExecResult, NodeResult } from "./types";
 
 const CHUNK_THROTTLE_MS = 2000;
@@ -47,7 +47,7 @@ export const executeOperationNode = async (
     return "";
   })();
 
-  const configResult = await safeParseJson(operation.config, operation.name);
+  const configResult = await safeParseConfig(operation.config, operation.name);
   if (configResult.isErr()) {
     await trace(jobId, `WARNING: ${configResult.error.message}, skipping`);
     await trace(jobId, `@@NODE_FAIL::${node.id}`);

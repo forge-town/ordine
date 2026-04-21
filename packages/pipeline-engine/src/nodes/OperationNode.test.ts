@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { okAsync, errAsync } from "neverthrow";
 import { executeOperationNode, processOperationNode } from "./OperationNode";
 import type { PipelineEngineDeps } from "../deps";
-import type { PipelineNode, NodeCtx } from "../schemas";
+import type { PipelineNode, NodeCtx, ExecutorConfig } from "../schemas";
 import type { OperationNodeContext, OperationInfo } from "./types";
 
 vi.mock("@repo/obs", () => ({
@@ -41,10 +41,10 @@ const makeInput = (content = "input text", inputPath = "/src"): NodeCtx => ({
   content,
 });
 
-const makeOperation = (executor: Record<string, unknown>): OperationInfo => ({
+const makeOperation = (executor: ExecutorConfig): OperationInfo => ({
   id: "op-id",
   name: "Test Op",
-  config: JSON.stringify({ executor }),
+  config: { executor },
 });
 
 const makeCtx = (
@@ -150,7 +150,7 @@ describe("executeOperationNode", () => {
 
   it("fails when no executor is configured", async () => {
     const deps = makeDeps();
-    const op: OperationInfo = { id: "op-id", name: "No Exec", config: JSON.stringify({}) };
+    const op: OperationInfo = { id: "op-id", name: "No Exec", config: {} };
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops);
