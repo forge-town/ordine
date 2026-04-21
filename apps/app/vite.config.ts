@@ -15,10 +15,4 @@ export default defineConfig({
     ...(!IS_STORYBOOK ? [tanstackStart()] : []),
     viteReact(),
   ],
-  ssr: {
-    external: ["@mastra/core"],
-  },
-  optimizeDeps: {
-    exclude: ["@mastra/core"],
-  },
 });

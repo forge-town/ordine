@@ -536,8 +536,7 @@
     "subtitle": "Click to influence canvas",
     "actionAdd": "Add",
     "actionClear": "Clear canvas",
-    "actionConnect": "Connect nodes",
-    "mastraError": "Failed to connect to Mastra service. Please ensure apps/mastra is running on port 4111."
+    "actionConnect": "Connect nodes"
   },
   "skills": {
     "pageStructure": "Page Structure",

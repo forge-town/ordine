@@ -1,8 +1,7 @@
-import { streamText } from "ai";
 import { ResultAsync, Result, errAsync } from "neverthrow";
 import { dirname } from "node:path";
 import { statSync } from "node:fs";
-import { getModel, runClaude, runCodex, type SettingsResolver } from "@repo/agent";
+import { runClaude, runCodex, type SettingsResolver } from "@repo/agent";
 import { logger } from "@repo/logger";
 import { recordAgentRunWithSpans } from "@repo/obs";
 import type { RunPromptOptions } from "@repo/pipeline-engine";
@@ -35,7 +34,7 @@ const recordPromptRun = ({
   durationMs,
 }: {
   jobId: string;
-  agentSystem: "local-claude" | "codex" | "mastra";
+  agentSystem: "local-claude" | "codex";
   systemPrompt: string;
   userPrompt: string;
   output: string;
@@ -187,51 +186,7 @@ const run = ({
         return codexResult;
       }
 
-      // agent === "mastra" — use streaming LLM
-      const model = await getModel(getSettings, modelOverride);
-      if (!model) {
-        logger.error("runPrompt: LLM not configured");
-        await onProgress?.("[LLM] runPrompt: LLM not configured, returning error");
-
-        throw new PromptExecutionError("LLM not configured (API key missing in settings)");
-      }
-      logger.info("runPrompt: streaming (mastra)");
-      await onProgress?.("[LLM] runPrompt: Starting streamText (mastra)...");
-      const result = streamText({
-        model,
-        prompt: `${prompt}\n\nInput:\n${inputContent}`,
-      });
-      const startTime = Date.now();
-      const chunks: string[] = [];
-      for await (const chunk of result.textStream) {
-        chunks.push(chunk);
-        if (onChunk) await onChunk(chunks.join(""));
-      }
-      const accumulated = chunks.join("");
-      const usage = await result.usage;
-      logger.info({ outputLen: accumulated.length, chunks: chunks.length }, "runPrompt: complete");
-      await onProgress?.(
-        `[LLM] runPrompt: Stream complete, total output=${accumulated.length} chars`,
-      );
-
-      if (jobId) {
-        const obsResult = await recordPromptRun({
-          jobId,
-          agentSystem: "mastra",
-          systemPrompt: prompt,
-          userPrompt: inputContent,
-          output: accumulated,
-          modelId: modelOverride ?? "default",
-          tokenInput: usage?.inputTokens ?? null,
-          tokenOutput: usage?.outputTokens ?? null,
-          durationMs: Date.now() - startTime,
-        });
-        if (obsResult.isErr()) {
-          logger.warn({ err: obsResult.error }, "runPrompt: failed to record mastra run");
-        }
-      }
-
-      return accumulated;
+      throw new PromptExecutionError(`Unsupported agent backend: "${agent}"`);
     })(),
     (cause) => {
       logger.error({ err: cause }, "runPrompt: failed");

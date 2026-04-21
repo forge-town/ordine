@@ -536,8 +536,7 @@
     "subtitle": "点我来影响画布",
     "actionAdd": "添加",
     "actionClear": "清空画布",
-    "actionConnect": "连接节点",
-    "mastraError": "连接 Mastra 服务失败。请确保 apps/mastra 已在端口 4111 启动。"
+    "actionConnect": "连接节点"
   },
   "skills": {
     "pageStructure": "页面结构",

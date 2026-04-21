@@ -125,12 +125,15 @@ describe("skillExecutor", () => {
     );
   });
 
-  it("returns SkillExecutionError when no LLM model for mastra", async () => {
-    const result = await skillExecutor.run({ ...baseOpts, agent: "mastra" });
+  it("returns SkillExecutionError for unsupported agent backend", async () => {
+    const result = await skillExecutor.run({
+      ...baseOpts,
+      agent: "unknown-agent" as "local-claude",
+    });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(SkillExecutionError);
-      expect(result.error.message).toContain("No LLM model configured");
+      expect(result.error.message).toContain("Unsupported agent backend");
     }
   });
 });

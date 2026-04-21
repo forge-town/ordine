@@ -33,7 +33,7 @@ interface PipelineAction {
 
 // Parse ```actions ... ``` blocks from the AI response
 const parseActions = (
-  text: string
+  text: string,
 ): {
   clean: string;
   actions: PipelineAction[];
@@ -149,7 +149,7 @@ export const AiAssistantPanel = () => {
           ],
         }),
       }),
-      () => "连接 Mastra 服务失败。请确保 `apps/mastra` 已在端口 4111 启动。"
+      () => "AI assistant backend is not available.",
     )
       .andThen((res) => {
         if (!res.ok) {
@@ -158,7 +158,7 @@ export const AiAssistantPanel = () => {
 
         return ResultAsync.fromPromise(
           res.json() as Promise<{ text?: string; content?: string }>,
-          () => "解析响应失败"
+          () => "解析响应失败",
         );
       })
       .andThen((data) => ok(data));
@@ -178,7 +178,7 @@ export const AiAssistantPanel = () => {
           ...prev,
           { id: `a-${Date.now()}`, role: "assistant", content: errorMsg },
         ]);
-      }
+      },
     );
     setIsLoading(false);
     setTimeout(() => inputRef.current?.focus(), 50);
@@ -228,7 +228,7 @@ export const AiAssistantPanel = () => {
                   key={msg.id}
                   className={cn(
                     "flex gap-2",
-                    msg.role === "user" ? "flex-row-reverse" : "flex-row"
+                    msg.role === "user" ? "flex-row-reverse" : "flex-row",
                   )}
                 >
                   {msg.role === "assistant" && (
@@ -241,7 +241,7 @@ export const AiAssistantPanel = () => {
                       "max-w-[80%] rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap",
                       msg.role === "user"
                         ? "rounded-tr-sm bg-primary text-primary-foreground"
-                        : "rounded-tl-sm bg-muted text-foreground"
+                        : "rounded-tl-sm bg-muted text-foreground",
                     )}
                   >
                     {msg.content}
@@ -317,7 +317,7 @@ export const AiAssistantPanel = () => {
           "group relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200",
           isOpen
             ? "bg-primary text-primary-foreground shadow-primary/30"
-            : "bg-primary text-primary-foreground hover:scale-110 hover:shadow-xl hover:shadow-primary/30"
+            : "bg-primary text-primary-foreground hover:scale-110 hover:shadow-xl hover:shadow-primary/30",
         )}
         title={t("canvas.aiAssistantTitle")}
         onClick={handleToggleAiAssistant}

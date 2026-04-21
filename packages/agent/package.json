@@ -18,7 +18,6 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.69",
-    "@mastra/core": "1.24.1",
     "@repo/logger": "workspace:*",
     "ai": "^6.0.158",
     "neverthrow": "^8.2.0",

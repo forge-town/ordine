@@ -85,12 +85,12 @@ describe("settingsDao", () => {
   it("update returns updated settings", async () => {
     const row = makeRow();
     mockLimit.mockResolvedValueOnce([row]);
-    const updatedRow = { ...row, llmProvider: "mastra" };
+    const updatedRow = { ...row, llmProvider: "codex" };
     mockReturning.mockResolvedValueOnce([updatedRow]);
 
-    const result = await dao.update({ llmProvider: "mastra" });
+    const result = await dao.update({ llmProvider: "codex" });
 
     expect(result.id).toBe("default");
-    expect(result.llmProvider).toBe("mastra");
+    expect(result.llmProvider).toBe("codex");
   });
 });

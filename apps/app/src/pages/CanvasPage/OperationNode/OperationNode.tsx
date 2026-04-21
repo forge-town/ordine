@@ -50,18 +50,11 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 const PROVIDER_LABELS: Record<string, string> = {
   "local-claude": "Claude",
   codex: "Codex",
-  mastra: "Mastra",
 };
 
 const MODEL_OPTIONS: Record<string, { value: string; label: string }[]> = {
   "local-claude": [],
   codex: [],
-  mastra: [
-    { value: "kimi-k2-0711-preview", label: "Kimi K2 Preview" },
-    { value: "kimi-for-coding", label: "Kimi for Coding" },
-    { value: "deepseek-chat", label: "DeepSeek Chat" },
-    { value: "deepseek-reasoner", label: "DeepSeek Reasoner" },
-  ],
 };
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
@@ -156,7 +149,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               data.status === "pass" && "bg-green-50 border-green-100",
               data.status === "fail" && "bg-red-50 border-red-100",
               data.status === "running" && "bg-blue-50 border-blue-100",
-              (!data.status || data.status === "idle") && "bg-white border-slate-100"
+              (!data.status || data.status === "idle") && "bg-white border-slate-100",
             )}
           >
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
@@ -288,7 +281,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               "flex w-full items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-medium transition-colors",
               data.loopEnabled
                 ? "border-amber-200 bg-amber-50 text-amber-700"
-                : "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100"
+                : "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100",
             )}
             type="button"
             onClick={handleLoopToggle}

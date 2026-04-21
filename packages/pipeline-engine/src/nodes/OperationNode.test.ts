@@ -291,7 +291,12 @@ describe("processOperationNode", () => {
 describe("executeOperationNode — agent override", () => {
   it("uses llmProvider from node data as agent override for prompt mode", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Analyze", agent: "mastra" });
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "prompt",
+      prompt: "Analyze",
+      agent: "local-claude",
+    });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id", llmProvider: "codex" });
     const ctx = makeCtx(deps, ops);
@@ -304,7 +309,12 @@ describe("executeOperationNode — agent override", () => {
 
   it("uses llmProvider from node data as agent override for skill mode", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "agent", agentMode: "skill", skillId: "sk-1", agent: "mastra" });
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "skill",
+      skillId: "sk-1",
+      agent: "local-claude",
+    });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id", llmProvider: "local-claude" });
     const ctx = makeCtx(deps, ops);
@@ -317,7 +327,12 @@ describe("executeOperationNode — agent override", () => {
 
   it("falls back to executor.agent when llmProvider is not set", async () => {
     const deps = makeDeps();
-    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Analyze", agent: "codex" });
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "prompt",
+      prompt: "Analyze",
+      agent: "codex",
+    });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops);

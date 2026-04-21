@@ -8,10 +8,6 @@
       "entry": ["app/**/*.{ts,tsx}"],
       "project": ["app/**/*.{ts,tsx}"]
     },
-    "apps/mastra": {
-      "entry": ["src/index.ts"],
-      "project": ["src/**/*.ts"]
-    },
     "apps/scripts": {
       "entry": ["src/**/*.ts"],
       "project": ["src/**/*.ts"],
@@ -40,8 +36,7 @@
     "@oxlint/binding-darwin-arm64",
     "@rollup/rollup-darwin-arm64",
     "@repo/oxlint-config",
-    "@tanstack/router-plugin",
-    "@mastra/core"
+    "@tanstack/router-plugin"
   ],
   "ignoreBinaries": ["tsx"],
   "ignore": ["**/*.stories.tsx"]

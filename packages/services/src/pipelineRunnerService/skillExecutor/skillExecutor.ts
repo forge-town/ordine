@@ -1,9 +1,7 @@
-import { streamText } from "ai";
 import { ResultAsync, Result } from "neverthrow";
 import { dirname } from "node:path";
 import { statSync } from "node:fs";
 import {
-  getModel,
   runClaudeTmux,
   runCodexTmux,
   READ_ONLY_TOOLS,
@@ -162,7 +160,7 @@ const run = ({
         "runSkill: starting",
       );
       await onProgress?.(
-        `[Mastra] runSkill: skillId=${skillId}, agent=${agent}, input length=${inputContent.length}, inputPath=${inputPath}`,
+        `runSkill: skillId=${skillId}, agent=${agent}, input length=${inputContent.length}, inputPath=${inputPath}`,
       );
       await onProgress?.(`runSkill: mode=${mode}`);
 
@@ -368,91 +366,7 @@ const run = ({
         return codexParsed;
       }
 
-      // agent === "mastra" — use streaming LLM
-      const model = await getModel(getSettings, modelOverride);
-      if (!model) {
-        logger.warn("runSkill: No LLM model configured");
-        await onProgress?.("[Mastra] runSkill: No LLM model configured");
-
-        throw new SkillExecutionError(`No LLM model configured for skill "${skillId}"`);
-      }
-      logger.info("runSkill: starting streamText (mastra)");
-      await onProgress?.("[Mastra] runSkill: Starting streamText (mastra)...");
-      const mastraStartTime = Date.now();
-      const result = streamText({
-        model,
-        system: systemPrompt,
-        prompt: userPrompt,
-      });
-      const chunks: string[] = [];
-      for await (const chunk of result.textStream) {
-        chunks.push(chunk);
-        if (onChunk) await onChunk(chunks.join(""));
-      }
-      const accumulated = chunks.join("");
-      const usage = await result.usage;
-      logger.info(
-        { outputLen: accumulated.length, chunks: chunks.length },
-        "runSkill: stream complete",
-      );
-      await onProgress?.(
-        `[Mastra] runSkill: Stream complete, chunks=${chunks.length}, total output=${accumulated.length} chars`,
-      );
-
-      // Record observability data
-      if (jobId) {
-        const runDurationMs = Date.now() - mastraStartTime;
-        const obsResult = await ResultAsync.fromPromise(
-          recordAgentRunWithSpans(
-            {
-              jobId,
-              agentSystem: "mastra",
-              agentId: skillId,
-              modelId: modelOverride ?? "default",
-              rawPayload: {
-                system: systemPrompt,
-                prompt: userPrompt,
-                output: accumulated,
-                usage,
-              },
-              tokenInput: usage?.inputTokens ?? null,
-              tokenOutput: usage?.outputTokens ?? null,
-              durationMs: runDurationMs,
-              status: accumulated.length === 0 ? "error" : "completed",
-            },
-            (rawExportId) => [
-              {
-                jobId: jobId!,
-                rawExportId,
-                spanType: "agent_run" as const,
-                name: skillId,
-                input: userPrompt.slice(0, 10_000),
-                output: accumulated.slice(0, 10_000),
-                modelId: modelOverride ?? "default",
-                tokenInput: usage?.inputTokens ?? null,
-                tokenOutput: usage?.outputTokens ?? null,
-                durationMs: runDurationMs,
-                status: "completed" as const,
-                startedAt: new Date(Date.now() - runDurationMs),
-                finishedAt: new Date(),
-              },
-            ],
-          ),
-          (e) => e,
-        );
-        if (obsResult.isErr()) {
-          logger.warn({ err: obsResult.error }, "runSkill: failed to record agent observability");
-        }
-      }
-
-      if (accumulated.length === 0) {
-        logger.warn("runSkill: LLM returned empty output");
-        await onProgress?.("[Mastra] runSkill: WARNING — LLM returned empty output");
-
-        throw new SkillExecutionError(`LLM returned empty output for skill "${skillId}"`);
-      }
-
-      return structuredOutput.extract({ rawText: accumulated });
+      throw new SkillExecutionError(`Unsupported agent backend: "${agent}"`);
     })(),
     (cause) =>
       cause instanceof SkillExecutionError

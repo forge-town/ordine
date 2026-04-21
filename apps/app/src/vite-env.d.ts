@@ -7,7 +7,6 @@ declare module "*.css?url" {
 
 interface ImportMetaEnv {
   readonly VITE_APP_URL: string;
-  readonly VITE_MASTRA_API_URL: string;
 }
 
 interface ImportMeta {

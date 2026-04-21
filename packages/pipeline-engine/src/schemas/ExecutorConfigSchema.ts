@@ -6,7 +6,7 @@ export type ExecutorType = z.infer<typeof ExecutorTypeSchema>;
 export const AgentModeSchema = z.enum(["skill", "prompt"]);
 export type AgentMode = z.infer<typeof AgentModeSchema>;
 
-export const AgentBackendSchema = z.enum(["local-claude", "mastra", "codex"]);
+export const AgentBackendSchema = z.enum(["local-claude", "codex"]);
 export type AgentBackend = z.infer<typeof AgentBackendSchema>;
 
 export const ScriptLanguageSchema = z.enum(["bash", "python", "javascript"]);
