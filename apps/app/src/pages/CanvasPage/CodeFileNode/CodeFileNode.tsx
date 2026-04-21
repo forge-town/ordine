@@ -3,7 +3,8 @@ import { Handle, Position } from "@xyflow/react";
 import { FileCode, FolderOpen } from "lucide-react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState, type CodeFileNodeData } from "../_store";
+import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
+import type { CodeFileNodeData } from "@repo/pipeline-engine/schemas";
 import { NodeCard } from "../NodeCard";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
 

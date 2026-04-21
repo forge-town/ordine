@@ -4,7 +4,8 @@ import { Link2, Lock, Globe, BookMarked, FolderOpen, FolderInput, X, Eye } from 
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState, type GitHubProjectNodeData } from "../_store";
+import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
+import type { GitHubProjectNodeData } from "@repo/pipeline-engine/schemas";
 import { NodeCard } from "../NodeCard";
 import { FolderTreePreview } from "../FolderNode/FolderTreePreview";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";

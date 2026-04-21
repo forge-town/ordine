@@ -32,20 +32,6 @@ const violations: Violation[] = [];
 let checkedCount = 0;
 let dirCount = 0;
 
-function collectSchemaFiles(dir: string): string[] {
-  const results: string[] = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (IGNORE_DIRS.has(entry.name)) continue;
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      results.push(...collectSchemaFiles(full));
-    } else if (entry.name.endsWith("Schema.ts")) {
-      results.push(full);
-    }
-  }
-  return results;
-}
-
 function findSchemaDirs(dir: string): string[] {
   const results: string[] = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -64,11 +50,33 @@ function findSchemaDirs(dir: string): string[] {
 const schemaDirs = findSchemaDirs(ROOT);
 
 const allSchemaFiles = new Set<string>();
+const nonSchemaFiles: string[] = [];
+
+function checkDirFiles(dir: string) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (IGNORE_DIRS.has(entry.name)) continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) continue;
+    if (!entry.name.endsWith(".ts")) continue;
+    if (entry.name === "index.ts") continue;
+    if (entry.name.endsWith("Schema.ts")) {
+      allSchemaFiles.add(full);
+    } else {
+      nonSchemaFiles.push(full);
+    }
+  }
+}
 
 for (const dir of schemaDirs) {
   dirCount++;
-  for (const f of collectSchemaFiles(dir)) {
-    allSchemaFiles.add(f);
+  checkDirFiles(dir);
+  // Also recurse into subdirs of schemas/ (e.g. schemas/nodes/)
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (IGNORE_DIRS.has(entry.name)) continue;
+    if (entry.isDirectory()) {
+      const sub = join(dir, entry.name);
+      checkDirFiles(sub);
+    }
   }
 }
 
@@ -76,9 +84,7 @@ const packagesSchemaSrc = join(ROOT, "packages/schemas/src");
 try {
   if (statSync(packagesSchemaSrc).isDirectory()) {
     dirCount++;
-    for (const f of collectSchemaFiles(packagesSchemaSrc)) {
-      allSchemaFiles.add(f);
-    }
+    checkDirFiles(packagesSchemaSrc);
   }
 } catch {
   // packages/schemas/src doesn't exist, skip
@@ -134,6 +140,19 @@ for (const filePath of sortedFiles) {
 }
 
 console.log(`\nScanned ${dirCount} schema directories, checked ${checkedCount} *Schema.ts files\n`);
+
+if (nonSchemaFiles.length > 0) {
+  console.log(`⚠️  Found ${nonSchemaFiles.length} non-schema file(s) in schemas/ directories:\n`);
+  for (const f of nonSchemaFiles.sort()) {
+    console.log(`  ${relative(ROOT, f)}`);
+  }
+  console.log("\n  schemas/ directories should only contain *Schema.ts and index.ts files.\n");
+  violations.push({
+    file: "(multiple)",
+    reason: `${nonSchemaFiles.length} non-schema file(s) found in schemas/ directories`,
+    details: nonSchemaFiles.map((f) => relative(ROOT, f)),
+  });
+}
 
 if (violations.length === 0) {
   console.log("✅ All schema files comply with the one-schema-per-file rule.\n");

@@ -13,12 +13,8 @@ import {
 } from "@repo/ui/select";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import {
-  useHarnessCanvasStore,
-  selectNodeRunState,
-  type OperationNodeData,
-  type NodeRunStatus,
-} from "../_store";
+import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
+import type { OperationNodeData, NodeRunStatus } from "@repo/pipeline-engine/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { LLM_PROVIDERS, type OperationRecord, type BestPracticeRecord } from "@repo/db-schema";
