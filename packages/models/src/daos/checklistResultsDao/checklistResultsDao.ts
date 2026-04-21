@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { checklistResultsTable, type ChecklistResultRecord } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-class ChecklistResultsDao {
+export class ChecklistResultsDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findByJobId(jobId: string) {
@@ -47,5 +47,3 @@ class ChecklistResultsDao {
 export const createChecklistResultsDao = (executor: DbExecutor) => {
   return new ChecklistResultsDao(executor);
 };
-
-export type ChecklistResultsDaoInstance = ReturnType<typeof createChecklistResultsDao>;

@@ -3,11 +3,11 @@ import { okAsync } from "neverthrow";
 import { pipelineEngine, type PipelineEngineDeps } from "@repo/pipeline-engine";
 import type * as PipelineEngineModule from "@repo/pipeline-engine";
 import type {
-  PipelinesDaoInstance,
-  OperationsDaoInstance,
-  JobsDaoInstance,
-  SkillsDaoInstance,
-  BestPracticesDaoInstance,
+  PipelinesDao,
+  OperationsDao,
+  JobsDao,
+  SkillsDao,
+  BestPracticesDao,
 } from "@repo/models";
 
 vi.mock("@repo/obs", () => ({
@@ -41,14 +41,14 @@ const makeOpts = (overrides = {}) => ({
       nodes: [],
       edges: [],
     }),
-  } as unknown as PipelinesDaoInstance,
-  operationsDao: { findById: vi.fn() } as unknown as OperationsDaoInstance,
+  } as unknown as PipelinesDao,
+  operationsDao: { findById: vi.fn() } as unknown as OperationsDao,
   jobsDao: {
     create: vi.fn().mockResolvedValue(undefined),
     updateStatus: vi.fn().mockResolvedValue(undefined),
-  } as unknown as JobsDaoInstance,
-  skillsDao: { findById: vi.fn(), findByName: vi.fn() } as unknown as SkillsDaoInstance,
-  bestPracticesDao: { findById: vi.fn() } as unknown as BestPracticesDaoInstance,
+  } as unknown as JobsDao,
+  skillsDao: { findById: vi.fn(), findByName: vi.fn() } as unknown as SkillsDao,
+  bestPracticesDao: { findById: vi.fn() } as unknown as BestPracticesDao,
   engineDeps: {
     runPrompt: vi.fn().mockReturnValue(okAsync("")),
     runSkill: vi.fn().mockReturnValue(okAsync("")),
@@ -88,7 +88,7 @@ describe("runPipeline", () => {
     const opts = makeOpts({
       pipelinesDao: {
         findById: vi.fn().mockResolvedValue(null),
-      } as unknown as PipelinesDaoInstance,
+      } as unknown as PipelinesDao,
     });
     await pipelineRunExecutor.run(opts);
 
@@ -119,7 +119,7 @@ describe("runPipeline", () => {
           .fn()
           .mockRejectedValueOnce(new Error("DB down"))
           .mockResolvedValue(undefined),
-      } as unknown as JobsDaoInstance,
+      } as unknown as JobsDao,
     });
     // First updateStatus("running") throws, but top-level catch should still try to mark failed
     await pipelineRunExecutor.run(opts);

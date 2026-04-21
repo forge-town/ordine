@@ -1,4 +1,5 @@
 import { runClaude, runCodex, type ClaudeStreamEvent, type ToolName } from "@repo/agent";
+import { AgentBackend } from "@repo/schemas";
 
 export interface AgentRunResult {
   text: string;
@@ -6,7 +7,7 @@ export interface AgentRunResult {
 }
 
 export interface AgentRunOptions {
-  agent: "local-claude" | "codex";
+  agent: AgentBackend;
   mode: "direct";
   systemPrompt: string;
   userPrompt: string;
@@ -50,7 +51,7 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> =>
 
 type DriverFn = (opts: AgentRunOptions) => Promise<AgentRunResult>;
 
-const DRIVERS: Record<string, DriverFn> = {
+const DRIVERS: Record<AgentBackend, DriverFn> = {
   "local-claude": runLocalClaudeDirect,
   codex: runCodexDirect,
 };

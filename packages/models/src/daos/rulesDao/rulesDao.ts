@@ -2,7 +2,7 @@ import { eq, desc, and } from "drizzle-orm";
 import { rulesTable, type RuleCategory } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-class RulesDao {
+export class RulesDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findMany(filter?: { category?: RuleCategory; enabled?: boolean }) {
@@ -65,5 +65,3 @@ class RulesDao {
 export const createRulesDao = (executor: DbExecutor) => {
   return new RulesDao(executor);
 };
-
-export type RulesDaoInstance = ReturnType<typeof createRulesDao>;

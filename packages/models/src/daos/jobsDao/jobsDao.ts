@@ -2,7 +2,7 @@ import { eq, desc, and, lt, isNull, or, sql } from "drizzle-orm";
 import { jobsTable, type JobRecord, type JobStatus } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-class JobsDao {
+export class JobsDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findMany(filter?: { status?: JobStatus; projectId?: string }) {
@@ -97,5 +97,3 @@ class JobsDao {
 export const createJobsDao = (executor: DbExecutor) => {
   return new JobsDao(executor);
 };
-
-export type JobsDaoInstance = ReturnType<typeof createJobsDao>;

@@ -2,7 +2,7 @@ import { eq, desc } from "drizzle-orm";
 import { pipelinesTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-class PipelinesDao {
+export class PipelinesDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findMany() {
@@ -52,5 +52,3 @@ class PipelinesDao {
 export const createPipelinesDao = (executor: DbExecutor) => {
   return new PipelinesDao(executor);
 };
-
-export type PipelinesDaoInstance = ReturnType<typeof createPipelinesDao>;

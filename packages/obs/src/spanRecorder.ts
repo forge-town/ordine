@@ -1,12 +1,12 @@
 import type {
-  AgentRawExportsDaoInstance,
-  AgentSpansDaoInstance,
+  AgentRawExportsDao,
+  AgentSpansDao,
 } from "@repo/models";
 import type { AgentSystem, SpanType, SpanStatus } from "@repo/db-schema";
 
 export interface SpanRecorderDeps {
-  agentRawExportsDao: AgentRawExportsDaoInstance;
-  agentSpansDao: AgentSpansDaoInstance;
+  agentRawExportsDao: AgentRawExportsDao;
+  agentSpansDao: AgentSpansDao;
 }
 
 const spanRecorderState = {

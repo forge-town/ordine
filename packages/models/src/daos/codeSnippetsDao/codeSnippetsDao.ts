@@ -2,7 +2,7 @@ import { eq, asc } from "drizzle-orm";
 import { codeSnippetsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-class CodeSnippetsDao {
+export class CodeSnippetsDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findByBestPracticeId(bestPracticeId: string) {
@@ -60,5 +60,3 @@ class CodeSnippetsDao {
 export const createCodeSnippetsDao = (executor: DbExecutor) => {
   return new CodeSnippetsDao(executor);
 };
-
-export type CodeSnippetsDaoInstance = ReturnType<typeof createCodeSnippetsDao>;

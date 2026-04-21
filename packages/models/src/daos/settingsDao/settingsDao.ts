@@ -4,7 +4,7 @@ import type { DbExecutor } from "../../types";
 
 const DEFAULT_ID = "default";
 
-class SettingsDao {
+export class SettingsDao {
   constructor(readonly executor: DbExecutor) {}
 
   async get() {
@@ -48,5 +48,3 @@ class SettingsDao {
 export const createSettingsDao = (executor: DbExecutor) => {
   return new SettingsDao(executor);
 };
-
-export type SettingsDaoInstance = ReturnType<typeof createSettingsDao>;

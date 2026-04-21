@@ -1,8 +1,6 @@
 import { KIND_LABEL } from "../types";
 import type { OutputPort } from "@repo/schemas";
 
-export type { OutputPort };
-
 export type OutputPortRowProps = {
   port: OutputPort;
 };

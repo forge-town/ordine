@@ -2,7 +2,7 @@ import { eq, asc } from "drizzle-orm";
 import { checklistItemsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-class ChecklistItemsDao {
+export class ChecklistItemsDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findByBestPracticeId(bestPracticeId: string) {
@@ -60,5 +60,3 @@ class ChecklistItemsDao {
 export const createChecklistItemsDao = (executor: DbExecutor) => {
   return new ChecklistItemsDao(executor);
 };
-
-export type ChecklistItemsDaoInstance = ReturnType<typeof createChecklistItemsDao>;

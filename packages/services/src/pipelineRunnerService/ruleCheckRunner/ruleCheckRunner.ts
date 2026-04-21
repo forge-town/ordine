@@ -21,10 +21,10 @@ import { ResultAsync } from "neverthrow";
 import type { CheckOutput, Finding } from "@repo/agent";
 import type { RuleRecord } from "@repo/db-schema";
 import { logger } from "@repo/logger";
-import type { RulesDaoInstance } from "@repo/models";
+import type { RulesDao } from "@repo/models";
 import type { RuleTarget } from "@repo/schemas";
 
-type RulesDao = Pick<RulesDaoInstance, "findMany">;
+type RulesDao = Pick<RulesDao, "findMany">;
 
 const execAsync = promisify(exec);
 
