@@ -1,19 +1,35 @@
 # What is Ordine?
 
-Ordine is a **meta-orchestration engine for code quality**. It lets you define best practices, compose them into operations, wire operations through pipelines, and let AI agents + scripts enforce them automatically.
+::: warning 🚧 Preview
+Ordine is currently in **Preview** stage. APIs and features may change. We welcome feedback and contributions!
+:::
+
+Ordine is an **AI-first meta-orchestration engine**. It provides a universal pipeline framework for defining, composing, and executing automated workflows — powered by AI agents and scripts.
+
+Code quality automation is Ordine's first and flagship use case, delivered as a built-in plugin. Over time, domain-specific capabilities (code review, security scanning, documentation generation, etc.) will be fully extracted into plugins, leaving Ordine as a pure orchestration core.
 
 ## The Problem
 
-Modern codebases grow faster than teams can review. Code style, architecture patterns, security practices, and documentation standards drift over time. Manual enforcement doesn't scale.
+Automation workflows are everywhere — code review, CI/CD, data processing, content generation — yet each domain reinvents its own orchestration layer. Teams end up with fragmented tools that can't compose, share context, or leverage AI agents effectively.
 
 ## The Solution
 
-Ordine provides a structured way to:
+Ordine provides a single orchestration layer that:
 
-1. **Capture** your team's coding standards as machine-readable best practices
-2. **Define** operations that check or fix code using AI agents or scripts
-3. **Compose** operations into multi-step pipelines (DAG execution)
-4. **Automate** enforcement through rules that trigger pipelines on code changes
+1. **Define** operations — atomic tasks executed by AI agents, scripts, or plugins
+2. **Compose** operations into multi-step pipelines (DAG execution)
+3. **Extend** capabilities through a plugin system
+4. **Automate** execution through rules that trigger pipelines on events
+
+### Code Quality Plugin (Built-in)
+
+The built-in code quality plugin adds:
+
+- **Best Practices** — machine-readable coding standards with checklists
+- **Code-aware Operations** — check/fix code using AI agents or linters
+- **Rule Triggers** — automatically run pipelines on code changes
+
+This plugin demonstrates Ordine's extensibility model: domain knowledge lives in plugins, orchestration lives in the core.
 
 ## Key Differentiators
 
@@ -31,19 +47,18 @@ The pipeline engine uses a directed acyclic graph (DAG) with typed nodes and edg
 
 ### Extensible Architecture
 
+- **Plugins** — encapsulate domain-specific knowledge and capabilities
 - **Skills** — plug in new AI capabilities
-- **Operations** — define custom check/fix tasks
+- **Operations** — define custom tasks with any executor backend
 - **Node Types** — folder, code-file, operation, output, compound, condition, github-project
 
-## Tech Stack
+### Plugin System
 
-| Layer | Technology |
-|-------|-----------|
-| Monorepo | Turborepo + Bun Workspaces |
-| Frontend | React + Vite + TanStack Router + Refine |
-| Backend | Hono (Node.js) |
-| Database | PostgreSQL + Drizzle ORM |
-| AI Agents | Claude CLI, Codex CLI |
-| Type Safety | TypeScript + Zod schemas |
-| Error Handling | neverthrow (Result types) |
-| Testing | Vitest + Playwright |
+Domain logic is progressively migrating into plugins. The core engine provides:
+
+- Pipeline DAG scheduling
+- Agent dispatching
+- Entity management (operations, skills, rules, jobs)
+- UI canvas and API
+
+Plugins provide domain-specific entities, operations, and UI extensions. The code quality plugin is the first — more will follow.

@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: Ordine
-  text: AI 优先的流水线编排
-  tagline: 定义最佳实践，组合流水线，让 AI 自动执行代码质量检查。
+  name: 成序 (Ordine)
+  text: AI 优先的元编排引擎
+  tagline: 定义操作，组合流水线，让 AI agent 自动化任意工作流。代码质量自动化作为内置插件提供。
   actions:
     - theme: brand
       text: 快速开始
@@ -36,3 +36,7 @@ features:
     title: 任务
     details: 实时跟踪后台执行进度、追踪日志和结构化输出。
 ---
+
+<div style="text-align: center; padding: 2rem 0; color: var(--vp-c-text-3); font-size: 0.9rem;">
+  🚧 成序目前处于 <strong>Preview 预览</strong>阶段。API 和功能可能会发生变化。
+</div>

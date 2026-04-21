@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Ordine
-  text: AI-First Pipeline Orchestration
-  tagline: Define best practices, compose pipelines, let AI enforce code quality automatically.
+  text: AI-First Meta-Orchestration Engine
+  tagline: Define operations, compose pipelines, let AI agents automate any workflow. Code quality automation built-in as a plugin.
   actions:
     - theme: brand
       text: Get Started
@@ -36,3 +36,7 @@ features:
     title: Jobs
     details: Track background execution with real-time progress, traces, and structured output.
 ---
+
+<div style="text-align: center; padding: 2rem 0; color: var(--vp-c-text-3); font-size: 0.9rem;">
+  🚧 Ordine is currently in <strong>Preview</strong> stage. APIs and features may change.
+</div>

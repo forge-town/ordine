@@ -1,26 +1,30 @@
 # Core Concepts
 
-Ordine's entity model is designed around composability. Small, well-typed pieces combine into powerful automation workflows.
+Ordine is built around a small set of composable primitives. Understanding these concepts is key to building effective automation workflows.
 
-## Entity Hierarchy
+## Concept Map
 
 ```
-Best Practice ──► Operation ──► Pipeline ──► Rule
-     │                │             │
-     └── Checklist    └── Skill     └── Job (execution)
+Object ──► Operation ──► Pipeline ──► Rule
+               │             │
+               └── Skill     └── Job (execution)
 ```
 
-## Best Practices
+## Objects
 
-A **Best Practice** captures a coding standard with an associated checklist. Each checklist item can be verified by a script check or an LLM-powered analysis.
+**Objects** are the things that pipelines operate on — the inputs that flow through the graph. Ordine supports several object types out of the box:
 
-- Defined as structured data (title, description, checklist items)
-- Reusable across multiple operations
-- Version-controlled alongside your codebase
+| Object Type | Description |
+|-------------|-------------|
+| `folder` | A directory tree — all files under a path |
+| `code-file` | A single source file |
+| `github-project` | A GitHub repository |
+
+Objects are the entry points of a pipeline. They appear as source nodes in the DAG and their content flows downstream to operations for processing.
 
 ## Operations
 
-An **Operation** is an atomic coding task with a configured executor backend.
+An **Operation** is the fundamental building block — an atomic task with a configured executor backend.
 
 ```
 Operation = Executor Config + Input Schema + Output Schema
@@ -37,7 +41,7 @@ Agent modes:
 
 ## Pipelines
 
-A **Pipeline** is a directed acyclic graph (DAG) of typed nodes connected by edges.
+A **Pipeline** composes operations into a multi-step workflow, represented as a directed acyclic graph (DAG) of typed nodes connected by edges.
 
 ### Node Types
 
@@ -60,17 +64,17 @@ A **Pipeline** is a directed acyclic graph (DAG) of typed nodes connected by edg
 
 ## Skills
 
-A **Skill** is a pluggable AI agent capability. Skills define:
+A **Skill** is a pluggable AI agent capability that operations can reference. Skills define:
 
 - A unique ID and label
 - A description of what the skill does
 - A category for organization
 
-Skills are referenced by operations to power agent-based execution.
+Skills decouple "what the agent knows" from "what the operation does", making both independently reusable.
 
 ## Rules
 
-A **Rule** is a policy that can trigger pipeline execution automatically. Rules connect events (e.g., code changes) to pipeline enforcement.
+A **Rule** defines when and how pipelines are triggered automatically. Rules connect events (e.g., code changes, schedules, manual triggers) to pipeline execution.
 
 ## Jobs
 
@@ -80,3 +84,14 @@ A **Job** tracks the execution of a pipeline run. It includes:
 - Real-time traces and logs
 - Structured output (JSON result)
 - Duration and timing metadata
+
+## Plugins
+
+**Plugins** extend Ordine with domain-specific capabilities. A plugin can introduce:
+
+- New entity types (e.g., Best Practices with checklists)
+- Specialized operations
+- UI extensions
+- Custom triggers
+
+The built-in code quality plugin is the first example of this model.

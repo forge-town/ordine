@@ -9,7 +9,7 @@ export default defineConfig({
     root: {
       label: "English",
       lang: "en-US",
-      description: "AI-first pipeline orchestration platform for code quality automation",
+      description: "AI-first meta-orchestration engine for automated workflows",
       themeConfig: {
         nav: enNav(),
         sidebar: enSidebar(),
@@ -18,7 +18,7 @@ export default defineConfig({
     zh: {
       label: "简体中文",
       lang: "zh-CN",
-      description: "AI 优先的代码质量自动化流水线编排平台",
+      description: "AI 优先的自动化工作流元编排引擎",
       themeConfig: {
         nav: zhNav(),
         sidebar: zhSidebar(),
@@ -51,7 +51,6 @@ export default defineConfig({
 function enNav(): DefaultTheme.NavItem[] {
   return [
     { text: "Guide", link: "/guide/what-is-ordine" },
-    { text: "Architecture", link: "/architecture/overview" },
     { text: "API", link: "/api/rest" },
   ];
 }
@@ -68,25 +67,14 @@ function enSidebar(): DefaultTheme.Sidebar {
         ],
       },
       {
-        text: "Entities",
+        text: "Concepts",
         items: [
-          { text: "Best Practices", link: "/guide/best-practices" },
+          { text: "Objects", link: "/guide/objects" },
           { text: "Operations", link: "/guide/operations" },
           { text: "Pipelines", link: "/guide/pipelines" },
           { text: "Skills", link: "/guide/skills" },
           { text: "Rules", link: "/guide/rules" },
           { text: "Jobs", link: "/guide/jobs" },
-        ],
-      },
-    ],
-    "/architecture/": [
-      {
-        text: "Architecture",
-        items: [
-          { text: "Overview", link: "/architecture/overview" },
-          { text: "Monorepo Structure", link: "/architecture/monorepo" },
-          { text: "Pipeline Engine", link: "/architecture/pipeline-engine" },
-          { text: "Agent Engine", link: "/architecture/agent-engine" },
         ],
       },
     ],
@@ -105,7 +93,6 @@ function enSidebar(): DefaultTheme.Sidebar {
 function zhNav(): DefaultTheme.NavItem[] {
   return [
     { text: "指南", link: "/zh/guide/what-is-ordine" },
-    { text: "架构", link: "/zh/architecture/overview" },
     { text: "API", link: "/zh/api/rest" },
   ];
 }
@@ -122,25 +109,14 @@ function zhSidebar(): DefaultTheme.Sidebar {
         ],
       },
       {
-        text: "实体",
+        text: "概念",
         items: [
-          { text: "最佳实践", link: "/zh/guide/best-practices" },
+          { text: "对象", link: "/zh/guide/objects" },
           { text: "操作", link: "/zh/guide/operations" },
           { text: "流水线", link: "/zh/guide/pipelines" },
           { text: "技能", link: "/zh/guide/skills" },
           { text: "规则", link: "/zh/guide/rules" },
           { text: "任务", link: "/zh/guide/jobs" },
-        ],
-      },
-    ],
-    "/zh/architecture/": [
-      {
-        text: "架构",
-        items: [
-          { text: "总览", link: "/zh/architecture/overview" },
-          { text: "Monorepo 结构", link: "/zh/architecture/monorepo" },
-          { text: "流水线引擎", link: "/zh/architecture/pipeline-engine" },
-          { text: "Agent 引擎", link: "/zh/architecture/agent-engine" },
         ],
       },
     ],

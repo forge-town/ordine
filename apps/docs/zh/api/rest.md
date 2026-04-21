@@ -61,15 +61,15 @@ Ordine 通过 Hono 提供 REST API，运行在 `http://localhost:9433`。
 | `GET` | `/api/jobs/:id` | 获取单个任务 |
 | `DELETE` | `/api/jobs/:id` | 删除任务 |
 
-## 食谱
+## 配方
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| `GET` | `/api/recipes` | 获取所有食谱 |
-| `GET` | `/api/recipes/:id` | 获取单个食谱 |
-| `POST` | `/api/recipes` | 创建食谱 |
-| `PUT` | `/api/recipes/:id` | 更新食谱 |
-| `DELETE` | `/api/recipes/:id` | 删除食谱 |
+| `GET` | `/api/recipes` | 获取所有配方 |
+| `GET` | `/api/recipes/:id` | 获取单个配方 |
+| `POST` | `/api/recipes` | 创建配方 |
+| `PUT` | `/api/recipes/:id` | 更新配方 |
+| `DELETE` | `/api/recipes/:id` | 删除配方 |
 
 ## 文件系统
 
