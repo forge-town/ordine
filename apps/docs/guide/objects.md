@@ -43,7 +43,7 @@ A GitHub repository. The pipeline clones or references the repository and passes
 ```json
 {
   "type": "github-project",
-  "data": { "owner": "nicepkg", "repo": "ordine" }
+  "data": { "owner": "forge-town", "repo": "ordine" }
 }
 ```
 

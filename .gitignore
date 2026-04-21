@@ -68,10 +68,14 @@ yarn-error.log*
 .zencoder
 .tanstack
 
-.github
-
 dist
 .ordine
 test-results
 
+.github/instructions
+.github/prompts
+
 *.log
+output.log
+quality_output.log
+test_output.log

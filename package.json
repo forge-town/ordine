@@ -1,6 +1,14 @@
 {
   "name": "ordine",
+  "description": "AI-first meta-orchestration engine",
   "private": true,
+  "license": "MIT",
+  "author": "Code Forge AI",
+  "homepage": "https://ordine.ai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forge-town/ordine.git"
+  },
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
