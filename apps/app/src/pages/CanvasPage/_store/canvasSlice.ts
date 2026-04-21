@@ -9,7 +9,7 @@ import {
   type Connection,
 } from "@xyflow/react";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
-import { makeDefaultNodeData } from "../schemas/makeDefaultNodeData";
+import { makeDefaultNodeData } from "../utils/makeDefaultNodeData";
 import type { PipelineNodeData } from "../schemas/PipelineNodeDataSchema";
 import {
   ConnectionRuleSchema,

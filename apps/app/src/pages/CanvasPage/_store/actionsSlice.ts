@@ -4,12 +4,9 @@ import type { OperationRecord, RecipeRecord } from "@repo/db-schema";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
-import {
-  makeDefaultNodeData,
-  makeOperationNodeData,
-  type NodeType,
-  type BuiltinNodeType,
-} from "../nodeSchemas";
+import { makeDefaultNodeData } from "../utils/makeDefaultNodeData";
+import { makeOperationNodeData } from "../utils/makeOperationNodeData";
+import type { NodeType, BuiltinNodeType } from "@repo/pipeline-engine/schemas";
 import { trpcClient } from "@/integrations/trpc/client";
 import { toastStore } from "@/store/toastStore";
 import { ResultAsync } from "neverthrow";

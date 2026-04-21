@@ -1,4 +1,5 @@
-import { KIND_LABEL, type InputPort } from "../types";
+import { KIND_LABEL } from "../types";
+import type { InputPort } from "@repo/schemas";
 
 export type { InputPort };
 

@@ -1,5 +1,5 @@
-import type { MetaNodeType } from "./MetaNodeTypeSchema";
-import type { BuiltinNodeType } from "./BuiltinNodeTypeSchema";
+import type { MetaNodeType } from "./schemas/MetaNodeTypeSchema";
+import type { BuiltinNodeType } from "./schemas/BuiltinNodeTypeSchema";
 
 const BUILTIN_META_MAP: Record<BuiltinNodeType, MetaNodeType> = {
   "code-file": "object",

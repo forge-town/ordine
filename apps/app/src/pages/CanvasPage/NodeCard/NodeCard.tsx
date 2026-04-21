@@ -7,7 +7,7 @@ import {
   CardAction,
 } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
-import type { NodeRunStatus } from "../nodeSchemas";
+import type { NodeRunStatus } from "@repo/pipeline-engine/schemas";
 
 export type NodeTheme = "emerald" | "violet" | "amber" | "sky" | "orange" | "teal" | "indigo";
 

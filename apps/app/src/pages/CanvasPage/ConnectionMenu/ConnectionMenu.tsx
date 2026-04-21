@@ -24,12 +24,9 @@ import { useHarnessCanvasStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { OperationRecord, RecipeRecord } from "@repo/db-schema";
-import {
-  getAllowedConnections,
-  getNodeMeta,
-  type NodeType,
-  type BuiltinNodeType,
-} from "../nodeSchemas";
+import { getAllowedConnections } from "../utils/getAllowedConnections";
+import { getNodeMeta } from "../utils/nodeTypeMeta";
+import type { NodeType, BuiltinNodeType } from "@repo/pipeline-engine/schemas";
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
