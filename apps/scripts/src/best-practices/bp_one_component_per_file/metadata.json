@@ -1,0 +1,12 @@
+{
+  "id": "bp_one_component_per_file",
+  "title": "一文件一组件最佳实践",
+  "condition": "检查或重构 React/Vue 组件文件",
+  "category": "frontend",
+  "language": "tsx",
+  "tags": [
+    "react",
+    "component",
+    "file-structure"
+  ]
+}

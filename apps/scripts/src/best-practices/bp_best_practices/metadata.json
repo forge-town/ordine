@@ -1,0 +1,12 @@
+{
+  "id": "bp_best_practices",
+  "title": "最佳实践条目最佳实践",
+  "condition": "创建或编辑最佳实践条目（best_practices 表）",
+  "category": "process",
+  "language": "typescript",
+  "tags": [
+    "best-practice",
+    "meta",
+    "self-reference"
+  ]
+}

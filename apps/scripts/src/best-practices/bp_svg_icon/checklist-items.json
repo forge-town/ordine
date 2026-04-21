@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_svg_1",
+    "title": "所有 SVG 封装为独立 .tsx 存放于 icons/",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_svg_2",
+    "title": "文件名 PascalCase 以 Icon 结尾",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_svg_3",
+    "title": "使用 SVGProps<SVGSVGElement>，属性可覆盖",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_svg_4",
+    "title": "具名导出，禁止 default export",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_svg_5",
+    "title": "icons/index.ts 统一桶导出所有图标",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_svg_6",
+    "title": "业务组件内不存在内联 <svg> 标签",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

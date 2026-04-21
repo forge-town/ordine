@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_checklist_1",
+    "title": "每条规则可回答 Yes/No，禁止模糊表述",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_checklist_2",
+    "title": "每条至少附一个正确或错误示例",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_checklist_3",
+    "title": "使用编号格式（如 1.1、2.3）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_checklist_4",
+    "title": "包含 Bad Case 确认节",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_checklist_5",
+    "title": "条目总数 ≤ 30，每节 ≤ 8 条",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_checklist_6",
+    "title": "禁止使用「应该」「需要」「建议」等模糊词",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

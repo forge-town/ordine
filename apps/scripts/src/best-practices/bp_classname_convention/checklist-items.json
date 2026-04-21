@@ -1,0 +1,34 @@
+[
+  {
+    "id": "cl_cn_1",
+    "title": "动态 className 使用 cn() 函数",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_cn_2",
+    "title": "禁止模板字符串拼接 className",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_cn_3",
+    "title": "禁止字符串连接 className",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_cn_4",
+    "title": "cn() 已从 @/lib/utils 导入",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  }
+]

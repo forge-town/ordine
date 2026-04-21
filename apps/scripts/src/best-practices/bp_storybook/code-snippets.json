@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_storybook_main",
+    "title": "Storybook 最佳实践",
+    "language": "tsx",
+    "code": "const meta: Meta<typeof CatCard> = {\n  title: \"Components/CatCard\",\n  component: CatCard,\n  args: { onSave: fn() },\n};\nexport default meta;\ntype Story = StoryObj<typeof CatCard>;\n\nexport const Base: Story = {\n  args: { name: \"柠檬\", desc: \"慵懒的橘猫\" },\n};\n\nexport const Default: Story = { args: {} };",
+    "sortOrder": 0
+  }
+]

@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_store_main",
+    "title": "Zustand Store 最佳实践",
+    "language": "typescript",
+    "code": "export interface AppLayoutSlice {\n  sidebarOpen: boolean;\n  handleSetSidebarOpen: (open: boolean) => void;\n}\n\nexport const createAppLayoutSlice: StateCreator<AppLayoutSlice> = (set) => ({\n  sidebarOpen: false,\n  handleSetSidebarOpen: (open) => set({ sidebarOpen: open }),\n});",
+    "sortOrder": 0
+  }
+]

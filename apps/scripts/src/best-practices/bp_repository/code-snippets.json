@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_repository_main",
+    "title": "Repository 层最佳实践",
+    "language": "typescript",
+    "code": "export const freeBattleRepository = {\n  async create(input: CreateFreeBattleInput): Promise<{ id: number }> {\n    return await db.transaction(async (tx) => {\n      const battleId = await battlesDao.createWithTx(tx, {\n        title: input.title,\n        type: \"free\",\n      });\n      await freeBattlesDao.createWithTx(tx, {\n        battleId,\n        rules: input.rules,\n      });\n      return { id: battleId };\n    });\n  },\n};",
+    "sortOrder": 0
+  }
+]

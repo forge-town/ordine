@@ -1,0 +1,42 @@
+[
+  {
+    "id": "cl_refine_1",
+    "title": "组件中禁止直接调用 trpc.xxx.useQuery/useMutation",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_refine_2",
+    "title": "读取数据使用 useList/useOne/useInfiniteList",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_refine_3",
+    "title": "写入数据使用 useCreate/useUpdate/useDelete",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_refine_4",
+    "title": "禁止直接 import @tanstack/react-query 获取数据",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_refine_5",
+    "title": "扩展需求走 DataProvider，不绕过 Refine",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  }
+]

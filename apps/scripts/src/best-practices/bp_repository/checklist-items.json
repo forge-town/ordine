@@ -1,0 +1,42 @@
+[
+  {
+    "id": "cl_repo_1",
+    "title": "Repository 只在跨表写入时创建",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_repo_2",
+    "title": "多表写入必须包裹 db.transaction()",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_repo_3",
+    "title": "事务内调用 DAO 的 WithTx 变体方法",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_repo_4",
+    "title": "只返回 { id: string }，不返回完整业务对象",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_repo_5",
+    "title": "不包含业务规则判断（属于 Service 层）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  }
+]

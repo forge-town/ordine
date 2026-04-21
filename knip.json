@@ -1,0 +1,39 @@
+{
+  "workspaces": {
+    "apps/app": {
+      "entry": ["src/router.tsx", "src/routes/**/*.tsx"],
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "apps/scripts": {
+      "entry": ["src/**/*.ts"],
+      "project": ["src/**/*.ts"],
+      "ignore": ["src/best-practices/**/code-snippet.ts"]
+    },
+    "packages/ui": {
+      "includeEntryExports": true,
+      "entry": ["src/**/*.{ts,tsx}"],
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "packages/oxlint-config": {
+      "entry": ["plugins/**/*.js"],
+      "project": ["plugins/**/*.js"]
+    }
+  },
+  "ignoreDependencies": [
+    "@fontsource-variable/geist",
+    "@base-ui/react",
+    "class-variance-authority",
+    "clsx",
+    "tailwind-merge",
+    "tailwindcss",
+    "tw-animate-css",
+    "shadcn",
+    "@oxfmt/binding-darwin-arm64",
+    "@oxlint/binding-darwin-arm64",
+    "@rollup/rollup-darwin-arm64",
+    "@repo/oxlint-config",
+    "@tanstack/router-plugin"
+  ],
+  "ignoreBinaries": ["tsx"],
+  "ignore": ["**/*.stories.tsx"]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "bp_full_check_workflow",
+  "title": "全量检查流程最佳实践",
+  "condition": "需要对项目进行全量最佳实践检查",
+  "category": "process",
+  "language": "typescript",
+  "tags": [
+    "full-check",
+    "workflow",
+    "automation"
+  ]
+}

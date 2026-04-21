@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_dao_1",
+    "title": "文件位于 models/daos/，命名 {feature}Dao.ts",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_dao_2",
+    "title": "类型用 $inferSelect/$inferInsert 推导",
+    "description": "禁止手写",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_dao_3",
+    "title": "写方法必须同时提供 WithTx 变体",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_dao_4",
+    "title": "查询单条返回 T | null，多条返回 T[]",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_dao_5",
+    "title": "create/update 使用 .returning() 返回行",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_dao_6",
+    "title": "DAO 内禁止 try-catch、db.transaction()、调用其他 DAO",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

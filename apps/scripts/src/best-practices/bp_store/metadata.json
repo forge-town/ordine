@@ -1,0 +1,12 @@
+{
+  "id": "bp_store",
+  "title": "Zustand Store 最佳实践",
+  "condition": "使用 Zustand 创建或重构状态管理 Store",
+  "category": "frontend",
+  "language": "typescript",
+  "tags": [
+    "zustand",
+    "store",
+    "state-management"
+  ]
+}

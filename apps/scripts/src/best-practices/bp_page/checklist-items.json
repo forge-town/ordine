@@ -1,0 +1,42 @@
+[
+  {
+    "id": "cl_page_1",
+    "title": "页面为独立目录，PascalCase 命名",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_page_2",
+    "title": "包含 Wrapper 文件（{PageName}.tsx）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_page_3",
+    "title": "包含 Content 文件（{PageName}Content.tsx）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_page_4",
+    "title": "有状态管理时 _store/ 目录包含 slice + store + provider",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_page_5",
+    "title": "Wrapper 只负责组装和依赖注入，不含 UI 逻辑",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  }
+]

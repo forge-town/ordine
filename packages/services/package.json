@@ -1,0 +1,37 @@
+{
+  "name": "@repo/services",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "lint": "oxlint --config ./.oxlintrc.json src/",
+    "test": "vitest run",
+    "quality": "bun run check-types && bun run lint && bun run test"
+  },
+  "dependencies": {
+    "@repo/agent": "workspace:*",
+    "@repo/agent-engine": "workspace:*",
+    "@repo/db-schema": "workspace:*",
+    "@repo/logger": "workspace:*",
+    "@repo/models": "workspace:*",
+    "@repo/obs": "workspace:*",
+    "@repo/pipeline-engine": "workspace:*",
+    "@repo/schemas": "workspace:*",
+    "@repo/utils": "workspace:*",
+    "ai": "^6.0.158",
+    "jszip": "^3.10.1",
+    "neverthrow": "^8.2.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "@types/jszip": "^3.4.1",
+    "typescript": "5.9.2",
+    "vitest": "^4.1.4"
+  }
+}

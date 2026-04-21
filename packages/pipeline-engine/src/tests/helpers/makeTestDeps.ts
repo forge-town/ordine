@@ -1,0 +1,21 @@
+import { okAsync, errAsync } from "neverthrow";
+import { vi } from "vitest";
+import type { PipelineEngineDeps } from "../../deps";
+
+export const makeTestDeps = (
+  overrides: Partial<PipelineEngineDeps> = {},
+): PipelineEngineDeps => ({
+  runPrompt: vi.fn().mockReturnValue(okAsync("prompt-output")),
+  runSkill: vi.fn().mockReturnValue(okAsync("skill-output")),
+  runRuleCheck: vi.fn().mockResolvedValue({ stats: { totalFindings: 0, totalFiles: 0 } }),
+  structuredJsonToMarkdown: vi.fn((content: string) => `# Markdown\n${content}`),
+  listDirTree: vi.fn().mockResolvedValue("src/index.ts\nsrc/app.ts"),
+  readProjectFiles: vi.fn().mockResolvedValue("// file content"),
+  evaluateLoopCondition: vi.fn().mockResolvedValue(true),
+  ...overrides,
+});
+
+export const makePromptFailureDeps = (): PipelineEngineDeps =>
+  makeTestDeps({
+    runPrompt: vi.fn().mockReturnValue(errAsync(new Error("prompt failed"))),
+  });

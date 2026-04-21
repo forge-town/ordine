@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_component_design_main",
+    "title": "组件设计最佳实践",
+    "language": "tsx",
+    "code": "<Tabs defaultValue=\"profile\">\n  <TabsList>\n    <TabsTrigger value=\"profile\">资料</TabsTrigger>\n    <TabsTrigger value=\"settings\">设置</TabsTrigger>\n  </TabsList>\n  <TabsContent value=\"profile\">\n    <Profile />\n  </TabsContent>\n  <TabsContent value=\"settings\">\n    <Settings />\n  </TabsContent>\n</Tabs>",
+    "sortOrder": 0
+  }
+]

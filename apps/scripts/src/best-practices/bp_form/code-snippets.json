@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_form_main",
+    "title": "表单最佳实践",
+    "language": "tsx",
+    "code": "const FormSchema = z.object({\n  name: z.string().min(1, \"必填\"),\n  email: z.string().email(\"邮箱格式不正确\"),\n});\n\nexport function MyForm({ initialData, onSubmit }: MyFormProps) {\n  const form = useForm<z.infer<typeof FormSchema>>({\n    resolver: zodResolver(FormSchema),\n    defaultValues: { ...initialData },\n  });\n\n  return (\n    <Form {...form}>\n      <form onSubmit={form.handleSubmit(onSubmit)}>\n        <FormField\n          control={form.control}\n          name=\"name\"\n          render={({ field }) => (\n            <FormItem>\n              <FormLabel>名称</FormLabel>\n              <FormControl>\n                <Input {...field} />\n              </FormControl>\n              <FormMessage />\n            </FormItem>\n          )}\n        />\n      </form>\n    </Form>\n  );\n}",
+    "sortOrder": 0
+  }
+]

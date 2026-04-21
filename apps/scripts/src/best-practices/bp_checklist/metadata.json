@@ -1,0 +1,11 @@
+{
+  "id": "bp_checklist",
+  "title": "检查清单最佳实践",
+  "condition": "为 Skill 或项目模块编写检查清单（checklist.md）",
+  "category": "process",
+  "language": "markdown",
+  "tags": [
+    "checklist",
+    "quality"
+  ]
+}

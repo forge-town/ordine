@@ -1,0 +1,42 @@
+[
+  {
+    "id": "cl_store_props_1",
+    "title": "Store 中已有的数据不再通过 prop 传入子组件",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_store_props_2",
+    "title": "组件通过 useStore(selector) 直接读取 store 数据",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_store_props_3",
+    "title": "每次 hook 调用只取一个/紧密相关的字段",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_store_props_4",
+    "title": "保留的 props 仅限回调、路由 ID、纯展示标签",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_store_props_5",
+    "title": "props 类型已移除迁移到 store 的字段",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  }
+]

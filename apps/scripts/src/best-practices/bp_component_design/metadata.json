@@ -1,0 +1,12 @@
+{
+  "id": "bp_component_design",
+  "title": "组件设计最佳实践",
+  "condition": "设计或审查 React 组件",
+  "category": "frontend",
+  "language": "tsx",
+  "tags": [
+    "react",
+    "component",
+    "shadcn"
+  ]
+}

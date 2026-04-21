@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_refine_trpc_main",
+    "title": "Refine tRPC 数据获取最佳实践",
+    "language": "tsx",
+    "code": "const { data: users } = useList({\n  resource: \"users\",\n  filters: [{ field: \"role\", operator: \"eq\", value: \"admin\" }],\n});\n\nconst { mutate: createUser } = useCreate();\n\nconst handleSubmit = (values: CreateUserInput) => {\n  createUser({ resource: \"users\", values });\n};",
+    "sortOrder": 0
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "id": "bp_db_table",
+  "title": "数据库表定义最佳实践",
+  "condition": "创建或审查 Drizzle ORM 数据库表定义",
+  "category": "backend",
+  "language": "typescript",
+  "tags": [
+    "database",
+    "schema",
+    "drizzle",
+    "naming"
+  ]
+}

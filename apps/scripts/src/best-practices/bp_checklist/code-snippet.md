@@ -1,0 +1,6 @@
+- [ ] 1.1 文件名格式为 {feature}Dao.ts
+  - 正确：catsDao.ts
+  - 错误：CatsDAO.ts
+- [ ] 1.2 查询单条返回 T | null
+  - 正确：findById(id: string): Promise<UserRow | null>
+  - 错误：findById(id: string): Promise<UserRow>

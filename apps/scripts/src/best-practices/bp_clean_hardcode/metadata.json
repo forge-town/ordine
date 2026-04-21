@@ -1,0 +1,12 @@
+{
+  "id": "bp_clean_hardcode",
+  "title": "代码清理最佳实践",
+  "condition": "检查代码是否存在垃圾代码",
+  "category": "lint",
+  "language": "typescript",
+  "tags": [
+    "clean-code",
+    "hardcode",
+    "lint"
+  ]
+}

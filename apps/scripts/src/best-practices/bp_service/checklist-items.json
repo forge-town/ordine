@@ -1,0 +1,42 @@
+[
+  {
+    "id": "cl_service_1",
+    "title": "文件位于 services/，命名 {feature}Service.ts",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_service_2",
+    "title": "严禁直接 import db 做普通查询，通过 DAO 操作",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_service_3",
+    "title": "方法返回类型明确声明 Promise<T>",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_service_4",
+    "title": "业务规则在 Service 层处理，不下沉到 DAO",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_service_5",
+    "title": "不使用 any 类型",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  }
+]

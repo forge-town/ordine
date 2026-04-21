@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_i18n_1",
+    "title": "使用 LanguageDetector + initReactI18next 初始化",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_i18n_2",
+    "title": "fallbackLng 已配置，escapeValue 为 false",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_i18n_3",
+    "title": "翻译文件位于 src/locales/，key 按模块分组 camelCase",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_i18n_4",
+    "title": "组件中用 useTranslation() 获取 t 函数",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_i18n_5",
+    "title": "富文本用 <Trans> 组件，禁止 dangerouslySetInnerHTML",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_i18n_6",
+    "title": "所有语言文件 key 结构完全一致（镜像关系）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

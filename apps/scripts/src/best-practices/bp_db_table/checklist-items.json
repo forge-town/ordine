@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_db_table_1",
+    "title": "SQL 表名全小写 + 下划线分隔 + 英文复数",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_db_table_2",
+    "title": "文件名格式 {sql_tablename}_table.ts",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_db_table_3",
+    "title": "TS 变量名 {sqlTableName}Table（camelCase + Table 后缀）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_db_table_4",
+    "title": "SQL 列名 snake_case，TS 键名 camelCase",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_db_table_5",
+    "title": "无无意义后缀（_data、_info、_tbl）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_db_table_6",
+    "title": "pgTable 第一参数与文件名去 _table.ts 部分一致",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

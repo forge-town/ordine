@@ -1,0 +1,12 @@
+{
+  "id": "bp_service",
+  "title": "Service 层最佳实践",
+  "condition": "创建或重构 Service 层",
+  "category": "backend",
+  "language": "typescript",
+  "tags": [
+    "service",
+    "trpc",
+    "architecture"
+  ]
+}

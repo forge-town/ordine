@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_comp_unit_1",
+    "title": "组件以独立文件夹形式存在（PascalCase）",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_comp_unit_2",
+    "title": "文件夹内包含 index.ts 桶导出文件",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_comp_unit_3",
+    "title": "包含 ComponentName.test.tsx 单元测试文件",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_comp_unit_4",
+    "title": "包含 ComponentName.stories.tsx 故事文件",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_comp_unit_5",
+    "title": "只导出一个主组件",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_comp_unit_6",
+    "title": "测试和故事文件与组件同目录",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

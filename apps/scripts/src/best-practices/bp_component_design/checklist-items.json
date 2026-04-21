@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_comp_design_1",
+    "title": "组件有明确的单一职责",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_comp_design_2",
+    "title": "使用组合替代配置驱动",
+    "description": "禁止 tabs={[...]} 模式",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_comp_design_3",
+    "title": "Props 继承 HTML 属性，最小化自定义 Props",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_comp_design_4",
+    "title": "提供 className 扩展点，用 cn() 合并",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_comp_design_5",
+    "title": "使用命名导出而非默认导出",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_comp_design_6",
+    "title": "不存在 God Component 或与业务耦合的 UI 组件",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

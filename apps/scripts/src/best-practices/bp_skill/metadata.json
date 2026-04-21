@@ -1,0 +1,12 @@
+{
+  "id": "bp_skill",
+  "title": "Skill 质量验证最佳实践",
+  "condition": "创建或修改 Skill 后执行质量验证",
+  "category": "process",
+  "language": "yaml",
+  "tags": [
+    "skill",
+    "quality",
+    "validation"
+  ]
+}

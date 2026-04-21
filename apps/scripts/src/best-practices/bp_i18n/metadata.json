@@ -1,0 +1,12 @@
+{
+  "id": "bp_i18n",
+  "title": "国际化最佳实践",
+  "condition": "创建或重构 i18n 国际化代码",
+  "category": "frontend",
+  "language": "typescript",
+  "tags": [
+    "i18n",
+    "react-i18next",
+    "localization"
+  ]
+}

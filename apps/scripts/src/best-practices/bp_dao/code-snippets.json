@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_dao_main",
+    "title": "DAO 最佳实践",
+    "language": "typescript",
+    "code": "export const usersDao = {\n  async findById(id: string): Promise<UserRow | null> {\n    const result = await db\n      .select()\n      .from(usersTable)\n      .where(eq(usersTable.id, id))\n      .limit(1);\n    return result[0] ?? null;\n  },\n\n  async create(data: NewUserRow): Promise<UserRow> {\n    const result = await db.insert(usersTable).values(data).returning();\n    return result[0];\n  },\n\n  async createWithTx(tx: DbExecutor, data: NewUserRow): Promise<UserRow> {\n    const result = await tx.insert(usersTable).values(data).returning();\n    return result[0];\n  },\n};",
+    "sortOrder": 0
+  }
+]

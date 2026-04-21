@@ -1,0 +1,29 @@
+{
+  "name": "@ordine/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "check-types": "tsc --noEmit",
+    "lint": "oxlint --config ./.oxlintrc.json src/",
+    "quality": "bun run check-types && bun run lint && bun run test",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.3",
+    "@repo/db": "workspace:*",
+    "@repo/db-schema": "workspace:*",
+    "@repo/models": "workspace:*",
+    "@repo/schemas": "workspace:*",
+    "@repo/services": "workspace:*",
+    "hono": "^4.7.10",
+    "neverthrow": "^8.2.0"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "typescript": "5.9.2",
+    "vitest": "^4.1.4"
+  }
+}

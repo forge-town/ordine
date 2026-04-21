@@ -1,0 +1,12 @@
+{
+  "id": "bp_storybook",
+  "title": "Storybook 最佳实践",
+  "condition": "创建或维护 Storybook Stories",
+  "category": "frontend",
+  "language": "tsx",
+  "tags": [
+    "storybook",
+    "documentation",
+    "component"
+  ]
+}

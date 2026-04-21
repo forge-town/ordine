@@ -1,0 +1,12 @@
+{
+  "id": "bp_barrel_export",
+  "title": "桶导出最佳实践",
+  "condition": "编写或审查 index.ts/index.js 桶导出文件",
+  "category": "architecture",
+  "language": "typescript",
+  "tags": [
+    "barrel-export",
+    "index",
+    "module"
+  ]
+}

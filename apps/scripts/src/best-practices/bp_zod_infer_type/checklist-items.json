@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_zod_1",
+    "title": "有 Zod schema 时类型必须用 z.infer<> 派生",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_zod_2",
+    "title": "派生类型与 schema 同文件导出",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_zod_3",
+    "title": "子集类型用 .omit()/.partial()/.pick() 生成",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_zod_4",
+    "title": "禁止创建 types.ts / type.ts / types/ 目录",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_zod_5",
+    "title": "schema 文件同时导出 const Schema + type 别名",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_zod_6",
+    "title": "不存在手写 interface 与 Zod schema 字段重复",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

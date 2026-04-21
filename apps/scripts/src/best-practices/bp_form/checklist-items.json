@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl_form_1",
+    "title": "表单状态由 react-hook-form 管理，禁止 useState",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_form_2",
+    "title": "使用 zodResolver 集成 Zod 校验",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_form_3",
+    "title": "字段通过 render={({ field }) => ...} 接入",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_form_4",
+    "title": "defaultValues 使用深拷贝副本",
+    "description": "禁止传引用",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_form_5",
+    "title": "跨子组件用 FormProvider + useFormContext",
+    "description": "禁止传 control",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cl_form_6",
+    "title": "表单是独立沙盒，仅在 onSubmit 时对外输出",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 5
+  }
+]

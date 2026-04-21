@@ -1,0 +1,12 @@
+{
+  "id": "bp_use_store_not_props",
+  "title": "Store 优先于 Props 最佳实践",
+  "condition": "设计组件数据流",
+  "category": "frontend",
+  "language": "tsx",
+  "tags": [
+    "zustand",
+    "props",
+    "data-flow"
+  ]
+}

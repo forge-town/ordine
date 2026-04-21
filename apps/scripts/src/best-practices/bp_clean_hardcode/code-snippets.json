@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_clean_hardcode_main",
+    "title": "代码清理最佳实践",
+    "language": "typescript",
+    "code": "import { usersDao } from \"@/models/daos/usersDao\";\n\nexport const usersService = {\n  async findById(id: string): Promise<UserRow | null> {\n    return await usersDao.findById(id);\n  },\n\n  async create(data: CreateUserInput): Promise<UserRow> {\n    return await usersDao.create(data);\n  },\n};",
+    "sortOrder": 0
+  }
+]

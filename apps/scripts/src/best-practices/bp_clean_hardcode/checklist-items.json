@@ -1,0 +1,42 @@
+[
+  {
+    "id": "cl_clean_1",
+    "title": "无未使用的 import 语句",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cl_clean_2",
+    "title": "无 console.log/warn/error 调试输出",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cl_clean_3",
+    "title": "无注释掉的代码段",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cl_clean_4",
+    "title": "无空函数体",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cl_clean_5",
+    "title": "无 debugger 语句",
+    "description": "",
+    "checkType": "llm",
+    "script": null,
+    "sortOrder": 4
+  }
+]

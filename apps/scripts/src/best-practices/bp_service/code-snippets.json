@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_service_main",
+    "title": "Service 层最佳实践",
+    "language": "typescript",
+    "code": "export const catsService = {\n  async create(userId: string, data: CreateCatInput): Promise<Cat> {\n    const existing = await catsDao.findByName(data.name);\n    if (existing) {\n      throw new TRPCError({ code: \"CONFLICT\", message: \"Cat already exists\" });\n    }\n    return await catsDao.create({ ...data, ownerId: userId });\n  },\n\n  async listByOwner(ownerId: string): Promise<Cat[]> {\n    return await catsDao.findByOwnerId(ownerId);\n  },\n};",
+    "sortOrder": 0
+  }
+]

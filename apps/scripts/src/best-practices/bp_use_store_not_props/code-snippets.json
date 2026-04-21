@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_use_store_not_props_main",
+    "title": "Store 优先于 Props 最佳实践",
+    "language": "tsx",
+    "code": "const CatCard = () => {\n  const cat = useCatsPageStore((s) => s.selectedCat);\n\n  return (\n    <Card>\n      <CardContent>\n        <h3>{cat.name}</h3>\n        <p>{cat.breed}</p>\n      </CardContent>\n    </Card>\n  );\n};",
+    "sortOrder": 0
+  }
+]

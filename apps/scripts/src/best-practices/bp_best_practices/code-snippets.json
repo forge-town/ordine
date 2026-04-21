@@ -1,0 +1,9 @@
+[
+  {
+    "id": "cs_bp_best_practices_main",
+    "title": "最佳实践条目最佳实践",
+    "language": "typescript",
+    "code": "const entry: BestPracticeSeed = {\n  id: \"bp_dao\",\n  title: \"DAO 最佳实践\",\n  condition: \"创建或重构 DAO 文件\",\n  content: \"确保遵循 Drizzle ORM 最佳实践。\",\n  category: \"backend\",\n  language: \"typescript\",\n  codeSnippet: \"export const usersDao = { ... };\",\n  tags: [\"dao\", \"drizzle\", \"database\"],\n};",
+    "sortOrder": 0
+  }
+]
