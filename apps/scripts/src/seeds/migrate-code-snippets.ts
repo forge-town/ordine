@@ -16,7 +16,7 @@ interface CodeSnippet {
   sortOrder: number;
 }
 
-async function migrate() {
+const migrate = async () => {
   console.log("🔄 Migrating codeSnippet → code_snippets table...\n");
 
   const bestPractices = await apiGet<BestPractice[]>("/api/best-practices");
@@ -51,9 +51,9 @@ async function migrate() {
   }
 
   console.log(`\n🎉 Done — ${counts.migrated} migrated, ${counts.skipped} skipped.`);
-}
+};
 
-migrate().catch((error) => {
+migrate().catch((error: unknown) => {
   console.error("❌ Migration failed:", error);
-  process.exit(1);
+  throw error instanceof Error ? error : new Error(String(error));
 });

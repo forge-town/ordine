@@ -3,7 +3,7 @@ export * from "./BestPracticeImportEntrySchema";
 export * from "./BestPracticeImportSchema";
 export * from "./ChecklistItemSchema";
 export * from "./ChecklistResultSchema";
-export * from "./AgentBackendSchema";
+export * from "./AgentRuntimeSchema";
 export * from "./AgentModeSchema";
 export * from "./CodeSnippetSchema";
 export * from "./ExecutorConfigSchema";

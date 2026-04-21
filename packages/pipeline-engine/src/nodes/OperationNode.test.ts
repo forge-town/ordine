@@ -296,7 +296,7 @@ describe("executeOperationNode — agent override", () => {
       type: "agent",
       agentMode: "prompt",
       prompt: "Analyze",
-      agent: "local-claude",
+      agent: "claude-code",
     });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id", llmProvider: "codex" });
@@ -314,16 +314,16 @@ describe("executeOperationNode — agent override", () => {
       type: "agent",
       agentMode: "skill",
       skillId: "sk-1",
-      agent: "local-claude",
+      agent: "claude-code",
     });
     const ops = new Map([["op-id", op]]);
-    const node = makeNode({ operationId: "op-id", llmProvider: "local-claude" });
+    const node = makeNode({ operationId: "op-id", llmProvider: "claude-code" });
     const ctx = makeCtx(deps, ops);
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
     expect(result.ok).toBe(true);
-    expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ agent: "local-claude" }));
+    expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ agent: "claude-code" }));
   });
 
   it("falls back to executor.agent when llmProvider is not set", async () => {

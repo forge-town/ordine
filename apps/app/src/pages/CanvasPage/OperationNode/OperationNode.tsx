@@ -17,7 +17,8 @@ import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
 import type { OperationNodeData, NodeRunStatus } from "@repo/pipeline-engine/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { LLM_PROVIDERS, type OperationRecord, type BestPracticeRecord } from "@repo/db-schema";
+import { type OperationRecord, type BestPracticeRecord } from "@repo/db-schema";
+import { AgentRuntimeSchema } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
 import { BestPracticeSelect } from "./BestPracticeSelect";
 
@@ -44,12 +45,12 @@ const statusConfig: Record<
 const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
 const PROVIDER_LABELS: Record<string, string> = {
-  "local-claude": "Claude",
+  "claude-code": "Claude",
   codex: "Codex",
 };
 
 const MODEL_OPTIONS: Record<string, { value: string; label: string }[]> = {
-  "local-claude": [],
+  "claude-code": [],
   codex: [],
 };
 
@@ -220,7 +221,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
                 <SelectGroup>
                   <SelectLabel>Provider</SelectLabel>
                   <SelectItem value="__default__">默认</SelectItem>
-                  {LLM_PROVIDERS.map((p) => (
+                  {AgentRuntimeSchema.options.map((p) => (
                     <SelectItem key={p} value={p}>
                       {PROVIDER_LABELS[p] ?? p}
                     </SelectItem>

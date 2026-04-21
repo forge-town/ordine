@@ -1,13 +1,13 @@
 import { z } from "zod/v4";
 import { ExecutorTypeSchema } from "./ExecutorTypeSchema";
 import { AgentModeSchema } from "./AgentModeSchema";
-import { AgentBackendSchema } from "./AgentBackendSchema";
+import { AgentRuntimeSchema } from "./AgentRuntimeSchema";
 import { ScriptLanguageSchema } from "./ScriptLanguageSchema";
 
 export const ExecutorConfigSchema = z.object({
   type: ExecutorTypeSchema,
   agentMode: AgentModeSchema.optional(),
-  agent: AgentBackendSchema.optional(),
+  agent: AgentRuntimeSchema.optional(),
   skillId: z.string().optional(),
   prompt: z.string().optional(),
   command: z.string().optional(),

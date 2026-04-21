@@ -32,7 +32,7 @@ export class SettingsDao {
     return existingRows[0]!;
   }
 
-  async update(patch: Partial<Pick<SettingsRecord, "llmProvider" | "llmApiKey" | "llmModel">>) {
+  async update(patch: Partial<Pick<SettingsRecord, "defaultAgentRuntime" | "defaultApiKey" | "defaultModel">>) {
     await this.get();
 
     const [updated] = await this.executor

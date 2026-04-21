@@ -31,63 +31,61 @@ interface CodeSnippetSeed {
   sortOrder: number;
 }
 
-function readFolders(): string[] {
+const readFolders = (): string[] => {
   return readdirSync(BP_DIR).filter((name) => {
     const full = join(BP_DIR, name);
 
     return statSync(full).isDirectory();
   });
-}
+};
 
-function readMetadata(folder: string): Metadata {
+const readMetadata = (folder: string): Metadata => {
   const raw = readFileSync(join(BP_DIR, folder, "metadata.json"), "utf8");
 
   return JSON.parse(raw) as Metadata;
-}
+};
 
-function readContent(folder: string): string {
+const readContent = (folder: string): string => {
   const p = join(BP_DIR, folder, "content.md");
 
   return existsSync(p) ? readFileSync(p, "utf8").trim() : "";
-}
+};
 
-function readCodeSnippet(folder: string): string {
+const readCodeSnippet = (folder: string): string => {
   const dir = join(BP_DIR, folder);
   const files = readdirSync(dir);
   const codeFile = files.find((f) => f.startsWith("code-snippet."));
   if (!codeFile) return "";
 
   return readFileSync(join(dir, codeFile), "utf8").trim();
-}
+};
 
-function readChecklistItems(folder: string, bpId: string): ChecklistItemSeed[] {
+const readChecklistItems = (folder: string, bpId: string): ChecklistItemSeed[] => {
   const p = join(BP_DIR, folder, "checklist-items.json");
   if (!existsSync(p)) return [];
   const raw = readFileSync(p, "utf8");
   const items = JSON.parse(raw) as Omit<ChecklistItemSeed, "bestPracticeId">[];
 
   return items.map((item) => ({ ...item, bestPracticeId: bpId }));
-}
+};
 
-function readCodeSnippets(folder: string, bpId: string): CodeSnippetSeed[] {
+const readCodeSnippets = (folder: string, bpId: string): CodeSnippetSeed[] => {
   const p = join(BP_DIR, folder, "code-snippets.json");
   if (!existsSync(p)) return [];
   const raw = readFileSync(p, "utf8");
   const items = JSON.parse(raw) as Omit<CodeSnippetSeed, "bestPracticeId">[];
 
   return items.map((item) => ({ ...item, bestPracticeId: bpId }));
-}
+};
 
-async function seed() {
+const seed = async () => {
   console.log("🌱 Seeding best practices from folders...\n");
   console.log(`📁 Source: ${BP_DIR}\n`);
 
   const folders = readFolders();
   console.log(`Found ${folders.length} best practice folders.\n`);
 
-  let bpCount = 0;
-  let clCount = 0;
-  let csCount = 0;
+  const counts = { bp: 0, cl: 0, cs: 0 };
 
   for (const folder of folders) {
     const meta = readMetadata(folder);
@@ -102,11 +100,11 @@ async function seed() {
       codeSnippet,
     });
     console.log(`  ✅  ${meta.id} — ${meta.title}`);
-    bpCount++;
+    counts.bp++;
 
     for (const item of checklistItems) {
       await apiPut("/api/checklist-items", item);
-      clCount++;
+      counts.cl++;
     }
     if (checklistItems.length > 0) {
       console.log(`      └─ ${checklistItems.length} checklist items`);
@@ -114,7 +112,7 @@ async function seed() {
 
     for (const snippet of codeSnippets) {
       await apiPut("/api/code-snippets", snippet);
-      csCount++;
+      counts.cs++;
     }
     if (codeSnippets.length > 0) {
       console.log(`      └─ ${codeSnippets.length} code snippets`);
@@ -138,11 +136,11 @@ async function seed() {
   }
 
   console.log(
-    `\n🎉 Done — ${bpCount} best practices, ${clCount} checklist items, ${csCount} code snippets upserted.`,
+    `\n🎉 Done — ${counts.bp} best practices, ${counts.cl} checklist items, ${counts.cs} code snippets upserted.`,
   );
-}
+};
 
-seed().catch((error) => {
+seed().catch((error: unknown) => {
   console.error("❌ Seed failed:", error);
-  process.exit(1);
+  throw error instanceof Error ? error : new Error(String(error));
 });

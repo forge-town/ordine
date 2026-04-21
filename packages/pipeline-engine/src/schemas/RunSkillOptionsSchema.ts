@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { AgentBackendSchema } from "@repo/schemas";
+import { AgentRuntimeSchema } from "@repo/schemas";
 
 export const RunSkillOptionsSchema = z.object({
   skillId: z.string(),
@@ -11,7 +11,7 @@ export const RunSkillOptionsSchema = z.object({
   writeEnabled: z.boolean().optional(),
   allowedTools: z.array(z.string()).optional(),
   promptMode: z.enum(["code", "research"]).optional(),
-  agent: AgentBackendSchema.optional(),
+  agent: AgentRuntimeSchema.optional(),
 });
 export type RunSkillOptions = z.infer<typeof RunSkillOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;

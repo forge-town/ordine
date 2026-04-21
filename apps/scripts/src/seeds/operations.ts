@@ -52,9 +52,9 @@ interface OperationConfig {
   outputs: OutputPort[];
 }
 
-function cfg(config: OperationConfig): OperationConfig {
+const cfg = (config: OperationConfig): OperationConfig => {
   return config;
-}
+};
 
 // ─── Seed Data ───────────────────────────────────────────────────────────────
 
@@ -452,21 +452,21 @@ const OPERATIONS: OperationSeed[] = [
 
 // ─── Runner ──────────────────────────────────────────────────────────────────
 
-async function seed() {
+const seed = async () => {
   console.log("🌱  Seeding spec-kit operations via REST API...\n");
 
-  let upserted = 0;
+  const counts = { upserted: 0 };
 
   for (const op of OPERATIONS) {
     await apiPut("/api/operations", op);
     console.log(`  ✅  ${op.name} (${op.id}) — upserted`);
-    upserted++;
+    counts.upserted++;
   }
 
-  console.log(`\n✨  Done. Upserted: ${upserted}, Total: ${OPERATIONS.length}`);
-}
+  console.log(`\n✨  Done. Upserted: ${counts.upserted}, Total: ${OPERATIONS.length}`);
+};
 
-seed().catch((error) => {
+seed().catch((error: unknown) => {
   console.error("❌  Seed failed:", error);
-  process.exit(1);
+  throw error instanceof Error ? error : new Error(String(error));
 });

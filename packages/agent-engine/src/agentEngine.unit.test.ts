@@ -25,9 +25,9 @@ vi.mock("@repo/agent", () => ({
 import { agentEngine } from "./agentEngine";
 
 describe("agentEngine", () => {
-  it("dispatches to runClaude for local-claude", async () => {
+  it("dispatches to runClaude for claude-code", async () => {
     const result = await agentEngine.run({
-      agent: "local-claude",
+      agent: "claude-code",
       mode: "direct",
       systemPrompt: "You are a linter",
       userPrompt: "Check this code",
@@ -55,7 +55,7 @@ describe("agentEngine", () => {
   it("throws for unsupported agent backend", async () => {
     await expect(
       agentEngine.run({
-        agent: "unknown" as "local-claude",
+        agent: "unknown" as "claude-code",
         mode: "direct",
         systemPrompt: "x",
         userPrompt: "y",
@@ -68,7 +68,7 @@ describe("agentEngine", () => {
     const onProgress = vi.fn();
 
     await agentEngine.run({
-      agent: "local-claude",
+      agent: "claude-code",
       mode: "direct",
       systemPrompt: "x",
       userPrompt: "y",

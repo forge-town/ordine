@@ -44,9 +44,9 @@ interface OperationConfig {
   outputs: OutputPort[];
 }
 
-function cfg(config: OperationConfig): OperationConfig {
+const cfg = (config: OperationConfig): OperationConfig => {
   return config;
-}
+};
 
 // ─── Operations ──────────────────────────────────────────────────────────────
 
@@ -669,34 +669,32 @@ const PIPELINES: PipelineSeed[] = [
 
 // ─── Runner ──────────────────────────────────────────────────────────────────
 
-async function seed() {
+const seed = async () => {
   console.log("🌱  Seeding skill-based operations & pipelines via REST API...\n");
 
   // ── Seed Operations ──
-  let opsUpserted = 0;
+  const counts = { ops: 0, pl: 0 };
 
   for (const op of OPERATIONS) {
     await apiPut("/api/operations", op);
     console.log(`  ✅  Op: ${op.name} (${op.id}) — upserted`);
-    opsUpserted++;
+    counts.ops++;
   }
 
-  console.log(`\n  Operations — Upserted: ${opsUpserted}\n`);
+  console.log(`\n  Operations — Upserted: ${counts.ops}\n`);
 
   // ── Seed Pipelines ──
-  let plUpserted = 0;
-
   for (const pl of PIPELINES) {
     await apiPut("/api/pipelines", pl);
     console.log(`  ✅  Pipeline: ${pl.name} (${pl.id}) — upserted`);
-    plUpserted++;
+    counts.pl++;
   }
 
-  console.log(`\n  Pipelines — Upserted: ${plUpserted}`);
-  console.log(`\n✨  Done. ${opsUpserted + plUpserted} records upserted.`);
-}
+  console.log(`\n  Pipelines — Upserted: ${counts.pl}`);
+  console.log(`\n✨  Done. ${counts.ops + counts.pl} records upserted.`);
+};
 
-seed().catch((error) => {
+seed().catch((error: unknown) => {
   console.error("❌  Seed failed:", error);
-  process.exit(1);
+  throw error instanceof Error ? error : new Error(String(error));
 });

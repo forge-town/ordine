@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 
 const mockGetModel = vi.hoisted(() => vi.fn().mockReturnValue("mock-model"));
 const mockDao = vi.hoisted(() => ({
-  get: vi.fn().mockResolvedValue({ llmApiKey: "key-123", llmModel: "gpt-4" }),
+  get: vi.fn().mockResolvedValue({ defaultApiKey: "key-123", defaultModel: "gpt-4" }),
 }));
 
 vi.mock("@repo/agent", () => ({

@@ -1,12 +1,12 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { settingsService } from "../services";
-import { LLM_PROVIDERS } from "@repo/db-schema";
+import { AgentRuntimeSchema } from "@repo/schemas";
 
 const UpdateSettingsSchema = z.object({
-  llmProvider: z.enum(LLM_PROVIDERS).optional(),
-  llmApiKey: z.string().optional(),
-  llmModel: z.string().optional(),
+  defaultAgentRuntime: AgentRuntimeSchema.optional(),
+  defaultApiKey: z.string().optional(),
+  defaultModel: z.string().optional(),
 });
 
 export const settingsRouter = router({
