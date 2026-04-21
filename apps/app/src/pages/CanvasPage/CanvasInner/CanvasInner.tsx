@@ -8,7 +8,6 @@ import { CanvasContextMenu } from "../CanvasContextMenu";
 import { ConnectionMenu } from "../ConnectionMenu";
 import { NodeContextMenu } from "../NodeContextMenu";
 import { CanvasFloatingMenu } from "../CanvasFloatingMenu";
-import { AiAssistantPanel } from "../AiAssistantPanel";
 import { RunConsole } from "../RunConsole";
 import { LlmContentCard } from "../LlmContentCard/LlmContentCard";
 
@@ -53,8 +52,6 @@ export const CanvasInner = () => {
       {connectionMenu && <ConnectionMenu />}
 
       {nodeContextMenu && <NodeContextMenu />}
-
-      <AiAssistantPanel />
 
       <LlmContentCard />
 

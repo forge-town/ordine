@@ -33,7 +33,6 @@ export interface UISlice {
   sidebarPanel: SidebarPanel;
   isSidebarOpen: boolean;
   isPropertiesPanelOpen: boolean;
-  isAiAssistantOpen: boolean;
   isConsoleOpen: boolean;
   activeJobId: string | null;
   contextMenu: ContextMenuState | null;
@@ -55,7 +54,6 @@ export interface UISlice {
   handleToggleSidebar: () => void;
   openPropertiesPanel: () => void;
   closePropertiesPanel: () => void;
-  handleToggleAi: () => void;
   toggleConsole: () => void;
   setActiveJobId: (jobId: string | null) => void;
   openContextMenu: (state: ContextMenuState) => void;
@@ -90,14 +88,13 @@ export const createUISlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
 
   pipelineId: string | null = null,
-  pipelineName = ""
+  pipelineName = "",
 ): UISlice => ({
   pipelineId,
   pipelineName,
   sidebarPanel: "components",
   isSidebarOpen: true,
   isPropertiesPanelOpen: false,
-  isAiAssistantOpen: false,
   isConsoleOpen: false,
   activeJobId: null,
   contextMenu: null,
@@ -130,10 +127,6 @@ export const createUISlice = (
 
   closePropertiesPanel: () => {
     set({ isPropertiesPanelOpen: false });
-  },
-
-  handleToggleAi: () => {
-    set((state) => ({ isAiAssistantOpen: !state.isAiAssistantOpen }));
   },
 
   toggleConsole: () => {

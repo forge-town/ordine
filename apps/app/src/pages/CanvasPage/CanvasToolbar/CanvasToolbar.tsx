@@ -1,16 +1,6 @@
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
-import {
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  Trash2,
-  Undo2,
-  Redo2,
-  Bot,
-  Play,
-  AlignLeft,
-} from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize2, Trash2, Undo2, Redo2, Play, AlignLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
@@ -20,7 +10,6 @@ export const CanvasToolbar = () => {
   const { t } = useTranslation();
   const store = useHarnessCanvasStore();
   const selectedNodeId = useStore(store, (state) => state.selectedNodeId);
-  const isAiAssistantOpen = useStore(store, (state) => state.isAiAssistantOpen);
   const canUndo = useStore(store, (state) => state.canUndo);
   const canRedo = useStore(store, (state) => state.canRedo);
   const handleFitView = useStore(store, (state) => state.handleFitView);
@@ -29,7 +18,6 @@ export const CanvasToolbar = () => {
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const isRunning = useStore(store, (state) => state.isRunning);
   const handleDeleteSelected = useStore(store, (state) => state.handleDeleteSelected);
-  const handleToggleAi = useStore(store, (state) => state.handleToggleAi);
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
   const handleFormatLayout = useStore(store, (state) => state.formatLayout);
@@ -128,19 +116,6 @@ export const CanvasToolbar = () => {
           </TooltipTrigger>
           <TooltipContent>{t("canvas.deleteNode")}</TooltipContent>
         </Tooltip>
-
-        <Separator className="mx-1 h-5" orientation="vertical" />
-
-        {/* AI Assistant */}
-        <Button
-          className="h-7 gap-1.5 px-2 text-xs"
-          size="sm"
-          variant={isAiAssistantOpen ? "default" : "ghost"}
-          onClick={handleToggleAi}
-        >
-          <Bot className="h-3.5 w-3.5" />
-          <span>AI</span>
-        </Button>
 
         <Separator className="mx-1 h-5" orientation="vertical" />
 

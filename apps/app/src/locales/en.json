@@ -218,16 +218,6 @@
     "outputEndpoint": "Output Endpoints",
     "recipeNodes": "Recipe Nodes",
     "connectNodesHint": "Connect node ports to define data flow",
-    "aiAssistant": "AI Pipeline Assistant",
-    "aiAssistantWelcome": "Hello! I'm the Pipeline AI Assistant.\n\nTell me what kind of Pipeline you want to build, and I'll help you design the node structure, add Skills, or adjust connections.",
-    "aiAssistantInputPlaceholder": "Tell me how to modify this Pipeline...",
-    "aiAssistantTitle": "AI Pipeline Assistant",
-    "aiAssistantSubtitle": "Click to influence canvas",
-    "aiAssistantThinking": "Thinking...",
-    "aiAssistantActionAdd": "Add",
-    "aiAssistantActionClear": "Clear canvas",
-    "aiAssistantActionConnect": "Connect nodes",
-    "aiAssistantSendHint": "Enter to send · Shift+Enter for new line",
     "addNode": "Add node",
     "addNodeTypes": {
       "codeFile": "Code File",
@@ -527,16 +517,6 @@
     "configure": "Configure",
     "modify": "Modify",
     "urlParseError": "Unable to parse GitHub URL, please enter a valid repository link"
-  },
-  "aiAssistant": {
-    "placeholder": "Tell me how to modify this Pipeline...",
-    "welcomeMessage": "Hello! I'm the Pipeline AI Assistant.\n\nTell me what kind of Pipeline you want to build, and I'll help you design the node structure, add Skills, or adjust connections.",
-    "thinking": "Thinking...",
-    "sendHint": "Enter to send · Shift+Enter for new line",
-    "subtitle": "Click to influence canvas",
-    "actionAdd": "Add",
-    "actionClear": "Clear canvas",
-    "actionConnect": "Connect nodes"
   },
   "skills": {
     "pageStructure": "Page Structure",
