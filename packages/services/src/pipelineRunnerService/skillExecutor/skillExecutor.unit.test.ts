@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { runClaudeTmux, runCodexTmux, type SettingsResolver } from "@repo/agent";
+import { recordAgentRunWithSpans } from "@repo/obs";
 
 vi.mock("@repo/agent", () => ({
   runClaudeTmux: vi.fn().mockResolvedValue({
@@ -91,6 +92,37 @@ describe("skillExecutor", () => {
       expect(result.error).toBeInstanceOf(SkillExecutionError);
       expect(result.error.message).toContain("codex boom");
     }
+  });
+
+  it("records an agent run for codex skills when jobId is provided", async () => {
+    vi.mocked(runCodexTmux).mockResolvedValueOnce({
+      output:
+        '{"type":"check","summary":"ok","findings":[],"stats":{"totalFiles":1,"totalFindings":0,"errors":0,"warnings":0,"infos":0,"skipped":0}}',
+      sessionName: "mock-session",
+    });
+
+    const result = await skillExecutor.run({
+      ...baseOpts,
+      agent: "codex",
+      jobId: "job-1",
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(recordAgentRunWithSpans).toHaveBeenCalledOnce();
+    expect(recordAgentRunWithSpans).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jobId: "job-1",
+        agentSystem: "codex",
+        agentId: "test-skill",
+        rawPayload: expect.objectContaining({
+          system: expect.any(String),
+          prompt: expect.any(String),
+          output: expect.stringContaining('"summary":"ok"'),
+        }),
+        status: "completed",
+      }),
+      expect.any(Function),
+    );
   });
 
   it("returns SkillExecutionError when no LLM model for mastra", async () => {

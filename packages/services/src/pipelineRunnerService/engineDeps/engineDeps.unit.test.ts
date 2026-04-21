@@ -1,0 +1,81 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { promptExecutor } from "../promptExecutor";
+import { skillExecutor } from "../skillExecutor";
+import { pipelineRunnerEngineDeps } from "./engineDeps";
+import type { SettingsResolver } from "@repo/agent";
+import type { RulesDaoInstance } from "@repo/models";
+import type { LoopEvaluatorFn } from "../loopEvaluator";
+
+vi.mock("../promptExecutor", () => ({
+  promptExecutor: {
+    run: vi.fn(),
+  },
+}));
+
+vi.mock("../skillExecutor", () => ({
+  skillExecutor: {
+    run: vi.fn(),
+  },
+}));
+
+describe("pipelineRunnerEngineDeps", () => {
+  const getSettings = vi.fn() as unknown as SettingsResolver;
+  const rulesDao = {} as RulesDaoInstance;
+  const evaluateLoopCondition = vi.fn() as unknown as LoopEvaluatorFn;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("passes jobId to promptExecutor", () => {
+    const deps = pipelineRunnerEngineDeps.build({
+      getSettings,
+      rulesDao,
+      evaluateLoopCondition,
+      jobId: "job-1",
+    });
+
+    deps.runPrompt({
+      prompt: "analyze",
+      inputContent: "content",
+      inputPath: "/tmp/project",
+    });
+
+    expect(promptExecutor.run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: "analyze",
+        inputContent: "content",
+        inputPath: "/tmp/project",
+        jobId: "job-1",
+        getSettings,
+      }),
+    );
+  });
+
+  it("passes jobId to skillExecutor", () => {
+    const deps = pipelineRunnerEngineDeps.build({
+      getSettings,
+      rulesDao,
+      evaluateLoopCondition,
+      jobId: "job-1",
+    });
+
+    deps.runSkill({
+      skillId: "skill-1",
+      skillDescription: "desc",
+      inputContent: "content",
+      inputPath: "/tmp/project",
+    });
+
+    expect(skillExecutor.run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skillId: "skill-1",
+        skillDescription: "desc",
+        inputContent: "content",
+        inputPath: "/tmp/project",
+        jobId: "job-1",
+        getSettings,
+      }),
+    );
+  });
+});

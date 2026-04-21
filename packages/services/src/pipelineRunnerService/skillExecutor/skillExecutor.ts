@@ -284,6 +284,7 @@ const run = ({
         const cwd = resolveCwd({ inputPath });
         logger.info("runSkill: starting codex exec");
         await onProgress?.("[Codex] runSkill: Starting codex exec...");
+        const codexStartTime = Date.now();
 
         const codexResult = await ResultAsync.fromPromise(
           runCodexTmux({
@@ -321,6 +322,48 @@ const run = ({
 
         const codexParsed = isResearch ? raw : validateSkillOutput({ raw, mode });
         if (onChunk) await onChunk(codexParsed);
+
+        if (jobId) {
+          const codexDurationMs = Date.now() - codexStartTime;
+          const obsResult = await ResultAsync.fromPromise(
+            recordAgentRunWithSpans(
+              {
+                jobId,
+                agentSystem: "codex",
+                agentId: skillId,
+                modelId: modelOverride ?? null,
+                rawPayload: {
+                  system: systemPrompt,
+                  prompt: userPrompt,
+                  output: raw,
+                },
+                durationMs: codexDurationMs,
+                status: "completed",
+              },
+              (rawExportId) => [
+                {
+                  jobId: jobId!,
+                  rawExportId,
+                  spanType: "agent_run",
+                  name: skillId,
+                  input: userPrompt.slice(0, 10_000),
+                  output: raw.slice(0, 10_000),
+                  modelId: modelOverride ?? null,
+                  tokenInput: null,
+                  tokenOutput: null,
+                  durationMs: codexDurationMs,
+                  status: "completed",
+                  startedAt: new Date(Date.now() - codexDurationMs),
+                  finishedAt: new Date(),
+                },
+              ],
+            ),
+            (e) => e,
+          );
+          if (obsResult.isErr()) {
+            logger.warn({ err: obsResult.error }, "runSkill: failed to record codex observability");
+          }
+        }
 
         return codexParsed;
       }

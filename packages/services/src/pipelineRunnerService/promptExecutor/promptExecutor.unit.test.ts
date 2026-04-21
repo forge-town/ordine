@@ -1,10 +1,15 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { runClaude, runCodex, type SettingsResolver } from "@repo/agent";
+import { recordAgentRunWithSpans } from "@repo/obs";
 
 vi.mock("@repo/agent", () => ({
   runClaude: vi.fn().mockResolvedValue({ text: "claude-output" }),
   runCodex: vi.fn().mockResolvedValue("codex-output"),
   getModel: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock("@repo/obs", () => ({
+  recordAgentRunWithSpans: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@repo/logger", () => ({
@@ -47,6 +52,30 @@ describe("promptExecutor", () => {
         userPrompt: "some code",
         cwd: "/tmp/test",
       }),
+    );
+  });
+
+  it("records an agent run for codex prompts when jobId is provided", async () => {
+    const result = await promptExecutor.run({
+      ...baseOpts,
+      agent: "codex",
+      jobId: "job-1",
+    } as Parameters<typeof promptExecutor.run>[0] & { jobId: string });
+
+    expect(result.isOk()).toBe(true);
+    expect(recordAgentRunWithSpans).toHaveBeenCalledOnce();
+    expect(recordAgentRunWithSpans).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jobId: "job-1",
+        agentSystem: "codex",
+        rawPayload: expect.objectContaining({
+          system: "Analyze this",
+          prompt: "some code",
+          output: "codex-output",
+        }),
+        status: "completed",
+      }),
+      expect.any(Function),
     );
   });
 

@@ -22,6 +22,7 @@ const build = ({
   runPrompt: (o) =>
     promptExecutor.run({
       ...o,
+      jobId,
       getSettings,
     }),
   runSkill: (o) =>

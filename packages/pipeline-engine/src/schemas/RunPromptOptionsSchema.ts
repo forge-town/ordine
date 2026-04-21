@@ -6,6 +6,7 @@ export const RunPromptOptionsSchema = z.object({
   prompt: z.string(),
   inputContent: z.string(),
   inputPath: z.string(),
+  jobId: z.string().optional(),
   modelOverride: z.string().optional(),
   agent: AgentBackendSchema.optional(),
 });
