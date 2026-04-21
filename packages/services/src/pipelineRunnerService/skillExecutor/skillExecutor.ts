@@ -2,8 +2,6 @@ import { ResultAsync, Result } from "neverthrow";
 import { dirname } from "node:path";
 import { statSync } from "node:fs";
 import {
-  runClaudeTmux,
-  runCodexTmux,
   READ_ONLY_TOOLS,
   WRITE_TOOLS,
   extractJsonFromText,
@@ -15,6 +13,7 @@ import {
   type SettingsResolver,
   type ClaudeStreamEvent,
 } from "@repo/agent";
+import { agentEngine } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
 import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
 import type { RunSkillOptions as EngineRunSkillOptions } from "@repo/pipeline-engine";
@@ -33,7 +32,6 @@ export class SkillExecutionError extends Error {
 type RunSkillExecutorOptions = EngineRunSkillOptions & {
   getSettings: SettingsResolver;
   jobId?: string;
-  onTmuxSession?: (sessionName: string) => Promise<void>;
 };
 
 const buildSkillSystemPrompt = ({
@@ -139,7 +137,6 @@ const run = ({
   agent = "local-claude",
   onChunk,
   onProgress,
-  onTmuxSession,
   writeEnabled,
   allowedTools: customAllowedTools,
   promptMode = "code",
@@ -171,202 +168,116 @@ const run = ({
         promptMode,
       });
 
-      if (agent === "local-claude") {
-        const cwd = resolveCwd({ inputPath });
-        const parsedCustomTools = customAllowedTools
-          ? ToolNameSchema.array().readonly().safeParse(customAllowedTools)
-          : null;
-        const allowedTools =
-          (parsedCustomTools?.success ? parsedCustomTools.data : null) ??
-          (isImplementMode ? WRITE_TOOLS : READ_ONLY_TOOLS);
-        const claudeStartTime = Date.now();
+      const cwd = resolveCwd({ inputPath });
+      const parsedCustomTools = customAllowedTools
+        ? ToolNameSchema.array().readonly().safeParse(customAllowedTools)
+        : null;
+      const allowedTools =
+        (parsedCustomTools?.success ? parsedCustomTools.data : null) ??
+        (isImplementMode ? WRITE_TOOLS : READ_ONLY_TOOLS);
 
-        const claudeResult = await ResultAsync.fromPromise(
-          runClaudeTmux({
-            systemPrompt,
-            userPrompt,
-            cwd,
-            allowedTools,
-            onProgress,
-            onSessionCreated: onTmuxSession,
-          }),
-          (error) => error,
+      const startTime = Date.now();
+
+      const engineResult = await ResultAsync.fromPromise(
+        agentEngine.run({
+          agent,
+          mode: "direct",
+          systemPrompt,
+          userPrompt,
+          cwd,
+          allowedTools,
+          onProgress,
+        }),
+        (error) => error,
+      );
+
+      if (engineResult.isErr()) {
+        const error = engineResult.error;
+        const errMsg = error instanceof Error ? error.message : String(error);
+        logger.error({ err: errMsg, agent }, "runSkill: agent failed");
+        await onProgress?.(`runSkill: ${agent} FAILED — ${errMsg}`);
+
+        throw new SkillExecutionError(
+          `${agent} agent failed for skill "${skillId}": ${errMsg}`,
+          error,
         );
-
-        if (claudeResult.isErr()) {
-          const error = claudeResult.error;
-          const errMsg = error instanceof Error ? error.message : String(error);
-          logger.error({ err: errMsg }, "runSkill: claude -p failed");
-          await onProgress?.(`runSkill: Claude FAILED — ${errMsg}`);
-
-          throw new SkillExecutionError(
-            `Claude agent failed for skill "${skillId}": ${errMsg}`,
-            error,
-          );
-        }
-
-        const raw = claudeResult.value.text;
-        const events = claudeResult.value.events;
-        logger.info({ len: raw.length, events: events.length }, "runSkill: claude complete");
-        await onProgress?.(
-          `runSkill: Claude complete, output=${raw.length} chars, ${events.length} events`,
-        );
-
-        if (raw.length === 0) {
-          logger.warn("runSkill: claude returned empty output");
-          await onProgress?.("runSkill: WARNING — Claude returned empty output");
-
-          throw new SkillExecutionError(
-            `Claude agent returned empty output for skill "${skillId}"`,
-          );
-        }
-
-        const result = isResearch ? raw : validateSkillOutput({ raw, mode });
-        if (onChunk) await onChunk(result);
-
-        // Record observability for local-claude
-        if (jobId) {
-          const claudeDurationMs = Date.now() - claudeStartTime;
-          const resultEvent = events.find((e) => e.type === "result");
-          const totalCost = resultEvent?.total_cost_usd ?? null;
-          const modelUsage = resultEvent?.modelUsage;
-          const tokenTotals = Object.values(modelUsage ?? {}).reduce(
-            (totals, usageEntry) => ({
-              input: totals.input + (usageEntry.inputTokens ?? 0),
-              output: totals.output + (usageEntry.outputTokens ?? 0),
-            }),
-            { input: 0, output: 0 },
-          );
-
-          const obsResult = await ResultAsync.fromPromise(
-            recordAgentRunWithSpans(
-              {
-                jobId,
-                agentSystem: "local-claude",
-                agentId: skillId,
-                rawPayload: {
-                  system: systemPrompt,
-                  prompt: userPrompt,
-                  output: raw,
-                  events,
-                  totalCost,
-                },
-                tokenInput: tokenTotals.input || null,
-                tokenOutput: tokenTotals.output || null,
-                durationMs: claudeDurationMs,
-                status: "completed",
-              },
-              (rawExportId) =>
-                buildSpansFromClaudeEvents({
-                  events,
-                  jobId: jobId!,
-                  rawExportId,
-                  skillId,
-                  startTime: claudeStartTime,
-                }),
-            ),
-            (e) => e,
-          );
-          if (obsResult.isErr()) {
-            logger.warn(
-              { err: obsResult.error },
-              "runSkill: failed to record claude observability",
-            );
-          }
-        }
-
-        return result;
       }
 
-      if (agent === "codex") {
-        const cwd = resolveCwd({ inputPath });
-        logger.info("runSkill: starting codex exec");
-        await onProgress?.("[Codex] runSkill: Starting codex exec...");
-        const codexStartTime = Date.now();
+      const { text: raw, events } = engineResult.value;
+      const durationMs = Date.now() - startTime;
+      logger.info({ len: raw.length, events: events.length, agent }, "runSkill: agent complete");
+      await onProgress?.(
+        `runSkill: ${agent} complete, output=${raw.length} chars, ${events.length} events`,
+      );
 
-        const codexResult = await ResultAsync.fromPromise(
-          runCodexTmux({
-            systemPrompt,
-            userPrompt,
-            cwd,
-            onProgress,
-            onSessionCreated: onTmuxSession,
-          }),
-          (error) => error,
+      if (raw.length === 0) {
+        logger.warn({ agent }, "runSkill: agent returned empty output");
+        await onProgress?.(`runSkill: WARNING — ${agent} returned empty output`);
+
+        throw new SkillExecutionError(
+          `${agent} agent returned empty output for skill "${skillId}"`,
         );
-
-        if (codexResult.isErr()) {
-          const error = codexResult.error;
-          const errMsg = error instanceof Error ? error.message : String(error);
-          logger.error({ err: errMsg }, "runSkill: codex exec failed");
-          await onProgress?.(`runSkill: Codex FAILED — ${errMsg}`);
-
-          throw new SkillExecutionError(
-            `Codex agent failed for skill "${skillId}": ${errMsg}`,
-            error,
-          );
-        }
-
-        const raw = codexResult.value.output;
-        logger.info({ len: raw.length }, "runSkill: codex complete");
-        await onProgress?.(`runSkill: Codex complete, output=${raw.length} chars`);
-
-        if (raw.length === 0) {
-          logger.warn("runSkill: codex returned empty output");
-          await onProgress?.("runSkill: WARNING — Codex returned empty output");
-
-          throw new SkillExecutionError(`Codex agent returned empty output for skill "${skillId}"`);
-        }
-
-        const codexParsed = isResearch ? raw : validateSkillOutput({ raw, mode });
-        if (onChunk) await onChunk(codexParsed);
-
-        if (jobId) {
-          const codexDurationMs = Date.now() - codexStartTime;
-          const obsResult = await ResultAsync.fromPromise(
-            recordAgentRunWithSpans(
-              {
-                jobId,
-                agentSystem: "codex",
-                agentId: skillId,
-                modelId: modelOverride ?? null,
-                rawPayload: {
-                  system: systemPrompt,
-                  prompt: userPrompt,
-                  output: raw,
-                },
-                durationMs: codexDurationMs,
-                status: "completed",
-              },
-              (rawExportId) => [
-                {
-                  jobId: jobId!,
-                  rawExportId,
-                  spanType: "agent_run",
-                  name: skillId,
-                  input: userPrompt.slice(0, 10_000),
-                  output: raw.slice(0, 10_000),
-                  modelId: modelOverride ?? null,
-                  tokenInput: null,
-                  tokenOutput: null,
-                  durationMs: codexDurationMs,
-                  status: "completed",
-                  startedAt: new Date(Date.now() - codexDurationMs),
-                  finishedAt: new Date(),
-                },
-              ],
-            ),
-            (e) => e,
-          );
-          if (obsResult.isErr()) {
-            logger.warn({ err: obsResult.error }, "runSkill: failed to record codex observability");
-          }
-        }
-
-        return codexParsed;
       }
 
-      throw new SkillExecutionError(`Unsupported agent backend: "${agent}"`);
+      const result = isResearch ? raw : validateSkillOutput({ raw, mode });
+      if (onChunk) await onChunk(result);
+
+      // Record observability
+      if (jobId) {
+        const obsResult = await ResultAsync.fromPromise(
+          recordAgentRunWithSpans(
+            {
+              jobId,
+              agentSystem: agent,
+              agentId: skillId,
+              modelId: modelOverride ?? null,
+              rawPayload: {
+                system: systemPrompt,
+                prompt: userPrompt,
+                output: raw,
+                ...(events.length > 0 ? { events } : {}),
+                ...(agent === "local-claude" ? { totalCost: extractTotalCost(events) } : {}),
+              },
+              tokenInput: extractTokenTotals(events).input || null,
+              tokenOutput: extractTokenTotals(events).output || null,
+              durationMs,
+              status: "completed",
+            },
+            (rawExportId) =>
+              events.length > 0
+                ? buildSpansFromClaudeEvents({
+                    events,
+                    jobId: jobId!,
+                    rawExportId,
+                    skillId,
+                    startTime,
+                  })
+                : [
+                    {
+                      jobId: jobId!,
+                      rawExportId,
+                      spanType: "agent_run",
+                      name: skillId,
+                      input: userPrompt.slice(0, 10_000),
+                      output: raw.slice(0, 10_000),
+                      modelId: modelOverride ?? null,
+                      tokenInput: null,
+                      tokenOutput: null,
+                      durationMs,
+                      status: "completed",
+                      startedAt: new Date(startTime),
+                      finishedAt: new Date(),
+                    },
+                  ],
+          ),
+          (e) => e,
+        );
+        if (obsResult.isErr()) {
+          logger.warn({ err: obsResult.error, agent }, "runSkill: failed to record observability");
+        }
+      }
+
+      return result;
     })(),
     (cause) =>
       cause instanceof SkillExecutionError
@@ -380,6 +291,29 @@ const run = ({
 
 export const skillExecutor = {
   run,
+};
+
+/**
+ * Extract total cost from Claude stream events.
+ */
+const extractTotalCost = (events: ClaudeStreamEvent[]): number | null => {
+  const resultEvent = events.find((e) => e.type === "result");
+  return resultEvent?.total_cost_usd ?? null;
+};
+
+/**
+ * Extract aggregated token totals from Claude stream events.
+ */
+const extractTokenTotals = (events: ClaudeStreamEvent[]): { input: number; output: number } => {
+  const resultEvent = events.find((e) => e.type === "result");
+  const modelUsage = resultEvent?.modelUsage;
+  return Object.values(modelUsage ?? {}).reduce(
+    (totals, usageEntry) => ({
+      input: totals.input + (usageEntry.inputTokens ?? 0),
+      output: totals.output + (usageEntry.outputTokens ?? 0),
+    }),
+    { input: 0, output: 0 },
+  );
 };
 
 /**

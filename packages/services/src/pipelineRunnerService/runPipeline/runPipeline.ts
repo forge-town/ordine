@@ -129,9 +129,6 @@ const run = async (opts: {
           deps: engineDeps,
           lookupSkill,
           lookupBestPractice,
-          onTmuxSession: async (sessionName: string) => {
-            await jobsDao.updateStatus(jobId, "running", { tmuxSessionName: sessionName });
-          },
         }),
         (cause) =>
           new ScriptExecutionError(

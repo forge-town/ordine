@@ -40,7 +40,6 @@ class JobsDao {
       logs?: string[];
       error?: string;
       result?: JobRecord["result"];
-      tmuxSessionName?: string;
       startedAt?: Date;
       finishedAt?: Date;
     },
@@ -51,7 +50,6 @@ class JobsDao {
       ...(extra?.error !== undefined && { error: extra.error }),
       ...(extra?.result !== undefined && { result: extra.result }),
       ...(extra?.logs !== undefined && { logs: extra.logs }),
-      ...(extra?.tmuxSessionName !== undefined && { tmuxSessionName: extra.tmuxSessionName }),
       ...(extra?.startedAt !== undefined && { startedAt: extra.startedAt }),
       ...(extra?.finishedAt !== undefined && { finishedAt: extra.finishedAt }),
     };

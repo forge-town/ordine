@@ -19,6 +19,6 @@
   "devDependencies": {
     "@repo/typescript-config": "*",
     "typescript": "5.9.2",
-    "vitest": "^4.0.16"
+    "vitest": "^4.1.4"
   }
 }

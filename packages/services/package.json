@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@repo/agent": "workspace:*",
+    "@repo/agent-engine": "workspace:*",
     "@repo/db-schema": "workspace:*",
     "@repo/logger": "workspace:*",
     "@repo/models": "workspace:*",
@@ -31,6 +32,6 @@
     "@repo/typescript-config": "*",
     "@types/jszip": "^3.4.1",
     "typescript": "5.9.2",
-    "vitest": "^4.0.16"
+    "vitest": "^4.1.4"
   }
 }

@@ -60,7 +60,9 @@ export interface ListDirTreeOptions {
   maxDepth?: number;
 }
 
-const DEFAULT_EXCLUDED = [".git"];
+// TODO: should confinable
+const DEFAULT_EXCLUDED = [".git", "node_modules", ".next", ".turbo", "dist", "build", ".cache"];
+// TODO: should confinable
 const DEFAULT_MAX_DEPTH = 4;
 
 export const listDirTree = async (

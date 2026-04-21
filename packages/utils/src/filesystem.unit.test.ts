@@ -97,12 +97,12 @@ describe("filesystem", () => {
       await rm(treeCtx.dir, { recursive: true, force: true });
     });
 
-    it("generates tree string excluding .git by default", async () => {
+    it("generates tree string excluding .git and node_modules by default", async () => {
       const tree = await listDirTree(treeCtx.dir);
       expect(tree).toContain("src/");
-      expect(tree).toContain("node_modules/");
       expect(tree).toContain("README.md");
       expect(tree).not.toContain(".git");
+      expect(tree).not.toContain("node_modules");
     });
 
     it("excludes paths listed in excludedPaths", async () => {
@@ -128,7 +128,6 @@ describe("filesystem", () => {
     it("respects maxDepth option", async () => {
       const tree = await listDirTree(treeCtx.dir, { maxDepth: 1 });
       expect(tree).toContain("src/");
-      expect(tree).toContain("node_modules/");
       expect(tree).not.toContain("index.ts");
       expect(tree).not.toContain("helper.ts");
     });

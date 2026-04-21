@@ -1,11 +1,16 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { runClaude, runCodex, type SettingsResolver } from "@repo/agent";
+import type { SettingsResolver } from "@repo/agent";
+import { agentEngine } from "@repo/agent-engine";
 import { recordAgentRunWithSpans } from "@repo/obs";
 
 vi.mock("@repo/agent", () => ({
-  runClaude: vi.fn().mockResolvedValue({ text: "claude-output" }),
-  runCodex: vi.fn().mockResolvedValue("codex-output"),
   getModel: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock("@repo/agent-engine", () => ({
+  agentEngine: {
+    run: vi.fn().mockResolvedValue({ text: "claude-output", events: [] }),
+  },
 }));
 
 vi.mock("@repo/obs", () => ({
@@ -32,22 +37,29 @@ describe("promptExecutor", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(agentEngine.run).mockResolvedValue({ text: "claude-output", events: [] });
   });
 
-  it("dispatches to runClaude when agent is local-claude", async () => {
+  it("dispatches to agentEngine when agent is local-claude", async () => {
     const result = await promptExecutor.run({ ...baseOpts, agent: "local-claude" });
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toBe("claude-output");
-    expect(runClaude).toHaveBeenCalledOnce();
+    expect(agentEngine.run).toHaveBeenCalledOnce();
+    expect(agentEngine.run).toHaveBeenCalledWith(
+      expect.objectContaining({ agent: "local-claude", mode: "direct" }),
+    );
   });
 
-  it("dispatches to runCodex when agent is codex", async () => {
+  it("dispatches to agentEngine when agent is codex", async () => {
+    vi.mocked(agentEngine.run).mockResolvedValueOnce({ text: "codex-output", events: [] });
     const result = await promptExecutor.run({ ...baseOpts, agent: "codex" });
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toBe("codex-output");
-    expect(runCodex).toHaveBeenCalledOnce();
-    expect(runCodex).toHaveBeenCalledWith(
+    expect(agentEngine.run).toHaveBeenCalledOnce();
+    expect(agentEngine.run).toHaveBeenCalledWith(
       expect.objectContaining({
+        agent: "codex",
+        mode: "direct",
         systemPrompt: "Analyze this",
         userPrompt: "some code",
         cwd: "/tmp/test",
@@ -56,6 +68,8 @@ describe("promptExecutor", () => {
   });
 
   it("records an agent run for codex prompts when jobId is provided", async () => {
+    vi.mocked(agentEngine.run).mockResolvedValueOnce({ text: "codex-output", events: [] });
+
     const result = await promptExecutor.run({
       ...baseOpts,
       agent: "codex",

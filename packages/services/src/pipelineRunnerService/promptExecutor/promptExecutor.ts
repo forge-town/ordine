@@ -1,7 +1,8 @@
 import { ResultAsync, Result, errAsync } from "neverthrow";
 import { dirname } from "node:path";
 import { statSync } from "node:fs";
-import { runClaude, runCodex, type SettingsResolver } from "@repo/agent";
+import { type SettingsResolver } from "@repo/agent";
+import { agentEngine } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
 import { recordAgentRunWithSpans } from "@repo/obs";
 import type { RunPromptOptions } from "@repo/pipeline-engine";
@@ -125,68 +126,50 @@ const run = ({
       );
 
       const cwd = resolveCwd({ inputPath });
+      const startTime = Date.now();
 
-      if (agent === "local-claude") {
-        const startTime = Date.now();
-        const claudeResult = await runClaude({
+      const engineResult = await ResultAsync.fromPromise(
+        agentEngine.run({
+          agent,
+          mode: "direct",
           systemPrompt: prompt,
           userPrompt: inputContent,
           cwd,
           allowedTools: [],
           onProgress,
-        });
-        const raw = claudeResult.text;
-        logger.info({ outputLen: raw.length }, "runPrompt: claude complete");
-        await onProgress?.(`[LLM] runPrompt: Claude complete, output=${raw.length} chars`);
-        if (onChunk) await onChunk(raw);
+        }),
+        (error) => error,
+      );
 
-        if (jobId) {
-          const obsResult = await recordPromptRun({
-            jobId,
-            agentSystem: "local-claude",
-            systemPrompt: prompt,
-            userPrompt: inputContent,
-            output: raw,
-            durationMs: Date.now() - startTime,
-          });
-          if (obsResult.isErr()) {
-            logger.warn({ err: obsResult.error }, "runPrompt: failed to record claude run");
-          }
-        }
+      if (engineResult.isErr()) {
+        const error = engineResult.error;
+        const errMsg = error instanceof Error ? error.message : String(error);
+        logger.error({ err: errMsg, agent }, "runPrompt: agent failed");
+        await onProgress?.(`[LLM] runPrompt: ${agent} FAILED — ${errMsg}`);
 
-        return raw;
+        throw new PromptExecutionError(`${agent} agent failed for prompt: ${errMsg}`, error);
       }
 
-      if (agent === "codex") {
-        const startTime = Date.now();
-        const codexResult = await runCodex({
+      const raw = engineResult.value.text;
+      logger.info({ outputLen: raw.length, agent }, "runPrompt: agent complete");
+      await onProgress?.(`[LLM] runPrompt: ${agent} complete, output=${raw.length} chars`);
+      if (onChunk) await onChunk(raw);
+
+      if (jobId) {
+        const obsResult = await recordPromptRun({
+          jobId,
+          agentSystem: agent,
           systemPrompt: prompt,
           userPrompt: inputContent,
-          cwd,
-          onProgress,
+          output: raw,
+          durationMs: Date.now() - startTime,
         });
-        logger.info({ outputLen: codexResult.length }, "runPrompt: codex complete");
-        await onProgress?.(`[LLM] runPrompt: Codex complete, output=${codexResult.length} chars`);
-        if (onChunk) await onChunk(codexResult);
-
-        if (jobId) {
-          const obsResult = await recordPromptRun({
-            jobId,
-            agentSystem: "codex",
-            systemPrompt: prompt,
-            userPrompt: inputContent,
-            output: codexResult,
-            durationMs: Date.now() - startTime,
-          });
-          if (obsResult.isErr()) {
-            logger.warn({ err: obsResult.error }, "runPrompt: failed to record codex run");
-          }
+        if (obsResult.isErr()) {
+          logger.warn({ err: obsResult.error, agent }, "runPrompt: failed to record run");
         }
-
-        return codexResult;
       }
 
-      throw new PromptExecutionError(`Unsupported agent backend: "${agent}"`);
+      return raw;
     })(),
     (cause) => {
       logger.error({ err: cause }, "runPrompt: failed");

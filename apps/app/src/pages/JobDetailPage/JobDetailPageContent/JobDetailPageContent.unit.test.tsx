@@ -83,23 +83,6 @@ describe("JobDetailPageContent", () => {
     expect(screen.getByText(mockJob.title)).toBeInTheDocument();
   });
 
-  it("renders one tmux copy command when the job has a tmux session", async () => {
-    mockUseLoaderData.mockReturnValue({
-      ...mockJob,
-      tmuxSessionName: "ordine-codex-demo",
-    });
-
-    render(<JobDetailPageContent />);
-
-    expect(screen.getByText("tmux attach -t ordine-codex-demo")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Copy tmux command" }));
-
-    await waitFor(() => {
-      expect(mockWriteText).toHaveBeenCalledWith("tmux attach -t ordine-codex-demo");
-    });
-  });
-
   it("renders a single agent runs panel and fetches agent runs once", async () => {
     mockUseLoaderData.mockReturnValue(mockJob);
 

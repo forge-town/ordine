@@ -166,7 +166,6 @@ export const executeOperationNode = async (
       promptMode: executor.promptMode,
       onChunk: handleChunk,
       onProgress,
-      onTmuxSession: ctx.onTmuxSession,
       writeEnabled: (executor as ExecutorConfig & { writeEnabled?: boolean }).writeEnabled === true,
     });
     opResult.value = skillResult.isOk() ? skillResult.value : "";

@@ -16,5 +16,4 @@ export const RunSkillOptionsSchema = z.object({
 export type RunSkillOptions = z.infer<typeof RunSkillOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;
   onProgress?: (line: string) => Promise<void>;
-  onTmuxSession?: (sessionName: string) => Promise<void>;
 };
