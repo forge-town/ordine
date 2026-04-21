@@ -18,7 +18,6 @@ export * from "./JobStatusSchema";
 export * from "./JobTypeSchema";
 export * from "./ObjectTypeSchema";
 export * from "./OperationSchema";
-export * from "./PipelineSchema";
 export * from "./RecipeSchema";
 export * from "./RuleCategorySchema";
 export * from "./RuleSeveritySchema";

@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
-import { PipelineNodeSchema, PipelineEdgeSchema } from "@repo/pipeline-engine/schemas";
+import { PipelineNodeSchema } from "./PipelineNodeSchema";
+import { PipelineEdgeSchema } from "./PipelineEdgeSchema";
 
 export const PipelineSchema = z.object({
   id: z.string(),
@@ -12,4 +13,5 @@ export const PipelineSchema = z.object({
   nodes: z.array(PipelineNodeSchema),
   edges: z.array(PipelineEdgeSchema),
 });
-export type Pipeline = z.infer<typeof PipelineSchema>;
+
+export type PipelineData = z.infer<typeof PipelineSchema>;
