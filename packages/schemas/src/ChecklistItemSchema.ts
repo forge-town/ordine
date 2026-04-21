@@ -11,13 +11,3 @@ export const ChecklistItemSchema = z.object({
 });
 
 export type ChecklistItem = z.infer<typeof ChecklistItemSchema>;
-
-export const ChecklistResultSchema = z.object({
-  id: z.string(),
-  jobId: z.string(),
-  checklistItemId: z.string(),
-  passed: z.boolean().default(false),
-  output: z.string().default(""),
-});
-
-export type ChecklistResult = z.infer<typeof ChecklistResultSchema>;

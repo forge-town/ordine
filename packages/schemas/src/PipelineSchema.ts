@@ -4,11 +4,11 @@ import { PipelineNodeSchema, PipelineEdgeSchema } from "@repo/pipeline-engine/sc
 export const PipelineSchema = z.object({
   id: z.string(),
   name: z.string(),
-  description: z.string(),
+  description: z.string().default(""),
   tags: z.array(z.string()),
   timeoutMs: z.number().nullable(),
-  createdAt: z.number(),
-  updatedAt: z.number(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
   nodes: z.array(PipelineNodeSchema),
   edges: z.array(PipelineEdgeSchema),
 });
