@@ -39,5 +39,4 @@ export const jobsTable = pgTable(
     index("jobs_type_idx").on(table.type),
   ],
 );
-
 export type JobRecord = typeof jobsTable.$inferSelect;

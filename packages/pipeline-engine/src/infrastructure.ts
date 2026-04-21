@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { ResultAsync, ok, okAsync, errAsync } from "neverthrow";
 import { ScriptExecutionError, GitCloneError, ConfigParseError } from "./errors";
-import { type OperationConfig, type OperationConfigInput, type ExecutorConfig, OperationConfigSchema } from "./schemas";
+import { type OperationConfig, type OperationConfigInput, type ExecutorConfig, OperationConfigSchema } from "@repo/schemas";
 
 const execAsync = promisify(exec);
 

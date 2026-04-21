@@ -12,5 +12,4 @@ export const PipelineSchema = z.object({
   nodes: z.array(PipelineNodeSchema),
   edges: z.array(PipelineEdgeSchema),
 });
-
 export type Pipeline = z.infer<typeof PipelineSchema>;

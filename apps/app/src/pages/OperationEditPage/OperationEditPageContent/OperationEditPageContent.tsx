@@ -13,15 +13,16 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { OperationRecord, SkillRecord } from "@repo/db-schema";
-import { type ObjectType, ObjectTypeSchema } from "@repo/schemas";
 import {
+  ObjectTypeSchema,
+  type ObjectType,
   ExecutorTypeSchema,
   AgentModeSchema,
   ScriptLanguageSchema,
   type ExecutorType,
   type AgentMode,
   type OperationConfigInput,
-} from "@repo/pipeline-engine/schemas";
+} from "@repo/schemas";
 import { useStore } from "zustand";
 import { useOperationEditPageStore } from "../_store";
 

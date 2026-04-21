@@ -7,5 +7,4 @@ export const BestPracticeImportEntrySchema = BestPracticeSchema.extend({
   checklistItems: z.array(ChecklistItemSchema.omit({ bestPracticeId: true })).default([]),
   codeSnippets: z.array(CodeSnippetSchema.omit({ bestPracticeId: true })).default([]),
 });
-
 export type BestPracticeImportEntry = z.infer<typeof BestPracticeImportEntrySchema>;

@@ -29,5 +29,4 @@ export const agentRawExportsTable = pgTable(
     index("agent_raw_exports_created_at_idx").on(table.createdAt),
   ],
 );
-
 export type AgentRawExportRecord = typeof agentRawExportsTable.$inferSelect;

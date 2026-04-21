@@ -22,5 +22,4 @@ export const jobTracesTable = pgTable(
     index("job_traces_created_at_idx").on(table.createdAt),
   ],
 );
-
 export type JobTraceRecord = typeof jobTracesTable.$inferSelect;

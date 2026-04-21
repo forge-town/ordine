@@ -7,5 +7,4 @@ export const ChecklistResultSchema = z.object({
   passed: z.boolean().default(false),
   output: z.string().default(""),
 });
-
 export type ChecklistResult = z.infer<typeof ChecklistResultSchema>;

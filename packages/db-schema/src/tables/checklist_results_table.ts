@@ -21,5 +21,4 @@ export const checklistResultsTable = pgTable(
     index("checklist_results_item_id_idx").on(table.checklistItemId),
   ],
 );
-
 export type ChecklistResultRecord = typeof checklistResultsTable.$inferSelect;

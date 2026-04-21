@@ -3,7 +3,7 @@ import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RecipeFormDialog } from "./RecipeFormDialog";
 
-import type { ObjectType } from "@repo/db-schema";
+import type { ObjectType } from "@repo/schemas";
 
 vi.mock("@/services/recipesService", () => ({
   createRecipe: vi.fn(),

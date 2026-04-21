@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RecipeCard } from "./RecipeCard";
 
-import type { ObjectType } from "@repo/db-schema";
+import type { ObjectType } from "@repo/schemas";
 
 const mockRecipe = {
   id: "rcp-1",

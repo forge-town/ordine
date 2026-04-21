@@ -9,5 +9,4 @@ export const ChecklistItemSchema = z.object({
   script: z.string().nullable().default(null),
   sortOrder: z.number().int().default(0),
 });
-
 export type ChecklistItem = z.infer<typeof ChecklistItemSchema>;

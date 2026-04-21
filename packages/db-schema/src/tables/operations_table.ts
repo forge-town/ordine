@@ -1,9 +1,6 @@
 import { sql } from "drizzle-orm";
 import { timestamp, text, pgTable, jsonb } from "drizzle-orm/pg-core";
-import type { OperationConfigInput } from "@repo/pipeline-engine/schemas";
-
-export const OBJECT_TYPES = ["file", "folder", "project"] as const;
-export type ObjectType = (typeof OBJECT_TYPES)[number];
+import type { OperationConfigInput, ObjectType } from "@repo/schemas";
 
 export const operationsTable = pgTable("operations", {
   id: text("id").primaryKey(),
@@ -17,5 +14,4 @@ export const operationsTable = pgTable("operations", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-
 export type OperationRecord = typeof operationsTable.$inferSelect;

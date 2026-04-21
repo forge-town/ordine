@@ -16,18 +16,18 @@ import {
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { OperationRecord } from "@repo/db-schema";
-import type { ObjectType } from "@repo/schemas";
+import type {
+  ObjectType,
+  OperationConfig,
+  OperationConfigInput,
+  ExecutorConfig,
+} from "@repo/schemas";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/operations.$operationId.index";
 import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
 import { OutputPortRow } from "../OutputPortRow";
-import type {
-  OperationConfig,
-  OperationConfigInput,
-  ExecutorConfig,
-} from "@repo/pipeline-engine/schemas";
 import { PageLoadingState } from "@/components/PageLoadingState";
 
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {

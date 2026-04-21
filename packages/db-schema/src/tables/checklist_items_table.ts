@@ -16,5 +16,4 @@ export const checklistItemsTable = pgTable("checklist_items", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-
 export type ChecklistItemRecord = typeof checklistItemsTable.$inferSelect;

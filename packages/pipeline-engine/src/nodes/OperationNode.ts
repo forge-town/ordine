@@ -1,4 +1,5 @@
-import type { PipelineNode, ExecutorConfig, NodeData, NodeCtx } from "../schemas";
+import type { ExecutorConfig } from "@repo/schemas";
+import type { PipelineNode, NodeData, NodeCtx } from "../schemas";
 import { trace } from "@repo/obs";
 import { ScriptExecutionError } from "../errors";
 import { runScript, safeParseConfig } from "../infrastructure";

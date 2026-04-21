@@ -11,5 +11,4 @@ export const settingsTable = pgTable("settings", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-
 export type SettingsRecord = typeof settingsTable.$inferSelect;

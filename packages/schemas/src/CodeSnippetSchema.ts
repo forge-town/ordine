@@ -8,5 +8,4 @@ export const CodeSnippetSchema = z.object({
   code: z.string().default(""),
   sortOrder: z.number().int().default(0),
 });
-
 export type CodeSnippet = z.infer<typeof CodeSnippetSchema>;

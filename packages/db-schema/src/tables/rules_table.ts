@@ -32,5 +32,4 @@ export const rulesTable = pgTable("rules", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-
 export type RuleRecord = typeof rulesTable.$inferSelect;

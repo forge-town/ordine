@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { OperationConfigSchema } from "@repo/pipeline-engine/schemas";
+import { OperationConfigSchema } from "./OperationConfigSchema";
 import { ObjectTypeSchema } from "./ObjectTypeSchema";
 
 export const OperationSchema = z.object({
@@ -11,5 +11,4 @@ export const OperationSchema = z.object({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
-
 export type Operation = z.infer<typeof OperationSchema>;

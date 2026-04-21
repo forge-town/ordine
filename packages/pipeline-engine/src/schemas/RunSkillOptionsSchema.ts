@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { AgentBackendSchema } from "./ExecutorConfigSchema";
+import { AgentBackendSchema } from "@repo/schemas";
 
 export const RunSkillOptionsSchema = z.object({
   skillId: z.string(),

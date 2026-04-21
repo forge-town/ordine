@@ -39,5 +39,4 @@ export const agentSpansTable = pgTable(
     index("agent_spans_parent_span_id_idx").on(table.parentSpanId),
   ],
 );
-
 export type AgentSpanRecord = typeof agentSpansTable.$inferSelect;
