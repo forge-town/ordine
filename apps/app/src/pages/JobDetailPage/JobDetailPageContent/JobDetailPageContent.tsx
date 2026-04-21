@@ -4,10 +4,12 @@ import { AgentRunsPanel } from "../AgentRunsPanel";
 import {
   ArrowLeft,
   CheckCircle2,
+  Check,
   XCircle,
   Clock,
   Loader2,
   Ban,
+  Copy,
   Terminal,
   Info,
   Cpu,
@@ -111,6 +113,7 @@ export const JobDetailPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [traces, setTraces] = useState<JobTraceRecord[]>([]);
+  const [copiedTmuxCommand, setCopiedTmuxCommand] = useState(false);
 
   useEffect(() => {
     void trpcClient.jobs.getTraces.query({ jobId }).then(setTraces);
@@ -150,6 +153,16 @@ export const JobDetailPageContent = () => {
     job.startedAt && job.finishedAt
       ? ((job.finishedAt.getTime() - job.startedAt.getTime()) / 1000).toFixed(2) + "s"
       : null;
+  const tmuxCommand = job.tmuxSessionName ? `tmux attach -t ${job.tmuxSessionName}` : null;
+
+  const handleCopyTmuxCommand = () => {
+    if (!tmuxCommand) return;
+
+    void navigator.clipboard.writeText(tmuxCommand).then(() => {
+      setCopiedTmuxCommand(true);
+      setTimeout(() => setCopiedTmuxCommand(false), 2000);
+    });
+  };
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -165,7 +178,7 @@ export const JobDetailPageContent = () => {
         <span
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-            s.cls
+            s.cls,
           )}
         >
           <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />
@@ -208,7 +221,35 @@ export const JobDetailPageContent = () => {
             <MetaRow label={t("jobs.duration")} value={duration} />
             <MetaRow mono label="Project ID" value={job.projectId} />
             <MetaRow mono label="Pipeline ID" value={job.pipelineId} />
+            <MetaRow mono label="Tmux Session" value={job.tmuxSessionName} />
           </div>
+
+          {tmuxCommand && (
+            <div className="mt-3 border-t border-border pt-3">
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Terminal className="h-3.5 w-3.5" />
+                Tmux
+              </div>
+              <div className="flex items-center gap-2 rounded-md bg-gray-950 px-3 py-2">
+                <code className="flex-1 text-[11px] text-green-400 font-mono select-all break-all">
+                  {tmuxCommand}
+                </code>
+                <Button
+                  aria-label="Copy tmux command"
+                  className="h-7 w-7 shrink-0 text-gray-400 hover:text-white"
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleCopyTmuxCommand}
+                >
+                  {copiedTmuxCommand ? (
+                    <Check className="h-3.5 w-3.5 text-green-400" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Related links */}
           {job.projectId && (
@@ -250,8 +291,6 @@ export const JobDetailPageContent = () => {
         )}
         {/* Agent Runs */}
         <AgentRunsPanel jobId={jobId} />
-        {/* Agent Runs */}
-        <AgentRunsPanel jobId={jobId} />
 
         {/* Traces */}
         <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -275,7 +314,7 @@ export const JobDetailPageContent = () => {
                   <span
                     className={cn(
                       "shrink-0 w-12 text-[10px] font-mono uppercase",
-                      LEVEL_COLOR[tr.level]
+                      LEVEL_COLOR[tr.level],
                     )}
                   >
                     {tr.level}

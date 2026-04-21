@@ -1,10 +1,16 @@
 import { render } from "@/test/test-wrapper";
-import { screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JobDetailPageContent } from "./JobDetailPageContent";
 import type { JobRecord } from "@repo/db-schema";
 
 const mockUseLoaderData = vi.fn();
+const { mockGetTracesQuery, mockGetAgentRunsQuery, mockGetAgentRunSpansQuery } = vi.hoisted(() => ({
+  mockGetTracesQuery: vi.fn().mockResolvedValue([]),
+  mockGetAgentRunsQuery: vi.fn().mockResolvedValue([]),
+  mockGetAgentRunSpansQuery: vi.fn().mockResolvedValue([]),
+}));
+const mockWriteText = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("@/routes/_layout/jobs.$jobId", () => ({
   Route: { useParams: () => ({ jobId: "job-1" }), useLoaderData: () => mockUseLoaderData() },
@@ -17,9 +23,9 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@/integrations/trpc/client", () => ({
   trpcClient: {
     jobs: {
-      getTraces: { query: vi.fn().mockResolvedValue([]) },
-      getAgentRuns: { query: vi.fn().mockResolvedValue([]) },
-      getAgentRunSpans: { query: vi.fn().mockResolvedValue([]) },
+      getTraces: { query: mockGetTracesQuery },
+      getAgentRuns: { query: mockGetAgentRunsQuery },
+      getAgentRunSpans: { query: mockGetAgentRunSpansQuery },
     },
   },
 }));
@@ -57,15 +63,63 @@ const mockJob: JobRecord = {
 };
 
 describe("JobDetailPageContent", () => {
-  it("renders job title", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText: mockWriteText },
+      configurable: true,
+    });
+  });
+
+  it("renders job title", async () => {
     mockUseLoaderData.mockReturnValue(mockJob);
     render(<JobDetailPageContent />);
+
+    await waitFor(() => {
+      expect(mockGetTracesQuery).toHaveBeenCalledTimes(1);
+      expect(mockGetAgentRunsQuery).toHaveBeenCalledTimes(1);
+    });
+
     expect(screen.getByText(mockJob.title)).toBeInTheDocument();
   });
 
-  it("renders null state when job is null", () => {
+  it("renders one tmux copy command when the job has a tmux session", async () => {
+    mockUseLoaderData.mockReturnValue({
+      ...mockJob,
+      tmuxSessionName: "ordine-codex-demo",
+    });
+
+    render(<JobDetailPageContent />);
+
+    expect(screen.getByText("tmux attach -t ordine-codex-demo")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Copy tmux command" }));
+
+    await waitFor(() => {
+      expect(mockWriteText).toHaveBeenCalledWith("tmux attach -t ordine-codex-demo");
+    });
+  });
+
+  it("renders a single agent runs panel and fetches agent runs once", async () => {
+    mockUseLoaderData.mockReturnValue(mockJob);
+
+    render(<JobDetailPageContent />);
+
+    await waitFor(() => {
+      expect(mockGetAgentRunsQuery).toHaveBeenCalledTimes(1);
+    });
+
+    expect(screen.getAllByText("Agent Runs")).toHaveLength(1);
+  });
+
+  it("renders null state when job is null", async () => {
     mockUseLoaderData.mockReturnValue(null);
     render(<JobDetailPageContent />);
+
+    await waitFor(() => {
+      expect(mockGetTracesQuery).toHaveBeenCalledTimes(1);
+    });
+
     expect(screen.getByText("不存在")).toBeInTheDocument();
   });
 });
