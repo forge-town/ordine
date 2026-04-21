@@ -20,9 +20,30 @@ Define operations, compose pipelines, choose your favorite AI agent, and automat
 
 ```sh
 bun install
-cd apps/app && bun run db:push
+cp apps/app/.env.example apps/app/.env
+cp apps/server/.env.example apps/server/.env
+
+# Set DATABASE_URL in both env files first
+cd apps/app && bun run db:push && cd ../..
+
 bun dev
 ```
+
+Main app: `http://localhost:9430`
+
+API server: `http://localhost:9433`
+
+## Project Status
+
+Ordine is still in preview. APIs, data models, and workflows may change before beta.
+
+## Contributing
+
+External contributions are paused until the beta release. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the current policy.
+
+## Security
+
+Ordine does not have a public security intake process yet. See [SECURITY.md](./SECURITY.md) for the current preview-stage policy.
 
 ## Documentation
 

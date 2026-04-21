@@ -21,7 +21,14 @@ bun install
 
 ## Database Setup
 
-Push the schema to your database:
+Create local env files first:
+
+```sh
+cp apps/app/.env.example apps/app/.env
+cp apps/server/.env.example apps/server/.env
+```
+
+Set the same `DATABASE_URL` in both files, then push the schema to your database:
 
 ```sh
 cd apps/app
@@ -43,16 +50,20 @@ This starts all apps in parallel via Turborepo:
 
 | App | URL | Description |
 |-----|-----|-------------|
-| `apps/app` | `http://localhost:5173` | Main web application |
+| `apps/app` | `http://localhost:9430` | Main web application |
 | `apps/server` | `http://localhost:9433` | API server (Hono) |
 
 ## Create Your First Pipeline
 
-1. Open the web app at `http://localhost:5173`
+1. Open the web app at `http://localhost:9430`
 2. Navigate to **Operations** and create a new operation
 3. Navigate to **Pipelines** and create a new pipeline
 4. Add nodes to the pipeline canvas and connect them
 5. Click **Run** to execute
+
+## Contribution Policy
+
+External contributions and public security intake are paused until beta.
 
 ## CLI Usage
 

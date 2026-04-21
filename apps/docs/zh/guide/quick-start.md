@@ -21,7 +21,14 @@ bun install
 
 ## 数据库设置
 
-将 schema 推送到数据库：
+先创建本地环境文件：
+
+```sh
+cp apps/app/.env.example apps/app/.env
+cp apps/server/.env.example apps/server/.env
+```
+
+在两个文件中配置相同的 `DATABASE_URL`，然后再把 schema 推送到数据库：
 
 ```sh
 cd apps/app
@@ -43,16 +50,20 @@ bun dev
 
 | 应用 | 地址 | 说明 |
 |------|------|------|
-| `apps/app` | `http://localhost:5173` | 主 Web 应用 |
+| `apps/app` | `http://localhost:9430` | 主 Web 应用 |
 | `apps/server` | `http://localhost:9433` | API 服务器 (Hono) |
 
 ## 创建你的第一个流水线
 
-1. 打开 Web 应用 `http://localhost:5173`
+1. 打开 Web 应用 `http://localhost:9430`
 2. 导航到 **操作** 并创建新操作
 3. 导航到 **流水线** 并创建新流水线
 4. 在画布中添加节点并连接
 5. 点击 **运行** 执行
+
+## 贡献策略
+
+Beta 前暂不接受外部贡献，也暂不开放公开安全报告受理。
 
 ## CLI 使用
 

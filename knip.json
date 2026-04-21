@@ -4,10 +4,6 @@
       "entry": ["src/router.tsx", "src/routes/**/*.tsx"],
       "project": ["src/**/*.{ts,tsx}"]
     },
-    "apps/web": {
-      "entry": ["app/**/*.{ts,tsx}"],
-      "project": ["app/**/*.{ts,tsx}"]
-    },
     "apps/scripts": {
       "entry": ["src/**/*.ts"],
       "project": ["src/**/*.ts"],

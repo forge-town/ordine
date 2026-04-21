@@ -12,9 +12,9 @@
     }
   },
   "scripts": {
-    "test": "vitest",
+    "test": "vitest run",
     "check-types": "tsc --noEmit",
-    "quality": "bun run check-types && bun run test -- --run"
+    "quality": "bun run check-types && bun run test"
   },
   "dependencies": {
     "@repo/agent": "workspace:*"

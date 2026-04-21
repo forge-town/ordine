@@ -20,9 +20,30 @@ AI 优先的元编排引擎。
 
 ```sh
 bun install
-cd apps/app && bun run db:push
+cp apps/app/.env.example apps/app/.env
+cp apps/server/.env.example apps/server/.env
+
+# 先在两个 env 文件里配置 DATABASE_URL
+cd apps/app && bun run db:push && cd ../..
+
 bun dev
 ```
+
+主应用：`http://localhost:9430`
+
+API 服务：`http://localhost:9433`
+
+## 项目状态
+
+成序目前仍处于 Preview 阶段，API、数据模型和工作流在 Beta 前都可能调整。
+
+## 贡献
+
+Beta 发布前暂不接受外部贡献。当前策略见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+
+## 安全
+
+当前还没有公开的安全报告受理流程。预览阶段策略见 [SECURITY.md](./SECURITY.md)。
 
 ## 文档
 

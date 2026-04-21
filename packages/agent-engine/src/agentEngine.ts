@@ -15,13 +15,25 @@ export interface AgentRunOptions {
   onProgress?: (msg: string) => Promise<void> | void;
 }
 
+const toAsyncProgress = (
+  onProgress?: AgentRunOptions["onProgress"],
+): ((line: string) => Promise<void>) | undefined => {
+  if (!onProgress) {
+    return undefined;
+  }
+
+  return async (line: string) => {
+    await onProgress(line);
+  };
+};
+
 const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
   const result = await runClaude({
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
     allowedTools: opts.allowedTools ?? [],
-    onProgress: opts.onProgress,
+    onProgress: toAsyncProgress(opts.onProgress),
   });
   return { text: result.text, events: result.events };
 };
@@ -31,7 +43,7 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> =>
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
-    onProgress: opts.onProgress,
+    onProgress: toAsyncProgress(opts.onProgress),
   });
   return { text, events: [] };
 };
