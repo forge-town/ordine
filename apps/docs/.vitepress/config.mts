@@ -43,7 +43,7 @@ export default defineConfig({
 
     footer: {
       message: "Released under the MIT License.",
-      copyright: "Copyright © 2024-present Ordine Contributors",
+      copyright: "Copyright © 2026 Code Forge AI",
     },
   },
 });
@@ -51,6 +51,7 @@ export default defineConfig({
 function enNav(): DefaultTheme.NavItem[] {
   return [
     { text: "Guide", link: "/guide/what-is-ordine" },
+    { text: "Skills", link: "/skills/" },
     { text: "API", link: "/api/rest" },
   ];
 }
@@ -87,12 +88,53 @@ function enSidebar(): DefaultTheme.Sidebar {
         ],
       },
     ],
+    "/skills/": [
+      {
+        text: "Getting Started",
+        items: [
+          { text: "Overview", link: "/skills/" },
+          { text: "Quick Start", link: "/skills/ordine-quickstart" },
+          { text: "List Entities", link: "/skills/ordine-list-entities" },
+          { text: "List Pipelines", link: "/skills/ordine-list-pipelines" },
+        ],
+      },
+      {
+        text: "Create",
+        items: [
+          { text: "Create Operation", link: "/skills/ordine-create-operation" },
+          { text: "Create Pipeline", link: "/skills/ordine-create-pipeline" },
+          { text: "Create Skill", link: "/skills/ordine-create-skill" },
+          { text: "Create Best Practice", link: "/skills/ordine-create-bestpractice" },
+          { text: "Create Recipe", link: "/skills/ordine-create-recipe" },
+          { text: "Create Rule", link: "/skills/ordine-create-rule" },
+          { text: "Create Project", link: "/skills/ordine-create-project" },
+        ],
+      },
+      {
+        text: "Execute & Monitor",
+        items: [
+          { text: "Run Pipeline", link: "/skills/ordine-run-pipeline" },
+          { text: "Manage Jobs", link: "/skills/ordine-manage-job" },
+          { text: "Browse Traces", link: "/skills/ordine-browse-traces" },
+        ],
+      },
+      {
+        text: "Manage Content",
+        items: [
+          { text: "Browse Filesystem", link: "/skills/ordine-browse-filesystem" },
+          { text: "Manage Checklist", link: "/skills/ordine-manage-checklist" },
+          { text: "Manage Code Snippets", link: "/skills/ordine-manage-codesnippet" },
+          { text: "Export & Import", link: "/skills/ordine-export-import" },
+        ],
+      },
+    ],
   };
 }
 
 function zhNav(): DefaultTheme.NavItem[] {
   return [
     { text: "指南", link: "/zh/guide/what-is-ordine" },
+    { text: "Skills", link: "/zh/skills/" },
     { text: "API", link: "/zh/api/rest" },
   ];
 }
@@ -126,6 +168,46 @@ function zhSidebar(): DefaultTheme.Sidebar {
         items: [
           { text: "REST API", link: "/zh/api/rest" },
           { text: "tRPC API", link: "/zh/api/trpc" },
+        ],
+      },
+    ],
+    "/zh/skills/": [
+      {
+        text: "入门",
+        items: [
+          { text: "概览", link: "/zh/skills/" },
+          { text: "快速上手", link: "/zh/skills/ordine-quickstart" },
+          { text: "列出实体", link: "/zh/skills/ordine-list-entities" },
+          { text: "列出流水线", link: "/zh/skills/ordine-list-pipelines" },
+        ],
+      },
+      {
+        text: "创建",
+        items: [
+          { text: "创建操作", link: "/zh/skills/ordine-create-operation" },
+          { text: "创建流水线", link: "/zh/skills/ordine-create-pipeline" },
+          { text: "创建技能", link: "/zh/skills/ordine-create-skill" },
+          { text: "创建最佳实践", link: "/zh/skills/ordine-create-bestpractice" },
+          { text: "创建配方", link: "/zh/skills/ordine-create-recipe" },
+          { text: "创建规则", link: "/zh/skills/ordine-create-rule" },
+          { text: "创建项目", link: "/zh/skills/ordine-create-project" },
+        ],
+      },
+      {
+        text: "执行与监控",
+        items: [
+          { text: "运行流水线", link: "/zh/skills/ordine-run-pipeline" },
+          { text: "管理任务", link: "/zh/skills/ordine-manage-job" },
+          { text: "浏览追踪", link: "/zh/skills/ordine-browse-traces" },
+        ],
+      },
+      {
+        text: "内容管理",
+        items: [
+          { text: "浏览文件系统", link: "/zh/skills/ordine-browse-filesystem" },
+          { text: "管理检查清单", link: "/zh/skills/ordine-manage-checklist" },
+          { text: "管理代码片段", link: "/zh/skills/ordine-manage-codesnippet" },
+          { text: "导出与导入", link: "/zh/skills/ordine-export-import" },
         ],
       },
     ],

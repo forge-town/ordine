@@ -66,5 +66,4 @@ bun run src/index.ts --help
 ## 下一步
 
 - 了解 [核心概念](/zh/guide/core-concepts) 理解实体模型
-- 探索 [流水线](/zh/guide/pipelines) 组合多步骤工作流
-- 阅读 [架构](/zh/architecture/overview) 深入技术细节
+- 浏览 [Skills](/zh/skills/) 查看 AI agent 能用 成序 做什么

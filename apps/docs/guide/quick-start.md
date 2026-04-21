@@ -66,5 +66,4 @@ bun run src/index.ts --help
 ## What's Next?
 
 - Learn about [Core Concepts](/guide/core-concepts) to understand the entity model
-- Explore [Pipelines](/guide/pipelines) for composing multi-step workflows
-- Read about the [Architecture](/architecture/overview) for deeper technical understanding
+- Browse the [Skills](/skills/) to see what AI agents can do with Ordine

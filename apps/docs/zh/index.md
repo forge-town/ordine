@@ -17,26 +17,27 @@ hero:
       link: https://github.com/nicepkg/ordine
 
 features:
-  - icon: 📋
-    title: 最佳实践
-    details: 通过检查清单捕获编码规范，结合脚本检查和 LLM 驱动的分析。
+  - icon: �
+    title: 对象
+    details: 为流水线定义类型化输入 — 文件夹、代码文件、GitHub 项目或通过插件自定义类型。
   - icon: ⚙️
     title: 操作
     details: 定义原子级编码任务，支持 AI agent 或脚本作为执行后端。
   - icon: 🔗
     title: 流水线
     details: 将操作链接成多步骤 DAG 工作流，节点和边均具有类型定义。
-  - icon: 🤖
+  - icon: 🎯
     title: 技能
     details: 可插拔的 AI agent 能力，驱动操作执行。
-  - icon: 📐
-    title: 规则
-    details: 在代码变更时自动触发流水线执行的策略。
+  - icon: 🤖
+    title: Agent
+    details: 任意选择喜欢的 AI agent 作为执行器 — Claude、GPT、Gemini 或自定义 Agent。
   - icon: 📊
     title: 任务
     details: 实时跟踪后台执行进度、追踪日志和结构化输出。
 ---
 
 <div style="text-align: center; padding: 2rem 0; color: var(--vp-c-text-3); font-size: 0.9rem;">
-  🚧 成序目前处于 <strong>Preview 预览</strong>阶段。API 和功能可能会发生变化。
+  🚧 成序目前处于 <strong>Preview 预览</strong>阶段。API 和功能可能会发生变化。<br>
+  🤖 本文档由 AI 生成，正在积极维护中。如发现问题，请<a href="https://github.com/nicepkg/ordine/issues">提交 Issue</a>。
 </div>
