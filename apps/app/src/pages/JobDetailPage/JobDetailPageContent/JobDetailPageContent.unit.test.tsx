@@ -1,5 +1,5 @@
 import { render } from "@/test/test-wrapper";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JobDetailPageContent } from "./JobDetailPageContent";
 import type { JobRecord } from "@repo/db-schema";

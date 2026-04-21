@@ -17,7 +17,6 @@ import { agentEngine } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
 import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
 import type { RunSkillOptions as EngineRunSkillOptions } from "@repo/pipeline-engine";
-import { structuredOutput } from "../structuredOutput";
 
 export class SkillExecutionError extends Error {
   constructor(
@@ -132,7 +131,7 @@ const run = ({
   skillDescription,
   inputContent,
   inputPath,
-  getSettings,
+  getSettings: _getSettings,
   modelOverride,
   agent = "local-claude",
   onChunk,
@@ -298,6 +297,7 @@ export const skillExecutor = {
  */
 const extractTotalCost = (events: ClaudeStreamEvent[]): number | null => {
   const resultEvent = events.find((e) => e.type === "result");
+
   return resultEvent?.total_cost_usd ?? null;
 };
 
@@ -307,6 +307,7 @@ const extractTotalCost = (events: ClaudeStreamEvent[]): number | null => {
 const extractTokenTotals = (events: ClaudeStreamEvent[]): { input: number; output: number } => {
   const resultEvent = events.find((e) => e.type === "result");
   const modelUsage = resultEvent?.modelUsage;
+
   return Object.values(modelUsage ?? {}).reduce(
     (totals, usageEntry) => ({
       input: totals.input + (usageEntry.inputTokens ?? 0),

@@ -165,7 +165,7 @@ export const JobDetailPageContent = () => {
         <span
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-            s.cls,
+            s.cls
           )}
         >
           <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />
@@ -273,7 +273,7 @@ export const JobDetailPageContent = () => {
                   <span
                     className={cn(
                       "shrink-0 w-12 text-[10px] font-mono uppercase",
-                      LEVEL_COLOR[tr.level],
+                      LEVEL_COLOR[tr.level]
                     )}
                   >
                     {tr.level}
