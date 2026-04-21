@@ -12,7 +12,7 @@ Get Ordine running locally in minutes.
 
 ```sh
 # Clone the repository
-git clone https://github.com/nicepkg/ordine.git
+git clone https://github.com/forge-town/ordine.git
 cd ordine
 
 # Install dependencies

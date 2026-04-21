@@ -35,7 +35,7 @@ export default defineConfig({
   themeConfig: {
     logo: "/logo.svg",
 
-    socialLinks: [{ icon: "github", link: "https://github.com/nicepkg/ordine" }],
+    socialLinks: [{ icon: "github", link: "https://github.com/forge-town/ordine" }],
 
     search: {
       provider: "local",

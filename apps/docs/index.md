@@ -14,7 +14,7 @@ hero:
       link: /guide/what-is-ordine
     - theme: alt
       text: View on GitHub
-      link: https://github.com/nicepkg/ordine
+      link: https://github.com/forge-town/ordine
 
 features:
   - icon: 📦
@@ -39,5 +39,5 @@ features:
 
 <div style="text-align: center; padding: 2rem 0; color: var(--vp-c-text-3); font-size: 0.9rem;">
   🚧 Ordine is currently in <strong>Preview</strong> stage. APIs and features may change.<br>
-  🤖 This documentation is AI-generated and actively maintained. If you find any issues, please <a href="https://github.com/nicepkg/ordine/issues">report them</a>.
+  🤖 This documentation is AI-generated and actively maintained. If you find any issues, please <a href="https://github.com/forge-town/ordine/issues">report them</a>.
 </div>

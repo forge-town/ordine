@@ -26,7 +26,7 @@ bun dev
 
 ## 文档
 
-访问[文档站点](https://ordine.dev)查看指南、API 参考和技能库。
+访问[文档站点](https://docs.ordine.ai)查看指南、API 参考和技能库。
 
 ## 许可证
 

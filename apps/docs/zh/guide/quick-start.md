@@ -12,7 +12,7 @@
 
 ```sh
 # 克隆仓库
-git clone https://github.com/nicepkg/ordine.git
+git clone https://github.com/forge-town/ordine.git
 cd ordine
 
 # 安装依赖

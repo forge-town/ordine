@@ -14,7 +14,7 @@ hero:
       link: /zh/guide/what-is-ordine
     - theme: alt
       text: GitHub
-      link: https://github.com/nicepkg/ordine
+      link: https://github.com/forge-town/ordine
 
 features:
   - icon: �
@@ -39,5 +39,5 @@ features:
 
 <div style="text-align: center; padding: 2rem 0; color: var(--vp-c-text-3); font-size: 0.9rem;">
   🚧 成序目前处于 <strong>Preview 预览</strong>阶段。API 和功能可能会发生变化。<br>
-  🤖 本文档由 AI 生成，正在积极维护中。如发现问题，请<a href="https://github.com/nicepkg/ordine/issues">提交 Issue</a>。
+  🤖 本文档由 AI 生成，正在积极维护中。如发现问题，请<a href="https://github.com/forge-town/ordine/issues">提交 Issue</a>。
 </div>

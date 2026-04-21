@@ -26,7 +26,7 @@ bun dev
 
 ## Documentation
 
-Visit the [documentation site](https://ordine.dev) for guides, API reference, and skill library.
+Visit the [documentation site](https://docs.ordine.ai) for guides, API reference, and skill library.
 
 ## License
 
