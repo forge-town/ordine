@@ -19,6 +19,7 @@ export * from "./JobStatusSchema";
 export * from "./JobTypeSchema";
 export * from "./JobTraceSchema";
 export * from "./LogLevelSchema";
+export * from "./meta";
 export * from "./ObjectTypeSchema";
 export * from "./OperationConfigSchema";
 export * from "./OperationSchema";

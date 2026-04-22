@@ -4,14 +4,11 @@ import { ChecklistItemSchema } from "./ChecklistItemSchema";
 import { CodeSnippetSchema } from "./CodeSnippetSchema";
 
 export const BestPracticeImportEntrySchema = BestPracticeSchema.omit({
-  createdAt: true,
-  updatedAt: true,
+  meta: true,
 }).extend({
   checklistItems: z
-    .array(ChecklistItemSchema.omit({ bestPracticeId: true, createdAt: true, updatedAt: true }))
+    .array(ChecklistItemSchema.omit({ bestPracticeId: true, meta: true }))
     .default([]),
-  codeSnippets: z
-    .array(CodeSnippetSchema.omit({ bestPracticeId: true, createdAt: true, updatedAt: true }))
-    .default([]),
+  codeSnippets: z.array(CodeSnippetSchema.omit({ bestPracticeId: true, meta: true })).default([]),
 });
 export type BestPracticeImportEntry = z.infer<typeof BestPracticeImportEntrySchema>;

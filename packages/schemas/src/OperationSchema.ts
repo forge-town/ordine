@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { OperationConfigSchema } from "./OperationConfigSchema";
 import { ObjectTypeSchema } from "./ObjectTypeSchema";
+import { MetaSchema } from "./meta";
 
 export const OperationSchema = z.object({
   id: z.string(),
@@ -8,7 +9,6 @@ export const OperationSchema = z.object({
   description: z.string().nullable().default(null),
   config: OperationConfigSchema,
   acceptedObjectTypes: z.array(ObjectTypeSchema).default(["file", "folder", "project"]),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  meta: MetaSchema,
 });
 export type Operation = z.infer<typeof OperationSchema>;
