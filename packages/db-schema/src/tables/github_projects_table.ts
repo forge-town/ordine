@@ -18,5 +18,4 @@ export const githubProjectsTable = pgTable(
     unique("github_projects_owner_repo_branch_unique").on(table.owner, table.repo, table.branch),
   ],
 );
-
 export type GithubProjectRecord = typeof githubProjectsTable.$inferSelect;

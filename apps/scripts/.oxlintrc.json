@@ -1,9 +1,4 @@
 {
   "extends": ["../../packages/oxlint-config/non-react.oxlintrc.json"],
-  "rules": {
-    "ordine-vars/no-let": "off",
-    "func-style": "off",
-    "unicorn/no-process-exit": "off"
-  },
   "ignorePatterns": ["src/best-practices/**"]
 }

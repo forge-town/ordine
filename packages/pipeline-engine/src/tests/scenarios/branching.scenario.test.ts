@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { executeScenario } from "../helpers/makePipelineScenario";
 import { makeNode } from "../helpers/makeNode";
+import type { OperationInfo } from "../../nodes/types";
 import { makeEdge } from "../helpers/makeEdge";
 import { makeTestDeps } from "../helpers/makeTestDeps";
 
@@ -16,15 +17,15 @@ Pipeline shape:
 describe("pipeline scenario: branching flow", () => {
   it("runs sibling operation nodes from the same parent", async () => {
     const deps = makeTestDeps();
-    const operations = new Map([
+    const operations = new Map<string, OperationInfo>([
       [
         "lint",
         {
           id: "lint",
           name: "Lint",
-          config: JSON.stringify({
+          config: {
             executor: { type: "agent", agentMode: "prompt", prompt: "Lint the input" },
-          }),
+          },
         },
       ],
       [
@@ -32,9 +33,9 @@ describe("pipeline scenario: branching flow", () => {
         {
           id: "summarize",
           name: "Summarize",
-          config: JSON.stringify({
+          config: {
             executor: { type: "agent", agentMode: "prompt", prompt: "Summarize the input" },
-          }),
+          },
         },
       ],
     ]);

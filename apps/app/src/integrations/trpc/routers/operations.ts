@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { operationsService } from "../services";
-import { ObjectTypeSchema } from "@repo/schemas";
+import { ObjectTypeSchema, OperationConfigSchema } from "@repo/schemas";
 
 export const operationsRouter = router({
   getMany: publicProcedure.query(() => operationsService.getAll()),
@@ -16,7 +16,7 @@ export const operationsRouter = router({
         id: z.string(),
         name: z.string(),
         description: z.string().nullable().default(null),
-        config: z.string().default("{}"),
+        config: OperationConfigSchema.optional(),
         acceptedObjectTypes: z.array(ObjectTypeSchema).default(["file", "folder", "project"]),
       })
     )
@@ -28,7 +28,7 @@ export const operationsRouter = router({
         id: z.string(),
         name: z.string().optional(),
         description: z.string().nullable().optional(),
-        config: z.string().optional(),
+        config: OperationConfigSchema.optional(),
         acceptedObjectTypes: z.array(ObjectTypeSchema).optional(),
       })
     )

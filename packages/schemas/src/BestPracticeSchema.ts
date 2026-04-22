@@ -10,5 +10,4 @@ export const BestPracticeSchema = z.object({
   codeSnippet: z.string().default(""),
   tags: z.array(z.string()).default([]),
 });
-
 export type BestPractice = z.infer<typeof BestPracticeSchema>;

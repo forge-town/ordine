@@ -2,7 +2,7 @@ import { eq, desc } from "drizzle-orm";
 import { jobTracesTable, type LogLevel } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-class JobTracesDao {
+export class JobTracesDao {
   constructor(readonly executor: DbExecutor) {}
 
   async append(jobId: string, message: string, level: LogLevel = "info") {
@@ -30,5 +30,3 @@ class JobTracesDao {
 export const createJobTracesDao = (executor: DbExecutor) => {
   return new JobTracesDao(executor);
 };
-
-export type JobTracesDaoInstance = ReturnType<typeof createJobTracesDao>;

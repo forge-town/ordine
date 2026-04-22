@@ -4,7 +4,7 @@ import type { DbExecutor } from "../../types";
 
 export type InsertAgentSpan = Omit<typeof agentSpansTable.$inferInsert, "id">;
 
-class AgentSpansDao {
+export class AgentSpansDao {
   constructor(readonly executor: DbExecutor) {}
 
   async insert(data: InsertAgentSpan) {
@@ -59,5 +59,3 @@ class AgentSpansDao {
 export const createAgentSpansDao = (executor: DbExecutor) => {
   return new AgentSpansDao(executor);
 };
-
-export type AgentSpansDaoInstance = ReturnType<typeof createAgentSpansDao>;

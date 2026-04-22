@@ -26,6 +26,7 @@ export const ResourceName = {
   recipes: "recipes",
   checklistItems: "checklistItems",
   codeSnippets: "codeSnippets",
+  settings: "settings",
 } as const;
 
 export const dataProvider: DataProvider = {
@@ -174,6 +175,11 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.codeSnippets: {
         const data = await trpcClient.codeSnippets.getById.query({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.settings: {
+        const data = await trpcClient.settings.get.query();
 
         return { data: data as unknown as TData };
       }
@@ -348,6 +354,13 @@ export const dataProvider: DataProvider = {
           id: String(id),
           patch: variables as Record<string, unknown>,
         } as Parameters<typeof trpcClient.codeSnippets.update.mutate>[0]);
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.settings: {
+        const data = await trpcClient.settings.update.mutate(
+          variables as Parameters<typeof trpcClient.settings.update.mutate>[0]
+        );
 
         return { data: data as unknown as TData };
       }

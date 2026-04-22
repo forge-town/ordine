@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { AgentBackendSchema } from "./ExecutorConfigSchema";
+import { AgentRuntimeSchema } from "@repo/schemas";
 
 export const RunPromptOptionsSchema = z.object({
   prompt: z.string(),
@@ -8,7 +8,7 @@ export const RunPromptOptionsSchema = z.object({
   inputPath: z.string(),
   jobId: z.string().optional(),
   modelOverride: z.string().optional(),
-  agent: AgentBackendSchema.optional(),
+  agent: AgentRuntimeSchema.optional(),
 });
 export type RunPromptOptions = z.infer<typeof RunPromptOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;

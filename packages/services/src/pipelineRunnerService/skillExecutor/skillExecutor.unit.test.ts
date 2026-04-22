@@ -60,13 +60,13 @@ describe("skillExecutor", () => {
   });
 
   it("returns ok result when claude succeeds", async () => {
-    const result = await skillExecutor.run({ ...baseOpts, agent: "local-claude" });
+    const result = await skillExecutor.run({ ...baseOpts, agent: "claude-code" });
     expect(result.isOk()).toBe(true);
   });
 
   it("returns SkillExecutionError when claude fails", async () => {
     vi.mocked(agentEngine.run).mockRejectedValueOnce(new Error("spawn failed"));
-    const result = await skillExecutor.run({ ...baseOpts, agent: "local-claude" });
+    const result = await skillExecutor.run({ ...baseOpts, agent: "claude-code" });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(SkillExecutionError);
@@ -79,7 +79,7 @@ describe("skillExecutor", () => {
       text: "",
       events: [],
     });
-    const result = await skillExecutor.run({ ...baseOpts, agent: "local-claude" });
+    const result = await skillExecutor.run({ ...baseOpts, agent: "claude-code" });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(SkillExecutionError);
@@ -133,7 +133,7 @@ describe("skillExecutor", () => {
     );
     const result = await skillExecutor.run({
       ...baseOpts,
-      agent: "unknown-agent" as "local-claude",
+      agent: "unknown-agent" as "claude-code",
     });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {

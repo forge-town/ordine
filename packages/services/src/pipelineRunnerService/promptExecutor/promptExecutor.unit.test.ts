@@ -40,13 +40,13 @@ describe("promptExecutor", () => {
     vi.mocked(agentEngine.run).mockResolvedValue({ text: "claude-output", events: [] });
   });
 
-  it("dispatches to agentEngine when agent is local-claude", async () => {
-    const result = await promptExecutor.run({ ...baseOpts, agent: "local-claude" });
+  it("dispatches to agentEngine when agent is claude-code", async () => {
+    const result = await promptExecutor.run({ ...baseOpts, agent: "claude-code" });
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toBe("claude-output");
     expect(agentEngine.run).toHaveBeenCalledOnce();
     expect(agentEngine.run).toHaveBeenCalledWith(
-      expect.objectContaining({ agent: "local-claude", mode: "direct" }),
+      expect.objectContaining({ agent: "claude-code", mode: "direct" }),
     );
   });
 

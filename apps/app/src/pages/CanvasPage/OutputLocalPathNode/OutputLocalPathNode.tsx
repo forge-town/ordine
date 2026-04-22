@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { AlertTriangle, FolderOpen, HardDrive } from "lucide-react";
-import { OUTPUT_MODES, type OutputMode } from "@repo/pipeline-engine/schemas";
+import {
+  OUTPUT_MODES,
+  type OutputMode,
+  type OutputLocalPathNodeData,
+} from "@repo/pipeline-engine/schemas";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState, type OutputLocalPathNodeData } from "../_store";
+import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
 import { NodeCard } from "../NodeCard";
 import { FolderBrowser } from "./FolderBrowser";
 

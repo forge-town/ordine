@@ -57,21 +57,21 @@ const RECIPES: RecipeSeed[] = [
   },
 ];
 
-async function seed() {
+const seed = async () => {
   console.log("🌱 Seeding recipes via REST API...\n");
 
-  let upserted = 0;
+  const counts = { upserted: 0 };
 
   for (const recipe of RECIPES) {
     await apiPut("/api/recipes", recipe);
     console.log(`  ✅  ${recipe.id} — ${recipe.name} — upserted`);
-    upserted++;
+    counts.upserted++;
   }
 
-  console.log(`\n🎉 Done — ${upserted} recipes upserted.`);
-}
+  console.log(`\n🎉 Done — ${counts.upserted} recipes upserted.`);
+};
 
-seed().catch((error) => {
+seed().catch((error: unknown) => {
   console.error("Seed failed:", error);
-  process.exit(1);
+  throw error instanceof Error ? error : new Error(String(error));
 });

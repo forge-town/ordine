@@ -1,4 +1,5 @@
 import type { PipelineEngineDeps } from "../deps";
+import type { OperationConfigInput } from "@repo/schemas";
 import type { NodeCtx, PipelineNode } from "../schemas";
 import type { PipelineRunError } from "../errors";
 
@@ -15,6 +16,7 @@ export interface NodeContext {
   nodeOutputs: Map<string, NodeCtx>;
   tempDirs: string[];
   jobId: string;
+  defaultOutputPath?: string;
 }
 
 export interface OperationNodeContext extends NodeContext {
@@ -27,7 +29,7 @@ export interface OperationNodeContext extends NodeContext {
 export interface OperationInfo {
   id: string;
   name: string;
-  config: string;
+  config: OperationConfigInput;
 }
 
 export interface SkillInfo {

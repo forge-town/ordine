@@ -46,7 +46,7 @@ const makeOp = (id: string, name: string, description?: string): OperationRecord
   id,
   name,
   description: description ?? null,
-  config: "{}",
+  config: {},
   acceptedObjectTypes: ["file"],
   createdAt: new Date(),
   updatedAt: new Date(),

@@ -7,6 +7,7 @@ import { pipelineEngine } from "./engine";
 import type { PipelineEngineDeps } from "./deps";
 import type { PipelineNode, PipelineEdge } from "./schemas";
 import type { PipelineOptions } from "./pipeline";
+import type { OperationInfo } from "./nodes/types";
 
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),
@@ -64,6 +65,12 @@ const makeOpts = (
   lookupSkill: vi.fn().mockResolvedValue(null),
   lookupBestPractice: vi.fn().mockResolvedValue(null),
   ...extra,
+});
+
+const makeOp = (id: string, name: string, config: OperationInfo["config"]): OperationInfo => ({
+  id,
+  name,
+  config,
 });
 
 describe("executePipeline", () => {
@@ -143,13 +150,9 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Echo Op",
-            config: JSON.stringify({
+          makeOp(opId, "Echo Op", {
               executor: { type: "script", language: "bash", command: "echo test-output" },
             }),
-          },
         ],
       ]);
 
@@ -169,13 +172,9 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Prompt Op",
-            config: JSON.stringify({
+          makeOp(opId, "Prompt Op", {
               executor: { type: "agent", agentMode: "prompt", prompt: "Analyze this code" },
             }),
-          },
         ],
       ]);
 
@@ -191,13 +190,9 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Skill Op",
-            config: JSON.stringify({
+          makeOp(opId, "Skill Op", {
               executor: { type: "agent", agentMode: "skill", skillId: "sk-1" },
             }),
-          },
         ],
       ]);
       const lookupSkill = vi
@@ -218,13 +213,9 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Agent Config Op",
-            config: JSON.stringify({
+          makeOp(opId, "Agent Config Op", {
               executor: { type: "agent", agentMode: "skill", skillId: "sk-2", agent: "codex" },
             }),
-          },
         ],
       ]);
       const lookupSkill = vi
@@ -247,10 +238,7 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Prompt Agent Op",
-            config: JSON.stringify({
+          makeOp(opId, "Prompt Agent Op", {
               executor: {
                 type: "agent",
                 agentMode: "prompt",
@@ -258,7 +246,6 @@ describe("executePipeline", () => {
                 agent: "codex",
               },
             }),
-          },
         ],
       ]);
 
@@ -276,13 +263,9 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Default Agent Op",
-            config: JSON.stringify({
+          makeOp(opId, "Default Agent Op", {
               executor: { type: "agent", agentMode: "skill", skillId: "sk-3" },
             }),
-          },
         ],
       ]);
       const lookupSkill = vi
@@ -305,11 +288,7 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Rule Check",
-            config: JSON.stringify({ executor: { type: "rule-check" } }),
-          },
+          makeOp(opId, "Rule Check", { executor: { type: "rule-check" } }),
         ],
       ]);
 
@@ -337,13 +316,9 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Empty Prompt",
-            config: JSON.stringify({
+          makeOp(opId, "Empty Prompt", {
               executor: { type: "agent", agentMode: "prompt", prompt: "" },
             }),
-          },
         ],
       ]);
 
@@ -359,13 +334,9 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "BP Op",
-            config: JSON.stringify({
+          makeOp(opId, "BP Op", {
               executor: { type: "agent", agentMode: "prompt", prompt: "Check standards" },
             }),
-          },
         ],
       ]);
       const lookupBestPractice = vi
@@ -392,13 +363,9 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Loop Op",
-            config: JSON.stringify({
+          makeOp(opId, "Loop Op", {
               executor: { type: "agent", agentMode: "prompt", prompt: "Improve" },
             }),
-          },
         ],
       ]);
 
@@ -423,13 +390,9 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Loop Max",
-            config: JSON.stringify({
+          makeOp(opId, "Loop Max", {
               executor: { type: "agent", agentMode: "prompt", prompt: "Keep going" },
             }),
-          },
         ],
       ]);
 
@@ -454,13 +417,9 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Analyze",
-            config: JSON.stringify({
+          makeOp(opId, "Analyze", {
               executor: { type: "agent", agentMode: "prompt", prompt: "Analyze" },
             }),
-          },
         ],
       ]);
 
@@ -482,23 +441,15 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opA,
-          {
-            id: opA,
-            name: "Check A",
-            config: JSON.stringify({
+          makeOp(opA, "Check A", {
               executor: { type: "agent", agentMode: "prompt", prompt: "Check A" },
             }),
-          },
         ],
         [
           opB,
-          {
-            id: opB,
-            name: "Check B",
-            config: JSON.stringify({
+          makeOp(opB, "Check B", {
               executor: { type: "agent", agentMode: "prompt", prompt: "Check B" },
             }),
-          },
         ],
       ]);
 
@@ -527,33 +478,21 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opA,
-          {
-            id: opA,
-            name: "A",
-            config: JSON.stringify({
+          makeOp(opA, "A", {
               executor: { type: "agent", agentMode: "prompt", prompt: "A" },
             }),
-          },
         ],
         [
           opB,
-          {
-            id: opB,
-            name: "B",
-            config: JSON.stringify({
+          makeOp(opB, "B", {
               executor: { type: "agent", agentMode: "prompt", prompt: "B" },
             }),
-          },
         ],
         [
           opMerge,
-          {
-            id: opMerge,
-            name: "Merge",
-            config: JSON.stringify({
+          makeOp(opMerge, "Merge", {
               executor: { type: "agent", agentMode: "prompt", prompt: "Merge" },
             }),
-          },
         ],
       ]);
 
@@ -586,13 +525,9 @@ describe("executePipeline", () => {
       const operations = new Map([
         [
           opId,
-          {
-            id: opId,
-            name: "Gen",
-            config: JSON.stringify({
+          makeOp(opId, "Gen", {
               executor: { type: "agent", agentMode: "prompt", prompt: "Generate" },
             }),
-          },
         ],
       ]);
 

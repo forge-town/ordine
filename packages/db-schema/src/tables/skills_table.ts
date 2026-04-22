@@ -14,5 +14,4 @@ export const skillsTable = pgTable("skills", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-
 export type SkillRecord = typeof skillsTable.$inferSelect;

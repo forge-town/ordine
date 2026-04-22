@@ -35,7 +35,7 @@ const recordPromptRun = ({
   durationMs,
 }: {
   jobId: string;
-  agentSystem: "local-claude" | "codex";
+  agentSystem: "claude-code" | "codex";
   systemPrompt: string;
   userPrompt: string;
   output: string;
@@ -107,7 +107,7 @@ const run = ({
   jobId,
   getSettings: _getSettings,
   modelOverride: _modelOverride,
-  agent = "local-claude",
+  agent = "claude-code",
   onChunk,
   onProgress,
 }: RunPromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {

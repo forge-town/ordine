@@ -2,7 +2,7 @@ import { eq, desc } from "drizzle-orm";
 import { skillsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-class SkillsDao {
+export class SkillsDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findMany() {
@@ -182,5 +182,3 @@ class SkillsDao {
 export const createSkillsDao = (executor: DbExecutor) => {
   return new SkillsDao(executor);
 };
-
-export type SkillsDaoInstance = ReturnType<typeof createSkillsDao>;

@@ -8,7 +8,7 @@ const mockOp: OperationRecord = {
   id: "op-1",
   name: "Lint",
   description: null,
-  config: "{}",
+  config: {},
   acceptedObjectTypes: ["file"],
   createdAt: new Date(1000),
   updatedAt: new Date(1000),

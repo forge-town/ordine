@@ -9,11 +9,11 @@ import {
   type OperationInfo,
 } from "@repo/pipeline-engine";
 import type {
-  OperationsDaoInstance,
-  PipelinesDaoInstance,
-  JobsDaoInstance,
-  SkillsDaoInstance,
-  BestPracticesDaoInstance,
+  OperationsDao,
+  PipelinesDao,
+  JobsDao,
+  SkillsDao,
+  BestPracticesDao,
 } from "@repo/models";
 
 /**
@@ -25,7 +25,7 @@ const failJobSafely = async ({
   jobId,
   message,
 }: {
-  jobsDao: JobsDaoInstance;
+  jobsDao: JobsDao;
   jobId: string;
   message: string;
 }): Promise<void> => {
@@ -60,11 +60,12 @@ const run = async (opts: {
   inputPath?: string;
   jobId: string;
   githubToken?: string;
-  pipelinesDao: PipelinesDaoInstance;
-  operationsDao: OperationsDaoInstance;
-  jobsDao: JobsDaoInstance;
-  skillsDao: SkillsDaoInstance;
-  bestPracticesDao: BestPracticesDaoInstance;
+  defaultOutputPath?: string;
+  pipelinesDao: PipelinesDao;
+  operationsDao: OperationsDao;
+  jobsDao: JobsDao;
+  skillsDao: SkillsDao;
+  bestPracticesDao: BestPracticesDao;
   engineDeps: PipelineEngineDeps;
 }): Promise<void> => {
   const {
@@ -125,6 +126,7 @@ const run = async (opts: {
           jobId,
           inputPath: opts.inputPath,
           githubToken,
+          defaultOutputPath: opts.defaultOutputPath,
           operations: operationsMap,
           deps: engineDeps,
           lookupSkill,

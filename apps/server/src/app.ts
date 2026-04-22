@@ -1,16 +1,16 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { bestPracticesRoutes } from "./routes/best-practices.js";
-import { checklistItemsRoutes } from "./routes/checklist-items.js";
-import { codeSnippetsRoutes } from "./routes/code-snippets.js";
-import { filesystemRoutes } from "./routes/filesystem.js";
-import { jobsRoutes } from "./routes/jobs.js";
-import { operationsRoutes } from "./routes/operations.js";
-import { pipelinesRoutes } from "./routes/pipelines.js";
-import { recipesRoutes } from "./routes/recipes.js";
-import { rulesRoutes } from "./routes/rules.js";
-import { skillsRoutes } from "./routes/skills.js";
+import { bestPracticesRoutes } from "./routes/best-practices";
+import { checklistItemsRoutes } from "./routes/checklist-items";
+import { codeSnippetsRoutes } from "./routes/code-snippets";
+import { filesystemRoutes } from "./routes/filesystem";
+import { jobsRoutes } from "./routes/jobs";
+import { operationsRoutes } from "./routes/operations";
+import { pipelinesRoutes } from "./routes/pipelines";
+import { recipesRoutes } from "./routes/recipes";
+import { rulesRoutes } from "./routes/rules";
+import { skillsRoutes } from "./routes/skills";
 
 export const app = new Hono();
 

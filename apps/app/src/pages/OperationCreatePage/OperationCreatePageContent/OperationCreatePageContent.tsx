@@ -13,13 +13,14 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { SkillRecord } from "@repo/db-schema";
-import { ObjectTypeSchema, type ObjectType } from "@repo/schemas";
-import { PageLoadingState } from "@/components/PageLoadingState";
 import {
+  ObjectTypeSchema,
+  type ObjectType,
   ExecutorTypeSchema,
   AgentModeSchema,
   ScriptLanguageSchema,
-} from "@repo/pipeline-engine/schemas";
+} from "@repo/schemas";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { useStore } from "zustand";
 import { useOperationCreatePageStore } from "../_store";
 

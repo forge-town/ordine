@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { executeScenario } from "../helpers/makePipelineScenario";
 import { makeNode } from "../helpers/makeNode";
+import type { OperationInfo } from "../../nodes/types";
 import { makeEdge } from "../helpers/makeEdge";
 import { makePromptFailureDeps } from "../helpers/makeTestDeps";
 
@@ -16,15 +17,15 @@ Expected runtime behavior:
 describe("pipeline scenario: failure flow", () => {
   it("stops executing downstream levels after an operation failure", async () => {
     const deps = makePromptFailureDeps();
-    const operations = new Map([
+    const operations = new Map<string, OperationInfo>([
       [
         "fail-op",
         {
           id: "fail-op",
           name: "Fail Operation",
-          config: JSON.stringify({
+          config: {
             executor: { type: "agent", agentMode: "prompt", prompt: "This will fail" },
-          }),
+          },
         },
       ],
       [
@@ -32,9 +33,9 @@ describe("pipeline scenario: failure flow", () => {
         {
           id: "downstream-op",
           name: "Downstream Operation",
-          config: JSON.stringify({
+          config: {
             executor: { type: "agent", agentMode: "prompt", prompt: "This should never run" },
-          }),
+          },
         },
       ],
     ]);

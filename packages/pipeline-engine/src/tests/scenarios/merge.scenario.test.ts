@@ -6,6 +6,7 @@ import { executeScenario } from "../helpers/makePipelineScenario";
 import { makeNode } from "../helpers/makeNode";
 import { makeEdge } from "../helpers/makeEdge";
 import { makeTestDeps } from "../helpers/makeTestDeps";
+import type { OperationInfo } from "../../nodes/types";
 
 /*
 Pipeline shape:
@@ -30,15 +31,15 @@ describe("pipeline scenario: merge flow", () => {
 
     const result = await executeScenario({
       deps,
-      operations: new Map([
+      operations: new Map<string, OperationInfo>([
         [
           operationId,
           {
             id: operationId,
             name: "Merge Review",
-            config: JSON.stringify({
+            config: {
               executor: { type: "agent", agentMode: "prompt", prompt: "Review the merged content" },
-            }),
+            },
           },
         ],
       ]),

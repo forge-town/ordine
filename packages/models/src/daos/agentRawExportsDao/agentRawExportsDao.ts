@@ -7,7 +7,7 @@ export type InsertAgentRawExport = Omit<
   "id" | "createdAt"
 >;
 
-class AgentRawExportsDao {
+export class AgentRawExportsDao {
   constructor(readonly executor: DbExecutor) {}
 
   async insert(data: InsertAgentRawExport) {
@@ -42,5 +42,3 @@ class AgentRawExportsDao {
 export const createAgentRawExportsDao = (executor: DbExecutor) => {
   return new AgentRawExportsDao(executor);
 };
-
-export type AgentRawExportsDaoInstance = ReturnType<typeof createAgentRawExportsDao>;

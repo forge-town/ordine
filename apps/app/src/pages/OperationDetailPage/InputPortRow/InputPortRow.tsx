@@ -1,6 +1,5 @@
-import { KIND_LABEL, type InputPort } from "../types";
-
-export type { InputPort };
+import { KIND_LABEL } from "../types";
+import type { InputPort } from "@repo/schemas";
 
 export type InputPortRowProps = {
   port: InputPort;

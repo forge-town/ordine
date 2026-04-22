@@ -1,9 +1,7 @@
-/**
- * The object passed to a rule's default-export check function.
- * The script must export default: (target: RuleTarget) => boolean | Promise<boolean>
- * Return true = pass, false = fail.
- */
-export interface RuleTarget {
-  path: string;
-  type: "file" | "folder" | "project";
-}
+import { z } from "zod/v4";
+
+export const RuleTargetSchema = z.object({
+  path: z.string(),
+  type: z.enum(["file", "folder", "project"]),
+});
+export type RuleTarget = z.infer<typeof RuleTargetSchema>;

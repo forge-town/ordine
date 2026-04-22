@@ -4,7 +4,7 @@ import type { DbExecutor } from "../../types";
 
 const DEFAULT_ID = "default";
 
-class SettingsDao {
+export class SettingsDao {
   constructor(readonly executor: DbExecutor) {}
 
   async get() {
@@ -32,7 +32,7 @@ class SettingsDao {
     return existingRows[0]!;
   }
 
-  async update(patch: Partial<Pick<SettingsRecord, "llmProvider" | "llmApiKey" | "llmModel">>) {
+  async update(patch: Partial<Pick<SettingsRecord, "defaultAgentRuntime" | "defaultApiKey" | "defaultModel" | "defaultOutputPath">>) {
     await this.get();
 
     const [updated] = await this.executor
@@ -48,5 +48,3 @@ class SettingsDao {
 export const createSettingsDao = (executor: DbExecutor) => {
   return new SettingsDao(executor);
 };
-
-export type SettingsDaoInstance = ReturnType<typeof createSettingsDao>;

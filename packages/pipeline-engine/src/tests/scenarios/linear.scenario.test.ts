@@ -6,6 +6,7 @@ import { executeScenario } from "../helpers/makePipelineScenario";
 import { makeNode } from "../helpers/makeNode";
 import { makeEdge } from "../helpers/makeEdge";
 import { makeTestDeps } from "../helpers/makeTestDeps";
+import type { OperationInfo } from "../../nodes/types";
 
 /*
 Pipeline shape:
@@ -29,19 +30,19 @@ describe("pipeline scenario: linear flow", () => {
         }),
       ],
       edges: [makeEdge("folder", "operation")],
-      operations: new Map([
+      operations: new Map<string, OperationInfo>([
         [
           operationId,
           {
             id: operationId,
             name: "Analyze Folder",
-            config: JSON.stringify({
+            config: {
               executor: {
                 type: "agent",
                 agentMode: "prompt",
                 prompt: "Analyze the provided folder",
               },
-            }),
+            },
           },
         ],
       ]),

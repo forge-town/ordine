@@ -9,23 +9,14 @@ import {
   type Connection,
 } from "@xyflow/react";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
+import { makeDefaultNodeData } from "../utils/makeDefaultNodeData";
+import type { PipelineNodeData } from "../schemas/PipelineNodeDataSchema";
 import {
-  makeDefaultNodeData,
   ConnectionRuleSchema,
   type NodeType,
   type BuiltinNodeType,
-  type OperationNodeData,
-  type PipelineNodeData,
-} from "../nodeSchemas";
-import type {
-  NodeRunStatus,
-  CodeFileNodeData,
-  CompoundNodeData,
-  FolderNodeData,
-  GitHubProjectNodeData,
-  OutputProjectPathNodeData,
-  OutputLocalPathNodeData,
-  PipelineEdgeData,
+  type CompoundNodeData,
+  type PipelineEdgeData,
 } from "@repo/pipeline-engine/schemas";
 
 import { computeAutoLayout } from "./autoLayout";
@@ -44,30 +35,9 @@ export const sortParentBeforeChildren = (nodes: PipelineNode[]): void => {
   });
 };
 
-// Re-export all data types from the single source of truth
-export type {
-  NodeType,
-  NodeRunStatus,
-  CodeFileNodeData,
-  CompoundNodeData,
-  FolderNodeData,
-  GitHubProjectNodeData,
-  OperationNodeData,
-  OutputProjectPathNodeData,
-  OutputLocalPathNodeData,
-  PipelineNodeData,
-  PipelineEdgeData,
-};
-
 export type PipelineNode = Node<PipelineNodeData, NodeType>;
 
 export type PipelineEdge = Edge<PipelineEdgeData>;
-
-// Keep legacy aliases so imports in other files don't break immediately
-export type HarnessNode = PipelineNode;
-export type HarnessEdge = PipelineEdge;
-export type HarnessNodeData = PipelineNodeData;
-export type HarnessEdgeData = PipelineEdgeData;
 
 export interface CanvasSlice {
   nodes: PipelineNode[];

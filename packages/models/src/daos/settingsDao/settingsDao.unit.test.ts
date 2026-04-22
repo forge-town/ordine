@@ -36,9 +36,9 @@ vi.mock("drizzle-orm", async (importOriginal) => {
 
 const makeRow = () => ({
   id: "default",
-  llmProvider: null,
-  llmApiKey: null,
-  llmModel: null,
+  defaultAgentRuntime: null,
+  defaultApiKey: null,
+  defaultModel: null,
   createdAt: new Date("2024-01-01"),
   updatedAt: new Date("2024-01-01"),
 });
@@ -85,12 +85,12 @@ describe("settingsDao", () => {
   it("update returns updated settings", async () => {
     const row = makeRow();
     mockLimit.mockResolvedValueOnce([row]);
-    const updatedRow = { ...row, llmProvider: "codex" };
+    const updatedRow = { ...row, defaultAgentRuntime: "codex" };
     mockReturning.mockResolvedValueOnce([updatedRow]);
 
-    const result = await dao.update({ llmProvider: "codex" });
+    const result = await dao.update({ defaultAgentRuntime: "codex" });
 
     expect(result.id).toBe("default");
-    expect(result.llmProvider).toBe("codex");
+    expect(result.defaultAgentRuntime).toBe("codex");
   });
 });

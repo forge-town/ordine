@@ -2,7 +2,7 @@ import { eq, desc } from "drizzle-orm";
 import { githubProjectsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-class GithubProjectsDao {
+export class GithubProjectsDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findMany() {
@@ -50,5 +50,3 @@ class GithubProjectsDao {
 export const createGithubProjectsDao = (executor: DbExecutor) => {
   return new GithubProjectsDao(executor);
 };
-
-export type GithubProjectsDaoInstance = ReturnType<typeof createGithubProjectsDao>;

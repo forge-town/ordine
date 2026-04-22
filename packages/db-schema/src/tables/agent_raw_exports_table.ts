@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { text, timestamp, pgTable, index, serial, integer, jsonb } from "drizzle-orm/pg-core";
 import { jobsTable } from "./jobs_table";
 
-export type AgentSystem = "local-claude" | "codex" | "openai" | "anthropic" | "custom";
+export type AgentSystem = "claude-code" | "codex" | "openai" | "anthropic" | "custom";
 export type AgentRunStatus = "completed" | "error";
 
 export const agentRawExportsTable = pgTable(
@@ -29,5 +29,4 @@ export const agentRawExportsTable = pgTable(
     index("agent_raw_exports_created_at_idx").on(table.createdAt),
   ],
 );
-
 export type AgentRawExportRecord = typeof agentRawExportsTable.$inferSelect;

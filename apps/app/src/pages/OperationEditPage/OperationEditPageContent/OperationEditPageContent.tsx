@@ -13,15 +13,16 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { OperationRecord, SkillRecord } from "@repo/db-schema";
-import { type ObjectType, ObjectTypeSchema } from "@repo/schemas";
 import {
+  ObjectTypeSchema,
+  type ObjectType,
   ExecutorTypeSchema,
   AgentModeSchema,
   ScriptLanguageSchema,
   type ExecutorType,
   type AgentMode,
-} from "@repo/pipeline-engine/schemas";
-import { safeJsonParse } from "@/lib/safeJson";
+  type OperationConfigInput,
+} from "@repo/schemas";
 import { useStore } from "zustand";
 import { useOperationEditPageStore } from "../_store";
 
@@ -53,38 +54,38 @@ const editFormSchema = z.object({
   scriptLanguage: ScriptLanguageSchema,
 });
 
-const buildConfig = (values: EditFormValues): string => {
+const buildConfig = (values: EditFormValues): OperationConfigInput => {
   if (values.executorType === "agent") {
     if (values.agentMode === "skill") {
-      return JSON.stringify({
+      return {
         executor: {
           type: "agent",
           agentMode: "skill",
           skillId: values.skillId,
         },
-      });
+      };
     }
 
-    return JSON.stringify({
+    return {
       executor: {
         type: "agent",
         agentMode: "prompt",
         prompt: values.promptText,
       },
-    });
+    };
   }
 
-  return JSON.stringify({
+  return {
     executor: {
       type: "script",
       command: values.scriptCommand,
       language: values.scriptLanguage,
     },
-  });
+  };
 };
 
 const parseExecutorDefaults = (
-  config: string
+  config: OperationConfigInput
 ): {
   executorType: ExecutorType;
   agentMode: AgentMode;
@@ -102,10 +103,7 @@ const parseExecutorDefaults = (
     scriptLanguage: "bash" as "bash" | "python" | "javascript",
   };
 
-  const result = safeJsonParse<{ executor?: Record<string, string> }>(config);
-  if (result.isErr()) return defaults;
-
-  const ex = result.value.executor;
+  const ex = config.executor;
   if (!ex) return defaults;
 
   const { executorType, agentMode } = (() => {

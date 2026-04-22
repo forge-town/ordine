@@ -16,15 +16,18 @@ import {
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { OperationRecord } from "@repo/db-schema";
-import type { ObjectType } from "@repo/schemas";
+import type {
+  ObjectType,
+  OperationConfig,
+  OperationConfigInput,
+  ExecutorConfig,
+} from "@repo/schemas";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/operations.$operationId.index";
 import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
 import { OutputPortRow } from "../OutputPortRow";
-import type { OperationConfig, ExecutorConfig } from "../types";
-import { safeJsonParse } from "@/lib/safeJson";
 import { PageLoadingState } from "@/components/PageLoadingState";
 
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
@@ -48,15 +51,11 @@ const AGENT_MODE_LABEL: Record<string, string> = {
   prompt: "Prompt",
 };
 
-const parseConfig = (raw: string): OperationConfig => {
-  const result = safeJsonParse<Partial<OperationConfig>>(raw);
-  if (result.isErr()) return { inputs: [], outputs: [] };
-  const parsed = result.value;
-
+const parseConfig = (raw: OperationConfigInput): OperationConfig => {
   return {
-    executor: parsed.executor,
-    inputs: Array.isArray(parsed.inputs) ? parsed.inputs : [],
-    outputs: Array.isArray(parsed.outputs) ? parsed.outputs : [],
+    executor: raw.executor,
+    inputs: Array.isArray(raw.inputs) ? raw.inputs : [],
+    outputs: Array.isArray(raw.outputs) ? raw.outputs : [],
   };
 };
 

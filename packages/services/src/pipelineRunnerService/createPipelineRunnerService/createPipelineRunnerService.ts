@@ -15,6 +15,7 @@ import {
   createRulesDao,
   createAgentRawExportsDao,
   createAgentSpansDao,
+  createSettingsDao,
   type DbConnection,
 } from "@repo/models";
 
@@ -35,6 +36,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   const rulesDao = createRulesDao(db);
   const agentRawExportsDao = createAgentRawExportsDao(db);
   const agentSpansDao = createAgentSpansDao(db);
+  const settingsDao = createSettingsDao(db);
 
   initObs(jobTracesDao);
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
@@ -77,11 +79,14 @@ export const createPipelineRunnerService = (db: DbConnection) => {
         finishedAt: null,
       });
 
+      const settings = await settingsDao.get();
+
       void ResultAsync.fromPromise(
         pipelineRunExecutor.run({
           pipelineId: opts.pipelineId,
           inputPath: opts.inputPath,
           githubToken: opts.githubToken,
+          defaultOutputPath: settings.defaultOutputPath || undefined,
           jobId,
           pipelinesDao,
           operationsDao,

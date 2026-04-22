@@ -17,7 +17,8 @@
     "quality": "bun run check-types && bun run test"
   },
   "dependencies": {
-    "@repo/agent": "workspace:*"
+    "@repo/agent": "workspace:*",
+    "@repo/schemas": "workspace:*"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

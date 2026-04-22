@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { okAsync, errAsync } from "neverthrow";
 import { executeOperationNode, processOperationNode } from "./OperationNode";
 import type { PipelineEngineDeps } from "../deps";
+import type { ExecutorConfig } from "@repo/schemas";
 import type { PipelineNode, NodeCtx } from "../schemas";
 import type { OperationNodeContext, OperationInfo } from "./types";
 
@@ -41,10 +42,10 @@ const makeInput = (content = "input text", inputPath = "/src"): NodeCtx => ({
   content,
 });
 
-const makeOperation = (executor: Record<string, unknown>): OperationInfo => ({
+const makeOperation = (executor: ExecutorConfig): OperationInfo => ({
   id: "op-id",
   name: "Test Op",
-  config: JSON.stringify({ executor }),
+  config: { executor },
 });
 
 const makeCtx = (
@@ -150,7 +151,7 @@ describe("executeOperationNode", () => {
 
   it("fails when no executor is configured", async () => {
     const deps = makeDeps();
-    const op: OperationInfo = { id: "op-id", name: "No Exec", config: JSON.stringify({}) };
+    const op: OperationInfo = { id: "op-id", name: "No Exec", config: {} };
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops);
@@ -295,7 +296,7 @@ describe("executeOperationNode — agent override", () => {
       type: "agent",
       agentMode: "prompt",
       prompt: "Analyze",
-      agent: "local-claude",
+      agent: "claude-code",
     });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id", llmProvider: "codex" });
@@ -313,16 +314,16 @@ describe("executeOperationNode — agent override", () => {
       type: "agent",
       agentMode: "skill",
       skillId: "sk-1",
-      agent: "local-claude",
+      agent: "claude-code",
     });
     const ops = new Map([["op-id", op]]);
-    const node = makeNode({ operationId: "op-id", llmProvider: "local-claude" });
+    const node = makeNode({ operationId: "op-id", llmProvider: "claude-code" });
     const ctx = makeCtx(deps, ops);
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
     expect(result.ok).toBe(true);
-    expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ agent: "local-claude" }));
+    expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ agent: "claude-code" }));
   });
 
   it("falls back to executor.agent when llmProvider is not set", async () => {

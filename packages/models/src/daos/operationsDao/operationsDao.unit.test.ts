@@ -79,7 +79,7 @@ describe("operationsDao", () => {
       id: "op-3",
       name: "Operation",
       description: "Desc",
-      config: "{}",
+      config: {},
     });
 
     expect(result.id).toBe("op-3");

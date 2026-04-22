@@ -1,5 +1,5 @@
 import type { OperationRecord } from "@repo/db-schema";
-import type { OperationNodeData } from "./OperationNodeDataSchema";
+import type { OperationNodeData } from "../schemas/OperationNodeDataSchema";
 
 export const makeOperationNodeData = (operation: OperationRecord): OperationNodeData => ({
   label: operation.name,

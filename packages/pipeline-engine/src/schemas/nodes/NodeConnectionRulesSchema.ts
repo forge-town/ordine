@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { BuiltinNodeTypeSchema, type BuiltinNodeType } from "../NodeTypeSchema";
+import { BuiltinNodeTypeSchema, type BuiltinNodeType } from "../BuiltinNodeTypeSchema";
 
 const nodeTypeArray = z.array(BuiltinNodeTypeSchema);
 

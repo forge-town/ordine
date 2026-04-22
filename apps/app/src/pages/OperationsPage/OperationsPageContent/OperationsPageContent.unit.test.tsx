@@ -61,7 +61,7 @@ const makeOp = (
   overrides: Partial<OperationRecord> & { id: string; name: string }
 ): OperationRecord => ({
   description: null,
-  config: "{}",
+  config: {},
   acceptedObjectTypes: ["file"],
   createdAt: new Date(),
   updatedAt: new Date(),

@@ -2,7 +2,7 @@ import { eq, desc } from "drizzle-orm";
 import { bestPracticesTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
-class BestPracticesDao {
+export class BestPracticesDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findMany() {
@@ -50,5 +50,3 @@ class BestPracticesDao {
 export const createBestPracticesDao = (executor: DbExecutor) => {
   return new BestPracticesDao(executor);
 };
-
-export type BestPracticesDaoInstance = ReturnType<typeof createBestPracticesDao>;

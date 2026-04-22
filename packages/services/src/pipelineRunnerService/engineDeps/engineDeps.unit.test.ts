@@ -3,7 +3,7 @@ import { promptExecutor } from "../promptExecutor";
 import { skillExecutor } from "../skillExecutor";
 import { pipelineRunnerEngineDeps } from "./engineDeps";
 import type { SettingsResolver } from "@repo/agent";
-import type { RulesDaoInstance } from "@repo/models";
+import type { RulesDao } from "@repo/models";
 import type { LoopEvaluatorFn } from "../loopEvaluator";
 
 vi.mock("../promptExecutor", () => ({
@@ -20,7 +20,7 @@ vi.mock("../skillExecutor", () => ({
 
 describe("pipelineRunnerEngineDeps", () => {
   const getSettings = vi.fn() as unknown as SettingsResolver;
-  const rulesDao = {} as RulesDaoInstance;
+  const rulesDao = {} as RulesDao;
   const evaluateLoopCondition = vi.fn() as unknown as LoopEvaluatorFn;
 
   beforeEach(() => {

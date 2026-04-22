@@ -2,11 +2,8 @@ import { Handle, Position } from "@xyflow/react";
 import { FolderOutput } from "lucide-react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import {
-  useHarnessCanvasStore,
-  selectNodeRunState,
-  type OutputProjectPathNodeData,
-} from "../_store";
+import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
+import type { OutputProjectPathNodeData } from "@repo/pipeline-engine/schemas";
 import { NodeCard } from "../NodeCard";
 import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";

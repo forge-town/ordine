@@ -13,8 +13,6 @@
     "quality": "bun run check-types && bun run lint"
   },
   "dependencies": {
-    "@repo/db-schema": "workspace:*",
-    "@repo/pipeline-engine": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {

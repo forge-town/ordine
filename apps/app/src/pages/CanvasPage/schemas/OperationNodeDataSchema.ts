@@ -1,9 +1,9 @@
-import { z } from "zod/v4";
-import { LLM_PROVIDERS } from "@repo/db-schema";
+import type { z } from "zod/v4";
+import { AgentRuntimeSchema } from "@repo/schemas";
 import { OperationNodeDataSchema as EngineOperationNodeDataSchema } from "@repo/pipeline-engine/schemas";
 
 export const OperationNodeDataSchema = EngineOperationNodeDataSchema.extend({
-  llmProvider: z.enum(LLM_PROVIDERS).optional(),
+  llmProvider: AgentRuntimeSchema.optional(),
 });
 
 export type OperationNodeData = z.infer<typeof OperationNodeDataSchema>;

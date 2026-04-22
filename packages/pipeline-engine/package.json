@@ -17,6 +17,7 @@
   "dependencies": {
     "@repo/obs": "workspace:*",
     "@repo/plugin": "workspace:*",
+    "@types/node": "^25.6.0",
     "neverthrow": "^8.2.0",
     "zod": "^4.3.6"
   },

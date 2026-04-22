@@ -4,7 +4,7 @@ import { structuredOutput } from "../structuredOutput";
 import { listDirTree, readProjectFiles } from "@repo/utils";
 import { ruleCheckRunner } from "../ruleCheckRunner";
 import type { PipelineEngineDeps } from "@repo/pipeline-engine";
-import type { RulesDaoInstance } from "@repo/models";
+import type { RulesDao } from "@repo/models";
 import type { SettingsResolver } from "@repo/agent";
 import type { LoopEvaluatorFn } from "../loopEvaluator";
 
@@ -15,7 +15,7 @@ const build = ({
   jobId,
 }: {
   getSettings: SettingsResolver;
-  rulesDao: RulesDaoInstance;
+  rulesDao: RulesDao;
   evaluateLoopCondition: LoopEvaluatorFn;
   jobId?: string;
 }): PipelineEngineDeps => ({
