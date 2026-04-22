@@ -7,6 +7,7 @@ const UpdateSettingsSchema = z.object({
   defaultAgentRuntime: AgentRuntimeSchema.optional(),
   defaultApiKey: z.string().optional(),
   defaultModel: z.string().optional(),
+  defaultOutputPath: z.string().optional(),
 });
 
 export const settingsRouter = router({

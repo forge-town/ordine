@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { User, Bell, Palette, Globe, Shield, ChevronRight } from "lucide-react";
+import { User, Bell, Palette, Globe, Shield, Code, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import {
   AppearanceSection,
+  DeveloperSection,
   LanguageSection,
   NotificationsSection,
   ProfileSection,
   SecuritySection,
 } from "../sections";
 
-type Section = "profile" | "notifications" | "appearance" | "language" | "security";
+type Section = "profile" | "notifications" | "appearance" | "language" | "security" | "developer";
 
 const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
   profile: User,
@@ -18,9 +19,17 @@ const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
   appearance: Palette,
   language: Globe,
   security: Shield,
+  developer: Code,
 };
 
-const SECTION_IDS: Section[] = ["profile", "notifications", "appearance", "language", "security"];
+const SECTION_IDS: Section[] = [
+  "profile",
+  "notifications",
+  "appearance",
+  "language",
+  "security",
+  ...(import.meta.env.DEV ? ["developer" as const] : []),
+];
 
 export const SettingsPageContent = () => {
   const { t } = useTranslation();
@@ -65,6 +74,7 @@ export const SettingsPageContent = () => {
             {active === "appearance" && <AppearanceSection />}
             {active === "language" && <LanguageSection />}
             {active === "security" && <SecuritySection />}
+            {active === "developer" && <DeveloperSection />}
           </div>
         </div>
       </div>

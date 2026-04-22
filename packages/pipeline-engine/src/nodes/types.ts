@@ -16,6 +16,7 @@ export interface NodeContext {
   nodeOutputs: Map<string, NodeCtx>;
   tempDirs: string[];
   jobId: string;
+  defaultOutputPath?: string;
 }
 
 export interface OperationNodeContext extends NodeContext {

@@ -60,6 +60,7 @@ const run = async (opts: {
   inputPath?: string;
   jobId: string;
   githubToken?: string;
+  defaultOutputPath?: string;
   pipelinesDao: PipelinesDao;
   operationsDao: OperationsDao;
   jobsDao: JobsDao;
@@ -125,6 +126,7 @@ const run = async (opts: {
           jobId,
           inputPath: opts.inputPath,
           githubToken,
+          defaultOutputPath: opts.defaultOutputPath,
           operations: operationsMap,
           deps: engineDeps,
           lookupSkill,

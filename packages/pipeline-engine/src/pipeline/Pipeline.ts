@@ -37,6 +37,7 @@ export interface PipelineOptions {
   jobId: string;
   inputPath?: string;
   githubToken?: string;
+  defaultOutputPath?: string;
   operations: Map<string, OperationInfo>;
   deps: PipelineEngineDeps;
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
@@ -103,8 +104,9 @@ export class Pipeline {
       .filter((n) => n.type === "output-local-path")
       .map((n) => {
         const d = n.data as NodeData;
+        const configuredPath = d.localPath ?? String((d as Record<string, unknown>).path ?? "");
 
-        return d.localPath ?? String((d as Record<string, unknown>).path ?? "");
+        return configuredPath || this.opts.defaultOutputPath || "";
       })
       .filter(Boolean);
 
@@ -160,6 +162,7 @@ export class Pipeline {
       nodeOutputs: this.nodeOutputs,
       tempDirs: this.tempDirs,
       jobId,
+      defaultOutputPath: this.opts.defaultOutputPath,
     };
 
     const metaType = resolveMetaType(node.type, node.metaType);

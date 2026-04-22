@@ -3,17 +3,21 @@ import { existsSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { trace } from "@repo/obs";
 import type { NodeContext, NodeResult } from "./types";
-import type { NodeData, OutputMode } from "../schemas";
+import type { NodeData } from "../schemas";
 import { ScriptExecutionError, type PipelineRunError } from "../errors";
+
+const resolveRawPath = (configuredPath: string, defaultOutputPath?: string): string =>
+  configuredPath || defaultOutputPath || "";
 
 export const processOutputLocalPathNode = async (
   ctx: NodeContext,
 ): Promise<NodeResult | { ok: false; error: PipelineRunError }> => {
-  const { node, input, deps, nodeOutputs, jobId } = ctx;
+  const { node, input, deps, nodeOutputs, jobId, defaultOutputPath } = ctx;
   const data = node.data as unknown as NodeData;
-  const rawPath: string = data.localPath ?? String((data as Record<string, unknown>).path ?? "");
+  const configuredPath = data.localPath ?? '';
+  const rawPath = resolveRawPath(configuredPath, defaultOutputPath);
   const baseOutputFileName = data.outputFileName?.trim() || "output.md";
-  const outputMode: OutputMode = data.outputMode ?? "overwrite";
+  const outputMode = data.outputMode ?? "overwrite";
   const dualOutput = (data as Record<string, unknown>).dualOutput === true;
 
   const shortJobId = jobId.slice(0, 8);

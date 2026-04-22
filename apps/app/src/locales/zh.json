@@ -403,7 +403,8 @@
       "notifications": "通知",
       "appearance": "外观",
       "language": "语言与地区",
-      "security": "安全"
+      "security": "安全",
+      "developer": "开发者"
     },
     "saveChanges": "保存更改",
     "saved": "已保存 ✓",
@@ -441,6 +442,11 @@
       "pipeline": "Pipeline 运行完成提醒",
       "mention": "被 @提及时通知",
       "weekly": "每周摘要邮件"
+    },
+    "developerSection": {
+      "title": "开发者",
+      "description": "本地开发环境的开发者模式设置",
+      "defaultOutputPath": "默认输出路径前缀"
     }
   },
   "errors": {

@@ -403,7 +403,8 @@
       "notifications": "Notifications",
       "appearance": "Appearance",
       "language": "Language & Region",
-      "security": "Security"
+      "security": "Security",
+      "developer": "Developer"
     },
     "saveChanges": "Save changes",
     "saved": "Saved ✓",
@@ -441,6 +442,11 @@
       "pipeline": "Pipeline run completion reminder",
       "mention": "Notify when mentioned",
       "weekly": "Weekly summary email"
+    },
+    "developerSection": {
+      "title": "Developer",
+      "description": "Developer mode settings for local development",
+      "defaultOutputPath": "Default output path prefix"
     }
   },
   "errors": {
