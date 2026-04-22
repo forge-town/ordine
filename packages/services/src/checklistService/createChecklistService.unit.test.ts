@@ -58,7 +58,13 @@ describe("createChecklistService", () => {
 
   it("createResult delegates to resultsDao.create", async () => {
     const svc = createChecklistService(mockDb);
-    const data = { status: "pass" } as Parameters<typeof svc.createResult>[0];
+    const data = {
+      id: "r1",
+      jobId: "j1",
+      checklistItemId: "i1",
+      passed: true,
+      output: "ok",
+    } satisfies Parameters<typeof svc.createResult>[0];
     await svc.createResult(data);
     expect(mockResultsDao.create).toHaveBeenCalledWith(data);
   });

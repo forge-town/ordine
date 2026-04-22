@@ -2,9 +2,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { trace } from "@repo/obs";
-import type { NodeContext, NodeResult } from "./types";
-import type { NodeData } from "../schemas";
-import { ScriptExecutionError, type PipelineRunError } from "../errors";
+import type { NodeContext, NodeResult } from "../types";
+import { ScriptExecutionError, type PipelineRunError } from "../../errors";
 
 const resolveRawPath = (configuredPath: string, defaultOutputPath?: string): string =>
   configuredPath || defaultOutputPath || "";
@@ -13,12 +12,23 @@ export const processOutputLocalPathNode = async (
   ctx: NodeContext,
 ): Promise<NodeResult | { ok: false; error: PipelineRunError }> => {
   const { node, input, deps, nodeOutputs, jobId, defaultOutputPath } = ctx;
-  const data = node.data as unknown as NodeData;
+
+  if (node.data.nodeType !== "output-local-path") {
+    await trace(
+      jobId,
+      `WARNING: Expected output-local-path node, got ${node.data.nodeType ?? "unknown"}`,
+    );
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
+    return { ok: false, error: new ScriptExecutionError(`Expected output-local-path node`) };
+  }
+
+  const data = node.data;
   const configuredPath = data.localPath ?? '';
   const rawPath = resolveRawPath(configuredPath, defaultOutputPath);
   const baseOutputFileName = data.outputFileName?.trim() || "output.md";
   const outputMode = data.outputMode ?? "overwrite";
-  const dualOutput = (data as Record<string, unknown>).dualOutput === true;
+  const dualOutput = data.dualOutput === true;
 
   const shortJobId = jobId.slice(0, 8);
   const timestamp = new Date().toISOString().replaceAll(/[:.]/g, "-").slice(0, 19);

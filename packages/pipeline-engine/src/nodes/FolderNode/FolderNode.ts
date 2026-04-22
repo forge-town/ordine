@@ -1,17 +1,23 @@
 import { existsSync } from "node:fs";
 import { trace } from "@repo/obs";
-import type { NodeContext, NodeResult } from "./types";
-import type { NodeData } from "../schemas";
+import type { NodeContext, NodeResult } from "../types";
 
 export const processFolderNode = async (ctx: NodeContext): Promise<NodeResult> => {
   const { node, deps, nodeOutputs, jobId } = ctx;
-  const data = node.data as unknown as NodeData;
-  const p = data.folderPath ?? "";
-  const excludedPaths: string[] = Array.isArray(data.excludedPaths) ? data.excludedPaths : [];
-  const includedExtensions: string[] | undefined = Array.isArray(data.includedExtensions)
-    ? data.includedExtensions
+
+  if (node.data.nodeType !== "folder") {
+    await trace(jobId, `WARNING: Expected folder node, got ${node.data.nodeType ?? "unknown"}`);
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
+    return { ok: false, error: null };
+  }
+
+  const p = node.data.folderPath ?? "";
+  const excludedPaths: string[] = Array.isArray(node.data.excludedPaths) ? node.data.excludedPaths : [];
+  const includedExtensions: string[] | undefined = Array.isArray(node.data.includedExtensions)
+    ? node.data.includedExtensions
     : undefined;
-  const disclosureMode = data.disclosureMode ?? "tree";
+  const disclosureMode = node.data.disclosureMode ?? "tree";
 
   if (p && existsSync(p)) {
     const tree = await deps.listDirTree(p, { excludedPaths });

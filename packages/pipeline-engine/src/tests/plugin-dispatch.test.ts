@@ -12,11 +12,11 @@ import { tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
 import { pluginRegistry, definePlugin } from "@repo/plugin";
 import { z } from "zod/v4";
-import { pipelineEngine } from "./engine";
-import type { PipelineEngineDeps } from "./deps";
-import type { PipelineNode, PipelineEdge } from "./schemas";
-import type { PipelineOptions } from "./pipeline";
-import type { OperationInfo } from "./nodes/types";
+import { pipelineEngine } from "../engine";
+import type { PipelineEngineDeps } from "../deps";
+import type { PipelineNode, PipelineEdge } from "../schemas";
+import type { PipelineOptions } from "../pipeline";
+import type { OperationInfo } from "../nodes/types";
 
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),

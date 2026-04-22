@@ -1,4 +1,4 @@
-import { Pipeline, type PipelineOptions, type PipelineRunResult } from "./pipeline";
+import { Pipeline, type PipelineOptions, type PipelineRunResult } from "../pipeline";
 
 export class PipelineEngine {
   async execute(opts: PipelineOptions): Promise<PipelineRunResult> {

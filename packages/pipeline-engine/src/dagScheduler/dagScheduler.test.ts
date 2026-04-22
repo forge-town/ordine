@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildExecutionLevels, getParentIds, CycleDetectedError } from "./dagScheduler";
+import { buildExecutionLevels, getParentIds, CycleDetectedError } from "../dagScheduler";
 
 interface TestNode {
   id: string;

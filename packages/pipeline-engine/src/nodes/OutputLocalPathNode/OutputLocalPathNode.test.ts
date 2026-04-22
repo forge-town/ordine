@@ -5,9 +5,9 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
 import { processOutputLocalPathNode } from "./OutputLocalPathNode";
-import type { PipelineEngineDeps } from "../deps";
-import type { PipelineNode } from "../schemas";
-import type { NodeContext } from "./types";
+import type { PipelineEngineDeps } from "../../deps";
+import type { PipelineNode } from "../../schemas";
+import type { NodeContext } from "../types";
 
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),

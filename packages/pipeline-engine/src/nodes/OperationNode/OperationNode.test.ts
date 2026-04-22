@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { okAsync, errAsync } from "neverthrow";
 import { executeOperationNode, processOperationNode } from "./OperationNode";
-import type { PipelineEngineDeps } from "../deps";
+import type { PipelineEngineDeps } from "../../deps";
 import type { ExecutorConfig } from "@repo/schemas";
-import type { PipelineNode, NodeCtx } from "../schemas";
-import type { OperationNodeContext, OperationInfo } from "./types";
+import type { PipelineNode, NodeCtx } from "../../schemas";
+import type { OperationNodeContext, OperationInfo } from "../types";
 
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),
