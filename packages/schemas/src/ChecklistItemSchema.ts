@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { MetaSchema } from "./meta";
 
 export const ChecklistItemSchema = z.object({
   id: z.string(),
@@ -8,7 +9,6 @@ export const ChecklistItemSchema = z.object({
   checkType: z.enum(["script", "llm"]).default("llm"),
   script: z.string().nullable().default(null),
   sortOrder: z.number().int().default(0),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  meta: MetaSchema,
 });
 export type ChecklistItem = z.infer<typeof ChecklistItemSchema>;

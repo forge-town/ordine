@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { AgentRuntimeSchema } from "./AgentRuntimeSchema";
+import { MetaSchema } from "./meta";
 
 export const SettingsSchema = z.object({
   id: z.string(),
@@ -7,7 +8,6 @@ export const SettingsSchema = z.object({
   defaultApiKey: z.string(),
   defaultModel: z.string(),
   defaultOutputPath: z.string(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  meta: MetaSchema,
 });
 export type Settings = z.infer<typeof SettingsSchema>;

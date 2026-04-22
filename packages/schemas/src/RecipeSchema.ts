@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { MetaSchema } from "./meta";
 
 export const RecipeSchema = z.object({
   id: z.string(),
@@ -6,7 +7,6 @@ export const RecipeSchema = z.object({
   description: z.string().default(""),
   operationId: z.string(),
   bestPracticeId: z.string(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  meta: MetaSchema,
 });
 export type Recipe = z.infer<typeof RecipeSchema>;

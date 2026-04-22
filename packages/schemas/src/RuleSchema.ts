@@ -3,6 +3,7 @@ import { RuleCategorySchema } from "./RuleCategorySchema";
 import { RuleSeveritySchema } from "./RuleSeveritySchema";
 import { RuleScriptLanguageSchema } from "./RuleScriptLanguageSchema";
 import { ObjectTypeSchema } from "./ObjectTypeSchema";
+import { MetaSchema } from "./meta";
 
 export const RuleSchema = z.object({
   id: z.string(),
@@ -15,7 +16,6 @@ export const RuleSchema = z.object({
   acceptedObjectTypes: z.array(ObjectTypeSchema).default(["file", "folder", "project"]),
   enabled: z.boolean(),
   tags: z.array(z.string()),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  meta: MetaSchema,
 });
 export type Rule = z.infer<typeof RuleSchema>;
