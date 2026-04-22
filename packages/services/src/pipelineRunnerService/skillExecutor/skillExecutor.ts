@@ -9,10 +9,9 @@ import {
   FixOutputSchema,
   ToolNameSchema,
 } from "@repo/agent";
-import { agentEngine } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
 import type { RunSkillOptions as EngineRunSkillOptions } from "@repo/pipeline-engine";
-import { resolveCwd } from "../resolveCwd";
+import { runAgent } from "../agentRunner/agentRunner";
 
 export class SkillExecutionError extends Error {
   constructor(
@@ -124,64 +123,35 @@ const run = ({
       ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
       : `Input:\n${inputContent}`;
 
+  const systemPrompt = buildSkillSystemPrompt({
+    skillId,
+    skillDescription,
+    mode,
+    promptMode,
+  });
+
+  const parsedCustomTools = customAllowedTools
+    ? ToolNameSchema.array().readonly().safeParse(customAllowedTools)
+    : null;
+  const allowedTools =
+    (parsedCustomTools?.success ? parsedCustomTools.data : null) ??
+    (isImplementMode ? WRITE_TOOLS : READ_ONLY_TOOLS);
+
   return ResultAsync.fromPromise(
     (async () => {
-      logger.info(
-        { skillId, inputLen: inputContent.length, inputPath, mode, agent },
-        "runSkill: starting",
-      );
-      await onProgress?.(
-        `runSkill: skillId=${skillId}, agent=${agent}, input length=${inputContent.length}, inputPath=${inputPath}`,
-      );
       await onProgress?.(`runSkill: mode=${mode}`);
 
-      const systemPrompt = buildSkillSystemPrompt({
-        skillId,
-        skillDescription,
-        mode,
-        promptMode,
+      const raw = await runAgent({
+        agent,
+        systemPrompt,
+        userPrompt,
+        inputPath,
+        jobId,
+        agentId: skillId,
+        allowedTools,
+        onProgress,
+        logPrefix: "runSkill",
       });
-
-      const cwd = resolveCwd({ inputPath });
-      const parsedCustomTools = customAllowedTools
-        ? ToolNameSchema.array().readonly().safeParse(customAllowedTools)
-        : null;
-      const allowedTools =
-        (parsedCustomTools?.success ? parsedCustomTools.data : null) ??
-        (isImplementMode ? WRITE_TOOLS : READ_ONLY_TOOLS);
-
-      const engineResult = await ResultAsync.fromPromise(
-        agentEngine.run({
-          agent,
-          mode: "direct",
-          systemPrompt,
-          userPrompt,
-          cwd,
-          allowedTools,
-          onProgress,
-          jobId,
-          agentId: skillId,
-        }),
-        (error) => error,
-      );
-
-      if (engineResult.isErr()) {
-        const error = engineResult.error;
-        const errMsg = error instanceof Error ? error.message : String(error);
-        logger.error({ err: errMsg, agent }, "runSkill: agent failed");
-        await onProgress?.(`runSkill: ${agent} FAILED — ${errMsg}`);
-
-        throw new SkillExecutionError(
-          `${agent} agent failed for skill "${skillId}": ${errMsg}`,
-          error,
-        );
-      }
-
-      const { text: raw } = engineResult.value;
-      logger.info({ len: raw.length, agent }, "runSkill: agent complete");
-      await onProgress?.(
-        `runSkill: ${agent} complete, output=${raw.length} chars`,
-      );
 
       if (raw.length === 0) {
         logger.warn({ agent }, "runSkill: agent returned empty output");
