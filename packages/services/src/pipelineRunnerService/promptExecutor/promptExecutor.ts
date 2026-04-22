@@ -1,8 +1,7 @@
 import { ResultAsync, errAsync } from "neverthrow";
-import { agentEngine } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
 import type { RunPromptOptions } from "@repo/pipeline-engine";
-import { resolveCwd } from "../resolveCwd";
+import { runAgent } from "../agentRunner/agentRunner";
 
 export class PromptExecutionError extends Error {
   constructor(
@@ -31,45 +30,18 @@ const run = ({
 
   return ResultAsync.fromPromise(
     (async () => {
-      logger.info(
-        { promptLen: prompt.length, inputLen: inputContent.length, agent },
-        "runPrompt: starting",
-      );
-      await onProgress?.(
-        `[LLM] runPrompt: agent=${agent}, prompt length=${prompt.length}, input length=${inputContent.length}`,
-      );
-
-      const cwd = resolveCwd({ inputPath });
-
-      const engineResult = await ResultAsync.fromPromise(
-        agentEngine.run({
-          agent,
-          mode: "direct",
-          systemPrompt: prompt,
-          userPrompt: inputContent,
-          cwd,
-          allowedTools: [],
-          onProgress,
-          jobId,
-          agentId: PROMPT_AGENT_ID,
-        }),
-        (error) => error,
-      );
-
-      if (engineResult.isErr()) {
-        const error = engineResult.error;
-        const errMsg = error instanceof Error ? error.message : String(error);
-        logger.error({ err: errMsg, agent }, "runPrompt: agent failed");
-        await onProgress?.(`[LLM] runPrompt: ${agent} FAILED — ${errMsg}`);
-
-        throw new PromptExecutionError(`${agent} agent failed for prompt: ${errMsg}`, error);
-      }
-
-      const raw = engineResult.value.text;
-      logger.info({ outputLen: raw.length, agent }, "runPrompt: agent complete");
-      await onProgress?.(`[LLM] runPrompt: ${agent} complete, output=${raw.length} chars`);
+      const raw = await runAgent({
+        agent,
+        systemPrompt: prompt,
+        userPrompt: inputContent,
+        inputPath,
+        jobId,
+        agentId: PROMPT_AGENT_ID,
+        allowedTools: [],
+        onProgress,
+        logPrefix: "[LLM] runPrompt",
+      });
       if (onChunk) await onChunk(raw);
-
       return raw;
     })(),
     (cause) => {
