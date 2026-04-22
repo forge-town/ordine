@@ -41,13 +41,12 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   initObs(jobTracesDao);
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
   const llmService = createLlmService(db);
-  const { getSettings, getModel } = llmService;
+  const { getModel } = llmService;
 
   const loopEvaluatorFactory = loopEvaluator.create({ getModel });
 
   const buildDepsForJob = ({ jobId }: { jobId: string }) =>
     pipelineRunnerEngineDeps.build({
-      getSettings,
       rulesDao,
       evaluateLoopCondition: loopEvaluatorFactory({ jobId }),
       jobId,

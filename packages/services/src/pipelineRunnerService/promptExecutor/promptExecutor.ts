@@ -1,5 +1,4 @@
 import { ResultAsync, errAsync } from "neverthrow";
-import { type SettingsResolver } from "@repo/agent";
 import { agentEngine } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
 import { recordAgentRunWithSpans } from "@repo/obs";
@@ -15,10 +14,6 @@ export class PromptExecutionError extends Error {
     this.name = "PromptExecutionError";
   }
 }
-
-type RunPromptExecutorOptions = RunPromptOptions & {
-  getSettings: SettingsResolver;
-};
 
 const PROMPT_AGENT_ID = "prompt-executor";
 
@@ -86,11 +81,10 @@ const run = ({
   inputContent,
   inputPath,
   jobId,
-  getSettings: _getSettings,
   agent = "claude-code",
   onChunk,
   onProgress,
-}: RunPromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {
+}: RunPromptOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
   }
