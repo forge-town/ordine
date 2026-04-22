@@ -1,30 +1,15 @@
-import { db } from "@repo/db";
-import {
-  createBestPracticesService,
-  createBestPracticesBulkService,
-  createChecklistService,
-  createCodeSnippetsService,
-  createGithubProjectsService,
-  createJobsService,
-  createOperationsService,
-  createPipelinesService,
-  createPipelineRunnerService,
-  createRecipesService,
-  createRulesService,
-  createSettingsService,
-  createSkillsService,
-} from "@repo/services";
+import { serviceFactory } from "@repo/services";
 
-export const bestPracticesService = createBestPracticesService(db);
-export const checklistService = createChecklistService(db);
-export const codeSnippetsService = createCodeSnippetsService(db);
-export const bestPracticesBulkService = createBestPracticesBulkService(db);
-export const githubProjectsService = createGithubProjectsService(db);
-export const jobsService = createJobsService(db);
-export const operationsService = createOperationsService(db);
-export const pipelinesService = createPipelinesService(db);
-export const pipelineRunnerService = createPipelineRunnerService(db);
-export const recipesService = createRecipesService(db);
-export const rulesService = createRulesService(db);
-export const settingsService = createSettingsService(db);
-export const skillsService = createSkillsService(db);
+export const bestPracticesService = serviceFactory.createBestPracticesService();
+export const bestPracticesBulkService = serviceFactory.createBestPracticesBulkService();
+export const checklistService = serviceFactory.createChecklistService();
+export const codeSnippetsService = serviceFactory.createCodeSnippetsService();
+export const githubProjectsService = serviceFactory.createGithubProjectsService();
+export const jobsService = serviceFactory.createJobsService();
+export const operationsService = serviceFactory.createOperationsService();
+export const pipelinesService = serviceFactory.createPipelinesService();
+export const pipelineRunnerService = serviceFactory.createPipelineRunnerService();
+export const recipesService = serviceFactory.createRecipesService();
+export const rulesService = serviceFactory.createRulesService();
+export const settingsService = serviceFactory.createSettingsService();
+export const skillsService = serviceFactory.createSkillsService();

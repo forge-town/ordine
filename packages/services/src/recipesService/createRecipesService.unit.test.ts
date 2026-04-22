@@ -14,42 +14,46 @@ vi.mock("@repo/models", () => ({
 }));
 
 import { createRecipesService } from "./createRecipesService";
+import type { DbConnection } from "@repo/models";
+
+// @ts-expect-error -- DAO is mocked, db parameter unused at runtime
+const mockDb: DbConnection = {};
 
 describe("createRecipesService", () => {
   it("getAll delegates to dao.findMany", async () => {
-    const svc = createRecipesService({} as never);
+    const svc = createRecipesService(mockDb);
     const result = await svc.getAll();
     expect(mockDao.findMany).toHaveBeenCalled();
     expect(result).toEqual([{ id: "r1" }]);
   });
 
   it("getById delegates to dao.findById", async () => {
-    const svc = createRecipesService({} as never);
+    const svc = createRecipesService(mockDb);
     await svc.getById("r1");
     expect(mockDao.findById).toHaveBeenCalledWith("r1");
   });
 
   it("getByOperationId delegates to dao.findByOperationId", async () => {
-    const svc = createRecipesService({} as never);
+    const svc = createRecipesService(mockDb);
     await svc.getByOperationId("op1");
     expect(mockDao.findByOperationId).toHaveBeenCalledWith("op1");
   });
 
   it("create delegates to dao.create", async () => {
-    const svc = createRecipesService({} as never);
-    const data = { name: "recipe" } as never;
+    const svc = createRecipesService(mockDb);
+    const data = { name: "recipe" } as Parameters<typeof svc.create>[0];
     await svc.create(data);
     expect(mockDao.create).toHaveBeenCalledWith(data);
   });
 
   it("update delegates to dao.update", async () => {
-    const svc = createRecipesService({} as never);
-    await svc.update("r1", { name: "updated" } as never);
+    const svc = createRecipesService(mockDb);
+    await svc.update("r1", { name: "updated" });
     expect(mockDao.update).toHaveBeenCalledWith("r1", { name: "updated" });
   });
 
   it("delete delegates to dao.delete", async () => {
-    const svc = createRecipesService({} as never);
+    const svc = createRecipesService(mockDb);
     await svc.delete("r1");
     expect(mockDao.delete).toHaveBeenCalledWith("r1");
   });

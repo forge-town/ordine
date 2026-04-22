@@ -19,9 +19,10 @@ vi.mock("../skillExecutor", () => ({
 }));
 
 describe("pipelineRunnerEngineDeps", () => {
-  const getSettings = vi.fn() as unknown as SettingsResolver;
-  const rulesDao = {} as RulesDao;
-  const evaluateLoopCondition = vi.fn() as unknown as LoopEvaluatorFn;
+  const getSettings = vi.fn<SettingsResolver>();
+  // @ts-expect-error -- mock DAO with only required methods
+  const rulesDao: RulesDao = {};
+  const evaluateLoopCondition = vi.fn<LoopEvaluatorFn>();
 
   beforeEach(() => {
     vi.clearAllMocks();

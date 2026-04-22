@@ -1,14 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { okAsync } from "neverthrow";
-import { pipelineEngine, type PipelineEngineDeps } from "@repo/pipeline-engine";
+import { pipelineEngine } from "@repo/pipeline-engine";
 import type * as PipelineEngineModule from "@repo/pipeline-engine";
-import type {
-  PipelinesDao,
-  OperationsDao,
-  JobsDao,
-  SkillsDao,
-  BestPracticesDao,
-} from "@repo/models";
 
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),
@@ -41,14 +34,14 @@ const makeOpts = (overrides = {}) => ({
       nodes: [],
       edges: [],
     }),
-  } as unknown as PipelinesDao,
-  operationsDao: { findById: vi.fn() } as unknown as OperationsDao,
+  },
+  operationsDao: { findById: vi.fn() },
   jobsDao: {
     create: vi.fn().mockResolvedValue(undefined),
     updateStatus: vi.fn().mockResolvedValue(undefined),
-  } as unknown as JobsDao,
-  skillsDao: { findById: vi.fn(), findByName: vi.fn() } as unknown as SkillsDao,
-  bestPracticesDao: { findById: vi.fn() } as unknown as BestPracticesDao,
+  },
+  skillsDao: { findById: vi.fn(), findByName: vi.fn() },
+  bestPracticesDao: { findById: vi.fn() },
   engineDeps: {
     runPrompt: vi.fn().mockReturnValue(okAsync("")),
     runSkill: vi.fn().mockReturnValue(okAsync("")),
@@ -57,7 +50,7 @@ const makeOpts = (overrides = {}) => ({
     listDirTree: vi.fn(),
     readProjectFiles: vi.fn(),
     evaluateLoopCondition: vi.fn(),
-  } as unknown as PipelineEngineDeps,
+  },
   ...overrides,
 });
 
@@ -72,6 +65,7 @@ describe("runPipeline", () => {
       summary: "All good",
     });
     const opts = makeOpts();
+    // @ts-expect-error -- mock DAOs are partial implementations
     await pipelineRunExecutor.run(opts);
 
     expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith("job-1", "running", expect.anything());
@@ -88,8 +82,9 @@ describe("runPipeline", () => {
     const opts = makeOpts({
       pipelinesDao: {
         findById: vi.fn().mockResolvedValue(null),
-      } as unknown as PipelinesDao,
+      },
     });
+    // @ts-expect-error -- mock DAOs are partial implementations
     await pipelineRunExecutor.run(opts);
 
     expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
@@ -102,6 +97,7 @@ describe("runPipeline", () => {
   it("marks job as failed when engine throws", async () => {
     vi.mocked(pipelineEngine.execute).mockRejectedValue(new Error("engine boom"));
     const opts = makeOpts();
+    // @ts-expect-error -- mock DAOs are partial implementations
     await pipelineRunExecutor.run(opts);
 
     expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
@@ -119,9 +115,10 @@ describe("runPipeline", () => {
           .fn()
           .mockRejectedValueOnce(new Error("DB down"))
           .mockResolvedValue(undefined),
-      } as unknown as JobsDao,
+      },
     });
     // First updateStatus("running") throws, but top-level catch should still try to mark failed
+    // @ts-expect-error -- mock DAOs are partial implementations
     await pipelineRunExecutor.run(opts);
 
     // Should not throw unhandled rejection

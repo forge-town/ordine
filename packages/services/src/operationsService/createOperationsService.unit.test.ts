@@ -13,36 +13,40 @@ vi.mock("@repo/models", () => ({
 }));
 
 import { createOperationsService } from "./createOperationsService";
+import type { DbConnection } from "@repo/models";
+
+// @ts-expect-error -- DAO is mocked, db parameter unused at runtime
+const mockDb: DbConnection = {};
 
 describe("createOperationsService", () => {
   it("getAll delegates to dao.findMany", async () => {
-    const svc = createOperationsService({} as never);
+    const svc = createOperationsService(mockDb);
     const result = await svc.getAll();
     expect(mockDao.findMany).toHaveBeenCalled();
     expect(result).toEqual([{ id: "o1" }]);
   });
 
   it("getById delegates to dao.findById", async () => {
-    const svc = createOperationsService({} as never);
+    const svc = createOperationsService(mockDb);
     await svc.getById("o1");
     expect(mockDao.findById).toHaveBeenCalledWith("o1");
   });
 
   it("create delegates to dao.create", async () => {
-    const svc = createOperationsService({} as never);
-    const data = { name: "op" } as never;
+    const svc = createOperationsService(mockDb);
+    const data = { name: "op" } as Parameters<typeof svc.create>[0];
     await svc.create(data);
     expect(mockDao.create).toHaveBeenCalledWith(data);
   });
 
   it("update delegates to dao.update", async () => {
-    const svc = createOperationsService({} as never);
-    await svc.update("o1", { name: "updated" } as never);
+    const svc = createOperationsService(mockDb);
+    await svc.update("o1", { name: "updated" });
     expect(mockDao.update).toHaveBeenCalledWith("o1", { name: "updated" });
   });
 
   it("delete delegates to dao.delete", async () => {
-    const svc = createOperationsService({} as never);
+    const svc = createOperationsService(mockDb);
     await svc.delete("o1");
     expect(mockDao.delete).toHaveBeenCalledWith("o1");
   });

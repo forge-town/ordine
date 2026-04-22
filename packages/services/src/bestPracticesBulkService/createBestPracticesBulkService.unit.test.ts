@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import JSZip from "jszip";
 import type { BestPracticeImportEntry } from "@repo/schemas";
+import type { DbConnection } from "@repo/models";
 
 const mockBpDao = {
   findMany: vi.fn().mockResolvedValue([
@@ -80,7 +81,8 @@ import {
   createBestPracticesBulkService,
 } from "./createBestPracticesBulkService";
 
-const mockDb = {
+// @ts-expect-error -- DAO is mocked, db parameter unused at runtime
+const mockDb: DbConnection = {
   transaction: vi.fn().mockImplementation(async (fn: (tx: string) => Promise<unknown>) => fn("tx")),
 };
 
@@ -88,7 +90,7 @@ describe("createBestPracticesBulkService", () => {
   describe("previewImport", () => {
     it("returns new status for non-existing best practices", async () => {
       mockBpDao.findById.mockResolvedValue(null);
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const result = await svc.previewImport([
         {
           id: "bp_new",
@@ -122,7 +124,7 @@ describe("createBestPracticesBulkService", () => {
 
     it("returns update status for existing best practices", async () => {
       mockBpDao.findById.mockResolvedValue({ id: "bp_existing" });
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const result = await svc.previewImport([
         {
           id: "bp_existing",
@@ -149,7 +151,7 @@ describe("createBestPracticesBulkService", () => {
 
     it("handles mixed new and existing entries", async () => {
       mockBpDao.findById.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: "bp2" });
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const result = await svc.previewImport([
         {
           id: "bp1",
@@ -185,7 +187,7 @@ describe("createBestPracticesBulkService", () => {
 
   describe("exportAll", () => {
     it("returns all best practices with checklist items and code snippets", async () => {
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const result = await svc.exportAll();
 
       expect(mockBpDao.findMany).toHaveBeenCalled();
@@ -225,7 +227,7 @@ describe("createBestPracticesBulkService", () => {
       txChecklistDao.findById.mockResolvedValue(null);
       txSnippetsDao.findById.mockResolvedValue(null);
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const counts = await svc.importBulk([entry]);
 
       expect(mockDb.transaction).toHaveBeenCalled();
@@ -240,7 +242,7 @@ describe("createBestPracticesBulkService", () => {
       txChecklistDao.findById.mockResolvedValue({ id: "ci1" });
       txSnippetsDao.findById.mockResolvedValue({ id: "s1" });
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const counts = await svc.importBulk([entry]);
 
       expect(txBpDao.update).toHaveBeenCalled();
@@ -279,7 +281,7 @@ describe("createBestPracticesBulkService", () => {
         },
       ]);
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const zipData = await svc.exportAsZip();
 
       expect(zipData).toBeInstanceOf(Uint8Array);
@@ -309,7 +311,7 @@ describe("createBestPracticesBulkService", () => {
       mockCodeSnippetsDao.findByBestPracticeId.mockResolvedValue([]);
       mockChecklistItemsDao.findByBestPracticeId.mockResolvedValue([]);
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const zipData = await svc.exportAsZip();
       const zip = await JSZip.loadAsync(zipData);
       const metaText = await zip.file("bp_meta/metadata.json")!.async("string");
@@ -349,7 +351,7 @@ describe("createBestPracticesBulkService", () => {
       ]);
       mockChecklistItemsDao.findByBestPracticeId.mockResolvedValue([]);
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const zipData = await svc.exportAsZip();
       const zip = await JSZip.loadAsync(zipData);
 
@@ -376,7 +378,7 @@ describe("createBestPracticesBulkService", () => {
       ]);
       mockChecklistItemsDao.findByBestPracticeId.mockResolvedValue([]);
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const zipData = await svc.exportAsZip();
       const zip = await JSZip.loadAsync(zipData);
 
@@ -401,7 +403,7 @@ describe("createBestPracticesBulkService", () => {
       ]);
       mockChecklistItemsDao.findByBestPracticeId.mockResolvedValue([]);
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const zipData = await svc.exportAsZip();
       const zip = await JSZip.loadAsync(zipData);
 
@@ -424,7 +426,7 @@ describe("createBestPracticesBulkService", () => {
       mockCodeSnippetsDao.findByBestPracticeId.mockResolvedValue([]);
       mockChecklistItemsDao.findByBestPracticeId.mockResolvedValue([]);
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const zipData = await svc.exportAsZip();
       const zip = await JSZip.loadAsync(zipData);
 
@@ -451,7 +453,7 @@ describe("createBestPracticesBulkService", () => {
       ]);
       mockChecklistItemsDao.findByBestPracticeId.mockResolvedValue([]);
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const zipData = await svc.exportAsZip();
       const zip = await JSZip.loadAsync(zipData);
 
@@ -493,7 +495,7 @@ describe("createBestPracticesBulkService", () => {
         },
       ]);
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const zipData = await svc.exportAsZip();
       const zip = await JSZip.loadAsync(zipData);
       const checklist = await zip.file("bp1/checklist.md")!.async("string");
@@ -523,7 +525,7 @@ describe("createBestPracticesBulkService", () => {
       ]);
       mockChecklistItemsDao.findByBestPracticeId.mockResolvedValue([]);
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const zipData = await svc.exportAsZip();
       const zip = await JSZip.loadAsync(zipData);
 
@@ -556,7 +558,7 @@ describe("createBestPracticesBulkService", () => {
       mockCodeSnippetsDao.findByBestPracticeId.mockResolvedValue([]);
       mockChecklistItemsDao.findByBestPracticeId.mockResolvedValue([]);
 
-      const svc = createBestPracticesBulkService(mockDb as never);
+      const svc = createBestPracticesBulkService(mockDb);
       const zipData = await svc.exportAsZip();
       const zip = await JSZip.loadAsync(zipData);
 

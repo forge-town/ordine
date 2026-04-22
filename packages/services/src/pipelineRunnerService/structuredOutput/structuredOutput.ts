@@ -15,7 +15,7 @@ import { logger } from "@repo/logger";
 const tryParseJson = ({ text }: { text: string }): unknown | undefined => {
   const result = Result.fromThrowable(JSON.parse, () => undefined)(text);
 
-  return result.isOk() ? (result.value as unknown) : undefined;
+  return result.isOk() ? result.value : undefined;
 };
 
 const extract = ({ rawText }: { rawText: string }): string => {

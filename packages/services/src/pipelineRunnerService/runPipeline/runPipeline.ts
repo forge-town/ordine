@@ -93,8 +93,7 @@ const run = async (opts: {
       }
 
       const operationIds = pipeline.nodes
-        .filter((n) => n.type === "operation")
-        .map((n) => (n.data as unknown as { operationId?: string }).operationId)
+        .map((n) => (n.data.nodeType === "operation" ? n.data.operationId : undefined))
         .filter((id): id is string => id !== undefined && id !== "");
 
       const operationsMap = new Map<string, OperationInfo>();
@@ -132,11 +131,11 @@ const run = async (opts: {
           lookupSkill,
           lookupBestPractice,
         }),
-        (cause) =>
+        (cause): PipelineRunError =>
           new ScriptExecutionError(
             cause instanceof Error ? cause.message : String(cause),
             cause,
-          ) as PipelineRunError,
+          ),
       );
 
       const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };

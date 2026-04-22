@@ -13,3 +13,4 @@ export * from "./recipesService";
 export * from "./rulesService";
 export * from "./settingsService";
 export * from "./skillsService";
+export * from "./serviceFactory";

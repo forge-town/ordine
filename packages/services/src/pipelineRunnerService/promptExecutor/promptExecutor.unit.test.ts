@@ -32,7 +32,7 @@ describe("promptExecutor", () => {
     prompt: "Analyze this",
     inputContent: "some code",
     inputPath: "/tmp/test",
-    getSettings: vi.fn() as unknown as SettingsResolver,
+    getSettings: vi.fn<SettingsResolver>(),
   };
 
   beforeEach(() => {
@@ -74,7 +74,7 @@ describe("promptExecutor", () => {
       ...baseOpts,
       agent: "codex",
       jobId: "job-1",
-    } as Parameters<typeof promptExecutor.run>[0] & { jobId: string });
+    });
 
     expect(result.isOk()).toBe(true);
     expect(recordAgentRunWithSpans).toHaveBeenCalledOnce();

@@ -15,7 +15,9 @@ import { ruleCheckRunner } from ".";
 
 type ExecCallback = (err: unknown, result: unknown) => void;
 type MockExecImpl = (cmd: string, opts: unknown, cb: ExecCallback) => unknown;
-const mockExec = vi.mocked(exec) as unknown as { mockImplementation: (fn: MockExecImpl) => void };
+const mockExec = vi.mocked(exec, { deep: true }) as unknown as {
+  mockImplementation: (impl: MockExecImpl) => void;
+};
 
 const makeRule = (overrides: Partial<RuleRecord> = {}): RuleRecord => ({
   id: "rule-1",

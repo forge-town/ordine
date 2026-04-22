@@ -52,7 +52,7 @@ describe("skillExecutor", () => {
     skillDescription: "A test skill",
     inputContent: "some code",
     inputPath: "/tmp/test",
-    getSettings: vi.fn() as unknown as SettingsResolver,
+    getSettings: vi.fn<SettingsResolver>(),
   };
 
   beforeEach(() => {
@@ -133,7 +133,8 @@ describe("skillExecutor", () => {
     );
     const result = await skillExecutor.run({
       ...baseOpts,
-      agent: "unknown-agent" as "claude-code",
+      // @ts-expect-error -- testing unsupported agent
+      agent: "unknown-agent",
     });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
