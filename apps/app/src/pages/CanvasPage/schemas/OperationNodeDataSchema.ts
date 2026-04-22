@@ -3,7 +3,6 @@ import { AgentRuntimeSchema } from "@repo/schemas";
 import { OperationNodeDataSchema as EngineOperationNodeDataSchema } from "@repo/pipeline-engine/schemas";
 
 export const OperationNodeDataSchema = EngineOperationNodeDataSchema.extend({
-  llmProvider: AgentRuntimeSchema.optional(),
+  agentRuntime: AgentRuntimeSchema.optional(),
 });
-
 export type OperationNodeData = z.infer<typeof OperationNodeDataSchema>;
