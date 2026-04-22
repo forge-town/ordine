@@ -8,7 +8,7 @@ import { OperationNodeDataSchema } from "./OperationNodeDataSchema";
 import { OutputProjectPathNodeDataSchema } from "./OutputProjectPathNodeDataSchema";
 import { OutputLocalPathNodeDataSchema } from "./OutputLocalPathNodeDataSchema";
 
-export const PipelineNodeDataSchema = z.union([
+export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
   CompoundNodeDataSchema,
   ConditionNodeDataSchema,
   CodeFileNodeDataSchema,

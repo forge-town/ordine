@@ -13,10 +13,8 @@ export const processFolderNode = async (ctx: NodeContext): Promise<NodeResult> =
   }
 
   const p = node.data.folderPath ?? "";
-  const excludedPaths: string[] = Array.isArray(node.data.excludedPaths) ? node.data.excludedPaths : [];
-  const includedExtensions: string[] | undefined = Array.isArray(node.data.includedExtensions)
-    ? node.data.includedExtensions
-    : undefined;
+  const excludedPaths = node.data.excludedPaths ?? [];
+  const includedExtensions = node.data.includedExtensions;
   const disclosureMode = node.data.disclosureMode ?? "tree";
 
   if (p && existsSync(p)) {

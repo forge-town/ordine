@@ -1,6 +1,5 @@
 import { trace } from "@repo/obs";
 import type { NodeContext, NodeResult } from "../types";
-import type { GitHubProjectNodeData } from "../../schemas";
 import type { PipelineRunError } from "../../errors";
 import { cloneGitHubRepo } from "../../infrastructure";
 
@@ -8,7 +7,19 @@ export const processGitHubProjectNode = async (
   ctx: NodeContext & { githubToken?: string },
 ): Promise<NodeResult | { ok: false; error: PipelineRunError }> => {
   const { node, deps, nodeOutputs, tempDirs, jobId, githubToken } = ctx;
-  const ghData = node.data as unknown as GitHubProjectNodeData;
+
+  if (node.data.nodeType !== "github-project") {
+    await trace(
+      jobId,
+      `WARNING: Expected github-project node, got ${node.data.nodeType ?? "unknown"}`,
+    );
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
+    nodeOutputs.set(node.id, { inputPath: "", content: "" });
+
+    return { ok: true };
+  }
+
+  const ghData = node.data;
   const disclosureMode = ghData.disclosureMode ?? "tree";
   const excludedPaths: string[] = Array.isArray(ghData.excludedPaths) ? ghData.excludedPaths : [];
 

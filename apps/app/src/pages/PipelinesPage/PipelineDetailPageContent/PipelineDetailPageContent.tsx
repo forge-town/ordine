@@ -86,14 +86,14 @@ const getNodeTypeLabel = (type: string, t: (key: string) => string): string => {
 };
 
 const getNodeLabel = (node: PipelineNode, operations: OperationRecord[]): string => {
-  const data = node.data as unknown as Record<string, unknown>;
-  if (node.type === "operation") {
-    const op = operations.find((o) => o.id === (data.operationId as string));
+  const data = node.data;
+  if (data.nodeType === "operation") {
+    const op = operations.find((o) => o.id === data.operationId);
 
-    return op?.name ?? (data.operationName as string) ?? (data.label as string) ?? node.id;
+    return op?.name ?? data.operationName ?? data.label ?? node.id;
   }
 
-  return (data.label as string) ?? node.id;
+  return data.label ?? node.id;
 };
 
 // ─── Main Component ────────────────────────────────────────────────────────────
@@ -187,7 +187,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   // Build simple left-to-right layout for nodes in the preview
   const previewNodes = pipeline.nodes.map((n, i) => ({
     ...n,
-    data: n.data as unknown as Record<string, unknown>,
+    data: n.data,
     position: { x: i * 220, y: 80 },
     draggable: false,
     selectable: false,
@@ -196,7 +196,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
 
   const previewEdges = pipeline.edges.map((e) => ({
     ...e,
-    data: (e.data ?? {}) as unknown as Record<string, unknown>,
+    data: e.data ?? {},
     animated: false as const,
     style: { stroke: "#e5e7eb" },
   }));
@@ -461,17 +461,15 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 truncate">{label}</p>
-                      {node.type === "operation" &&
-                        (() => {
-                          const nodeData = node.data as unknown as Record<string, unknown>;
-                          const op = operations.find(
-                            (o) => o.id === (nodeData["operationId"] as string)
-                          );
+                      {(() => {
+                        const data = node.data;
+                        if (data.nodeType !== "operation") return null;
+                        const op = operations.find((o) => o.id === data.operationId);
 
-                          return op?.description ? (
-                            <p className="text-xs text-gray-400 truncate">{op.description}</p>
-                          ) : null;
-                        })()}
+                        return op?.description ? (
+                          <p className="text-xs text-gray-400 truncate">{op.description}</p>
+                        ) : null;
+                      })()}
                     </div>
                     <span
                       className={cn(
