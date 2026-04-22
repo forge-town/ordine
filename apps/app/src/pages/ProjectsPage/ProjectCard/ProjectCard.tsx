@@ -57,7 +57,7 @@ export const ProjectCard = ({ project, onClick, onDelete }: ProjectCardProps) =>
         </span>
         <span className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          {new Date(project.updatedAt).toLocaleDateString("zh-CN")}
+          {project.meta?.updatedAt?.toLocaleDateString("zh-CN") ?? "-"}
         </span>
       </div>
     </div>

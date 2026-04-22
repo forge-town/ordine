@@ -49,8 +49,7 @@ const makeOp = (id: string, name: string, description?: string): Operation => ({
   description: description ?? null,
   config: { inputs: [], outputs: [] },
   acceptedObjectTypes: ["file"],
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
 });
 
 const makePipeline = (overrides: Partial<PipelineData> = {}): PipelineData => {

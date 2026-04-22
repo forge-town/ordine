@@ -196,7 +196,10 @@ export const JobDetailPageContent = () => {
                 ) as unknown as string
               }
             />
-            <MetaRow label={t("jobs.createdAt")} value={new Date(job.createdAt).toLocaleString()} />
+            <MetaRow
+              label={t("jobs.createdAt")}
+              value={job.meta?.createdAt?.toLocaleString() ?? "-"}
+            />
             <MetaRow
               label={t("common.startedAt")}
               value={job.startedAt ? new Date(job.startedAt).toLocaleString() : null}

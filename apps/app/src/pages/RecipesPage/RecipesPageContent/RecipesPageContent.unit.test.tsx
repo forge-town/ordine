@@ -53,8 +53,7 @@ const mockRecipes = [
     description: "检查 className 模板字符串",
     operationId: "op-1",
     bestPracticeId: "bp-1",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
   {
     id: "rcp-2",
@@ -62,8 +61,7 @@ const mockRecipes = [
     description: "",
     operationId: "op-2",
     bestPracticeId: "bp-2",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
 ];
 
@@ -73,8 +71,7 @@ const mockOperations = [
     name: "Check",
     description: "",
     config: { inputs: [], outputs: [] },
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
     acceptedObjectTypes: [],
   },
   {
@@ -82,8 +79,7 @@ const mockOperations = [
     name: "Clean",
     description: "",
     config: { inputs: [], outputs: [] },
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
     acceptedObjectTypes: [],
   },
 ];
@@ -98,8 +94,7 @@ const mockBestPractices = [
     language: "tsx",
     codeSnippet: "",
     tags: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
   {
     id: "bp-2",
@@ -110,8 +105,7 @@ const mockBestPractices = [
     language: "typescript",
     codeSnippet: "",
     tags: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
 ];
 

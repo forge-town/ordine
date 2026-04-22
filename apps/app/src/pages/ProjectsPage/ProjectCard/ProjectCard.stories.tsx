@@ -11,8 +11,7 @@ const mockProject = {
   description: "用于管理工作流的平台",
   githubUrl: "https://github.com/acme/ordine",
   isPrivate: false,
-  updatedAt: Date.now(),
-  createdAt: Date.now(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
 } as unknown as GithubProject;
 
 const meta: Meta<typeof ProjectCard> = {

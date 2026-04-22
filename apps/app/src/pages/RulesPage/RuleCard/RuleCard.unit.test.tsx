@@ -14,8 +14,7 @@ const mockRule: Rule = {
   acceptedObjectTypes: ["file", "folder", "project"],
   enabled: true,
   tags: ["debug", "style"],
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
 };
 
 describe("RuleCard", () => {

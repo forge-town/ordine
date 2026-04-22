@@ -8,6 +8,6 @@ export const SettingsSchema = z.object({
   defaultApiKey: z.string(),
   defaultModel: z.string(),
   defaultOutputPath: z.string(),
-  meta: MetaSchema,
+  meta: MetaSchema.optional(),
 });
 export type Settings = z.infer<typeof SettingsSchema>;

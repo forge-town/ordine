@@ -15,8 +15,7 @@ const mockJob: Job = {
   startedAt: new Date(Date.now() - 5000),
   finishedAt: new Date(),
   tmuxSessionName: null,
-  createdAt: new Date(Date.now() - 10000),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(Date.now() - 10000), updatedAt: new Date() },
 };
 
 const meta: Meta<typeof JobDetailPageContent> = {

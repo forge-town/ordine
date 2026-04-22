@@ -18,8 +18,7 @@ const mockPractice: BestPractice = {
   language: "typescript",
   codeSnippet: "const [data, setData] = useState(null);",
   tags: ["react", "hooks"],
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
 };
 
 describe("PracticeCard", () => {

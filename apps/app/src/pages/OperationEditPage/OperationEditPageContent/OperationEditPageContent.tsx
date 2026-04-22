@@ -12,8 +12,9 @@ import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, Skill } from "@repo/schemas";
 import {
+  type Operation,
+  type Skill,
   ObjectTypeSchema,
   type ObjectType,
   ExecutorTypeSchema,

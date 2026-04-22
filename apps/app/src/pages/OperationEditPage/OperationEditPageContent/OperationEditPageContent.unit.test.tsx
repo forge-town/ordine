@@ -52,8 +52,7 @@ const mockOp: Operation = {
   description: "Lints the code",
   config: { inputs: [], outputs: [], executor: { type: "script", command: "eslint src/" } },
   acceptedObjectTypes: ["file", "folder"],
-  createdAt: new Date(1000),
-  updatedAt: new Date(2000),
+  meta: { createdAt: new Date(1000), updatedAt: new Date(2000) },
 };
 
 const mockSkills: Skill[] = [
@@ -64,8 +63,7 @@ const mockSkills: Skill[] = [
     description: "",
     category: "lint",
     tags: [],
-    createdAt: new Date(1000),
-    updatedAt: new Date(2000),
+    meta: { createdAt: new Date(1000), updatedAt: new Date(2000) },
   },
 ];
 

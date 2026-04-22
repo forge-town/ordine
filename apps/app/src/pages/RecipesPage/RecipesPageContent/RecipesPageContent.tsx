@@ -68,9 +68,7 @@ export const RecipesPageContent = () => {
   };
 
   const opMap = new Map<string, Operation>(operations.map((o: Operation) => [o.id, o]));
-  const bpMap = new Map<string, BestPractice>(
-    bestPractices.map((bp: BestPractice) => [bp.id, bp])
-  );
+  const bpMap = new Map<string, BestPractice>(bestPractices.map((bp: BestPractice) => [bp.id, bp]));
 
   if (recipesQuery?.isLoading || operationsQuery?.isLoading || bestPracticesQuery?.isLoading) {
     return <PageLoadingState title={t("recipes.title")} variant="list" />;

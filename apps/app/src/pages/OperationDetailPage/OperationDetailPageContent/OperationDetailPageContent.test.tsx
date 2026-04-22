@@ -61,8 +61,7 @@ const mockOp: Operation = {
     ],
   },
   acceptedObjectTypes: ["file"],
-  createdAt: new Date(1_712_000_000_000),
-  updatedAt: new Date(1_712_000_000_000),
+  meta: { createdAt: new Date(1_712_000_000_000), updatedAt: new Date(1_712_000_000_000) },
 };
 
 describe("OperationDetailPageContent", () => {
@@ -134,8 +133,7 @@ describe("OperationDetailPageContent", () => {
         outputs: [],
       },
       acceptedObjectTypes: ["file"],
-      createdAt: new Date(1_712_000_000_000),
-      updatedAt: new Date(1_712_000_000_000),
+      meta: { createdAt: new Date(1_712_000_000_000), updatedAt: new Date(1_712_000_000_000) },
     };
 
     it("shows executor section when config has an executor", () => {

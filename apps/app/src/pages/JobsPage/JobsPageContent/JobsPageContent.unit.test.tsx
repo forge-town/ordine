@@ -58,8 +58,7 @@ const mockJobs: Job[] = [
     startedAt: new Date(Date.now() - 3000),
     finishedAt: null,
     tmuxSessionName: null,
-    createdAt: new Date(Date.now() - 5000),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(Date.now() - 5000), updatedAt: new Date() },
   },
   {
     id: "job-002",
@@ -74,8 +73,7 @@ const mockJobs: Job[] = [
     startedAt: new Date(Date.now() - 10_000),
     finishedAt: new Date(Date.now() - 2000),
     tmuxSessionName: null,
-    createdAt: new Date(Date.now() - 12_000),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(Date.now() - 12_000), updatedAt: new Date() },
   },
 ];
 

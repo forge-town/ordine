@@ -16,8 +16,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation } from "@repo/schemas";
-import type { ObjectType } from "@repo/schemas";
+import type { Operation, ObjectType } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -102,10 +101,10 @@ export const OperationsPageContent = () => {
           return b.name.localeCompare(a.name);
         }
         case "date-asc": {
-          return a.createdAt.getTime() - b.createdAt.getTime();
+          return (a.meta?.createdAt?.getTime() ?? 0) - (b.meta?.createdAt?.getTime() ?? 0);
         }
         case "date-desc": {
-          return b.createdAt.getTime() - a.createdAt.getTime();
+          return (b.meta?.createdAt?.getTime() ?? 0) - (a.meta?.createdAt?.getTime() ?? 0);
         }
         default: {
           return 0;

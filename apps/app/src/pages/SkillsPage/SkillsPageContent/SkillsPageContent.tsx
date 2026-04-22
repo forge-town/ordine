@@ -119,7 +119,7 @@ export const SkillsPageContent = () => {
                   <Badge
                     className={cn(
                       "text-[10px]",
-                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600",
+                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600"
                     )}
                     variant="secondary"
                   >

@@ -8,6 +8,6 @@ export const CodeSnippetSchema = z.object({
   language: z.string().default("typescript"),
   code: z.string().default(""),
   sortOrder: z.number().int().default(0),
-  meta: MetaSchema,
+  meta: MetaSchema.optional(),
 });
 export type CodeSnippet = z.infer<typeof CodeSnippetSchema>;

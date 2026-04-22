@@ -12,8 +12,7 @@ const mockPractices: BestPractice[] = [
     language: "typescript",
     codeSnippet: "useEffect(() => {\n  fetchData().then(setData);\n}, []);",
     tags: ["react", "hooks"],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
   {
     id: "bp-2",
@@ -24,8 +23,7 @@ const mockPractices: BestPractice[] = [
     language: "typescript",
     codeSnippet: "",
     tags: ["performance"],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
 ];
 

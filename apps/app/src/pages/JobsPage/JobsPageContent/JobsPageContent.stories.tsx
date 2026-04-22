@@ -16,8 +16,7 @@ const mockJobs: Job[] = [
     startedAt: new Date(Date.now() - 3000),
     finishedAt: null,
     tmuxSessionName: null,
-    createdAt: new Date(Date.now() - 5000),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(Date.now() - 5000), updatedAt: new Date() },
   },
   {
     id: "job-002",
@@ -32,8 +31,7 @@ const mockJobs: Job[] = [
     startedAt: new Date(Date.now() - 10000),
     finishedAt: new Date(Date.now() - 2000),
     tmuxSessionName: null,
-    createdAt: new Date(Date.now() - 12000),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(Date.now() - 12000), updatedAt: new Date() },
   },
   {
     id: "job-003",
@@ -48,8 +46,7 @@ const mockJobs: Job[] = [
     startedAt: new Date(Date.now() - 8000),
     finishedAt: new Date(Date.now() - 4000),
     tmuxSessionName: null,
-    createdAt: new Date(Date.now() - 9000),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(Date.now() - 9000), updatedAt: new Date() },
   },
 ];
 

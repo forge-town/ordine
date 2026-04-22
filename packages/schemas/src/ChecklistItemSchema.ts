@@ -9,6 +9,6 @@ export const ChecklistItemSchema = z.object({
   checkType: z.enum(["script", "llm"]).default("llm"),
   script: z.string().nullable().default(null),
   sortOrder: z.number().int().default(0),
-  meta: MetaSchema,
+  meta: MetaSchema.optional(),
 });
 export type ChecklistItem = z.infer<typeof ChecklistItemSchema>;
