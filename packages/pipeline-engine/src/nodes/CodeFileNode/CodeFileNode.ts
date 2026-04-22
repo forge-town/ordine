@@ -20,7 +20,7 @@ export const processCodeFileNode = async (ctx: NodeContext): Promise<NodeResult>
     nodeOutputs.set(node.id, { inputPath: p, content });
     await trace(jobId, `Read code file: ${p} (${content.length} chars)`);
   } else {
-    nodeOutputs.set(node.id, { inputPath: p, content: "" });
+    nodeOutputs.set(node.id, { inputPath: p ?? "", content: "" });
   }
 
   await trace(jobId, `@@NODE_DONE::${node.id}`);

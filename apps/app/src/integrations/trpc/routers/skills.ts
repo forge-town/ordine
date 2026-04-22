@@ -14,16 +14,14 @@ export const skillsRouter = router({
     .input(z.object({ id: z.string() }))
     .query(({ input }) => skillsService.getById(input.id)),
 
-  create: publicProcedure
-    .input(SkillSchema.omit({ createdAt: true, updatedAt: true }))
-    .mutation(({ input }) => skillsService.create(input)),
+  create: publicProcedure.input(SkillSchema).mutation(({ input }) => skillsService.create(input)),
 
   update: publicProcedure
     .input(
       z.object({
         id: z.string(),
-        patch: SkillSchema.omit({ createdAt: true, updatedAt: true }).partial(),
-      })
+        patch: SkillSchema.partial(),
+      }),
     )
     .mutation(({ input }) => skillsService.update(input.id, input.patch)),
 

@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { agentEngine } from "@repo/agent-engine";
-import { recordAgentRunWithSpans } from "@repo/obs";
 
 vi.mock("@repo/agent", () => ({}));
 
@@ -8,10 +7,6 @@ vi.mock("@repo/agent-engine", () => ({
   agentEngine: {
     run: vi.fn().mockResolvedValue({ text: "claude-output", events: [] }),
   },
-}));
-
-vi.mock("@repo/obs", () => ({
-  recordAgentRunWithSpans: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@repo/logger", () => ({
@@ -63,7 +58,7 @@ describe("promptExecutor", () => {
     );
   });
 
-  it("records an agent run for codex prompts when jobId is provided", async () => {
+  it("forwards jobId and agentId to agentEngine", async () => {
     vi.mocked(agentEngine.run).mockResolvedValueOnce({ text: "codex-output", events: [] });
 
     const result = await promptExecutor.run({
@@ -73,19 +68,11 @@ describe("promptExecutor", () => {
     });
 
     expect(result.isOk()).toBe(true);
-    expect(recordAgentRunWithSpans).toHaveBeenCalledOnce();
-    expect(recordAgentRunWithSpans).toHaveBeenCalledWith(
+    expect(agentEngine.run).toHaveBeenCalledWith(
       expect.objectContaining({
         jobId: "job-1",
-        agentSystem: "codex",
-        rawPayload: expect.objectContaining({
-          system: "Analyze this",
-          prompt: "some code",
-          output: "codex-output",
-        }),
-        status: "completed",
+        agentId: "prompt-executor",
       }),
-      expect.any(Function),
     );
   });
 
