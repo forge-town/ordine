@@ -13,7 +13,7 @@ export const processCodeFileNode = async (ctx: NodeContext): Promise<NodeResult>
     return { ok: false, error: null };
   }
 
-  const p = node.data.filePath ?? "";
+  const p = node.data.filePath;
 
   if (p && existsSync(p)) {
     const content = await readFile(p, "utf8");
@@ -22,6 +22,7 @@ export const processCodeFileNode = async (ctx: NodeContext): Promise<NodeResult>
   } else {
     nodeOutputs.set(node.id, { inputPath: p, content: "" });
   }
+
   await trace(jobId, `@@NODE_DONE::${node.id}`);
 
   return { ok: true };

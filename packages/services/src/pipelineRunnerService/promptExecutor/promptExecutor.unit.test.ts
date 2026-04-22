@@ -1,11 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { SettingsResolver } from "@repo/agent";
 import { agentEngine } from "@repo/agent-engine";
 import { recordAgentRunWithSpans } from "@repo/obs";
 
-vi.mock("@repo/agent", () => ({
-  getModel: vi.fn().mockResolvedValue(null),
-}));
+vi.mock("@repo/agent", () => ({}));
 
 vi.mock("@repo/agent-engine", () => ({
   agentEngine: {
@@ -32,7 +29,6 @@ describe("promptExecutor", () => {
     prompt: "Analyze this",
     inputContent: "some code",
     inputPath: "/tmp/test",
-    getSettings: vi.fn<SettingsResolver>(),
   };
 
   beforeEach(() => {

@@ -1,10 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { SettingsResolver } from "@repo/agent";
 import { agentEngine } from "@repo/agent-engine";
 import { recordAgentRunWithSpans } from "@repo/obs";
 
 vi.mock("@repo/agent", () => ({
-  getModel: vi.fn().mockResolvedValue(null),
   extractJsonFromText: vi.fn((t: string) => t),
   READ_ONLY_TOOLS: ["Read", "Bash"],
   WRITE_TOOLS: ["Read", "Write", "Bash"],
@@ -52,7 +50,6 @@ describe("skillExecutor", () => {
     skillDescription: "A test skill",
     inputContent: "some code",
     inputPath: "/tmp/test",
-    getSettings: vi.fn<SettingsResolver>(),
   };
 
   beforeEach(() => {

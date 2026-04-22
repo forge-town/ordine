@@ -5,7 +5,6 @@ import { createChecklistService } from "../checklistService";
 import { createCodeSnippetsService } from "../codeSnippetsService";
 import { createGithubProjectsService } from "../githubProjectsService";
 import { createJobsService } from "../jobsService";
-import { createLlmService } from "../llmService";
 import { createOperationsService } from "../operationsService";
 import { createPipelinesService } from "../pipelinesService";
 import { createPipelineRunnerService } from "../pipelineRunnerService";
@@ -44,10 +43,6 @@ export class ServiceFactory {
 
   createJobsService() {
     return createJobsService(this.db);
-  }
-
-  createLlmService() {
-    return createLlmService(this.db);
   }
 
   createOperationsService() {

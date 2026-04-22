@@ -5,7 +5,6 @@ export * from "./codeSnippetsService";
 export * from "./filesystemService";
 export * from "./githubProjectsService";
 export * from "./jobsService";
-export * from "./llmService";
 export * from "./operationsService";
 export * from "./pipelinesService";
 export * from "./pipelineRunnerService";

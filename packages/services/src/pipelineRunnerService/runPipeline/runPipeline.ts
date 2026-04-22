@@ -55,113 +55,111 @@ const failJobSafely = async ({
   }
 };
 
-const run = async (opts: {
-  pipelineId: string;
-  inputPath?: string;
-  jobId: string;
-  githubToken?: string;
-  defaultOutputPath?: string;
-  pipelinesDao: PipelinesDao;
-  operationsDao: OperationsDao;
-  jobsDao: JobsDao;
-  skillsDao: SkillsDao;
-  bestPracticesDao: BestPracticesDao;
-  engineDeps: PipelineEngineDeps;
-}): Promise<void> => {
-  const {
-    pipelineId,
-    jobId,
-    githubToken,
-    pipelinesDao,
-    operationsDao,
-    jobsDao,
-    skillsDao,
-    bestPracticesDao,
-    engineDeps,
-  } = opts;
-
-  const runResult = await ResultAsync.fromPromise(
-    (async () => {
-      await jobsDao.updateStatus(jobId, "running", { startedAt: new Date() });
-      await trace(jobId, `Starting pipeline ${pipelineId}`);
-
-      const pipeline = await pipelinesDao.findById(pipelineId);
-      if (!pipeline) {
-        await failJobSafely({ jobsDao, jobId, message: `Pipeline ${pipelineId} not found` });
-
-        return;
-      }
-
-      const operationIds = pipeline.nodes
-        .map((n) => (n.data.nodeType === "operation" ? n.data.operationId : undefined))
-        .filter((id): id is string => id !== undefined && id !== "");
-
-      const operationsMap = new Map<string, OperationInfo>();
-      for (const id of operationIds) {
-        const op = await operationsDao.findById(id);
-        if (op) operationsMap.set(id, { id: op.id, name: op.name, config: op.config });
-      }
-
-      const lookupSkill = async (skillId: string) => {
-        const skill = (await skillsDao.findById(skillId)) ?? (await skillsDao.findByName(skillId));
-
-        return skill ? { id: skill.id, label: skill.label, description: skill.description } : null;
-      };
-
-      const lookupBestPractice = async (bpId: string) => {
-        const bp = await bestPracticesDao.findById(bpId);
-
-        return bp ? { title: bp.title, content: bp.content } : null;
-      };
-
-      const result = await ResultAsync.fromPromise(
-        pipelineEngine.execute({
-          pipeline: {
-            id: pipeline.id,
-            name: pipeline.name,
-            nodes: pipeline.nodes,
-            edges: pipeline.edges,
-          },
-          jobId,
-          inputPath: opts.inputPath,
-          githubToken,
-          defaultOutputPath: opts.defaultOutputPath,
-          operations: operationsMap,
-          deps: engineDeps,
-          lookupSkill,
-          lookupBestPractice,
-        }),
-        (cause): PipelineRunError =>
-          new ScriptExecutionError(
-            cause instanceof Error ? cause.message : String(cause),
-            cause,
-          ),
-      );
-
-      const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };
-
-      if (outcome.ok) {
-        await jobsDao.updateStatus(jobId, "done", {
-          finishedAt: new Date(),
-          result: { summary: outcome.summary },
-        });
-      } else {
-        await failJobSafely({ jobsDao, jobId, message: outcome.error.message });
-      }
-    })(),
-    (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
-  );
-
-  if (runResult.isErr()) {
-    logger.error({ err: runResult.error, jobId }, "runPipeline: unhandled error in pipeline run");
-    await failJobSafely({
-      jobsDao,
-      jobId,
-      message: `Unhandled error: ${runResult.error.message}`,
-    });
-  }
-};
-
 export const pipelineRunExecutor = {
-  run,
+  run: async (opts: {
+    pipelineId: string;
+    inputPath?: string;
+    jobId: string;
+    githubToken?: string;
+    defaultOutputPath?: string;
+    pipelinesDao: PipelinesDao;
+    operationsDao: OperationsDao;
+    jobsDao: JobsDao;
+    skillsDao: SkillsDao;
+    bestPracticesDao: BestPracticesDao;
+    engineDeps: PipelineEngineDeps;
+  }): Promise<void> => {
+    const {
+      pipelineId,
+      jobId,
+      githubToken,
+      pipelinesDao,
+      operationsDao,
+      jobsDao,
+      skillsDao,
+      bestPracticesDao,
+      engineDeps,
+    } = opts;
+
+    const runResult = await ResultAsync.fromPromise(
+      (async () => {
+        await jobsDao.updateStatus(jobId, "running", { startedAt: new Date() });
+        await trace(jobId, `Starting pipeline ${pipelineId}`);
+
+        const pipeline = await pipelinesDao.findById(pipelineId);
+        if (!pipeline) {
+          await failJobSafely({ jobsDao, jobId, message: `Pipeline ${pipelineId} not found` });
+
+          return;
+        }
+
+        const operationIds = pipeline.nodes
+          .map((n) => (n.data.nodeType === "operation" ? n.data.operationId : undefined))
+          .filter((id): id is string => id !== undefined && id !== "");
+
+        const operationsMap = new Map<string, OperationInfo>();
+        for (const id of operationIds) {
+          const op = await operationsDao.findById(id);
+          if (op) operationsMap.set(id, { id: op.id, name: op.name, config: op.config });
+        }
+
+        const lookupSkill = async (skillId: string) => {
+          const skill =
+            (await skillsDao.findById(skillId)) ?? (await skillsDao.findByName(skillId));
+
+          return skill
+            ? { id: skill.id, label: skill.label, description: skill.description }
+            : null;
+        };
+
+        const lookupBestPractice = async (bpId: string) => {
+          const bp = await bestPracticesDao.findById(bpId);
+
+          return bp ? { title: bp.title, content: bp.content } : null;
+        };
+
+        const result = await ResultAsync.fromPromise(
+          pipelineEngine.execute({
+            pipeline: {
+              id: pipeline.id,
+              name: pipeline.name,
+              nodes: pipeline.nodes,
+              edges: pipeline.edges,
+            },
+            jobId,
+            inputPath: opts.inputPath,
+            githubToken,
+            defaultOutputPath: opts.defaultOutputPath,
+            operations: operationsMap,
+            deps: engineDeps,
+            lookupSkill,
+            lookupBestPractice,
+          }),
+          (cause): PipelineRunError =>
+            new ScriptExecutionError(cause instanceof Error ? cause.message : String(cause), cause),
+        );
+
+        const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };
+
+        if (outcome.ok) {
+          await jobsDao.updateStatus(jobId, "done", {
+            finishedAt: new Date(),
+            result: { summary: outcome.summary },
+          });
+        } else {
+          await failJobSafely({ jobsDao, jobId, message: outcome.error.message });
+        }
+      })(),
+      (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+    );
+
+    if (runResult.isErr()) {
+      logger.error({ err: runResult.error, jobId }, "runPipeline: unhandled error in pipeline run");
+      await failJobSafely({
+        jobsDao,
+        jobId,
+        message: `Unhandled error: ${runResult.error.message}`,
+      });
+    }
+  },
 };
