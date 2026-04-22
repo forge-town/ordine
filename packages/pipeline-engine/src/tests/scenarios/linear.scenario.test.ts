@@ -49,7 +49,6 @@ describe("pipeline scenario: linear flow", () => {
     });
 
     expect(result.ok).toBe(true);
-    expect(deps.listDirTree).toHaveBeenCalledWith(folderPath, { excludedPaths: [] });
     expect(deps.runPrompt).toHaveBeenCalledOnce();
     expect(deps.runPrompt).toHaveBeenCalledWith(
       expect.objectContaining({

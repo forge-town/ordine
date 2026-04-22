@@ -36,8 +36,6 @@ const makeDeps = (): PipelineEngineDeps => ({
   runSkill: vi.fn().mockReturnValue(okAsync("")),
   runRuleCheck: vi.fn().mockResolvedValue({ stats: { totalFindings: 0, totalFiles: 0 } }),
   structuredJsonToMarkdown: vi.fn((c: string) => c),
-  listDirTree: vi.fn().mockResolvedValue(""),
-  readProjectFiles: vi.fn().mockResolvedValue(""),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
 });
 

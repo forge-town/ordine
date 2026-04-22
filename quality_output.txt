@@ -1,0 +1,299 @@
+$ turbo quality
+• turbo 2.9.4
+ WARNING  An issue occurred while attempting to parse /Users/amin/projects/ordine/bun.lock. Turborepo will still function, but some features may not be available:
+   x Could not resolve workspaces.
+  `-> Lockfile not found at /Users/amin/projects/ordine/bun.lock
+
+
+   • Packages in scope: @ordine/app, @ordine/cli, @ordine/docs, @ordine/scripts, @ordine/server, @repo/agent, @repo/agent-engine, @repo/db, @repo/db-schema, @repo/logger, @repo/models, @repo/obs, @repo/oxc-formatter-config, @repo/oxlint-config, @repo/pipeline-engine, @repo/plugin, @repo/plugins, @repo/schemas, @repo/services, @repo/shared, @repo/typescript-config, @repo/ui, @repo/utils
+   • Running quality in 23 packages
+   • Remote caching disabled
+
+@repo/plugin:quality: cache hit, replaying logs 64efddcd351c5dd0
+@repo/plugin:quality: 
+@repo/plugin:quality: [0m[2m[35m$[0m [2m[1mbun run check-types && bun run lint[0m
+@repo/plugin:quality: [0m[2m[35m$[0m [2m[1mtsc --noEmit[0m
+@repo/plugin:quality: [0m[2m[35m$[0m [2m[1moxlint --config ./.oxlintrc.json src/[0m
+@repo/plugin:quality: Found 0 warnings and 0 errors.
+@repo/plugin:quality: Finished in 60ms on 4 files with 194 rules using 10 threads.
+@repo/utils:quality: cache hit, replaying logs 5d7f0d8bee2c2612
+@repo/utils:quality: 
+@repo/utils:quality: [0m[2m[35m$[0m [2m[1mbun run check-types && bun run lint && bun run test[0m
+@repo/utils:quality: [0m[2m[35m$[0m [2m[1mtsc --noEmit[0m
+@repo/utils:quality: [0m[2m[35m$[0m [2m[1moxlint --config ./.oxlintrc.json src/[0m
+@repo/utils:quality: Found 0 warnings and 0 errors.
+@repo/utils:quality: Finished in 105ms on 3 files with 194 rules using 10 threads.
+@repo/utils:quality: [0m[2m[35m$[0m [2m[1mvitest run[0m
+@repo/utils:quality: [?25l
+@repo/utils:quality: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90m/Users/amin/projects/ordine/packages/utils[39m
+@repo/utils:quality: 
+@repo/utils:quality: [?2026h
+@repo/utils:quality: [1m[33m ❯ [39m[22msrc/filesystem.unit.test.ts[2m [queued][22m
+@repo/utils:quality: 
+@repo/utils:quality: [2m Test Files [22m[1m[32m0 passed[39m[22m[90m (1)[39m
+@repo/utils:quality: [2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
+@repo/utils:quality: [2m   Start at [22m18:22:46
+@repo/utils:quality: [2m   Duration [22m103ms
+@repo/utils:quality: [?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+@repo/utils:quality: [1m[33m ❯ [39m[22msrc/filesystem.unit.test.ts[2m 0/10[22m
+@repo/utils:quality: 
+@repo/schemas:quality: cache hit, replaying logs bf3e72238cda5801
+@repo/utils:quality: [2m Test Files [22m[1m[32m0 passed[39m[22m[90m (1)[39m
+@repo/utils:quality: [2m      Tests [22m[1m[32m0 passed[39m[22m[90m (10)[39m
+@repo/utils:quality: [2m   Start at [22m18:22:46
+@repo/utils:quality: [2m   Duration [22m217ms
+@repo/utils:quality: [?2026l[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [32m✓[39m src/filesystem.unit.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 53[2mms[22m[39m
+@repo/utils:quality:    [32m✓[39m filesystem [2m(10)[22m
+@repo/utils:quality:      [32m✓[39m listDirectory [2m(5)[22m
+@repo/utils:quality:        [32m✓[39m returns entries with name, type, and path[32m 15[2mms[22m[39m
+@repo/utils:quality:        [32m✓[39m sorts directories before files[32m 2[2mms[22m[39m
+@repo/utils:quality:        [32m✓[39m defaults to home directory when no path given[32m 2[2mms[22m[39m
+@repo/utils:quality:        [32m✓[39m returns error for non-existent path[32m 2[2mms[22m[39m
+@repo/utils:quality:        [32m✓[39m returns error for a file path (not directory)[32m 2[2mms[22m[39m
+@repo/utils:quality:      [32m✓[39m listDirTree [2m(5)[22m
+@repo/utils:quality:        [32m✓[39m generates tree string excluding .git and node_modules by default[32m 6[2mms[22m[39m
+@repo/utils:quality:        [32m✓[39m excludes paths listed in excludedPaths[32m 6[2mms[22m[39m
+@repo/utils:quality:        [32m✓[39m excludes multiple paths[32m 5[2mms[22m[39m
+@repo/utils:quality:        [32m✓[39m respects maxDepth option[32m 8[2mms[22m[39m
+@repo/utils:quality:        [32m✓[39m returns empty string for non-existent directory[32m 5[2mms[22m[39m
+@repo/utils:quality: 
+@repo/utils:quality: [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+@repo/utils:quality: [2m      Tests [22m [1m[32m10 passed[39m[22m[90m (10)[39m
+@repo/utils:quality: [2m   Start at [22m 18:22:46
+@repo/utils:quality: [2m   Duration [22m 365ms[2m (transform 148ms, setup 0ms, import 188ms, tests 53ms, environment 0ms)[22m
+@repo/utils:quality: 
+@repo/utils:quality: [?25h
+@repo/schemas:quality: $ bun run check-types && bun run lint
+@repo/schemas:quality: $ tsc --noEmit
+@repo/schemas:quality: $ oxlint --config ./.oxlintrc.json src/
+@repo/schemas:quality: Found 0 warnings and 0 errors.
+@ordine/cli:quality: cache hit, replaying logs 11ae0a37556cdc93
+@repo/schemas:quality: Finished in 64ms on 27 files with 194 rules using 10 threads.
+@ordine/cli:quality: 
+@ordine/cli:quality: [0m[2m[35m$[0m [2m[1mbun run check-types && bun run lint && bun run test[0m
+@ordine/cli:quality: [0m[2m[35m$[0m [2m[1mtsc --noEmit[0m
+@ordine/cli:quality: [0m[2m[35m$[0m [2m[1moxlint --config ./.oxlintrc.json src/[0m
+@ordine/cli:quality: Found 0 warnings and 0 errors.
+@ordine/cli:quality: Finished in 106ms on 3 files with 194 rules using 10 threads.
+@ordine/cli:quality: [0m[2m[35m$[0m [2m[1mvitest run[0m
+@ordine/cli:quality: [?25l
+@ordine/cli:quality: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90m/Users/amin/projects/ordine/apps/cli[39m
+@ordine/cli:quality: 
+@ordine/cli:quality: [?2026h
+@ordine/cli:quality: [1m[33m ❯ [39m[22mtests/commands.test.ts[2m [queued][22m
+@ordine/cli:quality: 
+@ordine/cli:quality: [2m Test Files [22m[1m[32m0 passed[39m[22m[90m (1)[39m
+@ordine/cli:quality: [2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
+@ordine/cli:quality: [2m   Start at [22m18:22:46
+@ordine/cli:quality: [2m   Duration [22m101ms
+@ordine/cli:quality: [?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+@ordine/cli:quality: [1m[33m ❯ [39m[22mtests/commands.test.ts[2m 0/47[22m
+@ordine/cli:quality: 
+@ordine/cli:quality: [2m Test Files [22m[1m[32m0 passed[39m[22m[90m (1)[39m
+@ordine/cli:quality: [2m      Tests [22m[1m[32m0 passed[39m[22m[90m (47)[39m
+@ordine/cli:quality: [2m   Start at [22m18:22:46
+@ordine/cli:quality: [2m   Duration [22m201ms
+@ordine/cli:quality: [?2026l[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [32m✓[39m tests/commands.test.ts [2m([22m[2m47 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m listPipelines [2m(3)[22m
+@ordine/cli:quality:      [32m✓[39m prints pipelines when available[32m 2[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m prints message when no pipelines[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m throws on API error[32m 1[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m getPipeline [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m prints pipeline JSON[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m createPipeline [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m creates from JSON file[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m updatePipeline [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m updates pipeline[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m deletePipeline [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m deletes pipeline[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m runPipeline [2m(4)[22m
+@ordine/cli:quality:      [32m✓[39m triggers a run and polls to completion[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m does not poll when follow is false[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m throws on API error during run[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m throws when job fails[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m listRules [2m(2)[22m
+@ordine/cli:quality:      [32m✓[39m prints rules[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m prints message when empty[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m getRule [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m prints rule JSON[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m createRule [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m creates from JSON file[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m updateRule [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m updates rule[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m deleteRule [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m deletes rule[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m listSkills [2m(2)[22m
+@ordine/cli:quality:      [32m✓[39m prints skills[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m prints message when empty[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m getSkill [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m prints skill JSON[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m createSkill [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m creates from JSON file[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m updateSkill [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m updates skill[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m deleteSkill [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m deletes skill[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m listOperations [2m(2)[22m
+@ordine/cli:quality:      [32m✓[39m prints operations[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m prints message when empty[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m getOperation [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m prints operation JSON[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m createOperation [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m creates from JSON file[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m updateOperation [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m updates operation[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m deleteOperation [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m deletes operation[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m listJobs [2m(3)[22m
+@ordine/cli:quality:      [32m✓[39m prints jobs[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m filters by status[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m prints message when empty[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m getJob [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m prints job JSON[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m deleteJob [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m deletes job[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m listRecipes [2m(2)[22m
+@ordine/cli:quality:      [32m✓[39m prints recipes[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m prints message when empty[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m createRecipe [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m creates from JSON file[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m deleteRecipe [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m deletes recipe[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m listBestPractices [2m(2)[22m
+@ordine/cli:quality:      [32m✓[39m prints best practices[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m prints message when empty[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m getBestPractice [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m prints best practice JSON[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m createBestPractice [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m creates from JSON file[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m updateBestPractice [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m updates best practice[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m deleteBestPractice [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m deletes best practice[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m importBestPractices [2m(1)[22m
+@ordine/cli:quality:      [32m✓[39m imports from JSON file[32m 0[2mms[22m[39m
+@ordine/cli:quality:    [32m✓[39m browseFilesystem [2m(2)[22m
+@ordine/cli:quality:      [32m✓[39m lists directory entries[32m 0[2mms[22m[39m
+@ordine/cli:quality:      [32m✓[39m prints empty message[32m 0[2mms[22m[39m
+@ordine/cli:quality: 
+@ordine/cli:quality: [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+@ordine/cli:quality: [2m      Tests [22m [1m[32m47 passed[39m[22m[90m (47)[39m
+@ordine/cli:quality: [2m   Start at [22m 18:22:46
+@ordine/cli:quality: [2m   Duration [22m 250ms[2m (transform 82ms, setup 0ms, import 103ms, tests 9ms, environment 0ms)[22m
+@ordine/cli:quality: 
+@ordine/cli:quality: [?25h
+@repo/ui:quality: cache hit, replaying logs 8ccf3a72c5936708
+@repo/ui:quality: 
+@repo/ui:quality: [0m[2m[35m$[0m [2m[1mbun run check-types && bun run lint[0m
+@repo/ui:quality: [0m[2m[35m$[0m [2m[1mtsc --noEmit[0m
+@repo/ui:quality: [0m[2m[35m$[0m [2m[1moxlint --config ./.oxlintrc.json src/[0m
+@repo/ui:quality: Found 0 warnings and 0 errors.
+@repo/ui:quality: Finished in 112ms on 23 files with 189 rules using 10 threads.
+@repo/logger:quality: cache hit, replaying logs c1fdcb024c594170
+@repo/logger:quality: $ bun run check-types && bun run lint
+@repo/logger:quality: $ tsc --noEmit
+@repo/logger:quality: $ oxlint --config ./.oxlintrc.json src/
+@repo/logger:quality: Found 0 warnings and 0 errors.
+@repo/logger:quality: Finished in 54ms on 2 files with 194 rules using 10 threads.
+@repo/obs:quality: cache hit, replaying logs 5a0e6f80b4aaa255
+@repo/obs:quality: $ bun run check-types && bun run lint
+@repo/obs:quality: $ tsc --noEmit
+@repo/obs:quality: $ oxlint --config ./.oxlintrc.json src/
+@repo/obs:quality: Found 0 warnings and 0 errors.
+@repo/obs:quality: Finished in 53ms on 3 files with 194 rules using 10 threads.
+@repo/plugins:quality: cache hit, replaying logs 27eaed2267a411fa
+@repo/plugins:quality: 
+@repo/plugins:quality: [0m[2m[35m$[0m [2m[1mbun run check-types && bun run lint && bun run test[0m
+@repo/plugins:quality: [0m[2m[35m$[0m [2m[1mtsc --noEmit[0m
+@repo/plugins:quality: [0m[2m[35m$[0m [2m[1moxlint --config ./.oxlintrc.json src/[0m
+@repo/plugins:quality: Found 0 warnings and 0 errors.
+@repo/plugins:quality: Finished in 70ms on 4 files with 194 rules using 10 threads.
+@repo/plugins:quality: [0m[2m[35m$[0m [2m[1mvitest run[0m
+@repo/plugins:quality: [?25l
+@repo/plugins:quality: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90m/Users/amin/projects/ordine/packages/plugins[39m
+@repo/plugins:quality: 
+@repo/plugins:quality: [?2026h
+@repo/plugins:quality: [1m[33m ❯ [39m[22msrc/github-project-plugin/github-project-plugin.test.ts[2m [queued][22m
+@repo/plugins:quality: 
+@repo/plugins:quality: [2m Test Files [22m[1m[32m0 passed[39m[22m[90m (1)[39m
+@repo/plugins:quality: [2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
+@repo/plugins:quality: [2m   Start at [22m18:22:47
+@repo/plugins:quality: [2m   Duration [22m0ms
+@repo/plugins:quality: [?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+@repo/plugins:quality: [1m[33m ❯ [39m[22msrc/github-project-plugin/github-project-plugin.test.ts[2m 1/13[22m
+@repo/plugins:quality: 
+@repo/plugins:quality: [2m Test Files [22m[1m[32m0 passed[39m[22m[90m (1)[39m
+@repo/plugins:quality: [2m      Tests [22m[1m[32m1 passed[39m[22m[90m (13)[39m
+@repo/plugins:quality: [2m   Start at [22m18:22:47
+@repo/plugins:quality: [2m   Duration [22m108ms
+@repo/plugins:quality: [?2026l[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [32m✓[39m src/github-project-plugin/github-project-plugin.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@repo/plugins:quality:    [32m✓[39m githubProjectsPlugin [2m(13)[22m
+@repo/plugins:quality:      [32m✓[39m has correct plugin metadata[32m 1[2mms[22m[39m
+@repo/plugins:quality:      [32m✓[39m defines a github-project object type[32m 0[2mms[22m[39m
+@repo/agent:quality: cache hit, replaying logs f0dc3472dc95e006
+@repo/plugins:quality:      [32m✓[39m registers into pluginRegistry[32m 0[2mms[22m[39m
+@repo/plugins:quality:      [32m✓[39m throws on duplicate registration[32m 2[2mms[22m[39m
+@repo/plugins:quality:      [32m✓[39m nodeHandler [2m(5)[22m
+@repo/agent:quality: $ bun run check-types && bun run lint
+@repo/agent:quality: $ tsc --noEmit
+@repo/agent:quality: $ oxlint --config ./.oxlintrc.json src/
+@repo/agent:quality: Found 0 warnings and 0 errors.
+@repo/agent:quality: Finished in 86ms on 23 files with 194 rules using 10 threads.
+@repo/plugins:quality:        [32m✓[39m handles github source type[32m 1[2mms[22m[39m
+@repo/plugins:quality:        [32m✓[39m uses default branch when not specified[32m 0[2mms[22m[39m
+@repo/plugins:quality:        [32m✓[39m handles local source type[32m 0[2mms[22m[39m
+@repo/plugins:quality:        [32m✓[39m handles local source type with missing localPath[32m 0[2mms[22m[39m
+@repo/plugins:quality:        [32m✓[39m handles missing owner/repo[32m 1[2mms[22m[39m
+@repo/plugins:quality:      [32m✓[39m dataSchema validation [2m(4)[22m
+@repo/plugins:quality:        [32m✓[39m validates valid github project data[32m 1[2mms[22m[39m
+@repo/plugins:quality:        [32m✓[39m validates with all optional fields[32m 0[2mms[22m[39m
+@repo/plugins:quality:        [32m✓[39m rejects invalid disclosure mode[32m 0[2mms[22m[39m
+@repo/plugins:quality:        [32m✓[39m rejects missing required fields[32m 0[2mms[22m[39m
+@repo/plugins:quality: 
+@repo/plugins:quality: [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+@repo/pipeline-engine:quality: cache miss, executing 92ca2c7e6207c7c7
+@repo/plugins:quality: [2m      Tests [22m [1m[32m13 passed[39m[22m[90m (13)[39m
+@repo/plugins:quality: [2m   Start at [22m 18:22:47
+@repo/plugins:quality: [2m   Duration [22m 193ms[2m (transform 48ms, setup 0ms, import 93ms, tests 9ms, environment 0ms)[22m
+@repo/plugins:quality: 
+@repo/plugins:quality: [?25h
+@repo/agent-engine:quality: cache hit, replaying logs 7a56c1c00db92c8b
+@repo/agent-engine:quality: $ bun run check-types && bun run test
+@repo/agent-engine:quality: $ tsc --noEmit
+@repo/agent-engine:quality: $ vitest run
+@repo/agent-engine:quality: 
+@repo/agent-engine:quality: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90m/Users/amin/projects/ordine/packages/agent-engine[39m
+@repo/agent-engine:quality: 
+@repo/agent-engine:quality:  [32m✓[39m src/agentEngine.unit.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+@repo/agent-engine:quality: 
+@repo/agent-engine:quality: [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+@repo/agent-engine:quality: [2m      Tests [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+@repo/agent-engine:quality: [2m   Start at [22m 21:20:21
+@repo/agent-engine:quality: [2m   Duration [22m 96ms[2m (transform 20ms, setup 0ms, import 27ms, tests 3ms, environment 0ms)[22m
+@repo/agent-engine:quality: 
+@repo/pipeline-engine:quality: $ bun run check-types && bun run lint && bun run test
+@repo/pipeline-engine:quality: $ tsc --noEmit
+@repo/pipeline-engine:quality: src/engine/engine.test.ts(32,3): error TS2353: Object literal may only specify known properties, and 'listDirTree' does not exist in type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/engine/engine.test.ts(104,19): error TS2339: Property 'listDirTree' does not exist on type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/engine/engine.test.ts(115,19): error TS2339: Property 'listDirTree' does not exist on type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/engine/engine.test.ts(116,19): error TS2339: Property 'readProjectFiles' does not exist on type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/engine/engine.test.ts(565,19): error TS2339: Property 'listDirTree' does not exist on type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/nodes/CodeFileNode/CodeFileNode.test.ts(39,3): error TS2353: Object literal may only specify known properties, and 'listDirTree' does not exist in type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/nodes/FolderNode/FolderNode.test.ts(38,3): error TS2353: Object literal may only specify known properties, and 'listDirTree' does not exist in type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/nodes/FolderNode/FolderNode.test.ts(116,17): error TS2339: Property 'listDirTree' does not exist on type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/nodes/FolderNode/FolderNode.test.ts(117,17): error TS2339: Property 'readProjectFiles' does not exist on type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/nodes/GitHubProjectNode/GitHubProjectNode.test.ts(38,3): error TS2353: Object literal may only specify known properties, and 'listDirTree' does not exist in type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/nodes/GitHubProjectNode/GitHubProjectNode.test.ts(146,17): error TS2339: Property 'listDirTree' does not exist on type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/nodes/OperationNode/OperationNode.test.ts(27,3): error TS2353: Object literal may only specify known properties, and 'listDirTree' does not exist in type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/nodes/OutputLocalPathNode/OutputLocalPathNode.test.ts(38,3): error TS2353: Object literal may only specify known properties, and 'listDirTree' does not exist in type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/tests/helpers/makeTestDeps.ts(12,3): error TS2353: Object literal may only specify known properties, and 'listDirTree' does not exist in type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/tests/plugin-dispatch.test.ts(41,3): error TS2353: Object literal may only specify known properties, and 'listDirTree' does not exist in type 'PipelineEngineDeps'.
+@repo/pipeline-engine:quality: src/tests/scenarios/linear.scenario.test.ts(52,17): error TS2339: Property 'listDirTree' does not exist on type 'PipelineEngineDeps'.
+ ERROR  @repo/pipeline-engine#quality: command (/Users/amin/projects/ordine/packages/pipeline-engine) /Users/amin/.bun/bin/bun run quality exited (2)
+
+ Tasks:    10 successful, 11 total
+Cached:    10 cached, 11 total
+  Time:    1.345s 
+Failed:    @repo/pipeline-engine#quality
+
+ ERROR  run failed: command  exited (2)

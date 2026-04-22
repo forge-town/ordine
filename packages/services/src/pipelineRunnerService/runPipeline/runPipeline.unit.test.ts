@@ -54,8 +54,6 @@ const makeOpts = (overrides = {}) => ({
     runSkill: vi.fn().mockReturnValue(okAsync("")),
     runRuleCheck: vi.fn(),
     structuredJsonToMarkdown: vi.fn(),
-    listDirTree: vi.fn(),
-    readProjectFiles: vi.fn(),
     evaluateLoopCondition: vi.fn(),
   } as unknown as PipelineEngineDeps,
   ...overrides,

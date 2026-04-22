@@ -24,8 +24,6 @@ const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDe
     stats: { totalFindings: 2, totalFiles: 3 },
   }),
   structuredJsonToMarkdown: vi.fn((c: string) => c),
-  listDirTree: vi.fn().mockResolvedValue(""),
-  readProjectFiles: vi.fn().mockResolvedValue(""),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,
 });
