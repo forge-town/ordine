@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { promptExecutor } from "../promptExecutor";
 import { skillExecutor } from "../skillExecutor";
 import { pipelineRunnerEngineDeps } from "./engineDeps";
-import type { SettingsResolver } from "@repo/agent";
 import type { RulesDao } from "@repo/models";
 import type { LoopEvaluatorFn } from "../loopEvaluator";
 
@@ -19,7 +18,6 @@ vi.mock("../skillExecutor", () => ({
 }));
 
 describe("pipelineRunnerEngineDeps", () => {
-  const getSettings = vi.fn<SettingsResolver>();
   // @ts-expect-error -- mock DAO with only required methods
   const rulesDao: RulesDao = {};
   const evaluateLoopCondition = vi.fn<LoopEvaluatorFn>();
@@ -30,7 +28,6 @@ describe("pipelineRunnerEngineDeps", () => {
 
   it("passes jobId to promptExecutor", () => {
     const deps = pipelineRunnerEngineDeps.build({
-      getSettings,
       rulesDao,
       evaluateLoopCondition,
       jobId: "job-1",
@@ -48,14 +45,12 @@ describe("pipelineRunnerEngineDeps", () => {
         inputContent: "content",
         inputPath: "/tmp/project",
         jobId: "job-1",
-        getSettings,
       }),
     );
   });
 
   it("passes jobId to skillExecutor", () => {
     const deps = pipelineRunnerEngineDeps.build({
-      getSettings,
       rulesDao,
       evaluateLoopCondition,
       jobId: "job-1",

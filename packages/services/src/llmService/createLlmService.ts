@@ -12,6 +12,5 @@ export const createLlmService = (db: DbConnection) => {
 
   return {
     getModel: (modelOverride?: string) => getModel(getSettings, modelOverride),
-    getSettings,
   };
 };

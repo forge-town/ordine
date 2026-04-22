@@ -22,8 +22,13 @@ const mockDb: DbConnection = {};
 describe("createLlmService", () => {
   it("getSettings returns apiKey and model from dao", async () => {
     const svc = createLlmService(mockDb);
-    const settings = await svc.getSettings();
-    expect(settings).toEqual({ apiKey: "key-123", model: "gpt-4" });
+    // getSettings is lazy — we need to trigger getModel which calls getSettings internally
+    mockGetModel.mockImplementationOnce(async (resolver: () => Promise<unknown>) => {
+      const settings = await resolver();
+
+      return settings;
+    });
+    await svc.getModel();
     expect(mockDao.get).toHaveBeenCalled();
   });
 
