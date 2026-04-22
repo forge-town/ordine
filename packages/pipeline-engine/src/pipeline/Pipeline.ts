@@ -5,6 +5,7 @@ import { trace } from "@repo/obs";
 import { pluginRegistry } from "@repo/plugin";
 import {
   resolveMetaType,
+  NODE_TYPE_ENUM,
   type PipelineEdge,
   type PipelineNode,
   type PipelineNodeData,
@@ -101,7 +102,7 @@ export class Pipeline {
     }
 
     const outputPaths = nodes.flatMap((n) => {
-      if (n.data.nodeType !== "output-local-path") return [];
+      if (n.data.nodeType !== NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) return [];
       const configuredPath = n.data.localPath ?? "";
       const path = configuredPath || this.opts.defaultOutputPath || "";
 
@@ -169,7 +170,7 @@ export class Pipeline {
 
     // ── operation metaType ───────────────────────────────────────────────
     if (metaType === "operation") {
-      if (node.type === "operation") {
+      if (node.type === NODE_TYPE_ENUM.OPERATION) {
         const opCtx: OperationNodeContext = {
           ...baseCtx,
           operations: this.opts.operations,
@@ -191,11 +192,11 @@ export class Pipeline {
 
     // ── output metaType ──────────────────────────────────────────────────
     if (metaType === "output") {
-      if (node.type === "output-local-path") {
+      if (node.type === NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) {
         return this.wrapNodeResult(node.id, processOutputLocalPathNode(baseCtx));
       }
 
-      if (node.data.nodeType === "output-project-path") {
+      if (node.data.nodeType === NODE_TYPE_ENUM.OUTPUT_PROJECT_PATH) {
         const projPath = node.data.path ?? input.inputPath;
         await trace(jobId, `Output-to-project: changes written directly to ${projPath}`);
         this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
@@ -260,15 +261,15 @@ export class Pipeline {
     }
 
     // Built-in object handlers
-    if (node.type === "folder") {
+    if (node.type === NODE_TYPE_ENUM.FOLDER) {
       return this.wrapNodeResult(node.id, processFolderNode(baseCtx));
     }
 
-    if (node.type === "code-file") {
+    if (node.type === NODE_TYPE_ENUM.CODE_FILE) {
       return this.wrapNodeResult(node.id, processCodeFileNode(baseCtx));
     }
 
-    if (node.type === "github-project") {
+    if (node.type === NODE_TYPE_ENUM.GITHUB_PROJECT) {
       return this.wrapNodeResult(
         node.id,
         processGitHubProjectNode({ ...baseCtx, githubToken: this.opts.githubToken }),
