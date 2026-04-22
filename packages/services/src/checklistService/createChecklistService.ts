@@ -10,8 +10,11 @@ export const createChecklistService = (db: DbConnection) => {
   const resultsDao = createChecklistResultsDao(db);
 
   return {
-    getItemsByBestPracticeId: async (bestPracticeId: string) =>
-      (await itemsDao.findByBestPracticeId(bestPracticeId)).map(withMeta),
+    getItemsByBestPracticeId: async (bestPracticeId: string) => {
+      const records = await itemsDao.findByBestPracticeId(bestPracticeId);
+
+      return records.map(withMeta);
+    },
     getItemById: async (id: string) => withMeta(await itemsDao.findById(id)),
     createItem: async (...args: Parameters<typeof itemsDao.create>) =>
       withMeta(await itemsDao.create(...args)),
