@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useNavigate } from "@tanstack/react-router";
-import type { RuleRecord, RuleCategory } from "@repo/db-schema";
+import type { Rule, RuleCategory } from "@repo/schemas";
 import { useDelete, useCustomMutation, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -14,7 +14,7 @@ import { CATEGORY_FILTERS } from "../types";
 import { RuleCard } from "../RuleCard";
 
 export const RulesPageContent = () => {
-  const { result: rulesResult, query: rulesQuery } = useList<RuleRecord>({
+  const { result: rulesResult, query: rulesQuery } = useList<Rule>({
     resource: ResourceName.rules,
   });
   const rules = rulesResult?.data ?? [];
@@ -36,7 +36,7 @@ export const RulesPageContent = () => {
     toggleRuleMutate({ url: "rules/toggle", method: "post", values: { id, enabled } });
   };
 
-  const filtered = rules.filter((r: RuleRecord) => {
+  const filtered = rules.filter((r: Rule) => {
     if (categoryFilter !== "all" && r.category !== categoryFilter) return false;
     if (search) {
       const q = search.toLowerCase();
@@ -51,7 +51,7 @@ export const RulesPageContent = () => {
     return true;
   });
 
-  const enabledCount = rules.filter((r: RuleRecord) => r.enabled).length;
+  const enabledCount = rules.filter((r: Rule) => r.enabled).length;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     handleSetSearch(e.target.value);

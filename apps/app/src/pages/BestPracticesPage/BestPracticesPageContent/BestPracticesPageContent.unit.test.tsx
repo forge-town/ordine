@@ -2,7 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BestPracticesPageContent } from "./BestPracticesPageContent";
-import type { BestPracticeRecord } from "@repo/db-schema";
+import type { BestPractice } from "@repo/schemas";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, ...props }: Record<string, unknown>) => (
@@ -49,7 +49,7 @@ vi.mock("@refinedev/core", () => ({
   useOne: () => ({ result: null, isLoading: false }),
 }));
 
-const mockPractices: BestPracticeRecord[] = [
+const mockPractices: BestPractice[] = [
   {
     id: "bp-1",
     title: "避免在 useEffect 中直接 setState",

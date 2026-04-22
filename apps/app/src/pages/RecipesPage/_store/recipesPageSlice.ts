@@ -1,14 +1,14 @@
 import type { StateCreator } from "zustand";
-import type { RecipeRecord } from "@repo/db-schema";
+import type { Recipe } from "@repo/schemas";
 
 export interface RecipesPageSlice {
   search: string;
   showForm: boolean;
-  editing: RecipeRecord | null;
+  editing: Recipe | null;
 
   handleSetSearch: (search: string) => void;
   handleSetShowForm: (show: boolean) => void;
-  handleSetEditing: (editing: RecipeRecord | null) => void;
+  handleSetEditing: (editing: Recipe | null) => void;
 }
 
 export const createRecipesPageSlice: StateCreator<RecipesPageSlice> = (set) => ({

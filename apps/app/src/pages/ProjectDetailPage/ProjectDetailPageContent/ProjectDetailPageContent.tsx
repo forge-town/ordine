@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.$projectId.index";
 import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { GithubProjectRecord, PipelineRecord } from "@repo/db-schema";
+import type { GithubProject } from "@repo/schemas";
+import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -12,11 +13,11 @@ import { ProjectMeta } from "../ProjectMeta";
 
 export const ProjectDetailPageContent = () => {
   const { projectId } = Route.useParams();
-  const { result: projectResult, query: projectQuery } = useOne<GithubProjectRecord>({
+  const { result: projectResult, query: projectQuery } = useOne<GithubProject>({
     resource: ResourceName.githubProjects,
     id: projectId,
   });
-  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineRecord>({
+  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineData>({
     resource: ResourceName.pipelines,
   });
   const project = projectResult ?? null;

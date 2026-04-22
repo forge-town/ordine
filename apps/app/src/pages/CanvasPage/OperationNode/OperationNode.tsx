@@ -17,7 +17,7 @@ import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
 import type { OperationNodeData, NodeRunStatus } from "@repo/pipeline-engine/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { type OperationRecord, type BestPracticeRecord } from "@repo/db-schema";
+import { type Operation, type BestPractice } from "@repo/schemas";
 import { AgentRuntimeSchema } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
 import { BestPracticeSelect } from "./BestPracticeSelect";
@@ -52,10 +52,10 @@ const RUNTIME_LABELS: Record<string, string> = {
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const store = useHarnessCanvasStore();
   const { runStatus: nodeRunStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
-  const { result: operationsResult } = useList<OperationRecord>({
+  const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: bestPracticesResult } = useList<BestPracticeRecord>({
+  const { result: bestPracticesResult } = useList<BestPractice>({
     resource: ResourceName.bestPractices,
   });
   const operations = operationsResult?.data ?? [];
@@ -67,7 +67,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
 
   const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
 
-  const operation = operations.find((op: OperationRecord) => op.id === data.operationId);
+  const operation = operations.find((op: Operation) => op.id === data.operationId);
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v, operationName: v });
 

@@ -2,7 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JobDetailPageContent } from "./JobDetailPageContent";
-import type { JobRecord } from "@repo/db-schema";
+import type { Job } from "@repo/schemas";
 
 const mockUseLoaderData = vi.fn();
 const { mockGetTracesQuery, mockGetAgentRunsQuery, mockGetAgentRunSpansQuery } = vi.hoisted(() => ({
@@ -45,7 +45,7 @@ vi.mock("@refinedev/core", () => ({
   useOne: () => ({ result: mockUseLoaderData(), isLoading: false }),
 }));
 
-const mockJob: JobRecord = {
+const mockJob: Job = {
   id: "job-1",
   title: "运行 Pipeline: 代码分析",
   type: "pipeline_run",

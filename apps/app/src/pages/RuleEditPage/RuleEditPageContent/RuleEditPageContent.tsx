@@ -5,14 +5,14 @@ import { Button } from "@repo/ui/button";
 import { Route } from "@/routes/_layout/rules.$ruleId.edit";
 import { useOne, useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { RuleRecord } from "@repo/db-schema";
+import type { Rule } from "@repo/schemas";
 import { RuleForm } from "@/pages/RulesPage/RuleForm";
 import { getEditForm, type RuleFormState } from "@/pages/RulesPage/types";
 import { PageLoadingState } from "@/components/PageLoadingState";
 
 export const RuleEditPageContent = () => {
   const { ruleId } = Route.useParams();
-  const { result: ruleResult, query: ruleQuery } = useOne<RuleRecord>({
+  const { result: ruleResult, query: ruleQuery } = useOne<Rule>({
     resource: ResourceName.rules,
     id: ruleId,
   });

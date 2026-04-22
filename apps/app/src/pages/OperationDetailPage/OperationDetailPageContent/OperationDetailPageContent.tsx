@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import type { OperationRecord } from "@repo/db-schema";
+import type { Operation } from "@repo/schemas";
 import type {
   ObjectType,
   OperationConfig,
@@ -106,7 +106,7 @@ const ExecutorCard = ({ executor: raw }: { executor: ExecutorConfig }) => {
 
 export const OperationDetailPageContent = () => {
   const { operationId } = Route.useParams();
-  const { result: operationResult, query: operationQuery } = useOne<OperationRecord>({
+  const { result: operationResult, query: operationQuery } = useOne<Operation>({
     resource: ResourceName.operations,
     id: operationId,
   });

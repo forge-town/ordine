@@ -2,13 +2,13 @@ import { describe, it, expect, vi } from "vitest";
 import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { OperationEditPage } from "./OperationEditPage";
-import type { OperationRecord } from "@repo/db-schema";
+import type { Operation } from "@repo/schemas";
 
-const mockOp: OperationRecord = {
+const mockOp: Operation = {
   id: "op-1",
   name: "Lint",
   description: null,
-  config: {},
+  config: { inputs: [], outputs: [] },
   acceptedObjectTypes: ["file"],
   createdAt: new Date(1000),
   updatedAt: new Date(1000),

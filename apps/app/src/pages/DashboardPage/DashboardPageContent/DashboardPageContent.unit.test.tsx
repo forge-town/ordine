@@ -2,9 +2,9 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { DashboardPageContent } from "./DashboardPageContent";
-import type { JobRecord } from "@repo/db-schema";
+import type { Job } from "@repo/schemas";
 
-const mockJobs: JobRecord[] = [
+const mockJobs: Job[] = [
   {
     id: "job-1",
     title: "运行 Pipeline",
@@ -26,7 +26,7 @@ const mockJobs: JobRecord[] = [
 const useLoaderData = vi.fn(() => ({
   pipelines: [],
   projects: [],
-  jobs: [] as JobRecord[],
+  jobs: [] as Job[],
 }));
 
 vi.mock("@/routes/_layout/index", () => ({
@@ -49,7 +49,7 @@ vi.mock("@tanstack/react-router", () => ({
   }) => <a>{children}</a>,
 }));
 
-const jobsData = vi.fn(() => [] as JobRecord[]);
+const jobsData = vi.fn(() => [] as Job[]);
 
 vi.mock("@refinedev/core", () => ({
   useList: (opts: { resource: string }) => {

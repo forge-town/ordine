@@ -13,12 +13,12 @@ import {
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
-import type { BestPracticeRecord } from "@repo/db-schema";
+import type { BestPractice } from "@repo/schemas";
 import { exportSingleBestPractice } from "@/lib/exportBestPractice";
 import { CATEGORIES, CATEGORY_COLORS } from "../constants";
 
 export type PracticeCardProps = {
-  practice: BestPracticeRecord;
+  practice: BestPractice;
   onDelete: () => void;
 };
 

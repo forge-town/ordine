@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ProjectCard } from "./ProjectCard";
-import type { GithubProjectRecord } from "@repo/db-schema";
+import type { GithubProject } from "@repo/schemas";
 
 const mockProject = {
   id: "proj-001",
@@ -13,7 +13,7 @@ const mockProject = {
   isPrivate: false,
   updatedAt: Date.now(),
   createdAt: Date.now(),
-} as unknown as GithubProjectRecord;
+} as unknown as GithubProject;
 
 const meta: Meta<typeof ProjectCard> = {
   title: "Pages/ProjectsPage/ProjectCard",

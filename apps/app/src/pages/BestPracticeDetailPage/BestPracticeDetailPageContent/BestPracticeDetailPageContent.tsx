@@ -18,7 +18,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
-import type { BestPracticeRecord, ChecklistItemRecord, CodeSnippetRecord } from "@repo/db-schema";
+import type { BestPractice, ChecklistItem, CodeSnippet } from "@repo/schemas";
 import { exportSingleBestPractice } from "@/lib/exportBestPractice";
 import { CATEGORIES, CATEGORY_COLORS } from "@/pages/BestPracticesPage/constants";
 import { useList } from "@refinedev/core";
@@ -27,17 +27,17 @@ import { Route } from "@/routes/_layout/best-practices.$bestPracticeId.index";
 import { PageLoadingState } from "@/components/PageLoadingState";
 
 interface Props {
-  bestPractice: BestPracticeRecord;
+  bestPractice: BestPractice;
 }
 
 export const BestPracticeDetailPageContent = ({ bestPractice }: Props) => {
   const { bestPracticeId } = Route.useParams();
 
-  const { result: checklistResult, query: checklistQuery } = useList<ChecklistItemRecord>({
+  const { result: checklistResult, query: checklistQuery } = useList<ChecklistItem>({
     resource: ResourceName.checklistItems,
     filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
   });
-  const { result: snippetsResult, query: snippetsQuery } = useList<CodeSnippetRecord>({
+  const { result: snippetsResult, query: snippetsQuery } = useList<CodeSnippet>({
     resource: ResourceName.codeSnippets,
     filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
   });

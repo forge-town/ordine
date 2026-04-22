@@ -20,7 +20,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import type { JobRecord, JobStatus, JobType, JobTraceRecord, LogLevel } from "@repo/db-schema";
+import type { Job, JobStatus, JobType, JobTrace, LogLevel } from "@repo/schemas";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/jobs.$jobId";
@@ -103,14 +103,14 @@ const LEVEL_COLOR: Record<LogLevel, string> = {
 
 export const JobDetailPageContent = () => {
   const { jobId } = Route.useParams();
-  const { result: jobResult, query: jobQuery } = useOne<JobRecord>({
+  const { result: jobResult, query: jobQuery } = useOne<Job>({
     resource: ResourceName.jobs,
     id: jobId,
   });
   const job = jobResult ?? null;
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [traces, setTraces] = useState<JobTraceRecord[]>([]);
+  const [traces, setTraces] = useState<JobTrace[]>([]);
 
   useEffect(() => {
     void trpcClient.jobs.getTraces.query({ jobId }).then(setTraces);

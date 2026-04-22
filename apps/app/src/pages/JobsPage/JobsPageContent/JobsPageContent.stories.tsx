@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { JobsPageContent } from "./JobsPageContent";
-import type { JobRecord } from "@repo/db-schema";
+import type { Job } from "@repo/schemas";
 
-const mockJobs: JobRecord[] = [
+const mockJobs: Job[] = [
   {
     id: "job-001",
     title: "Pipeline 运行",

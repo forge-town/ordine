@@ -4,7 +4,7 @@ import { BookOpen, Download, Plus, Search, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import type { BestPracticeRecord } from "@repo/db-schema";
+import type { BestPractice } from "@repo/schemas";
 import {
   exportAllBestPractices,
   parseBestPracticesZip,
@@ -23,7 +23,7 @@ import { ImportPreviewDialog } from "../ImportPreviewDialog";
 
 const handleExport = () => void exportAllBestPractices();
 
-const handleSave = (_p: BestPracticeRecord) => {};
+const handleSave = (_p: BestPractice) => {};
 
 export const BestPracticesPageContent = () => {
   const { t } = useTranslation();
@@ -42,13 +42,13 @@ export const BestPracticesPageContent = () => {
   const handleSetImportLoading = useStore(store, (s) => s.handleSetImportLoading);
   const handleResetImport = useStore(store, (s) => s.handleResetImport);
 
-  const { result: practicesResult, query: practicesQuery } = useList<BestPracticeRecord>({
+  const { result: practicesResult, query: practicesQuery } = useList<BestPractice>({
     resource: ResourceName.bestPractices,
   });
   const practices = practicesResult?.data ?? [];
   const { mutate: deleteBpMutate } = useDelete();
 
-  const filtered = practices.filter((p: BestPracticeRecord) => {
+  const filtered = practices.filter((p: BestPractice) => {
     const matchCat = activeCategory === "all" || p.category === activeCategory;
     const q = search.toLowerCase();
     const matchSearch =

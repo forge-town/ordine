@@ -9,5 +9,7 @@ export const BestPracticeSchema = z.object({
   language: z.string().default("typescript"),
   codeSnippet: z.string().default(""),
   tags: z.array(z.string()).default([]),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 export type BestPractice = z.infer<typeof BestPracticeSchema>;
