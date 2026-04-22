@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
 import { processGitHubProjectNode } from "./GitHubProjectNode";
+import { listDirTree, readProjectFiles } from "@repo/utils";
 import type { PipelineEngineDeps } from "../../deps";
 import type { PipelineNode } from "../../schemas";
 import type { NodeContext } from "../types";
@@ -11,6 +12,11 @@ import type { NodeContext } from "../types";
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),
   initObs: vi.fn(),
+}));
+
+vi.mock("@repo/utils", () => ({
+  listDirTree: vi.fn().mockResolvedValue("README.md"),
+  readProjectFiles: vi.fn().mockResolvedValue("# Hello"),
 }));
 
 import { trace } from "@repo/obs";
@@ -35,8 +41,6 @@ const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDe
   runSkill: vi.fn().mockReturnValue(okAsync("")),
   runRuleCheck: vi.fn().mockResolvedValue({ stats: { totalFindings: 0, totalFiles: 0 } }),
   structuredJsonToMarkdown: vi.fn((c: string) => c),
-  listDirTree: vi.fn().mockResolvedValue("README.md"),
-  readProjectFiles: vi.fn().mockResolvedValue("# Hello"),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,
 });
@@ -143,7 +147,7 @@ describe("processGitHubProjectNode", () => {
 
     await processGitHubProjectNode(ctx);
 
-    expect(deps.listDirTree).toHaveBeenCalledWith(testDir, { excludedPaths: [".git"] });
+    expect(listDirTree).toHaveBeenCalledWith(testDir, { excludedPaths: [".git"] });
   });
 
   it("always emits NODE_DONE on success", async () => {

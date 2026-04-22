@@ -38,8 +38,6 @@ const makeDeps = (): PipelineEngineDeps => ({
   runSkill: vi.fn().mockReturnValue(okAsync("skill-output")),
   runRuleCheck: vi.fn().mockResolvedValue({ stats: { totalFindings: 0, totalFiles: 0 } }),
   structuredJsonToMarkdown: vi.fn((c: string) => `# Markdown\n${c}`),
-  listDirTree: vi.fn().mockResolvedValue("file1.ts\nfile2.ts"),
-  readProjectFiles: vi.fn().mockResolvedValue("// file1 content"),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
 });
 

@@ -1,4 +1,5 @@
 import { trace } from "@repo/obs";
+import { listDirTree, readProjectFiles } from "@repo/utils";
 import type { NodeContext, NodeResult } from "../types";
 import type { PipelineRunError } from "../../errors";
 import { cloneGitHubRepo } from "../../infrastructure";
@@ -6,7 +7,7 @@ import { cloneGitHubRepo } from "../../infrastructure";
 export const processGitHubProjectNode = async (
   ctx: NodeContext & { githubToken?: string },
 ): Promise<NodeResult | { ok: false; error: PipelineRunError }> => {
-  const { node, deps, nodeOutputs, tempDirs, jobId, githubToken } = ctx;
+  const { node, nodeOutputs, tempDirs, jobId, githubToken } = ctx;
 
   if (node.data.nodeType !== "github-project") {
     await trace(
@@ -26,7 +27,7 @@ export const processGitHubProjectNode = async (
   const buildProjectContent = async (dir: string, label: string): Promise<string> => {
     const treeOpts = { excludedPaths };
     if (disclosureMode === "tree") {
-      const tree = await deps.listDirTree(dir, treeOpts);
+      const tree = await listDirTree(dir, treeOpts);
       await trace(
         jobId,
         `Disclosure mode: tree (${tree.split("\n").length} entries, excluded: [${excludedPaths.join(", ")}])`,
@@ -35,8 +36,8 @@ export const processGitHubProjectNode = async (
       return `${label}\n\nFile tree:\n${tree}`;
     }
     if (disclosureMode === "full") {
-      const tree = await deps.listDirTree(dir, treeOpts);
-      const fileContents = await deps.readProjectFiles(dir, { excludedPaths });
+      const tree = await listDirTree(dir, treeOpts);
+      const fileContents = await readProjectFiles(dir, { excludedPaths });
       await trace(
         jobId,
         `Disclosure mode: full (tree + file contents, ${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,
@@ -44,7 +45,7 @@ export const processGitHubProjectNode = async (
 
       return `${label}\n\nFile tree:\n${tree}\n\n---\n\nFile contents:\n\n${fileContents}`;
     }
-    const fileContents = await deps.readProjectFiles(dir, { excludedPaths });
+    const fileContents = await readProjectFiles(dir, { excludedPaths });
     await trace(
       jobId,
       `Disclosure mode: files-only (${fileContents.length} chars, excluded: [${excludedPaths.join(", ")}])`,

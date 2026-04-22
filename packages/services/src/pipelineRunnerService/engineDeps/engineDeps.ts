@@ -1,7 +1,6 @@
 import { promptExecutor } from "../promptExecutor";
 import { skillExecutor } from "../skillExecutor";
 import { structuredOutput } from "../structuredOutput";
-import { listDirTree, readProjectFiles } from "@repo/utils";
 import { ruleCheckRunner } from "../ruleCheckRunner";
 import type { PipelineEngineDeps } from "@repo/pipeline-engine";
 import type { RulesDao } from "@repo/models";
@@ -29,8 +28,6 @@ export const pipelineRunnerEngineDeps = {
       }),
     runRuleCheck: (inputPath) => ruleCheckRunner.run({ dao: rulesDao, inputPath }),
     structuredJsonToMarkdown: (content) => structuredOutput.toMarkdown({ content }),
-    listDirTree,
-    readProjectFiles,
     evaluateLoopCondition,
   }),
 };

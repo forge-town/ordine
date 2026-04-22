@@ -29,8 +29,6 @@ const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDe
   runSkill: vi.fn().mockReturnValue(okAsync("skill-output")),
   runRuleCheck: vi.fn().mockResolvedValue({ stats: { totalFindings: 0, totalFiles: 0 } }),
   structuredJsonToMarkdown: vi.fn((c: string) => `# Markdown\n${c}`),
-  listDirTree: vi.fn().mockResolvedValue("file1.ts\nfile2.ts"),
-  readProjectFiles: vi.fn().mockResolvedValue("// file1 content\n// file2 content"),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,
 });
@@ -101,7 +99,6 @@ describe("executePipeline", () => {
       const nodes = [makeNode("f1", "folder", { folderPath, disclosureMode: "tree" })];
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
-      expect(deps.listDirTree).toHaveBeenCalledWith(folderPath, { excludedPaths: [] });
     });
 
     it("processes a folder node with full disclosure (tree + content)", async () => {
@@ -112,8 +109,6 @@ describe("executePipeline", () => {
       const nodes = [makeNode("f1", "folder", { folderPath, disclosureMode: "full" })];
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
-      expect(deps.listDirTree).toHaveBeenCalled();
-      expect(deps.readProjectFiles).toHaveBeenCalled();
     });
 
     it("handles non-existent folder gracefully", async () => {
@@ -562,7 +557,6 @@ describe("executePipeline", () => {
       ];
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
-      expect(deps.listDirTree).toHaveBeenCalledWith(localPath, { excludedPaths: [] });
     });
   });
 

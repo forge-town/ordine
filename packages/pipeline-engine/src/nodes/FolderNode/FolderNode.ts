@@ -1,9 +1,10 @@
 import { existsSync } from "node:fs";
 import { trace } from "@repo/obs";
+import { listDirTree, readProjectFiles } from "@repo/utils";
 import type { NodeContext, NodeResult } from "../types";
 
 export const processFolderNode = async (ctx: NodeContext): Promise<NodeResult> => {
-  const { node, deps, nodeOutputs, jobId } = ctx;
+  const { node, nodeOutputs, jobId } = ctx;
 
   if (node.data.nodeType !== "folder") {
     await trace(jobId, `WARNING: Expected folder node, got ${node.data.nodeType ?? "unknown"}`);
@@ -18,11 +19,11 @@ export const processFolderNode = async (ctx: NodeContext): Promise<NodeResult> =
   const disclosureMode = node.data.disclosureMode ?? "tree";
 
   if (p && existsSync(p)) {
-    const tree = await deps.listDirTree(p, { excludedPaths });
+    const tree = await listDirTree(p, { excludedPaths });
     const readOpts = { excludedPaths, includedExtensions };
     const content = await (async () => {
       if (disclosureMode === "full") {
-        const fileContents = await deps.readProjectFiles(p, readOpts);
+        const fileContents = await readProjectFiles(p, readOpts);
         await trace(
           jobId,
           `Input folder: ${p} (disclosure: full, tree: ${tree.split("\n").length} entries, contents: ${fileContents.length} chars)`,
@@ -31,7 +32,7 @@ export const processFolderNode = async (ctx: NodeContext): Promise<NodeResult> =
         return `Folder: ${p}\n\nFile tree:\n${tree}\n\n---\n\nFile contents:\n\n${fileContents}`;
       }
       if (disclosureMode === "files-only") {
-        const fileContents = await deps.readProjectFiles(p, readOpts);
+        const fileContents = await readProjectFiles(p, readOpts);
         await trace(
           jobId,
           `Input folder: ${p} (disclosure: files-only, ${fileContents.length} chars)`,

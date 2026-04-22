@@ -9,8 +9,6 @@ export const makeTestDeps = (
   runSkill: vi.fn().mockReturnValue(okAsync("skill-output")),
   runRuleCheck: vi.fn().mockResolvedValue({ stats: { totalFindings: 0, totalFiles: 0 } }),
   structuredJsonToMarkdown: vi.fn((content: string) => `# Markdown\n${content}`),
-  listDirTree: vi.fn().mockResolvedValue("src/index.ts\nsrc/app.ts"),
-  readProjectFiles: vi.fn().mockResolvedValue("// file content"),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,
 });
