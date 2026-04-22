@@ -1,9 +1,9 @@
 import type { ExecutorConfig } from "@repo/schemas";
-import type { PipelineNode, NodeData, NodeCtx } from "../schemas";
+import type { PipelineNode, NodeCtx } from "../../schemas";
 import { trace } from "@repo/obs";
-import { ScriptExecutionError } from "../errors";
-import { runScript, safeParseConfig } from "../infrastructure";
-import type { OperationNodeContext, OperationExecResult, NodeResult } from "./types";
+import { ScriptExecutionError } from "../../errors";
+import { runScript, safeParseConfig } from "../../infrastructure";
+import type { OperationNodeContext, OperationExecResult, NodeResult } from "../types";
 
 const CHUNK_THROTTLE_MS = 2000;
 
@@ -13,7 +13,18 @@ export const executeOperationNode = async (
   ctx: OperationNodeContext,
 ): Promise<OperationExecResult> => {
   const { deps, operations, jobId } = ctx;
-  const data = node.data as NodeData;
+
+  if (node.data.nodeType !== "operation") {
+    await trace(
+      jobId,
+      `WARNING: Expected operation node, got ${node.data.nodeType ?? "unknown"}`,
+    );
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
+    return { ok: false, error: null };
+  }
+
+  const data = node.data;
   const operationId = data.operationId ?? "";
   const operation = operations.get(operationId);
 
@@ -24,17 +35,12 @@ export const executeOperationNode = async (
     return { ok: false, error: null };
   }
 
-  const opData = node.data as {
-    llmModel?: string;
-    llmProvider?: string;
-    bestPracticeId?: string;
-  };
-  const modelOverride = opData.llmModel;
-  const agentOverride = opData.llmProvider as ExecutorConfig["agent"] | undefined;
+  const modelOverride = data.llmModel;
+  const agentOverride = data.llmProvider as ExecutorConfig["agent"] | undefined;
 
   const bestPracticeContent = await (async () => {
-    if (!opData.bestPracticeId) return "";
-    const bp = await ctx.lookupBestPractice(opData.bestPracticeId);
+    if (!data.bestPracticeId) return "";
+    const bp = await ctx.lookupBestPractice(data.bestPracticeId);
     if (bp) {
       await trace(jobId, `Loaded best practice "${bp.title}" (${bp.content.length} chars)`);
 
@@ -42,7 +48,7 @@ export const executeOperationNode = async (
     }
     await trace(
       jobId,
-      `WARNING: Best practice ${opData.bestPracticeId} not found, continuing without standards`,
+      `WARNING: Best practice ${data.bestPracticeId} not found, continuing without standards`,
     );
 
     return "";
@@ -111,7 +117,7 @@ export const executeOperationNode = async (
     opResult.value = scriptResult.value;
     await trace(jobId, `Script output (${opResult.value.length} chars)`);
   } else if (executor.type === "agent" && executor.agentMode === "prompt") {
-    const prompt = (executor as ExecutorConfig & { prompt?: string }).prompt ?? "";
+    const prompt = executor.prompt ?? "";
     if (!prompt.trim()) {
       await trace(
         jobId,
@@ -139,7 +145,7 @@ export const executeOperationNode = async (
     await trace(jobId, `@@LLM_CONTENT::${node.id}::${opResult.value}`);
     await trace(jobId, `Prompt output (${opResult.value.length} chars)`);
   } else if (executor.type === "agent" && executor.agentMode === "skill") {
-    const skillId = (executor as ExecutorConfig & { skillId?: string }).skillId ?? "";
+    const skillId = executor.skillId ?? "";
     if (!skillId) {
       await trace(
         jobId,
@@ -167,7 +173,7 @@ export const executeOperationNode = async (
       promptMode: executor.promptMode,
       onChunk: handleChunk,
       onProgress,
-      writeEnabled: (executor as ExecutorConfig & { writeEnabled?: boolean }).writeEnabled === true,
+      writeEnabled: executor.writeEnabled === true,
     });
     opResult.value = skillResult.isOk() ? skillResult.value : "";
     if (skillResult.isErr()) {
@@ -189,26 +195,30 @@ export const processOperationNode = async (
   ctx: OperationNodeContext,
 ): Promise<NodeResult> => {
   const { deps, nodeOutputs, jobId } = ctx;
-  const opData = node.data as unknown as {
-    loopEnabled?: boolean;
-    maxLoopCount?: number;
-    loopConditionPrompt?: string;
-    llmModel?: string;
-  };
-  const loopEnabled = opData.loopEnabled === true;
-  const maxLoops = opData.maxLoopCount ?? 3;
-  const conditionPrompt = opData.loopConditionPrompt ?? "";
+
+  if (node.data.nodeType !== "operation") {
+    await trace(
+      jobId,
+      `WARNING: Expected operation node, got ${node.data.nodeType ?? "unknown"}`,
+    );
+
+    return { ok: false, error: new ScriptExecutionError(`Expected operation node`) };
+  }
+
+  const loopEnabled = node.data.loopEnabled === true;
+  const maxLoops = node.data.maxLoopCount ?? 3;
+  const conditionPrompt = node.data.loopConditionPrompt ?? "";
 
   const resultState = { content: "" };
 
   if (loopEnabled && conditionPrompt) {
-    const modelOverride = opData.llmModel ?? undefined;
+    const modelOverride = node.data.llmModel ?? undefined;
     const loopState = { currentInput: input };
 
     for (const attempt of Array.from({ length: maxLoops }, (_, i) => i + 1)) {
       await trace(
         jobId,
-        `[Loop] Iteration ${attempt}/${maxLoops} for "${(node.data as unknown as Record<string, unknown>).label}"`,
+        `[Loop] Iteration ${attempt}/${maxLoops} for "${node.data.label}"`,
       );
       const loopResult = await executeOperationNode(node, loopState.currentInput, ctx);
       if (!loopResult.ok) {

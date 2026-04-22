@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { safeParseConfig, safeReadInputFile, runScript } from "./infrastructure";
-import { ScriptExecutionError } from "./errors";
+import { safeParseConfig, safeReadInputFile, runScript } from "../infrastructure";
+import { ScriptExecutionError } from "../errors";
 
 const testDir = join(tmpdir(), `pipeline-engine-test-${Date.now()}`);
 

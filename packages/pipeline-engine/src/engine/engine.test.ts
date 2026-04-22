@@ -3,11 +3,11 @@ import { writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
-import { pipelineEngine } from "./engine";
-import type { PipelineEngineDeps } from "./deps";
-import type { PipelineNode, PipelineEdge } from "./schemas";
-import type { PipelineOptions } from "./pipeline";
-import type { OperationInfo } from "./nodes/types";
+import { pipelineEngine } from "../engine";
+import type { PipelineEngineDeps } from "../deps";
+import type { PipelineNode, PipelineEdge } from "../schemas";
+import type { PipelineOptions } from "../pipeline";
+import type { OperationInfo } from "../nodes/types";
 
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),
