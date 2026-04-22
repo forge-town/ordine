@@ -55,13 +55,13 @@ describe("pipelinesDao.update", () => {
     const testNodes = [
       {
         id: "node-1",
-        type: "condition",
+        type: "operation",
         position: { x: 0, y: 0 },
         data: {
-          nodeType: "condition" as const,
-          label: "验收条件",
-          expression: "",
-          expectedResult: "",
+          nodeType: "operation" as const,
+          label: "Test Operation",
+          operationId: "op-1",
+          operationName: "Test Operation",
           status: "idle" as const,
         },
       },

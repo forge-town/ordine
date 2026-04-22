@@ -75,7 +75,6 @@ describe("pipelineRunnerEngineDeps", () => {
         inputContent: "content",
         inputPath: "/tmp/project",
         jobId: "job-1",
-        getSettings,
       }),
     );
   });

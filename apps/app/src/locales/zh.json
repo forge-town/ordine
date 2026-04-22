@@ -169,7 +169,6 @@
     "back": "返回 Pipelines",
     "openInCanvas": "在 Canvas 中打开",
     "newPipelineDescription": "在 Canvas 中配置此 Pipeline 的节点和连接。",
-    "conditionNodeLabel": "验收条件",
     "backToList": "返回列表",
     "editInCanvas": "在 Canvas 中编辑",
     "preview": "Pipeline 预览",

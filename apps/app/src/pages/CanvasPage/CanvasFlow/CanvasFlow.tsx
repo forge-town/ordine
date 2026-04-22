@@ -3,7 +3,6 @@ import { useHarnessCanvasStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
 import { ReactFlow, Background, Controls, BackgroundVariant } from "@xyflow/react";
 import { CompoundNode } from "../CompoundNode";
-import { ConditionNode } from "../ConditionNode";
 import { CodeFileNode } from "../CodeFileNode";
 import { ErrorNode } from "../ErrorNode";
 import { FolderNode } from "../FolderNode";
@@ -17,7 +16,6 @@ const nodeTypes = {
   default: ErrorNode,
   operation: OperationNode,
   compound: CompoundNode,
-  condition: ConditionNode,
   "code-file": CodeFileNode,
   folder: FolderNode,
   "github-project": GitHubProjectNode,
