@@ -106,7 +106,6 @@ const run = ({
   inputPath,
   jobId,
   getSettings: _getSettings,
-  modelOverride: _modelOverride,
   agent = "claude-code",
   onChunk,
   onProgress,

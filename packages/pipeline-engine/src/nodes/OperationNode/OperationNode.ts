@@ -15,10 +15,7 @@ export const executeOperationNode = async (
   const { deps, operations, jobId } = ctx;
 
   if (node.data.nodeType !== "operation") {
-    await trace(
-      jobId,
-      `WARNING: Expected operation node, got ${node.data.nodeType ?? "unknown"}`,
-    );
+    await trace(jobId, `WARNING: Expected operation node, got ${node.data.nodeType ?? "unknown"}`);
     await trace(jobId, `@@NODE_FAIL::${node.id}`);
 
     return { ok: false, error: null };
@@ -35,8 +32,7 @@ export const executeOperationNode = async (
     return { ok: false, error: null };
   }
 
-  const modelOverride = data.llmModel;
-  const agentOverride = data.llmProvider as ExecutorConfig["agent"] | undefined;
+  const agentOverride = data.agentRuntime as ExecutorConfig["agent"] | undefined;
 
   const bestPracticeContent = await (async () => {
     if (!data.bestPracticeId) return "";
@@ -131,7 +127,6 @@ export const executeOperationNode = async (
       prompt,
       inputContent: effectiveInput,
       inputPath: input.inputPath,
-      modelOverride,
       agent: agentOverride ?? executor.agent,
       onChunk: handleChunk,
       onProgress,
@@ -167,7 +162,6 @@ export const executeOperationNode = async (
       skillDescription,
       inputContent: effectiveInput,
       inputPath: input.inputPath,
-      modelOverride,
       agent: agentOverride ?? executor.agent,
       allowedTools: executor.allowedTools,
       promptMode: executor.promptMode,
@@ -197,10 +191,7 @@ export const processOperationNode = async (
   const { deps, nodeOutputs, jobId } = ctx;
 
   if (node.data.nodeType !== "operation") {
-    await trace(
-      jobId,
-      `WARNING: Expected operation node, got ${node.data.nodeType ?? "unknown"}`,
-    );
+    await trace(jobId, `WARNING: Expected operation node, got ${node.data.nodeType ?? "unknown"}`);
 
     return { ok: false, error: new ScriptExecutionError(`Expected operation node`) };
   }
@@ -212,14 +203,10 @@ export const processOperationNode = async (
   const resultState = { content: "" };
 
   if (loopEnabled && conditionPrompt) {
-    const modelOverride = node.data.llmModel ?? undefined;
     const loopState = { currentInput: input };
 
     for (const attempt of Array.from({ length: maxLoops }, (_, i) => i + 1)) {
-      await trace(
-        jobId,
-        `[Loop] Iteration ${attempt}/${maxLoops} for "${node.data.label}"`,
-      );
+      await trace(jobId, `[Loop] Iteration ${attempt}/${maxLoops} for "${node.data.label}"`);
       const loopResult = await executeOperationNode(node, loopState.currentInput, ctx);
       if (!loopResult.ok) {
         if (loopResult.error) return { ok: false, error: loopResult.error };
@@ -228,11 +215,7 @@ export const processOperationNode = async (
       resultState.content = loopResult.content;
       loopState.currentInput = { inputPath: input.inputPath, content: resultState.content };
 
-      const passed = await deps.evaluateLoopCondition(
-        conditionPrompt,
-        resultState.content,
-        modelOverride,
-      );
+      const passed = await deps.evaluateLoopCondition(conditionPrompt, resultState.content);
       if (passed) {
         await trace(jobId, `[Loop] Condition PASSED on iteration ${attempt}`);
         break;

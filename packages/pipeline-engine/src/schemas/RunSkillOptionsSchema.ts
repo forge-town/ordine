@@ -7,7 +7,6 @@ export const RunSkillOptionsSchema = z.object({
   skillDescription: z.string(),
   inputContent: z.string(),
   inputPath: z.string(),
-  modelOverride: z.string().optional(),
   writeEnabled: z.boolean().optional(),
   allowedTools: z.array(z.string()).optional(),
   promptMode: z.enum(["code", "research"]).optional(),

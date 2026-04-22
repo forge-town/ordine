@@ -290,7 +290,7 @@ describe("processOperationNode", () => {
 });
 
 describe("executeOperationNode — agent override", () => {
-  it("uses llmProvider from node data as agent override for prompt mode", async () => {
+  it("uses agentRuntime from node data as agent override for prompt mode", async () => {
     const deps = makeDeps();
     const op = makeOperation({
       type: "agent",
@@ -299,7 +299,7 @@ describe("executeOperationNode — agent override", () => {
       agent: "claude-code",
     });
     const ops = new Map([["op-id", op]]);
-    const node = makeNode({ operationId: "op-id", llmProvider: "codex" });
+    const node = makeNode({ operationId: "op-id", agentRuntime: "codex" });
     const ctx = makeCtx(deps, ops);
 
     const result = await executeOperationNode(node, makeInput(), ctx);
@@ -308,7 +308,7 @@ describe("executeOperationNode — agent override", () => {
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
   });
 
-  it("uses llmProvider from node data as agent override for skill mode", async () => {
+  it("uses agentRuntime from node data as agent override for skill mode", async () => {
     const deps = makeDeps();
     const op = makeOperation({
       type: "agent",
@@ -317,7 +317,7 @@ describe("executeOperationNode — agent override", () => {
       agent: "claude-code",
     });
     const ops = new Map([["op-id", op]]);
-    const node = makeNode({ operationId: "op-id", llmProvider: "claude-code" });
+    const node = makeNode({ operationId: "op-id", agentRuntime: "claude-code" });
     const ctx = makeCtx(deps, ops);
 
     const result = await executeOperationNode(node, makeInput(), ctx);
@@ -326,7 +326,7 @@ describe("executeOperationNode — agent override", () => {
     expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ agent: "claude-code" }));
   });
 
-  it("falls back to executor.agent when llmProvider is not set", async () => {
+  it("falls back to executor.agent when agentRuntime is not set", async () => {
     const deps = makeDeps();
     const op = makeOperation({
       type: "agent",

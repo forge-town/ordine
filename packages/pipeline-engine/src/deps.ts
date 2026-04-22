@@ -11,9 +11,5 @@ export interface PipelineEngineDeps {
     path: string,
     opts: { excludedPaths: string[]; includedExtensions?: string[] },
   ) => Promise<string>;
-  evaluateLoopCondition: (
-    conditionPrompt: string,
-    operationOutput: string,
-    modelOverride?: string,
-  ) => Promise<boolean>;
+  evaluateLoopCondition: (conditionPrompt: string, operationOutput: string) => Promise<boolean>;
 }

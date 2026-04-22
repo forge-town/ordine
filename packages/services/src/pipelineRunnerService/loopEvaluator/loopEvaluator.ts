@@ -5,21 +5,12 @@ import type { createLlmService } from "../../llmService";
 export type LoopEvaluatorFn = (
   conditionPrompt: string,
   operationOutput: string,
-  modelOverride?: string,
 ) => Promise<boolean>;
 
-const create = ({
-  getModel,
-}: {
-  getModel: ReturnType<typeof createLlmService>["getModel"];
-}) => {
+const create = ({ getModel }: { getModel: ReturnType<typeof createLlmService>["getModel"] }) => {
   return ({ jobId }: { jobId: string }): LoopEvaluatorFn => {
-    return async (
-      conditionPrompt: string,
-      operationOutput: string,
-      modelOverride?: string,
-    ): Promise<boolean> => {
-      const model = await getModel(modelOverride);
+    return async (conditionPrompt: string, operationOutput: string): Promise<boolean> => {
+      const model = await getModel();
       if (!model) {
         await trace(
           jobId,
