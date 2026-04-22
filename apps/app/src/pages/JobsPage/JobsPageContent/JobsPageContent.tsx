@@ -4,7 +4,7 @@ import { Activity, Search, Filter } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import type { JobRecord, JobStatus } from "@repo/db-schema";
+import type { Job, JobStatus } from "@repo/schemas";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -13,7 +13,7 @@ import { StatCard } from "../StatCard";
 import { JobRow } from "../JobRow";
 
 export const JobsPageContent = () => {
-  const { result: jobsResult, query: jobsQuery } = useList<JobRecord>({
+  const { result: jobsResult, query: jobsQuery } = useList<Job>({
     resource: ResourceName.jobs,
   });
   const jobs = jobsResult?.data ?? [];
@@ -43,7 +43,7 @@ export const JobsPageContent = () => {
     void navigate({ to: "/jobs/$jobId", params: { jobId } });
   const handleDeleteJob = (jobId: string) => () => void handleDelete(jobId);
 
-  const filtered = jobs.filter((j: JobRecord) => {
+  const filtered = jobs.filter((j: Job) => {
     const matchStatus = statusFilter === "all" || j.status === statusFilter;
     const q = search.toLowerCase();
     const matchSearch =
@@ -60,12 +60,12 @@ export const JobsPageContent = () => {
   };
 
   const counts: Record<JobStatus, number> = {
-    queued: jobs.filter((j: JobRecord) => j.status === "queued").length,
-    running: jobs.filter((j: JobRecord) => j.status === "running").length,
-    done: jobs.filter((j: JobRecord) => j.status === "done").length,
-    failed: jobs.filter((j: JobRecord) => j.status === "failed").length,
-    cancelled: jobs.filter((j: JobRecord) => j.status === "cancelled").length,
-    expired: jobs.filter((j: JobRecord) => j.status === "expired").length,
+    queued: jobs.filter((j: Job) => j.status === "queued").length,
+    running: jobs.filter((j: Job) => j.status === "running").length,
+    done: jobs.filter((j: Job) => j.status === "done").length,
+    failed: jobs.filter((j: Job) => j.status === "failed").length,
+    cancelled: jobs.filter((j: Job) => j.status === "cancelled").length,
+    expired: jobs.filter((j: Job) => j.status === "expired").length,
   };
 
   if (jobsQuery?.isLoading) {

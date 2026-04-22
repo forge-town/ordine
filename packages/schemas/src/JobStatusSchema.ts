@@ -6,6 +6,7 @@ export const JOB_STATUS_ENUM = {
   DONE: "done",
   FAILED: "failed",
   CANCELLED: "cancelled",
+  EXPIRED: "expired",
 } as const;
 
 export const JobStatusSchema = z.enum(JOB_STATUS_ENUM);

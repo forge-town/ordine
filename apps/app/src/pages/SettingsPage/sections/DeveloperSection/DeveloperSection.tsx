@@ -2,14 +2,14 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOne, useUpdate } from "@refinedev/core";
 import { Input } from "@repo/ui/input";
-import type { SettingsRecord } from "@repo/db-schema";
+import type { Settings } from "@repo/schemas";
 import { Field } from "../../Field";
 import { SaveButton } from "../../SaveButton";
 import { SectionHeader } from "../../SectionHeader";
 
 export const DeveloperSection = () => {
   const { t } = useTranslation();
-  const { result: settingsResult, query: settingsQuery } = useOne<SettingsRecord>({
+  const { result: settingsResult, query: settingsQuery } = useOne<Settings>({
     resource: "settings",
     id: "default",
   });

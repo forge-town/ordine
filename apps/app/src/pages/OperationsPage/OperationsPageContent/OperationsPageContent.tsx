@@ -16,7 +16,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { OperationRecord } from "@repo/db-schema";
+import type { Operation } from "@repo/schemas";
 import type { ObjectType } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -34,7 +34,7 @@ import {
 } from "@repo/ui/select";
 import { useOperationsPageStore } from "../_store";
 
-const exportOperation = (op: OperationRecord) => {
+const exportOperation = (op: Operation) => {
   const data = JSON.stringify(op, null, 2);
   const blob = new Blob([data], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -48,7 +48,7 @@ const exportOperation = (op: OperationRecord) => {
 };
 
 export const OperationsPageContent = () => {
-  const { result: operationsResult, query: operationsQuery } = useList<OperationRecord>({
+  const { result: operationsResult, query: operationsQuery } = useList<Operation>({
     resource: ResourceName.operations,
   });
   const operations = operationsResult?.data ?? [];
@@ -87,13 +87,13 @@ export const OperationsPageContent = () => {
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const filteredOperations = operations
-    .filter((op: OperationRecord) => {
+    .filter((op: Operation) => {
       const q = searchQuery.trim().toLowerCase();
       if (!q) return true;
 
       return op.name.toLowerCase().includes(q) || (op.description ?? "").toLowerCase().includes(q);
     })
-    .sort((a: OperationRecord, b: OperationRecord) => {
+    .sort((a: Operation, b: Operation) => {
       switch (sortBy) {
         case "name-asc": {
           return a.name.localeCompare(b.name);
@@ -134,7 +134,7 @@ export const OperationsPageContent = () => {
 
   const handleOpenCreate = () => openCreate();
 
-  const handleEditClick = (op: OperationRecord) => () =>
+  const handleEditClick = (op: Operation) => () =>
     navigate({
       to: "/operations/$operationId/edit",
       params: { operationId: op.id },
@@ -142,7 +142,7 @@ export const OperationsPageContent = () => {
 
   const handleDeleteClick = (id: string) => () => void handleDelete(id);
 
-  const handleExportOperation = (op: OperationRecord) => () => exportOperation(op);
+  const handleExportOperation = (op: Operation) => () => exportOperation(op);
 
   const handleImportClick = () => {
     importInputRef.current?.click();
@@ -154,7 +154,7 @@ export const OperationsPageContent = () => {
     handleSetImporting(true);
 
     const text = await file.text();
-    const parseResult = safeJsonParse<Partial<OperationRecord>>(text);
+    const parseResult = safeJsonParse<Partial<Operation>>(text);
     if (parseResult.isErr()) {
       addToast({
         type: "error",

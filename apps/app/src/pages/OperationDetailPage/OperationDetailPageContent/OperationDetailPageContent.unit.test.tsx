@@ -2,7 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { OperationDetailPageContent } from "./OperationDetailPageContent";
-import type { OperationRecord } from "@repo/db-schema";
+import type { Operation } from "@repo/schemas";
 
 const mockUseLoaderData = vi.fn();
 
@@ -32,7 +32,7 @@ vi.mock("@refinedev/core", () => ({
   useOne: () => ({ result: mockUseLoaderData(), isLoading: false }),
 }));
 
-const mockOp: OperationRecord = {
+const mockOp: Operation = {
   id: "op_plan",
   name: "Plan",
   description: "Produce a technical implementation plan.",
@@ -124,7 +124,7 @@ describe("OperationDetailPageContent", () => {
   });
 
   describe("executor display", () => {
-    const executorOp: OperationRecord = {
+    const executorOp: Operation = {
       id: "op_plan",
       name: "Plan",
       description: "Produce a technical implementation plan.",
@@ -151,7 +151,7 @@ describe("OperationDetailPageContent", () => {
     });
 
     it("shows skill id when executor type is skill", () => {
-      const op: OperationRecord = {
+      const op: Operation = {
         ...executorOp,
         config: {
           executor: { type: "agent", agentMode: "skill", skillId: "lint-check" },
@@ -165,7 +165,7 @@ describe("OperationDetailPageContent", () => {
     });
 
     it("shows prompt text when executor type is prompt", () => {
-      const op: OperationRecord = {
+      const op: Operation = {
         ...executorOp,
         config: {
           executor: { type: "agent", agentMode: "prompt", prompt: "You are a code reviewer" },

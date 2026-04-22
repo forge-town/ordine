@@ -12,7 +12,7 @@ import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { OperationRecord, SkillRecord } from "@repo/db-schema";
+import type { Operation, Skill } from "@repo/schemas";
 import {
   ObjectTypeSchema,
   type ObjectType,
@@ -144,8 +144,8 @@ const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[]
 };
 
 interface Props {
-  operation: OperationRecord;
-  skills: SkillRecord[];
+  operation: Operation;
+  skills: Skill[];
 }
 
 export const OperationEditPageContent = ({ operation, skills }: Props) => {

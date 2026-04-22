@@ -21,7 +21,7 @@ import { cn } from "@repo/ui/lib/utils";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { trpcClient } from "@/integrations/trpc/client";
-import type { AgentRawExportRecord, AgentSpanRecord, SpanType, SpanStatus } from "@repo/db-schema";
+import type { AgentRawExport, AgentSpan, SpanType, SpanStatus } from "@repo/schemas";
 import { Result } from "neverthrow";
 
 /* ── helpers ─────────────────────────────────────────────────────── */
@@ -54,7 +54,7 @@ const SPAN_STATUS_STYLE: Record<SpanStatus, { cls: string; icon: React.ElementTy
 
 /* ── SpanRow ─────────────────────────────────────────────────────── */
 
-const SpanRow = ({ span }: { span: AgentSpanRecord }) => {
+const SpanRow = ({ span }: { span: AgentSpan }) => {
   const [expanded, setExpanded] = useState(false);
   const handleToggleSpan = () => setExpanded((p) => !p);
   const Icon = SPAN_TYPE_ICON[span.spanType] ?? Code2;
@@ -336,9 +336,9 @@ const OutputSection = ({ output }: { output: string }) => {
 
 /* ── AgentRunCard ────────────────────────────────────────────────── */
 
-const AgentRunCard = ({ run }: { run: AgentRawExportRecord }) => {
+const AgentRunCard = ({ run }: { run: AgentRawExport }) => {
   const [expanded, setExpanded] = useState(false);
-  const [spans, setSpans] = useState<AgentSpanRecord[]>([]);
+  const [spans, setSpans] = useState<AgentSpan[]>([]);
   const [rawExpanded, setRawExpanded] = useState(false);
   const handleToggleRaw = () => setRawExpanded((prev) => !prev);
 
@@ -446,7 +446,7 @@ const AgentRunCard = ({ run }: { run: AgentRawExportRecord }) => {
 /* ── AgentRunsPanel ──────────────────────────────────────────────── */
 
 export const AgentRunsPanel = ({ jobId }: { jobId: string }) => {
-  const [runs, setRuns] = useState<AgentRawExportRecord[]>([]);
+  const [runs, setRuns] = useState<AgentRawExport[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

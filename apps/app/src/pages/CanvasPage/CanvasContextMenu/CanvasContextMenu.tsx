@@ -23,7 +23,7 @@ import {
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { OperationRecord, RecipeRecord } from "@repo/db-schema";
+import type { Operation, Recipe } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
 import { getNodeMeta } from "../utils/nodeTypeMeta";
 import type { NodeType, BuiltinNodeType } from "@repo/pipeline-engine/schemas";
@@ -44,10 +44,10 @@ const OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-project"
 
 export const CanvasContextMenu = () => {
   const { t } = useTranslation();
-  const { result: operationsResult } = useList<OperationRecord>({
+  const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: recipesResult } = useList<RecipeRecord>({ resource: ResourceName.recipes });
+  const { result: recipesResult } = useList<Recipe>({ resource: ResourceName.recipes });
   const operations = operationsResult?.data ?? [];
   const recipes = recipesResult?.data ?? [];
   const store = useHarnessCanvasStore();

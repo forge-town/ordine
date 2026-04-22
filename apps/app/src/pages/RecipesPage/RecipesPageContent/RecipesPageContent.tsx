@@ -3,7 +3,7 @@ import { ChefHat, Plus, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import type { RecipeRecord, OperationRecord, BestPracticeRecord } from "@repo/db-schema";
+import type { Recipe, Operation, BestPractice } from "@repo/schemas";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -11,17 +11,17 @@ import { useRecipesPageStore } from "../_store";
 import { RecipeFormDialog } from "../RecipeFormDialog";
 import { RecipeCard } from "../RecipeCard";
 
-const handleSave = (_r: RecipeRecord) => {};
+const handleSave = (_r: Recipe) => {};
 
 export const RecipesPageContent = () => {
   const { t } = useTranslation();
-  const { result: recipesResult, query: recipesQuery } = useList<RecipeRecord>({
+  const { result: recipesResult, query: recipesQuery } = useList<Recipe>({
     resource: ResourceName.recipes,
   });
-  const { result: operationsResult, query: operationsQuery } = useList<OperationRecord>({
+  const { result: operationsResult, query: operationsQuery } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: bestPracticesResult, query: bestPracticesQuery } = useList<BestPracticeRecord>({
+  const { result: bestPracticesResult, query: bestPracticesQuery } = useList<BestPractice>({
     resource: ResourceName.bestPractices,
   });
   const recipes = recipesResult?.data ?? [];
@@ -36,7 +36,7 @@ export const RecipesPageContent = () => {
   const handleSetEditing = useStore(store, (s) => s.handleSetEditing);
   const { mutate: deleteRecipeMutate } = useDelete();
 
-  const filtered = recipes.filter((r: RecipeRecord) => {
+  const filtered = recipes.filter((r: Recipe) => {
     const q = search.toLowerCase();
     if (!q) return true;
 
@@ -55,7 +55,7 @@ export const RecipesPageContent = () => {
     handleSetShowForm(true);
   };
 
-  const handleEditRecipe = (r: RecipeRecord) => () => {
+  const handleEditRecipe = (r: Recipe) => () => {
     handleSetEditing(r);
     handleSetShowForm(true);
   };
@@ -67,9 +67,9 @@ export const RecipesPageContent = () => {
     handleSetEditing(null);
   };
 
-  const opMap = new Map<string, OperationRecord>(operations.map((o: OperationRecord) => [o.id, o]));
-  const bpMap = new Map<string, BestPracticeRecord>(
-    bestPractices.map((bp: BestPracticeRecord) => [bp.id, bp])
+  const opMap = new Map<string, Operation>(operations.map((o: Operation) => [o.id, o]));
+  const bpMap = new Map<string, BestPractice>(
+    bestPractices.map((bp: BestPractice) => [bp.id, bp])
   );
 
   if (recipesQuery?.isLoading || operationsQuery?.isLoading || bestPracticesQuery?.isLoading) {

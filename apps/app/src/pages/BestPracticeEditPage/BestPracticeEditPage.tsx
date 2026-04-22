@@ -2,21 +2,21 @@ import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/best-practices.$bestPracticeId.edit";
 import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { BestPracticeRecord, ChecklistItemRecord, CodeSnippetRecord } from "@repo/db-schema";
+import type { BestPractice, ChecklistItem, CodeSnippet } from "@repo/schemas";
 import { BestPracticeEditPageContent } from "./BestPracticeEditPageContent";
 import { PageLoadingState } from "@/components/PageLoadingState";
 
 export const BestPracticeEditPage = () => {
   const { bestPracticeId } = Route.useParams();
-  const { result: bpResult, query: bpQuery } = useOne<BestPracticeRecord>({
+  const { result: bpResult, query: bpQuery } = useOne<BestPractice>({
     resource: ResourceName.bestPractices,
     id: bestPracticeId,
   });
-  const { result: checklistResult, query: checklistQuery } = useList<ChecklistItemRecord>({
+  const { result: checklistResult, query: checklistQuery } = useList<ChecklistItem>({
     resource: ResourceName.checklistItems,
     filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
   });
-  const { result: snippetsResult, query: snippetsQuery } = useList<CodeSnippetRecord>({
+  const { result: snippetsResult, query: snippetsQuery } = useList<CodeSnippet>({
     resource: ResourceName.codeSnippets,
     filters: [{ field: "bestPracticeId", operator: "eq", value: bestPracticeId }],
   });

@@ -3,7 +3,7 @@ import { Plus, Search, Folder } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { GithubProjectRecord } from "@repo/db-schema";
+import type { GithubProject } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useStore } from "zustand";
@@ -12,11 +12,11 @@ import { CreateProjectDialog } from "../CreateProjectDialog";
 import { ProjectCard } from "../ProjectCard";
 import { useProjectsPageStore } from "../_store";
 
-const handleCreateProject = (_p: GithubProjectRecord) => {};
+const handleCreateProject = (_p: GithubProject) => {};
 
 export const ProjectsPageContent = () => {
   const { t } = useTranslation();
-  const { result: projectsResult, query: projectsQuery } = useList<GithubProjectRecord>({
+  const { result: projectsResult, query: projectsQuery } = useList<GithubProject>({
     resource: ResourceName.githubProjects,
   });
   const projects = projectsResult?.data ?? [];
@@ -29,7 +29,7 @@ export const ProjectsPageContent = () => {
   const { mutate: deleteProjectMutate } = useDelete();
 
   const filtered = projects.filter(
-    (p: GithubProjectRecord) =>
+    (p: GithubProject) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.description ?? "").toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||

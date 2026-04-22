@@ -7,5 +7,7 @@ export const SkillSchema = z.object({
   description: z.string(),
   category: z.string(),
   tags: z.array(z.string()),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 export type Skill = z.infer<typeof SkillSchema>;

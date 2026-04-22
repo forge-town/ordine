@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Layers, FolderGit2, Activity, Lightbulb, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { GithubProjectRecord, JobRecord, PipelineRecord } from "@repo/db-schema";
+import type { GithubProject, Job } from "@repo/schemas";
+import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -9,13 +10,13 @@ import { StatCard } from "../StatCard";
 import { JobActivityRow } from "../JobActivityRow";
 
 export const DashboardPageContent = () => {
-  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineRecord>({
+  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineData>({
     resource: ResourceName.pipelines,
   });
-  const { result: projectsResult, query: projectsQuery } = useList<GithubProjectRecord>({
+  const { result: projectsResult, query: projectsQuery } = useList<GithubProject>({
     resource: ResourceName.githubProjects,
   });
-  const { result: jobsResult, query: jobsQuery } = useList<JobRecord>({
+  const { result: jobsResult, query: jobsQuery } = useList<Job>({
     resource: ResourceName.jobs,
   });
   const pipelines = pipelinesResult?.data ?? [];
@@ -27,8 +28,8 @@ export const DashboardPageContent = () => {
     projectsQuery?.isLoading ||
     jobsQuery?.isLoading
   );
-  const runningJobs = jobs.filter((j: JobRecord) => j.status === "running").length;
-  const failedJobs = jobs.filter((j: JobRecord) => j.status === "failed").length;
+  const runningJobs = jobs.filter((j: Job) => j.status === "running").length;
+  const failedJobs = jobs.filter((j: Job) => j.status === "failed").length;
   const recentJobs = jobs.slice(0, 8);
 
   if (isLoading) {
@@ -102,7 +103,7 @@ export const DashboardPageContent = () => {
             </div>
           ) : (
             <div className="py-1">
-              {recentJobs.map((j: JobRecord) => (
+              {recentJobs.map((j: Job) => (
                 <JobActivityRow key={j.id} job={j} />
               ))}
             </div>

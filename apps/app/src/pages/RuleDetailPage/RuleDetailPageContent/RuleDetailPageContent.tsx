@@ -6,11 +6,11 @@ import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
-import type { RuleRecord } from "@repo/db-schema";
+import type { Rule } from "@repo/schemas";
 import { SEVERITY_CONFIG, CATEGORY_CONFIG } from "@/pages/RulesPage/types";
 
 interface Props {
-  rule: RuleRecord;
+  rule: Rule;
 }
 
 export const RuleDetailPageContent = ({ rule }: Props) => {

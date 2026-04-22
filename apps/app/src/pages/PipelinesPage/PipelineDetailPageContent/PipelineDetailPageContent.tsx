@@ -27,14 +27,15 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useOne, useCustomMutation } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
-import type { OperationRecord, PipelineRecord } from "@repo/db-schema";
+import type { Operation } from "@repo/schemas";
+import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import type { PipelineNode } from "@repo/pipeline-engine/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Stat } from "../Stat";
 
 interface Props {
-  pipeline: PipelineRecord;
-  operations: OperationRecord[];
+  pipeline: PipelineData;
+  operations: Operation[];
 }
 
 // ─── Node type metadata ───────────────────────────────────────────────────────
@@ -85,7 +86,7 @@ const getNodeTypeLabel = (type: string, t: (key: string) => string): string => {
   return key ? t(key) : type;
 };
 
-const getNodeLabel = (node: PipelineNode, operations: OperationRecord[]): string => {
+const getNodeLabel = (node: PipelineNode, operations: Operation[]): string => {
   const data = node.data;
   if (data.nodeType === "operation") {
     const op = operations.find((o) => o.id === data.operationId);

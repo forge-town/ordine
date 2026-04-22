@@ -2,13 +2,13 @@ import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/best-practices.$bestPracticeId.index";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { BestPracticeRecord } from "@repo/db-schema";
+import type { BestPractice } from "@repo/schemas";
 import { BestPracticeDetailPageContent } from "./BestPracticeDetailPageContent";
 import { PageLoadingState } from "@/components/PageLoadingState";
 
 export const BestPracticeDetailPage = () => {
   const { bestPracticeId } = Route.useParams();
-  const { result: bestPracticeResult, query: bestPracticeQuery } = useOne<BestPracticeRecord>({
+  const { result: bestPracticeResult, query: bestPracticeQuery } = useOne<BestPractice>({
     resource: ResourceName.bestPractices,
     id: bestPracticeId,
   });

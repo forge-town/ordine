@@ -1,6 +1,6 @@
 import type { PipelineEdge, PipelineNode } from "./canvasSlice";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
-import type { OperationRecord, RecipeRecord } from "@repo/db-schema";
+import type { Operation, Recipe } from "@repo/schemas";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
@@ -53,13 +53,13 @@ export interface ActionsSlice {
   handleRunTest: () => Promise<void>;
   addNodeAndAutoConnect: (node: PipelineNode) => void;
   createObjectNode: (type: NodeType) => void;
-  createOperationNode: (operation: OperationRecord) => void;
-  createRecipeNode: (recipe: RecipeRecord, operation: OperationRecord) => void;
+  createOperationNode: (operation: Operation) => void;
+  createRecipeNode: (recipe: Recipe, operation: Operation) => void;
   dismissContextMenu: () => void;
   handleContextMenuOpenChange: (open: boolean) => void;
   connectObjectNode: (type: NodeType) => void;
-  connectOperationNode: (operation: OperationRecord) => void;
-  connectRecipeNode: (recipe: RecipeRecord, operation: OperationRecord) => void;
+  connectOperationNode: (operation: Operation) => void;
+  connectRecipeNode: (recipe: Recipe, operation: Operation) => void;
   dismissConnectionMenu: () => void;
   handleConnectionMenuOpenChange: (open: boolean) => void;
 
@@ -71,8 +71,8 @@ export interface ActionsSlice {
   nodeContextDetach: () => void;
   nodeContextGroupSelected: () => void;
   nodeContextAddObject: (type: NodeType) => void;
-  nodeContextAddOperation: (operation: OperationRecord) => void;
-  nodeContextAddRecipe: (recipe: RecipeRecord, operation: OperationRecord) => void;
+  nodeContextAddOperation: (operation: Operation) => void;
+  nodeContextAddRecipe: (recipe: Recipe, operation: Operation) => void;
 
   // Node data actions
   handleGitHubProjectPick: (nodeId: string, picked: PickedProject) => void;

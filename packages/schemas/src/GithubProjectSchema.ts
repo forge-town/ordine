@@ -9,5 +9,7 @@ export const GithubProjectSchema = z.object({
   branch: z.string().default("main"),
   githubUrl: z.string(),
   isPrivate: z.boolean().default(false),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 export type GithubProject = z.infer<typeof GithubProjectSchema>;

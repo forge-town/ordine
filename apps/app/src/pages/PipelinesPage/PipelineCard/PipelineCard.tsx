@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Card } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
-import type { PipelineRecord } from "@repo/db-schema";
+import type { PipelineData } from "@repo/pipeline-engine/schemas";
 
 const NODE_TYPE_COLORS: Record<string, string> = {
   input: "bg-emerald-100 text-emerald-700",
@@ -32,7 +32,7 @@ const formatRelativeTime = (ts: Date | string): string => {
 };
 
 interface PipelineCardProps {
-  pipeline: PipelineRecord;
+  pipeline: PipelineData;
   onOpen: () => void;
   onDelete: () => void;
 }

@@ -1,9 +1,9 @@
 import { ChevronRight, Layers } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import type { PipelineRecord } from "@repo/db-schema";
+import type { PipelineData } from "@repo/pipeline-engine/schemas";
 
 export type PipelineRowProps = {
-  pipeline: PipelineRecord;
+  pipeline: PipelineData;
   selected: boolean;
   onSelect: () => void;
 };

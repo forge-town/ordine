@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ProjectMeta } from "./ProjectMeta";
-import type { GithubProjectRecord } from "@repo/db-schema";
+import type { GithubProject } from "@repo/schemas";
 
 const mockProject = {
   id: "proj-001",
@@ -10,7 +10,7 @@ const mockProject = {
   branch: "main",
   description: "用于管理工作流的平台",
   githubUrl: "https://github.com/acme/ordine",
-} as unknown as GithubProjectRecord;
+} as unknown as GithubProject;
 
 const meta: Meta<typeof ProjectMeta> = {
   title: "Pages/ProjectDetailPage/ProjectMeta",

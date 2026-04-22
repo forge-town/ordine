@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import type { JobStatus } from "@repo/db-schema";
+import type { JobStatus } from "@repo/schemas";
 
 export interface JobsPageSlice {
   search: string;

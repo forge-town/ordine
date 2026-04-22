@@ -2,7 +2,8 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { OperationRecord, PipelineRecord } from "@repo/db-schema";
+import type { Operation } from "@repo/schemas";
+import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
 
 const mockNavigate = vi.fn();
@@ -42,17 +43,17 @@ vi.mock("@xyflow/react", () => ({
   ReactFlowProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }));
 
-const makeOp = (id: string, name: string, description?: string): OperationRecord => ({
+const makeOp = (id: string, name: string, description?: string): Operation => ({
   id,
   name,
   description: description ?? null,
-  config: {},
+  config: { inputs: [], outputs: [] },
   acceptedObjectTypes: ["file"],
   createdAt: new Date(),
   updatedAt: new Date(),
 });
 
-const makePipeline = (overrides: Partial<PipelineRecord> = {}): PipelineRecord => {
+const makePipeline = (overrides: Partial<PipelineData> = {}): PipelineData => {
   const { timeoutMs = null, ...rest } = overrides;
 
   return {
@@ -69,7 +70,7 @@ const makePipeline = (overrides: Partial<PipelineRecord> = {}): PipelineRecord =
   };
 };
 
-const ops: OperationRecord[] = [
+const ops: Operation[] = [
   makeOp("op-lint", "Run ESLint", "Lint the source code"),
   makeOp("op-build", "Build Project", "Compile the project"),
   makeOp("op-deploy", "Deploy", "Deploy to production"),

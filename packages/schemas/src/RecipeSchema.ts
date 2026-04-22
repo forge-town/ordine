@@ -6,5 +6,7 @@ export const RecipeSchema = z.object({
   description: z.string().default(""),
   operationId: z.string(),
   bestPracticeId: z.string(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 export type Recipe = z.infer<typeof RecipeSchema>;
