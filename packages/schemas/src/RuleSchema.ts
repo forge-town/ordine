@@ -16,6 +16,6 @@ export const RuleSchema = z.object({
   acceptedObjectTypes: z.array(ObjectTypeSchema).default(["file", "folder", "project"]),
   enabled: z.boolean(),
   tags: z.array(z.string()),
-  meta: MetaSchema,
+  meta: MetaSchema.optional(),
 });
 export type Rule = z.infer<typeof RuleSchema>;

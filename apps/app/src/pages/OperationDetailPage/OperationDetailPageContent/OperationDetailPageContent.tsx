@@ -15,8 +15,8 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import type { Operation } from "@repo/schemas";
 import type {
+  Operation,
   ObjectType,
   OperationConfig,
   OperationConfigInput,
@@ -231,7 +231,7 @@ export const OperationDetailPageContent = () => {
                 {t("common.createdAt")}
               </span>
               <span className="text-xs text-foreground">
-                {new Date(operation.createdAt).toLocaleString()}
+                {operation.meta?.createdAt?.toLocaleString() ?? "-"}
               </span>
             </div>
             <div className="flex items-start gap-3 py-2.5">
@@ -239,7 +239,7 @@ export const OperationDetailPageContent = () => {
                 {t("common.updatedAt")}
               </span>
               <span className="text-xs text-foreground">
-                {new Date(operation.updatedAt).toLocaleString()}
+                {operation.meta?.updatedAt?.toLocaleString() ?? "-"}
               </span>
             </div>
           </div>

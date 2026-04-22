@@ -17,6 +17,6 @@ export const JobSchema = z.object({
   error: z.string().nullable(),
   startedAt: z.coerce.date().nullable(),
   finishedAt: z.coerce.date().nullable(),
-  meta: MetaSchema,
+  meta: MetaSchema.optional(),
 });
 export type Job = z.infer<typeof JobSchema>;

@@ -59,8 +59,7 @@ const mockPractices: BestPractice[] = [
     language: "typescript",
     codeSnippet: "",
     tags: ["react"],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
   {
     id: "bp-2",
@@ -71,8 +70,7 @@ const mockPractices: BestPractice[] = [
     language: "typescript",
     codeSnippet: "",
     tags: ["performance"],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
 ];
 

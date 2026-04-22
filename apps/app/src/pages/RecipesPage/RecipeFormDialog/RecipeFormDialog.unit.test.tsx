@@ -16,8 +16,7 @@ const mockOperations = [
     name: "Check",
     description: "",
     config: { inputs: [], outputs: [] },
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
     acceptedObjectTypes: [] as ObjectType[],
   },
 ];
@@ -32,8 +31,7 @@ const mockBestPractices = [
     language: "tsx",
     codeSnippet: "",
     tags: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
 ];
 
@@ -43,8 +41,7 @@ const mockRecipe = {
   description: "",
   operationId: "op-1",
   bestPracticeId: "bp-1",
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
 };
 
 describe("RecipeFormDialog", () => {

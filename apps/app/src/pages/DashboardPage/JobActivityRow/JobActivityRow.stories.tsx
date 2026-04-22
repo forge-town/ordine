@@ -15,8 +15,7 @@ const baseJob: Job = {
   startedAt: null,
   finishedAt: null,
   tmuxSessionName: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
 };
 
 const meta: Meta<typeof JobActivityRow> = {

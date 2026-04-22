@@ -16,8 +16,7 @@ const mockJob: Job = {
   startedAt: new Date(Date.now() - 5000),
   finishedAt: null,
   tmuxSessionName: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
 };
 
 describe("JobRow", () => {

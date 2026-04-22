@@ -8,6 +8,6 @@ export const SkillSchema = z.object({
   description: z.string(),
   category: z.string(),
   tags: z.array(z.string()),
-  meta: MetaSchema,
+  meta: MetaSchema.optional(),
 });
 export type Skill = z.infer<typeof SkillSchema>;

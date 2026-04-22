@@ -9,6 +9,6 @@ export const OperationSchema = z.object({
   description: z.string().nullable().default(null),
   config: OperationConfigSchema,
   acceptedObjectTypes: z.array(ObjectTypeSchema).default(["file", "folder", "project"]),
-  meta: MetaSchema,
+  meta: MetaSchema.optional(),
 });
 export type Operation = z.infer<typeof OperationSchema>;

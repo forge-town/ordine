@@ -162,7 +162,7 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
                 {t("common.createdAt")}
               </span>
               <span className="text-xs text-foreground">
-                {new Date(rule.createdAt).toLocaleString()}
+                {rule.meta?.createdAt?.toLocaleString() ?? "-"}
               </span>
             </div>
             <div className="flex items-start gap-3 py-2.5">
@@ -170,7 +170,7 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
                 {t("common.updatedAt")}
               </span>
               <span className="text-xs text-foreground">
-                {new Date(rule.updatedAt).toLocaleString()}
+                {rule.meta?.updatedAt?.toLocaleString() ?? "-"}
               </span>
             </div>
           </div>

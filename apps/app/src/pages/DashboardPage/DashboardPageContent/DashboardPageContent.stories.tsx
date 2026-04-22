@@ -29,8 +29,7 @@ export const WithJobs: Story = {
         startedAt: null,
         finishedAt: null,
         tmuxSessionName: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        meta: { createdAt: new Date(), updatedAt: new Date() },
       };
       Route.useLoaderData = () => ({ pipelines: [], projects: [], jobs: [mockJob] });
       return <Story />;

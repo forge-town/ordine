@@ -10,6 +10,6 @@ export const GithubProjectSchema = z.object({
   branch: z.string().default("main"),
   githubUrl: z.string(),
   isPrivate: z.boolean().default(false),
-  meta: MetaSchema,
+  meta: MetaSchema.optional(),
 });
 export type GithubProject = z.infer<typeof GithubProjectSchema>;

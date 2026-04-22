@@ -266,7 +266,7 @@ export const BestPracticeDetailPageContent = ({ bestPractice }: Props) => {
                 {t("common.createdAt")}
               </span>
               <span className="text-xs text-foreground">
-                {new Date(bestPractice.createdAt).toLocaleString()}
+                {bestPractice.meta?.createdAt?.toLocaleString() ?? "-"}
               </span>
             </div>
             <div className="flex items-start gap-3 py-2.5">
@@ -274,7 +274,7 @@ export const BestPracticeDetailPageContent = ({ bestPractice }: Props) => {
                 {t("common.updatedAt")}
               </span>
               <span className="text-xs text-foreground">
-                {new Date(bestPractice.updatedAt).toLocaleString()}
+                {bestPractice.meta?.updatedAt?.toLocaleString() ?? "-"}
               </span>
             </div>
           </div>

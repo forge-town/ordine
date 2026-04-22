@@ -17,8 +17,7 @@ import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
 import type { OperationNodeData, NodeRunStatus } from "@repo/pipeline-engine/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { type Operation, type BestPractice } from "@repo/schemas";
-import { AgentRuntimeSchema } from "@repo/schemas";
+import { type Operation, type BestPractice, AgentRuntimeSchema } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
 import { BestPracticeSelect } from "./BestPracticeSelect";
 

@@ -10,8 +10,7 @@ const mockOp: Operation = {
   description: null,
   config: { inputs: [], outputs: [] },
   acceptedObjectTypes: ["file"],
-  createdAt: new Date(1000),
-  updatedAt: new Date(1000),
+  meta: { createdAt: new Date(1000), updatedAt: new Date(1000) },
 };
 
 vi.mock("@tanstack/react-router", () => ({

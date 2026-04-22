@@ -21,7 +21,7 @@ export const skillsRouter = router({
       z.object({
         id: z.string(),
         patch: SkillSchema.partial(),
-      }),
+      })
     )
     .mutation(({ input }) => skillsService.update(input.id, input.patch)),
 

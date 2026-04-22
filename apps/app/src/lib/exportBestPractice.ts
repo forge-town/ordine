@@ -22,8 +22,7 @@ type BPData = {
   language: string;
   codeSnippet: string;
   tags: string[];
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
+  meta?: { createdAt: Date; updatedAt: Date };
 };
 
 type ChecklistItem = {
@@ -34,8 +33,7 @@ type ChecklistItem = {
   checkType: string;
   script: string | null;
   sortOrder: number;
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
+  meta?: { createdAt: Date; updatedAt: Date };
 };
 
 type CodeSnippetItem = {
@@ -45,8 +43,7 @@ type CodeSnippetItem = {
   code: string;
   sortOrder: number;
   bestPracticeId?: string;
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
+  meta?: { createdAt: Date; updatedAt: Date };
 };
 
 const addBPToZip = (

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 
 const mockDao = {
-  get: vi.fn().mockResolvedValue({ defaultApiKey: "key", defaultModel: "gpt-4" }),
-  update: vi.fn().mockResolvedValue({ defaultApiKey: "new-key" }),
+  get: vi.fn().mockResolvedValue({ defaultApiKey: "key", defaultModel: "gpt-4", createdAt: new Date(0), updatedAt: new Date(0) }),
+  update: vi.fn().mockResolvedValue({ defaultApiKey: "new-key", createdAt: new Date(0), updatedAt: new Date(0) }),
 };
 
 vi.mock("@repo/models", () => ({
@@ -16,7 +16,7 @@ describe("createSettingsService", () => {
     const svc = createSettingsService({} as never);
     const result = await svc.get();
     expect(mockDao.get).toHaveBeenCalled();
-    expect(result).toEqual({ defaultApiKey: "key", defaultModel: "gpt-4" });
+    expect(result).toEqual({ defaultApiKey: "key", defaultModel: "gpt-4", meta: { createdAt: new Date(0), updatedAt: new Date(0) } });
   });
 
   it("update delegates to dao.update", async () => {

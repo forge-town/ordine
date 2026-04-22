@@ -5,6 +5,7 @@ import {
   createAgentSpansDao,
   type DbConnection,
 } from "@repo/models";
+import { withMeta } from "@repo/schemas";
 
 export const createJobsService = (db: DbConnection) => {
   const jobsDao = createJobsDao(db);
@@ -13,9 +14,11 @@ export const createJobsService = (db: DbConnection) => {
   const agentSpansDao = createAgentSpansDao(db);
 
   return {
-    getAll: (...args: Parameters<typeof jobsDao.findMany>) => jobsDao.findMany(...args),
-    getById: (id: string) => jobsDao.findById(id),
-    create: (...args: Parameters<typeof jobsDao.create>) => jobsDao.create(...args),
+    getAll: async (...args: Parameters<typeof jobsDao.findMany>) =>
+      (await jobsDao.findMany(...args)).map(withMeta),
+    getById: async (id: string) => withMeta(await jobsDao.findById(id)),
+    create: async (...args: Parameters<typeof jobsDao.create>) =>
+      withMeta(await jobsDao.create(...args)),
     updateStatus: (...args: Parameters<typeof jobsDao.updateStatus>) =>
       jobsDao.updateStatus(...args),
     delete: (id: string) => jobsDao.delete(id),
