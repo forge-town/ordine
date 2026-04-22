@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { agentEngine } from "@repo/agent-engine";
-import { recordAgentRunWithSpans } from "@repo/obs";
 
 vi.mock("@repo/agent", () => ({
   extractJsonFromText: vi.fn((t: string) => t),
@@ -26,10 +25,6 @@ vi.mock("@repo/agent-engine", () => ({
 
 vi.mock("@repo/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
-}));
-
-vi.mock("@repo/obs", () => ({
-  recordAgentRunWithSpans: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("ai", () => ({
@@ -94,7 +89,7 @@ describe("skillExecutor", () => {
     }
   });
 
-  it("records an agent run for codex skills when jobId is provided", async () => {
+  it("forwards jobId and agentId to agentEngine", async () => {
     vi.mocked(agentEngine.run).mockResolvedValueOnce({
       text: '{"type":"check","summary":"ok","findings":[],"stats":{"totalFiles":1,"totalFindings":0,"errors":0,"warnings":0,"infos":0,"skipped":0}}',
       events: [],
@@ -107,20 +102,11 @@ describe("skillExecutor", () => {
     });
 
     expect(result.isOk()).toBe(true);
-    expect(recordAgentRunWithSpans).toHaveBeenCalledOnce();
-    expect(recordAgentRunWithSpans).toHaveBeenCalledWith(
+    expect(agentEngine.run).toHaveBeenCalledWith(
       expect.objectContaining({
         jobId: "job-1",
-        agentSystem: "codex",
         agentId: "test-skill",
-        rawPayload: expect.objectContaining({
-          system: expect.any(String),
-          prompt: expect.any(String),
-          output: expect.stringContaining('"summary":"ok"'),
-        }),
-        status: "completed",
       }),
-      expect.any(Function),
     );
   });
 

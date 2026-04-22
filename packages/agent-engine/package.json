@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@repo/agent": "workspace:*",
+    "@repo/obs": "workspace:*",
     "@repo/schemas": "workspace:*"
   },
   "devDependencies": {

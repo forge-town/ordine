@@ -1,7 +1,6 @@
 import { ResultAsync, errAsync } from "neverthrow";
 import { agentEngine } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
-import { recordAgentRunWithSpans } from "@repo/obs";
 import type { RunPromptOptions } from "@repo/pipeline-engine";
 import { resolveCwd } from "../resolveCwd";
 
@@ -16,65 +15,6 @@ export class PromptExecutionError extends Error {
 }
 
 const PROMPT_AGENT_ID = "prompt-executor";
-
-const recordPromptRun = ({
-  jobId,
-  agentSystem,
-  systemPrompt,
-  userPrompt,
-  output,
-  modelId,
-  tokenInput,
-  tokenOutput,
-  durationMs,
-}: {
-  jobId: string;
-  agentSystem: "claude-code" | "codex";
-  systemPrompt: string;
-  userPrompt: string;
-  output: string;
-  modelId?: string | null;
-  tokenInput?: number | null;
-  tokenOutput?: number | null;
-  durationMs: number;
-}) =>
-  ResultAsync.fromPromise(
-    recordAgentRunWithSpans(
-      {
-        jobId,
-        agentSystem,
-        agentId: PROMPT_AGENT_ID,
-        modelId,
-        rawPayload: {
-          system: systemPrompt,
-          prompt: userPrompt,
-          output,
-        },
-        tokenInput: tokenInput ?? null,
-        tokenOutput: tokenOutput ?? null,
-        durationMs,
-        status: "completed",
-      },
-      (rawExportId) => [
-        {
-          jobId,
-          rawExportId,
-          spanType: "agent_run" as const,
-          name: PROMPT_AGENT_ID,
-          input: userPrompt.slice(0, 10_000),
-          output: output.slice(0, 10_000),
-          modelId: modelId ?? null,
-          tokenInput: tokenInput ?? null,
-          tokenOutput: tokenOutput ?? null,
-          durationMs,
-          status: "completed" as const,
-          startedAt: new Date(Date.now() - durationMs),
-          finishedAt: new Date(),
-        },
-      ],
-    ),
-    (error) => error,
-  );
 
 const run = ({
   prompt,
@@ -100,7 +40,6 @@ const run = ({
       );
 
       const cwd = resolveCwd({ inputPath });
-      const startTime = Date.now();
 
       const engineResult = await ResultAsync.fromPromise(
         agentEngine.run({
@@ -111,6 +50,8 @@ const run = ({
           cwd,
           allowedTools: [],
           onProgress,
+          jobId,
+          agentId: PROMPT_AGENT_ID,
         }),
         (error) => error,
       );
@@ -128,20 +69,6 @@ const run = ({
       logger.info({ outputLen: raw.length, agent }, "runPrompt: agent complete");
       await onProgress?.(`[LLM] runPrompt: ${agent} complete, output=${raw.length} chars`);
       if (onChunk) await onChunk(raw);
-
-      if (jobId) {
-        const obsResult = await recordPromptRun({
-          jobId,
-          agentSystem: agent,
-          systemPrompt: prompt,
-          userPrompt: inputContent,
-          output: raw,
-          durationMs: Date.now() - startTime,
-        });
-        if (obsResult.isErr()) {
-          logger.warn({ err: obsResult.error, agent }, "runPrompt: failed to record run");
-        }
-      }
 
       return raw;
     })(),
