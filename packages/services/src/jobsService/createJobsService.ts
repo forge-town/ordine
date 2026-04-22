@@ -14,8 +14,11 @@ export const createJobsService = (db: DbConnection) => {
   const agentSpansDao = createAgentSpansDao(db);
 
   return {
-    getAll: async (...args: Parameters<typeof jobsDao.findMany>) =>
-      (await jobsDao.findMany(...args)).map(withMeta),
+    getAll: async (...args: Parameters<typeof jobsDao.findMany>) => {
+      const records = await jobsDao.findMany(...args);
+
+      return records.map(withMeta);
+    },
     getById: async (id: string) => withMeta(await jobsDao.findById(id)),
     create: async (...args: Parameters<typeof jobsDao.create>) =>
       withMeta(await jobsDao.create(...args)),

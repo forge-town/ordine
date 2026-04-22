@@ -42,6 +42,7 @@ const run = ({
         logPrefix: "[LLM] runPrompt",
       });
       if (onChunk) await onChunk(raw);
+
       return raw;
     })(),
     (cause) => {
