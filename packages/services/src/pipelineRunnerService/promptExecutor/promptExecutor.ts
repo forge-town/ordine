@@ -1,11 +1,10 @@
-import { ResultAsync, Result, errAsync } from "neverthrow";
-import { dirname } from "node:path";
-import { statSync } from "node:fs";
+import { ResultAsync, errAsync } from "neverthrow";
 import { type SettingsResolver } from "@repo/agent";
 import { agentEngine } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
 import { recordAgentRunWithSpans } from "@repo/obs";
 import type { RunPromptOptions } from "@repo/pipeline-engine";
+import { resolveCwd } from "../resolveCwd";
 
 export class PromptExecutionError extends Error {
   constructor(
@@ -81,24 +80,6 @@ const recordPromptRun = ({
     ),
     (error) => error,
   );
-
-/**
- * Resolve inputPath to a valid cwd directory.
- * If it's a file path, use its parent directory.
- */
-const resolveCwd = ({ inputPath }: { inputPath: string | undefined }): string => {
-  if (!inputPath) return process.cwd();
-  const result = Result.fromThrowable(
-    () => statSync(inputPath),
-    () => undefined,
-  )();
-
-  if (result.isOk() && !result.value.isDirectory()) {
-    return dirname(inputPath);
-  }
-
-  return inputPath;
-};
 
 const run = ({
   prompt,
