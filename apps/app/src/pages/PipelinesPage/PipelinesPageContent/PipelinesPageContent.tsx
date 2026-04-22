@@ -80,20 +80,7 @@ export const PipelinesPageContent = () => {
       createdAt: now,
       updatedAt: now,
       timeoutMs: null,
-      nodes: [
-        {
-          id: `${id}-condition`,
-          type: "condition",
-          position: { x: 300, y: 200 },
-          data: {
-            label: t("pipelines.conditionNodeLabel"),
-            nodeType: "condition",
-            expression: "",
-            expectedResult: "",
-            status: "idle",
-          },
-        },
-      ],
+      nodes: [],
       edges: [],
     };
     const result = await createPipelineMutate({

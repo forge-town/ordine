@@ -7,7 +7,6 @@ const BUILTIN_META_MAP: Record<BuiltinNodeType, MetaNodeType> = {
   "github-project": "object",
   operation: "operation",
   compound: "operation",
-  condition: "operation",
   "output-local-path": "output",
   "output-project-path": "output",
 };

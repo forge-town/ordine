@@ -10,7 +10,6 @@ import {
   CheckOutputSchema,
   FixOutputSchema,
   ToolNameSchema,
-  type SettingsResolver,
   type ClaudeStreamEvent,
 } from "@repo/agent";
 import { agentEngine } from "@repo/agent-engine";
@@ -29,7 +28,6 @@ export class SkillExecutionError extends Error {
 }
 
 type RunSkillExecutorOptions = EngineRunSkillOptions & {
-  getSettings: SettingsResolver;
   jobId?: string;
 };
 
@@ -131,7 +129,6 @@ const run = ({
   skillDescription,
   inputContent,
   inputPath,
-  getSettings: _getSettings,
   agent = "claude-code",
   onChunk,
   onProgress,
@@ -234,7 +231,6 @@ const run = ({
                 prompt: userPrompt,
                 output: raw,
                 ...(events.length > 0 ? { events } : {}),
-                ...(agent === "claude-code" ? { totalCost: extractTotalCost(events) } : {}),
               },
               tokenInput: extractTokenTotals(events).input || null,
               tokenOutput: extractTokenTotals(events).output || null,
@@ -289,15 +285,6 @@ const run = ({
 
 export const skillExecutor = {
   run,
-};
-
-/**
- * Extract total cost from Claude stream events.
- */
-const extractTotalCost = (events: ClaudeStreamEvent[]): number | null => {
-  const resultEvent = events.find((e) => e.type === "result");
-
-  return resultEvent?.total_cost_usd ?? null;
 };
 
 /**

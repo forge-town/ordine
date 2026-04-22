@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
 import {
-  ConditionNodeDataSchema,
   CodeFileNodeDataSchema,
   FolderNodeDataSchema,
   GitHubProjectNodeDataSchema,
@@ -11,7 +10,6 @@ import {
 import { OperationNodeDataSchema } from "./OperationNodeDataSchema";
 
 export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
-  ConditionNodeDataSchema,
   CodeFileNodeDataSchema,
   FolderNodeDataSchema,
   GitHubProjectNodeDataSchema,

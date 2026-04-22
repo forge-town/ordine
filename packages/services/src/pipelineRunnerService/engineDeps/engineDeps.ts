@@ -29,7 +29,6 @@ const build = ({
     skillExecutor.run({
       ...o,
       jobId,
-      getSettings,
     }),
   runRuleCheck: (inputPath) => ruleCheckRunner.run({ dao: rulesDao, inputPath }),
   structuredJsonToMarkdown: (content) => structuredOutput.toMarkdown({ content }),

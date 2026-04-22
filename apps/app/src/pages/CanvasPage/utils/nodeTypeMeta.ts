@@ -78,17 +78,6 @@ export const nodeTypeMeta = {
     handle: "!border-indigo-400",
     plusBg: "bg-indigo-100 text-indigo-700 hover:bg-indigo-200",
   },
-  condition: {
-    label: "条件节点",
-    shortLabel: "条件",
-    border: "border-amber-200",
-    selectedBorder: "border-amber-500",
-    header: "bg-amber-50",
-    headerText: "text-amber-700",
-    iconBg: "bg-amber-500",
-    handle: "!border-amber-400",
-    plusBg: "bg-amber-100 text-amber-700 hover:bg-amber-200",
-  },
 } as const satisfies Record<BuiltinNodeType, object>;
 
 type NodeMetaEntry = (typeof nodeTypeMeta)[BuiltinNodeType];

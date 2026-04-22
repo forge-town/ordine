@@ -5,7 +5,6 @@ export * from "../resolveMetaType";
 export * from "./NodeRunStatusSchema";
 export * from "./DisclosureModeSchema";
 export * from "./OutputModeSchema";
-export * from "./ConditionNodeDataSchema";
 export * from "./CodeFileNodeDataSchema";
 export * from "./FolderNodeDataSchema";
 export * from "./GitHubProjectNodeDataSchema";

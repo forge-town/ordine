@@ -182,7 +182,7 @@ export class Pipeline {
         return this.wrapNodeResult(node.id, processOperationNode(node, input, opCtx));
       }
 
-      // compound / condition — passthrough for now
+      // compound — passthrough for now
       await trace(jobId, `Skipped ${node.type} node (metaType: operation)`);
       this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
       await trace(jobId, `@@NODE_DONE::${node.id}`);

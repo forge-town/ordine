@@ -169,7 +169,6 @@
     "back": "Back to Pipelines",
     "openInCanvas": "Open in Canvas",
     "newPipelineDescription": "Configure this pipeline's nodes and connections in Canvas.",
-    "conditionNodeLabel": "Acceptance condition",
     "backToList": "Back to list",
     "editInCanvas": "Edit in Canvas",
     "preview": "Pipeline Preview",

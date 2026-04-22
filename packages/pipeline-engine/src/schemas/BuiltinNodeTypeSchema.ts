@@ -2,7 +2,6 @@ import { z } from "zod/v4";
 
 export const NODE_TYPE_ENUM = {
   COMPOUND: "compound",
-  CONDITION: "condition",
   CODE_FILE: "code-file",
   FOLDER: "folder",
   GITHUB_PROJECT: "github-project",
