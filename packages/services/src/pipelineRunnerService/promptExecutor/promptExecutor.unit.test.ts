@@ -1,11 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { SettingsResolver } from "@repo/agent";
 import { agentEngine } from "@repo/agent-engine";
 import { recordAgentRunWithSpans } from "@repo/obs";
 
-vi.mock("@repo/agent", () => ({
-  getModel: vi.fn().mockResolvedValue(null),
-}));
+vi.mock("@repo/agent", () => ({}));
 
 vi.mock("@repo/agent-engine", () => ({
   agentEngine: {
@@ -32,7 +29,6 @@ describe("promptExecutor", () => {
     prompt: "Analyze this",
     inputContent: "some code",
     inputPath: "/tmp/test",
-    getSettings: vi.fn() as unknown as SettingsResolver,
   };
 
   beforeEach(() => {
@@ -74,7 +70,7 @@ describe("promptExecutor", () => {
       ...baseOpts,
       agent: "codex",
       jobId: "job-1",
-    } as Parameters<typeof promptExecutor.run>[0] & { jobId: string });
+    });
 
     expect(result.isOk()).toBe(true);
     expect(recordAgentRunWithSpans).toHaveBeenCalledOnce();

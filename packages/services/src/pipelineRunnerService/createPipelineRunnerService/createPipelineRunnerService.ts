@@ -1,7 +1,6 @@
 import { ok, err, ResultAsync, type Result } from "neverthrow";
 import { initObs, initSpanRecorder } from "@repo/obs";
 import { logger } from "@repo/logger";
-import { createLlmService } from "../../llmService";
 import { loopEvaluator } from "../loopEvaluator";
 import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
@@ -40,10 +39,8 @@ export const createPipelineRunnerService = (db: DbConnection) => {
 
   initObs(jobTracesDao);
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
-  const llmService = createLlmService(db);
-  const { getModel } = llmService;
 
-  const loopEvaluatorFactory = loopEvaluator.create({ getModel });
+  const loopEvaluatorFactory = loopEvaluator.create();
 
   const buildDepsForJob = ({ jobId }: { jobId: string }) =>
     pipelineRunnerEngineDeps.build({
@@ -85,7 +82,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           pipelineId: opts.pipelineId,
           inputPath: opts.inputPath,
           githubToken: opts.githubToken,
-          defaultOutputPath: settings.defaultOutputPath || undefined,
+          defaultOutputPath: settings.defaultOutputPath,
           jobId,
           pipelinesDao,
           operationsDao,
