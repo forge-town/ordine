@@ -1,8 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "@tanstack/react-router";
-import { useCreate } from "@refinedev/core";
+import { useCreate, useOne, useUpdate } from "@refinedev/core";
 import { ArrowLeft } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod/v4";
@@ -26,9 +26,12 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
+import { DistillationResultPanel } from "@/components/DistillationResultPanel";
+import { JobSourceAnalysisPanel } from "@/components/JobSourceAnalysisPanel";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { trpcClient } from "@/integrations/trpc/client";
-import { Route } from "@/routes/_layout/distillations.new";
+import { Route } from "@/routes/_layout/distillation-studio";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -47,10 +50,70 @@ type FormValues = z.infer<typeof formSchema>;
 
 type SubmissionMode = "draft" | "run";
 
+const buildFormValues = ({
+  distillation,
+  fallbackTitle,
+  search,
+}: {
+  distillation?: Distillation | null;
+  fallbackTitle: string;
+  search: ReturnType<typeof Route.useSearch>;
+}): FormValues => {
+  if (distillation) {
+    return {
+      title: distillation.title,
+      summary: distillation.summary,
+      sourceType: distillation.sourceType,
+      sourceId: distillation.sourceId ?? "",
+      sourceLabel: distillation.sourceLabel,
+      mode: distillation.mode,
+      objective: distillation.config.objective ?? "",
+      agent: distillation.config.agent,
+      model: distillation.config.model ?? "",
+      systemPrompt: distillation.config.systemPrompt ?? "",
+    };
+  }
+
+  return {
+    title: fallbackTitle,
+    summary: "",
+    sourceType: search.sourceType ?? "manual",
+    sourceId: search.sourceId ?? "",
+    sourceLabel: search.sourceLabel ?? "",
+    mode: search.mode ?? "pipeline",
+    objective: "",
+    agent: undefined,
+    model: "",
+    systemPrompt: "",
+  };
+};
+
+const buildDistillationPayload = (values: FormValues) => ({
+  title: values.title.trim(),
+  summary: values.summary.trim(),
+  sourceType: values.sourceType,
+  sourceId: values.sourceId.trim() || null,
+  sourceLabel: values.sourceLabel.trim(),
+  mode: values.mode,
+  config: {
+    objective: values.objective.trim(),
+    ...(values.agent ? { agent: values.agent } : {}),
+    ...(values.model.trim() ? { model: values.model.trim() } : {}),
+    ...(values.systemPrompt.trim() ? { systemPrompt: values.systemPrompt.trim() } : {}),
+  },
+});
+
 export const DistillationStudioPage = () => {
   const { t } = useTranslation();
   const search = Route.useSearch();
+  const existingDistillationId = search.distillationId ?? "";
   const { mutateAsync: createDistillation } = useCreate();
+  const { mutateAsync: updateDistillation } = useUpdate();
+  const { result: existingDistillationResult, query: existingDistillationQuery } = useOne<Distillation>({
+    resource: ResourceName.distillations,
+    id: existingDistillationId,
+    queryOptions: { enabled: !!existingDistillationId },
+  });
   const [latestDistillation, setLatestDistillation] = useState<Distillation | null>(null);
   const [submissionMode, setSubmissionMode] = useState<SubmissionMode | null>(null);
 
@@ -64,45 +127,61 @@ export const DistillationStudioPage = () => {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: initialTitle,
-      summary: "",
-      sourceType: search.sourceType ?? "manual",
-      sourceId: search.sourceId ?? "",
-      sourceLabel: search.sourceLabel ?? "",
-      mode: search.mode ?? "pipeline",
-      objective: "",
-      agent: undefined,
-      model: "",
-      systemPrompt: "",
-    },
+    defaultValues: buildFormValues({ fallbackTitle: initialTitle, search }),
   });
 
-  const createPayload = (values: FormValues): Distillation => ({
-    id: crypto.randomUUID(),
-    title: values.title.trim(),
-    summary: values.summary.trim(),
-    sourceType: values.sourceType,
-    sourceId: values.sourceId.trim() || null,
-    sourceLabel: values.sourceLabel.trim(),
-    mode: values.mode,
-    status: "draft",
-    config: {
-      objective: values.objective.trim(),
-      ...(values.agent ? { agent: values.agent } : {}),
-      ...(values.model.trim() ? { model: values.model.trim() } : {}),
-      ...(values.systemPrompt.trim() ? { systemPrompt: values.systemPrompt.trim() } : {}),
-    },
-    inputSnapshot: null,
-    result: null,
-  });
+  useEffect(() => {
+    if (!existingDistillationResult) {
+      return;
+    }
 
-  const onSubmit = async (values: FormValues, mode: SubmissionMode) => {
+    form.reset(
+      buildFormValues({
+        distillation: existingDistillationResult,
+        fallbackTitle: initialTitle,
+        search,
+      }),
+    );
+    setLatestDistillation(existingDistillationResult);
+  }, [existingDistillationResult, form, initialTitle, search]);
+
+  const persistDistillation = async (values: FormValues, mode: SubmissionMode) => {
+    const payload = buildDistillationPayload(values);
+
+    if (existingDistillationId) {
+      const updated = await updateDistillation({
+        resource: ResourceName.distillations,
+        id: existingDistillationId,
+        values:
+          mode === "run"
+            ? {
+                ...payload,
+                status: "draft",
+                inputSnapshot: null,
+                result: null,
+              }
+            : payload,
+      });
+
+      return updated.data as Distillation;
+    }
+
     const created = await createDistillation({
       resource: ResourceName.distillations,
-      values: createPayload(values),
+      values: {
+        id: crypto.randomUUID(),
+        ...payload,
+        status: "draft",
+        inputSnapshot: null,
+        result: null,
+      },
     });
-    const draft = created.data as Distillation;
+
+    return created.data as Distillation;
+  };
+
+  const onSubmit = async (values: FormValues, mode: SubmissionMode) => {
+    const draft = await persistDistillation(values, mode);
 
     if (mode === "draft") {
       setLatestDistillation(draft);
@@ -116,11 +195,21 @@ export const DistillationStudioPage = () => {
     }
   };
 
+  if (existingDistillationId && existingDistillationQuery?.isLoading) {
+    return <PageLoadingState title={t("distillations.studioTitle")} variant="detail" />;
+  }
+
   const isBusy = form.formState.isSubmitting;
-  const completedResult =
-    latestDistillation?.result?.type === "completed" ? latestDistillation.result : null;
-  const failedResult =
-    latestDistillation?.result?.type === "failed" ? latestDistillation.result : null;
+  const currentSourceType = form.watch("sourceType");
+  const currentSourceId = form.watch("sourceId").trim();
+  const handleSubmitDraft = () => {
+    setSubmissionMode("draft");
+    void form.handleSubmit((values) => onSubmit(values, "draft"))();
+  };
+  const handleSubmitRun = () => {
+    setSubmissionMode("run");
+    void form.handleSubmit((values) => onSubmit(values, "run"))();
+  };
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -136,7 +225,11 @@ export const DistillationStudioPage = () => {
             <h1 className="text-base font-semibold text-foreground">
               {t("distillations.studioTitle")}
             </h1>
-            <p className="text-xs text-muted-foreground">{t("distillations.studioSubtitle")}</p>
+            <p className="text-xs text-muted-foreground">
+              {existingDistillationId
+                ? t("distillations.studioExistingSubtitle")
+                : t("distillations.studioSubtitle")}
+            </p>
           </div>
         </div>
         {latestDistillation ? (
@@ -170,52 +263,66 @@ export const DistillationStudioPage = () => {
                   <FormField
                     control={form.control}
                     name="sourceType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("distillations.sourceType")}</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectItem value="job">job</SelectItem>
-                              <SelectItem value="pipeline">pipeline</SelectItem>
-                              <SelectItem value="manual">manual</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const handleSourceTypeChange = field.onChange;
+
+                      return (
+                        <FormItem>
+                          <FormLabel>{t("distillations.sourceType")}</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={handleSourceTypeChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value="job">job</SelectItem>
+                                <SelectItem value="pipeline">pipeline</SelectItem>
+                                <SelectItem value="manual">manual</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
 
                   <FormField
                     control={form.control}
                     name="mode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("distillations.modeLabel")}</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectItem value="pipeline">pipeline</SelectItem>
-                              <SelectItem value="failure">failure</SelectItem>
-                              <SelectItem value="prompt">prompt</SelectItem>
-                              <SelectItem value="knowledge">knowledge</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const handleModeChange = field.onChange;
+
+                      return (
+                        <FormItem>
+                          <FormLabel>{t("distillations.modeLabel")}</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={handleModeChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value="pipeline">pipeline</SelectItem>
+                                <SelectItem value="failure">failure</SelectItem>
+                                <SelectItem value="prompt">prompt</SelectItem>
+                                <SelectItem value="knowledge">knowledge</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                 </div>
 
@@ -286,26 +393,33 @@ export const DistillationStudioPage = () => {
                   <FormField
                     control={form.control}
                     name="agent"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("distillations.agentLabel")}</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t("distillations.useDefaultAgent")} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectItem value="mastra">mastra</SelectItem>
-                              <SelectItem value="codex">codex</SelectItem>
-                              <SelectItem value="claude-code">claude-code</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const handleAgentChange = field.onChange;
+
+                      return (
+                        <FormItem>
+                          <FormLabel>{t("distillations.agentLabel")}</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={handleAgentChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t("distillations.useDefaultAgent")} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value="mastra">mastra</SelectItem>
+                                <SelectItem value="codex">codex</SelectItem>
+                                <SelectItem value="claude-code">claude-code</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
 
                   <FormField
@@ -345,26 +459,24 @@ export const DistillationStudioPage = () => {
                 <div className="flex justify-end gap-2 pt-2">
                   <Button
                     disabled={isBusy}
+                    onClick={handleSubmitDraft}
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      setSubmissionMode("draft");
-                      void form.handleSubmit((values) => onSubmit(values, "draft"))();
-                    }}
                   >
-                    {t("distillations.saveDraft")}
+                    {existingDistillationId
+                      ? t("distillations.saveChanges")
+                      : t("distillations.saveDraft")}
                   </Button>
                   <Button
                     disabled={isBusy}
+                    onClick={handleSubmitRun}
                     type="button"
-                    onClick={() => {
-                      setSubmissionMode("run");
-                      void form.handleSubmit((values) => onSubmit(values, "run"))();
-                    }}
                   >
                     {isBusy && submissionMode === "run"
                       ? t("distillations.running")
-                      : t("distillations.run")}
+                      : existingDistillationId
+                        ? t("distillations.rerun")
+                        : t("distillations.run")}
                   </Button>
                 </div>
               </form>
@@ -372,114 +484,10 @@ export const DistillationStudioPage = () => {
           </Card>
 
           <div className="space-y-4">
-            <Card className="p-5">
-              <h2 className="text-sm font-semibold text-foreground">
-                {t("distillations.resultPanelTitle")}
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t("distillations.resultPanelHint")}
-              </p>
-
-              {latestDistillation ? (
-                <div className="mt-4 space-y-3 text-sm">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="secondary">{latestDistillation.status}</Badge>
-                    <Badge variant="outline">{latestDistillation.mode}</Badge>
-                  </div>
-
-                  <div>
-                    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      {t("distillations.summaryLabel")}
-                    </div>
-                    <p className="mt-1 text-sm text-foreground">
-                      {latestDistillation.summary || "—"}
-                    </p>
-                  </div>
-
-                  {completedResult ? (
-                    <>
-                      <div>
-                        <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          {t("distillations.insightsLabel")}
-                        </div>
-                        <div className="mt-2 space-y-2">
-                          {completedResult.insights.length > 0 ? (
-                            completedResult.insights.map((insight, index) => (
-                              <div
-                                key={`${insight}-${index}`}
-                                className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm text-foreground"
-                              >
-                                {insight}
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-muted-foreground">—</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          {t("distillations.minimalPathLabel")}
-                        </div>
-                        <div className="mt-2 space-y-2">
-                          {completedResult.minimalPath.length > 0 ? (
-                            completedResult.minimalPath.map((step, index) => (
-                              <div
-                                key={`${step}-${index}`}
-                                className="rounded-lg border border-border/60 px-3 py-2 text-sm text-foreground"
-                              >
-                                {index + 1}. {step}
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-muted-foreground">—</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          {t("distillations.assetsLabel")}
-                        </div>
-                        <div className="mt-2 space-y-2">
-                          {completedResult.reusableAssets.length > 0 ? (
-                            completedResult.reusableAssets.map((asset, index) => (
-                              <div
-                                key={`${asset.title}-${index}`}
-                                className="rounded-lg border border-border/60 bg-muted/20 px-3 py-3"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline">{asset.type}</Badge>
-                                  <div className="text-sm font-medium text-foreground">
-                                    {asset.title}
-                                  </div>
-                                </div>
-                                <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
-                                  {asset.content}
-                                </p>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-muted-foreground">—</p>
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  ) : null}
-
-                  {failedResult ? (
-                    <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-3 text-sm text-destructive">
-                      {failedResult.error}
-                    </div>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="mt-4 rounded-xl border border-dashed border-border/70 px-4 py-6 text-sm text-muted-foreground">
-                  {t("distillations.resultEmpty")}
-                </div>
-              )}
-            </Card>
+            <DistillationResultPanel distillation={latestDistillation} />
+            {currentSourceType === "job" && currentSourceId ? (
+              <JobSourceAnalysisPanel jobId={currentSourceId} />
+            ) : null}
           </div>
         </div>
       </div>

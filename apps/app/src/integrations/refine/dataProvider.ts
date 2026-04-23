@@ -493,6 +493,28 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+    if (url === "jobs/analysis") {
+      const { jobId } = payload as { jobId: string };
+      const [traces, agentRuns] = await Promise.all([
+        trpcClient.jobs.getTraces.query({ jobId }),
+        trpcClient.jobs.getAgentRuns.query({ jobId }),
+      ]);
+      const spansByRunEntries = await Promise.all(
+        agentRuns.map(async (run) => {
+          const spans = await trpcClient.jobs.getAgentRunSpans.query({ rawExportId: run.id });
+
+          return [run.id, spans] as const;
+        }),
+      );
+
+      return {
+        data: {
+          traces,
+          agentRuns,
+          spansByRun: Object.fromEntries(spansByRunEntries),
+        } as TData,
+      };
+    }
     throw new Error(`custom: unknown url "${url}"`);
   },
 };

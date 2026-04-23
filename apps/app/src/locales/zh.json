@@ -38,6 +38,7 @@
   },
   "nav": {
     "dashboard": "仪表盘",
+    "canvas": "画布",
     "pipelines": "流水线",
     "jobs": "任务",
     "distillations": "蒸馏",
@@ -48,7 +49,10 @@
     "rules": "规则",
     "bestPractices": "最佳实践",
     "recipes": "配方",
-    "settings": "设置"
+    "settings": "设置",
+    "workspace": "工作区",
+    "library": "库",
+    "knowledge": "知识"
   },
   "sidebar": {
     "user": "Ordine 用户"
@@ -121,6 +125,7 @@
     "openStudio": "打开蒸馏室",
     "studioTitle": "蒸馏室",
     "studioSubtitle": "从来源创建、运行并继续打磨一条蒸馏记录。",
+    "studioExistingSubtitle": "查看并重新运行已有蒸馏记录。",
     "emptyTitle": "还没有蒸馏记录",
     "emptyHint": "创建第一条蒸馏草稿，把原始执行历史整理成可复用的元数据资产。",
     "defaultTitlePrefix": "蒸馏",
@@ -131,7 +136,9 @@
     "objectiveLabel": "目标",
     "objectivePlaceholder": "描述这次蒸馏要提取、保留或转换什么内容。",
     "saveDraft": "保存草稿",
+    "saveChanges": "保存修改",
     "run": "开始蒸馏",
+    "rerun": "重新蒸馏",
     "running": "蒸馏中…",
     "previewTitle": "载荷预览",
     "previewHint": "这里展示即将写入的蒸馏元数据对象。",
@@ -139,6 +146,8 @@
     "sourceId": "来源 ID",
     "sourceLabel": "来源标签",
     "duplicate": "基于此复制",
+    "viewResult": "查看结果",
+    "openInStudio": "在蒸馏室打开",
     "agentLabel": "Agent Runtime",
     "useDefaultAgent": "使用工作区默认 Agent",
     "modelLabel": "模型覆盖",
@@ -150,7 +159,12 @@
     "resultEmpty": "还没有运行过蒸馏。",
     "insightsLabel": "洞察",
     "minimalPathLabel": "最小路径",
-    "assetsLabel": "可复用资产"
+    "assetsLabel": "可复用资产",
+    "nextActionsLabel": "下一步动作",
+    "inputSnapshotLabel": "输入快照",
+    "detailSubtitle": "查看这条蒸馏记录持久化后的结果和来源上下文。",
+    "detailResultHint": "这里展示的是已经保存到 distillation 记录里的结果。",
+    "notFound": "未找到蒸馏记录"
   },
   "operations": {
     "title": "操作集",
