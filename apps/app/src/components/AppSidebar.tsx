@@ -166,7 +166,7 @@ export const AppSidebar = () => {
                 isActive
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/80",
-                "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0",
+                "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0"
               )}
               to={item.to}
             >
@@ -178,7 +178,12 @@ export const AppSidebar = () => {
       </div>
 
       <SidebarContent className="py-2">
-        <NavGroup currentPath={currentPath} items={workspaceItems} label={t("nav.workspace")} t={t} />
+        <NavGroup
+          currentPath={currentPath}
+          items={workspaceItems}
+          label={t("nav.workspace")}
+          t={t}
+        />
         <NavGroup currentPath={currentPath} items={libraryItems} label={t("nav.library")} t={t} />
         <NavGroup
           currentPath={currentPath}

@@ -64,7 +64,6 @@ export const LanguageSection = () => {
             <SelectGroup>
               <SelectItem value="zh-CN">简体中文</SelectItem>
               <SelectItem value="en-US">English (US)</SelectItem>
-              <SelectItem value="ja-JP">日本語</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>

@@ -504,7 +504,7 @@ export const dataProvider: DataProvider = {
           const spans = await trpcClient.jobs.getAgentRunSpans.query({ rawExportId: run.id });
 
           return [run.id, spans] as const;
-        }),
+        })
       );
 
       return {
@@ -512,7 +512,7 @@ export const dataProvider: DataProvider = {
           traces,
           agentRuns,
           spansByRun: Object.fromEntries(spansByRunEntries),
-        } as TData,
+        } as unknown as TData,
       };
     }
     throw new Error(`custom: unknown url "${url}"`);
