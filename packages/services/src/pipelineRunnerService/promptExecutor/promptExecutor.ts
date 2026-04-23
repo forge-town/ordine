@@ -20,7 +20,7 @@ const run = ({
   inputContent,
   inputPath,
   jobId,
-  agent = "claude-code",
+  agent = "mastra",
   onChunk,
   onProgress,
   apiKey,

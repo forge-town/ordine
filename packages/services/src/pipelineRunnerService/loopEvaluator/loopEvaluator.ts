@@ -12,7 +12,7 @@ const SYSTEM_PROMPT = `You are a strict evaluator. Given acceptance criteria and
 Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not. Do not explain.`;
 
 export const loopEvaluator = {
-  create: ({ agent = "claude-code" }: { agent?: AgentRuntime } = {}) => {
+  create: ({ agent = "mastra" }: { agent?: AgentRuntime } = {}) => {
     return ({ jobId }: { jobId: string }): LoopEvaluatorFn => {
       return async (conditionPrompt: string, operationOutput: string): Promise<boolean> => {
         const userPrompt = `## Acceptance Criteria\n${conditionPrompt}\n\n## Operation Output\n${operationOutput}`;

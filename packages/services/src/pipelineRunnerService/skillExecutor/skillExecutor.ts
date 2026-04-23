@@ -150,7 +150,7 @@ const run = ({
   systemPrompt,
   inputContent,
   inputPath,
-  agent = "claude-code",
+  agent = "mastra",
   onChunk,
   onProgress,
   allowedTools: customAllowedTools,

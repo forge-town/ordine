@@ -3,7 +3,7 @@ import type { AgentRuntime } from "@repo/schemas";
 
 export const settingsTable = pgTable("settings", {
   id: text("id").primaryKey().default("default"),
-  defaultAgentRuntime: text("default_agent_runtime").$type<AgentRuntime>().notNull().default("claude-code"),
+  defaultAgentRuntime: text("default_agent_runtime").$type<AgentRuntime>().notNull().default("mastra"),
   defaultApiKey: text("default_api_key").notNull().default(""),
   defaultModel: text("default_model").notNull().default("kimi-k2-0711-preview"),
   defaultOutputPath: text("default_output_path").notNull().default(""),
