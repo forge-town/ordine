@@ -109,11 +109,12 @@ export const DistillationStudioPage = () => {
   const existingDistillationId = search.distillationId ?? "";
   const { mutateAsync: createDistillation } = useCreate();
   const { mutateAsync: updateDistillation } = useUpdate();
-  const { result: existingDistillationResult, query: existingDistillationQuery } = useOne<Distillation>({
-    resource: ResourceName.distillations,
-    id: existingDistillationId,
-    queryOptions: { enabled: !!existingDistillationId },
-  });
+  const { result: existingDistillationResult, query: existingDistillationQuery } =
+    useOne<Distillation>({
+      resource: ResourceName.distillations,
+      id: existingDistillationId,
+      queryOptions: { enabled: !!existingDistillationId },
+    });
   const [latestDistillation, setLatestDistillation] = useState<Distillation | null>(null);
   const [submissionMode, setSubmissionMode] = useState<SubmissionMode | null>(null);
 
@@ -140,7 +141,7 @@ export const DistillationStudioPage = () => {
         distillation: existingDistillationResult,
         fallbackTitle: initialTitle,
         search,
-      }),
+      })
     );
     setLatestDistillation(existingDistillationResult);
   }, [existingDistillationResult, form, initialTitle, search]);
@@ -269,10 +270,7 @@ export const DistillationStudioPage = () => {
                       return (
                         <FormItem>
                           <FormLabel>{t("distillations.sourceType")}</FormLabel>
-                          <Select
-                            value={field.value}
-                            onValueChange={handleSourceTypeChange}
-                          >
+                          <Select value={field.value} onValueChange={handleSourceTypeChange}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue />
@@ -301,10 +299,7 @@ export const DistillationStudioPage = () => {
                       return (
                         <FormItem>
                           <FormLabel>{t("distillations.modeLabel")}</FormLabel>
-                          <Select
-                            value={field.value}
-                            onValueChange={handleModeChange}
-                          >
+                          <Select value={field.value} onValueChange={handleModeChange}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue />
@@ -399,10 +394,7 @@ export const DistillationStudioPage = () => {
                       return (
                         <FormItem>
                           <FormLabel>{t("distillations.agentLabel")}</FormLabel>
-                          <Select
-                            value={field.value}
-                            onValueChange={handleAgentChange}
-                          >
+                          <Select value={field.value} onValueChange={handleAgentChange}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder={t("distillations.useDefaultAgent")} />
@@ -459,19 +451,15 @@ export const DistillationStudioPage = () => {
                 <div className="flex justify-end gap-2 pt-2">
                   <Button
                     disabled={isBusy}
-                    onClick={handleSubmitDraft}
                     type="button"
                     variant="outline"
+                    onClick={handleSubmitDraft}
                   >
                     {existingDistillationId
                       ? t("distillations.saveChanges")
                       : t("distillations.saveDraft")}
                   </Button>
-                  <Button
-                    disabled={isBusy}
-                    onClick={handleSubmitRun}
-                    type="button"
-                  >
+                  <Button disabled={isBusy} type="button" onClick={handleSubmitRun}>
                     {isBusy && submissionMode === "run"
                       ? t("distillations.running")
                       : existingDistillationId

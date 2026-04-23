@@ -1,39 +1,21 @@
 import { useState } from "react";
-import { User, Bell, Palette, Globe, Shield, Code, ChevronRight } from "lucide-react";
+import { Globe, Code, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
-import {
-  AppearanceSection,
-  DeveloperSection,
-  LanguageSection,
-  NotificationsSection,
-  ProfileSection,
-  SecuritySection,
-} from "../sections";
+import { DeveloperSection, LanguageSection } from "../sections";
 
-type Section = "profile" | "notifications" | "appearance" | "language" | "security" | "developer";
+type Section = "language" | "developer";
 
 const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
-  profile: User,
-  notifications: Bell,
-  appearance: Palette,
   language: Globe,
-  security: Shield,
   developer: Code,
 };
 
-const SECTION_IDS: Section[] = [
-  "profile",
-  "notifications",
-  "appearance",
-  "language",
-  "security",
-  ...(import.meta.env.DEV ? ["developer" as const] : []),
-];
+const SECTION_IDS: Section[] = ["language", ...(import.meta.env.DEV ? ["developer" as const] : [])];
 
 export const SettingsPageContent = () => {
   const { t } = useTranslation();
-  const [active, setActive] = useState<Section>("profile");
+  const [active, setActive] = useState<Section>("language");
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -69,11 +51,7 @@ export const SettingsPageContent = () => {
 
         <div className="flex-1 overflow-y-auto p-8">
           <div className="mx-auto max-w-lg space-y-6">
-            {active === "profile" && <ProfileSection />}
-            {active === "notifications" && <NotificationsSection />}
-            {active === "appearance" && <AppearanceSection />}
             {active === "language" && <LanguageSection />}
-            {active === "security" && <SecuritySection />}
             {active === "developer" && <DeveloperSection />}
           </div>
         </div>

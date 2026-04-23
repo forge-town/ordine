@@ -72,7 +72,7 @@ export const JobSourceAnalysisPanel = ({ jobId }: JobSourceAnalysisPanelProps) =
         input: totals.input + (run.tokenInput ?? 0),
         output: totals.output + (run.tokenOutput ?? 0),
       }),
-      { input: 0, output: 0 },
+      { input: 0, output: 0 }
     );
 
     return {

@@ -15,13 +15,14 @@ export const DistillationResultPanel = ({
   hint,
 }: DistillationResultPanelProps) => {
   const { t } = useTranslation();
-  const completedResult =
-    distillation?.result?.type === "completed" ? distillation.result : null;
+  const completedResult = distillation?.result?.type === "completed" ? distillation.result : null;
   const failedResult = distillation?.result?.type === "failed" ? distillation.result : null;
 
   return (
     <Card className="p-5">
-      <h2 className="text-sm font-semibold text-foreground">{t("distillations.resultPanelTitle")}</h2>
+      <h2 className="text-sm font-semibold text-foreground">
+        {t("distillations.resultPanelTitle")}
+      </h2>
       <p className="mt-1 text-xs text-muted-foreground">
         {hint ?? t("distillations.resultPanelHint")}
       </p>
