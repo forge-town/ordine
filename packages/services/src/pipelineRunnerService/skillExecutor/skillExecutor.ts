@@ -3,15 +3,69 @@ import {
   READ_ONLY_TOOLS,
   WRITE_TOOLS,
   extractJsonFromText,
-  CHECK_OUTPUT_EXAMPLE,
-  FIX_OUTPUT_EXAMPLE,
   CheckOutputSchema,
   FixOutputSchema,
   ToolNameSchema,
+  type CheckOutput,
+  type FixOutput,
 } from "@repo/agent";
 import { logger } from "@repo/logger";
 import type { RunSkillOptions as EngineRunSkillOptions } from "@repo/pipeline-engine";
 import { runAgent } from "../agentRunner/agentRunner";
+
+const CHECK_OUTPUT_EXAMPLE: CheckOutput = {
+  type: "check" as const,
+  summary: "Executive summary of the check results",
+  findings: [
+    {
+      id: "FINDING_001",
+      severity: "error" as const,
+      message: "One-line description of the issue",
+      file: "relative/path/to/file.ts",
+      line: 42,
+      rule: "rule-name",
+      snippet: "short code snippet showing the violation",
+      suggestion: "how to fix the issue",
+      skipped: false,
+      skipReason: "reason if skipped (only when skipped=true)",
+    },
+  ],
+  stats: {
+    totalFiles: 10,
+    totalFindings: 5,
+    errors: 2,
+    warnings: 2,
+    infos: 1,
+    skipped: 1,
+  },
+};
+
+const FIX_OUTPUT_EXAMPLE: FixOutput = {
+  type: "fix" as const,
+  summary: "Summary of all changes made",
+  changes: [
+    {
+      file: "relative/path/to/file.ts",
+      action: "replace" as const,
+      description: "What was changed",
+      findingId: "FINDING_001",
+    },
+  ],
+  remainingFindings: [
+    {
+      id: "FINDING_002",
+      severity: "warning" as const,
+      message: "Issue that could not be auto-fixed",
+      file: "relative/path/to/other.ts",
+    },
+  ],
+  stats: {
+    totalChanges: 3,
+    filesModified: 2,
+    findingsFixed: 3,
+    findingsSkipped: 1,
+  },
+};
 
 export class SkillExecutionError extends Error {
   constructor(
