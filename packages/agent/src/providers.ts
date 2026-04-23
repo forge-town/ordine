@@ -8,12 +8,14 @@ export interface KimiSettings {
   model: string;
 }
 
-export const getKimiModel = (settings: KimiSettings): any => {
+export const getKimiModel = (settings: KimiSettings) => {
   const { apiKey, model } = settings;
   if (!apiKey) {
     logger.warn("No Kimi API key configured");
+
     return null;
   }
   logger.info({ model }, "Creating Kimi model");
+
   return createAnthropic({ baseURL: KIMI_BASE_URL, apiKey })(model);
 };

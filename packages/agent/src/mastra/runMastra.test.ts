@@ -37,7 +37,7 @@ describe("runMastra with Kimi", () => {
         systemPrompt: "sys",
         userPrompt: "user",
         cwd: process.cwd(),
-        timeoutMs: 1_000,
+        timeoutMs: 1000,
       }),
     ).rejects.toThrow(/Failed to resolve model configuration/);
   });

@@ -11,8 +11,7 @@ import {
   DistillationSourceTypeSchema,
   type Distillation,
 } from "@repo/schemas";
-import { Button } from "@repo/ui/button";
-import { buttonVariants } from "@repo/ui/button";
+import { Button, buttonVariants } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { Input } from "@repo/ui/input";
 import {
@@ -24,14 +23,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@repo/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/distillations.new";
 
@@ -114,7 +106,9 @@ export const DistillationStudioPage = () => {
             <ArrowLeft className="h-4 w-4 text-muted-foreground" />
           </Link>
           <div>
-            <h1 className="text-base font-semibold text-foreground">{t("distillations.studioTitle")}</h1>
+            <h1 className="text-base font-semibold text-foreground">
+              {t("distillations.studioTitle")}
+            </h1>
             <p className="text-xs text-muted-foreground">{t("distillations.studioSubtitle")}</p>
           </div>
         </div>
@@ -143,52 +137,60 @@ export const DistillationStudioPage = () => {
                   <FormField
                     control={form.control}
                     name="sourceType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("distillations.sourceType")}</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectItem value="job">job</SelectItem>
-                              <SelectItem value="pipeline">pipeline</SelectItem>
-                              <SelectItem value="manual">manual</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const handleSourceTypeChange = field.onChange;
+
+                      return (
+                        <FormItem>
+                          <FormLabel>{t("distillations.sourceType")}</FormLabel>
+                          <Select value={field.value} onValueChange={handleSourceTypeChange}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value="job">job</SelectItem>
+                                <SelectItem value="pipeline">pipeline</SelectItem>
+                                <SelectItem value="manual">manual</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
 
                   <FormField
                     control={form.control}
                     name="mode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("distillations.modeLabel")}</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectItem value="pipeline">pipeline</SelectItem>
-                              <SelectItem value="failure">failure</SelectItem>
-                              <SelectItem value="prompt">prompt</SelectItem>
-                              <SelectItem value="knowledge">knowledge</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const handleModeChange = field.onChange;
+
+                      return (
+                        <FormItem>
+                          <FormLabel>{t("distillations.modeLabel")}</FormLabel>
+                          <Select value={field.value} onValueChange={handleModeChange}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value="pipeline">pipeline</SelectItem>
+                                <SelectItem value="failure">failure</SelectItem>
+                                <SelectItem value="prompt">prompt</SelectItem>
+                                <SelectItem value="knowledge">knowledge</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                 </div>
 
@@ -260,7 +262,9 @@ export const DistillationStudioPage = () => {
                     {t("common.cancel")}
                   </Link>
                   <Button disabled={form.formState.isSubmitting} type="submit">
-                    {form.formState.isSubmitting ? t("common.saving") : t("distillations.saveDraft")}
+                    {form.formState.isSubmitting
+                      ? t("common.saving")
+                      : t("distillations.saveDraft")}
                   </Button>
                 </div>
               </form>
