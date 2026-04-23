@@ -168,7 +168,7 @@ export const AppSidebar = () => {
                 isActive
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/80",
-                "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0",
+                "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0"
               )}
               to={item.to}
             >
