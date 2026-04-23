@@ -35,7 +35,7 @@ vi.mock("../structuredOutput", () => ({
   },
 }));
 
-import { skillExecutor, SkillExecutionError } from ".";
+import { skillExecutor, SkillExecutionError, DEFAULT_SKILL_SYSTEM_PROMPT } from ".";
 
 describe("skillExecutor", () => {
   const baseOpts = {
@@ -104,6 +104,32 @@ describe("skillExecutor", () => {
       expect.objectContaining({
         jobId: "job-1",
         agentId: "test-skill",
+      }),
+    );
+  });
+
+  it("uses the default system prompt when no override is provided", async () => {
+    const result = await skillExecutor.run({ ...baseOpts, agent: "codex" });
+
+    expect(result.isOk()).toBe(true);
+    expect(agentEngine.run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        systemPrompt: DEFAULT_SKILL_SYSTEM_PROMPT,
+      }),
+    );
+  });
+
+  it("uses the provided system prompt override", async () => {
+    const result = await skillExecutor.run({
+      ...baseOpts,
+      agent: "codex",
+      systemPrompt: "CUSTOM SYSTEM PROMPT",
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(agentEngine.run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        systemPrompt: "CUSTOM SYSTEM PROMPT",
       }),
     );
   });

@@ -25,8 +25,7 @@ Uses an AI agent (Claude or Codex) to execute the operation.
     "agentMode": "skill",
     "agent": "local-claude",
     "skillId": "my-skill",
-    "allowedTools": ["Read", "Glob", "Grep"],
-    "promptMode": "code"
+    "allowedTools": ["Read", "Write", "Edit"]
   }
 }
 ```
@@ -39,8 +38,6 @@ Uses an AI agent (Claude or Codex) to execute the operation.
 | `skillId` | Skill ID to use (when `agentMode: "skill"`) |
 | `prompt` | Direct prompt text (when `agentMode: "prompt"`) |
 | `allowedTools` | Tools the agent can use |
-| `promptMode` | `"code"` (default) or `"research"` |
-| `writeEnabled` | Allow the agent to modify files |
 
 ### Script Executor
 

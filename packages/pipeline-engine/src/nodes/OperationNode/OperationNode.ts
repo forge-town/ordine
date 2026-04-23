@@ -160,14 +160,13 @@ export const executeOperationNode = async (
     const skillResult = await deps.runSkill({
       skillId,
       skillDescription,
+      systemPrompt: executor.systemPrompt,
       inputContent: effectiveInput,
       inputPath: input.inputPath,
       agent: agentOverride ?? executor.agent,
       allowedTools: executor.allowedTools,
-      promptMode: executor.promptMode,
       onChunk: handleChunk,
       onProgress,
-      writeEnabled: executor.writeEnabled === true,
     });
     opResult.value = skillResult.isOk() ? skillResult.value : "";
     if (skillResult.isErr()) {

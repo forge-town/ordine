@@ -104,6 +104,29 @@ describe("executeOperationNode", () => {
     expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ skillId: "sk-1" }));
   });
 
+  it("passes skill systemPrompt override to runSkill", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "skill",
+      skillId: "sk-1",
+      systemPrompt: "CUSTOM SKILL PROMPT",
+    });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id" });
+    const ctx = makeCtx(deps, ops);
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    expect(deps.runSkill).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skillId: "sk-1",
+        systemPrompt: "CUSTOM SKILL PROMPT",
+      }),
+    );
+  });
+
   it("executes a rule-check operation", async () => {
     const deps = makeDeps();
     const op = makeOperation({ type: "rule-check" });
