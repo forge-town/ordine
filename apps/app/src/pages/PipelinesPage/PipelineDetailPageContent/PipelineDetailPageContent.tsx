@@ -177,6 +177,16 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   const handleClickRun = () => handleRun();
   const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
   const handleCanvasClick = () => void navigate({ to: "/canvas", search: { id: pipeline.id } });
+  const handleOpenDistillationStudio = () =>
+    void navigate({
+      to: "/distillations/new",
+      search: {
+        sourceType: "pipeline",
+        sourceId: pipeline.id,
+        sourceLabel: pipeline.name,
+        mode: "pipeline",
+      },
+    });
 
   const nodeTypeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     acc[n.type] = (acc[n.type] ?? 0) + 1;
@@ -226,6 +236,9 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
           <Pencil className="h-3.5 w-3.5" />
           {t("pipelines.editInCanvas")}
         </Link>
+        <Button size="sm" variant="outline" onClick={handleOpenDistillationStudio}>
+          {t("distillations.openStudio")}
+        </Button>
       </div>
 
       {/* ── Body ───────────────────────────────────────────────────────── */}

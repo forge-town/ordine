@@ -9,6 +9,7 @@ export * from "./BestPracticeSchema";
 export * from "./ChecklistItemSchema";
 export * from "./ChecklistResultSchema";
 export * from "./CodeSnippetSchema";
+export * from "./DistillationSchema";
 export * from "./ExecutorConfigSchema";
 export * from "./ExecutorTypeSchema";
 export * from "./GithubProjectSchema";

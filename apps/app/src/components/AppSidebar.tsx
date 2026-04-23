@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Zap,
   ChefHat,
+  FlaskConical,
   Box,
   Globe,
   Puzzle,
@@ -49,6 +50,7 @@ const mainNavItems: NavItem[] = [
   { labelKey: "nav.operations", icon: Zap, to: "/operations" },
   { labelKey: "nav.rules", icon: ShieldCheck, to: "/rules" },
   { labelKey: "nav.jobs", icon: Activity, to: "/jobs" },
+  { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
 ];
 
 const objectNavItems: NavItem[] = [{ labelKey: "nav.projects", icon: FolderGit2, to: "/projects" }];

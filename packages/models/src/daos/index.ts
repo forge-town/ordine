@@ -4,6 +4,7 @@ export * from "./bestPracticesDao";
 export * from "./checklistItemsDao";
 export * from "./checklistResultsDao";
 export * from "./codeSnippetsDao";
+export * from "./distillationsDao";
 export * from "./githubProjectsDao";
 export * from "./jobTracesDao";
 export * from "./jobsDao";
