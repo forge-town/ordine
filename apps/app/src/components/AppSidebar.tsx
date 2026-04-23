@@ -15,6 +15,7 @@ import {
   Box,
   Globe,
   Puzzle,
+  ExternalLink,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -167,7 +168,7 @@ export const AppSidebar = () => {
                 isActive
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/80",
-                "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0"
+                "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0",
               )}
               to={item.to}
             >
@@ -232,7 +233,7 @@ export const AppSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Settings at bottom */}
+      {/* Settings + GitHub at bottom */}
       <SidebarFooter className="border-t p-2">
         <SidebarMenu>
           <SidebarMenuItem>
@@ -244,6 +245,22 @@ export const AppSidebar = () => {
             >
               <Settings />
               <span>{t("nav.settings")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="h-8"
+              render={
+                <a
+                  href="https://github.com/forge-town/ordine"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                />
+              }
+              tooltip="GitHub"
+            >
+              <ExternalLink />
+              <span>GitHub</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
