@@ -1,6 +1,7 @@
 import {
   runClaude,
   runCodex,
+  runMastra,
   type ClaudeStreamEvent,
   type ToolName,
 } from "@repo/agent";
@@ -58,11 +59,22 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> =>
   return { text, events: [] };
 };
 
+const runMastraDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
+  const result = await runMastra({
+    systemPrompt: opts.systemPrompt,
+    userPrompt: opts.userPrompt,
+    cwd: opts.cwd,
+    onProgress: toAsyncProgress(opts.onProgress),
+  });
+  return result;
+};
+
 type DriverFn = (opts: AgentRunOptions) => Promise<AgentRunResult>;
 
 const DRIVERS: Record<AgentRuntime, DriverFn> = {
   "claude-code": runLocalClaudeDirect,
   codex: runCodexDirect,
+  mastra: runMastraDirect,
 };
 
 const extractTokenTotals = (

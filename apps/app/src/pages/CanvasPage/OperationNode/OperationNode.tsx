@@ -46,6 +46,7 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 const RUNTIME_LABELS: Record<string, string> = {
   "claude-code": "Claude",
   codex: "Codex",
+  mastra: "Mastra",
 };
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
