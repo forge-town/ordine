@@ -43,7 +43,7 @@ interface NavItem {
 
 const featuredItems: NavItem[] = [
   { labelKey: "nav.canvas", icon: Workflow, to: "/canvas" },
-  { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
+  { labelKey: "distillations.studioTitle", icon: FlaskConical, to: "/distillation-studio" },
 ];
 
 const workspaceItems: NavItem[] = [
@@ -57,6 +57,7 @@ const libraryItems: NavItem[] = [
   { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
   { labelKey: "nav.recipes", icon: ChefHat, to: "/recipes" },
   { labelKey: "nav.rules", icon: ShieldCheck, to: "/rules" },
+  { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
 ];
 
 const knowledgeItems: NavItem[] = [

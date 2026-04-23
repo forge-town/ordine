@@ -23,7 +23,7 @@ const getSavedLanguage = (): string | undefined => {
   if (ls && typeof ls.getItem === "function") {
     const safeGetItem = Result.fromThrowable(
       (key: string) => ls.getItem!(key),
-      () => null,
+      () => null
     );
     const result = safeGetItem("i18nextLng");
 
