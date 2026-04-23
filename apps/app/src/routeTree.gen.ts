@@ -18,6 +18,7 @@ import { Route as LayoutRecipesRouteImport } from './routes/_layout/recipes'
 import { Route as LayoutPipelinesRouteImport } from './routes/_layout/pipelines'
 import { Route as LayoutJobsRouteImport } from './routes/_layout/jobs'
 import { Route as LayoutDistillationsRouteImport } from './routes/_layout/distillations'
+import { Route as LayoutDistillationStudioRouteImport } from './routes/_layout/distillation-studio'
 import { Route as LayoutAssistantRouteImport } from './routes/_layout/assistant'
 import { Route as LayoutRulesIndexRouteImport } from './routes/_layout/rules.index'
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects.index'
@@ -33,6 +34,7 @@ import { Route as LayoutOperationsNewRouteImport } from './routes/_layout/operat
 import { Route as LayoutObjectsObjectTypeIdRouteImport } from './routes/_layout/objects.$objectTypeId'
 import { Route as LayoutJobsJobIdRouteImport } from './routes/_layout/jobs.$jobId'
 import { Route as LayoutDistillationsNewRouteImport } from './routes/_layout/distillations.new'
+import { Route as LayoutDistillationsDistillationIdRouteImport } from './routes/_layout/distillations.$distillationId'
 import { Route as LayoutRulesRuleIdIndexRouteImport } from './routes/_layout/rules.$ruleId.index'
 import { Route as LayoutProjectsProjectIdIndexRouteImport } from './routes/_layout/projects.$projectId.index'
 import { Route as LayoutOperationsOperationIdIndexRouteImport } from './routes/_layout/operations.$operationId.index'
@@ -86,6 +88,12 @@ const LayoutDistillationsRoute = LayoutDistillationsRouteImport.update({
   path: '/distillations',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutDistillationStudioRoute =
+  LayoutDistillationStudioRouteImport.update({
+    id: '/distillation-studio',
+    path: '/distillation-studio',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 const LayoutAssistantRoute = LayoutAssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -165,6 +173,12 @@ const LayoutDistillationsNewRoute = LayoutDistillationsNewRouteImport.update({
   path: '/new',
   getParentRoute: () => LayoutDistillationsRoute,
 } as any)
+const LayoutDistillationsDistillationIdRoute =
+  LayoutDistillationsDistillationIdRouteImport.update({
+    id: '/$distillationId',
+    path: '/$distillationId',
+    getParentRoute: () => LayoutDistillationsRoute,
+  } as any)
 const LayoutRulesRuleIdIndexRoute = LayoutRulesRuleIdIndexRouteImport.update({
   id: '/rules/$ruleId/',
   path: '/rules/$ruleId/',
@@ -216,12 +230,14 @@ export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
   '/canvas': typeof CanvasRoute
   '/assistant': typeof LayoutAssistantRoute
+  '/distillation-studio': typeof LayoutDistillationStudioRoute
   '/distillations': typeof LayoutDistillationsRouteWithChildren
   '/jobs': typeof LayoutJobsRouteWithChildren
   '/pipelines': typeof LayoutPipelinesRouteWithChildren
   '/recipes': typeof LayoutRecipesRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
+  '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
   '/distillations/new': typeof LayoutDistillationsNewRoute
   '/jobs/$jobId': typeof LayoutJobsJobIdRoute
   '/objects/$objectTypeId': typeof LayoutObjectsObjectTypeIdRoute
@@ -248,10 +264,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/canvas': typeof CanvasRoute
   '/assistant': typeof LayoutAssistantRoute
+  '/distillation-studio': typeof LayoutDistillationStudioRoute
   '/recipes': typeof LayoutRecipesRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
   '/': typeof LayoutIndexRoute
+  '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
   '/distillations/new': typeof LayoutDistillationsNewRoute
   '/jobs/$jobId': typeof LayoutJobsJobIdRoute
   '/objects/$objectTypeId': typeof LayoutObjectsObjectTypeIdRoute
@@ -280,6 +298,7 @@ export interface FileRoutesById {
   '/_layout': typeof LayoutRouteWithChildren
   '/canvas': typeof CanvasRoute
   '/_layout/assistant': typeof LayoutAssistantRoute
+  '/_layout/distillation-studio': typeof LayoutDistillationStudioRoute
   '/_layout/distillations': typeof LayoutDistillationsRouteWithChildren
   '/_layout/jobs': typeof LayoutJobsRouteWithChildren
   '/_layout/pipelines': typeof LayoutPipelinesRouteWithChildren
@@ -287,6 +306,7 @@ export interface FileRoutesById {
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/skills': typeof LayoutSkillsRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
   '/_layout/distillations/new': typeof LayoutDistillationsNewRoute
   '/_layout/jobs/$jobId': typeof LayoutJobsJobIdRoute
   '/_layout/objects/$objectTypeId': typeof LayoutObjectsObjectTypeIdRoute
@@ -316,12 +336,14 @@ export interface FileRouteTypes {
     | '/'
     | '/canvas'
     | '/assistant'
+    | '/distillation-studio'
     | '/distillations'
     | '/jobs'
     | '/pipelines'
     | '/recipes'
     | '/settings'
     | '/skills'
+    | '/distillations/$distillationId'
     | '/distillations/new'
     | '/jobs/$jobId'
     | '/objects/$objectTypeId'
@@ -348,10 +370,12 @@ export interface FileRouteTypes {
   to:
     | '/canvas'
     | '/assistant'
+    | '/distillation-studio'
     | '/recipes'
     | '/settings'
     | '/skills'
     | '/'
+    | '/distillations/$distillationId'
     | '/distillations/new'
     | '/jobs/$jobId'
     | '/objects/$objectTypeId'
@@ -379,6 +403,7 @@ export interface FileRouteTypes {
     | '/_layout'
     | '/canvas'
     | '/_layout/assistant'
+    | '/_layout/distillation-studio'
     | '/_layout/distillations'
     | '/_layout/jobs'
     | '/_layout/pipelines'
@@ -386,6 +411,7 @@ export interface FileRouteTypes {
     | '/_layout/settings'
     | '/_layout/skills'
     | '/_layout/'
+    | '/_layout/distillations/$distillationId'
     | '/_layout/distillations/new'
     | '/_layout/jobs/$jobId'
     | '/_layout/objects/$objectTypeId'
@@ -479,6 +505,13 @@ declare module '@tanstack/react-router' {
       path: '/distillations'
       fullPath: '/distillations'
       preLoaderRoute: typeof LayoutDistillationsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/distillation-studio': {
+      id: '/_layout/distillation-studio'
+      path: '/distillation-studio'
+      fullPath: '/distillation-studio'
+      preLoaderRoute: typeof LayoutDistillationStudioRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/assistant': {
@@ -586,6 +619,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutDistillationsNewRouteImport
       parentRoute: typeof LayoutDistillationsRoute
     }
+    '/_layout/distillations/$distillationId': {
+      id: '/_layout/distillations/$distillationId'
+      path: '/$distillationId'
+      fullPath: '/distillations/$distillationId'
+      preLoaderRoute: typeof LayoutDistillationsDistillationIdRouteImport
+      parentRoute: typeof LayoutDistillationsRoute
+    }
     '/_layout/rules/$ruleId/': {
       id: '/_layout/rules/$ruleId/'
       path: '/rules/$ruleId'
@@ -646,11 +686,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface LayoutDistillationsRouteChildren {
+  LayoutDistillationsDistillationIdRoute: typeof LayoutDistillationsDistillationIdRoute
   LayoutDistillationsNewRoute: typeof LayoutDistillationsNewRoute
   LayoutDistillationsIndexRoute: typeof LayoutDistillationsIndexRoute
 }
 
 const LayoutDistillationsRouteChildren: LayoutDistillationsRouteChildren = {
+  LayoutDistillationsDistillationIdRoute:
+    LayoutDistillationsDistillationIdRoute,
   LayoutDistillationsNewRoute: LayoutDistillationsNewRoute,
   LayoutDistillationsIndexRoute: LayoutDistillationsIndexRoute,
 }
@@ -688,6 +731,7 @@ const LayoutPipelinesRouteWithChildren = LayoutPipelinesRoute._addFileChildren(
 
 interface LayoutRouteChildren {
   LayoutAssistantRoute: typeof LayoutAssistantRoute
+  LayoutDistillationStudioRoute: typeof LayoutDistillationStudioRoute
   LayoutDistillationsRoute: typeof LayoutDistillationsRouteWithChildren
   LayoutJobsRoute: typeof LayoutJobsRouteWithChildren
   LayoutPipelinesRoute: typeof LayoutPipelinesRouteWithChildren
@@ -714,6 +758,7 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAssistantRoute: LayoutAssistantRoute,
+  LayoutDistillationStudioRoute: LayoutDistillationStudioRoute,
   LayoutDistillationsRoute: LayoutDistillationsRouteWithChildren,
   LayoutJobsRoute: LayoutJobsRouteWithChildren,
   LayoutPipelinesRoute: LayoutPipelinesRouteWithChildren,

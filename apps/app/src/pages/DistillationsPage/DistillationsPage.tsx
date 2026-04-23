@@ -32,7 +32,7 @@ export const DistillationsPage = () => {
           <h1 className="text-base font-semibold text-foreground">{t("distillations.title")}</h1>
           <p className="text-xs text-muted-foreground">{t("distillations.subtitle")}</p>
         </div>
-        <Link className={buttonVariants({ size: "sm" })} to="/distillations/new">
+        <Link className={buttonVariants({ size: "sm" })} to="/distillation-studio">
           <Plus className="h-4 w-4" />
           {t("distillations.openStudio")}
         </Link>
@@ -50,7 +50,7 @@ export const DistillationsPage = () => {
             <p className="mt-1 max-w-md text-xs text-muted-foreground">
               {t("distillations.emptyHint")}
             </p>
-            <Link className={buttonVariants({ className: "mt-4" })} to="/distillations/new">
+            <Link className={buttonVariants({ className: "mt-4" })} to="/distillation-studio">
               <Plus className="h-4 w-4" />
               {t("distillations.openStudio")}
             </Link>
@@ -90,15 +90,23 @@ export const DistillationsPage = () => {
                   <div className="flex items-center gap-2">
                     <Link
                       className={buttonVariants({ size: "sm", variant: "outline" })}
+                      params={{ distillationId: distillation.id }}
+                      to="/distillations/$distillationId"
+                    >
+                      {t("distillations.viewResult")}
+                    </Link>
+                    <Link
+                      className={buttonVariants({ size: "sm", variant: "outline" })}
                       search={{
+                        distillationId: distillation.id,
                         sourceType: distillation.sourceType,
                         sourceId: distillation.sourceId ?? undefined,
                         sourceLabel: distillation.sourceLabel || undefined,
                         mode: distillation.mode,
                       }}
-                      to="/distillations/new"
+                      to="/distillation-studio"
                     >
-                      {t("distillations.duplicate")}
+                      {t("distillations.openInStudio")}
                     </Link>
                     <Button size="icon" variant="ghost" onClick={handleDelete(distillation.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />

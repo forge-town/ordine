@@ -1,14 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod/v4";
-import { DistillationModeSchema, DistillationSourceTypeSchema } from "@repo/schemas";
-import { DistillationStudioPage } from "@/pages/DistillationStudioPage";
+import { useEffect } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { distillationStudioSearchSchema } from "./distillation-studio";
+
+const LegacyDistillationStudioRedirect = () => {
+  const navigate = useNavigate();
+  const search = Route.useSearch();
+
+  useEffect(() => {
+    void navigate({
+      to: "/distillation-studio",
+      search,
+      replace: true,
+    });
+  }, [navigate, search]);
+
+  return null;
+};
 
 export const Route = createFileRoute("/_layout/distillations/new")({
-  validateSearch: z.object({
-    sourceType: DistillationSourceTypeSchema.optional(),
-    sourceId: z.string().optional(),
-    sourceLabel: z.string().optional(),
-    mode: DistillationModeSchema.optional(),
-  }),
-  component: DistillationStudioPage,
+  validateSearch: distillationStudioSearchSchema,
+  component: LegacyDistillationStudioRedirect,
 });

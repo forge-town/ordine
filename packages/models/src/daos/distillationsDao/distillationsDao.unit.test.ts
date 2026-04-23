@@ -88,7 +88,7 @@ describe("distillationsDao", () => {
       sourceLabel: "",
       mode: "knowledge",
       status: "draft",
-      config: {},
+      config: { objective: "" },
       inputSnapshot: null,
       result: null,
     });
