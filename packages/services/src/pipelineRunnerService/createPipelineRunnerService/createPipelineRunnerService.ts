@@ -42,11 +42,13 @@ export const createPipelineRunnerService = (db: DbConnection) => {
 
   const loopEvaluatorFactory = loopEvaluator.create();
 
-  const buildDepsForJob = ({ jobId }: { jobId: string }) =>
+  const buildDepsForJob = ({ jobId, apiKey, model }: { jobId: string; apiKey?: string; model?: string }) =>
     pipelineRunnerEngineDeps.build({
       rulesDao,
       evaluateLoopCondition: loopEvaluatorFactory({ jobId }),
       jobId,
+      apiKey,
+      model,
     });
 
   return {
@@ -89,7 +91,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           jobsDao,
           skillsDao,
           bestPracticesDao,
-          engineDeps: buildDepsForJob({ jobId }),
+          engineDeps: buildDepsForJob({ jobId, apiKey: settings.defaultApiKey, model: settings.defaultModel }),
         }),
         (error) => error,
       ).match(

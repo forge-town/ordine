@@ -15,6 +15,8 @@ export interface AgentRunnerOptions {
   allowedTools?: readonly ToolName[];
   onProgress?: (line: string) => Promise<void> | void;
   logPrefix: string;
+  apiKey?: string;
+  model?: string;
 }
 
 export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
@@ -28,6 +30,8 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
     allowedTools,
     onProgress,
     logPrefix,
+    apiKey,
+    model,
   } = opts;
 
   logger.info(
@@ -51,6 +55,8 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
       onProgress,
       jobId,
       agentId,
+      apiKey,
+      model,
     }),
     (error) => error,
   );

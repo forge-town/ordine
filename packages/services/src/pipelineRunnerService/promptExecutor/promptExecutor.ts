@@ -23,6 +23,8 @@ const run = ({
   agent = "claude-code",
   onChunk,
   onProgress,
+  apiKey,
+  model,
 }: RunPromptOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
@@ -40,6 +42,8 @@ const run = ({
         allowedTools: [],
         onProgress,
         logPrefix: "[LLM] runPrompt",
+        apiKey,
+        model,
       });
       if (onChunk) await onChunk(raw);
 

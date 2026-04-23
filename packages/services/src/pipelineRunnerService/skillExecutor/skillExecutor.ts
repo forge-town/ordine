@@ -154,6 +154,8 @@ const run = ({
   onChunk,
   onProgress,
   allowedTools: customAllowedTools,
+  apiKey,
+  model,
 }: RunSkillExecutorOptions): ResultAsync<string, SkillExecutionError> => {
   const effectiveSystemPrompt = systemPrompt ?? DEFAULT_SKILL_SYSTEM_PROMPT;
   const userPrompt = buildSkillUserPrompt({
@@ -182,6 +184,8 @@ const run = ({
         allowedTools,
         onProgress,
         logPrefix: "runSkill",
+        apiKey,
+        model,
       });
 
       if (raw.length === 0) {

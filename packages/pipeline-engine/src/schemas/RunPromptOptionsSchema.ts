@@ -8,6 +8,8 @@ export const RunPromptOptionsSchema = z.object({
   inputPath: z.string(),
   jobId: z.string().optional(),
   agent: AgentRuntimeSchema.optional(),
+  apiKey: z.string().optional(),
+  model: z.string().optional(),
 });
 export type RunPromptOptions = z.infer<typeof RunPromptOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;
