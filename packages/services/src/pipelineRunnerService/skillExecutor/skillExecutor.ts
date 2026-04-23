@@ -1,7 +1,6 @@
 import { ResultAsync } from "neverthrow";
 import {
   READ_ONLY_TOOLS,
-  WRITE_TOOLS,
   extractJsonFromText,
   CheckOutputSchema,
   FixOutputSchema,
@@ -81,76 +80,65 @@ type RunSkillExecutorOptions = EngineRunSkillOptions & {
   jobId?: string;
 };
 
-const buildSkillSystemPrompt = ({
+export const DEFAULT_SKILL_SYSTEM_PROMPT = [
+  "You are a precise execution agent working inside a software project.",
+  "Follow the provided task exactly, use available tools deliberately, and prefer concrete evidence over assumptions.",
+  "Keep the final answer in the exact format requested by the task.",
+].join("\n");
+
+const buildSkillUserPrompt = ({
   skillId,
   skillDescription,
-  mode,
-  promptMode = "code",
+  inputContent,
+  inputPath,
 }: {
   skillId: string;
   skillDescription: string;
-  mode: "check" | "fix";
-  promptMode?: "code" | "research";
+  inputContent: string;
+  inputPath: string;
 }): string => {
-  if (promptMode === "research") {
-    return [
-      `You are a research agent executing the task "${skillId}".`,
-      `Task description: ${skillDescription}`,
-      "",
-      "Use the tools available to you (Bash with curl, WebSearch, WebFetch, etc.) to gather information from the web.",
-      "Do NOT analyze local source code files. Focus on web research.",
-      "",
-      "Execute the research task described above. Use curl, web search, and web fetch tools to find real data.",
-      "",
-      "Output your findings as a JSON object with this structure:",
-      JSON.stringify(
-        {
-          task: skillId,
-          summary: "Brief summary of what was found",
-          data: [{ example: "your structured data here" }],
-          stats: { totalItems: 0, sources: 0 },
-        },
-        null,
-        2,
-      ),
-      "",
-      "Your final message MUST be this JSON object and nothing else.",
-    ].join("\n");
-  }
-
-  const example = mode === "check" ? CHECK_OUTPUT_EXAMPLE : FIX_OUTPUT_EXAMPLE;
-  const lines = [
-    `You are an expert code analysis agent executing the skill "${skillId}".`,
+  return [
+    `Skill ID: ${skillId}`,
     `Skill description: ${skillDescription}`,
     "",
-    `Mode: ${mode}`,
+    "Execute the skill description against the provided project input.",
+    "Inspect the actual project files before making conclusions.",
     "",
-    "Use the tools available to you (Read, Bash, etc.) to explore the project.",
-    "Examine actual source code before making conclusions.",
+    "Output ONLY a JSON object.",
+    "Use the check structure when reporting findings:",
+    JSON.stringify(CHECK_OUTPUT_EXAMPLE, null, 2),
     "",
-    mode === "check"
-      ? "Your task is to CHECK the code and report findings."
-      : "Your task is to FIX violations in the code and report what you changed.",
+    "Use the fix structure when reporting applied changes:",
+    JSON.stringify(FIX_OUTPUT_EXAMPLE, null, 2),
     "",
-    "Output ONLY a JSON object matching this exact structure (no markdown fences, no extra text):",
-    JSON.stringify(example, null, 2),
+    inputPath ? `Project path: ${inputPath}` : "",
     "",
-    "Your final message MUST be this JSON object and nothing else.",
-  ];
-
-  return lines.join("\n");
+    "Input:",
+    inputContent,
+  ]
+    .filter((line) => line !== "")
+    .join("\n");
 };
 
-const validateSkillOutput = ({ raw, mode }: { raw: string; mode: "check" | "fix" }): string => {
+const validateSkillOutput = ({ raw }: { raw: string }): string => {
   const json = extractJsonFromText(raw);
-  const schema = mode === "check" ? CheckOutputSchema : FixOutputSchema;
-  const parsed = schema.safeParse(JSON.parse(json));
-  if (parsed.success) {
+  const parsedJson = JSON.parse(json);
+  const checkParsed = CheckOutputSchema.safeParse(parsedJson);
+  if (checkParsed.success) {
     logger.info({ len: json.length }, "runSkill: valid report");
 
     return json;
   }
-  logger.warn({ errors: parsed.error }, "runSkill: schema validation failed, using raw");
+  const fixParsed = FixOutputSchema.safeParse(parsedJson);
+  if (fixParsed.success) {
+    logger.info({ len: json.length }, "runSkill: valid report");
+
+    return json;
+  }
+  logger.warn(
+    { checkErrors: checkParsed.error, fixErrors: fixParsed.error },
+    "runSkill: schema validation failed, using raw",
+  );
 
   return json;
 };
@@ -159,45 +147,34 @@ const run = ({
   jobId,
   skillId,
   skillDescription,
+  systemPrompt,
   inputContent,
   inputPath,
   agent = "claude-code",
   onChunk,
   onProgress,
-  writeEnabled,
   allowedTools: customAllowedTools,
-  promptMode = "code",
 }: RunSkillExecutorOptions): ResultAsync<string, SkillExecutionError> => {
-  const isImplementMode = writeEnabled === true;
-  const mode = isImplementMode ? "fix" : "check";
-  const isResearch = promptMode === "research";
-
-  const userPrompt =
-    inputPath && !isResearch
-      ? `Project path: ${inputPath}\n\nInput:\n${inputContent}`
-      : `Input:\n${inputContent}`;
-
-  const systemPrompt = buildSkillSystemPrompt({
+  const effectiveSystemPrompt = systemPrompt ?? DEFAULT_SKILL_SYSTEM_PROMPT;
+  const userPrompt = buildSkillUserPrompt({
     skillId,
     skillDescription,
-    mode,
-    promptMode,
+    inputContent,
+    inputPath,
   });
 
   const parsedCustomTools = customAllowedTools
     ? ToolNameSchema.array().readonly().safeParse(customAllowedTools)
     : null;
-  const allowedTools =
-    (parsedCustomTools?.success ? parsedCustomTools.data : null) ??
-    (isImplementMode ? WRITE_TOOLS : READ_ONLY_TOOLS);
+  const allowedTools = (parsedCustomTools?.success ? parsedCustomTools.data : null) ?? READ_ONLY_TOOLS;
 
   return ResultAsync.fromPromise(
     (async () => {
-      await onProgress?.(`runSkill: mode=${mode}`);
+      await onProgress?.("runSkill: start");
 
       const raw = await runAgent({
         agent,
-        systemPrompt,
+        systemPrompt: effectiveSystemPrompt,
         userPrompt,
         inputPath,
         jobId,
@@ -216,7 +193,7 @@ const run = ({
         );
       }
 
-      const result = isResearch ? raw : validateSkillOutput({ raw, mode });
+      const result = validateSkillOutput({ raw });
       if (onChunk) await onChunk(result);
 
       return result;
