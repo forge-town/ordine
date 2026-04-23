@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, FolderGit2, ChevronRight, Play, GitBranch, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.$projectId.workspace";
-import { useOne, useList } from "@refinedev/core";
+import { useOne, useList, useCustomMutation } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { GithubProject } from "@repo/schemas";
 import type { PipelineData } from "@repo/pipeline-engine/schemas";
@@ -40,6 +40,7 @@ export const ProjectWorkspacePageContent = () => {
   const handleSelectPipelineInStore = useStore(store, (s) => s.handleSelectPipeline);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { mutate: runMutate } = useCustomMutation();
 
   if (projectQuery?.isLoading || pipelinesQuery?.isLoading) {
     return <PageLoadingState title={t("workspace.title")} variant="detail" />;
@@ -64,10 +65,27 @@ export const ProjectWorkspacePageContent = () => {
 
   const handleTrigger = () => {
     if (!canTrigger || !selectedPipeline) return;
-    void navigate({
-      to: "/projects/$projectId",
-      params: { projectId: project.id },
-    });
+    runMutate(
+      {
+        url: "pipelines/run",
+        method: "post",
+        values: {
+          id: selectedPipeline.id,
+          inputPath: [...selectedObjects].join(","),
+          projectId: project.id,
+        },
+      },
+      {
+        onSuccess: (data) => {
+          const result = data?.data as { jobId: string } | undefined;
+          if (result?.jobId) {
+            void navigate({
+              to: "/jobs",
+            });
+          }
+        },
+      },
+    );
   };
 
   const handleNavigateBack = () =>
