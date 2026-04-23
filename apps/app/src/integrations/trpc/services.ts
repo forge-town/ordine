@@ -4,6 +4,7 @@ export const bestPracticesService = serviceFactory.createBestPracticesService();
 export const bestPracticesBulkService = serviceFactory.createBestPracticesBulkService();
 export const checklistService = serviceFactory.createChecklistService();
 export const codeSnippetsService = serviceFactory.createCodeSnippetsService();
+export const distillationsService = serviceFactory.createDistillationsService();
 export const githubProjectsService = serviceFactory.createGithubProjectsService();
 export const jobsService = serviceFactory.createJobsService();
 export const operationsService = serviceFactory.createOperationsService();

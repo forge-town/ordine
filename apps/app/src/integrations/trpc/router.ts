@@ -1,16 +1,17 @@
 import { router } from "./init";
+import { bestPracticesRouter } from "./routers/bestPractices";
+import { checklistRouter } from "./routers/checklist";
+import { codeSnippetsRouter } from "./routers/codeSnippets";
+import { distillationsRouter } from "./routers/distillations";
 import { filesystemRouter } from "./routers/filesystem";
+import { githubProjectsRouter } from "./routers/githubProjects";
 import { jobsRouter } from "./routers/jobs";
 import { operationsRouter } from "./routers/operations";
 import { pipelinesRouter } from "./routers/pipelines";
-import { settingsRouter } from "./routers/settings";
-import { rulesRouter } from "./routers/rules";
-import { bestPracticesRouter } from "./routers/bestPractices";
-import { githubProjectsRouter } from "./routers/githubProjects";
-import { skillsRouter } from "./routers/skills";
 import { recipesRouter } from "./routers/recipes";
-import { checklistRouter } from "./routers/checklist";
-import { codeSnippetsRouter } from "./routers/codeSnippets";
+import { rulesRouter } from "./routers/rules";
+import { settingsRouter } from "./routers/settings";
+import { skillsRouter } from "./routers/skills";
 
 export const appRouter = router({
   filesystem: filesystemRouter,
@@ -25,6 +26,7 @@ export const appRouter = router({
   recipes: recipesRouter,
   checklist: checklistRouter,
   codeSnippets: codeSnippetsRouter,
+  distillations: distillationsRouter,
 });
 
 export type AppRouter = typeof appRouter;

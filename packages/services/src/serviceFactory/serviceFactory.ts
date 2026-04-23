@@ -3,6 +3,7 @@ import { createBestPracticesService } from "../bestPracticesService";
 import { createBestPracticesBulkService } from "../bestPracticesBulkService";
 import { createChecklistService } from "../checklistService";
 import { createCodeSnippetsService } from "../codeSnippetsService";
+import { createDistillationsService } from "../distillationsService";
 import { createGithubProjectsService } from "../githubProjectsService";
 import { createJobsService } from "../jobsService";
 import { createOperationsService } from "../operationsService";
@@ -35,6 +36,10 @@ export class ServiceFactory {
 
   createCodeSnippetsService() {
     return createCodeSnippetsService(this.db);
+  }
+
+  createDistillationsService() {
+    return createDistillationsService(this.db);
   }
 
   createGithubProjectsService() {

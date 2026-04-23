@@ -124,6 +124,18 @@ export const JobDetailPageContent = () => {
       params: { projectId: job.projectId },
     });
   };
+  const handleNavigateDistillationStudio = () => {
+    if (!job) return;
+    void navigate({
+      to: "/distillations/new",
+      search: {
+        sourceType: "job",
+        sourceId: job.id,
+        sourceLabel: job.title,
+        mode: job.status === "failed" ? "failure" : "pipeline",
+      },
+    });
+  };
 
   if (jobQuery?.isLoading) {
     return <PageLoadingState title={t("jobs.title")} variant="detail" />;
@@ -162,6 +174,9 @@ export const JobDetailPageContent = () => {
           <h1 className="truncate text-sm font-semibold text-foreground">{job.title}</h1>
           <p className="font-mono text-[11px] text-muted-foreground">{job.id}</p>
         </div>
+        <Button size="sm" variant="outline" onClick={handleNavigateDistillationStudio}>
+          {t("distillations.openStudio")}
+        </Button>
         <span
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",

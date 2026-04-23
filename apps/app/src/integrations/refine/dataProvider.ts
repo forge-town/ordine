@@ -26,6 +26,7 @@ export const ResourceName = {
   recipes: "recipes",
   checklistItems: "checklistItems",
   codeSnippets: "codeSnippets",
+  distillations: "distillations",
   settings: "settings",
 } as const;
 
@@ -103,6 +104,11 @@ export const dataProvider: DataProvider = {
 
         return { data: data as unknown as TData[], total: data.length };
       }
+      case ResourceName.distillations: {
+        const data = await trpcClient.distillations.getMany.query();
+
+        return { data: data as unknown as TData[], total: data.length };
+      }
       case ResourceName.jobs: {
         const data = await trpcClient.jobs.getMany.query();
 
@@ -175,6 +181,11 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.codeSnippets: {
         const data = await trpcClient.codeSnippets.getById.query({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.distillations: {
+        const data = await trpcClient.distillations.getById.query({ id: String(id) });
 
         return { data: data as unknown as TData };
       }
@@ -261,6 +272,13 @@ export const dataProvider: DataProvider = {
       case ResourceName.codeSnippets: {
         const data = await trpcClient.codeSnippets.create.mutate(
           variables as Parameters<typeof trpcClient.codeSnippets.create.mutate>[0]
+        );
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.distillations: {
+        const data = await trpcClient.distillations.create.mutate(
+          variables as Parameters<typeof trpcClient.distillations.create.mutate>[0]
         );
 
         return { data: data as unknown as TData };
@@ -357,6 +375,14 @@ export const dataProvider: DataProvider = {
 
         return { data: data as unknown as TData };
       }
+      case ResourceName.distillations: {
+        const data = await trpcClient.distillations.update.mutate({
+          id: String(id),
+          patch: variables as Record<string, unknown>,
+        } as Parameters<typeof trpcClient.distillations.update.mutate>[0]);
+
+        return { data: data as unknown as TData };
+      }
       case ResourceName.settings: {
         const data = await trpcClient.settings.update.mutate(
           variables as Parameters<typeof trpcClient.settings.update.mutate>[0]
@@ -426,6 +452,11 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.codeSnippets: {
         const data = await trpcClient.codeSnippets.delete.mutate({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.distillations: {
+        const data = await trpcClient.distillations.delete.mutate({ id: String(id) });
 
         return { data: data as unknown as TData };
       }
