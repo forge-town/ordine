@@ -84,7 +84,7 @@ export const ProjectWorkspacePageContent = () => {
             });
           }
         },
-      },
+      }
     );
   };
 
