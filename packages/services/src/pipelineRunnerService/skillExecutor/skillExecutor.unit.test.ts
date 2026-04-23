@@ -5,8 +5,6 @@ vi.mock("@repo/agent", () => ({
   extractJsonFromText: vi.fn((t: string) => t),
   READ_ONLY_TOOLS: ["Read", "Bash"],
   WRITE_TOOLS: ["Read", "Write", "Bash"],
-  CHECK_OUTPUT_EXAMPLE: {},
-  FIX_OUTPUT_EXAMPLE: {},
   CheckOutputSchema: { safeParse: vi.fn().mockReturnValue({ success: true, data: {} }) },
   FixOutputSchema: { safeParse: vi.fn().mockReturnValue({ success: false }) },
   ToolNameSchema: {
