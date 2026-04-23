@@ -10,6 +10,8 @@ export const RunSkillOptionsSchema = z.object({
   inputPath: z.string(),
   allowedTools: z.array(z.string()).optional(),
   agent: AgentRuntimeSchema.optional(),
+  apiKey: z.string().optional(),
+  model: z.string().optional(),
 });
 export type RunSkillOptions = z.infer<typeof RunSkillOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;

@@ -17,6 +17,7 @@
     "quality": "bun run check-types && bun run lint"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "3.0.71",
     "@mastra/core": "1.27.0",
     "@repo/logger": "workspace:*",
     "neverthrow": "^8.2.0",

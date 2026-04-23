@@ -24,6 +24,8 @@ export interface AgentRunOptions {
   onProgress?: (msg: string) => Promise<void> | void;
   jobId?: string;
   agentId?: string;
+  apiKey?: string;
+  model?: string;
 }
 
 const toAsyncProgress = (
@@ -64,6 +66,8 @@ const runMastraDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> =
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
+    apiKey: opts.apiKey,
+    model: opts.model,
     onProgress: toAsyncProgress(opts.onProgress),
   });
   return result;

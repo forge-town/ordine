@@ -17,6 +17,7 @@
     "quality": "bun run check-types && bun run test"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "3.0.71",
     "@repo/agent": "workspace:*",
     "@repo/obs": "workspace:*",
     "@repo/schemas": "workspace:*"
