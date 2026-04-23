@@ -17,6 +17,7 @@
     "quality": "bun run check-types && bun run lint"
   },
   "dependencies": {
+    "@mastra/core": "1.27.0",
     "@repo/logger": "workspace:*",
     "neverthrow": "^8.2.0",
     "pino": "^10.3.1",
