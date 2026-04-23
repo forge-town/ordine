@@ -30,7 +30,7 @@ describe("loopEvaluator", () => {
     expect(result).toBe(true);
     expect(mockRun).toHaveBeenCalledWith(
       expect.objectContaining({
-        agent: "claude-code",
+        agent: "mastra",
         mode: "direct",
         allowedTools: [],
       }),

@@ -2,8 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useDelete, useList } from "@refinedev/core";
 import { FlaskConical, Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@repo/ui/button";
-import { buttonVariants } from "@repo/ui/button";
+import { Button, buttonVariants } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import { Card } from "@repo/ui/card";
 import type { Distillation } from "@repo/schemas";
@@ -69,13 +68,22 @@ export const DistillationsPage = () => {
                       <Badge variant="secondary">{distillation.status}</Badge>
                       <Badge variant="outline">{distillation.mode}</Badge>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">{distillation.summary || "—"}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {distillation.summary || "—"}
+                    </p>
                     <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                      <span>{t("distillations.sourceType")}: {distillation.sourceType}</span>
-                      <span>{t("distillations.sourceId")}: {distillation.sourceId ?? "—"}</span>
-                      <span>{t("distillations.sourceLabel")}: {distillation.sourceLabel || "—"}</span>
                       <span>
-                        {t("common.createdAt")}: {distillation.meta?.createdAt?.toLocaleString() ?? "—"}
+                        {t("distillations.sourceType")}: {distillation.sourceType}
+                      </span>
+                      <span>
+                        {t("distillations.sourceId")}: {distillation.sourceId ?? "—"}
+                      </span>
+                      <span>
+                        {t("distillations.sourceLabel")}: {distillation.sourceLabel || "—"}
+                      </span>
+                      <span>
+                        {t("common.createdAt")}:{" "}
+                        {distillation.meta?.createdAt?.toLocaleString() ?? "—"}
                       </span>
                     </div>
                   </div>
