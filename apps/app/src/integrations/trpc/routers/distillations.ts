@@ -18,6 +18,10 @@ export const distillationsRouter = router({
     .input(z.object({ id: z.string(), patch: DistillationSchema.partial() }))
     .mutation(({ input }) => distillationsService.update(input.id, input.patch)),
 
+  run: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(({ input }) => distillationsService.run(input.id)),
+
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(({ input }) => distillationsService.delete(input.id)),

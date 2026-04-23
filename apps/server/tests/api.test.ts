@@ -82,6 +82,7 @@ vi.mock("../src/services.js", () => ({
     getById: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    run: vi.fn(),
     delete: vi.fn(),
   },
   listDirectory: vi.fn(),
@@ -583,6 +584,24 @@ describe("Distillations API", () => {
     });
     expect(res.status).toBe(200);
     expect(mockDistillationsService.update).toHaveBeenCalledWith("dst-1", { status: "completed" });
+  });
+
+  it("POST /api/distillations/:id/run executes a distillation", async () => {
+    mockDistillationsService.run.mockResolvedValueOnce({
+      ...mockDistillation,
+      status: "completed",
+    } as never);
+    const res = await app.request("/api/distillations/dst-1/run", { method: "POST" });
+
+    expect(res.status).toBe(202);
+    expect(mockDistillationsService.run).toHaveBeenCalledWith("dst-1");
+  });
+
+  it("POST /api/distillations/:id/run returns 404 for missing distillation", async () => {
+    mockDistillationsService.run.mockResolvedValueOnce(undefined as never);
+    const res = await app.request("/api/distillations/missing/run", { method: "POST" });
+
+    expect(res.status).toBe(404);
   });
 
   it("DELETE /api/distillations/:id removes distillation", async () => {

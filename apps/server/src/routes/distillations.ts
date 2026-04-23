@@ -32,6 +32,14 @@ distillationsRoutes.patch("/:id", async (c) => {
   return c.json(distillation);
 });
 
+distillationsRoutes.post("/:id/run", async (c) => {
+  const id = c.req.param("id");
+  const distillation = await distillationsService.run(id);
+  if (!distillation) return c.json({ error: "Distillation not found" }, 404);
+
+  return c.json(distillation, 202);
+});
+
 distillationsRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");
   const existing = await distillationsService.getById(id);
