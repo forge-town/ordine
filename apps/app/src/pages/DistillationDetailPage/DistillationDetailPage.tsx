@@ -50,7 +50,6 @@ export const DistillationDetailPage = () => {
           </Link>
         }
         backTo="/distillations"
-        subtitle={t("distillations.detailSubtitle")}
         title={distillation.title}
       />
 

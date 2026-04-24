@@ -161,7 +161,6 @@ export const OperationDetailPageContent = () => {
           </Button>
         }
         backTo="/operations"
-        subtitle={operation.id}
         title={operation.name}
       />
 

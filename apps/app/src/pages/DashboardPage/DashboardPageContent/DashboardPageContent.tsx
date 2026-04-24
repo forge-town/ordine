@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Activity, ArrowRight, Lightbulb, Sparkles, Workflow } from "lucide-react";
+import { Activity, ArrowRight, LayoutDashboard, Lightbulb, Sparkles, Workflow } from "lucide-react";
 import { useList } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
 import type { Distillation, GithubProject, Job } from "@repo/schemas";
@@ -86,7 +86,7 @@ export const DashboardPageContent = () => {
             </span>
           ) : undefined
         }
-        subtitle={t("dashboard.subtitle")}
+        icon={<LayoutDashboard className="h-4 w-4 text-primary" />}
         title={t("dashboard.title")}
       />
 
@@ -190,12 +190,12 @@ export const DashboardPageContent = () => {
                         </div>
                         <p className="mt-4 text-sm font-semibold text-foreground">
                           {t(
-                            `dashboard.quickAction${action.key[0].toUpperCase()}${action.key.slice(1)}`
+                            `dashboard.quickAction${action.key[0].toUpperCase()}${action.key.slice(1)}`,
                           )}
                         </p>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">
                           {t(
-                            `dashboard.quickAction${action.key[0].toUpperCase()}${action.key.slice(1)}Sub`
+                            `dashboard.quickAction${action.key[0].toUpperCase()}${action.key.slice(1)}Sub`,
                           )}
                         </p>
                       </div>

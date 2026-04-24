@@ -89,6 +89,7 @@ export const RecipesPageContent = () => {
             {t("recipes.addNew")}
           </Button>
         }
+        icon={<ChefHat className="h-4 w-4 text-primary" />}
         title={t("recipes.title")}
       />
 

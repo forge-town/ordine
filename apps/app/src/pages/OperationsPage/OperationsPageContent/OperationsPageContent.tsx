@@ -231,6 +231,7 @@ export const OperationsPageContent = () => {
             />
           </>
         }
+        icon={<Zap className="h-4 w-4 text-primary" />}
         title={t("operations.title")}
       />
 

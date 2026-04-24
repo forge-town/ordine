@@ -72,7 +72,7 @@ export const RulesPageContent = () => {
     return (
       <div className="flex h-full flex-col overflow-hidden">
         <PageHeader
-          icon={<ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" />}
+          icon={<ShieldCheck className="h-4 w-4 text-primary" />}
           title={t("rules.title")}
         />
         <PageLoadingState variant="list" />
@@ -94,7 +94,7 @@ export const RulesPageContent = () => {
             {enabledCount} {t("rules.enabled")} / {rules.length} {t("common.all")}
           </span>
         }
-        icon={<ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" />}
+        icon={<ShieldCheck className="h-4 w-4 text-primary" />}
         title={t("rules.title")}
       />
 
@@ -108,7 +108,7 @@ export const RulesPageContent = () => {
                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                   categoryFilter === f.value
                     ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
                 onClick={handleCategoryFilterClick(f.value)}
               >
