@@ -162,6 +162,8 @@
     "duplicate": "Duplicate",
     "viewResult": "View Result",
     "openInStudio": "Open In Studio",
+    "optimizePipeline": "Optimize Pipeline",
+    "optimizing": "Optimizing…",
     "agentLabel": "Agent Runtime",
     "useDefaultAgent": "Use workspace default agent",
     "modelLabel": "Model Override",

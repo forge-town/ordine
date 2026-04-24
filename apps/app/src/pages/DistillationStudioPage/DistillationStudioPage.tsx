@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreate, useOne, useUpdate } from "@refinedev/core";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod/v4";
 import {
@@ -25,6 +26,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
+import { Loader2, Sparkles } from "lucide-react";
 import { DistillationResultPanel } from "@/components/DistillationResultPanel";
 import { JobSourceAnalysisPanel } from "@/components/JobSourceAnalysisPanel";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -116,6 +118,8 @@ export const DistillationStudioPage = () => {
     });
   const [latestDistillation, setLatestDistillation] = useState<Distillation | null>(null);
   const [submissionMode, setSubmissionMode] = useState<SubmissionMode | null>(null);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const navigate = useNavigate();
 
   const initialTitle = useMemo(() => {
     if (search.sourceLabel) {
@@ -203,6 +207,16 @@ export const DistillationStudioPage = () => {
       </div>
     );
   }
+
+  const handleOptimizePipeline = async () => {
+    if (!latestDistillation) return;
+    setIsOptimizing(true);
+    const result = await trpcClient.pipelines.optimizeFromDistillation.mutate({
+      distillationId: latestDistillation.id,
+    });
+    setIsOptimizing(false);
+    await navigate({ to: "/pipelines/$pipelineId", params: { pipelineId: result.id } });
+  };
 
   const isBusy = form.formState.isSubmitting;
   const currentSourceType = form.watch("sourceType");
@@ -462,6 +476,24 @@ export const DistillationStudioPage = () => {
           </Card>
 
           <div className="space-y-4">
+            {latestDistillation?.result && (
+              <div className="flex justify-end">
+                <Button
+                  disabled={isOptimizing}
+                  onClick={handleOptimizePipeline}
+                  size="sm"
+                >
+                  {isOptimizing ? (
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                  )}
+                  {isOptimizing
+                    ? t("distillations.optimizing")
+                    : t("distillations.optimizePipeline")}
+                </Button>
+              </div>
+            )}
             <DistillationResultPanel distillation={latestDistillation} />
             {currentSourceType === "job" && currentSourceId ? (
               <JobSourceAnalysisPanel jobId={currentSourceId} />
