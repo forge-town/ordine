@@ -8,6 +8,7 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useStore } from "zustand";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { CreateProjectDialog } from "../CreateProjectDialog";
 import { ProjectCard } from "../ProjectCard";
 import { useProjectsPageStore } from "../_store";
@@ -52,19 +53,25 @@ export const ProjectsPageContent = () => {
   const handleDeleteProject = (id: string) => () => void handleDelete(id);
 
   if (projectsQuery?.isLoading) {
-    return <PageLoadingState title={t("projects.title")} variant="grid" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("projects.title")} />
+        <PageLoadingState variant="grid" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <h1 className="text-base font-semibold text-foreground">{t("projects.title")}</h1>
-        <Button size="sm" onClick={handleShowCreate}>
-          <Plus className="h-4 w-4" />
-          {t("projects.importProject")}
-        </Button>
-      </div>
+      <PageHeader
+        actions={
+          <Button size="sm" onClick={handleShowCreate}>
+            <Plus className="h-4 w-4" />
+            {t("projects.importProject")}
+          </Button>
+        }
+        title={t("projects.title")}
+      />
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3">

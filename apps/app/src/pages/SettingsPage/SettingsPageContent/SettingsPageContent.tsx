@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Globe, Code, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 import { DeveloperSection, LanguageSection } from "../sections";
 
 type Section = "language" | "developer";
@@ -19,9 +20,7 @@ export const SettingsPageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
-        <h1 className="text-base font-semibold text-foreground">{t("settings.title")}</h1>
-      </div>
+      <PageHeader title={t("settings.title")} />
 
       <div className="flex flex-1 overflow-hidden">
         <nav className="w-52 shrink-0 border-r border-border bg-background py-4">

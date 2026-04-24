@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, FolderGit2, ChevronRight, Play, GitBranch, Layers } from "lucide-react";
+import { FolderGit2, ChevronRight, Play, GitBranch, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.$projectId.workspace";
 import { useOne, useList, useCustomMutation } from "@refinedev/core";
@@ -9,6 +9,7 @@ import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import { Button } from "@repo/ui/button";
 import { useStore } from "zustand";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { ObjectRow, type ObjectItem } from "../ObjectRow";
 import { PipelineRow } from "../PipelineRow";
 import { useProjectWorkspacePageStore } from "../_store";
@@ -43,7 +44,12 @@ export const ProjectWorkspacePageContent = () => {
   const { mutate: runMutate } = useCustomMutation();
 
   if (projectQuery?.isLoading || pipelinesQuery?.isLoading) {
-    return <PageLoadingState title={t("workspace.title")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("workspace.title")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   if (!project) {
@@ -88,12 +94,6 @@ export const ProjectWorkspacePageContent = () => {
     );
   };
 
-  const handleNavigateBack = () =>
-    void navigate({
-      to: "/projects/$projectId",
-      params: { projectId: project.id },
-    });
-
   const handleTriggerClick = () => handleTrigger();
 
   const handleToggleObject = (path: string) => () => toggleObject(path);
@@ -104,11 +104,7 @@ export const ProjectWorkspacePageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button className="h-8 w-8" size="icon" variant="ghost" onClick={handleNavigateBack}>
-          <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-        </Button>
+      <PageHeader backTo={`/projects/${project.id}`} title={t("workspace.title")}>
         <div className="min-w-0 flex-1">
           <h1 className="text-sm font-semibold text-foreground truncate">{t("workspace.title")}</h1>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -120,12 +116,11 @@ export const ProjectWorkspacePageContent = () => {
             <span>{project.branch}</span>
           </div>
         </div>
-        {/* Trigger button */}
         <Button disabled={!canTrigger} size="sm" onClick={handleTriggerClick}>
           <Play className="h-3.5 w-3.5" />
           {t("workspace.triggerWork")} {selectedObjects.size > 0 && `(${selectedObjects.size})`}
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Two-column layout */}
       <div className="flex flex-1 overflow-hidden">

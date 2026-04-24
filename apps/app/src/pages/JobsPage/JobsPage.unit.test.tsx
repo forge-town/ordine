@@ -8,6 +8,7 @@ vi.mock("@/routes/_layout/jobs.index", () => ({
 }));
 
 vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
   useNavigate: () => vi.fn(),
 }));
 

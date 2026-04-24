@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Info, Pencil, Tag, ToggleLeft, ToggleRight, Code2 } from "lucide-react";
+import { Info, Pencil, Tag, ToggleLeft, ToggleRight, Code2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
@@ -8,6 +8,7 @@ import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import type { Rule } from "@repo/schemas";
 import { SEVERITY_CONFIG, CATEGORY_CONFIG } from "@/pages/RulesPage/types";
+import { PageHeader } from "@/components/PageHeader";
 
 interface Props {
   rule: Rule;
@@ -17,7 +18,6 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const handleNavigateBack = () => void navigate({ to: "/rules" });
   const handleNavigateToEdit = () =>
     void navigate({ to: "/rules/$ruleId/edit", params: { ruleId: rule.id } });
 
@@ -27,17 +27,7 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button
-          aria-label={t("rules.backToList")}
-          className="h-8 w-8"
-          size="icon"
-          variant="ghost"
-          onClick={handleNavigateBack}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+      <PageHeader backTo="/rules" title={rule.name}>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <SeverityIcon className={cn("h-4 w-4 shrink-0", s.cls)} />
@@ -59,7 +49,7 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
           <Pencil className="h-4 w-4" />
           {t("common.edit")}
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-6 space-y-5">

@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Wrench, ArrowLeft } from "lucide-react";
+import { Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/projects.$projectId.index";
 import { useOne, useList } from "@refinedev/core";
@@ -9,6 +9,7 @@ import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { ProjectMeta } from "../ProjectMeta";
 
 export const ProjectDetailPageContent = () => {
@@ -25,7 +26,6 @@ export const ProjectDetailPageContent = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const handleNavigateProjects = () => void navigate({ to: "/projects" });
   const handleNavigateWorkspace = () => {
     if (!project) return;
     void navigate({
@@ -35,7 +35,12 @@ export const ProjectDetailPageContent = () => {
   };
 
   if (projectQuery?.isLoading || pipelinesQuery?.isLoading) {
-    return <PageLoadingState title={t("projects.title")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("projects.title")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   if (!project) {
@@ -48,22 +53,17 @@ export const ProjectDetailPageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button className="h-8 w-8" size="icon" variant="ghost" onClick={handleNavigateProjects}>
-          <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-        </Button>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-sm font-semibold text-foreground truncate">{project.name}</h1>
-          <p className="text-xs text-muted-foreground truncate">
-            {project.owner}/{project.repo}
-          </p>
-        </div>
-        <Button size="sm" onClick={handleNavigateWorkspace}>
-          <Wrench className="h-3.5 w-3.5" />
-          {t("projects.openWorkspace")}
-        </Button>
-      </div>
+      <PageHeader
+        actions={
+          <Button size="sm" onClick={handleNavigateWorkspace}>
+            <Wrench className="h-3.5 w-3.5" />
+            {t("projects.openWorkspace")}
+          </Button>
+        }
+        backTo="/projects"
+        subtitle={`${project.owner}/${project.repo}`}
+        title={project.name}
+      />
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">

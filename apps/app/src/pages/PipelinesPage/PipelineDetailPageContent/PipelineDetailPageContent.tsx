@@ -5,7 +5,6 @@ import {
   Tag,
   Layers,
   Pencil,
-  ArrowLeft,
   Zap,
   FileCode,
   Folder,
@@ -30,6 +29,7 @@ import { useTranslation } from "react-i18next";
 import type { Operation } from "@repo/schemas";
 import type { PipelineData, PipelineNode } from "@repo/pipeline-engine/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { PageHeader } from "@/components/PageHeader";
 import { Stat } from "../Stat";
 
 interface Props {
@@ -175,7 +175,6 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   };
 
   const handleClickRun = () => handleRun();
-  const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
   const handleCanvasClick = () => void navigate({ to: "/canvas", search: { id: pipeline.id } });
   const handleOpenDistillationStudio = () =>
     void navigate({
@@ -214,32 +213,26 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
-        <button
-          aria-label={t("pipelines.backToList")}
-          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-          onClick={handleNavigatePipelines}
-        >
-          <ArrowLeft className="h-4 w-4 text-gray-500" />
-        </button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-gray-900" role="heading">
-            {pipeline.name}
-          </h1>
-          <p className="font-mono text-[11px] text-gray-400">{pipeline.id}</p>
-        </div>
-        <Link
-          className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          search={{ id: pipeline.id }}
-          to="/canvas"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-          {t("pipelines.editInCanvas")}
-        </Link>
-        <Button size="sm" variant="outline" onClick={handleOpenDistillationStudio}>
-          {t("distillations.openStudio")}
-        </Button>
-      </div>
+      <PageHeader
+        actions={
+          <>
+            <Link
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              search={{ id: pipeline.id }}
+              to="/canvas"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              {t("pipelines.editInCanvas")}
+            </Link>
+            <Button size="sm" variant="outline" onClick={handleOpenDistillationStudio}>
+              {t("distillations.openStudio")}
+            </Button>
+          </>
+        }
+        backTo="/pipelines"
+        subtitle={pipeline.id}
+        title={pipeline.name}
+      />
 
       {/* ── Body ───────────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto p-6 space-y-5">

@@ -6,6 +6,7 @@ import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { Skill, Operation } from "@repo/schemas";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 
 export const OperationEditPage = () => {
   const { operationId } = Route.useParams();
@@ -21,7 +22,12 @@ export const OperationEditPage = () => {
   const { t } = useTranslation();
 
   if (operationQuery?.isLoading || skillsQuery?.isLoading) {
-    return <PageLoadingState title={t("operations.editTitle")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("operations.editTitle")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   if (!operation) {
