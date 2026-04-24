@@ -1,22 +1,17 @@
 import { useRef } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Plus,
-  Pencil,
-  Trash2,
   Zap,
-  FileCode,
-  Folder,
-  FolderGit2,
-  ExternalLink,
   Search,
-  Download,
   Upload,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, ObjectType } from "@repo/schemas";
+import type { Operation } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -32,7 +27,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
+import { cn } from "@repo/ui/lib/utils";
 import { useOperationsPageStore } from "../_store";
+import { OperationCard } from "../OperationCard";
+import { OperationListRow } from "../OperationListRow";
 
 const exportOperation = (op: Operation) => {
   const data = JSON.stringify(op, null, 2);
@@ -54,21 +52,6 @@ export const OperationsPageContent = () => {
   const operations = operationsResult?.data ?? [];
 
   const { t } = useTranslation();
-
-  const OBJECT_TYPE_OPTIONS: {
-    value: ObjectType;
-    label: string;
-    icon: React.ElementType;
-  }[] = [
-    { value: "file", label: t("operations.objectTypeFile"), icon: FileCode },
-    { value: "folder", label: t("operations.objectTypeFolder"), icon: Folder },
-    {
-      value: "project",
-      label: t("operations.objectTypeProject"),
-      icon: FolderGit2,
-    },
-  ];
-
   const navigate = useNavigate();
   const toastStoreRef = useToastStore();
   const addToast = useStore(toastStoreRef, (s) => s.addToast);
@@ -77,11 +60,13 @@ export const OperationsPageContent = () => {
   const sortBy = useStore(pageStore, (s) => s.sortBy);
   const sortOpen = useStore(pageStore, (s) => s.sortOpen);
   const importing = useStore(pageStore, (s) => s.importing);
+  const viewMode = useStore(pageStore, (s) => s.viewMode);
   const handleSetSearchQuery = useStore(pageStore, (s) => s.handleSetSearchQuery);
   const handleSetSortBy = useStore(pageStore, (s) => s.handleSetSortBy);
   const handleSetSortOpen = useStore(pageStore, (s) => s.handleSetSortOpen);
   const handleToggleSortOpen = useStore(pageStore, (s) => s.handleToggleSortOpen);
   const handleSetImporting = useStore(pageStore, (s) => s.handleSetImporting);
+  const handleSetViewMode = useStore(pageStore, (s) => s.handleSetViewMode);
   const { mutate: deleteOpMutate } = useDelete();
   const { mutateAsync: createOpMutate } = useCreate();
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -113,10 +98,6 @@ export const OperationsPageContent = () => {
       }
     });
 
-  const openCreate = () => {
-    navigate({ to: "/operations/new" });
-  };
-
   const handleDelete = (id: string) => {
     deleteOpMutate({ resource: ResourceName.operations, id });
   };
@@ -131,18 +112,6 @@ export const OperationsPageContent = () => {
 
   const handleSortOpenChange = (v: boolean) => handleSetSortOpen(v);
   const handleSortToggle = () => handleToggleSortOpen();
-
-  const handleOpenCreate = () => openCreate();
-
-  const handleEditClick = (op: Operation) => () =>
-    navigate({
-      to: "/operations/$operationId/edit",
-      params: { operationId: op.id },
-    });
-
-  const handleDeleteClick = (id: string) => () => void handleDelete(id);
-
-  const handleExportOperation = (op: Operation) => () => exportOperation(op);
 
   const handleImportClick = () => {
     importInputRef.current?.click();
@@ -200,6 +169,16 @@ export const OperationsPageContent = () => {
     e.target.value = "";
   };
 
+  const makeHandlers = (op: Operation) => ({
+    onEdit: () =>
+      navigate({
+        to: "/operations/$operationId/edit",
+        params: { operationId: op.id },
+      }),
+    onDelete: () => handleDelete(op.id),
+    onExport: () => exportOperation(op),
+  });
+
   if (operationsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
@@ -218,7 +197,7 @@ export const OperationsPageContent = () => {
               <Upload className="h-4 w-4" />
               {importing ? t("common.loading") : t("common.import")}
             </Button>
-            <Button size="sm" onClick={handleOpenCreate}>
+            <Button size="sm" onClick={() => navigate({ to: "/operations/new" })}>
               <Plus className="h-4 w-4" />
               {t("operations.createNew")}
             </Button>
@@ -235,18 +214,19 @@ export const OperationsPageContent = () => {
         title={t("operations.title")}
       />
 
-      {/* Search + filter bar */}
-      <div className="flex shrink-0 items-center gap-3 border-b border-border bg-background px-6 py-3">
-        <div className="relative ml-auto max-w-xs flex-1">
+      {/* Search + filter toolbar */}
+      <div className="flex shrink-0 items-center gap-3 bg-muted/30 px-6 py-2.5">
+        <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
-            className="h-8 pl-8 text-sm"
+            className="h-8 pl-8 text-sm bg-background"
             placeholder={t("operations.searchPlaceholder")}
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
           />
         </div>
+
         <label className="sr-only" htmlFor="sort-select">
           {t("common.actions")}
         </label>
@@ -258,7 +238,7 @@ export const OperationsPageContent = () => {
         >
           <SelectTrigger
             aria-label={t("common.actions")}
-            className="h-8 w-40 text-xs"
+            className="h-8 w-36 text-xs bg-background"
             id="sort-select"
             onClick={handleSortToggle}
           >
@@ -274,107 +254,80 @@ export const OperationsPageContent = () => {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <span className="text-xs text-muted-foreground">{filteredOperations.length}</span>
+
+        <div className="ml-auto flex items-center gap-1">
+          <span className="mr-2 text-xs text-muted-foreground tabular-nums">
+            {filteredOperations.length}
+          </span>
+          <Button
+            className={cn("h-8 w-8", viewMode === "grid" && "bg-accent")}
+            size="icon"
+            variant="ghost"
+            onClick={() => handleSetViewMode("grid")}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button
+            className={cn("h-8 w-8", viewMode === "list" && "bg-accent")}
+            size="icon"
+            variant="ghost"
+            onClick={() => handleSetViewMode("list")}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
-        {/* Operation list */}
+      {/* Content area */}
+      <div className="flex-1 overflow-auto">
         {filteredOperations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-              <Zap className="h-6 w-6 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center py-32 text-center px-6">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-dashed border-border">
+              <Zap className="h-7 w-7 text-muted-foreground/50" />
             </div>
             {searchQuery.trim() ? (
-              <p className="text-sm font-medium text-muted-foreground">{t("common.notFound")}</p>
-            ) : (
               <>
                 <p className="text-sm font-medium text-muted-foreground">
+                  {t("common.notFound")}
+                </p>
+                <Button
+                  className="mt-3"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleSetSearchQuery("")}
+                >
+                  {t("common.clearSearch", "Clear search")}
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-foreground">
                   {t("operations.noOperations")}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground/60">{t("operations.createNew")}</p>
+                <p className="mt-1 text-xs text-muted-foreground max-w-xs">
+                  {t("operations.createNew")}
+                </p>
+                <Button
+                  className="mt-4"
+                  size="sm"
+                  onClick={() => navigate({ to: "/operations/new" })}
+                >
+                  <Plus className="mr-1.5 h-4 w-4" />
+                  {t("operations.createNew")}
+                </Button>
               </>
             )}
           </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-4">
+        ) : viewMode === "grid" ? (
+          <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredOperations.map((op) => (
-              <div
-                key={op.id}
-                className="group relative rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <Zap className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">{op.name}</p>
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <Link
-                      className="rounded p-1 hover:bg-accent"
-                      params={{ operationId: op.id }}
-                      title="查看详情"
-                      to="/operations/$operationId"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                    </Link>
-                    <button
-                      className="rounded p-1 hover:bg-accent"
-                      title="编辑"
-                      onClick={handleEditClick(op)}
-                    >
-                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                    <button
-                      className="rounded p-1 hover:bg-accent"
-                      title="导出"
-                      onClick={handleExportOperation(op)}
-                    >
-                      <Download className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                    <button
-                      className="rounded p-1 hover:bg-destructive/10"
-                      title="删除"
-                      onClick={handleDeleteClick(op.id)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                    </button>
-                  </div>
-                </div>
-                {op.description && (
-                  <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
-                    {op.description}
-                  </p>
-                )}
-                {/* Show accepted object types */}
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground">
-                    {t("operations.acceptedObjectTypes")}:
-                  </span>
-                  <div className="flex gap-1">
-                    {(Array.isArray(op.acceptedObjectTypes)
-                      ? op.acceptedObjectTypes
-                      : ["file", "folder", "project"]
-                    ).map((type) => {
-                      const config = OBJECT_TYPE_OPTIONS.find((o) => o.value === type);
-                      if (!config) return null;
-                      const Icon = config.icon;
-
-                      return (
-                        <span
-                          key={type}
-                          className="inline-flex items-center gap-0.5 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
-                          title={config.label}
-                        >
-                          <Icon className="h-3 w-3" />
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+              <OperationCard key={op.id} operation={op} {...makeHandlers(op)} />
+            ))}
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {filteredOperations.map((op) => (
+              <OperationListRow key={op.id} operation={op} {...makeHandlers(op)} />
             ))}
           </div>
         )}

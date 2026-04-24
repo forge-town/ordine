@@ -22,6 +22,7 @@ import {
 } from "@repo/schemas";
 import { z } from "zod/v4";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
+import { normalizeSettingsRecord } from "../settingsService/normalizeSettingsRecord";
 
 const DISTILLATION_AGENT_ID = "distillation-studio";
 const MAX_PROMPT_SNAPSHOT_CHARS = 30_000;
@@ -29,14 +30,8 @@ const MAX_PROMPT_SNAPSHOT_CHARS = 30_000;
 const DISTILLATION_RESULT_EXAMPLE = {
   type: "completed" as const,
   summary: "Concise statement of what the source material reveals.",
-  insights: [
-    "Key insight 1",
-    "Key insight 2",
-  ],
-  minimalPath: [
-    "Step 1",
-    "Step 2",
-  ],
+  insights: ["Key insight 1", "Key insight 2"],
+  minimalPath: ["Step 1", "Step 2"],
   reusableAssets: [
     {
       type: "pipeline_template" as const,
@@ -44,10 +39,7 @@ const DISTILLATION_RESULT_EXAMPLE = {
       content: "Template, patch, or knowledge card content.",
     },
   ],
-  nextActions: [
-    "Concrete next action 1",
-    "Concrete next action 2",
-  ],
+  nextActions: ["Concrete next action 1", "Concrete next action 2"],
 };
 
 const DEFAULT_DISTILLATION_SYSTEM_PROMPT = [
@@ -77,7 +69,7 @@ const normalizeDistillationRecord = <
     updatedAt: Date;
   },
 >(
-  record: T,
+  record: T
 ): Omit<T, "config" | "result"> & {
   config: DistillationConfig;
   result: DistillationResult | null;
@@ -94,8 +86,7 @@ const MODE_GUIDANCE: Record<Distillation["mode"], string> = {
     "Identify the failure pattern, root causes, anti-patterns, and guardrails that prevent recurrence.",
   prompt:
     "Identify the effective prompting pattern, what should be removed, and the most reusable prompt assets.",
-  knowledge:
-    "Extract the durable knowledge units, patterns, and the most reusable takeaways.",
+  knowledge: "Extract the durable knowledge units, patterns, and the most reusable takeaways.",
 };
 
 const stringifyForPrompt = (value: unknown): string => {
@@ -145,7 +136,7 @@ const buildJobSnapshot = async ({
       durationMs: run.durationMs,
       status: run.status,
       createdAt: run.createdAt,
-      rawPayloadPreview: stringifyForPrompt(run.rawPayload).slice(0, 8_000),
+      rawPayloadPreview: stringifyForPrompt(run.rawPayload).slice(0, 8000),
     })),
     spans: spans.slice(0, 80).map((span) => ({
       spanType: span.spanType,
@@ -310,7 +301,7 @@ export const createDistillationsService = (db: DbConnection) => {
         result: null,
       });
 
-      const settings = await settingsDao.get();
+      const settings = normalizeSettingsRecord(await settingsDao.get());
       const userPrompt = buildDistillationUserPrompt({
         distillation,
         sourceSnapshot,
@@ -330,15 +321,15 @@ export const createDistillationsService = (db: DbConnection) => {
           apiKey: settings.defaultApiKey,
           model: distillation.config.model ?? settings.defaultModel,
         }),
-        (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+        (cause) => (cause instanceof Error ? cause : new Error(String(cause)))
       ).andThen((raw) =>
         ResultAsync.fromPromise(
           Promise.resolve().then(() => ({
             raw,
             parsed: parseDistillationResult({ raw }),
           })),
-          (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
-        ),
+          (cause) => (cause instanceof Error ? cause : new Error(String(cause)))
+        )
       );
 
       return execution.match(
@@ -349,7 +340,7 @@ export const createDistillationsService = (db: DbConnection) => {
               summary: parsed.summary,
               inputSnapshot: sourceSnapshot,
               result: parsed,
-            }),
+            })
           ),
         async (error) => {
           logger.error({ err: error, distillationId: id }, "runDistillation: failed");
@@ -362,9 +353,9 @@ export const createDistillationsService = (db: DbConnection) => {
                 type: "failed",
                 error: error.message,
               },
-            }),
+            })
           );
-        },
+        }
       );
     },
   };

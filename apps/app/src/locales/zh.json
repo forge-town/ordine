@@ -145,6 +145,7 @@
     "emptyHint": "创建第一条蒸馏草稿，把原始执行历史整理成可复用的元数据资产。",
     "defaultTitlePrefix": "蒸馏",
     "defaultUntitled": "未命名蒸馏",
+    "distillJob": "蒸馏 Job",
     "titleLabel": "标题",
     "modeLabel": "模式",
     "summaryLabel": "摘要",
@@ -153,6 +154,7 @@
     "saveDraft": "保存草稿",
     "saveChanges": "保存修改",
     "run": "开始蒸馏",
+    "runFailed": "蒸馏失败",
     "rerun": "重新蒸馏",
     "running": "蒸馏中…",
     "previewTitle": "载荷预览",
@@ -512,6 +514,7 @@
     "developerSection": {
       "title": "开发者",
       "description": "本地开发环境的开发者模式设置",
+      "defaultAgentRuntime": "默认 Agent Runtime",
       "defaultOutputPath": "默认输出路径前缀"
     }
   },
