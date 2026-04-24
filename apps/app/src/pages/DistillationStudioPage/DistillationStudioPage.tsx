@@ -140,7 +140,7 @@ export const DistillationStudioPage = () => {
         distillation: existingDistillationResult,
         fallbackTitle: initialTitle,
         search,
-      })
+      }),
     );
     setLatestDistillation(existingDistillationResult);
   }, [existingDistillationResult, form, initialTitle, search]);
@@ -227,11 +227,6 @@ export const DistillationStudioPage = () => {
               <Badge variant="outline">{latestDistillation.mode}</Badge>
             </div>
           ) : null
-        }
-        subtitle={
-          existingDistillationId
-            ? t("distillations.studioExistingSubtitle")
-            : t("distillations.studioSubtitle")
         }
         title={t("distillations.studioTitle")}
       />

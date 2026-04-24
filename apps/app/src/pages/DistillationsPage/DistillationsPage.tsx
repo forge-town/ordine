@@ -50,7 +50,7 @@ export const DistillationsPage = () => {
             {t("distillations.openStudio")}
           </Link>
         }
-        subtitle={t("distillations.subtitle")}
+        icon={<FlaskConical className="h-4 w-4 text-primary" />}
         title={t("distillations.title")}
       />
 
@@ -90,7 +90,7 @@ export const DistillationsPage = () => {
                             ? "bg-destructive/10"
                             : distillation.status === "running"
                               ? "bg-primary/10"
-                              : "bg-muted"
+                              : "bg-muted",
                       )}
                     >
                       <FlaskRound
@@ -102,7 +102,7 @@ export const DistillationsPage = () => {
                               ? "text-destructive"
                               : distillation.status === "running"
                                 ? "text-primary"
-                                : "text-muted-foreground"
+                                : "text-muted-foreground",
                         )}
                       />
                     </div>

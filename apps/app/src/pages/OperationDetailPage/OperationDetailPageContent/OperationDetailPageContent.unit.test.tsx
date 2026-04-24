@@ -72,12 +72,6 @@ describe("OperationDetailPageContent", () => {
     expect(screen.getByText("Plan")).toBeInTheDocument();
   });
 
-  it("renders the operation id", () => {
-    mockUseLoaderData.mockReturnValue(mockOp);
-    render(<OperationDetailPageContent />);
-    expect(screen.getByText("op_plan")).toBeInTheDocument();
-  });
-
   it("renders the description", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
     render(<OperationDetailPageContent />);

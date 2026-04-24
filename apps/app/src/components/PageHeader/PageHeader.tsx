@@ -9,7 +9,6 @@ export type PageHeaderProps = {
   children?: React.ReactNode;
   className?: string;
   icon?: React.ReactNode;
-  subtitle?: string;
   title: string;
 };
 
@@ -20,7 +19,6 @@ export const PageHeader = ({
   children,
   className,
   icon,
-  subtitle,
   title,
 }: PageHeaderProps) => {
   const backIcon = backTo ? (
@@ -38,24 +36,14 @@ export const PageHeader = ({
     <div
       className={cn(
         "flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6",
-        className
+        className,
       )}
     >
       {backIcon}
       {children ?? (
         <>
           <div className={cn("min-w-0", actions || badge ? "flex-1" : undefined)}>
-            <h1
-              className={cn(
-                "font-semibold text-foreground",
-                subtitle ? "truncate text-sm" : "text-base"
-              )}
-            >
-              {title}
-            </h1>
-            {subtitle ? (
-              <p className="truncate font-mono text-[11px] text-muted-foreground">{subtitle}</p>
-            ) : null}
+            <h1 className="truncate text-base font-semibold text-foreground">{title}</h1>
           </div>
           {badge}
           {actions ? <div className="ml-auto flex items-center gap-2">{actions}</div> : null}

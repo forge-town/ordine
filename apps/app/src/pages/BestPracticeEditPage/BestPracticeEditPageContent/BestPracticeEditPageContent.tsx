@@ -74,7 +74,7 @@ export const BestPracticeEditPageContent = ({
       isNew: false,
       isDeleted: false,
       isDirty: false,
-    }))
+    })),
   );
 
   const [snippets, setSnippets] = useState<CodeSnippetDraft[]>(
@@ -87,7 +87,7 @@ export const BestPracticeEditPageContent = ({
       isNew: false,
       isDeleted: false,
       isDirty: false,
-    }))
+    })),
   );
 
   const form = useForm<EditFormValues>({
@@ -140,10 +140,10 @@ export const BestPracticeEditPageContent = ({
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number
+    value: string | number,
   ) => {
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item))
+      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item)),
     );
   };
 
@@ -170,10 +170,10 @@ export const BestPracticeEditPageContent = ({
   const handleUpdateSnippetField = (
     id: string,
     field: keyof Pick<CodeSnippetDraft, "title" | "language" | "code" | "sortOrder">,
-    value: string | number
+    value: string | number,
   ) => {
     setSnippets((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, [field]: value, isDirty: true } : s))
+      prev.map((s) => (s.id === id ? { ...s, [field]: value, isDirty: true } : s)),
     );
   };
 
@@ -325,7 +325,6 @@ export const BestPracticeEditPageContent = ({
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         backTo={`/best-practices/${bestPractice.id}`}
-        subtitle={bestPractice.id}
         title={t("bestPractices.editTitle")}
       />
 

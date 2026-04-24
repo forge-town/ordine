@@ -61,7 +61,6 @@ export const ProjectDetailPageContent = () => {
           </Button>
         }
         backTo="/projects"
-        subtitle={`${project.owner}/${project.repo}`}
         title={project.name}
       />
 

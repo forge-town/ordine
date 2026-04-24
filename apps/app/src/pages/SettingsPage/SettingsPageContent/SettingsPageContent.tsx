@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Globe, Code, ChevronRight } from "lucide-react";
+import { Globe, Code, ChevronRight, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
@@ -20,7 +20,10 @@ export const SettingsPageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <PageHeader title={t("settings.title")} />
+      <PageHeader
+        icon={<Settings className="h-4 w-4 text-primary" />}
+        title={t("settings.title")}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <nav className="w-52 shrink-0 border-r border-border bg-background py-4">
@@ -36,7 +39,7 @@ export const SettingsPageContent = () => {
                   "flex w-full items-center gap-2.5 px-4 py-2 text-sm transition-colors",
                   active === id
                     ? "bg-accent text-accent-foreground font-medium"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
                 )}
                 onClick={handleClick}
               >

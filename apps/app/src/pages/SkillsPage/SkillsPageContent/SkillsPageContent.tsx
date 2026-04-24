@@ -71,6 +71,7 @@ export const SkillsPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         badge={<span className="text-xs text-muted-foreground">{skills.length}</span>}
+        icon={<Wand2 className="h-4 w-4 text-primary" />}
         title={t("skills.title")}
       />
 
@@ -122,7 +123,7 @@ export const SkillsPageContent = () => {
                   <Badge
                     className={cn(
                       "text-[10px]",
-                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600"
+                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600",
                     )}
                     variant="secondary"
                   >

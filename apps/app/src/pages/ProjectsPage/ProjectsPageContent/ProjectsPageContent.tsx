@@ -34,7 +34,7 @@ export const ProjectsPageContent = () => {
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.description ?? "").toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
-      p.repo.toLowerCase().includes(search.toLowerCase())
+      p.repo.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleDelete = (id: string) => {
@@ -70,6 +70,7 @@ export const ProjectsPageContent = () => {
             {t("projects.importProject")}
           </Button>
         }
+        icon={<Folder className="h-4 w-4 text-primary" />}
         title={t("projects.title")}
       />
 

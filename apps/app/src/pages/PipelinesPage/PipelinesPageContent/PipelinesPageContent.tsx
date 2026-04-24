@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Plus, Layers, Search, X } from "lucide-react";
+import { GitBranch, Plus, Layers, Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -118,11 +118,7 @@ export const PipelinesPageContent = () => {
             {t("pipelines.createNew")}
           </Button>
         }
-        subtitle={
-          filtered.length === pipelines.length
-            ? String(pipelines.length)
-            : `${filtered.length} / ${pipelines.length}`
-        }
+        icon={<GitBranch className="h-4 w-4 text-primary" />}
         title={t("pipelines.title")}
       />
 
@@ -165,7 +161,7 @@ export const PipelinesPageContent = () => {
                   "cursor-pointer select-none text-[11px] transition-colors",
                   selectedTags.includes(tag)
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80",
                 )}
                 variant="secondary"
                 onClick={handleTagClick(tag)}
