@@ -20,9 +20,6 @@ beforeEach(() => {
 const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDeps => ({
   runPrompt: vi.fn().mockReturnValue(okAsync("prompt-output")),
   runSkill: vi.fn().mockReturnValue(okAsync("skill-output")),
-  runRuleCheck: vi.fn().mockResolvedValue({
-    stats: { totalFindings: 2, totalFiles: 3 },
-  }),
   structuredJsonToMarkdown: vi.fn((c: string) => c),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,
@@ -125,23 +122,6 @@ describe("executeOperationNode", () => {
         systemPrompt: "CUSTOM SKILL PROMPT",
       }),
     );
-  });
-
-  it("executes a rule-check operation", async () => {
-    const deps = makeDeps();
-    const op = makeOperation({ type: "rule-check" });
-    const ops = new Map([["op-id", op]]);
-    const node = makeNode({ operationId: "op-id" });
-    const ctx = makeCtx(deps, ops);
-
-    const result = await executeOperationNode(node, makeInput(), ctx);
-
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      const parsed = JSON.parse(result.content);
-      expect(parsed.stats.totalFindings).toBe(2);
-    }
-    expect(deps.runRuleCheck).toHaveBeenCalledWith("/src");
   });
 
   it("fails when prompt text is empty", async () => {

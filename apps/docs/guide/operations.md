@@ -52,19 +52,6 @@ Runs a custom script.
 }
 ```
 
-### Rule-Check Executor
-
-Validates code against a best practice.
-
-```json
-{
-  "executor": {
-    "type": "rule-check",
-    "bestPracticeId": "my-practice"
-  }
-}
-```
-
 ## Creating an Operation
 
 ### Via the REST API

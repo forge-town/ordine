@@ -84,18 +84,6 @@ export const executeOperationNode = async (
     return { ok: false, error: null };
   }
 
-  if (executor.type === "rule-check") {
-    await trace(jobId, `Running rule-check on path: ${input.inputPath}`);
-    const checkOutput = await deps.runRuleCheck(input.inputPath);
-    const checkResult = JSON.stringify(checkOutput, null, 2);
-    await trace(
-      jobId,
-      `Rule-check: ${checkOutput.stats.totalFindings} findings in ${checkOutput.stats.totalFiles} files`,
-    );
-
-    return { ok: true, content: checkResult };
-  }
-
   await trace(jobId, `Executing operation "${operation.name}" (${executor.type})`);
 
   const chunkState = { lastTime: 0 };

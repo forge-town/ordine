@@ -36,7 +36,6 @@ afterAll(async () => {
 const makeDeps = (): PipelineEngineDeps => ({
   runPrompt: vi.fn().mockReturnValue(okAsync("prompt-output")),
   runSkill: vi.fn().mockReturnValue(okAsync("skill-output")),
-  runRuleCheck: vi.fn().mockResolvedValue({ stats: { totalFindings: 0, totalFiles: 0 } }),
   structuredJsonToMarkdown: vi.fn((c: string) => `# Markdown\n${c}`),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
 });

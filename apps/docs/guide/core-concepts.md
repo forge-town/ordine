@@ -33,7 +33,6 @@ Operation = Executor Config + Input Schema + Output Schema
 Executor types:
 - **`agent`** — AI agent (Claude or Codex) with configurable system prompt and tools
 - **`script`** — Custom script execution
-- **`rule-check`** — Policy validation
 
 Agent modes:
 - **`skill`** — Uses a registered skill for structured AI execution
