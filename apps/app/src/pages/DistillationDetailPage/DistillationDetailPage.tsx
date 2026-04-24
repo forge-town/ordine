@@ -1,11 +1,13 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useOne } from "@refinedev/core";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Distillation } from "@repo/schemas";
 import { buttonVariants } from "@repo/ui/button";
+import { Button } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import { Card } from "@repo/ui/card";
-import { Database } from "lucide-react";
+import { Database, Sparkles, Loader2 } from "lucide-react";
 import { DistillationResultPanel } from "@/components/DistillationResultPanel";
 import { InputSnapshotPanel } from "@/components/InputSnapshotPanel";
 import { AgentRunsPanel } from "@/pages/JobDetailPage/AgentRunsPanel";
@@ -13,10 +15,13 @@ import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/distillations.$distillationId";
+import { trpcClient } from "@/integrations/trpc/client";
 
 export const DistillationDetailPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { distillationId } = Route.useParams();
+  const [isOptimizing, setIsOptimizing] = useState(false);
   const { result: distillationResult, query: distillationQuery } = useOne<Distillation>({
     resource: ResourceName.distillations,
     id: distillationId,
@@ -40,17 +45,43 @@ export const DistillationDetailPage = () => {
     );
   }
 
+  const handleOptimizePipeline = async () => {
+    setIsOptimizing(true);
+    const result = await trpcClient.pipelines.optimizeFromDistillation.mutate({
+      distillationId: distillation.id,
+    });
+    setIsOptimizing(false);
+    await navigate({ to: "/pipelines/$pipelineId", params: { pipelineId: result.id } });
+  };
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         actions={
-          <Link
-            className={buttonVariants({ size: "sm", variant: "outline" })}
-            search={{ distillationId: distillation.id }}
-            to="/distillations/new"
-          >
-            {t("distillations.openInStudio")}
-          </Link>
+          <div className="flex items-center gap-2">
+            {distillation.result && (
+              <Button
+                disabled={isOptimizing}
+                onClick={handleOptimizePipeline}
+                size="sm"
+                variant="default"
+              >
+                {isOptimizing ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                {isOptimizing ? t("distillations.optimizing") : t("distillations.optimizePipeline")}
+              </Button>
+            )}
+            <Link
+              className={buttonVariants({ size: "sm", variant: "outline" })}
+              search={{ distillationId: distillation.id }}
+              to="/distillations/new"
+            >
+              {t("distillations.openInStudio")}
+            </Link>
+          </div>
         }
         backTo="/distillations"
         title={distillation.title}

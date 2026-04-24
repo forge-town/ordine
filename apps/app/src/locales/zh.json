@@ -165,6 +165,8 @@
     "duplicate": "基于此复制",
     "viewResult": "查看结果",
     "openInStudio": "在蒸馏室打开",
+    "optimizePipeline": "优化Pipeline",
+    "optimizing": "优化中…",
     "agentLabel": "Agent Runtime",
     "useDefaultAgent": "使用工作区默认 Agent",
     "modelLabel": "模型覆盖",
