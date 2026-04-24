@@ -5,6 +5,20 @@ import { ScriptExecutionError } from "../../errors";
 import { runScript, safeParseConfig } from "../../infrastructure";
 import type { OperationNodeContext, OperationExecResult, NodeResult } from "../types";
 
+const GH_REMOTE_TOOLS = [
+  "Read",
+  "Bash(find:*)",
+  "Bash(grep:*)",
+  "Bash(rg:*)",
+  "Bash(cat:*)",
+  "Bash(head:*)",
+  "Bash(tail:*)",
+  "Bash(wc:*)",
+  "Bash(ls:*)",
+  "Bash(tree:*)",
+  "Bash(gh:*)",
+] as const;
+
 const CHUNK_THROTTLE_MS = 2000;
 
 export const executeOperationNode = async (
@@ -123,6 +137,7 @@ export const executeOperationNode = async (
 
       return { ok: false, error: null };
     }
+    const extraTools: string[] = input.githubRemote ? [...GH_REMOTE_TOOLS] : [];
     const promptResult = await deps.runPrompt({
       prompt,
       inputContent: effectiveInput,
@@ -130,6 +145,8 @@ export const executeOperationNode = async (
       agent: agentOverride ?? executor.agent,
       onChunk: handleChunk,
       onProgress,
+      extraTools: extraTools.length > 0 ? extraTools : undefined,
+      githubToken: input.githubRemote ? ctx.githubToken : undefined,
     });
     if (promptResult.isErr()) {
       await trace(jobId, `@@NODE_FAIL::${node.id}`);

@@ -8,6 +8,7 @@ import { Result } from "neverthrow";
  */
 export const resolveCwd = ({ inputPath }: { inputPath: string | undefined }): string => {
   if (!inputPath) return process.cwd();
+  if (inputPath.startsWith("http://") || inputPath.startsWith("https://")) return process.cwd();
   const result = Result.fromThrowable(
     () => statSync(inputPath),
     () => undefined,

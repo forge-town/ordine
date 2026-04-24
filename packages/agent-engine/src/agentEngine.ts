@@ -1,10 +1,4 @@
-import {
-  runClaude,
-  runCodex,
-  runMastra,
-  type ClaudeStreamEvent,
-  type ToolName,
-} from "@repo/agent";
+import { runClaude, runCodex, runMastra, type ClaudeStreamEvent, type ToolName } from "@repo/agent";
 import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
 import { logger } from "@repo/logger";
 import { AgentRuntime } from "@repo/schemas";
@@ -20,12 +14,13 @@ export interface AgentRunOptions {
   systemPrompt: string;
   userPrompt: string;
   cwd: string;
-  allowedTools?: readonly ToolName[];
+  allowedTools?: readonly string[];
   onProgress?: (msg: string) => Promise<void> | void;
   jobId?: string;
   agentId?: string;
   apiKey?: string;
   model?: string;
+  githubToken?: string;
 }
 
 const toAsyncProgress = (
@@ -41,12 +36,14 @@ const toAsyncProgress = (
 };
 
 const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
+  const extraEnv = opts.githubToken ? { GITHUB_TOKEN: opts.githubToken } : undefined;
   const result = await runClaude({
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
-    allowedTools: opts.allowedTools ?? [],
+    allowedTools: (opts.allowedTools ?? []) as ToolName[],
     onProgress: toAsyncProgress(opts.onProgress),
+    extraEnv,
   });
   return { text: result.text, events: result.events };
 };
@@ -81,9 +78,7 @@ const DRIVERS: Record<AgentRuntime, DriverFn> = {
   mastra: runMastraDirect,
 };
 
-const extractTokenTotals = (
-  events: ClaudeStreamEvent[],
-): { input: number; output: number } => {
+const extractTokenTotals = (events: ClaudeStreamEvent[]): { input: number; output: number } => {
   const resultEvent = events.find((e) => e.type === "result");
   const modelUsage = resultEvent?.modelUsage;
 

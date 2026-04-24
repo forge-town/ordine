@@ -5,6 +5,7 @@ export const GitHubProjectNodeDataSchema = z.object({
   label: z.string(),
   nodeType: z.literal("github-project"),
   sourceType: z.enum(["github", "local"]).optional(),
+  accessMode: z.enum(["clone", "remote"]).optional(),
   owner: z.string(),
   repo: z.string(),
   branch: z.string().optional(),

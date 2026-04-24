@@ -25,6 +25,8 @@ const run = ({
   onProgress,
   apiKey,
   model,
+  extraTools,
+  githubToken,
 }: RunPromptOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
@@ -39,11 +41,12 @@ const run = ({
         inputPath,
         jobId,
         agentId: PROMPT_AGENT_ID,
-        allowedTools: [],
+        allowedTools: extraTools ?? [],
         onProgress,
         logPrefix: "[LLM] runPrompt",
         apiKey,
         model,
+        githubToken,
       });
       if (onChunk) await onChunk(raw);
 

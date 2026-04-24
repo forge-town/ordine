@@ -2,7 +2,6 @@ import { ResultAsync } from "neverthrow";
 import { agentEngine } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
 import type { AgentRuntime } from "@repo/schemas";
-import type { ToolName } from "@repo/agent";
 import { resolveCwd } from "../resolveCwd";
 
 export interface AgentRunnerOptions {
@@ -12,11 +11,12 @@ export interface AgentRunnerOptions {
   inputPath: string;
   jobId?: string;
   agentId: string;
-  allowedTools?: readonly ToolName[];
+  allowedTools?: readonly string[];
   onProgress?: (line: string) => Promise<void> | void;
   logPrefix: string;
   apiKey?: string;
   model?: string;
+  githubToken?: string;
 }
 
 export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
@@ -32,6 +32,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
     logPrefix,
     apiKey,
     model,
+    githubToken,
   } = opts;
 
   logger.info(
@@ -57,6 +58,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
       agentId,
       apiKey,
       model,
+      githubToken,
     }),
     (error) => error,
   );
@@ -71,9 +73,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
 
   const raw = engineResult.value.text;
   logger.info({ outputLen: raw.length, agent }, `${logPrefix}: agent complete`);
-  await onProgress?.(
-    `${logPrefix}: ${agent} complete, output=${raw.length} chars`,
-  );
+  await onProgress?.(`${logPrefix}: ${agent} complete, output=${raw.length} chars`);
 
   return raw;
 };
