@@ -83,6 +83,24 @@ export const processGitHubProjectNode = async (
     return { ok: true };
   }
 
+  const accessMode = ghData.accessMode ?? "clone";
+
+  if (accessMode === "remote") {
+    await trace(
+      jobId,
+      `Remote mode: providing GitHub repo context for ${owner}/${repo}@${branch} (agent will use gh CLI)`,
+    );
+    const content = `GitHub Repository: ${owner}/${repo} (branch: ${branch})\n\nThis repository is accessed remotely. Use \`gh\` CLI commands to browse files, e.g.:\n- \`gh api repos/${owner}/${repo}/git/trees/${branch} --jq '.tree[].path'\` to list top-level files\n- \`gh api repos/${owner}/${repo}/contents/{path}?ref=${branch}\` to read file metadata\n- \`gh api repos/${owner}/${repo}/contents/{path}?ref=${branch} -H 'Accept: application/vnd.github.raw+json'\` to read file content`;
+    nodeOutputs.set(node.id, {
+      inputPath: `https://github.com/${owner}/${repo}`,
+      content,
+      githubRemote: { owner, repo, branch },
+    });
+    await trace(jobId, `@@NODE_DONE::${node.id}`);
+
+    return { ok: true };
+  }
+
   await trace(jobId, `Cloning GitHub repo ${owner}/${repo}@${branch}...`);
   const cloneResult = await cloneGitHubRepo(owner, repo, branch, githubToken);
   if (cloneResult.isErr()) {

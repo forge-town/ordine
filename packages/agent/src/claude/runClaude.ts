@@ -38,6 +38,11 @@ export const WEB_TOOLS = [
   "WebFetch",
 ] as const satisfies readonly ToolName[];
 
+export const GH_TOOLS = [
+  ...DEFAULT_READ_ONLY_TOOLS,
+  "Bash(gh:*)",
+] as const satisfies readonly ToolName[];
+
 /**
  * Extract JSON from text that may contain markdown fences or surrounding prose.
  * Tries: direct parse → fenced code block → first `{...}` substring.
@@ -108,6 +113,7 @@ export const runClaude = async ({
   timeoutMs = 10 * 60 * 1000,
   maxBudgetUsd = 5,
   onProgress,
+  extraEnv,
 }: RunClaudeOptions): Promise<RunClaudeResult> => {
   const MAX_INPUT_CHARS = 50_000;
   const truncatedPrompt =
@@ -137,6 +143,7 @@ export const runClaude = async ({
     const child = spawn(CLAUDE_BIN, args, {
       cwd,
       stdio: ["pipe", "pipe", "pipe"],
+      env: extraEnv ? { ...process.env, ...extraEnv } : undefined,
     });
 
     const events: ClaudeStreamEvent[] = [];

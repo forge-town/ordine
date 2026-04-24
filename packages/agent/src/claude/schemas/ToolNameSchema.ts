@@ -21,6 +21,8 @@ export const ToolNameSchema = z.enum([
   "Bash(python3:*)",
   "WebSearch",
   "WebFetch",
+  // GitHub CLI tools
+  "Bash(gh:*)",
 ]);
 
 export type ToolName = z.infer<typeof ToolNameSchema>;

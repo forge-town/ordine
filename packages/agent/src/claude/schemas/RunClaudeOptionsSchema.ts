@@ -9,6 +9,7 @@ export const RunClaudeOptionsSchema = z.object({
   timeoutMs: z.number().optional(),
   maxBudgetUsd: z.number().optional(),
   onProgress: z.custom<(line: string) => Promise<void>>().optional(),
+  extraEnv: z.record(z.string(), z.string()).optional(),
 });
 
 export type RunClaudeOptions = z.infer<typeof RunClaudeOptionsSchema>;
