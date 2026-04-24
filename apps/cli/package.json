@@ -14,7 +14,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "commander": "^14.0.0"
+    "commander": "^14.0.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@repo/oxlint-config": "workspace:*",

@@ -1,3 +1,5 @@
+import { getEnv } from "./integrations/env";
+
 /**
  * REST API client for seed scripts.
  *
@@ -5,7 +7,7 @@
  * hitting the database directly.
  */
 
-const BASE_URL = process.env["API_BASE_URL"] ?? "http://localhost:9430";
+const BASE_URL = getEnv().API_BASE_URL ?? "http://localhost:9430";
 
 interface ApiResult<T> {
   ok: boolean;

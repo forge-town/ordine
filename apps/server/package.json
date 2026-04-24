@@ -19,7 +19,8 @@
     "@repo/schemas": "workspace:*",
     "@repo/services": "workspace:*",
     "hono": "^4.7.10",
-    "neverthrow": "^8.2.0"
+    "neverthrow": "^8.2.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
