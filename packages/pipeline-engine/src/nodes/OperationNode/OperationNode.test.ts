@@ -365,3 +365,45 @@ describe("executeOperationNode — agent override", () => {
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
   });
 });
+
+describe("executeOperationNode — GitHub remote mode", () => {
+  it("passes extraTools and githubToken when input has githubRemote", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Evaluate" });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id" });
+    const input: NodeCtx = {
+      inputPath: "https://github.com/forge-town/ordine",
+      content: "GitHub Repository: forge-town/ordine",
+      githubRemote: { owner: "forge-town", repo: "ordine", branch: "main" },
+    };
+    const ctx = makeCtx(deps, ops, { githubToken: "ghp_test123" });
+
+    const result = await executeOperationNode(node, input, ctx);
+
+    expect(result.ok).toBe(true);
+    expect(deps.runPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        extraTools: expect.arrayContaining(["Bash(gh:*)"]),
+        githubToken: "ghp_test123",
+      }),
+    );
+  });
+
+  it("does not pass extraTools when input has no githubRemote", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Evaluate" });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id" });
+    const ctx = makeCtx(deps, ops);
+
+    await executeOperationNode(node, makeInput(), ctx);
+
+    expect(deps.runPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        extraTools: undefined,
+        githubToken: undefined,
+      }),
+    );
+  });
+});
