@@ -5,7 +5,10 @@ import type { Distillation } from "@repo/schemas";
 import { buttonVariants } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import { Card } from "@repo/ui/card";
+import { Database } from "lucide-react";
 import { DistillationResultPanel } from "@/components/DistillationResultPanel";
+import { InputSnapshotPanel } from "@/components/InputSnapshotPanel";
+import { AgentRunsPanel } from "@/pages/JobDetailPage/AgentRunsPanel";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -96,12 +99,11 @@ export const DistillationDetailPage = () => {
             </div>
 
             <div>
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Database className="h-3.5 w-3.5" />
                 {t("distillations.inputSnapshotLabel")}
               </div>
-              <pre className="mt-2 overflow-x-auto rounded-lg border border-border/60 bg-muted/20 p-3 text-xs text-muted-foreground">
-                {JSON.stringify(distillation.inputSnapshot, null, 2)}
-              </pre>
+              <InputSnapshotPanel data={distillation.inputSnapshot} />
             </div>
           </Card>
 
@@ -110,6 +112,12 @@ export const DistillationDetailPage = () => {
             hint={t("distillations.detailResultHint")}
           />
         </div>
+
+        {distillation.sourceType === "job" && distillation.sourceId && (
+          <div className="mt-6 max-w-7xl">
+            <AgentRunsPanel jobId={distillation.sourceId} />
+          </div>
+        )}
       </div>
     </div>
   );
