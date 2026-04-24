@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useOne } from "@refinedev/core";
-import { useState } from "react";
+import { useOne, useCustomMutation } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
 import type { Distillation } from "@repo/schemas";
 import { buttonVariants } from "@repo/ui/button";
@@ -15,13 +14,13 @@ import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/distillations.$distillationId";
-import { trpcClient } from "@/integrations/trpc/client";
 
 export const DistillationDetailPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { distillationId } = Route.useParams();
-  const [isOptimizing, setIsOptimizing] = useState(false);
+  const { mutate: optimizePipeline, mutation: optimizeMutation } = useCustomMutation();
+  const isOptimizing = optimizeMutation.isPending;
   const { result: distillationResult, query: distillationQuery } = useOne<Distillation>({
     resource: ResourceName.distillations,
     id: distillationId,
@@ -45,13 +44,20 @@ export const DistillationDetailPage = () => {
     );
   }
 
-  const handleOptimizePipeline = async () => {
-    setIsOptimizing(true);
-    const result = await trpcClient.pipelines.optimizeFromDistillation.mutate({
-      distillationId: distillation.id,
-    });
-    setIsOptimizing(false);
-    await navigate({ to: "/pipelines/$pipelineId", params: { pipelineId: result.id } });
+  const handleOptimizePipeline = () => {
+    optimizePipeline(
+      {
+        url: "pipelines/optimizeFromDistillation",
+        method: "post",
+        values: { distillationId: distillation.id },
+      },
+      {
+        onSuccess: (data) => {
+          const pipeline = data.data as { id: string };
+          void navigate({ to: "/pipelines/$pipelineId", params: { pipelineId: pipeline.id } });
+        },
+      },
+    );
   };
 
   return (

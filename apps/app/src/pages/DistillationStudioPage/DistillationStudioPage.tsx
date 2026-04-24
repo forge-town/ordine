@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreate, useOne, useUpdate } from "@refinedev/core";
+import { useCreate, useOne, useUpdate, useCustomMutation } from "@refinedev/core";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "@tanstack/react-router";
@@ -118,7 +118,8 @@ export const DistillationStudioPage = () => {
     });
   const [latestDistillation, setLatestDistillation] = useState<Distillation | null>(null);
   const [submissionMode, setSubmissionMode] = useState<SubmissionMode | null>(null);
-  const [isOptimizing, setIsOptimizing] = useState(false);
+  const { mutate: optimizePipeline, mutation: optimizeMutation } = useCustomMutation();
+  const isOptimizing = optimizeMutation.isPending;
   const navigate = useNavigate();
 
   const initialTitle = useMemo(() => {
@@ -208,14 +209,21 @@ export const DistillationStudioPage = () => {
     );
   }
 
-  const handleOptimizePipeline = async () => {
+  const handleOptimizePipeline = () => {
     if (!latestDistillation) return;
-    setIsOptimizing(true);
-    const result = await trpcClient.pipelines.optimizeFromDistillation.mutate({
-      distillationId: latestDistillation.id,
-    });
-    setIsOptimizing(false);
-    await navigate({ to: "/pipelines/$pipelineId", params: { pipelineId: result.id } });
+    optimizePipeline(
+      {
+        url: "pipelines/optimizeFromDistillation",
+        method: "post",
+        values: { distillationId: latestDistillation.id },
+      },
+      {
+        onSuccess: (data) => {
+          const pipeline = data.data as { id: string };
+          void navigate({ to: "/pipelines/$pipelineId", params: { pipelineId: pipeline.id } });
+        },
+      },
+    );
   };
 
   const isBusy = form.formState.isSubmitting;
