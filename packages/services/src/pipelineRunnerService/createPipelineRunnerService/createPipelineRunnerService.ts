@@ -1,6 +1,7 @@
 import { ok, err, ResultAsync, type Result } from "neverthrow";
 import { initObs, initSpanRecorder } from "@repo/obs";
 import { logger } from "@repo/logger";
+import type { AgentRuntime } from "@repo/schemas";
 import { loopEvaluator } from "../loopEvaluator";
 import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
@@ -42,13 +43,24 @@ export const createPipelineRunnerService = (db: DbConnection) => {
 
   const loopEvaluatorFactory = loopEvaluator.create();
 
-  const buildDepsForJob = ({ jobId, apiKey, model }: { jobId: string; apiKey?: string; model?: string }) =>
+  const buildDepsForJob = ({
+    jobId,
+    apiKey,
+    model,
+    defaultAgent,
+  }: {
+    jobId: string;
+    apiKey?: string;
+    model?: string;
+    defaultAgent?: AgentRuntime;
+  }) =>
     pipelineRunnerEngineDeps.build({
       rulesDao,
       evaluateLoopCondition: loopEvaluatorFactory({ jobId }),
       jobId,
       apiKey,
       model,
+      defaultAgent,
     });
 
   return {
@@ -91,7 +103,12 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           jobsDao,
           skillsDao,
           bestPracticesDao,
-          engineDeps: buildDepsForJob({ jobId, apiKey: settings.defaultApiKey, model: settings.defaultModel }),
+          engineDeps: buildDepsForJob({
+            jobId,
+            apiKey: settings.defaultApiKey,
+            model: settings.defaultModel,
+            defaultAgent: settings.defaultAgentRuntime,
+          }),
         }),
         (error) => error,
       ).match(

@@ -4,6 +4,7 @@ import { structuredOutput } from "../structuredOutput";
 import { ruleCheckRunner } from "../ruleCheckRunner";
 import type { PipelineEngineDeps } from "@repo/pipeline-engine";
 import type { RulesDao } from "@repo/models";
+import type { AgentRuntime } from "@repo/schemas";
 import type { LoopEvaluatorFn } from "../loopEvaluator";
 
 export const pipelineRunnerEngineDeps = {
@@ -13,16 +14,19 @@ export const pipelineRunnerEngineDeps = {
     jobId,
     apiKey,
     model,
+    defaultAgent,
   }: {
     rulesDao: RulesDao;
     evaluateLoopCondition: LoopEvaluatorFn;
     jobId?: string;
     apiKey?: string;
     model?: string;
+    defaultAgent?: AgentRuntime;
   }): PipelineEngineDeps => ({
     runPrompt: (o) =>
       promptExecutor.run({
         ...o,
+        agent: o.agent ?? defaultAgent,
         jobId,
         apiKey,
         model,
@@ -30,6 +34,7 @@ export const pipelineRunnerEngineDeps = {
     runSkill: (o) =>
       skillExecutor.run({
         ...o,
+        agent: o.agent ?? defaultAgent,
         jobId,
         apiKey,
         model,

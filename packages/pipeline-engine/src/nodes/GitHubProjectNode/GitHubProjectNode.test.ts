@@ -159,4 +159,26 @@ describe("processGitHubProjectNode", () => {
 
     expect(trace).toHaveBeenCalledWith("job-1", "@@NODE_DONE::gh-1");
   });
+
+  it("handles remote accessMode without cloning", async () => {
+    const deps = makeDeps();
+    const node = makeNode({
+      owner: "forge-town",
+      repo: "ordine",
+      branch: "main",
+      accessMode: "remote",
+    });
+    const ctx = makeCtx(node, deps);
+
+    const result = await processGitHubProjectNode(ctx);
+
+    expect(result.ok).toBe(true);
+    const output = ctx.nodeOutputs.get("gh-1")!;
+    expect(output.inputPath).toBe("https://github.com/forge-town/ordine");
+    expect(output.content).toContain("forge-town/ordine");
+    expect(output.content).toContain("gh");
+    expect(output.githubRemote).toEqual({ owner: "forge-town", repo: "ordine", branch: "main" });
+    expect(trace).toHaveBeenCalledWith("job-1", expect.stringContaining("Remote mode"));
+    expect(trace).toHaveBeenCalledWith("job-1", "@@NODE_DONE::gh-1");
+  });
 });
