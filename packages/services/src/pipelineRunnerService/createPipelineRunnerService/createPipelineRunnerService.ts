@@ -5,6 +5,7 @@ import type { AgentRuntime } from "@repo/schemas";
 import { loopEvaluator } from "../loopEvaluator";
 import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
+import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
 import {
   createOperationsDao,
   createPipelinesDao,
@@ -86,7 +87,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
         finishedAt: null,
       });
 
-      const settings = await settingsDao.get();
+      const settings = normalizeSettingsRecord(await settingsDao.get());
 
       void ResultAsync.fromPromise(
         pipelineRunExecutor.run({
@@ -107,15 +108,15 @@ export const createPipelineRunnerService = (db: DbConnection) => {
             defaultAgent: settings.defaultAgentRuntime,
           }),
         }),
-        (error) => error,
+        (error) => error
       ).match(
         () => undefined,
         (error) => {
           logger.error(
             { err: error, jobId },
-            "startRun: unhandled rejection from background pipeline run",
+            "startRun: unhandled rejection from background pipeline run"
           );
-        },
+        }
       );
 
       return ok({ jobId });

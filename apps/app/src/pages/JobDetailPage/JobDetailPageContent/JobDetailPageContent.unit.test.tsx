@@ -1,16 +1,28 @@
 import { render } from "@/test/test-wrapper";
 import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JobDetailPageContent } from "./JobDetailPageContent";
 import type { Job } from "@repo/schemas";
 
 const mockUseLoaderData = vi.fn();
-const { mockGetTracesQuery, mockGetAgentRunsQuery, mockGetAgentRunSpansQuery } = vi.hoisted(() => ({
+const {
+  mockCreateDistillationMutate,
+  mockGetAgentRunsQuery,
+  mockGetAgentRunSpansQuery,
+  mockGetTracesQuery,
+  mockNavigate,
+  mockRunDistillationMutate,
+} = vi.hoisted(() => ({
+  mockCreateDistillationMutate: vi.fn(),
   mockGetTracesQuery: vi.fn().mockResolvedValue([]),
   mockGetAgentRunsQuery: vi.fn().mockResolvedValue([]),
   mockGetAgentRunSpansQuery: vi.fn().mockResolvedValue([]),
+  mockNavigate: vi.fn(),
+  mockRunDistillationMutate: vi.fn(),
 }));
 const mockWriteText = vi.fn().mockResolvedValue(undefined);
+const mockDistillationId = "00000000-0000-4000-8000-000000000001";
 
 vi.mock("@/routes/_layout/jobs.$jobId", () => ({
   Route: { useParams: () => ({ jobId: "job-1" }), useLoaderData: () => mockUseLoaderData() },
@@ -18,11 +30,15 @@ vi.mock("@/routes/_layout/jobs.$jobId", () => ({
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
-  useNavigate: () => vi.fn(),
+  useNavigate: () => mockNavigate,
 }));
 
 vi.mock("@/integrations/trpc/client", () => ({
   trpcClient: {
+    distillations: {
+      create: { mutate: mockCreateDistillationMutate },
+      run: { mutate: mockRunDistillationMutate },
+    },
     jobs: {
       getTraces: { query: mockGetTracesQuery },
       getAgentRuns: { query: mockGetAgentRunsQuery },
@@ -65,6 +81,13 @@ const mockJob: Job = {
 describe("JobDetailPageContent", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCreateDistillationMutate.mockResolvedValue({
+      id: mockDistillationId,
+    });
+    mockRunDistillationMutate.mockResolvedValue({
+      id: mockDistillationId,
+    });
+    vi.spyOn(crypto, "randomUUID").mockReturnValue(mockDistillationId);
     Object.defineProperty(navigator, "clipboard", {
       value: { writeText: mockWriteText },
       configurable: true,
@@ -81,6 +104,35 @@ describe("JobDetailPageContent", () => {
     });
 
     expect(screen.getByText(mockJob.title)).toBeInTheDocument();
+  });
+
+  it("creates and runs a job distillation from the header action", async () => {
+    mockUseLoaderData.mockReturnValue(mockJob);
+
+    render(<JobDetailPageContent />);
+
+    await userEvent.click(screen.getByRole("button", { name: "蒸馏 Job" }));
+
+    await waitFor(() => {
+      expect(mockCreateDistillationMutate).toHaveBeenCalledWith({
+        id: mockDistillationId,
+        title: `蒸馏 ${mockJob.title}`,
+        summary: "",
+        sourceType: "job",
+        sourceId: mockJob.id,
+        sourceLabel: mockJob.title,
+        mode: "pipeline",
+        status: "draft",
+        config: { objective: "" },
+        inputSnapshot: null,
+        result: null,
+      });
+      expect(mockRunDistillationMutate).toHaveBeenCalledWith({ id: mockDistillationId });
+      expect(mockNavigate).toHaveBeenCalledWith({
+        to: "/distillations/$distillationId",
+        params: { distillationId: mockDistillationId },
+      });
+    });
   });
 
   it("renders a single agent runs panel and fetches agent runs once", async () => {
