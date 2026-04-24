@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
-import { ArrowLeft, ClipboardCheck, Code2, Download, Plus, Upload } from "lucide-react";
+import { ClipboardCheck, Code2, Download, Plus, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -28,6 +28,7 @@ import type { BestPractice, ChecklistItem, CodeSnippet } from "@repo/schemas";
 import { useUpdate, useCreate, useDelete } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CATEGORIES, LANGUAGES } from "@/pages/BestPracticesPage/constants";
+import { PageHeader } from "@/components/PageHeader";
 import { toJson, fromJson, toCsv, fromCsv, downloadFile, readFileContent } from "../checklistIO";
 import { ok } from "neverthrow";
 import { ChecklistItemEditor } from "./ChecklistItemEditor";
@@ -322,24 +323,11 @@ export const BestPracticeEditPageContent = ({
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button
-          aria-label={t("common.back")}
-          className="h-8 w-8"
-          size="icon"
-          variant="ghost"
-          onClick={handleCancel}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-foreground">
-            {t("bestPractices.editTitle")}
-          </h1>
-          <p className="font-mono text-[11px] text-muted-foreground">{bestPractice.id}</p>
-        </div>
-      </div>
+      <PageHeader
+        backTo={`/best-practices/${bestPractice.id}`}
+        subtitle={bestPractice.id}
+        title={t("bestPractices.editTitle")}
+      />
 
       {/* Body */}
       <Form {...form}>

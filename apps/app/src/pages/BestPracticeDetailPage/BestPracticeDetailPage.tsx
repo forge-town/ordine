@@ -5,6 +5,7 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { BestPractice } from "@repo/schemas";
 import { BestPracticeDetailPageContent } from "./BestPracticeDetailPageContent";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 
 export const BestPracticeDetailPage = () => {
   const { bestPracticeId } = Route.useParams();
@@ -16,7 +17,12 @@ export const BestPracticeDetailPage = () => {
   const { t } = useTranslation();
 
   if (bestPracticeQuery?.isLoading) {
-    return <PageLoadingState title={t("bestPractices.title")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("bestPractices.title")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   if (!bestPracticeResult) {

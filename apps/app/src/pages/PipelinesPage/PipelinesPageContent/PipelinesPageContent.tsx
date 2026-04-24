@@ -11,6 +11,7 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import { useStore } from "zustand";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { usePipelinesPageStore } from "../_store";
 import { PipelineCard } from "../PipelineCard";
 
@@ -100,26 +101,30 @@ export const PipelinesPageContent = () => {
   const handleDeletePipeline = (id: string) => () => void handleDelete(id);
 
   if (pipelinesQuery?.isLoading) {
-    return <PageLoadingState title={t("pipelines.title")} variant="grid" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("pipelines.title")} />
+        <PageLoadingState variant="grid" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <div>
-          <h1 className="text-base font-semibold text-foreground">{t("pipelines.title")}</h1>
-          <p className="text-xs text-muted-foreground">
-            {filtered.length === pipelines.length
-              ? pipelines.length
-              : `${filtered.length} / ${pipelines.length}`}
-          </p>
-        </div>
-        <Button className="flex items-center gap-1.5" size="sm" onClick={handleCreateClick}>
-          <Plus className="h-3.5 w-3.5" />
-          {t("pipelines.createNew")}
-        </Button>
-      </div>
+      <PageHeader
+        actions={
+          <Button className="flex items-center gap-1.5" size="sm" onClick={handleCreateClick}>
+            <Plus className="h-3.5 w-3.5" />
+            {t("pipelines.createNew")}
+          </Button>
+        }
+        subtitle={
+          filtered.length === pipelines.length
+            ? String(pipelines.length)
+            : `${filtered.length} / ${pipelines.length}`
+        }
+        title={t("pipelines.title")}
+      />
 
       {/* Toolbar */}
       <div className="flex flex-col gap-2 border-b border-border bg-background px-6 py-3">

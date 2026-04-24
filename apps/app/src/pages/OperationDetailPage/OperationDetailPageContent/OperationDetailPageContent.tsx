@@ -1,6 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
 import {
-  ArrowLeft,
   FileCode,
   Folder,
   FolderGit2,
@@ -29,6 +28,7 @@ import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
 import { OutputPortRow } from "../OutputPortRow";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
@@ -117,7 +117,12 @@ export const OperationDetailPageContent = () => {
   const handleNavigateBack = () => void navigate({ to: "/operations" });
 
   if (operationQuery?.isLoading) {
-    return <PageLoadingState title={t("operations.title")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("operations.title")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   if (!operation) {
@@ -143,31 +148,22 @@ export const OperationDetailPageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button
-          aria-label={t("common.backToList")}
-          className="h-8 w-8"
-          size="icon"
-          variant="ghost"
-          onClick={handleNavigateBack}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-foreground">{operation.name}</h1>
-          <p className="font-mono text-[11px] text-muted-foreground">{operation.id}</p>
-        </div>
-        <Button
-          aria-label={t("common.edit")}
-          size="sm"
-          variant="outline"
-          onClick={handleNavigateToEdit}
-        >
-          <Pencil className="h-4 w-4" />
-          {t("common.edit")}
-        </Button>
-      </div>
+      <PageHeader
+        actions={
+          <Button
+            aria-label={t("common.edit")}
+            size="sm"
+            variant="outline"
+            onClick={handleNavigateToEdit}
+          >
+            <Pencil className="h-4 w-4" />
+            {t("common.edit")}
+          </Button>
+        }
+        backTo="/operations"
+        subtitle={operation.id}
+        title={operation.name}
+      />
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-6 space-y-5">

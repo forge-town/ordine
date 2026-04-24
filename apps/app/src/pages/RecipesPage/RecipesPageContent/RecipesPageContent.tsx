@@ -7,6 +7,7 @@ import type { Recipe, Operation, BestPractice } from "@repo/schemas";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { useRecipesPageStore } from "../_store";
 import { RecipeFormDialog } from "../RecipeFormDialog";
 import { RecipeCard } from "../RecipeCard";
@@ -71,19 +72,25 @@ export const RecipesPageContent = () => {
   const bpMap = new Map<string, BestPractice>(bestPractices.map((bp: BestPractice) => [bp.id, bp]));
 
   if (recipesQuery?.isLoading || operationsQuery?.isLoading || bestPracticesQuery?.isLoading) {
-    return <PageLoadingState title={t("recipes.title")} variant="list" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("recipes.title")} />
+        <PageLoadingState variant="list" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <h1 className="text-base font-semibold text-foreground">{t("recipes.title")}</h1>
-        <Button size="sm" onClick={handleAddRecipe}>
-          <Plus className="h-4 w-4" />
-          {t("recipes.addNew")}
-        </Button>
-      </div>
+      <PageHeader
+        actions={
+          <Button size="sm" onClick={handleAddRecipe}>
+            <Plus className="h-4 w-4" />
+            {t("recipes.addNew")}
+          </Button>
+        }
+        title={t("recipes.title")}
+      />
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3">

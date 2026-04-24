@@ -19,7 +19,7 @@ export const CanvasPage = () => {
   if (id && pipelineQuery?.isLoading) {
     return (
       <CanvasLayout>
-        <PageLoadingState title="Canvas" variant="detail" />
+        <PageLoadingState variant="detail" />
       </CanvasLayout>
     );
   }

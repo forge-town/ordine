@@ -6,6 +6,7 @@ import { buttonVariants } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import type { Distillation, DistillationStatus } from "@repo/schemas";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { cn } from "@repo/ui/lib/utils";
 
@@ -32,22 +33,26 @@ export const DistillationsPage = () => {
   };
 
   if (query?.isLoading) {
-    return <PageLoadingState title={t("distillations.title")} variant="list" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("distillations.title")} />
+        <PageLoadingState variant="list" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <div>
-          <h1 className="text-base font-semibold text-foreground">{t("distillations.title")}</h1>
-          <p className="text-xs text-muted-foreground">{t("distillations.subtitle")}</p>
-        </div>
-        <Link className={buttonVariants({ size: "sm" })} to="/distillation-studio">
-          <Plus className="h-4 w-4" />
-          {t("distillations.openStudio")}
-        </Link>
-      </div>
+      <PageHeader
+        actions={
+          <Link className={buttonVariants({ size: "sm" })} to="/distillation-studio">
+            <Plus className="h-4 w-4" />
+            {t("distillations.openStudio")}
+          </Link>
+        }
+        subtitle={t("distillations.subtitle")}
+        title={t("distillations.title")}
+      />
 
       <div className="flex-1 overflow-auto p-6">
         {distillations.length === 0 ? (

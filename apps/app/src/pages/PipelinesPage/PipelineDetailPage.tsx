@@ -5,9 +5,12 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { Operation } from "@repo/schemas";
 import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
+import { useTranslation } from "react-i18next";
 
 export const PipelineDetailPage = () => {
   const { pipelineId } = Route.useParams();
+  const { t } = useTranslation();
   const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
     resource: ResourceName.pipelines,
     id: pipelineId,
@@ -19,7 +22,12 @@ export const PipelineDetailPage = () => {
   const operations = operationsResult?.data ?? [];
 
   if (pipelineQuery?.isLoading || operationsQuery?.isLoading) {
-    return <PageLoadingState title="Pipeline" variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("pipelines.title")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   if (!pipeline) {

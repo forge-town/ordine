@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
-import { ArrowLeft, FileCode, Folder, FolderGit2, Puzzle, Terminal, Wand2 } from "lucide-react";
+import { FileCode, Folder, FolderGit2, Puzzle, Terminal, Wand2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
@@ -26,6 +26,7 @@ import {
 } from "@repo/schemas";
 import { useStore } from "zustand";
 import { useOperationEditPageStore } from "../_store";
+import { PageHeader } from "@/components/PageHeader";
 
 const EXECUTOR_ICONS = {
   agent: Wand2,
@@ -256,20 +257,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button
-          aria-label={t("common.back")}
-          className="h-8 w-8"
-          size="icon"
-          type="button"
-          variant="ghost"
-          onClick={handleCancel}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-base font-semibold text-foreground">{t("operations.editOperation")}</h1>
-      </div>
+      <PageHeader backTo={`/operations/${operation.id}`} title={t("operations.editOperation")} />
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-6">

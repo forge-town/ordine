@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { useOne } from "@refinedev/core";
-import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Distillation } from "@repo/schemas";
 import { buttonVariants } from "@repo/ui/button";
@@ -8,6 +7,7 @@ import { Badge } from "@repo/ui/badge";
 import { Card } from "@repo/ui/card";
 import { DistillationResultPanel } from "@/components/DistillationResultPanel";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/distillations.$distillationId";
 
@@ -21,7 +21,12 @@ export const DistillationDetailPage = () => {
   const distillation = distillationResult ?? null;
 
   if (distillationQuery?.isLoading) {
-    return <PageLoadingState title={t("distillations.title")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("distillations.title")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   if (!distillation) {
@@ -34,20 +39,8 @@ export const DistillationDetailPage = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <div className="flex items-center gap-3">
-          <Link
-            className={buttonVariants({ className: "h-8 w-8", size: "icon", variant: "ghost" })}
-            to="/distillations"
-          >
-            <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-          </Link>
-          <div>
-            <h1 className="text-base font-semibold text-foreground">{distillation.title}</h1>
-            <p className="text-xs text-muted-foreground">{t("distillations.detailSubtitle")}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader
+        actions={
           <Link
             className={buttonVariants({ size: "sm", variant: "outline" })}
             search={{ distillationId: distillation.id }}
@@ -55,8 +48,11 @@ export const DistillationDetailPage = () => {
           >
             {t("distillations.openInStudio")}
           </Link>
-        </div>
-      </div>
+        }
+        backTo="/distillations"
+        subtitle={t("distillations.detailSubtitle")}
+        title={distillation.title}
+      />
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid max-w-7xl grid-cols-1 gap-6 xl:grid-cols-[0.95fr_1.05fr]">

@@ -106,7 +106,7 @@ export const JobSourceAnalysisPanel = ({ jobId }: JobSourceAnalysisPanelProps) =
   }, [agentRuns, traces]);
 
   if (jobQuery?.isLoading || analysisQuery?.isLoading) {
-    return <PageLoadingState title="Job Analysis" variant="detail" />;
+    return <PageLoadingState variant="detail" />;
   }
 
   if (!job) {

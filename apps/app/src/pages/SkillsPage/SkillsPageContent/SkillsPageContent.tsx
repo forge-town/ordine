@@ -9,6 +9,7 @@ import type { Skill } from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { useSkillsPageStore } from "../_store";
 
 type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
@@ -58,18 +59,20 @@ export const SkillsPageContent = () => {
   });
 
   if (skillsQuery?.isLoading) {
-    return <PageLoadingState title={t("skills.title")} variant="grid" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("skills.title")} />
+        <PageLoadingState variant="grid" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
-        <div>
-          <h1 className="text-base font-semibold text-foreground">{t("skills.title")}</h1>
-          <p className="text-xs text-muted-foreground">{skills.length}</p>
-        </div>
-      </div>
+      <PageHeader
+        badge={<span className="text-xs text-muted-foreground">{skills.length}</span>}
+        title={t("skills.title")}
+      />
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3">

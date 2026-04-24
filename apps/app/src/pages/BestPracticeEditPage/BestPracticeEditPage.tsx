@@ -5,6 +5,7 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { BestPractice, ChecklistItem, CodeSnippet } from "@repo/schemas";
 import { BestPracticeEditPageContent } from "./BestPracticeEditPageContent";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 
 export const BestPracticeEditPage = () => {
   const { bestPracticeId } = Route.useParams();
@@ -26,7 +27,12 @@ export const BestPracticeEditPage = () => {
   const { t } = useTranslation();
 
   if (bpQuery?.isLoading || checklistQuery?.isLoading || snippetsQuery?.isLoading) {
-    return <PageLoadingState title={t("bestPractices.title")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("bestPractices.title")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   if (!bestPractice) {

@@ -1,7 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "@tanstack/react-router";
 import { useCreate, useOne, useUpdate } from "@refinedev/core";
-import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -13,7 +11,8 @@ import {
   type Distillation,
 } from "@repo/schemas";
 import { Badge } from "@repo/ui/badge";
-import { Button, buttonVariants } from "@repo/ui/button";
+import { PageHeader } from "@/components/PageHeader";
+import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
 import { Input } from "@repo/ui/input";
@@ -197,7 +196,12 @@ export const DistillationStudioPage = () => {
   };
 
   if (existingDistillationId && existingDistillationQuery?.isLoading) {
-    return <PageLoadingState title={t("distillations.studioTitle")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("distillations.studioTitle")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   const isBusy = form.formState.isSubmitting;
@@ -214,32 +218,23 @@ export const DistillationStudioPage = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <div className="flex items-center gap-3">
-          <Link
-            className={buttonVariants({ className: "h-8 w-8", size: "icon", variant: "ghost" })}
-            to="/distillations"
-          >
-            <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-          </Link>
-          <div>
-            <h1 className="text-base font-semibold text-foreground">
-              {t("distillations.studioTitle")}
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              {existingDistillationId
-                ? t("distillations.studioExistingSubtitle")
-                : t("distillations.studioSubtitle")}
-            </p>
-          </div>
-        </div>
-        {latestDistillation ? (
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary">{latestDistillation.status}</Badge>
-            <Badge variant="outline">{latestDistillation.mode}</Badge>
-          </div>
-        ) : null}
-      </div>
+      <PageHeader
+        backTo="/distillations"
+        badge={
+          latestDistillation ? (
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">{latestDistillation.status}</Badge>
+              <Badge variant="outline">{latestDistillation.mode}</Badge>
+            </div>
+          ) : null
+        }
+        subtitle={
+          existingDistillationId
+            ? t("distillations.studioExistingSubtitle")
+            : t("distillations.studioSubtitle")
+        }
+        title={t("distillations.studioTitle")}
+      />
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid max-w-7xl grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">

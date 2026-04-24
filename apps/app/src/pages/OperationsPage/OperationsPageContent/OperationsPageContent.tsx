@@ -20,6 +20,7 @@ import type { Operation, ObjectType } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { useToastStore } from "@/store/toastStore";
 import { useStore } from "zustand";
 import { safeJsonParse } from "@/lib/safeJson";
@@ -200,35 +201,38 @@ export const OperationsPageContent = () => {
   };
 
   if (operationsQuery?.isLoading) {
-    return <PageLoadingState title={t("operations.title")} variant="list" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("operations.title")} />
+        <PageLoadingState variant="list" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <div>
-          <h1 className="text-base font-semibold text-foreground">{t("operations.title")}</h1>
-          <p className="text-xs text-muted-foreground">{t("operations.noOperations")}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button disabled={importing} size="sm" variant="outline" onClick={handleImportClick}>
-            <Upload className="h-4 w-4" />
-            {importing ? t("common.loading") : t("common.import")}
-          </Button>
-          <Button size="sm" onClick={handleOpenCreate}>
-            <Plus className="h-4 w-4" />
-            {t("operations.createNew")}
-          </Button>
-        </div>
-        <input
-          ref={importInputRef}
-          accept=".json,application/json"
-          className="hidden"
-          type="file"
-          onChange={handleImportFile}
-        />
-      </div>
+      <PageHeader
+        actions={
+          <>
+            <Button disabled={importing} size="sm" variant="outline" onClick={handleImportClick}>
+              <Upload className="h-4 w-4" />
+              {importing ? t("common.loading") : t("common.import")}
+            </Button>
+            <Button size="sm" onClick={handleOpenCreate}>
+              <Plus className="h-4 w-4" />
+              {t("operations.createNew")}
+            </Button>
+            <input
+              ref={importInputRef}
+              accept=".json,application/json"
+              className="hidden"
+              type="file"
+              onChange={handleImportFile}
+            />
+          </>
+        }
+        title={t("operations.title")}
+      />
 
       {/* Search + filter bar */}
       <div className="flex shrink-0 items-center gap-3 border-b border-border bg-background px-6 py-3">

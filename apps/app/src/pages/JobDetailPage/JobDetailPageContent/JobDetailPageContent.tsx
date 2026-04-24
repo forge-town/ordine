@@ -2,7 +2,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { MetaRow } from "../MetaRow";
 import { AgentRunsPanel } from "../AgentRunsPanel";
 import {
-  ArrowLeft,
   CheckCircle2,
   XCircle,
   Clock,
@@ -27,6 +26,7 @@ import { Route } from "@/routes/_layout/jobs.$jobId";
 import { trpcClient } from "@/integrations/trpc/client";
 import { useEffect, useState } from "react";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 
 const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; bar: string }> = {
   queued: {
@@ -138,7 +138,12 @@ export const JobDetailPageContent = () => {
   };
 
   if (jobQuery?.isLoading) {
-    return <PageLoadingState title={t("jobs.title")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("jobs.title")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   if (!job) {
@@ -165,28 +170,29 @@ export const JobDetailPageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button className="h-8 w-8" size="icon" variant="ghost" onClick={handleNavigateJobs}>
-          <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-        </Button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-foreground">{job.title}</h1>
-          <p className="font-mono text-[11px] text-muted-foreground">{job.id}</p>
-        </div>
-        <Button size="sm" variant="outline" onClick={handleNavigateDistillationStudio}>
-          {t("distillations.openStudio")}
-        </Button>
-        <span
-          className={cn(
-            "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-            s.cls
-          )}
-        >
-          <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />
-          {getStatusLabel(job.status, t)}
-        </span>
-      </div>
+      <PageHeader
+        actions={
+          <>
+            <Button size="sm" variant="outline" onClick={handleNavigateDistillationStudio}>
+              {t("distillations.openStudio")}
+            </Button>
+            <span
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
+                s.cls
+              )}
+            >
+              <StatusIcon
+                className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")}
+              />
+              {getStatusLabel(job.status, t)}
+            </span>
+          </>
+        }
+        backTo="/jobs"
+        subtitle={job.id}
+        title={job.title}
+      />
 
       {/* Status bar */}
       <div className={cn("h-1 w-full shrink-0", s.bar)} />

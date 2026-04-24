@@ -8,6 +8,7 @@ import type { Job, JobStatus } from "@repo/schemas";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { useJobsPageStore } from "../_store";
 import { StatCard } from "../StatCard";
 import { JobRow } from "../JobRow";
@@ -69,22 +70,28 @@ export const JobsPageContent = () => {
   };
 
   if (jobsQuery?.isLoading) {
-    return <PageLoadingState title={t("jobs.title")} variant="list" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader icon={<Activity className="h-4 w-4 text-primary" />} title={t("jobs.title")} />
+        <PageLoadingState variant="list" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Activity className="h-4 w-4 text-primary" />
-        <h1 className="text-base font-semibold text-foreground">{t("jobs.title")}</h1>
-        {counts.running > 0 && (
-          <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
-            {counts.running} {t("jobs.filterRunning")}
-          </span>
-        )}
-      </div>
+      <PageHeader
+        badge={
+          counts.running > 0 ? (
+            <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
+              {counts.running} {t("jobs.filterRunning")}
+            </span>
+          ) : undefined
+        }
+        icon={<Activity className="h-4 w-4 text-primary" />}
+        title={t("jobs.title")}
+      />
 
       {/* Stats */}
       <div className="shrink-0 border-b border-border bg-muted/50 px-6 py-4">
