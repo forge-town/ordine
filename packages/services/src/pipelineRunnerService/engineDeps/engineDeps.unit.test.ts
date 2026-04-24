@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { promptExecutor } from "../promptExecutor";
 import { skillExecutor } from "../skillExecutor";
 import { pipelineRunnerEngineDeps } from "./engineDeps";
-import type { RulesDao } from "@repo/models";
 import type { LoopEvaluatorFn } from "../loopEvaluator";
 
 vi.mock("../promptExecutor", () => ({
@@ -18,8 +17,6 @@ vi.mock("../skillExecutor", () => ({
 }));
 
 describe("pipelineRunnerEngineDeps", () => {
-  // @ts-expect-error -- mock DAO with only required methods
-  const rulesDao: RulesDao = {};
   const evaluateLoopCondition = vi.fn<LoopEvaluatorFn>();
 
   beforeEach(() => {
@@ -28,7 +25,6 @@ describe("pipelineRunnerEngineDeps", () => {
 
   it("passes jobId to promptExecutor", () => {
     const deps = pipelineRunnerEngineDeps.build({
-      rulesDao,
       evaluateLoopCondition,
       jobId: "job-1",
     });
@@ -51,7 +47,6 @@ describe("pipelineRunnerEngineDeps", () => {
 
   it("passes jobId to skillExecutor", () => {
     const deps = pipelineRunnerEngineDeps.build({
-      rulesDao,
       evaluateLoopCondition,
       jobId: "job-1",
     });
@@ -76,7 +71,6 @@ describe("pipelineRunnerEngineDeps", () => {
 
   it("applies defaultAgent to runPrompt when agent is not specified", () => {
     const deps = pipelineRunnerEngineDeps.build({
-      rulesDao,
       evaluateLoopCondition,
       jobId: "job-1",
       defaultAgent: "claude-code",
@@ -97,7 +91,6 @@ describe("pipelineRunnerEngineDeps", () => {
 
   it("preserves explicit agent over defaultAgent", () => {
     const deps = pipelineRunnerEngineDeps.build({
-      rulesDao,
       evaluateLoopCondition,
       jobId: "job-1",
       defaultAgent: "claude-code",
@@ -119,7 +112,6 @@ describe("pipelineRunnerEngineDeps", () => {
 
   it("applies defaultAgent to runSkill when agent is not specified", () => {
     const deps = pipelineRunnerEngineDeps.build({
-      rulesDao,
       evaluateLoopCondition,
       jobId: "job-1",
       defaultAgent: "claude-code",

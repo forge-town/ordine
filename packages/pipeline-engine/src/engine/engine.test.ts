@@ -27,7 +27,6 @@ afterAll(async () => {
 const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDeps => ({
   runPrompt: vi.fn().mockReturnValue(okAsync("prompt-output")),
   runSkill: vi.fn().mockReturnValue(okAsync("skill-output")),
-  runRuleCheck: vi.fn().mockResolvedValue({ stats: { totalFindings: 0, totalFiles: 0 } }),
   structuredJsonToMarkdown: vi.fn((c: string) => `# Markdown\n${c}`),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,
@@ -146,8 +145,8 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "Echo Op", {
-              executor: { type: "script", language: "bash", command: "echo test-output" },
-            }),
+            executor: { type: "script", language: "bash", command: "echo test-output" },
+          }),
         ],
       ]);
 
@@ -168,8 +167,8 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "Prompt Op", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "Analyze this code" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "Analyze this code" },
+          }),
         ],
       ]);
 
@@ -186,8 +185,8 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "Skill Op", {
-              executor: { type: "agent", agentMode: "skill", skillId: "sk-1" },
-            }),
+            executor: { type: "agent", agentMode: "skill", skillId: "sk-1" },
+          }),
         ],
       ]);
       const lookupSkill = vi
@@ -209,8 +208,8 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "Agent Config Op", {
-              executor: { type: "agent", agentMode: "skill", skillId: "sk-2", agent: "codex" },
-            }),
+            executor: { type: "agent", agentMode: "skill", skillId: "sk-2", agent: "codex" },
+          }),
         ],
       ]);
       const lookupSkill = vi
@@ -234,13 +233,13 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "Prompt Agent Op", {
-              executor: {
-                type: "agent",
-                agentMode: "prompt",
-                prompt: "Analyze this",
-                agent: "codex",
-              },
-            }),
+            executor: {
+              type: "agent",
+              agentMode: "prompt",
+              prompt: "Analyze this",
+              agent: "codex",
+            },
+          }),
         ],
       ]);
 
@@ -259,8 +258,8 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "Default Agent Op", {
-              executor: { type: "agent", agentMode: "skill", skillId: "sk-3" },
-            }),
+            executor: { type: "agent", agentMode: "skill", skillId: "sk-3" },
+          }),
         ],
       ]);
       const lookupSkill = vi
@@ -277,27 +276,6 @@ describe("executePipeline", () => {
       expect(callArgs.agent).toBeUndefined();
     });
 
-    it("executes a rule-check operation", async () => {
-      const deps = makeDeps();
-      const opId = "op-rule";
-      const operations = new Map([
-        [
-          opId,
-          makeOp(opId, "Rule Check", { executor: { type: "rule-check" } }),
-        ],
-      ]);
-
-      const nodes = [
-        makeNode("input", "folder", { folderPath: testDir }),
-        makeNode("op", "operation", { operationId: opId, label: "Rule Check" }),
-      ];
-      const edges = [makeEdge("input", "op")];
-
-      const result = await pipelineEngine.execute(makeOpts(nodes, edges, deps, { operations }));
-      expect(result.ok).toBe(true);
-      expect(deps.runRuleCheck).toHaveBeenCalled();
-    });
-
     it("skips operation when operationId is not found", async () => {
       const deps = makeDeps();
       const nodes = [makeNode("op", "operation", { operationId: "missing-op" })];
@@ -312,8 +290,8 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "Empty Prompt", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "" },
+          }),
         ],
       ]);
 
@@ -330,8 +308,8 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "BP Op", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "Check standards" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "Check standards" },
+          }),
         ],
       ]);
       const lookupBestPractice = vi
@@ -359,8 +337,8 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "Loop Op", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "Improve" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "Improve" },
+          }),
         ],
       ]);
 
@@ -386,8 +364,8 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "Loop Max", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "Keep going" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "Keep going" },
+          }),
         ],
       ]);
 
@@ -413,8 +391,8 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "Analyze", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "Analyze" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "Analyze" },
+          }),
         ],
       ]);
 
@@ -437,14 +415,14 @@ describe("executePipeline", () => {
         [
           opA,
           makeOp(opA, "Check A", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "Check A" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "Check A" },
+          }),
         ],
         [
           opB,
           makeOp(opB, "Check B", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "Check B" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "Check B" },
+          }),
         ],
       ]);
 
@@ -474,20 +452,20 @@ describe("executePipeline", () => {
         [
           opA,
           makeOp(opA, "A", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "A" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "A" },
+          }),
         ],
         [
           opB,
           makeOp(opB, "B", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "B" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "B" },
+          }),
         ],
         [
           opMerge,
           makeOp(opMerge, "Merge", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "Merge" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "Merge" },
+          }),
         ],
       ]);
 
@@ -521,8 +499,8 @@ describe("executePipeline", () => {
         [
           opId,
           makeOp(opId, "Gen", {
-              executor: { type: "agent", agentMode: "prompt", prompt: "Generate" },
-            }),
+            executor: { type: "agent", agentMode: "prompt", prompt: "Generate" },
+          }),
         ],
       ]);
 

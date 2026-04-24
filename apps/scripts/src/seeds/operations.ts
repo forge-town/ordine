@@ -38,7 +38,7 @@ interface OutputPort {
 }
 
 interface ExecutorConfig {
-  type: "agent" | "script" | "rule-check";
+  type: "agent" | "script";
   agentMode?: "skill" | "prompt";
   skillId?: string;
   prompt?: string;
@@ -414,36 +414,6 @@ const OPERATIONS: OperationSeed[] = [
           path: ".ordine/check-report.md",
           description:
             "Markdown report listing all issues found with severity and suggested fixes.",
-        },
-      ],
-    }),
-  },
-
-  // ── 10. check-rules ─────────────────────────────────────────────────────
-  {
-    id: "op_check_rules",
-    name: "Check Rules",
-    description:
-      "Scan files against all enabled rules with regex patterns. Returns structured findings with severity, line numbers, and code snippets.",
-    acceptedObjectTypes: ["file", "folder", "project"],
-    config: cfg({
-      executor: {
-        type: "rule-check",
-      },
-      inputs: [
-        {
-          name: "target",
-          kind: "project",
-          required: true,
-          description: "The file, folder, or project to scan against rules.",
-        },
-      ],
-      outputs: [
-        {
-          name: "ruleCheckReport",
-          kind: "file",
-          path: ".ordine/rule-check-report.json",
-          description: "JSON report with all rule violations found (CheckOutput format).",
         },
       ],
     }),

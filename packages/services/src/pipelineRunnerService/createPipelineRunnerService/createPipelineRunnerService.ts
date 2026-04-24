@@ -12,7 +12,6 @@ import {
   createJobTracesDao,
   createSkillsDao,
   createBestPracticesDao,
-  createRulesDao,
   createAgentRawExportsDao,
   createAgentSpansDao,
   createSettingsDao,
@@ -33,7 +32,6 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   const jobTracesDao = createJobTracesDao(db);
   const skillsDao = createSkillsDao(db);
   const bestPracticesDao = createBestPracticesDao(db);
-  const rulesDao = createRulesDao(db);
   const agentRawExportsDao = createAgentRawExportsDao(db);
   const agentSpansDao = createAgentSpansDao(db);
   const settingsDao = createSettingsDao(db);
@@ -55,7 +53,6 @@ export const createPipelineRunnerService = (db: DbConnection) => {
     defaultAgent?: AgentRuntime;
   }) =>
     pipelineRunnerEngineDeps.build({
-      rulesDao,
       evaluateLoopCondition: loopEvaluatorFactory({ jobId }),
       jobId,
       apiKey,

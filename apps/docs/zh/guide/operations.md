@@ -8,7 +8,6 @@
 |------|------|
 | `agent` | AI agent（Claude/Codex） |
 | `script` | 自定义脚本 |
-| `rule-check` | 策略验证 |
 
 ## Agent 模式
 

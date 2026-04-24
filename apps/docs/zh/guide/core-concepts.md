@@ -33,7 +33,7 @@
 执行器类型：
 - **`agent`** — AI agent（Claude 或 Codex），可配置系统提示词和工具
 - **`script`** — 自定义脚本执行
-- **`rule-check`** — 策略验证
+
 
 Agent 模式：
 - **`skill`** — 使用注册的技能进行结构化 AI 执行
