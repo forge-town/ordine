@@ -11,6 +11,7 @@ export * from "./jobsDao";
 export * from "./operationsDao";
 export * from "./pipelinesDao";
 export * from "./recipesDao";
+export * from "./refinementsDao";
 export * from "./rulesDao";
 export * from "./settingsDao";
 export * from "./skillsDao";

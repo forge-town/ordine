@@ -11,6 +11,7 @@ export const operationsService = serviceFactory.createOperationsService();
 export const pipelinesService = serviceFactory.createPipelinesService();
 export const pipelineRunnerService = serviceFactory.createPipelineRunnerService();
 export const recipesService = serviceFactory.createRecipesService();
+export const refinementsService = serviceFactory.createRefinementsService();
 export const rulesService = serviceFactory.createRulesService();
 export const settingsService = serviceFactory.createSettingsService();
 export const skillsService = serviceFactory.createSkillsService();

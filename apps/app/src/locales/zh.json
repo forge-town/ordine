@@ -183,7 +183,18 @@
     "inputSnapshotLabel": "输入快照",
     "detailSubtitle": "查看这条蒸馏记录持久化后的结果和来源上下文。",
     "detailResultHint": "这里展示的是已经保存到 distillation 记录里的结果。",
-    "notFound": "未找到蒸馏记录"
+    "notFound": "未找到蒸馏记录",
+    "startRefinement": "开始精馏",
+    "refinementRunning": "精馏中…",
+    "refinementRounds": "轮次",
+    "refinementTitle": "精馏",
+    "refinementRoundLabel": "第 {{round}} 轮",
+    "refinementStatusPending": "待执行",
+    "refinementStatusOptimizing": "优化中",
+    "refinementStatusRunning": "运行中",
+    "refinementStatusDistilling": "蒸馏中",
+    "refinementStatusCompleted": "已完成",
+    "refinementStatusFailed": "失败"
   },
   "operations": {
     "title": "操作集",

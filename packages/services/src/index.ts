@@ -10,6 +10,7 @@ export * from "./operationsService";
 export * from "./pipelinesService";
 export * from "./pipelineRunnerService";
 export * from "./recipesService";
+export * from "./refinementsService";
 export * from "./rulesService";
 export * from "./settingsService";
 export * from "./skillsService";

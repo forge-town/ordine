@@ -27,6 +27,7 @@ export const ResourceName = {
   checklistItems: "checklistItems",
   codeSnippets: "codeSnippets",
   distillations: "distillations",
+  refinements: "refinements",
   settings: "settings",
 } as const;
 
@@ -186,6 +187,11 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.distillations: {
         const data = await trpcClient.distillations.getById.query({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.refinements: {
+        const data = await trpcClient.refinements.getById.query({ id: String(id) });
 
         return { data: data as unknown as TData };
       }
@@ -523,6 +529,20 @@ export const dataProvider: DataProvider = {
           spansByRun: Object.fromEntries(spansByRunEntries),
         } as unknown as TData,
       };
+    }
+    if (url === "refinements/start") {
+      const data = await trpcClient.refinements.start.mutate(
+        payload as unknown as Parameters<typeof trpcClient.refinements.start.mutate>[0]
+      );
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "distillations/run") {
+      const data = await trpcClient.distillations.run.mutate(
+        payload as unknown as Parameters<typeof trpcClient.distillations.run.mutate>[0]
+      );
+
+      return { data: data as unknown as TData };
     }
     throw new Error(`custom: unknown url "${url}"`);
   },

@@ -11,6 +11,7 @@ export * from "./jobs_table";
 export * from "./operations_table";
 export * from "./pipelines_table";
 export * from "./recipes_table";
+export * from "./refinements_table";
 export * from "./rules_table";
 export * from "./settings_table";
 export * from "./skills_table";

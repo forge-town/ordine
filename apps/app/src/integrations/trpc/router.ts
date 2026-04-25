@@ -9,6 +9,7 @@ import { jobsRouter } from "./routers/jobs";
 import { operationsRouter } from "./routers/operations";
 import { pipelinesRouter } from "./routers/pipelines";
 import { recipesRouter } from "./routers/recipes";
+import { refinementsRouter } from "./routers/refinements";
 import { rulesRouter } from "./routers/rules";
 import { settingsRouter } from "./routers/settings";
 import { skillsRouter } from "./routers/skills";
@@ -24,6 +25,7 @@ export const appRouter = router({
   githubProjects: githubProjectsRouter,
   skills: skillsRouter,
   recipes: recipesRouter,
+  refinements: refinementsRouter,
   checklist: checklistRouter,
   codeSnippets: codeSnippetsRouter,
   distillations: distillationsRouter,

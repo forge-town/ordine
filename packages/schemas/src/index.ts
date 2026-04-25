@@ -27,6 +27,7 @@ export * from "./OperationSchema";
 export * from "./OutputPortSchema";
 export * from "./PortKindSchema";
 export * from "./RecipeSchema";
+export * from "./RefinementSchema";
 export * from "./RuleCategorySchema";
 export * from "./RuleSchema";
 export * from "./RuleScriptLanguageSchema";

@@ -180,7 +180,18 @@
     "inputSnapshotLabel": "Input Snapshot",
     "detailSubtitle": "Persisted result and source context for this distillation.",
     "detailResultHint": "This is the persisted output saved on the distillation record.",
-    "notFound": "Distillation not found"
+    "notFound": "Distillation not found",
+    "startRefinement": "Start Refinement",
+    "refinementRunning": "Refining…",
+    "refinementRounds": "Rounds",
+    "refinementTitle": "Refinement",
+    "refinementRoundLabel": "Round {{round}}",
+    "refinementStatusPending": "Pending",
+    "refinementStatusOptimizing": "Optimizing",
+    "refinementStatusRunning": "Running",
+    "refinementStatusDistilling": "Distilling",
+    "refinementStatusCompleted": "Completed",
+    "refinementStatusFailed": "Failed"
   },
   "operations": {
     "title": "Operations",
