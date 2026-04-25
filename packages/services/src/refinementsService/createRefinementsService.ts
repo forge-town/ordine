@@ -23,7 +23,7 @@ const waitForJobCompletion = async (
     const job = await jobsDao.findById(jobId);
     if (!job) return { status: "failed", error: "Job not found" };
 
-    if (job.status === "completed") return { status: "completed" };
+    if (job.status === "done") return { status: "completed" };
     if (job.status === "failed") return { status: "failed", error: job.error ?? "Job failed" };
 
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
