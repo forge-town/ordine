@@ -17,7 +17,7 @@ const mockProject = {
 const meta: Meta<typeof ProjectCard> = {
   title: "Pages/ProjectsPage/ProjectCard",
   component: ProjectCard,
-  args: { onClick: () => {}, onDelete: () => {} },
+  args: {},
 };
 
 export default meta;

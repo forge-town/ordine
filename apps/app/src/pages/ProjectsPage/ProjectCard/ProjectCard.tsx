@@ -1,21 +1,27 @@
 import { FolderGit2, GitBranch, Clock, ExternalLink, X } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { useDelete } from "@refinedev/core";
 import type { GithubProject } from "@repo/schemas";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 
 const handleExternalLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => e.stopPropagation();
 
 export type ProjectCardProps = {
   project: GithubProject;
-  onClick: () => void;
-  onDelete: () => void;
 };
 
-export const ProjectCard = ({ project, onClick, onDelete }: ProjectCardProps) => {
+export const ProjectCard = ({ project }: ProjectCardProps) => {
+  const navigate = useNavigate();
+  const { mutate: deleteProject } = useDelete();
+
   const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    onDelete();
+    deleteProject({ resource: ResourceName.githubProjects, id: project.id });
   };
 
-  const handleClick = () => onClick();
+  const handleClick = () => {
+    void navigate({ to: "/projects/$projectId", params: { projectId: project.id } });
+  };
 
   return (
     <div

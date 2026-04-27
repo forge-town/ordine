@@ -6,7 +6,7 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
-import { useCreate, useDelete, useList } from "@refinedev/core";
+import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import { useStore } from "zustand";
@@ -30,7 +30,6 @@ export const PipelinesPageContent = () => {
   const handleClearTags = useStore(store, (s) => s.handleClearTags);
   const navigate = useNavigate();
   const { mutateAsync: createPipelineMutate } = useCreate();
-  const { mutate: deletePipelineMutate } = useDelete();
 
   const allTags = useMemo(() => {
     const items = pipelinesData ?? [];
@@ -66,10 +65,6 @@ export const PipelinesPageContent = () => {
     });
   }, [pipelinesData, search, selectedTags]);
 
-  const openPipeline = (id: string) => {
-    void navigate({ to: "/canvas", search: { id } });
-  };
-
   const handleCreate = async () => {
     const id = `pipeline-${Date.now()}`;
     const now = new Date();
@@ -92,13 +87,7 @@ export const PipelinesPageContent = () => {
     void navigate({ to: "/canvas", search: { id: saved.id } });
   };
 
-  const handleDelete = (id: string) => {
-    deletePipelineMutate({ resource: ResourceName.pipelines, id });
-  };
-
   const handleCreateClick = () => void handleCreate();
-  const handleOpenPipeline = (id: string) => () => openPipeline(id);
-  const handleDeletePipeline = (id: string) => () => void handleDelete(id);
 
   if (pipelinesQuery?.isLoading) {
     return (
@@ -161,7 +150,7 @@ export const PipelinesPageContent = () => {
                   "cursor-pointer select-none text-[11px] transition-colors",
                   selectedTags.includes(tag)
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80",
                 )}
                 variant="secondary"
                 onClick={handleTagClick(tag)}
@@ -185,12 +174,7 @@ export const PipelinesPageContent = () => {
         ) : (
           <div className="grid grid-cols-3 gap-4">
             {filtered.map((p) => (
-              <PipelineCard
-                key={p.id}
-                pipeline={p}
-                onDelete={handleDeletePipeline(p.id)}
-                onOpen={handleOpenPipeline(p.id)}
-              />
+              <PipelineCard key={p.id} pipeline={p} />
             ))}
           </div>
         )}

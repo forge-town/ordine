@@ -19,7 +19,6 @@ const meta: Meta<typeof PracticeCard> = {
   component: PracticeCard,
   args: {
     practice: mockPractice,
-    onDelete: () => undefined,
   },
 };
 

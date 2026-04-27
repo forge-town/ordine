@@ -1,9 +1,11 @@
 import { GitBranch, Clock, ArrowRight, Trash2, ExternalLink } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useDelete } from "@refinedev/core";
 import { Card } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 
 const NODE_TYPE_COLORS: Record<string, string> = {
   input: "bg-emerald-100 text-emerald-700",
@@ -33,15 +35,15 @@ const formatRelativeTime = (ts: Date | string): string => {
 
 interface PipelineCardProps {
   pipeline: PipelineData;
-  onOpen: () => void;
-  onDelete: () => void;
 }
 
 const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
   e.stopPropagation();
 };
 
-export const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) => {
+export const PipelineCard = ({ pipeline }: PipelineCardProps) => {
+  const navigate = useNavigate();
+  const { mutate: deletePipeline } = useDelete();
   const typeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     const t = n.type ?? "unknown";
     acc[t] = (acc[t] ?? 0) + 1;
@@ -49,13 +51,17 @@ export const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) 
     return acc;
   }, {});
 
-  const handleClick = onOpen;
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Enter") onOpen();
+  const handleClick = () => {
+    void navigate({ to: "/canvas", search: { id: pipeline.id } });
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter") handleClick();
+  };
+
   const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    onDelete();
+    deletePipeline({ resource: ResourceName.pipelines, id: pipeline.id });
   };
 
   return (
@@ -112,7 +118,7 @@ export const PipelineCard = ({ pipeline, onOpen, onDelete }: PipelineCardProps) 
             key={type}
             className={cn(
               "rounded-full text-[11px]",
-              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground"
+              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground",
             )}
             variant="secondary"
           >

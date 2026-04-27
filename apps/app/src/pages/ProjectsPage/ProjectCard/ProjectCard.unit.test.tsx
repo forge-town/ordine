@@ -3,6 +3,14 @@ import { render, screen } from "@testing-library/react";
 import { ProjectCard } from "./ProjectCard";
 import type { GithubProject } from "@repo/schemas";
 
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => vi.fn(),
+}));
+
+vi.mock("@refinedev/core", () => ({
+  useDelete: () => ({ mutate: vi.fn() }),
+}));
+
 const mockProject = {
   id: "proj-001",
   name: "acme/ordine",
@@ -17,16 +25,12 @@ const mockProject = {
 
 describe("ProjectCard", () => {
   it("renders owner/repo", () => {
-    const handleClick = vi.fn();
-    const handleDelete = vi.fn();
-    render(<ProjectCard project={mockProject} onClick={handleClick} onDelete={handleDelete} />);
+    render(<ProjectCard project={mockProject} />);
     expect(screen.getByText("acme/ordine")).toBeInTheDocument();
   });
 
   it("renders branch", () => {
-    const handleClick = vi.fn();
-    const handleDelete = vi.fn();
-    render(<ProjectCard project={mockProject} onClick={handleClick} onDelete={handleDelete} />);
+    render(<ProjectCard project={mockProject} />);
     expect(screen.getByText("main")).toBeInTheDocument();
   });
 });

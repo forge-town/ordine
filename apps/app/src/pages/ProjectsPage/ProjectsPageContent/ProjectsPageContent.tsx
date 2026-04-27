@@ -1,7 +1,6 @@
-import { useNavigate } from "@tanstack/react-router";
 import { Plus, Search, Folder } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useDelete, useList } from "@refinedev/core";
+import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { GithubProject } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
@@ -26,32 +25,19 @@ export const ProjectsPageContent = () => {
   const showCreate = useStore(store, (s) => s.showCreate);
   const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
   const handleSetShowCreate = useStore(store, (s) => s.handleSetShowCreate);
-  const navigate = useNavigate();
-  const { mutate: deleteProjectMutate } = useDelete();
 
   const filtered = projects.filter(
     (p: GithubProject) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.description ?? "").toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
-      p.repo.toLowerCase().includes(search.toLowerCase())
+      p.repo.toLowerCase().includes(search.toLowerCase()),
   );
-
-  const handleDelete = (id: string) => {
-    deleteProjectMutate({ resource: ResourceName.githubProjects, id });
-  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     handleSetSearch(e.target.value);
   const handleShowCreate = () => handleSetShowCreate(true);
   const handleHideCreate = () => handleSetShowCreate(false);
-  const handleProjectClick = (projectId: string) => () =>
-    void navigate({
-      to: "/projects/$projectId",
-      params: { projectId },
-    });
-  const handleDeleteProject = (id: string) => () => void handleDelete(id);
-
   if (projectsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
@@ -111,12 +97,7 @@ export const ProjectsPageContent = () => {
         ) : (
           <div className="grid grid-cols-3 gap-4">
             {filtered.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onClick={handleProjectClick(project.id)}
-                onDelete={handleDeleteProject(project.id)}
-              />
+              <ProjectCard key={project.id} project={project} />
             ))}
           </div>
         )}

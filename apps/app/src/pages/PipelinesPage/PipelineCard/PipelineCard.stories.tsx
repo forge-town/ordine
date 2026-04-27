@@ -24,10 +24,7 @@ const mockPipeline: PipelineData = {
 const meta: Meta<typeof PipelineCard> = {
   title: "Pages/PipelinesPage/PipelineCard",
   component: PipelineCard,
-  args: {
-    onOpen: () => {},
-    onDelete: () => {},
-  },
+  args: {},
 };
 
 export default meta;

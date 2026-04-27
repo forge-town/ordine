@@ -9,6 +9,10 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
+vi.mock("@refinedev/core", () => ({
+  useDelete: () => ({ mutate: vi.fn() }),
+}));
+
 const mockPractice: BestPractice = {
   id: "bp-1",
   title: "避免在 useEffect 中直接 setState",
@@ -23,41 +27,33 @@ const mockPractice: BestPractice = {
 
 describe("PracticeCard", () => {
   it("renders practice title", () => {
-    const handleDelete = vi.fn();
-    render(<PracticeCard practice={mockPractice} onDelete={handleDelete} />);
+    render(<PracticeCard practice={mockPractice} />);
     expect(screen.getByText(mockPractice.title)).toBeInTheDocument();
   });
 
   it("renders practice condition", () => {
-    const handleDelete = vi.fn();
-    render(<PracticeCard practice={mockPractice} onDelete={handleDelete} />);
+    render(<PracticeCard practice={mockPractice} />);
     expect(screen.getByText(mockPractice.condition)).toBeInTheDocument();
   });
 
   it("shows code snippet toggle when codeSnippet is not empty", () => {
-    const handleDelete = vi.fn();
-    render(<PracticeCard practice={mockPractice} onDelete={handleDelete} />);
+    render(<PracticeCard practice={mockPractice} />);
     expect(screen.getByText("代码片段")).toBeInTheDocument();
   });
 
   it("does not show code snippet toggle when codeSnippet is empty", () => {
-    const handleDelete = vi.fn();
-    render(
-      <PracticeCard practice={{ ...mockPractice, codeSnippet: "" }} onDelete={handleDelete} />
-    );
+    render(<PracticeCard practice={{ ...mockPractice, codeSnippet: "" }} />);
     expect(screen.queryByText("代码片段")).not.toBeInTheDocument();
   });
 
   it("expands code snippet on toggle click", () => {
-    const handleDelete = vi.fn();
-    render(<PracticeCard practice={mockPractice} onDelete={handleDelete} />);
+    render(<PracticeCard practice={mockPractice} />);
     fireEvent.click(screen.getByText("代码片段"));
     expect(screen.getByText(mockPractice.codeSnippet)).toBeInTheDocument();
   });
 
   it("renders tags", () => {
-    const handleDelete = vi.fn();
-    render(<PracticeCard practice={mockPractice} onDelete={handleDelete} />);
+    render(<PracticeCard practice={mockPractice} />);
     expect(screen.getByText("react")).toBeInTheDocument();
     expect(screen.getByText("hooks")).toBeInTheDocument();
   });

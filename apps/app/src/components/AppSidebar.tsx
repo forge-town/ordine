@@ -24,15 +24,14 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
   SidebarTrigger,
 } from "@repo/ui/sidebar";
 import { Badge } from "@repo/ui/badge";
-import { cn } from "@repo/ui/lib/utils";
 import { pluginRegistry } from "@repo/plugin";
 
 interface NavItem {
@@ -50,6 +49,7 @@ const featuredItems: NavItem[] = [
 const workspaceItems: NavItem[] = [
   { labelKey: "nav.dashboard", icon: LayoutDashboard, to: "/" },
   { labelKey: "nav.pipelines", icon: Layers, to: "/pipelines" },
+  { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
   { labelKey: "nav.jobs", icon: Activity, to: "/jobs" },
 ];
 
@@ -58,10 +58,6 @@ const libraryItems: NavItem[] = [
   { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
   { labelKey: "nav.recipes", icon: ChefHat, to: "/recipes" },
   { labelKey: "nav.rules", icon: ShieldCheck, to: "/rules" },
-  { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
-];
-
-const knowledgeItems: NavItem[] = [
   { labelKey: "nav.bestPractices", icon: Lightbulb, to: "/best-practices" },
 ];
 
@@ -83,51 +79,55 @@ const getPluginObjectNavItems = (): NavItem[] => {
 };
 
 const NavGroup = ({
-  label,
+  ariaLabel,
   items,
   currentPath,
+  separated = false,
   t,
 }: {
-  label: string;
+  ariaLabel: string;
   items: NavItem[];
   currentPath: string;
+  separated?: boolean;
   t: (key: string) => string;
 }) => (
-  <SidebarGroup className="p-0 px-2">
-    <SidebarGroupLabel>{label}</SidebarGroupLabel>
-    <SidebarGroupContent>
-      <SidebarMenu>
-        {items.map((item) => {
-          const Icon = item.icon;
-          const labelText = t(item.labelKey);
-          const isActive =
-            currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
+  <>
+    {separated && <SidebarSeparator className="my-1 bg-sidebar-border/60" />}
+    <SidebarGroup aria-label={ariaLabel} className="p-0 px-2">
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => {
+            const Icon = item.icon;
+            const labelText = t(item.labelKey);
+            const isActive =
+              currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
 
-          return (
-            <SidebarMenuItem key={item.to}>
-              <SidebarMenuButton
-                className="h-8"
-                isActive={isActive}
-                render={<Link to={item.to as "/"} />}
-                tooltip={labelText}
-              >
-                <Icon />
-                <span>{labelText}</span>
-                {item.badge && (
-                  <Badge
-                    className="ml-auto h-4 px-1.5 text-[10px] group-data-[state=collapsed]/sidebar:hidden"
-                    variant="secondary"
-                  >
-                    {item.badge}
-                  </Badge>
-                )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
-      </SidebarMenu>
-    </SidebarGroupContent>
-  </SidebarGroup>
+            return (
+              <SidebarMenuItem key={item.to}>
+                <SidebarMenuButton
+                  className="h-8"
+                  isActive={isActive}
+                  render={<Link to={item.to as "/"} />}
+                  tooltip={labelText}
+                >
+                  <Icon />
+                  <span>{labelText}</span>
+                  {item.badge && (
+                    <Badge
+                      className="ml-auto h-4 px-1.5 text-[10px] group-data-[state=collapsed]/sidebar:hidden"
+                      variant="secondary"
+                    >
+                      {item.badge}
+                    </Badge>
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  </>
 );
 
 export const AppSidebar = () => {
@@ -153,51 +153,47 @@ export const AppSidebar = () => {
       </SidebarHeader>
 
       {/* Featured — Canvas + Distillations */}
-      <div className="shrink-0 space-y-1 border-b border-sidebar-border px-2 py-2">
-        {featuredItems.map((item) => {
-          const Icon = item.icon;
-          const label = t(item.labelKey);
-          const isActive =
-            currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
+      <div className="shrink-0 border-b border-sidebar-border px-2 py-2">
+        <SidebarMenu className="gap-1">
+          {featuredItems.map((item) => {
+            const Icon = item.icon;
+            const label = t(item.labelKey);
+            const isActive =
+              currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
 
-          return (
-            <Link
-              key={item.to}
-              className={cn(
-                "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/80",
-                "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0"
-              )}
-              to={item.to}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="group-data-[state=collapsed]/sidebar:hidden">{label}</span>
-            </Link>
-          );
-        })}
+            return (
+              <SidebarMenuItem key={item.to}>
+                <SidebarMenuButton
+                  className="h-8 font-medium"
+                  isActive={isActive}
+                  render={<Link to={item.to as "/"} />}
+                  tooltip={label}
+                >
+                  <Icon />
+                  <span>{label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
       </div>
 
       <SidebarContent className="py-2">
         <NavGroup
+          ariaLabel={t("nav.workspace")}
           currentPath={currentPath}
           items={workspaceItems}
-          label={t("nav.workspace")}
           t={t}
         />
-        <NavGroup currentPath={currentPath} items={libraryItems} label={t("nav.library")} t={t} />
         <NavGroup
+          ariaLabel={t("nav.library")}
           currentPath={currentPath}
-          items={knowledgeItems}
-          label={t("nav.knowledge")}
+          items={libraryItems}
+          separated
           t={t}
         />
-        <SidebarGroup className="p-0 px-2">
-          <SidebarGroupLabel>
-            <Box className="mr-1 h-3.5 w-3.5" />
-            {t("nav.objects")}
-          </SidebarGroupLabel>
+        <SidebarSeparator className="my-1 bg-sidebar-border/60" />
+        <SidebarGroup aria-label={t("nav.objects")} className="p-0 px-2">
           <SidebarGroupContent>
             <SidebarMenu>
               {allObjectItems.map((item) => {
