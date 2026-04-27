@@ -16,6 +16,7 @@ import {
   createAgentRawExportsDao,
   createAgentSpansDao,
   createSettingsDao,
+  createPipelineRunsDao,
   type DbConnection,
 } from "@repo/models";
 
@@ -30,6 +31,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   const operationsDao = createOperationsDao(db);
   const pipelinesDao = createPipelinesDao(db);
   const jobsDao = createJobsDao(db);
+  const pipelineRunsDao = createPipelineRunsDao(db);
   const jobTracesDao = createJobTracesDao(db);
   const skillsDao = createSkillsDao(db);
   const bestPracticesDao = createBestPracticesDao(db);
@@ -80,14 +82,19 @@ export const createPipelineRunnerService = (db: DbConnection) => {
         id: jobId,
         title: `Run: ${pipeline.name}`,
         type: "pipeline_run",
-        pipelineId: opts.pipelineId,
-        projectId: null,
-        logs: [],
-        result: null,
         error: null,
         status: "queued",
         startedAt: null,
         finishedAt: null,
+      });
+
+      await pipelineRunsDao.create({
+        id: jobId,
+        pipelineId: opts.pipelineId,
+        projectId: null,
+        inputPath: opts.inputPath ?? null,
+        logs: [],
+        result: null,
       });
 
       const settings = normalizeSettingsRecord(await settingsDao.get());
@@ -108,6 +115,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           pipelinesDao,
           operationsDao,
           jobsDao,
+          pipelineRunsDao,
           skillsDao,
           bestPracticesDao,
           engineDeps: buildDepsForJob({
@@ -118,15 +126,15 @@ export const createPipelineRunnerService = (db: DbConnection) => {
             ssh,
           }),
         }),
-        (error) => error
+        (error) => error,
       ).match(
         () => undefined,
         (error) => {
           logger.error(
             { err: error, jobId },
-            "startRun: unhandled rejection from background pipeline run"
+            "startRun: unhandled rejection from background pipeline run",
           );
-        }
+        },
       );
 
       return ok({ jobId });

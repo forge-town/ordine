@@ -7,14 +7,10 @@ const baseJob: Job = {
   title: "运行 Pipeline: 代码分析",
   type: "pipeline_run",
   status: "done",
-  projectId: null,
-  pipelineId: "pipeline-1",
-  logs: [],
-  result: null,
+  parentJobId: null,
   error: null,
   startedAt: null,
   finishedAt: null,
-  tmuxSessionName: null,
   meta: { createdAt: new Date(), updatedAt: new Date() },
 };
 

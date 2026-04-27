@@ -4,6 +4,7 @@ import {
   createJobsDao,
   createJobTracesDao,
   createOperationsDao,
+  createPipelineRunsDao,
   createPipelinesDao,
   createSettingsDao,
   type DbConnection,
@@ -104,6 +105,7 @@ export const createPipelinesService = (db: DbConnection) => {
   const dao = createPipelinesDao(db);
   const distillationsDao = createDistillationsDao(db);
   const jobsDao = createJobsDao(db);
+  const pipelineRunsDao = createPipelineRunsDao(db);
   const jobTracesDao = createJobTracesDao(db);
   const operationsDao = createOperationsDao(db);
   const settingsDao = createSettingsDao(db);
@@ -146,13 +148,16 @@ export const createPipelinesService = (db: DbConnection) => {
           ),
         ].join("\n");
 
-        if (job?.pipelineId) {
-          const sourcePipeline = await dao.findById(job.pipelineId);
-          if (sourcePipeline) {
-            context.sourcePipelineContext = [
-              "Original Pipeline (use this as reference for input/output nodes):",
-              truncate(JSON.stringify(sourcePipeline, null, 2), MAX_SNAPSHOT_CHARS),
-            ].join("\n");
+        if (job) {
+          const pipelineRun = await pipelineRunsDao.findByJobId(job.id);
+          if (pipelineRun?.pipelineId) {
+            const sourcePipeline = await dao.findById(pipelineRun.pipelineId);
+            if (sourcePipeline) {
+              context.sourcePipelineContext = [
+                "Original Pipeline (use this as reference for input/output nodes):",
+                truncate(JSON.stringify(sourcePipeline, null, 2), MAX_SNAPSHOT_CHARS),
+              ].join("\n");
+            }
           }
         }
       }

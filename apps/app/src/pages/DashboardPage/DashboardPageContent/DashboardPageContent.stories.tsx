@@ -21,14 +21,10 @@ export const WithJobs: Story = {
         title: "运行 Pipeline",
         type: "pipeline_run",
         status: "running",
-        projectId: null,
-        pipelineId: "p-1",
-        logs: [],
-        result: null,
+        parentJobId: null,
         error: null,
         startedAt: null,
         finishedAt: null,
-        tmuxSessionName: null,
         meta: { createdAt: new Date(), updatedAt: new Date() },
       };
       Route.useLoaderData = () => ({ pipelines: [], projects: [], jobs: [mockJob] });

@@ -1,5 +1,5 @@
 import { render } from "@/test/test-wrapper";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RunConsole } from "./RunConsole";
 import { HarnessCanvasStoreProvider } from "../_store";
@@ -8,6 +8,23 @@ vi.mock("@xyflow/react", () => ({
   Handle: () => null,
   Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
   ReactFlowProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
+}));
+
+const { mockGetTracesQuery } = vi.hoisted(() => ({
+  mockGetTracesQuery: vi
+    .fn()
+    .mockResolvedValue([
+      { message: "[2026-04-08T16:00:00.000Z] Starting pipeline abc" },
+      { message: "[2026-04-08T16:00:01.000Z] Processing node [github-project] skills" },
+    ]),
+}));
+
+vi.mock("@/integrations/trpc/client", () => ({
+  trpcClient: {
+    jobs: {
+      getTraces: { query: mockGetTracesQuery },
+    },
+  },
 }));
 
 const wrapper = ({ children }: { children?: React.ReactNode }) => (
@@ -19,25 +36,17 @@ const mockJobRunning = {
   title: "Pipeline run",
   type: "pipeline_run",
   status: "running" as string,
-  logs: [
-    "[2026-04-08T16:00:00.000Z] Starting pipeline abc",
-    "[2026-04-08T16:00:01.000Z] Processing node [github-project] skills",
-  ],
-  result: null as Record<string, unknown> | null,
   error: null,
   meta: { createdAt: new Date(), updatedAt: new Date() },
   startedAt: Date.now(),
   finishedAt: null as number | null,
-  projectId: null,
-  pipelineId: null,
+  parentJobId: null,
 };
 
 const mockJobDone = {
   ...mockJobRunning,
   status: "done" as const,
-  logs: [...mockJobRunning.logs, "[2026-04-08T16:00:05.000Z] Pipeline complete"],
   finishedAt: Date.now(),
-  result: { summary: "Output written to /Users/test/Desktop/output.md" },
 };
 
 const useOneData = vi.fn(() => mockJobRunning);
@@ -73,9 +82,11 @@ describe("RunConsole", () => {
     expect(screen.getByText(/Running/i)).toBeInTheDocument();
   });
 
-  it("displays log entries from the job", () => {
+  it("displays log entries from traces", async () => {
     render(<RunConsole jobId="job-1" />, { wrapper });
-    expect(screen.getByText(/Starting pipeline/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Starting pipeline/)).toBeInTheDocument();
+    });
     expect(screen.getByText(/Processing node/)).toBeInTheDocument();
   });
 

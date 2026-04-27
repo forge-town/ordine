@@ -7,14 +7,10 @@ const mockJob: Job = {
   title: "运行 Pipeline: 代码分析",
   type: "pipeline_run",
   status: "done",
-  projectId: null,
-  pipelineId: "p-1",
-  logs: [],
-  result: null,
+  parentJobId: null,
   error: null,
   startedAt: new Date(Date.now() - 5000),
   finishedAt: new Date(),
-  tmuxSessionName: null,
   meta: { createdAt: new Date(Date.now() - 10000), updatedAt: new Date() },
 };
 

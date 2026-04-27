@@ -36,15 +36,15 @@ vi.mock("drizzle-orm", async (importOriginal) => {
   };
 });
 
-const makeRow = (id: string, status: "queued" | "running" | "done" | "failed" | "cancelled" = "queued") => ({
+const makeRow = (
+  id: string,
+  status: "queued" | "running" | "done" | "failed" | "cancelled" = "queued",
+) => ({
   id,
   status,
   type: "pipeline_run" as const,
   title: "Job",
-  projectId: null,
-  pipelineId: null,
-  result: null,
-  logs: [] as string[],
+  parentJobId: null,
   error: null,
   startedAt: null,
   finishedAt: null,

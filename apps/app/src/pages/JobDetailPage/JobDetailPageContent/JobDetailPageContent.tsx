@@ -9,12 +9,9 @@ import {
   Ban,
   Terminal,
   Info,
-  Cpu,
-  Code2,
-  FileSearch,
-  Wand2,
   Layers,
-  Link2,
+  FlaskConical,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -66,10 +63,8 @@ const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; b
 
 const TYPE_CONFIG: Record<JobType, { icon: React.ElementType }> = {
   pipeline_run: { icon: Layers },
-  code_analysis: { icon: Code2 },
-  skill_execution: { icon: Wand2 },
-  file_scan: { icon: FileSearch },
-  custom: { icon: Cpu },
+  distillation_run: { icon: FlaskConical },
+  refinement_run: { icon: RefreshCw },
 };
 
 const getStatusLabel = (status: JobStatus, t: (key: string) => string): string => {
@@ -88,10 +83,8 @@ const getStatusLabel = (status: JobStatus, t: (key: string) => string): string =
 const getJobTypeLabel = (type: JobType, t: (key: string) => string): string => {
   const typeMap: Record<JobType, string> = {
     pipeline_run: t("jobs.typePipeline"),
-    code_analysis: t("jobs.typeCodeAnalysis"),
-    skill_execution: t("jobs.typeSkillExecution"),
-    file_scan: t("jobs.typeFileScan"),
-    custom: t("jobs.typeCustom"),
+    distillation_run: t("jobs.typeDistillation"),
+    refinement_run: t("jobs.typeRefinement"),
   };
 
   return typeMap[type];
@@ -123,13 +116,6 @@ export const JobDetailPageContent = () => {
   }, [jobId]);
 
   const handleNavigateJobs = () => void navigate({ to: "/jobs" });
-  const handleNavigateProject = () => {
-    if (!job?.projectId) return;
-    void navigate({
-      to: "/projects/$projectId",
-      params: { projectId: job.projectId },
-    });
-  };
   const handleNavigateDistillationStudio = () => {
     if (!job) return;
     void navigate({
@@ -163,11 +149,11 @@ export const JobDetailPageContent = () => {
         inputSnapshot: null,
         result: null,
       }),
-      (cause) => (cause instanceof Error ? cause : new Error(String(cause)))
+      (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
     ).andThen((created) =>
       ResultAsync.fromPromise(trpcClient.distillations.run.mutate({ id: created.id }), (cause) =>
-        cause instanceof Error ? cause : new Error(String(cause))
-      ).map((executed) => (executed ?? created) as Distillation)
+        cause instanceof Error ? cause : new Error(String(cause)),
+      ).map((executed) => (executed ?? created) as Distillation),
     );
 
     void execution.match(
@@ -185,7 +171,7 @@ export const JobDetailPageContent = () => {
           title: t("distillations.runFailed"),
           description: error.message,
         });
-      }
+      },
     );
   };
 
@@ -211,7 +197,7 @@ export const JobDetailPageContent = () => {
   }
 
   const s = STATUS_CONFIG[job.status];
-  const jobType = TYPE_CONFIG[job.type];
+  const jobType = TYPE_CONFIG[job.type] ?? TYPE_CONFIG.pipeline_run;
   const StatusIcon = s.icon;
   const TypeIcon = jobType.icon;
 
@@ -245,7 +231,7 @@ export const JobDetailPageContent = () => {
           <span
             className={cn(
               "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-              s.cls
+              s.cls,
             )}
           >
             <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />
@@ -290,24 +276,7 @@ export const JobDetailPageContent = () => {
                 value={job.finishedAt ? new Date(job.finishedAt).toLocaleString() : null}
               />
               <MetaRow label={t("jobs.duration")} value={duration} />
-              <MetaRow mono label="Project ID" value={job.projectId} />
-              <MetaRow mono label="Pipeline ID" value={job.pipelineId} />
             </div>
-
-            {job.projectId && (
-              <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
-                <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
-                {job.projectId && (
-                  <Button
-                    className="h-auto p-0 text-xs"
-                    variant="link"
-                    onClick={handleNavigateProject}
-                  >
-                    {t("nav.projects")}
-                  </Button>
-                )}
-              </div>
-            )}
           </div>
 
           {job.error && (
@@ -317,17 +286,6 @@ export const JobDetailPageContent = () => {
               </p>
               <pre className="text-xs text-red-700 font-mono whitespace-pre-wrap break-all">
                 {job.error}
-              </pre>
-            </div>
-          )}
-
-          {job.result && Object.keys(job.result).length > 0 && (
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {t("jobs.executionResult")}
-              </p>
-              <pre className="text-xs text-foreground font-mono whitespace-pre-wrap break-all">
-                {JSON.stringify(job.result, null, 2)}
               </pre>
             </div>
           )}
@@ -355,7 +313,7 @@ export const JobDetailPageContent = () => {
                     <span
                       className={cn(
                         "shrink-0 w-12 text-[10px] font-mono uppercase",
-                        LEVEL_COLOR[tr.level]
+                        LEVEL_COLOR[tr.level],
                       )}
                     >
                       {tr.level}

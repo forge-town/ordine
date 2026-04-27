@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Terminal, X, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
@@ -8,6 +8,7 @@ import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { StatusIcon } from "./StatusIcon";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { trpcClient } from "@/integrations/trpc/client";
 import type { JobData, JobStatus, RunConsoleProps } from "./types";
 
 const POLL_INTERVAL = 1500;
@@ -87,11 +88,13 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const processedLogCount = useRef(0);
   const prevJobId = useRef(jobId);
+  const [traceLogs, setTraceLogs] = useState<string[]>([]);
 
   // Reset processed count when jobId changes
   if (prevJobId.current !== jobId) {
     prevJobId.current = jobId;
     processedLogCount.current = 0;
+    setTraceLogs([]);
   }
 
   const { query: jobQuery } = useOne<JobData>({
@@ -110,10 +113,28 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
 
   const job = (jobQuery.data?.data as JobData | undefined) ?? null;
 
+  // Poll traces for log lines
+  const fetchTraces = useCallback(async () => {
+    if (!jobId) return;
+    const traces = await trpcClient.jobs.getTraces.query({ jobId });
+    const logs = traces.map((t: { message: string }) => t.message);
+    setTraceLogs(logs);
+  }, [jobId]);
+
+  useEffect(() => {
+    if (!jobId) return;
+    void fetchTraces();
+    if (job && !isTerminalStatus(job.status)) {
+      const interval = setInterval(() => void fetchTraces(), POLL_INTERVAL);
+
+      return () => clearInterval(interval);
+    }
+  }, [jobId, job?.status, fetchTraces]);
+
   // Process new structured log lines during render (ref-driven, no useEffect)
-  if (job && job.logs.length > processedLogCount.current) {
-    const newLogs = job.logs.slice(processedLogCount.current);
-    processedLogCount.current = job.logs.length;
+  if (traceLogs.length > processedLogCount.current) {
+    const newLogs = traceLogs.slice(processedLogCount.current);
+    processedLogCount.current = traceLogs.length;
 
     parseStructuredLogs(newLogs, {
       onNodeStart: markNodeRunning,
@@ -122,7 +143,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
       onLlmContent: setNodeLlmContent,
     });
 
-    if (isTerminalStatus(job.status)) {
+    if (job && isTerminalStatus(job.status)) {
       stopTestRun();
     }
   }
@@ -132,7 +153,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
     if (scrollRef.current && !collapsed) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [job?.logs.length, collapsed]);
+  }, [traceLogs.length, collapsed]);
 
   if (!jobId) return null;
 
@@ -167,7 +188,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                 {statusLabel[job.status]}
               </span>
               {job.status === "running" && (
-                <span className="text-muted-foreground">({job.logs.length} logs)</span>
+                <span className="text-muted-foreground">({traceLogs.length} logs)</span>
               )}
             </>
           )}
@@ -197,7 +218,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                 Loading...
               </div>
             )}
-            {job?.logs
+            {traceLogs
               .filter((l) => !isStructuredLog(l))
               .map((log, i) => (
                 <div key={i} className="flex gap-2 py-0.5 hover:bg-muted/30">
@@ -217,11 +238,6 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
                   </span>
                 </div>
               ))}
-            {job?.status === "done" && job.result?.summary && (
-              <div className="mt-2 rounded border border-green-200 bg-green-50 px-3 py-2 text-green-700">
-                {job.result.summary}
-              </div>
-            )}
             {job?.status === "failed" && job.error && (
               <div className="mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-red-700">
                 {job.error}

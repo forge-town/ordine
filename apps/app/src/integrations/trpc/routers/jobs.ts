@@ -27,17 +27,8 @@ export const jobsRouter = router({
       z.object({
         id: z.string(),
         title: z.string(),
-        type: JobTypeSchema.default("custom"),
-        projectId: z.string().nullable().default(null),
-        pipelineId: z.string().nullable().default(null),
-        logs: z.array(z.string()).default([]),
-        result: z
-          .object({
-            output: z.string().optional(),
-            summary: z.string().optional(),
-          })
-          .nullable()
-          .default(null),
+        type: JobTypeSchema,
+        parentJobId: z.string().nullable().default(null),
         error: z.string().nullable().default(null),
         status: JobStatusSchema.default("queued"),
         startedAt: z
@@ -59,14 +50,7 @@ export const jobsRouter = router({
       z.object({
         id: z.string(),
         status: JobStatusSchema,
-        logs: z.array(z.string()).optional(),
         error: z.string().optional(),
-        result: z
-          .object({
-            output: z.string().optional(),
-            summary: z.string().optional(),
-          })
-          .optional(),
         startedAt: z
           .number()
           .optional()

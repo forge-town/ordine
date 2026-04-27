@@ -6,11 +6,9 @@ import {
   Ban,
   Trash2,
   ChevronRight,
-  Cpu,
-  Code2,
-  FileSearch,
-  Wand2,
   Layers,
+  FlaskConical,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
@@ -44,10 +42,8 @@ const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot
 
 const TYPE_ICON: Record<JobType, React.ElementType> = {
   pipeline_run: Layers,
-  code_analysis: Code2,
-  skill_execution: Wand2,
-  file_scan: FileSearch,
-  custom: Cpu,
+  distillation_run: FlaskConical,
+  refinement_run: RefreshCw,
 };
 
 export type JobRowProps = {
@@ -60,18 +56,16 @@ export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
   const { t } = useTranslation();
   const s = STATUS_META[job.status];
   const StatusIcon = s.icon;
-  const TypeIcon = TYPE_ICON[job.type];
+  const TypeIcon = TYPE_ICON[job.type] ?? Layers;
   const TYPE_LABELS: Record<JobType, string> = {
     pipeline_run: t("jobs.typePipeline"),
-    code_analysis: t("jobs.typeCodeAnalysis"),
-    skill_execution: t("jobs.typeSkillExecution"),
-    file_scan: t("jobs.typeFileScan"),
-    custom: t("jobs.typeCustom"),
+    distillation_run: t("jobs.typeDistillation"),
+    refinement_run: t("jobs.typeRefinement"),
   };
   const duration =
     job.startedAt && job.finishedAt
       ? ((new Date(job.finishedAt).getTime() - new Date(job.startedAt).getTime()) / 1000).toFixed(
-          1
+          1,
         ) + "s"
       : job.startedAt
         ? t("jobs.inProgress")
@@ -101,7 +95,6 @@ export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
         </div>
         <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
           <span className="font-mono">{job.id}</span>
-          {job.projectId && <span className="truncate max-w-30">{job.projectId}</span>}
           {duration && <span>{duration}</span>}
           <span>
             {job.meta?.createdAt?.toLocaleString(undefined, {

@@ -3,9 +3,7 @@ export type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled" |
 export interface JobData {
   id: string;
   status: JobStatus;
-  logs: string[];
   error: string | null;
-  result: { summary?: string } | null;
   startedAt: number | null;
   finishedAt: number | null;
 }

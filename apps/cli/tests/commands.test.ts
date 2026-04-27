@@ -155,16 +155,19 @@ describe("deletePipeline", () => {
 describe("runPipeline", () => {
   it("triggers a run and polls to completion", async () => {
     mockApi.post.mockResolvedValueOnce({ ok: true, data: { jobId: "job-123" } } as never);
-    mockApi.get.mockResolvedValueOnce({
-      ok: true,
-      data: {
-        id: "job-123",
-        status: "done",
-        logs: ["step 1"],
-        result: { summary: "All good" },
-        error: null,
-      },
-    } as never);
+    mockApi.get
+      .mockResolvedValueOnce({
+        ok: true,
+        data: {
+          id: "job-123",
+          status: "done",
+          error: null,
+        },
+      } as never)
+      .mockResolvedValueOnce({
+        ok: true,
+        data: [{ message: "step 1" }],
+      } as never);
 
     await runPipeline("pipe-1", { inputPath: "/tmp/src" });
 
@@ -190,10 +193,15 @@ describe("runPipeline", () => {
 
   it("throws when job fails", async () => {
     mockApi.post.mockResolvedValueOnce({ ok: true, data: { jobId: "job-fail" } } as never);
-    mockApi.get.mockResolvedValueOnce({
-      ok: true,
-      data: { id: "job-fail", status: "failed", logs: [], result: null, error: "Syntax error" },
-    } as never);
+    mockApi.get
+      .mockResolvedValueOnce({
+        ok: true,
+        data: { id: "job-fail", status: "failed", error: "Syntax error" },
+      } as never)
+      .mockResolvedValueOnce({
+        ok: true,
+        data: [],
+      } as never);
 
     await expect(runPipeline("pipe-1", {})).rejects.toThrow("Pipeline failed");
   });

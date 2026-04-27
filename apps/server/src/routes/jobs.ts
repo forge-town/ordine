@@ -1,16 +1,18 @@
 import { Hono } from "hono";
-import type { JobStatus } from "@repo/db-schema";
+import type { JobStatus, JobType } from "@repo/db-schema";
 import { jobsService } from "../services.js";
 
 export const jobsRoutes = new Hono();
 
 jobsRoutes.get("/", async (c) => {
   const status = c.req.query("status") as JobStatus | undefined;
-  const projectId = c.req.query("projectId");
+  const type = c.req.query("type") as JobType | undefined;
+  const parentJobId = c.req.query("parentJobId");
 
-  const filter: { status?: JobStatus; projectId?: string } = {};
+  const filter: { status?: JobStatus; type?: JobType; parentJobId?: string } = {};
   if (status) filter.status = status;
-  if (projectId) filter.projectId = projectId;
+  if (type) filter.type = type;
+  if (parentJobId) filter.parentJobId = parentJobId;
 
   const jobs = await jobsService.getAll(filter);
 

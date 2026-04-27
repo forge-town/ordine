@@ -12,6 +12,7 @@ import type {
   OperationsDao,
   PipelinesDao,
   JobsDao,
+  PipelineRunsDao,
   SkillsDao,
   BestPracticesDao,
 } from "@repo/models";
@@ -65,6 +66,7 @@ export const pipelineRunExecutor = {
     pipelinesDao: PipelinesDao;
     operationsDao: OperationsDao;
     jobsDao: JobsDao;
+    pipelineRunsDao: PipelineRunsDao;
     skillsDao: SkillsDao;
     bestPracticesDao: BestPracticesDao;
     engineDeps: PipelineEngineDeps;
@@ -76,6 +78,7 @@ export const pipelineRunExecutor = {
       pipelinesDao,
       operationsDao,
       jobsDao,
+      pipelineRunsDao,
       skillsDao,
       bestPracticesDao,
       engineDeps,
@@ -142,9 +145,9 @@ export const pipelineRunExecutor = {
         const outcome = result.isOk() ? result.value : { ok: false as const, error: result.error };
 
         if (outcome.ok) {
+          await pipelineRunsDao.update(jobId, { result: { summary: outcome.summary } });
           await jobsDao.updateStatus(jobId, "done", {
             finishedAt: new Date(),
-            result: { summary: outcome.summary },
           });
         } else {
           await failJobSafely({ jobsDao, jobId, message: outcome.error.message });

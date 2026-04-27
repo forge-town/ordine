@@ -12,6 +12,7 @@ vi.mock("@repo/models", () => ({
   createPipelinesDao: () => mockDao,
   createDistillationsDao: () => ({}),
   createJobsDao: () => ({}),
+  createPipelineRunsDao: () => ({ findByJobId: vi.fn() }),
   createJobTracesDao: () => ({}),
   createAgentRawExportsDao: () => ({}),
   createAgentSpansDao: () => ({}),
