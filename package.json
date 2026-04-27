@@ -1,14 +1,18 @@
 {
   "name": "ordine",
-  "description": "AI-first meta-orchestration engine",
   "private": true,
+  "description": "AI-first meta-orchestration engine",
+  "homepage": "https://ordine.ai",
   "license": "MIT",
   "author": "Code Forge AI",
-  "homepage": "https://ordine.ai",
   "repository": {
     "type": "git",
     "url": "https://github.com/forge-town/ordine.git"
   },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -20,9 +24,14 @@
     "knip": "knip",
     "storybook": "turbo run storybook",
     "build-storybook": "turbo run build-storybook",
-    "sync-skills": "bunx skills add https://github.com/forge-town/skills"
+    "sync-skills": "bunx skills add https://github.com/forge-town/skills",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.6.0",
+    "@changesets/cli": "^2.31.0",
     "@oxlint/binding-darwin-arm64": "^1.59.0",
     "@rollup/rollup-darwin-arm64": "^4.60.1",
     "knip": "^6.4.0",
@@ -34,9 +43,5 @@
   "engines": {
     "node": ">=20"
   },
-  "packageManager": "bun@1.0.21",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+  "packageManager": "bun@1.0.21"
 }
