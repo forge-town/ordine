@@ -17,8 +17,7 @@ import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
 import type { OperationNodeData, NodeRunStatus } from "@repo/pipeline-engine/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { type OperationRecord, type BestPracticeRecord } from "@repo/db-schema";
-import { AgentRuntimeSchema } from "@repo/schemas";
+import { type Operation, type BestPractice, AgentRuntimeSchema } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
 import { BestPracticeSelect } from "./BestPracticeSelect";
 
@@ -44,23 +43,19 @@ const statusConfig: Record<
 
 const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
-const PROVIDER_LABELS: Record<string, string> = {
+const RUNTIME_LABELS: Record<string, string> = {
   "claude-code": "Claude",
   codex: "Codex",
-};
-
-const MODEL_OPTIONS: Record<string, { value: string; label: string }[]> = {
-  "claude-code": [],
-  codex: [],
+  mastra: "Mastra",
 };
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const store = useHarnessCanvasStore();
   const { runStatus: nodeRunStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
-  const { result: operationsResult } = useList<OperationRecord>({
+  const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: bestPracticesResult } = useList<BestPracticeRecord>({
+  const { result: bestPracticesResult } = useList<BestPractice>({
     resource: ResourceName.bestPractices,
   });
   const operations = operationsResult?.data ?? [];
@@ -72,38 +67,24 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
 
   const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
 
-  const operation = operations.find((op: OperationRecord) => op.id === data.operationId);
+  const operation = operations.find((op: Operation) => op.id === data.operationId);
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v, operationName: v });
 
-  const selectedProvider = data.llmProvider ?? "";
-  const selectedModel = data.llmModel ?? "";
+  const selectedRuntime = data.agentRuntime ?? "";
 
-  const handleProviderChange = (value: string | null) => {
+  const handleRuntimeChange = (value: string | null) => {
     if (!value || value === "__default__") {
-      updateNodeData(id, { llmProvider: undefined, llmModel: undefined });
+      updateNodeData(id, { agentRuntime: undefined });
     } else {
-      const models = MODEL_OPTIONS[value];
-      updateNodeData(id, {
-        llmProvider: value,
-        llmModel: models?.[0]?.value ?? "",
-      });
+      updateNodeData(id, { agentRuntime: value });
     }
-    setProviderOpen(false);
+    setRuntimeOpen(false);
   };
 
-  const handleModelChange = (value: string | null) => {
-    if (value) updateNodeData(id, { llmModel: value });
-    setModelOpen(false);
-  };
-
-  const [providerOpen, setProviderOpen] = useState(false);
-  const handleProviderOpenChange = (v: boolean) => setProviderOpen(v);
-  const handleProviderToggle = () => setProviderOpen((prev) => !prev);
-
-  const [modelOpen, setModelOpen] = useState(false);
-  const handleModelOpenChange = (v: boolean) => setModelOpen(v);
-  const handleModelToggle = () => setModelOpen((prev) => !prev);
+  const [runtimeOpen, setRuntimeOpen] = useState(false);
+  const handleRuntimeOpenChange = (v: boolean) => setRuntimeOpen(v);
+  const handleRuntimeToggle = () => setRuntimeOpen((prev) => !prev);
 
   const handleBestPracticeChange = (bpId: string | undefined, bpName: string | undefined) => {
     updateNodeData(id, { bestPracticeId: bpId, bestPracticeName: bpName });
@@ -198,63 +179,36 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
           </div>
         )}
 
-        {/* LLM model selector */}
+        {/* Agent Runtime selector */}
         <div className="space-y-1" onMouseDown={handleStopPropagation}>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             <Brain className="mr-1 inline-block h-3 w-3" />
-            模型
+            Agent Runtime
           </p>
-          <div className="flex gap-1.5">
-            <Select
-              open={providerOpen}
-              value={selectedProvider || "__default__"}
-              onOpenChange={handleProviderOpenChange}
-              onValueChange={handleProviderChange}
+          <Select
+            open={runtimeOpen}
+            value={selectedRuntime || "__default__"}
+            onOpenChange={handleRuntimeOpenChange}
+            onValueChange={handleRuntimeChange}
+          >
+            <SelectTrigger
+              className="h-6 min-w-0 flex-1 px-1.5 text-[10px]"
+              onClick={handleRuntimeToggle}
             >
-              <SelectTrigger
-                className="h-6 min-w-0 flex-1 px-1.5 text-[10px]"
-                onClick={handleProviderToggle}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Provider</SelectLabel>
-                  <SelectItem value="__default__">默认</SelectItem>
-                  {AgentRuntimeSchema.options.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {PROVIDER_LABELS[p] ?? p}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {selectedProvider && (MODEL_OPTIONS[selectedProvider]?.length ?? 0) > 0 && (
-              <Select
-                open={modelOpen}
-                value={selectedModel}
-                onOpenChange={handleModelOpenChange}
-                onValueChange={handleModelChange}
-              >
-                <SelectTrigger
-                  className="h-6 min-w-0 flex-1 px-1.5 text-[10px]"
-                  onClick={handleModelToggle}
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Model</SelectLabel>
-                    {(MODEL_OPTIONS[selectedProvider] ?? []).map((m) => (
-                      <SelectItem key={m.value} value={m.value}>
-                        {m.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            )}
-          </div>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Runtime</SelectLabel>
+                <SelectItem value="__default__">默认</SelectItem>
+                {AgentRuntimeSchema.options.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {RUNTIME_LABELS[p] ?? p}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
         {hasLlmContent && (

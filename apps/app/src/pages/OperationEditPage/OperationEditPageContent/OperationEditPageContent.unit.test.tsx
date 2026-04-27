@@ -2,7 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { OperationEditPageContent } from "./OperationEditPageContent";
-import type { OperationRecord, SkillRecord } from "@repo/db-schema";
+import type { Operation, Skill } from "@repo/schemas";
 
 const mockNavigate = vi.fn();
 const mockUpdateMutateAsync = vi.fn().mockResolvedValue({ data: {} });
@@ -46,17 +46,16 @@ vi.mock("@refinedev/core", () => ({
   useOne: () => ({ result: null, isLoading: false }),
 }));
 
-const mockOp: OperationRecord = {
+const mockOp: Operation = {
   id: "op-123",
   name: "Run ESLint",
   description: "Lints the code",
-  config: { executor: { type: "script", command: "eslint src/" } },
+  config: { inputs: [], outputs: [], executor: { type: "script", command: "eslint src/" } },
   acceptedObjectTypes: ["file", "folder"],
-  createdAt: new Date(1000),
-  updatedAt: new Date(2000),
+  meta: { createdAt: new Date(1000), updatedAt: new Date(2000) },
 };
 
-const mockSkills: SkillRecord[] = [
+const mockSkills: Skill[] = [
   {
     id: "skill-1",
     name: "lint-check",
@@ -64,8 +63,7 @@ const mockSkills: SkillRecord[] = [
     description: "",
     category: "lint",
     tags: [],
-    createdAt: new Date(1000),
-    updatedAt: new Date(2000),
+    meta: { createdAt: new Date(1000), updatedAt: new Date(2000) },
   },
 ];
 

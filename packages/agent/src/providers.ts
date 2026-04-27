@@ -8,17 +8,14 @@ export interface KimiSettings {
   model: string;
 }
 
-export type SettingsResolver = () => Promise<KimiSettings>;
-
-export const getModel = async (getSettings: SettingsResolver, modelOverride?: string) => {
-  const { apiKey, model } = await getSettings();
+export const getKimiModel = (settings: KimiSettings) => {
+  const { apiKey, model } = settings;
   if (!apiKey) {
     logger.warn("No Kimi API key configured");
 
     return null;
   }
-  const finalModel = modelOverride ?? model;
-  logger.info({ model: finalModel }, "Creating Kimi model via Anthropic SDK");
+  logger.info({ model }, "Creating Kimi model");
 
-  return createAnthropic({ baseURL: KIMI_BASE_URL, apiKey })(finalModel);
+  return createAnthropic({ baseURL: KIMI_BASE_URL, apiKey })(model);
 };

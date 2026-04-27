@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DashboardPageContent } from "./DashboardPageContent";
-import type { JobRecord } from "@repo/db-schema";
+import type { Job } from "@repo/schemas";
 
 // Route.useLoaderData is mocked via Storybook parameters or decorators
 const meta: Meta<typeof DashboardPageContent> = {
@@ -16,7 +16,7 @@ export const WithJobs: Story = {
   decorators: [
     (Story) => {
       const { Route } = require("@/routes/index");
-      const mockJob: JobRecord = {
+      const mockJob: Job = {
         id: "job-1",
         title: "运行 Pipeline",
         type: "pipeline_run",
@@ -29,8 +29,7 @@ export const WithJobs: Story = {
         startedAt: null,
         finishedAt: null,
         tmuxSessionName: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        meta: { createdAt: new Date(), updatedAt: new Date() },
       };
       Route.useLoaderData = () => ({ pipelines: [], projects: [], jobs: [mockJob] });
       return <Story />;

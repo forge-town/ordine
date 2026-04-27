@@ -2,12 +2,12 @@ import { render } from "@/test/test-wrapper";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { OperationCreatePageContent } from "./OperationCreatePageContent";
-import type { SkillRecord } from "@repo/db-schema";
+import type { Skill } from "@repo/schemas";
 
 const mockNavigate = vi.fn();
 const mockCreateMutateAsync = vi.fn();
 
-const mockSkills: SkillRecord[] = [
+const mockSkills: Skill[] = [
   {
     id: "skill-1",
     name: "lint-check",
@@ -15,8 +15,7 @@ const mockSkills: SkillRecord[] = [
     description: "",
     category: "lint",
     tags: [],
-    createdAt: new Date(1000),
-    updatedAt: new Date(2000),
+    meta: { createdAt: new Date(1000), updatedAt: new Date(2000) },
   },
 ];
 

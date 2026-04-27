@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { ClaudeStreamEvent } from "@repo/agent";
 
 const fakeClaudeEvents: ClaudeStreamEvent[] = [
@@ -22,9 +22,22 @@ vi.mock("@repo/agent", () => ({
   }),
 }));
 
+vi.mock("@repo/obs", () => ({
+  recordAgentRunWithSpans: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@repo/logger", () => ({
+  logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}));
+
 import { agentEngine } from "./agentEngine";
+import { recordAgentRunWithSpans } from "@repo/obs";
 
 describe("agentEngine", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("dispatches to runClaude for claude-code", async () => {
     const result = await agentEngine.run({
       agent: "claude-code",
@@ -77,5 +90,45 @@ describe("agentEngine", () => {
     });
 
     expect(onProgress).toHaveBeenCalled();
+  });
+
+  it("records observability when jobId and agentId are provided", async () => {
+    await agentEngine.run({
+      agent: "claude-code",
+      mode: "direct",
+      systemPrompt: "sys",
+      userPrompt: "user",
+      cwd: "/tmp",
+      jobId: "job-1",
+      agentId: "test-agent",
+    });
+
+    expect(recordAgentRunWithSpans).toHaveBeenCalledOnce();
+    expect(recordAgentRunWithSpans).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jobId: "job-1",
+        agentSystem: "claude-code",
+        agentId: "test-agent",
+        rawPayload: expect.objectContaining({
+          system: "sys",
+          prompt: "user",
+          output: "fake claude output",
+        }),
+        status: "completed",
+      }),
+      expect.any(Function),
+    );
+  });
+
+  it("skips observability when jobId or agentId is missing", async () => {
+    await agentEngine.run({
+      agent: "claude-code",
+      mode: "direct",
+      systemPrompt: "x",
+      userPrompt: "y",
+      cwd: "/tmp",
+    });
+
+    expect(recordAgentRunWithSpans).not.toHaveBeenCalled();
   });
 });

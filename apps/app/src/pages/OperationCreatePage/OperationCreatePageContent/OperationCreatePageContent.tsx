@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
-import { ArrowLeft, FileCode, Folder, FolderGit2, Puzzle, Terminal, Wand2 } from "lucide-react";
+import { FileCode, Folder, FolderGit2, Puzzle, Terminal, Wand2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
@@ -12,8 +12,9 @@ import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { SkillRecord } from "@repo/db-schema";
+import { PageHeader } from "@/components/PageHeader";
 import {
+  type Skill,
   ObjectTypeSchema,
   type ObjectType,
   ExecutorTypeSchema,
@@ -95,7 +96,7 @@ const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[]
 };
 
 export const OperationCreatePageContent = () => {
-  const { result: skillsResult, query: skillsQuery } = useList<SkillRecord>({
+  const { result: skillsResult, query: skillsQuery } = useList<Skill>({
     resource: ResourceName.skills,
   });
   const skills = skillsResult?.data ?? [];
@@ -103,7 +104,12 @@ export const OperationCreatePageContent = () => {
   const navigate = useNavigate();
 
   if (skillsQuery?.isLoading) {
-    return <PageLoadingState title={t("operations.createNew")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("operations.createNew")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   const EXECUTOR_TYPE_OPTIONS = [
@@ -213,20 +219,7 @@ export const OperationCreatePageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button
-          aria-label={t("common.back")}
-          className="h-8 w-8"
-          size="icon"
-          type="button"
-          variant="ghost"
-          onClick={handleCancel}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-base font-semibold text-foreground">{t("operations.createNew")}</h1>
-      </div>
+      <PageHeader backTo="/operations" title={t("operations.createNew")} />
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-6">

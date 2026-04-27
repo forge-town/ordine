@@ -65,14 +65,5 @@ export const makeDefaultNodeData = (type: BuiltinNodeType): PipelineNodeData => 
         description: "",
       };
     }
-    case "condition": {
-      return {
-        label: "条件节点",
-        nodeType: "condition",
-        expression: "",
-        expectedResult: "",
-        status: "idle",
-      };
-    }
   }
 };

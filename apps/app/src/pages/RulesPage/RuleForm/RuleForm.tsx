@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
-import type { RuleCategory, RuleSeverity } from "@repo/db-schema";
+import type { RuleCategory, RuleSeverity } from "@repo/schemas";
 import {
   CATEGORIES,
   SEVERITIES,

@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { BestPracticesPageContent } from "./BestPracticesPageContent";
-import type { BestPracticeRecord } from "@repo/db-schema";
+import type { BestPractice } from "@repo/schemas";
 
-const mockPractices: BestPracticeRecord[] = [
+const mockPractices: BestPractice[] = [
   {
     id: "bp-1",
     title: "避免在 useEffect 中直接 setState",
@@ -12,8 +12,7 @@ const mockPractices: BestPracticeRecord[] = [
     language: "typescript",
     codeSnippet: "useEffect(() => {\n  fetchData().then(setData);\n}, []);",
     tags: ["react", "hooks"],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
   {
     id: "bp-2",
@@ -24,8 +23,7 @@ const mockPractices: BestPracticeRecord[] = [
     language: "typescript",
     codeSnippet: "",
     tags: ["performance"],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
 ];
 

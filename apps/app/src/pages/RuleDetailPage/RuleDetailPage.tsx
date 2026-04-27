@@ -2,13 +2,14 @@ import { useTranslation } from "react-i18next";
 import { Route } from "@/routes/_layout/rules.$ruleId.index";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { RuleRecord } from "@repo/db-schema";
+import type { Rule } from "@repo/schemas";
 import { RuleDetailPageContent } from "./RuleDetailPageContent";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 
 export const RuleDetailPage = () => {
   const { ruleId } = Route.useParams();
-  const { result: ruleResult, query: ruleQuery } = useOne<RuleRecord>({
+  const { result: ruleResult, query: ruleQuery } = useOne<Rule>({
     resource: ResourceName.rules,
     id: ruleId,
   });
@@ -16,7 +17,12 @@ export const RuleDetailPage = () => {
   const { t } = useTranslation();
 
   if (ruleQuery?.isLoading) {
-    return <PageLoadingState title={t("rules.title")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("rules.title")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   if (!rule) {

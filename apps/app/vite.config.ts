@@ -7,6 +7,17 @@ import tailwindcss from "@tailwindcss/vite";
 const IS_STORYBOOK = process.argv[1]?.includes("storybook");
 
 export default defineConfig({
+  build: {
+    target: "esnext",
+  },
+  esbuild: {
+    target: "esnext",
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: "esnext",
+    },
+  },
   plugins: [
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],

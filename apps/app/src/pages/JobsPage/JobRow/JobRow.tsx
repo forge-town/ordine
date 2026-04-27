@@ -15,7 +15,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { useTranslation } from "react-i18next";
-import type { JobRecord, JobStatus, JobType } from "@repo/db-schema";
+import type { Job, JobStatus, JobType } from "@repo/schemas";
 
 const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot: string }> = {
   queued: { icon: Clock, cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400" },
@@ -51,7 +51,7 @@ const TYPE_ICON: Record<JobType, React.ElementType> = {
 };
 
 export type JobRowProps = {
-  job: JobRecord;
+  job: Job;
   onClick: () => void;
   onDelete: () => void;
 };
@@ -104,12 +104,12 @@ export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
           {job.projectId && <span className="truncate max-w-30">{job.projectId}</span>}
           {duration && <span>{duration}</span>}
           <span>
-            {new Date(job.createdAt).toLocaleString(undefined, {
+            {job.meta?.createdAt?.toLocaleString(undefined, {
               month: "numeric",
               day: "numeric",
               hour: "2-digit",
               minute: "2-digit",
-            })}
+            }) ?? "-"}
           </span>
         </div>
       </div>

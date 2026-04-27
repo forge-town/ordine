@@ -2,9 +2,12 @@ import { serve } from "@hono/node-server";
 import { app } from "./app.js";
 import { jobsService } from "./services.js";
 
-const port = Number(process.env["PORT"] ?? 9433);
+import { getEnv } from "./integrations/env";
 
-const DEFAULT_JOB_TIMEOUT_MS = Number(process.env["JOB_TIMEOUT_MS"] ?? 15 * 60 * 1000); // 15 min
+const env = getEnv();
+const port = env.PORT ?? 9433;
+
+const DEFAULT_JOB_TIMEOUT_MS = env.JOB_TIMEOUT_MS ?? 15 * 60 * 1000; // 15 min
 const EXPIRE_CHECK_INTERVAL_MS = 60_000; // every 60s
 
 setInterval(async () => {

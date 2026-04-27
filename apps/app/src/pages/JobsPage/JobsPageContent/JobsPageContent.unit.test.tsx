@@ -2,15 +2,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { JobsPageContent } from "./JobsPageContent";
-import type { JobRecord } from "@repo/db-schema";
+import type { Job } from "@repo/schemas";
 
-const mockUseLoaderData = vi.fn(() => [] as JobRecord[]);
+const mockUseLoaderData = vi.fn(() => [] as Job[]);
 
 vi.mock("@/routes/_layout/jobs.index", () => ({
   Route: { useLoaderData: () => mockUseLoaderData() },
 }));
 
 vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
   useNavigate: () => vi.fn(),
 }));
 
@@ -44,7 +45,7 @@ vi.mock("@refinedev/core", () => ({
   useOne: () => ({ result: null, isLoading: false }),
 }));
 
-const mockJobs: JobRecord[] = [
+const mockJobs: Job[] = [
   {
     id: "job-001",
     title: "Pipeline 运行",
@@ -58,8 +59,7 @@ const mockJobs: JobRecord[] = [
     startedAt: new Date(Date.now() - 3000),
     finishedAt: null,
     tmuxSessionName: null,
-    createdAt: new Date(Date.now() - 5000),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(Date.now() - 5000), updatedAt: new Date() },
   },
   {
     id: "job-002",
@@ -74,8 +74,7 @@ const mockJobs: JobRecord[] = [
     startedAt: new Date(Date.now() - 10_000),
     finishedAt: new Date(Date.now() - 2000),
     tmuxSessionName: null,
-    createdAt: new Date(Date.now() - 12_000),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(Date.now() - 12_000), updatedAt: new Date() },
   },
 ];
 

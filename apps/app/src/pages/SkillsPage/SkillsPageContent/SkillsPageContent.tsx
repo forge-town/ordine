@@ -5,13 +5,12 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
-import type { SkillRecord } from "@repo/db-schema";
+import type { Skill } from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { useSkillsPageStore } from "../_store";
-
-export type Skill = SkillRecord;
 
 type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
 
@@ -24,7 +23,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export const SkillsPageContent = () => {
-  const { result: skillsResult, query: skillsQuery } = useList<SkillRecord>({
+  const { result: skillsResult, query: skillsQuery } = useList<Skill>({
     resource: ResourceName.skills,
   });
   const skills = skillsResult?.data ?? ([] as Skill[]);
@@ -49,7 +48,7 @@ export const SkillsPageContent = () => {
     handleSetSearch(e.target.value);
   const handleCategoryClick = (cat: SkillCategory) => () => handleSetCategory(cat);
 
-  const filtered = skills.filter((s: SkillRecord) => {
+  const filtered = skills.filter((s: Skill) => {
     const matchesSearch =
       s.label.toLowerCase().includes(search.toLowerCase()) ||
       s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -60,18 +59,21 @@ export const SkillsPageContent = () => {
   });
 
   if (skillsQuery?.isLoading) {
-    return <PageLoadingState title={t("skills.title")} variant="grid" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("skills.title")} />
+        <PageLoadingState variant="grid" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
-        <div>
-          <h1 className="text-base font-semibold text-foreground">{t("skills.title")}</h1>
-          <p className="text-xs text-muted-foreground">{skills.length}</p>
-        </div>
-      </div>
+      <PageHeader
+        badge={<span className="text-xs text-muted-foreground">{skills.length}</span>}
+        icon={<Wand2 className="h-4 w-4 text-primary" />}
+        title={t("skills.title")}
+      />
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3">
@@ -121,7 +123,7 @@ export const SkillsPageContent = () => {
                   <Badge
                     className={cn(
                       "text-[10px]",
-                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600"
+                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600",
                     )}
                     variant="secondary"
                   >

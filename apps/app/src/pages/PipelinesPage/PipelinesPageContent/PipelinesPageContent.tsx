@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Plus, Layers, Search, X } from "lucide-react";
+import { GitBranch, Plus, Layers, Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -8,15 +8,16 @@ import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { PipelineRecord } from "@repo/db-schema";
+import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import { useStore } from "zustand";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { usePipelinesPageStore } from "../_store";
 import { PipelineCard } from "../PipelineCard";
 
 export const PipelinesPageContent = () => {
   const { t } = useTranslation();
-  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineRecord>({
+  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineData>({
     resource: ResourceName.pipelines,
   });
   const pipelinesData = pipelinesResult?.data;
@@ -53,7 +54,7 @@ export const PipelinesPageContent = () => {
     const items = pipelinesData ?? [];
     const q = search.toLowerCase();
 
-    return items.filter((p: PipelineRecord) => {
+    return items.filter((p: PipelineData) => {
       const matchesSearch =
         !q ||
         p.name.toLowerCase().includes(q) ||
@@ -72,7 +73,7 @@ export const PipelinesPageContent = () => {
   const handleCreate = async () => {
     const id = `pipeline-${Date.now()}`;
     const now = new Date();
-    const newPipeline: PipelineRecord = {
+    const newPipeline: PipelineData = {
       id,
       name: t("pipelines.createNew"),
       description: t("pipelines.newPipelineDescription"),
@@ -80,27 +81,14 @@ export const PipelinesPageContent = () => {
       createdAt: now,
       updatedAt: now,
       timeoutMs: null,
-      nodes: [
-        {
-          id: `${id}-condition`,
-          type: "condition",
-          position: { x: 300, y: 200 },
-          data: {
-            label: t("pipelines.conditionNodeLabel"),
-            nodeType: "condition",
-            expression: "",
-            expectedResult: "",
-            status: "idle",
-          },
-        },
-      ],
+      nodes: [],
       edges: [],
     };
     const result = await createPipelineMutate({
       resource: ResourceName.pipelines,
       values: newPipeline,
     });
-    const saved = result.data as PipelineRecord;
+    const saved = result.data as PipelineData;
     void navigate({ to: "/canvas", search: { id: saved.id } });
   };
 
@@ -113,26 +101,26 @@ export const PipelinesPageContent = () => {
   const handleDeletePipeline = (id: string) => () => void handleDelete(id);
 
   if (pipelinesQuery?.isLoading) {
-    return <PageLoadingState title={t("pipelines.title")} variant="grid" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("pipelines.title")} />
+        <PageLoadingState variant="grid" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <div>
-          <h1 className="text-base font-semibold text-foreground">{t("pipelines.title")}</h1>
-          <p className="text-xs text-muted-foreground">
-            {filtered.length === pipelines.length
-              ? pipelines.length
-              : `${filtered.length} / ${pipelines.length}`}
-          </p>
-        </div>
-        <Button className="flex items-center gap-1.5" size="sm" onClick={handleCreateClick}>
-          <Plus className="h-3.5 w-3.5" />
-          {t("pipelines.createNew")}
-        </Button>
-      </div>
+      <PageHeader
+        actions={
+          <Button className="flex items-center gap-1.5" size="sm" onClick={handleCreateClick}>
+            <Plus className="h-3.5 w-3.5" />
+            {t("pipelines.createNew")}
+          </Button>
+        }
+        icon={<GitBranch className="h-4 w-4 text-primary" />}
+        title={t("pipelines.title")}
+      />
 
       {/* Toolbar */}
       <div className="flex flex-col gap-2 border-b border-border bg-background px-6 py-3">
@@ -173,7 +161,7 @@ export const PipelinesPageContent = () => {
                   "cursor-pointer select-none text-[11px] transition-colors",
                   selectedTags.includes(tag)
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80",
                 )}
                 variant="secondary"
                 onClick={handleTagClick(tag)}

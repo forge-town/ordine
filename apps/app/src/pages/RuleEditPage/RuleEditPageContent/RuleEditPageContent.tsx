@@ -1,18 +1,17 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@repo/ui/button";
 import { Route } from "@/routes/_layout/rules.$ruleId.edit";
 import { useOne, useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { RuleRecord } from "@repo/db-schema";
+import type { Rule } from "@repo/schemas";
 import { RuleForm } from "@/pages/RulesPage/RuleForm";
 import { getEditForm, type RuleFormState } from "@/pages/RulesPage/types";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 
 export const RuleEditPageContent = () => {
   const { ruleId } = Route.useParams();
-  const { result: ruleResult, query: ruleQuery } = useOne<RuleRecord>({
+  const { result: ruleResult, query: ruleQuery } = useOne<Rule>({
     resource: ResourceName.rules,
     id: ruleId,
   });
@@ -22,7 +21,12 @@ export const RuleEditPageContent = () => {
   const { mutateAsync: updateRuleMutate } = useUpdate();
 
   if (ruleQuery?.isLoading) {
-    return <PageLoadingState title={t("rules.editTitle")} variant="detail" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("rules.editTitle")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
   }
 
   if (!rule) {
@@ -61,18 +65,7 @@ export const RuleEditPageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button
-          aria-label={t("rules.backToDetail")}
-          className="h-8 w-8"
-          size="icon"
-          variant="ghost"
-          onClick={handleNavigateBack}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-sm font-semibold text-foreground">{t("rules.editTitle")}</h1>
-      </div>
+      <PageHeader backTo={`/rules/${rule.id}`} title={t("rules.editTitle")} />
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl">

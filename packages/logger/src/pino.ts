@@ -1,10 +1,13 @@
 import pino from "pino";
 
-const isDev = process.env.NODE_ENV !== "production";
+import { getEnv } from "./integrations/env";
+
+const env = getEnv();
+const isDev = env.NODE_ENV !== "production";
 
 const pinoLogger = pino({
   name: "ordine",
-  level: process.env.LOG_LEVEL ?? "info",
+  level: env.LOG_LEVEL ?? "info",
   ...(isDev && {
     transport: {
       target: "pino-pretty",

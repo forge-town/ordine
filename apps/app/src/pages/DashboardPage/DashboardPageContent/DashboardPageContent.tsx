@@ -1,160 +1,209 @@
 import { Link } from "@tanstack/react-router";
-import { Layers, FolderGit2, Activity, Lightbulb, Workflow } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import type { GithubProjectRecord, JobRecord, PipelineRecord } from "@repo/db-schema";
+import { Activity, ArrowRight, LayoutDashboard, Lightbulb, Sparkles, Workflow } from "lucide-react";
 import { useList } from "@refinedev/core";
-import { ResourceName } from "@/integrations/refine/dataProvider";
+import { useTranslation } from "react-i18next";
+import type { Distillation, GithubProject, Job } from "@repo/schemas";
+import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import { PageHeader } from "@/components/PageHeader";
 import { PageLoadingState } from "@/components/PageLoadingState";
-import { StatCard } from "../StatCard";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { DashboardActivityChart } from "../DashboardActivityChart";
+import { DashboardDistillationSummary } from "../DashboardDistillationSummary";
+import { DashboardPanel } from "../DashboardPanel";
+import { DashboardPipelineChart } from "../DashboardPipelineChart";
+import { DashboardSnapshotStrip } from "../DashboardSnapshotStrip";
+import { DashboardStatusChart } from "../DashboardStatusChart";
 import { JobActivityRow } from "../JobActivityRow";
+import { buildDashboardMetrics } from "../dashboardMetrics";
+
+const QUICK_ACTIONS = [
+  {
+    icon: Workflow,
+    key: "design",
+    to: "/canvas",
+  },
+  {
+    icon: Activity,
+    key: "monitor",
+    to: "/jobs",
+  },
+  {
+    icon: Sparkles,
+    key: "distill",
+    to: "/distillations",
+  },
+  {
+    icon: Lightbulb,
+    key: "bestPractices",
+    to: "/best-practices",
+  },
+] as const;
 
 export const DashboardPageContent = () => {
-  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineRecord>({
+  const { t } = useTranslation();
+  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineData>({
     resource: ResourceName.pipelines,
   });
-  const { result: projectsResult, query: projectsQuery } = useList<GithubProjectRecord>({
+  const { result: projectsResult, query: projectsQuery } = useList<GithubProject>({
     resource: ResourceName.githubProjects,
   });
-  const { result: jobsResult, query: jobsQuery } = useList<JobRecord>({
+  const { result: jobsResult, query: jobsQuery } = useList<Job>({
     resource: ResourceName.jobs,
   });
+  const { result: distillationsResult, query: distillationsQuery } = useList<Distillation>({
+    resource: ResourceName.distillations,
+  });
+
   const pipelines = pipelinesResult?.data ?? [];
   const projects = projectsResult?.data ?? [];
   const jobs = jobsResult?.data ?? [];
-  const { t } = useTranslation();
+  const distillations = distillationsResult?.data ?? [];
+  const runningJobs = jobs.filter((job) => job.status === "running").length;
   const isLoading = !!(
     pipelinesQuery?.isLoading ||
     projectsQuery?.isLoading ||
-    jobsQuery?.isLoading
+    jobsQuery?.isLoading ||
+    distillationsQuery?.isLoading
   );
-  const runningJobs = jobs.filter((j: JobRecord) => j.status === "running").length;
-  const failedJobs = jobs.filter((j: JobRecord) => j.status === "failed").length;
-  const recentJobs = jobs.slice(0, 8);
+  const metrics = buildDashboardMetrics(jobs, pipelines, projects.length, distillations);
 
   if (isLoading) {
-    return <PageLoadingState title={t("dashboard.title")} variant="grid" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("dashboard.title")} />
+        <PageLoadingState variant="grid" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
-        <h1 className="text-base font-semibold text-foreground">{t("dashboard.title")}</h1>
-        {runningJobs > 0 && (
-          <span className="ml-3 flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-            {runningJobs} {t("jobs.running")}
-          </span>
-        )}
-      </div>
+      <PageHeader
+        badge={
+          runningJobs > 0 ? (
+            <span className="ml-3 flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+              {runningJobs} {t("jobs.running")}
+            </span>
+          ) : undefined
+        }
+        icon={<LayoutDashboard className="h-4 w-4 text-primary" />}
+        title={t("dashboard.title")}
+      />
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <StatCard
-            icon={FolderGit2}
-            label={t("nav.projects")}
-            sub={t("projects.connectGitHub")}
-            to="/projects"
-            value={projects.length}
-          />
-          <StatCard
-            icon={Layers}
-            label={t("nav.pipelines")}
-            sub={t("pipelines.title")}
-            to="/pipelines"
-            value={pipelines.length}
-          />
-          <StatCard
-            icon={Activity}
-            label={t("nav.jobs")}
-            sub={
-              failedJobs > 0
-                ? `${failedJobs} ${t("jobs.failed")}`
-                : runningJobs > 0
-                  ? `${runningJobs} ${t("jobs.running")}`
-                  : t("jobs.done")
-            }
-            to="/jobs"
-            value={jobs.length}
-          />
-        </div>
-
-        {/* Recent Jobs */}
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <div className="flex items-center gap-2">
-              <Activity className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-xs font-semibold text-muted-foreground">
-                {t("dashboard.recentJobs")}
-              </span>
-            </div>
-            <Link
-              className="text-[11px] text-muted-foreground hover:text-foreground hover:underline"
-              to="/jobs"
+      <div className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.08),transparent_45%)] p-6">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)]">
+            <DashboardPanel
+              description={t("dashboard.activityDescription")}
+              title={t("dashboard.activityTitle")}
             >
-              {t("dashboard.viewAll")}
-            </Link>
+              <DashboardActivityChart data={metrics.activity} />
+            </DashboardPanel>
+
+            <DashboardPanel
+              description={t("dashboard.snapshotDescription")}
+              title={t("dashboard.snapshotTitle")}
+            >
+              <DashboardSnapshotStrip metrics={metrics.snapshot} />
+            </DashboardPanel>
           </div>
-          {recentJobs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <Activity className="h-7 w-7 text-muted-foreground/30" />
-              <p className="mt-2 text-xs text-muted-foreground">{t("dashboard.noJobs")}</p>
-            </div>
-          ) : (
-            <div className="py-1">
-              {recentJobs.map((j: JobRecord) => (
-                <JobActivityRow key={j.id} job={j} />
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Quick actions */}
-        <div>
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("dashboard.quickActions")}
-          </h2>
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              {
-                icon: Workflow,
-                label: t("dashboard.quickActionDesign"),
-                sub: t("dashboard.quickActionDesignSub"),
-                to: "/canvas",
-              },
-              {
-                icon: FolderGit2,
-                label: t("dashboard.quickActionProjects"),
-                sub: t("dashboard.quickActionProjectsSub"),
-                to: "/projects",
-              },
-              {
-                icon: Activity,
-                label: t("dashboard.quickActionMonitor"),
-                sub: t("dashboard.quickActionMonitorSub"),
-                to: "/jobs",
-              },
-              {
-                icon: Lightbulb,
-                label: t("dashboard.quickActionBestPractices"),
-                sub: t("dashboard.quickActionBestPracticesSub"),
-                to: "/best-practices",
-              },
-            ].map((a) => {
-              const Icon = a.icon;
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <DashboardPanel
+              description={t("dashboard.pipelineHealthDescription")}
+              title={t("dashboard.pipelineHealthTitle")}
+            >
+              <DashboardPipelineChart data={metrics.pipelines} />
+            </DashboardPanel>
 
-              return (
-                <Link key={a.to} to={a.to as "/"}>
-                  <div className="group flex cursor-pointer flex-col gap-2 rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm">
-                    <Icon className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{a.label}</p>
-                      <p className="text-xs text-muted-foreground">{a.sub}</p>
-                    </div>
-                  </div>
+            <DashboardPanel
+              description={t("dashboard.statusDescription")}
+              title={t("dashboard.statusTitle")}
+            >
+              <DashboardStatusChart data={metrics.statuses} />
+            </DashboardPanel>
+          </div>
+
+          <DashboardPanel
+            actions={
+              <Link
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                to="/distillations"
+              >
+                {t("dashboard.viewAll")}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            }
+            description={t("dashboard.distillationDescription")}
+            title={t("dashboard.distillationTitle")}
+          >
+            <DashboardDistillationSummary
+              artifacts={metrics.artifactMix}
+              recentDistillations={metrics.recentDistillations}
+            />
+          </DashboardPanel>
+
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
+            <DashboardPanel
+              actions={
+                <Link
+                  className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  to="/jobs"
+                >
+                  {t("dashboard.viewAll")}
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
-              );
-            })}
+              }
+              description={t("dashboard.recentJobsDescription")}
+              title={t("dashboard.recentJobs")}
+            >
+              {metrics.recentJobs.length === 0 ? (
+                <div className="flex min-h-[220px] flex-col items-center justify-center text-center">
+                  <Activity className="h-7 w-7 text-muted-foreground/30" />
+                  <p className="mt-3 text-sm text-muted-foreground">{t("dashboard.noJobs")}</p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {metrics.recentJobs.map((job) => (
+                    <JobActivityRow key={job.id} job={job} />
+                  ))}
+                </div>
+              )}
+            </DashboardPanel>
+
+            <DashboardPanel
+              description={t("dashboard.quickActionsDescription")}
+              title={t("dashboard.quickActions")}
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                {QUICK_ACTIONS.map((action) => {
+                  const Icon = action.icon;
+
+                  return (
+                    <Link key={action.key} to={action.to as "/"}>
+                      <div className="group rounded-2xl border border-border/70 bg-background/60 p-4 transition-all hover:border-primary/40 hover:shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                            <Icon className="h-5 w-5" />
+                          </span>
+                          <ArrowRight className="h-4 w-4 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground" />
+                        </div>
+                        <p className="mt-4 text-sm font-semibold text-foreground">
+                          {t(
+                            `dashboard.quickAction${action.key[0].toUpperCase()}${action.key.slice(1)}`,
+                          )}
+                        </p>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          {t(
+                            `dashboard.quickAction${action.key[0].toUpperCase()}${action.key.slice(1)}Sub`,
+                          )}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </DashboardPanel>
           </div>
         </div>
       </div>

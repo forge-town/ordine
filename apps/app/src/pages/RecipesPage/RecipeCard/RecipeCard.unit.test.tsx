@@ -10,17 +10,15 @@ const mockRecipe = {
   description: "检查 className 模板字符串",
   operationId: "op-1",
   bestPracticeId: "bp-1",
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
 };
 
 const mockOperation = {
   id: "op-1",
   name: "Check",
   description: "",
-  config: {},
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  config: { inputs: [], outputs: [] },
+  meta: { createdAt: new Date(), updatedAt: new Date() },
   acceptedObjectTypes: [] as ObjectType[],
 };
 
@@ -33,8 +31,7 @@ const mockBestPractice = {
   language: "tsx",
   codeSnippet: "",
   tags: [],
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
 };
 
 describe("RecipeCard", () => {

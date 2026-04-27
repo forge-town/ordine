@@ -26,6 +26,8 @@ export const ResourceName = {
   recipes: "recipes",
   checklistItems: "checklistItems",
   codeSnippets: "codeSnippets",
+  distillations: "distillations",
+  refinements: "refinements",
   settings: "settings",
 } as const;
 
@@ -103,6 +105,11 @@ export const dataProvider: DataProvider = {
 
         return { data: data as unknown as TData[], total: data.length };
       }
+      case ResourceName.distillations: {
+        const data = await trpcClient.distillations.getMany.query();
+
+        return { data: data as unknown as TData[], total: data.length };
+      }
       case ResourceName.jobs: {
         const data = await trpcClient.jobs.getMany.query();
 
@@ -175,6 +182,16 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.codeSnippets: {
         const data = await trpcClient.codeSnippets.getById.query({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.distillations: {
+        const data = await trpcClient.distillations.getById.query({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.refinements: {
+        const data = await trpcClient.refinements.getById.query({ id: String(id) });
 
         return { data: data as unknown as TData };
       }
@@ -261,6 +278,13 @@ export const dataProvider: DataProvider = {
       case ResourceName.codeSnippets: {
         const data = await trpcClient.codeSnippets.create.mutate(
           variables as Parameters<typeof trpcClient.codeSnippets.create.mutate>[0]
+        );
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.distillations: {
+        const data = await trpcClient.distillations.create.mutate(
+          variables as Parameters<typeof trpcClient.distillations.create.mutate>[0]
         );
 
         return { data: data as unknown as TData };
@@ -357,6 +381,14 @@ export const dataProvider: DataProvider = {
 
         return { data: data as unknown as TData };
       }
+      case ResourceName.distillations: {
+        const data = await trpcClient.distillations.update.mutate({
+          id: String(id),
+          patch: variables as Record<string, unknown>,
+        } as Parameters<typeof trpcClient.distillations.update.mutate>[0]);
+
+        return { data: data as unknown as TData };
+      }
       case ResourceName.settings: {
         const data = await trpcClient.settings.update.mutate(
           variables as Parameters<typeof trpcClient.settings.update.mutate>[0]
@@ -429,6 +461,11 @@ export const dataProvider: DataProvider = {
 
         return { data: data as unknown as TData };
       }
+      case ResourceName.distillations: {
+        const data = await trpcClient.distillations.delete.mutate({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
       default: {
         throw new Error(`deleteOne: unknown resource "${resource}"`);
       }
@@ -455,9 +492,54 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+    if (url === "pipelines/optimizeFromDistillation") {
+      const data = await trpcClient.pipelines.optimizeFromDistillation.mutate(
+        payload as unknown as Parameters<
+          typeof trpcClient.pipelines.optimizeFromDistillation.mutate
+        >[0]
+      );
+
+      return { data: data as unknown as TData };
+    }
     if (url === "rules/toggle") {
       const data = await trpcClient.rules.toggle.mutate(
         payload as unknown as Parameters<typeof trpcClient.rules.toggle.mutate>[0]
+      );
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "jobs/analysis") {
+      const { jobId } = payload as { jobId: string };
+      const [traces, agentRuns] = await Promise.all([
+        trpcClient.jobs.getTraces.query({ jobId }),
+        trpcClient.jobs.getAgentRuns.query({ jobId }),
+      ]);
+      const spansByRunEntries = await Promise.all(
+        agentRuns.map(async (run) => {
+          const spans = await trpcClient.jobs.getAgentRunSpans.query({ rawExportId: run.id });
+
+          return [run.id, spans] as const;
+        })
+      );
+
+      return {
+        data: {
+          traces,
+          agentRuns,
+          spansByRun: Object.fromEntries(spansByRunEntries),
+        } as unknown as TData,
+      };
+    }
+    if (url === "refinements/start") {
+      const data = await trpcClient.refinements.start.mutate(
+        payload as unknown as Parameters<typeof trpcClient.refinements.start.mutate>[0]
+      );
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "distillations/run") {
+      const data = await trpcClient.distillations.run.mutate(
+        payload as unknown as Parameters<typeof trpcClient.distillations.run.mutate>[0]
       );
 
       return { data: data as unknown as TData };

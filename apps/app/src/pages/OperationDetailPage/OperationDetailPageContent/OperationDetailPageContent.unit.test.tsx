@@ -2,7 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { OperationDetailPageContent } from "./OperationDetailPageContent";
-import type { OperationRecord } from "@repo/db-schema";
+import type { Operation } from "@repo/schemas";
 
 const mockUseLoaderData = vi.fn();
 
@@ -14,6 +14,7 @@ vi.mock("@/routes/_layout/operations.$operationId.index", () => ({
 }));
 
 vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
   useNavigate: () => vi.fn(),
 }));
 
@@ -32,7 +33,7 @@ vi.mock("@refinedev/core", () => ({
   useOne: () => ({ result: mockUseLoaderData(), isLoading: false }),
 }));
 
-const mockOp: OperationRecord = {
+const mockOp: Operation = {
   id: "op_plan",
   name: "Plan",
   description: "Produce a technical implementation plan.",
@@ -61,8 +62,7 @@ const mockOp: OperationRecord = {
     ],
   },
   acceptedObjectTypes: ["file"],
-  createdAt: new Date(1_712_000_000_000),
-  updatedAt: new Date(1_712_000_000_000),
+  meta: { createdAt: new Date(1_712_000_000_000), updatedAt: new Date(1_712_000_000_000) },
 };
 
 describe("OperationDetailPageContent", () => {
@@ -70,12 +70,6 @@ describe("OperationDetailPageContent", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
     render(<OperationDetailPageContent />);
     expect(screen.getByText("Plan")).toBeInTheDocument();
-  });
-
-  it("renders the operation id", () => {
-    mockUseLoaderData.mockReturnValue(mockOp);
-    render(<OperationDetailPageContent />);
-    expect(screen.getByText("op_plan")).toBeInTheDocument();
   });
 
   it("renders the description", () => {
@@ -124,7 +118,7 @@ describe("OperationDetailPageContent", () => {
   });
 
   describe("executor display", () => {
-    const executorOp: OperationRecord = {
+    const executorOp: Operation = {
       id: "op_plan",
       name: "Plan",
       description: "Produce a technical implementation plan.",
@@ -134,8 +128,7 @@ describe("OperationDetailPageContent", () => {
         outputs: [],
       },
       acceptedObjectTypes: ["file"],
-      createdAt: new Date(1_712_000_000_000),
-      updatedAt: new Date(1_712_000_000_000),
+      meta: { createdAt: new Date(1_712_000_000_000), updatedAt: new Date(1_712_000_000_000) },
     };
 
     it("shows executor section when config has an executor", () => {
@@ -151,7 +144,7 @@ describe("OperationDetailPageContent", () => {
     });
 
     it("shows skill id when executor type is skill", () => {
-      const op: OperationRecord = {
+      const op: Operation = {
         ...executorOp,
         config: {
           executor: { type: "agent", agentMode: "skill", skillId: "lint-check" },
@@ -165,7 +158,7 @@ describe("OperationDetailPageContent", () => {
     });
 
     it("shows prompt text when executor type is prompt", () => {
-      const op: OperationRecord = {
+      const op: Operation = {
         ...executorOp,
         config: {
           executor: { type: "agent", agentMode: "prompt", prompt: "You are a code reviewer" },

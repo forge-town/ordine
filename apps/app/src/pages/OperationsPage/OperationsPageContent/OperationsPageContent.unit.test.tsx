@@ -2,10 +2,10 @@ import { render } from "@/test/test-wrapper";
 import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OperationRecord } from "@repo/db-schema";
+import type { Operation } from "@repo/schemas";
 import { OperationsPageContent } from "./OperationsPageContent";
 
-const mockOps = vi.fn<() => OperationRecord[]>(() => []);
+const mockOps = vi.fn<() => Operation[]>(() => []);
 const mockNavigate = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
@@ -57,14 +57,11 @@ vi.mock("@refinedev/core", () => ({
   useOne: () => ({ result: null, isLoading: false }),
 }));
 
-const makeOp = (
-  overrides: Partial<OperationRecord> & { id: string; name: string }
-): OperationRecord => ({
+const makeOp = (overrides: Partial<Operation> & { id: string; name: string }): Operation => ({
   description: null,
-  config: {},
+  config: { inputs: [], outputs: [] },
   acceptedObjectTypes: ["file"],
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
   ...overrides,
 });
 
@@ -155,20 +152,17 @@ describe("OperationsPageContent", () => {
       makeOp({
         id: "op3",
         name: "Zebra Task",
-        createdAt: new Date(1000),
-        updatedAt: new Date(1000),
+        meta: { createdAt: new Date(1000), updatedAt: new Date(1000) },
       }),
       makeOp({
         id: "op1",
         name: "Alpha Task",
-        createdAt: new Date(3000),
-        updatedAt: new Date(3000),
+        meta: { createdAt: new Date(3000), updatedAt: new Date(3000) },
       }),
       makeOp({
         id: "op2",
         name: "Mango Task",
-        createdAt: new Date(2000),
-        updatedAt: new Date(2000),
+        meta: { createdAt: new Date(2000), updatedAt: new Date(2000) },
       }),
     ];
 

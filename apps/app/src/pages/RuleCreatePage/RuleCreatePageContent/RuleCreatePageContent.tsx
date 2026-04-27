@@ -1,11 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@repo/ui/button";
 import { useCreate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { RuleForm } from "@/pages/RulesPage/RuleForm";
 import type { RuleFormState } from "@/pages/RulesPage/types";
+import { PageHeader } from "@/components/PageHeader";
 
 export const RuleCreatePageContent = () => {
   const { t } = useTranslation();
@@ -41,19 +40,7 @@ export const RuleCreatePageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button
-          aria-label={t("rules.backToList")}
-          className="h-8 w-8"
-          size="icon"
-          variant="ghost"
-          onClick={handleNavigateBack}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-sm font-semibold text-foreground">{t("rules.createTitle")}</h1>
-      </div>
+      <PageHeader backTo="/rules" title={t("rules.createTitle")} />
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-6">

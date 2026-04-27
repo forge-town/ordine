@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { MetaSchema } from "./meta";
 
 export const BestPracticeSchema = z.object({
   id: z.string(),
@@ -9,5 +10,7 @@ export const BestPracticeSchema = z.object({
   language: z.string().default("typescript"),
   codeSnippet: z.string().default(""),
   tags: z.array(z.string()).default([]),
+
+  meta: MetaSchema.optional(),
 });
 export type BestPractice = z.infer<typeof BestPracticeSchema>;

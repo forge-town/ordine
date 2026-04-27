@@ -5,7 +5,6 @@ import {
   Tag,
   Layers,
   Pencil,
-  ArrowLeft,
   Zap,
   FileCode,
   Folder,
@@ -27,14 +26,15 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useOne, useCustomMutation } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
-import type { OperationRecord, PipelineRecord } from "@repo/db-schema";
-import type { PipelineNode } from "@repo/pipeline-engine/schemas";
+import type { Operation } from "@repo/schemas";
+import type { PipelineData, PipelineNode } from "@repo/pipeline-engine/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { PageHeader } from "@/components/PageHeader";
 import { Stat } from "../Stat";
 
 interface Props {
-  pipeline: PipelineRecord;
-  operations: OperationRecord[];
+  pipeline: PipelineData;
+  operations: Operation[];
 }
 
 // ─── Node type metadata ───────────────────────────────────────────────────────
@@ -85,15 +85,15 @@ const getNodeTypeLabel = (type: string, t: (key: string) => string): string => {
   return key ? t(key) : type;
 };
 
-const getNodeLabel = (node: PipelineNode, operations: OperationRecord[]): string => {
-  const data = node.data as unknown as Record<string, unknown>;
-  if (node.type === "operation") {
-    const op = operations.find((o) => o.id === (data.operationId as string));
+const getNodeLabel = (node: PipelineNode, operations: Operation[]): string => {
+  const data = node.data;
+  if (data.nodeType === "operation") {
+    const op = operations.find((o) => o.id === data.operationId);
 
-    return op?.name ?? (data.operationName as string) ?? (data.label as string) ?? node.id;
+    return op?.name ?? data.operationName ?? data.label ?? node.id;
   }
 
-  return (data.label as string) ?? node.id;
+  return data.label ?? node.id;
 };
 
 // ─── Main Component ────────────────────────────────────────────────────────────
@@ -166,7 +166,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
           setRunState("failed");
           setRunError(error.message ?? "Failed to start pipeline");
         },
-      }
+      },
     );
   };
 
@@ -175,8 +175,17 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   };
 
   const handleClickRun = () => handleRun();
-  const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
   const handleCanvasClick = () => void navigate({ to: "/canvas", search: { id: pipeline.id } });
+  const handleOpenDistillationStudio = () =>
+    void navigate({
+      to: "/distillations/new",
+      search: {
+        sourceType: "pipeline",
+        sourceId: pipeline.id,
+        sourceLabel: pipeline.name,
+        mode: "pipeline",
+      },
+    });
 
   const nodeTypeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     acc[n.type] = (acc[n.type] ?? 0) + 1;
@@ -187,7 +196,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   // Build simple left-to-right layout for nodes in the preview
   const previewNodes = pipeline.nodes.map((n, i) => ({
     ...n,
-    data: n.data as unknown as Record<string, unknown>,
+    data: n.data,
     position: { x: i * 220, y: 80 },
     draggable: false,
     selectable: false,
@@ -196,7 +205,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
 
   const previewEdges = pipeline.edges.map((e) => ({
     ...e,
-    data: (e.data ?? {}) as unknown as Record<string, unknown>,
+    data: e.data ?? {},
     animated: false as const,
     style: { stroke: "#e5e7eb" },
   }));
@@ -204,29 +213,25 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6">
-        <button
-          aria-label={t("pipelines.backToList")}
-          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-          onClick={handleNavigatePipelines}
-        >
-          <ArrowLeft className="h-4 w-4 text-gray-500" />
-        </button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-gray-900" role="heading">
-            {pipeline.name}
-          </h1>
-          <p className="font-mono text-[11px] text-gray-400">{pipeline.id}</p>
-        </div>
-        <Link
-          className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          search={{ id: pipeline.id }}
-          to="/canvas"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-          {t("pipelines.editInCanvas")}
-        </Link>
-      </div>
+      <PageHeader
+        actions={
+          <>
+            <Link
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              search={{ id: pipeline.id }}
+              to="/canvas"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              {t("pipelines.editInCanvas")}
+            </Link>
+            <Button size="sm" variant="outline" onClick={handleOpenDistillationStudio}>
+              {t("distillations.openStudio")}
+            </Button>
+          </>
+        }
+        backTo="/pipelines"
+        title={pipeline.name}
+      />
 
       {/* ── Body ───────────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
@@ -288,7 +293,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     className={cn(
                       "flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium",
                       meta?.color ?? "text-gray-600 bg-gray-50",
-                      "border-current/20"
+                      "border-current/20",
                     )}
                   >
                     <Icon className="h-3 w-3" />
@@ -406,7 +411,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                       "text-xs font-medium",
                       runState === "running" && "text-blue-600",
                       runState === "done" && "text-green-600",
-                      runState === "failed" && "text-red-600"
+                      runState === "failed" && "text-red-600",
                     )}
                   >
                     {runState === "running" && t("pipelines.runningStatus")}
@@ -454,30 +459,28 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     <div
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-                        meta?.color ?? "text-gray-600 bg-gray-50"
+                        meta?.color ?? "text-gray-600 bg-gray-50",
                       )}
                     >
                       <Icon className="h-3.5 w-3.5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 truncate">{label}</p>
-                      {node.type === "operation" &&
-                        (() => {
-                          const nodeData = node.data as unknown as Record<string, unknown>;
-                          const op = operations.find(
-                            (o) => o.id === (nodeData["operationId"] as string)
-                          );
+                      {(() => {
+                        const data = node.data;
+                        if (data.nodeType !== "operation") return null;
+                        const op = operations.find((o) => o.id === data.operationId);
 
-                          return op?.description ? (
-                            <p className="text-xs text-gray-400 truncate">{op.description}</p>
-                          ) : null;
-                        })()}
+                        return op?.description ? (
+                          <p className="text-xs text-gray-400 truncate">{op.description}</p>
+                        ) : null;
+                      })()}
                     </div>
                     <span
                       className={cn(
                         "shrink-0 rounded border px-2 py-0.5 text-[10px] font-medium",
                         meta?.color ?? "text-gray-500 bg-gray-50",
-                        "border-current/20"
+                        "border-current/20",
                       )}
                     >
                       {getNodeTypeLabel(node.type, t)}

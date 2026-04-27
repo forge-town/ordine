@@ -15,31 +15,3 @@ export const FixOutputSchema = z.object({
   }),
 });
 export type FixOutput = z.infer<typeof FixOutputSchema>;
-
-export const FIX_OUTPUT_EXAMPLE: FixOutput = {
-  type: "fix" as const,
-  summary: "Summary of all changes made",
-  changes: [
-    {
-      file: "relative/path/to/file.ts",
-      action: "replace" as const,
-      description: "What was changed",
-      findingId: "FINDING_001",
-    },
-  ],
-  remainingFindings: [
-    {
-      id: "FINDING_002",
-      severity: "warning" as const,
-      message: "Issue that could not be auto-fixed",
-      file: "relative/path/to/other.ts",
-    },
-  ],
-  stats: {
-    totalChanges: 3,
-    filesModified: 2,
-    findingsFixed: 3,
-    findingsSkipped: 1,
-  },
-};
-FixOutputSchema.parse(FIX_OUTPUT_EXAMPLE);

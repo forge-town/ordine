@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { MetaSchema } from "./meta";
 
 export const CodeSnippetSchema = z.object({
   id: z.string(),
@@ -7,5 +8,6 @@ export const CodeSnippetSchema = z.object({
   language: z.string().default("typescript"),
   code: z.string().default(""),
   sortOrder: z.number().int().default(0),
+  meta: MetaSchema.optional(),
 });
 export type CodeSnippet = z.infer<typeof CodeSnippetSchema>;

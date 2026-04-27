@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { JobActivityRow } from "./JobActivityRow";
-import type { JobRecord } from "@repo/db-schema";
+import type { Job } from "@repo/schemas";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
@@ -13,7 +13,7 @@ vi.mock("@tanstack/react-router", () => ({
   }) => <a>{children}</a>,
 }));
 
-const mockJob: JobRecord = {
+const mockJob: Job = {
   id: "job-1",
   title: "运行 Pipeline: 代码分析",
   type: "pipeline_run",
@@ -26,8 +26,7 @@ const mockJob: JobRecord = {
   startedAt: null,
   finishedAt: null,
   tmuxSessionName: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
 };
 
 describe("JobActivityRow", () => {

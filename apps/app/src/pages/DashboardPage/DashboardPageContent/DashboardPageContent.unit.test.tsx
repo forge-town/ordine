@@ -2,9 +2,13 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { DashboardPageContent } from "./DashboardPageContent";
-import type { JobRecord } from "@repo/db-schema";
+import type { Job } from "@repo/schemas";
 
-const mockJobs: JobRecord[] = [
+const { MockChart } = vi.hoisted(() => ({
+  MockChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+}));
+
+const mockJobs: Job[] = [
   {
     id: "job-1",
     title: "运行 Pipeline",
@@ -18,15 +22,14 @@ const mockJobs: JobRecord[] = [
     startedAt: null,
     finishedAt: null,
     tmuxSessionName: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    meta: { createdAt: new Date(), updatedAt: new Date() },
   },
 ];
 
 const useLoaderData = vi.fn(() => ({
   pipelines: [],
   projects: [],
-  jobs: [] as JobRecord[],
+  jobs: [] as Job[],
 }));
 
 vi.mock("@/routes/_layout/index", () => ({
@@ -49,7 +52,22 @@ vi.mock("@tanstack/react-router", () => ({
   }) => <a>{children}</a>,
 }));
 
-const jobsData = vi.fn(() => [] as JobRecord[]);
+vi.mock("recharts", () => {
+  return {
+    ResponsiveContainer: MockChart,
+    AreaChart: MockChart,
+    Area: MockChart,
+    CartesianGrid: MockChart,
+    Tooltip: MockChart,
+    XAxis: MockChart,
+    YAxis: MockChart,
+    BarChart: MockChart,
+    Bar: MockChart,
+    Cell: MockChart,
+  };
+});
+
+const jobsData = vi.fn(() => [] as Job[]);
 
 vi.mock("@refinedev/core", () => ({
   useList: (opts: { resource: string }) => {
@@ -57,9 +75,7 @@ vi.mock("@refinedev/core", () => ({
 
     return {
       result: { data: d, total: d.length },
-      data: { data: d, total: d.length },
-      isLoading: false,
-      isError: false,
+      query: { isLoading: false },
     };
   },
   useDelete: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
@@ -74,6 +90,7 @@ describe("DashboardPageContent", () => {
   it("renders page header", () => {
     render(<DashboardPageContent />);
     expect(screen.getByText("仪表盘")).toBeInTheDocument();
+    expect(screen.getByText("系统活动")).toBeInTheDocument();
   });
 
   it("renders empty jobs state", () => {

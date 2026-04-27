@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 
 const mockDao = {
-  findByBestPracticeId: vi.fn().mockResolvedValue([{ id: "s1" }]),
-  findById: vi.fn().mockResolvedValue({ id: "s1" }),
-  create: vi.fn().mockResolvedValue({ id: "s1" }),
-  update: vi.fn().mockResolvedValue({ id: "s1" }),
+  findByBestPracticeId: vi.fn().mockResolvedValue([{ id: "s1" , createdAt: new Date(0), updatedAt: new Date(0) }]),
+  findById: vi.fn().mockResolvedValue({ id: "s1" , createdAt: new Date(0), updatedAt: new Date(0) }),
+  create: vi.fn().mockResolvedValue({ id: "s1" , createdAt: new Date(0), updatedAt: new Date(0) }),
+  update: vi.fn().mockResolvedValue({ id: "s1" , createdAt: new Date(0), updatedAt: new Date(0) }),
   delete: vi.fn().mockResolvedValue(undefined),
   deleteByBestPracticeId: vi.fn().mockResolvedValue(undefined),
 };

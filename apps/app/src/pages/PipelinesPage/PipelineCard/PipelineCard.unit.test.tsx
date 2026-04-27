@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { PipelineRecord } from "@repo/db-schema";
-import { PipelineSchema } from "@repo/pipeline-engine/schemas";
+import { type PipelineData, PipelineSchema } from "@repo/pipeline-engine/schemas";
 import { PipelineCard } from "./PipelineCard";
 
 vi.mock("@tanstack/react-router", () => ({
@@ -20,7 +19,7 @@ const mockPipelineInput = PipelineSchema.parse({
   updatedAt: Date.now(),
 });
 
-const mockPipeline: PipelineRecord = {
+const mockPipeline: PipelineData = {
   ...mockPipelineInput,
   createdAt: new Date(mockPipelineInput.createdAt),
   updatedAt: new Date(mockPipelineInput.updatedAt),

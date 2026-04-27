@@ -1,15 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { SettingsResolver } from "@repo/agent";
 import { agentEngine } from "@repo/agent-engine";
-import { recordAgentRunWithSpans } from "@repo/obs";
 
 vi.mock("@repo/agent", () => ({
-  getModel: vi.fn().mockResolvedValue(null),
   extractJsonFromText: vi.fn((t: string) => t),
   READ_ONLY_TOOLS: ["Read", "Bash"],
   WRITE_TOOLS: ["Read", "Write", "Bash"],
-  CHECK_OUTPUT_EXAMPLE: {},
-  FIX_OUTPUT_EXAMPLE: {},
   CheckOutputSchema: { safeParse: vi.fn().mockReturnValue({ success: true, data: {} }) },
   FixOutputSchema: { safeParse: vi.fn().mockReturnValue({ success: false }) },
   ToolNameSchema: {
@@ -30,10 +25,6 @@ vi.mock("@repo/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-vi.mock("@repo/obs", () => ({
-  recordAgentRunWithSpans: vi.fn().mockResolvedValue(undefined),
-}));
-
 vi.mock("ai", () => ({
   streamText: vi.fn(),
 }));
@@ -44,7 +35,7 @@ vi.mock("../structuredOutput", () => ({
   },
 }));
 
-import { skillExecutor, SkillExecutionError } from ".";
+import { skillExecutor, SkillExecutionError, DEFAULT_SKILL_SYSTEM_PROMPT } from ".";
 
 describe("skillExecutor", () => {
   const baseOpts = {
@@ -52,7 +43,6 @@ describe("skillExecutor", () => {
     skillDescription: "A test skill",
     inputContent: "some code",
     inputPath: "/tmp/test",
-    getSettings: vi.fn() as unknown as SettingsResolver,
   };
 
   beforeEach(() => {
@@ -97,7 +87,7 @@ describe("skillExecutor", () => {
     }
   });
 
-  it("records an agent run for codex skills when jobId is provided", async () => {
+  it("forwards jobId and agentId to agentEngine", async () => {
     vi.mocked(agentEngine.run).mockResolvedValueOnce({
       text: '{"type":"check","summary":"ok","findings":[],"stats":{"totalFiles":1,"totalFindings":0,"errors":0,"warnings":0,"infos":0,"skipped":0}}',
       events: [],
@@ -110,20 +100,37 @@ describe("skillExecutor", () => {
     });
 
     expect(result.isOk()).toBe(true);
-    expect(recordAgentRunWithSpans).toHaveBeenCalledOnce();
-    expect(recordAgentRunWithSpans).toHaveBeenCalledWith(
+    expect(agentEngine.run).toHaveBeenCalledWith(
       expect.objectContaining({
         jobId: "job-1",
-        agentSystem: "codex",
         agentId: "test-skill",
-        rawPayload: expect.objectContaining({
-          system: expect.any(String),
-          prompt: expect.any(String),
-          output: expect.stringContaining('"summary":"ok"'),
-        }),
-        status: "completed",
       }),
-      expect.any(Function),
+    );
+  });
+
+  it("uses the default system prompt when no override is provided", async () => {
+    const result = await skillExecutor.run({ ...baseOpts, agent: "codex" });
+
+    expect(result.isOk()).toBe(true);
+    expect(agentEngine.run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        systemPrompt: DEFAULT_SKILL_SYSTEM_PROMPT,
+      }),
+    );
+  });
+
+  it("uses the provided system prompt override", async () => {
+    const result = await skillExecutor.run({
+      ...baseOpts,
+      agent: "codex",
+      systemPrompt: "CUSTOM SYSTEM PROMPT",
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(agentEngine.run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        systemPrompt: "CUSTOM SYSTEM PROMPT",
+      }),
     );
   });
 
@@ -133,7 +140,8 @@ describe("skillExecutor", () => {
     );
     const result = await skillExecutor.run({
       ...baseOpts,
-      agent: "unknown-agent" as "claude-code",
+      // @ts-expect-error -- testing unsupported agent
+      agent: "unknown-agent",
     });
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {

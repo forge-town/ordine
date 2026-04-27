@@ -77,6 +77,14 @@ vi.mock("../src/services.js", () => ({
     update: vi.fn(),
     delete: vi.fn(),
   },
+  distillationsService: {
+    getAll: vi.fn(),
+    getById: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    run: vi.fn(),
+    delete: vi.fn(),
+  },
   listDirectory: vi.fn(),
 }));
 
@@ -93,6 +101,7 @@ import {
   bestPracticesBulkService,
   checklistService,
   codeSnippetsService,
+  distillationsService,
   listDirectory,
 } from "../src/services.js";
 
@@ -107,6 +116,7 @@ const mockBestPracticesService = vi.mocked(bestPracticesService);
 const mockBestPracticesBulkService = vi.mocked(bestPracticesBulkService);
 const mockChecklistService = vi.mocked(checklistService);
 const mockCodeSnippetsService = vi.mocked(codeSnippetsService);
+const mockDistillationsService = vi.mocked(distillationsService);
 const mockListDirectory = vi.mocked(listDirectory);
 
 beforeEach(() => {
@@ -525,6 +535,80 @@ describe("Recipes API", () => {
     mockRecipesService.getById.mockResolvedValueOnce(null as never);
     const res = await app.request("/api/recipes/nonexistent", { method: "DELETE" });
     expect(res.status).toBe(404);
+  });
+});
+
+// ─── Distillations ───────────────────────────────────────────────────
+
+describe("Distillations API", () => {
+  const mockDistillation = {
+    id: "dst-1",
+    title: "Distill job failure",
+    status: "draft",
+    mode: "failure",
+  };
+
+  it("GET /api/distillations returns list", async () => {
+    mockDistillationsService.getAll.mockResolvedValueOnce([mockDistillation] as never);
+    const res = await app.request("/api/distillations");
+    expect(res.status).toBe(200);
+    expect(await res.json()).toHaveLength(1);
+  });
+
+  it("POST /api/distillations creates distillation", async () => {
+    mockDistillationsService.create.mockResolvedValueOnce(mockDistillation as never);
+    const res = await app.request("/api/distillations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(mockDistillation),
+    });
+    expect(res.status).toBe(201);
+  });
+
+  it("GET /api/distillations/:id returns distillation", async () => {
+    mockDistillationsService.getById.mockResolvedValueOnce(mockDistillation as never);
+    const res = await app.request("/api/distillations/dst-1");
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(mockDistillation);
+  });
+
+  it("PATCH /api/distillations/:id updates distillation", async () => {
+    mockDistillationsService.update.mockResolvedValueOnce({
+      ...mockDistillation,
+      status: "completed",
+    } as never);
+    const res = await app.request("/api/distillations/dst-1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "completed" }),
+    });
+    expect(res.status).toBe(200);
+    expect(mockDistillationsService.update).toHaveBeenCalledWith("dst-1", { status: "completed" });
+  });
+
+  it("POST /api/distillations/:id/run executes a distillation", async () => {
+    mockDistillationsService.run.mockResolvedValueOnce({
+      ...mockDistillation,
+      status: "completed",
+    } as never);
+    const res = await app.request("/api/distillations/dst-1/run", { method: "POST" });
+
+    expect(res.status).toBe(202);
+    expect(mockDistillationsService.run).toHaveBeenCalledWith("dst-1");
+  });
+
+  it("POST /api/distillations/:id/run returns 404 for missing distillation", async () => {
+    mockDistillationsService.run.mockResolvedValueOnce(undefined as never);
+    const res = await app.request("/api/distillations/missing/run", { method: "POST" });
+
+    expect(res.status).toBe(404);
+  });
+
+  it("DELETE /api/distillations/:id removes distillation", async () => {
+    mockDistillationsService.getById.mockResolvedValueOnce(mockDistillation as never);
+    mockDistillationsService.delete.mockResolvedValueOnce(undefined as never);
+    const res = await app.request("/api/distillations/dst-1", { method: "DELETE" });
+    expect(res.status).toBe(204);
   });
 });
 

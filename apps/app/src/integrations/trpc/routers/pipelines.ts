@@ -66,4 +66,27 @@ export const pipelinesRouter = router({
 
       return result.value;
     }),
+
+  optimizeFromDistillation: publicProcedure
+    .input(
+      z.object({
+        distillationId: z.string(),
+        userPrompt: z.string().default("Optimize this pipeline based on the distillation insights."),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const result = await pipelinesService.optimizeFromDistillation({
+        distillationId: input.distillationId,
+        userPrompt: input.userPrompt,
+      });
+
+      if (!result) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to generate optimized pipeline",
+        });
+      }
+
+      return result;
+    }),
 });

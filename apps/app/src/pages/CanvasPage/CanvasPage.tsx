@@ -4,12 +4,12 @@ import { CanvasPageContent } from "./CanvasPageContent";
 import { Route } from "@/routes/canvas";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { PipelineRecord } from "@repo/db-schema";
+import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import { PageLoadingState } from "@/components/PageLoadingState";
 
 export const CanvasPage = () => {
   const { id } = Route.useSearch();
-  const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineRecord>({
+  const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
     resource: ResourceName.pipelines,
     id: id ?? "",
     queryOptions: { enabled: !!id },
@@ -19,7 +19,7 @@ export const CanvasPage = () => {
   if (id && pipelineQuery?.isLoading) {
     return (
       <CanvasLayout>
-        <PageLoadingState title="Canvas" variant="detail" />
+        <PageLoadingState variant="detail" />
       </CanvasLayout>
     );
   }

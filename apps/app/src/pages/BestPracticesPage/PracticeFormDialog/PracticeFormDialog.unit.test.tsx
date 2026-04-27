@@ -2,14 +2,14 @@ import { render } from "@/test/test-wrapper";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { PracticeFormDialog } from "./PracticeFormDialog";
-import type { BestPracticeRecord } from "@repo/db-schema";
+import type { BestPractice } from "@repo/schemas";
 
 vi.mock("@/services/bestPracticesService", () => ({
   createBestPractice: vi.fn(),
   updateBestPractice: vi.fn(),
 }));
 
-const mockPractice: BestPracticeRecord = {
+const mockPractice: BestPractice = {
   id: "bp-1",
   title: "避免在 useEffect 中直接 setState",
   condition: "当需要在组件挂载后获取异步数据时",
@@ -18,8 +18,7 @@ const mockPractice: BestPracticeRecord = {
   language: "typescript",
   codeSnippet: "",
   tags: ["react", "hooks"],
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(), updatedAt: new Date() },
 };
 
 describe("PracticeFormDialog", () => {

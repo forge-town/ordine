@@ -5,16 +5,17 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useNavigate } from "@tanstack/react-router";
-import type { RuleRecord, RuleCategory } from "@repo/db-schema";
+import type { Rule, RuleCategory } from "@repo/schemas";
 import { useDelete, useCustomMutation, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { useRulesPageStore } from "../_store";
 import { CATEGORY_FILTERS } from "../types";
 import { RuleCard } from "../RuleCard";
 
 export const RulesPageContent = () => {
-  const { result: rulesResult, query: rulesQuery } = useList<RuleRecord>({
+  const { result: rulesResult, query: rulesQuery } = useList<Rule>({
     resource: ResourceName.rules,
   });
   const rules = rulesResult?.data ?? [];
@@ -36,7 +37,7 @@ export const RulesPageContent = () => {
     toggleRuleMutate({ url: "rules/toggle", method: "post", values: { id, enabled } });
   };
 
-  const filtered = rules.filter((r: RuleRecord) => {
+  const filtered = rules.filter((r: Rule) => {
     if (categoryFilter !== "all" && r.category !== categoryFilter) return false;
     if (search) {
       const q = search.toLowerCase();
@@ -51,7 +52,7 @@ export const RulesPageContent = () => {
     return true;
   });
 
-  const enabledCount = rules.filter((r: RuleRecord) => r.enabled).length;
+  const enabledCount = rules.filter((r: Rule) => r.enabled).length;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     handleSetSearch(e.target.value);
@@ -68,24 +69,34 @@ export const RulesPageContent = () => {
     void navigate({ to: "/rules/$ruleId/edit", params: { ruleId: id } });
 
   if (rulesQuery?.isLoading) {
-    return <PageLoadingState title={t("rules.title")} variant="list" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader
+          icon={<ShieldCheck className="h-4 w-4 text-primary" />}
+          title={t("rules.title")}
+        />
+        <PageLoadingState variant="list" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex h-14 shrink-0 items-center border-b border-border bg-background px-6">
-        <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" />
-        <h1 className="text-base font-semibold text-foreground">{t("rules.title")}</h1>
-        <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-          {enabledCount} {t("rules.enabled")} / {rules.length} {t("common.all")}
-        </span>
-        <div className="ml-auto">
+      <PageHeader
+        actions={
           <Button size="sm" onClick={handleNavigateToCreate}>
             <Plus className="h-3.5 w-3.5" />
             {t("rules.createNew")}
           </Button>
-        </div>
-      </div>
+        }
+        badge={
+          <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+            {enabledCount} {t("rules.enabled")} / {rules.length} {t("common.all")}
+          </span>
+        }
+        icon={<ShieldCheck className="h-4 w-4 text-primary" />}
+        title={t("rules.title")}
+      />
 
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
         <div className="flex items-center gap-3">
@@ -97,7 +108,7 @@ export const RulesPageContent = () => {
                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                   categoryFilter === f.value
                     ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
                 onClick={handleCategoryFilterClick(f.value)}
               >

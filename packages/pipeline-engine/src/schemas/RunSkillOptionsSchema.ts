@@ -5,13 +5,13 @@ import { AgentRuntimeSchema } from "@repo/schemas";
 export const RunSkillOptionsSchema = z.object({
   skillId: z.string(),
   skillDescription: z.string(),
+  systemPrompt: z.string().optional(),
   inputContent: z.string(),
   inputPath: z.string(),
-  modelOverride: z.string().optional(),
-  writeEnabled: z.boolean().optional(),
   allowedTools: z.array(z.string()).optional(),
-  promptMode: z.enum(["code", "research"]).optional(),
   agent: AgentRuntimeSchema.optional(),
+  apiKey: z.string().optional(),
+  model: z.string().optional(),
 });
 export type RunSkillOptions = z.infer<typeof RunSkillOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;

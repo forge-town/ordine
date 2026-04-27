@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { AlertTriangle, FolderOpen, HardDrive } from "lucide-react";
 import {
-  OUTPUT_MODES,
+  OUTPUT_MODE_ENUM,
   type OutputMode,
   type OutputLocalPathNodeData,
 } from "@repo/pipeline-engine/schemas";
@@ -114,7 +114,7 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
             onClick={handleStopPropagation}
             onMouseDown={handleStopPropagation}
           >
-            {OUTPUT_MODES.map((mode) => (
+            {Object.values(OUTPUT_MODE_ENUM).map((mode) => (
               <option key={mode} value={mode}>
                 {MODE_LABELS[mode]}
               </option>

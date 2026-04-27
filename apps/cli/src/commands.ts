@@ -1,5 +1,6 @@
 import { api } from "./api";
 import { readFileSync, writeFileSync } from "node:fs";
+import { getEnv } from "./integrations/env";
 
 interface Pipeline {
   id: string;
@@ -356,7 +357,7 @@ export const deleteBestPractice = async (id: string): Promise<void> => {
 
 export const exportBestPractices = async (outPath: string): Promise<void> => {
   const res = await fetch(
-    `${process.env["ORDINE_API_URL"] ?? "http://localhost:9433"}/api/best-practices/export`,
+    `${getEnv().ORDINE_API_URL ?? "http://localhost:9433"}/api/best-practices/export`,
   );
   if (!res.ok) throw new CliError(`Failed to export: ${res.statusText}`);
   const buffer = Buffer.from(await res.arrayBuffer());

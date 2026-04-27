@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Clock, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import type { JobRecord } from "@repo/db-schema";
+import type { Job } from "@repo/schemas";
 
 const JOB_STATUS_ICON: Record<string, React.ElementType> = {
   queued: Clock,
@@ -18,7 +18,7 @@ const JOB_STATUS_CLS: Record<string, string> = {
 };
 
 export type JobActivityRowProps = {
-  job: JobRecord;
+  job: Job;
 };
 
 export const JobActivityRow = ({ job }: JobActivityRowProps) => {
@@ -37,12 +37,12 @@ export const JobActivityRow = ({ job }: JobActivityRowProps) => {
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-foreground">{job.title}</p>
           <p className="text-[11px] text-muted-foreground">
-            {new Date(job.createdAt).toLocaleString(undefined, {
+            {job.meta?.createdAt?.toLocaleString(undefined, {
               month: "numeric",
               day: "numeric",
               hour: "2-digit",
               minute: "2-digit",
-            })}
+            }) ?? "-"}
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">

@@ -5,6 +5,6 @@ export const OutputPortSchema = z.object({
   name: z.string(),
   kind: PortKindSchema,
   path: z.string(),
-  description: z.string(),
+  description: z.string().optional(),
 });
 export type OutputPort = z.infer<typeof OutputPortSchema>;

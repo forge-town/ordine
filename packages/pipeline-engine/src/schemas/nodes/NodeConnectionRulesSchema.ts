@@ -6,7 +6,6 @@ const nodeTypeArray = z.array(BuiltinNodeTypeSchema);
 export const NodeConnectionRulesSchema = z.object({
   "code-file": nodeTypeArray,
   compound: nodeTypeArray,
-  condition: nodeTypeArray,
   folder: nodeTypeArray,
   "github-project": nodeTypeArray,
   operation: nodeTypeArray,
@@ -18,7 +17,6 @@ export type NodeConnectionRules = z.infer<typeof NodeConnectionRulesSchema>;
 export const NODE_CONNECTION_RULES: NodeConnectionRules = NodeConnectionRulesSchema.parse({
   "code-file": ["operation", "compound"],
   compound: ["operation", "compound", "output-project-path", "output-local-path"],
-  condition: [],
   folder: ["operation", "compound"],
   "github-project": ["operation", "compound"],
   operation: ["operation", "compound", "output-project-path", "output-local-path"],

@@ -5,9 +5,10 @@ import { trace } from "@repo/obs";
 import { pluginRegistry } from "@repo/plugin";
 import {
   resolveMetaType,
+  NODE_TYPE_ENUM,
   type PipelineEdge,
   type PipelineNode,
-  type NodeData,
+  type PipelineNodeData,
   type NodeCtx,
 } from "../schemas";
 import type { PipelineEngineDeps } from "../deps";
@@ -100,15 +101,13 @@ export class Pipeline {
       }
     }
 
-    const outputPaths = nodes
-      .filter((n) => n.type === "output-local-path")
-      .map((n) => {
-        const d = n.data as NodeData;
-        const configuredPath = d.localPath ?? String((d as Record<string, unknown>).path ?? "");
+    const outputPaths = nodes.flatMap((n) => {
+      if (n.data.nodeType !== NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) return [];
+      const configuredPath = n.data.localPath ?? "";
+      const path = configuredPath || this.opts.defaultOutputPath || "";
 
-        return configuredPath || this.opts.defaultOutputPath || "";
-      })
-      .filter(Boolean);
+      return path ? [path] : [];
+    });
 
     const summary =
       outputPaths.length > 0
@@ -146,13 +145,10 @@ export class Pipeline {
     node: PipelineNode,
   ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
     const { deps, jobId } = this.opts;
-    const data = node.data as unknown as NodeData;
+    const data = node.data;
     const input = this.resolveNodeInput(node.id);
 
-    await trace(
-      jobId,
-      `Processing node [${node.type}] ${(data as Record<string, unknown>).label ?? node.id}`,
-    );
+    await trace(jobId, `Processing node [${node.type}] ${data.label ?? node.id}`);
     await trace(jobId, `@@NODE_START::${node.id}`);
 
     const baseCtx = {
@@ -174,7 +170,7 @@ export class Pipeline {
 
     // ── operation metaType ───────────────────────────────────────────────
     if (metaType === "operation") {
-      if (node.type === "operation") {
+      if (node.type === NODE_TYPE_ENUM.OPERATION) {
         const opCtx: OperationNodeContext = {
           ...baseCtx,
           operations: this.opts.operations,
@@ -186,7 +182,7 @@ export class Pipeline {
         return this.wrapNodeResult(node.id, processOperationNode(node, input, opCtx));
       }
 
-      // compound / condition — passthrough for now
+      // compound — passthrough for now
       await trace(jobId, `Skipped ${node.type} node (metaType: operation)`);
       this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
       await trace(jobId, `@@NODE_DONE::${node.id}`);
@@ -196,12 +192,12 @@ export class Pipeline {
 
     // ── output metaType ──────────────────────────────────────────────────
     if (metaType === "output") {
-      if (node.type === "output-local-path") {
+      if (node.type === NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) {
         return this.wrapNodeResult(node.id, processOutputLocalPathNode(baseCtx));
       }
 
-      if (node.type === "output-project-path") {
-        const projPath = (data as Record<string, unknown>).path ?? input.inputPath;
+      if (node.data.nodeType === NODE_TYPE_ENUM.OUTPUT_PROJECT_PATH) {
+        const projPath = node.data.path ?? input.inputPath;
         await trace(jobId, `Output-to-project: changes written directly to ${projPath}`);
         this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
         await trace(jobId, `@@NODE_DONE::${node.id}`);
@@ -239,7 +235,7 @@ export class Pipeline {
       tempDirs: string[];
       jobId: string;
     },
-    data: NodeData,
+    data: PipelineNodeData,
     input: NodeCtx,
   ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
     const { jobId } = this.opts;
@@ -265,15 +261,15 @@ export class Pipeline {
     }
 
     // Built-in object handlers
-    if (node.type === "folder") {
+    if (node.type === NODE_TYPE_ENUM.FOLDER) {
       return this.wrapNodeResult(node.id, processFolderNode(baseCtx));
     }
 
-    if (node.type === "code-file") {
+    if (node.type === NODE_TYPE_ENUM.CODE_FILE) {
       return this.wrapNodeResult(node.id, processCodeFileNode(baseCtx));
     }
 
-    if (node.type === "github-project") {
+    if (node.type === NODE_TYPE_ENUM.GITHUB_PROJECT) {
       return this.wrapNodeResult(
         node.id,
         processGitHubProjectNode({ ...baseCtx, githubToken: this.opts.githubToken }),

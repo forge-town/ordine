@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import type { RuleCategory } from "@repo/db-schema";
+import type { RuleCategory } from "@repo/schemas";
 
 export interface RulesPageSlice {
   categoryFilter: RuleCategory | "all";

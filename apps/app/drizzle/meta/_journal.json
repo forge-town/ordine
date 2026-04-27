@@ -113,6 +113,27 @@
       "when": 1776676600000,
       "tag": "0015_rename_settings_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1776925940768,
+      "tag": "0016_add_distillations_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1777042886189,
+      "tag": "0017_wild_jasper_sitwell",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1777300000000,
+      "tag": "0018_add_agent_runtimes_to_settings",
+      "breakpoints": true
     }
   ]
 }

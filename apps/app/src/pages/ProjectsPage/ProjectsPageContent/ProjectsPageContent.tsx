@@ -3,20 +3,21 @@ import { Plus, Search, Folder } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { GithubProjectRecord } from "@repo/db-schema";
+import type { GithubProject } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useStore } from "zustand";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { CreateProjectDialog } from "../CreateProjectDialog";
 import { ProjectCard } from "../ProjectCard";
 import { useProjectsPageStore } from "../_store";
 
-const handleCreateProject = (_p: GithubProjectRecord) => {};
+const handleCreateProject = (_p: GithubProject) => {};
 
 export const ProjectsPageContent = () => {
   const { t } = useTranslation();
-  const { result: projectsResult, query: projectsQuery } = useList<GithubProjectRecord>({
+  const { result: projectsResult, query: projectsQuery } = useList<GithubProject>({
     resource: ResourceName.githubProjects,
   });
   const projects = projectsResult?.data ?? [];
@@ -29,11 +30,11 @@ export const ProjectsPageContent = () => {
   const { mutate: deleteProjectMutate } = useDelete();
 
   const filtered = projects.filter(
-    (p: GithubProjectRecord) =>
+    (p: GithubProject) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.description ?? "").toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
-      p.repo.toLowerCase().includes(search.toLowerCase())
+      p.repo.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleDelete = (id: string) => {
@@ -52,19 +53,26 @@ export const ProjectsPageContent = () => {
   const handleDeleteProject = (id: string) => () => void handleDelete(id);
 
   if (projectsQuery?.isLoading) {
-    return <PageLoadingState title={t("projects.title")} variant="grid" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("projects.title")} />
+        <PageLoadingState variant="grid" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <h1 className="text-base font-semibold text-foreground">{t("projects.title")}</h1>
-        <Button size="sm" onClick={handleShowCreate}>
-          <Plus className="h-4 w-4" />
-          {t("projects.importProject")}
-        </Button>
-      </div>
+      <PageHeader
+        actions={
+          <Button size="sm" onClick={handleShowCreate}>
+            <Plus className="h-4 w-4" />
+            {t("projects.importProject")}
+          </Button>
+        }
+        icon={<Folder className="h-4 w-4 text-primary" />}
+        title={t("projects.title")}
+      />
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3">

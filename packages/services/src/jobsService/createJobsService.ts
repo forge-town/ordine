@@ -5,24 +5,31 @@ import {
   createAgentSpansDao,
   type DbConnection,
 } from "@repo/models";
+import { withMeta } from "@repo/schemas";
 
 export const createJobsService = (db: DbConnection) => {
-  const dao = createJobsDao(db);
+  const jobsDao = createJobsDao(db);
   const jobTracesDao = createJobTracesDao(db);
   const agentRawExportsDao = createAgentRawExportsDao(db);
   const agentSpansDao = createAgentSpansDao(db);
 
   return {
-    getAll: (...args: Parameters<typeof dao.findMany>) => dao.findMany(...args),
-    getById: (id: string) => dao.findById(id),
-    create: (...args: Parameters<typeof dao.create>) => dao.create(...args),
-    updateStatus: (...args: Parameters<typeof dao.updateStatus>) => dao.updateStatus(...args),
-    delete: (id: string) => dao.delete(id),
+    getAll: async (...args: Parameters<typeof jobsDao.findMany>) => {
+      const records = await jobsDao.findMany(...args);
+
+      return records.map(withMeta);
+    },
+    getById: async (id: string) => withMeta(await jobsDao.findById(id)),
+    create: async (...args: Parameters<typeof jobsDao.create>) =>
+      withMeta(await jobsDao.create(...args)),
+    updateStatus: (...args: Parameters<typeof jobsDao.updateStatus>) =>
+      jobsDao.updateStatus(...args),
+    delete: (id: string) => jobsDao.delete(id),
     getTracesByJobId: (jobId: string) => jobTracesDao.findByJobId(jobId),
     getAgentRunsByJobId: (jobId: string) => agentRawExportsDao.findByJobId(jobId),
     getAgentRunById: (id: number) => agentRawExportsDao.findById(id),
     getSpansByJobId: (jobId: string) => agentSpansDao.findByJobId(jobId),
     getSpansByRawExportId: (rawExportId: number) => agentSpansDao.findByRawExportId(rawExportId),
-    expireStaleJobs: (defaultTimeoutMs: number) => dao.expireStaleJobs(defaultTimeoutMs),
+    expireStaleJobs: (defaultTimeoutMs: number) => jobsDao.expireStaleJobs(defaultTimeoutMs),
   };
 };

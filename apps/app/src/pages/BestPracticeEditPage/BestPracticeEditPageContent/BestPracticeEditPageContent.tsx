@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
-import { ArrowLeft, ClipboardCheck, Code2, Download, Plus, Upload } from "lucide-react";
+import { ClipboardCheck, Code2, Download, Plus, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -24,10 +24,11 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import type { BestPracticeRecord, ChecklistItemRecord, CodeSnippetRecord } from "@repo/db-schema";
+import type { BestPractice, ChecklistItem, CodeSnippet } from "@repo/schemas";
 import { useUpdate, useCreate, useDelete } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CATEGORIES, LANGUAGES } from "@/pages/BestPracticesPage/constants";
+import { PageHeader } from "@/components/PageHeader";
 import { toJson, fromJson, toCsv, fromCsv, downloadFile, readFileContent } from "../checklistIO";
 import { ok } from "neverthrow";
 import { ChecklistItemEditor } from "./ChecklistItemEditor";
@@ -35,9 +36,9 @@ import { CodeSnippetEditor } from "./CodeSnippetEditor";
 import type { ChecklistItemDraft, CodeSnippetDraft } from "./types";
 
 interface Props {
-  bestPractice: BestPracticeRecord;
-  checklistItems: ChecklistItemRecord[];
-  codeSnippets: CodeSnippetRecord[];
+  bestPractice: BestPractice;
+  checklistItems: ChecklistItem[];
+  codeSnippets: CodeSnippet[];
 }
 
 export const BestPracticeEditPageContent = ({
@@ -73,7 +74,7 @@ export const BestPracticeEditPageContent = ({
       isNew: false,
       isDeleted: false,
       isDirty: false,
-    }))
+    })),
   );
 
   const [snippets, setSnippets] = useState<CodeSnippetDraft[]>(
@@ -86,7 +87,7 @@ export const BestPracticeEditPageContent = ({
       isNew: false,
       isDeleted: false,
       isDirty: false,
-    }))
+    })),
   );
 
   const form = useForm<EditFormValues>({
@@ -139,10 +140,10 @@ export const BestPracticeEditPageContent = ({
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number
+    value: string | number,
   ) => {
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item))
+      prev.map((item) => (item.id === id ? { ...item, [field]: value, isDirty: true } : item)),
     );
   };
 
@@ -169,10 +170,10 @@ export const BestPracticeEditPageContent = ({
   const handleUpdateSnippetField = (
     id: string,
     field: keyof Pick<CodeSnippetDraft, "title" | "language" | "code" | "sortOrder">,
-    value: string | number
+    value: string | number,
   ) => {
     setSnippets((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, [field]: value, isDirty: true } : s))
+      prev.map((s) => (s.id === id ? { ...s, [field]: value, isDirty: true } : s)),
     );
   };
 
@@ -322,24 +323,10 @@ export const BestPracticeEditPageContent = ({
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Button
-          aria-label={t("common.back")}
-          className="h-8 w-8"
-          size="icon"
-          variant="ghost"
-          onClick={handleCancel}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold text-foreground">
-            {t("bestPractices.editTitle")}
-          </h1>
-          <p className="font-mono text-[11px] text-muted-foreground">{bestPractice.id}</p>
-        </div>
-      </div>
+      <PageHeader
+        backTo={`/best-practices/${bestPractice.id}`}
+        title={t("bestPractices.editTitle")}
+      />
 
       {/* Body */}
       <Form {...form}>

@@ -4,7 +4,7 @@ import { BookOpen, Download, Plus, Search, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import type { BestPracticeRecord } from "@repo/db-schema";
+import type { BestPractice } from "@repo/schemas";
 import {
   exportAllBestPractices,
   parseBestPracticesZip,
@@ -15,6 +15,7 @@ import { useDelete, useInvalidate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useToastStore } from "@/store/toastStore";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { useBestPracticesPageStore } from "../_store";
 import { CATEGORIES } from "../constants";
 import { PracticeFormDialog } from "../PracticeFormDialog";
@@ -23,7 +24,7 @@ import { ImportPreviewDialog } from "../ImportPreviewDialog";
 
 const handleExport = () => void exportAllBestPractices();
 
-const handleSave = (_p: BestPracticeRecord) => {};
+const handleSave = (_p: BestPractice) => {};
 
 export const BestPracticesPageContent = () => {
   const { t } = useTranslation();
@@ -42,13 +43,13 @@ export const BestPracticesPageContent = () => {
   const handleSetImportLoading = useStore(store, (s) => s.handleSetImportLoading);
   const handleResetImport = useStore(store, (s) => s.handleResetImport);
 
-  const { result: practicesResult, query: practicesQuery } = useList<BestPracticeRecord>({
+  const { result: practicesResult, query: practicesQuery } = useList<BestPractice>({
     resource: ResourceName.bestPractices,
   });
   const practices = practicesResult?.data ?? [];
   const { mutate: deleteBpMutate } = useDelete();
 
-  const filtered = practices.filter((p: BestPracticeRecord) => {
+  const filtered = practices.filter((p: BestPractice) => {
     const matchCat = activeCategory === "all" || p.category === activeCategory;
     const q = search.toLowerCase();
     const matchSearch =
@@ -108,36 +109,43 @@ export const BestPracticesPageContent = () => {
   const handleImportClick = () => fileInputRef.current?.click();
 
   if (practicesQuery?.isLoading) {
-    return <PageLoadingState title={t("bestPractices.title")} variant="list" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("bestPractices.title")} />
+        <PageLoadingState variant="list" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
-        <h1 className="text-base font-semibold text-foreground">{t("bestPractices.title")}</h1>
-        <div className="flex items-center gap-2">
-          <input
-            ref={fileInputRef}
-            accept=".bestpractice"
-            className="hidden"
-            type="file"
-            onChange={handleFileChange}
-          />
-          <Button size="sm" variant="outline" onClick={handleImportClick}>
-            <Upload className="h-4 w-4" />
-            {t("common.import")}
-          </Button>
-          <Button size="sm" variant="outline" onClick={handleExport}>
-            <Download className="h-4 w-4" />
-            {t("common.export")}
-          </Button>
-          <Button size="sm" onClick={handleAddPractice}>
-            <Plus className="h-4 w-4" />
-            {t("bestPractices.addNew")}
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        actions={
+          <>
+            <input
+              ref={fileInputRef}
+              accept=".bestpractice"
+              className="hidden"
+              type="file"
+              onChange={handleFileChange}
+            />
+            <Button size="sm" variant="outline" onClick={handleImportClick}>
+              <Upload className="h-4 w-4" />
+              {t("common.import")}
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleExport}>
+              <Download className="h-4 w-4" />
+              {t("common.export")}
+            </Button>
+            <Button size="sm" onClick={handleAddPractice}>
+              <Plus className="h-4 w-4" />
+              {t("bestPractices.addNew")}
+            </Button>
+          </>
+        }
+        icon={<BookOpen className="h-4 w-4 text-primary" />}
+        title={t("bestPractices.title")}
+      />
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3 flex-wrap">

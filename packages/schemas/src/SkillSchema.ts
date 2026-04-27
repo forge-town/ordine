@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { MetaSchema } from "./meta";
 
 export const SkillSchema = z.object({
   id: z.string(),
@@ -7,7 +8,6 @@ export const SkillSchema = z.object({
   description: z.string(),
   category: z.string(),
   tags: z.array(z.string()),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  meta: MetaSchema.optional(),
 });
 export type Skill = z.infer<typeof SkillSchema>;

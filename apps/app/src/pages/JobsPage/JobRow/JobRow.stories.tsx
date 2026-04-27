@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { JobRow } from "./JobRow";
-import type { JobRecord } from "@repo/db-schema";
+import type { Job } from "@repo/schemas";
 
-const baseJob: JobRecord = {
+const baseJob: Job = {
   id: "job-001",
   title: "构建并测试 Pipeline",
   status: "running",
@@ -15,8 +15,7 @@ const baseJob: JobRecord = {
   startedAt: new Date(Date.now() - 5000),
   finishedAt: null,
   tmuxSessionName: null,
-  createdAt: new Date(Date.now() - 10000),
-  updatedAt: new Date(),
+  meta: { createdAt: new Date(Date.now() - 10000), updatedAt: new Date() },
 };
 
 const meta: Meta<typeof JobRow> = {

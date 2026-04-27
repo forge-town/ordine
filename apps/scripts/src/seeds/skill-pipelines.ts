@@ -14,6 +14,22 @@
 
 import { apiPut } from "../api";
 
+const WRITE_TOOLS = [
+  "Read",
+  "Bash(find:*)",
+  "Bash(grep:*)",
+  "Bash(rg:*)",
+  "Bash(cat:*)",
+  "Bash(head:*)",
+  "Bash(tail:*)",
+  "Bash(wc:*)",
+  "Bash(ls:*)",
+  "Bash(tree:*)",
+  "Edit",
+  "Write",
+  "Bash(sed:*)",
+] as const;
+
 // ─── Config Helpers ──────────────────────────────────────────────────────────
 
 interface InputPort {
@@ -38,7 +54,7 @@ interface OperationConfig {
     skillId?: string;
     command?: string;
     language?: string;
-    writeEnabled?: boolean;
+    allowedTools?: readonly string[];
   };
   inputs: InputPort[];
   outputs: OutputPort[];
@@ -295,7 +311,7 @@ Markdown 转换报告：
         type: "agent",
         agentMode: "skill",
         skillId: "sk_check_classname",
-        writeEnabled: true,
+        allowedTools: WRITE_TOOLS,
       },
       inputs: [
         {

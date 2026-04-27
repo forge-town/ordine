@@ -1,10 +1,11 @@
 import { ok, err, ResultAsync, type Result } from "neverthrow";
 import { initObs, initSpanRecorder } from "@repo/obs";
 import { logger } from "@repo/logger";
-import { createLlmService } from "../../llmService";
+import type { AgentRuntime, SshConnection } from "@repo/schemas";
 import { loopEvaluator } from "../loopEvaluator";
 import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
+import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
 import {
   createOperationsDao,
   createPipelinesDao,
@@ -12,7 +13,6 @@ import {
   createJobTracesDao,
   createSkillsDao,
   createBestPracticesDao,
-  createRulesDao,
   createAgentRawExportsDao,
   createAgentSpansDao,
   createSettingsDao,
@@ -33,24 +33,35 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   const jobTracesDao = createJobTracesDao(db);
   const skillsDao = createSkillsDao(db);
   const bestPracticesDao = createBestPracticesDao(db);
-  const rulesDao = createRulesDao(db);
   const agentRawExportsDao = createAgentRawExportsDao(db);
   const agentSpansDao = createAgentSpansDao(db);
   const settingsDao = createSettingsDao(db);
 
   initObs(jobTracesDao);
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
-  const llmService = createLlmService(db);
-  const { getSettings, getModel } = llmService;
 
-  const loopEvaluatorFactory = loopEvaluator.create({ getModel });
+  const loopEvaluatorFactory = loopEvaluator.create();
 
-  const buildDepsForJob = ({ jobId }: { jobId: string }) =>
+  const buildDepsForJob = ({
+    jobId,
+    apiKey,
+    model,
+    defaultAgent,
+    ssh,
+  }: {
+    jobId: string;
+    apiKey?: string;
+    model?: string;
+    defaultAgent?: AgentRuntime;
+    ssh?: SshConnection;
+  }) =>
     pipelineRunnerEngineDeps.build({
-      getSettings,
-      rulesDao,
       evaluateLoopCondition: loopEvaluatorFactory({ jobId }),
       jobId,
+      apiKey,
+      model,
+      defaultAgent,
+      ssh,
     });
 
   return {
@@ -79,31 +90,43 @@ export const createPipelineRunnerService = (db: DbConnection) => {
         finishedAt: null,
       });
 
-      const settings = await settingsDao.get();
+      const settings = normalizeSettingsRecord(await settingsDao.get());
+
+      // Resolve SSH connection from agent runtimes config
+      const runtimeConfig = (settings.agentRuntimes ?? []).find(
+        (r) => r.type === settings.defaultAgentRuntime && r.connection.mode === "ssh",
+      );
+      const ssh = runtimeConfig?.connection.mode === "ssh" ? runtimeConfig.connection : undefined;
 
       void ResultAsync.fromPromise(
         pipelineRunExecutor.run({
           pipelineId: opts.pipelineId,
           inputPath: opts.inputPath,
           githubToken: opts.githubToken,
-          defaultOutputPath: settings.defaultOutputPath || undefined,
+          defaultOutputPath: settings.defaultOutputPath,
           jobId,
           pipelinesDao,
           operationsDao,
           jobsDao,
           skillsDao,
           bestPracticesDao,
-          engineDeps: buildDepsForJob({ jobId }),
+          engineDeps: buildDepsForJob({
+            jobId,
+            apiKey: settings.defaultApiKey,
+            model: settings.defaultModel,
+            defaultAgent: settings.defaultAgentRuntime,
+            ssh,
+          }),
         }),
-        (error) => error,
+        (error) => error
       ).match(
         () => undefined,
         (error) => {
           logger.error(
             { err: error, jobId },
-            "startRun: unhandled rejection from background pipeline run",
+            "startRun: unhandled rejection from background pipeline run"
           );
-        },
+        }
       );
 
       return ok({ jobId });

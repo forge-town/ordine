@@ -4,16 +4,17 @@ import { Activity, Search, Filter } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import type { JobRecord, JobStatus } from "@repo/db-schema";
+import type { Job, JobStatus } from "@repo/schemas";
 import { useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { PageHeader } from "@/components/PageHeader";
 import { useJobsPageStore } from "../_store";
 import { StatCard } from "../StatCard";
 import { JobRow } from "../JobRow";
 
 export const JobsPageContent = () => {
-  const { result: jobsResult, query: jobsQuery } = useList<JobRecord>({
+  const { result: jobsResult, query: jobsQuery } = useList<Job>({
     resource: ResourceName.jobs,
   });
   const jobs = jobsResult?.data ?? [];
@@ -43,7 +44,7 @@ export const JobsPageContent = () => {
     void navigate({ to: "/jobs/$jobId", params: { jobId } });
   const handleDeleteJob = (jobId: string) => () => void handleDelete(jobId);
 
-  const filtered = jobs.filter((j: JobRecord) => {
+  const filtered = jobs.filter((j: Job) => {
     const matchStatus = statusFilter === "all" || j.status === statusFilter;
     const q = search.toLowerCase();
     const matchSearch =
@@ -60,31 +61,37 @@ export const JobsPageContent = () => {
   };
 
   const counts: Record<JobStatus, number> = {
-    queued: jobs.filter((j: JobRecord) => j.status === "queued").length,
-    running: jobs.filter((j: JobRecord) => j.status === "running").length,
-    done: jobs.filter((j: JobRecord) => j.status === "done").length,
-    failed: jobs.filter((j: JobRecord) => j.status === "failed").length,
-    cancelled: jobs.filter((j: JobRecord) => j.status === "cancelled").length,
-    expired: jobs.filter((j: JobRecord) => j.status === "expired").length,
+    queued: jobs.filter((j: Job) => j.status === "queued").length,
+    running: jobs.filter((j: Job) => j.status === "running").length,
+    done: jobs.filter((j: Job) => j.status === "done").length,
+    failed: jobs.filter((j: Job) => j.status === "failed").length,
+    cancelled: jobs.filter((j: Job) => j.status === "cancelled").length,
+    expired: jobs.filter((j: Job) => j.status === "expired").length,
   };
 
   if (jobsQuery?.isLoading) {
-    return <PageLoadingState title={t("jobs.title")} variant="list" />;
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader icon={<Activity className="h-4 w-4 text-primary" />} title={t("jobs.title")} />
+        <PageLoadingState variant="list" />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6">
-        <Activity className="h-4 w-4 text-primary" />
-        <h1 className="text-base font-semibold text-foreground">{t("jobs.title")}</h1>
-        {counts.running > 0 && (
-          <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
-            {counts.running} {t("jobs.filterRunning")}
-          </span>
-        )}
-      </div>
+      <PageHeader
+        badge={
+          counts.running > 0 ? (
+            <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
+              {counts.running} {t("jobs.filterRunning")}
+            </span>
+          ) : undefined
+        }
+        icon={<Activity className="h-4 w-4 text-primary" />}
+        title={t("jobs.title")}
+      />
 
       {/* Stats */}
       <div className="shrink-0 border-b border-border bg-muted/50 px-6 py-4">

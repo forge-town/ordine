@@ -1,56 +1,37 @@
-import { streamText } from "ai";
+import { agentEngine } from "@repo/agent-engine";
 import { trace } from "@repo/obs";
-import type { createLlmService } from "../../llmService";
+import { logger } from "@repo/logger";
+import type { AgentRuntime } from "@repo/schemas";
 
 export type LoopEvaluatorFn = (
   conditionPrompt: string,
   operationOutput: string,
-  modelOverride?: string,
 ) => Promise<boolean>;
 
-const create = ({
-  getModel,
-}: {
-  getModel: ReturnType<typeof createLlmService>["getModel"];
-}) => {
-  return ({ jobId }: { jobId: string }): LoopEvaluatorFn => {
-    return async (
-      conditionPrompt: string,
-      operationOutput: string,
-      modelOverride?: string,
-    ): Promise<boolean> => {
-      const model = await getModel(modelOverride);
-      if (!model) {
-        await trace(
-          jobId,
-          `[Loop] No LLM configured — treating condition as FAIL (cannot evaluate)`,
-        );
-
-        return false;
-      }
-      const evalPrompt = `You are a strict evaluator. Given the following acceptance criteria and the operation output, determine if the output meets the criteria.
-
-## Acceptance Criteria
-${conditionPrompt}
-
-## Operation Output
-${operationOutput}
-
+const SYSTEM_PROMPT = `You are a strict evaluator. Given acceptance criteria and operation output, determine if the output meets the criteria.
 Respond with EXACTLY one word: "PASS" if the criteria are met, or "FAIL" if not. Do not explain.`;
 
-      const result = streamText({ model, prompt: evalPrompt });
-      const chunks: string[] = [];
-      for await (const chunk of result.textStream) {
-        chunks.push(chunk);
-      }
-      const verdict = chunks.join("").trim().toUpperCase();
-      await trace(jobId, `[Loop] Condition evaluation result: ${verdict}`);
-
-      return verdict.startsWith("PASS");
-    };
-  };
-};
-
 export const loopEvaluator = {
-  create,
+  create: ({ agent = "mastra" }: { agent?: AgentRuntime } = {}) => {
+    return ({ jobId }: { jobId: string }): LoopEvaluatorFn => {
+      return async (conditionPrompt: string, operationOutput: string): Promise<boolean> => {
+        const userPrompt = `## Acceptance Criteria\n${conditionPrompt}\n\n## Operation Output\n${operationOutput}`;
+
+        const result = await agentEngine.run({
+          agent,
+          mode: "direct",
+          systemPrompt: SYSTEM_PROMPT,
+          userPrompt,
+          cwd: process.cwd(),
+          allowedTools: [],
+        });
+
+        const verdict = result.text.trim().toUpperCase();
+        logger.info({ jobId, verdict }, "loopEvaluator: evaluation complete");
+        await trace(jobId, `[Loop] Condition evaluation result: ${verdict}`);
+
+        return verdict.startsWith("PASS");
+      };
+    };
+  },
 };

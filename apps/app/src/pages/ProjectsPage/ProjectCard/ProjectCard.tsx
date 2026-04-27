@@ -1,10 +1,10 @@
 import { FolderGit2, GitBranch, Clock, ExternalLink, X } from "lucide-react";
-import type { GithubProjectRecord } from "@repo/db-schema";
+import type { GithubProject } from "@repo/schemas";
 
 const handleExternalLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => e.stopPropagation();
 
 export type ProjectCardProps = {
-  project: GithubProjectRecord;
+  project: GithubProject;
   onClick: () => void;
   onDelete: () => void;
 };
@@ -57,7 +57,7 @@ export const ProjectCard = ({ project, onClick, onDelete }: ProjectCardProps) =>
         </span>
         <span className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          {new Date(project.updatedAt).toLocaleDateString("zh-CN")}
+          {project.meta?.updatedAt?.toLocaleDateString("zh-CN") ?? "-"}
         </span>
       </div>
     </div>
