@@ -1,7 +1,7 @@
 import { ResultAsync } from "neverthrow";
 import { agentEngine } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
-import type { AgentRuntime } from "@repo/schemas";
+import type { AgentRuntime, SshConnection } from "@repo/schemas";
 import { resolveCwd } from "../resolveCwd";
 
 export interface AgentRunnerOptions {
@@ -17,6 +17,7 @@ export interface AgentRunnerOptions {
   apiKey?: string;
   model?: string;
   githubToken?: string;
+  ssh?: SshConnection;
 }
 
 export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
@@ -59,6 +60,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
       apiKey,
       model,
       githubToken,
+      ssh: opts.ssh,
     }),
     (error) => error,
   );

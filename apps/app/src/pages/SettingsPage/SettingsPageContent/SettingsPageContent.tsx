@@ -1,18 +1,19 @@
 import { useState } from "react";
-import { Globe, Code, ChevronRight, Settings } from "lucide-react";
+import { Globe, Code, ChevronRight, Settings, Server } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
-import { DeveloperSection, LanguageSection } from "../sections";
+import { AgentRuntimesSection, DeveloperSection, LanguageSection } from "../sections";
 
-type Section = "language" | "developer";
+type Section = "language" | "agentRuntimes" | "developer";
 
 const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
   language: Globe,
+  agentRuntimes: Server,
   developer: Code,
 };
 
-const SECTION_IDS: Section[] = ["language", ...(import.meta.env.DEV ? ["developer" as const] : [])];
+const SECTION_IDS: Section[] = ["language", "agentRuntimes", ...(import.meta.env.DEV ? ["developer" as const] : [])];
 
 export const SettingsPageContent = () => {
   const { t } = useTranslation();
@@ -54,6 +55,7 @@ export const SettingsPageContent = () => {
         <div className="flex-1 overflow-y-auto p-8">
           <div className="mx-auto max-w-lg space-y-6">
             {active === "language" && <LanguageSection />}
+            {active === "agentRuntimes" && <AgentRuntimesSection />}
             {active === "developer" && <DeveloperSection />}
           </div>
         </div>

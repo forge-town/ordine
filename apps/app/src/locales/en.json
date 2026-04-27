@@ -485,6 +485,7 @@
       "appearance": "Appearance",
       "language": "Language & Region",
       "security": "Security",
+      "agentRuntimes": "Agent Runtimes",
       "developer": "Developer"
     },
     "saveChanges": "Save changes",
@@ -529,6 +530,26 @@
       "description": "Developer mode settings for local development",
       "defaultAgentRuntime": "Default agent runtime",
       "defaultOutputPath": "Default output path prefix"
+    },
+    "agentRuntimesSection": {
+      "title": "Agent Runtimes",
+      "description": "Configure agent runtime connections (local or SSH)",
+      "addRuntime": "Add Runtime",
+      "name": "Name",
+      "namePlaceholder": "My Remote Server",
+      "type": "Agent Type",
+      "connectionMode": "Connection",
+      "local": "Local",
+      "ssh": "SSH",
+      "host": "Host",
+      "hostPlaceholder": "192.168.1.100",
+      "user": "User",
+      "userPlaceholder": "ubuntu",
+      "port": "Port",
+      "keyPath": "Key Path",
+      "keyPathPlaceholder": "~/.ssh/id_rsa",
+      "remove": "Remove",
+      "empty": "No agent runtimes configured. Add one to enable remote execution."
     }
   },
   "errors": {

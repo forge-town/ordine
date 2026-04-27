@@ -1,5 +1,5 @@
-import { text, pgTable, timestamp } from "drizzle-orm/pg-core";
-import type { AgentRuntime } from "@repo/schemas";
+import { text, pgTable, timestamp, jsonb } from "drizzle-orm/pg-core";
+import type { AgentRuntime, AgentRuntimeConfig } from "@repo/schemas";
 
 export const settingsTable = pgTable("settings", {
   id: text("id").primaryKey().default("default"),
@@ -7,6 +7,7 @@ export const settingsTable = pgTable("settings", {
   defaultApiKey: text("default_api_key").notNull().default(""),
   defaultModel: text("default_model").notNull().default("kimi-for-coding/k2p6"),
   defaultOutputPath: text("default_output_path").notNull().default(""),
+  agentRuntimes: jsonb("agent_runtimes").$type<AgentRuntimeConfig[]>().notNull().default([]),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

@@ -485,6 +485,7 @@
       "appearance": "外观",
       "language": "语言与地区",
       "security": "安全",
+      "agentRuntimes": "Agent Runtimes",
       "developer": "开发者"
     },
     "saveChanges": "保存更改",
@@ -529,6 +530,26 @@
       "description": "本地开发环境的开发者模式设置",
       "defaultAgentRuntime": "默认 Agent Runtime",
       "defaultOutputPath": "默认输出路径前缀"
+    },
+    "agentRuntimesSection": {
+      "title": "Agent Runtimes",
+      "description": "配置 Agent 运行时连接（本地或 SSH）",
+      "addRuntime": "添加运行时",
+      "name": "名称",
+      "namePlaceholder": "我的远程服务器",
+      "type": "Agent 类型",
+      "connectionMode": "连接方式",
+      "local": "本地",
+      "ssh": "SSH",
+      "host": "主机地址",
+      "hostPlaceholder": "192.168.1.100",
+      "user": "用户名",
+      "userPlaceholder": "ubuntu",
+      "port": "端口",
+      "keyPath": "密钥路径",
+      "keyPathPlaceholder": "~/.ssh/id_rsa",
+      "remove": "删除",
+      "empty": "尚未配置 Agent 运行时。添加一个以启用远程执行。"
     }
   },
   "errors": {

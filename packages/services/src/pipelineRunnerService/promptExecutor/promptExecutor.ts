@@ -1,6 +1,7 @@
 import { ResultAsync, errAsync } from "neverthrow";
 import { logger } from "@repo/logger";
 import type { RunPromptOptions } from "@repo/pipeline-engine";
+import type { SshConnection } from "@repo/schemas";
 import { runAgent } from "../agentRunner/agentRunner";
 
 export class PromptExecutionError extends Error {
@@ -15,6 +16,8 @@ export class PromptExecutionError extends Error {
 
 const PROMPT_AGENT_ID = "prompt-executor";
 
+type PromptExecutorOptions = RunPromptOptions & { ssh?: SshConnection };
+
 const run = ({
   prompt,
   inputContent,
@@ -27,7 +30,8 @@ const run = ({
   model,
   extraTools,
   githubToken,
-}: RunPromptOptions): ResultAsync<string, PromptExecutionError> => {
+  ssh,
+}: PromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
   }
@@ -47,6 +51,7 @@ const run = ({
         apiKey,
         model,
         githubToken,
+        ssh,
       });
       if (onChunk) await onChunk(raw);
 

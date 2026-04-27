@@ -10,6 +10,7 @@ import {
 } from "@repo/agent";
 import { logger } from "@repo/logger";
 import type { RunSkillOptions as EngineRunSkillOptions } from "@repo/pipeline-engine";
+import type { SshConnection } from "@repo/schemas";
 import { runAgent } from "../agentRunner/agentRunner";
 
 const CHECK_OUTPUT_EXAMPLE: CheckOutput = {
@@ -78,6 +79,7 @@ export class SkillExecutionError extends Error {
 
 type RunSkillExecutorOptions = EngineRunSkillOptions & {
   jobId?: string;
+  ssh?: SshConnection;
 };
 
 export const DEFAULT_SKILL_SYSTEM_PROMPT = [
@@ -156,6 +158,7 @@ const run = ({
   allowedTools: customAllowedTools,
   apiKey,
   model,
+  ssh,
 }: RunSkillExecutorOptions): ResultAsync<string, SkillExecutionError> => {
   const effectiveSystemPrompt = systemPrompt ?? DEFAULT_SKILL_SYSTEM_PROMPT;
   const userPrompt = buildSkillUserPrompt({
@@ -186,6 +189,7 @@ const run = ({
         logPrefix: "runSkill",
         apiKey,
         model,
+        ssh,
       });
 
       if (raw.length === 0) {

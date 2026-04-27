@@ -1,7 +1,7 @@
 import { ok, err, ResultAsync, type Result } from "neverthrow";
 import { initObs, initSpanRecorder } from "@repo/obs";
 import { logger } from "@repo/logger";
-import type { AgentRuntime } from "@repo/schemas";
+import type { AgentRuntime, SshConnection } from "@repo/schemas";
 import { loopEvaluator } from "../loopEvaluator";
 import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
@@ -47,11 +47,13 @@ export const createPipelineRunnerService = (db: DbConnection) => {
     apiKey,
     model,
     defaultAgent,
+    ssh,
   }: {
     jobId: string;
     apiKey?: string;
     model?: string;
     defaultAgent?: AgentRuntime;
+    ssh?: SshConnection;
   }) =>
     pipelineRunnerEngineDeps.build({
       evaluateLoopCondition: loopEvaluatorFactory({ jobId }),
@@ -59,6 +61,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       apiKey,
       model,
       defaultAgent,
+      ssh,
     });
 
   return {
@@ -89,6 +92,12 @@ export const createPipelineRunnerService = (db: DbConnection) => {
 
       const settings = normalizeSettingsRecord(await settingsDao.get());
 
+      // Resolve SSH connection from agent runtimes config
+      const runtimeConfig = (settings.agentRuntimes ?? []).find(
+        (r) => r.type === settings.defaultAgentRuntime && r.connection.mode === "ssh",
+      );
+      const ssh = runtimeConfig?.connection.mode === "ssh" ? runtimeConfig.connection : undefined;
+
       void ResultAsync.fromPromise(
         pipelineRunExecutor.run({
           pipelineId: opts.pipelineId,
@@ -106,6 +115,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
             apiKey: settings.defaultApiKey,
             model: settings.defaultModel,
             defaultAgent: settings.defaultAgentRuntime,
+            ssh,
           }),
         }),
         (error) => error

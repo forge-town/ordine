@@ -1,4 +1,4 @@
-import { runClaude, runCodex, runMastra, type ClaudeStreamEvent, type ToolName } from "@repo/agent";
+import { runClaude, runCodex, runMastra, type ClaudeStreamEvent, type ToolName, type SshConnectionOptions } from "@repo/agent";
 import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
 import { logger } from "@repo/logger";
 import { AgentRuntime } from "@repo/schemas";
@@ -21,6 +21,7 @@ export interface AgentRunOptions {
   apiKey?: string;
   model?: string;
   githubToken?: string;
+  ssh?: SshConnectionOptions;
 }
 
 const toAsyncProgress = (
@@ -44,6 +45,7 @@ const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<AgentRunResu
     allowedTools: (opts.allowedTools ?? []) as ToolName[],
     onProgress: toAsyncProgress(opts.onProgress),
     extraEnv,
+    ssh: opts.ssh,
   });
   return { text: result.text, events: result.events };
 };

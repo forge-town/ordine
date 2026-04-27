@@ -2,7 +2,7 @@ import { promptExecutor } from "../promptExecutor";
 import { skillExecutor } from "../skillExecutor";
 import { structuredOutput } from "../structuredOutput";
 import type { PipelineEngineDeps } from "@repo/pipeline-engine";
-import type { AgentRuntime } from "@repo/schemas";
+import type { AgentRuntime, SshConnection } from "@repo/schemas";
 import type { LoopEvaluatorFn } from "../loopEvaluator";
 
 export const pipelineRunnerEngineDeps = {
@@ -12,12 +12,14 @@ export const pipelineRunnerEngineDeps = {
     apiKey,
     model,
     defaultAgent,
+    ssh,
   }: {
     evaluateLoopCondition: LoopEvaluatorFn;
     jobId?: string;
     apiKey?: string;
     model?: string;
     defaultAgent?: AgentRuntime;
+    ssh?: SshConnection;
   }): PipelineEngineDeps => ({
     runPrompt: (o) =>
       promptExecutor.run({
@@ -26,6 +28,7 @@ export const pipelineRunnerEngineDeps = {
         jobId,
         apiKey,
         model,
+        ssh,
       }),
     runSkill: (o) =>
       skillExecutor.run({
@@ -34,6 +37,7 @@ export const pipelineRunnerEngineDeps = {
         jobId,
         apiKey,
         model,
+        ssh,
       }),
     structuredJsonToMarkdown: (content) => structuredOutput.toMarkdown({ content }),
     evaluateLoopCondition,
