@@ -15,29 +15,22 @@ type RefinementRecord = {
   rounds: RefinementRound[];
 };
 
-const statusIcon = (status: RefinementRoundStatus) => {
-  switch (status) {
-    case "completed":
-      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-    case "failed":
-      return <XCircle className="h-4 w-4 text-destructive" />;
-    case "pending":
-      return <Circle className="h-4 w-4 text-muted-foreground" />;
-    default:
-      return <Loader2 className="h-4 w-4 animate-spin text-primary" />;
-  }
+const STATUS_ICONS: Record<string, React.ReactNode> = {
+  completed: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+  failed: <XCircle className="h-4 w-4 text-destructive" />,
+  pending: <Circle className="h-4 w-4 text-muted-foreground" />,
 };
 
-const statusVariant = (status: RefinementRoundStatus) => {
-  switch (status) {
-    case "completed":
-      return "default" as const;
-    case "failed":
-      return "destructive" as const;
-    default:
-      return "secondary" as const;
-  }
+const statusIcon = (status: RefinementRoundStatus) =>
+  STATUS_ICONS[status] ?? <Loader2 className="h-4 w-4 animate-spin text-primary" />;
+
+const STATUS_VARIANTS: Record<string, "default" | "destructive" | "secondary"> = {
+  completed: "default",
+  failed: "destructive",
 };
+
+const statusVariant = (status: RefinementRoundStatus) =>
+  STATUS_VARIANTS[status] ?? ("secondary" as const);
 
 const POLL_INTERVAL = 3_000;
 
@@ -72,24 +65,21 @@ export const RefinementPanel = ({ refinementId }: { refinementId: string }) => {
 
       <div className="mt-4 space-y-3">
         {refinement.rounds.map((round) => (
-          <div
-            key={round.round}
-            className="flex items-start gap-3 rounded-md border p-3"
-          >
+          <div key={round.round} className="flex items-start gap-3 rounded-md border p-3">
             <div className="mt-0.5">{statusIcon(round.status)}</div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">
                   {t("distillations.refinementRoundLabel", { round: round.round })}
                 </span>
-                <Badge variant={statusVariant(round.status)} className="text-xs">
-                  {t(`distillations.refinementStatus${round.status.charAt(0).toUpperCase()}${round.status.slice(1)}` as never)}
+                <Badge className="text-xs" variant={statusVariant(round.status)}>
+                  {t(
+                    `distillations.refinementStatus${round.status.charAt(0).toUpperCase()}${round.status.slice(1)}` as never
+                  )}
                 </Badge>
               </div>
               {round.summary && (
-                <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                  {round.summary}
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{round.summary}</p>
               )}
               {round.error && (
                 <p className="mt-1 text-xs text-destructive line-clamp-2">{round.error}</p>

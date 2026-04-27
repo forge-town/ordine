@@ -161,7 +161,7 @@ export const PipelinesPageContent = () => {
                   "cursor-pointer select-none text-[11px] transition-colors",
                   selectedTags.includes(tag)
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80",
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
                 variant="secondary"
                 onClick={handleTagClick(tag)}

@@ -36,7 +36,7 @@ export const PageHeader = ({
     <div
       className={cn(
         "flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6",
-        className,
+        className
       )}
     >
       {backIcon}

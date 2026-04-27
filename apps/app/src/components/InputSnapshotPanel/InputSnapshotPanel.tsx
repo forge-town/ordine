@@ -17,8 +17,7 @@ const formatValue = (value: unknown): string => {
   if (typeof value === "number" || typeof value === "boolean") return String(value);
   if (Array.isArray(value)) {
     if (value.length === 0) return "[]";
-    if (value.every((v) => typeof v === "string" || typeof v === "number"))
-      return value.join(", ");
+    if (value.every((v) => typeof v === "string" || typeof v === "number")) return value.join(", ");
 
     return JSON.stringify(value, null, 2);
   }
@@ -76,18 +75,16 @@ const CollapsibleNode = ({ label, value }: { label: string; value: unknown }) =>
     : typeof value === "object" && value !== null
       ? Object.keys(value).length
       : 0;
+  const handleToggle = () => setOpen(!open);
 
   return (
     <div className="border-b border-border/50 last:border-0">
       <button
         className="flex w-full items-center gap-2 py-2 text-left hover:bg-accent/30 rounded-sm transition-colors -mx-1 px-1"
-        onClick={() => setOpen(!open)}
+        onClick={handleToggle}
       >
         <ChevronRight
-          className={cn(
-            "h-3 w-3 text-muted-foreground transition-transform",
-            open && "rotate-90",
-          )}
+          className={cn("h-3 w-3 text-muted-foreground transition-transform", open && "rotate-90")}
         />
         <span className="text-xs text-muted-foreground">{label}</span>
         <span className="text-[10px] text-muted-foreground/60">
@@ -154,6 +151,8 @@ const TreeView = ({ data }: { data: unknown }) => {
 
 export const InputSnapshotPanel = ({ data }: InputSnapshotPanelProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>("structured");
+  const handleSetStructuredView = () => setViewMode("structured");
+  const handleSetTreeView = () => setViewMode("tree");
 
   if (data === null || data === undefined) {
     return <span className="text-xs text-muted-foreground">—</span>;
@@ -179,7 +178,7 @@ export const InputSnapshotPanel = ({ data }: InputSnapshotPanelProps) => {
           className={cn("h-6 px-2 text-[11px]", viewMode === "structured" && "bg-accent")}
           size="sm"
           variant="ghost"
-          onClick={() => setViewMode("structured")}
+          onClick={handleSetStructuredView}
         >
           <List className="mr-1 h-3 w-3" />
           Structured
@@ -188,7 +187,7 @@ export const InputSnapshotPanel = ({ data }: InputSnapshotPanelProps) => {
           className={cn("h-6 px-2 text-[11px]", viewMode === "tree" && "bg-accent")}
           size="sm"
           variant="ghost"
-          onClick={() => setViewMode("tree")}
+          onClick={handleSetTreeView}
         >
           <Code2 className="mr-1 h-3 w-3" />
           Tree

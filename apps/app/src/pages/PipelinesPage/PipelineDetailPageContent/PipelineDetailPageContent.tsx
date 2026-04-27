@@ -166,7 +166,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
           setRunState("failed");
           setRunError(error.message ?? "Failed to start pipeline");
         },
-      },
+      }
     );
   };
 
@@ -293,7 +293,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     className={cn(
                       "flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium",
                       meta?.color ?? "text-gray-600 bg-gray-50",
-                      "border-current/20",
+                      "border-current/20"
                     )}
                   >
                     <Icon className="h-3 w-3" />
@@ -411,7 +411,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                       "text-xs font-medium",
                       runState === "running" && "text-blue-600",
                       runState === "done" && "text-green-600",
-                      runState === "failed" && "text-red-600",
+                      runState === "failed" && "text-red-600"
                     )}
                   >
                     {runState === "running" && t("pipelines.runningStatus")}
@@ -459,7 +459,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                     <div
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-                        meta?.color ?? "text-gray-600 bg-gray-50",
+                        meta?.color ?? "text-gray-600 bg-gray-50"
                       )}
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -480,7 +480,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
                       className={cn(
                         "shrink-0 rounded border px-2 py-0.5 text-[10px] font-medium",
                         meta?.color ?? "text-gray-500 bg-gray-50",
-                        "border-current/20",
+                        "border-current/20"
                       )}
                     >
                       {getNodeTypeLabel(node.type, t)}

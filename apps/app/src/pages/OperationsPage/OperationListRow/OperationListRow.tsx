@@ -60,6 +60,13 @@ export const OperationListRow = ({
       params: { operationId: operation.id },
     });
   };
+  const handleEdit = onEdit;
+  const handleDelete = onDelete;
+  const handleExport = onExport;
+  const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleRowClick();
+  };
 
   return (
     <div
@@ -67,9 +74,7 @@ export const OperationListRow = ({
       role="button"
       tabIndex={0}
       onClick={handleRowClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") handleRowClick();
-      }}
+      onKeyDown={handleKeyDown}
     >
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
         <Zap className="h-3.5 w-3.5 text-primary" />
@@ -109,21 +114,21 @@ export const OperationListRow = ({
       )}
 
       <DropdownMenu>
-        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuTrigger onClick={handleStopPropagation}>
           <Button className="h-7 w-7 shrink-0" size="icon" variant="ghost">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-          <DropdownMenuItem onClick={onEdit}>
+        <DropdownMenuContent align="end" onClick={handleStopPropagation}>
+          <DropdownMenuItem title={t("common.edit")} onClick={handleEdit}>
             <Pencil className="mr-2 h-3.5 w-3.5" />
             {t("common.edit")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onExport}>
+          <DropdownMenuItem onClick={handleExport}>
             <Download className="mr-2 h-3.5 w-3.5" />
             {t("common.export")}
           </DropdownMenuItem>
-          <DropdownMenuItem className="text-destructive" onClick={onDelete}>
+          <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
             <Trash2 className="mr-2 h-3.5 w-3.5" />
             {t("common.delete")}
           </DropdownMenuItem>

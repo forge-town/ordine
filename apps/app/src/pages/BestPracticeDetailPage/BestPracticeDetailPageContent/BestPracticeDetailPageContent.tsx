@@ -110,7 +110,7 @@ export const BestPracticeDetailPageContent = ({ bestPractice }: Props) => {
             <span
               className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-                CATEGORY_COLORS[bestPractice.category] ?? "bg-muted text-muted-foreground",
+                CATEGORY_COLORS[bestPractice.category] ?? "bg-muted text-muted-foreground"
               )}
             >
               {CATEGORIES.find((c) => c.value === bestPractice.category)?.label ??
@@ -224,7 +224,7 @@ export const BestPracticeDetailPageContent = ({ bestPractice }: Props) => {
                           "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
                           item.checkType === "script"
                             ? "bg-blue-100 text-blue-700"
-                            : "bg-purple-100 text-purple-700",
+                            : "bg-purple-100 text-purple-700"
                         )}
                       >
                         {item.checkType === "script" ? (

@@ -12,5 +12,6 @@ export * from "./pipelineRunnerService";
 export * from "./recipesService";
 export * from "./refinementsService";
 export * from "./rulesService";
+export * from "./serviceFactory";
 export * from "./settingsService";
 export * from "./skillsService";

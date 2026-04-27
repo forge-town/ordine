@@ -71,7 +71,9 @@ export const pipelinesRouter = router({
     .input(
       z.object({
         distillationId: z.string(),
-        userPrompt: z.string().default("Optimize this pipeline based on the distillation insights."),
+        userPrompt: z
+          .string()
+          .default("Optimize this pipeline based on the distillation insights."),
       })
     )
     .mutation(async ({ input }) => {

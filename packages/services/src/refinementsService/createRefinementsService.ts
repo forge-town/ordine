@@ -19,7 +19,7 @@ const waitForJobCompletion = async (
   jobsDao: ReturnType<typeof createJobsDao>,
   jobId: string,
 ): Promise<{ status: string; error?: string }> => {
-  for (let i = 0; i < MAX_POLL_ATTEMPTS; i++) {
+  for (const _ of Array.from({ length: MAX_POLL_ATTEMPTS })) {
     const job = await jobsDao.findById(jobId);
     if (!job) return { status: "failed", error: "Job not found" };
 
@@ -50,6 +50,7 @@ export const createRefinementsService = (db: DbConnection) => {
     const updated = [...rounds];
     updated[roundIndex] = { ...updated[roundIndex]!, ...patch };
     await dao.update(refinementId, { rounds: updated });
+
     return updated;
   };
 
@@ -93,46 +94,45 @@ export const createRefinementsService = (db: DbConnection) => {
     initialDistillationId: string,
     initialRounds: RefinementRound[],
   ) {
-    let currentDistillationId = initialDistillationId;
-    let rounds = [...initialRounds];
+    const state = { currentDistillationId: initialDistillationId, rounds: [...initialRounds] };
 
     const result = await ResultAsync.fromPromise(
       (async () => {
-        for (let i = 0; i < rounds.length; i++) {
+        for (const [i] of initialRounds.entries()) {
           await dao.update(refinementId, { currentRound: i + 1 });
 
-          rounds = await updateRound(refinementId, i, { status: "optimizing" }, rounds);
+          state.rounds = await updateRound(refinementId, i, { status: "optimizing" }, state.rounds);
 
           const optimized = await pipelinesService.optimizeFromDistillation({
-            distillationId: currentDistillationId,
-            userPrompt: `Refinement round ${i + 1}/${rounds.length}. Focus on the most impactful improvements from the distillation report.`,
+            distillationId: state.currentDistillationId,
+            userPrompt: `Refinement round ${i + 1}/${state.rounds.length}. Focus on the most impactful improvements from the distillation report.`,
           });
           if (!optimized) {
-            rounds = await updateRound(
+            state.rounds = await updateRound(
               refinementId,
               i,
               { status: "failed", error: "Pipeline optimization returned empty" },
-              rounds,
+              state.rounds,
             );
             continue;
           }
 
           const savedPipeline = await pipelinesDao.findById(optimized.id);
           if (!savedPipeline) {
-            rounds = await updateRound(
+            state.rounds = await updateRound(
               refinementId,
               i,
               { status: "failed", error: "Optimized pipeline not found after creation" },
-              rounds,
+              state.rounds,
             );
             continue;
           }
 
-          rounds = await updateRound(
+          state.rounds = await updateRound(
             refinementId,
             i,
             { pipelineId: optimized.id, status: "running" },
-            rounds,
+            state.rounds,
           );
 
           const runResult = await pipelineRunnerService.startRun({
@@ -140,30 +140,30 @@ export const createRefinementsService = (db: DbConnection) => {
           });
 
           if (runResult.isErr()) {
-            rounds = await updateRound(
+            state.rounds = await updateRound(
               refinementId,
               i,
               { status: "failed", error: `Run failed: ${runResult.error.message}` },
-              rounds,
+              state.rounds,
             );
             continue;
           }
 
           const { jobId } = runResult.value;
-          rounds = await updateRound(refinementId, i, { jobId }, rounds);
+          state.rounds = await updateRound(refinementId, i, { jobId }, state.rounds);
 
           const jobResult = await waitForJobCompletion(jobsDao, jobId);
           if (jobResult.status === "failed") {
-            rounds = await updateRound(
+            state.rounds = await updateRound(
               refinementId,
               i,
               { status: "failed", error: jobResult.error ?? "Job failed" },
-              rounds,
+              state.rounds,
             );
             continue;
           }
 
-          rounds = await updateRound(refinementId, i, { status: "distilling" }, rounds);
+          state.rounds = await updateRound(refinementId, i, { status: "distilling" }, state.rounds);
 
           const newDistillationId = crypto.randomUUID();
           await distillationsDao.create({
@@ -173,8 +173,8 @@ export const createRefinementsService = (db: DbConnection) => {
             sourceType: "job",
             sourceId: jobId,
             sourceLabel: `Refinement round ${i + 1}`,
-            mode: "auto",
-            status: "pending",
+            mode: "pipeline",
+            status: "draft",
             config: sourceDistillationConfig(),
             inputSnapshot: null,
             result: null,
@@ -182,7 +182,7 @@ export const createRefinementsService = (db: DbConnection) => {
 
           const distResult = await distillationsService.run(newDistillationId);
 
-          rounds = await updateRound(
+          state.rounds = await updateRound(
             refinementId,
             i,
             {
@@ -193,10 +193,10 @@ export const createRefinementsService = (db: DbConnection) => {
                   ? String((distResult as Record<string, unknown>).summary ?? "")
                   : "",
             },
-            rounds,
+            state.rounds,
           );
 
-          currentDistillationId = newDistillationId;
+          state.currentDistillationId = newDistillationId;
         }
       })(),
       (cause) => (cause instanceof Error ? cause : new Error(String(cause))),

@@ -15,7 +15,7 @@ setInterval(async () => {
   if (expired.length > 0) {
     console.log(
       `[job-expiry] Expired ${expired.length} stale job(s):`,
-      expired.map((r) => r.id),
+      expired.map((r: { id: string }) => r.id),
     );
   }
 }, EXPIRE_CHECK_INTERVAL_MS);

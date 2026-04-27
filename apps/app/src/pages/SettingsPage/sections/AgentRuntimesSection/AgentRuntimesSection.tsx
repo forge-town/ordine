@@ -4,11 +4,7 @@ import { useOne, useUpdate } from "@refinedev/core";
 import { Plus, Trash2 } from "lucide-react";
 import { Input } from "@repo/ui/input";
 import { Button } from "@repo/ui/button";
-import {
-  AgentRuntimeSchema,
-  type AgentRuntimeConfig,
-  type Settings,
-} from "@repo/schemas";
+import { AgentRuntimeSchema, type AgentRuntimeConfig, type Settings } from "@repo/schemas";
 import {
   Select,
   SelectContent,
@@ -52,16 +48,14 @@ export const AgentRuntimesSection = () => {
     (id: string) => {
       setRuntimes(currentRuntimes.filter((r) => r.id !== id));
     },
-    [currentRuntimes],
+    [currentRuntimes]
   );
 
   const handleUpdate = useCallback(
     (id: string, patch: Partial<AgentRuntimeConfig>) => {
-      setRuntimes(
-        currentRuntimes.map((r) => (r.id === id ? { ...r, ...patch } : r)),
-      );
+      setRuntimes(currentRuntimes.map((r) => (r.id === id ? { ...r, ...patch } : r)));
     },
-    [currentRuntimes],
+    [currentRuntimes]
   );
 
   const handleConnectionModeChange = useCallback(
@@ -76,11 +70,11 @@ export const AgentRuntimesSection = () => {
                     ? { mode: "local" as const }
                     : { mode: "ssh" as const, host: "", user: "" },
               }
-            : r,
-        ),
+            : r
+        )
       );
     },
-    [currentRuntimes],
+    [currentRuntimes]
   );
 
   const handleSshFieldChange = useCallback(
@@ -88,14 +82,15 @@ export const AgentRuntimesSection = () => {
       setRuntimes(
         currentRuntimes.map((r) => {
           if (r.id !== id || r.connection.mode !== "ssh") return r;
+
           return {
             ...r,
             connection: { ...r.connection, [field]: value || undefined },
           };
-        }),
+        })
       );
     },
-    [currentRuntimes],
+    [currentRuntimes]
   );
 
   const handleSave = useCallback(async () => {
@@ -114,10 +109,7 @@ export const AgentRuntimesSection = () => {
 
   return (
     <>
-      <SectionHeader
-        description={t(`${s}.description`)}
-        title={t(`${s}.title`)}
-      />
+      <SectionHeader description={t(`${s}.description`)} title={t(`${s}.title`)} />
 
       {currentRuntimes.length === 0 && (
         <p className="text-sm text-muted-foreground">{t(`${s}.empty`)}</p>
@@ -125,18 +117,13 @@ export const AgentRuntimesSection = () => {
 
       <div className="space-y-4">
         {currentRuntimes.map((runtime) => (
-          <div
-            key={runtime.id}
-            className="rounded-lg border border-border bg-card p-4 space-y-3"
-          >
+          <div key={runtime.id} className="rounded-lg border border-border bg-card p-4 space-y-3">
             <div className="flex items-center justify-between">
               <Field label={t(`${s}.name`)}>
                 <Input
                   placeholder={t(`${s}.namePlaceholder`)}
                   value={runtime.name}
-                  onChange={(e) =>
-                    handleUpdate(runtime.id, { name: e.target.value })
-                  }
+                  onChange={(e) => handleUpdate(runtime.id, { name: e.target.value })}
                 />
               </Field>
               <Button
@@ -178,10 +165,7 @@ export const AgentRuntimesSection = () => {
                 <Select
                   value={runtime.connection.mode}
                   onValueChange={(v) =>
-                    handleConnectionModeChange(
-                      runtime.id,
-                      v as "local" | "ssh",
-                    )
+                    handleConnectionModeChange(runtime.id, v as "local" | "ssh")
                   }
                 >
                   <SelectTrigger>
@@ -206,18 +190,14 @@ export const AgentRuntimesSection = () => {
                   <Input
                     placeholder={t(`${s}.hostPlaceholder`)}
                     value={runtime.connection.host}
-                    onChange={(e) =>
-                      handleSshFieldChange(runtime.id, "host", e.target.value)
-                    }
+                    onChange={(e) => handleSshFieldChange(runtime.id, "host", e.target.value)}
                   />
                 </Field>
                 <Field label={t(`${s}.user`)}>
                   <Input
                     placeholder={t(`${s}.userPlaceholder`)}
                     value={runtime.connection.user}
-                    onChange={(e) =>
-                      handleSshFieldChange(runtime.id, "user", e.target.value)
-                    }
+                    onChange={(e) => handleSshFieldChange(runtime.id, "user", e.target.value)}
                   />
                 </Field>
                 <Field label={t(`${s}.port`)}>
@@ -229,7 +209,7 @@ export const AgentRuntimesSection = () => {
                       handleSshFieldChange(
                         runtime.id,
                         "port",
-                        e.target.value ? Number(e.target.value) : "",
+                        e.target.value ? Number(e.target.value) : ""
                       )
                     }
                   />
@@ -238,13 +218,7 @@ export const AgentRuntimesSection = () => {
                   <Input
                     placeholder={t(`${s}.keyPathPlaceholder`)}
                     value={runtime.connection.keyPath ?? ""}
-                    onChange={(e) =>
-                      handleSshFieldChange(
-                        runtime.id,
-                        "keyPath",
-                        e.target.value,
-                      )
-                    }
+                    onChange={(e) => handleSshFieldChange(runtime.id, "keyPath", e.target.value)}
                   />
                 </Field>
               </div>

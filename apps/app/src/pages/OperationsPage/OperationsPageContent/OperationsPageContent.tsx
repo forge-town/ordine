@@ -1,13 +1,6 @@
 import { useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import {
-  Plus,
-  Zap,
-  Search,
-  Upload,
-  LayoutGrid,
-  List,
-} from "lucide-react";
+import { Plus, Zap, Search, Upload, LayoutGrid, List } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCreate, useDelete, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -112,6 +105,7 @@ export const OperationsPageContent = () => {
 
   const handleSortOpenChange = (v: boolean) => handleSetSortOpen(v);
   const handleSortToggle = () => handleToggleSortOpen();
+  const handleNavigateToNew = () => navigate({ to: "/operations/new" });
 
   const handleImportClick = () => {
     importInputRef.current?.click();
@@ -197,7 +191,7 @@ export const OperationsPageContent = () => {
               <Upload className="h-4 w-4" />
               {importing ? t("common.loading") : t("common.import")}
             </Button>
-            <Button size="sm" onClick={() => navigate({ to: "/operations/new" })}>
+            <Button size="sm" onClick={handleNavigateToNew}>
               <Plus className="h-4 w-4" />
               {t("operations.createNew")}
             </Button>
@@ -287,9 +281,7 @@ export const OperationsPageContent = () => {
             </div>
             {searchQuery.trim() ? (
               <>
-                <p className="text-sm font-medium text-muted-foreground">
-                  {t("common.notFound")}
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">{t("common.notFound")}</p>
                 <Button
                   className="mt-3"
                   size="sm"
@@ -307,11 +299,7 @@ export const OperationsPageContent = () => {
                 <p className="mt-1 text-xs text-muted-foreground max-w-xs">
                   {t("operations.createNew")}
                 </p>
-                <Button
-                  className="mt-4"
-                  size="sm"
-                  onClick={() => navigate({ to: "/operations/new" })}
-                >
+                <Button className="mt-4" size="sm" onClick={handleNavigateToNew}>
                   <Plus className="mr-1.5 h-4 w-4" />
                   {t("operations.createNew")}
                 </Button>

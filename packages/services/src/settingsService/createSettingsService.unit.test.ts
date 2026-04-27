@@ -51,7 +51,7 @@ describe("createSettingsService", () => {
       updatedAt: new Date(0),
     });
 
-    const svc = createSettingsService(mockDb);
+    const svc = createSettingsService({} as never);
     const result = await svc.get();
 
     expect(result.defaultAgentRuntime).toBe("mastra");

@@ -17,6 +17,9 @@ export const DistillationActionBar = () => {
   const setRefinementId = useStore(store, (s) => s.handleSetRefinementId);
   const setRefinementRounds = useStore(store, (s) => s.handleSetRefinementRounds);
 
+  const handleRefinementRoundsChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
+    setRefinementRounds(Number(e.target.value));
+
   const { mutate: optimizePipeline, mutation: optimizeMutation } = useCustomMutation();
   const { mutate: startRefinement, mutation: refinementMutation } = useCustomMutation();
   const isOptimizing = optimizeMutation.isPending;
@@ -41,7 +44,7 @@ export const DistillationActionBar = () => {
             params: { pipelineId: pipeline.id },
           });
         },
-      },
+      }
     );
   };
 
@@ -60,7 +63,7 @@ export const DistillationActionBar = () => {
           const result = data.data as { id: string };
           setRefinementId(result.id);
         },
-      },
+      }
     );
   };
 
@@ -70,7 +73,7 @@ export const DistillationActionBar = () => {
         <select
           className="h-8 rounded-md border border-input bg-background px-2 text-xs"
           value={refinementRounds}
-          onChange={(e) => setRefinementRounds(Number(e.target.value))}
+          onChange={handleRefinementRoundsChange}
         >
           {[1, 2, 3, 5, 8, 10].map((n) => (
             <option key={n} value={n}>
@@ -80,9 +83,9 @@ export const DistillationActionBar = () => {
         </select>
         <Button
           disabled={isStartingRefinement || !!refinementId}
-          onClick={handleStartRefinement}
           size="sm"
           variant="secondary"
+          onClick={handleStartRefinement}
         >
           {isStartingRefinement ? (
             <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -94,7 +97,7 @@ export const DistillationActionBar = () => {
             : t("distillations.startRefinement")}
         </Button>
       </div>
-      <Button disabled={isOptimizing} onClick={handleOptimizePipeline} size="sm">
+      <Button disabled={isOptimizing} size="sm" onClick={handleOptimizePipeline}>
         {isOptimizing ? (
           <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
         ) : (

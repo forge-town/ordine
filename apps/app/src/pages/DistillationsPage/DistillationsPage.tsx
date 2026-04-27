@@ -90,7 +90,7 @@ export const DistillationsPage = () => {
                             ? "bg-destructive/10"
                             : distillation.status === "running"
                               ? "bg-primary/10"
-                              : "bg-muted",
+                              : "bg-muted"
                       )}
                     >
                       <FlaskRound
@@ -102,7 +102,7 @@ export const DistillationsPage = () => {
                               ? "text-destructive"
                               : distillation.status === "running"
                                 ? "text-primary"
-                                : "text-muted-foreground",
+                                : "text-muted-foreground"
                         )}
                       />
                     </div>
