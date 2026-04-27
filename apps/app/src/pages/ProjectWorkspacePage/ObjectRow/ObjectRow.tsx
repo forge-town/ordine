@@ -1,5 +1,7 @@
 import { FileCode, Folder, FolderGit2, CheckCircle2, Circle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import { useStore } from "zustand";
+import { useProjectWorkspacePageStore } from "../_store";
 
 type ObjectType = "project" | "folder" | "file";
 
@@ -18,12 +20,13 @@ const OBJECT_ICONS: Record<ObjectType, React.ElementType> = {
 export type ObjectRowProps = {
   item: ObjectItem;
   selected: boolean;
-  onToggle: () => void;
 };
 
-export const ObjectRow = ({ item, selected, onToggle }: ObjectRowProps) => {
+export const ObjectRow = ({ item, selected }: ObjectRowProps) => {
   const Icon = OBJECT_ICONS[item.type];
-  const handleToggle = () => onToggle();
+  const store = useProjectWorkspacePageStore();
+  const toggleObject = useStore(store, (s) => s.handleToggleObject);
+  const handleToggle = () => toggleObject(item.path);
 
   return (
     <button

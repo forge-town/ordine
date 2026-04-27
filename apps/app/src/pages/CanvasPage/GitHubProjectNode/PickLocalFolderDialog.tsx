@@ -28,8 +28,10 @@ export const PickLocalFolderDialog = ({
   const [path, setPath] = useState(initialPath);
   const [browserOpen, setBrowserOpen] = useState(false);
 
+  const handleClose = () => onClose();
+
   const handleOpenChange = (v: boolean) => {
-    if (!v) onClose();
+    if (!v) handleClose();
   };
 
   const handleConfirm = () => {
@@ -37,7 +39,7 @@ export const PickLocalFolderDialog = ({
     const parts = path.trim().split("/").filter(Boolean);
     const folderName = parts.length > 0 ? (parts.at(-1) as string) : path.trim();
     onPick({ localPath: path.trim(), label: folderName });
-    onClose();
+    handleClose();
   };
 
   const handlePathChange = (e: React.ChangeEvent<HTMLInputElement>) => setPath(e.target.value);
@@ -52,8 +54,6 @@ export const PickLocalFolderDialog = ({
   const handleBrowserOpenChange = (v: boolean) => {
     if (!v) setBrowserOpen(false);
   };
-
-  const handleCancel = () => onClose();
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleConfirm();
@@ -96,7 +96,7 @@ export const PickLocalFolderDialog = ({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               {t("common.cancel")}
             </Button>
             <Button disabled={!path.trim()} type="button" onClick={handleConfirm}>

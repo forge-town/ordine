@@ -118,7 +118,7 @@ export const PipelineCard = ({ pipeline }: PipelineCardProps) => {
             key={type}
             className={cn(
               "rounded-full text-[11px]",
-              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground",
+              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground"
             )}
             variant="secondary"
           >

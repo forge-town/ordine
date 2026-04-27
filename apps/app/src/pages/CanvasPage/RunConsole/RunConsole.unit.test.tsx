@@ -2,7 +2,9 @@ import { render } from "@/test/test-wrapper";
 import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RunConsole } from "./RunConsole";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { HarnessCanvasStoreProvider, useHarnessCanvasStore } from "../_store";
+import { useStore } from "zustand";
+import { useEffect } from "react";
 
 vi.mock("@xyflow/react", () => ({
   Handle: () => null,
@@ -27,9 +29,35 @@ vi.mock("@/integrations/trpc/client", () => ({
   },
 }));
 
+const SetActiveJob = ({
+  jobId,
+  children,
+}: {
+  jobId: string | null;
+  children?: React.ReactNode;
+}) => {
+  const store = useHarnessCanvasStore();
+  const setActiveJobId = useStore(store, (s) => s.setActiveJobId);
+  useEffect(() => {
+    setActiveJobId(jobId);
+  }, [jobId, setActiveJobId]);
+
+  return <>{children}</>;
+};
+
 const wrapper = ({ children }: { children?: React.ReactNode }) => (
   <HarnessCanvasStoreProvider>{children}</HarnessCanvasStoreProvider>
 );
+
+const wrapperWithJob = (jobId: string | null) => {
+  const Wrapper = ({ children }: { children?: React.ReactNode }) => (
+    <HarnessCanvasStoreProvider>
+      <SetActiveJob jobId={jobId}>{children}</SetActiveJob>
+    </HarnessCanvasStoreProvider>
+  );
+
+  return Wrapper;
+};
 
 const mockJobRunning = {
   id: "job-1",
@@ -58,6 +86,17 @@ vi.mock("@refinedev/core", () => ({
       isLoading: false,
     },
   }),
+  useCustom: () => ({
+    result: {
+      data: {
+        traces: [
+          { message: "[2026-04-08T16:00:00.000Z] Starting pipeline abc" },
+          { message: "[2026-04-08T16:00:01.000Z] Processing node [github-project] skills" },
+        ],
+      },
+    },
+    isLoading: false,
+  }),
   useList: () => ({
     result: { data: [], total: 0 },
     data: { data: [], total: 0 },
@@ -73,17 +112,17 @@ vi.mock("@refinedev/core", () => ({
 
 describe("RunConsole", () => {
   it("renders nothing when jobId is null", () => {
-    const { container } = render(<RunConsole jobId={null} />, { wrapper });
+    const { container } = render(<RunConsole />, { wrapper });
     expect(container.firstChild).toBeNull();
   });
 
   it("shows status bar with running indicator", () => {
-    render(<RunConsole jobId="job-1" />, { wrapper });
+    render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
     expect(screen.getByText(/Running/i)).toBeInTheDocument();
   });
 
   it("displays log entries from traces", async () => {
-    render(<RunConsole jobId="job-1" />, { wrapper });
+    render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
     await waitFor(() => {
       expect(screen.getByText(/Starting pipeline/)).toBeInTheDocument();
     });
@@ -92,19 +131,19 @@ describe("RunConsole", () => {
 
   it("shows done status when job completes", () => {
     useOneData.mockReturnValue(mockJobDone);
-    render(<RunConsole jobId="job-1" />, { wrapper });
+    render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
     expect(screen.getByText(/Done/i)).toBeInTheDocument();
     useOneData.mockReturnValue(mockJobRunning);
   });
 
   it("polls for updates while running", () => {
-    render(<RunConsole jobId="job-1" />, { wrapper });
+    render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
     expect(screen.getByText(/Running/i)).toBeInTheDocument();
   });
 
   it("stops polling when job is done", () => {
     useOneData.mockReturnValue(mockJobDone);
-    render(<RunConsole jobId="job-1" />, { wrapper });
+    render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
     expect(screen.getByText(/Done/i)).toBeInTheDocument();
     useOneData.mockReturnValue(mockJobRunning);
   });

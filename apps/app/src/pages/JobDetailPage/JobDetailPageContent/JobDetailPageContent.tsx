@@ -17,11 +17,10 @@ import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { Distillation, Job, JobStatus, JobType, JobTrace, LogLevel } from "@repo/schemas";
-import { useOne } from "@refinedev/core";
+import { useCreate, useCustom, useCustomMutation, useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/jobs.$jobId";
-import { trpcClient } from "@/integrations/trpc/client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { ResultAsync } from "neverthrow";
@@ -106,14 +105,17 @@ export const JobDetailPageContent = () => {
   const job = jobResult ?? null;
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [traces, setTraces] = useState<JobTrace[]>([]);
   const [isDistilling, setIsDistilling] = useState(false);
+  const { mutateAsync: createDistillation } = useCreate();
+  const { mutateAsync: runDistillation } = useCustomMutation();
+  const { result: tracesResult } = useCustom<{ traces: JobTrace[] }>({
+    url: "jobs/traces",
+    method: "get",
+    config: { payload: { jobId } },
+  });
+  const traces = tracesResult.data?.traces ?? [];
   const toastStoreRef = useToastStore();
   const addToast = useStore(toastStoreRef, (s) => s.addToast);
-
-  useEffect(() => {
-    void trpcClient.jobs.getTraces.query({ jobId }).then(setTraces);
-  }, [jobId]);
 
   const handleNavigateJobs = () => void navigate({ to: "/jobs" });
   const handleNavigateDistillationStudio = () => {
@@ -136,25 +138,35 @@ export const JobDetailPageContent = () => {
     const mode = job.status === "failed" ? "failure" : "pipeline";
     const distillationId = crypto.randomUUID();
     const execution = ResultAsync.fromPromise(
-      trpcClient.distillations.create.mutate({
-        id: distillationId,
-        title: `${t("distillations.defaultTitlePrefix")} ${job.title}`,
-        summary: "",
-        sourceType: "job",
-        sourceId: job.id,
-        sourceLabel: job.title,
-        mode,
-        status: "draft",
-        config: { objective: "" },
-        inputSnapshot: null,
-        result: null,
+      createDistillation({
+        resource: ResourceName.distillations,
+        values: {
+          id: distillationId,
+          title: `${t("distillations.defaultTitlePrefix")} ${job.title}`,
+          summary: "",
+          sourceType: "job",
+          sourceId: job.id,
+          sourceLabel: job.title,
+          mode,
+          status: "draft",
+          config: { objective: "" },
+          inputSnapshot: null,
+          result: null,
+        },
       }),
-      (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
-    ).andThen((created) =>
-      ResultAsync.fromPromise(trpcClient.distillations.run.mutate({ id: created.id }), (cause) =>
-        cause instanceof Error ? cause : new Error(String(cause)),
-      ).map((executed) => (executed ?? created) as Distillation),
-    );
+      (cause) => (cause instanceof Error ? cause : new Error(String(cause)))
+    )
+      .map((created) => created.data as Distillation)
+      .andThen((created) =>
+        ResultAsync.fromPromise(
+          runDistillation({
+            url: "distillations/run",
+            method: "post",
+            values: { id: created.id },
+          }),
+          (cause) => (cause instanceof Error ? cause : new Error(String(cause)))
+        ).map((executed) => (executed.data ?? created) as Distillation)
+      );
 
     void execution.match(
       (distillation) => {
@@ -171,7 +183,7 @@ export const JobDetailPageContent = () => {
           title: t("distillations.runFailed"),
           description: error.message,
         });
-      },
+      }
     );
   };
 
@@ -231,7 +243,7 @@ export const JobDetailPageContent = () => {
           <span
             className={cn(
               "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-              s.cls,
+              s.cls
             )}
           >
             <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />
@@ -313,7 +325,7 @@ export const JobDetailPageContent = () => {
                     <span
                       className={cn(
                         "shrink-0 w-12 text-[10px] font-mono uppercase",
-                        LEVEL_COLOR[tr.level],
+                        LEVEL_COLOR[tr.level]
                       )}
                     >
                       {tr.level}

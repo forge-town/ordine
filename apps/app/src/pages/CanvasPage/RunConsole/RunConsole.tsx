@@ -1,15 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Terminal, X, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { cn } from "@repo/ui/lib/utils";
-import { useOne } from "@refinedev/core";
+import { useCustom, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { StatusIcon } from "./StatusIcon";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { trpcClient } from "@/integrations/trpc/client";
-import type { JobData, JobStatus, RunConsoleProps } from "./types";
+import type { JobData, JobStatus } from "./types";
 
 const POLL_INTERVAL = 1500;
 
@@ -76,8 +75,10 @@ const isStructuredLog = (log: string): boolean => {
 const isTerminalStatus = (s: JobStatus) =>
   s === "done" || s === "failed" || s === "cancelled" || s === "expired";
 
-export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
+export const RunConsole = () => {
   const store = useHarnessCanvasStore();
+  const jobId = useStore(store, (s) => s.activeJobId);
+  const handleCloseConsole = useStore(store, (s) => s.handleCloseConsole);
   const markNodeRunning = useStore(store, (s) => s.markNodeRunning);
   const markNodePassed = useStore(store, (s) => s.markNodePassed);
   const markNodeFailed = useStore(store, (s) => s.markNodeFailed);
@@ -87,15 +88,10 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const processedLogCount = useRef(0);
-  const prevJobId = useRef(jobId);
-  const [traceLogs, setTraceLogs] = useState<string[]>([]);
 
-  // Reset processed count when jobId changes
-  if (prevJobId.current !== jobId) {
-    prevJobId.current = jobId;
+  useEffect(() => {
     processedLogCount.current = 0;
-    setTraceLogs([]);
-  }
+  }, [jobId]);
 
   const { query: jobQuery } = useOne<JobData>({
     resource: ResourceName.jobs,
@@ -113,23 +109,20 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
 
   const job = (jobQuery.data?.data as JobData | undefined) ?? null;
 
-  // Poll traces for log lines
-  const fetchTraces = useCallback(async () => {
-    if (!jobId) return;
-    const traces = await trpcClient.jobs.getTraces.query({ jobId });
-    const logs = traces.map((t: { message: string }) => t.message);
-    setTraceLogs(logs);
-  }, [jobId]);
+  const { result: tracesResult } = useCustom<{ traces: Array<{ message: string }> }>({
+    url: "jobs/traces",
+    method: "get",
+    config: { payload: { jobId: jobId ?? "" } },
+    queryOptions: {
+      enabled: !!jobId,
+      refetchInterval: () => {
+        if (job && isTerminalStatus(job.status)) return false;
 
-  useEffect(() => {
-    if (!jobId) return;
-    void fetchTraces();
-    if (job && !isTerminalStatus(job.status)) {
-      const interval = setInterval(() => void fetchTraces(), POLL_INTERVAL);
-
-      return () => clearInterval(interval);
-    }
-  }, [jobId, job?.status, fetchTraces]);
+        return POLL_INTERVAL;
+      },
+    },
+  });
+  const traceLogs = (tracesResult.data?.traces ?? []).map((trace) => trace.message);
 
   // Process new structured log lines during render (ref-driven, no useEffect)
   if (traceLogs.length > processedLogCount.current) {
@@ -158,7 +151,7 @@ export const RunConsole = ({ jobId, onClose }: RunConsoleProps) => {
   if (!jobId) return null;
 
   const handleToggleCollapse = () => setCollapsed((v) => !v);
-  const handleClose = () => onClose?.();
+  const handleClose = () => handleCloseConsole();
 
   return (
     <div

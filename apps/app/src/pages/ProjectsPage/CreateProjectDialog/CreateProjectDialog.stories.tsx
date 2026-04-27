@@ -4,10 +4,6 @@ import { CreateProjectDialog } from "./CreateProjectDialog";
 const meta: Meta<typeof CreateProjectDialog> = {
   title: "Pages/ProjectsPage/CreateProjectDialog",
   component: CreateProjectDialog,
-  args: {
-    onClose: () => {},
-    onCreate: () => {},
-  },
 };
 
 export default meta;

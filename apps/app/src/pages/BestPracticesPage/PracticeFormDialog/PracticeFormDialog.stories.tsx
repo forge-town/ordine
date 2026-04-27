@@ -17,10 +17,6 @@ const mockPractice: BestPractice = {
 const meta: Meta<typeof PracticeFormDialog> = {
   title: "BestPracticesPage/PracticeFormDialog",
   component: PracticeFormDialog,
-  args: {
-    onClose: () => undefined,
-    onSave: () => undefined,
-  },
 };
 
 export default meta;

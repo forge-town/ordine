@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { CreateProjectDialog } from "./CreateProjectDialog";
+import { createStore } from "zustand";
 
 vi.mock("@/lib/githubApi", () => ({
   parseGitHubUrl: vi.fn(),
@@ -20,18 +21,24 @@ vi.mock("@/services/githubProjectsService", () => ({
   createGithubProject: vi.fn().mockResolvedValue({}),
 }));
 
+vi.mock("../_store", () => ({
+  useProjectsPageStore: () =>
+    createStore(() => ({
+      search: "",
+      showCreate: true,
+      handleSetSearch: vi.fn(),
+      handleSetShowCreate: vi.fn(),
+    })),
+}));
+
 describe("CreateProjectDialog", () => {
   it("renders dialog title", () => {
-    const handleClose = vi.fn();
-    const handleCreate = vi.fn();
-    render(<CreateProjectDialog onClose={handleClose} onCreate={handleCreate} />);
+    render(<CreateProjectDialog />);
     expect(screen.getByText("连接 GitHub 项目")).toBeInTheDocument();
   });
 
   it("renders URL input", () => {
-    const handleClose = vi.fn();
-    const handleCreate = vi.fn();
-    render(<CreateProjectDialog onClose={handleClose} onCreate={handleCreate} />);
+    render(<CreateProjectDialog />);
     expect(screen.getByPlaceholderText("https://github.com/owner/repo")).toBeInTheDocument();
   });
 });

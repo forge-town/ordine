@@ -34,21 +34,26 @@ const getComplexity = (op: Operation) => {
   return inputs + outputs;
 };
 
+import { useDelete } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { exportOperation } from "../exportOperation";
+
+const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
+
 interface OperationListRowProps {
   operation: Operation;
-  onEdit: () => void;
-  onDelete: () => void;
-  onExport: () => void;
 }
 
-export const OperationListRow = ({
-  operation,
-  onEdit,
-  onDelete,
-  onExport,
-}: OperationListRowProps) => {
+export const OperationListRow = ({ operation }: OperationListRowProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { mutate: deleteOpMutate } = useDelete();
+
+  const handleEdit = () =>
+    navigate({ to: "/operations/$operationId/edit", params: { operationId: operation.id } });
+  const handleDelete = () =>
+    deleteOpMutate({ resource: ResourceName.operations, id: operation.id });
+  const handleExport = () => exportOperation(operation);
   const complexity = getComplexity(operation);
   const objectTypes = Array.isArray(operation.acceptedObjectTypes)
     ? operation.acceptedObjectTypes
@@ -60,10 +65,6 @@ export const OperationListRow = ({
       params: { operationId: operation.id },
     });
   };
-  const handleEdit = onEdit;
-  const handleDelete = onDelete;
-  const handleExport = onExport;
-  const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleRowClick();
   };

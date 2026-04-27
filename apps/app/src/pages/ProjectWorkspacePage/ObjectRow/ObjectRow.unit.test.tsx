@@ -1,6 +1,20 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ObjectRow } from "./ObjectRow";
+import { createStore } from "zustand";
+
+const mockToggleObject = vi.fn();
+
+vi.mock("../_store", () => ({
+  useProjectWorkspacePageStore: () =>
+    createStore(() => ({
+      selectedObjects: new Set(),
+      selectedPipelineId: null,
+      handleToggleObject: mockToggleObject,
+      handleSelectPipeline: vi.fn(),
+      handleClearSelectedObjects: vi.fn(),
+    })),
+}));
 
 const mockItem = {
   type: "file" as const,
@@ -10,15 +24,13 @@ const mockItem = {
 
 describe("ObjectRow", () => {
   it("renders label", () => {
-    const handleToggle = vi.fn();
-    render(<ObjectRow item={mockItem} selected={false} onToggle={handleToggle} />);
+    render(<ObjectRow item={mockItem} selected={false} />);
     expect(screen.getByText("src/main.ts")).toBeInTheDocument();
   });
 
-  it("calls onToggle when clicked", () => {
-    const handleToggle = vi.fn();
-    render(<ObjectRow item={mockItem} selected={false} onToggle={handleToggle} />);
+  it("calls store handleToggleObject when clicked", () => {
+    render(<ObjectRow item={mockItem} selected={false} />);
     fireEvent.click(screen.getByRole("button"));
-    expect(handleToggle).toHaveBeenCalledTimes(1);
+    expect(mockToggleObject).toHaveBeenCalledWith("/src/main.ts");
   });
 });

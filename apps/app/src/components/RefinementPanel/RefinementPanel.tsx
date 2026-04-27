@@ -32,7 +32,7 @@ const STATUS_VARIANTS: Record<string, "default" | "destructive" | "secondary"> =
 const statusVariant = (status: RefinementRoundStatus) =>
   STATUS_VARIANTS[status] ?? ("secondary" as const);
 
-const POLL_INTERVAL = 3_000;
+const POLL_INTERVAL = 3000;
 
 export const RefinementPanel = ({ refinementId }: { refinementId: string }) => {
   const { t } = useTranslation();

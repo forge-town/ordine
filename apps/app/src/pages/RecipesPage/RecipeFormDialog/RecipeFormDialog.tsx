@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
@@ -19,6 +20,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import type { Recipe, Operation, BestPractice } from "@repo/schemas";
 import { useCreate, useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { useRecipesPageStore } from "../_store";
 
 const formSchema = z.object({
   name: z.string().min(1, "名称不能为空"),
@@ -33,19 +35,17 @@ export type RecipeFormDialogProps = {
   initial?: Recipe;
   operations: Operation[];
   bestPractices: BestPractice[];
-  onClose: () => void;
-  onSave: (r: Recipe) => void;
 };
 
-export const RecipeFormDialog = ({
-  initial,
-  operations,
-  bestPractices,
-  onClose,
-  onSave,
-}: RecipeFormDialogProps) => {
+export const RecipeFormDialog = ({ initial, operations, bestPractices }: RecipeFormDialogProps) => {
   const { t } = useTranslation();
-  const handleClose = onClose;
+  const store = useRecipesPageStore();
+  const handleSetShowForm = useStore(store, (s) => s.handleSetShowForm);
+  const handleSetEditing = useStore(store, (s) => s.handleSetEditing);
+  const handleClose = () => {
+    handleSetShowForm(false);
+    handleSetEditing(null);
+  };
   const { mutateAsync: createRecipeMutate } = useCreate();
   const { mutateAsync: updateRecipeMutate } = useUpdate();
   const form = useForm<FormValues>({
@@ -75,15 +75,13 @@ export const RecipeFormDialog = ({
 
   const onSubmit = async (values: FormValues) => {
     if (initial) {
-      const result = await updateRecipeMutate({
+      await updateRecipeMutate({
         resource: ResourceName.recipes,
         id: initial.id,
         values,
       });
-      const updated = result.data as Recipe | undefined;
-      if (updated) onSave(updated);
     } else {
-      const result = await createRecipeMutate({
+      await createRecipeMutate({
         resource: ResourceName.recipes,
         values: {
           id: `rcp-${Date.now()}`,
@@ -93,10 +91,8 @@ export const RecipeFormDialog = ({
           bestPracticeId: values.bestPracticeId,
         },
       });
-      const created = result.data as Recipe | undefined;
-      if (created) onSave(created);
     }
-    onClose();
+    handleClose();
   };
 
   return (

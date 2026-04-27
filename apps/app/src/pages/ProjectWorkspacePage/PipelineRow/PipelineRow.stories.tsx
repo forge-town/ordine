@@ -24,7 +24,6 @@ const mockPipeline: PipelineData = {
 const meta: Meta<typeof PipelineRow> = {
   title: "Pages/ProjectWorkspacePage/PipelineRow",
   component: PipelineRow,
-  args: { onSelect: () => {} },
 };
 
 export default meta;

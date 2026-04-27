@@ -37,8 +37,6 @@ export const ProjectWorkspacePageContent = () => {
   const store = useProjectWorkspacePageStore();
   const selectedObjects = useStore(store, (s) => s.selectedObjects);
   const selectedPipelineId = useStore(store, (s) => s.selectedPipelineId);
-  const handleToggleObjectInStore = useStore(store, (s) => s.handleToggleObject);
-  const handleSelectPipelineInStore = useStore(store, (s) => s.handleSelectPipeline);
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { mutate: runMutate } = useCustomMutation();
@@ -62,10 +60,6 @@ export const ProjectWorkspacePageContent = () => {
 
   const objects = buildObjectTree(project.owner, project.repo, t("workspace.entireProject"));
   const selectedPipeline = pipelines.find((p: PipelineData) => p.id === selectedPipelineId);
-
-  const toggleObject = (path: string) => {
-    handleToggleObjectInStore(path);
-  };
 
   const canTrigger = selectedObjects.size > 0 && selectedPipelineId !== null;
 
@@ -96,11 +90,7 @@ export const ProjectWorkspacePageContent = () => {
 
   const handleTriggerClick = () => handleTrigger();
 
-  const handleToggleObject = (path: string) => () => toggleObject(path);
-
   const handleNavigatePipelines = () => void navigate({ to: "/pipelines" });
-
-  const handleSelectPipeline = (id: string) => () => handleSelectPipelineInStore(id);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -131,12 +121,7 @@ export const ProjectWorkspacePageContent = () => {
           </h2>
           <div className="space-y-1.5">
             {objects.map((obj) => (
-              <ObjectRow
-                key={obj.path}
-                item={obj}
-                selected={selectedObjects.has(obj.path)}
-                onToggle={handleToggleObject(obj.path)}
-              />
+              <ObjectRow key={obj.path} item={obj} selected={selectedObjects.has(obj.path)} />
             ))}
           </div>
         </div>
@@ -161,12 +146,7 @@ export const ProjectWorkspacePageContent = () => {
           ) : (
             <div className="space-y-1.5">
               {pipelines.map((p) => (
-                <PipelineRow
-                  key={p.id}
-                  pipeline={p}
-                  selected={p.id === selectedPipelineId}
-                  onSelect={handleSelectPipeline(p.id)}
-                />
+                <PipelineRow key={p.id} pipeline={p} selected={p.id === selectedPipelineId} />
               ))}
             </div>
           )}

@@ -19,9 +19,7 @@ export const CanvasInner = () => {
   const contextMenu = useStore(store, (state) => state.contextMenu);
   const connectionMenu = useStore(store, (state) => state.connectionMenu);
   const nodeContextMenu = useStore(store, (state) => state.nodeContextMenu);
-  const activeJobId = useStore(store, (state) => state.activeJobId);
   const isConsoleOpen = useStore(store, (state) => state.isConsoleOpen);
-  const handleCloseConsole = useStore(store, (state) => state.handleCloseConsole);
   const setPipelineName = useStore(store, (state) => state.setPipelineName);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +53,7 @@ export const CanvasInner = () => {
 
       <LlmContentCard />
 
-      {isConsoleOpen && <RunConsole jobId={activeJobId} onClose={handleCloseConsole} />}
+      {isConsoleOpen && <RunConsole />}
     </div>
   );
 };

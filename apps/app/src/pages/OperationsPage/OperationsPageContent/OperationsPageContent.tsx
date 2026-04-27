@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Zap, Search, Upload, LayoutGrid, List } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useCreate, useDelete, useList } from "@refinedev/core";
+import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { Operation } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
@@ -24,19 +24,6 @@ import { cn } from "@repo/ui/lib/utils";
 import { useOperationsPageStore } from "../_store";
 import { OperationCard } from "../OperationCard";
 import { OperationListRow } from "../OperationListRow";
-
-const exportOperation = (op: Operation) => {
-  const data = JSON.stringify(op, null, 2);
-  const blob = new Blob([data], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${op.name.replaceAll(/\s+/g, "-").toLowerCase()}.operation.json`;
-  document.body.append(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-};
 
 export const OperationsPageContent = () => {
   const { result: operationsResult, query: operationsQuery } = useList<Operation>({
@@ -60,7 +47,6 @@ export const OperationsPageContent = () => {
   const handleToggleSortOpen = useStore(pageStore, (s) => s.handleToggleSortOpen);
   const handleSetImporting = useStore(pageStore, (s) => s.handleSetImporting);
   const handleSetViewMode = useStore(pageStore, (s) => s.handleSetViewMode);
-  const { mutate: deleteOpMutate } = useDelete();
   const { mutateAsync: createOpMutate } = useCreate();
   const importInputRef = useRef<HTMLInputElement>(null);
 
@@ -90,10 +76,6 @@ export const OperationsPageContent = () => {
         }
       }
     });
-
-  const handleDelete = (id: string) => {
-    deleteOpMutate({ resource: ResourceName.operations, id });
-  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     handleSetSearchQuery(e.target.value);
@@ -162,16 +144,6 @@ export const OperationsPageContent = () => {
     handleSetImporting(false);
     e.target.value = "";
   };
-
-  const makeHandlers = (op: Operation) => ({
-    onEdit: () =>
-      navigate({
-        to: "/operations/$operationId/edit",
-        params: { operationId: op.id },
-      }),
-    onDelete: () => handleDelete(op.id),
-    onExport: () => exportOperation(op),
-  });
 
   if (operationsQuery?.isLoading) {
     return (
@@ -309,13 +281,13 @@ export const OperationsPageContent = () => {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredOperations.map((op) => (
-              <OperationCard key={op.id} operation={op} {...makeHandlers(op)} />
+              <OperationCard key={op.id} operation={op} />
             ))}
           </div>
         ) : (
           <div className="divide-y divide-border">
             {filteredOperations.map((op) => (
-              <OperationListRow key={op.id} operation={op} {...makeHandlers(op)} />
+              <OperationListRow key={op.id} operation={op} />
             ))}
           </div>
         )}

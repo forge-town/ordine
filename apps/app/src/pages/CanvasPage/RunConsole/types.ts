@@ -7,8 +7,3 @@ export interface JobData {
   startedAt: number | null;
   finishedAt: number | null;
 }
-
-export interface RunConsoleProps {
-  jobId: string | null;
-  onClose?: () => void;
-}

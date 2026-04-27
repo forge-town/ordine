@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
 import { processGitHubProjectNode } from "./GitHubProjectNode";
-import { listDirTree, readProjectFiles } from "@repo/utils";
+import { listDirTree } from "@repo/utils";
 import type { PipelineEngineDeps } from "../../deps";
 import type { PipelineNode } from "../../schemas";
 import type { NodeContext } from "../types";

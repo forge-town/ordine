@@ -12,7 +12,7 @@ import { createPipelinesService } from "../pipelinesService";
 import { createPipelineRunnerService } from "../pipelineRunnerService";
 import { createDistillationsService } from "../distillationsService";
 
-const POLL_INTERVAL_MS = 3_000;
+const POLL_INTERVAL_MS = 3000;
 const MAX_POLL_ATTEMPTS = 600;
 
 const waitForJobCompletion = async (
@@ -89,11 +89,11 @@ export const createRefinementsService = (db: DbConnection) => {
     },
   };
 
-  async function runLoop(
+  const runLoop = async (
     refinementId: string,
     initialDistillationId: string,
     initialRounds: RefinementRound[],
-  ) {
+  ) => {
     const state = { currentDistillationId: initialDistillationId, rounds: [...initialRounds] };
 
     const result = await ResultAsync.fromPromise(
@@ -212,9 +212,9 @@ export const createRefinementsService = (db: DbConnection) => {
         await dao.update(refinementId, { status: "failed" });
       },
     );
-  }
-
-  function sourceDistillationConfig() {
-    return { objective: "Distill insights from refinement round for next optimization." };
-  }
+  };
 };
+
+const sourceDistillationConfig = () => ({
+  objective: "Distill insights from refinement round for next optimization.",
+});

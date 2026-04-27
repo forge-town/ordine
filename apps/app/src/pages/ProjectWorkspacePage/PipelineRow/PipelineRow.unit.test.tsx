@@ -2,6 +2,20 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { type PipelineData, PipelineSchema } from "@repo/pipeline-engine/schemas";
 import { PipelineRow } from "./PipelineRow";
+import { createStore } from "zustand";
+
+const mockSelectPipeline = vi.fn();
+
+vi.mock("../_store", () => ({
+  useProjectWorkspacePageStore: () =>
+    createStore(() => ({
+      selectedObjects: new Set(),
+      selectedPipelineId: null,
+      handleToggleObject: vi.fn(),
+      handleSelectPipeline: mockSelectPipeline,
+      handleClearSelectedObjects: vi.fn(),
+    })),
+}));
 
 const mockPipelineInput = PipelineSchema.parse({
   id: "pipe-001",
@@ -23,21 +37,18 @@ const mockPipeline: PipelineData = {
 
 describe("PipelineRow", () => {
   it("renders pipeline name", () => {
-    const handleSelect = vi.fn();
-    render(<PipelineRow pipeline={mockPipeline} selected={false} onSelect={handleSelect} />);
+    render(<PipelineRow pipeline={mockPipeline} selected={false} />);
     expect(screen.getByText("CI Pipeline")).toBeInTheDocument();
   });
 
   it("renders description", () => {
-    const handleSelect = vi.fn();
-    render(<PipelineRow pipeline={mockPipeline} selected={false} onSelect={handleSelect} />);
+    render(<PipelineRow pipeline={mockPipeline} selected={false} />);
     expect(screen.getByText("持续集成流水线")).toBeInTheDocument();
   });
 
-  it("calls onSelect when clicked", () => {
-    const handleSelect = vi.fn();
-    render(<PipelineRow pipeline={mockPipeline} selected={false} onSelect={handleSelect} />);
+  it("calls store handleSelectPipeline when clicked", () => {
+    render(<PipelineRow pipeline={mockPipeline} selected={false} />);
     fireEvent.click(screen.getByRole("button"));
-    expect(handleSelect).toHaveBeenCalledTimes(1);
+    expect(mockSelectPipeline).toHaveBeenCalledWith("pipe-001");
   });
 });

@@ -4,15 +4,13 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { Recipe, Operation, BestPractice } from "@repo/schemas";
-import { useDelete, useList } from "@refinedev/core";
+import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { useRecipesPageStore } from "../_store";
 import { RecipeFormDialog } from "../RecipeFormDialog";
 import { RecipeCard } from "../RecipeCard";
-
-const handleSave = (_r: Recipe) => {};
 
 export const RecipesPageContent = () => {
   const { t } = useTranslation();
@@ -35,7 +33,6 @@ export const RecipesPageContent = () => {
   const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
   const handleSetShowForm = useStore(store, (s) => s.handleSetShowForm);
   const handleSetEditing = useStore(store, (s) => s.handleSetEditing);
-  const { mutate: deleteRecipeMutate } = useDelete();
 
   const filtered = recipes.filter((r: Recipe) => {
     const q = search.toLowerCase();
@@ -44,28 +41,12 @@ export const RecipesPageContent = () => {
     return r.name.toLowerCase().includes(q) || (r.description ?? "").toLowerCase().includes(q);
   });
 
-  const handleDelete = (id: string) => {
-    deleteRecipeMutate({ resource: ResourceName.recipes, id });
-  };
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     handleSetSearch(e.target.value);
 
   const handleAddRecipe = () => {
     handleSetEditing(null);
     handleSetShowForm(true);
-  };
-
-  const handleEditRecipe = (r: Recipe) => () => {
-    handleSetEditing(r);
-    handleSetShowForm(true);
-  };
-
-  const handleDeleteRecipe = (id: string) => () => void handleDelete(id);
-
-  const handleFormClose = () => {
-    handleSetShowForm(false);
-    handleSetEditing(null);
   };
 
   const opMap = new Map<string, Operation>(operations.map((o: Operation) => [o.id, o]));
@@ -138,8 +119,6 @@ export const RecipesPageContent = () => {
                 bestPractice={bpMap.get(r.bestPracticeId)}
                 operation={opMap.get(r.operationId)}
                 recipe={r}
-                onDelete={handleDeleteRecipe(r.id)}
-                onEdit={handleEditRecipe(r)}
               />
             ))}
           </div>
@@ -151,8 +130,6 @@ export const RecipesPageContent = () => {
           bestPractices={bestPractices}
           initial={editing ?? undefined}
           operations={operations}
-          onClose={handleFormClose}
-          onSave={handleSave}
         />
       )}
     </div>

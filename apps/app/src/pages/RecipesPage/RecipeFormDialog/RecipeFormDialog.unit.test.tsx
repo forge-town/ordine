@@ -2,12 +2,28 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RecipeFormDialog } from "./RecipeFormDialog";
+import { createStore } from "zustand";
 
 import type { ObjectType } from "@repo/schemas";
+
+const mockSetShowForm = vi.fn();
+const mockSetEditing = vi.fn();
 
 vi.mock("@/services/recipesService", () => ({
   createRecipe: vi.fn(),
   updateRecipe: vi.fn(),
+}));
+
+vi.mock("../_store", () => ({
+  useRecipesPageStore: () =>
+    createStore(() => ({
+      search: "",
+      showForm: true,
+      editing: null,
+      handleSetSearch: vi.fn(),
+      handleSetShowForm: mockSetShowForm,
+      handleSetEditing: mockSetEditing,
+    })),
 }));
 
 const mockOperations = [
@@ -46,47 +62,26 @@ const mockRecipe = {
 
 describe("RecipeFormDialog", () => {
   it("renders 新增 title when no initial", () => {
-    const handleClose = vi.fn();
-    const handleSave = vi.fn();
-    render(
-      <RecipeFormDialog
-        bestPractices={mockBestPractices}
-        operations={mockOperations}
-        onClose={handleClose}
-        onSave={handleSave}
-      />
-    );
+    render(<RecipeFormDialog bestPractices={mockBestPractices} operations={mockOperations} />);
     expect(screen.getByText("新增配方")).toBeInTheDocument();
   });
 
   it("renders 编辑 title when initial is provided", () => {
-    const handleClose = vi.fn();
-    const handleSave = vi.fn();
     render(
       <RecipeFormDialog
         bestPractices={mockBestPractices}
         initial={mockRecipe}
         operations={mockOperations}
-        onClose={handleClose}
-        onSave={handleSave}
       />
     );
     expect(screen.getByText("编辑配方")).toBeInTheDocument();
   });
 
-  it("calls onClose when close button is clicked", () => {
-    const handleClose = vi.fn();
-    const handleSave = vi.fn();
-    render(
-      <RecipeFormDialog
-        bestPractices={mockBestPractices}
-        operations={mockOperations}
-        onClose={handleClose}
-        onSave={handleSave}
-      />
-    );
+  it("calls store close actions when close button is clicked", () => {
+    render(<RecipeFormDialog bestPractices={mockBestPractices} operations={mockOperations} />);
     const closeBtn = screen.getByRole("button", { name: "" });
     closeBtn.click();
-    expect(handleClose).toHaveBeenCalledOnce();
+    expect(mockSetShowForm).toHaveBeenCalledWith(false);
+    expect(mockSetEditing).toHaveBeenCalledWith(null);
   });
 });

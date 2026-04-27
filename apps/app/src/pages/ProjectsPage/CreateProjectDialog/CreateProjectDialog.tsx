@@ -1,24 +1,25 @@
 import { useState } from "react";
 import { GitBranch, X, Link2, Loader2, AlertCircle, Key, Lock, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useStore } from "zustand";
 import { parseGitHubUrl, fetchRepoInfo, type GitHubRepoInfo } from "@/lib/githubApi";
 import { useGithubToken } from "@/hooks/useGithubToken";
 import { GitHubTokenDialog } from "@/pages/CanvasPage/GitHubProjectNode/GitHubTokenDialog";
 import { useCreate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { GithubProject } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { ResultAsync } from "neverthrow";
+import { useProjectsPageStore } from "../_store";
 
-export type CreateProjectDialogProps = {
-  onClose: () => void;
-  onCreate: (p: GithubProject) => void;
-};
+export type CreateProjectDialogProps = Record<string, never>;
 
-export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogProps) => {
+export const CreateProjectDialog = () => {
   const { t } = useTranslation();
+  const store = useProjectsPageStore();
+  const handleSetShowCreate = useStore(store, (s) => s.handleSetShowCreate);
+  const handleClose = () => handleSetShowCreate(false);
   const { token } = useGithubToken();
   const { mutateAsync: createProjectMutate } = useCreate();
   const [url, setUrl] = useState("");
@@ -65,9 +66,8 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
       (e) => (e instanceof Error ? e.message : t("projects.saveFailed"))
     );
     result.match(
-      (response) => {
-        onCreate(response.data as GithubProject);
-        onClose();
+      () => {
+        handleClose();
       },
       (errorMsg) => setError(errorMsg)
     );
@@ -87,7 +87,6 @@ export const CreateProjectDialog = ({ onClose, onCreate }: CreateProjectDialogPr
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") void handleFetch();
   };
-  const handleClose = () => onClose();
   const handleSaveClick = () => void handleSave();
   const handleFetchClick = () => void handleFetch();
 

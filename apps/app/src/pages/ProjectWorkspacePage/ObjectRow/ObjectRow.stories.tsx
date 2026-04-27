@@ -4,7 +4,6 @@ import { ObjectRow } from "./ObjectRow";
 const meta: Meta<typeof ObjectRow> = {
   title: "Pages/ProjectWorkspacePage/ObjectRow",
   component: ObjectRow,
-  args: { onToggle: () => {} },
 };
 
 export default meta;

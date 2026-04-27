@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { trpcClient } from "@/integrations/trpc/client";
+import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 
 const LANG_EXT: Record<string, string> = {
   typescript: "ts",
@@ -45,6 +45,21 @@ type CodeSnippetItem = {
   bestPracticeId?: string;
   meta?: { createdAt: Date; updatedAt: Date };
 };
+
+export type ImportPreviewResult = {
+  total: number;
+  newCount: number;
+  updateCount: number;
+  items: Array<{
+    id: string;
+    title: string;
+    status: "new" | "update";
+    checklistItemCount: number;
+    codeSnippetCount: number;
+  }>;
+};
+
+type ImportBulkResult = { imported: number; checklistItems: number; codeSnippets: number };
 
 const addBPToZip = (
   zip: JSZip,
@@ -107,21 +122,32 @@ const downloadZip = async (zip: JSZip, filename: string) => {
 };
 
 export const exportSingleBestPractice = async (id: string, title: string) => {
-  const [bp, items, snippets] = await Promise.all([
-    trpcClient.bestPractices.getById.query({ id }),
-    trpcClient.checklist.getItemsByBestPracticeId.query({ bestPracticeId: id }),
-    trpcClient.codeSnippets.getByBestPracticeId.query({ bestPracticeId: id }),
+  const [bpResponse, itemsResponse, snippetsResponse] = await Promise.all([
+    dataProvider.getOne!<BPData>({ resource: ResourceName.bestPractices, id }),
+    dataProvider.getList!<ChecklistItem>({
+      resource: ResourceName.checklistItems,
+      filters: [{ field: "bestPracticeId", operator: "eq", value: id }],
+    }),
+    dataProvider.getList!<CodeSnippetItem>({
+      resource: ResourceName.codeSnippets,
+      filters: [{ field: "bestPracticeId", operator: "eq", value: id }],
+    }),
   ]);
+  const bp = bpResponse.data;
 
   if (!bp) return;
 
   const zip = new JSZip();
-  addBPToZip(zip, bp as BPData, items as ChecklistItem[], snippets as CodeSnippetItem[]);
+  addBPToZip(zip, bp, itemsResponse.data, snippetsResponse.data);
   await downloadZip(zip, `${title || id}.bestpractice`);
 };
 
 export const exportAllBestPractices = async () => {
-  const base64 = await trpcClient.bestPractices.exportAsZip.query();
+  const { data } = await dataProvider.custom!<{ base64: string }>({
+    url: "bestPractices/exportAsZip",
+    method: "get",
+  });
+  const { base64 } = data;
   const binary = atob(base64);
   const bytes = Uint8Array.from(binary, (c) => c.codePointAt(0) ?? 0);
   const blob = new Blob([bytes], { type: "application/zip" });
@@ -245,22 +271,28 @@ export const parseBestPracticesZip = async (file: File): Promise<ParsedBestPract
 };
 
 export const previewBestPracticesImport = async (entries: ParsedBestPractice[]) => {
-  return trpcClient.bestPractices.previewImport.mutate(
-    entries as Parameters<typeof trpcClient.bestPractices.previewImport.mutate>[0]
-  );
+  const { data } = await dataProvider.custom!<ImportPreviewResult>({
+    url: "bestPractices/previewImport",
+    method: "post",
+    payload: entries,
+  });
+
+  return data;
 };
 
 export const submitBestPracticesImport = async (
   entries: ParsedBestPractice[]
-): Promise<{ imported: number; checklistItems: number; codeSnippets: number }> => {
-  return trpcClient.bestPractices.importBulk.mutate(
-    entries as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0]
-  );
+): Promise<ImportBulkResult> => {
+  const { data } = await dataProvider.custom!<ImportBulkResult>({
+    url: "bestPractices/importBulk",
+    method: "post",
+    payload: entries,
+  });
+
+  return data;
 };
 
-export const importBestPracticesFromZip = async (
-  file: File
-): Promise<{ imported: number; checklistItems: number; codeSnippets: number }> => {
+export const importBestPracticesFromZip = async (file: File): Promise<ImportBulkResult> => {
   const entries = await parseBestPracticesZip(file);
 
   return submitBestPracticesImport(entries);

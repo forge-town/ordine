@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Zap,
   FileCode,
@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Operation, ObjectType } from "@repo/schemas";
+import { useDelete } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Button } from "@repo/ui/button";
 import {
   DropdownMenu,
@@ -18,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
+import { exportOperation } from "../exportOperation";
 
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
@@ -34,19 +37,21 @@ const getComplexity = (op: Operation) => {
   return inputs + outputs;
 };
 
+const handlePreventDefault = (e: React.MouseEvent) => e.preventDefault();
+
 interface OperationCardProps {
   operation: Operation;
-  onEdit: () => void;
-  onDelete: () => void;
-  onExport: () => void;
 }
 
-export const OperationCard = ({ operation, onEdit, onDelete, onExport }: OperationCardProps) => {
+export const OperationCard = ({ operation }: OperationCardProps) => {
   const { t } = useTranslation();
-  const handleEdit = onEdit;
-  const handleDelete = onDelete;
-  const handleExport = onExport;
-  const handlePreventDefault = (e: React.MouseEvent) => e.preventDefault();
+  const navigate = useNavigate();
+  const { mutate: deleteOpMutate } = useDelete();
+  const handleEdit = () =>
+    navigate({ to: "/operations/$operationId/edit", params: { operationId: operation.id } });
+  const handleDelete = () =>
+    deleteOpMutate({ resource: ResourceName.operations, id: operation.id });
+  const handleExport = () => exportOperation(operation);
   const complexity = getComplexity(operation);
   const objectTypes = Array.isArray(operation.acceptedObjectTypes)
     ? operation.acceptedObjectTypes

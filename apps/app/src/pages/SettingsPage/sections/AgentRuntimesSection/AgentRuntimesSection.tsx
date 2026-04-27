@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOne, useUpdate } from "@refinedev/core";
 import { Plus, Trash2 } from "lucide-react";
@@ -38,7 +38,11 @@ export const AgentRuntimesSection = () => {
   const [runtimes, setRuntimes] = useState<AgentRuntimeConfig[] | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const currentRuntimes = runtimes ?? settingsResult?.agentRuntimes ?? [];
+  const defaultRuntimes = useMemo(
+    () => settingsResult?.agentRuntimes ?? [],
+    [settingsResult?.agentRuntimes]
+  );
+  const currentRuntimes = runtimes ?? defaultRuntimes;
 
   const handleAdd = useCallback(() => {
     setRuntimes([...currentRuntimes, makeEmptyRuntime()]);

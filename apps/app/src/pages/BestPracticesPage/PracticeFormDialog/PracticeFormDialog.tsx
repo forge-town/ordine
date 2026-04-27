@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import {
@@ -20,6 +21,7 @@ import type { BestPractice } from "@repo/schemas";
 import { useCreate, useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CATEGORIES, LANGUAGES } from "../constants";
+import { useBestPracticesPageStore } from "../_store";
 
 const formSchema = z.object({
   title: z.string().min(1, "标题不能为空"),
@@ -35,13 +37,13 @@ type FormValues = z.infer<typeof formSchema>;
 
 export type PracticeFormDialogProps = {
   initial?: BestPractice;
-  onClose: () => void;
-  onSave: (p: BestPractice) => void;
 };
 
-export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDialogProps) => {
+export const PracticeFormDialog = ({ initial }: PracticeFormDialogProps) => {
   const { t } = useTranslation();
-  const handleClose = onClose;
+  const store = useBestPracticesPageStore();
+  const handleSetShowForm = useStore(store, (s) => s.handleSetShowForm);
+  const handleClose = () => handleSetShowForm(false);
   const { mutateAsync: createBpMutate } = useCreate();
   const { mutateAsync: updateBpMutate } = useUpdate();
   const form = useForm<FormValues>({
@@ -81,15 +83,13 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
       .map((t) => t.trim())
       .filter(Boolean);
     if (initial) {
-      const result = await updateBpMutate({
+      await updateBpMutate({
         resource: ResourceName.bestPractices,
         id: initial.id,
         values: { ...values, tags },
       });
-      const updated = result.data as BestPractice | undefined;
-      if (updated) onSave(updated);
     } else {
-      const result = await createBpMutate({
+      await createBpMutate({
         resource: ResourceName.bestPractices,
         values: {
           id: `bp-${Date.now()}`,
@@ -102,10 +102,8 @@ export const PracticeFormDialog = ({ initial, onClose, onSave }: PracticeFormDia
           tags,
         },
       });
-      const created = result.data as BestPractice;
-      onSave(created);
     }
-    onClose();
+    handleClose();
   };
 
   return (

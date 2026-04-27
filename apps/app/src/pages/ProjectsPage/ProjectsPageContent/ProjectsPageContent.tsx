@@ -12,8 +12,6 @@ import { CreateProjectDialog } from "../CreateProjectDialog";
 import { ProjectCard } from "../ProjectCard";
 import { useProjectsPageStore } from "../_store";
 
-const handleCreateProject = (_p: GithubProject) => {};
-
 export const ProjectsPageContent = () => {
   const { t } = useTranslation();
   const { result: projectsResult, query: projectsQuery } = useList<GithubProject>({
@@ -31,13 +29,12 @@ export const ProjectsPageContent = () => {
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.description ?? "").toLowerCase().includes(search.toLowerCase()) ||
       p.owner.toLowerCase().includes(search.toLowerCase()) ||
-      p.repo.toLowerCase().includes(search.toLowerCase()),
+      p.repo.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     handleSetSearch(e.target.value);
   const handleShowCreate = () => handleSetShowCreate(true);
-  const handleHideCreate = () => handleSetShowCreate(false);
   if (projectsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
@@ -103,9 +100,7 @@ export const ProjectsPageContent = () => {
         )}
       </div>
 
-      {showCreate && (
-        <CreateProjectDialog onClose={handleHideCreate} onCreate={handleCreateProject} />
-      )}
+      {showCreate && <CreateProjectDialog />}
     </div>
   );
 };

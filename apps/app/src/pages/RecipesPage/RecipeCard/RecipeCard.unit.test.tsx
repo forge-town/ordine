@@ -1,8 +1,24 @@
 import { render, screen } from "@testing-library/react";
+import { createStore } from "zustand";
 import { describe, expect, it, vi } from "vitest";
 import { RecipeCard } from "./RecipeCard";
 
 import type { ObjectType } from "@repo/schemas";
+
+const mockMutate = vi.fn();
+vi.mock("@refinedev/core", () => ({
+  useDelete: () => ({ mutate: mockMutate }),
+}));
+
+const createMockStore = () =>
+  createStore(() => ({
+    handleSetEditing: vi.fn(),
+    handleSetShowForm: vi.fn(),
+  }));
+
+vi.mock("../_store", () => ({
+  useRecipesPageStore: () => createMockStore(),
+}));
 
 const mockRecipe = {
   id: "rcp-1",
@@ -36,55 +52,29 @@ const mockBestPractice = {
 
 describe("RecipeCard", () => {
   it("renders recipe name", () => {
-    const handleDelete = vi.fn();
-    const handleEdit = vi.fn();
     render(
-      <RecipeCard
-        bestPractice={mockBestPractice}
-        operation={mockOperation}
-        recipe={mockRecipe}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
-      />
+      <RecipeCard bestPractice={mockBestPractice} operation={mockOperation} recipe={mockRecipe} />
     );
     expect(screen.getByText("Check ClassName 规范")).toBeInTheDocument();
   });
 
   it("renders operation and best practice names", () => {
-    const handleDelete = vi.fn();
-    const handleEdit = vi.fn();
     render(
-      <RecipeCard
-        bestPractice={mockBestPractice}
-        operation={mockOperation}
-        recipe={mockRecipe}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
-      />
+      <RecipeCard bestPractice={mockBestPractice} operation={mockOperation} recipe={mockRecipe} />
     );
     expect(screen.getByText("Check")).toBeInTheDocument();
     expect(screen.getByText("ClassName 转换规则")).toBeInTheDocument();
   });
 
   it("renders description when provided", () => {
-    const handleDelete = vi.fn();
-    const handleEdit = vi.fn();
     render(
-      <RecipeCard
-        bestPractice={mockBestPractice}
-        operation={mockOperation}
-        recipe={mockRecipe}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
-      />
+      <RecipeCard bestPractice={mockBestPractice} operation={mockOperation} recipe={mockRecipe} />
     );
     expect(screen.getByText("检查 className 模板字符串")).toBeInTheDocument();
   });
 
   it("falls back to IDs when operation/bestPractice missing", () => {
-    const handleDelete = vi.fn();
-    const handleEdit = vi.fn();
-    render(<RecipeCard recipe={mockRecipe} onDelete={handleDelete} onEdit={handleEdit} />);
+    render(<RecipeCard recipe={mockRecipe} />);
     expect(screen.getByText("op-1")).toBeInTheDocument();
     expect(screen.getByText("bp-1")).toBeInTheDocument();
   });

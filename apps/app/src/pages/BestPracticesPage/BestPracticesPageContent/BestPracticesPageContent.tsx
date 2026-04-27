@@ -24,8 +24,6 @@ import { ImportPreviewDialog } from "../ImportPreviewDialog";
 
 const handleExport = () => void exportAllBestPractices();
 
-const handleSave = (_p: BestPractice) => {};
-
 export const BestPracticesPageContent = () => {
   const { t } = useTranslation();
   const invalidate = useInvalidate();
@@ -67,10 +65,6 @@ export const BestPracticesPageContent = () => {
 
   const handleAddPractice = () => {
     handleSetShowForm(true);
-  };
-
-  const handleFormClose = () => {
-    handleSetShowForm(false);
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -209,7 +203,7 @@ export const BestPracticesPageContent = () => {
         )}
       </div>
 
-      {showForm && <PracticeFormDialog onClose={handleFormClose} onSave={handleSave} />}
+      {showForm && <PracticeFormDialog />}
 
       <ImportPreviewDialog onConfirm={handleImportConfirm} />
     </div>

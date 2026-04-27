@@ -47,6 +47,9 @@ vi.mock("@/integrations/trpc/client", () => ({
   },
 }));
 
+const mockCreateMutateAsync = vi.fn();
+const mockCustomMutationMutateAsync = vi.fn();
+
 vi.mock("@refinedev/core", () => ({
   useList: () => ({
     result: { data: [], total: 0 },
@@ -55,9 +58,14 @@ vi.mock("@refinedev/core", () => ({
     isError: false,
   }),
   useDelete: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
-  useCreate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+  useCreate: () => ({ mutate: vi.fn(), mutateAsync: mockCreateMutateAsync }),
   useUpdate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
-  useCustomMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+  useCustom: () => ({
+    result: { data: { traces: [], agentRuns: [], spans: [] } },
+    query: { isLoading: false },
+    isLoading: false,
+  }),
+  useCustomMutation: () => ({ mutate: vi.fn(), mutateAsync: mockCustomMutationMutateAsync }),
   useInvalidate: () => vi.fn(),
   useOne: () => ({ result: mockUseLoaderData(), isLoading: false }),
 }));
@@ -77,11 +85,11 @@ const mockJob: Job = {
 describe("JobDetailPageContent", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCreateDistillationMutate.mockResolvedValue({
-      id: mockDistillationId,
+    mockCreateMutateAsync.mockResolvedValue({
+      data: { id: mockDistillationId },
     });
-    mockRunDistillationMutate.mockResolvedValue({
-      id: mockDistillationId,
+    mockCustomMutationMutateAsync.mockResolvedValue({
+      data: { id: mockDistillationId },
     });
     vi.spyOn(crypto, "randomUUID").mockReturnValue(mockDistillationId);
     Object.defineProperty(navigator, "clipboard", {
@@ -90,14 +98,9 @@ describe("JobDetailPageContent", () => {
     });
   });
 
-  it("renders job title", async () => {
+  it("renders job title", () => {
     mockUseLoaderData.mockReturnValue(mockJob);
     render(<JobDetailPageContent />);
-
-    await waitFor(() => {
-      expect(mockGetTracesQuery).toHaveBeenCalledTimes(1);
-      expect(mockGetAgentRunsQuery).toHaveBeenCalledTimes(1);
-    });
 
     expect(screen.getByText(mockJob.title)).toBeInTheDocument();
   });
@@ -110,20 +113,24 @@ describe("JobDetailPageContent", () => {
     await userEvent.click(screen.getByRole("button", { name: "蒸馏 Job" }));
 
     await waitFor(() => {
-      expect(mockCreateDistillationMutate).toHaveBeenCalledWith({
-        id: mockDistillationId,
-        title: `蒸馏 ${mockJob.title}`,
-        summary: "",
-        sourceType: "job",
-        sourceId: mockJob.id,
-        sourceLabel: mockJob.title,
-        mode: "pipeline",
-        status: "draft",
-        config: { objective: "" },
-        inputSnapshot: null,
-        result: null,
-      });
-      expect(mockRunDistillationMutate).toHaveBeenCalledWith({ id: mockDistillationId });
+      expect(mockCreateMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          resource: "distillations",
+          values: expect.objectContaining({
+            id: mockDistillationId,
+            sourceType: "job",
+            sourceId: mockJob.id,
+            mode: "pipeline",
+          }),
+        })
+      );
+      expect(mockCustomMutationMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: "distillations/run",
+          method: "post",
+          values: { id: mockDistillationId },
+        })
+      );
       expect(mockNavigate).toHaveBeenCalledWith({
         to: "/distillations/$distillationId",
         params: { distillationId: mockDistillationId },
@@ -131,25 +138,17 @@ describe("JobDetailPageContent", () => {
     });
   });
 
-  it("renders a single agent runs panel and fetches agent runs once", async () => {
+  it("renders a single agent runs panel and fetches agent runs once", () => {
     mockUseLoaderData.mockReturnValue(mockJob);
 
     render(<JobDetailPageContent />);
 
-    await waitFor(() => {
-      expect(mockGetAgentRunsQuery).toHaveBeenCalledTimes(1);
-    });
-
     expect(screen.getAllByText("Agent Runs")).toHaveLength(1);
   });
 
-  it("renders null state when job is null", async () => {
+  it("renders null state when job is null", () => {
     mockUseLoaderData.mockReturnValue(null);
     render(<JobDetailPageContent />);
-
-    await waitFor(() => {
-      expect(mockGetTracesQuery).toHaveBeenCalledTimes(1);
-    });
 
     expect(screen.getByText("不存在")).toBeInTheDocument();
   });

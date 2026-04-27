@@ -39,6 +39,7 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
   const [form, setForm] = useState<RuleFormState>(initial ?? emptyForm());
   const [saving, setSaving] = useState(false);
 
+  const handleCancel = () => onCancel();
   const set = (k: keyof RuleFormState, v: string) => setForm((prev) => ({ ...prev, [k]: v }));
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => set("name", e.target.value);
@@ -72,7 +73,6 @@ export const RuleForm = ({ initial, onSave, onCancel }: RuleFormProps) => {
     });
   };
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => set("tags", e.target.value);
-  const handleCancel = onCancel;
 
   const handleSave = async () => {
     if (!form.name.trim()) return;
