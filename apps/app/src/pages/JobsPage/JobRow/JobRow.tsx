@@ -13,7 +13,10 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "@tanstack/react-router";
+import { useDelete } from "@refinedev/core";
 import type { Job, JobStatus, JobType } from "@repo/schemas";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 
 const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot: string }> = {
   queued: { icon: Clock, cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400" },
@@ -48,12 +51,12 @@ const TYPE_ICON: Record<JobType, React.ElementType> = {
 
 export type JobRowProps = {
   job: Job;
-  onClick: () => void;
-  onDelete: () => void;
 };
 
-export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
+export const JobRow = ({ job }: JobRowProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { mutate: deleteJob } = useDelete();
   const s = STATUS_META[job.status];
   const StatusIcon = s.icon;
   const TypeIcon = TYPE_ICON[job.type] ?? Layers;
@@ -71,10 +74,13 @@ export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
         ? t("jobs.inProgress")
         : null;
 
-  const handleClick = onClick;
+  const handleClick = () => {
+    void navigate({ to: "/jobs/$jobId", params: { jobId: job.id } });
+  };
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onDelete();
+    deleteJob({ resource: ResourceName.jobs, id: job.id });
   };
 
   return (

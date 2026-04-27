@@ -17,10 +17,6 @@ const baseJob: Job = {
 const meta: Meta<typeof JobRow> = {
   title: "Pages/JobsPage/JobRow",
   component: JobRow,
-  args: {
-    onClick: () => {},
-    onDelete: () => {},
-  },
 };
 
 export default meta;
