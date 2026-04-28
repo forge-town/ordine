@@ -6,6 +6,8 @@ import {
   createRouter,
   RouterContextProvider,
 } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ToastStoreProvider } from "../src/store/toastProvider";
 import "../src/styles.css";
 
 const rootRoute = createRootRoute();
@@ -14,9 +16,13 @@ const router = createRouter({
   history: createMemoryHistory({ initialEntries: ["/"] }),
 });
 
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
 const preview: Preview = {
   parameters: {
-    layout: "centered",
+    layout: "fullscreen",
     controls: {
       matchers: {
         color: /(background|color)$/i,
@@ -32,9 +38,13 @@ const preview: Preview = {
   },
   decorators: [
     (Story) => (
-      <RouterContextProvider router={router}>
-        <Story />
-      </RouterContextProvider>
+      <QueryClientProvider client={queryClient}>
+        <ToastStoreProvider>
+          <RouterContextProvider router={router}>
+            <Story />
+          </RouterContextProvider>
+        </ToastStoreProvider>
+      </QueryClientProvider>
     ),
   ],
 };

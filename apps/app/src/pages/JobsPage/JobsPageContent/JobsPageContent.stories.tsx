@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { JobsPageContent } from "./JobsPageContent";
+import { JobsPageStoreProvider } from "../_store";
 import type { Job } from "@repo/schemas";
 
 const mockJobs: Job[] = [
@@ -41,6 +42,13 @@ const mockJobs: Job[] = [
 const meta: Meta<typeof JobsPageContent> = {
   title: "Pages/JobsPage/JobsPageContent",
   component: JobsPageContent,
+  decorators: [
+    (Story) => (
+      <JobsPageStoreProvider>
+        <Story />
+      </JobsPageStoreProvider>
+    ),
+  ],
 };
 
 export default meta;

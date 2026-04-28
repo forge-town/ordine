@@ -103,6 +103,35 @@ export const OperationCreatePageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  const form = useForm<CreateFormValues>({
+    resolver: zodResolver(createFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      acceptedObjectTypes: ["file", "folder", "project"],
+      executorType: "agent" as const,
+      agentMode: "skill" as const,
+      skillId: "",
+      promptText: "",
+      scriptCommand: "",
+      scriptLanguage: "bash" as const,
+    },
+  });
+
+  const executorType = form.watch("executorType");
+  const agentMode = form.watch("agentMode");
+
+  const store = useOperationCreatePageStore();
+  const skillOpen = useStore(store, (s) => s.skillOpen);
+  const handleSkillOpenChange = useStore(store, (s) => s.handleSetSkillOpen);
+  const handleSkillToggle = useStore(store, (s) => s.handleToggleSkillOpen);
+
+  const scriptLangOpen = useStore(store, (s) => s.scriptLangOpen);
+  const handleScriptLangOpenChange = useStore(store, (s) => s.handleSetScriptLangOpen);
+  const handleScriptLangToggle = useStore(store, (s) => s.handleToggleScriptLangOpen);
+
+  const { mutateAsync: createOpMutate } = useCreate();
+
   if (skillsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
@@ -163,35 +192,6 @@ export const OperationCreatePageContent = () => {
       icon: OBJECT_TYPE_ICONS.project,
     },
   ];
-
-  const form = useForm<CreateFormValues>({
-    resolver: zodResolver(createFormSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      acceptedObjectTypes: ["file", "folder", "project"],
-      executorType: "agent" as const,
-      agentMode: "skill" as const,
-      skillId: "",
-      promptText: "",
-      scriptCommand: "",
-      scriptLanguage: "bash" as const,
-    },
-  });
-
-  const executorType = form.watch("executorType");
-  const agentMode = form.watch("agentMode");
-
-  const store = useOperationCreatePageStore();
-  const skillOpen = useStore(store, (s) => s.skillOpen);
-  const handleSkillOpenChange = useStore(store, (s) => s.handleSetSkillOpen);
-  const handleSkillToggle = useStore(store, (s) => s.handleToggleSkillOpen);
-
-  const scriptLangOpen = useStore(store, (s) => s.scriptLangOpen);
-  const handleScriptLangOpenChange = useStore(store, (s) => s.handleSetScriptLangOpen);
-  const handleScriptLangToggle = useStore(store, (s) => s.handleToggleScriptLangOpen);
-
-  const { mutateAsync: createOpMutate } = useCreate();
 
   const handleCancel = () => {
     void navigate({ to: "/operations" });

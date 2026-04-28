@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { BestPracticesPageContent } from "./BestPracticesPageContent";
+import { BestPracticesPageStoreProvider } from "../_store";
 import type { BestPractice } from "@repo/schemas";
 
 const mockPractices: BestPractice[] = [
@@ -30,6 +31,13 @@ const mockPractices: BestPractice[] = [
 const meta: Meta<typeof BestPracticesPageContent> = {
   title: "BestPracticesPage/BestPracticesPageContent",
   component: BestPracticesPageContent,
+  decorators: [
+    (Story) => (
+      <BestPracticesPageStoreProvider>
+        <Story />
+      </BestPracticesPageStoreProvider>
+    ),
+  ],
   args: {
     practices: mockPractices,
   },

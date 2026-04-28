@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { PracticeFormDialog } from "./PracticeFormDialog";
+import { BestPracticesPageStoreProvider } from "../_store";
 import type { BestPractice } from "@repo/schemas";
 
 const mockPractice: BestPractice = {
@@ -17,6 +18,13 @@ const mockPractice: BestPractice = {
 const meta: Meta<typeof PracticeFormDialog> = {
   title: "BestPracticesPage/PracticeFormDialog",
   component: PracticeFormDialog,
+  decorators: [
+    (Story) => (
+      <BestPracticesPageStoreProvider>
+        <Story />
+      </BestPracticesPageStoreProvider>
+    ),
+  ],
 };
 
 export default meta;
