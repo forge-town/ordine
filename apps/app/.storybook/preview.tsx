@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastStoreProvider } from "../src/store/toastProvider";
+import "../src/lib/i18n";
 import "../src/styles.css";
 
 const rootRoute = createRootRoute();
