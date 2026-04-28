@@ -1,5 +1,6 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { Command } from "commander";
+import packageJson from "../package.json";
 import {
   listPipelines,
   getPipeline,
@@ -43,7 +44,7 @@ const program = new Command();
 program
   .name("ordine")
   .description("Ordine CLI — manage pipelines, rules, skills, and more")
-  .version("0.0.0");
+  .version(packageJson.version);
 
 // ─── Pipelines ───────────────────────────────────────────────────────
 

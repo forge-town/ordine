@@ -1,17 +1,25 @@
 {
   "name": "@ordine/cli",
   "version": "0.0.1-preview",
-  "private": true,
+  "private": false,
   "bin": {
-    "ordine": "./src/index.ts"
+    "ordine": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
+    "build": "bun build ./src/index.ts --target=node --format=esm --outfile=./dist/index.js",
     "dev": "bun src/index.ts",
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
     "quality": "bun run check-types && bun run lint && bun run test",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepublishOnly": "bun run build"
   },
   "dependencies": {
     "commander": "^14.0.0",
@@ -19,9 +27,12 @@
   },
   "devDependencies": {
     "@repo/oxlint-config": "workspace:*",
-    "@repo/typescript-config": "*",
+    "@repo/typescript-config": "workspace:*",
     "@types/node": "^25.6.0",
     "typescript": "5.9.2",
     "vitest": "^4.1.4"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

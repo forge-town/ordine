@@ -17,7 +17,6 @@
     "quality": "bun run check-types && bun run lint"
   },
   "dependencies": {
-    "@repo/pipeline-engine": "workspace:*",
     "@repo/schemas": "workspace:*",
     "drizzle-orm": "^0.45.2"
   },

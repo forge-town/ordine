@@ -45,3 +45,4 @@ export * from "./SkillSchema";
 export * from "./SpanStatusSchema";
 export * from "./SpanTypeSchema";
 export * from "./SshConnectionSchema";
+export * from "./pipeline";
