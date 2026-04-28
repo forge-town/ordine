@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Terminal, X, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
@@ -122,10 +122,12 @@ export const RunConsole = () => {
       },
     },
   });
-  const traceLogs = (tracesResult.data?.traces ?? []).map((trace) => trace.message);
+  const traces = tracesResult.data?.traces;
+  const traceLogs = useMemo(() => (traces ?? []).map((trace) => trace.message), [traces]);
 
-  // Process new structured log lines during render (ref-driven, no useEffect)
-  if (traceLogs.length > processedLogCount.current) {
+  useEffect(() => {
+    if (traceLogs.length <= processedLogCount.current) return;
+
     const newLogs = traceLogs.slice(processedLogCount.current);
     processedLogCount.current = traceLogs.length;
 
@@ -135,11 +137,13 @@ export const RunConsole = () => {
       onNodeFail: markNodeFailed,
       onLlmContent: setNodeLlmContent,
     });
+  }, [traceLogs, markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent]);
 
+  useEffect(() => {
     if (job && isTerminalStatus(job.status)) {
       stopTestRun();
     }
-  }
+  }, [job, stopTestRun]);
 
   // Auto-scroll to bottom
   useEffect(() => {

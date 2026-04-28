@@ -127,7 +127,9 @@ export const NodeCard = ({
           <div className="flex min-h-8 flex-1 min-w-0 flex-col justify-center">
             {handleChange ? (
               <input
+                aria-label="Node label"
                 className="nodrag nopan w-full bg-transparent text-xs font-semibold leading-tight focus:outline-none"
+                name="nodeLabel"
                 value={label}
                 onChange={handleChange}
                 onMouseDown={handleMouseDown}
