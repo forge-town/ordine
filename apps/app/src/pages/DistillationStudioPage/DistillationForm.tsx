@@ -142,7 +142,7 @@ export const DistillationForm = () => {
         distillation: existingDistillationResult,
         fallbackTitle: initialTitle,
         search,
-      }),
+      })
     );
     setLatestDistillation(existingDistillationResult);
   }, [existingDistillationResult, form, initialTitle, search, setLatestDistillation]);
@@ -429,12 +429,7 @@ export const DistillationForm = () => {
           />
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button
-              disabled={isBusy}
-              type="button"
-              variant="outline"
-              onClick={handleSubmitDraft}
-            >
+            <Button disabled={isBusy} type="button" variant="outline" onClick={handleSubmitDraft}>
               {existingDistillationId
                 ? t("distillations.saveChanges")
                 : t("distillations.saveDraft")}

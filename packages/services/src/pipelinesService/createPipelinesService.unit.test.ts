@@ -10,6 +10,14 @@ const mockDao = {
 
 vi.mock("@repo/models", () => ({
   createPipelinesDao: () => mockDao,
+  createDistillationsDao: () => ({}),
+  createJobsDao: () => ({}),
+  createPipelineRunsDao: () => ({ findByJobId: vi.fn() }),
+  createJobTracesDao: () => ({}),
+  createAgentRawExportsDao: () => ({}),
+  createAgentSpansDao: () => ({}),
+  createOperationsDao: () => ({}),
+  createSettingsDao: () => ({}),
 }));
 
 import { createPipelinesService } from "./createPipelinesService";

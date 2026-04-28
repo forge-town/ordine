@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import {
   Bot,
   ChevronDown,
@@ -20,7 +20,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
-import { trpcClient } from "@/integrations/trpc/client";
+import { useCustom } from "@refinedev/core";
 import type { AgentRawExport, AgentSpan, SpanType, SpanStatus } from "@repo/schemas";
 import { Result } from "neverthrow";
 
@@ -338,17 +338,17 @@ const OutputSection = ({ output }: { output: string }) => {
 
 const AgentRunCard = ({ run }: { run: AgentRawExport }) => {
   const [expanded, setExpanded] = useState(false);
-  const [spans, setSpans] = useState<AgentSpan[]>([]);
   const [rawExpanded, setRawExpanded] = useState(false);
   const handleToggleRaw = () => setRawExpanded((prev) => !prev);
-
-  const loadSpans = useCallback(() => {
-    if (spans.length > 0) return;
-    void trpcClient.jobs.getAgentRunSpans.query({ rawExportId: run.id }).then(setSpans);
-  }, [run.id, spans.length]);
+  const { result: spansResult } = useCustom<{ spans: AgentSpan[] }>({
+    url: "jobs/agentRunSpans",
+    method: "get",
+    config: { payload: { rawExportId: run.id } },
+    queryOptions: { enabled: expanded },
+  });
+  const spans = spansResult.data?.spans ?? [];
 
   const handleToggle = () => {
-    if (!expanded) loadSpans();
     setExpanded((prev) => !prev);
   };
 
@@ -446,18 +446,15 @@ const AgentRunCard = ({ run }: { run: AgentRawExport }) => {
 /* ── AgentRunsPanel ──────────────────────────────────────────────── */
 
 export const AgentRunsPanel = ({ jobId }: { jobId: string }) => {
-  const [runs, setRuns] = useState<AgentRawExport[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { result, query } = useCustom<{ agentRuns: AgentRawExport[] }>({
+    url: "jobs/agentRuns",
+    method: "get",
+    config: { payload: { jobId } },
+    queryOptions: { enabled: !!jobId },
+  });
+  const runs = result.data?.agentRuns ?? [];
 
-  useEffect(() => {
-    setLoading(true);
-    void trpcClient.jobs.getAgentRuns
-      .query({ jobId })
-      .then(setRuns)
-      .finally(() => setLoading(false));
-  }, [jobId]);
-
-  if (loading) {
+  if (query.isLoading) {
     return (
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-2.5">

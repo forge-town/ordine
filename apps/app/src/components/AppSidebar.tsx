@@ -1,5 +1,7 @@
+import { useEffect, useState, type ElementType } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  ArrowLeft,
   LayoutDashboard,
   Workflow,
   BookOpen,
@@ -16,6 +18,7 @@ import {
   Globe,
   Puzzle,
   ExternalLink,
+  ChevronRight,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -24,50 +27,48 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
   SidebarTrigger,
 } from "@repo/ui/sidebar";
 import { Badge } from "@repo/ui/badge";
-import { cn } from "@repo/ui/lib/utils";
 import { pluginRegistry } from "@repo/plugin";
 
 interface NavItem {
   labelKey: string;
-  icon: React.ElementType;
+  icon: ElementType;
   to: string;
   badge?: string;
 }
+
+type SidebarView = "main" | "pipeline";
 
 const featuredItems: NavItem[] = [
   { labelKey: "nav.canvas", icon: Workflow, to: "/canvas" },
   { labelKey: "distillations.studioTitle", icon: FlaskConical, to: "/distillation-studio" },
 ];
 
-const workspaceItems: NavItem[] = [
-  { labelKey: "nav.dashboard", icon: LayoutDashboard, to: "/" },
-  { labelKey: "nav.pipelines", icon: Layers, to: "/pipelines" },
-  { labelKey: "nav.jobs", icon: Activity, to: "/jobs" },
+const mainItems: NavItem[] = [{ labelKey: "nav.dashboard", icon: LayoutDashboard, to: "/" }];
+
+const mainPeerItems: NavItem[] = [
+  { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
 ];
 
-const libraryItems: NavItem[] = [
+const pipelineItems: NavItem[] = [
   { labelKey: "nav.operations", icon: Zap, to: "/operations" },
   { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
   { labelKey: "nav.recipes", icon: ChefHat, to: "/recipes" },
   { labelKey: "nav.rules", icon: ShieldCheck, to: "/rules" },
-  { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
-];
-
-const knowledgeItems: NavItem[] = [
   { labelKey: "nav.bestPractices", icon: Lightbulb, to: "/best-practices" },
+  { labelKey: "nav.jobs", icon: Activity, to: "/jobs" },
 ];
 
 const objectNavItems: NavItem[] = [{ labelKey: "nav.projects", icon: FolderGit2, to: "/projects" }];
 
-const iconMap: Record<string, React.ElementType> = {
+const iconMap: Record<string, ElementType> = {
   globe: Globe,
   github: FolderGit2,
   box: Box,
@@ -82,60 +83,88 @@ const getPluginObjectNavItems = (): NavItem[] => {
   }));
 };
 
+const isPipelinePath = (path: string) => {
+  return (
+    path === "/pipelines" ||
+    path.startsWith("/pipelines/") ||
+    pipelineItems.some((item) => path === item.to || path.startsWith(`${item.to}/`))
+  );
+};
+
 const NavGroup = ({
-  label,
+  ariaLabel,
   items,
   currentPath,
+  separated = false,
   t,
 }: {
-  label: string;
+  ariaLabel: string;
   items: NavItem[];
   currentPath: string;
+  separated?: boolean;
   t: (key: string) => string;
 }) => (
-  <SidebarGroup className="p-0 px-2">
-    <SidebarGroupLabel>{label}</SidebarGroupLabel>
-    <SidebarGroupContent>
-      <SidebarMenu>
-        {items.map((item) => {
-          const Icon = item.icon;
-          const labelText = t(item.labelKey);
-          const isActive =
-            currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
+  <>
+    {separated && <SidebarSeparator className="my-1 bg-sidebar-border/60" />}
+    <SidebarGroup aria-label={ariaLabel} className="p-0 px-2">
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => {
+            const Icon = item.icon;
+            const labelText = t(item.labelKey);
+            const isActive =
+              currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
 
-          return (
-            <SidebarMenuItem key={item.to}>
-              <SidebarMenuButton
-                className="h-8"
-                isActive={isActive}
-                render={<Link to={item.to as "/"} />}
-                tooltip={labelText}
-              >
-                <Icon />
-                <span>{labelText}</span>
-                {item.badge && (
-                  <Badge
-                    className="ml-auto h-4 px-1.5 text-[10px] group-data-[state=collapsed]/sidebar:hidden"
-                    variant="secondary"
-                  >
-                    {item.badge}
-                  </Badge>
-                )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
-      </SidebarMenu>
-    </SidebarGroupContent>
-  </SidebarGroup>
+            return (
+              <SidebarMenuItem key={item.to}>
+                <SidebarMenuButton
+                  className="h-8"
+                  isActive={isActive}
+                  render={<Link to={item.to as "/"} />}
+                  tooltip={labelText}
+                >
+                  <Icon />
+                  <span>{labelText}</span>
+                  {item.badge && (
+                    <Badge
+                      className="ml-auto h-4 px-1.5 text-[10px] group-data-[state=collapsed]/sidebar:hidden"
+                      variant="secondary"
+                    >
+                      {item.badge}
+                    </Badge>
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  </>
 );
 
 export const AppSidebar = () => {
   const { location } = useRouterState();
   const { t } = useTranslation();
   const currentPath = location.pathname;
+  const [sidebarView, setSidebarView] = useState<SidebarView>(() =>
+    isPipelinePath(currentPath) ? "pipeline" : "main"
+  );
   const pluginObjectItems = getPluginObjectNavItems();
   const allObjectItems = [...objectNavItems, ...pluginObjectItems];
+  const pipelineActive = isPipelinePath(currentPath);
+
+  useEffect(() => {
+    if (isPipelinePath(currentPath)) {
+      setSidebarView("pipeline");
+
+      return;
+    }
+    setSidebarView("main");
+  }, [currentPath]);
+
+  const handleShowPipelineView = () => setSidebarView("pipeline");
+  const handleShowMainView = () => setSidebarView("main");
 
   return (
     <Sidebar className="border-r bg-sidebar" collapsible="icon">
@@ -152,85 +181,131 @@ export const AppSidebar = () => {
         <SidebarTrigger className="shrink-0" />
       </SidebarHeader>
 
-      {/* Featured — Canvas + Distillations */}
-      <div className="shrink-0 space-y-1 border-b border-sidebar-border px-2 py-2">
-        {featuredItems.map((item) => {
-          const Icon = item.icon;
-          const label = t(item.labelKey);
-          const isActive =
-            currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
+      <div className="shrink-0 border-b border-sidebar-border px-2 py-2">
+        <SidebarMenu className="gap-1">
+          {featuredItems.map((item) => {
+            const Icon = item.icon;
+            const label = t(item.labelKey);
+            const isActive =
+              currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
 
-          return (
-            <Link
-              key={item.to}
-              className={cn(
-                "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/80",
-                "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-0"
-              )}
-              to={item.to}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="group-data-[state=collapsed]/sidebar:hidden">{label}</span>
-            </Link>
-          );
-        })}
+            return (
+              <SidebarMenuItem key={item.to}>
+                <SidebarMenuButton
+                  className="h-8 font-medium"
+                  isActive={isActive}
+                  render={<Link to={item.to as "/"} />}
+                  tooltip={label}
+                >
+                  <Icon />
+                  <span>{label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
       </div>
 
       <SidebarContent className="py-2">
-        <NavGroup
-          currentPath={currentPath}
-          items={workspaceItems}
-          label={t("nav.workspace")}
-          t={t}
-        />
-        <NavGroup currentPath={currentPath} items={libraryItems} label={t("nav.library")} t={t} />
-        <NavGroup
-          currentPath={currentPath}
-          items={knowledgeItems}
-          label={t("nav.knowledge")}
-          t={t}
-        />
-        <SidebarGroup className="p-0 px-2">
-          <SidebarGroupLabel>
-            <Box className="mr-1 h-3.5 w-3.5" />
-            {t("nav.objects")}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {allObjectItems.map((item) => {
-                const Icon = item.icon;
-                const label = item.labelKey.startsWith("nav.") ? t(item.labelKey) : item.labelKey;
-                const isActive =
-                  currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
-
-                return (
-                  <SidebarMenuItem key={item.to}>
+        {sidebarView === "main" ? (
+          <div className="animate-in fade-in-0 slide-in-from-left-1 duration-150">
+            <NavGroup
+              ariaLabel={t("nav.workspace")}
+              currentPath={currentPath}
+              items={mainItems}
+              t={t}
+            />
+            <SidebarGroup aria-label={t("nav.pipelines")} className="p-0 px-2">
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
                     <SidebarMenuButton
                       className="h-8"
-                      isActive={isActive}
-                      render={<Link to={item.to as "/"} />}
-                      tooltip={label}
+                      isActive={pipelineActive}
+                      render={<Link to="/pipelines" />}
+                      tooltip={t("nav.pipelines")}
+                      onClick={handleShowPipelineView}
                     >
-                      <Icon />
-                      <span>{label}</span>
-                      {item.badge && (
-                        <Badge
-                          className="ml-auto h-4 px-1.5 text-[10px] group-data-[state=collapsed]/sidebar:hidden"
-                          variant="secondary"
-                        >
-                          {item.badge}
-                        </Badge>
-                      )}
+                      <Layers />
+                      <span>{t("nav.pipelines")}</span>
+                      <ChevronRight className="ml-auto group-data-[state=collapsed]/sidebar:hidden" />
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            <NavGroup
+              ariaLabel={t("nav.distillations")}
+              currentPath={currentPath}
+              items={mainPeerItems}
+              t={t}
+            />
+            <SidebarSeparator className="my-1 bg-sidebar-border/60" />
+            <SidebarGroup aria-label={t("nav.objects")} className="p-0 px-2">
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {allObjectItems.map((item) => {
+                    const Icon = item.icon;
+                    const label = item.labelKey.startsWith("nav.")
+                      ? t(item.labelKey)
+                      : item.labelKey;
+                    const isActive =
+                      currentPath === item.to ||
+                      (item.to !== "/" && currentPath.startsWith(item.to));
+
+                    return (
+                      <SidebarMenuItem key={item.to}>
+                        <SidebarMenuButton
+                          className="h-8"
+                          isActive={isActive}
+                          render={<Link to={item.to as "/"} />}
+                          tooltip={label}
+                        >
+                          <Icon />
+                          <span>{label}</span>
+                          {item.badge && (
+                            <Badge
+                              className="ml-auto h-4 px-1.5 text-[10px] group-data-[state=collapsed]/sidebar:hidden"
+                              variant="secondary"
+                            >
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </div>
+        ) : (
+          <div className="animate-in fade-in-0 slide-in-from-right-1 duration-150">
+            <SidebarGroup className="p-0 px-2">
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      className="h-8 font-medium"
+                      tooltip={t("nav.back")}
+                      onClick={handleShowMainView}
+                    >
+                      <ArrowLeft />
+                      <span>{t("nav.pipelines")}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            <SidebarSeparator className="my-1 bg-sidebar-border/60" />
+            <NavGroup
+              ariaLabel={t("nav.pipelines")}
+              currentPath={currentPath}
+              items={pipelineItems}
+              t={t}
+            />
+          </div>
+        )}
       </SidebarContent>
 
       {/* Settings + GitHub at bottom */}

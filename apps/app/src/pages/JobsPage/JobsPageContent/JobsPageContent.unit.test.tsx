@@ -51,29 +51,21 @@ const mockJobs: Job[] = [
     title: "Pipeline 运行",
     status: "running",
     type: "pipeline_run",
-    projectId: "proj-001",
-    pipelineId: null,
-    logs: [],
-    result: null,
+    parentJobId: null,
     error: null,
     startedAt: new Date(Date.now() - 3000),
     finishedAt: null,
-    tmuxSessionName: null,
     meta: { createdAt: new Date(Date.now() - 5000), updatedAt: new Date() },
   },
   {
     id: "job-002",
-    title: "代码分析",
+    title: "蒸馏运行",
     status: "done",
-    type: "code_analysis",
-    projectId: "proj-002",
-    pipelineId: null,
-    logs: [],
-    result: null,
+    type: "distillation_run",
+    parentJobId: null,
     error: null,
     startedAt: new Date(Date.now() - 10_000),
     finishedAt: new Date(Date.now() - 2000),
-    tmuxSessionName: null,
     meta: { createdAt: new Date(Date.now() - 12_000), updatedAt: new Date() },
   },
 ];
@@ -92,7 +84,7 @@ describe("JobsPageContent", () => {
   it("renders job rows", () => {
     render(<JobsPageContent />);
     expect(screen.getByText("Pipeline 运行")).toBeInTheDocument();
-    expect(screen.getAllByText("代码分析").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("蒸馏运行").length).toBeGreaterThan(0);
   });
 
   it("renders empty state when no jobs", () => {

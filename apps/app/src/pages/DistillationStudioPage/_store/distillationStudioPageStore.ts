@@ -22,14 +22,15 @@ export const createDistillationStudioPageStore = () => {
   }));
 };
 
-export const DistillationStudioPageStoreContext =
-  createContext<DistillationStudioPageStore | null>(null);
+export const DistillationStudioPageStoreContext = createContext<DistillationStudioPageStore | null>(
+  null
+);
 
 export const useDistillationStudioPageStore = () => {
   const context = useContext(DistillationStudioPageStoreContext);
   if (!context) {
     throw new Error(
-      "useDistillationStudioPageStore must be used within a DistillationStudioPageStoreProvider",
+      "useDistillationStudioPageStore must be used within a DistillationStudioPageStoreProvider"
     );
   }
 

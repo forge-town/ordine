@@ -1,0 +1,37 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
+  "changelog": ["@changesets/changelog-github", { "repo": "forge-town/ordine" }],
+  "commit": false,
+  "fixed": [
+    [
+      "@ordine/app",
+      "@ordine/cli",
+      "@ordine/docs",
+      "@ordine/scripts",
+      "@ordine/server",
+      "@repo/agent",
+      "@repo/agent-engine",
+      "@repo/db",
+      "@repo/db-schema",
+      "@repo/logger",
+      "@repo/models",
+      "@repo/obs",
+      "@repo/oxc-formatter-config",
+      "@repo/oxlint-config",
+      "@repo/pipeline-engine",
+      "@repo/plugin",
+      "@repo/plugins",
+      "@repo/schemas",
+      "@repo/services",
+      "@repo/shared",
+      "@repo/typescript-config",
+      "@repo/ui",
+      "@repo/utils"
+    ]
+  ],
+  "linked": [],
+  "access": "restricted",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}

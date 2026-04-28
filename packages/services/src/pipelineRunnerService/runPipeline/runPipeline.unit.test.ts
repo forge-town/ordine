@@ -6,6 +6,7 @@ import type {
   PipelinesDao,
   OperationsDao,
   JobsDao,
+  PipelineRunsDao,
   SkillsDao,
   BestPracticesDao,
 } from "@repo/models";
@@ -47,6 +48,9 @@ const makeOpts = (overrides = {}) => ({
     create: vi.fn().mockResolvedValue(undefined),
     updateStatus: vi.fn().mockResolvedValue(undefined),
   } as unknown as JobsDao,
+  pipelineRunsDao: {
+    update: vi.fn().mockResolvedValue(undefined),
+  } as unknown as PipelineRunsDao,
   skillsDao: { findById: vi.fn(), findByName: vi.fn() } as unknown as SkillsDao,
   bestPracticesDao: { findById: vi.fn() } as unknown as BestPracticesDao,
   engineDeps: {
@@ -72,12 +76,14 @@ describe("runPipeline", () => {
     await pipelineRunExecutor.run(opts);
 
     expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith("job-1", "running", expect.anything());
+    expect(opts.pipelineRunsDao.update).toHaveBeenCalledWith(
+      "job-1",
+      expect.objectContaining({ result: { summary: "All good" } }),
+    );
     expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
       "job-1",
       "done",
-      expect.objectContaining({
-        result: { summary: "All good" },
-      }),
+      expect.objectContaining({ finishedAt: expect.any(Date) }),
     );
   });
 
@@ -117,6 +123,9 @@ describe("runPipeline", () => {
           .mockRejectedValueOnce(new Error("DB down"))
           .mockResolvedValue(undefined),
       } as unknown as JobsDao,
+      pipelineRunsDao: {
+        update: vi.fn().mockResolvedValue(undefined),
+      } as unknown as PipelineRunsDao,
     });
     // First updateStatus("running") throws, but top-level catch should still try to mark failed
     await pipelineRunExecutor.run(opts);

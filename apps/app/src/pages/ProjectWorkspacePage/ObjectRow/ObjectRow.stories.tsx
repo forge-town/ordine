@@ -1,10 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ObjectRow } from "./ObjectRow";
+import { ProjectWorkspacePageStoreProvider } from "../_store";
 
 const meta: Meta<typeof ObjectRow> = {
   title: "Pages/ProjectWorkspacePage/ObjectRow",
   component: ObjectRow,
-  args: { onToggle: () => {} },
+  decorators: [
+    (Story) => (
+      <ProjectWorkspacePageStoreProvider>
+        <Story />
+      </ProjectWorkspacePageStoreProvider>
+    ),
+  ],
 };
 
 export default meta;

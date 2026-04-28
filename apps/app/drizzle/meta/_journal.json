@@ -20,7 +20,7 @@
       "idx": 2,
       "version": "7",
       "when": 1775115784461,
-      "tag": "0002_chunky_cerise",
+      "tag": "0002_add_accepted_object_types",
       "breakpoints": true
     },
     {
@@ -133,6 +133,13 @@
       "version": "7",
       "when": 1777300000000,
       "tag": "0018_add_agent_runtimes_to_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1777286780738,
+      "tag": "0019_job_refactor_split_runs",
       "breakpoints": true
     }
   ]

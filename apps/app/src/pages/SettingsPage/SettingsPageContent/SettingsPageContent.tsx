@@ -13,7 +13,11 @@ const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
   developer: Code,
 };
 
-const SECTION_IDS: Section[] = ["language", "agentRuntimes", ...(import.meta.env.DEV ? ["developer" as const] : [])];
+const SECTION_IDS: Section[] = [
+  "language",
+  "agentRuntimes",
+  ...(import.meta.env.DEV ? ["developer" as const] : []),
+];
 
 export const SettingsPageContent = () => {
   const { t } = useTranslation();
@@ -40,7 +44,7 @@ export const SettingsPageContent = () => {
                   "flex w-full items-center gap-2.5 px-4 py-2 text-sm transition-colors",
                   active === id
                     ? "bg-accent text-accent-foreground font-medium"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                 )}
                 onClick={handleClick}
               >

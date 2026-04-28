@@ -1,23 +1,27 @@
 import { ChefHat, Zap, Lightbulb, Pencil, Trash2 } from "lucide-react";
+import { useDelete } from "@refinedev/core";
+import { useStore } from "zustand";
 import type { Recipe, Operation, BestPractice } from "@repo/schemas";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { useRecipesPageStore } from "../_store";
 
 export type RecipeCardProps = {
   recipe: Recipe;
   operation?: Operation;
   bestPractice?: BestPractice;
-  onEdit: () => void;
-  onDelete: () => void;
 };
 
-export const RecipeCard = ({
-  recipe,
-  operation,
-  bestPractice,
-  onEdit,
-  onDelete,
-}: RecipeCardProps) => {
-  const handleEdit = onEdit;
-  const handleDelete = onDelete;
+export const RecipeCard = ({ recipe, operation, bestPractice }: RecipeCardProps) => {
+  const store = useRecipesPageStore();
+  const handleSetEditing = useStore(store, (s) => s.handleSetEditing);
+  const handleSetShowForm = useStore(store, (s) => s.handleSetShowForm);
+  const { mutate: deleteRecipeMutate } = useDelete();
+
+  const handleEdit = () => {
+    handleSetEditing(recipe);
+    handleSetShowForm(true);
+  };
+  const handleDelete = () => deleteRecipeMutate({ resource: ResourceName.recipes, id: recipe.id });
 
   return (
     <div className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/50 hover:shadow-sm transition-all">

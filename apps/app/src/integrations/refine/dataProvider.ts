@@ -530,6 +530,43 @@ export const dataProvider: DataProvider = {
         } as unknown as TData,
       };
     }
+    if (url === "jobs/traces") {
+      const { jobId } = payload as { jobId: string };
+      const traces = await trpcClient.jobs.getTraces.query({ jobId });
+
+      return { data: { traces } as unknown as TData };
+    }
+    if (url === "jobs/agentRuns") {
+      const { jobId } = payload as { jobId: string };
+      const agentRuns = await trpcClient.jobs.getAgentRuns.query({ jobId });
+
+      return { data: { agentRuns } as unknown as TData };
+    }
+    if (url === "jobs/agentRunSpans") {
+      const { rawExportId } = payload as { rawExportId: number };
+      const spans = await trpcClient.jobs.getAgentRunSpans.query({ rawExportId });
+
+      return { data: { spans } as unknown as TData };
+    }
+    if (url === "bestPractices/exportAsZip") {
+      const base64 = await trpcClient.bestPractices.exportAsZip.query();
+
+      return { data: { base64 } as unknown as TData };
+    }
+    if (url === "bestPractices/previewImport") {
+      const data = await trpcClient.bestPractices.previewImport.mutate(
+        payload as unknown as Parameters<typeof trpcClient.bestPractices.previewImport.mutate>[0]
+      );
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "bestPractices/importBulk") {
+      const data = await trpcClient.bestPractices.importBulk.mutate(
+        payload as unknown as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0]
+      );
+
+      return { data: data as unknown as TData };
+    }
     if (url === "refinements/start") {
       const data = await trpcClient.refinements.start.mutate(
         payload as unknown as Parameters<typeof trpcClient.refinements.start.mutate>[0]

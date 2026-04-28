@@ -2,8 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useOne, useCustomMutation } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
 import type { Distillation } from "@repo/schemas";
-import { buttonVariants } from "@repo/ui/button";
-import { Button } from "@repo/ui/button";
+import { Button, buttonVariants } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import { Card } from "@repo/ui/card";
 import { Database, Sparkles, Loader2 } from "lucide-react";
@@ -56,7 +55,7 @@ export const DistillationDetailPage = () => {
           const pipeline = data.data as { id: string };
           void navigate({ to: "/pipelines/$pipelineId", params: { pipelineId: pipeline.id } });
         },
-      },
+      }
     );
   };
 
@@ -68,9 +67,9 @@ export const DistillationDetailPage = () => {
             {distillation.result && (
               <Button
                 disabled={isOptimizing}
-                onClick={handleOptimizePipeline}
                 size="sm"
                 variant="default"
+                onClick={handleOptimizePipeline}
               >
                 {isOptimizing ? (
                   <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />

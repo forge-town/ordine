@@ -7,24 +7,16 @@ const baseJob: Job = {
   title: "构建并测试 Pipeline",
   status: "running",
   type: "pipeline_run",
-  projectId: "proj-001",
-  pipelineId: null,
-  logs: [],
-  result: null,
+  parentJobId: null,
   error: null,
   startedAt: new Date(Date.now() - 5000),
   finishedAt: null,
-  tmuxSessionName: null,
   meta: { createdAt: new Date(Date.now() - 10000), updatedAt: new Date() },
 };
 
 const meta: Meta<typeof JobRow> = {
   title: "Pages/JobsPage/JobRow",
   component: JobRow,
-  args: {
-    onClick: () => {},
-    onDelete: () => {},
-  },
 };
 
 export default meta;

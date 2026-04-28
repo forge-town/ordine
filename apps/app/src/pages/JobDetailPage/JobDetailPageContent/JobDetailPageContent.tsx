@@ -9,22 +9,18 @@ import {
   Ban,
   Terminal,
   Info,
-  Cpu,
-  Code2,
-  FileSearch,
-  Wand2,
   Layers,
-  Link2,
+  FlaskConical,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { Distillation, Job, JobStatus, JobType, JobTrace, LogLevel } from "@repo/schemas";
-import { useOne } from "@refinedev/core";
+import { useCreate, useCustom, useCustomMutation, useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/jobs.$jobId";
-import { trpcClient } from "@/integrations/trpc/client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { ResultAsync } from "neverthrow";
@@ -66,10 +62,8 @@ const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; b
 
 const TYPE_CONFIG: Record<JobType, { icon: React.ElementType }> = {
   pipeline_run: { icon: Layers },
-  code_analysis: { icon: Code2 },
-  skill_execution: { icon: Wand2 },
-  file_scan: { icon: FileSearch },
-  custom: { icon: Cpu },
+  distillation_run: { icon: FlaskConical },
+  refinement_run: { icon: RefreshCw },
 };
 
 const getStatusLabel = (status: JobStatus, t: (key: string) => string): string => {
@@ -88,10 +82,8 @@ const getStatusLabel = (status: JobStatus, t: (key: string) => string): string =
 const getJobTypeLabel = (type: JobType, t: (key: string) => string): string => {
   const typeMap: Record<JobType, string> = {
     pipeline_run: t("jobs.typePipeline"),
-    code_analysis: t("jobs.typeCodeAnalysis"),
-    skill_execution: t("jobs.typeSkillExecution"),
-    file_scan: t("jobs.typeFileScan"),
-    custom: t("jobs.typeCustom"),
+    distillation_run: t("jobs.typeDistillation"),
+    refinement_run: t("jobs.typeRefinement"),
   };
 
   return typeMap[type];
@@ -113,23 +105,19 @@ export const JobDetailPageContent = () => {
   const job = jobResult ?? null;
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [traces, setTraces] = useState<JobTrace[]>([]);
   const [isDistilling, setIsDistilling] = useState(false);
+  const { mutateAsync: createDistillation } = useCreate();
+  const { mutateAsync: runDistillation } = useCustomMutation();
+  const { result: tracesResult } = useCustom<{ traces: JobTrace[] }>({
+    url: "jobs/traces",
+    method: "get",
+    config: { payload: { jobId } },
+  });
+  const traces = tracesResult.data?.traces ?? [];
   const toastStoreRef = useToastStore();
   const addToast = useStore(toastStoreRef, (s) => s.addToast);
 
-  useEffect(() => {
-    void trpcClient.jobs.getTraces.query({ jobId }).then(setTraces);
-  }, [jobId]);
-
   const handleNavigateJobs = () => void navigate({ to: "/jobs" });
-  const handleNavigateProject = () => {
-    if (!job?.projectId) return;
-    void navigate({
-      to: "/projects/$projectId",
-      params: { projectId: job.projectId },
-    });
-  };
   const handleNavigateDistillationStudio = () => {
     if (!job) return;
     void navigate({
@@ -150,25 +138,35 @@ export const JobDetailPageContent = () => {
     const mode = job.status === "failed" ? "failure" : "pipeline";
     const distillationId = crypto.randomUUID();
     const execution = ResultAsync.fromPromise(
-      trpcClient.distillations.create.mutate({
-        id: distillationId,
-        title: `${t("distillations.defaultTitlePrefix")} ${job.title}`,
-        summary: "",
-        sourceType: "job",
-        sourceId: job.id,
-        sourceLabel: job.title,
-        mode,
-        status: "draft",
-        config: { objective: "" },
-        inputSnapshot: null,
-        result: null,
+      createDistillation({
+        resource: ResourceName.distillations,
+        values: {
+          id: distillationId,
+          title: `${t("distillations.defaultTitlePrefix")} ${job.title}`,
+          summary: "",
+          sourceType: "job",
+          sourceId: job.id,
+          sourceLabel: job.title,
+          mode,
+          status: "draft",
+          config: { objective: "" },
+          inputSnapshot: null,
+          result: null,
+        },
       }),
       (cause) => (cause instanceof Error ? cause : new Error(String(cause)))
-    ).andThen((created) =>
-      ResultAsync.fromPromise(trpcClient.distillations.run.mutate({ id: created.id }), (cause) =>
-        cause instanceof Error ? cause : new Error(String(cause))
-      ).map((executed) => (executed ?? created) as Distillation)
-    );
+    )
+      .map((created) => created.data as Distillation)
+      .andThen((created) =>
+        ResultAsync.fromPromise(
+          runDistillation({
+            url: "distillations/run",
+            method: "post",
+            values: { id: created.id },
+          }),
+          (cause) => (cause instanceof Error ? cause : new Error(String(cause)))
+        ).map((executed) => (executed.data ?? created) as Distillation)
+      );
 
     void execution.match(
       (distillation) => {
@@ -211,7 +209,7 @@ export const JobDetailPageContent = () => {
   }
 
   const s = STATUS_CONFIG[job.status];
-  const jobType = TYPE_CONFIG[job.type];
+  const jobType = TYPE_CONFIG[job.type] ?? TYPE_CONFIG.pipeline_run;
   const StatusIcon = s.icon;
   const TypeIcon = jobType.icon;
 
@@ -290,24 +288,7 @@ export const JobDetailPageContent = () => {
                 value={job.finishedAt ? new Date(job.finishedAt).toLocaleString() : null}
               />
               <MetaRow label={t("jobs.duration")} value={duration} />
-              <MetaRow mono label="Project ID" value={job.projectId} />
-              <MetaRow mono label="Pipeline ID" value={job.pipelineId} />
             </div>
-
-            {job.projectId && (
-              <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
-                <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
-                {job.projectId && (
-                  <Button
-                    className="h-auto p-0 text-xs"
-                    variant="link"
-                    onClick={handleNavigateProject}
-                  >
-                    {t("nav.projects")}
-                  </Button>
-                )}
-              </div>
-            )}
           </div>
 
           {job.error && (
@@ -317,17 +298,6 @@ export const JobDetailPageContent = () => {
               </p>
               <pre className="text-xs text-red-700 font-mono whitespace-pre-wrap break-all">
                 {job.error}
-              </pre>
-            </div>
-          )}
-
-          {job.result && Object.keys(job.result).length > 0 && (
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {t("jobs.executionResult")}
-              </p>
-              <pre className="text-xs text-foreground font-mono whitespace-pre-wrap break-all">
-                {JSON.stringify(job.result, null, 2)}
               </pre>
             </div>
           )}

@@ -5,6 +5,11 @@ import { PipelineCard } from "./PipelineCard";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
+  useNavigate: () => vi.fn(),
+}));
+
+vi.mock("@refinedev/core", () => ({
+  useDelete: () => ({ mutate: vi.fn() }),
 }));
 
 const mockPipelineInput = PipelineSchema.parse({
@@ -27,9 +32,7 @@ const mockPipeline: PipelineData = {
 
 describe("PipelineCard", () => {
   it("renders pipeline name", () => {
-    const handleDelete = vi.fn();
-    const handleOpen = vi.fn();
-    render(<PipelineCard pipeline={mockPipeline} onDelete={handleDelete} onOpen={handleOpen} />);
+    render(<PipelineCard pipeline={mockPipeline} />);
     expect(screen.getByText("测试 Pipeline")).toBeInTheDocument();
   });
 });

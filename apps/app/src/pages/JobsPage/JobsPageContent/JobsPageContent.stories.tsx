@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { JobsPageContent } from "./JobsPageContent";
+import { JobsPageStoreProvider } from "../_store";
 import type { Job } from "@repo/schemas";
 
 const mockJobs: Job[] = [
@@ -8,44 +9,32 @@ const mockJobs: Job[] = [
     title: "Pipeline 运行",
     status: "running",
     type: "pipeline_run",
-    projectId: "proj-001",
-    pipelineId: null,
-    logs: [],
-    result: null,
+    parentJobId: null,
     error: null,
     startedAt: new Date(Date.now() - 3000),
     finishedAt: null,
-    tmuxSessionName: null,
     meta: { createdAt: new Date(Date.now() - 5000), updatedAt: new Date() },
   },
   {
     id: "job-002",
-    title: "代码分析",
+    title: "蒸馏运行",
     status: "done",
-    type: "code_analysis",
-    projectId: "proj-002",
-    pipelineId: null,
-    logs: [],
-    result: null,
+    type: "distillation_run",
+    parentJobId: null,
     error: null,
     startedAt: new Date(Date.now() - 10000),
     finishedAt: new Date(Date.now() - 2000),
-    tmuxSessionName: null,
     meta: { createdAt: new Date(Date.now() - 12000), updatedAt: new Date() },
   },
   {
     id: "job-003",
-    title: "技能执行",
+    title: "精炼运行",
     status: "failed",
-    type: "skill_execution",
-    projectId: null,
-    pipelineId: null,
-    logs: [],
-    result: null,
+    type: "refinement_run",
+    parentJobId: null,
     error: null,
     startedAt: new Date(Date.now() - 8000),
     finishedAt: new Date(Date.now() - 4000),
-    tmuxSessionName: null,
     meta: { createdAt: new Date(Date.now() - 9000), updatedAt: new Date() },
   },
 ];
@@ -53,6 +42,13 @@ const mockJobs: Job[] = [
 const meta: Meta<typeof JobsPageContent> = {
   title: "Pages/JobsPage/JobsPageContent",
   component: JobsPageContent,
+  decorators: [
+    (Story) => (
+      <JobsPageStoreProvider>
+        <Story />
+      </JobsPageStoreProvider>
+    ),
+  ],
 };
 
 export default meta;

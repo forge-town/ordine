@@ -17,6 +17,7 @@ export type ImportPreviewDialogProps = {
 };
 
 export const ImportPreviewDialog = ({ onConfirm }: ImportPreviewDialogProps) => {
+  const handleConfirm = () => onConfirm();
   const { t } = useTranslation();
   const store = useBestPracticesPageStore();
   const importPreview = useStore(store, (s) => s.importPreview);
@@ -30,7 +31,6 @@ export const ImportPreviewDialog = ({ onConfirm }: ImportPreviewDialogProps) => 
   };
 
   const handleCancel = () => handleResetImport();
-  const handleConfirm = () => onConfirm();
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

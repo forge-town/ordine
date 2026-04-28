@@ -7,7 +7,7 @@ import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog
 import { makeDefaultNodeData } from "../utils/makeDefaultNodeData";
 import { makeOperationNodeData } from "../utils/makeOperationNodeData";
 import type { NodeType, BuiltinNodeType } from "@repo/pipeline-engine/schemas";
-import { trpcClient } from "@/integrations/trpc/client";
+import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
 import { ResultAsync } from "neverthrow";
 import i18n from "@/lib/i18n";
@@ -320,9 +320,10 @@ export const createActionsSlice = (
     startTestRun();
 
     const saveResult = await ResultAsync.fromPromise(
-      trpcClient.pipelines.update.mutate({
+      dataProvider.update!({
+        resource: ResourceName.pipelines,
         id: pipelineId,
-        patch: {
+        variables: {
           name: pipelineName || t("canvas.unsavedPipeline"),
           nodes,
           edges,
@@ -343,17 +344,22 @@ export const createActionsSlice = (
     }
 
     const runResult = await ResultAsync.fromPromise(
-      trpcClient.pipelines.run.mutate({ id: pipelineId }),
+      dataProvider.custom!({
+        url: "pipelines/run",
+        method: "post",
+        payload: { id: pipelineId },
+      }),
       () => "Failed to start pipeline"
     );
 
     runResult.match(
       (data) => {
-        setActiveJobId(data.jobId);
+        const result = data.data as { jobId: string };
+        setActiveJobId(result.jobId);
         toastStore.getState().addToast({
           type: "success",
           title: t("canvas.runCompleted"),
-          description: `Job ${data.jobId} ${t("canvas.runSuccess")}`,
+          description: `Job ${result.jobId} ${t("canvas.runSuccess")}`,
         });
       },
       (error) => {

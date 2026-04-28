@@ -5,13 +5,14 @@ import {
   Folder,
   FolderGit2,
   MoreHorizontal,
-  ExternalLink,
   Pencil,
   Download,
   Trash2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Operation, ObjectType } from "@repo/schemas";
+import { useDelete } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Button } from "@repo/ui/button";
 import {
   DropdownMenu,
@@ -19,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
+import { exportOperation } from "../exportOperation";
 
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
@@ -35,15 +37,21 @@ const getComplexity = (op: Operation) => {
   return inputs + outputs;
 };
 
+const handlePreventDefault = (e: React.MouseEvent) => e.preventDefault();
+
 interface OperationCardProps {
   operation: Operation;
-  onEdit: () => void;
-  onDelete: () => void;
-  onExport: () => void;
 }
 
-export const OperationCard = ({ operation, onEdit, onDelete, onExport }: OperationCardProps) => {
+export const OperationCard = ({ operation }: OperationCardProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { mutate: deleteOpMutate } = useDelete();
+  const handleEdit = () =>
+    navigate({ to: "/operations/$operationId/edit", params: { operationId: operation.id } });
+  const handleDelete = () =>
+    deleteOpMutate({ resource: ResourceName.operations, id: operation.id });
+  const handleExport = () => exportOperation(operation);
   const complexity = getComplexity(operation);
   const objectTypes = Array.isArray(operation.acceptedObjectTypes)
     ? operation.acceptedObjectTypes
@@ -63,7 +71,7 @@ export const OperationCard = ({ operation, onEdit, onDelete, onExport }: Operati
           <h3 className="text-sm font-semibold text-foreground leading-tight">{operation.name}</h3>
         </div>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
+          <DropdownMenuTrigger onClick={handlePreventDefault}>
             <Button
               className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
               size="icon"
@@ -72,16 +80,16 @@ export const OperationCard = ({ operation, onEdit, onDelete, onExport }: Operati
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" onClick={(e) => e.preventDefault()}>
-            <DropdownMenuItem onClick={onEdit}>
+          <DropdownMenuContent align="end" onClick={handlePreventDefault}>
+            <DropdownMenuItem title={t("common.edit")} onClick={handleEdit}>
               <Pencil className="mr-2 h-3.5 w-3.5" />
               {t("common.edit")}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onExport}>
+            <DropdownMenuItem onClick={handleExport}>
               <Download className="mr-2 h-3.5 w-3.5" />
               {t("common.export")}
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive" onClick={onDelete}>
+            <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
               <Trash2 className="mr-2 h-3.5 w-3.5" />
               {t("common.delete")}
             </DropdownMenuItem>
@@ -115,10 +123,7 @@ export const OperationCard = ({ operation, onEdit, onDelete, onExport }: Operati
         {complexity > 0 && (
           <div className="flex items-center gap-0.5" title={`${complexity} ports`}>
             {Array.from({ length: Math.min(complexity, 5) }).map((_, i) => (
-              <div
-                key={i}
-                className="h-1.5 w-1.5 rounded-full bg-primary/60"
-              />
+              <div key={i} className="h-1.5 w-1.5 rounded-full bg-primary/60" />
             ))}
             {complexity > 5 && (
               <span className="text-[10px] text-muted-foreground ml-0.5">+{complexity - 5}</span>

@@ -20,7 +20,7 @@ export interface DistillationStudioPageSlice {
 }
 
 export const createDistillationStudioPageSlice: StateCreator<DistillationStudioPageSlice> = (
-  set,
+  set
 ) => ({
   latestDistillation: null,
   submissionMode: null,

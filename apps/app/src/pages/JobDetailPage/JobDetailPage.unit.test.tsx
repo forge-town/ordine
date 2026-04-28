@@ -32,6 +32,7 @@ vi.mock("@refinedev/core", () => ({
   useDelete: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
   useCreate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
   useUpdate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+  useCustom: () => ({ result: { data: null }, isLoading: false }),
   useCustomMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
   useInvalidate: () => vi.fn(),
   useOne: () => ({ result: null, isLoading: false }),

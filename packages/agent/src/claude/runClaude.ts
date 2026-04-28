@@ -8,6 +8,8 @@ import type { ToolName } from "./schemas/ToolNameSchema";
 
 export type { SshConnectionOptions } from "./schemas/RunClaudeOptionsSchema";
 
+const shellEscape = (s: string) => `'${s.replaceAll("'", "'\\\\''")}'`;
+
 const CLAUDE_BIN = "/Users/amin/.local/bin/claude";
 
 const DEFAULT_READ_ONLY_TOOLS = [
@@ -146,38 +148,35 @@ export const runClaude = async ({
   await onProgress?.(`${label} Starting claude -p (cwd=${cwd})...`);
 
   return new Promise<RunClaudeResult>((resolve, reject) => {
-    let child: ReturnType<typeof spawn>;
+    const child = (() => {
+      if (ssh) {
+        const sshArgs: string[] = [];
+        if (ssh.keyPath) sshArgs.push("-i", ssh.keyPath);
+        if (ssh.port) sshArgs.push("-p", String(ssh.port));
+        sshArgs.push("-o", "StrictHostKeyChecking=accept-new");
+        sshArgs.push(`${ssh.user}@${ssh.host}`);
 
-    if (ssh) {
-      const sshArgs: string[] = [];
-      if (ssh.keyPath) sshArgs.push("-i", ssh.keyPath);
-      if (ssh.port) sshArgs.push("-p", String(ssh.port));
-      sshArgs.push("-o", "StrictHostKeyChecking=accept-new");
-      sshArgs.push(`${ssh.user}@${ssh.host}`);
+        const remoteCmd = `cd ${shellEscape(cwd)} && claude ${claudeArgs.map(shellEscape).join(" ")}`;
+        sshArgs.push(remoteCmd);
 
-      // Build the remote command: cd to cwd, then run claude with args
-      // Shell-escape each arg for safe transport over SSH
-      const shellEscape = (s: string) => `'${s.replace(/'/g, "'\\''")}'`;
-      const remoteCmd = `cd ${shellEscape(cwd)} && claude ${claudeArgs.map(shellEscape).join(" ")}`;
-      sshArgs.push(remoteCmd);
+        return spawn("ssh", sshArgs, {
+          stdio: ["pipe", "pipe", "pipe"],
+          env: extraEnv ? { ...process.env, ...extraEnv } : undefined,
+        });
+      }
 
-      child = spawn("ssh", sshArgs, {
-        stdio: ["pipe", "pipe", "pipe"],
-        env: extraEnv ? { ...process.env, ...extraEnv } : undefined,
-      });
-    } else {
-      child = spawn(CLAUDE_BIN, claudeArgs, {
+      return spawn(CLAUDE_BIN, claudeArgs, {
         cwd,
         stdio: ["pipe", "pipe", "pipe"],
         env: extraEnv ? { ...process.env, ...extraEnv } : undefined,
       });
-    }
+    })();
 
     const events: ClaudeStreamEvent[] = [];
     const streamState = { lineBuf: "" };
     const stderrChunks: Buffer[] = [];
 
-    child.stdout.on("data", (chunk: Buffer) => {
+    child.stdout!.on("data", (chunk: Buffer) => {
       streamState.lineBuf += chunk.toString("utf8");
       const lines = streamState.lineBuf.split("\n");
       streamState.lineBuf = lines.pop() ?? "";
@@ -195,10 +194,10 @@ export const runClaude = async ({
       }
     });
 
-    child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
+    child.stderr!.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
 
-    child.stdin.write(truncatedPrompt);
-    child.stdin.end();
+    child.stdin!.write(truncatedPrompt);
+    child.stdin!.end();
 
     const timer = setTimeout(() => {
       child.kill("SIGTERM");

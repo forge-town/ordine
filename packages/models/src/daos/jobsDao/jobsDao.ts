@@ -1,14 +1,15 @@
 import { eq, desc, and, lt, isNull, or, sql } from "drizzle-orm";
-import { jobsTable, type JobRecord, type JobStatus } from "@repo/db-schema";
+import { jobsTable, type JobRecord, type JobStatus, type JobType } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
 export class JobsDao {
   constructor(readonly executor: DbExecutor) {}
 
-  async findMany(filter?: { status?: JobStatus; projectId?: string }) {
+  async findMany(filter?: { status?: JobStatus; type?: JobType; parentJobId?: string }) {
     const conditions = [];
     if (filter?.status) conditions.push(eq(jobsTable.status, filter.status));
-    if (filter?.projectId) conditions.push(eq(jobsTable.projectId, filter.projectId));
+    if (filter?.type) conditions.push(eq(jobsTable.type, filter.type));
+    if (filter?.parentJobId) conditions.push(eq(jobsTable.parentJobId, filter.parentJobId));
 
     return this.executor
       .select()
@@ -37,9 +38,7 @@ export class JobsDao {
     id: string,
     status: JobStatus,
     extra?: {
-      logs?: string[];
       error?: string;
-      result?: JobRecord["result"];
       startedAt?: Date;
       finishedAt?: Date;
     },
@@ -48,8 +47,6 @@ export class JobsDao {
       status,
       updatedAt: new Date(),
       ...(extra?.error !== undefined && { error: extra.error }),
-      ...(extra?.result !== undefined && { result: extra.result }),
-      ...(extra?.logs !== undefined && { logs: extra.logs }),
       ...(extra?.startedAt !== undefined && { startedAt: extra.startedAt }),
       ...(extra?.finishedAt !== undefined && { finishedAt: extra.finishedAt }),
     };

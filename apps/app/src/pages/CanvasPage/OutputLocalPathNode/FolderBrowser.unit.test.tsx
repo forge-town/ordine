@@ -12,6 +12,7 @@ const mockEntries = [
 const mockUseList = vi.fn();
 vi.mock("@refinedev/core", () => ({
   useList: (...args: unknown[]) => mockUseList(...args),
+  useCustom: () => ({ result: { data: null }, isLoading: false }),
 }));
 
 const makeQueryResult = (data: unknown[], overrides?: Record<string, unknown>) => ({

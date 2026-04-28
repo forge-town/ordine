@@ -402,7 +402,7 @@ export const browseFilesystem = async (dirPath?: string): Promise<void> => {
 
 const pollJob = async (jobId: string): Promise<void> => {
   const startTime = Date.now();
-  const seenLogCount = { value: 0 };
+  const seenTraceCount = { value: 0 };
 
   const poll = async (): Promise<void> => {
     const result = await api.get<Job>(`/api/jobs/${jobId}`);
@@ -413,12 +413,15 @@ const pollJob = async (jobId: string): Promise<void> => {
 
     const job = result.data;
 
-    // Print new log lines
-    const newLogs = job.logs.slice(seenLogCount.value);
-    for (const line of newLogs) {
-      console.log(line);
+    // Print new trace lines
+    const tracesResult = await api.get<{ message: string }[]>(`/api/jobs/${jobId}/traces`);
+    if (tracesResult.ok) {
+      const newTraces = tracesResult.data.slice(seenTraceCount.value);
+      for (const trace of newTraces) {
+        console.log(trace.message);
+      }
+      seenTraceCount.value = tracesResult.data.length;
     }
-    seenLogCount.value = job.logs.length;
 
     if (job.status === "done" || job.status === "failed" || job.status === "cancelled") {
       const elapsed = formatDuration(Date.now() - startTime);
@@ -426,9 +429,6 @@ const pollJob = async (jobId: string): Promise<void> => {
 
       if (job.status === "done") {
         console.log(`Pipeline completed in ${elapsed}`);
-        if (job.result?.summary) {
-          console.log(`  Summary: ${job.result.summary}`);
-        }
       } else if (job.status === "failed") {
         console.error(`Pipeline failed after ${elapsed}`);
         if (job.error) console.error(`  Error: ${job.error}`);

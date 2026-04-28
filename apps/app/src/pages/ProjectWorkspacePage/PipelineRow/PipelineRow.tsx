@@ -1,15 +1,18 @@
 import { ChevronRight, Layers } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import { useStore } from "zustand";
 import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import { useProjectWorkspacePageStore } from "../_store";
 
 export type PipelineRowProps = {
   pipeline: PipelineData;
   selected: boolean;
-  onSelect: () => void;
 };
 
-export const PipelineRow = ({ pipeline, selected, onSelect }: PipelineRowProps) => {
-  const handleSelect = () => onSelect();
+export const PipelineRow = ({ pipeline, selected }: PipelineRowProps) => {
+  const store = useProjectWorkspacePageStore();
+  const selectPipeline = useStore(store, (s) => s.handleSelectPipeline);
+  const handleSelect = () => selectPipeline(pipeline.id);
 
   return (
     <button

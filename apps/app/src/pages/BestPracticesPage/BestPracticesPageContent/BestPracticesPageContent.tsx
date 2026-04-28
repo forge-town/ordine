@@ -11,7 +11,7 @@ import {
   previewBestPracticesImport,
   submitBestPracticesImport,
 } from "@/lib/exportBestPractice";
-import { useDelete, useInvalidate, useList } from "@refinedev/core";
+import { useInvalidate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useToastStore } from "@/store/toastStore";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -23,8 +23,6 @@ import { PracticeCard } from "../PracticeCard";
 import { ImportPreviewDialog } from "../ImportPreviewDialog";
 
 const handleExport = () => void exportAllBestPractices();
-
-const handleSave = (_p: BestPractice) => {};
 
 export const BestPracticesPageContent = () => {
   const { t } = useTranslation();
@@ -47,7 +45,6 @@ export const BestPracticesPageContent = () => {
     resource: ResourceName.bestPractices,
   });
   const practices = practicesResult?.data ?? [];
-  const { mutate: deleteBpMutate } = useDelete();
 
   const filtered = practices.filter((p: BestPractice) => {
     const matchCat = activeCategory === "all" || p.category === activeCategory;
@@ -61,10 +58,6 @@ export const BestPracticesPageContent = () => {
     return matchCat && matchSearch;
   });
 
-  const handleDelete = (id: string) => {
-    deleteBpMutate({ resource: ResourceName.bestPractices, id });
-  };
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     handleSetSearch(e.target.value);
 
@@ -72,12 +65,6 @@ export const BestPracticesPageContent = () => {
 
   const handleAddPractice = () => {
     handleSetShowForm(true);
-  };
-
-  const handleDeletePractice = (id: string) => () => void handleDelete(id);
-
-  const handleFormClose = () => {
-    handleSetShowForm(false);
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -210,13 +197,13 @@ export const BestPracticesPageContent = () => {
         ) : (
           <div className="grid grid-cols-1 gap-4 max-w-4xl">
             {filtered.map((p) => (
-              <PracticeCard key={p.id} practice={p} onDelete={handleDeletePractice(p.id)} />
+              <PracticeCard key={p.id} practice={p} />
             ))}
           </div>
         )}
       </div>
 
-      {showForm && <PracticeFormDialog onClose={handleFormClose} onSave={handleSave} />}
+      {showForm && <PracticeFormDialog />}
 
       <ImportPreviewDialog onConfirm={handleImportConfirm} />
     </div>

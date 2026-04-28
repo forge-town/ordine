@@ -6,16 +6,17 @@ import {
   Ban,
   Trash2,
   ChevronRight,
-  Cpu,
-  Code2,
-  FileSearch,
-  Wand2,
   Layers,
+  FlaskConical,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "@tanstack/react-router";
+import { useDelete } from "@refinedev/core";
 import type { Job, JobStatus, JobType } from "@repo/schemas";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 
 const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot: string }> = {
   queued: { icon: Clock, cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400" },
@@ -44,29 +45,25 @@ const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot
 
 const TYPE_ICON: Record<JobType, React.ElementType> = {
   pipeline_run: Layers,
-  code_analysis: Code2,
-  skill_execution: Wand2,
-  file_scan: FileSearch,
-  custom: Cpu,
+  distillation_run: FlaskConical,
+  refinement_run: RefreshCw,
 };
 
 export type JobRowProps = {
   job: Job;
-  onClick: () => void;
-  onDelete: () => void;
 };
 
-export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
+export const JobRow = ({ job }: JobRowProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { mutate: deleteJob } = useDelete();
   const s = STATUS_META[job.status];
   const StatusIcon = s.icon;
-  const TypeIcon = TYPE_ICON[job.type];
+  const TypeIcon = TYPE_ICON[job.type] ?? Layers;
   const TYPE_LABELS: Record<JobType, string> = {
     pipeline_run: t("jobs.typePipeline"),
-    code_analysis: t("jobs.typeCodeAnalysis"),
-    skill_execution: t("jobs.typeSkillExecution"),
-    file_scan: t("jobs.typeFileScan"),
-    custom: t("jobs.typeCustom"),
+    distillation_run: t("jobs.typeDistillation"),
+    refinement_run: t("jobs.typeRefinement"),
   };
   const duration =
     job.startedAt && job.finishedAt
@@ -77,10 +74,13 @@ export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
         ? t("jobs.inProgress")
         : null;
 
-  const handleClick = onClick;
+  const handleClick = () => {
+    void navigate({ to: "/jobs/$jobId", params: { jobId: job.id } });
+  };
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onDelete();
+    deleteJob({ resource: ResourceName.jobs, id: job.id });
   };
 
   return (
@@ -101,7 +101,6 @@ export const JobRow = ({ job, onClick, onDelete }: JobRowProps) => {
         </div>
         <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
           <span className="font-mono">{job.id}</span>
-          {job.projectId && <span className="truncate max-w-30">{job.projectId}</span>}
           {duration && <span>{duration}</span>}
           <span>
             {job.meta?.createdAt?.toLocaleString(undefined, {

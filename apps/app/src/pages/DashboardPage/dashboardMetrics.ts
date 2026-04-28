@@ -169,39 +169,16 @@ const buildStatuses = (jobs: Job[]): DashboardStatusDatum[] => {
   ];
 };
 
-const buildPipelineRows = (jobs: Job[], pipelines: PipelineData[]): DashboardPipelineDatum[] => {
-  const pipelineNames = new Map(pipelines.map((pipeline) => [pipeline.id, pipeline.name]));
-  const grouped = new Map<string, DashboardPipelineDatum>();
-
-  for (const job of jobs) {
-    if (!job.pipelineId) {
-      continue;
-    }
-
-    const pipeline = grouped.get(job.pipelineId) ?? {
-      id: job.pipelineId,
-      name: pipelineNames.get(job.pipelineId) ?? job.pipelineId,
-      runs: 0,
-      failed: 0,
-      done: 0,
-    };
-
-    pipeline.runs += 1;
-
-    if (job.status === "failed") {
-      pipeline.failed += 1;
-    }
-
-    if (job.status === "done") {
-      pipeline.done += 1;
-    }
-
-    grouped.set(job.pipelineId, pipeline);
-  }
-
-  return [...grouped.values()]
-    .sort((left, right) => right.runs - left.runs)
-    .slice(0, MAX_PIPELINE_ROWS);
+const buildPipelineRows = (_jobs: Job[], pipelines: PipelineData[]): DashboardPipelineDatum[] => {
+  // Pipeline run data is now in the pipeline_runs table.
+  // This will be populated once a pipeline runs API endpoint is available.
+  return pipelines.slice(0, MAX_PIPELINE_ROWS).map((p) => ({
+    id: p.id,
+    name: p.name,
+    runs: 0,
+    failed: 0,
+    done: 0,
+  }));
 };
 
 const buildArtifactMix = (distillations: Distillation[]): DashboardArtifactDatum[] => {
@@ -240,7 +217,7 @@ const buildSnapshot = (
   const failedJobs = jobs.filter((job) => job.status === "failed").length;
   const terminalJobs = completedJobs + failedJobs;
   const successRate = terminalJobs === 0 ? 0 : Math.round((completedJobs / terminalJobs) * 100);
-  const activePipelines = new Set(jobs.map((job) => job.pipelineId).filter(Boolean)).size;
+  const pipelineRunJobs = jobs.filter((job) => job.type === "pipeline_run").length;
   const reusableAssets = countReusableAssets(distillations);
 
   return [
@@ -250,9 +227,9 @@ const buildSnapshot = (
       hint: "Connected repositories",
     },
     {
-      label: "Pipeline Coverage",
-      value: `${activePipelines}/${pipelines.length || 0}`,
-      hint: "Pipelines touched by recent jobs",
+      label: "Pipeline Runs",
+      value: `${pipelineRunJobs}`,
+      hint: `Out of ${pipelines.length || 0} pipelines`,
     },
     {
       label: "Success Rate",

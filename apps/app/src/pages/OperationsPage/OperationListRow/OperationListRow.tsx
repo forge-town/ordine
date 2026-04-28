@@ -34,21 +34,26 @@ const getComplexity = (op: Operation) => {
   return inputs + outputs;
 };
 
+import { useDelete } from "@refinedev/core";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { exportOperation } from "../exportOperation";
+
+const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
+
 interface OperationListRowProps {
   operation: Operation;
-  onEdit: () => void;
-  onDelete: () => void;
-  onExport: () => void;
 }
 
-export const OperationListRow = ({
-  operation,
-  onEdit,
-  onDelete,
-  onExport,
-}: OperationListRowProps) => {
+export const OperationListRow = ({ operation }: OperationListRowProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { mutate: deleteOpMutate } = useDelete();
+
+  const handleEdit = () =>
+    navigate({ to: "/operations/$operationId/edit", params: { operationId: operation.id } });
+  const handleDelete = () =>
+    deleteOpMutate({ resource: ResourceName.operations, id: operation.id });
+  const handleExport = () => exportOperation(operation);
   const complexity = getComplexity(operation);
   const objectTypes = Array.isArray(operation.acceptedObjectTypes)
     ? operation.acceptedObjectTypes
@@ -60,6 +65,9 @@ export const OperationListRow = ({
       params: { operationId: operation.id },
     });
   };
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleRowClick();
+  };
 
   return (
     <div
@@ -67,9 +75,7 @@ export const OperationListRow = ({
       role="button"
       tabIndex={0}
       onClick={handleRowClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") handleRowClick();
-      }}
+      onKeyDown={handleKeyDown}
     >
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
         <Zap className="h-3.5 w-3.5 text-primary" />
@@ -109,21 +115,21 @@ export const OperationListRow = ({
       )}
 
       <DropdownMenu>
-        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuTrigger onClick={handleStopPropagation}>
           <Button className="h-7 w-7 shrink-0" size="icon" variant="ghost">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-          <DropdownMenuItem onClick={onEdit}>
+        <DropdownMenuContent align="end" onClick={handleStopPropagation}>
+          <DropdownMenuItem title={t("common.edit")} onClick={handleEdit}>
             <Pencil className="mr-2 h-3.5 w-3.5" />
             {t("common.edit")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onExport}>
+          <DropdownMenuItem onClick={handleExport}>
             <Download className="mr-2 h-3.5 w-3.5" />
             {t("common.export")}
           </DropdownMenuItem>
-          <DropdownMenuItem className="text-destructive" onClick={onDelete}>
+          <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
             <Trash2 className="mr-2 h-3.5 w-3.5" />
             {t("common.delete")}
           </DropdownMenuItem>

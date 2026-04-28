@@ -3,9 +3,8 @@ import {
   createDistillationsDao,
   createJobsDao,
   createJobTracesDao,
-  createAgentRawExportsDao,
-  createAgentSpansDao,
   createOperationsDao,
+  createPipelineRunsDao,
   createPipelinesDao,
   createSettingsDao,
   type DbConnection,
@@ -66,14 +65,14 @@ const OPTIMIZE_SYSTEM_PROMPT = [
   '  "data": { "nodeType": "output-local-path", "label": "Output",',
   '    "localPath": "/tmp/ordine-output" } }',
   "",
-  "Each edge: { \"id\": \"<unique>\", \"source\": \"<nodeId>\", \"target\": \"<nodeId>\" }",
+  'Each edge: { "id": "<unique>", "source": "<nodeId>", "target": "<nodeId>" }',
   "",
   "=== STRUCTURAL RULES ===",
   "- Pipeline MUST have at least 1 input node (github-project or folder)",
   "- Pipeline MUST have at least 1 output node (output-local-path)",
   "- Pipeline MUST have a complete path: input → operation(s) → output",
   "- Use ONLY operations from the provided operations list (match by id and name)",
-  "- For github-project nodes: sourceType MUST be \"github\" or \"local\" (NOT \"remote\")",
+  '- For github-project nodes: sourceType MUST be "github" or "local" (NOT "remote")',
   "- Infer input node type and details from the original pipeline and job context",
   "- Arrange nodes top to bottom with ~200px vertical spacing",
   "",
@@ -106,9 +105,8 @@ export const createPipelinesService = (db: DbConnection) => {
   const dao = createPipelinesDao(db);
   const distillationsDao = createDistillationsDao(db);
   const jobsDao = createJobsDao(db);
+  const pipelineRunsDao = createPipelineRunsDao(db);
   const jobTracesDao = createJobTracesDao(db);
-  const agentRawExportsDao = createAgentRawExportsDao(db);
-  const agentSpansDao = createAgentSpansDao(db);
   const operationsDao = createOperationsDao(db);
   const settingsDao = createSettingsDao(db);
 
@@ -129,14 +127,13 @@ export const createPipelinesService = (db: DbConnection) => {
       const settings = normalizeSettingsRecord(await settingsDao.get());
       const operations = await operationsDao.findMany();
 
-      let jobContext = "";
-      let sourcePipelineContext = "";
+      const context = { jobContext: "", sourcePipelineContext: "" };
       if (distillationRecord.sourceType === "job" && distillationRecord.sourceId) {
         const [job, traces] = await Promise.all([
           jobsDao.findById(distillationRecord.sourceId),
           jobTracesDao.findByJobId(distillationRecord.sourceId),
         ]);
-        jobContext = [
+        context.jobContext = [
           "Source Job:",
           truncate(JSON.stringify(job, null, 2), MAX_SNAPSHOT_CHARS),
           "",
@@ -151,13 +148,16 @@ export const createPipelinesService = (db: DbConnection) => {
           ),
         ].join("\n");
 
-        if (job?.pipelineId) {
-          const sourcePipeline = await dao.findById(job.pipelineId);
-          if (sourcePipeline) {
-            sourcePipelineContext = [
-              "Original Pipeline (use this as reference for input/output nodes):",
-              truncate(JSON.stringify(sourcePipeline, null, 2), MAX_SNAPSHOT_CHARS),
-            ].join("\n");
+        if (job) {
+          const pipelineRun = await pipelineRunsDao.findByJobId(job.id);
+          if (pipelineRun?.pipelineId) {
+            const sourcePipeline = await dao.findById(pipelineRun.pipelineId);
+            if (sourcePipeline) {
+              context.sourcePipelineContext = [
+                "Original Pipeline (use this as reference for input/output nodes):",
+                truncate(JSON.stringify(sourcePipeline, null, 2), MAX_SNAPSHOT_CHARS),
+              ].join("\n");
+            }
           }
         }
       }
@@ -191,7 +191,7 @@ export const createPipelinesService = (db: DbConnection) => {
         reusableAssets,
         "",
         "=== ORIGINAL PIPELINE (preserve input sources, optimize processing) ===",
-        sourcePipelineContext || "(no source pipeline found)",
+        context.sourcePipelineContext || "(no source pipeline found)",
         "",
         `=== AVAILABLE OPERATIONS (${operations.length}) ===`,
         JSON.stringify(
@@ -209,34 +209,42 @@ export const createPipelinesService = (db: DbConnection) => {
         `User guidance: ${opts.userPrompt}`,
         `Distillation summary: ${distResult?.summary ?? ""}`,
         "",
-        jobContext ? `Source job context:\n${jobContext}` : "",
+        context.jobContext ? `Source job context:\n${context.jobContext}` : "",
         "",
         "Generate the optimized pipeline JSON now. Return ONLY the JSON.",
       ].join("\n");
 
       const MAX_RETRIES = 3;
-      let execution: Awaited<ReturnType<typeof ResultAsync.fromPromise<string, Error>>> | undefined;
-      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        execution = await ResultAsync.fromPromise(
-          runAgent({
-            agent: settings.defaultAgentRuntime,
-            systemPrompt: OPTIMIZE_SYSTEM_PROMPT,
-            userPrompt: userPromptText,
-            inputPath: process.cwd(),
-            agentId: OPTIMIZE_AGENT_ID,
-            allowedTools: [],
-            logPrefix: "optimizePipeline",
-            apiKey: settings.defaultApiKey,
-            model: settings.defaultModel,
-          }),
-          (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
-        );
-        if (execution.isOk()) break;
-        logger.warn({ attempt, err: execution.error.message }, "optimizePipeline: agent attempt failed, retrying");
-      }
+      const execution = await (async () => {
+        for (const attempt of Array.from({ length: MAX_RETRIES }, (_, i) => i + 1)) {
+          const result = await ResultAsync.fromPromise(
+            runAgent({
+              agent: settings.defaultAgentRuntime,
+              systemPrompt: OPTIMIZE_SYSTEM_PROMPT,
+              userPrompt: userPromptText,
+              inputPath: process.cwd(),
+              agentId: OPTIMIZE_AGENT_ID,
+              allowedTools: [],
+              logPrefix: "optimizePipeline",
+              apiKey: settings.defaultApiKey,
+              model: settings.defaultModel,
+            }),
+            (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+          );
+          if (result.isOk()) return result;
+          if (attempt === MAX_RETRIES) return result;
+          logger.warn(
+            { attempt, err: result.error.message },
+            "optimizePipeline: agent attempt failed, retrying",
+          );
+        }
+
+        return undefined;
+      })();
 
       if (!execution || execution.isErr()) {
         logger.error({ err: execution?.error }, "optimizePipeline: agent failed after retries");
+
         return undefined;
       }
 
@@ -259,12 +267,11 @@ export const createPipelinesService = (db: DbConnection) => {
         rawParsed.id = `${rawParsed.id}_${Date.now()}`;
       }
 
-      const parsed = PipelineSchema.omit({ createdAt: true, updatedAt: true }).safeParse(
-        rawParsed,
-      );
+      const parsed = PipelineSchema.omit({ createdAt: true, updatedAt: true }).safeParse(rawParsed);
 
       if (!parsed.success) {
         logger.error({ error: parsed.error }, "optimizePipeline: invalid pipeline JSON from agent");
+
         return undefined;
       }
 

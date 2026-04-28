@@ -12,25 +12,29 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { useDelete } from "@refinedev/core";
 import { cn } from "@repo/ui/lib/utils";
 import type { BestPractice } from "@repo/schemas";
 import { exportSingleBestPractice } from "@/lib/exportBestPractice";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CATEGORIES, CATEGORY_COLORS } from "../constants";
 
 export type PracticeCardProps = {
   practice: BestPractice;
-  onDelete: () => void;
 };
 
-export const PracticeCard = ({ practice, onDelete }: PracticeCardProps) => {
+export const PracticeCard = ({ practice }: PracticeCardProps) => {
   const { t } = useTranslation();
+  const { mutate: deletePractice } = useDelete();
   const [expanded, setExpanded] = useState(false);
   const [contentExpanded, setContentExpanded] = useState(false);
   const hasCode = practice.codeSnippet.trim().length > 0;
   const hasContent = practice.content.trim().length > 0;
   const handleToggleExpanded = () => setExpanded((v) => !v);
   const handleToggleContent = () => setContentExpanded((v) => !v);
-  const handleDelete = onDelete;
+  const handleDelete = () => {
+    deletePractice({ resource: ResourceName.bestPractices, id: practice.id });
+  };
   const handleExport = () => void exportSingleBestPractice(practice.id, practice.title);
 
   return (

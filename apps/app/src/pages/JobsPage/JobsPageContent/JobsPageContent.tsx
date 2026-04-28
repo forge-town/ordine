@@ -1,11 +1,10 @@
 import { useStore } from "zustand";
-import { useNavigate } from "@tanstack/react-router";
 import { Activity, Search, Filter } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import type { Job, JobStatus } from "@repo/schemas";
-import { useDelete, useList } from "@refinedev/core";
+import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
@@ -24,8 +23,6 @@ export const JobsPageContent = () => {
   const statusFilter = useStore(store, (s) => s.statusFilter);
   const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
   const handleSetStatusFilter = useStore(store, (s) => s.handleSetStatusFilter);
-  const navigate = useNavigate();
-  const { mutate: deleteJobMutate } = useDelete();
 
   const STATUS_FILTERS: { value: JobStatus | "all"; label: string }[] = [
     { value: "all", label: t("jobs.filterAll") },
@@ -40,9 +37,6 @@ export const JobsPageContent = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     handleSetSearch(e.target.value);
   const handleStatusFilterClick = (value: JobStatus | "all") => () => handleSetStatusFilter(value);
-  const handleJobClick = (jobId: string) => () =>
-    void navigate({ to: "/jobs/$jobId", params: { jobId } });
-  const handleDeleteJob = (jobId: string) => () => void handleDelete(jobId);
 
   const filtered = jobs.filter((j: Job) => {
     const matchStatus = statusFilter === "all" || j.status === statusFilter;
@@ -55,10 +49,6 @@ export const JobsPageContent = () => {
 
     return matchStatus && matchSearch;
   });
-
-  const handleDelete = (id: string) => {
-    deleteJobMutate({ resource: ResourceName.jobs, id });
-  };
 
   const counts: Record<JobStatus, number> = {
     queued: jobs.filter((j: Job) => j.status === "queued").length,
@@ -186,12 +176,7 @@ export const JobsPageContent = () => {
         ) : (
           <div className="space-y-2">
             {filtered.map((job) => (
-              <JobRow
-                key={job.id}
-                job={job}
-                onClick={handleJobClick(job.id)}
-                onDelete={handleDeleteJob(job.id)}
-              />
+              <JobRow key={job.id} job={job} />
             ))}
           </div>
         )}

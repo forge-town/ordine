@@ -1,12 +1,24 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { ProjectWorkspacePage } from "./ProjectWorkspacePage";
 
-const meta: Meta<typeof ProjectWorkspacePage> = {
+const meta: Meta = {
   title: "Pages/ProjectWorkspacePage",
-  component: ProjectWorkspacePage,
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "This page has a circular dependency with its route file and requires a live TanStack Router context. View it in the running app at /projects/:projectId/workspace.",
+      },
+    },
+  },
+  render: () => (
+    <div className="p-8 text-sm text-muted-foreground">
+      This page component has a circular route dependency and requires a live TanStack Router
+      context to render. Please view it in the running app.
+    </div>
+  ),
 };
 
 export default meta;
-type Story = StoryObj<typeof ProjectWorkspacePage>;
+type Story = StoryObj;
 
 export const Default: Story = {};
