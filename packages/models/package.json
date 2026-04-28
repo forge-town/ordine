@@ -20,7 +20,7 @@
     "drizzle-orm": "^0.45.1"
   },
   "devDependencies": {
-    "@repo/typescript-config": "*",
+    "@repo/typescript-config": "workspace:*",
     "typescript": "5.9.2",
     "vitest": "^4.1.4"
   }

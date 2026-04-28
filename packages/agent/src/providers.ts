@@ -8,7 +8,9 @@ export interface KimiSettings {
   model: string;
 }
 
-export const getKimiModel = (settings: KimiSettings) => {
+type KimiModel = ReturnType<ReturnType<typeof createAnthropic>>;
+
+export const getKimiModel = (settings: KimiSettings): KimiModel | null => {
   const { apiKey, model } = settings;
   if (!apiKey) {
     logger.warn("No Kimi API key configured");

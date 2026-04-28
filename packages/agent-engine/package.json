@@ -19,12 +19,14 @@
   "dependencies": {
     "@ai-sdk/anthropic": "3.0.71",
     "@repo/agent": "workspace:*",
+    "@repo/logger": "workspace:*",
     "@repo/obs": "workspace:*",
     "@repo/schemas": "workspace:*"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "typescript": "5.9.2",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.1.4"
   }
 }
