@@ -175,8 +175,15 @@ export const runClaude = async ({
     const events: ClaudeStreamEvent[] = [];
     const streamState = { lineBuf: "" };
     const stderrChunks: Buffer[] = [];
+    const { stdout, stderr, stdin } = child;
 
-    child.stdout!.on("data", (chunk: Buffer) => {
+    if (!stdout || !stderr || !stdin) {
+      reject(new Error("claude process stdio streams are unavailable"));
+
+      return;
+    }
+
+    stdout.on("data", (chunk: Buffer) => {
       streamState.lineBuf += chunk.toString("utf8");
       const lines = streamState.lineBuf.split("\n");
       streamState.lineBuf = lines.pop() ?? "";
@@ -194,10 +201,10 @@ export const runClaude = async ({
       }
     });
 
-    child.stderr!.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
+    stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
 
-    child.stdin!.write(truncatedPrompt);
-    child.stdin!.end();
+    stdin.write(truncatedPrompt);
+    stdin.end();
 
     const timer = setTimeout(() => {
       child.kill("SIGTERM");

@@ -1,17 +1,34 @@
-import { serviceFactory } from "@repo/services";
+import { db } from "@repo/db";
+import {
+  createBestPracticesBulkService,
+  createBestPracticesService,
+  createChecklistService,
+  createCodeSnippetsService,
+  createDistillationsService,
+  createGithubProjectsService,
+  createJobsService,
+  createOperationsService,
+  createPipelineRunnerService,
+  createPipelinesService,
+  createRecipesService,
+  createRefinementsService,
+  createRulesService,
+  createSettingsService,
+  createSkillsService,
+} from "@repo/services";
 
-export const bestPracticesService = serviceFactory.createBestPracticesService();
-export const bestPracticesBulkService = serviceFactory.createBestPracticesBulkService();
-export const checklistService = serviceFactory.createChecklistService();
-export const codeSnippetsService = serviceFactory.createCodeSnippetsService();
-export const distillationsService = serviceFactory.createDistillationsService();
-export const githubProjectsService = serviceFactory.createGithubProjectsService();
-export const jobsService = serviceFactory.createJobsService();
-export const operationsService = serviceFactory.createOperationsService();
-export const pipelinesService = serviceFactory.createPipelinesService();
-export const pipelineRunnerService = serviceFactory.createPipelineRunnerService();
-export const recipesService = serviceFactory.createRecipesService();
-export const refinementsService = serviceFactory.createRefinementsService();
-export const rulesService = serviceFactory.createRulesService();
-export const settingsService = serviceFactory.createSettingsService();
-export const skillsService = serviceFactory.createSkillsService();
+export const bestPracticesService = createBestPracticesService(db);
+export const bestPracticesBulkService = createBestPracticesBulkService(db);
+export const checklistService = createChecklistService(db);
+export const codeSnippetsService = createCodeSnippetsService(db);
+export const distillationsService = createDistillationsService(db);
+export const githubProjectsService = createGithubProjectsService(db);
+export const jobsService = createJobsService(db);
+export const operationsService = createOperationsService(db);
+export const pipelinesService = createPipelinesService(db);
+export const pipelineRunnerService = createPipelineRunnerService(db);
+export const recipesService = createRecipesService(db);
+export const refinementsService = createRefinementsService(db);
+export const rulesService = createRulesService(db);
+export const settingsService = createSettingsService(db);
+export const skillsService = createSkillsService(db);
