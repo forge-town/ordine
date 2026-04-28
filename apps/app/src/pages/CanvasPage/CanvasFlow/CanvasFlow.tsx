@@ -1,7 +1,15 @@
+import { useCallback, useEffect, useRef } from "react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
-import { ReactFlow, Background, Controls, BackgroundVariant } from "@xyflow/react";
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  BackgroundVariant,
+  MiniMap,
+  type OnMove,
+} from "@xyflow/react";
 import { CompoundNode } from "../CompoundNode";
 import { CodeFileNode } from "../CodeFileNode";
 import { ErrorNode } from "../ErrorNode";
@@ -10,6 +18,8 @@ import { GitHubProjectNode } from "../GitHubProjectNode";
 import { OperationNode } from "../OperationNode";
 import { OutputProjectPathNode } from "../OutputProjectPathNode";
 import { OutputLocalPathNode } from "../OutputLocalPathNode";
+import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
+import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePosition";
 
 // Must be defined outside the component to prevent React Flow infinite re-renders
 const nodeTypes = {
@@ -29,14 +39,15 @@ const defaultEdgeOptions = {
   style: { stroke: "#94a3b8", strokeWidth: 2 },
 };
 
-const fitViewOpts = { padding: 0.15 };
 const proOpts = { hideAttribution: false };
 
 export const CanvasFlow = () => {
   const store = useHarnessCanvasStore();
+  const flowViewportRef = useRef<HTMLDivElement>(null);
 
   const nodes = useStore(store, (s) => s.nodes);
   const edges = useStore(store, (s) => s.edges);
+  const isConsoleOpen = useStore(store, (s) => s.isConsoleOpen);
   const handleNodesChange = useStore(store, (s) => s.handleNodesChange);
   const handleEdgesChange = useStore(store, (s) => s.handleEdgesChange);
   const handleConnect = useStore(store, (s) => s.handleConnect);
@@ -52,6 +63,22 @@ export const CanvasFlow = () => {
   const handleFlowPaneContextMenu = useStore(store, (s) => s.handleFlowPaneContextMenu);
   const handleFlowNodeDrag = useStore(store, (s) => s.handleFlowNodeDrag);
   const handleFlowNodeDragStop = useStore(store, (s) => s.handleFlowNodeDragStop);
+  const setViewportZoom = useStore(store, (s) => s.setViewportZoom);
+  const setViewportScreenCenterGetter = useStore(store, (s) => s.setViewportScreenCenterGetter);
+
+  const getFlowViewportScreenCenter = useCallback(() => {
+    const rect = flowViewportRef.current?.getBoundingClientRect();
+
+    return rect ? getViewportRectCenter(rect) : getScreenViewportCenter();
+  }, []);
+
+  useEffect(() => {
+    setViewportScreenCenterGetter(getFlowViewportScreenCenter);
+  }, [getFlowViewportScreenCenter, setViewportScreenCenterGetter]);
+
+  const handleFlowMove: OnMove = (_event, viewport) => {
+    setViewportZoom(viewport.zoom);
+  };
 
   useHotkeys(
     "mod+z",
@@ -71,36 +98,48 @@ export const CanvasFlow = () => {
   );
 
   return (
-    <ReactFlow
-      fitView
-      className="bg-slate-50/50"
-      defaultEdgeOptions={defaultEdgeOptions}
-      deleteKeyCode={["Backspace", "Delete"]}
-      edges={edges}
-      fitViewOptions={fitViewOpts}
-      nodes={nodes}
-      nodeTypes={nodeTypes}
-      proOptions={proOpts}
-      onConnect={handleConnect}
-      onConnectEnd={handleFlowConnectEnd}
-      onConnectStart={handleFlowConnectStart}
-      onEdgeClick={handleFlowEdgeClick}
-      onEdgesChange={handleEdgesChange}
-      onInit={handleFlowInit}
-      onNodeClick={handleFlowNodeClick}
-      onNodeContextMenu={handleFlowNodeContextMenu}
-      onNodeDrag={handleFlowNodeDrag}
-      onNodeDragStop={handleFlowNodeDragStop}
-      onNodesChange={handleNodesChange}
-      onPaneClick={handleFlowPaneClick}
-      onPaneContextMenu={handleFlowPaneContextMenu}
-    >
-      <Background color="#cbd5e1" gap={24} size={1.5} variant={BackgroundVariant.Dots} />
-      <Controls
-        showInteractive
-        className="border-gray-200! bg-white! shadow-sm!"
-        position="bottom-left"
-      />
-    </ReactFlow>
+    <div ref={flowViewportRef} className="h-full w-full" data-testid="canvas-flow-viewport">
+      <ReactFlow
+        className="bg-slate-50/50"
+        defaultEdgeOptions={defaultEdgeOptions}
+        defaultViewport={DEFAULT_CANVAS_VIEWPORT}
+        deleteKeyCode={["Backspace", "Delete"]}
+        edges={edges}
+        nodes={nodes}
+        nodeTypes={nodeTypes}
+        proOptions={proOpts}
+        onConnect={handleConnect}
+        onConnectEnd={handleFlowConnectEnd}
+        onConnectStart={handleFlowConnectStart}
+        onEdgeClick={handleFlowEdgeClick}
+        onEdgesChange={handleEdgesChange}
+        onInit={handleFlowInit}
+        onMove={handleFlowMove}
+        onNodeClick={handleFlowNodeClick}
+        onNodeContextMenu={handleFlowNodeContextMenu}
+        onNodeDrag={handleFlowNodeDrag}
+        onNodeDragStop={handleFlowNodeDragStop}
+        onNodesChange={handleNodesChange}
+        onPaneClick={handleFlowPaneClick}
+        onPaneContextMenu={handleFlowPaneContextMenu}
+      >
+        <Background color="#cbd5e1" gap={24} size={1.5} variant={BackgroundVariant.Dots} />
+        <Controls
+          showInteractive
+          className="border-gray-200! bg-white! shadow-sm!"
+          position="bottom-left"
+        />
+        {nodes.length > 1 && !isConsoleOpen && (
+          <MiniMap
+            pannable
+            zoomable
+            className="border border-border bg-background/90 shadow-sm"
+            nodeBorderRadius={6}
+            nodeColor="#94a3b8"
+            position="bottom-right"
+          />
+        )}
+      </ReactFlow>
+    </div>
   );
 };
