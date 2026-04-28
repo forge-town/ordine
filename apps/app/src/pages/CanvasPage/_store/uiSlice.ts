@@ -1,6 +1,5 @@
 import type { NodeRunStatus } from "@repo/pipeline-engine/schemas";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
-import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 
 export interface NodeRunState {
   runStatus: NodeRunStatus | undefined;
@@ -31,7 +30,6 @@ export interface ConnectStartState {
 export interface UISlice {
   pipelineId: string | null;
   pipelineName: string;
-  viewportZoom: number;
   sidebarPanel: SidebarPanel;
   isSidebarOpen: boolean;
   isPropertiesPanelOpen: boolean;
@@ -42,7 +40,6 @@ export interface UISlice {
   nodeContextMenu: NodeContextMenuState | null;
   connectStart: ConnectStartState | null;
   shouldIgnorePaneClick: boolean;
-  isQuickAddOpen: boolean;
 
   // Pipeline test run state
   isTestRunning: boolean;
@@ -65,12 +62,8 @@ export interface UISlice {
   closeConnectionMenu: () => void;
   openNodeContextMenu: (state: NodeContextMenuState) => void;
   closeNodeContextMenu: () => void;
-  openQuickAdd: () => void;
-  closeQuickAdd: () => void;
-  toggleQuickAdd: () => void;
   handleConnectStart: (state: ConnectStartState | null) => void;
   setPipelineName: (name: string) => void;
-  setViewportZoom: (zoom: number) => void;
 
   // Pipeline run actions
   startTestRun: () => void;
@@ -99,7 +92,6 @@ export const createUISlice = (
 ): UISlice => ({
   pipelineId,
   pipelineName,
-  viewportZoom: DEFAULT_CANVAS_VIEWPORT.zoom,
   sidebarPanel: "components",
   isSidebarOpen: true,
   isPropertiesPanelOpen: false,
@@ -110,7 +102,6 @@ export const createUISlice = (
   nodeContextMenu: null,
   connectStart: null,
   shouldIgnorePaneClick: false,
-  isQuickAddOpen: false,
   // Pipeline test run state defaults
   isTestRunning: false,
   isRunning: false,
@@ -170,40 +161,12 @@ export const createUISlice = (
     set({ nodeContextMenu: null });
   },
 
-  openQuickAdd: () => {
-    set({
-      isQuickAddOpen: true,
-      contextMenu: null,
-      connectionMenu: null,
-      nodeContextMenu: null,
-      connectStart: null,
-    });
-  },
-
-  closeQuickAdd: () => {
-    set({ isQuickAddOpen: false });
-  },
-
-  toggleQuickAdd: () => {
-    set((state) => ({
-      isQuickAddOpen: !state.isQuickAddOpen,
-      contextMenu: null,
-      connectionMenu: null,
-      nodeContextMenu: null,
-      connectStart: null,
-    }));
-  },
-
   handleConnectStart: (state) => {
     set({ connectStart: state });
   },
 
   setPipelineName: (name) => {
     set({ pipelineName: name });
-  },
-
-  setViewportZoom: (zoom) => {
-    set({ viewportZoom: zoom });
   },
 
   startTestRun: () => {
@@ -255,7 +218,6 @@ export const createUISlice = (
       connectionMenu: null,
       nodeContextMenu: null,
       connectStart: null,
-      isQuickAddOpen: false,
     });
   },
 
@@ -264,7 +226,6 @@ export const createUISlice = (
       connectStart: null,
       connectionMenu: null,
       contextMenu: state,
-      isQuickAddOpen: false,
     });
   },
 
@@ -274,7 +235,6 @@ export const createUISlice = (
       connectionMenu: null,
       nodeContextMenu: { screenX, screenY, nodeId },
       connectStart: null,
-      isQuickAddOpen: false,
     });
   },
 

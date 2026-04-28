@@ -6,7 +6,6 @@ import { GitHubProjectNode } from "./GitHubProjectNode";
 const meta: Meta<typeof GitHubProjectNode> = {
   title: "HarnessCanvas/GitHubProjectNode",
   component: GitHubProjectNode,
-  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <HarnessCanvasStoreProvider>
@@ -18,14 +17,6 @@ const meta: Meta<typeof GitHubProjectNode> = {
       </HarnessCanvasStoreProvider>
     ),
   ],
-  parameters: {
-    docs: {
-      description: {
-        component:
-          "Canvas node card for a GitHub project object. Stories cover configured repository, selected, and empty-repo setup states.",
-      },
-    },
-  },
 };
 
 export default meta;
@@ -42,13 +33,6 @@ export const Default: Story = {
       description: "主项目仓库",
     },
   },
-  parameters: {
-    docs: {
-      description: {
-        story: "GitHub project node with owner, repository, branch, and description populated.",
-      },
-    },
-  },
 };
 
 export const Selected: Story = {
@@ -62,13 +46,6 @@ export const Selected: Story = {
       branch: "main",
     },
   },
-  parameters: {
-    docs: {
-      description: {
-        story: "Selected GitHub project node state.",
-      },
-    },
-  },
 };
 
 export const NoRepo: Story = {
@@ -78,13 +55,6 @@ export const NoRepo: Story = {
       label: "新项目",
       owner: "",
       repo: "",
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: "New GitHub project node before a repository has been selected or connected.",
-      },
     },
   },
 };

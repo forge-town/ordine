@@ -320,29 +320,6 @@
     "redo": "Redo",
     "run": "Run",
     "aiMode": "AI Mode",
-    "emptyState": {
-      "title": "Start with a node",
-      "description": "Add an input object, Operation, or Recipe to shape the first pipeline path.",
-      "quickAdd": "Quick add node",
-      "contextHint": "You can also right-click blank canvas space to create nodes."
-    },
-    "quickAdd": {
-      "title": "Quick add node",
-      "open": "Quick add node",
-      "close": "Close quick add",
-      "searchPlaceholder": "Search nodes, Operations, or Recipes...",
-      "objects": "Object nodes",
-      "operations": "Operations",
-      "recipes": "Recipes",
-      "noResults": "No matching nodes"
-    },
-    "status": {
-      "nodeCount": "{{count}} nodes",
-      "edgeCount": "{{count}} edges",
-      "zoom": "Zoom {{zoom}}",
-      "selectedNode": "Selected {{label}}",
-      "noSelection": "No node selected"
-    },
     "contextMenu": {
       "addCodeFile": "Add Code File",
       "addFolder": "Add Folder",

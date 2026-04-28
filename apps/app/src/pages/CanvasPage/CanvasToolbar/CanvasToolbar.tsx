@@ -1,16 +1,6 @@
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
-import {
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  Trash2,
-  Undo2,
-  Redo2,
-  Play,
-  AlignLeft,
-  Plus,
-} from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize2, Trash2, Undo2, Redo2, Play, AlignLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
@@ -25,8 +15,6 @@ export const CanvasToolbar = () => {
   const handleFitView = useStore(store, (state) => state.handleFitView);
   const handleZoomIn = useStore(store, (state) => state.handleZoomIn);
   const handleZoomOut = useStore(store, (state) => state.handleZoomOut);
-  const isQuickAddOpen = useStore(store, (state) => state.isQuickAddOpen);
-  const toggleQuickAdd = useStore(store, (state) => state.toggleQuickAdd);
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const isRunning = useStore(store, (state) => state.isRunning);
   const handleDeleteSelected = useStore(store, (state) => state.handleDeleteSelected);
@@ -34,7 +22,6 @@ export const CanvasToolbar = () => {
   const handleRedo = useStore(store, (state) => state.handleRedo);
   const handleFormatLayout = useStore(store, (state) => state.formatLayout);
   const handleRunTest = useStore(store, (state) => state.handleRunTest);
-  const handleToggleQuickAdd = () => toggleQuickAdd();
 
   return (
     <div className="absolute left-1/2 top-3 z-10 -translate-x-1/2">
@@ -109,28 +96,6 @@ export const CanvasToolbar = () => {
         >
           <Redo2 className="h-4 w-4" />
         </Button>
-
-        <Separator className="mx-1 h-5" orientation="vertical" />
-
-        {/* Quick add */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.quickAdd.open")}
-                aria-pressed={isQuickAddOpen}
-                className="h-7 w-7 text-primary hover:bg-primary/10"
-                size="icon"
-                title={t("canvas.quickAdd.open")}
-                variant="ghost"
-                onClick={handleToggleQuickAdd}
-              />
-            }
-          >
-            <Plus className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.quickAdd.open")}</TooltipContent>
-        </Tooltip>
 
         <Separator className="mx-1 h-5" orientation="vertical" />
 

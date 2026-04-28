@@ -164,9 +164,7 @@ export const CanvasFloatingMenu = () => {
       <input
         ref={fileInputRef}
         accept=".json"
-        aria-label="Import canvas JSON"
         className="hidden"
-        name="canvasImportFile"
         type="file"
         onChange={handleFileChange}
       />

@@ -58,9 +58,7 @@ export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
       >
         <div className="flex items-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-2 py-1">
           <input
-            aria-label="Code file path"
             className="nodrag nopan font-mono text-[11px] font-semibold text-slate-700 bg-transparent focus:outline-none flex-1 min-w-0"
-            name={`${id}-filePath`}
             placeholder="src/file.tsx"
             value={data.filePath}
             onChange={handleFilePathChange}
@@ -78,9 +76,7 @@ export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
             <FolderOpen className="h-3.5 w-3.5" />
           </button>
           <input
-            aria-label="Code file language"
             className="nodrag nopan w-12 shrink-0 rounded bg-orange-100 px-1 py-0.5 font-mono text-[10px] font-medium text-orange-700 focus:outline-none focus:bg-orange-50 text-right"
-            name={`${id}-language`}
             placeholder="ts"
             value={data.language ?? ""}
             onChange={handleLanguageChange}
@@ -90,9 +86,7 @@ export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
           />
         </div>
         <textarea
-          aria-label="Code file description"
           className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
-          name={`${id}-description`}
           placeholder="文件描述..."
           rows={2}
           value={data.description ?? ""}

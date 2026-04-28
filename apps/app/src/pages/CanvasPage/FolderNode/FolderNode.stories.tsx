@@ -6,7 +6,6 @@ import { FolderNode } from "./FolderNode";
 const meta: Meta<typeof FolderNode> = {
   title: "HarnessCanvas/FolderNode",
   component: FolderNode,
-  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <HarnessCanvasStoreProvider>
@@ -18,14 +17,6 @@ const meta: Meta<typeof FolderNode> = {
       </HarnessCanvasStoreProvider>
     ),
   ],
-  parameters: {
-    docs: {
-      description: {
-        component:
-          "Canvas node card for a folder object. Stories cover configured, selected, and empty-path states.",
-      },
-    },
-  },
 };
 
 export default meta;
@@ -40,13 +31,6 @@ export const Default: Story = {
       description: "应用源码目录",
     },
   },
-  parameters: {
-    docs: {
-      description: {
-        story: "Folder node with a local folder path and description.",
-      },
-    },
-  },
 };
 
 export const Selected: Story = {
@@ -58,13 +42,6 @@ export const Selected: Story = {
       folderPath: "apps/app/src/components",
     },
   },
-  parameters: {
-    docs: {
-      description: {
-        story: "Selected folder node state.",
-      },
-    },
-  },
 };
 
 export const NoPath: Story = {
@@ -73,13 +50,6 @@ export const NoPath: Story = {
       nodeType: "folder",
       label: "新文件夹",
       folderPath: "",
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: "New folder node before a folder path has been selected.",
-      },
     },
   },
 };

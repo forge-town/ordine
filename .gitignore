@@ -82,10 +82,3 @@ test_output.log
 .vscode
 .omx
 output
-
-# Local agent/context files
-AGENTS.md
-
-# Local browser/test artifacts
-.playwright-cli/
-storybook-static/

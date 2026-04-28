@@ -13,21 +13,12 @@ import { ResultAsync } from "neverthrow";
 import i18n from "@/lib/i18n";
 import type { ReactFlowInstance, OnConnectStartParams } from "@xyflow/react";
 import type { FinalConnectionState, XYPosition } from "@xyflow/system";
-import {
-  CONNECTION_MENU_NODE_OFFSET,
-  NODE_CONTEXT_CONNECT_OFFSET,
-  QUICK_ADD_NODE_ORIGIN,
-  getScreenViewportCenter,
-  offsetPosition,
-} from "../utils/nodePosition";
 
 export interface ActionsSlice {
   exportCanvas: () => void;
   importCanvas: (data: { nodes: PipelineNode[]; edges: PipelineEdge[] }) => void;
   fitView: (options?: { padding?: number }) => void;
   screenToFlowPosition: (pos: XYPosition) => XYPosition;
-  getViewportScreenCenter: () => XYPosition;
-  setViewportScreenCenterGetter: (getter: () => XYPosition) => void;
   handleFitView: () => void;
   handleZoomIn: () => void;
   handleZoomOut: () => void;
@@ -64,9 +55,6 @@ export interface ActionsSlice {
   createObjectNode: (type: NodeType) => void;
   createOperationNode: (operation: Operation) => void;
   createRecipeNode: (recipe: Recipe, operation: Operation) => void;
-  createObjectNodeAtViewportCenter: (type: NodeType) => void;
-  createOperationNodeAtViewportCenter: (operation: Operation) => void;
-  createRecipeNodeAtViewportCenter: (recipe: Recipe, operation: Operation) => void;
   dismissContextMenu: () => void;
   handleContextMenuOpenChange: (open: boolean) => void;
   connectObjectNode: (type: NodeType) => void;
@@ -123,10 +111,6 @@ export const createActionsSlice = (
   },
   fitView: () => {},
   screenToFlowPosition: (pos) => pos,
-  getViewportScreenCenter: () => getScreenViewportCenter(),
-  setViewportScreenCenterGetter: (getter) => {
-    set({ getViewportScreenCenter: getter });
-  },
   handleFitView: () => {
     get().fitView({ padding: 0.1 });
   },
@@ -143,7 +127,6 @@ export const createActionsSlice = (
       connectionMenu: null,
       nodeContextMenu: null,
       connectStart: null,
-      isQuickAddOpen: false,
     });
   },
 
@@ -155,7 +138,6 @@ export const createActionsSlice = (
       connectionMenu: null,
       nodeContextMenu: null,
       connectStart: null,
-      isQuickAddOpen: false,
     });
   },
 
@@ -167,7 +149,6 @@ export const createActionsSlice = (
       connectionMenu: null,
       nodeContextMenu: null,
       connectStart: null,
-      isQuickAddOpen: false,
     });
   },
 
@@ -459,47 +440,6 @@ export const createActionsSlice = (
     });
   },
 
-  createObjectNodeAtViewportCenter: (type) => {
-    const position = get().screenToFlowPosition(get().getViewportScreenCenter());
-    get().addNodeAndAutoConnect({
-      id: `${type}-${Date.now()}`,
-      type,
-      origin: QUICK_ADD_NODE_ORIGIN,
-      position,
-      data: makeDefaultNodeData(type as BuiltinNodeType),
-    });
-    set({ isQuickAddOpen: false });
-  },
-
-  createOperationNodeAtViewportCenter: (operation) => {
-    const position = get().screenToFlowPosition(get().getViewportScreenCenter());
-    get().addNodeAndAutoConnect({
-      id: `op-${operation.id}-${Date.now()}`,
-      type: "operation",
-      origin: QUICK_ADD_NODE_ORIGIN,
-      position,
-      data: makeOperationNodeData(operation),
-    });
-    set({ isQuickAddOpen: false });
-  },
-
-  createRecipeNodeAtViewportCenter: (recipe, operation) => {
-    const position = get().screenToFlowPosition(get().getViewportScreenCenter());
-    get().addNodeAndAutoConnect({
-      id: `op-recipe-${Date.now()}`,
-      type: "operation",
-      origin: QUICK_ADD_NODE_ORIGIN,
-      position,
-      data: {
-        ...makeOperationNodeData(operation),
-        label: recipe.name,
-        bestPracticeId: recipe.bestPracticeId,
-        bestPracticeName: recipe.name,
-      },
-    });
-    set({ isQuickAddOpen: false });
-  },
-
   // TODO: Find if it should be use
   dismissContextMenu: () => {
     set({ connectStart: null, contextMenu: null });
@@ -517,10 +457,7 @@ export const createActionsSlice = (
     get().addNodeAndAutoConnect({
       id: `${type}-${Date.now()}`,
       type,
-      position: offsetPosition(
-        { x: connectionMenu.flowX, y: connectionMenu.flowY },
-        CONNECTION_MENU_NODE_OFFSET
-      ),
+      position: { x: connectionMenu.flowX + 40, y: connectionMenu.flowY - 40 },
       data: makeDefaultNodeData(type as BuiltinNodeType),
     });
   },
@@ -531,10 +468,7 @@ export const createActionsSlice = (
     get().addNodeAndAutoConnect({
       id: `op-${operation.id}-${Date.now()}`,
       type: "operation",
-      position: offsetPosition(
-        { x: connectionMenu.flowX, y: connectionMenu.flowY },
-        CONNECTION_MENU_NODE_OFFSET
-      ),
+      position: { x: connectionMenu.flowX + 40, y: connectionMenu.flowY - 40 },
       data: makeOperationNodeData(operation),
     });
   },
@@ -545,10 +479,7 @@ export const createActionsSlice = (
     get().addNodeAndAutoConnect({
       id: `op-recipe-${Date.now()}`,
       type: "operation",
-      position: offsetPosition(
-        { x: connectionMenu.flowX, y: connectionMenu.flowY },
-        CONNECTION_MENU_NODE_OFFSET
-      ),
+      position: { x: connectionMenu.flowX + 40, y: connectionMenu.flowY - 40 },
       data: {
         ...makeOperationNodeData(operation),
         label: recipe.name,
@@ -626,7 +557,7 @@ export const createActionsSlice = (
     get().addNode({
       id: newId,
       type,
-      position: offsetPosition(node.position, NODE_CONTEXT_CONNECT_OFFSET),
+      position: { x: node.position.x + 280, y: node.position.y },
       data: makeDefaultNodeData(type as BuiltinNodeType),
     });
     get().handleConnect({
@@ -647,7 +578,7 @@ export const createActionsSlice = (
     get().addNode({
       id: newId,
       type: "operation",
-      position: offsetPosition(node.position, NODE_CONTEXT_CONNECT_OFFSET),
+      position: { x: node.position.x + 280, y: node.position.y },
       data: makeOperationNodeData(operation),
     });
     get().handleConnect({
@@ -668,7 +599,7 @@ export const createActionsSlice = (
     get().addNode({
       id: newId,
       type: "operation",
-      position: offsetPosition(node.position, NODE_CONTEXT_CONNECT_OFFSET),
+      position: { x: node.position.x + 280, y: node.position.y },
       data: {
         ...makeOperationNodeData(operation),
         label: recipe.name,

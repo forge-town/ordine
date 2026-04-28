@@ -248,11 +248,9 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
                   最大次数
                 </span>
                 <input
-                  aria-label="Maximum loop count"
                   className="nodrag nopan h-5 w-14 rounded border border-amber-200 bg-white px-1.5 text-[10px] text-amber-800 focus:outline-none focus:ring-1 focus:ring-amber-300"
                   max={20}
                   min={1}
-                  name={`${id}-maxLoopCount`}
                   type="number"
                   value={data.maxLoopCount ?? 3}
                   onChange={handleMaxLoopChange}
@@ -261,9 +259,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               <div className="space-y-0.5">
                 <span className="text-[10px] font-medium text-amber-700">验收条件</span>
                 <textarea
-                  aria-label="Loop acceptance condition"
                   className="nodrag nopan w-full rounded border border-amber-200 bg-white px-1.5 py-1 text-[10px] text-amber-800 placeholder:text-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-300"
-                  name={`${id}-loopCondition`}
                   placeholder="描述输出需要满足的条件..."
                   rows={2}
                   value={data.loopConditionPrompt ?? ""}

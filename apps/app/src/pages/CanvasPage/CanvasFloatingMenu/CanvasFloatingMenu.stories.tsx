@@ -5,7 +5,6 @@ import { CanvasFloatingMenu } from "./CanvasFloatingMenu";
 const meta: Meta<typeof CanvasFloatingMenu> = {
   title: "CanvasPage/CanvasFloatingMenu",
   component: CanvasFloatingMenu,
-  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <HarnessCanvasStoreProvider pipeline={null}>
@@ -13,24 +12,7 @@ const meta: Meta<typeof CanvasFloatingMenu> = {
       </HarnessCanvasStoreProvider>
     ),
   ],
-  parameters: {
-    docs: {
-      description: {
-        component:
-          "Floating Canvas persistence controls for the current pipeline, including save/create affordances and run-console toggles.",
-      },
-    },
-  },
 };
 export default meta;
 type Story = StoryObj<typeof CanvasFloatingMenu>;
-export const Default: Story = {
-  args: {},
-  parameters: {
-    docs: {
-      description: {
-        story: "Default floating menu with no loaded pipeline.",
-      },
-    },
-  },
-};
+export const Default: Story = { args: {} };
