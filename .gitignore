@@ -80,3 +80,5 @@ output.log
 quality_output.log
 test_output.log
 .vscode
+.omx
+output

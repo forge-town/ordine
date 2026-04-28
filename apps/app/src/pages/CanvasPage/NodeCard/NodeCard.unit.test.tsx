@@ -29,6 +29,32 @@ describe("NodeCard", () => {
     expect(screen.getByText("Status")).toBeInTheDocument();
   });
 
+  it("keeps header affordances visible for long labels", () => {
+    const { container } = render(
+      <NodeCard
+        description="Long description should remain readable without destroying layout"
+        headerRight={<span>Status</span>}
+        icon={Box}
+        label="Very Long Node Name That Should Not Break The Card Layout"
+        theme="violet"
+      />
+    );
+
+    expect(container.firstChild).toHaveClass("w-72", "data-[size=sm]:py-0");
+    expect(container.querySelector('[data-slot="card-header"] > div')).toHaveClass(
+      "w-full",
+      "min-w-0"
+    );
+    expect(container.querySelector('[data-slot="card-header"]')).toHaveClass(
+      "min-h-14",
+      "rounded-none"
+    );
+    expect(container.querySelector('[data-slot="card-action"]')).toHaveClass(
+      "shrink-0",
+      "self-center"
+    );
+  });
+
   it("applies selected ring for each theme", () => {
     const { container, rerender } = render(
       <NodeCard selected icon={Box} label="Node" theme="emerald" />

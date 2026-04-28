@@ -107,7 +107,7 @@ export const NodeCard = ({
   return (
     <Card
       className={cn(
-        "transition-all duration-200",
+        "w-72 shrink-0 gap-0 py-0 transition-all duration-200 data-[size=sm]:gap-0 data-[size=sm]:py-0",
         selected ? cn("ring-2 shadow-lg", t.ringSelected) : cn("ring-1 hover:ring-2", t.ring),
         runStatus === "running" &&
           "ring-2 ring-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.4)] animate-pulse",
@@ -117,32 +117,36 @@ export const NodeCard = ({
       )}
       size="sm"
     >
-      <CardHeader className={cn("pb-2", t.headerBg)}>
-        <div className="flex items-center gap-2">
+      <CardHeader className={cn("flex min-h-14 items-center rounded-none px-3 py-2", t.headerBg)}>
+        <div className="flex w-full min-w-0 items-center gap-3">
           <div
-            className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", t.iconBg)}
+            className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-md", t.iconBg)}
           >
             <Icon className={cn("h-4 w-4", t.iconColor)} />
           </div>
-          <div className="flex flex-col flex-1 min-w-0">
+          <div className="flex min-h-8 flex-1 min-w-0 flex-col justify-center">
             {handleChange ? (
               <input
-                className="nodrag nopan bg-transparent text-xs font-semibold w-full focus:outline-none"
+                className="nodrag nopan w-full bg-transparent text-xs font-semibold leading-tight focus:outline-none"
                 value={label}
                 onChange={handleChange}
                 onMouseDown={handleMouseDown}
               />
             ) : (
-              <CardTitle className="text-xs font-semibold truncate">{label}</CardTitle>
+              <CardTitle className="truncate text-xs font-semibold leading-tight">
+                {label}
+              </CardTitle>
             )}
             {description && (
-              <CardDescription className="text-[10px] truncate">{description}</CardDescription>
+              <CardDescription className="truncate text-[10px] leading-tight">
+                {description}
+              </CardDescription>
             )}
           </div>
-          {headerRight && <CardAction>{headerRight}</CardAction>}
+          {headerRight && <CardAction className="shrink-0 self-center">{headerRight}</CardAction>}
         </div>
       </CardHeader>
-      {children && <CardContent className={cn("pt-0", bodyClassName)}>{children}</CardContent>}
+      {children && <CardContent className={cn("px-3 py-3", bodyClassName)}>{children}</CardContent>}
     </Card>
   );
 };
