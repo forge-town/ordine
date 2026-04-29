@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { Trash2, Server, Save, Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useUpdate } from "@refinedev/core";
+import { useCustomMutation } from "@refinedev/core";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import {
@@ -22,7 +22,7 @@ const CONNECTION_MODES = ["local", "ssh"] as const;
 export const RuntimeDetail = () => {
   const { t } = useTranslation();
   const s = "runtimes";
-  const { mutateAsync: updateSettings } = useUpdate();
+  const { mutateAsync: syncAll } = useCustomMutation();
   const store = useRuntimesPageStore();
   const runtimes = useStore(store, (state) => state.runtimes);
   const selectedId = useStore(store, (state) => state.selectedId);
@@ -38,13 +38,13 @@ export const RuntimeDetail = () => {
   const runtime = runtimes.find((r) => r.id === selectedId);
 
   const handleSave = useCallback(async () => {
-    await updateSettings({
-      resource: "settings",
-      id: "default",
-      values: { agentRuntimes: runtimes },
+    await syncAll({
+      url: "agentRuntimes/syncAll",
+      method: "post",
+      values: { runtimes },
     });
     handleSaveComplete();
-  }, [runtimes, updateSettings, handleSaveComplete]);
+  }, [runtimes, syncAll, handleSaveComplete]);
 
   if (!runtime) {
     return (

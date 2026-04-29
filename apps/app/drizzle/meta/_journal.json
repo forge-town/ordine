@@ -141,6 +141,20 @@
       "when": 1777286780738,
       "tag": "0019_job_refactor_split_runs",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1777448426791,
+      "tag": "0020_add_agent_runtimes_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1777451000000,
+      "tag": "0021_drop_settings_agent_runtimes_column",
+      "breakpoints": true
     }
   ]
 }
