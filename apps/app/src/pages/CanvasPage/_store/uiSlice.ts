@@ -99,6 +99,7 @@ export interface UISlice {
 
 export const createUISlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
+  get: Parameters<HarnessCanvasStoreSlice>[1],
 
   pipelineId: string | null = null,
   pipelineName = ""
@@ -231,7 +232,10 @@ export const createUISlice = (
   },
 
   handleFlowMove: (zoom) => {
-    set({ viewportZoom: zoom });
+    const currentZoom = get().viewportZoom;
+    if (Math.abs(currentZoom - zoom) > 0.001) {
+      set({ viewportZoom: zoom });
+    }
   },
 
   startTestRun: () => {

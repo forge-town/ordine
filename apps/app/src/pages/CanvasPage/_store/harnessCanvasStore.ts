@@ -36,6 +36,7 @@ export const createHarnessCanvasStore = (
     ),
     ...createUISlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
+      get as Parameters<HarnessCanvasStoreSlice>[1],
 
       pipelineId ?? null,
       pipelineName ?? ""
