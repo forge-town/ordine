@@ -26,7 +26,7 @@ export const CanvasToolbar = () => {
   const handleZoomIn = useStore(store, (state) => state.handleZoomIn);
   const handleZoomOut = useStore(store, (state) => state.handleZoomOut);
   const isQuickAddOpen = useStore(store, (state) => state.isQuickAddOpen);
-  const toggleQuickAdd = useStore(store, (state) => state.toggleQuickAdd);
+  const handleToggleQuickAdd = useStore(store, (state) => state.handleToggleQuickAdd);
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const isRunning = useStore(store, (state) => state.isRunning);
   const handleDeleteSelected = useStore(store, (state) => state.handleDeleteSelected);
@@ -34,7 +34,6 @@ export const CanvasToolbar = () => {
   const handleRedo = useStore(store, (state) => state.handleRedo);
   const handleFormatLayout = useStore(store, (state) => state.formatLayout);
   const handleRunTest = useStore(store, (state) => state.handleRunTest);
-  const handleToggleQuickAdd = () => toggleQuickAdd();
 
   return (
     <div className="absolute left-1/2 top-3 z-10 -translate-x-1/2">

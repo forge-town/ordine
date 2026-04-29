@@ -3,8 +3,7 @@ import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RunConsole } from "./RunConsole";
 import { HarnessCanvasStoreProvider, useHarnessCanvasStore } from "../_store";
-import { useStore } from "zustand";
-import { useEffect } from "react";
+import { useRef } from "react";
 
 vi.mock("@xyflow/react", () => ({
   Handle: () => null,
@@ -29,7 +28,11 @@ vi.mock("@/integrations/trpc/client", () => ({
   },
 }));
 
-const SetActiveJob = ({
+const wrapper = ({ children }: { children?: React.ReactNode }) => (
+  <HarnessCanvasStoreProvider>{children}</HarnessCanvasStoreProvider>
+);
+
+const JobActivator = ({
   jobId,
   children,
 }: {
@@ -37,22 +40,19 @@ const SetActiveJob = ({
   children?: React.ReactNode;
 }) => {
   const store = useHarnessCanvasStore();
-  const setActiveJobId = useStore(store, (s) => s.setActiveJobId);
-  useEffect(() => {
-    setActiveJobId(jobId);
-  }, [jobId, setActiveJobId]);
+  const initializedRef = useRef(false);
+  if (!initializedRef.current) {
+    initializedRef.current = true;
+    store.setState({ activeJobId: jobId, isConsoleOpen: jobId !== null });
+  }
 
   return <>{children}</>;
 };
 
-const wrapper = ({ children }: { children?: React.ReactNode }) => (
-  <HarnessCanvasStoreProvider>{children}</HarnessCanvasStoreProvider>
-);
-
 const wrapperWithJob = (jobId: string | null) => {
   const Wrapper = ({ children }: { children?: React.ReactNode }) => (
     <HarnessCanvasStoreProvider>
-      <SetActiveJob jobId={jobId}>{children}</SetActiveJob>
+      <JobActivator jobId={jobId}>{children}</JobActivator>
     </HarnessCanvasStoreProvider>
   );
 
@@ -122,9 +122,10 @@ vi.mock("@refinedev/core", () => ({
 }));
 
 describe("RunConsole", () => {
-  it("renders nothing when jobId is null", () => {
+  it("renders console shell when jobId is null", () => {
     const { container } = render(<RunConsole />, { wrapper });
-    expect(container.firstChild).toBeNull();
+    expect(container.firstChild).not.toBeNull();
+    expect(screen.getByText("Console")).toBeInTheDocument();
   });
 
   it("shows status bar with running indicator", () => {

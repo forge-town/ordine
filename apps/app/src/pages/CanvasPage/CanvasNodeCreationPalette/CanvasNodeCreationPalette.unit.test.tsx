@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import type { Operation, Recipe } from "@repo/schemas";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store/harnessCanvasStore";
-import { CanvasNodeCreationPalette } from "./CanvasQuickAdd";
+import { CanvasNodeCreationPalette } from "./CanvasNodeCreationPalette";
 
 const operations = [
   {

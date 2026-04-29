@@ -8,7 +8,6 @@ import {
   Controls,
   BackgroundVariant,
   MiniMap,
-  type OnMove,
 } from "@xyflow/react";
 import { CompoundNode } from "../CompoundNode";
 import { CodeFileNode } from "../CodeFileNode";
@@ -65,11 +64,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const handleFlowPaneContextMenu = useStore(store, (s) => s.handleFlowPaneContextMenu);
   const handleFlowNodeDrag = useStore(store, (s) => s.handleFlowNodeDrag);
   const handleFlowNodeDragStop = useStore(store, (s) => s.handleFlowNodeDragStop);
-  const setViewportZoom = useStore(store, (s) => s.setViewportZoom);
-
-  const handleFlowMove: OnMove = (_event, viewport) => {
-    setViewportZoom(viewport.zoom);
-  };
+  const handleFlowMove = useStore(store, (s) => s.handleFlowMove);
 
   useHotkeys(
     "mod+z",
@@ -105,7 +100,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         onEdgeClick={handleFlowEdgeClick}
         onEdgesChange={handleEdgesChange}
         onInit={handleFlowInit}
-        onMove={handleFlowMove}
+        onMove={(_event, viewport) => handleFlowMove(viewport.zoom)}
         onNodeClick={handleFlowNodeClick}
         onNodeContextMenu={handleFlowNodeContextMenu}
         onNodeDrag={handleFlowNodeDrag}

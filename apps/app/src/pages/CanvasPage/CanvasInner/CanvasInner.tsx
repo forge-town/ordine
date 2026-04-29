@@ -12,7 +12,7 @@ import { CanvasFloatingMenu } from "../CanvasFloatingMenu";
 import { RunConsole } from "../RunConsole";
 import { LlmContentCard } from "../LlmContentCard/LlmContentCard";
 import { CanvasEmptyState } from "../CanvasEmptyState";
-import { CanvasNodeCreationPalette } from "../CanvasQuickAdd";
+import { CanvasNodeCreationPalette } from "../CanvasNodeCreationPalette";
 import { CanvasStatusBar } from "../CanvasStatusBar";
 import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePosition";
 
@@ -26,12 +26,9 @@ export const CanvasInner = () => {
   const connectionMenu = useStore(store, (state) => state.connectionMenu);
   const nodeContextMenu = useStore(store, (state) => state.nodeContextMenu);
   const isConsoleOpen = useStore(store, (state) => state.isConsoleOpen);
+  const isQuickAddOpen = useStore(store, (state) => state.isQuickAddOpen);
   const nodes = useStore(store, (state) => state.nodes);
-  const setPipelineName = useStore(store, (state) => state.setPipelineName);
-
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPipelineName(e.target.value);
-  };
+  const handlePipelineNameChange = useStore(store, (state) => state.handlePipelineNameChange);
 
   const getFlowViewportScreenCenter = useCallback(() => {
     const rect = flowViewportRef.current?.getBoundingClientRect();
@@ -51,7 +48,7 @@ export const CanvasInner = () => {
             name="pipelineName"
             placeholder={t("canvas.pipelineTitlePlaceholder")}
             value={pipelineName}
-            onChange={handleNameChange}
+            onChange={(e) => handlePipelineNameChange(e.target.value)}
           />
         </div>
       </div>
@@ -62,7 +59,7 @@ export const CanvasInner = () => {
 
       {nodes.length === 0 && <CanvasEmptyState />}
 
-      <CanvasNodeCreationPalette getCreateNodeScreenPosition={getFlowViewportScreenCenter} />
+      {isQuickAddOpen && <CanvasNodeCreationPalette getCreateNodeScreenPosition={getFlowViewportScreenCenter} />}
 
       <CanvasStatusBar />
 

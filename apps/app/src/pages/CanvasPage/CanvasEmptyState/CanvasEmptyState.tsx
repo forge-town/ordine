@@ -7,8 +7,7 @@ import { useHarnessCanvasStore } from "../_store";
 export const CanvasEmptyState = () => {
   const { t } = useTranslation();
   const store = useHarnessCanvasStore();
-  const openQuickAdd = useStore(store, (state) => state.openQuickAdd);
-  const handleOpenQuickAdd = () => openQuickAdd();
+  const handleOpenQuickAdd = useStore(store, (state) => state.handleOpenQuickAdd);
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-4">

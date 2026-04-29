@@ -61,9 +61,9 @@ export interface ActionsSlice {
   createObjectNode: (type: NodeType) => void;
   createOperationNode: (operation: Operation) => void;
   createRecipeNode: (recipe: Recipe, operation: Operation) => void;
-  createObjectNodeAtScreenPosition: (type: NodeType, screenPosition: XYPosition) => void;
-  createOperationNodeAtScreenPosition: (operation: Operation, screenPosition: XYPosition) => void;
-  createRecipeNodeAtScreenPosition: (
+  handleCreateObjectNode: (type: NodeType, screenPosition: XYPosition) => void;
+  handleCreateOperationNode: (operation: Operation, screenPosition: XYPosition) => void;
+  handleCreateRecipeNode: (
     recipe: Recipe,
     operation: Operation,
     screenPosition: XYPosition
@@ -113,7 +113,8 @@ export const createActionsSlice = (
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${state.pipelineName || "pipeline"}.json`;
+    const safeName = (state.pipelineName || "pipeline").replaceAll(/[<>:"/|?*]/g, "_");
+    a.download = `${safeName}.json`;
     document.body.append(a);
     a.click();
     a.remove();
@@ -456,7 +457,7 @@ export const createActionsSlice = (
     });
   },
 
-  createObjectNodeAtScreenPosition: (type, screenPosition) => {
+  handleCreateObjectNode: (type, screenPosition) => {
     const position = get().screenToFlowPosition(screenPosition);
     get().addNodeAndAutoConnect({
       id: `${type}-${Date.now()}`,
@@ -465,10 +466,10 @@ export const createActionsSlice = (
       position,
       data: makeDefaultNodeData(type as BuiltinNodeType),
     });
-    set({ isQuickAddOpen: false });
+    set({ isQuickAddOpen: false, quickAddQuery: "" });
   },
 
-  createOperationNodeAtScreenPosition: (operation, screenPosition) => {
+  handleCreateOperationNode: (operation, screenPosition) => {
     const position = get().screenToFlowPosition(screenPosition);
     get().addNodeAndAutoConnect({
       id: `op-${operation.id}-${Date.now()}`,
@@ -477,10 +478,10 @@ export const createActionsSlice = (
       position,
       data: makeOperationNodeData(operation),
     });
-    set({ isQuickAddOpen: false });
+    set({ isQuickAddOpen: false, quickAddQuery: "" });
   },
 
-  createRecipeNodeAtScreenPosition: (recipe, operation, screenPosition) => {
+  handleCreateRecipeNode: (recipe, operation, screenPosition) => {
     const position = get().screenToFlowPosition(screenPosition);
     get().addNodeAndAutoConnect({
       id: `op-recipe-${Date.now()}`,
@@ -494,7 +495,7 @@ export const createActionsSlice = (
         bestPracticeName: recipe.name,
       },
     });
-    set({ isQuickAddOpen: false });
+    set({ isQuickAddOpen: false, quickAddQuery: "" });
   },
 
   // TODO: Find if it should be use

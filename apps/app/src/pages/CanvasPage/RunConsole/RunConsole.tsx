@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { Terminal, X, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
@@ -84,30 +84,42 @@ export const RunConsole = () => {
   const markNodeFailed = useStore(store, (s) => s.markNodeFailed);
   const setNodeLlmContent = useStore(store, (s) => s.setNodeLlmContent);
   const stopTestRun = useStore(store, (s) => s.stopTestRun);
+  const isConsoleCollapsed = useStore(store, (s) => s.isConsoleCollapsed);
+  const handleToggleConsoleCollapse = useStore(store, (s) => s.handleToggleConsoleCollapse);
   const getDataProvider = useDataProvider();
   const dataProvider = getDataProvider();
 
-  const [collapsed, setCollapsed] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const processedTraceRef = useRef({ jobId: null as string | null, count: 0 });
+  const isConsoleCollapsedRef = useRef(isConsoleCollapsed);
+  isConsoleCollapsedRef.current = isConsoleCollapsed;
 
-  const applyStructuredTraceLogs = (currentJobId: string, logs: string[]) => {
-    if (processedTraceRef.current.jobId !== currentJobId) {
-      processedTraceRef.current = { jobId: currentJobId, count: 0 };
-    }
+  const applyStructuredTraceLogs = useCallback(
+    (currentJobId: string, logs: string[]) => {
+      if (processedTraceRef.current.jobId !== currentJobId) {
+        processedTraceRef.current = { jobId: currentJobId, count: 0 };
+      }
 
-    if (logs.length <= processedTraceRef.current.count) return;
+      if (logs.length <= processedTraceRef.current.count) return;
 
-    const newLogs = logs.slice(processedTraceRef.current.count);
-    processedTraceRef.current.count = logs.length;
+      const newLogs = logs.slice(processedTraceRef.current.count);
+      processedTraceRef.current.count = logs.length;
 
-    parseStructuredLogs(newLogs, {
-      onNodeStart: markNodeRunning,
-      onNodeDone: markNodePassed,
-      onNodeFail: markNodeFailed,
-      onLlmContent: setNodeLlmContent,
-    });
-  };
+      parseStructuredLogs(newLogs, {
+        onNodeStart: markNodeRunning,
+        onNodeDone: markNodePassed,
+        onNodeFail: markNodeFailed,
+        onLlmContent: setNodeLlmContent,
+      });
+
+      requestAnimationFrame(() => {
+        if (scrollRef.current && !isConsoleCollapsedRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+      });
+    },
+    [markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent]
+  );
 
   const { query: jobQuery } = useOne<JobData>({
     resource: ResourceName.jobs,
@@ -137,6 +149,8 @@ export const RunConsole = () => {
   });
 
   const job = (jobQuery.data?.data as JobData | undefined) ?? null;
+  const jobRef = useRef(job);
+  jobRef.current = job;
 
   const { result: tracesResult } = useCustom<{ traces: Array<{ message: string }> }>({
     url: "jobs/traces",
@@ -157,7 +171,7 @@ export const RunConsole = () => {
         return response;
       },
       refetchInterval: () => {
-        if (job && isTerminalStatus(job.status)) return false;
+        if (jobRef.current && isTerminalStatus(jobRef.current.status)) return false;
 
         return POLL_INTERVAL;
       },
@@ -165,23 +179,11 @@ export const RunConsole = () => {
   });
   const traceLogs = (tracesResult.data?.traces ?? []).map((trace) => trace.message);
 
-  // Auto-scroll to bottom
-  useEffect(() => {
-    if (scrollRef.current && !collapsed) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [traceLogs.length, collapsed]);
-
-  if (!jobId) return null;
-
-  const handleToggleCollapse = () => setCollapsed((v) => !v);
-  const handleClose = () => handleCloseConsole();
-
   return (
     <div
       className={cn(
         "absolute bottom-0 left-0 right-0 z-30 border-t bg-background shadow-lg transition-all",
-        collapsed ? "h-9" : "h-64"
+        isConsoleCollapsed ? "h-9" : "h-64"
       )}
     >
       {/* Status bar */}
@@ -212,21 +214,21 @@ export const RunConsole = () => {
         </div>
 
         <div className="flex items-center gap-0.5">
-          <Button className="h-6 w-6" size="icon" variant="ghost" onClick={handleToggleCollapse}>
-            {collapsed ? (
+          <Button className="h-6 w-6" size="icon" variant="ghost" onClick={handleToggleConsoleCollapse}>
+            {isConsoleCollapsed ? (
               <ChevronUp className="h-3.5 w-3.5" />
             ) : (
               <ChevronDown className="h-3.5 w-3.5" />
             )}
           </Button>
-          <Button className="h-6 w-6" size="icon" variant="ghost" onClick={handleClose}>
+          <Button className="h-6 w-6" size="icon" variant="ghost" onClick={handleCloseConsole}>
             <X className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
 
       {/* Log area */}
-      {!collapsed && (
+      {!isConsoleCollapsed && (
         <ScrollArea className="h-[calc(100%-2.25rem)]">
           <div ref={scrollRef} className="h-full overflow-auto p-2 font-mono text-xs">
             {!job && (

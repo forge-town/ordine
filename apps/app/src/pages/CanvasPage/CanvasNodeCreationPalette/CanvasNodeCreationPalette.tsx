@@ -1,4 +1,4 @@
-import { useState, type ElementType } from "react";
+import type { ElementType } from "react";
 import { useTranslation } from "react-i18next";
 import { useList } from "@refinedev/core";
 import type { Operation, Recipe } from "@repo/schemas";
@@ -37,22 +37,14 @@ export const CanvasNodeCreationPalette = ({
   getCreateNodeScreenPosition,
 }: CanvasNodeCreationPaletteProps) => {
   const { t } = useTranslation();
-  const [query, setQuery] = useState("");
   const store = useHarnessCanvasStore();
-  const isOpen = useStore(store, (state) => state.isQuickAddOpen);
-  const closeQuickAdd = useStore(store, (state) => state.closeQuickAdd);
-  const createObjectNodeAtScreenPosition = useStore(
-    store,
-    (state) => state.createObjectNodeAtScreenPosition
-  );
-  const createOperationNodeAtScreenPosition = useStore(
-    store,
-    (state) => state.createOperationNodeAtScreenPosition
-  );
-  const createRecipeNodeAtScreenPosition = useStore(
-    store,
-    (state) => state.createRecipeNodeAtScreenPosition
-  );
+  const query = useStore(store, (state) => state.quickAddQuery);
+  const handleSetQuickAddQuery = useStore(store, (state) => state.handleSetQuickAddQuery);
+  const handleCloseQuickAdd = useStore(store, (state) => state.handleCloseQuickAdd);
+  const handleQuickAddKeyDown = useStore(store, (state) => state.handleQuickAddKeyDown);
+  const handleCreateObjectNode = useStore(store, (state) => state.handleCreateObjectNode);
+  const handleCreateOperationNode = useStore(store, (state) => state.handleCreateOperationNode);
+  const handleCreateRecipeNode = useStore(store, (state) => state.handleCreateRecipeNode);
 
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
@@ -91,38 +83,6 @@ export const CanvasNodeCreationPalette = ({
 
   const hasResults = objectItems.length > 0 || operationItems.length > 0 || recipeItems.length > 0;
 
-  const handleClose = () => {
-    setQuery("");
-    closeQuickAdd();
-  };
-
-  const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(event.target.value);
-  };
-
-  const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Escape") {
-      handleClose();
-    }
-  };
-
-  const handleCreateObjectNode = (type: BuiltinNodeType) => {
-    createObjectNodeAtScreenPosition(type, getCreateNodeScreenPosition());
-    setQuery("");
-  };
-
-  const handleCreateOperationNode = (operation: Operation) => {
-    createOperationNodeAtScreenPosition(operation, getCreateNodeScreenPosition());
-    setQuery("");
-  };
-
-  const handleCreateRecipeNode = (recipe: Recipe, operation: Operation) => {
-    createRecipeNodeAtScreenPosition(recipe, operation, getCreateNodeScreenPosition());
-    setQuery("");
-  };
-
-  if (!isOpen) return null;
-
   return (
     <div
       aria-label={t("canvas.quickAdd.title")}
@@ -138,8 +98,8 @@ export const CanvasNodeCreationPalette = ({
           name="canvasQuickAddSearch"
           placeholder={t("canvas.quickAdd.searchPlaceholder")}
           value={query}
-          onChange={handleQueryChange}
-          onKeyDown={handleSearchKeyDown}
+          onChange={(event) => handleSetQuickAddQuery(event.target.value)}
+          onKeyDown={handleQuickAddKeyDown}
         />
         <Button
           aria-label={t("canvas.quickAdd.close")}
@@ -147,7 +107,7 @@ export const CanvasNodeCreationPalette = ({
           size="icon"
           title={t("canvas.quickAdd.close")}
           variant="ghost"
-          onClick={handleClose}
+          onClick={handleCloseQuickAdd}
         >
           <X className="size-4" />
         </Button>
@@ -163,14 +123,15 @@ export const CanvasNodeCreationPalette = ({
               <div className="space-y-0.5">
                 {objectItems.map((type) => {
                   const Icon = TYPE_ICONS[type];
-                  const meta = getNodeMeta(type)!;
+                  const meta = getNodeMeta(type);
+                  if (!meta) return null;
 
                   return (
                     <button
                       key={type}
                       className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       type="button"
-                      onClick={() => handleCreateObjectNode(type)}
+                      onClick={() => handleCreateObjectNode(type, getCreateNodeScreenPosition())}
                     >
                       <span
                         className={cn(
@@ -200,7 +161,7 @@ export const CanvasNodeCreationPalette = ({
                     key={operation.id}
                     className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     type="button"
-                    onClick={() => handleCreateOperationNode(operation)}
+                    onClick={() => handleCreateOperationNode(operation, getCreateNodeScreenPosition())}
                   >
                     <span className="flex size-6 shrink-0 items-center justify-center rounded bg-violet-500">
                       <Zap className="size-3.5 text-white" />
@@ -224,7 +185,7 @@ export const CanvasNodeCreationPalette = ({
                     key={recipe.id}
                     className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     type="button"
-                    onClick={() => handleCreateRecipeNode(recipe, operation)}
+                    onClick={() => handleCreateRecipeNode(recipe, operation, getCreateNodeScreenPosition())}
                   >
                     <span className="flex size-6 shrink-0 items-center justify-center rounded bg-amber-500">
                       <BookOpen className="size-3.5 text-white" />

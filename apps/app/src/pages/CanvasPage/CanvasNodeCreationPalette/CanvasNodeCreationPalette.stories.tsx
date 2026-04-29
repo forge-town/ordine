@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
 import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store";
 import { canvasStoryDataProvider } from "../storybookData";
-import { CanvasNodeCreationPalette } from "./CanvasQuickAdd";
+import { CanvasNodeCreationPalette } from "./CanvasNodeCreationPalette";
 
 const meta: Meta<typeof CanvasNodeCreationPalette> = {
   title: "CanvasPage/CanvasNodeCreationPalette",

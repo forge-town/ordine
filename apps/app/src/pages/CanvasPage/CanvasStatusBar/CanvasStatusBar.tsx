@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "../_store";
+import { useHarnessCanvasStore, selectSelectedNode } from "../_store";
 import { formatZoomPercent } from "../utils/canvasViewport";
 
 export const CanvasStatusBar = () => {
@@ -8,9 +8,8 @@ export const CanvasStatusBar = () => {
   const store = useHarnessCanvasStore();
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
-  const selectedNodeId = useStore(store, (state) => state.selectedNodeId);
   const viewportZoom = useStore(store, (state) => state.viewportZoom);
-  const selectedNode = nodes.find((node) => node.id === selectedNodeId);
+  const selectedNode = useStore(store, selectSelectedNode);
 
   return (
     <div className="pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2">

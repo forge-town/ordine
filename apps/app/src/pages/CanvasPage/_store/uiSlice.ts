@@ -43,6 +43,8 @@ export interface UISlice {
   connectStart: ConnectStartState | null;
   shouldIgnorePaneClick: boolean;
   isQuickAddOpen: boolean;
+  quickAddQuery: string;
+  isConsoleCollapsed: boolean;
 
   // Pipeline test run state
   isTestRunning: boolean;
@@ -65,12 +67,16 @@ export interface UISlice {
   closeConnectionMenu: () => void;
   openNodeContextMenu: (state: NodeContextMenuState) => void;
   closeNodeContextMenu: () => void;
-  openQuickAdd: () => void;
-  closeQuickAdd: () => void;
-  toggleQuickAdd: () => void;
+  handleOpenQuickAdd: () => void;
+  handleCloseQuickAdd: () => void;
+  handleToggleQuickAdd: () => void;
+  handleSetQuickAddQuery: (query: string) => void;
+  handleToggleConsoleCollapse: () => void;
+  handleQuickAddKeyDown: (event: React.KeyboardEvent) => void;
   handleConnectStart: (state: ConnectStartState | null) => void;
-  setPipelineName: (name: string) => void;
+  handlePipelineNameChange: (name: string) => void;
   setViewportZoom: (zoom: number) => void;
+  handleFlowMove: (zoom: number) => void;
 
   // Pipeline run actions
   startTestRun: () => void;
@@ -111,6 +117,8 @@ export const createUISlice = (
   connectStart: null,
   shouldIgnorePaneClick: false,
   isQuickAddOpen: false,
+  quickAddQuery: "",
+  isConsoleCollapsed: false,
   // Pipeline test run state defaults
   isTestRunning: false,
   isRunning: false,
@@ -170,9 +178,10 @@ export const createUISlice = (
     set({ nodeContextMenu: null });
   },
 
-  openQuickAdd: () => {
+  handleOpenQuickAdd: () => {
     set({
       isQuickAddOpen: true,
+      quickAddQuery: "",
       contextMenu: null,
       connectionMenu: null,
       nodeContextMenu: null,
@@ -180,13 +189,14 @@ export const createUISlice = (
     });
   },
 
-  closeQuickAdd: () => {
-    set({ isQuickAddOpen: false });
+  handleCloseQuickAdd: () => {
+    set({ isQuickAddOpen: false, quickAddQuery: "" });
   },
 
-  toggleQuickAdd: () => {
+  handleToggleQuickAdd: () => {
     set((state) => ({
       isQuickAddOpen: !state.isQuickAddOpen,
+      quickAddQuery: "",
       contextMenu: null,
       connectionMenu: null,
       nodeContextMenu: null,
@@ -194,15 +204,33 @@ export const createUISlice = (
     }));
   },
 
+  handleSetQuickAddQuery: (query) => {
+    set({ quickAddQuery: query });
+  },
+
+  handleToggleConsoleCollapse: () => {
+    set((state) => ({ isConsoleCollapsed: !state.isConsoleCollapsed }));
+  },
+
+  handleQuickAddKeyDown: (event) => {
+    if (event.key === "Escape") {
+      set({ isQuickAddOpen: false, quickAddQuery: "" });
+    }
+  },
+
   handleConnectStart: (state) => {
     set({ connectStart: state });
   },
 
-  setPipelineName: (name) => {
+  handlePipelineNameChange: (name) => {
     set({ pipelineName: name });
   },
 
   setViewportZoom: (zoom) => {
+    set({ viewportZoom: zoom });
+  },
+
+  handleFlowMove: (zoom) => {
     set({ viewportZoom: zoom });
   },
 
