@@ -58,7 +58,7 @@ const mockOperations: Operation[] = [
 ];
 
 const meta: Meta<typeof PipelineDetailPageContent> = {
-  title: "Pages/PipelinesPage/PipelineDetailPageContent",
+  title: "Pages/PipelineDetailPage/PipelineDetailPageContent",
   component: PipelineDetailPageContent,
   args: {
     pipeline: mockPipeline,

@@ -14,6 +14,7 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutSkillsRouteImport } from './routes/_layout/skills'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutRuntimesRouteImport } from './routes/_layout/runtimes'
 import { Route as LayoutRecipesRouteImport } from './routes/_layout/recipes'
 import { Route as LayoutPipelinesRouteImport } from './routes/_layout/pipelines'
 import { Route as LayoutJobsRouteImport } from './routes/_layout/jobs'
@@ -66,6 +67,11 @@ const LayoutSkillsRoute = LayoutSkillsRouteImport.update({
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutRuntimesRoute = LayoutRuntimesRouteImport.update({
+  id: '/runtimes',
+  path: '/runtimes',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutRecipesRoute = LayoutRecipesRouteImport.update({
@@ -235,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/jobs': typeof LayoutJobsRouteWithChildren
   '/pipelines': typeof LayoutPipelinesRouteWithChildren
   '/recipes': typeof LayoutRecipesRoute
+  '/runtimes': typeof LayoutRuntimesRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
   '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
@@ -266,6 +273,7 @@ export interface FileRoutesByTo {
   '/assistant': typeof LayoutAssistantRoute
   '/distillation-studio': typeof LayoutDistillationStudioRoute
   '/recipes': typeof LayoutRecipesRoute
+  '/runtimes': typeof LayoutRuntimesRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
   '/': typeof LayoutIndexRoute
@@ -303,6 +311,7 @@ export interface FileRoutesById {
   '/_layout/jobs': typeof LayoutJobsRouteWithChildren
   '/_layout/pipelines': typeof LayoutPipelinesRouteWithChildren
   '/_layout/recipes': typeof LayoutRecipesRoute
+  '/_layout/runtimes': typeof LayoutRuntimesRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/skills': typeof LayoutSkillsRoute
   '/_layout/': typeof LayoutIndexRoute
@@ -341,6 +350,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/pipelines'
     | '/recipes'
+    | '/runtimes'
     | '/settings'
     | '/skills'
     | '/distillations/$distillationId'
@@ -372,6 +382,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/distillation-studio'
     | '/recipes'
+    | '/runtimes'
     | '/settings'
     | '/skills'
     | '/'
@@ -408,6 +419,7 @@ export interface FileRouteTypes {
     | '/_layout/jobs'
     | '/_layout/pipelines'
     | '/_layout/recipes'
+    | '/_layout/runtimes'
     | '/_layout/settings'
     | '/_layout/skills'
     | '/_layout/'
@@ -477,6 +489,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof LayoutSettingsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/runtimes': {
+      id: '/_layout/runtimes'
+      path: '/runtimes'
+      fullPath: '/runtimes'
+      preLoaderRoute: typeof LayoutRuntimesRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/recipes': {
@@ -736,6 +755,7 @@ interface LayoutRouteChildren {
   LayoutJobsRoute: typeof LayoutJobsRouteWithChildren
   LayoutPipelinesRoute: typeof LayoutPipelinesRouteWithChildren
   LayoutRecipesRoute: typeof LayoutRecipesRoute
+  LayoutRuntimesRoute: typeof LayoutRuntimesRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutSkillsRoute: typeof LayoutSkillsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
@@ -763,6 +783,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutJobsRoute: LayoutJobsRouteWithChildren,
   LayoutPipelinesRoute: LayoutPipelinesRouteWithChildren,
   LayoutRecipesRoute: LayoutRecipesRoute,
+  LayoutRuntimesRoute: LayoutRuntimesRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutSkillsRoute: LayoutSkillsRoute,
   LayoutIndexRoute: LayoutIndexRoute,

@@ -19,6 +19,7 @@ import {
   Puzzle,
   ExternalLink,
   ChevronRight,
+  Server,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -67,6 +68,11 @@ const pipelineItems: NavItem[] = [
 ];
 
 const objectNavItems: NavItem[] = [{ labelKey: "nav.projects", icon: FolderGit2, to: "/projects" }];
+
+const configItems: NavItem[] = [
+  { labelKey: "nav.runtimes", icon: Server, to: "/runtimes" },
+  { labelKey: "nav.settings", icon: Settings, to: "/settings" },
+];
 
 const iconMap: Record<string, ElementType> = {
   globe: Globe,
@@ -278,6 +284,13 @@ export const AppSidebar = () => {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
+            <NavGroup
+              separated
+              ariaLabel="Configure"
+              currentPath={currentPath}
+              items={configItems}
+              t={t}
+            />
           </div>
         ) : (
           <div className="animate-in fade-in-0 slide-in-from-right-1 duration-150">
@@ -308,20 +321,9 @@ export const AppSidebar = () => {
         )}
       </SidebarContent>
 
-      {/* Settings + GitHub at bottom */}
+      {/* GitHub at bottom */}
       <SidebarFooter className="border-t p-2">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              className="h-8"
-              isActive={currentPath === "/settings"}
-              render={<Link to="/settings" />}
-              tooltip={t("nav.settings")}
-            >
-              <Settings />
-              <span>{t("nav.settings")}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               className="h-8"

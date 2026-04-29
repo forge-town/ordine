@@ -97,7 +97,7 @@ const countReusableAssets = (distillations: Distillation[]) =>
     return total + distillation.result.reusableAssets.length;
   }, 0);
 
-const buildActivity = (jobs: Job[]): DashboardActivityDatum[] => {
+export const buildActivity = (jobs: Job[]): DashboardActivityDatum[] => {
   const today = new Date();
   const buckets = new Map<string, DashboardActivityDatum>();
 
@@ -147,7 +147,7 @@ const buildActivity = (jobs: Job[]): DashboardActivityDatum[] => {
   return [...buckets.values()];
 };
 
-const buildStatuses = (jobs: Job[]): DashboardStatusDatum[] => {
+export const buildStatuses = (jobs: Job[]): DashboardStatusDatum[] => {
   const grouped = {
     running: 0,
     queued: 0,
@@ -169,7 +169,10 @@ const buildStatuses = (jobs: Job[]): DashboardStatusDatum[] => {
   ];
 };
 
-const buildPipelineRows = (_jobs: Job[], pipelines: PipelineData[]): DashboardPipelineDatum[] => {
+export const buildPipelineRows = (
+  _jobs: Job[],
+  pipelines: PipelineData[]
+): DashboardPipelineDatum[] => {
   // Pipeline run data is now in the pipeline_runs table.
   // This will be populated once a pipeline runs API endpoint is available.
   return pipelines.slice(0, MAX_PIPELINE_ROWS).map((p) => ({
@@ -181,7 +184,7 @@ const buildPipelineRows = (_jobs: Job[], pipelines: PipelineData[]): DashboardPi
   }));
 };
 
-const buildArtifactMix = (distillations: Distillation[]): DashboardArtifactDatum[] => {
+export const buildArtifactMix = (distillations: Distillation[]): DashboardArtifactDatum[] => {
   const grouped = {
     prompt_patch: 0,
     pipeline_template: 0,
@@ -207,7 +210,7 @@ const buildArtifactMix = (distillations: Distillation[]): DashboardArtifactDatum
   ];
 };
 
-const buildSnapshot = (
+export const buildSnapshot = (
   jobs: Job[],
   pipelines: PipelineData[],
   projectsCount: number,
@@ -244,7 +247,9 @@ const buildSnapshot = (
   ];
 };
 
-const buildRecentDistillations = (distillations: Distillation[]): DashboardDistillationPreview[] =>
+export const buildRecentDistillations = (
+  distillations: Distillation[]
+): DashboardDistillationPreview[] =>
   [...distillations]
     .sort(
       (left, right) => getDistillationDate(right).getTime() - getDistillationDate(left).getTime()
@@ -271,8 +276,11 @@ export const buildDashboardMetrics = (
   pipelines: buildPipelineRows(jobs, pipelines),
   artifactMix: buildArtifactMix(distillations),
   snapshot: buildSnapshot(jobs, pipelines, projectsCount, distillations),
-  recentJobs: [...jobs]
-    .sort((left, right) => getJobDate(right).getTime() - getJobDate(left).getTime())
-    .slice(0, 8),
+  recentJobs: buildRecentJobs(jobs),
   recentDistillations: buildRecentDistillations(distillations),
 });
+
+export const buildRecentJobs = (jobs: Job[]): Job[] =>
+  [...jobs]
+    .sort((left, right) => getJobDate(right).getTime() - getJobDate(left).getTime())
+    .slice(0, 8);

@@ -1,20 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { Activity, ArrowRight, LayoutDashboard, Lightbulb, Sparkles, Workflow } from "lucide-react";
-import { useList } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
-import type { Distillation, GithubProject, Job } from "@repo/schemas";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
 import { PageHeader } from "@/components/PageHeader";
-import { PageLoadingState } from "@/components/PageLoadingState";
-import { ResourceName } from "@/integrations/refine/dataProvider";
 import { DashboardActivityChart } from "../DashboardActivityChart";
 import { DashboardDistillationSummary } from "../DashboardDistillationSummary";
 import { DashboardPanel } from "../DashboardPanel";
 import { DashboardPipelineChart } from "../DashboardPipelineChart";
+import { DashboardRecentJobs } from "../DashboardRecentJobs";
+import { DashboardRunningJobsBadge } from "../DashboardRunningJobsBadge";
 import { DashboardSnapshotStrip } from "../DashboardSnapshotStrip";
 import { DashboardStatusChart } from "../DashboardStatusChart";
-import { JobActivityRow } from "../JobActivityRow";
-import { buildDashboardMetrics } from "../dashboardMetrics";
 
 const QUICK_ACTIONS = [
   {
@@ -41,51 +36,11 @@ const QUICK_ACTIONS = [
 
 export const DashboardPageContent = () => {
   const { t } = useTranslation();
-  const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineData>({
-    resource: ResourceName.pipelines,
-  });
-  const { result: projectsResult, query: projectsQuery } = useList<GithubProject>({
-    resource: ResourceName.githubProjects,
-  });
-  const { result: jobsResult, query: jobsQuery } = useList<Job>({
-    resource: ResourceName.jobs,
-  });
-  const { result: distillationsResult, query: distillationsQuery } = useList<Distillation>({
-    resource: ResourceName.distillations,
-  });
-
-  const pipelines = pipelinesResult?.data ?? [];
-  const projects = projectsResult?.data ?? [];
-  const jobs = jobsResult?.data ?? [];
-  const distillations = distillationsResult?.data ?? [];
-  const runningJobs = jobs.filter((job) => job.status === "running").length;
-  const isLoading = !!(
-    pipelinesQuery?.isLoading ||
-    projectsQuery?.isLoading ||
-    jobsQuery?.isLoading ||
-    distillationsQuery?.isLoading
-  );
-  const metrics = buildDashboardMetrics(jobs, pipelines, projects.length, distillations);
-
-  if (isLoading) {
-    return (
-      <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("dashboard.title")} />
-        <PageLoadingState variant="grid" />
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
-        badge={
-          runningJobs > 0 ? (
-            <span className="ml-3 flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-              {runningJobs} {t("jobs.running")}
-            </span>
-          ) : undefined
-        }
+        badge={<DashboardRunningJobsBadge />}
         icon={<LayoutDashboard className="h-4 w-4 text-primary" />}
         title={t("dashboard.title")}
       />
@@ -97,14 +52,14 @@ export const DashboardPageContent = () => {
               description={t("dashboard.activityDescription")}
               title={t("dashboard.activityTitle")}
             >
-              <DashboardActivityChart data={metrics.activity} />
+              <DashboardActivityChart />
             </DashboardPanel>
 
             <DashboardPanel
               description={t("dashboard.snapshotDescription")}
               title={t("dashboard.snapshotTitle")}
             >
-              <DashboardSnapshotStrip metrics={metrics.snapshot} />
+              <DashboardSnapshotStrip />
             </DashboardPanel>
           </div>
 
@@ -113,14 +68,14 @@ export const DashboardPageContent = () => {
               description={t("dashboard.pipelineHealthDescription")}
               title={t("dashboard.pipelineHealthTitle")}
             >
-              <DashboardPipelineChart data={metrics.pipelines} />
+              <DashboardPipelineChart />
             </DashboardPanel>
 
             <DashboardPanel
               description={t("dashboard.statusDescription")}
               title={t("dashboard.statusTitle")}
             >
-              <DashboardStatusChart data={metrics.statuses} />
+              <DashboardStatusChart />
             </DashboardPanel>
           </div>
 
@@ -137,10 +92,7 @@ export const DashboardPageContent = () => {
             description={t("dashboard.distillationDescription")}
             title={t("dashboard.distillationTitle")}
           >
-            <DashboardDistillationSummary
-              artifacts={metrics.artifactMix}
-              recentDistillations={metrics.recentDistillations}
-            />
+            <DashboardDistillationSummary />
           </DashboardPanel>
 
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
@@ -157,18 +109,7 @@ export const DashboardPageContent = () => {
               description={t("dashboard.recentJobsDescription")}
               title={t("dashboard.recentJobs")}
             >
-              {metrics.recentJobs.length === 0 ? (
-                <div className="flex min-h-[220px] flex-col items-center justify-center text-center">
-                  <Activity className="h-7 w-7 text-muted-foreground/30" />
-                  <p className="mt-3 text-sm text-muted-foreground">{t("dashboard.noJobs")}</p>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {metrics.recentJobs.map((job) => (
-                    <JobActivityRow key={job.id} job={job} />
-                  ))}
-                </div>
-              )}
+              <DashboardRecentJobs />
             </DashboardPanel>
 
             <DashboardPanel

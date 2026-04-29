@@ -581,6 +581,11 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+    if (url === "settings/scanRuntimes") {
+      const data = await trpcClient.settings.scanRuntimes.query();
+
+      return { data: data as unknown as TData };
+    }
     throw new Error(`custom: unknown url "${url}"`);
   },
 };

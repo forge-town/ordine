@@ -3,7 +3,7 @@ import { Layers } from "lucide-react";
 import { Stat } from "./Stat";
 
 const meta: Meta<typeof Stat> = {
-  title: "Pages/PipelinesPage/Stat",
+  title: "Pages/PipelineDetailPage/Stat",
   component: Stat,
 };
 

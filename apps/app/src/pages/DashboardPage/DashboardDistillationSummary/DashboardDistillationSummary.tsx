@@ -1,11 +1,13 @@
 import { Link } from "@tanstack/react-router";
+import { useList } from "@refinedev/core";
+import type { Distillation } from "@repo/schemas";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { DashboardArtifactDatum, DashboardDistillationPreview } from "../dashboardMetrics";
-
-export type DashboardDistillationSummaryProps = {
-  artifacts: DashboardArtifactDatum[];
-  recentDistillations: DashboardDistillationPreview[];
-};
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import {
+  buildArtifactMix,
+  buildRecentDistillations,
+  type DashboardDistillationPreview,
+} from "../dashboardMetrics";
 
 const STATUS_LABELS: Record<DashboardDistillationPreview["status"], string> = {
   draft: "Draft",
@@ -14,13 +16,15 @@ const STATUS_LABELS: Record<DashboardDistillationPreview["status"], string> = {
   failed: "Failed",
 };
 
-export const DashboardDistillationSummary = ({
-  artifacts,
-  recentDistillations,
-}: DashboardDistillationSummaryProps) => {
+export const DashboardDistillationSummary = () => {
+  const { result } = useList<Distillation>({ resource: ResourceName.distillations });
+  const distillations = result?.data ?? [];
+  const artifacts = buildArtifactMix(distillations);
+  const recentDistillations = buildRecentDistillations(distillations);
+
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-      <div className="h-[240px] w-full rounded-2xl border border-border/70 bg-background/60 p-3">
+      <div className="h-60 w-full rounded-2xl border border-border/70 bg-background/60 p-3">
         <ResponsiveContainer height="100%" width="100%">
           <BarChart data={artifacts} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
             <CartesianGrid stroke="var(--border)" strokeDasharray="4 4" vertical={false} />
