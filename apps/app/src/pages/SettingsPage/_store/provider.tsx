@@ -1,29 +1,20 @@
-import { type ReactNode, useRef } from "react";
+import { type ReactNode } from "react";
 import {
-  SettingsStoreContext,
-  createSettingsStore,
-  type SettingsStore,
+  SettingsPageStoreContext,
+  createSettingsPageStore,
   type AppSettings,
-} from "./settingsStore";
+} from "./settingsPageStore";
+import { useInit } from "@/hooks/useInit";
 
 interface Props {
   children: ReactNode;
   initialSettings?: Partial<AppSettings>;
 }
 
-export const SettingsStoreProvider = ({ children, initialSettings }: Props) => {
-  const storeRef = useRef<SettingsStore | null>(null);
-  const initialSettingsJsonRef = useRef<string | undefined>(undefined);
-  const settingsJson = initialSettings ? JSON.stringify(initialSettings) : undefined;
-
-  if (!storeRef.current || initialSettingsJsonRef.current !== settingsJson) {
-    initialSettingsJsonRef.current = settingsJson;
-    storeRef.current = createSettingsStore(initialSettings);
-  }
+export const SettingsPageStoreProvider = ({ children, initialSettings }: Props) => {
+  const store = useInit(() => createSettingsPageStore(initialSettings));
 
   return (
-    <SettingsStoreContext.Provider value={storeRef.current}>
-      {children}
-    </SettingsStoreContext.Provider>
+    <SettingsPageStoreContext.Provider value={store}>{children}</SettingsPageStoreContext.Provider>
   );
 };

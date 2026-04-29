@@ -1,6 +1,7 @@
-import type { SettingsStoreSlice, AppSettings } from "./settingsStore";
+import type { StateCreator } from "zustand";
+import type { AppSettings, SettingsPageState } from "./settingsPageStore";
 
-export interface MetaSlice {
+export interface SettingsPageMetaSlice {
   saved: boolean;
   updateSection: <K extends keyof AppSettings>(section: K, patch: Partial<AppSettings[K]>) => void;
   save: () => void;
@@ -9,10 +10,12 @@ export interface MetaSlice {
 
 const STORAGE_KEY = "ordine_settings_v1";
 
-export const createMetaSlice = (
-  set: Parameters<SettingsStoreSlice>[0],
-  get: Parameters<SettingsStoreSlice>[1]
-): MetaSlice => ({
+export const createSettingsPageMetaSlice: StateCreator<
+  SettingsPageState,
+  [],
+  [],
+  SettingsPageMetaSlice
+> = (set, get) => ({
   saved: false,
 
   updateSection: (section, patch) =>

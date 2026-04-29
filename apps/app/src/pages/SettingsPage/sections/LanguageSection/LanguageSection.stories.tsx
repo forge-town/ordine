@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { SettingsStoreProvider } from "../../_store";
+import { SettingsPageStoreProvider } from "../../_store";
 import { LanguageSection } from "./LanguageSection";
 
 const meta: Meta<typeof LanguageSection> = {
@@ -7,13 +7,13 @@ const meta: Meta<typeof LanguageSection> = {
   component: LanguageSection,
   decorators: [
     (Story) => (
-      <SettingsStoreProvider
+      <SettingsPageStoreProvider
         initialSettings={{
           language: { language: "zh-CN", timezone: "Asia/Shanghai" },
         }}
       >
         <Story />
-      </SettingsStoreProvider>
+      </SettingsPageStoreProvider>
     ),
   ],
 };

@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { createSettingsStore } from "./settingsStore";
+import { createSettingsPageStore } from "./settingsPageStore";
 
-describe("settingsStore", () => {
-  const ctx = { store: null as ReturnType<typeof createSettingsStore> | null };
+describe("settingsPageStore", () => {
+  const ctx = { store: null as ReturnType<typeof createSettingsPageStore> | null };
 
   beforeEach(() => {
-    ctx.store = createSettingsStore();
+    ctx.store = createSettingsPageStore();
   });
 
   it("is initialized with default settings", () => {
@@ -26,7 +26,7 @@ describe("settingsStore", () => {
   });
 
   it("loads initial settings from provided values", () => {
-    const customStore = createSettingsStore({
+    const customStore = createSettingsPageStore({
       language: { language: "ja-JP", timezone: "Asia/Tokyo" },
     });
     expect(customStore.getState().language.language).toBe("ja-JP");
