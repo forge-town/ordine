@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { text, timestamp, pgTable, index, serial, integer, jsonb } from "drizzle-orm/pg-core";
 import { jobsTable } from "./jobs_table";
 
-export type AgentSystem = "claude-code" | "codex" | "mastra" | "custom";
+export type AgentSystem = "claude-code" | "codex" | "mastra" | "openclaw" | "custom";
 export type AgentRunStatus = "completed" | "error";
 
 export const agentRawExportsTable = pgTable(
