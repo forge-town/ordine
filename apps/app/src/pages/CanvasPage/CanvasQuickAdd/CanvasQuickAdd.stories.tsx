@@ -2,12 +2,15 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
 import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store";
 import { canvasStoryDataProvider } from "../storybookData";
-import { CanvasQuickAdd } from "./CanvasQuickAdd";
+import { CanvasNodeCreationPalette } from "./CanvasQuickAdd";
 
-const meta: Meta<typeof CanvasQuickAdd> = {
-  title: "CanvasPage/CanvasQuickAdd",
-  component: CanvasQuickAdd,
+const meta: Meta<typeof CanvasNodeCreationPalette> = {
+  title: "CanvasPage/CanvasNodeCreationPalette",
+  component: CanvasNodeCreationPalette,
   tags: ["autodocs"],
+  args: {
+    getCreateNodeScreenPosition: () => ({ x: 640, y: 360 }),
+  },
   decorators: [
     (Story) => {
       const store = createHarnessCanvasStore();
@@ -38,7 +41,7 @@ const meta: Meta<typeof CanvasQuickAdd> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof CanvasQuickAdd>;
+type Story = StoryObj<typeof CanvasNodeCreationPalette>;
 
 export const Open: Story = {
   args: {},

@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import type { Operation, Recipe } from "@repo/schemas";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store/harnessCanvasStore";
-import { CanvasQuickAdd } from "./CanvasQuickAdd";
+import { CanvasNodeCreationPalette } from "./CanvasQuickAdd";
 
 const operations = [
   {
@@ -38,20 +38,19 @@ const renderQuickAdd = () => {
   const store = createHarnessCanvasStore();
   store.setState({
     isQuickAddOpen: true,
-    getViewportScreenCenter: () => ({ x: 700, y: 500 }),
     screenToFlowPosition: (pos) => ({ x: pos.x / 2, y: pos.y / 2 }),
   });
 
   render(
     <HarnessCanvasStoreContext.Provider value={store}>
-      <CanvasQuickAdd />
+      <CanvasNodeCreationPalette getCreateNodeScreenPosition={() => ({ x: 700, y: 500 })} />
     </HarnessCanvasStoreContext.Provider>
   );
 
   return store;
 };
 
-describe("CanvasQuickAdd", () => {
+describe("CanvasNodeCreationPalette", () => {
   beforeEach(() => {
     Object.defineProperty(globalThis, "innerWidth", { configurable: true, value: 1000 });
     Object.defineProperty(globalThis, "innerHeight", { configurable: true, value: 800 });

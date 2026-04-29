@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Terminal, X, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { cn } from "@repo/ui/lib/utils";
-import { useCustom, useOne } from "@refinedev/core";
+import { useCustom, useDataProvider, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { StatusIcon } from "./StatusIcon";
@@ -84,20 +84,49 @@ export const RunConsole = () => {
   const markNodeFailed = useStore(store, (s) => s.markNodeFailed);
   const setNodeLlmContent = useStore(store, (s) => s.setNodeLlmContent);
   const stopTestRun = useStore(store, (s) => s.stopTestRun);
+  const getDataProvider = useDataProvider();
+  const dataProvider = getDataProvider();
 
   const [collapsed, setCollapsed] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const processedLogCount = useRef(0);
+  const processedTraceRef = useRef({ jobId: null as string | null, count: 0 });
 
-  useEffect(() => {
-    processedLogCount.current = 0;
-  }, [jobId]);
+  const applyStructuredTraceLogs = (currentJobId: string, logs: string[]) => {
+    if (processedTraceRef.current.jobId !== currentJobId) {
+      processedTraceRef.current = { jobId: currentJobId, count: 0 };
+    }
+
+    if (logs.length <= processedTraceRef.current.count) return;
+
+    const newLogs = logs.slice(processedTraceRef.current.count);
+    processedTraceRef.current.count = logs.length;
+
+    parseStructuredLogs(newLogs, {
+      onNodeStart: markNodeRunning,
+      onNodeDone: markNodePassed,
+      onNodeFail: markNodeFailed,
+      onLlmContent: setNodeLlmContent,
+    });
+  };
 
   const { query: jobQuery } = useOne<JobData>({
     resource: ResourceName.jobs,
     id: jobId ?? "",
     queryOptions: {
       enabled: !!jobId,
+      queryFn: async () => {
+        const currentJobId = jobId ?? "";
+        const response = await dataProvider.getOne!<JobData>({
+          resource: ResourceName.jobs,
+          id: currentJobId,
+        });
+
+        if (isTerminalStatus(response.data.status)) {
+          stopTestRun();
+        }
+
+        return response;
+      },
       refetchInterval: (query) => {
         const status = (query.state.data?.data as JobData | undefined)?.status;
         if (status && isTerminalStatus(status)) return false;
@@ -115,6 +144,18 @@ export const RunConsole = () => {
     config: { payload: { jobId: jobId ?? "" } },
     queryOptions: {
       enabled: !!jobId,
+      queryFn: async () => {
+        const currentJobId = jobId ?? "";
+        const response = await dataProvider.custom!<{ traces: Array<{ message: string }> }>({
+          url: "jobs/traces",
+          method: "get",
+          payload: { jobId: currentJobId },
+        });
+        const logs = response.data.traces.map((trace) => trace.message);
+        applyStructuredTraceLogs(currentJobId, logs);
+
+        return response;
+      },
       refetchInterval: () => {
         if (job && isTerminalStatus(job.status)) return false;
 
@@ -122,28 +163,7 @@ export const RunConsole = () => {
       },
     },
   });
-  const traces = tracesResult.data?.traces;
-  const traceLogs = useMemo(() => (traces ?? []).map((trace) => trace.message), [traces]);
-
-  useEffect(() => {
-    if (traceLogs.length <= processedLogCount.current) return;
-
-    const newLogs = traceLogs.slice(processedLogCount.current);
-    processedLogCount.current = traceLogs.length;
-
-    parseStructuredLogs(newLogs, {
-      onNodeStart: markNodeRunning,
-      onNodeDone: markNodePassed,
-      onNodeFail: markNodeFailed,
-      onLlmContent: setNodeLlmContent,
-    });
-  }, [traceLogs, markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent]);
-
-  useEffect(() => {
-    if (job && isTerminalStatus(job.status)) {
-      stopTestRun();
-    }
-  }, [job, stopTestRun]);
+  const traceLogs = (tracesResult.data?.traces ?? []).map((trace) => trace.message);
 
   // Auto-scroll to bottom
   useEffect(() => {

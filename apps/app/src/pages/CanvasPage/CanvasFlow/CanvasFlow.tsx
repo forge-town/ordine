@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import type { Ref } from "react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -19,7 +19,6 @@ import { OperationNode } from "../OperationNode";
 import { OutputProjectPathNode } from "../OutputProjectPathNode";
 import { OutputLocalPathNode } from "../OutputLocalPathNode";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
-import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePosition";
 
 // Must be defined outside the component to prevent React Flow infinite re-renders
 const nodeTypes = {
@@ -41,9 +40,12 @@ const defaultEdgeOptions = {
 
 const proOpts = { hideAttribution: false };
 
-export const CanvasFlow = () => {
+interface CanvasFlowProps {
+  viewportRef?: Ref<HTMLDivElement>;
+}
+
+export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const store = useHarnessCanvasStore();
-  const flowViewportRef = useRef<HTMLDivElement>(null);
 
   const nodes = useStore(store, (s) => s.nodes);
   const edges = useStore(store, (s) => s.edges);
@@ -64,17 +66,6 @@ export const CanvasFlow = () => {
   const handleFlowNodeDrag = useStore(store, (s) => s.handleFlowNodeDrag);
   const handleFlowNodeDragStop = useStore(store, (s) => s.handleFlowNodeDragStop);
   const setViewportZoom = useStore(store, (s) => s.setViewportZoom);
-  const setViewportScreenCenterGetter = useStore(store, (s) => s.setViewportScreenCenterGetter);
-
-  const getFlowViewportScreenCenter = useCallback(() => {
-    const rect = flowViewportRef.current?.getBoundingClientRect();
-
-    return rect ? getViewportRectCenter(rect) : getScreenViewportCenter();
-  }, []);
-
-  useEffect(() => {
-    setViewportScreenCenterGetter(getFlowViewportScreenCenter);
-  }, [getFlowViewportScreenCenter, setViewportScreenCenterGetter]);
 
   const handleFlowMove: OnMove = (_event, viewport) => {
     setViewportZoom(viewport.zoom);
@@ -98,7 +89,7 @@ export const CanvasFlow = () => {
   );
 
   return (
-    <div ref={flowViewportRef} className="h-full w-full" data-testid="canvas-flow-viewport">
+    <div ref={viewportRef} className="h-full w-full" data-testid="canvas-flow-viewport">
       <ReactFlow
         className="bg-slate-50/50"
         defaultEdgeOptions={defaultEdgeOptions}

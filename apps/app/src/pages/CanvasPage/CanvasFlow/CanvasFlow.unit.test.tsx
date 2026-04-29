@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
 import type * as XyFlowReact from "@xyflow/react";
@@ -117,32 +117,18 @@ describe("CanvasFlow", () => {
     expect(store.getState().viewportZoom).toBe(0.6);
   });
 
-  it("registers the React Flow viewport center for quick-add placement", async () => {
+  it("exposes the React Flow viewport element through the provided ref", () => {
     const store = createHarnessCanvasStore([], []);
-    const rectSpy = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
-      x: 240,
-      y: 72,
-      left: 240,
-      top: 72,
-      width: 960,
-      height: 640,
-      right: 1200,
-      bottom: 712,
-      toJSON: () => ({}),
-    } as DOMRect);
+    const viewportRef = { current: null as HTMLDivElement | null };
 
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <ReactFlowProvider>
-          <CanvasFlow />
+          <CanvasFlow viewportRef={viewportRef} />
         </ReactFlowProvider>
       </HarnessCanvasStoreContext.Provider>
     );
 
-    await waitFor(() => {
-      expect(store.getState().getViewportScreenCenter()).toEqual({ x: 720, y: 392 });
-    });
-
-    rectSpy.mockRestore();
+    expect(viewportRef.current).toBe(screen.getByTestId("canvas-flow-viewport"));
   });
 });

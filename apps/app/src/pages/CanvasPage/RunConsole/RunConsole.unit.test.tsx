@@ -80,6 +80,17 @@ const mockJobDone = {
 const useOneData = vi.fn(() => mockJobRunning);
 
 vi.mock("@refinedev/core", () => ({
+  useDataProvider: () => () => ({
+    getOne: vi.fn(async () => ({ data: useOneData() })),
+    custom: vi.fn(async () => ({
+      data: {
+        traces: [
+          { message: "[2026-04-08T16:00:00.000Z] Starting pipeline abc" },
+          { message: "[2026-04-08T16:00:01.000Z] Processing node [github-project] skills" },
+        ],
+      },
+    })),
+  }),
   useOne: () => ({
     query: {
       data: { data: useOneData() },

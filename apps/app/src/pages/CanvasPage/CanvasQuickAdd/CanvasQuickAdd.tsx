@@ -12,6 +12,7 @@ import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useHarnessCanvasStore } from "../_store";
 import { getNodeMeta } from "../utils/nodeTypeMeta";
+import type { XYPosition } from "@xyflow/system";
 
 const QUICK_ADD_OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-project"];
 
@@ -28,23 +29,29 @@ const normalizeSearch = (value: string) => value.trim().toLowerCase();
 const includesSearch = (values: Array<string | null | undefined>, query: string) =>
   values.some((value) => value?.toLowerCase().includes(query));
 
-export const CanvasQuickAdd = () => {
+interface CanvasNodeCreationPaletteProps {
+  getCreateNodeScreenPosition: () => XYPosition;
+}
+
+export const CanvasNodeCreationPalette = ({
+  getCreateNodeScreenPosition,
+}: CanvasNodeCreationPaletteProps) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const store = useHarnessCanvasStore();
   const isOpen = useStore(store, (state) => state.isQuickAddOpen);
   const closeQuickAdd = useStore(store, (state) => state.closeQuickAdd);
-  const createObjectNodeAtViewportCenter = useStore(
+  const createObjectNodeAtScreenPosition = useStore(
     store,
-    (state) => state.createObjectNodeAtViewportCenter
+    (state) => state.createObjectNodeAtScreenPosition
   );
-  const createOperationNodeAtViewportCenter = useStore(
+  const createOperationNodeAtScreenPosition = useStore(
     store,
-    (state) => state.createOperationNodeAtViewportCenter
+    (state) => state.createOperationNodeAtScreenPosition
   );
-  const createRecipeNodeAtViewportCenter = useStore(
+  const createRecipeNodeAtScreenPosition = useStore(
     store,
-    (state) => state.createRecipeNodeAtViewportCenter
+    (state) => state.createRecipeNodeAtScreenPosition
   );
 
   const { result: operationsResult } = useList<Operation>({
@@ -100,17 +107,17 @@ export const CanvasQuickAdd = () => {
   };
 
   const handleCreateObjectNode = (type: BuiltinNodeType) => {
-    createObjectNodeAtViewportCenter(type);
+    createObjectNodeAtScreenPosition(type, getCreateNodeScreenPosition());
     setQuery("");
   };
 
   const handleCreateOperationNode = (operation: Operation) => {
-    createOperationNodeAtViewportCenter(operation);
+    createOperationNodeAtScreenPosition(operation, getCreateNodeScreenPosition());
     setQuery("");
   };
 
   const handleCreateRecipeNode = (recipe: Recipe, operation: Operation) => {
-    createRecipeNodeAtViewportCenter(recipe, operation);
+    createRecipeNodeAtScreenPosition(recipe, operation, getCreateNodeScreenPosition());
     setQuery("");
   };
 

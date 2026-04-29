@@ -17,7 +17,6 @@ import {
   CONNECTION_MENU_NODE_OFFSET,
   NODE_CONTEXT_CONNECT_OFFSET,
   QUICK_ADD_NODE_ORIGIN,
-  getScreenViewportCenter,
   offsetPosition,
 } from "../utils/nodePosition";
 
@@ -26,8 +25,6 @@ export interface ActionsSlice {
   importCanvas: (data: { nodes: PipelineNode[]; edges: PipelineEdge[] }) => void;
   fitView: (options?: { padding?: number }) => void;
   screenToFlowPosition: (pos: XYPosition) => XYPosition;
-  getViewportScreenCenter: () => XYPosition;
-  setViewportScreenCenterGetter: (getter: () => XYPosition) => void;
   handleFitView: () => void;
   handleZoomIn: () => void;
   handleZoomOut: () => void;
@@ -64,9 +61,13 @@ export interface ActionsSlice {
   createObjectNode: (type: NodeType) => void;
   createOperationNode: (operation: Operation) => void;
   createRecipeNode: (recipe: Recipe, operation: Operation) => void;
-  createObjectNodeAtViewportCenter: (type: NodeType) => void;
-  createOperationNodeAtViewportCenter: (operation: Operation) => void;
-  createRecipeNodeAtViewportCenter: (recipe: Recipe, operation: Operation) => void;
+  createObjectNodeAtScreenPosition: (type: NodeType, screenPosition: XYPosition) => void;
+  createOperationNodeAtScreenPosition: (operation: Operation, screenPosition: XYPosition) => void;
+  createRecipeNodeAtScreenPosition: (
+    recipe: Recipe,
+    operation: Operation,
+    screenPosition: XYPosition
+  ) => void;
   dismissContextMenu: () => void;
   handleContextMenuOpenChange: (open: boolean) => void;
   connectObjectNode: (type: NodeType) => void;
@@ -123,10 +124,6 @@ export const createActionsSlice = (
   },
   fitView: () => {},
   screenToFlowPosition: (pos) => pos,
-  getViewportScreenCenter: () => getScreenViewportCenter(),
-  setViewportScreenCenterGetter: (getter) => {
-    set({ getViewportScreenCenter: getter });
-  },
   handleFitView: () => {
     get().fitView({ padding: 0.1 });
   },
@@ -459,8 +456,8 @@ export const createActionsSlice = (
     });
   },
 
-  createObjectNodeAtViewportCenter: (type) => {
-    const position = get().screenToFlowPosition(get().getViewportScreenCenter());
+  createObjectNodeAtScreenPosition: (type, screenPosition) => {
+    const position = get().screenToFlowPosition(screenPosition);
     get().addNodeAndAutoConnect({
       id: `${type}-${Date.now()}`,
       type,
@@ -471,8 +468,8 @@ export const createActionsSlice = (
     set({ isQuickAddOpen: false });
   },
 
-  createOperationNodeAtViewportCenter: (operation) => {
-    const position = get().screenToFlowPosition(get().getViewportScreenCenter());
+  createOperationNodeAtScreenPosition: (operation, screenPosition) => {
+    const position = get().screenToFlowPosition(screenPosition);
     get().addNodeAndAutoConnect({
       id: `op-${operation.id}-${Date.now()}`,
       type: "operation",
@@ -483,8 +480,8 @@ export const createActionsSlice = (
     set({ isQuickAddOpen: false });
   },
 
-  createRecipeNodeAtViewportCenter: (recipe, operation) => {
-    const position = get().screenToFlowPosition(get().getViewportScreenCenter());
+  createRecipeNodeAtScreenPosition: (recipe, operation, screenPosition) => {
+    const position = get().screenToFlowPosition(screenPosition);
     get().addNodeAndAutoConnect({
       id: `op-recipe-${Date.now()}`,
       type: "operation",

@@ -1,3 +1,4 @@
+import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
@@ -11,12 +12,14 @@ import { CanvasFloatingMenu } from "../CanvasFloatingMenu";
 import { RunConsole } from "../RunConsole";
 import { LlmContentCard } from "../LlmContentCard/LlmContentCard";
 import { CanvasEmptyState } from "../CanvasEmptyState";
-import { CanvasQuickAdd } from "../CanvasQuickAdd";
+import { CanvasNodeCreationPalette } from "../CanvasQuickAdd";
 import { CanvasStatusBar } from "../CanvasStatusBar";
+import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePosition";
 
 export const CanvasInner = () => {
   const { t } = useTranslation();
   const store = useHarnessCanvasStore();
+  const flowViewportRef = useRef<HTMLDivElement>(null);
 
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const contextMenu = useStore(store, (state) => state.contextMenu);
@@ -29,6 +32,12 @@ export const CanvasInner = () => {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPipelineName(e.target.value);
   };
+
+  const getFlowViewportScreenCenter = useCallback(() => {
+    const rect = flowViewportRef.current?.getBoundingClientRect();
+
+    return rect ? getViewportRectCenter(rect) : getScreenViewportCenter();
+  }, []);
 
   return (
     <div className="relative h-full w-full">
@@ -49,11 +58,11 @@ export const CanvasInner = () => {
 
       <CanvasToolbar />
 
-      <CanvasFlow />
+      <CanvasFlow viewportRef={flowViewportRef} />
 
       {nodes.length === 0 && <CanvasEmptyState />}
 
-      <CanvasQuickAdd />
+      <CanvasNodeCreationPalette getCreateNodeScreenPosition={getFlowViewportScreenCenter} />
 
       <CanvasStatusBar />
 
