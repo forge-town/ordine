@@ -5,7 +5,7 @@ import { useCustom } from "@refinedev/core";
 import { Button } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
-import { useRuntimesStore, type DetectedRuntime } from "../_store";
+import { useRuntimesPageStore, type DetectedRuntime } from "../_store";
 import { useStore } from "zustand";
 
 const RuntimeModeIndicator = ({ mode }: { mode: string }) => {
@@ -22,10 +22,11 @@ const RuntimeModeIndicator = ({ mode }: { mode: string }) => {
   );
 };
 
+const s = "runtimes";
+
 export const RuntimeList = () => {
   const { t } = useTranslation();
-  const s = "runtimes";
-  const store = useRuntimesStore();
+  const store = useRuntimesPageStore();
   const runtimes = useStore(store, (state) => state.runtimes);
   const selectedId = useStore(store, (state) => state.selectedId);
   const handleSelect = useStore(store, (state) => state.handleSelectRuntime);
@@ -42,7 +43,7 @@ export const RuntimeList = () => {
 
   const handleScan = useCallback(async () => {
     const result = await scanQuery.refetch();
-    const detected = (result.data?.data as DetectedRuntime[]) ?? [];
+    const detected = result.data?.data ?? [];
     handleScanComplete(detected);
   }, [scanQuery, handleScanComplete]);
 

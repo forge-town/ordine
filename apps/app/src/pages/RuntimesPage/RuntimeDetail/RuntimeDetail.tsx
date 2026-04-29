@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { AgentRuntimeSchema, type AgentRuntimeConfig } from "@repo/schemas";
-import { useRuntimesStore } from "../_store";
+import { useRuntimesPageStore } from "../_store";
 import { useStore } from "zustand";
 
 const AGENT_TYPE_OPTIONS = AgentRuntimeSchema.options;
@@ -23,7 +23,7 @@ export const RuntimeDetail = () => {
   const { t } = useTranslation();
   const s = "runtimes";
   const { mutateAsync: updateSettings } = useUpdate();
-  const store = useRuntimesStore();
+  const store = useRuntimesPageStore();
   const runtimes = useStore(store, (state) => state.runtimes);
   const selectedId = useStore(store, (state) => state.selectedId);
   const saved = useStore(store, (state) => state.saved);

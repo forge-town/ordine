@@ -3,23 +3,30 @@ import { createStore, type StoreApi, type StateCreator } from "zustand";
 import type { AgentRuntimeConfig } from "@repo/schemas";
 import { createRuntimesPageSlice, type RuntimesPageSlice } from "./runtimesPageSlice";
 
-export interface RuntimesState extends RuntimesPageSlice {}
+export interface RuntimesPageState extends RuntimesPageSlice {}
 
-export type RuntimesStoreSlice<T = RuntimesState> = StateCreator<RuntimesState, [], [], T>;
+export type RuntimesPageStoreSlice<T = RuntimesPageState> = StateCreator<
+  RuntimesPageState,
+  [],
+  [],
+  T
+>;
 
-export type RuntimesStore = StoreApi<RuntimesState>;
+export type RuntimesPageStore = StoreApi<RuntimesPageState>;
 
-export const createRuntimesStore = (initialRuntimes: AgentRuntimeConfig[] = []): RuntimesStore =>
-  createStore<RuntimesState>()((set, get, api) => ({
+export const createRuntimesPageStore = (
+  initialRuntimes: AgentRuntimeConfig[] = []
+): RuntimesPageStore =>
+  createStore<RuntimesPageState>()((set, get, api) => ({
     ...createRuntimesPageSlice(initialRuntimes)(set, get, api),
   }));
 
-export const RuntimesStoreContext = createContext<RuntimesStore | null>(null);
+export const RuntimesPageStoreContext = createContext<RuntimesPageStore | null>(null);
 
-export const useRuntimesStore = () => {
-  const context = useContext(RuntimesStoreContext);
+export const useRuntimesPageStore = () => {
+  const context = useContext(RuntimesPageStoreContext);
   if (!context) {
-    throw new Error("useRuntimesStore must be used within RuntimesStoreProvider");
+    throw new Error("useRuntimesPageStore must be used within RuntimesPageStoreProvider");
   }
 
   return context;

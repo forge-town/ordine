@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
 import type { AgentRuntimeConfig } from "@repo/schemas";
-import type { RuntimesState } from "./runtimesStore";
+import type { RuntimesPageState } from "./runtimesStore";
 
 export interface DetectedRuntime {
   type: string;
@@ -30,7 +30,7 @@ export interface RuntimesPageSlice {
 }
 
 export const createRuntimesPageSlice =
-  (initial: AgentRuntimeConfig[]): StateCreator<RuntimesState> =>
+  (initial: AgentRuntimeConfig[]): StateCreator<RuntimesPageState> =>
   (set, get) => ({
     runtimes: initial,
     selectedId: initial[0]?.id ?? "",

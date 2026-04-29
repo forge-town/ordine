@@ -1,6 +1,6 @@
 import { useOne } from "@refinedev/core";
 import type { Settings } from "@repo/schemas";
-import { RuntimesStoreProvider } from "./_store";
+import { RuntimesPageStoreProvider } from "./_store";
 import { RuntimesPageContent } from "./RuntimesPageContent";
 
 export const RuntimesPage = () => {
@@ -10,8 +10,8 @@ export const RuntimesPage = () => {
   });
 
   return (
-    <RuntimesStoreProvider initialRuntimes={settingsResult?.agentRuntimes ?? []}>
+    <RuntimesPageStoreProvider initialRuntimes={settingsResult?.agentRuntimes ?? []}>
       <RuntimesPageContent isLoading={settingsQuery.isLoading} />
-    </RuntimesStoreProvider>
+    </RuntimesPageStoreProvider>
   );
 };
