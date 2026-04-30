@@ -13,6 +13,12 @@ import { ResultAsync } from "neverthrow";
 import i18n from "@/lib/i18n";
 import type { ReactFlowInstance, OnConnectStartParams } from "@xyflow/react";
 import type { FinalConnectionState, XYPosition } from "@xyflow/system";
+import {
+  CONNECTION_MENU_NODE_OFFSET,
+  NODE_CONTEXT_CONNECT_OFFSET,
+  QUICK_ADD_NODE_ORIGIN,
+  offsetPosition,
+} from "../utils/nodePosition";
 
 export interface ActionsSlice {
   exportCanvas: () => void;
@@ -55,6 +61,13 @@ export interface ActionsSlice {
   createObjectNode: (type: NodeType) => void;
   createOperationNode: (operation: Operation) => void;
   createRecipeNode: (recipe: Recipe, operation: Operation) => void;
+  handleCreateObjectNode: (type: NodeType, screenPosition: XYPosition) => void;
+  handleCreateOperationNode: (operation: Operation, screenPosition: XYPosition) => void;
+  handleCreateRecipeNode: (
+    recipe: Recipe,
+    operation: Operation,
+    screenPosition: XYPosition
+  ) => void;
   dismissContextMenu: () => void;
   handleContextMenuOpenChange: (open: boolean) => void;
   connectObjectNode: (type: NodeType) => void;
@@ -100,7 +113,8 @@ export const createActionsSlice = (
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${state.pipelineName || "pipeline"}.json`;
+    const safeName = (state.pipelineName || "pipeline").replaceAll(/[<>:"/|?*]/g, "_");
+    a.download = `${safeName}.json`;
     document.body.append(a);
     a.click();
     a.remove();
@@ -127,6 +141,7 @@ export const createActionsSlice = (
       connectionMenu: null,
       nodeContextMenu: null,
       connectStart: null,
+      isQuickAddOpen: false,
     });
   },
 
@@ -138,6 +153,7 @@ export const createActionsSlice = (
       connectionMenu: null,
       nodeContextMenu: null,
       connectStart: null,
+      isQuickAddOpen: false,
     });
   },
 
@@ -149,6 +165,7 @@ export const createActionsSlice = (
       connectionMenu: null,
       nodeContextMenu: null,
       connectStart: null,
+      isQuickAddOpen: false,
     });
   },
 
@@ -440,6 +457,47 @@ export const createActionsSlice = (
     });
   },
 
+  handleCreateObjectNode: (type, screenPosition) => {
+    const position = get().screenToFlowPosition(screenPosition);
+    get().addNodeAndAutoConnect({
+      id: `${type}-${Date.now()}`,
+      type,
+      origin: QUICK_ADD_NODE_ORIGIN,
+      position,
+      data: makeDefaultNodeData(type as BuiltinNodeType),
+    });
+    set({ isQuickAddOpen: false, quickAddQuery: "" });
+  },
+
+  handleCreateOperationNode: (operation, screenPosition) => {
+    const position = get().screenToFlowPosition(screenPosition);
+    get().addNodeAndAutoConnect({
+      id: `op-${operation.id}-${Date.now()}`,
+      type: "operation",
+      origin: QUICK_ADD_NODE_ORIGIN,
+      position,
+      data: makeOperationNodeData(operation),
+    });
+    set({ isQuickAddOpen: false, quickAddQuery: "" });
+  },
+
+  handleCreateRecipeNode: (recipe, operation, screenPosition) => {
+    const position = get().screenToFlowPosition(screenPosition);
+    get().addNodeAndAutoConnect({
+      id: `op-recipe-${Date.now()}`,
+      type: "operation",
+      origin: QUICK_ADD_NODE_ORIGIN,
+      position,
+      data: {
+        ...makeOperationNodeData(operation),
+        label: recipe.name,
+        bestPracticeId: recipe.bestPracticeId,
+        bestPracticeName: recipe.name,
+      },
+    });
+    set({ isQuickAddOpen: false, quickAddQuery: "" });
+  },
+
   // TODO: Find if it should be use
   dismissContextMenu: () => {
     set({ connectStart: null, contextMenu: null });
@@ -457,7 +515,10 @@ export const createActionsSlice = (
     get().addNodeAndAutoConnect({
       id: `${type}-${Date.now()}`,
       type,
-      position: { x: connectionMenu.flowX + 40, y: connectionMenu.flowY - 40 },
+      position: offsetPosition(
+        { x: connectionMenu.flowX, y: connectionMenu.flowY },
+        CONNECTION_MENU_NODE_OFFSET
+      ),
       data: makeDefaultNodeData(type as BuiltinNodeType),
     });
   },
@@ -468,7 +529,10 @@ export const createActionsSlice = (
     get().addNodeAndAutoConnect({
       id: `op-${operation.id}-${Date.now()}`,
       type: "operation",
-      position: { x: connectionMenu.flowX + 40, y: connectionMenu.flowY - 40 },
+      position: offsetPosition(
+        { x: connectionMenu.flowX, y: connectionMenu.flowY },
+        CONNECTION_MENU_NODE_OFFSET
+      ),
       data: makeOperationNodeData(operation),
     });
   },
@@ -479,7 +543,10 @@ export const createActionsSlice = (
     get().addNodeAndAutoConnect({
       id: `op-recipe-${Date.now()}`,
       type: "operation",
-      position: { x: connectionMenu.flowX + 40, y: connectionMenu.flowY - 40 },
+      position: offsetPosition(
+        { x: connectionMenu.flowX, y: connectionMenu.flowY },
+        CONNECTION_MENU_NODE_OFFSET
+      ),
       data: {
         ...makeOperationNodeData(operation),
         label: recipe.name,
@@ -557,7 +624,7 @@ export const createActionsSlice = (
     get().addNode({
       id: newId,
       type,
-      position: { x: node.position.x + 280, y: node.position.y },
+      position: offsetPosition(node.position, NODE_CONTEXT_CONNECT_OFFSET),
       data: makeDefaultNodeData(type as BuiltinNodeType),
     });
     get().handleConnect({
@@ -578,7 +645,7 @@ export const createActionsSlice = (
     get().addNode({
       id: newId,
       type: "operation",
-      position: { x: node.position.x + 280, y: node.position.y },
+      position: offsetPosition(node.position, NODE_CONTEXT_CONNECT_OFFSET),
       data: makeOperationNodeData(operation),
     });
     get().handleConnect({
@@ -599,7 +666,7 @@ export const createActionsSlice = (
     get().addNode({
       id: newId,
       type: "operation",
-      position: { x: node.position.x + 280, y: node.position.y },
+      position: offsetPosition(node.position, NODE_CONTEXT_CONNECT_OFFSET),
       data: {
         ...makeOperationNodeData(operation),
         label: recipe.name,

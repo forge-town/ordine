@@ -64,7 +64,7 @@
         "react-i18next": "^17.0.2",
         "react-markdown": "^10.1.0",
         "recharts": "^3.2.1",
-        "shadcn": "latest",
+        "shadcn": "4.5.0",
         "simple-icons": "^16.14.0",
         "superjson": "^2.2.6",
         "tailwind-merge": "^3.5.0",
@@ -219,7 +219,6 @@
       "name": "@repo/db-schema",
       "version": "0.0.1-preview",
       "dependencies": {
-        "@repo/pipeline-engine": "workspace:*",
         "@repo/schemas": "workspace:*",
         "drizzle-orm": "^0.45.2",
       },
@@ -258,6 +257,10 @@
     "packages/obs": {
       "name": "@repo/obs",
       "version": "0.0.1-preview",
+      "dependencies": {
+        "@repo/db-schema": "workspace:*",
+        "@repo/models": "workspace:*",
+      },
       "devDependencies": {
         "@repo/typescript-config": "workspace:*",
         "@types/node": "^25.6.0",

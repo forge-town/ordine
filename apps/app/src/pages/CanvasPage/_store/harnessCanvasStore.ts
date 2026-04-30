@@ -36,6 +36,7 @@ export const createHarnessCanvasStore = (
     ),
     ...createUISlice(
       set as Parameters<HarnessCanvasStoreSlice>[0],
+      get as Parameters<HarnessCanvasStoreSlice>[1],
 
       pipelineId ?? null,
       pipelineName ?? ""
@@ -52,6 +53,9 @@ export const createHarnessCanvasStore = (
 };
 
 export const HarnessCanvasStoreContext = createContext<HarnessCanvasStore | null>(null);
+
+export const selectSelectedNode = (state: HarnessCanvasState) =>
+  state.nodes.find((node) => node.id === state.selectedNodeId);
 
 export const useHarnessCanvasStore = () => {
   const context = useContext(HarnessCanvasStoreContext);

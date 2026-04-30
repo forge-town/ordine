@@ -6,6 +6,7 @@ import { CodeFileNode } from "./CodeFileNode";
 const meta: Meta<typeof CodeFileNode> = {
   title: "HarnessCanvas/CodeFileNode",
   component: CodeFileNode,
+  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <HarnessCanvasStoreProvider>
@@ -17,6 +18,14 @@ const meta: Meta<typeof CodeFileNode> = {
       </HarnessCanvasStoreProvider>
     ),
   ],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Canvas node card for a single source file object. Use these stories to check path display, inline editing, selection state, and empty-path fallback.",
+      },
+    },
+  },
 };
 
 export default meta;
@@ -32,6 +41,13 @@ export const Default: Story = {
       description: "应用入口文件",
     },
   },
+  parameters: {
+    docs: {
+      description: {
+        story: "Code-file node with path, language, and description populated.",
+      },
+    },
+  },
 };
 
 export const Selected: Story = {
@@ -44,6 +60,13 @@ export const Selected: Story = {
       language: "typescript",
     },
   },
+  parameters: {
+    docs: {
+      description: {
+        story: "Selected code-file node state inside a React Flow context.",
+      },
+    },
+  },
 };
 
 export const NoPath: Story = {
@@ -53,6 +76,13 @@ export const NoPath: Story = {
       label: "新文件",
       filePath: "",
       language: "python",
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "New code-file node before a file path has been selected.",
+      },
     },
   },
 };

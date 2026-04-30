@@ -20,6 +20,7 @@ import {
 } from "@repo/pipeline-engine/schemas";
 
 import { computeAutoLayout } from "./autoLayout";
+import { DUPLICATE_NODE_OFFSET, offsetPosition } from "../utils/nodePosition";
 
 /**
  * Sort nodes so that parents (compound nodes) appear before their children.
@@ -247,7 +248,7 @@ export const createCanvasSlice = (
       const newNode: PipelineNode = {
         ...source,
         id: newId,
-        position: { x: source.position.x + 40, y: source.position.y + 40 },
+        position: offsetPosition(source.position, DUPLICATE_NODE_OFFSET),
         selected: false,
         data: { ...source.data },
       };

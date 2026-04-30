@@ -6,6 +6,7 @@ import { CanvasFlow } from "./CanvasFlow";
 const meta: Meta<typeof CanvasFlow> = {
   title: "CanvasPage/CanvasFlow",
   component: CanvasFlow,
+  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <HarnessCanvasStoreProvider pipeline={null}>
@@ -15,7 +16,24 @@ const meta: Meta<typeof CanvasFlow> = {
       </HarnessCanvasStoreProvider>
     ),
   ],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "React Flow surface for Canvas nodes, edges, controls, default viewport, zoom tracking, and MiniMap visibility.",
+      },
+    },
+  },
 };
 export default meta;
 type Story = StoryObj<typeof CanvasFlow>;
-export const Default: Story = { args: {} };
+export const Default: Story = {
+  args: {},
+  parameters: {
+    docs: {
+      description: {
+        story: "Empty flow surface using the shared default viewport configuration.",
+      },
+    },
+  },
+};
