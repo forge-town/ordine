@@ -38,5 +38,4 @@ describe("nodePosition", () => {
       y: 392,
     });
   });
-
 });

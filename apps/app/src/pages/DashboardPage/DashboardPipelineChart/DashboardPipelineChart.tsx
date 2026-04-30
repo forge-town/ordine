@@ -1,13 +1,19 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { DashboardPipelineDatum } from "../dashboardMetrics";
+import { useList } from "@refinedev/core";
+import type { Job } from "@repo/schemas";
+import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { buildPipelineRows } from "../dashboardMetrics";
 
-export type DashboardPipelineChartProps = {
-  data: DashboardPipelineDatum[];
-};
+export const DashboardPipelineChart = () => {
+  const { result: jobsResult } = useList<Job>({ resource: ResourceName.jobs });
+  const { result: pipelinesResult } = useList<PipelineData>({
+    resource: ResourceName.pipelines,
+  });
+  const data = buildPipelineRows(jobsResult?.data ?? [], pipelinesResult?.data ?? []);
 
-export const DashboardPipelineChart = ({ data }: DashboardPipelineChartProps) => {
   return (
-    <div className="h-[260px] w-full">
+    <div className="h-65 w-full">
       <ResponsiveContainer height="100%" width="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 8, right: 8, left: 24, bottom: 0 }}>
           <CartesianGrid horizontal={false} stroke="var(--border)" strokeDasharray="4 4" />

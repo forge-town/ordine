@@ -4,6 +4,7 @@ export const AGENT_RUNTIME_ENUM = {
   CLAUDE_CODE: "claude-code",
   CODEX: "codex",
   MASTRA: "mastra",
+  OPENCLAW: "openclaw",
 } as const;
 
 export const AgentRuntimeSchema = z.enum(AGENT_RUNTIME_ENUM);

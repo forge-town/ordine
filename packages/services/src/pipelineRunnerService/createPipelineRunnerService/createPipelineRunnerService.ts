@@ -17,6 +17,7 @@ import {
   createAgentSpansDao,
   createSettingsDao,
   createPipelineRunsDao,
+  createAgentRuntimesDao,
   type DbConnection,
 } from "@repo/models";
 
@@ -38,6 +39,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   const agentRawExportsDao = createAgentRawExportsDao(db);
   const agentSpansDao = createAgentSpansDao(db);
   const settingsDao = createSettingsDao(db);
+  const agentRuntimesDao = createAgentRuntimesDao(db);
 
   initObs(jobTracesDao);
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
@@ -100,7 +102,8 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       const settings = normalizeSettingsRecord(await settingsDao.get());
 
       // Resolve SSH connection from agent runtimes config
-      const runtimeConfig = (settings.agentRuntimes ?? []).find(
+      const allRuntimes = await agentRuntimesDao.findMany();
+      const runtimeConfig = allRuntimes.find(
         (r) => r.type === settings.defaultAgentRuntime && r.connection.mode === "ssh",
       );
       const ssh = runtimeConfig?.connection.mode === "ssh" ? runtimeConfig.connection : undefined;

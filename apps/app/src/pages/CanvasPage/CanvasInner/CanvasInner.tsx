@@ -59,7 +59,9 @@ export const CanvasInner = () => {
 
       {nodes.length === 0 && <CanvasEmptyState />}
 
-      {isQuickAddOpen && <CanvasNodeCreationPalette getCreateNodeScreenPosition={getFlowViewportScreenCenter} />}
+      {isQuickAddOpen && (
+        <CanvasNodeCreationPalette getCreateNodeScreenPosition={getFlowViewportScreenCenter} />
+      )}
 
       <CanvasStatusBar />
 

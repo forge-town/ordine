@@ -7,15 +7,17 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { DashboardActivityDatum } from "../dashboardMetrics";
+import { useList } from "@refinedev/core";
+import type { Job } from "@repo/schemas";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { buildActivity } from "../dashboardMetrics";
 
-export type DashboardActivityChartProps = {
-  data: DashboardActivityDatum[];
-};
+export const DashboardActivityChart = () => {
+  const { result } = useList<Job>({ resource: ResourceName.jobs });
+  const data = buildActivity(result?.data ?? []);
 
-export const DashboardActivityChart = ({ data }: DashboardActivityChartProps) => {
   return (
-    <div className="h-[320px] w-full">
+    <div className="h-80 w-full">
       <ResponsiveContainer height="100%" width="100%">
         <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
           <defs>

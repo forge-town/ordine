@@ -1,10 +1,27 @@
-import type { DashboardSnapshotMetric } from "../dashboardMetrics";
+import { useList } from "@refinedev/core";
+import type { Distillation, GithubProject, Job } from "@repo/schemas";
+import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { buildSnapshot } from "../dashboardMetrics";
 
-export type DashboardSnapshotStripProps = {
-  metrics: DashboardSnapshotMetric[];
-};
+export const DashboardSnapshotStrip = () => {
+  const { result: jobsResult } = useList<Job>({ resource: ResourceName.jobs });
+  const { result: pipelinesResult } = useList<PipelineData>({
+    resource: ResourceName.pipelines,
+  });
+  const { result: projectsResult } = useList<GithubProject>({
+    resource: ResourceName.githubProjects,
+  });
+  const { result: distillationsResult } = useList<Distillation>({
+    resource: ResourceName.distillations,
+  });
+  const metrics = buildSnapshot(
+    jobsResult?.data ?? [],
+    pipelinesResult?.data ?? [],
+    projectsResult?.data?.length ?? 0,
+    distillationsResult?.data ?? []
+  );
 
-export const DashboardSnapshotStrip = ({ metrics }: DashboardSnapshotStripProps) => {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {metrics.map((metric) => (

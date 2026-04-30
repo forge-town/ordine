@@ -214,7 +214,12 @@ export const RunConsole = () => {
         </div>
 
         <div className="flex items-center gap-0.5">
-          <Button className="h-6 w-6" size="icon" variant="ghost" onClick={handleToggleConsoleCollapse}>
+          <Button
+            className="h-6 w-6"
+            size="icon"
+            variant="ghost"
+            onClick={handleToggleConsoleCollapse}
+          >
             {isConsoleCollapsed ? (
               <ChevronUp className="h-3.5 w-3.5" />
             ) : (

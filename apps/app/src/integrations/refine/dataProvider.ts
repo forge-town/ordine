@@ -15,6 +15,7 @@ import {
 import { trpcClient } from "@/integrations/trpc/client";
 
 export const ResourceName = {
+  agentRuntimes: "agentRuntimes",
   filesystem: "filesystem",
   operations: "operations",
   pipelines: "pipelines",
@@ -38,6 +39,11 @@ export const dataProvider: DataProvider = {
     const { resource } = params;
 
     switch (resource) {
+      case ResourceName.agentRuntimes: {
+        const data = await trpcClient.agentRuntimes.getMany.query();
+
+        return { data: data as unknown as TData[], total: data.length };
+      }
       case ResourceName.filesystem: {
         const pathFilter = params.filters?.find((f) => "field" in f && f.field === "path");
         const path =
@@ -127,6 +133,13 @@ export const dataProvider: DataProvider = {
     const { resource, id } = params;
 
     switch (resource) {
+      case ResourceName.agentRuntimes: {
+        const data = await trpcClient.agentRuntimes.getById.query({
+          id: String(id),
+        });
+
+        return { data: data as unknown as TData };
+      }
       case ResourceName.operations: {
         const data = await trpcClient.operations.getById.query({
           id: String(id),
@@ -212,6 +225,13 @@ export const dataProvider: DataProvider = {
     const { resource, variables } = params;
 
     switch (resource) {
+      case ResourceName.agentRuntimes: {
+        const data = await trpcClient.agentRuntimes.create.mutate(
+          variables as Parameters<typeof trpcClient.agentRuntimes.create.mutate>[0]
+        );
+
+        return { data: data as unknown as TData };
+      }
       case ResourceName.operations: {
         const data = await trpcClient.operations.create.mutate(
           variables as Parameters<typeof trpcClient.operations.create.mutate>[0]
@@ -301,6 +321,14 @@ export const dataProvider: DataProvider = {
     const { resource, id, variables } = params;
 
     switch (resource) {
+      case ResourceName.agentRuntimes: {
+        const data = await trpcClient.agentRuntimes.update.mutate({
+          id: String(id),
+          patch: variables as Record<string, unknown>,
+        } as Parameters<typeof trpcClient.agentRuntimes.update.mutate>[0]);
+
+        return { data: data as unknown as TData };
+      }
       case ResourceName.operations: {
         const data = await trpcClient.operations.update.mutate({
           id: String(id),
@@ -408,6 +436,13 @@ export const dataProvider: DataProvider = {
     const { resource, id } = params;
 
     switch (resource) {
+      case ResourceName.agentRuntimes: {
+        const data = await trpcClient.agentRuntimes.delete.mutate({
+          id: String(id),
+        });
+
+        return { data: data as unknown as TData };
+      }
       case ResourceName.operations: {
         const data = await trpcClient.operations.delete.mutate({
           id: String(id),
@@ -577,6 +612,18 @@ export const dataProvider: DataProvider = {
     if (url === "distillations/run") {
       const data = await trpcClient.distillations.run.mutate(
         payload as unknown as Parameters<typeof trpcClient.distillations.run.mutate>[0]
+      );
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "settings/scanRuntimes") {
+      const data = await trpcClient.agentRuntimes.scanRuntimes.query();
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "agentRuntimes/syncAll") {
+      const data = await trpcClient.agentRuntimes.syncAll.mutate(
+        payload as unknown as Parameters<typeof trpcClient.agentRuntimes.syncAll.mutate>[0]
       );
 
       return { data: data as unknown as TData };

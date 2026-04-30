@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { useSettingsStore } from "../../_store";
+import { useSettingsPageStore } from "../../_store";
 import { Field } from "../../Field";
 import { SaveButton } from "../../SaveButton";
 import { SectionHeader } from "../../SectionHeader";
@@ -16,7 +16,7 @@ import {
 
 export const LanguageSection = () => {
   const { i18n, t } = useTranslation();
-  const store = useSettingsStore();
+  const store = useSettingsPageStore();
   const values = useStore(store, (s) => s.language);
   const updateSection = useStore(store, (s) => s.updateSection);
   const save = useStore(store, (s) => s.save);

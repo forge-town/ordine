@@ -1,13 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { LanguageSection } from "./LanguageSection";
-import { SettingsStoreProvider } from "../../_store";
+import { SettingsPageStoreProvider } from "../../_store";
 
 const renderWithStore = (initial = {}) =>
   render(
-    <SettingsStoreProvider initialSettings={initial}>
+    <SettingsPageStoreProvider initialSettings={initial}>
       <LanguageSection />
-    </SettingsStoreProvider>
+    </SettingsPageStoreProvider>
   );
 
 describe("LanguageSection", () => {

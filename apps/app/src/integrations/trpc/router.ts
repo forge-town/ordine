@@ -1,4 +1,5 @@
 import { router } from "./init";
+import { agentRuntimesRouter } from "./routers/agentRuntimes";
 import { bestPracticesRouter } from "./routers/bestPractices";
 import { checklistRouter } from "./routers/checklist";
 import { codeSnippetsRouter } from "./routers/codeSnippets";
@@ -15,6 +16,7 @@ import { settingsRouter } from "./routers/settings";
 import { skillsRouter } from "./routers/skills";
 
 export const appRouter = router({
+  agentRuntimes: agentRuntimesRouter,
   filesystem: filesystemRouter,
   jobs: jobsRouter,
   operations: operationsRouter,

@@ -1,4 +1,12 @@
-import { runClaude, runCodex, runMastra, type ClaudeStreamEvent, type ToolName, type SshConnectionOptions } from "@repo/agent";
+import {
+  runClaude,
+  runCodex,
+  runMastra,
+  runOpenclaw,
+  type ClaudeStreamEvent,
+  type ToolName,
+  type SshConnectionOptions,
+} from "@repo/agent";
 import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
 import { logger } from "@repo/logger";
 import { AgentRuntime } from "@repo/schemas";
@@ -74,10 +82,22 @@ const runMastraDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> =
 
 type DriverFn = (opts: AgentRunOptions) => Promise<AgentRunResult>;
 
+const runOpenclawDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
+  const result = await runOpenclaw({
+    systemPrompt: opts.systemPrompt,
+    userPrompt: opts.userPrompt,
+    cwd: opts.cwd,
+    onProgress: toAsyncProgress(opts.onProgress),
+  });
+
+  return { text: result.text, events: [] };
+};
+
 const DRIVERS: Record<AgentRuntime, DriverFn> = {
   "claude-code": runLocalClaudeDirect,
   codex: runCodexDirect,
   mastra: runMastraDirect,
+  openclaw: runOpenclawDirect,
 };
 
 const extractTokenTotals = (events: ClaudeStreamEvent[]): { input: number; output: number } => {

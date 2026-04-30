@@ -1,5 +1,8 @@
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { DashboardStatusDatum } from "../dashboardMetrics";
+import { useList } from "@refinedev/core";
+import type { Job } from "@repo/schemas";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { buildStatuses } from "../dashboardMetrics";
 
 const STATUS_COLORS: Record<string, string> = {
   running: "var(--color-chart-2)",
@@ -8,11 +11,10 @@ const STATUS_COLORS: Record<string, string> = {
   failed: "var(--color-chart-4)",
 };
 
-export type DashboardStatusChartProps = {
-  data: DashboardStatusDatum[];
-};
+export const DashboardStatusChart = () => {
+  const { result } = useList<Job>({ resource: ResourceName.jobs });
+  const data = buildStatuses(result?.data ?? []);
 
-export const DashboardStatusChart = ({ data }: DashboardStatusChartProps) => {
   return (
     <div className="h-[220px] w-full">
       <ResponsiveContainer height="100%" width="100%">

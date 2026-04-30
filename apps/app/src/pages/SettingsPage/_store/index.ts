@@ -1,4 +1,4 @@
-export * from "./settingsStore";
+export * from "./settingsPageStore";
 export * from "./provider";
-export * from "./dataSlice";
-export * from "./metaSlice";
+export * from "./settingsPageDataSlice";
+export * from "./settingsPageMetaSlice";

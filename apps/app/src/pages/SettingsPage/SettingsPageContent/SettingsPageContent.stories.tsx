@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { SettingsStoreProvider } from "../_store";
+import { SettingsPageStoreProvider } from "../_store";
 import { SettingsPageContent } from "./SettingsPageContent";
 
 const meta: Meta<typeof SettingsPageContent> = {
@@ -7,9 +7,9 @@ const meta: Meta<typeof SettingsPageContent> = {
   component: SettingsPageContent,
   decorators: [
     (Story) => (
-      <SettingsStoreProvider>
+      <SettingsPageStoreProvider>
         <Story />
-      </SettingsStoreProvider>
+      </SettingsPageStoreProvider>
     ),
   ],
 };

@@ -1,5 +1,5 @@
 import { safeJsonParse } from "@/lib/safeJson";
-import { SettingsStoreProvider, type AppSettings } from "./_store";
+import { SettingsPageStoreProvider, type AppSettings } from "./_store";
 import { SettingsPageContent } from "./SettingsPageContent";
 
 const STORAGE_KEY = "ordine_settings_v1";
@@ -14,8 +14,8 @@ const loadInitialSettings = (): Partial<AppSettings> | undefined => {
 
 export const SettingsPage = () => {
   return (
-    <SettingsStoreProvider initialSettings={loadInitialSettings()}>
+    <SettingsPageStoreProvider initialSettings={loadInitialSettings()}>
       <SettingsPageContent />
-    </SettingsStoreProvider>
+    </SettingsPageStoreProvider>
   );
 };
