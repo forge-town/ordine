@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
@@ -30,6 +32,7 @@ import { Route as LayoutJobsIndexRouteImport } from './routes/_layout/jobs.index
 import { Route as LayoutDistillationsIndexRouteImport } from './routes/_layout/distillations.index'
 import { Route as LayoutBestPracticesIndexRouteImport } from './routes/_layout/best-practices.index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 import { Route as LayoutRulesCreateRouteImport } from './routes/_layout/rules.create'
 import { Route as LayoutPipelinesPipelineIdRouteImport } from './routes/_layout/pipelines.$pipelineId'
 import { Route as LayoutOperationsNewRouteImport } from './routes/_layout/operations.new'
@@ -48,6 +51,16 @@ import { Route as LayoutProjectsProjectIdWorkspaceRouteImport } from './routes/_
 import { Route as LayoutOperationsOperationIdEditRouteImport } from './routes/_layout/operations.$operationId.edit'
 import { Route as LayoutBestPracticesBestPracticeIdEditRouteImport } from './routes/_layout/best-practices.$bestPracticeId.edit'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CanvasRoute = CanvasRouteImport.update({
   id: '/canvas',
   path: '/canvas',
@@ -155,6 +168,11 @@ const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   path: '/api/trpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutRulesCreateRoute = LayoutRulesCreateRouteImport.update({
   id: '/rules/create',
   path: '/rules/create',
@@ -255,6 +273,8 @@ const LayoutBestPracticesBestPracticeIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
   '/canvas': typeof CanvasRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/assistant': typeof LayoutAssistantRoute
   '/distillation-studio': typeof LayoutDistillationStudioRoute
   '/distillations': typeof LayoutDistillationsRouteWithChildren
@@ -271,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/operations/new': typeof LayoutOperationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/rules/create': typeof LayoutRulesCreateRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/best-practices/': typeof LayoutBestPracticesIndexRoute
   '/distillations/': typeof LayoutDistillationsIndexRoute
@@ -293,6 +314,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/canvas': typeof CanvasRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/assistant': typeof LayoutAssistantRoute
   '/distillation-studio': typeof LayoutDistillationStudioRoute
   '/recipes': typeof LayoutRecipesRoute
@@ -306,6 +329,7 @@ export interface FileRoutesByTo {
   '/operations/new': typeof LayoutOperationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/rules/create': typeof LayoutRulesCreateRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/best-practices': typeof LayoutBestPracticesIndexRoute
   '/distillations': typeof LayoutDistillationsIndexRoute
@@ -330,6 +354,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
   '/canvas': typeof CanvasRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/_layout/assistant': typeof LayoutAssistantRoute
   '/_layout/distillation-studio': typeof LayoutDistillationStudioRoute
   '/_layout/distillations': typeof LayoutDistillationsRouteWithChildren
@@ -347,6 +373,7 @@ export interface FileRoutesById {
   '/_layout/operations/new': typeof LayoutOperationsNewRoute
   '/_layout/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/_layout/rules/create': typeof LayoutRulesCreateRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/_layout/best-practices/': typeof LayoutBestPracticesIndexRoute
   '/_layout/distillations/': typeof LayoutDistillationsIndexRoute
@@ -372,6 +399,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/canvas'
+    | '/login'
+    | '/signup'
     | '/assistant'
     | '/distillation-studio'
     | '/distillations'
@@ -388,6 +417,7 @@ export interface FileRouteTypes {
     | '/operations/new'
     | '/pipelines/$pipelineId'
     | '/rules/create'
+    | '/api/auth/$'
     | '/api/trpc/$'
     | '/best-practices/'
     | '/distillations/'
@@ -410,6 +440,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/canvas'
+    | '/login'
+    | '/signup'
     | '/assistant'
     | '/distillation-studio'
     | '/recipes'
@@ -423,6 +455,7 @@ export interface FileRouteTypes {
     | '/operations/new'
     | '/pipelines/$pipelineId'
     | '/rules/create'
+    | '/api/auth/$'
     | '/api/trpc/$'
     | '/best-practices'
     | '/distillations'
@@ -446,6 +479,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_layout'
     | '/canvas'
+    | '/login'
+    | '/signup'
     | '/_layout/assistant'
     | '/_layout/distillation-studio'
     | '/_layout/distillations'
@@ -463,6 +498,7 @@ export interface FileRouteTypes {
     | '/_layout/operations/new'
     | '/_layout/pipelines/$pipelineId'
     | '/_layout/rules/create'
+    | '/api/auth/$'
     | '/api/trpc/$'
     | '/_layout/best-practices/'
     | '/_layout/distillations/'
@@ -487,11 +523,28 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
   CanvasRoute: typeof CanvasRoute
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/canvas': {
       id: '/canvas'
       path: '/canvas'
@@ -637,6 +690,13 @@ declare module '@tanstack/react-router' {
       path: '/api/trpc/$'
       fullPath: '/api/trpc/$'
       preLoaderRoute: typeof ApiTrpcSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout/rules/create': {
@@ -885,6 +945,9 @@ const LayoutRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
   CanvasRoute: CanvasRoute,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }
 export const routeTree = rootRouteImport
