@@ -161,7 +161,9 @@ export const CanvasNodeCreationPalette = ({
                     key={operation.id}
                     className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     type="button"
-                    onClick={() => handleCreateOperationNode(operation, getCreateNodeScreenPosition())}
+                    onClick={() =>
+                      handleCreateOperationNode(operation, getCreateNodeScreenPosition())
+                    }
                   >
                     <span className="flex size-6 shrink-0 items-center justify-center rounded bg-violet-500">
                       <Zap className="size-3.5 text-white" />
@@ -185,7 +187,9 @@ export const CanvasNodeCreationPalette = ({
                     key={recipe.id}
                     className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     type="button"
-                    onClick={() => handleCreateRecipeNode(recipe, operation, getCreateNodeScreenPosition())}
+                    onClick={() =>
+                      handleCreateRecipeNode(recipe, operation, getCreateNodeScreenPosition())
+                    }
                   >
                     <span className="flex size-6 shrink-0 items-center justify-center rounded bg-amber-500">
                       <BookOpen className="size-3.5 text-white" />

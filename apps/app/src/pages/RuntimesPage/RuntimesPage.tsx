@@ -35,7 +35,7 @@ export const RuntimesPage = () => {
     await scanQuery.refetch();
   }, [scanQuery]);
 
-  const runtimes = runtimesResult?.data ?? [];
+  const runtimes = runtimesResult.data;
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

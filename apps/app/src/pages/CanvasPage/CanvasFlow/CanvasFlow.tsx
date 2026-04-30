@@ -2,13 +2,7 @@ import type { Ref } from "react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  BackgroundVariant,
-  MiniMap,
-} from "@xyflow/react";
+import { ReactFlow, Background, Controls, BackgroundVariant, MiniMap } from "@xyflow/react";
 import { CompoundNode } from "../CompoundNode";
 import { CodeFileNode } from "../CodeFileNode";
 import { ErrorNode } from "../ErrorNode";
