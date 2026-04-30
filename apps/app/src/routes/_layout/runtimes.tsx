@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { RuntimesPage } from "@/pages/RuntimesPage";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_layout/runtimes")({
-  component: RuntimesPage,
+  component: Outlet,
 });

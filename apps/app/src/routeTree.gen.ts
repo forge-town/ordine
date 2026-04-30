@@ -21,6 +21,7 @@ import { Route as LayoutJobsRouteImport } from './routes/_layout/jobs'
 import { Route as LayoutDistillationsRouteImport } from './routes/_layout/distillations'
 import { Route as LayoutDistillationStudioRouteImport } from './routes/_layout/distillation-studio'
 import { Route as LayoutAssistantRouteImport } from './routes/_layout/assistant'
+import { Route as LayoutRuntimesIndexRouteImport } from './routes/_layout/runtimes.index'
 import { Route as LayoutRulesIndexRouteImport } from './routes/_layout/rules.index'
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects.index'
 import { Route as LayoutPipelinesIndexRouteImport } from './routes/_layout/pipelines.index'
@@ -29,6 +30,7 @@ import { Route as LayoutJobsIndexRouteImport } from './routes/_layout/jobs.index
 import { Route as LayoutDistillationsIndexRouteImport } from './routes/_layout/distillations.index'
 import { Route as LayoutBestPracticesIndexRouteImport } from './routes/_layout/best-practices.index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
+import { Route as LayoutRuntimesRuntimeIdRouteImport } from './routes/_layout/runtimes.$runtimeId'
 import { Route as LayoutRulesCreateRouteImport } from './routes/_layout/rules.create'
 import { Route as LayoutPipelinesPipelineIdRouteImport } from './routes/_layout/pipelines.$pipelineId'
 import { Route as LayoutOperationsNewRouteImport } from './routes/_layout/operations.new'
@@ -105,6 +107,11 @@ const LayoutAssistantRoute = LayoutAssistantRouteImport.update({
   path: '/assistant',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutRuntimesIndexRoute = LayoutRuntimesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutRuntimesRoute,
+} as any)
 const LayoutRulesIndexRoute = LayoutRulesIndexRouteImport.update({
   id: '/rules/',
   path: '/rules/',
@@ -146,6 +153,11 @@ const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: '/api/trpc/$',
   path: '/api/trpc/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutRuntimesRuntimeIdRoute = LayoutRuntimesRuntimeIdRouteImport.update({
+  id: '/$runtimeId',
+  path: '/$runtimeId',
+  getParentRoute: () => LayoutRuntimesRoute,
 } as any)
 const LayoutRulesCreateRoute = LayoutRulesCreateRouteImport.update({
   id: '/rules/create',
@@ -241,7 +253,7 @@ export interface FileRoutesByFullPath {
   '/jobs': typeof LayoutJobsRouteWithChildren
   '/pipelines': typeof LayoutPipelinesRouteWithChildren
   '/recipes': typeof LayoutRecipesRoute
-  '/runtimes': typeof LayoutRuntimesRoute
+  '/runtimes': typeof LayoutRuntimesRouteWithChildren
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
   '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
@@ -251,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/operations/new': typeof LayoutOperationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/rules/create': typeof LayoutRulesCreateRoute
+  '/runtimes/$runtimeId': typeof LayoutRuntimesRuntimeIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/best-practices/': typeof LayoutBestPracticesIndexRoute
   '/distillations/': typeof LayoutDistillationsIndexRoute
@@ -259,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/pipelines/': typeof LayoutPipelinesIndexRoute
   '/projects/': typeof LayoutProjectsIndexRoute
   '/rules/': typeof LayoutRulesIndexRoute
+  '/runtimes/': typeof LayoutRuntimesIndexRoute
   '/best-practices/$bestPracticeId/edit': typeof LayoutBestPracticesBestPracticeIdEditRoute
   '/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
@@ -273,7 +287,6 @@ export interface FileRoutesByTo {
   '/assistant': typeof LayoutAssistantRoute
   '/distillation-studio': typeof LayoutDistillationStudioRoute
   '/recipes': typeof LayoutRecipesRoute
-  '/runtimes': typeof LayoutRuntimesRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
   '/': typeof LayoutIndexRoute
@@ -284,6 +297,7 @@ export interface FileRoutesByTo {
   '/operations/new': typeof LayoutOperationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/rules/create': typeof LayoutRulesCreateRoute
+  '/runtimes/$runtimeId': typeof LayoutRuntimesRuntimeIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/best-practices': typeof LayoutBestPracticesIndexRoute
   '/distillations': typeof LayoutDistillationsIndexRoute
@@ -292,6 +306,7 @@ export interface FileRoutesByTo {
   '/pipelines': typeof LayoutPipelinesIndexRoute
   '/projects': typeof LayoutProjectsIndexRoute
   '/rules': typeof LayoutRulesIndexRoute
+  '/runtimes': typeof LayoutRuntimesIndexRoute
   '/best-practices/$bestPracticeId/edit': typeof LayoutBestPracticesBestPracticeIdEditRoute
   '/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
@@ -311,7 +326,7 @@ export interface FileRoutesById {
   '/_layout/jobs': typeof LayoutJobsRouteWithChildren
   '/_layout/pipelines': typeof LayoutPipelinesRouteWithChildren
   '/_layout/recipes': typeof LayoutRecipesRoute
-  '/_layout/runtimes': typeof LayoutRuntimesRoute
+  '/_layout/runtimes': typeof LayoutRuntimesRouteWithChildren
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/skills': typeof LayoutSkillsRoute
   '/_layout/': typeof LayoutIndexRoute
@@ -322,6 +337,7 @@ export interface FileRoutesById {
   '/_layout/operations/new': typeof LayoutOperationsNewRoute
   '/_layout/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/_layout/rules/create': typeof LayoutRulesCreateRoute
+  '/_layout/runtimes/$runtimeId': typeof LayoutRuntimesRuntimeIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/_layout/best-practices/': typeof LayoutBestPracticesIndexRoute
   '/_layout/distillations/': typeof LayoutDistillationsIndexRoute
@@ -330,6 +346,7 @@ export interface FileRoutesById {
   '/_layout/pipelines/': typeof LayoutPipelinesIndexRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
   '/_layout/rules/': typeof LayoutRulesIndexRoute
+  '/_layout/runtimes/': typeof LayoutRuntimesIndexRoute
   '/_layout/best-practices/$bestPracticeId/edit': typeof LayoutBestPracticesBestPracticeIdEditRoute
   '/_layout/operations/$operationId/edit': typeof LayoutOperationsOperationIdEditRoute
   '/_layout/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
@@ -360,6 +377,7 @@ export interface FileRouteTypes {
     | '/operations/new'
     | '/pipelines/$pipelineId'
     | '/rules/create'
+    | '/runtimes/$runtimeId'
     | '/api/trpc/$'
     | '/best-practices/'
     | '/distillations/'
@@ -368,6 +386,7 @@ export interface FileRouteTypes {
     | '/pipelines/'
     | '/projects/'
     | '/rules/'
+    | '/runtimes/'
     | '/best-practices/$bestPracticeId/edit'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
@@ -382,7 +401,6 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/distillation-studio'
     | '/recipes'
-    | '/runtimes'
     | '/settings'
     | '/skills'
     | '/'
@@ -393,6 +411,7 @@ export interface FileRouteTypes {
     | '/operations/new'
     | '/pipelines/$pipelineId'
     | '/rules/create'
+    | '/runtimes/$runtimeId'
     | '/api/trpc/$'
     | '/best-practices'
     | '/distillations'
@@ -401,6 +420,7 @@ export interface FileRouteTypes {
     | '/pipelines'
     | '/projects'
     | '/rules'
+    | '/runtimes'
     | '/best-practices/$bestPracticeId/edit'
     | '/operations/$operationId/edit'
     | '/projects/$projectId/workspace'
@@ -430,6 +450,7 @@ export interface FileRouteTypes {
     | '/_layout/operations/new'
     | '/_layout/pipelines/$pipelineId'
     | '/_layout/rules/create'
+    | '/_layout/runtimes/$runtimeId'
     | '/api/trpc/$'
     | '/_layout/best-practices/'
     | '/_layout/distillations/'
@@ -438,6 +459,7 @@ export interface FileRouteTypes {
     | '/_layout/pipelines/'
     | '/_layout/projects/'
     | '/_layout/rules/'
+    | '/_layout/runtimes/'
     | '/_layout/best-practices/$bestPracticeId/edit'
     | '/_layout/operations/$operationId/edit'
     | '/_layout/projects/$projectId/workspace'
@@ -540,6 +562,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAssistantRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/runtimes/': {
+      id: '/_layout/runtimes/'
+      path: '/'
+      fullPath: '/runtimes/'
+      preLoaderRoute: typeof LayoutRuntimesIndexRouteImport
+      parentRoute: typeof LayoutRuntimesRoute
+    }
     '/_layout/rules/': {
       id: '/_layout/rules/'
       path: '/rules'
@@ -595,6 +624,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/trpc/$'
       preLoaderRoute: typeof ApiTrpcSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_layout/runtimes/$runtimeId': {
+      id: '/_layout/runtimes/$runtimeId'
+      path: '/$runtimeId'
+      fullPath: '/runtimes/$runtimeId'
+      preLoaderRoute: typeof LayoutRuntimesRuntimeIdRouteImport
+      parentRoute: typeof LayoutRuntimesRoute
     }
     '/_layout/rules/create': {
       id: '/_layout/rules/create'
@@ -748,6 +784,20 @@ const LayoutPipelinesRouteWithChildren = LayoutPipelinesRoute._addFileChildren(
   LayoutPipelinesRouteChildren,
 )
 
+interface LayoutRuntimesRouteChildren {
+  LayoutRuntimesRuntimeIdRoute: typeof LayoutRuntimesRuntimeIdRoute
+  LayoutRuntimesIndexRoute: typeof LayoutRuntimesIndexRoute
+}
+
+const LayoutRuntimesRouteChildren: LayoutRuntimesRouteChildren = {
+  LayoutRuntimesRuntimeIdRoute: LayoutRuntimesRuntimeIdRoute,
+  LayoutRuntimesIndexRoute: LayoutRuntimesIndexRoute,
+}
+
+const LayoutRuntimesRouteWithChildren = LayoutRuntimesRoute._addFileChildren(
+  LayoutRuntimesRouteChildren,
+)
+
 interface LayoutRouteChildren {
   LayoutAssistantRoute: typeof LayoutAssistantRoute
   LayoutDistillationStudioRoute: typeof LayoutDistillationStudioRoute
@@ -755,7 +805,7 @@ interface LayoutRouteChildren {
   LayoutJobsRoute: typeof LayoutJobsRouteWithChildren
   LayoutPipelinesRoute: typeof LayoutPipelinesRouteWithChildren
   LayoutRecipesRoute: typeof LayoutRecipesRoute
-  LayoutRuntimesRoute: typeof LayoutRuntimesRoute
+  LayoutRuntimesRoute: typeof LayoutRuntimesRouteWithChildren
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutSkillsRoute: typeof LayoutSkillsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
@@ -783,7 +833,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutJobsRoute: LayoutJobsRouteWithChildren,
   LayoutPipelinesRoute: LayoutPipelinesRouteWithChildren,
   LayoutRecipesRoute: LayoutRecipesRoute,
-  LayoutRuntimesRoute: LayoutRuntimesRoute,
+  LayoutRuntimesRoute: LayoutRuntimesRouteWithChildren,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutSkillsRoute: LayoutSkillsRoute,
   LayoutIndexRoute: LayoutIndexRoute,

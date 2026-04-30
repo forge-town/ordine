@@ -23,7 +23,8 @@
     "./tooltip": "./src/tooltip.tsx",
     "./select": "./src/select.tsx",
     "./form": "./src/form.tsx",
-    "./popover": "./src/popover.tsx"
+    "./popover": "./src/popover.tsx",
+    "./table": "./src/table.tsx"
   },
   "scripts": {
     "lint": "oxlint --config ./.oxlintrc.json src/",
