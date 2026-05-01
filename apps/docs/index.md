@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Ordine
-  text: AI-First Meta-Orchestration Engine
-  tagline: Define operations, compose pipelines, let AI agents automate any workflow. Code quality automation built-in as a plugin.
+  text: AI Agent First Work Orchestration Framework
+  tagline: Define operations, compose pipelines, let AI agents run the work end-to-end. Code quality automation is built in as a plugin.
   actions:
     - theme: brand
       text: Get Started

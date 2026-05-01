@@ -4,7 +4,7 @@
 Ordine is currently in **Preview** stage. APIs and features may change. We welcome feedback and contributions!
 :::
 
-Ordine is an **AI-first meta-orchestration engine**. It provides a universal pipeline framework for defining, composing, and executing automated workflows — powered by AI agents and scripts.
+Ordine is an **AI Agent first work orchestration framework**. It provides a universal work orchestration framework for defining, composing, and executing automated workflows — powered by AI agents and scripts.
 
 Code quality automation is Ordine's first and flagship use case, delivered as a built-in plugin. Over time, domain-specific capabilities (code review, security scanning, documentation generation, etc.) will be fully extracted into plugins, leaving Ordine as a pure orchestration core.
 
@@ -33,7 +33,7 @@ This plugin demonstrates Ordine's extensibility model: domain knowledge lives in
 
 ## Key Differentiators
 
-### AI-First Design
+### AI Agent First Design
 
 Every feature is designed so that AI agents can discover, invoke, and compose it with minimal friction. Operations can use Claude, Codex, or custom scripts as backends.
 
@@ -56,7 +56,7 @@ The pipeline engine uses a directed acyclic graph (DAG) with typed nodes and edg
 
 Domain logic is progressively migrating into plugins. The core engine provides:
 
-- Pipeline DAG scheduling
+- Pipeline DAG orchestration
 - Agent dispatching
 - Entity management (operations, skills, rules, jobs)
 - UI canvas and API

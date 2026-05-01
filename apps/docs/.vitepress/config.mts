@@ -9,7 +9,7 @@ export default defineConfig({
     root: {
       label: "English",
       lang: "en-US",
-      description: "AI-first meta-orchestration engine for automated workflows",
+      description: "AI Agent First meta-orchestration engine for automated workflows",
       themeConfig: {
         nav: enNav(),
         sidebar: enSidebar(),
@@ -18,7 +18,7 @@ export default defineConfig({
     zh: {
       label: "简体中文",
       lang: "zh-CN",
-      description: "AI 优先的自动化工作流元编排引擎",
+      description: "AI Agent 优先的自动化工作流元编排引擎",
       themeConfig: {
         nav: zhNav(),
         sidebar: zhSidebar(),

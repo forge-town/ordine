@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: 成序 (Ordine)
-  text: AI 优先的元编排引擎
-  tagline: 定义操作，组合流水线，让 AI agent 自动化任意工作流。代码质量自动化作为内置插件提供。
+  text: AI Agent 优先的工作调度框架
+  tagline: 定义操作，组合流水线，让 AI agent 端到端执行任务。代码质量自动化作为内置插件提供。
   actions:
     - theme: brand
       text: 快速开始
@@ -17,7 +17,7 @@ hero:
       link: https://github.com/forge-town/ordine
 
 features:
-  - icon: �
+  - icon: 📦
     title: 对象
     details: 为流水线定义类型化输入 — 文件夹、代码文件、GitHub 项目或通过插件自定义类型。
   - icon: ⚙️
