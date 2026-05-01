@@ -4,17 +4,17 @@
 Ordine is currently in **Preview** stage. APIs and features may change. We welcome feedback and contributions!
 :::
 
-Ordine is an **AI Agent-first work scheduling framework**. It provides a universal work scheduling framework for defining, composing, and executing automated workflows — powered by AI agents and scripts.
+Ordine is an **AI Agent first work orchestration framework**. It provides a universal work orchestration framework for defining, composing, and executing automated workflows — powered by AI agents and scripts.
 
-Code quality automation is Ordine's first and flagship use case, delivered as a built-in plugin. Over time, domain-specific capabilities (code review, security scanning, documentation generation, etc.) will be fully extracted into plugins, leaving Ordine as a pure scheduling core.
+Code quality automation is Ordine's first and flagship use case, delivered as a built-in plugin. Over time, domain-specific capabilities (code review, security scanning, documentation generation, etc.) will be fully extracted into plugins, leaving Ordine as a pure orchestration core.
 
 ## The Problem
 
-Automation workflows are everywhere — code review, CI/CD, data processing, content generation — yet each domain reinvents its own scheduling layer. Teams end up with fragmented tools that can't compose, share context, or leverage AI agents effectively.
+Automation workflows are everywhere — code review, CI/CD, data processing, content generation — yet each domain reinvents its own orchestration layer. Teams end up with fragmented tools that can't compose, share context, or leverage AI agents effectively.
 
 ## The Solution
 
-Ordine provides a single scheduling layer that:
+Ordine provides a single orchestration layer that:
 
 1. **Define** operations — atomic tasks executed by AI agents, scripts, or plugins
 2. **Compose** operations into multi-step pipelines (DAG execution)
@@ -29,11 +29,11 @@ The built-in code quality plugin adds:
 - **Code-aware Operations** — check/fix code using AI agents or linters
 - **Rule Triggers** — automatically run pipelines on code changes
 
-This plugin demonstrates Ordine's extensibility model: domain knowledge lives in plugins, scheduling lives in the core.
+This plugin demonstrates Ordine's extensibility model: domain knowledge lives in plugins, orchestration lives in the core.
 
 ## Key Differentiators
 
-### AI Agent-First Design
+### AI Agent First Design
 
 Every feature is designed so that AI agents can discover, invoke, and compose it with minimal friction. Operations can use Claude, Codex, or custom scripts as backends.
 
@@ -56,7 +56,7 @@ The pipeline engine uses a directed acyclic graph (DAG) with typed nodes and edg
 
 Domain logic is progressively migrating into plugins. The core engine provides:
 
-- Pipeline DAG scheduling
+- Pipeline DAG orchestration
 - Agent dispatching
 - Entity management (operations, skills, rules, jobs)
 - UI canvas and API

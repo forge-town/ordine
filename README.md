@@ -6,7 +6,7 @@
 
 **Define once. Let your agents handle the rest.**
 
-The open-source AI Agent-first work scheduling framework.<br/>
+The open-source AI Agent first work orchestration framework.<br/>
 Compose operations into pipelines, plug in any AI agent, and automate any workflow — code quality, data processing, or your own domain.
 
 [![CI](https://github.com/forge-town/ordine/actions/workflows/ci.yml/badge.svg)](https://github.com/forge-town/ordine/actions/workflows/ci.yml)
@@ -24,7 +24,7 @@ Compose operations into pipelines, plug in any AI agent, and automate any workfl
 
 ## What is Ordine?
 
-Ordine is an **AI Agent-first work scheduling framework** that lets you define typed operations, compose them into DAG pipelines, and execute them with any AI agent or script executor.
+Ordine is an **AI Agent first work Orchestration framework** that lets you define typed operations, compose them into DAG pipelines, and execute them with any AI agent or script executor.
 
 No more scattered scripts. No more babysitting agent runs. Define your workflow once as a pipeline — then let Claude, GPT, Gemini, or your own agent execute it. Agents are the primary runtime, not an afterthought. Code quality automation ships as a built-in plugin.
 
