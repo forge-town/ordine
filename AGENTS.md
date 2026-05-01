@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> Ordine — an AI-first pipeline orchestration platform for code quality automation
+> Ordine — an AI-first work scheduling framework for automated workflows
 
 ## Core Principles
 

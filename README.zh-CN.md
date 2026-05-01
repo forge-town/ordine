@@ -6,7 +6,7 @@
 
 **定义一次，让 Agent 来完成剩余的工作。**
 
-开源 AI Agent 优先的元编排引擎。<br/>
+开源 AI Agent 优先的工作调度框架。<br/>
 将操作组合成流水线，接入任意 AI agent，自动化任意工作流 — 代码质量、数据处理或你自己的领域。
 
 [![CI](https://github.com/forge-town/ordine/actions/workflows/ci.yml/badge.svg)](https://github.com/forge-town/ordine/actions/workflows/ci.yml)
@@ -24,7 +24,7 @@
 
 ## 什么是成序？
 
-成序是一款 **AI Agent 优先的元编排引擎**，允许你定义类型化的操作，将其组合成 DAG 流水线，并通过任意 AI agent 或脚本执行器运行。
+成序是一款 **AI Agent 优先的工作调度框架**，允许你定义类型化的操作，将其组合成 DAG 流水线，并通过任意 AI agent 或脚本执行器运行。
 
 不再需要散落各处的脚本，不再需要盯着 agent 一步步执行。将工作流一次性定义为流水线，然后让 Claude、GPT、Gemini 或自定义 agent 去执行。Agent 是第一公民运行时，而非事后补充。代码质量自动化作为内置插件随附。
 

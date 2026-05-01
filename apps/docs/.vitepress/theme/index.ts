@@ -1,5 +1,6 @@
 import DefaultTheme from "vitepress/theme";
 import CopyPageButton from "./CopyPageButton.vue";
+import "./custom.css";
 import { h } from "vue";
 
 export default {

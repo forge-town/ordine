@@ -1,0 +1,8 @@
+:root {
+  --vp-nav-logo-height: 32px;
+}
+
+.VPImage.logo {
+  height: 32px;
+  width: 32px;
+}
