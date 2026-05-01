@@ -51,7 +51,8 @@
     "back": "Back",
     "workspace": "Workspace",
     "library": "Library",
-    "knowledge": "Knowledge"
+    "knowledge": "Knowledge",
+    "logout": "Log out"
   },
   "sidebar": {
     "user": "Ordine User"

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ElementType } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   LayoutDashboard,
@@ -20,6 +20,8 @@ import {
   ExternalLink,
   ChevronRight,
   Server,
+  LogOut,
+  ChevronsUpDown,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -36,7 +38,16 @@ import {
   SidebarTrigger,
 } from "@repo/ui/sidebar";
 import { Badge } from "@repo/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@repo/ui/dropdown-menu";
 import { pluginRegistry } from "@repo/plugin";
+import { useSession, signOut } from "@/integrations/better-auth-client";
 
 interface NavItem {
   labelKey: string;
@@ -151,7 +162,9 @@ const NavGroup = ({
 
 export const AppSidebar = () => {
   const { location } = useRouterState();
+  const navigate = useNavigate();
   const { t } = useTranslation();
+  const { data: session } = useSession();
   const currentPath = location.pathname;
   const [sidebarView, setSidebarView] = useState<SidebarView>(() =>
     isPipelinePath(currentPath) ? "pipeline" : "main"
@@ -171,6 +184,10 @@ export const AppSidebar = () => {
 
   const handleShowPipelineView = () => setSidebarView("pipeline");
   const handleShowMainView = () => setSidebarView("main");
+  const handleLogout = async () => {
+    await signOut();
+    navigate({ to: "/login" });
+  };
 
   return (
     <Sidebar className="border-r bg-sidebar" collapsible="icon">
@@ -321,24 +338,57 @@ export const AppSidebar = () => {
         )}
       </SidebarContent>
 
-      {/* GitHub at bottom */}
+      {/* User info + GitHub at bottom */}
       <SidebarFooter className="border-t p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              className="h-8"
-              render={
-                <a
-                  href="https://github.com/forge-town/ordine"
-                  rel="noopener noreferrer"
-                  target="_blank"
-                />
-              }
-              tooltip="GitHub"
-            >
-              <ExternalLink />
-              <span>GitHub</span>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-sidebar-accent"
+                render={<button type="button" />}
+              >
+                <Avatar size="sm">
+                  {session?.user?.image && (
+                    <AvatarImage src={session.user.image} alt={session.user.name ?? ""} />
+                  )}
+                  <AvatarFallback>
+                    {session?.user?.name?.charAt(0).toUpperCase() ?? "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-1 flex-col overflow-hidden group-data-[state=collapsed]/sidebar:hidden">
+                  <span className="truncate text-xs font-medium">
+                    {session?.user?.name ?? "User"}
+                  </span>
+                  <span className="truncate text-[10px] text-muted-foreground">
+                    {session?.user?.email ?? ""}
+                  </span>
+                </div>
+                <ChevronsUpDown className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground group-data-[state=collapsed]/sidebar:hidden" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" align="start" className="w-56">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>{t("nav.logout")}</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  render={
+                    <a
+                      href="https://github.com/forge-town/ordine"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    />
+                  }
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  <span>GitHub</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
