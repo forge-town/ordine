@@ -1,34 +1,43 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useForm } from "react-hook-form";
+import { z } from "zod/v4";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@repo/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
 import { Input } from "@repo/ui/input";
-import { Label } from "@repo/ui/label";
 import {
   signInWithEmail,
   signInWithGitHub,
   signInWithGoogle,
 } from "@/integrations/better-auth-client";
 
+const loginSchema = z.object({
+  email: z.email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+
 export const LoginPageContent = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setPassword(e.target.value);
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
+
   const handleGitHubClick = () => signInWithGitHub("/");
   const handleGoogleClick = () => signInWithGoogle("/");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (values: LoginFormValues) => {
     setError("");
     setLoading(true);
     try {
-      await signInWithEmail({ email, password, callbackURL: "/" });
+      await signInWithEmail({ ...values, callbackURL: "/" });
       navigate({ to: "/" });
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Login failed");
@@ -45,37 +54,44 @@ export const LoginPageContent = () => {
           <CardDescription>Sign in to your Ordine account</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            {error && (
-              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                required
-                id="email"
-                placeholder="you@example.com"
-                type="email"
-                value={email}
-                onChange={handleEmailChange}
+          <Form {...form}>
+            <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
+              {error && (
+                <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="you@example.com" type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                required
-                id="password"
-                type="password"
-                value={password}
-                onChange={handlePasswordChange}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <Button className="w-full" disabled={loading} type="submit">
-              {loading ? "Signing in..." : "Sign In"}
-            </Button>
-          </form>
+              <Button className="w-full" disabled={loading} type="submit">
+                {loading ? "Signing in..." : "Sign In"}
+              </Button>
+            </form>
+          </Form>
 
           <div className="mt-4 space-y-2">
             <div className="relative">
