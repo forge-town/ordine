@@ -1,7 +1,7 @@
 import { CanvasLayout } from "@/components/CanvasLayout";
 import { HarnessCanvasStoreProvider } from "./_store";
 import { CanvasPageContent } from "./CanvasPageContent";
-import { Route } from "@/routes/canvas";
+import { Route } from "@/routes/_layout/canvas";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { PipelineData } from "@repo/pipeline-engine/schemas";

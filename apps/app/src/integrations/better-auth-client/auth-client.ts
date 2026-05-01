@@ -1,7 +1,8 @@
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  baseURL: typeof window !== "undefined" ? window.location.origin : "http://localhost:9430",
+  baseURL:
+    globalThis.window === undefined ? "http://localhost:9430" : globalThis.window.location.origin,
   fetchOptions: { credentials: "include" },
   session: { refreshOnWindowFocus: true, refreshInterval: 60 * 10 },
 });
@@ -19,6 +20,7 @@ export const signUpWithEmail = async (input: {
   if (error) {
     throw error;
   }
+
   return data;
 };
 
@@ -34,6 +36,7 @@ export const signInWithEmail = async (input: {
   if (error) {
     throw error;
   }
+
   return data;
 };
 
@@ -51,7 +54,6 @@ export const signInWithGoogle = (callbackURL = "/") =>
     errorCallbackURL: "/login",
   });
 
-export const signOut = (cb?: () => void) =>
-  authClient.signOut({ fetchOptions: { onSuccess: cb } });
+export const signOut = (cb?: () => void) => authClient.signOut({ fetchOptions: { onSuccess: cb } });
 
 export const { useSession, getSession } = authClient;

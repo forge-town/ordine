@@ -9,9 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutSkillsRouteImport } from './routes/_layout/skills'
@@ -22,6 +21,7 @@ import { Route as LayoutPipelinesRouteImport } from './routes/_layout/pipelines'
 import { Route as LayoutJobsRouteImport } from './routes/_layout/jobs'
 import { Route as LayoutDistillationsRouteImport } from './routes/_layout/distillations'
 import { Route as LayoutDistillationStudioRouteImport } from './routes/_layout/distillation-studio'
+import { Route as LayoutCanvasRouteImport } from './routes/_layout/canvas'
 import { Route as LayoutAssistantRouteImport } from './routes/_layout/assistant'
 import { Route as LayoutRuntimesIndexRouteImport } from './routes/_layout/runtimes.index'
 import { Route as LayoutRulesIndexRouteImport } from './routes/_layout/rules.index'
@@ -51,19 +51,14 @@ import { Route as LayoutProjectsProjectIdWorkspaceRouteImport } from './routes/_
 import { Route as LayoutOperationsOperationIdEditRouteImport } from './routes/_layout/operations.$operationId.edit'
 import { Route as LayoutBestPracticesBestPracticeIdEditRouteImport } from './routes/_layout/best-practices.$bestPracticeId.edit'
 
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CanvasRoute = CanvasRouteImport.update({
-  id: '/canvas',
-  path: '/canvas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutRoute = LayoutRouteImport.update({
@@ -116,6 +111,11 @@ const LayoutDistillationStudioRoute =
     path: '/distillation-studio',
     getParentRoute: () => LayoutRoute,
   } as any)
+const LayoutCanvasRoute = LayoutCanvasRouteImport.update({
+  id: '/canvas',
+  path: '/canvas',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAssistantRoute = LayoutAssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -272,10 +272,10 @@ const LayoutBestPracticesBestPracticeIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
-  '/canvas': typeof CanvasRoute
   '/login': typeof LoginRoute
-  '/signup': typeof SignupRoute
+  '/sign-up': typeof SignUpRoute
   '/assistant': typeof LayoutAssistantRoute
+  '/canvas': typeof LayoutCanvasRoute
   '/distillation-studio': typeof LayoutDistillationStudioRoute
   '/distillations': typeof LayoutDistillationsRouteWithChildren
   '/jobs': typeof LayoutJobsRouteWithChildren
@@ -313,10 +313,10 @@ export interface FileRoutesByFullPath {
   '/runtimes/$runtimeId/': typeof LayoutRuntimesRuntimeIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/canvas': typeof CanvasRoute
   '/login': typeof LoginRoute
-  '/signup': typeof SignupRoute
+  '/sign-up': typeof SignUpRoute
   '/assistant': typeof LayoutAssistantRoute
+  '/canvas': typeof LayoutCanvasRoute
   '/distillation-studio': typeof LayoutDistillationStudioRoute
   '/recipes': typeof LayoutRecipesRoute
   '/settings': typeof LayoutSettingsRoute
@@ -353,10 +353,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
-  '/canvas': typeof CanvasRoute
   '/login': typeof LoginRoute
-  '/signup': typeof SignupRoute
+  '/sign-up': typeof SignUpRoute
   '/_layout/assistant': typeof LayoutAssistantRoute
+  '/_layout/canvas': typeof LayoutCanvasRoute
   '/_layout/distillation-studio': typeof LayoutDistillationStudioRoute
   '/_layout/distillations': typeof LayoutDistillationsRouteWithChildren
   '/_layout/jobs': typeof LayoutJobsRouteWithChildren
@@ -398,10 +398,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/canvas'
     | '/login'
-    | '/signup'
+    | '/sign-up'
     | '/assistant'
+    | '/canvas'
     | '/distillation-studio'
     | '/distillations'
     | '/jobs'
@@ -439,10 +439,10 @@ export interface FileRouteTypes {
     | '/runtimes/$runtimeId/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/canvas'
     | '/login'
-    | '/signup'
+    | '/sign-up'
     | '/assistant'
+    | '/canvas'
     | '/distillation-studio'
     | '/recipes'
     | '/settings'
@@ -478,10 +478,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_layout'
-    | '/canvas'
     | '/login'
-    | '/signup'
+    | '/sign-up'
     | '/_layout/assistant'
+    | '/_layout/canvas'
     | '/_layout/distillation-studio'
     | '/_layout/distillations'
     | '/_layout/jobs'
@@ -522,20 +522,19 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
-  CanvasRoute: typeof CanvasRoute
   LoginRoute: typeof LoginRoute
-  SignupRoute: typeof SignupRoute
+  SignUpRoute: typeof SignUpRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -543,13 +542,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/canvas': {
-      id: '/canvas'
-      path: '/canvas'
-      fullPath: '/canvas'
-      preLoaderRoute: typeof CanvasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout': {
@@ -620,6 +612,13 @@ declare module '@tanstack/react-router' {
       path: '/distillation-studio'
       fullPath: '/distillation-studio'
       preLoaderRoute: typeof LayoutDistillationStudioRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/canvas': {
+      id: '/_layout/canvas'
+      path: '/canvas'
+      fullPath: '/canvas'
+      preLoaderRoute: typeof LayoutCanvasRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/assistant': {
@@ -883,6 +882,7 @@ const LayoutRuntimesRouteWithChildren = LayoutRuntimesRoute._addFileChildren(
 
 interface LayoutRouteChildren {
   LayoutAssistantRoute: typeof LayoutAssistantRoute
+  LayoutCanvasRoute: typeof LayoutCanvasRoute
   LayoutDistillationStudioRoute: typeof LayoutDistillationStudioRoute
   LayoutDistillationsRoute: typeof LayoutDistillationsRouteWithChildren
   LayoutJobsRoute: typeof LayoutJobsRouteWithChildren
@@ -911,6 +911,7 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAssistantRoute: LayoutAssistantRoute,
+  LayoutCanvasRoute: LayoutCanvasRoute,
   LayoutDistillationStudioRoute: LayoutDistillationStudioRoute,
   LayoutDistillationsRoute: LayoutDistillationsRouteWithChildren,
   LayoutJobsRoute: LayoutJobsRouteWithChildren,
@@ -944,9 +945,8 @@ const LayoutRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
-  CanvasRoute: CanvasRoute,
   LoginRoute: LoginRoute,
-  SignupRoute: SignupRoute,
+  SignUpRoute: SignUpRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }

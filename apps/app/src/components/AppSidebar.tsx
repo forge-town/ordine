@@ -349,7 +349,7 @@ export const AppSidebar = () => {
               >
                 <Avatar size="sm">
                   {session?.user?.image && (
-                    <AvatarImage src={session.user.image} alt={session.user.name ?? ""} />
+                    <AvatarImage alt={session.user.name ?? ""} src={session.user.image} />
                   )}
                   <AvatarFallback>
                     {session?.user?.name?.charAt(0).toUpperCase() ?? "U"}
@@ -365,11 +365,8 @@ export const AppSidebar = () => {
                 </div>
                 <ChevronsUpDown className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground group-data-[state=collapsed]/sidebar:hidden" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" align="start" className="w-56">
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={handleLogout}
-                >
+              <DropdownMenuContent align="start" className="w-56" side="top">
+                <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>{t("nav.logout")}</span>
                 </DropdownMenuItem>

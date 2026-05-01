@@ -5,5 +5,6 @@ export const getServerEnv = () => {
   if (error) {
     throw new Error(`Server env not valid: ${JSON.stringify(error.issues, null, 2)}`);
   }
+
   return data;
 };

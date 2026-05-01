@@ -1,18 +1,23 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@repo/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/card";
 import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
 import { signUpWithEmail } from "@/integrations/better-auth-client";
 
-function SignupPage() {
+export const SignUpPageContent = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value);
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setPassword(e.target.value);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,8 +26,8 @@ function SignupPage() {
     try {
       await signUpWithEmail({ name, email, password, callbackURL: "/" });
       navigate({ to: "/" });
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Signup failed");
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "Signup failed");
     } finally {
       setLoading(false);
     }
@@ -36,7 +41,7 @@ function SignupPage() {
           <CardDescription>Sign up for Ordine</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {error && (
               <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                 {error}
@@ -45,45 +50,45 @@ function SignupPage() {
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Input
-                id="name"
-                type="text"
-                placeholder="Your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
                 required
+                id="name"
+                placeholder="Your name"
+                type="text"
+                value={name}
+                onChange={handleNameChange}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 required
+                id="email"
+                placeholder="you@example.com"
+                type="email"
+                value={email}
+                onChange={handleEmailChange}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
-                id="password"
-                type="password"
-                placeholder="At least 8 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
+                id="password"
                 minLength={8}
+                placeholder="At least 8 characters"
+                type="password"
+                value={password}
+                onChange={handlePasswordChange}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button className="w-full" disabled={loading} type="submit">
               {loading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <a href="/login" className="text-primary underline-offset-4 hover:underline">
+            <a className="text-primary underline-offset-4 hover:underline" href="/login">
               Sign in
             </a>
           </p>
@@ -91,8 +96,4 @@ function SignupPage() {
       </Card>
     </div>
   );
-}
-
-export const Route = createFileRoute("/signup")({
-  component: SignupPage,
-});
+};

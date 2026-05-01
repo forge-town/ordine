@@ -2,12 +2,7 @@ import bcrypt from "bcryptjs";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@repo/db";
-import {
-  usersTable,
-  sessionsTable,
-  accountsTable,
-  verificationsTable,
-} from "@repo/db-schema";
+import { usersTable, sessionsTable, accountsTable, verificationsTable } from "@repo/db-schema";
 import { getServerEnv } from "@/integrations/server-env";
 
 const {
