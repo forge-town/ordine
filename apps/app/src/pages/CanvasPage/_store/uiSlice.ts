@@ -1,4 +1,5 @@
 import type { NodeRunStatus } from "@repo/pipeline-engine/schemas";
+import type { Viewport } from "@xyflow/react";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 
@@ -76,7 +77,7 @@ export interface UISlice {
   handleConnectStart: (state: ConnectStartState | null) => void;
   handlePipelineNameChange: (name: string) => void;
   setViewportZoom: (zoom: number) => void;
-  handleFlowMove: (zoom: number) => void;
+  handleFlowMove: (event: MouseEvent | TouchEvent | null, viewport: Viewport) => void;
 
   // Pipeline run actions
   startTestRun: () => void;
@@ -231,10 +232,10 @@ export const createUISlice = (
     set({ viewportZoom: zoom });
   },
 
-  handleFlowMove: (zoom) => {
+  handleFlowMove: (_event, viewport) => {
     const currentZoom = get().viewportZoom;
-    if (Math.abs(currentZoom - zoom) > 0.001) {
-      set({ viewportZoom: zoom });
+    if (Math.abs(currentZoom - viewport.zoom) > 0.001) {
+      set({ viewportZoom: viewport.zoom });
     }
   },
 

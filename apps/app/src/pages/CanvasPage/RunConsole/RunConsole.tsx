@@ -3,10 +3,11 @@ import { Terminal, X, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { cn } from "@repo/ui/lib/utils";
-import { useCustom, useDataProvider, useOne } from "@refinedev/core";
+import { useCustom, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { StatusIcon } from "./StatusIcon";
+import { isTerminalStatus, useRunConsoleEffects } from "./useRunConsoleEffects";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { JobData, JobStatus } from "./types";
 
@@ -72,9 +73,6 @@ const isStructuredLog = (log: string): boolean => {
   return msg.startsWith(STRUCTURED_LOG_PREFIX);
 };
 
-const isTerminalStatus = (s: JobStatus) =>
-  s === "done" || s === "failed" || s === "cancelled" || s === "expired";
-
 export const RunConsole = () => {
   const store = useHarnessCanvasStore();
   const jobId = useStore(store, (s) => s.activeJobId);
@@ -86,9 +84,6 @@ export const RunConsole = () => {
   const stopTestRun = useStore(store, (s) => s.stopTestRun);
   const isConsoleCollapsed = useStore(store, (s) => s.isConsoleCollapsed);
   const handleToggleConsoleCollapse = useStore(store, (s) => s.handleToggleConsoleCollapse);
-  const getDataProvider = useDataProvider();
-  const dataProvider = getDataProvider();
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const processedTraceRef = useRef({ jobId: null as string | null, count: 0 });
   const isConsoleCollapsedRef = useRef(isConsoleCollapsed);
@@ -121,30 +116,22 @@ export const RunConsole = () => {
     [markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent]
   );
 
+  const handleJobRefetchInterval = useCallback(
+    (query: { state: { data?: { data?: JobData } } }) => {
+      const status = query.state.data?.data?.status;
+      if (status && isTerminalStatus(status)) return false;
+
+      return POLL_INTERVAL;
+    },
+    []
+  );
+
   const { query: jobQuery } = useOne<JobData>({
     resource: ResourceName.jobs,
     id: jobId ?? "",
     queryOptions: {
       enabled: !!jobId,
-      queryFn: async () => {
-        const currentJobId = jobId ?? "";
-        const response = await dataProvider.getOne!<JobData>({
-          resource: ResourceName.jobs,
-          id: currentJobId,
-        });
-
-        if (isTerminalStatus(response.data.status)) {
-          stopTestRun();
-        }
-
-        return response;
-      },
-      refetchInterval: (query) => {
-        const status = (query.state.data?.data as JobData | undefined)?.status;
-        if (status && isTerminalStatus(status)) return false;
-
-        return POLL_INTERVAL;
-      },
+      refetchInterval: handleJobRefetchInterval,
     },
   });
 
@@ -152,32 +139,33 @@ export const RunConsole = () => {
   const jobRef = useRef(job);
   jobRef.current = job;
 
+  const handleTracesRefetchInterval = useCallback(() => {
+    if (jobRef.current && isTerminalStatus(jobRef.current.status)) return false;
+
+    return POLL_INTERVAL;
+  }, []);
+
   const { result: tracesResult } = useCustom<{ traces: Array<{ message: string }> }>({
     url: "jobs/traces",
     method: "get",
     config: { payload: { jobId: jobId ?? "" } },
     queryOptions: {
       enabled: !!jobId,
-      queryFn: async () => {
-        const currentJobId = jobId ?? "";
-        const response = await dataProvider.custom!<{ traces: Array<{ message: string }> }>({
-          url: "jobs/traces",
-          method: "get",
-          payload: { jobId: currentJobId },
-        });
-        const logs = response.data.traces.map((trace) => trace.message);
-        applyStructuredTraceLogs(currentJobId, logs);
-
-        return response;
-      },
-      refetchInterval: () => {
-        if (jobRef.current && isTerminalStatus(jobRef.current.status)) return false;
-
-        return POLL_INTERVAL;
-      },
+      refetchInterval: handleTracesRefetchInterval,
     },
   });
-  const traceLogs = (tracesResult.data?.traces ?? []).map((trace) => trace.message);
+
+  const traces = tracesResult.data?.traces ?? [];
+
+  useRunConsoleEffects({
+    applyStructuredTraceLogs,
+    job,
+    jobId,
+    stopTestRun,
+    traces,
+  });
+
+  const traceLogs = traces.map((trace) => trace.message);
 
   return (
     <div

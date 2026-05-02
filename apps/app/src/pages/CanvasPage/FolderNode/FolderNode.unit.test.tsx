@@ -8,6 +8,8 @@ vi.mock("@xyflow/react", () => ({
   Handle: () => null,
   Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
   ReactFlowProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
+  useNodeId: () => "test",
+  useUpdateNodeInternals: () => () => undefined,
 }));
 
 vi.mock("@refinedev/core", () => ({

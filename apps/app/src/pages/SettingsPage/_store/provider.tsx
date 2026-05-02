@@ -1,10 +1,9 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import {
   SettingsPageStoreContext,
   createSettingsPageStore,
   type AppSettings,
 } from "./settingsPageStore";
-import { useInit } from "@/hooks/useInit";
 
 interface Props {
   children: ReactNode;
@@ -12,7 +11,7 @@ interface Props {
 }
 
 export const SettingsPageStoreProvider = ({ children, initialSettings }: Props) => {
-  const store = useInit(() => createSettingsPageStore(initialSettings));
+  const [store] = useState(() => createSettingsPageStore(initialSettings));
 
   return (
     <SettingsPageStoreContext.Provider value={store}>{children}</SettingsPageStoreContext.Provider>

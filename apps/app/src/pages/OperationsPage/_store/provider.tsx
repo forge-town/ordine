@@ -1,13 +1,12 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { OperationsPageStoreContext, createOperationsPageStore } from "./operationsPageStore";
-import { useInit } from "@/hooks/useInit";
 
 interface Props {
   children: ReactNode;
 }
 
 export const OperationsPageStoreProvider = ({ children }: Props) => {
-  const store = useInit(() => createOperationsPageStore());
+  const [store] = useState(() => createOperationsPageStore());
 
   return (
     <OperationsPageStoreContext.Provider value={store}>

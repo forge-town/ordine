@@ -1,10 +1,9 @@
-import { Handle, Position } from "@xyflow/react";
 import { FolderOutput } from "lucide-react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
 import type { OutputProjectPathNodeData } from "@repo/pipeline-engine/schemas";
-import { NodeCard } from "../NodeCard";
+import { NodeCard, useNodePortCounts } from "../NodeCard";
 import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
 
@@ -20,6 +19,7 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
   const store = useHarnessCanvasStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
+  const { leftPortCount } = useNodePortCounts(id);
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
   const handleProjectIdChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -32,11 +32,13 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
+        leftHandle
         bodyClassName="space-y-2"
         description="项目路径输出"
         dimmed={dimmed}
         icon={FolderOutput}
         label={data.label}
+        leftHandleCount={leftPortCount}
         runStatus={runStatus}
         selected={selected}
         theme="teal"
@@ -73,13 +75,6 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
           onMouseDown={handleMouseDown}
         />
       </NodeCard>
-
-      {/* Output nodes only receive connections — no source handle */}
-      <Handle
-        className="absolute h-3.5 w-3.5 rounded-full bg-teal-500 border-[3px] border-white shadow-sm transition-all hover:scale-110 -left-1.5 top-1/2 -mt-1.5"
-        position={Position.Left}
-        type="target"
-      />
     </div>
   );
 };

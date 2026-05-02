@@ -1,11 +1,11 @@
 import { createContext, useContext } from "react";
 import { createStore, type StoreApi, type StateCreator } from "zustand";
 import {
-  createOperationCreatePageSlice,
-  type OperationCreatePageSlice,
-} from "./operationCreatePageSlice";
+  createOperationFormSlice,
+  type OperationFormSlice,
+} from "../../OperationEditPage/_shared/operationFormSlice";
 
-export interface OperationCreatePageState extends OperationCreatePageSlice {}
+export interface OperationCreatePageState extends OperationFormSlice {}
 
 export type OperationCreatePageStoreSlice<T = OperationCreatePageState> = StateCreator<
   OperationCreatePageState,
@@ -18,7 +18,7 @@ export type OperationCreatePageStore = StoreApi<OperationCreatePageState>;
 
 export const createOperationCreatePageStore = () => {
   return createStore<OperationCreatePageState>()((set, get, api) => ({
-    ...createOperationCreatePageSlice(set, get, api),
+    ...createOperationFormSlice(set, get, api),
   }));
 };
 

@@ -1,16 +1,15 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import {
   DistillationStudioPageStoreContext,
   createDistillationStudioPageStore,
 } from "./distillationStudioPageStore";
-import { useInit } from "@/hooks/useInit";
 
 interface Props {
   children: ReactNode;
 }
 
 export const DistillationStudioPageStoreProvider = ({ children }: Props) => {
-  const store = useInit(() => createDistillationStudioPageStore());
+  const [store] = useState(() => createDistillationStudioPageStore());
 
   return (
     <DistillationStudioPageStoreContext.Provider value={store}>

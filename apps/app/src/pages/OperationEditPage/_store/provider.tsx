@@ -1,16 +1,15 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import {
   OperationEditPageStoreContext,
   createOperationEditPageStore,
 } from "./operationEditPageStore";
-import { useInit } from "@/hooks/useInit";
 
 interface Props {
   children: ReactNode;
 }
 
 export const OperationEditPageStoreProvider = ({ children }: Props) => {
-  const store = useInit(() => createOperationEditPageStore());
+  const [store] = useState(() => createOperationEditPageStore());
 
   return (
     <OperationEditPageStoreContext.Provider value={store}>
