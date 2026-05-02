@@ -1,12 +1,11 @@
-import { useState } from "react";
-import { Handle, Position } from "@xyflow/react";
+import { memo, useState } from "react";
 import { Folder, FolderOpen, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
 import type { FolderNodeData } from "@repo/pipeline-engine/schemas";
-import { NodeCard } from "../NodeCard";
+import { NodeCard, useNodePortCounts } from "../NodeCard";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
 import { FolderTreePreview } from "./FolderTreePreview";
 import { Input } from "@repo/ui/input";
@@ -28,6 +27,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const handleNodeAddExcludedPath = useStore(store, (s) => s.handleNodeAddExcludedPath);
   const handleNodeRemoveExcludedPath = useStore(store, (s) => s.handleNodeRemoveExcludedPath);
+  const { rightPortCount } = useNodePortCounts(id);
   const [browserOpen, setBrowserOpen] = useState(false);
 
   const excludedPaths: string[] = Array.isArray(data.excludedPaths) ? data.excludedPaths : [];
@@ -58,11 +58,13 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
+        rightHandle
         bodyClassName="space-y-2"
         description="Folder"
         dimmed={dimmed}
         icon={Folder}
         label={data.label}
+        rightHandleCount={rightPortCount}
         runStatus={runStatus}
         selected={selected}
         theme="orange"
@@ -134,13 +136,6 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}
         onSelect={handleFolderSelect}
-      />
-
-      {/* Object nodes only emit connections — no target handle */}
-      <Handle
-        className="absolute h-3.5 w-3.5 rounded-full bg-orange-400 border-[3px] border-white shadow-sm transition-all hover:scale-110 -right-1.5 top-1/2 -mt-1.5"
-        position={Position.Right}
-        type="source"
       />
     </div>
   );

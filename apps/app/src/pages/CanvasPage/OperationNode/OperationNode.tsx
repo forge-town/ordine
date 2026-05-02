@@ -1,4 +1,3 @@
-import { Handle, Position } from "@xyflow/react";
 import { Zap, CheckCircle2, XCircle, Loader2, Circle, Brain, Repeat } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@repo/ui/lib/utils";
@@ -18,7 +17,7 @@ import type { OperationNodeData, NodeRunStatus } from "@repo/pipeline-engine/sch
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { type Operation, type BestPractice, AgentRuntimeSchema } from "@repo/schemas";
-import { NodeCard } from "../NodeCard";
+import { NodeCard, useNodePortCounts } from "../NodeCard";
 import { BestPracticeSelect } from "./BestPracticeSelect";
 
 export interface OperationNodeProps {
@@ -64,6 +63,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const isTestRunning = useStore(store, (s) => s.isTestRunning);
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
   const setInspectingNodeId = useStore(store, (s) => s.setInspectingNodeId);
+  const { leftPortCount, rightPortCount } = useNodePortCounts(id);
 
   const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
 
@@ -117,6 +117,8 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
       onClick={handleCardClick}
     >
       <NodeCard
+        leftHandle
+        rightHandle
         bodyClassName="space-y-2"
         description={operation?.description || "自定义操作"}
         dimmed={dimmed}
@@ -138,6 +140,8 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         }
         icon={Zap}
         label={data.operationName || data.label}
+        leftHandleCount={leftPortCount}
+        rightHandleCount={rightPortCount}
         runStatus={nodeRunStatus}
         selected={selected}
         theme="violet"
@@ -274,19 +278,6 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
           )}
         </div>
       </NodeCard>
-
-      {/* Target handle (input from object or previous operation) */}
-      <Handle
-        className="absolute h-3.5 w-3.5 rounded-full border-[3px] border-white shadow-sm transition-all hover:scale-110 -left-1.5 top-1/2 -mt-1.5 bg-violet-500"
-        position={Position.Left}
-        type="target"
-      />
-      {/* Source handle (output to next operation or object) */}
-      <Handle
-        className="absolute h-3.5 w-3.5 rounded-full border-[3px] border-white shadow-sm transition-all hover:scale-110 -right-1.5 top-1/2 -mt-1.5 bg-violet-500"
-        position={Position.Right}
-        type="source"
-      />
     </div>
   );
 };

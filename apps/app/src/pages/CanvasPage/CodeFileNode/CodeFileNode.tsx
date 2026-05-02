@@ -1,11 +1,10 @@
-import { useState } from "react";
-import { Handle, Position } from "@xyflow/react";
+import { memo, useState } from "react";
 import { FileCode, FolderOpen } from "lucide-react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
 import type { CodeFileNodeData } from "@repo/pipeline-engine/schemas";
-import { NodeCard } from "../NodeCard";
+import { NodeCard, useNodePortCounts } from "../NodeCard";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
 
 export interface CodeFileNodeProps {
@@ -20,6 +19,7 @@ export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
   const store = useHarnessCanvasStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
+  const { rightPortCount } = useNodePortCounts(id);
   const [browserOpen, setBrowserOpen] = useState(false);
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
@@ -46,11 +46,13 @@ export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
   return (
     <div className="group relative" style={{ overflow: "visible" }}>
       <NodeCard
+        rightHandle
         bodyClassName="space-y-2"
         description="Code File"
         dimmed={dimmed}
         icon={FileCode}
         label={data.label}
+        rightHandleCount={rightPortCount}
         runStatus={runStatus}
         selected={selected}
         theme="orange"
@@ -106,13 +108,6 @@ export const CodeFileNode = ({ id, data, selected }: CodeFileNodeProps) => {
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}
         onSelect={handleFileSelect}
-      />
-
-      {/* Object nodes only emit connections — no target handle */}
-      <Handle
-        className="absolute h-3.5 w-3.5 rounded-full bg-orange-500 border-[3px] border-white shadow-sm transition-all hover:scale-110 -right-1.5 top-1/2 -mt-1.5"
-        position={Position.Right}
-        type="source"
       />
     </div>
   );

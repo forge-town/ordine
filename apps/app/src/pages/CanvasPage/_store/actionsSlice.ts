@@ -19,6 +19,23 @@ import {
   QUICK_ADD_NODE_ORIGIN,
   offsetPosition,
 } from "../utils/nodePosition";
+import type { ConnectStartState } from "./uiSlice";
+
+const getConnectStartHandleId = (
+  connectionState: FinalConnectionState,
+  currentConnectStart: ConnectStartState | null,
+  fromNodeId: string
+): string | null =>
+  connectionState.fromHandle?.id ??
+  (currentConnectStart?.nodeId === fromNodeId ? currentConnectStart.handleId : null);
+
+const getConnectStartHandleType = (
+  connectionState: FinalConnectionState,
+  currentConnectStart: ConnectStartState | null,
+  fromNodeId: string
+): ConnectStartState["handleType"] =>
+  connectionState.fromHandle?.type ??
+  (currentConnectStart?.nodeId === fromNodeId ? currentConnectStart.handleType : null);
 
 export interface ActionsSlice {
   exportCanvas: () => void;
@@ -235,12 +252,13 @@ export const createActionsSlice = (
     }
 
     const fromNodeId = connectionState.fromNode?.id ?? null;
+    const currentConnectStart = get().connectStart;
 
     if (fromNodeId) {
       get().handleConnectStart({
         nodeId: fromNodeId,
-        handleId: connectionState.fromHandle?.id ?? null,
-        handleType: connectionState.fromHandle?.type ?? null,
+        handleId: getConnectStartHandleId(connectionState, currentConnectStart, fromNodeId),
+        handleType: getConnectStartHandleType(connectionState, currentConnectStart, fromNodeId),
       });
 
       const { clientX, clientY } =
@@ -392,25 +410,26 @@ export const createActionsSlice = (
   },
 
   addNodeAndAutoConnect: (node) => {
-    const state = get();
-    state.addNode(node);
+    const connectStart = get().connectStart;
+    get().addNode(node);
 
-    if (state.connectStart) {
-      const sourceNode = state.nodes.find((n) => n.id === state.connectStart!.nodeId);
+    if (connectStart) {
+      const state = get();
+      const sourceNode = state.nodes.find((n) => n.id === connectStart.nodeId);
       if (sourceNode) {
-        if (state.connectStart.handleType === "source") {
+        if (connectStart.handleType === "source") {
           state.handleConnect({
-            source: state.connectStart.nodeId,
-            sourceHandle: state.connectStart.handleId,
+            source: connectStart.nodeId,
+            sourceHandle: connectStart.handleId,
             target: node.id,
             targetHandle: null,
           });
-        } else {
+        } else if (connectStart.handleType === "target") {
           state.handleConnect({
             source: node.id,
             sourceHandle: null,
-            target: state.connectStart.nodeId,
-            targetHandle: state.connectStart.handleId,
+            target: connectStart.nodeId,
+            targetHandle: connectStart.handleId,
           });
         }
       }
