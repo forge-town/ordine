@@ -57,6 +57,35 @@ describe("NodeCard", () => {
     expect(xyflowMocks.useUpdateNodeInternals).not.toHaveBeenCalled();
   });
 
+  it("does not re-render when props are stable", () => {
+    const onRender = vi.fn();
+    const TrackRenders = ({ headerRight }: { headerRight?: React.ReactNode }) => {
+      onRender();
+      return <NodeCard headerRight={headerRight} icon={Box} label="Test" theme="emerald" />;
+    };
+
+    const { rerender } = render(<TrackRenders />);
+    expect(onRender).toHaveBeenCalledTimes(1);
+
+    rerender(<TrackRenders />);
+    expect(onRender).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not re-render when headerRight reference is stable", () => {
+    const onRender = vi.fn();
+    const TrackRenders = ({ headerRight }: { headerRight?: React.ReactNode }) => {
+      onRender();
+      return <NodeCard headerRight={headerRight} icon={Box} label="Test" theme="emerald" />;
+    };
+
+    const stableHeader = <span>Status</span>;
+    const { rerender } = render(<TrackRenders headerRight={stableHeader} />);
+    expect(onRender).toHaveBeenCalledTimes(1);
+
+    rerender(<TrackRenders headerRight={stableHeader} />);
+    expect(onRender).toHaveBeenCalledTimes(2);
+  });
+
   it("renders children in body", () => {
     render(
       <NodeCard icon={Box} label="Node" theme="emerald">
