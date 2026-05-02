@@ -1,5 +1,5 @@
-import { Zap, CheckCircle2, XCircle, Loader2, Circle, Brain, Repeat } from "lucide-react";
-import { useState } from "react";
+import { Zap, Brain, Repeat } from "lucide-react";
+import { useMemo, useState } from "react";
 import { cn } from "@repo/ui/lib/utils";
 import {
   Select,
@@ -13,32 +13,19 @@ import {
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
-import type { OperationNodeData, NodeRunStatus } from "@repo/pipeline-engine/schemas";
+import type { OperationNodeData } from "@repo/pipeline-engine/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { type Operation, type BestPractice, AgentRuntimeSchema } from "@repo/schemas";
 import { NodeCard, useNodePortCounts } from "../NodeCard";
 import { BestPracticeSelect } from "./BestPracticeSelect";
+import { StatusBadge } from "./StatusBadge";
 
 export interface OperationNodeProps {
   id: string;
   data: OperationNodeData;
   selected?: boolean;
 }
-
-const statusConfig: Record<
-  NodeRunStatus,
-  { icon: React.ElementType; color: string; label: string }
-> = {
-  idle: { icon: Circle, color: "text-gray-400", label: "待运行" },
-  running: {
-    icon: Loader2,
-    color: "text-blue-500 animate-spin",
-    label: "运行中",
-  },
-  pass: { icon: CheckCircle2, color: "text-green-500", label: "成功" },
-  fail: { icon: XCircle, color: "text-red-500", label: "失败" },
-};
 
 const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
@@ -65,9 +52,9 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const setInspectingNodeId = useStore(store, (s) => s.setInspectingNodeId);
   const { leftPortCount, rightPortCount } = useNodePortCounts(id);
 
-  const { icon: StatusIcon, color, label: statusLabel } = statusConfig[data.status ?? "idle"];
-
   const operation = operations.find((op: Operation) => op.id === data.operationId);
+
+  const headerRight = useMemo(() => <StatusBadge status={data.status} />, [data.status]);
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v, operationName: v });
 
@@ -122,22 +109,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         bodyClassName="space-y-2"
         description={operation?.description || "自定义操作"}
         dimmed={dimmed}
-        headerRight={
-          <div
-            className={cn(
-              "flex shrink-0 items-center gap-1.5 rounded-md border px-2 py-1 shadow-sm",
-              data.status === "pass" && "bg-green-50 border-green-100",
-              data.status === "fail" && "bg-red-50 border-red-100",
-              data.status === "running" && "bg-blue-50 border-blue-100",
-              (!data.status || data.status === "idle") && "bg-white border-slate-100"
-            )}
-          >
-            <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
-              {statusLabel}
-            </span>
-          </div>
-        }
+        headerRight={headerRight}
         icon={Zap}
         label={data.operationName || data.label}
         leftHandleCount={leftPortCount}

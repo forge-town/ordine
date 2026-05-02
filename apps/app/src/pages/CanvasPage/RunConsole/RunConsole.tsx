@@ -1,9 +1,9 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import { Terminal, X, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { cn } from "@repo/ui/lib/utils";
-import { useCustom, useDataProvider, useOne } from "@refinedev/core";
+import { useCustom, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { StatusIcon } from "./StatusIcon";
@@ -86,9 +86,6 @@ export const RunConsole = () => {
   const stopTestRun = useStore(store, (s) => s.stopTestRun);
   const isConsoleCollapsed = useStore(store, (s) => s.isConsoleCollapsed);
   const handleToggleConsoleCollapse = useStore(store, (s) => s.handleToggleConsoleCollapse);
-  const getDataProvider = useDataProvider();
-  const dataProvider = getDataProvider();
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const processedTraceRef = useRef({ jobId: null as string | null, count: 0 });
   const isConsoleCollapsedRef = useRef(isConsoleCollapsed);
@@ -126,19 +123,6 @@ export const RunConsole = () => {
     id: jobId ?? "",
     queryOptions: {
       enabled: !!jobId,
-      queryFn: async () => {
-        const currentJobId = jobId ?? "";
-        const response = await dataProvider.getOne!<JobData>({
-          resource: ResourceName.jobs,
-          id: currentJobId,
-        });
-
-        if (isTerminalStatus(response.data.status)) {
-          stopTestRun();
-        }
-
-        return response;
-      },
       refetchInterval: (query) => {
         const status = (query.state.data?.data as JobData | undefined)?.status;
         if (status && isTerminalStatus(status)) return false;
@@ -147,6 +131,13 @@ export const RunConsole = () => {
       },
     },
   });
+
+  useEffect(() => {
+    const status = jobQuery.data?.data?.status;
+    if (status && isTerminalStatus(status)) {
+      stopTestRun();
+    }
+  }, [jobQuery.data?.data?.status, stopTestRun]);
 
   const job = (jobQuery.data?.data as JobData | undefined) ?? null;
   const jobRef = useRef(job);
@@ -158,18 +149,6 @@ export const RunConsole = () => {
     config: { payload: { jobId: jobId ?? "" } },
     queryOptions: {
       enabled: !!jobId,
-      queryFn: async () => {
-        const currentJobId = jobId ?? "";
-        const response = await dataProvider.custom!<{ traces: Array<{ message: string }> }>({
-          url: "jobs/traces",
-          method: "get",
-          payload: { jobId: currentJobId },
-        });
-        const logs = response.data.traces.map((trace) => trace.message);
-        applyStructuredTraceLogs(currentJobId, logs);
-
-        return response;
-      },
       refetchInterval: () => {
         if (jobRef.current && isTerminalStatus(jobRef.current.status)) return false;
 
@@ -177,6 +156,14 @@ export const RunConsole = () => {
       },
     },
   });
+
+  useEffect(() => {
+    const traces = tracesResult.data?.traces;
+    if (traces && jobId) {
+      const logs = traces.map((trace) => trace.message);
+      applyStructuredTraceLogs(jobId, logs);
+    }
+  }, [tracesResult.data?.traces, jobId, applyStructuredTraceLogs]);
   const traceLogs = (tracesResult.data?.traces ?? []).map((trace) => trace.message);
 
   return (

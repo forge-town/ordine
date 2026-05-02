@@ -1,13 +1,12 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { JobsPageStoreContext, createJobsPageStore } from "./jobsPageStore";
-import { useInit } from "@/hooks/useInit";
 
 interface Props {
   children: ReactNode;
 }
 
 export const JobsPageStoreProvider = ({ children }: Props) => {
-  const store = useInit(() => createJobsPageStore());
+  const [store] = useState(() => createJobsPageStore());
 
   return <JobsPageStoreContext.Provider value={store}>{children}</JobsPageStoreContext.Provider>;
 };
