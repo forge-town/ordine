@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { useState } from "react";
 import { AlertTriangle, FolderOpen, HardDrive } from "lucide-react";
 import {
   OUTPUT_MODE_ENUM,

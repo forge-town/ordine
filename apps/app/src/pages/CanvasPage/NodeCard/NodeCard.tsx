@@ -67,7 +67,7 @@ export const NodeCard = memo(
     children,
     bodyClassName,
     description,
-    onLabelChange,
+    onLabelChange: handleLabelChange,
     runStatus,
     dimmed,
   }: NodeCardProps) => {
@@ -87,7 +87,7 @@ export const NodeCard = memo(
           runStatus={runStatus}
           selected={selected}
           theme={theme}
-          onLabelChange={onLabelChange}
+          onLabelChange={handleLabelChange}
         >
           {children}
         </NodeCardFrame>

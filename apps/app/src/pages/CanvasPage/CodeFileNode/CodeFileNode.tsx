@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { useState } from "react";
 import { FileCode, FolderOpen } from "lucide-react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";

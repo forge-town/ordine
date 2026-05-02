@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { useState } from "react";
 import { Link2, Lock, Globe, BookMarked, FolderOpen, FolderInput, X, Eye } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
