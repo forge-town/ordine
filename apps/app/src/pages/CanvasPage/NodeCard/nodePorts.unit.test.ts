@@ -3,6 +3,7 @@ import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";
 import {
   decorateEdgesWithPortHandles,
   getNodePortCount,
+  getNodePortCounts,
   getNodePortOffsets,
   makeNodePortId,
 } from "./nodePorts";
@@ -56,6 +57,21 @@ describe("node port helpers", () => {
         handleType: "source",
       })
     ).toBe(1);
+  });
+
+  it("counts both node sides in one helper", () => {
+    const edges = [
+      makeEdge("edge-in", "upstream", "node"),
+      makeEdge("edge-out", "node", "downstream"),
+    ];
+
+    expect(
+      getNodePortCounts(edges, "node", {
+        nodeId: "node",
+        handleId: "left-port-0",
+        handleType: "target",
+      })
+    ).toEqual({ leftPortCount: 2, rightPortCount: 1 });
   });
 
   it("creates predictable split offsets", () => {

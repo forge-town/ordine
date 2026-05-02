@@ -87,10 +87,21 @@ export const getNodePortCounts = (
   edges: PipelineEdge[],
   nodeId: string,
   pendingConnection?: PendingNodePortConnection | null
-) => ({
-  leftPortCount: getNodePortCount(edges, nodeId, "left", pendingConnection),
-  rightPortCount: getNodePortCount(edges, nodeId, "right", pendingConnection),
-});
+) => {
+  const { leftConnectionCount, rightConnectionCount } = edges.reduce(
+    (counts, edge) => ({
+      leftConnectionCount: counts.leftConnectionCount + (edge.target === nodeId ? 1 : 0),
+      rightConnectionCount: counts.rightConnectionCount + (edge.source === nodeId ? 1 : 0),
+    }),
+    { leftConnectionCount: 0, rightConnectionCount: 0 }
+  );
+  const pendingSide = getPendingPortSide(pendingConnection, nodeId);
+
+  return {
+    leftPortCount: Math.max(1, leftConnectionCount + (pendingSide === "left" ? 1 : 0)),
+    rightPortCount: Math.max(1, rightConnectionCount + (pendingSide === "right" ? 1 : 0)),
+  };
+};
 
 const getNodeHeight = (node: PipelineNode): number => {
   const styleHeight =

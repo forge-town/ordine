@@ -1,7 +1,17 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Box } from "lucide-react";
 import { NodeCard } from "./NodeCard";
+
+const xyflowMocks = vi.hoisted(() => {
+  const updateNodeInternals = vi.fn();
+
+  return {
+    updateNodeInternals,
+    useNodeId: vi.fn(() => "node-id"),
+    useUpdateNodeInternals: vi.fn(() => updateNodeInternals),
+  };
+});
 
 vi.mock("@xyflow/react", () => ({
   Handle: ({
@@ -26,14 +36,25 @@ vi.mock("@xyflow/react", () => ({
     />
   ),
   Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
-  useNodeId: () => "node-id",
-  useUpdateNodeInternals: () => () => undefined,
+  useNodeId: xyflowMocks.useNodeId,
+  useUpdateNodeInternals: xyflowMocks.useUpdateNodeInternals,
 }));
 
 describe("NodeCard", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("renders label", () => {
     render(<NodeCard icon={Box} label="Test Node" theme="emerald" />);
     expect(screen.getByText("Test Node")).toBeInTheDocument();
+  });
+
+  it("does not call React Flow hooks when ports are disabled", () => {
+    render(<NodeCard icon={Box} label="Standalone Node" theme="emerald" />);
+
+    expect(xyflowMocks.useNodeId).not.toHaveBeenCalled();
+    expect(xyflowMocks.useUpdateNodeInternals).not.toHaveBeenCalled();
   });
 
   it("renders children in body", () => {
