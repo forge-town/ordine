@@ -10,8 +10,8 @@ import {
   type OperationConfigInput,
 } from "@repo/schemas";
 import { useOperationEditPageStore } from "../_store";
-import { OperationForm } from "../../OperationEditPage/_shared/OperationForm";
-import { type OperationFormValues } from "../../OperationEditPage/_shared/operationFormSchema";
+import { OperationForm } from "../_shared/OperationForm";
+import { type OperationFormValues } from "../_shared/operationFormSchema";
 
 const buildConfig = (values: OperationFormValues): OperationConfigInput => {
   if (values.executorType === "agent") {
