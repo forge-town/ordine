@@ -100,7 +100,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         onEdgeClick={handleFlowEdgeClick}
         onEdgesChange={handleEdgesChange}
         onInit={handleFlowInit}
-        onMove={(_event, viewport) => handleFlowMove(viewport.zoom)}
+        onMove={handleFlowMove}
         onNodeClick={handleFlowNodeClick}
         onNodeContextMenu={handleFlowNodeContextMenu}
         onNodeDrag={handleFlowNodeDrag}
