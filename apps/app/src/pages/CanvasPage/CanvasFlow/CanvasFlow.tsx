@@ -1,4 +1,4 @@
-import type { Ref } from "react";
+import { useMemo, type Ref } from "react";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -12,6 +12,7 @@ import { OperationNode } from "../OperationNode";
 import { OutputProjectPathNode } from "../OutputProjectPathNode";
 import { OutputLocalPathNode } from "../OutputLocalPathNode";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
+import { decorateEdgesWithPortHandles } from "../NodeCard";
 
 // Must be defined outside the component to prevent React Flow infinite re-renders
 const nodeTypes = {
@@ -42,6 +43,11 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
 
   const nodes = useStore(store, (s) => s.nodes);
   const edges = useStore(store, (s) => s.edges);
+  const connectStart = useStore(store, (s) => s.connectStart);
+  const portRoutedEdges = useMemo(
+    () => decorateEdgesWithPortHandles(nodes, edges, connectStart),
+    [connectStart, edges, nodes]
+  );
   const isConsoleOpen = useStore(store, (s) => s.isConsoleOpen);
   const handleNodesChange = useStore(store, (s) => s.handleNodesChange);
   const handleEdgesChange = useStore(store, (s) => s.handleEdgesChange);
@@ -84,7 +90,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         defaultEdgeOptions={defaultEdgeOptions}
         defaultViewport={DEFAULT_CANVAS_VIEWPORT}
         deleteKeyCode={["Backspace", "Delete"]}
-        edges={edges}
+        edges={portRoutedEdges}
         nodes={nodes}
         nodeTypes={nodeTypes}
         proOptions={proOpts}

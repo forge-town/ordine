@@ -1,0 +1,60 @@
+export type NodeTheme = "emerald" | "violet" | "amber" | "sky" | "orange" | "teal" | "indigo";
+
+export const themeMap = {
+  emerald: {
+    ring: "ring-emerald-500/20",
+    ringSelected: "ring-emerald-500",
+    headerBg: "bg-emerald-50/50",
+    iconBg: "bg-emerald-100",
+    iconColor: "text-emerald-600",
+    handleColor: "before:!bg-emerald-500",
+  },
+  violet: {
+    ring: "ring-violet-500/20",
+    ringSelected: "ring-violet-500",
+    headerBg: "bg-violet-50/50",
+    iconBg: "bg-violet-100",
+    iconColor: "text-violet-600",
+    handleColor: "before:!bg-violet-500",
+  },
+  amber: {
+    ring: "ring-amber-500/20",
+    ringSelected: "ring-amber-500",
+    headerBg: "bg-amber-50/50",
+    iconBg: "bg-amber-100",
+    iconColor: "text-amber-600",
+    handleColor: "before:!bg-amber-500",
+  },
+  sky: {
+    ring: "ring-sky-500/20",
+    ringSelected: "ring-sky-500",
+    headerBg: "bg-sky-50/50",
+    iconBg: "bg-sky-100",
+    iconColor: "text-sky-600",
+    handleColor: "before:!bg-sky-500",
+  },
+  orange: {
+    ring: "ring-orange-500/20",
+    ringSelected: "ring-orange-500",
+    headerBg: "bg-orange-50/50",
+    iconBg: "bg-orange-100",
+    iconColor: "text-orange-600",
+    handleColor: "before:!bg-orange-500",
+  },
+  teal: {
+    ring: "ring-teal-500/20",
+    ringSelected: "ring-teal-500",
+    headerBg: "bg-teal-50/50",
+    iconBg: "bg-teal-100",
+    iconColor: "text-teal-600",
+    handleColor: "before:!bg-teal-500",
+  },
+  indigo: {
+    ring: "ring-indigo-500/20",
+    ringSelected: "ring-indigo-500",
+    headerBg: "bg-indigo-50/50",
+    iconBg: "bg-indigo-100",
+    iconColor: "text-indigo-600",
+    handleColor: "before:!bg-indigo-500",
+  },
+} satisfies Record<NodeTheme, object>;
