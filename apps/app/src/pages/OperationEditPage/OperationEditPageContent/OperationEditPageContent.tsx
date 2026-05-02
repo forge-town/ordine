@@ -1,6 +1,4 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -11,10 +9,9 @@ import {
   type AgentMode,
   type OperationConfigInput,
 } from "@repo/schemas";
-import { useStore } from "zustand";
 import { useOperationEditPageStore } from "../_store";
 import { OperationForm } from "../../OperationEditPage/_shared/OperationForm";
-import { operationFormSchema, type OperationFormValues } from "../../OperationEditPage/_shared/operationFormSchema";
+import { type OperationFormValues } from "../../OperationEditPage/_shared/operationFormSchema";
 
 const buildConfig = (values: OperationFormValues): OperationConfigInput => {
   if (values.executorType === "agent") {
@@ -112,7 +109,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
     });
   };
 
-  const onSubmit = async (values: OperationFormValues) => {
+  const handleSubmit = async (values: OperationFormValues) => {
     await updateOpMutate({
       resource: ResourceName.operations,
       id: operation.id,
@@ -131,6 +128,8 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
 
   return (
     <OperationForm
+      backTo={`/operations/${operation.id}`}
+      cancelLabel={t("common.cancel")}
       initialValues={{
         name: operation.name,
         description: operation.description ?? "",
@@ -139,14 +138,12 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
           : ["file", "folder", "project"],
         ...parseExecutorDefaults(operation.config),
       }}
-      onSubmit={onSubmit}
-      skills={skills}
-      submitLabel={t("common.save")}
-      cancelLabel={t("common.cancel")}
-      onCancel={handleCancel}
       pageTitle={t("operations.editOperation")}
-      backTo={`/operations/${operation.id}`}
+      skills={skills}
       store={store}
+      submitLabel={t("common.save")}
+      onCancel={handleCancel}
+      onSubmit={handleSubmit}
     />
   );
 };

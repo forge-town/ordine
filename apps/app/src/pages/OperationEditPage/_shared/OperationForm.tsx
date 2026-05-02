@@ -9,21 +9,20 @@ import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { PageHeader } from "@/components/PageHeader";
 import { type Skill, type ObjectType } from "@repo/schemas";
-import { useStore } from "zustand";
-import type { StoreApi } from "zustand";
-import {
-  EXECUTOR_ICONS,
-  AGENT_MODE_ICONS,
-  OBJECT_TYPE_ICONS,
-} from "./operationFormConfig";
+import { useStore, type StoreApi } from "zustand";
+import { EXECUTOR_ICONS, AGENT_MODE_ICONS, OBJECT_TYPE_ICONS } from "./operationFormConfig";
 import { operationFormSchema, type OperationFormValues } from "./operationFormSchema";
 import type { OperationFormSlice } from "./operationFormSlice";
 
 const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[] => {
   if (current.includes(type)) {
-    if (current.length === 1) return current;
+    if (current.length === 1) {
+      return current;
+    }
+
     return current.filter((t) => t !== type);
   }
+
   return [...current, type];
 };
 
@@ -80,6 +79,7 @@ export const OperationForm = ({
   const scriptLangOpen = useStore(store, (s) => s.scriptLangOpen);
   const handleScriptLangOpenChange = useStore(store, (s) => s.handleSetScriptLangOpen);
   const handleScriptLangToggle = useStore(store, (s) => s.handleToggleScriptLangOpen);
+  const handleCancelClick = onCancel;
 
   const EXECUTOR_TYPE_OPTIONS = [
     {
@@ -435,7 +435,7 @@ export const OperationForm = ({
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <Button size="sm" type="button" variant="outline" onClick={onCancel}>
+                <Button size="sm" type="button" variant="outline" onClick={handleCancelClick}>
                   {cancelLabel}
                 </Button>
                 <Button disabled={form.formState.isSubmitting || isLoading} size="sm" type="submit">

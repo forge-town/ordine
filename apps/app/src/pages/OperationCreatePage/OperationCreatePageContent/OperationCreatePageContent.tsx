@@ -1,16 +1,13 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { type Skill } from "@repo/schemas";
 import { PageLoadingState } from "@/components/PageLoadingState";
-import { useStore } from "zustand";
 import { useOperationCreatePageStore } from "../_store";
 import { OperationForm } from "../../OperationEditPage/_shared/OperationForm";
-import { operationFormSchema, type OperationFormValues } from "../../OperationEditPage/_shared/operationFormSchema";
+import { type OperationFormValues } from "../../OperationEditPage/_shared/operationFormSchema";
 
 const buildConfig = (values: OperationFormValues): string => {
   if (values.executorType === "agent") {
@@ -58,7 +55,7 @@ export const OperationCreatePageContent = () => {
     void navigate({ to: "/operations" });
   };
 
-  const onSubmit = async (values: OperationFormValues) => {
+  const handleSubmit = async (values: OperationFormValues) => {
     const result = await createOpMutate({
       resource: ResourceName.operations,
       values: {
@@ -89,6 +86,8 @@ export const OperationCreatePageContent = () => {
 
   return (
     <OperationForm
+      backTo="/operations"
+      cancelLabel={t("common.cancel")}
       initialValues={{
         name: "",
         description: "",
@@ -100,15 +99,13 @@ export const OperationCreatePageContent = () => {
         scriptCommand: "",
         scriptLanguage: "bash",
       }}
-      onSubmit={onSubmit}
-      skills={skills}
-      submitLabel={t("common.save")}
-      cancelLabel={t("common.cancel")}
-      onCancel={handleCancel}
-      pageTitle={t("operations.createNew")}
-      backTo="/operations"
-      store={store}
       isLoading={skillsQuery?.isLoading}
+      pageTitle={t("operations.createNew")}
+      skills={skills}
+      store={store}
+      submitLabel={t("common.save")}
+      onCancel={handleCancel}
+      onSubmit={handleSubmit}
     />
   );
 };

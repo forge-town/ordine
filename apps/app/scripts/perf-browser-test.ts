@@ -1,11 +1,12 @@
-import { chromium } from "playwright";
-import { performance } from "perf_hooks";
+import { chromium } from "@playwright/test";
+import { performance as nodePerformance } from "perf_hooks";
 
-interface PerfMetrics {
-  name: string;
-  before: number;
-  after: number;
-  unit: string;
+interface BrowserPerformanceMemory {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
 }
 
 async function measureBrowserPerformance() {
@@ -17,17 +18,9 @@ async function measureBrowserPerformance() {
   });
   const page = await context.newPage();
 
-  // 启用 Performance API 监控
-  await page.evaluate(() => {
-    window.perfData = {
-      marks: [],
-      measures: [],
-    };
-  });
-
   // 导航到应用
   console.log("1. 启动应用并导航到 Canvas 页面...");
-  const startTime = performance.now();
+  const startTime = nodePerformance.now();
 
   // 这里需要替换为实际的应用 URL
   // 由于应用需要后端支持，我们先测试静态性能
@@ -135,11 +128,12 @@ async function measureBrowserPerformance() {
 
   // 获取内存使用情况
   const memoryInfo = await page.evaluate(() => {
-    if ("memory" in performance) {
+    const memory = (performance as unknown as BrowserPerformanceMemory).memory;
+    if (memory) {
       return {
-        usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
-        totalJSHeapSize: (performance as any).memory.totalJSHeapSize,
-        jsHeapSizeLimit: (performance as any).memory.jsHeapSizeLimit,
+        usedJSHeapSize: memory.usedJSHeapSize,
+        totalJSHeapSize: memory.totalJSHeapSize,
+        jsHeapSizeLimit: memory.jsHeapSizeLimit,
       };
     }
     return null;
@@ -160,7 +154,7 @@ async function measureBrowserPerformance() {
         dnsLookup: nav.domainLookupEnd - nav.domainLookupStart,
         tcpConnection: nav.connectEnd - nav.connectStart,
         serverResponse: nav.responseEnd - nav.responseStart,
-        domProcessing: nav.domComplete - nav.domLoading,
+        domProcessing: nav.domComplete - nav.domInteractive,
         loadEvent: nav.loadEventEnd - nav.loadEventStart,
         total: nav.loadEventEnd - nav.startTime,
       };
@@ -178,7 +172,7 @@ async function measureBrowserPerformance() {
     console.log(`  总加载时间: ${navTiming.total.toFixed(2)}ms\n`);
   }
 
-  const totalTime = performance.now() - startTime;
+  const totalTime = nodePerformance.now() - startTime;
   console.log(`=== 测试完成 (总耗时: ${totalTime.toFixed(2)}ms) ===`);
 
   // 截图保存
@@ -188,4 +182,4 @@ async function measureBrowserPerformance() {
   await browser.close();
 }
 
-measureBrowserPerformance().catch(console.error);
+await measureBrowserPerformance();
