@@ -89,3 +89,6 @@ AGENTS.md
 # Local browser/test artifacts
 .playwright-cli/
 storybook-static/
+
+# Sisyphus workflow state
+.sisyphus/
