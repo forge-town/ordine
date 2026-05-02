@@ -91,4 +91,27 @@ describe("canvas connection actions", () => {
       flowY: 200,
     });
   });
+
+  it("clears connect start instead of opening the connection menu without a handle type", () => {
+    const source = makeNode("source", "operation");
+    const store = createHarnessCanvasStore([source], [], null, "");
+
+    store.getState().handleConnectStart({
+      nodeId: source.id,
+      handleId: "right-port-0",
+      handleType: null,
+    });
+
+    store.getState().handleFlowConnectEnd(
+      { clientX: 100, clientY: 200 } as MouseEvent,
+      {
+        isValid: null,
+        fromNode: { id: source.id },
+        fromHandle: { id: "right-port-0", type: null },
+      } as unknown as FinalConnectionState
+    );
+
+    expect(store.getState().connectStart).toBeNull();
+    expect(store.getState().connectionMenu).toBeNull();
+  });
 });

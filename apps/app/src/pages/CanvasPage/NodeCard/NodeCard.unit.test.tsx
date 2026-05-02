@@ -203,4 +203,22 @@ describe("NodeCard", () => {
     fireEvent.blur(input);
     expect(input).toHaveAttribute("readonly");
   });
+
+  it("enables editable label when focused by keyboard", () => {
+    const handleLabelChange = vi.fn();
+    render(
+      <NodeCard
+        icon={Box}
+        label="Keyboard Editable Node"
+        theme="emerald"
+        onLabelChange={handleLabelChange}
+      />
+    );
+
+    const input = screen.getByLabelText("Node label");
+    expect(input).toHaveAttribute("readonly");
+
+    fireEvent.focus(input);
+    expect(input).not.toHaveAttribute("readonly");
+  });
 });

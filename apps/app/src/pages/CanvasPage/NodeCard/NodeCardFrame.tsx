@@ -47,6 +47,7 @@ export const NodeCardFrame = memo(
       ? (e: React.ChangeEvent<HTMLInputElement>) => onLabelChange(e.target.value)
       : undefined;
     const handleLabelClick = () => setIsLabelEditing(true);
+    const handleLabelFocus = () => setIsLabelEditing(true);
     const handleLabelBlur = () => setIsLabelEditing(false);
 
     return (
@@ -86,6 +87,7 @@ export const NodeCardFrame = memo(
                   onBlur={handleLabelBlur}
                   onChange={handleChange}
                   onClick={handleLabelClick}
+                  onFocus={handleLabelFocus}
                   onMouseDown={handleMouseDown}
                 />
               ) : (

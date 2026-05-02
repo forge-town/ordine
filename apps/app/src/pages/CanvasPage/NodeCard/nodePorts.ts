@@ -197,11 +197,20 @@ export const decorateEdgesWithPortHandles = (
   const sourceHandleByEdgeId = makePortAssignments(nodes, edges, "right", pendingConnection);
   const targetHandleByEdgeId = makePortAssignments(nodes, edges, "left", pendingConnection);
 
-  return edges.map((edge) => ({
-    ...edge,
-    sourceHandle:
-      sourceHandleByEdgeId.get(edge.id) ?? edge.sourceHandle ?? makeNodePortId("right", 0),
-    targetHandle:
-      targetHandleByEdgeId.get(edge.id) ?? edge.targetHandle ?? makeNodePortId("left", 0),
-  }));
+  return edges.map((edge) => {
+    const sourceHandle =
+      sourceHandleByEdgeId.get(edge.id) ?? edge.sourceHandle ?? makeNodePortId("right", 0);
+    const targetHandle =
+      targetHandleByEdgeId.get(edge.id) ?? edge.targetHandle ?? makeNodePortId("left", 0);
+
+    if (edge.sourceHandle === sourceHandle && edge.targetHandle === targetHandle) {
+      return edge;
+    }
+
+    return {
+      ...edge,
+      sourceHandle,
+      targetHandle,
+    };
+  });
 };

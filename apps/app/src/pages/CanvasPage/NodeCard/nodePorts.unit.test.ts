@@ -124,6 +124,19 @@ describe("node port helpers", () => {
     ]);
   });
 
+  it("keeps the original edge object when port handles are unchanged", () => {
+    const nodes = [makeNode("source", 100), makeNode("target", 240)];
+    const edge = {
+      ...makeEdge("edge-existing", "source", "target"),
+      sourceHandle: "right-port-0",
+      targetHandle: "left-port-0",
+    };
+
+    const decoratedEdges = decorateEdgesWithPortHandles(nodes, [edge]);
+
+    expect(decoratedEdges[0]).toBe(edge);
+  });
+
   it("reserves the dragged source handle while a new connection is pending", () => {
     const nodes = [makeNode("source", 100), makeNode("target", 240)];
     const edges = [

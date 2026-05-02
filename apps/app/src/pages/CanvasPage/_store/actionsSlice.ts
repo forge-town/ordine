@@ -236,11 +236,11 @@ export const createActionsSlice = (
   },
 
   handleFlowConnectStart: (_event, params) => {
-    if (!params.nodeId) return;
+    if (!params.nodeId || !params.handleType) return;
     get().handleConnectStart({
       nodeId: params.nodeId,
       handleId: params.handleId ?? null,
-      handleType: params.handleType ?? null,
+      handleType: params.handleType,
     });
   },
 
@@ -255,10 +255,17 @@ export const createActionsSlice = (
     const currentConnectStart = get().connectStart;
 
     if (fromNodeId) {
+      const handleType = getConnectStartHandleType(connectionState, currentConnectStart, fromNodeId);
+      if (!handleType) {
+        get().handleConnectStart(null);
+
+        return;
+      }
+
       get().handleConnectStart({
         nodeId: fromNodeId,
         handleId: getConnectStartHandleId(connectionState, currentConnectStart, fromNodeId),
-        handleType: getConnectStartHandleType(connectionState, currentConnectStart, fromNodeId),
+        handleType,
       });
 
       const { clientX, clientY } =
