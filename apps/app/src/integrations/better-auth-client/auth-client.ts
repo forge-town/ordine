@@ -1,4 +1,5 @@
 import { createAuthClient } from "better-auth/react";
+import { ResultAsync, err, ok } from "neverthrow";
 
 export const authClient = createAuthClient({
   baseURL:
@@ -7,37 +8,48 @@ export const authClient = createAuthClient({
   session: { refreshOnWindowFocus: true, refreshInterval: 60 * 10 },
 });
 
-export const signUpWithEmail = async (input: {
+export class AuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AuthError";
+  }
+}
+
+export const signUpWithEmail = (input: {
   email: string;
   password: string;
   name: string;
   callbackURL?: string;
 }) => {
-  const { data, error } = await authClient.signUp.email({
-    ...input,
-    callbackURL: input.callbackURL ?? "/",
-  });
-  if (error) {
-    throw error;
-  }
+  return ResultAsync.fromPromise(
+    authClient.signUp.email({
+      ...input,
+      callbackURL: input.callbackURL ?? "/",
+    }),
+    (e) => new AuthError(e instanceof Error ? e.message : "Signup request failed"),
+  ).andThen(({ data, error }) => {
+    if (error) return err(new AuthError(error.message ?? "Signup failed"));
 
-  return data;
+    return ok(data);
+  });
 };
 
-export const signInWithEmail = async (input: {
+export const signInWithEmail = (input: {
   email: string;
   password: string;
   callbackURL?: string;
 }) => {
-  const { data, error } = await authClient.signIn.email({
-    ...input,
-    callbackURL: input.callbackURL ?? "/",
-  });
-  if (error) {
-    throw error;
-  }
+  return ResultAsync.fromPromise(
+    authClient.signIn.email({
+      ...input,
+      callbackURL: input.callbackURL ?? "/",
+    }),
+    (e) => new AuthError(e instanceof Error ? e.message : "Login request failed"),
+  ).andThen(({ data, error }) => {
+    if (error) return err(new AuthError(error.message ?? "Login failed"));
 
-  return data;
+    return ok(data);
+  });
 };
 
 export const signInWithGitHub = (callbackURL = "/") =>

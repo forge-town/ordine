@@ -30,14 +30,12 @@ export const SignUpPageContent = () => {
   const handleSubmit = async (values: SignUpFormValues) => {
     setError("");
     setLoading(true);
-    try {
-      await signUpWithEmail({ ...values, callbackURL: "/" });
-      navigate({ to: "/" });
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Signup failed");
-    } finally {
-      setLoading(false);
-    }
+    const result = await signUpWithEmail({ ...values, callbackURL: "/" });
+    result.match(
+      () => navigate({ to: "/" }),
+      (error) => setError(error.message),
+    );
+    setLoading(false);
   };
 
   return (

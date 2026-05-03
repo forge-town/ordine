@@ -1,3 +1,4 @@
+import { ResultAsync } from "neverthrow";
 import { getEnv } from "./integrations/env";
 
 const DEFAULT_BASE_URL = "http://localhost:9433";
@@ -30,7 +31,7 @@ const request = async <T>(method: string, path: string, body?: unknown): Promise
   const res = await fetch(url, init);
 
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
+    const text = (await ResultAsync.fromPromise(res.text(), () => undefined)).unwrapOr("");
 
     return { ok: false, status: res.status, message: text || res.statusText };
   }
@@ -45,7 +46,7 @@ const requestNoBody = async (method: string, path: string): Promise<ApiResult<vo
   const res = await fetch(url, { method });
 
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
+    const text = (await ResultAsync.fromPromise(res.text(), () => undefined)).unwrapOr("");
 
     return { ok: false, status: res.status, message: text || res.statusText };
   }

@@ -36,14 +36,12 @@ export const LoginPageContent = () => {
   const handleSubmit = async (values: LoginFormValues) => {
     setError("");
     setLoading(true);
-    try {
-      await signInWithEmail({ ...values, callbackURL: "/" });
-      navigate({ to: "/" });
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Login failed");
-    } finally {
-      setLoading(false);
-    }
+    const result = await signInWithEmail({ ...values, callbackURL: "/" });
+    result.match(
+      () => navigate({ to: "/" }),
+      (error) => setError(error.message),
+    );
+    setLoading(false);
   };
 
   return (
