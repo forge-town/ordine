@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { ResultAsync } from "neverthrow";
 import { pipelinesService, pipelineRunnerService } from "../services.js";
 
 export const pipelinesRoutes = new Hono();
@@ -60,7 +61,10 @@ pipelinesRoutes.post("/:id/run", async (c) => {
   const pipeline = await pipelinesService.getById(id);
   if (!pipeline) return c.json({ error: "Pipeline not found" }, 404);
 
-  const body = await c.req.json().catch(() => ({}));
+  const body = (await ResultAsync.fromPromise(
+    c.req.json() as Promise<Record<string, unknown>>,
+    () => undefined,
+  )).unwrapOr({});
   const inputPath = (body as Record<string, unknown>).inputPath as string | undefined;
   const githubToken = (body as Record<string, unknown>).githubToken as string | undefined;
 

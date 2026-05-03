@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "3.0.71",
+    "neverthrow": "^8.2.0",
     "@repo/agent": "workspace:*",
     "@repo/logger": "workspace:*",
     "@repo/obs": "workspace:*",

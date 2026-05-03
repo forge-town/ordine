@@ -10,6 +10,7 @@ import {
 import { recordAgentRunWithSpans, type RecordSpanOptions } from "@repo/obs";
 import { logger } from "@repo/logger";
 import { AgentRuntime } from "@repo/schemas";
+import { ResultAsync } from "neverthrow";
 
 export interface AgentRunResult {
   text: string;
@@ -275,8 +276,8 @@ const recordObservability = async ({
   const durationMs = Date.now() - startTime;
   const tokenTotals = extractTokenTotals(result.events);
 
-  try {
-    await recordAgentRunWithSpans(
+  const obsResult = await ResultAsync.fromPromise(
+    recordAgentRunWithSpans(
       {
         jobId,
         agentSystem: agent,
@@ -304,9 +305,12 @@ const recordObservability = async ({
           durationMs,
           startTime,
         }),
-    );
-  } catch (err) {
-    logger.warn({ err, agentId, jobId }, "agentEngine: failed to record observability");
+    ),
+    (err) => err,
+  );
+
+  if (obsResult.isErr()) {
+    logger.warn({ err: obsResult.error, agentId, jobId }, "agentEngine: failed to record observability");
   }
 };
 

@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { logger } from "@repo/logger";
+import { Result } from "neverthrow";
 
 export interface OpenclawPayload {
   text: string;
@@ -113,22 +114,29 @@ export const runOpenclaw = async ({
           return;
         }
 
-        try {
-          const response = JSON.parse(stdout) as OpenclawJsonResponse;
-          const text = response.result?.payloads?.map((p) => p.text).join("\n") ?? "";
-          const meta = response.result?.meta ?? {};
+        const safeJsonParse = Result.fromThrowable(
+          (input: string) => JSON.parse(input) as OpenclawJsonResponse,
+          () => new Error(`openclaw returned invalid JSON: ${stdout.slice(0, 200)}`),
+        );
 
-          logger.info(
-            { cwd, textLen: text.length, runId: response.runId },
-            "runOpenclaw: finished",
-          );
-          void onProgress?.(`[OpenClaw] ${text.slice(0, 200)}`);
-          resolve({ text, meta, runId: response.runId });
-        } catch {
-          const errMsg = `openclaw returned invalid JSON: ${stdout.slice(0, 200)}`;
-          logger.error({ stdout: stdout.slice(0, 500) }, errMsg);
-          reject(new Error(errMsg));
+        const parsed = safeJsonParse(stdout);
+        if (parsed.isErr()) {
+          logger.error({ stdout: stdout.slice(0, 500) }, parsed.error.message);
+          reject(parsed.error);
+
+          return;
         }
+
+        const response = parsed.value;
+        const text = response.result?.payloads?.map((p) => p.text).join("\n") ?? "";
+        const meta = response.result?.meta ?? {};
+
+        logger.info(
+          { cwd, textLen: text.length, runId: response.runId },
+          "runOpenclaw: finished",
+        );
+        void onProgress?.(`[OpenClaw] ${text.slice(0, 200)}`);
+        resolve({ text, meta, runId: response.runId });
       },
     );
   });

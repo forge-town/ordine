@@ -54,7 +54,8 @@
     "back": "返回",
     "workspace": "工作区",
     "library": "库",
-    "knowledge": "知识"
+    "knowledge": "知识",
+    "logout": "退出登录"
   },
   "sidebar": {
     "user": "Ordine 用户"

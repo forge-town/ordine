@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "commander": "^14.0.0",
+    "neverthrow": "^8.2.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

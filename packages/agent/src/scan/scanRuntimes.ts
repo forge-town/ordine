@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { logger } from "@repo/logger";
+import { ResultAsync } from "neverthrow";
 
 export interface DetectedRuntime {
   type: string;
@@ -31,17 +32,23 @@ const detectBinary = async (
   type: string,
   binaryName: string,
 ): Promise<DetectedRuntime | undefined> => {
-  const whichResult = await execFileAsync("which", [binaryName]).catch(() => undefined);
+  const whichResult = await ResultAsync.fromPromise(
+    execFileAsync("which", [binaryName]),
+    () => undefined as never,
+  );
 
-  if (!whichResult) {
+  if (whichResult.isErr()) {
     return undefined;
   }
 
-  const path = whichResult.stdout.trim();
+  const path = whichResult.value.stdout.trim();
   logger.info(`Found runtime ${type} at ${path}`);
 
-  const versionResult = await execFileAsync(path, ["--version"]).catch(() => undefined);
-  const version = versionResult?.stdout.trim() || undefined;
+  const versionResult = await ResultAsync.fromPromise(
+    execFileAsync(path, ["--version"]),
+    () => undefined as never,
+  );
+  const version = versionResult.isOk() ? versionResult.value.stdout.trim() || undefined : undefined;
 
   return { type, binaryName, path, version };
 };

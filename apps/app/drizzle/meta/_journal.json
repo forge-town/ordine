@@ -155,6 +155,13 @@
       "when": 1777451000000,
       "tag": "0021_drop_settings_agent_runtimes_column",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1777533361070,
+      "tag": "0022_add-auth-tables",
+      "breakpoints": true
     }
   ]
 }
