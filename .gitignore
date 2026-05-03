@@ -82,6 +82,7 @@ test_output.log
 .vscode
 .omx
 output
+.output
 
 # Local agent/context files
 AGENTS.md
