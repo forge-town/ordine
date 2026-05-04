@@ -26,7 +26,7 @@ Compose operations into pipelines, plug in any AI agent, and automate any workfl
 
 Ordine is an **AI Agent first work Orchestration framework** that lets you define typed operations, compose them into DAG pipelines, and execute them with any AI agent or script executor.
 
-No more scattered scripts. No more babysitting agent runs. Define your workflow once as a pipeline — then let Claude, GPT, Gemini, or your own agent execute it. Agents are the primary runtime, not an afterthought. Code quality automation ships as a built-in plugin.
+No more scattered scripts. No more babysitting agent runs. Define your workflow once as a pipeline — then let Claude, GPT, Gemini, or your own agent execute it. Agents are the primary runtime, not an afterthought.
 
 ## Features
 

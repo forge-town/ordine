@@ -4,9 +4,9 @@
 Ordine is currently in **Preview** stage. APIs and features may change. We welcome feedback and contributions!
 :::
 
-Ordine is an **AI Agent first work orchestration framework**. It provides a universal work orchestration framework for defining, composing, and executing automated workflows — powered by AI agents and scripts.
+Ordine is an **AI Agent-first work scheduling framework**. It provides a universal work scheduling framework for defining, composing, and executing automated workflows — powered by AI agents and scripts.
 
-Code quality automation is Ordine's first and flagship use case, delivered as a built-in plugin. Over time, domain-specific capabilities (code review, security scanning, documentation generation, etc.) will be fully extracted into plugins, leaving Ordine as a pure orchestration core.
+Over time, domain-specific capabilities (code review, security scanning, documentation generation, etc.) will be fully extracted into plugins, leaving Ordine as a pure orchestration core.
 
 ## The Problem
 

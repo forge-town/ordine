@@ -4,7 +4,7 @@ layout: home
 hero:
   name: 成序 (Ordine)
   text: AI Agent 优先的工作调度框架
-  tagline: 定义操作，组合流水线，让 AI agent 端到端执行任务。代码质量自动化作为内置插件提供。
+  tagline: 定义操作，组合流水线，让 AI agent 端到端执行任务。
   actions:
     - theme: brand
       text: 快速开始

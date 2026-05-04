@@ -4,7 +4,7 @@ layout: home
 hero:
   name: Ordine
   text: AI Agent First Work Orchestration Framework
-  tagline: Define operations, compose pipelines, let AI agents run the work end-to-end. Code quality automation is built in as a plugin.
+  tagline: Define operations, compose pipelines, let AI agents run the work end-to-end.
   actions:
     - theme: brand
       text: Get Started

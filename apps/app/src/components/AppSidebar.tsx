@@ -177,9 +177,7 @@ export const AppSidebar = () => {
       {/* Logo + collapse trigger */}
       <SidebarHeader className="h-11 flex-row items-center justify-between border-b px-3 py-0">
         <div className="flex items-center gap-2 overflow-hidden">
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary">
-            <Workflow className="h-3.5 w-3.5 text-primary-foreground" />
-          </div>
+          <img src="/favicon.svg" alt="Ordine" className="h-6 w-6 shrink-0" />
           <span className="truncate text-sm font-bold tracking-tight group-data-[state=collapsed]/sidebar:hidden">
             ordine
           </span>
