@@ -628,6 +628,11 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+    if (url === "agentRuntimes/scanAndSync") {
+      const data = await trpcClient.agentRuntimes.scanAndSync.mutate();
+
+      return { data: data as unknown as TData };
+    }
     throw new Error(`custom: unknown url "${url}"`);
   },
 };
