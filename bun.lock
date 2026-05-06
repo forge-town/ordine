@@ -4,6 +4,7 @@
   "workspaces": {
     "": {
       "name": "ordine",
+      "version": "0.0.2-preview.2",
       "devDependencies": {
         "@changesets/changelog-github": "^0.6.0",
         "@changesets/cli": "^2.31.0",

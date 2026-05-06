@@ -1,20 +1,19 @@
 import { execFile } from "node:child_process";
+import { readFile } from "node:fs/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { createInterface } from "node:readline/promises";
 import { promisify } from "node:util";
-import { err, ok, ResultAsync, type Result } from "neverthrow";
+import { err, ok, Result, ResultAsync } from "neverthrow";
 
 type ReleaseTagError = {
   message: string;
   cause?: unknown;
 };
 
-type ParsedTag = {
-  raw: string;
-  major: number;
-  minor: number;
-  patch: number;
-  prerelease: string | null;
+type PackageJson = {
+  name?: string;
+  version?: string;
+  private?: boolean;
 };
 
 const execFileAsync = promisify(execFile);
@@ -25,11 +24,27 @@ const toError = (message: string) => (cause: unknown): ReleaseTagError => ({
   cause,
 });
 
+const parseJson = Result.fromThrowable(
+  (content: string): unknown => JSON.parse(content),
+  toError("failed to parse package.json"),
+);
+
 const runGit = (args: string[]): ResultAsync<string, ReleaseTagError> =>
   ResultAsync.fromPromise(
     execFileAsync("git", args, { encoding: "utf8" }),
     toError(`git ${args.join(" ")} failed`),
   ).map(({ stdout }: { stdout: string | Buffer }) => String(stdout).trim());
+
+const readPackageJson = (path: string): ResultAsync<PackageJson, ReleaseTagError> =>
+  ResultAsync.fromPromise(readFile(path, "utf8"), toError(`failed to read ${path}`))
+    .andThen((content) => parseJson(content))
+    .andThen((json) => {
+      if (typeof json !== "object" || json === null || Array.isArray(json)) {
+        return err({ message: `${path} is not a package.json object` });
+      }
+
+      return ok(json as PackageJson);
+    });
 
 const prompt = (question: string): ResultAsync<string, ReleaseTagError> => {
   const readline = createInterface({ input, output });
@@ -43,120 +58,6 @@ const prompt = (question: string): ResultAsync<string, ReleaseTagError> => {
   });
 };
 
-const parseTag = (tag: string): ParsedTag | null => {
-  const match = tag.match(tagPattern);
-
-  if (!match) {
-    return null;
-  }
-
-  return {
-    raw: tag,
-    major: Number(match[1]),
-    minor: Number(match[2]),
-    patch: Number(match[3]),
-    prerelease: match[4] ?? null,
-  };
-};
-
-const compareIdentifiers = (left: string, right: string): number => {
-  const leftNumber = Number(left);
-  const rightNumber = Number(right);
-  const leftIsNumber = String(leftNumber) === left;
-  const rightIsNumber = String(rightNumber) === right;
-
-  if (leftIsNumber && rightIsNumber) {
-    return leftNumber - rightNumber;
-  }
-
-  return left.localeCompare(right);
-};
-
-const comparePrereleases = (left: string | null, right: string | null): number => {
-  if (left === right) {
-    return 0;
-  }
-
-  if (left === null) {
-    return 1;
-  }
-
-  if (right === null) {
-    return -1;
-  }
-
-  const leftParts = left.split(/[.-]/);
-  const rightParts = right.split(/[.-]/);
-  const maxLength = Math.max(leftParts.length, rightParts.length);
-
-  for (let index = 0; index < maxLength; index += 1) {
-    const leftPart = leftParts[index];
-    const rightPart = rightParts[index];
-
-    if (leftPart === undefined) {
-      return -1;
-    }
-
-    if (rightPart === undefined) {
-      return 1;
-    }
-
-    const compared = compareIdentifiers(leftPart, rightPart);
-
-    if (compared !== 0) {
-      return compared;
-    }
-  }
-
-  return 0;
-};
-
-const compareTags = (left: ParsedTag, right: ParsedTag): number => {
-  const versionParts = ["major", "minor", "patch"] as const;
-
-  for (const part of versionParts) {
-    const compared = left[part] - right[part];
-
-    if (compared !== 0) {
-      return compared;
-    }
-  }
-
-  return comparePrereleases(left.prerelease, right.prerelease);
-};
-
-const incrementPrerelease = (prerelease: string): string => {
-  const parts = prerelease.split(".");
-  const lastPart = parts.at(-1);
-  const lastNumber = Number(lastPart);
-
-  if (lastPart !== undefined && String(lastNumber) === lastPart) {
-    return [...parts.slice(0, -1), String(lastNumber + 1)].join(".");
-  }
-
-  return `${prerelease}.1`;
-};
-
-const getDefaultTag = (tags: string[]): string => {
-  const latestTag = tags
-    .map(parseTag)
-    .filter((tag): tag is ParsedTag => tag !== null)
-    .sort(compareTags)
-    .at(-1);
-
-  if (!latestTag) {
-    return "v0.0.1";
-  }
-
-  if (latestTag.prerelease) {
-    return `v${latestTag.major}.${latestTag.minor}.${latestTag.patch}-${incrementPrerelease(
-      latestTag.prerelease,
-    )}`;
-  }
-
-  return `v${latestTag.major}.${latestTag.minor}.${latestTag.patch + 1}`;
-};
-
 const validateTag = (tag: string): Result<string, ReleaseTagError> => {
   if (!tagPattern.test(tag)) {
     return err({
@@ -165,6 +66,76 @@ const validateTag = (tag: string): Result<string, ReleaseTagError> => {
   }
 
   return ok(tag);
+};
+
+const getRootVersion = async (): Promise<Result<string, ReleaseTagError>> => {
+  const packageJsonResult = await readPackageJson("package.json");
+
+  if (packageJsonResult.isErr()) {
+    return err(packageJsonResult.error);
+  }
+
+  if (!packageJsonResult.value.version) {
+    return err({ message: "root package.json must define version" });
+  }
+
+  return ok(packageJsonResult.value.version);
+};
+
+const getWorkspacePackageJsonPaths = async (): Promise<
+  Result<string[], ReleaseTagError>
+> => {
+  const pathsResult = await runGit([
+    "ls-files",
+    "apps/*/package.json",
+    "packages/*/package.json",
+  ]);
+
+  if (pathsResult.isErr()) {
+    return err(pathsResult.error);
+  }
+
+  return ok(pathsResult.value.length > 0 ? pathsResult.value.split("\n") : []);
+};
+
+const validateWorkspaceVersions = async (
+  rootVersion: string,
+): Promise<Result<void, ReleaseTagError>> => {
+  const pathsResult = await getWorkspacePackageJsonPaths();
+
+  if (pathsResult.isErr()) {
+    return err(pathsResult.error);
+  }
+
+  const mismatches: string[] = [];
+
+  for (const path of pathsResult.value) {
+    const packageJsonResult = await readPackageJson(path);
+
+    if (packageJsonResult.isErr()) {
+      return err(packageJsonResult.error);
+    }
+
+    const packageJson = packageJsonResult.value;
+
+    if (packageJson.version !== rootVersion) {
+      mismatches.push(
+        `${path}: ${packageJson.name ?? "unknown"} is ${
+          packageJson.version ?? "missing"
+        }, expected ${rootVersion}`,
+      );
+    }
+  }
+
+  if (mismatches.length > 0) {
+    return err({
+      message: `workspace versions must match root package.json version:\n${mismatches.join(
+        "\n",
+      )}`,
+    });
+  }
+
+  return ok(undefined);
 };
 
 const printCurrentTags = (tags: string[]): void => {
@@ -190,6 +161,20 @@ const createReleaseTag = async (): Promise<Result<void, ReleaseTagError>> => {
     });
   }
 
+  const rootVersionResult = await getRootVersion();
+
+  if (rootVersionResult.isErr()) {
+    return err(rootVersionResult.error);
+  }
+
+  const versionValidationResult = await validateWorkspaceVersions(
+    rootVersionResult.value,
+  );
+
+  if (versionValidationResult.isErr()) {
+    return err(versionValidationResult.error);
+  }
+
   const fetchResult = await runGit(["fetch", "--tags", "--prune-tags", "origin"]);
 
   if (fetchResult.isErr()) {
@@ -203,7 +188,7 @@ const createReleaseTag = async (): Promise<Result<void, ReleaseTagError>> => {
   }
 
   const tags = tagsResult.value.length > 0 ? tagsResult.value.split("\n") : [];
-  const defaultTag = getDefaultTag(tags);
+  const defaultTag = `v${rootVersionResult.value}`;
 
   printCurrentTags(tags);
 
@@ -218,6 +203,12 @@ const createReleaseTag = async (): Promise<Result<void, ReleaseTagError>> => {
 
   if (validTagResult.isErr()) {
     return err(validTagResult.error);
+  }
+
+  if (validTagResult.value !== defaultTag) {
+    return err({
+      message: `release tag must match root package.json version. Expected ${defaultTag}`,
+    });
   }
 
   if (tags.includes(validTagResult.value)) {
