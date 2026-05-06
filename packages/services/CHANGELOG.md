@@ -1,5 +1,23 @@
 # @repo/services
 
+## 0.0.2-preview.2
+
+### Patch Changes
+
+- test cicd
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.2
+  - @repo/agent-engine@0.0.2-preview.2
+  - @repo/db-schema@0.0.2-preview.2
+  - @repo/schemas@0.0.2-preview.2
+  - @repo/logger@0.0.2-preview.2
+  - @repo/models@0.0.2-preview.2
+  - @repo/agent@0.0.2-preview.2
+  - @repo/utils@0.0.2-preview.2
+  - @repo/obs@0.0.2-preview.2
+  - @repo/db@0.0.2-preview.2
+
 ## 0.0.2-preview.1
 
 ### Patch Changes
