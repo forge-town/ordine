@@ -1,5 +1,6 @@
 {
   "name": "@ordine/scripts",
+  "version": "0.0.2-preview.0",
   "private": true,
   "type": "module",
   "scripts": {

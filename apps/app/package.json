@@ -1,5 +1,6 @@
 {
   "name": "@ordine/app",
+  "version": "0.0.2-preview.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -37,7 +38,7 @@
     "@repo/plugins": "workspace:*",
     "@repo/schemas": "workspace:*",
     "@repo/services": "workspace:*",
-    "@repo/ui": "*",
+    "@repo/ui": "workspace:*",
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/react-query": "^5.95.2",
     "@tanstack/react-router": "^1.168.7",

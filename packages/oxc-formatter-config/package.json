@@ -1,6 +1,6 @@
 {
   "name": "@repo/oxc-formatter-config",
-  "version": "0.0.1-preview",
+  "version": "0.0.2-preview.0",
   "description": "Shared OXC formatter configuration for Ordine projects",
   "main": "oxfmt.json",
   "type": "module",

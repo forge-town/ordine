@@ -1,6 +1,6 @@
 {
   "name": "@ordine/cli",
-  "version": "0.0.1-preview",
+  "version": "0.0.2-preview.0",
   "private": false,
   "bin": {
     "ordine": "./dist/index.js"
