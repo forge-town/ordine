@@ -1,5 +1,21 @@
 # @ordine/app
 
+## 0.0.2-preview.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @repo/agent@0.0.2-preview.1
+  - @repo/db@0.0.2-preview.1
+  - @repo/db-schema@0.0.2-preview.1
+  - @repo/models@0.0.2-preview.1
+  - @repo/pipeline-engine@0.0.2-preview.1
+  - @repo/plugin@0.0.2-preview.1
+  - @repo/plugins@0.0.2-preview.1
+  - @repo/schemas@0.0.2-preview.1
+  - @repo/services@0.0.2-preview.1
+  - @repo/ui@0.0.2-preview.1
+
 ## 0.0.2-preview.0
 
 ### Patch Changes
