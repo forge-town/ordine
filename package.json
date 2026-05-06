@@ -27,6 +27,7 @@
     "sync-skills": "bunx skills add https://github.com/forge-town/skills",
     "changeset": "changeset",
     "version-packages": "changeset version",
+    "release:tag": "bun apps/scripts/src/releases/create-release-tag.ts",
     "release": "changeset publish"
   },
   "devDependencies": {
