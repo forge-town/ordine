@@ -38,6 +38,7 @@ import {
   importBestPractices,
   browseFilesystem,
 } from "./commands";
+import { startDaemon } from "./daemon";
 
 const program = new Command();
 
@@ -230,6 +231,17 @@ fsCmd
   .command("browse [path]")
   .description("List directory contents")
   .action((p?: string) => browseFilesystem(p));
+
+// ─── Daemon ──────────────────────────────────────────────────────────
+
+program
+  .command("daemon")
+  .description("Run daemon to scan local runtimes and sync with server")
+  .option("--once", "Scan once and exit (no heartbeat loop)")
+  .option("--interval <ms>", "Heartbeat interval in milliseconds", "15000")
+  .action((opts: { once?: boolean; interval?: string }) =>
+    startDaemon({ once: opts.once, interval: Number(opts.interval) }),
+  );
 
 // ─── Parse ───────────────────────────────────────────────────────────
 

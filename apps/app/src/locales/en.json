@@ -582,7 +582,6 @@
     "title": "Runtimes",
     "empty": "No runtimes configured. Add one to enable agent execution.",
     "unnamed": "Unnamed Runtime",
-    "addRuntime": "Add Runtime",
     "runtime": "Runtime",
     "selectHint": "Select a runtime to view details",
     "scan": "Scan for Runtimes",

@@ -9,6 +9,7 @@ export const serverEnvSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  RUNTIME_SCAN_MODE: z.enum(["daemon", "local"]).default("daemon"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

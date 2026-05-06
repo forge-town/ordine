@@ -1,10 +1,13 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { agentRuntimesService } from "../services";
-import { AgentRuntimeConfigSchema } from "@repo/schemas";
+import { AgentRuntimeConfigSchema, type AgentRuntime } from "@repo/schemas";
 import { scanRuntimes } from "@repo/agent";
+import { getServerEnv } from "@/integrations/server-env";
 
 const UpdatePatchSchema = AgentRuntimeConfigSchema.omit({ id: true }).partial();
+
+const { RUNTIME_SCAN_MODE } = getServerEnv();
 
 export const agentRuntimesRouter = router({
   getMany: publicProcedure.query(() => agentRuntimesService.getAll()),
@@ -29,5 +32,17 @@ export const agentRuntimesRouter = router({
     .input(z.object({ runtimes: AgentRuntimeConfigSchema.array() }))
     .mutation(({ input }) => agentRuntimesService.syncAll(input.runtimes)),
 
-  scanRuntimes: publicProcedure.query(() => scanRuntimes()),
+  scanAndSync: publicProcedure.mutation(async () => {
+    if (RUNTIME_SCAN_MODE !== "local") return [];
+    const detected = await scanRuntimes();
+    const runtimes = detected.map((r) => ({
+      id: `local-${r.type}`,
+      name: r.type,
+      type: r.type as AgentRuntime,
+      connection: { mode: "local" as const },
+    }));
+    return agentRuntimesService.syncAll(runtimes);
+  }),
+
+  scanRuntimes: publicProcedure.query(() => (RUNTIME_SCAN_MODE === "local" ? scanRuntimes() : [])),
 });

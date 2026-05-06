@@ -3,7 +3,7 @@ import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CanvasPage } from "./CanvasPage";
 
-vi.mock("@/routes/_layout/canvas", () => ({
+vi.mock("@/routes/canvas", () => ({
   Route: {
     useLoaderData: () => ({
       pipeline: null,

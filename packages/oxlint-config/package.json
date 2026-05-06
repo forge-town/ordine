@@ -1,6 +1,6 @@
 {
   "name": "@repo/oxlint-config",
-  "version": "0.0.1-preview",
+  "version": "0.0.2-preview.0",
   "description": "Shared oxlint configuration for Ordine projects",
   "license": "MIT",
   "type": "module"
