@@ -1,5 +1,14 @@
 # @repo/db-schema
 
+## 0.0.2-preview.2
+
+### Patch Changes
+
+- test cicd
+
+- Updated dependencies []:
+  - @repo/schemas@0.0.2-preview.2
+
 ## 0.0.2-preview.1
 
 ### Patch Changes

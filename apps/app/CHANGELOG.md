@@ -1,5 +1,23 @@
 # @ordine/app
 
+## 0.0.2-preview.2
+
+### Patch Changes
+
+- test cicd
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.2
+  - @repo/db-schema@0.0.2-preview.2
+  - @repo/services@0.0.2-preview.2
+  - @repo/plugins@0.0.2-preview.2
+  - @repo/schemas@0.0.2-preview.2
+  - @repo/models@0.0.2-preview.2
+  - @repo/plugin@0.0.2-preview.2
+  - @repo/agent@0.0.2-preview.2
+  - @repo/db@0.0.2-preview.2
+  - @repo/ui@0.0.2-preview.2
+
 ## 0.0.2-preview.1
 
 ### Patch Changes
