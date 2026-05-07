@@ -8,7 +8,7 @@
 | `name` | `string` | 人类可读名称 |
 | `description` | `string \| null` | 操作描述 |
 | `config` | `string (JSON)` | 执行器配置（JSON 字符串） |
-| `acceptedObjectTypes` | `string[] \| null` | 接受的对象类型，如 `["folder", "code-file", "github-project"]` |
+| `acceptedObjectTypes` | `string[] \| null` | 接受的对象类型，如 `["folder", "code-file", "github-projects"]` |
 | `createdAt` | `timestamp` | 创建时间 |
 | `updatedAt` | `timestamp` | 更新时间 |
 
@@ -57,7 +57,7 @@
 | 字段 | 说明 |
 |---|---|
 | `name` | 输入名称，Pipeline 中用于映射数据流 |
-| `kind` | 输入类型：`"folder"`, `"code-file"`, `"github-project"`, `"text"`, `"json"` |
+| `kind` | 输入类型：`"folder"`, `"code-file"`, `"github-projects"`, `"text"`, `"json"` |
 | `required` | 是否必填 |
 
 ### outputs（输出）

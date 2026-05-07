@@ -30,10 +30,10 @@ export const makeDefaultNodeData = (type: BuiltinNodeType): PipelineNodeData => 
         description: "",
       };
     }
-    case "github-project": {
+    case "github-projects": {
       return {
         label: "GitHub 项目",
-        nodeType: "github-project",
+        nodeType: "github-projects",
         owner: "",
         repo: "",
         branch: "main",

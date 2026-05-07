@@ -23,7 +23,7 @@ const wrapper = ({ children }: { children?: React.ReactNode }) => (
 );
 
 const baseData = {
-  nodeType: "github-project" as const,
+  nodeType: "github-projects" as const,
   label: "ordine",
   owner: "amin",
   repo: "ordine",
@@ -68,7 +68,7 @@ describe("GitHubProjectNode", () => {
 
   it("renders local path when sourceType is local", () => {
     const localData = {
-      nodeType: "github-project" as const,
+      nodeType: "github-projects" as const,
       label: "my-local-project",
       owner: "",
       repo: "",

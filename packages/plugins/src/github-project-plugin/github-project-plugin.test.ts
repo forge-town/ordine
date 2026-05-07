@@ -16,7 +16,7 @@ describe("githubProjectsPlugin", () => {
   it("defines a github-project object type", () => {
     expect(githubProjectsPlugin.objectTypes).toHaveLength(1);
     const objType = githubProjectsPlugin.objectTypes![0]!;
-    expect(objType.id).toBe("github-project");
+    expect(objType.id).toBe("github-projects");
     expect(objType.label).toBe("GitHub Projects");
     expect(objType.icon).toBe("github");
   });
@@ -25,8 +25,8 @@ describe("githubProjectsPlugin", () => {
     pluginRegistry.register(githubProjectsPlugin);
 
     expect(pluginRegistry.getPlugin("builtin:github-projects")).toBeDefined();
-    expect(pluginRegistry.hasObjectType("github-project")).toBe(true);
-    expect(pluginRegistry.getNodeHandler("github-project")).toBeDefined();
+    expect(pluginRegistry.hasObjectType("github-projects")).toBe(true);
+    expect(pluginRegistry.getNodeHandler("github-projects")).toBeDefined();
   });
 
   it("throws on duplicate registration", () => {

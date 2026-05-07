@@ -34,7 +34,7 @@ type Story = StoryObj<typeof GitHubProjectNode>;
 export const Default: Story = {
   args: {
     data: {
-      nodeType: "github-project",
+      nodeType: "github-projects",
       label: "ordine",
       owner: "amin",
       repo: "ordine",
@@ -55,7 +55,7 @@ export const Selected: Story = {
   args: {
     selected: true,
     data: {
-      nodeType: "github-project",
+      nodeType: "github-projects",
       label: "react",
       owner: "facebook",
       repo: "react",
@@ -74,7 +74,7 @@ export const Selected: Story = {
 export const NoRepo: Story = {
   args: {
     data: {
-      nodeType: "github-project",
+      nodeType: "github-projects",
       label: "新项目",
       owner: "",
       repo: "",

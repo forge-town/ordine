@@ -52,7 +52,7 @@ const NODE_META: Record<string, { icon: React.ElementType; color: string }> = {
     icon: Folder,
     color: "text-amber-600 bg-amber-50",
   },
-  "github-project": {
+  "github-projects": {
     icon: FolderGit2,
     color: "text-slate-600 bg-slate-50",
   },
@@ -75,7 +75,7 @@ const getNodeTypeLabel = (type: string, t: (key: string) => string): string => {
     operation: "pipelines.nodeTypes.operation",
     "code-file": "pipelines.nodeTypes.code-file",
     folder: "pipelines.nodeTypes.folder",
-    "github-project": "pipelines.nodeTypes.github-project",
+    "github-projects": "pipelines.nodeTypes.github-projects",
     "output-local-path": "pipelines.nodeTypes.output-local-path",
     "output-project-path": "pipelines.nodeTypes.output-project-path",
     condition: "pipelines.nodeTypes.condition",

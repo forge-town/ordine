@@ -21,7 +21,7 @@ const nodeTypes = {
   compound: CompoundNode,
   "code-file": CodeFileNode,
   folder: FolderNode,
-  "github-project": GitHubProjectNode,
+  "github-projects": GitHubProjectNode,
   "output-project-path": OutputProjectPathNode,
   "output-local-path": OutputLocalPathNode,
 };

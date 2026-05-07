@@ -22,25 +22,23 @@ import { Route as LayoutDistillationsRouteImport } from './routes/_layout/distil
 import { Route as LayoutDistillationStudioRouteImport } from './routes/_layout/distillation-studio'
 import { Route as LayoutAssistantRouteImport } from './routes/_layout/assistant'
 import { Route as LayoutRuntimesIndexRouteImport } from './routes/_layout/runtimes.index'
-import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects.index'
 import { Route as LayoutPipelinesIndexRouteImport } from './routes/_layout/pipelines.index'
 import { Route as LayoutDistillationsIndexRouteImport } from './routes/_layout/distillations.index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 import { Route as LayoutPipelinesSkillsRouteImport } from './routes/_layout/pipelines.skills'
 import { Route as LayoutPipelinesRecipesRouteImport } from './routes/_layout/pipelines.recipes'
-import { Route as LayoutPipelinesObjectsRouteImport } from './routes/_layout/pipelines.objects'
 import { Route as LayoutPipelinesJobsRouteImport } from './routes/_layout/pipelines.jobs'
 import { Route as LayoutPipelinesPipelineIdRouteImport } from './routes/_layout/pipelines.$pipelineId'
 import { Route as LayoutDistillationsNewRouteImport } from './routes/_layout/distillations.new'
 import { Route as LayoutDistillationsDistillationIdRouteImport } from './routes/_layout/distillations.$distillationId'
 import { Route as LayoutRuntimesRuntimeIdIndexRouteImport } from './routes/_layout/runtimes.$runtimeId.index'
-import { Route as LayoutProjectsProjectIdIndexRouteImport } from './routes/_layout/projects.$projectId.index'
 import { Route as LayoutPipelinesOperationsIndexRouteImport } from './routes/_layout/pipelines.operations.index'
+import { Route as LayoutPipelinesObjectsIndexRouteImport } from './routes/_layout/pipelines.objects.index'
 import { Route as LayoutPipelinesJobsIndexRouteImport } from './routes/_layout/pipelines.jobs.index'
 import { Route as LayoutRuntimesRuntimeIdEditRouteImport } from './routes/_layout/runtimes.$runtimeId.edit'
-import { Route as LayoutProjectsProjectIdWorkspaceRouteImport } from './routes/_layout/projects.$projectId.workspace'
 import { Route as LayoutPipelinesOperationsNewRouteImport } from './routes/_layout/pipelines.operations.new'
+import { Route as LayoutPipelinesObjectsObjectTypeIdRouteImport } from './routes/_layout/pipelines.objects.$objectTypeId'
 import { Route as LayoutPipelinesJobsJobIdRouteImport } from './routes/_layout/pipelines.jobs.$jobId'
 import { Route as LayoutPipelinesOperationsOperationIdIndexRouteImport } from './routes/_layout/pipelines.operations.$operationId.index'
 import { Route as LayoutPipelinesOperationsOperationIdEditRouteImport } from './routes/_layout/pipelines.operations.$operationId.edit'
@@ -110,11 +108,6 @@ const LayoutRuntimesIndexRoute = LayoutRuntimesIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutRuntimesRoute,
 } as any)
-const LayoutProjectsIndexRoute = LayoutProjectsIndexRouteImport.update({
-  id: '/projects/',
-  path: '/projects/',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutPipelinesIndexRoute = LayoutPipelinesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -146,11 +139,6 @@ const LayoutPipelinesRecipesRoute = LayoutPipelinesRecipesRouteImport.update({
   path: '/recipes',
   getParentRoute: () => LayoutPipelinesRoute,
 } as any)
-const LayoutPipelinesObjectsRoute = LayoutPipelinesObjectsRouteImport.update({
-  id: '/objects',
-  path: '/objects',
-  getParentRoute: () => LayoutPipelinesRoute,
-} as any)
 const LayoutPipelinesJobsRoute = LayoutPipelinesJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -179,16 +167,16 @@ const LayoutRuntimesRuntimeIdIndexRoute =
     path: '/$runtimeId/',
     getParentRoute: () => LayoutRuntimesRoute,
   } as any)
-const LayoutProjectsProjectIdIndexRoute =
-  LayoutProjectsProjectIdIndexRouteImport.update({
-    id: '/projects/$projectId/',
-    path: '/projects/$projectId/',
-    getParentRoute: () => LayoutRoute,
-  } as any)
 const LayoutPipelinesOperationsIndexRoute =
   LayoutPipelinesOperationsIndexRouteImport.update({
     id: '/operations/',
     path: '/operations/',
+    getParentRoute: () => LayoutPipelinesRoute,
+  } as any)
+const LayoutPipelinesObjectsIndexRoute =
+  LayoutPipelinesObjectsIndexRouteImport.update({
+    id: '/objects/',
+    path: '/objects/',
     getParentRoute: () => LayoutPipelinesRoute,
   } as any)
 const LayoutPipelinesJobsIndexRoute =
@@ -203,16 +191,16 @@ const LayoutRuntimesRuntimeIdEditRoute =
     path: '/$runtimeId/edit',
     getParentRoute: () => LayoutRuntimesRoute,
   } as any)
-const LayoutProjectsProjectIdWorkspaceRoute =
-  LayoutProjectsProjectIdWorkspaceRouteImport.update({
-    id: '/projects/$projectId/workspace',
-    path: '/projects/$projectId/workspace',
-    getParentRoute: () => LayoutRoute,
-  } as any)
 const LayoutPipelinesOperationsNewRoute =
   LayoutPipelinesOperationsNewRouteImport.update({
     id: '/operations/new',
     path: '/operations/new',
+    getParentRoute: () => LayoutPipelinesRoute,
+  } as any)
+const LayoutPipelinesObjectsObjectTypeIdRoute =
+  LayoutPipelinesObjectsObjectTypeIdRouteImport.update({
+    id: '/objects/$objectTypeId',
+    path: '/objects/$objectTypeId',
     getParentRoute: () => LayoutPipelinesRoute,
   } as any)
 const LayoutPipelinesJobsJobIdRoute =
@@ -250,22 +238,20 @@ export interface FileRoutesByFullPath {
   '/distillations/new': typeof LayoutDistillationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/pipelines/jobs': typeof LayoutPipelinesJobsRouteWithChildren
-  '/pipelines/objects': typeof LayoutPipelinesObjectsRoute
   '/pipelines/recipes': typeof LayoutPipelinesRecipesRoute
   '/pipelines/skills': typeof LayoutPipelinesSkillsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/distillations/': typeof LayoutDistillationsIndexRoute
   '/pipelines/': typeof LayoutPipelinesIndexRoute
-  '/projects/': typeof LayoutProjectsIndexRoute
   '/runtimes/': typeof LayoutRuntimesIndexRoute
   '/pipelines/jobs/$jobId': typeof LayoutPipelinesJobsJobIdRoute
+  '/pipelines/objects/$objectTypeId': typeof LayoutPipelinesObjectsObjectTypeIdRoute
   '/pipelines/operations/new': typeof LayoutPipelinesOperationsNewRoute
-  '/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
   '/runtimes/$runtimeId/edit': typeof LayoutRuntimesRuntimeIdEditRoute
   '/pipelines/jobs/': typeof LayoutPipelinesJobsIndexRoute
+  '/pipelines/objects/': typeof LayoutPipelinesObjectsIndexRoute
   '/pipelines/operations/': typeof LayoutPipelinesOperationsIndexRoute
-  '/projects/$projectId/': typeof LayoutProjectsProjectIdIndexRoute
   '/runtimes/$runtimeId/': typeof LayoutRuntimesRuntimeIdIndexRoute
   '/pipelines/operations/$operationId/edit': typeof LayoutPipelinesOperationsOperationIdEditRoute
   '/pipelines/operations/$operationId/': typeof LayoutPipelinesOperationsOperationIdIndexRoute
@@ -282,22 +268,20 @@ export interface FileRoutesByTo {
   '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
   '/distillations/new': typeof LayoutDistillationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
-  '/pipelines/objects': typeof LayoutPipelinesObjectsRoute
   '/pipelines/recipes': typeof LayoutPipelinesRecipesRoute
   '/pipelines/skills': typeof LayoutPipelinesSkillsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/distillations': typeof LayoutDistillationsIndexRoute
   '/pipelines': typeof LayoutPipelinesIndexRoute
-  '/projects': typeof LayoutProjectsIndexRoute
   '/runtimes': typeof LayoutRuntimesIndexRoute
   '/pipelines/jobs/$jobId': typeof LayoutPipelinesJobsJobIdRoute
+  '/pipelines/objects/$objectTypeId': typeof LayoutPipelinesObjectsObjectTypeIdRoute
   '/pipelines/operations/new': typeof LayoutPipelinesOperationsNewRoute
-  '/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
   '/runtimes/$runtimeId/edit': typeof LayoutRuntimesRuntimeIdEditRoute
   '/pipelines/jobs': typeof LayoutPipelinesJobsIndexRoute
+  '/pipelines/objects': typeof LayoutPipelinesObjectsIndexRoute
   '/pipelines/operations': typeof LayoutPipelinesOperationsIndexRoute
-  '/projects/$projectId': typeof LayoutProjectsProjectIdIndexRoute
   '/runtimes/$runtimeId': typeof LayoutRuntimesRuntimeIdIndexRoute
   '/pipelines/operations/$operationId/edit': typeof LayoutPipelinesOperationsOperationIdEditRoute
   '/pipelines/operations/$operationId': typeof LayoutPipelinesOperationsOperationIdIndexRoute
@@ -320,22 +304,20 @@ export interface FileRoutesById {
   '/_layout/distillations/new': typeof LayoutDistillationsNewRoute
   '/_layout/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/_layout/pipelines/jobs': typeof LayoutPipelinesJobsRouteWithChildren
-  '/_layout/pipelines/objects': typeof LayoutPipelinesObjectsRoute
   '/_layout/pipelines/recipes': typeof LayoutPipelinesRecipesRoute
   '/_layout/pipelines/skills': typeof LayoutPipelinesSkillsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/_layout/distillations/': typeof LayoutDistillationsIndexRoute
   '/_layout/pipelines/': typeof LayoutPipelinesIndexRoute
-  '/_layout/projects/': typeof LayoutProjectsIndexRoute
   '/_layout/runtimes/': typeof LayoutRuntimesIndexRoute
   '/_layout/pipelines/jobs/$jobId': typeof LayoutPipelinesJobsJobIdRoute
+  '/_layout/pipelines/objects/$objectTypeId': typeof LayoutPipelinesObjectsObjectTypeIdRoute
   '/_layout/pipelines/operations/new': typeof LayoutPipelinesOperationsNewRoute
-  '/_layout/projects/$projectId/workspace': typeof LayoutProjectsProjectIdWorkspaceRoute
   '/_layout/runtimes/$runtimeId/edit': typeof LayoutRuntimesRuntimeIdEditRoute
   '/_layout/pipelines/jobs/': typeof LayoutPipelinesJobsIndexRoute
+  '/_layout/pipelines/objects/': typeof LayoutPipelinesObjectsIndexRoute
   '/_layout/pipelines/operations/': typeof LayoutPipelinesOperationsIndexRoute
-  '/_layout/projects/$projectId/': typeof LayoutProjectsProjectIdIndexRoute
   '/_layout/runtimes/$runtimeId/': typeof LayoutRuntimesRuntimeIdIndexRoute
   '/_layout/pipelines/operations/$operationId/edit': typeof LayoutPipelinesOperationsOperationIdEditRoute
   '/_layout/pipelines/operations/$operationId/': typeof LayoutPipelinesOperationsOperationIdIndexRoute
@@ -358,22 +340,20 @@ export interface FileRouteTypes {
     | '/distillations/new'
     | '/pipelines/$pipelineId'
     | '/pipelines/jobs'
-    | '/pipelines/objects'
     | '/pipelines/recipes'
     | '/pipelines/skills'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/distillations/'
     | '/pipelines/'
-    | '/projects/'
     | '/runtimes/'
     | '/pipelines/jobs/$jobId'
+    | '/pipelines/objects/$objectTypeId'
     | '/pipelines/operations/new'
-    | '/projects/$projectId/workspace'
     | '/runtimes/$runtimeId/edit'
     | '/pipelines/jobs/'
+    | '/pipelines/objects/'
     | '/pipelines/operations/'
-    | '/projects/$projectId/'
     | '/runtimes/$runtimeId/'
     | '/pipelines/operations/$operationId/edit'
     | '/pipelines/operations/$operationId/'
@@ -390,22 +370,20 @@ export interface FileRouteTypes {
     | '/distillations/$distillationId'
     | '/distillations/new'
     | '/pipelines/$pipelineId'
-    | '/pipelines/objects'
     | '/pipelines/recipes'
     | '/pipelines/skills'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/distillations'
     | '/pipelines'
-    | '/projects'
     | '/runtimes'
     | '/pipelines/jobs/$jobId'
+    | '/pipelines/objects/$objectTypeId'
     | '/pipelines/operations/new'
-    | '/projects/$projectId/workspace'
     | '/runtimes/$runtimeId/edit'
     | '/pipelines/jobs'
+    | '/pipelines/objects'
     | '/pipelines/operations'
-    | '/projects/$projectId'
     | '/runtimes/$runtimeId'
     | '/pipelines/operations/$operationId/edit'
     | '/pipelines/operations/$operationId'
@@ -427,22 +405,20 @@ export interface FileRouteTypes {
     | '/_layout/distillations/new'
     | '/_layout/pipelines/$pipelineId'
     | '/_layout/pipelines/jobs'
-    | '/_layout/pipelines/objects'
     | '/_layout/pipelines/recipes'
     | '/_layout/pipelines/skills'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/_layout/distillations/'
     | '/_layout/pipelines/'
-    | '/_layout/projects/'
     | '/_layout/runtimes/'
     | '/_layout/pipelines/jobs/$jobId'
+    | '/_layout/pipelines/objects/$objectTypeId'
     | '/_layout/pipelines/operations/new'
-    | '/_layout/projects/$projectId/workspace'
     | '/_layout/runtimes/$runtimeId/edit'
     | '/_layout/pipelines/jobs/'
+    | '/_layout/pipelines/objects/'
     | '/_layout/pipelines/operations/'
-    | '/_layout/projects/$projectId/'
     | '/_layout/runtimes/$runtimeId/'
     | '/_layout/pipelines/operations/$operationId/edit'
     | '/_layout/pipelines/operations/$operationId/'
@@ -550,13 +526,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutRuntimesIndexRouteImport
       parentRoute: typeof LayoutRuntimesRoute
     }
-    '/_layout/projects/': {
-      id: '/_layout/projects/'
-      path: '/projects'
-      fullPath: '/projects/'
-      preLoaderRoute: typeof LayoutProjectsIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/pipelines/': {
       id: '/_layout/pipelines/'
       path: '/'
@@ -599,13 +568,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutPipelinesRecipesRouteImport
       parentRoute: typeof LayoutPipelinesRoute
     }
-    '/_layout/pipelines/objects': {
-      id: '/_layout/pipelines/objects'
-      path: '/objects'
-      fullPath: '/pipelines/objects'
-      preLoaderRoute: typeof LayoutPipelinesObjectsRouteImport
-      parentRoute: typeof LayoutPipelinesRoute
-    }
     '/_layout/pipelines/jobs': {
       id: '/_layout/pipelines/jobs'
       path: '/jobs'
@@ -641,18 +603,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutRuntimesRuntimeIdIndexRouteImport
       parentRoute: typeof LayoutRuntimesRoute
     }
-    '/_layout/projects/$projectId/': {
-      id: '/_layout/projects/$projectId/'
-      path: '/projects/$projectId'
-      fullPath: '/projects/$projectId/'
-      preLoaderRoute: typeof LayoutProjectsProjectIdIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/pipelines/operations/': {
       id: '/_layout/pipelines/operations/'
       path: '/operations'
       fullPath: '/pipelines/operations/'
       preLoaderRoute: typeof LayoutPipelinesOperationsIndexRouteImport
+      parentRoute: typeof LayoutPipelinesRoute
+    }
+    '/_layout/pipelines/objects/': {
+      id: '/_layout/pipelines/objects/'
+      path: '/objects'
+      fullPath: '/pipelines/objects/'
+      preLoaderRoute: typeof LayoutPipelinesObjectsIndexRouteImport
       parentRoute: typeof LayoutPipelinesRoute
     }
     '/_layout/pipelines/jobs/': {
@@ -669,18 +631,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutRuntimesRuntimeIdEditRouteImport
       parentRoute: typeof LayoutRuntimesRoute
     }
-    '/_layout/projects/$projectId/workspace': {
-      id: '/_layout/projects/$projectId/workspace'
-      path: '/projects/$projectId/workspace'
-      fullPath: '/projects/$projectId/workspace'
-      preLoaderRoute: typeof LayoutProjectsProjectIdWorkspaceRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/pipelines/operations/new': {
       id: '/_layout/pipelines/operations/new'
       path: '/operations/new'
       fullPath: '/pipelines/operations/new'
       preLoaderRoute: typeof LayoutPipelinesOperationsNewRouteImport
+      parentRoute: typeof LayoutPipelinesRoute
+    }
+    '/_layout/pipelines/objects/$objectTypeId': {
+      id: '/_layout/pipelines/objects/$objectTypeId'
+      path: '/objects/$objectTypeId'
+      fullPath: '/pipelines/objects/$objectTypeId'
+      preLoaderRoute: typeof LayoutPipelinesObjectsObjectTypeIdRouteImport
       parentRoute: typeof LayoutPipelinesRoute
     }
     '/_layout/pipelines/jobs/$jobId': {
@@ -739,11 +701,12 @@ const LayoutPipelinesJobsRouteWithChildren =
 interface LayoutPipelinesRouteChildren {
   LayoutPipelinesPipelineIdRoute: typeof LayoutPipelinesPipelineIdRoute
   LayoutPipelinesJobsRoute: typeof LayoutPipelinesJobsRouteWithChildren
-  LayoutPipelinesObjectsRoute: typeof LayoutPipelinesObjectsRoute
   LayoutPipelinesRecipesRoute: typeof LayoutPipelinesRecipesRoute
   LayoutPipelinesSkillsRoute: typeof LayoutPipelinesSkillsRoute
   LayoutPipelinesIndexRoute: typeof LayoutPipelinesIndexRoute
+  LayoutPipelinesObjectsObjectTypeIdRoute: typeof LayoutPipelinesObjectsObjectTypeIdRoute
   LayoutPipelinesOperationsNewRoute: typeof LayoutPipelinesOperationsNewRoute
+  LayoutPipelinesObjectsIndexRoute: typeof LayoutPipelinesObjectsIndexRoute
   LayoutPipelinesOperationsIndexRoute: typeof LayoutPipelinesOperationsIndexRoute
   LayoutPipelinesOperationsOperationIdEditRoute: typeof LayoutPipelinesOperationsOperationIdEditRoute
   LayoutPipelinesOperationsOperationIdIndexRoute: typeof LayoutPipelinesOperationsOperationIdIndexRoute
@@ -752,11 +715,13 @@ interface LayoutPipelinesRouteChildren {
 const LayoutPipelinesRouteChildren: LayoutPipelinesRouteChildren = {
   LayoutPipelinesPipelineIdRoute: LayoutPipelinesPipelineIdRoute,
   LayoutPipelinesJobsRoute: LayoutPipelinesJobsRouteWithChildren,
-  LayoutPipelinesObjectsRoute: LayoutPipelinesObjectsRoute,
   LayoutPipelinesRecipesRoute: LayoutPipelinesRecipesRoute,
   LayoutPipelinesSkillsRoute: LayoutPipelinesSkillsRoute,
   LayoutPipelinesIndexRoute: LayoutPipelinesIndexRoute,
+  LayoutPipelinesObjectsObjectTypeIdRoute:
+    LayoutPipelinesObjectsObjectTypeIdRoute,
   LayoutPipelinesOperationsNewRoute: LayoutPipelinesOperationsNewRoute,
+  LayoutPipelinesObjectsIndexRoute: LayoutPipelinesObjectsIndexRoute,
   LayoutPipelinesOperationsIndexRoute: LayoutPipelinesOperationsIndexRoute,
   LayoutPipelinesOperationsOperationIdEditRoute:
     LayoutPipelinesOperationsOperationIdEditRoute,
@@ -793,9 +758,6 @@ interface LayoutRouteChildren {
   LayoutRuntimesRoute: typeof LayoutRuntimesRouteWithChildren
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
-  LayoutProjectsIndexRoute: typeof LayoutProjectsIndexRoute
-  LayoutProjectsProjectIdWorkspaceRoute: typeof LayoutProjectsProjectIdWorkspaceRoute
-  LayoutProjectsProjectIdIndexRoute: typeof LayoutProjectsProjectIdIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -807,9 +769,6 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutRuntimesRoute: LayoutRuntimesRouteWithChildren,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
-  LayoutProjectsIndexRoute: LayoutProjectsIndexRoute,
-  LayoutProjectsProjectIdWorkspaceRoute: LayoutProjectsProjectIdWorkspaceRoute,
-  LayoutProjectsProjectIdIndexRoute: LayoutProjectsProjectIdIndexRoute,
 }
 
 const LayoutRouteWithChildren =

@@ -46,8 +46,8 @@ const OPTIMIZE_SYSTEM_PROMPT = [
   "=== NODE TYPES ===",
   "",
   "1. INPUT — github-project:",
-  '{ "id": "<unique>", "type": "github-project", "position": {"x":0,"y":0},',
-  '  "data": { "nodeType": "github-project", "label": "...", "owner": "<github-owner>",',
+  '{ "id": "<unique>", "type": "github-projects", "position": {"x":0,"y":0},',
+  '  "data": { "nodeType": "github-projects", "label": "...", "owner": "<github-owner>",',
   '    "repo": "<repo-name>", "branch": "main", "sourceType": "github",',
   '    "accessMode": "remote", "disclosureMode": "tree" } }',
   "",
@@ -255,7 +255,7 @@ export const createPipelinesService = (db: DbConnection) => {
       // Sanitize known LLM output issues before Zod validation
       if (Array.isArray(rawParsed.nodes)) {
         for (const node of rawParsed.nodes) {
-          if (node.data?.nodeType === "github-project" && node.data.sourceType === "remote") {
+          if (node.data?.nodeType === "github-projects" && node.data.sourceType === "remote") {
             node.data.sourceType = "github";
           }
         }

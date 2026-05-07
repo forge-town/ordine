@@ -288,7 +288,7 @@
       "operation": "Operation",
       "code-file": "Code File",
       "folder": "Folder",
-      "github-project": "GitHub",
+      "github-projects": "GitHub",
       "output-local-path": "Local Output",
       "output-project-path": "Project Output",
       "condition": "Condition"

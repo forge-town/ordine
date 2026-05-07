@@ -41,7 +41,7 @@ const TYPE_ICONS: Record<string, React.ElementType> = {
   condition: GitBranch,
   "code-file": FileCode,
   folder: Folder,
-  "github-project": SiGitHubIcon,
+  "github-projects": SiGitHubIcon,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
 };
@@ -91,7 +91,7 @@ export const NodeContextMenu = () => {
     const objectTypeMap: Record<string, string> = {
       "code-file": "file",
       folder: "folder",
-      "github-project": "project",
+      "github-projects": "project",
     };
     const objectType = objectTypeMap[node.type];
     if (!objectType) return operations;
@@ -171,12 +171,12 @@ export const NodeContextMenu = () => {
             </ContextMenuGroup>
 
             {/* Object types */}
-            {["code-file", "folder", "github-project"].some((t) =>
+            {["code-file", "folder", "github-projects"].some((t) =>
               availableTypes.includes(t as BuiltinNodeType)
             ) && (
               <ContextMenuGroup>
                 <ContextMenuLabel>处理对象</ContextMenuLabel>
-                {["code-file", "folder", "github-project"]
+                {["code-file", "folder", "github-projects"]
                   .filter((t) => availableTypes.includes(t as BuiltinNodeType))
                   .map((type) => {
                     const Icon = TYPE_ICONS[type as NodeType];

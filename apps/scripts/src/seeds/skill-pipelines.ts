@@ -614,12 +614,12 @@ const PIPELINES: PipelineSeed[] = [
     nodes: [
       {
         id: "n_bp_input",
-        type: "github-project",
+        type: "github-projects",
         metaType: "object",
         position: { x: 100, y: 200 },
         data: {
           label: "项目",
-          nodeType: "github-project",
+          nodeType: "github-projects",
           description: "要检查的项目",
         },
       },

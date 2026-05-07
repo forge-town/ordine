@@ -4,7 +4,7 @@ export const NODE_TYPE_ENUM = {
   COMPOUND: "compound",
   CODE_FILE: "code-file",
   FOLDER: "folder",
-  GITHUB_PROJECT: "github-project",
+  GITHUB_PROJECT: "github-projects",
   OPERATION: "operation",
   OUTPUT_PROJECT_PATH: "output-project-path",
   OUTPUT_LOCAL_PATH: "output-local-path",

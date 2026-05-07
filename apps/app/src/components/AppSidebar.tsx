@@ -8,7 +8,6 @@ import {
   BookOpen,
   Settings,
   Layers,
-  FolderGit2,
   Activity,
   Zap,
   ChefHat,
@@ -61,17 +60,15 @@ const mainItems: NavItem[] = [{ labelKey: "nav.dashboard", icon: LayoutDashboard
 
 const mainPeerItems: NavItem[] = [
   { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
+  { labelKey: "nav.skills", icon: BookOpen, to: "/pipelines/skills" },
 ];
 
 const pipelineItems: NavItem[] = [
-  { labelKey: "nav.operations", icon: Zap, to: "/pipelines/operations" },
-  { labelKey: "nav.skills", icon: BookOpen, to: "/pipelines/skills" },
-  { labelKey: "nav.recipes", icon: ChefHat, to: "/pipelines/recipes" },
   { labelKey: "nav.objects", icon: Box, to: "/pipelines/objects" },
+  { labelKey: "nav.operations", icon: Zap, to: "/pipelines/operations" },
+  { labelKey: "nav.recipes", icon: ChefHat, to: "/pipelines/recipes" },
   { labelKey: "nav.jobs", icon: Activity, to: "/pipelines/jobs" },
 ];
-
-const objectNavItems: NavItem[] = [{ labelKey: "nav.projects", icon: FolderGit2, to: "/projects" }];
 
 const configItems: NavItem[] = [
   { labelKey: "nav.plugins", icon: Puzzle, to: "/plugins" },
@@ -240,13 +237,6 @@ export const AppSidebar = () => {
               ariaLabel={t("nav.distillations")}
               currentPath={currentPath}
               items={mainPeerItems}
-              t={t}
-            />
-            <SidebarSeparator className="my-1 bg-sidebar-border/60" />
-            <NavGroup
-              ariaLabel={t("nav.objects")}
-              currentPath={currentPath}
-              items={objectNavItems}
               t={t}
             />
             <NavGroup

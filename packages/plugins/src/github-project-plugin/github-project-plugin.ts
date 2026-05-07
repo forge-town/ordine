@@ -23,7 +23,7 @@ export const githubProjectsPlugin = definePlugin({
   version: "1.0.0",
   objectTypes: [
     {
-      id: "github-project",
+      id: "github-projects",
       label: "GitHub Projects",
       icon: "github",
       dataSchema: GitHubProjectDataSchema,

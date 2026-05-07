@@ -4,7 +4,7 @@ import type { BuiltinNodeType } from "./schemas/BuiltinNodeTypeSchema";
 const BUILTIN_META_MAP: Record<BuiltinNodeType, MetaNodeType> = {
   "code-file": "object",
   folder: "object",
-  "github-project": "object",
+  "github-projects": "object",
   operation: "operation",
   compound: "operation",
   "output-local-path": "output",

@@ -9,7 +9,7 @@ export const processGitHubProjectNode = async (
 ): Promise<NodeResult | { ok: false; error: PipelineRunError }> => {
   const { node, nodeOutputs, tempDirs, jobId, githubToken } = ctx;
 
-  if (node.data.nodeType !== "github-project") {
+  if (node.data.nodeType !== "github-projects") {
     await trace(
       jobId,
       `WARNING: Expected github-project node, got ${node.data.nodeType ?? "unknown"}`,

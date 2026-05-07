@@ -46,9 +46,9 @@ const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDe
 
 const makeNode = (data: Record<string, unknown> = {}): PipelineNode => ({
   id: "gh-1",
-  type: "github-project",
+  type: "github-projects",
   position: { x: 0, y: 0 },
-  data: { label: "gh-1", nodeType: "github-project", ...data } as PipelineNode["data"],
+  data: { label: "gh-1", nodeType: "github-projects", ...data } as PipelineNode["data"],
 });
 
 const makeCtx = (

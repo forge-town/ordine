@@ -525,7 +525,7 @@ describe("executePipeline", () => {
 
       const deps = makeDeps();
       const nodes = [
-        makeNode("gh", "github-project", {
+        makeNode("gh", "github-projects", {
           sourceType: "local",
           localPath,
           owner: "",

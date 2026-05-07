@@ -85,10 +85,10 @@
 ```json
 {
   "id": "n_github",
-  "type": "github-project",
+  "type": "github-projects",
   "data": {
     "label": "GitHub 项目",
-    "nodeType": "github-project",
+    "nodeType": "github-projects",
     "repo": "owner/repo",
     "branch": "main"
   },

@@ -288,7 +288,7 @@
       "operation": "操作",
       "code-file": "代码文件",
       "folder": "文件夹",
-      "github-project": "GitHub",
+      "github-projects": "GitHub",
       "output-local-path": "本地输出",
       "output-project-path": "项目输出",
       "condition": "条件"

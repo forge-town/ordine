@@ -34,7 +34,7 @@ export const nodeTypeMeta = {
     handle: "!border-orange-400",
     plusBg: "bg-orange-100 text-orange-700 hover:bg-orange-200",
   },
-  "github-project": {
+  "github-projects": {
     label: "GitHub 项目",
     shortLabel: "GitHub",
     border: "border-orange-200",

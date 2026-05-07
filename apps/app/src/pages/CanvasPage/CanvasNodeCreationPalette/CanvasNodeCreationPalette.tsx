@@ -14,12 +14,12 @@ import { useHarnessCanvasStore } from "../_store";
 import { getNodeMeta } from "../utils/nodeTypeMeta";
 import type { XYPosition } from "@xyflow/system";
 
-const QUICK_ADD_OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-project"];
+const QUICK_ADD_OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-projects"];
 
 const TYPE_ICONS: Record<string, ElementType> = {
   "code-file": FileCode,
   folder: Folder,
-  "github-project": SiGitHubIcon,
+  "github-projects": SiGitHubIcon,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
 };

@@ -35,12 +35,12 @@ const TYPE_ICONS: Record<string, React.ElementType> = {
   condition: GitBranch,
   "code-file": FileCode,
   folder: Folder,
-  "github-project": SiGitHubIcon,
+  "github-projects": SiGitHubIcon,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
 };
 
-const OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-project"];
+const OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-projects"];
 
 export const CanvasContextMenu = () => {
   const { t } = useTranslation();
@@ -84,7 +84,7 @@ export const CanvasContextMenu = () => {
     const objectTypeMap: Record<string, string> = {
       "code-file": "file",
       folder: "folder",
-      "github-project": "project",
+      "github-projects": "project",
     };
     const objectType = objectTypeMap[sourceNode.type];
     if (!objectType) return operations;

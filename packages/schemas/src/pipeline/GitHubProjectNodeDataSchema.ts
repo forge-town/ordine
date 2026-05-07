@@ -3,7 +3,7 @@ import { DisclosureModeSchema } from "./DisclosureModeSchema";
 
 export const GitHubProjectNodeDataSchema = z.object({
   label: z.string(),
-  nodeType: z.literal("github-project"),
+  nodeType: z.literal("github-projects"),
   sourceType: z.enum(["github", "local"]).optional(),
   accessMode: z.enum(["clone", "remote"]).optional(),
   owner: z.string(),
