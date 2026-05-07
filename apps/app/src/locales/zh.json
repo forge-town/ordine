@@ -55,6 +55,8 @@
     "workspace": "工作区",
     "library": "库",
     "knowledge": "知识",
+    "search": "搜索...",
+    "newPipeline": "新建流水线",
     "logout": "退出登录"
   },
   "sidebar": {
@@ -278,6 +280,9 @@
       "output-project-path": "项目输出",
       "condition": "条件"
     }
+  },
+  "newPipelineDialog": {
+    "descriptionPlaceholder": "描述这个流水线要做什么..."
   },
   "canvas": {
     "title": "画布",

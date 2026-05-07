@@ -1,5 +1,6 @@
-import { useEffect, useState, type ElementType } from "react";
+import { useEffect, type ElementType } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useStore } from "zustand";
 import {
   ArrowLeft,
   LayoutDashboard,
@@ -22,6 +23,8 @@ import {
   Server,
   LogOut,
   ChevronsUpDown,
+  Search,
+  SquarePen,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -48,6 +51,8 @@ import {
 } from "@repo/ui/dropdown-menu";
 import { pluginRegistry } from "@repo/plugin";
 import { useSession, signOut } from "@/integrations/better-auth-client";
+import { useSidebarStore } from "@/store/sidebarStore";
+import { SidebarView } from "@/store/sidebarSlice";
 
 interface NavItem {
   labelKey: string;
@@ -55,13 +60,6 @@ interface NavItem {
   to: string;
   badge?: string;
 }
-
-type SidebarView = "main" | "pipeline";
-
-const featuredItems: NavItem[] = [
-  { labelKey: "nav.canvas", icon: Workflow, to: "/canvas" },
-  { labelKey: "distillations.studioTitle", icon: FlaskConical, to: "/distillation-studio" },
-];
 
 const mainItems: NavItem[] = [{ labelKey: "nav.dashboard", icon: LayoutDashboard, to: "/" }];
 
@@ -165,25 +163,27 @@ export const AppSidebar = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { data: session } = useSession();
+  const store = useSidebarStore();
+  const sidebarView = useStore(store, (s) => s.view);
+  const setView = useStore(store, (s) => s.setView);
+  const handleShowPipelineView = useStore(store, (s) => s.handleShowPipelineView);
+  const handleShowMainView = useStore(store, (s) => s.handleShowMainView);
+  const handleOpenSearch = useStore(store, (s) => s.handleOpenSearch);
+  const handleOpenNewPipeline = useStore(store, (s) => s.handleOpenNewPipeline);
   const currentPath = location.pathname;
-  const [sidebarView, setSidebarView] = useState<SidebarView>(() =>
-    isPipelinePath(currentPath) ? "pipeline" : "main"
-  );
   const pluginObjectItems = getPluginObjectNavItems();
   const allObjectItems = [...objectNavItems, ...pluginObjectItems];
   const pipelineActive = isPipelinePath(currentPath);
 
   useEffect(() => {
     if (isPipelinePath(currentPath)) {
-      setSidebarView("pipeline");
+      setView(SidebarView.Pipeline);
 
       return;
     }
-    setSidebarView("main");
-  }, [currentPath]);
+    setView(SidebarView.Main);
+  }, [currentPath, setView]);
 
-  const handleShowPipelineView = () => setSidebarView("pipeline");
-  const handleShowMainView = () => setSidebarView("main");
   const handleLogout = async () => {
     await signOut();
     navigate({ to: "/login" });
@@ -206,31 +206,31 @@ export const AppSidebar = () => {
 
       <div className="shrink-0 border-b border-sidebar-border px-2 py-2">
         <SidebarMenu className="gap-1">
-          {featuredItems.map((item) => {
-            const Icon = item.icon;
-            const label = t(item.labelKey);
-            const isActive =
-              currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
-
-            return (
-              <SidebarMenuItem key={item.to}>
-                <SidebarMenuButton
-                  className="h-8 font-medium"
-                  isActive={isActive}
-                  render={<Link to={item.to as "/"} />}
-                  tooltip={label}
-                >
-                  <Icon />
-                  <span>{label}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="h-8 text-muted-foreground"
+              tooltip={t("nav.search")}
+              onClick={handleOpenSearch}
+            >
+              <Search />
+              <span>{t("nav.search")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="h-8 text-muted-foreground"
+              tooltip={t("nav.newPipeline")}
+              onClick={handleOpenNewPipeline}
+            >
+              <SquarePen />
+              <span>{t("nav.newPipeline")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </div>
 
       <SidebarContent className="py-2">
-        {sidebarView === "main" ? (
+        {sidebarView === SidebarView.Main ? (
           <div className="animate-in fade-in-0 slide-in-from-left-1 duration-150">
             <NavGroup
               ariaLabel={t("nav.workspace")}
