@@ -75,7 +75,7 @@ export const JobRow = ({ job }: JobRowProps) => {
         : null;
 
   const handleClick = () => {
-    void navigate({ to: "/jobs/$jobId", params: { jobId: job.id } });
+    void navigate({ to: "/pipelines/jobs/$jobId", params: { jobId: job.id } });
   };
 
   const handleDelete = (e: React.MouseEvent) => {

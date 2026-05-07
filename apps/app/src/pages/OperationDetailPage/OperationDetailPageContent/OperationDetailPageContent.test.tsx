@@ -6,7 +6,7 @@ import type { Operation } from "@repo/schemas";
 
 const mockUseLoaderData = vi.fn();
 
-vi.mock("@/routes/_layout/operations.$operationId.index", () => ({
+vi.mock("@/routes/_layout/pipelines.operations.$operationId.index", () => ({
   Route: {
     useLoaderData: () => mockUseLoaderData(),
     useParams: () => ({ operationId: "op_plan" }),

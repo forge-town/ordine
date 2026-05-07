@@ -16,7 +16,6 @@ import {
   ChefHat,
   FlaskConical,
   Box,
-  Globe,
   Puzzle,
   ExternalLink,
   ChevronRight,
@@ -49,7 +48,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
-import { pluginRegistry } from "@repo/plugin";
 import { useSession, signOut } from "@/integrations/better-auth-client";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { SidebarView } from "@/store/sidebarSlice";
@@ -68,12 +66,13 @@ const mainPeerItems: NavItem[] = [
 ];
 
 const pipelineItems: NavItem[] = [
-  { labelKey: "nav.operations", icon: Zap, to: "/operations" },
-  { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
-  { labelKey: "nav.recipes", icon: ChefHat, to: "/recipes" },
-  { labelKey: "nav.rules", icon: ShieldCheck, to: "/rules" },
-  { labelKey: "nav.bestPractices", icon: Lightbulb, to: "/best-practices" },
-  { labelKey: "nav.jobs", icon: Activity, to: "/jobs" },
+  { labelKey: "nav.operations", icon: Zap, to: "/pipelines/operations" },
+  { labelKey: "nav.skills", icon: BookOpen, to: "/pipelines/skills" },
+  { labelKey: "nav.recipes", icon: ChefHat, to: "/pipelines/recipes" },
+  { labelKey: "nav.rules", icon: ShieldCheck, to: "/pipelines/rules" },
+  { labelKey: "nav.bestPractices", icon: Lightbulb, to: "/pipelines/best-practices" },
+  { labelKey: "nav.objects", icon: Box, to: "/pipelines/objects" },
+  { labelKey: "nav.jobs", icon: Activity, to: "/pipelines/jobs" },
 ];
 
 const objectNavItems: NavItem[] = [{ labelKey: "nav.projects", icon: FolderGit2, to: "/projects" }];
@@ -83,21 +82,6 @@ const configItems: NavItem[] = [
   { labelKey: "nav.runtimes", icon: Server, to: "/runtimes" },
   { labelKey: "nav.settings", icon: Settings, to: "/settings" },
 ];
-
-const iconMap: Record<string, ElementType> = {
-  globe: Globe,
-  github: FolderGit2,
-  box: Box,
-  puzzle: Puzzle,
-};
-
-const getPluginObjectNavItems = (): NavItem[] => {
-  return pluginRegistry.getAllObjectTypes().map((objType) => ({
-    labelKey: objType.label,
-    icon: iconMap[objType.icon ?? ""] ?? Puzzle,
-    to: `/objects/${objType.id}`,
-  }));
-};
 
 const isPipelinePath = (path: string) => {
   return (
@@ -172,8 +156,6 @@ export const AppSidebar = () => {
   const handleOpenSearch = useStore(store, (s) => s.handleOpenSearch);
   const handleOpenNewPipeline = useStore(store, (s) => s.handleOpenNewPipeline);
   const currentPath = location.pathname;
-  const pluginObjectItems = getPluginObjectNavItems();
-  const allObjectItems = [...objectNavItems, ...pluginObjectItems];
   const pipelineActive = isPipelinePath(currentPath);
 
   useEffect(() => {
@@ -265,43 +247,12 @@ export const AppSidebar = () => {
               t={t}
             />
             <SidebarSeparator className="my-1 bg-sidebar-border/60" />
-            <SidebarGroup aria-label={t("nav.objects")} className="p-0 px-2">
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {allObjectItems.map((item) => {
-                    const Icon = item.icon;
-                    const label = item.labelKey.startsWith("nav.")
-                      ? t(item.labelKey)
-                      : item.labelKey;
-                    const isActive =
-                      currentPath === item.to ||
-                      (item.to !== "/" && currentPath.startsWith(item.to));
-
-                    return (
-                      <SidebarMenuItem key={item.to}>
-                        <SidebarMenuButton
-                          className="h-8"
-                          isActive={isActive}
-                          render={<Link to={item.to as "/"} />}
-                          tooltip={label}
-                        >
-                          <Icon />
-                          <span>{label}</span>
-                          {item.badge && (
-                            <Badge
-                              className="ml-auto h-4 px-1.5 text-[10px] group-data-[state=collapsed]/sidebar:hidden"
-                              variant="secondary"
-                            >
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            <NavGroup
+              ariaLabel={t("nav.objects")}
+              currentPath={currentPath}
+              items={objectNavItems}
+              t={t}
+            />
             <NavGroup
               separated
               ariaLabel="Configure"

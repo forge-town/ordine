@@ -60,13 +60,13 @@ export const RulesPageContent = () => {
   const handleCategoryFilterClick = (value: RuleCategory | "all") => () =>
     handleSetCategoryFilter(value);
 
-  const handleNavigateToCreate = () => void navigate({ to: "/rules/create" });
+  const handleNavigateToCreate = () => void navigate({ to: "/pipelines/rules/create" });
 
   const handleNavigateToDetail = (id: string) =>
-    void navigate({ to: "/rules/$ruleId", params: { ruleId: id } });
+    void navigate({ to: "/pipelines/rules/$ruleId", params: { ruleId: id } });
 
   const handleNavigateToEdit = (id: string) =>
-    void navigate({ to: "/rules/$ruleId/edit", params: { ruleId: id } });
+    void navigate({ to: "/pipelines/rules/$ruleId/edit", params: { ruleId: id } });
 
   if (rulesQuery?.isLoading) {
     return (

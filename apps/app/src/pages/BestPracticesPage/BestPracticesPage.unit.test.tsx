@@ -3,7 +3,7 @@ import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BestPracticesPage } from "./BestPracticesPage";
 
-vi.mock("@/routes/_layout/best-practices.index", () => ({
+vi.mock("@/routes/_layout/pipelines.best-practices.index", () => ({
   Route: {
     useLoaderData: () => [],
   },

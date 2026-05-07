@@ -23,7 +23,7 @@ import type {
 } from "@repo/schemas";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Route } from "@/routes/_layout/operations.$operationId.index";
+import { Route } from "@/routes/_layout/pipelines.operations.$operationId.index";
 import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
 import { OutputPortRow } from "../OutputPortRow";
@@ -114,7 +114,7 @@ export const OperationDetailPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const handleNavigateBack = () => void navigate({ to: "/operations" });
+  const handleNavigateBack = () => void navigate({ to: "/pipelines/operations" });
 
   if (operationQuery?.isLoading) {
     return (
@@ -142,7 +142,7 @@ export const OperationDetailPageContent = () => {
   const config = parseConfig(operation.config);
   const handleNavigateToEdit = () =>
     void navigate({
-      to: "/operations/$operationId/edit",
+      to: "/pipelines/operations/$operationId/edit",
       params: { operationId: operation.id },
     });
 
@@ -160,7 +160,7 @@ export const OperationDetailPageContent = () => {
             {t("common.edit")}
           </Button>
         }
-        backTo="/operations"
+        backTo="/pipelines/operations"
         title={operation.name}
       />
 

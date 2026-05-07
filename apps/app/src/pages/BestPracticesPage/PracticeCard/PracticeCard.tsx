@@ -50,7 +50,7 @@ export const PracticeCard = ({ practice }: PracticeCardProps) => {
               <Link
                 className="hover:text-primary hover:underline transition-colors"
                 params={{ bestPracticeId: practice.id }}
-                to="/best-practices/$bestPracticeId"
+                to="/pipelines/best-practices/$bestPracticeId"
               >
                 {practice.title}
               </Link>
@@ -59,7 +59,7 @@ export const PracticeCard = ({ practice }: PracticeCardProps) => {
               <Link
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-accent"
                 params={{ bestPracticeId: practice.id }}
-                to="/best-practices/$bestPracticeId/edit"
+                to="/pipelines/best-practices/$bestPracticeId/edit"
               >
                 <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
               </Link>

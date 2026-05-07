@@ -3,7 +3,7 @@ import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { JobDetailPage } from "./JobDetailPage";
 
-vi.mock("@/routes/_layout/jobs.$jobId", () => ({
+vi.mock("@/routes/_layout/pipelines.jobs.$jobId", () => ({
   Route: { useLoaderData: () => null, useParams: () => ({ jobId: "job-1" }) },
 }));
 

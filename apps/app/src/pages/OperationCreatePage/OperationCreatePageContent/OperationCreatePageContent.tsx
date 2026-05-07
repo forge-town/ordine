@@ -194,7 +194,7 @@ export const OperationCreatePageContent = () => {
   ];
 
   const handleCancel = () => {
-    void navigate({ to: "/operations" });
+    void navigate({ to: "/pipelines/operations" });
   };
 
   const onSubmit = async (values: CreateFormValues) => {
@@ -211,7 +211,7 @@ export const OperationCreatePageContent = () => {
     const created = result.data;
     if (created) {
       void navigate({
-        to: "/operations/$operationId",
+        to: "/pipelines/operations/$operationId",
         params: { operationId: (created as { id: string }).id },
       });
     }
@@ -219,7 +219,7 @@ export const OperationCreatePageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <PageHeader backTo="/operations" title={t("operations.createNew")} />
+      <PageHeader backTo="/pipelines/operations" title={t("operations.createNew")} />
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-6">

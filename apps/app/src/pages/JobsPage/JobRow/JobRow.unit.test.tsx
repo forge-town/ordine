@@ -37,7 +37,7 @@ describe("JobRow", () => {
     render(<JobRow job={mockJob} />);
     fireEvent.click(screen.getByText("测试 Job"));
     expect(mockNavigate).toHaveBeenCalledWith({
-      to: "/jobs/$jobId",
+      to: "/pipelines/jobs/$jobId",
       params: { jobId: "job-001" },
     });
   });

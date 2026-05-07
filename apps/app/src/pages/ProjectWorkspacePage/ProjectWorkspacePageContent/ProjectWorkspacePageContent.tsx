@@ -80,7 +80,7 @@ export const ProjectWorkspacePageContent = () => {
           const result = data?.data as { jobId: string } | undefined;
           if (result?.jobId) {
             void navigate({
-              to: "/jobs",
+              to: "/pipelines/jobs",
             });
           }
         },

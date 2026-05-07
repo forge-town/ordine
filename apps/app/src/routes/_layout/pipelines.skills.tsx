@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SkillsPage } from "@/pages/SkillsPage";
 
-export const Route = createFileRoute("/_layout/skills")({
+export const Route = createFileRoute("/_layout/pipelines/skills")({
   component: SkillsPage,
 });

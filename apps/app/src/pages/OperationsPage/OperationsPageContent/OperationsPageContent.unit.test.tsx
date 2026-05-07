@@ -219,7 +219,7 @@ describe("OperationsPageContent", () => {
       const editItem = await screen.findByText("common.edit");
       await userEvent.click(editItem);
       expect(mockNavigate).toHaveBeenCalledWith({
-        to: "/operations/$operationId/edit",
+        to: "/pipelines/operations/$operationId/edit",
         params: { operationId: "op-1" },
       });
     });
@@ -242,7 +242,7 @@ describe("OperationsPageContent", () => {
       render(<OperationsPageContent />);
       const buttons = screen.getAllByText("新建 Operation");
       fireEvent.click(buttons[0]);
-      expect(mockNavigate).toHaveBeenCalledWith({ to: "/operations/new" });
+      expect(mockNavigate).toHaveBeenCalledWith({ to: "/pipelines/operations/new" });
     });
 
     it("does NOT open the inline form after clicking 新建 Operation", () => {

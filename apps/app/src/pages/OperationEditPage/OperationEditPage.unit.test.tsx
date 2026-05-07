@@ -23,7 +23,7 @@ vi.mock("@/services/operationsService", () => ({
   updateOperation: vi.fn().mockResolvedValue({}),
 }));
 
-vi.mock("@/routes/_layout/operations.$operationId.edit", () => ({
+vi.mock("@/routes/_layout/pipelines.operations.$operationId.edit", () => ({
   Route: {
     useLoaderData: () => ({ operation: mockOp, skills: [] }),
     useParams: () => ({ operationId: "op-1" }),

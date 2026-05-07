@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Route } from "@/routes/_layout/best-practices.$bestPracticeId.index";
+import { Route } from "@/routes/_layout/pipelines.best-practices.$bestPracticeId.index";
 import { useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { BestPractice } from "@repo/schemas";

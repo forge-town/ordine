@@ -104,7 +104,7 @@ export const BestPracticeEditPageContent = ({
 
   const handleCancel = () => {
     void navigate({
-      to: "/best-practices/$bestPracticeId",
+      to: "/pipelines/best-practices/$bestPracticeId",
       params: { bestPracticeId: bestPractice.id },
     });
   };
@@ -316,7 +316,7 @@ export const BestPracticeEditPageContent = ({
     }
 
     void navigate({
-      to: "/best-practices/$bestPracticeId",
+      to: "/pipelines/best-practices/$bestPracticeId",
       params: { bestPracticeId: bestPractice.id },
     });
   };

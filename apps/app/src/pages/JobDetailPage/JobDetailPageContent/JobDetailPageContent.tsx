@@ -19,7 +19,7 @@ import { Button } from "@repo/ui/button";
 import type { Distillation, Job, JobStatus, JobType, JobTrace, LogLevel } from "@repo/schemas";
 import { useCreate, useCustom, useCustomMutation, useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Route } from "@/routes/_layout/jobs.$jobId";
+import { Route } from "@/routes/_layout/pipelines.jobs.$jobId";
 import { useState } from "react";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
@@ -117,7 +117,7 @@ export const JobDetailPageContent = () => {
   const toastStoreRef = useToastStore();
   const addToast = useStore(toastStoreRef, (s) => s.addToast);
 
-  const handleNavigateJobs = () => void navigate({ to: "/jobs" });
+  const handleNavigateJobs = () => void navigate({ to: "/pipelines/jobs" });
   const handleNavigateDistillationStudio = () => {
     if (!job) return;
     void navigate({
@@ -238,7 +238,7 @@ export const JobDetailPageContent = () => {
             </Button>
           </>
         }
-        backTo="/jobs"
+        backTo="/pipelines/jobs"
         badge={
           <span
             className={cn(

@@ -64,6 +64,11 @@
     "objectTypes": "Object Types",
     "noPlugins": "No plugins installed"
   },
+  "objects": {
+    "title": "Objects",
+    "subtitle": "Object types contributed by installed plugins.",
+    "noObjects": "No object types registered"
+  },
   "sidebar": {
     "user": "Ordine User"
   },

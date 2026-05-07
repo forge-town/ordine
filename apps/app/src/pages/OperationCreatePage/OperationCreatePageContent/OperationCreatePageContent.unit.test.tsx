@@ -19,7 +19,7 @@ const mockSkills: Skill[] = [
   },
 ];
 
-vi.mock("@/routes/_layout/operations.new", () => ({
+vi.mock("@/routes/_layout/pipelines.operations.new", () => ({
   Route: { useLoaderData: () => mockSkills },
 }));
 
@@ -129,7 +129,7 @@ describe("OperationCreatePageContent", () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
         expect.objectContaining({
-          to: "/operations/$operationId",
+          to: "/pipelines/operations/$operationId",
           params: { operationId: "new-op-id" },
         })
       );
@@ -139,6 +139,6 @@ describe("OperationCreatePageContent", () => {
   it("navigates back to /operations when cancel is clicked", () => {
     render(<OperationCreatePageContent />);
     fireEvent.click(screen.getByRole("button", { name: /取消/ }));
-    expect(mockNavigate).toHaveBeenCalledWith({ to: "/operations" });
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/pipelines/operations" });
   });
 });

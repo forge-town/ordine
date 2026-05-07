@@ -25,7 +25,7 @@ export const JobActivityRow = ({ job }: JobActivityRowProps) => {
   const Icon = JOB_STATUS_ICON[job.status] ?? Clock;
 
   return (
-    <Link params={{ jobId: job.id }} to="/jobs/$jobId">
+    <Link params={{ jobId: job.id }} to="/pipelines/jobs/$jobId">
       <div className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-accent transition-colors">
         <Icon
           className={cn(

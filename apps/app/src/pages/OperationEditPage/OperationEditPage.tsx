@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { OperationEditPageContent } from "./OperationEditPageContent";
 import { OperationEditPageStoreProvider } from "./_store";
-import { Route } from "@/routes/_layout/operations.$operationId.edit";
+import { Route } from "@/routes/_layout/pipelines.operations.$operationId.edit";
 import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { Skill, Operation } from "@repo/schemas";

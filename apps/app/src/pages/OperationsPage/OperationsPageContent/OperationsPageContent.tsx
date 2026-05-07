@@ -87,7 +87,7 @@ export const OperationsPageContent = () => {
 
   const handleSortOpenChange = (v: boolean) => handleSetSortOpen(v);
   const handleSortToggle = () => handleToggleSortOpen();
-  const handleNavigateToNew = () => navigate({ to: "/operations/new" });
+  const handleNavigateToNew = () => navigate({ to: "/pipelines/operations/new" });
 
   const handleImportClick = () => {
     importInputRef.current?.click();

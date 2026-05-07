@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render } from "@/test/test-wrapper";
 import { SkillsPage } from "./SkillsPage";
 
-vi.mock("@/routes/_layout/skills", () => ({
+vi.mock("@/routes/_layout/pipelines.skills", () => ({
   Route: { useLoaderData: () => [] },
 }));
 

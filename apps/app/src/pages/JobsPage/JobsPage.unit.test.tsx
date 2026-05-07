@@ -3,7 +3,7 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { JobsPage } from "./JobsPage";
 
-vi.mock("@/routes/_layout/jobs.index", () => ({
+vi.mock("@/routes/_layout/pipelines.jobs.index", () => ({
   Route: { useLoaderData: () => [] },
 }));
 

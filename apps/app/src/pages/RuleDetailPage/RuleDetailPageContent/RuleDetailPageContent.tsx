@@ -19,7 +19,7 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
   const navigate = useNavigate();
 
   const handleNavigateToEdit = () =>
-    void navigate({ to: "/rules/$ruleId/edit", params: { ruleId: rule.id } });
+    void navigate({ to: "/pipelines/rules/$ruleId/edit", params: { ruleId: rule.id } });
 
   const s = SEVERITY_CONFIG[rule.severity];
   const c = CATEGORY_CONFIG[rule.category];
@@ -27,7 +27,7 @@ export const RuleDetailPageContent = ({ rule }: Props) => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <PageHeader backTo="/rules" title={rule.name}>
+      <PageHeader backTo="/pipelines/rules" title={rule.name}>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <SeverityIcon className={cn("h-4 w-4 shrink-0", s.cls)} />

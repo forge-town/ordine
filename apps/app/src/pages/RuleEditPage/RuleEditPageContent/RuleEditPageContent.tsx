@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Route } from "@/routes/_layout/rules.$ruleId.edit";
+import { Route } from "@/routes/_layout/pipelines.rules.$ruleId.edit";
 import { useOne, useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { Rule } from "@repo/schemas";
@@ -38,7 +38,7 @@ export const RuleEditPageContent = () => {
   }
 
   const handleNavigateBack = () =>
-    void navigate({ to: "/rules/$ruleId", params: { ruleId: rule.id } });
+    void navigate({ to: "/pipelines/rules/$ruleId", params: { ruleId: rule.id } });
 
   const handleSave = async (form: RuleFormState) => {
     await updateRuleMutate({
@@ -60,7 +60,7 @@ export const RuleEditPageContent = () => {
           : [],
       },
     });
-    void navigate({ to: "/rules/$ruleId", params: { ruleId: rule.id } });
+    void navigate({ to: "/pipelines/rules/$ruleId", params: { ruleId: rule.id } });
   };
 
   return (

@@ -48,7 +48,10 @@ export const OperationCard = ({ operation }: OperationCardProps) => {
   const navigate = useNavigate();
   const { mutate: deleteOpMutate } = useDelete();
   const handleEdit = () =>
-    navigate({ to: "/operations/$operationId/edit", params: { operationId: operation.id } });
+    navigate({
+      to: "/pipelines/operations/$operationId/edit",
+      params: { operationId: operation.id },
+    });
   const handleDelete = () =>
     deleteOpMutate({ resource: ResourceName.operations, id: operation.id });
   const handleExport = () => exportOperation(operation);
@@ -61,7 +64,7 @@ export const OperationCard = ({ operation }: OperationCardProps) => {
     <Link
       className="group relative flex flex-col rounded-xl border border-border bg-card p-5 transition-colors hover:bg-accent/50"
       params={{ operationId: operation.id }}
-      to="/operations/$operationId"
+      to="/pipelines/operations/$operationId"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">

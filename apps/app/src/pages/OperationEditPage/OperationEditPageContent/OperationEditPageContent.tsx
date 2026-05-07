@@ -233,7 +233,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
 
   const handleCancel = () => {
     void navigate({
-      to: "/operations/$operationId",
+      to: "/pipelines/operations/$operationId",
       params: { operationId: operation.id },
     });
   };
@@ -250,7 +250,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
       },
     });
     void navigate({
-      to: "/operations/$operationId",
+      to: "/pipelines/operations/$operationId",
       params: { operationId: operation.id },
     });
   };

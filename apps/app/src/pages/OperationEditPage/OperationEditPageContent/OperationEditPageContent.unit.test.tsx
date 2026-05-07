@@ -142,7 +142,7 @@ describe("OperationEditPageContent", () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith({
-        to: "/operations/$operationId",
+        to: "/pipelines/operations/$operationId",
         params: { operationId: "op-123" },
       });
     });
@@ -152,7 +152,7 @@ describe("OperationEditPageContent", () => {
     render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
     fireEvent.click(screen.getByRole("button", { name: /取消/ }));
     expect(mockNavigate).toHaveBeenCalledWith({
-      to: "/operations/$operationId",
+      to: "/pipelines/operations/$operationId",
       params: { operationId: "op-123" },
     });
   });

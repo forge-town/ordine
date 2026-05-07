@@ -11,7 +11,7 @@ export const RuleCreatePageContent = () => {
   const navigate = useNavigate();
   const { mutateAsync: createRuleMutate } = useCreate();
 
-  const handleNavigateBack = () => void navigate({ to: "/rules" });
+  const handleNavigateBack = () => void navigate({ to: "/pipelines/rules" });
 
   const handleSave = async (form: RuleFormState) => {
     const result = await createRuleMutate({
@@ -35,12 +35,15 @@ export const RuleCreatePageContent = () => {
       },
     });
     const rule = result.data;
-    void navigate({ to: "/rules/$ruleId", params: { ruleId: (rule as { id: string }).id } });
+    void navigate({
+      to: "/pipelines/rules/$ruleId",
+      params: { ruleId: (rule as { id: string }).id },
+    });
   };
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <PageHeader backTo="/rules" title={t("rules.createTitle")} />
+      <PageHeader backTo="/pipelines/rules" title={t("rules.createTitle")} />
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-6">

@@ -17,7 +17,7 @@ vi.mock("@/services/bestPracticesService", () => ({
 }));
 
 const mockUseLoaderData = vi.fn();
-vi.mock("@/routes/_layout/best-practices.index", () => ({
+vi.mock("@/routes/_layout/pipelines.best-practices.index", () => ({
   Route: { useLoaderData: () => mockUseLoaderData() },
 }));
 

@@ -67,6 +67,11 @@
     "objectTypes": "对象类型",
     "noPlugins": "暂无已安装的插件"
   },
+  "objects": {
+    "title": "对象",
+    "subtitle": "由已安装插件贡献的对象类型。",
+    "noObjects": "暂无已注册的对象类型"
+  },
   "sidebar": {
     "user": "Ordine 用户"
   },

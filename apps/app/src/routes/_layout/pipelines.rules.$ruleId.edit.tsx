@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RuleEditPage } from "@/pages/RuleEditPage";
 
-export const Route = createFileRoute("/_layout/rules/$ruleId/edit")({
+export const Route = createFileRoute("/_layout/pipelines/rules/$ruleId/edit")({
   component: RuleEditPage,
 });

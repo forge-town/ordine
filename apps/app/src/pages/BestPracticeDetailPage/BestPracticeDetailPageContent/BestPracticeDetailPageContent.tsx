@@ -22,7 +22,7 @@ import { exportSingleBestPractice } from "@/lib/exportBestPractice";
 import { CATEGORIES, CATEGORY_COLORS } from "@/pages/BestPracticesPage/constants";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Route } from "@/routes/_layout/best-practices.$bestPracticeId.index";
+import { Route } from "@/routes/_layout/pipelines.best-practices.$bestPracticeId.index";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -59,7 +59,7 @@ export const BestPracticeDetailPageContent = ({ bestPractice }: Props) => {
 
   const handleNavigateToEdit = () =>
     void navigate({
-      to: "/best-practices/$bestPracticeId/edit",
+      to: "/pipelines/best-practices/$bestPracticeId/edit",
       params: { bestPracticeId: bestPractice.id },
     });
 
@@ -93,7 +93,7 @@ export const BestPracticeDetailPageContent = ({ bestPractice }: Props) => {
             </Button>
           </>
         }
-        backTo="/best-practices"
+        backTo="/pipelines/best-practices"
         title={bestPractice.title}
       />
 

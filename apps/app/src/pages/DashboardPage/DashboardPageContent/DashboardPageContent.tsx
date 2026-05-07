@@ -20,7 +20,7 @@ const QUICK_ACTIONS = [
   {
     icon: Activity,
     key: "monitor",
-    to: "/jobs",
+    to: "/pipelines/jobs",
   },
   {
     icon: Sparkles,
@@ -30,7 +30,7 @@ const QUICK_ACTIONS = [
   {
     icon: Lightbulb,
     key: "bestPractices",
-    to: "/best-practices",
+    to: "/pipelines/best-practices",
   },
 ] as const;
 
@@ -100,7 +100,7 @@ export const DashboardPageContent = () => {
               actions={
                 <Link
                   className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                  to="/jobs"
+                  to="/pipelines/jobs"
                 >
                   {t("dashboard.viewAll")}
                   <ArrowRight className="h-3.5 w-3.5" />

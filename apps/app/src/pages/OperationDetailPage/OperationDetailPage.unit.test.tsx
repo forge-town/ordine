@@ -3,7 +3,7 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { OperationDetailPage } from "./OperationDetailPage";
 
-vi.mock("@/routes/_layout/operations.$operationId.index", () => ({
+vi.mock("@/routes/_layout/pipelines.operations.$operationId.index", () => ({
   Route: { useLoaderData: () => null, useParams: () => ({ operationId: "op-1" }) },
 }));
 

@@ -50,7 +50,10 @@ export const OperationListRow = ({ operation }: OperationListRowProps) => {
   const { mutate: deleteOpMutate } = useDelete();
 
   const handleEdit = () =>
-    navigate({ to: "/operations/$operationId/edit", params: { operationId: operation.id } });
+    navigate({
+      to: "/pipelines/operations/$operationId/edit",
+      params: { operationId: operation.id },
+    });
   const handleDelete = () =>
     deleteOpMutate({ resource: ResourceName.operations, id: operation.id });
   const handleExport = () => exportOperation(operation);
@@ -61,7 +64,7 @@ export const OperationListRow = ({ operation }: OperationListRowProps) => {
 
   const handleRowClick = () => {
     navigate({
-      to: "/operations/$operationId",
+      to: "/pipelines/operations/$operationId",
       params: { operationId: operation.id },
     });
   };

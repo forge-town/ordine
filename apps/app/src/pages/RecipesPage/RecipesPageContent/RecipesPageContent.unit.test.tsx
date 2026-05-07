@@ -10,7 +10,7 @@ vi.mock("@/services/recipesService", () => ({
 }));
 
 const mockLoaderData = vi.fn();
-vi.mock("@/routes/_layout/recipes", () => ({
+vi.mock("@/routes/_layout/pipelines.recipes", () => ({
   Route: { useLoaderData: () => mockLoaderData() },
 }));
 
