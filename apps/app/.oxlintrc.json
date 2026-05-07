@@ -5,6 +5,7 @@
   },
   "ignorePatterns": [
     "src/routeTree.gen.ts",
+    "src/archived/**",
     "src/**/*.stories.tsx",
     "src/test/**",
     "src/components/ui/**"

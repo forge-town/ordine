@@ -16,9 +16,8 @@ import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
 import type { OperationNodeData, NodeRunStatus } from "@repo/pipeline-engine/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { type Operation, type BestPractice, AgentRuntimeSchema } from "@repo/schemas";
+import { type Operation, AgentRuntimeSchema } from "@repo/schemas";
 import { NodeCard, useNodePortCounts } from "../NodeCard";
-import { BestPracticeSelect } from "./BestPracticeSelect";
 
 export interface OperationNodeProps {
   id: string;
@@ -54,11 +53,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: bestPracticesResult } = useList<BestPractice>({
-    resource: ResourceName.bestPractices,
-  });
   const operations = operationsResult?.data ?? [];
-  const bestPractices = bestPracticesResult?.data ?? [];
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const isTestRunning = useStore(store, (s) => s.isTestRunning);
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
@@ -85,10 +80,6 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const [runtimeOpen, setRuntimeOpen] = useState(false);
   const handleRuntimeOpenChange = (v: boolean) => setRuntimeOpen(v);
   const handleRuntimeToggle = () => setRuntimeOpen((prev) => !prev);
-
-  const handleBestPracticeChange = (bpId: string | undefined, bpName: string | undefined) => {
-    updateNodeData(id, { bestPracticeId: bpId, bestPracticeName: bpName });
-  };
 
   const handleLoopToggle = () => {
     updateNodeData(id, { loopEnabled: !data.loopEnabled });
@@ -221,13 +212,6 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             <span>点击查看 LLM 输出</span>
           </div>
         )}
-
-        {/* Best Practice selector */}
-        <BestPracticeSelect
-          bestPractices={bestPractices}
-          value={data.bestPracticeId}
-          onValueChange={handleBestPracticeChange}
-        />
 
         {/* Loop / Retry settings */}
         <div className="space-y-1.5" onMouseDown={handleStopPropagation}>

@@ -9,9 +9,7 @@ import {
   Settings,
   Layers,
   FolderGit2,
-  Lightbulb,
   Activity,
-  ShieldCheck,
   Zap,
   ChefHat,
   FlaskConical,
@@ -69,8 +67,6 @@ const pipelineItems: NavItem[] = [
   { labelKey: "nav.operations", icon: Zap, to: "/pipelines/operations" },
   { labelKey: "nav.skills", icon: BookOpen, to: "/pipelines/skills" },
   { labelKey: "nav.recipes", icon: ChefHat, to: "/pipelines/recipes" },
-  { labelKey: "nav.rules", icon: ShieldCheck, to: "/pipelines/rules" },
-  { labelKey: "nav.bestPractices", icon: Lightbulb, to: "/pipelines/best-practices" },
   { labelKey: "nav.objects", icon: Box, to: "/pipelines/objects" },
   { labelKey: "nav.jobs", icon: Activity, to: "/pipelines/jobs" },
 ];
