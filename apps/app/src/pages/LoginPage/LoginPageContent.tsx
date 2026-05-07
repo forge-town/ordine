@@ -39,7 +39,7 @@ export const LoginPageContent = () => {
     const result = await signInWithEmail({ ...values, callbackURL: "/" });
     result.match(
       () => navigate({ to: "/" }),
-      (error) => setError(error.message),
+      (error) => setError(error.message)
     );
     setLoading(false);
   };

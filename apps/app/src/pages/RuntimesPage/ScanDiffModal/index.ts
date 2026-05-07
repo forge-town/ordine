@@ -1,1 +1,1 @@
-export *from "./ScanDiffModal";
+export * from "./ScanDiffModal";

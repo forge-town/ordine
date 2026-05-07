@@ -1,4 +1,9 @@
-import { Handle as ReactFlowPort, Position, useNodeId, useUpdateNodeInternals } from "@xyflow/react";
+import {
+  Handle as ReactFlowPort,
+  Position,
+  useNodeId,
+  useUpdateNodeInternals,
+} from "@xyflow/react";
 import { cn } from "@repo/ui/lib/utils";
 import { useEffect } from "react";
 import { getNodePortOffsets, makeNodePortId, type NodePortSide } from "./nodePorts";
@@ -38,11 +43,7 @@ export const NodeCardPorts = ({
   const leftPortOffsets = getNodePortOffsets(leftHandleCount, cardMaxPortSpread);
   const rightPortOffsets = getNodePortOffsets(rightHandleCount, cardMaxPortSpread);
   const leftPortClassName = cn(nodePortClassName, "!left-2.5 before:!left-0", t.handleColor);
-  const rightPortClassName = cn(
-    nodePortClassName,
-    "!right-2.5 before:!left-full",
-    t.handleColor
-  );
+  const rightPortClassName = cn(nodePortClassName, "!right-2.5 before:!left-full", t.handleColor);
 
   useEffect(() => {
     if (!nodeId) {

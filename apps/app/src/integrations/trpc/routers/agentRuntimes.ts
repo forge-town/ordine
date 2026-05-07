@@ -41,6 +41,7 @@ export const agentRuntimesRouter = router({
       type: r.type as AgentRuntime,
       connection: { mode: "local" as const },
     }));
+
     return agentRuntimesService.syncAll(runtimes);
   }),
 

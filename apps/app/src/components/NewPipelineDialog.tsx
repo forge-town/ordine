@@ -79,16 +79,10 @@ export const NewPipelineDialog = () => {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("nav.newPipeline")}</DialogTitle>
-          <DialogDescription>
-            {t("pipelines.newPipelineDescription")}
-          </DialogDescription>
+          <DialogDescription>{t("pipelines.newPipelineDescription")}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3 py-2">
-          <Input
-            placeholder={t("nav.newPipeline")}
-            value={name}
-            onChange={handleNameChange}
-          />
+          <Input placeholder={t("nav.newPipeline")} value={name} onChange={handleNameChange} />
           <Textarea
             placeholder={t("newPipelineDialog.descriptionPlaceholder")}
             rows={3}

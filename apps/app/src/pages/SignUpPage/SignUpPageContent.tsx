@@ -33,7 +33,7 @@ export const SignUpPageContent = () => {
     const result = await signUpWithEmail({ ...values, callbackURL: "/" });
     result.match(
       () => navigate({ to: "/" }),
-      (error) => setError(error.message),
+      (error) => setError(error.message)
     );
     setLoading(false);
   };

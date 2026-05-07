@@ -25,8 +25,12 @@ export const ScanDiffModal = ({ onConfirm }: ScanDiffModalProps) => {
   const open = diff !== null;
   const hasChanges = (diff?.added.length ?? 0) + (diff?.removed.length ?? 0) > 0;
 
+  const handleClose = () => closeScanModal();
+  const handleConfirm = () => onConfirm();
+  const handleOpenChange = (v: boolean) => !v && closeScanModal();
+
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && closeScanModal()}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("runtimes.scanResults")}</DialogTitle>
@@ -61,12 +65,10 @@ export const ScanDiffModal = ({ onConfirm }: ScanDiffModalProps) => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={closeScanModal}>
+          <Button variant="outline" onClick={handleClose}>
             {t("common.cancel")}
           </Button>
-          {hasChanges && (
-            <Button onClick={onConfirm}>{t("runtimes.confirmSync")}</Button>
-          )}
+          {hasChanges && <Button onClick={handleConfirm}>{t("runtimes.confirmSync")}</Button>}
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -255,7 +255,11 @@ export const createActionsSlice = (
     const currentConnectStart = get().connectStart;
 
     if (fromNodeId) {
-      const handleType = getConnectStartHandleType(connectionState, currentConnectStart, fromNodeId);
+      const handleType = getConnectStartHandleType(
+        connectionState,
+        currentConnectStart,
+        fromNodeId
+      );
       if (!handleType) {
         get().handleConnectStart(null);
 

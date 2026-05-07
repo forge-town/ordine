@@ -25,6 +25,7 @@ const execFileAsync = (bin: string, args: string[]): Promise<{ stdout: string; s
     execFile(bin, args, {}, (error, stdout, stderr) => {
       if (error) {
         reject(error);
+
         return;
       }
       resolve({ stdout: String(stdout), stderr: String(stderr) });
@@ -60,6 +61,7 @@ const scanLocalRuntimes = async (): Promise<DetectedRuntime[]> => {
   const results = await Promise.all(
     entries.map(([type, binaryName]) => detectBinary(type, binaryName)),
   );
+
   return results.filter((r): r is DetectedRuntime => r !== undefined);
 };
 
@@ -77,6 +79,7 @@ const syncRuntimes = async (runtimes: DetectedRuntime[]): Promise<boolean> => {
   if (!result.ok) {
     console.error(`    Server responded: ${result.message}`);
   }
+
   return result.ok;
 };
 

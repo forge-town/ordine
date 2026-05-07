@@ -54,6 +54,7 @@ const prompt = (question: string): ResultAsync<string, ReleaseTagError> => {
     toError("failed to read input"),
   ).map((answer: string) => {
     readline.close();
+
     return answer.trim();
   });
 };
@@ -141,6 +142,7 @@ const validateWorkspaceVersions = async (
 const printCurrentTags = (tags: string[]): void => {
   if (tags.length === 0) {
     console.log("No v* tags found.");
+
     return;
   }
 
@@ -238,6 +240,7 @@ const createReleaseTag = async (): Promise<Result<void, ReleaseTagError>> => {
   if (!shouldPush) {
     console.log(`Created local tag ${validTagResult.value}.`);
     console.log(`Push later with: git push origin ${validTagResult.value}`);
+
     return ok(undefined);
   }
 
@@ -248,6 +251,7 @@ const createReleaseTag = async (): Promise<Result<void, ReleaseTagError>> => {
   }
 
   console.log(`Pushed ${validTagResult.value} to origin.`);
+
   return ok(undefined);
 };
 

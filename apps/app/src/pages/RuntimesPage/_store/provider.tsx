@@ -9,5 +9,7 @@ interface Props {
 export const RuntimesPageStoreProvider = ({ children }: Props) => {
   const store = useInit(() => createRuntimesPageStore());
 
-  return <RuntimesPageStoreContext.Provider value={store}>{children}</RuntimesPageStoreContext.Provider>;
+  return (
+    <RuntimesPageStoreContext.Provider value={store}>{children}</RuntimesPageStoreContext.Provider>
+  );
 };

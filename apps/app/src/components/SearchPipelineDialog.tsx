@@ -4,12 +4,7 @@ import { Search, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useList } from "@refinedev/core";
 import { useStore } from "zustand";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@repo/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@repo/ui/dialog";
 import { Input } from "@repo/ui/input";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { PipelineData } from "@repo/pipeline-engine/schemas";
@@ -34,9 +29,7 @@ export const SearchPipelineDialog = () => {
     if (!q) return items;
 
     return items.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        (p.description ?? "").toLowerCase().includes(q),
+      (p) => p.name.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q)
     );
   }, [pipelinesData, query]);
 
@@ -59,9 +52,7 @@ export const SearchPipelineDialog = () => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden">
         <DialogTitle className="sr-only">{t("nav.search")}</DialogTitle>
-        <DialogDescription className="sr-only">
-          {t("pipelines.title")}
-        </DialogDescription>
+        <DialogDescription className="sr-only">{t("pipelines.title")}</DialogDescription>
         <div className="flex items-center border-b px-3">
           <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
           <Input
