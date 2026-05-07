@@ -79,6 +79,7 @@ const pipelineItems: NavItem[] = [
 const objectNavItems: NavItem[] = [{ labelKey: "nav.projects", icon: FolderGit2, to: "/projects" }];
 
 const configItems: NavItem[] = [
+  { labelKey: "nav.plugins", icon: Puzzle, to: "/plugins" },
   { labelKey: "nav.runtimes", icon: Server, to: "/runtimes" },
   { labelKey: "nav.settings", icon: Settings, to: "/settings" },
 ];

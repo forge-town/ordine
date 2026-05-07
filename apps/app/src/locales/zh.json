@@ -57,7 +57,15 @@
     "knowledge": "知识",
     "search": "搜索...",
     "newPipeline": "新建流水线",
+    "plugins": "插件",
     "logout": "退出登录"
+  },
+  "plugins": {
+    "title": "插件",
+    "subtitle": "已安装的插件及其贡献的对象类型。",
+    "version": "版本",
+    "objectTypes": "对象类型",
+    "noPlugins": "暂无已安装的插件"
   },
   "sidebar": {
     "user": "Ordine 用户"

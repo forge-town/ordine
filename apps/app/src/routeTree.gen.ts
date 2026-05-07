@@ -18,6 +18,7 @@ import { Route as LayoutSkillsRouteImport } from './routes/_layout/skills'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutRuntimesRouteImport } from './routes/_layout/runtimes'
 import { Route as LayoutRecipesRouteImport } from './routes/_layout/recipes'
+import { Route as LayoutPluginsRouteImport } from './routes/_layout/plugins'
 import { Route as LayoutPipelinesRouteImport } from './routes/_layout/pipelines'
 import { Route as LayoutJobsRouteImport } from './routes/_layout/jobs'
 import { Route as LayoutDistillationsRouteImport } from './routes/_layout/distillations'
@@ -93,6 +94,11 @@ const LayoutRuntimesRoute = LayoutRuntimesRouteImport.update({
 const LayoutRecipesRoute = LayoutRecipesRouteImport.update({
   id: '/recipes',
   path: '/recipes',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutPluginsRoute = LayoutPluginsRouteImport.update({
+  id: '/plugins',
+  path: '/plugins',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutPipelinesRoute = LayoutPipelinesRouteImport.update({
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/distillations': typeof LayoutDistillationsRouteWithChildren
   '/jobs': typeof LayoutJobsRouteWithChildren
   '/pipelines': typeof LayoutPipelinesRouteWithChildren
+  '/plugins': typeof LayoutPluginsRoute
   '/recipes': typeof LayoutRecipesRoute
   '/runtimes': typeof LayoutRuntimesRouteWithChildren
   '/settings': typeof LayoutSettingsRoute
@@ -318,6 +325,7 @@ export interface FileRoutesByTo {
   '/sign-up': typeof SignUpRoute
   '/assistant': typeof LayoutAssistantRoute
   '/distillation-studio': typeof LayoutDistillationStudioRoute
+  '/plugins': typeof LayoutPluginsRoute
   '/recipes': typeof LayoutRecipesRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
@@ -361,6 +369,7 @@ export interface FileRoutesById {
   '/_layout/distillations': typeof LayoutDistillationsRouteWithChildren
   '/_layout/jobs': typeof LayoutJobsRouteWithChildren
   '/_layout/pipelines': typeof LayoutPipelinesRouteWithChildren
+  '/_layout/plugins': typeof LayoutPluginsRoute
   '/_layout/recipes': typeof LayoutRecipesRoute
   '/_layout/runtimes': typeof LayoutRuntimesRouteWithChildren
   '/_layout/settings': typeof LayoutSettingsRoute
@@ -406,6 +415,7 @@ export interface FileRouteTypes {
     | '/distillations'
     | '/jobs'
     | '/pipelines'
+    | '/plugins'
     | '/recipes'
     | '/runtimes'
     | '/settings'
@@ -444,6 +454,7 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/assistant'
     | '/distillation-studio'
+    | '/plugins'
     | '/recipes'
     | '/settings'
     | '/skills'
@@ -486,6 +497,7 @@ export interface FileRouteTypes {
     | '/_layout/distillations'
     | '/_layout/jobs'
     | '/_layout/pipelines'
+    | '/_layout/plugins'
     | '/_layout/recipes'
     | '/_layout/runtimes'
     | '/_layout/settings'
@@ -592,6 +604,13 @@ declare module '@tanstack/react-router' {
       path: '/recipes'
       fullPath: '/recipes'
       preLoaderRoute: typeof LayoutRecipesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/plugins': {
+      id: '/_layout/plugins'
+      path: '/plugins'
+      fullPath: '/plugins'
+      preLoaderRoute: typeof LayoutPluginsRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/pipelines': {
@@ -887,6 +906,7 @@ interface LayoutRouteChildren {
   LayoutDistillationsRoute: typeof LayoutDistillationsRouteWithChildren
   LayoutJobsRoute: typeof LayoutJobsRouteWithChildren
   LayoutPipelinesRoute: typeof LayoutPipelinesRouteWithChildren
+  LayoutPluginsRoute: typeof LayoutPluginsRoute
   LayoutRecipesRoute: typeof LayoutRecipesRoute
   LayoutRuntimesRoute: typeof LayoutRuntimesRouteWithChildren
   LayoutSettingsRoute: typeof LayoutSettingsRoute
@@ -915,6 +935,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutDistillationsRoute: LayoutDistillationsRouteWithChildren,
   LayoutJobsRoute: LayoutJobsRouteWithChildren,
   LayoutPipelinesRoute: LayoutPipelinesRouteWithChildren,
+  LayoutPluginsRoute: LayoutPluginsRoute,
   LayoutRecipesRoute: LayoutRecipesRoute,
   LayoutRuntimesRoute: LayoutRuntimesRouteWithChildren,
   LayoutSettingsRoute: LayoutSettingsRoute,

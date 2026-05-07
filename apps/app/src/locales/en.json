@@ -54,7 +54,15 @@
     "knowledge": "Knowledge",
     "search": "Search...",
     "newPipeline": "New Pipeline",
+    "plugins": "Plugins",
     "logout": "Log out"
+  },
+  "plugins": {
+    "title": "Plugins",
+    "subtitle": "Installed plugins and their contributed object types.",
+    "version": "Version",
+    "objectTypes": "Object Types",
+    "noPlugins": "No plugins installed"
   },
   "sidebar": {
     "user": "Ordine User"
