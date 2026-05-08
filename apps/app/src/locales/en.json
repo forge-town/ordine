@@ -446,6 +446,10 @@
       "compound": {
         "label": "Compound node",
         "shortLabel": "Group"
+      },
+      "prompt": {
+        "label": "Prompt",
+        "shortLabel": "Prompt"
       }
     },
     "compoundNode": {

@@ -30,6 +30,10 @@ const nodeTypeI18nKeys = {
     label: "canvas.nodeTypes.compound.label",
     shortLabel: "canvas.nodeTypes.compound.shortLabel",
   },
+  prompt: {
+    label: "canvas.nodeTypes.prompt.label",
+    shortLabel: "canvas.nodeTypes.prompt.shortLabel",
+  },
 } as const satisfies Record<BuiltinNodeType, { label: string; shortLabel: string }>;
 
 export const nodeTypeMeta = {
