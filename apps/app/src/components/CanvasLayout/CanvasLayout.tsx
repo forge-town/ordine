@@ -1,4 +1,4 @@
-import { ToastContainer } from "./ToastContainer";
+import { ToastContainer } from "@/components/ToastContainer";
 import { ToastStoreProvider } from "@/store/toastProvider";
 
 interface CanvasLayoutProps {
