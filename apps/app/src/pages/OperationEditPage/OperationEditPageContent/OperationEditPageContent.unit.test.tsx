@@ -156,4 +156,10 @@ describe("OperationEditPageContent", () => {
       params: { operationId: "op-123" },
     });
   });
+
+  it("header back link points to pipeline operation detail route", () => {
+    const { container } = render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    const backLink = container.querySelector('a[href="/pipelines/operations/op-123"]');
+    expect(backLink).not.toBeNull();
+  });
 });

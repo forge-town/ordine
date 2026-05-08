@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Activity, ArrowRight, LayoutDashboard, Lightbulb, Sparkles, Workflow } from "lucide-react";
+import { Activity, ArrowRight, FolderGit2, LayoutDashboard, Sparkles, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "@/components/PageHeader";
 import { DashboardActivityChart } from "../DashboardActivityChart";
@@ -28,9 +28,9 @@ const QUICK_ACTIONS = [
     to: "/distillations",
   },
   {
-    icon: Lightbulb,
-    key: "bestPractices",
-    to: "/pipelines/best-practices",
+    icon: FolderGit2,
+    key: "projects",
+    to: "/projects",
   },
 ] as const;
 
