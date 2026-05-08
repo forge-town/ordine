@@ -3,19 +3,17 @@ import { Provider } from "@/integrations/tanstack-query/root-provider";
 import { RefineProvider } from "@/integrations/refine/provider";
 import { routeTree } from "./routeTree.gen.ts";
 
-export const getRouter = () => {
-  const router = createRouter({
-    routeTree,
-    scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
-    Wrap: ({ children }) => {
-      return (
-        <Provider>
-          <RefineProvider>{children}</RefineProvider>
-        </Provider>
-      );
-    },
-  });
+export const router = createRouter({
+  routeTree,
+  scrollRestoration: true,
+  defaultPreloadStaleTime: 0,
+  Wrap: ({ children }) => {
+    return (
+      <Provider>
+        <RefineProvider>{children}</RefineProvider>
+      </Provider>
+    );
+  },
+});
 
-  return router;
-};
+export const getRouter = () => router;

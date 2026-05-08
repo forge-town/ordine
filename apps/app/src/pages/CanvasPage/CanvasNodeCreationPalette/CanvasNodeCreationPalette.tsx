@@ -3,7 +3,17 @@ import { useTranslation } from "react-i18next";
 import { useList } from "@refinedev/core";
 import type { Operation, Recipe } from "@repo/schemas";
 import type { BuiltinNodeType } from "@repo/pipeline-engine/schemas";
-import { BookOpen, FileCode, Folder, FolderOutput, HardDrive, Search, Zap, X } from "lucide-react";
+import {
+  BookOpen,
+  FileCode,
+  Folder,
+  FolderOutput,
+  HardDrive,
+  MessageSquareText,
+  Search,
+  Zap,
+  X,
+} from "lucide-react";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -14,12 +24,18 @@ import { useHarnessCanvasStore } from "../_store";
 import { getNodeMeta, getNodeTypeLabel, getNodeTypeShortLabel } from "../utils/nodeTypeMeta";
 import type { XYPosition } from "@xyflow/system";
 
-const QUICK_ADD_OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-projects"];
+const QUICK_ADD_OBJECT_TYPES: BuiltinNodeType[] = [
+  "code-file",
+  "folder",
+  "github-projects",
+  "prompt",
+];
 
 const TYPE_ICONS: Record<string, ElementType> = {
   "code-file": FileCode,
   folder: Folder,
   "github-projects": SiGitHubIcon,
+  prompt: MessageSquareText,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
 };

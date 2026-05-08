@@ -12,35 +12,41 @@ const mockCreatePipelineMutate = vi.fn();
 const mockNavigate = vi.fn();
 
 vi.mock("@/integrations/trpc/client", () => ({
-  trpcClient: {
-    pipelines: {
-      generateStructure: {
-        mutate: (...args: unknown[]) => mockGenerateStructure(...args),
-      },
-      analyzeIntent: {
-        mutate: (...args: unknown[]) => mockAnalyzeIntent(...args),
-      },
-      run: {
-        mutate: (...args: unknown[]) => mockRunMutate(...args),
-      },
+  trpcClient: {},
+}));
+
+vi.mock("@/integrations/refine/dataProvider", () => ({
+  dataProvider: {
+    create: (...args: unknown[]) => mockCreatePipelineMutate(...args),
+    custom: (params: { url: string; payload: unknown }) => {
+      if (params.url === "pipelines/analyzeIntent") return mockAnalyzeIntent(params.payload);
+      if (params.url === "pipelines/generateStructure")
+        return mockGenerateStructure(params.payload);
+      if (params.url === "pipelines/run") return mockRunMutate(params.payload);
+
+      return Promise.resolve({ data: {} });
     },
+  },
+  ResourceName: {
+    pipelines: "pipelines",
   },
 }));
 
-vi.mock("@tanstack/react-router", () => ({
-  useNavigate: () => mockNavigate,
-}));
+vi.mock("@tanstack/react-router", () => ({}));
 
-vi.mock("@refinedev/core", () => ({
-  useCreate: () => ({
-    mutateAsync: mockCreatePipelineMutate,
-  }),
+vi.mock("@/router", () => ({
+  router: { navigate: (...args: unknown[]) => mockNavigate(...args) },
 }));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
+  initReactI18next: { type: "3rdParty", init: () => {} },
+}));
+
+vi.mock("@/lib/i18n", () => ({
+  default: { t: (key: string) => key },
 }));
 
 vi.mock("@repo/ui/dialog", () => ({
@@ -108,9 +114,11 @@ describe("NewPipelineDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCreatePipelineMutate.mockResolvedValue({ data: { id: "pipe-1" } });
-    mockGenerateStructure.mockResolvedValue({ nodes: [], edges: [] });
-    mockAnalyzeIntent.mockResolvedValue({ matchedOperations: [], unmatchedSteps: [] });
-    mockRunMutate.mockResolvedValue({});
+    mockGenerateStructure.mockResolvedValue({ data: { nodes: [], edges: [] } });
+    mockAnalyzeIntent.mockResolvedValue({
+      data: { matchedOperations: [], unmatchedSteps: [] },
+    });
+    mockRunMutate.mockResolvedValue({ data: {} });
   });
 
   it("does not render when dialog is closed", () => {
@@ -146,8 +154,10 @@ describe("NewPipelineDialog", () => {
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
     mockAnalyzeIntent.mockResolvedValue({
-      matchedOperations: [{ operationId: "op-1", operationName: "lint-code", reason: "Matches" }],
-      unmatchedSteps: [],
+      data: {
+        matchedOperations: [{ operationId: "op-1", operationName: "lint-code", reason: "Matches" }],
+        unmatchedSteps: [],
+      },
     });
 
     render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
@@ -190,10 +200,12 @@ describe("NewPipelineDialog", () => {
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
     mockAnalyzeIntent.mockResolvedValue({
-      matchedOperations: [
-        { operationId: "op-1", operationName: "lint-code", reason: "Linting match" },
-      ],
-      unmatchedSteps: [{ step: "Generate report", reason: "No operation" }],
+      data: {
+        matchedOperations: [
+          { operationId: "op-1", operationName: "lint-code", reason: "Linting match" },
+        ],
+        unmatchedSteps: [{ step: "Generate report", reason: "No operation" }],
+      },
     });
 
     render(<NewPipelineDialog />, { wrapper: createWrapper(store) });

@@ -62,7 +62,7 @@ export const SearchPipelineDialog = () => {
             onChange={handleQueryChange}
           />
         </div>
-        <div className="max-h-[300px] overflow-y-auto p-1">
+        <div className="max-h-75 overflow-y-auto p-1">
           {filtered.length === 0 ? (
             <div className="py-6 text-center text-sm text-muted-foreground">
               {t("pipelines.noPipelines")}

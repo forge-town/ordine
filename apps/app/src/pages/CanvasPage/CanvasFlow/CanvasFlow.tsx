@@ -9,6 +9,7 @@ import { ErrorNode } from "../ErrorNode";
 import { FolderNode } from "../FolderNode";
 import { GitHubProjectNode } from "../GitHubProjectNode";
 import { OperationNode } from "../OperationNode";
+import { PromptNode } from "../PromptNode";
 import { OutputProjectPathNode } from "../OutputProjectPathNode";
 import { OutputLocalPathNode } from "../OutputLocalPathNode";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
@@ -22,6 +23,7 @@ const nodeTypes = {
   "code-file": CodeFileNode,
   folder: FolderNode,
   "github-projects": GitHubProjectNode,
+  prompt: PromptNode,
   "output-project-path": OutputProjectPathNode,
   "output-local-path": OutputLocalPathNode,
 };

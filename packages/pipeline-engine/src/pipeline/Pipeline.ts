@@ -19,6 +19,7 @@ import type { OperationInfo, SkillInfo, OperationNodeContext } from "../nodes/ty
 import { processCodeFileNode } from "../nodes/CodeFileNode";
 import { processFolderNode } from "../nodes/FolderNode";
 import { processGitHubProjectNode } from "../nodes/GitHubProjectNode";
+import { processPromptNode } from "../nodes/PromptNode";
 import { processOutputLocalPathNode } from "../nodes/OutputLocalPathNode";
 import { processOperationNode } from "../nodes/OperationNode";
 
@@ -267,6 +268,10 @@ export class Pipeline {
 
     if (node.type === NODE_TYPE_ENUM.CODE_FILE) {
       return this.wrapNodeResult(node.id, processCodeFileNode(baseCtx));
+    }
+
+    if (node.type === NODE_TYPE_ENUM.PROMPT) {
+      return this.wrapNodeResult(node.id, processPromptNode(baseCtx));
     }
 
     if (node.type === NODE_TYPE_ENUM.GITHUB_PROJECT) {

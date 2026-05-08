@@ -9,6 +9,7 @@ export const NodeConnectionRulesSchema = z.object({
   folder: nodeTypeArray,
   "github-projects": nodeTypeArray,
   operation: nodeTypeArray,
+  prompt: nodeTypeArray,
   "output-project-path": nodeTypeArray,
   "output-local-path": nodeTypeArray,
 });
@@ -20,6 +21,7 @@ export const NODE_CONNECTION_RULES: NodeConnectionRules = NodeConnectionRulesSch
   folder: ["operation", "compound"],
   "github-projects": ["operation", "compound"],
   operation: ["operation", "compound", "output-project-path", "output-local-path"],
+  prompt: ["operation", "compound"],
   "output-project-path": [],
   "output-local-path": [],
 } satisfies Record<BuiltinNodeType, BuiltinNodeType[]>);

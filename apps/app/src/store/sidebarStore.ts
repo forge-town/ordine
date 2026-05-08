@@ -1,8 +1,12 @@
 import { createContext, useContext } from "react";
 import { createStore, type StoreApi, type StateCreator } from "zustand";
 import { createSidebarSlice, type SidebarSlice } from "./sidebarSlice";
+import {
+  createNewPipelineDialogSlice,
+  type NewPipelineDialogSlice,
+} from "./newPipelineDialogSlice";
 
-export interface SidebarState extends SidebarSlice {}
+export interface SidebarState extends SidebarSlice, NewPipelineDialogSlice {}
 
 export type SidebarStoreSlice<T = SidebarState> = StateCreator<SidebarState, [], [], T>;
 
@@ -11,6 +15,7 @@ export type SidebarStore = StoreApi<SidebarState>;
 export const createSidebarStore = () => {
   return createStore<SidebarState>()((set, get, api) => ({
     ...createSidebarSlice(set, get, api),
+    ...createNewPipelineDialogSlice(set, get, api),
   }));
 };
 

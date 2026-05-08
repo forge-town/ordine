@@ -527,6 +527,20 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+    if (url === "pipelines/analyzeIntent") {
+      const data = await trpcClient.pipelines.analyzeIntent.mutate(
+        payload as unknown as Parameters<typeof trpcClient.pipelines.analyzeIntent.mutate>[0]
+      );
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "pipelines/generateStructure") {
+      const data = await trpcClient.pipelines.generateStructure.mutate(
+        payload as unknown as Parameters<typeof trpcClient.pipelines.generateStructure.mutate>[0]
+      );
+
+      return { data: data as unknown as TData };
+    }
     if (url === "pipelines/optimizeFromDistillation") {
       const data = await trpcClient.pipelines.optimizeFromDistillation.mutate(
         payload as unknown as Parameters<

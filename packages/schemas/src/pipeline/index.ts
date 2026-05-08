@@ -11,6 +11,7 @@ export * from "./GitHubProjectNodeDataSchema";
 export * from "./OperationNodeDataSchema";
 export * from "./OutputProjectPathNodeDataSchema";
 export * from "./OutputLocalPathNodeDataSchema";
+export * from "./PromptNodeDataSchema";
 export * from "./PipelineNodeDataSchema";
 export * from "./PipelineEdgeDataSchema";
 export * from "./PipelineNodeSchema";

@@ -68,5 +68,12 @@ export const makeDefaultNodeData = (
         description: "",
       };
     }
+    case "prompt": {
+      return {
+        label: "提示词",
+        nodeType: "prompt",
+        prompt: "",
+      };
+    }
   }
 };

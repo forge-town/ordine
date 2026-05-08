@@ -103,7 +103,7 @@ export const pipelinesRouter = router({
               operationId: z.string(),
               operationName: z.string(),
               reason: z.string(),
-            }),
+            })
           )
           .optional(),
         unmatchedSteps: z
@@ -111,10 +111,10 @@ export const pipelinesRouter = router({
             z.object({
               step: z.string(),
               reason: z.string(),
-            }),
+            })
           )
           .optional(),
-      }),
+      })
     )
     .mutation(({ input }) => pipelinesService.generateStructure(input)),
 

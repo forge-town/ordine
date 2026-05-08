@@ -8,6 +8,7 @@ export const NODE_TYPE_ENUM = {
   OPERATION: "operation",
   OUTPUT_PROJECT_PATH: "output-project-path",
   OUTPUT_LOCAL_PATH: "output-local-path",
+  PROMPT: "prompt",
 } as const;
 
 export const BuiltinNodeTypeSchema = z.enum(NODE_TYPE_ENUM);

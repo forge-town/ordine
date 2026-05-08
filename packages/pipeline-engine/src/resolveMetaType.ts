@@ -5,6 +5,7 @@ const BUILTIN_META_MAP: Record<BuiltinNodeType, MetaNodeType> = {
   "code-file": "object",
   folder: "object",
   "github-projects": "object",
+  prompt: "object",
   operation: "operation",
   compound: "operation",
   "output-local-path": "output",

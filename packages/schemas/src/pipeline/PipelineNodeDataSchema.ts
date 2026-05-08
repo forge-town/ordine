@@ -6,6 +6,7 @@ import { GitHubProjectNodeDataSchema } from "./GitHubProjectNodeDataSchema";
 import { OperationNodeDataSchema } from "./OperationNodeDataSchema";
 import { OutputProjectPathNodeDataSchema } from "./OutputProjectPathNodeDataSchema";
 import { OutputLocalPathNodeDataSchema } from "./OutputLocalPathNodeDataSchema";
+import { PromptNodeDataSchema } from "./PromptNodeDataSchema";
 
 export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
   CompoundNodeDataSchema,
@@ -15,5 +16,6 @@ export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
   OperationNodeDataSchema,
   OutputProjectPathNodeDataSchema,
   OutputLocalPathNodeDataSchema,
+  PromptNodeDataSchema,
 ]);
 export type PipelineNodeData = z.infer<typeof PipelineNodeDataSchema>;

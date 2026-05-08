@@ -1,11 +1,7 @@
 import { CheckCircle2, Plus, ArrowRight } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@repo/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/tooltip";
 import { ScrollArea, ScrollBar } from "@repo/ui/scroll-area";
+import { cn } from "@repo/ui/lib/utils";
 
 type PreviewNode = {
   id: string;
@@ -21,7 +17,7 @@ type PipelinePreviewGraphProps = {
 
 const buildNodes = (
   matched: PipelinePreviewGraphProps["matchedOperations"],
-  unmatched: PipelinePreviewGraphProps["unmatchedSteps"],
+  unmatched: PipelinePreviewGraphProps["unmatchedSteps"]
 ): PreviewNode[] => {
   const existing: PreviewNode[] = matched.map((op) => ({
     id: op.operationId,
@@ -46,21 +42,24 @@ const NodeCard = ({ node }: { node: PreviewNode }) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <div
-            className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 ${
-              isExisting
-                ? "border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-950/30"
-                : "border-blue-300 border-dashed bg-blue-50 dark:border-blue-700 dark:bg-blue-950/30"
-            }`}
-          >
-            {isExisting ? (
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
-            ) : (
-              <Plus className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
-            )}
-            <span className="max-w-30 truncate text-sm font-medium">{node.label}</span>
-          </div>
+        <TooltipTrigger
+          render={
+            <div
+              className={cn(
+                "flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2",
+                isExisting
+                  ? "border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-950/30"
+                  : "border-blue-300 border-dashed bg-blue-50 dark:border-blue-700 dark:bg-blue-950/30"
+              )}
+            />
+          }
+        >
+          {isExisting ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
+          ) : (
+            <Plus className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+          )}
+          <span className="max-w-30 truncate text-sm font-medium">{node.label}</span>
         </TooltipTrigger>
         <TooltipContent side="bottom">
           <p className="max-w-50 text-xs">{node.reason}</p>
@@ -97,9 +96,7 @@ export const PipelinePreviewGraph = ({
         <div className="flex items-center gap-2 pb-3">
           {nodes.map((node, index) => (
             <div key={node.id} className="flex items-center gap-2">
-              {index > 0 && (
-                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground/50" />
-              )}
+              {index > 0 && <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground/50" />}
               <NodeCard node={node} />
             </div>
           ))}
