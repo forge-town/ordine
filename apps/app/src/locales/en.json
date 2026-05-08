@@ -31,7 +31,8 @@
     "tags": "Tags",
     "new": "New",
     "clear": "Clear",
-    "noResults": "No matching results"
+    "noResults": "No matching results",
+    "generating": "Generating..."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -295,7 +296,21 @@
     }
   },
   "newPipelineDialog": {
-    "descriptionPlaceholder": "Describe what this pipeline should do..."
+    "descriptionPlaceholder": "Describe what this pipeline should do...",
+    "pipelineReady": "Pipeline Ready",
+    "pipelineCreatedDescription": "Your pipeline has been created successfully",
+    "openInCanvas": "Open in Canvas",
+    "runNow": "Run Now",
+    "createAnother": "Create Another",
+    "analyzing": "Analyzing intent...",
+    "analysisTitle": "Intent Analysis",
+    "analysisDescription": "We matched your description against available operations",
+    "matchedOperations": "Matched Operations",
+    "unmatchedSteps": "New Operations Needed",
+    "unmatchedStepsHint": "These steps will create new operations during pipeline generation",
+    "noMatchesFound": "No matching operations found. A new pipeline will be generated from scratch.",
+    "proceedWithGeneration": "Generate Pipeline",
+    "backToEdit": "Back"
   },
   "canvas": {
     "title": "Canvas",

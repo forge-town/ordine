@@ -52,10 +52,10 @@ describe("pipeline scenario: output flow", () => {
       expect(result.summary).toContain(dir);
     }
 
-    const resultFiles = await readdir(join(dir, "results"));
+    const resultFiles = (await readdir(dir)).filter((f) => f.startsWith("report_"));
     expect(resultFiles.length).toBe(1);
 
-    const written = await readFile(join(dir, "results", resultFiles[0]!), "utf8");
+    const written = await readFile(join(dir, resultFiles[0]!), "utf8");
     expect(written).toContain("# Markdown");
 
     await rm(dir, { recursive: true, force: true });

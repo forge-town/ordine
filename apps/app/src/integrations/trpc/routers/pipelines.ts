@@ -91,4 +91,34 @@ export const pipelinesRouter = router({
 
       return result;
     }),
+
+  generateStructure: publicProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+        matchedOperations: z
+          .array(
+            z.object({
+              operationId: z.string(),
+              operationName: z.string(),
+              reason: z.string(),
+            }),
+          )
+          .optional(),
+        unmatchedSteps: z
+          .array(
+            z.object({
+              step: z.string(),
+              reason: z.string(),
+            }),
+          )
+          .optional(),
+      }),
+    )
+    .mutation(({ input }) => pipelinesService.generateStructure(input)),
+
+  analyzeIntent: publicProcedure
+    .input(z.object({ name: z.string(), description: z.string() }))
+    .mutation(({ input }) => pipelinesService.analyzeIntent(input)),
 });

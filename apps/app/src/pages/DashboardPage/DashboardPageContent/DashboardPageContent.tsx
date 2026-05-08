@@ -1,5 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Activity, ArrowRight, FolderGit2, LayoutDashboard, Sparkles, Workflow } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  FolderGit2,
+  LayoutDashboard,
+  Sparkles,
+  Workflow,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "@/components/PageHeader";
 import { DashboardActivityChart } from "../DashboardActivityChart";

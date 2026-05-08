@@ -34,7 +34,8 @@
     "noResults": "没有匹配的结果",
     "metadata": "元数据",
     "createdAt": "创建时间",
-    "updatedAt": "更新时间"
+    "updatedAt": "更新时间",
+    "generating": "生成中..."
   },
   "nav": {
     "dashboard": "仪表盘",
@@ -295,7 +296,21 @@
     }
   },
   "newPipelineDialog": {
-    "descriptionPlaceholder": "描述这个流水线要做什么..."
+    "descriptionPlaceholder": "描述这个流水线要做什么...",
+    "pipelineReady": "Pipeline 已就绪",
+    "pipelineCreatedDescription": "您的 Pipeline 已成功创建",
+    "openInCanvas": "在画布中打开",
+    "runNow": "立即运行",
+    "createAnother": "继续创建",
+    "analyzing": "正在分析意图...",
+    "analysisTitle": "意图分析",
+    "analysisDescription": "已将您的描述与可用操作进行匹配",
+    "matchedOperations": "匹配的操作",
+    "unmatchedSteps": "需要新建的操作",
+    "unmatchedStepsHint": "这些步骤将在生成流水线时创建新的操作",
+    "noMatchesFound": "未找到匹配的操作，将从头生成新的流水线。",
+    "proceedWithGeneration": "生成 Pipeline",
+    "backToEdit": "返回"
   },
   "canvas": {
     "title": "画布",

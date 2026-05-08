@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from "vites
 import { mkdir, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
 import { processOutputLocalPathNode } from "./OutputLocalPathNode";
 import type { PipelineEngineDeps } from "../../deps";
@@ -59,7 +59,7 @@ const makeCtx = (
 });
 
 describe("processOutputLocalPathNode", () => {
-  it("writes content to a file in the results subdirectory", async () => {
+  it("writes content to a file in the output directory", async () => {
     const outputDir = join(testDir, "write-test");
     const deps = makeDeps();
     const node = makeNode({ localPath: outputDir, outputFileName: "report.md" });
@@ -68,8 +68,7 @@ describe("processOutputLocalPathNode", () => {
     const result = await processOutputLocalPathNode(ctx);
 
     expect(result.ok).toBe(true);
-    const resultsDir = join(outputDir, "results");
-    expect(existsSync(resultsDir)).toBe(true);
+    expect(existsSync(outputDir)).toBe(true);
     expect(trace).toHaveBeenCalledWith(
       "abcdef12-3456-7890",
       expect.stringContaining("Wrote output to:"),
@@ -162,5 +161,20 @@ describe("processOutputLocalPathNode", () => {
     await processOutputLocalPathNode(ctx);
 
     expect(trace).toHaveBeenCalledWith("abcdef12-3456-7890", "@@NODE_DONE::out-1");
+  });
+
+  it("expands ~ to home directory in localPath", async () => {
+    const deps = makeDeps();
+    const subDir = `tilde-test-${Date.now()}`;
+    const node = makeNode({ localPath: `~/${subDir}` });
+    const ctx = makeCtx(node, deps);
+
+    const result = await processOutputLocalPathNode(ctx);
+
+    expect(result.ok).toBe(true);
+    const expectedDir = join(homedir(), subDir);
+    expect(existsSync(expectedDir)).toBe(true);
+
+    await rm(join(homedir(), subDir), { recursive: true, force: true });
   });
 });

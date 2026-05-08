@@ -46,6 +46,12 @@ export class PipelineRunsDao {
   async delete(jobId: string) {
     await this.executor.delete(pipelineRunsTable).where(eq(pipelineRunsTable.id, jobId));
   }
+
+  async deleteByPipelineId(pipelineId: string) {
+    await this.executor
+      .delete(pipelineRunsTable)
+      .where(eq(pipelineRunsTable.pipelineId, pipelineId));
+  }
 }
 
 export const createPipelineRunsDao = (executor: DbExecutor) => {

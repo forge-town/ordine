@@ -80,3 +80,30 @@ pipelinesRoutes.post("/:id/run", async (c) => {
 
   return c.json({ jobId: result.value.jobId }, 202);
 });
+
+pipelinesRoutes.post("/generate-structure", async (c) => {
+  const body = (await c.req.json()) as {
+    name: string;
+    description: string;
+    matchedOperations?: Array<{ operationId: string; operationName: string; reason: string }>;
+    unmatchedSteps?: Array<{ step: string; reason: string }>;
+  };
+  const result = await pipelinesService.generateStructure({
+    name: body.name ?? "",
+    description: body.description ?? "",
+    matchedOperations: body.matchedOperations,
+    unmatchedSteps: body.unmatchedSteps,
+  });
+
+  return c.json(result);
+});
+
+pipelinesRoutes.post("/analyze-intent", async (c) => {
+  const body = (await c.req.json()) as { name: string; description: string };
+  const result = await pipelinesService.analyzeIntent({
+    name: body.name ?? "",
+    description: body.description ?? "",
+  });
+
+  return c.json(result);
+});

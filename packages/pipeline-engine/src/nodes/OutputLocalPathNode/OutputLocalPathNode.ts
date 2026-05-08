@@ -1,12 +1,16 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
+import { homedir } from "node:os";
 import { trace } from "@repo/obs";
 import type { NodeContext, NodeResult } from "../types";
 import { ScriptExecutionError, type PipelineRunError } from "../../errors";
 
+const expandTilde = (p: string): string =>
+  p.startsWith("~/") ? join(homedir(), p.slice(2)) : p === "~" ? homedir() : p;
+
 const resolveRawPath = (configuredPath: string, defaultOutputPath?: string): string =>
-  configuredPath || defaultOutputPath || "";
+  expandTilde(configuredPath) || expandTilde(defaultOutputPath ?? "") || "";
 
 export const processOutputLocalPathNode = async (
   ctx: NodeContext,
@@ -38,8 +42,7 @@ export const processOutputLocalPathNode = async (
 
   const resolvedPath = (() => {
     const initial = rawPath ? resolve(rawPath) : "";
-    const resultsDir = initial ? join(initial, "results") : "";
-    const withFile = resultsDir ? join(resultsDir, outputFileName) : initial;
+    const withFile = initial ? join(initial, outputFileName) : initial;
     if (withFile && existsSync(withFile) && outputMode === "auto_rename") {
       const dir = dirname(withFile);
       const ext = extname(withFile);
