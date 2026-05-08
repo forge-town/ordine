@@ -60,7 +60,7 @@ const mainItems: NavItem[] = [{ labelKey: "nav.dashboard", icon: LayoutDashboard
 
 const mainPeerItems: NavItem[] = [
   { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
-  { labelKey: "nav.skills", icon: BookOpen, to: "/pipelines/skills" },
+  { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
 ];
 
 const pipelineItems: NavItem[] = [
