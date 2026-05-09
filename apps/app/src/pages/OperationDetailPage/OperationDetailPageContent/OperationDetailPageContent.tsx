@@ -10,6 +10,7 @@ import {
   Terminal,
   Wand2,
   XCircle,
+  MessageSquareText,
   Pencil,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -34,6 +35,7 @@ const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
   folder: Folder,
   project: FolderGit2,
+  prompt: MessageSquareText,
 };
 
 const EXECUTOR_ICON: Record<string, React.ElementType> = {

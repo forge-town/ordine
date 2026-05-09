@@ -94,12 +94,13 @@ export const NodeContextMenu = () => {
       "code-file": "file",
       folder: "folder",
       "github-projects": "project",
+      prompt: "prompt",
     };
     const objectType = objectTypeMap[node.type];
     if (!objectType) return operations;
 
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project" | "prompt")
     );
   })();
 

@@ -14,6 +14,7 @@ import {
 import { extractJsonFromText } from "@repo/agent";
 import { logger } from "@repo/logger";
 import { PipelineSchema, type PipelineData } from "@repo/pipeline-engine/schemas";
+import type { ObjectType } from "@repo/schemas";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
 import { normalizeSettingsRecord } from "../settingsService/normalizeSettingsRecord";
 
@@ -243,6 +244,19 @@ export const createPipelinesService = (db: DbConnection) => {
     getAll: () => dao.findMany(),
     getById: (id: string) => dao.findById(id),
     create: (...args: Parameters<typeof dao.create>) => dao.create(...args),
+    createPendingOperations: async (
+      pendingOperations: Array<{
+        id: string;
+        name: string;
+        description: string;
+        config: Record<string, unknown>;
+        acceptedObjectTypes: ObjectType[];
+      }>,
+    ) => {
+      for (const op of pendingOperations) {
+        await operationsDao.create(op);
+      }
+    },
     update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
     delete: async (id: string) => {
       await pipelineRunsDao.deleteByPipelineId(id);
@@ -423,7 +437,14 @@ export const createPipelinesService = (db: DbConnection) => {
       matchedOperations: Array<{ operationId: string; operationName: string; reason: string }>;
       unmatchedSteps: Array<{ step: string; reason: string }>;
     }> => {
-      const EMPTY = { matchedOperations: [] as Array<{ operationId: string; operationName: string; reason: string }>, unmatchedSteps: [] as Array<{ step: string; reason: string }> };
+      const EMPTY = {
+        matchedOperations: [] as Array<{
+          operationId: string;
+          operationName: string;
+          reason: string;
+        }>,
+        unmatchedSteps: [] as Array<{ step: string; reason: string }>,
+      };
 
       if (!opts.description.trim()) {
         return EMPTY;
@@ -487,7 +508,11 @@ export const createPipelinesService = (db: DbConnection) => {
 
       const parsed = parseResult.value;
       const matchedOperations = Array.isArray(parsed.matchedOperations)
-        ? (parsed.matchedOperations as Array<{ operationId: string; operationName: string; reason: string }>)
+        ? (parsed.matchedOperations as Array<{
+            operationId: string;
+            operationName: string;
+            reason: string;
+          }>)
         : [];
       const unmatchedSteps = Array.isArray(parsed.unmatchedSteps)
         ? (parsed.unmatchedSteps as Array<{ step: string; reason: string }>)
@@ -501,40 +526,60 @@ export const createPipelinesService = (db: DbConnection) => {
       description: string;
       matchedOperations?: Array<{ operationId: string; operationName: string; reason: string }>;
       unmatchedSteps?: Array<{ step: string; reason: string }>;
-    }): Promise<{ nodes: PipelineData["nodes"]; edges: PipelineData["edges"] }> => {
-      const EMPTY = { nodes: [] as PipelineData["nodes"], edges: [] as PipelineData["edges"] };
-
+    }): Promise<
+      | {
+          nodes: PipelineData["nodes"];
+          edges: PipelineData["edges"];
+          pendingOperations?: Array<{
+            id: string;
+            name: string;
+            description: string;
+            config: Record<string, unknown>;
+            acceptedObjectTypes: ObjectType[];
+          }>;
+        }
+      | { error: string }
+    > => {
       if (!opts.description.trim()) {
-        return EMPTY;
+        return { nodes: [] as PipelineData["nodes"], edges: [] as PipelineData["edges"] };
       }
 
       const settings = normalizeSettingsRecord(await settingsDao.get());
       const operations = await operationsDao.findMany();
 
+      const pendingOperations: Array<{
+        id: string;
+        name: string;
+        description: string;
+        config: Record<string, unknown>;
+        acceptedObjectTypes: ObjectType[];
+      }> = [];
       const newOperations: Array<{ id: string; name: string; description: string }> = [];
 
       if (opts.unmatchedSteps && opts.unmatchedSteps.length > 0) {
         for (const step of opts.unmatchedSteps) {
           const opId = `op_auto_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-          await operationsDao.create({
+          const config = {
+            executor: {
+              type: "agent",
+              agentMode: "prompt",
+              prompt: step.step,
+            },
+            inputs: [],
+            outputs: [{ name: "result", kind: "file", path: "output.md" }],
+          };
+          pendingOperations.push({
             id: opId,
             name: step.step,
             description: step.reason,
-            config: {
-              executor: {
-                type: "agent",
-                agentMode: "prompt",
-                prompt: step.step,
-              },
-              inputs: [],
-              outputs: [
-                { name: "result", kind: "file", path: "output.md" },
-              ],
-            },
-            acceptedObjectTypes: ["file", "folder", "project"],
+            config,
+            acceptedObjectTypes: ["file", "folder", "project", "prompt"] as ObjectType[],
           });
           newOperations.push({ id: opId, name: step.step, description: step.reason });
-          logger.info({ opId, name: step.step }, "generateStructure: created new operation for unmatched step");
+          logger.info(
+            { opId, name: step.step },
+            "generateStructure: prepared pending operation for unmatched step",
+          );
         }
       }
 
@@ -549,7 +594,7 @@ export const createPipelinesService = (db: DbConnection) => {
           id: op.id,
           name: op.name,
           description: op.description,
-          acceptedObjectTypes: ["file", "folder", "project"] as string[],
+          acceptedObjectTypes: ["file", "folder", "project", "prompt"] as ObjectType[],
         })),
       ];
 
@@ -621,7 +666,7 @@ export const createPipelinesService = (db: DbConnection) => {
       if (!execution || execution.isErr()) {
         logger.error({ err: execution?.error }, "generateStructure: agent failed after retries");
 
-        return EMPTY;
+        return { error: "Agent failed to generate pipeline structure after retries" };
       }
 
       const raw = execution.value;
@@ -635,22 +680,23 @@ export const createPipelinesService = (db: DbConnection) => {
       if (parseResult.isErr()) {
         logger.error("generateStructure: failed to parse agent output as JSON");
 
-        return EMPTY;
+        return { error: "Agent returned invalid JSON" };
       }
 
       const NodesEdgesSchema = PipelineSchema.pick({ nodes: true, edges: true });
       const validated = NodesEdgesSchema.safeParse(parseResult.value);
 
       if (!validated.success) {
-        logger.error(
-          { error: validated.error },
-          "generateStructure: invalid structure from agent",
-        );
+        logger.error({ error: validated.error }, "generateStructure: invalid structure from agent");
 
-        return EMPTY;
+        return { error: "Agent returned invalid pipeline structure" };
       }
 
-      return { nodes: expandTildeInNodes(validated.data.nodes), edges: validated.data.edges };
+      return {
+        nodes: expandTildeInNodes(validated.data.nodes),
+        edges: validated.data.edges,
+        ...(pendingOperations.length > 0 ? { pendingOperations } : {}),
+      };
     },
   };
 };

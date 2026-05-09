@@ -94,6 +94,7 @@ vi.mock("@repo/ui/scroll-area", () => ({
 }));
 
 vi.mock("lucide-react", () => ({
+  AlertCircle: () => <span data-testid="alert-circle-icon" />,
   AlertTriangle: () => <span data-testid="alert-icon" />,
   ArrowLeft: () => <span data-testid="arrow-left-icon" />,
   ArrowRight: () => <span data-testid="arrow-right-icon" />,

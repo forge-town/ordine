@@ -13,7 +13,7 @@ export const RuleSchema = z.object({
   severity: RuleSeveritySchema,
   checkScript: z.string().nullable(),
   scriptLanguage: RuleScriptLanguageSchema.nullable(),
-  acceptedObjectTypes: z.array(ObjectTypeSchema).default(["file", "folder", "project"]),
+  acceptedObjectTypes: z.array(ObjectTypeSchema).default(["file", "folder", "project", "prompt"]),
   enabled: z.boolean(),
   tags: z.array(z.string()),
   meta: MetaSchema.optional(),

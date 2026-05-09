@@ -4,6 +4,7 @@ export const OBJECT_TYPE_ENUM = {
   FILE: "file",
   FOLDER: "folder",
   PROJECT: "project",
+  PROMPT: "prompt",
 } as const;
 
 export const ObjectTypeSchema = z.enum(OBJECT_TYPE_ENUM);

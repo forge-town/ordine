@@ -8,6 +8,7 @@ import {
   BookOpen,
   Group,
   GitBranch,
+  MessageSquareText,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -36,11 +37,12 @@ const TYPE_ICONS: Record<string, React.ElementType> = {
   "code-file": FileCode,
   folder: Folder,
   "github-projects": SiGitHubIcon,
+  prompt: MessageSquareText,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
 };
 
-const OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-projects"];
+const OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-projects", "prompt"];
 
 export const CanvasContextMenu = () => {
   const { t } = useTranslation();
@@ -85,12 +87,13 @@ export const CanvasContextMenu = () => {
       "code-file": "file",
       folder: "folder",
       "github-projects": "project",
+      prompt: "prompt",
     };
     const objectType = objectTypeMap[sourceNode.type];
     if (!objectType) return operations;
     // Only show operations that accept this object type
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project" | "prompt")
     );
   })();
 

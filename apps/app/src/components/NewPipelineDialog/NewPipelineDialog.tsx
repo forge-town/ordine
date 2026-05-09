@@ -1,7 +1,15 @@
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, CheckCircle2, ExternalLink, Loader2, Play, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  ExternalLink,
+  Loader2,
+  Play,
+  Plus,
+  AlertCircle,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -137,12 +145,21 @@ export const NewPipelineDialog = () => {
           </>
         )}
 
-        {(phase.step === "form" || phase.step === "analyzing" || phase.step === "creating") && (
+        {(phase.step === "form" ||
+          phase.step === "analyzing" ||
+          phase.step === "creating" ||
+          phase.step === "error") && (
           <>
             <DialogHeader>
               <DialogTitle>{t("nav.newPipeline")}</DialogTitle>
               <DialogDescription>{t("pipelines.newPipelineDescription")}</DialogDescription>
             </DialogHeader>
+            {phase.step === "error" && (
+              <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{phase.message}</span>
+              </div>
+            )}
             <Form {...form}>
               <div className="flex flex-col gap-3 py-2">
                 <FormField

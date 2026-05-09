@@ -19,6 +19,7 @@ export type NewPipelineDialogPhase =
       unmatchedSteps: UnmatchedStep[];
     }
   | { step: "creating" }
+  | { step: "error"; message: string }
   | { step: "success"; pipelineId: string; pipelineName: string };
 
 export const newPipelineFormSchema = z.object({
@@ -101,7 +102,15 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
 
     set({ newPipelinePhase: { step: "creating" } });
 
-    const generated = await (async () => {
+    type GenerateResult =
+      | {
+          nodes: PipelineData["nodes"];
+          edges: PipelineData["edges"];
+          pendingOperations?: Array<Record<string, unknown>>;
+        }
+      | { error: string };
+
+    const generated = await (async (): Promise<GenerateResult> => {
       if (!trimmedDescription) {
         return {
           nodes: [] as PipelineData["nodes"],
@@ -126,8 +135,14 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
         },
       });
 
-      return data as { nodes: PipelineData["nodes"]; edges: PipelineData["edges"] };
+      return data as GenerateResult;
     })();
+
+    if ("error" in generated) {
+      set({ newPipelinePhase: { step: "error", message: generated.error } });
+
+      return;
+    }
 
     const newPipeline: PipelineData = {
       id,
@@ -143,7 +158,10 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
 
     const result = await dataProvider.create({
       resource: ResourceName.pipelines,
-      variables: newPipeline,
+      variables: {
+        ...newPipeline,
+        ...(generated.pendingOperations ? { pendingOperations: generated.pendingOperations } : {}),
+      },
     });
     const saved = result.data as PipelineData;
     set({ newPipelinePhase: { step: "success", pipelineId: saved.id, pipelineName } });

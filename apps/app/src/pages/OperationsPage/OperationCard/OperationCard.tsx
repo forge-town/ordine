@@ -8,6 +8,7 @@ import {
   Pencil,
   Download,
   Trash2,
+  MessageSquareText,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Operation, ObjectType } from "@repo/schemas";
@@ -26,6 +27,7 @@ const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
   folder: Folder,
   project: FolderGit2,
+  prompt: MessageSquareText,
 };
 
 const getComplexity = (op: Operation) => {

@@ -12,7 +12,11 @@ pipelinesRoutes.get("/", async (c) => {
 
 pipelinesRoutes.post("/", async (c) => {
   const body = await c.req.json();
-  const pipeline = await pipelinesService.create(body);
+  const { pendingOperations, ...pipelineData } = body;
+  if (Array.isArray(pendingOperations) && pendingOperations.length > 0) {
+    await pipelinesService.createPendingOperations(pendingOperations);
+  }
+  const pipeline = await pipelinesService.create(pipelineData);
 
   return c.json(pipeline, 201);
 });
@@ -61,10 +65,9 @@ pipelinesRoutes.post("/:id/run", async (c) => {
   const pipeline = await pipelinesService.getById(id);
   if (!pipeline) return c.json({ error: "Pipeline not found" }, 404);
 
-  const body = (await ResultAsync.fromPromise(
-    c.req.json() as Promise<Record<string, unknown>>,
-    () => undefined,
-  )).unwrapOr({});
+  const body = (
+    await ResultAsync.fromPromise(c.req.json() as Promise<Record<string, unknown>>, () => undefined)
+  ).unwrapOr({});
   const inputPath = (body as Record<string, unknown>).inputPath as string | undefined;
   const githubToken = (body as Record<string, unknown>).githubToken as string | undefined;
 
@@ -94,6 +97,10 @@ pipelinesRoutes.post("/generate-structure", async (c) => {
     matchedOperations: body.matchedOperations,
     unmatchedSteps: body.unmatchedSteps,
   });
+
+  if ("error" in result) {
+    return c.json({ error: result.error }, 500);
+  }
 
   return c.json(result);
 });

@@ -10,9 +10,11 @@ const mockDao = {
   delete: vi.fn(),
 };
 const mockOperationsDao = {
-  findMany: vi.fn().mockResolvedValue([
-    { id: "op-1", name: "lint-code", description: "Lint source code", acceptedObjectTypes: null },
-  ]),
+  findMany: vi
+    .fn()
+    .mockResolvedValue([
+      { id: "op-1", name: "lint-code", description: "Lint source code", acceptedObjectTypes: null },
+    ]),
   create: vi.fn().mockImplementation((data: Record<string, unknown>) => Promise.resolve(data)),
 };
 const mockSettingsDao = {
@@ -103,13 +105,14 @@ describe("generateStructure", () => {
     });
 
     expect(mockRunAgent).toHaveBeenCalledTimes(1);
+    if ("error" in result) throw new Error("unexpected error");
     expect(result.nodes).toHaveLength(2);
     expect(result.edges).toHaveLength(1);
     expect(result.nodes[0]!.data.nodeType).toBe("folder");
     expect(result.nodes[1]!.data.nodeType).toBe("operation");
   });
 
-  it("returns empty nodes/edges when agent fails after retries", async () => {
+  it("returns error when agent fails after retries", async () => {
     mockRunAgent.mockRejectedValue(new Error("Agent unavailable"));
 
     const svc = createPipelinesService({} as never);
@@ -118,10 +121,13 @@ describe("generateStructure", () => {
       description: "This should fail gracefully",
     });
 
-    expect(result).toEqual({ nodes: [], edges: [] });
+    expect("error" in result).toBe(true);
+    if ("error" in result) {
+      expect(result.error).toBeDefined();
+    }
   });
 
-  it("returns empty nodes/edges when agent returns invalid JSON", async () => {
+  it("returns error when agent returns invalid JSON", async () => {
     mockRunAgent.mockResolvedValue("not a valid json at all");
 
     const svc = createPipelinesService({} as never);
@@ -130,7 +136,10 @@ describe("generateStructure", () => {
       description: "Agent returns garbage",
     });
 
-    expect(result).toEqual({ nodes: [], edges: [] });
+    expect("error" in result).toBe(true);
+    if ("error" in result) {
+      expect(result.error).toBeDefined();
+    }
   });
 
   it("expands ~ in folder and output-local-path nodes", async () => {
@@ -161,6 +170,7 @@ describe("generateStructure", () => {
     });
 
     const home = homedir();
+    if ("error" in result) throw new Error("unexpected error");
     const folderNode = result.nodes.find((n) => n.data.nodeType === "folder");
     expect(folderNode!.data).toHaveProperty("folderPath", `${home}/Desktop`);
 
@@ -236,7 +246,7 @@ describe("generateStructure", () => {
     expect(agentCall.userPrompt).not.toContain("PRE-MATCHED OPERATIONS");
   });
 
-  it("creates new operations and includes them in prompt for unmatched steps", async () => {
+  it("does NOT persist operations for unmatched steps, returns them as pendingOperations", async () => {
     const generatedPipeline = {
       nodes: [
         {
@@ -258,7 +268,7 @@ describe("generateStructure", () => {
     mockRunAgent.mockResolvedValue(JSON.stringify(generatedPipeline));
 
     const svc = createPipelinesService({} as never);
-    await svc.generateStructure({
+    const result = await svc.generateStructure({
       name: "Polymarket Pipeline",
       description: "Collect Polymarket trends",
       matchedOperations: [],
@@ -268,14 +278,16 @@ describe("generateStructure", () => {
       ],
     });
 
-    expect(mockOperationsDao.create).toHaveBeenCalledTimes(2);
-    const firstCall = mockOperationsDao.create.mock.calls[0]![0] as Record<string, unknown>;
-    expect(firstCall.name).toBe("Fetch Polymarket data");
-    expect(firstCall.config).toEqual(
-      expect.objectContaining({
-        executor: expect.objectContaining({ type: "agent", agentMode: "prompt" }),
-      }),
-    );
+    // Should NOT persist operations during structure generation
+    expect(mockOperationsDao.create).not.toHaveBeenCalled();
+
+    // Should return pending operations
+    expect("error" in result).toBe(false);
+    if (!("error" in result)) {
+      expect(result.pendingOperations).toHaveLength(2);
+      expect(result.pendingOperations![0]!.name).toBe("Fetch Polymarket data");
+      expect(result.pendingOperations![1]!.name).toBe("Summarize into markdown");
+    }
 
     const agentCall = mockRunAgent.mock.calls[0]![0] as { userPrompt: string };
     expect(agentCall.userPrompt).toContain("NEWLY CREATED OPERATIONS (MUST USE)");
