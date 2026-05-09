@@ -952,8 +952,8 @@
     "count": "条"
   },
   "agents": {
-    "title": "智能体定义",
-    "noAgents": "暂无智能体定义",
+    "title": "智能体",
+    "noAgents": "暂无智能体",
     "searchPlaceholder": "搜索智能体...",
     "capabilities": "能力",
     "allowedTools": "允许的工具",

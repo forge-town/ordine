@@ -957,8 +957,8 @@
     "count": ""
   },
   "agents": {
-    "title": "Agent Definitions",
-    "noAgents": "No agent definitions found",
+    "title": "Agents",
+    "noAgents": "No agents found",
     "searchPlaceholder": "Search agents...",
     "capabilities": "Capabilities",
     "allowedTools": "Allowed Tools",

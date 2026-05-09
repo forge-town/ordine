@@ -96,7 +96,7 @@ const buildConfig = (values: EditFormValues): OperationConfigInput => {
 };
 
 const parseExecutorDefaults = (
-  config: OperationConfigInput,
+  config: OperationConfigInput
 ): {
   executorType: ExecutorType;
   agentMode: AgentMode;
@@ -334,7 +334,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                   "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                                   selected
                                     ? "border-primary/50 bg-primary/10 text-primary"
-                                    : "border-border bg-background text-muted-foreground hover:bg-muted",
+                                    : "border-border bg-background text-muted-foreground hover:bg-muted"
                                 )}
                                 type="button"
                                 onClick={() => handleChange(toggleObjectType(field.value, value))}
@@ -377,7 +377,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                 "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
                                 selected
                                   ? "border-primary/50 bg-primary/10 text-primary"
-                                  : "border-border bg-background text-muted-foreground hover:bg-muted",
+                                  : "border-border bg-background text-muted-foreground hover:bg-muted"
                               )}
                               type="button"
                               onClick={() => handleChange(value)}
@@ -418,7 +418,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                     "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                                     selected
                                       ? "border-primary/50 bg-primary/10 text-primary"
-                                      : "border-border bg-background text-muted-foreground hover:bg-muted",
+                                      : "border-border bg-background text-muted-foreground hover:bg-muted"
                                   )}
                                   type="button"
                                   onClick={() => handleChange(value)}

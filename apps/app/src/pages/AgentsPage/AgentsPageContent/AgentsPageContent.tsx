@@ -3,7 +3,6 @@ import { Search, Bot, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { Badge } from "@repo/ui/badge";
 import type { Agent } from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -11,6 +10,7 @@ import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { useAgentsPageStore } from "../_store";
 import { AgentFormDialog } from "../AgentFormDialog";
+import { AgentsDataTable } from "../AgentsDataTable";
 
 export const AgentsPageContent = () => {
   const { result: agentsResult, query: agentsQuery } = useList<Agent>({
@@ -61,6 +61,11 @@ export const AgentsPageContent = () => {
             {t("agents.create")}
           </Button>
         }
+        badge={
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            {filtered.length}
+          </span>
+        }
         icon={<Bot className="h-4 w-4 text-primary" />}
         title={t("agents.title")}
       />
@@ -68,7 +73,7 @@ export const AgentsPageContent = () => {
       {showForm && <AgentFormDialog initial={editing ?? undefined} />}
 
       <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3">
-        <div className="relative flex-1 max-w-xs">
+        <div className="relative max-w-xs flex-1">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="h-8 pl-8 text-sm"
@@ -86,54 +91,7 @@ export const AgentsPageContent = () => {
             <p className="text-sm">{t("agents.noAgents")}</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((agent) => (
-              <div
-                key={agent.id}
-                className="rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:border-primary/30"
-              >
-                <div className="mb-2 flex items-start justify-between">
-                  <h3 className="text-sm font-semibold text-foreground">{agent.name}</h3>
-                  {agent.defaultRuntime && (
-                    <Badge className="text-[10px]" variant="outline">
-                      {agent.defaultRuntime}
-                    </Badge>
-                  )}
-                </div>
-
-                {agent.description && (
-                  <p className="mb-3 text-xs text-muted-foreground line-clamp-2">
-                    {agent.description}
-                  </p>
-                )}
-
-                {agent.capabilities.length > 0 && (
-                  <div className="mb-2">
-                    <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                      {t("agents.capabilities")}
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {agent.capabilities.map((cap) => (
-                        <Badge key={cap.name} className="text-[10px]" variant="secondary">
-                          {cap.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {agent.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {agent.tags.map((tag) => (
-                      <Badge key={tag} className="text-[10px]" variant="outline">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <AgentsDataTable data={filtered} />
         )}
       </div>
     </div>

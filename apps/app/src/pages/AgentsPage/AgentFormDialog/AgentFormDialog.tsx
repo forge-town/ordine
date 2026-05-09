@@ -1,25 +1,42 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
-import { X } from "lucide-react";
+import { X, Terminal, Cpu, Zap, Cog } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/ui/select";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { type Agent, AGENT_RUNTIME_ENUM } from "@repo/schemas";
 import { useCreate, useUpdate } from "@refinedev/core";
+import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useAgentsPageStore } from "../_store";
+
+const RUNTIME_META: Record<string, { label: string; icon: React.ReactNode; description: string }> =
+  {
+    [AGENT_RUNTIME_ENUM.CLAUDE_CODE]: {
+      label: "Claude Code",
+      icon: <Terminal className="h-4 w-4" />,
+      description: "Anthropic CLI agent",
+    },
+    [AGENT_RUNTIME_ENUM.CODEX]: {
+      label: "Codex",
+      icon: <Cpu className="h-4 w-4" />,
+      description: "OpenAI Codex CLI",
+    },
+    [AGENT_RUNTIME_ENUM.MASTRA]: {
+      label: "Mastra",
+      icon: <Zap className="h-4 w-4" />,
+      description: "Mastra framework",
+    },
+    [AGENT_RUNTIME_ENUM.OPENCLAW]: {
+      label: "OpenClaw",
+      icon: <Cog className="h-4 w-4" />,
+      description: "OpenClaw runtime",
+    },
+  };
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -157,8 +174,8 @@ export const AgentFormDialog = ({ initial }: AgentFormDialogProps) => {
               control={form.control}
               name="defaultRuntime"
               render={({ field }) => {
-                const handleChange = (v: string | null) => {
-                  field.onChange(v ?? "");
+                const handleRuntimeSelect = (value: string) => {
+                  field.onChange(field.value === value ? "" : value);
                 };
 
                 return (
@@ -166,22 +183,47 @@ export const AgentFormDialog = ({ initial }: AgentFormDialogProps) => {
                     <FormLabel className="text-xs font-medium text-muted-foreground">
                       {t("agents.form.defaultRuntime")}
                     </FormLabel>
-                    <Select value={field.value} onValueChange={handleChange}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("agents.form.runtimePlaceholder")} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectGroup>
-                          {runtimeOptions.map((rt) => (
-                            <SelectItem key={rt} value={rt}>
-                              {rt}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <div className="grid grid-cols-2 gap-2">
+                        {runtimeOptions.map((rt) => {
+                          const meta = RUNTIME_META[rt];
+                          const isSelected = field.value === rt;
+
+                          return (
+                            <button
+                              key={rt}
+                              className={cn(
+                                "flex items-center gap-2.5 rounded-lg border p-3 text-left transition-all",
+                                isSelected
+                                  ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                                  : "border-border hover:border-muted-foreground/30 hover:bg-muted/50"
+                              )}
+                              type="button"
+                              onClick={() => handleRuntimeSelect(rt)}
+                            >
+                              <div
+                                className={cn(
+                                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
+                                  isSelected
+                                    ? "bg-primary/10 text-primary"
+                                    : "bg-muted text-muted-foreground"
+                                )}
+                              >
+                                {meta?.icon ?? <Cpu className="h-4 w-4" />}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="truncate text-xs font-medium">
+                                  {meta?.label ?? rt}
+                                </div>
+                                <div className="truncate text-[10px] text-muted-foreground">
+                                  {meta?.description ?? rt}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 );
