@@ -1,4 +1,5 @@
 export * from "./accounts_table";
+export * from "./agents_table";
 export * from "./agent_raw_exports_table";
 export * from "./agent_runtimes_table";
 export * from "./agent_spans_table";

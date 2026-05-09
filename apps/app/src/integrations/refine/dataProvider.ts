@@ -15,6 +15,7 @@ import {
 import { trpcClient } from "@/integrations/trpc/client";
 
 export const ResourceName = {
+  agents: "agents",
   agentRuntimes: "agentRuntimes",
   filesystem: "filesystem",
   operations: "operations",
@@ -39,6 +40,11 @@ export const dataProvider: DataProvider = {
     const { resource } = params;
 
     switch (resource) {
+      case ResourceName.agents: {
+        const data = await trpcClient.agents.getMany.query();
+
+        return { data: data as unknown as TData[], total: data.length };
+      }
       case ResourceName.agentRuntimes: {
         const data = await trpcClient.agentRuntimes.getMany.query();
 
@@ -133,6 +139,13 @@ export const dataProvider: DataProvider = {
     const { resource, id } = params;
 
     switch (resource) {
+      case ResourceName.agents: {
+        const data = await trpcClient.agents.getById.query({
+          id: String(id),
+        });
+
+        return { data: data as unknown as TData };
+      }
       case ResourceName.agentRuntimes: {
         const data = await trpcClient.agentRuntimes.getById.query({
           id: String(id),
@@ -225,6 +238,13 @@ export const dataProvider: DataProvider = {
     const { resource, variables } = params;
 
     switch (resource) {
+      case ResourceName.agents: {
+        const data = await trpcClient.agents.create.mutate(
+          variables as Parameters<typeof trpcClient.agents.create.mutate>[0]
+        );
+
+        return { data: data as unknown as TData };
+      }
       case ResourceName.agentRuntimes: {
         const data = await trpcClient.agentRuntimes.create.mutate(
           variables as Parameters<typeof trpcClient.agentRuntimes.create.mutate>[0]
@@ -321,6 +341,14 @@ export const dataProvider: DataProvider = {
     const { resource, id, variables } = params;
 
     switch (resource) {
+      case ResourceName.agents: {
+        const data = await trpcClient.agents.update.mutate({
+          id: String(id),
+          patch: variables as Record<string, unknown>,
+        } as Parameters<typeof trpcClient.agents.update.mutate>[0]);
+
+        return { data: data as unknown as TData };
+      }
       case ResourceName.agentRuntimes: {
         const data = await trpcClient.agentRuntimes.update.mutate({
           id: String(id),
@@ -436,6 +464,13 @@ export const dataProvider: DataProvider = {
     const { resource, id } = params;
 
     switch (resource) {
+      case ResourceName.agents: {
+        const data = await trpcClient.agents.delete.mutate({
+          id: String(id),
+        });
+
+        return { data: data as unknown as TData };
+      }
       case ResourceName.agentRuntimes: {
         const data = await trpcClient.agentRuntimes.delete.mutate({
           id: String(id),

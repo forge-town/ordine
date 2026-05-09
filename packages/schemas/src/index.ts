@@ -1,3 +1,4 @@
+export * from "./AgentSchema";
 export * from "./AgentModeSchema";
 export * from "./AgentRawExportSchema";
 export * from "./AgentRuntimeConfigSchema";

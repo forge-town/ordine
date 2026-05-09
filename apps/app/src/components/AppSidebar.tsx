@@ -3,6 +3,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useStore } from "zustand";
 import {
   ArrowLeft,
+  Bot,
   LayoutDashboard,
   Workflow,
   BookOpen,
@@ -71,6 +72,7 @@ const pipelineItems: NavItem[] = [
 ];
 
 const configItems: NavItem[] = [
+  { labelKey: "nav.agents", icon: Bot, to: "/agents" },
   { labelKey: "nav.plugins", icon: Puzzle, to: "/plugins" },
   { labelKey: "nav.runtimes", icon: Server, to: "/runtimes" },
   { labelKey: "nav.settings", icon: Settings, to: "/settings" },

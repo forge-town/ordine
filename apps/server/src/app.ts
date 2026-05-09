@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { agentsRoutes } from "./routes/agents";
 import { bestPracticesRoutes } from "./routes/best-practices";
 import { checklistItemsRoutes } from "./routes/checklist-items";
 import { codeSnippetsRoutes } from "./routes/code-snippets";
@@ -18,6 +19,7 @@ export const app = new Hono();
 app.use("*", logger());
 app.use("*", cors());
 
+app.route("/api/agents", agentsRoutes);
 app.route("/api/best-practices", bestPracticesRoutes);
 app.route("/api/checklist-items", checklistItemsRoutes);
 app.route("/api/code-snippets", codeSnippetsRoutes);

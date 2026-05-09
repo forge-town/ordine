@@ -1,3 +1,4 @@
+export * from "./agentsService";
 export * from "./agentRuntimesService";
 export * from "./bestPracticesService";
 export * from "./bestPracticesBulkService";

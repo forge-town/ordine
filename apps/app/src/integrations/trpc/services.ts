@@ -1,5 +1,6 @@
 import { db } from "@repo/db";
 import {
+  createAgentsService,
   createAgentRuntimesService,
   createBestPracticesBulkService,
   createBestPracticesService,
@@ -18,6 +19,7 @@ import {
   createSkillsService,
 } from "@repo/services";
 
+export const agentsService = createAgentsService(db);
 export const agentRuntimesService = createAgentRuntimesService(db);
 export const bestPracticesService = createBestPracticesService(db);
 export const bestPracticesBulkService = createBestPracticesBulkService(db);

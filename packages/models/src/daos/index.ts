@@ -1,3 +1,4 @@
+export * from "./agentsDao";
 export * from "./agentRawExportsDao";
 export * from "./agentRuntimesDao";
 export * from "./agentSpansDao";

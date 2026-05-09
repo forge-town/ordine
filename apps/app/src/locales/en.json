@@ -56,6 +56,7 @@
     "search": "Search...",
     "newPipeline": "New Pipeline",
     "plugins": "Plugins",
+    "agents": "Agents",
     "logout": "Log out"
   },
   "plugins": {
@@ -954,5 +955,34 @@
     "bestPracticePlaceholder": "Select a best practice",
     "searchPlaceholder": "Search recipes...",
     "count": ""
+  },
+  "agents": {
+    "title": "Agent Definitions",
+    "noAgents": "No agent definitions found",
+    "searchPlaceholder": "Search agents...",
+    "capabilities": "Capabilities",
+    "allowedTools": "Allowed Tools",
+    "allowedSkills": "Allowed Skills",
+    "noCapabilities": "No capabilities defined",
+    "defaultRuntime": "Default Runtime",
+    "tags": "Tags",
+    "create": "Create Agent",
+    "createTitle": "Create Agent",
+    "editTitle": "Edit Agent",
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Enter agent name",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe what this agent does",
+      "defaultRuntime": "Default Runtime",
+      "runtimePlaceholder": "Select a runtime",
+      "systemPrompt": "System Prompt",
+      "systemPromptPlaceholder": "Enter system prompt for this agent",
+      "tags": "Tags",
+      "tagsPlaceholder": "Comma-separated tags",
+      "cancel": "Cancel",
+      "save": "Save",
+      "create": "Create"
+    }
   }
 }

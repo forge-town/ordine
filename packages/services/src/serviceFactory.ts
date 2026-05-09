@@ -1,4 +1,5 @@
 import { db } from "@repo/db";
+import { createAgentsService } from "./agentsService";
 import { createBestPracticesService } from "./bestPracticesService";
 import { createBestPracticesBulkService } from "./bestPracticesBulkService";
 import { createChecklistService } from "./checklistService";
@@ -16,6 +17,7 @@ import { createSettingsService } from "./settingsService";
 import { createSkillsService } from "./skillsService";
 
 export const serviceFactory = {
+  createAgentsService: () => createAgentsService(db),
   createBestPracticesService: () => createBestPracticesService(db),
   createBestPracticesBulkService: () => createBestPracticesBulkService(db),
   createChecklistService: () => createChecklistService(db),

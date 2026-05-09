@@ -59,6 +59,7 @@
     "search": "搜索...",
     "newPipeline": "新建流水线",
     "plugins": "插件",
+    "agents": "智能体",
     "logout": "退出登录"
   },
   "plugins": {
@@ -949,5 +950,34 @@
     "bestPracticePlaceholder": "选择一个最佳实践",
     "searchPlaceholder": "搜索配方...",
     "count": "条"
+  },
+  "agents": {
+    "title": "智能体定义",
+    "noAgents": "暂无智能体定义",
+    "searchPlaceholder": "搜索智能体...",
+    "capabilities": "能力",
+    "allowedTools": "允许的工具",
+    "allowedSkills": "允许的技能",
+    "noCapabilities": "未定义能力",
+    "defaultRuntime": "默认运行时",
+    "tags": "标签",
+    "create": "创建智能体",
+    "createTitle": "创建智能体",
+    "editTitle": "编辑智能体",
+    "form": {
+      "name": "名称",
+      "namePlaceholder": "输入智能体名称",
+      "description": "描述",
+      "descriptionPlaceholder": "描述该智能体的功能",
+      "defaultRuntime": "默认运行时",
+      "runtimePlaceholder": "选择运行时",
+      "systemPrompt": "系统提示词",
+      "systemPromptPlaceholder": "输入该智能体的系统提示词",
+      "tags": "标签",
+      "tagsPlaceholder": "用逗号分隔的标签",
+      "cancel": "取消",
+      "save": "保存",
+      "create": "创建"
+    }
   }
 }
