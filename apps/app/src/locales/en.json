@@ -785,9 +785,11 @@
         "project": "Project"
       },
       "agentRuntime": "Agent Runtime",
+      "agent": "Agent",
       "runtime": "Runtime",
       "runtimeSelectLabel": "Select Agent Runtime",
       "defaultRuntime": "Default",
+      "defaultAgent": "Default",
       "inspectLlmOutput": "View LLM output",
       "loopEnabled": "Loop enabled",
       "enableLoop": "Enable loop",

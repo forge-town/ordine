@@ -1,5 +1,5 @@
 import type { Operation } from "@repo/schemas";
-import type { OperationNodeData } from "../schemas/OperationNodeDataSchema";
+import type { OperationNodeData } from "@repo/pipeline-engine/schemas";
 
 export const makeOperationNodeData = (operation: Operation): OperationNodeData => ({
   label: operation.name,

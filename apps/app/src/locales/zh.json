@@ -785,9 +785,11 @@
         "project": "项目"
       },
       "agentRuntime": "Agent 运行时",
+      "agent": "Agent",
       "runtime": "运行时",
       "runtimeSelectLabel": "选择 Agent Runtime",
       "defaultRuntime": "默认",
+      "defaultAgent": "默认",
       "inspectLlmOutput": "点击查看 LLM 输出",
       "loopEnabled": "循环已开启",
       "enableLoop": "开启循环",

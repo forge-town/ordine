@@ -59,6 +59,7 @@ const makeOpts = (
   jobId: "job-12345678",
   operations: new Map(),
   deps,
+  lookupAgent: vi.fn().mockResolvedValue(null),
   lookupSkill: vi.fn().mockResolvedValue(null),
   lookupBestPractice: vi.fn().mockResolvedValue(null),
   ...extra,

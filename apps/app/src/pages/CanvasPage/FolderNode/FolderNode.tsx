@@ -3,9 +3,9 @@ import { Folder, FolderOpen, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
+import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { FolderNodeData } from "@repo/pipeline-engine/schemas";
-import { NodeCard, useNodePortCounts } from "../NodeCard";
+import { NodeCard } from "../NodeCard";
 import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
 import { FolderTreePreview } from "./FolderTreePreview";
 import { Input } from "@repo/ui/input";
@@ -27,7 +27,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const handleNodeAddExcludedPath = useStore(store, (s) => s.handleNodeAddExcludedPath);
   const handleNodeRemoveExcludedPath = useStore(store, (s) => s.handleNodeRemoveExcludedPath);
-  const { rightPortCount } = useNodePortCounts(id);
+  const { rightPortCount } = useStore(store, useShallow(selectNodePortCounts(id)));
   const [browserOpen, setBrowserOpen] = useState(false);
 
   const excludedPaths: string[] = Array.isArray(data.excludedPaths) ? data.excludedPaths : [];

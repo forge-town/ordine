@@ -46,7 +46,19 @@ export const executeOperationNode = async (
     return { ok: false, error: null };
   }
 
-  const agentOverride = data.agentRuntime as ExecutorConfig["agent"] | undefined;
+  const agentOverride = await (async () => {
+    if (data.agentId) {
+      const agent = await ctx.lookupAgent(data.agentId);
+      if (agent?.defaultRuntime) {
+        await trace(jobId, `Using agent "${agent.name}" with runtime "${agent.defaultRuntime}"`);
+
+        return agent.defaultRuntime as ExecutorConfig["agent"];
+      }
+      await trace(jobId, `WARNING: Agent ${data.agentId} not found or has no runtime, falling back`);
+    }
+
+    return data.agentRuntime as ExecutorConfig["agent"] | undefined;
+  })();
 
   const bestPracticeContent = await (async () => {
     if (!data.bestPracticeId) return "";

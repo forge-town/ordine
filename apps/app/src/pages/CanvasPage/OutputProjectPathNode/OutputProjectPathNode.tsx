@@ -2,9 +2,9 @@ import { FolderOutput } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
+import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { OutputProjectPathNodeData } from "@repo/pipeline-engine/schemas";
-import { NodeCard, useNodePortCounts } from "../NodeCard";
+import { NodeCard } from "../NodeCard";
 import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
 
@@ -21,7 +21,7 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
   const store = useHarnessCanvasStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
-  const { leftPortCount } = useNodePortCounts(id);
+  const { leftPortCount } = useStore(store, useShallow(selectNodePortCounts(id)));
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
   const handleProjectIdChange = (e: React.ChangeEvent<HTMLInputElement>) =>

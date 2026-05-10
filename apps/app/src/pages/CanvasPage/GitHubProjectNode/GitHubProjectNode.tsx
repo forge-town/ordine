@@ -3,9 +3,9 @@ import { Link2, Lock, Globe, BookMarked, FolderOpen, FolderInput, X, Eye } from 
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
+import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { GitHubProjectNodeData } from "@repo/pipeline-engine/schemas";
-import { NodeCard, useNodePortCounts } from "../NodeCard";
+import { NodeCard } from "../NodeCard";
 import { FolderTreePreview } from "../FolderNode/FolderTreePreview";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { GitHubConnectDialog, type ConnectedRepoInfo } from "./GitHubConnectDialog";
@@ -37,7 +37,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
   const handleGitHubProjectLocalFolder = useStore(store, (s) => s.handleGitHubProjectLocalFolder);
   const handleNodeAddExcludedPath = useStore(store, (s) => s.handleNodeAddExcludedPath);
   const handleNodeRemoveExcludedPath = useStore(store, (s) => s.handleNodeRemoveExcludedPath);
-  const { rightPortCount } = useNodePortCounts(id);
+  const { rightPortCount } = useStore(store, useShallow(selectNodePortCounts(id)));
 
   const isLocal = data.sourceType === "local";
   const isConnected = isLocal ? !!data.localPath : !!(data.owner && data.repo);

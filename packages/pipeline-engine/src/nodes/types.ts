@@ -21,9 +21,16 @@ export interface NodeContext {
 
 export interface OperationNodeContext extends NodeContext {
   operations: Map<string, OperationInfo>;
+  lookupAgent: (id: string) => Promise<AgentInfo | null>;
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
   lookupBestPractice: (id: string) => Promise<{ title: string; content: string } | null>;
   githubToken?: string;
+}
+
+export interface AgentInfo {
+  id: string;
+  name: string;
+  defaultRuntime: string | null;
 }
 
 export interface OperationInfo {

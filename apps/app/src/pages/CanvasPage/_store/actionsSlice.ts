@@ -118,6 +118,18 @@ export interface ActionsSlice {
   handleGitHubProjectLocalFolder: (nodeId: string, info: LocalFolderInfo) => void;
   handleNodeAddExcludedPath: (nodeId: string, path: string) => void;
   handleNodeRemoveExcludedPath: (nodeId: string, path: string) => void;
+
+  // Operation node actions
+  handleOperationLabelChange: (nodeId: string, label: string) => void;
+  handleOperationAgentChange: (nodeId: string, agentId: string | null) => void;
+  handleOperationLoopToggle: (nodeId: string) => void;
+  handleOperationMaxLoopChange: (nodeId: string, value: number) => void;
+  handleOperationConditionChange: (nodeId: string, prompt: string) => void;
+  handleOperationCardClick: (nodeId: string) => void;
+  handleOperationAgentDropdownOpen: (nodeId: string) => void;
+  handleOperationAgentDropdownClose: () => void;
+  handleOperationAgentDropdownToggle: (nodeId: string) => void;
+  handleOperationAgentDropdownOpenChange: (nodeId: string, open: boolean) => void;
 }
 
 export const createActionsSlice = (
@@ -780,5 +792,59 @@ export const createActionsSlice = (
     get().updateNodeData(nodeId, {
       excludedPaths: current.filter((p) => p !== path),
     });
+  },
+
+  handleOperationLabelChange: (nodeId, label) => {
+    get().updateNodeData(nodeId, { label, operationName: label });
+  },
+
+  handleOperationAgentChange: (nodeId, agentId) => {
+    if (!agentId || agentId === "__default__") {
+      get().updateNodeData(nodeId, { agentId: undefined, agentRuntime: undefined });
+    } else {
+      get().updateNodeData(nodeId, { agentId, agentRuntime: undefined });
+    }
+    set({ operationAgentDropdownNodeId: null });
+  },
+
+  handleOperationLoopToggle: (nodeId) => {
+    const node = get().nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+    const data = node.data as Record<string, unknown>;
+    get().updateNodeData(nodeId, { loopEnabled: !data.loopEnabled });
+  },
+
+  handleOperationMaxLoopChange: (nodeId, value) => {
+    if (value >= 1 && value <= 20) {
+      get().updateNodeData(nodeId, { maxLoopCount: value });
+    }
+  },
+
+  handleOperationConditionChange: (nodeId, prompt) => {
+    get().updateNodeData(nodeId, { loopConditionPrompt: prompt });
+  },
+
+  handleOperationCardClick: (nodeId) => {
+    const { isTestRunning, nodeLlmContent } = get();
+    if (isTestRunning || nodeLlmContent[nodeId]) {
+      get().setInspectingNodeId(nodeId);
+    }
+  },
+
+  handleOperationAgentDropdownOpen: (nodeId) => {
+    set({ operationAgentDropdownNodeId: nodeId });
+  },
+
+  handleOperationAgentDropdownClose: () => {
+    set({ operationAgentDropdownNodeId: null });
+  },
+
+  handleOperationAgentDropdownToggle: (nodeId) => {
+    const current = get().operationAgentDropdownNodeId;
+    set({ operationAgentDropdownNodeId: current === nodeId ? null : nodeId });
+  },
+
+  handleOperationAgentDropdownOpenChange: (nodeId, open) => {
+    set({ operationAgentDropdownNodeId: open ? nodeId : null });
   },
 });

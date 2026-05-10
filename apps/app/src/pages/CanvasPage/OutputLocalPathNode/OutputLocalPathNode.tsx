@@ -8,8 +8,8 @@ import {
 } from "@repo/pipeline-engine/schemas";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState } from "../_store";
-import { NodeCard, useNodePortCounts } from "../NodeCard";
+import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
+import { NodeCard } from "../NodeCard";
 import { FolderBrowser } from "./FolderBrowser";
 
 export interface OutputLocalPathNodeProps {
@@ -31,7 +31,7 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
   const store = useHarnessCanvasStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
-  const { leftPortCount } = useNodePortCounts(id);
+  const { leftPortCount } = useStore(store, useShallow(selectNodePortCounts(id)));
   const [browserOpen, setBrowserOpen] = useState(false);
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v });

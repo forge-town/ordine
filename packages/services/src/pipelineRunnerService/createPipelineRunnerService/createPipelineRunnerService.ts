@@ -7,6 +7,7 @@ import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
 import {
+  createAgentsDao,
   createOperationsDao,
   createPipelinesDao,
   createJobsDao,
@@ -29,6 +30,7 @@ export class PipelineNotFoundError extends Error {
 }
 
 export const createPipelineRunnerService = (db: DbConnection) => {
+  const agentsDao = createAgentsDao(db);
   const operationsDao = createOperationsDao(db);
   const pipelinesDao = createPipelinesDao(db);
   const jobsDao = createJobsDao(db);
@@ -117,6 +119,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           jobId,
           pipelinesDao,
           operationsDao,
+          agentsDao,
           jobsDao,
           pipelineRunsDao,
           skillsDao,

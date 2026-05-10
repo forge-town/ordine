@@ -3,12 +3,12 @@ import {
   CodeFileNodeDataSchema,
   FolderNodeDataSchema,
   GitHubProjectNodeDataSchema,
+  OperationNodeDataSchema,
   OutputProjectPathNodeDataSchema,
   OutputLocalPathNodeDataSchema,
   CompoundNodeDataSchema,
 } from "@repo/pipeline-engine/schemas";
 import { PromptNodeDataSchema } from "@repo/schemas";
-import { OperationNodeDataSchema } from "./OperationNodeDataSchema";
 
 export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
   CodeFileNodeDataSchema,

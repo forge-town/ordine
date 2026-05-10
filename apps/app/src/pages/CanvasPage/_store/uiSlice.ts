@@ -2,11 +2,6 @@ import type { NodeRunStatus } from "@repo/pipeline-engine/schemas";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 
-export interface NodeRunState {
-  runStatus: NodeRunStatus | undefined;
-  dimmed: boolean;
-}
-
 export type SidebarPanel = "components" | "properties" | "ai-assistant" | null;
 
 export interface ContextMenuState {
@@ -70,6 +65,9 @@ export interface UISlice {
   nodeRunStatuses: Record<string, NodeRunStatus>;
   nodeLlmContent: Record<string, string>;
   inspectingNodeId: string | null;
+
+  // Operation node UI state
+  operationAgentDropdownNodeId: string | null;
 
   handlePipelineIdChange: (id: string) => void;
   handleSidebarPanelChange: (panel: SidebarPanel) => void;
@@ -151,6 +149,7 @@ export const createUISlice = (
   nodeRunStatuses: {},
   nodeLlmContent: {},
   inspectingNodeId: null,
+  operationAgentDropdownNodeId: null,
   handlePipelineIdChange: (id) => {
     set({ pipelineId: id });
   },
@@ -386,16 +385,3 @@ export const createUISlice = (
     }));
   },
 });
-
-export const selectNodeRunState =
-  (nodeId: string) =>
-  (state: UISlice): NodeRunState => {
-    const runStatus = state.nodeRunStatuses[nodeId];
-    const dimmed =
-      state.isTestRunning &&
-      state.runningNodeId !== null &&
-      state.runningNodeId !== nodeId &&
-      runStatus !== "running";
-
-    return { runStatus, dimmed };
-  };

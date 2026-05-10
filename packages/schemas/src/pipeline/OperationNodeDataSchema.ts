@@ -9,6 +9,7 @@ export const OperationNodeDataSchema = z.object({
   status: NodeRunStatusSchema,
   config: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
   notes: z.string().optional(),
+  agentId: z.string().optional(),
   agentRuntime: z.string().optional(),
   bestPracticeId: z.string().optional(),
   bestPracticeName: z.string().optional(),

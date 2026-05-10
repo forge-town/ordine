@@ -15,7 +15,7 @@ import type { PipelineEngineDeps } from "../deps";
 import { ScriptExecutionError, type PipelineRunError } from "../errors";
 import { buildExecutionLevels, getParentIds, type CycleDetectedError } from "../dagScheduler";
 import { safeReadInputFile } from "../infrastructure";
-import type { OperationInfo, SkillInfo, OperationNodeContext } from "../nodes/types";
+import type { AgentInfo, OperationInfo, SkillInfo, OperationNodeContext } from "../nodes/types";
 import { processCodeFileNode } from "../nodes/CodeFileNode";
 import { processFolderNode } from "../nodes/FolderNode";
 import { processGitHubProjectNode } from "../nodes/GitHubProjectNode";
@@ -42,6 +42,7 @@ export interface PipelineOptions {
   defaultOutputPath?: string;
   operations: Map<string, OperationInfo>;
   deps: PipelineEngineDeps;
+  lookupAgent: (id: string) => Promise<AgentInfo | null>;
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
   lookupBestPractice: (id: string) => Promise<{ title: string; content: string } | null>;
 }
@@ -175,6 +176,7 @@ export class Pipeline {
         const opCtx: OperationNodeContext = {
           ...baseCtx,
           operations: this.opts.operations,
+          lookupAgent: this.opts.lookupAgent,
           lookupSkill: this.opts.lookupSkill,
           lookupBestPractice: this.opts.lookupBestPractice,
           githubToken: this.opts.githubToken,

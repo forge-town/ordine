@@ -9,6 +9,7 @@ import {
   type OperationInfo,
 } from "@repo/pipeline-engine";
 import type {
+  AgentsDao,
   OperationsDao,
   PipelinesDao,
   JobsDao,
@@ -65,6 +66,7 @@ export const pipelineRunExecutor = {
     defaultOutputPath?: string;
     pipelinesDao: PipelinesDao;
     operationsDao: OperationsDao;
+    agentsDao: AgentsDao;
     jobsDao: JobsDao;
     pipelineRunsDao: PipelineRunsDao;
     skillsDao: SkillsDao;
@@ -77,6 +79,7 @@ export const pipelineRunExecutor = {
       githubToken,
       pipelinesDao,
       operationsDao,
+      agentsDao,
       jobsDao,
       pipelineRunsDao,
       skillsDao,
@@ -121,6 +124,14 @@ export const pipelineRunExecutor = {
           return bp ? { title: bp.title, content: bp.content } : null;
         };
 
+        const lookupAgent = async (agentId: string) => {
+          const agent = await agentsDao.findById(agentId);
+
+          return agent
+            ? { id: agent.id, name: agent.name, defaultRuntime: agent.defaultRuntime }
+            : null;
+        };
+
         const result = await ResultAsync.fromPromise(
           pipelineEngine.execute({
             pipeline: {
@@ -135,6 +146,7 @@ export const pipelineRunExecutor = {
             defaultOutputPath: opts.defaultOutputPath,
             operations: operationsMap,
             deps: engineDeps,
+            lookupAgent,
             lookupSkill,
             lookupBestPractice,
           }),

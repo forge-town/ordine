@@ -1,13 +1,5 @@
-import { useStore } from "zustand";
-import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore } from "../_store";
+import type { HarnessCanvasState } from "../_store/harnessCanvasStore";
 import { getNodePortCounts } from "./nodePorts";
 
-export const useNodePortCounts = (nodeId: string) => {
-  const store = useHarnessCanvasStore();
-
-  return useStore(
-    store,
-    useShallow((state) => getNodePortCounts(state.edges, nodeId, state.connectStart))
-  );
-};
+export const selectNodePortCounts = (nodeId: string) => (state: HarnessCanvasState) =>
+  getNodePortCounts(state.edges, nodeId, state.connectStart);

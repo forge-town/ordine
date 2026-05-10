@@ -30,6 +30,7 @@ export const makePipelineScenario = ({
   jobId: "job-12345678",
   operations: new Map(),
   deps,
+  lookupAgent: async () => null,
   lookupSkill: async () => null,
   lookupBestPractice: async () => null,
   ...extra,

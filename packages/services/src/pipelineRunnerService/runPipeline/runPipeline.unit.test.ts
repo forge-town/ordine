@@ -3,6 +3,7 @@ import { okAsync } from "neverthrow";
 import { pipelineEngine, type PipelineEngineDeps } from "@repo/pipeline-engine";
 import type * as PipelineEngineModule from "@repo/pipeline-engine";
 import type {
+  AgentsDao,
   PipelinesDao,
   OperationsDao,
   JobsDao,
@@ -44,6 +45,7 @@ const makeOpts = (overrides = {}) => ({
     }),
   } as unknown as PipelinesDao,
   operationsDao: { findById: vi.fn() } as unknown as OperationsDao,
+  agentsDao: { findById: vi.fn() } as unknown as AgentsDao,
   jobsDao: {
     create: vi.fn().mockResolvedValue(undefined),
     updateStatus: vi.fn().mockResolvedValue(undefined),
