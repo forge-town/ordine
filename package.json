@@ -34,8 +34,11 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.31.0",
+    "@esbuild/darwin-x64": "^0.25.12",
     "@oxlint/binding-darwin-arm64": "^1.59.0",
+    "@oxlint/binding-darwin-x64": "^1.62.0",
     "@rollup/rollup-darwin-arm64": "^4.60.1",
+    "@rollup/rollup-darwin-x64": "^4.60.2",
     "knip": "^6.4.0",
     "oxlint": "^1.59.0",
     "prettier": "^3.7.4",

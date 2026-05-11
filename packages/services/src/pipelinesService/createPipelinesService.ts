@@ -1,3 +1,5 @@
+/// <reference path="../text-imports.d.ts" />
+
 import { Result, ResultAsync } from "neverthrow";
 import { homedir } from "node:os";
 import { join } from "node:path";
