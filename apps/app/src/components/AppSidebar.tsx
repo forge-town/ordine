@@ -16,6 +16,7 @@ import {
   Box,
   Puzzle,
   ExternalLink,
+  Eye,
   ChevronRight,
   Server,
   LogOut,
@@ -55,6 +56,7 @@ interface NavItem {
   icon: ElementType;
   to: string;
   badge?: string;
+  exact?: boolean;
 }
 
 const mainItems: NavItem[] = [{ labelKey: "nav.dashboard", icon: LayoutDashboard, to: "/" }];
@@ -65,6 +67,7 @@ const mainPeerItems: NavItem[] = [
 ];
 
 const pipelineItems: NavItem[] = [
+  { labelKey: "nav.preview", icon: Eye, to: "/pipelines", exact: true },
   { labelKey: "nav.objects", icon: Box, to: "/pipelines/objects" },
   { labelKey: "nav.operations", icon: Zap, to: "/pipelines/operations" },
   { labelKey: "nav.recipes", icon: ChefHat, to: "/pipelines/recipes" },
@@ -107,8 +110,9 @@ const NavGroup = ({
           {items.map((item) => {
             const Icon = item.icon;
             const labelText = t(item.labelKey);
-            const isActive =
-              currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
+            const isActive = item.exact
+              ? currentPath === item.to
+              : currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
 
             return (
               <SidebarMenuItem key={item.to}>
