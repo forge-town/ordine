@@ -1,6 +1,6 @@
 ---
 name: ordine-create-pipeline
-description: Use when 需要在 Ordine 系统中创建新的 Pipeline（质量检查流水线），包括定义节点（folder/operation/output）和边（连接关系），通过 REST API 或 UI 完成。触发词：创建流水线、新建pipeline、设计工作流、构建检查流程。
+description: Use when 需要在 Ordine 系统中创建新的 Pipeline（质量检查流水线），包括定义节点（folder/prompt/operation/output）和边（连接关系），通过 REST API 或 UI 完成。触发词：创建流水线、新建pipeline、设计工作流、构建检查流程。
 ---
 
 # 创建 Pipeline

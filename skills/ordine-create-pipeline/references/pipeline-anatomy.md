@@ -22,7 +22,7 @@
 ```json
 {
   "id": "n_xxx",
-  "type": "folder | operation | output-local-path | code-file | github-project | condition",
+  "type": "folder | operation | output-local-path | code-file | github-project | prompt | condition",
   "data": {
     "label": "节点名称",
     "nodeType": "同 type",
@@ -39,6 +39,7 @@
 | `folder` | 输入源 - 本地文件夹 | `folderPath` |
 | `code-file` | 输入源 - 代码文件 | `filePath` |
 | `github-project` | 输入源 - GitHub 项目 | `repo`, `branch` |
+| `prompt` | 输入源 - 纯文本/指令 | `prompt`（必填） |
 | `operation` | 执行动作（检查/修复） | `operationId`, `operationName`, `status` |
 | `output-local-path` | 输出目标 - 本地路径 | `localPath`, `outputMode`, `dualOutput` |
 | `condition` | 条件分支 | `condition` |
@@ -76,6 +77,14 @@
 [文件夹] ─→ ├→ [检查 Schema] → [Schema 报告]
                   └→ [检查 Store] → [Store 报告]
 ```
+
+### 4. 文本驱动 (prompt → operation → output)
+
+```
+[Prompt 指令] → [Operation] → [报告输出]
+```
+
+适用于不依赖文件/目录的任务，如文本分析、翻译、总结等。
 
 ## ID 命名规范
 

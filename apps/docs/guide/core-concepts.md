@@ -48,6 +48,7 @@ A **Pipeline** composes operations into a multi-step workflow, represented as a 
 |------|-------------|
 | `folder` | Directory input — reads a folder tree |
 | `code-file` | Single file input |
+| `prompt` | Text/instruction input — no file dependency |
 | `operation` | Executes an operation |
 | `output-local-path` | Writes output to a local directory |
 | `compound` | Groups multiple nodes |

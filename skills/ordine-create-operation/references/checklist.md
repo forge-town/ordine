@@ -8,8 +8,9 @@
 
 ## executor 配置
 
-- [ ] `executor.type` 为 `"skill"` 或 `"script"`
-- [ ] 当 type=skill 时，`executor.skillId` 指向一个已存在的 Skill
+- [ ] `executor.type` 为 `"agent"` 或 `"script"`
+- [ ] 当 type=agent 且 agentMode=skill 时，`executor.skillId` 指向一个已存在的 Skill
+- [ ] 当 type=agent 且 agentMode=prompt 时，`executor.prompt` 包含清晰的任务指令
 - [ ] 当 type=script 时，`executor.scriptPath` 路径正确
 
 ## 输入输出

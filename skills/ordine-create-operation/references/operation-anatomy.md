@@ -40,14 +40,38 @@
 }
 ```
 
+### Prompt 模式示例
+
+当没有预定义 Skill 时，可以使用 prompt 模式直接给 agent 下达指令：
+
+```json
+{
+  "executor": {
+    "type": "agent",
+    "agentMode": "prompt",
+    "prompt": "You are an automation agent executing the task: \"分析代码复杂度\".\nAnalyze the input thoroughly and execute the task.\nOutput your results in well-structured markdown format."
+  },
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "result",
+      "kind": "file",
+      "path": "output.md"
+    }
+  ]
+}
+```
+
 ### executor（执行器）
 
 执行器决定了 Operation 由谁来执行：
 
 | 字段 | 说明 |
 |---|---|
-| `executor.type` | 执行器类型：`"skill"`（调用 Skill）或 `"script"`（运行脚本） |
-| `executor.skillId` | 当 type=skill 时，指向的 Skill ID |
+| `executor.type` | 执行器类型：`"agent"`（AI Agent）或 `"script"`（运行脚本） |
+| `executor.agentMode` | 当 type=agent 时：`"skill"`（使用 Skill）或 `"prompt"`（直接用 prompt 执行） |
+| `executor.skillId` | 当 agentMode=skill 时，指向的 Skill ID |
+| `executor.prompt` | 当 agentMode=prompt 时，agent 的系统指令 |
 | `executor.scriptPath` | 当 type=script 时，脚本路径 |
 
 ### inputs（输入）
@@ -77,6 +101,7 @@ Operation 声明自己可以处理哪些类型的对象：
 - `folder` — 文件夹
 - `code-file` — 代码文件
 - `github-project` — GitHub 项目
+- `prompt` — 纯文本/指令输入
 - `text` — 纯文本
 - `json` — JSON 数据
 

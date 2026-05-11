@@ -3,7 +3,7 @@
 - [ ] Pipeline ID 以 `pipe_` 开头
 - [ ] 有描述性的 name 和 description
 - [ ] tags 包含相关关键词（check/fix/quality 等）
-- [ ] 至少有一个输入节点（folder/code-file/github-project）
+- [ ] 至少有一个输入节点（folder/code-file/github-project/prompt）
 - [ ] 至少有一个 operation 节点
 - [ ] operation 节点的 `operationId` 引用已存在的 Operation
 - [ ] 有 output 节点接收结果

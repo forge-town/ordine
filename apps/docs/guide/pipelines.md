@@ -60,6 +60,21 @@ Executes a registered operation.
 }
 ```
 
+### Prompt Node
+
+Provides text or instructions as input, without depending on any file or directory.
+
+```json
+{
+  "id": "prompt-1",
+  "type": "prompt",
+  "data": {
+    "label": "Task Instructions",
+    "prompt": "Analyze the data and generate a summary report"
+  }
+}
+```
+
 ### Output Local Path Node
 
 Writes pipeline output to a local directory.

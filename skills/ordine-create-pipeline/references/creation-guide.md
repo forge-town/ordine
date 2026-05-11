@@ -127,6 +127,14 @@ curl -s http://localhost:9433/api/pipelines/pipe_check_classname | python3 -m js
          └→ [op_check_c] → [output_c]
 ```
 
+### 文本驱动（无文件输入）
+
+```
+[prompt] → [op_analyze] → [output]
+```
+
+适用于不依赖文件/目录的任务（文本分析、翻译、总结等），使用 `prompt` 节点作为输入源。
+
 ## 命名约定
 
 - Pipeline ID: `pipe_<verb>_<noun>` (如 `pipe_check_dao`, `pipe_check_fix_store`)
