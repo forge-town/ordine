@@ -77,12 +77,12 @@ const buildGenerateSystemPrompt = (skillReferences: string): string =>
           '  "data": { "nodeType": "prompt", "label": "...", "prompt": "<the prompt text>" } }',
           "",
           "4. OPERATION — processing step:",
-          '{ "id": "<unique>", "type": "operation", "position": {"x":0,"y":<step*200>},',
+          '{ "id": "<unique>", "type": "operation", "position": {"x":<step*400>,"y":0},',
           '  "data": { "nodeType": "operation", "label": "...", "operationId": "<from list>",',
           '    "operationName": "<from list>", "status": "idle" } }',
           "",
           "5. OUTPUT — output-local-path:",
-          '{ "id": "<unique>", "type": "output-local-path", "position": {"x":0,"y":<last>},',
+          '{ "id": "<unique>", "type": "output-local-path", "position": {"x":<last>,"y":0},',
           '  "data": { "nodeType": "output-local-path", "label": "Output",',
           '    "localPath": "/tmp/ordine-output" } }',
           "",
@@ -94,7 +94,7 @@ const buildGenerateSystemPrompt = (skillReferences: string): string =>
     "- Pipeline MUST have at least 1 output node (output-local-path)",
     "- Pipeline MUST have a complete path: input → operation(s) → output",
     "- Use ONLY operations from the provided operations list (match by id and name)",
-    "- Arrange nodes top to bottom with ~200px vertical spacing",
+    "- Arrange nodes LEFT TO RIGHT with ~400px horizontal spacing (same y=0)",
     "- Infer the most appropriate input type from the user's description",
     "- If the task is about processing/transforming TEXT, instructions, or data NOT tied to a local file/folder, use a PROMPT input node instead of folder/code-file.",
     "- If the task is about processing a local folder or codebase, use a FOLDER input node.",
@@ -206,12 +206,12 @@ const buildOptimizeSystemPrompt = (skillReferences: string): string =>
           '  "data": { "nodeType": "prompt", "label": "...", "prompt": "<the prompt text>" } }',
           "",
           "4. OPERATION — processing step:",
-          '{ "id": "<unique>", "type": "operation", "position": {"x":0,"y":<step*200>},',
+          '{ "id": "<unique>", "type": "operation", "position": {"x":<step*400>,"y":0},',
           '  "data": { "nodeType": "operation", "label": "...", "operationId": "<from list>",',
           '    "operationName": "<from list>", "status": "idle" } }',
           "",
           "5. OUTPUT — output-local-path:",
-          '{ "id": "<unique>", "type": "output-local-path", "position": {"x":0,"y":<last>},',
+          '{ "id": "<unique>", "type": "output-local-path", "position": {"x":<last>,"y":0},',
           '  "data": { "nodeType": "output-local-path", "label": "Output",',
           '    "localPath": "/tmp/ordine-output" } }',
           "",
@@ -225,7 +225,7 @@ const buildOptimizeSystemPrompt = (skillReferences: string): string =>
     "- Use ONLY operations from the provided operations list (match by id and name)",
     '- For github-project nodes: sourceType MUST be "github" or "local" (NOT "remote")',
     "- Infer input node type and details from the original pipeline and job context",
-    "- Arrange nodes top to bottom with ~200px vertical spacing",
+    "- Arrange nodes LEFT TO RIGHT with ~400px horizontal spacing (same y=0)",
     "",
     "=== OPTIMIZATION PRINCIPLES ===",
     "- If the distillation says token/cost is too high, REDUCE the number of LLM agent nodes",
@@ -589,11 +589,22 @@ export const createPipelinesService = (db: DbConnection) => {
       if (opts.unmatchedSteps && opts.unmatchedSteps.length > 0) {
         for (const step of opts.unmatchedSteps) {
           const opId = `op_auto_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          const systemPrompt = [
+            `You are an automation agent executing the task: "${step.step}".`,
+            step.reason ? `Context: ${step.reason}` : "",
+            "",
+            "You will receive input data from the previous pipeline step.",
+            "Analyze the input thoroughly and execute the task described above.",
+            "Output your results in well-structured markdown format.",
+            "Be specific, actionable, and data-driven in your output.",
+          ]
+            .filter(Boolean)
+            .join("\n");
           const config = {
             executor: {
               type: "agent",
               agentMode: "prompt",
-              prompt: step.step,
+              prompt: systemPrompt,
             },
             inputs: [],
             outputs: [{ name: "result", kind: "file", path: "output.md" }],
