@@ -16,8 +16,15 @@ import type {
   UpdateParams,
   UpdateResponse,
 } from "@refinedev/core";
-import type { BestPractice, GithubProject, Job, JobTrace, Operation, Recipe } from "@repo/schemas";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type {
+  BestPractice,
+  GithubProject,
+  Job,
+  JobTrace,
+  Operation,
+  Recipe,
+  PipelineData,
+} from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 
 export const canvasStoryOperations: Operation[] = [

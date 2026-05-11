@@ -50,7 +50,7 @@ The pipeline engine uses a directed acyclic graph (DAG) with typed nodes and edg
 - **Plugins** — encapsulate domain-specific knowledge and capabilities
 - **Skills** — plug in new AI capabilities
 - **Operations** — define custom tasks with any executor backend
-- **Node Types** — folder, code-file, prompt, operation, output, compound, condition, github-project
+- **Node Types** — folder, file, operation, output, compound, condition, github-project
 
 ### Plugin System
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { type PipelineData, PipelineSchema } from "@repo/pipeline-engine/schemas";
+import { type PipelineData, PipelineSchema } from "@repo/schemas";
 import { PipelineCard } from "./PipelineCard";
 
 vi.mock("@tanstack/react-router", () => ({

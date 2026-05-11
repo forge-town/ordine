@@ -3,7 +3,7 @@ import i18n from "@/lib/i18n";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OperationNodeData } from "@repo/pipeline-engine/schemas";
+import type { OperationNodeData } from "@repo/schemas";
 import { createHarnessCanvasStore, HarnessCanvasStoreContext, type PipelineNode } from "../_store";
 import { OperationNode } from "./OperationNode";
 

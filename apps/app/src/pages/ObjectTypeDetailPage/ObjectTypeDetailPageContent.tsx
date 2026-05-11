@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { PageLoadingState } from "@/components/PageLoadingState";
 
 const objectTypeResourceMap: Record<string, string> = {
-  "github-projects": ResourceName.githubProjects,
+  "github-project": ResourceName.githubProjects,
 };
 
 interface Props {

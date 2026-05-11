@@ -3,7 +3,7 @@ import { writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
-import { processFileNode } from "./CodeFileNode";
+import { processFileNode } from "./FileNode";
 import type { PipelineEngineDeps } from "../../deps";
 import type { PipelineNode } from "@repo/schemas";
 import type { NodeContext } from "../types";
@@ -54,7 +54,7 @@ const makeCtx = (node: PipelineNode, deps: PipelineEngineDeps): NodeContext => (
   jobId: "job-1",
 });
 
-describe("processCodeFileNode", () => {
+describe("processFileNode", () => {
   it("reads an existing file and stores content in nodeOutputs", async () => {
     const deps = makeDeps();
     const node = makeNode({ filePath: testFile });

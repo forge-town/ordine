@@ -2,8 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { Operation } from "@repo/schemas";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { Operation, PipelineData } from "@repo/schemas";
 import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
 
 const mockNavigate = vi.fn();

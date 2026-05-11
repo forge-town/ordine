@@ -13,10 +13,9 @@ import {
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
-import type { OperationNodeData, NodeRunStatus } from "@repo/pipeline-engine/schemas";
+import type { OperationNodeData, NodeRunStatus, Operation, Agent } from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { type Operation, type Agent } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
 
 export interface OperationNodeProps {

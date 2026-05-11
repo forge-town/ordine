@@ -5,7 +5,7 @@ import { Route } from "@/routes/_layout/projects.$projectId.index";
 import { useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { GithubProject } from "@repo/schemas";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { PipelineData } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { PageLoadingState } from "@/components/PageLoadingState";

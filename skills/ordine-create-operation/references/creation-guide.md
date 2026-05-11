@@ -16,7 +16,7 @@ curl -X POST http://localhost:9433/api/operations \
     "name": "检查命名规范",
     "description": "检查文件和变量命名是否符合项目规范",
     "config": "{\"executor\":{\"type\":\"skill\",\"skillId\":\"skill_check_naming\"},\"inputs\":[{\"name\":\"target_folder\",\"kind\":\"folder\",\"required\":true}],\"outputs\":[{\"name\":\"report\",\"kind\":\"file\",\"path\":\"reports/naming-report.md\"}]}",
-    "acceptedObjectTypes": ["folder", "code-file"]
+    "acceptedObjectTypes": ["folder", "file"]
   }'
 ```
 
@@ -40,7 +40,7 @@ curl -X PUT http://localhost:9433/api/operations \
     "name": "检查命名规范（v2）",
     "description": "升级版命名检查",
     "config": "{\"executor\":{\"type\":\"skill\",\"skillId\":\"skill_check_naming_v2\"},\"inputs\":[{\"name\":\"target_folder\",\"kind\":\"folder\",\"required\":true}],\"outputs\":[{\"name\":\"report\",\"kind\":\"file\",\"path\":\"reports/naming-report-v2.md\"}]}",
-    "acceptedObjectTypes": ["folder", "code-file"]
+    "acceptedObjectTypes": ["folder", "file"]
   }'
 ```
 
@@ -66,7 +66,7 @@ curl -X DELETE http://localhost:9433/api/operations/op_check_naming
 ### Step 3: 定义输入
 
 思考这个操作需要什么输入数据：
-- 需要扫描哪种类型的资源？（folder / code-file / github-project）
+- 需要扫描哪种类型的资源？（folder / file / github-project）
 - 输入是否必填？
 
 ### Step 4: 定义输出
@@ -89,7 +89,7 @@ curl -X DELETE http://localhost:9433/api/operations/op_check_naming
   "name": "检查<什么>规范",
   "description": "检查代码是否符合<什么>最佳实践",
   "config": "{\"executor\":{\"type\":\"skill\",\"skillId\":\"skill_check_<what>\"},\"inputs\":[{\"name\":\"target_folder\",\"kind\":\"folder\",\"required\":true}],\"outputs\":[{\"name\":\"report\",\"kind\":\"file\",\"path\":\"reports/<what>-check-report.md\"}]}",
-  "acceptedObjectTypes": ["folder", "code-file"]
+  "acceptedObjectTypes": ["folder", "file"]
 }
 ```
 
@@ -101,7 +101,7 @@ curl -X DELETE http://localhost:9433/api/operations/op_check_naming
   "name": "修复<什么>问题",
   "description": "自动修复不符合<什么>规范的代码",
   "config": "{\"executor\":{\"type\":\"skill\",\"skillId\":\"skill_fix_<what>\"},\"inputs\":[{\"name\":\"target_folder\",\"kind\":\"folder\",\"required\":true},{\"name\":\"check_report\",\"kind\":\"file\",\"required\":true}],\"outputs\":[{\"name\":\"diff\",\"kind\":\"diff\",\"path\":\"reports/<what>-fix.diff\"},{\"name\":\"summary\",\"kind\":\"file\",\"path\":\"reports/<what>-fix-summary.md\"}]}",
-  "acceptedObjectTypes": ["folder", "code-file"]
+  "acceptedObjectTypes": ["folder", "file"]
 }
 ```
 

@@ -15,13 +15,13 @@
 }
 ```
 
-### code-file
+### file
 
 单文件输入：
 
 ```json
 {
-  "type": "code-file",
+  "type": "file",
   "data": { "path": "./src/index.ts" }
 }
 ```
@@ -62,7 +62,7 @@
 ## 执行模型
 
 ```
-层级 0: [folder]  [code-file]   (并行)
+层级 0: [folder]  [file]   (并行)
            │          │
 层级 1:    └───► [operation] ◄──┘  (等待所有上游完成)
                      │

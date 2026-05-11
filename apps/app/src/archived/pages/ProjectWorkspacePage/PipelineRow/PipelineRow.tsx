@@ -1,7 +1,7 @@
 import { ChevronRight, Layers } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useStore } from "zustand";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { PipelineData } from "@repo/schemas";
 import { useProjectWorkspacePageStore } from "../_store";
 
 export type PipelineRowProps = {

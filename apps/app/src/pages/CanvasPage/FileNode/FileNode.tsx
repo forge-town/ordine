@@ -21,13 +21,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
   const store = useHarnessCanvasStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
-  const {
-    rightActivePortCount,
-    rightActivePortMask,
-    rightConnectedPortCount,
-    rightConnectedPortMask,
-    rightPortCount,
-  } = useStore(store, useShallow(selectNodePortCounts(id)));
+  const { rightPortCount } = useStore(store, useShallow(selectNodePortCounts(id)));
   const [browserOpen, setBrowserOpen] = useState(false);
 
   const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
@@ -60,10 +54,6 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
         dimmed={dimmed}
         icon={FileCode}
         label={data.label}
-        rightActivePortCount={rightActivePortCount}
-        rightActivePortMask={rightActivePortMask}
-        rightConnectedPortCount={rightConnectedPortCount}
-        rightConnectedPortMask={rightConnectedPortMask}
         rightHandleCount={rightPortCount}
         runStatus={runStatus}
         selected={selected}

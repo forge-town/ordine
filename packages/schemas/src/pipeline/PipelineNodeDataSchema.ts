@@ -1,21 +1,21 @@
 import { z } from "zod/v4";
 import { CompoundNodeDataSchema } from "./CompoundNodeDataSchema";
-import { CodeFileNodeDataSchema } from "./CodeFileNodeDataSchema";
-import { FolderNodeDataSchema } from "./FolderNodeDataSchema";
-import { GitHubProjectNodeDataSchema } from "./GitHubProjectNodeDataSchema";
+import { FileObjectNodeDataSchema } from "./FileObjectNodeDataSchema";
+import { FolderObjectNodeDataSchema } from "./FolderObjectNodeDataSchema";
+import { GithubProjectObjectNodeDataSchema } from "./GithubProjectObjectNodeDataSchema";
 import { OperationNodeDataSchema } from "./OperationNodeDataSchema";
-import { OutputProjectPathNodeDataSchema } from "./OutputProjectPathNodeDataSchema";
-import { OutputLocalPathNodeDataSchema } from "./OutputLocalPathNodeDataSchema";
-import { PromptNodeDataSchema } from "./PromptNodeDataSchema";
+import { ProjectPathOutputNodeDataSchema } from "./ProjectPathOutputNodeDataSchema";
+import { LocalPathOutputNodeDataSchema } from "./LocalPathOutputNodeDataSchema";
+import { PromptObjectNodeDataSchema } from "./PromptObjectNodeDataSchema";
 
 export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
   CompoundNodeDataSchema,
-  CodeFileNodeDataSchema,
-  FolderNodeDataSchema,
-  GitHubProjectNodeDataSchema,
+  FileObjectNodeDataSchema,
+  FolderObjectNodeDataSchema,
+  GithubProjectObjectNodeDataSchema,
   OperationNodeDataSchema,
-  OutputProjectPathNodeDataSchema,
-  OutputLocalPathNodeDataSchema,
-  PromptNodeDataSchema,
+  ProjectPathOutputNodeDataSchema,
+  LocalPathOutputNodeDataSchema,
+  PromptObjectNodeDataSchema,
 ]);
 export type PipelineNodeData = z.infer<typeof PipelineNodeDataSchema>;

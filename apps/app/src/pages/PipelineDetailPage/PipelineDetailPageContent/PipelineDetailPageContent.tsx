@@ -26,8 +26,7 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useOne, useCustomMutation } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
-import type { Operation } from "@repo/schemas";
-import type { PipelineData, PipelineNode } from "@repo/pipeline-engine/schemas";
+import type { Operation, PipelineData, PipelineNode } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { Stat } from "../Stat";
@@ -44,7 +43,7 @@ const NODE_META: Record<string, { icon: React.ElementType; color: string }> = {
     icon: Zap,
     color: "text-violet-600 bg-violet-50",
   },
-  "code-file": {
+  file: {
     icon: FileCode,
     color: "text-sky-600 bg-sky-50",
   },
@@ -52,7 +51,7 @@ const NODE_META: Record<string, { icon: React.ElementType; color: string }> = {
     icon: Folder,
     color: "text-amber-600 bg-amber-50",
   },
-  "github-projects": {
+  "github-project": {
     icon: FolderGit2,
     color: "text-slate-600 bg-slate-50",
   },
@@ -73,9 +72,9 @@ const NODE_META: Record<string, { icon: React.ElementType; color: string }> = {
 const getNodeTypeLabel = (type: string, t: (key: string) => string): string => {
   const keyMap: Record<string, string> = {
     operation: "pipelines.nodeTypes.operation",
-    "code-file": "pipelines.nodeTypes.code-file",
+    file: "pipelines.nodeTypes.file",
     folder: "pipelines.nodeTypes.folder",
-    "github-projects": "pipelines.nodeTypes.github-projects",
+    "github-project": "pipelines.nodeTypes.github-project",
     "output-local-path": "pipelines.nodeTypes.output-local-path",
     "output-project-path": "pipelines.nodeTypes.output-project-path",
     condition: "pipelines.nodeTypes.condition",

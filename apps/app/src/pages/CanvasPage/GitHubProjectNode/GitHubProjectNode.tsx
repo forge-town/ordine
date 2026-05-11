@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
-import type { GitHubProjectNodeData } from "@repo/pipeline-engine/schemas";
+import type { GithubProjectObjectNodeData } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
 import { FolderTreePreview } from "../FolderNode/FolderTreePreview";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export interface GitHubProjectNodeProps {
   id: string;
-  data: GitHubProjectNodeData;
+  data: GithubProjectObjectNodeData;
   selected?: boolean;
 }
 
@@ -84,7 +84,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
       <NodeCard
         rightHandle
         bodyClassName="space-y-2"
-        description={t("canvas.nodeTypes.github-projects.label")}
+        description={t("canvas.nodeTypes.github-project.label")}
         dimmed={dimmed}
         icon={SiGitHubIcon}
         label={data.label}

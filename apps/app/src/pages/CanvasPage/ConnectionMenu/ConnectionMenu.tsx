@@ -24,19 +24,18 @@ import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, Recipe } from "@repo/schemas";
+import type { Operation, Recipe, NodeType, BuiltinNodeType } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
 import { getNodeMeta, getNodeTypeLabel } from "../utils/nodeTypeMeta";
-import type { NodeType, BuiltinNodeType } from "@repo/pipeline-engine/schemas";
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
   operation: Zap,
   compound: Group,
   condition: GitBranch,
-  "code-file": FileCode,
+  file: FileCode,
   folder: Folder,
-  "github-projects": SiGitHubIcon,
+  "github-project": SiGitHubIcon,
   prompt: MessageSquareText,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
@@ -70,9 +69,9 @@ export const ConnectionMenu = () => {
   const availableOperations = (() => {
     if (!sourceNode) return operations;
     const objectTypeMap: Record<string, string> = {
-      "code-file": "file",
+      file: "file",
       folder: "folder",
-      "github-projects": "project",
+      "github-project": "project",
       prompt: "prompt",
     };
     const objectType = objectTypeMap[sourceNode.type];
@@ -154,12 +153,12 @@ export const ConnectionMenu = () => {
         </div>
 
         {/* Object types */}
-        {["code-file", "folder", "github-projects"].some((t) =>
+        {["file", "folder", "github-project"].some((t) =>
           availableTypes.includes(t as BuiltinNodeType)
         ) && (
           <ContextMenuGroup>
             <ContextMenuLabel>{t("canvas.contextMenu.processingObject")}</ContextMenuLabel>
-            {["code-file", "folder", "github-projects"]
+            {["file", "folder", "github-project"]
               .filter((t) => availableTypes.includes(t as BuiltinNodeType))
               .map((type) => {
                 const Icon = TYPE_ICONS[type as NodeType];

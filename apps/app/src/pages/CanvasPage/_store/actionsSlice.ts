@@ -1,12 +1,11 @@
 import { sortParentBeforeChildren, type PipelineEdge, type PipelineNode } from "./canvasSlice";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
-import type { Operation, Recipe } from "@repo/schemas";
+import type { Operation, Recipe, NodeType, BuiltinNodeType } from "@repo/schemas";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
 import { makeDefaultNodeData } from "../utils/makeDefaultNodeData";
 import { makeOperationNodeData } from "../utils/makeOperationNodeData";
-import type { NodeType, BuiltinNodeType } from "@repo/pipeline-engine/schemas";
 import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
 import { ResultAsync } from "neverthrow";

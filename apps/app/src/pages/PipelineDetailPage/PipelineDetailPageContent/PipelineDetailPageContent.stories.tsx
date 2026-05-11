@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { PipelineData } from "@repo/schemas";
 import type { Operation } from "@repo/schemas";
 import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
 

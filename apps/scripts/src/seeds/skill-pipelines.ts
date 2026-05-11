@@ -34,14 +34,14 @@ const WRITE_TOOLS = [
 
 interface InputPort {
   name: string;
-  kind: "text" | "file" | "folder" | "project";
+  kind: "file" | "folder" | "github-project" | "prompt";
   required: boolean;
   description: string;
 }
 
 interface OutputPort {
   name: string;
-  kind: "text" | "file" | "folder" | "project";
+  kind: "file" | "folder" | "github-project" | "prompt";
   path: string;
   description: string;
 }
@@ -171,7 +171,7 @@ const OPERATIONS: OperationSeed[] = [
       inputs: [
         {
           name: "violationReport",
-          kind: "text",
+          kind: "prompt",
           required: true,
           description: "上一步生成的违规清单",
         },
@@ -277,7 +277,7 @@ Markdown 转换报告：
       inputs: [
         {
           name: "classNameReport",
-          kind: "text",
+          kind: "prompt",
           required: true,
           description: "上一步生成的违规列表",
         },
@@ -316,7 +316,7 @@ Markdown 转换报告：
       inputs: [
         {
           name: "checkReport",
-          kind: "text",
+          kind: "prompt",
           required: true,
           description: "上一步扫描生成的 className 违规报告",
         },
@@ -360,7 +360,7 @@ Markdown 列表：
       inputs: [
         {
           name: "projectRoot",
-          kind: "project",
+          kind: "github-project",
           required: true,
           description: "项目根目录",
         },
@@ -422,13 +422,13 @@ Markdown 汇总报告：
       inputs: [
         {
           name: "skillList",
-          kind: "text",
+          kind: "prompt",
           required: true,
           description: "上一步发现的 best-practice 技能列表",
         },
         {
           name: "projectRoot",
-          kind: "project",
+          kind: "github-project",
           required: true,
           description: "要检查的项目",
         },
@@ -614,12 +614,12 @@ const PIPELINES: PipelineSeed[] = [
     nodes: [
       {
         id: "n_bp_input",
-        type: "github-projects",
+        type: "github-project",
         metaType: "object",
         position: { x: 100, y: 200 },
         data: {
           label: "项目",
-          nodeType: "github-projects",
+          nodeType: "github-project",
           description: "要检查的项目",
         },
       },

@@ -4,7 +4,7 @@ import { useDelete } from "@refinedev/core";
 import { Card } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { PipelineData } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 
 const NODE_TYPE_COLORS: Record<string, string> = {

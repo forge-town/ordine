@@ -1,10 +1,9 @@
-import type { MetaNodeType } from "./schemas/MetaNodeTypeSchema";
-import type { BuiltinNodeType } from "./schemas/BuiltinNodeTypeSchema";
+import type { MetaNodeType, BuiltinNodeType } from "@repo/schemas";
 
 const BUILTIN_META_MAP: Record<BuiltinNodeType, MetaNodeType> = {
-  "code-file": "object",
+  "file": "object",
   folder: "object",
-  "github-projects": "object",
+  "github-project": "object",
   prompt: "object",
   operation: "operation",
   compound: "operation",

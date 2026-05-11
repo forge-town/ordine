@@ -8,7 +8,7 @@
 | `name` | `string` | 人类可读名称 |
 | `description` | `string \| null` | 操作描述 |
 | `config` | `string (JSON)` | 执行器配置（JSON 字符串） |
-| `acceptedObjectTypes` | `string[] \| null` | 接受的对象类型，如 `["folder", "code-file", "github-projects"]` |
+| `acceptedObjectTypes` | `string[] \| null` | 接受的对象类型，如 `["folder", "file", "github-project"]` |
 | `createdAt` | `timestamp` | 创建时间 |
 | `updatedAt` | `timestamp` | 更新时间 |
 
@@ -40,38 +40,14 @@
 }
 ```
 
-### Prompt 模式示例
-
-当没有预定义 Skill 时，可以使用 prompt 模式直接给 agent 下达指令：
-
-```json
-{
-  "executor": {
-    "type": "agent",
-    "agentMode": "prompt",
-    "prompt": "You are an automation agent executing the task: \"分析代码复杂度\".\nAnalyze the input thoroughly and execute the task.\nOutput your results in well-structured markdown format."
-  },
-  "inputs": [],
-  "outputs": [
-    {
-      "name": "result",
-      "kind": "file",
-      "path": "output.md"
-    }
-  ]
-}
-```
-
 ### executor（执行器）
 
 执行器决定了 Operation 由谁来执行：
 
 | 字段 | 说明 |
 |---|---|
-| `executor.type` | 执行器类型：`"agent"`（AI Agent）或 `"script"`（运行脚本） |
-| `executor.agentMode` | 当 type=agent 时：`"skill"`（使用 Skill）或 `"prompt"`（直接用 prompt 执行） |
-| `executor.skillId` | 当 agentMode=skill 时，指向的 Skill ID |
-| `executor.prompt` | 当 agentMode=prompt 时，agent 的系统指令 |
+| `executor.type` | 执行器类型：`"skill"`（调用 Skill）或 `"script"`（运行脚本） |
+| `executor.skillId` | 当 type=skill 时，指向的 Skill ID |
 | `executor.scriptPath` | 当 type=script 时，脚本路径 |
 
 ### inputs（输入）
@@ -81,7 +57,7 @@
 | 字段 | 说明 |
 |---|---|
 | `name` | 输入名称，Pipeline 中用于映射数据流 |
-| `kind` | 输入类型：`"folder"`, `"code-file"`, `"github-projects"`, `"text"`, `"json"` |
+| `kind` | 输入类型：`"file"`, `"folder"`, `"github-project"`, `"prompt"` |
 | `required` | 是否必填 |
 
 ### outputs（输出）
@@ -99,11 +75,9 @@
 Operation 声明自己可以处理哪些类型的对象：
 
 - `folder` — 文件夹
-- `code-file` — 代码文件
+- `file` — 文件
 - `github-project` — GitHub 项目
-- `prompt` — 纯文本/指令输入
-- `text` — 纯文本
-- `json` — JSON 数据
+- `prompt` — 提示词/纯文本
 
 ## Operation 的两种类型
 
@@ -125,6 +99,6 @@ Operation 声明自己可以处理哪些类型的对象：
   "name": "检查 DAO 规范",
   "description": "检查 DAO 文件是否遵循 Drizzle ORM 最佳实践",
   "config": "{\"executor\":{\"type\":\"skill\",\"skillId\":\"skill_check_dao\"},\"inputs\":[{\"name\":\"target_folder\",\"kind\":\"folder\",\"required\":true}],\"outputs\":[{\"name\":\"report\",\"kind\":\"file\",\"path\":\"reports/dao-check-report.md\"}]}",
-  "acceptedObjectTypes": ["folder", "code-file"]
+  "acceptedObjectTypes": ["folder", "file"]
 }
 ```

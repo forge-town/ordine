@@ -6,7 +6,7 @@ import { okAsync } from "neverthrow";
 import { processGitHubProjectNode } from "./GitHubProjectNode";
 import { listDirTree } from "@repo/utils";
 import type { PipelineEngineDeps } from "../../deps";
-import type { PipelineNode } from "../../schemas";
+import type { PipelineNode } from "@repo/schemas";
 import type { NodeContext } from "../types";
 
 vi.mock("@repo/obs", () => ({
@@ -46,9 +46,9 @@ const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDe
 
 const makeNode = (data: Record<string, unknown> = {}): PipelineNode => ({
   id: "gh-1",
-  type: "github-projects",
+  type: "github-project",
   position: { x: 0, y: 0 },
-  data: { label: "gh-1", nodeType: "github-projects", ...data } as PipelineNode["data"],
+  data: { label: "gh-1", nodeType: "github-project", ...data } as PipelineNode["data"],
 });
 
 const makeCtx = (

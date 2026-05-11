@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { HarnessCanvasStoreProvider } from "../_store";
-import { FileNode } from "./CodeFileNode";
+import { FileNode } from "./FileNode";
 
 const meta: Meta<typeof FileNode> = {
-  title: "HarnessCanvas/CodeFileNode",
+  title: "HarnessCanvas/FileNode",
   component: FileNode,
   tags: ["autodocs"],
   decorators: [

@@ -1,4 +1,4 @@
-import type { NodeRunStatus } from "@repo/pipeline-engine/schemas";
+import type { NodeRunStatus } from "@repo/schemas";
 import type { HarnessCanvasState } from "./harnessCanvasStore";
 import {
   decorateEdgesWithPortHandles,

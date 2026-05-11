@@ -7,7 +7,7 @@ import {
   CardAction,
 } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
-import type { NodeRunStatus } from "@repo/pipeline-engine/schemas";
+import type { NodeRunStatus } from "@repo/schemas";
 import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { themeMap, type NodeTheme } from "./nodeCardTheme";

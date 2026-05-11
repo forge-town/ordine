@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { HarnessCanvasStoreProvider } from "../_store";
-import { FileNode } from "./CodeFileNode";
+import { FileNode } from "./FileNode";
 
 vi.mock("@xyflow/react", () => ({
   Handle: () => null,
@@ -34,7 +34,7 @@ const baseData = {
   description: "应用入口文件",
 };
 
-describe("CodeFileNode", () => {
+describe("FileNode", () => {
   it("renders label", () => {
     render(<FileNode data={baseData} id="test" />, { wrapper });
     expect(screen.getByDisplayValue("main.ts")).toBeInTheDocument();

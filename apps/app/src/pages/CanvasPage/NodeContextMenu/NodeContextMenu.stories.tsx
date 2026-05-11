@@ -6,11 +6,11 @@ import { NodeContextMenu } from "./NodeContextMenu";
 
 const sourceNode = {
   id: "node-1",
-  type: "code-file",
+  type: "file",
   position: { x: 80, y: 120 },
   data: {
     label: "Source File",
-    nodeType: "code-file",
+    nodeType: "file",
     filePath: "src/index.ts",
     language: "typescript",
     description: "Pipeline source",
@@ -56,8 +56,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          "Open node context menu for a selected code-file node with downstream actions available.",
+        story: "Open node context menu for a selected file node with downstream actions available.",
       },
     },
   },

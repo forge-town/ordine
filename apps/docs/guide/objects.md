@@ -26,7 +26,7 @@ A single source file. Use when you want to target a specific file for processing
 
 ```json
 {
-  "type": "code-file",
+  "type": "file",
   "data": { "path": "./src/index.ts" }
 }
 ```
@@ -42,7 +42,7 @@ A GitHub repository. The pipeline clones or references the repository and passes
 
 ```json
 {
-  "type": "github-projects",
+  "type": "github-project",
   "data": { "owner": "forge-town", "repo": "ordine" }
 }
 ```

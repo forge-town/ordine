@@ -58,11 +58,11 @@ describe("CanvasSettingsDrawer", () => {
       nodes: [
         {
           id: "node-1",
-          type: "code-file",
+          type: "file",
           position: { x: 0, y: 0 },
           data: {
             label: "User Label",
-            nodeType: "code-file",
+            nodeType: "file",
             filePath: "",
             language: "typescript",
             description: "",

@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { NodeRunStatusSchema } from "./NodeRunStatusSchema";
+import { AgentRuntimeSchema } from "../AgentRuntimeSchema";
 
 export const OperationNodeDataSchema = z.object({
   label: z.string(),
@@ -10,7 +11,7 @@ export const OperationNodeDataSchema = z.object({
   config: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
   notes: z.string().optional(),
   agentId: z.string().optional(),
-  agentRuntime: z.string().optional(),
+  agentRuntime: AgentRuntimeSchema.optional(),
   bestPracticeId: z.string().optional(),
   bestPracticeName: z.string().optional(),
   loopEnabled: z.boolean().optional(),

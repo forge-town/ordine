@@ -104,11 +104,11 @@ vi.mock("@xyflow/react", async (importOriginal) => {
 const makeNode = (id: string): PipelineNode =>
   ({
     id,
-    type: "code-file",
+    type: "file",
     position: { x: 0, y: 0 },
     data: {
       label: id,
-      nodeType: "code-file",
+      nodeType: "file",
       filePath: "",
       language: "typescript",
       description: "",

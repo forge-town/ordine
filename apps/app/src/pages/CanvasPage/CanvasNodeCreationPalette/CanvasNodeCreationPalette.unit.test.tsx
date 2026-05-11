@@ -60,13 +60,13 @@ describe("CanvasNodeCreationPalette", () => {
     const user = userEvent.setup();
     renderQuickAdd();
 
-    expect(screen.getByText("Code file")).toBeInTheDocument();
+    expect(screen.getAllByText("File").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /Review Code\s*OP/ })).toBeInTheDocument();
     expect(screen.getByText("Strict Review")).toBeInTheDocument();
 
     await user.type(screen.getByPlaceholderText(/Search nodes|搜索节点/), "strict");
 
-    expect(screen.queryByText("Code file")).not.toBeInTheDocument();
+    expect(screen.queryByText("File")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Review Code\s*OP/ })).not.toBeInTheDocument();
     expect(screen.getByText("Strict Review")).toBeInTheDocument();
   });

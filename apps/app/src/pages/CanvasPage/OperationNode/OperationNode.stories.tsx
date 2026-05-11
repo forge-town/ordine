@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
 import { ReactFlowProvider } from "@xyflow/react";
-import type { OperationNodeData } from "@repo/pipeline-engine/schemas";
+import type { OperationNodeData } from "@repo/schemas";
 import { createHarnessCanvasStore, HarnessCanvasStoreContext, type PipelineNode } from "../_store";
 import { canvasStoryDataProvider } from "../storybookData";
 import { OperationNode } from "./OperationNode";

@@ -289,9 +289,9 @@
     "nodeList": "Node List",
     "nodeTypes": {
       "operation": "Operation",
-      "code-file": "Code File",
+      "file": "File",
       "folder": "Folder",
-      "github-projects": "GitHub",
+      "github-project": "GitHub",
       "output-local-path": "Local Output",
       "output-project-path": "Project Output",
       "condition": "Condition"
@@ -457,15 +457,15 @@
         "label": "Operation",
         "shortLabel": "OP"
       },
-      "code-file": {
-        "label": "Code file",
+      "file": {
+        "label": "File",
         "shortLabel": "File"
       },
       "folder": {
         "label": "Folder",
         "shortLabel": "Folder"
       },
-      "github-projects": {
+      "github-project": {
         "label": "GitHub project",
         "shortLabel": "GitHub"
       },

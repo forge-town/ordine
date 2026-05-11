@@ -1,5 +1,5 @@
 export * from "./types";
-export * from "./CodeFileNode";
+export * from "./FileNode";
 export * from "./FolderNode";
 export * from "./GitHubProjectNode";
 export * from "./OutputLocalPathNode";

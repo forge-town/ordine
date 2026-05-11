@@ -11,13 +11,8 @@ import {
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
 import { makeDefaultNodeData } from "../utils/makeDefaultNodeData";
 import type { PipelineNodeData } from "../schemas/PipelineNodeDataSchema";
-import {
-  ConnectionRuleSchema,
-  type NodeType,
-  type BuiltinNodeType,
-  type CompoundNodeData,
-  type PipelineEdgeData,
-} from "@repo/pipeline-engine/schemas";
+import { ConnectionRuleSchema } from "@repo/pipeline-engine/schemas";
+import type { NodeType, BuiltinNodeType, CompoundNodeData, PipelineEdgeData } from "@repo/schemas";
 
 import { computeAutoLayout } from "./autoLayout";
 import { DUPLICATE_NODE_OFFSET, offsetPosition } from "../utils/nodePosition";

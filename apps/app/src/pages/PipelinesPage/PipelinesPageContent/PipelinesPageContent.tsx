@@ -8,7 +8,7 @@ import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { PipelineData } from "@repo/schemas";
 import { useStore } from "zustand";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";

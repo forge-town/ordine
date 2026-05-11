@@ -18,12 +18,12 @@ const GitHubProjectDataSchema = z.object({
 });
 
 export const githubProjectsPlugin = definePlugin({
-  id: "builtin:github-projects",
+  id: "builtin:github-project",
   name: "GitHub Projects",
   version: "1.0.0",
   objectTypes: [
     {
-      id: "github-projects",
+      id: "github-project",
       label: "GitHub Projects",
       icon: "github",
       dataSchema: GitHubProjectDataSchema,

@@ -2,13 +2,13 @@ import { MessageSquareText } from "lucide-react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
-import type { PromptNodeData } from "@repo/schemas";
+import type { PromptObjectNodeData } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
 import { Textarea } from "@repo/ui/textarea";
 
 export interface PromptNodeProps {
   id: string;
-  data: PromptNodeData;
+  data: PromptObjectNodeData;
   selected?: boolean;
 }
 

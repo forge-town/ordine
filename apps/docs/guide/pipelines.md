@@ -37,7 +37,7 @@ Provides a single file as input.
 ```json
 {
   "id": "file-1",
-  "type": "code-file",
+  "type": "file",
   "data": {
     "label": "README",
     "filePath": "README.md"

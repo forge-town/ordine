@@ -21,7 +21,7 @@ interface OperationSeed {
 
 // ─── Config DSL ──────────────────────────────────────────────────────────────
 
-type PortKind = "text" | "file" | "folder" | "project";
+type PortKind = "file" | "folder" | "github-project" | "prompt";
 
 interface InputPort {
   name: string;
@@ -70,25 +70,25 @@ const OPERATIONS: OperationSeed[] = [
       inputs: [
         {
           name: "projectName",
-          kind: "text",
+          kind: "prompt",
           required: true,
           description: "Name of the project being governed.",
         },
         {
           name: "teamContext",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description: "Optional: team size, experience level, and working conventions.",
         },
         {
           name: "techPreferences",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description: "Preferred languages, frameworks, or cloud providers.",
         },
         {
           name: "qualityStandards",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description:
             "Testing requirements, performance targets, accessibility requirements, etc.",
@@ -117,7 +117,7 @@ const OPERATIONS: OperationSeed[] = [
       inputs: [
         {
           name: "featureDescription",
-          kind: "text",
+          kind: "prompt",
           required: true,
           description: "Free-form description of the feature — what & why, not how.",
         },
@@ -157,7 +157,7 @@ const OPERATIONS: OperationSeed[] = [
         },
         {
           name: "clarificationQuestions",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description: "Optional: specific questions or concerns to address during clarification.",
         },
@@ -196,7 +196,7 @@ const OPERATIONS: OperationSeed[] = [
         },
         {
           name: "techStack",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description:
             "Technology stack and architectural decisions (e.g. 'Next.js 15, Drizzle, PostgreSQL').",
@@ -276,7 +276,7 @@ const OPERATIONS: OperationSeed[] = [
         },
         {
           name: "checklistFocus",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description: "Optional focus areas, e.g. 'security, accessibility, performance'.",
         },
@@ -395,13 +395,13 @@ const OPERATIONS: OperationSeed[] = [
       inputs: [
         {
           name: "target",
-          kind: "project",
+          kind: "github-project",
           required: true,
           description: "The file, folder, or project to run checks on.",
         },
         {
           name: "checkTypes",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description:
             "Comma-separated list of checks to run: lint, typecheck, test. Defaults to all.",

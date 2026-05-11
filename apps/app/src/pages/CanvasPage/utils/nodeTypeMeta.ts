@@ -1,4 +1,4 @@
-import type { BuiltinNodeType } from "@repo/pipeline-engine/schemas";
+import type { BuiltinNodeType } from "@repo/schemas";
 import type { TFunction } from "i18next";
 
 const nodeTypeI18nKeys = {
@@ -6,17 +6,17 @@ const nodeTypeI18nKeys = {
     label: "canvas.nodeTypes.operation.label",
     shortLabel: "canvas.nodeTypes.operation.shortLabel",
   },
-  "code-file": {
-    label: "canvas.nodeTypes.code-file.label",
-    shortLabel: "canvas.nodeTypes.code-file.shortLabel",
+  file: {
+    label: "canvas.nodeTypes.file.label",
+    shortLabel: "canvas.nodeTypes.file.shortLabel",
   },
   folder: {
     label: "canvas.nodeTypes.folder.label",
     shortLabel: "canvas.nodeTypes.folder.shortLabel",
   },
-  "github-projects": {
-    label: "canvas.nodeTypes.github-projects.label",
-    shortLabel: "canvas.nodeTypes.github-projects.shortLabel",
+  "github-project": {
+    label: "canvas.nodeTypes.github-project.label",
+    shortLabel: "canvas.nodeTypes.github-project.shortLabel",
   },
   "output-project-path": {
     label: "canvas.nodeTypes.output-project-path.label",
@@ -48,7 +48,7 @@ export const nodeTypeMeta = {
     handle: "!border-violet-400",
     plusBg: "bg-violet-100 text-violet-700 hover:bg-violet-200",
   },
-  "code-file": {
+  file: {
     label: "Code file",
     shortLabel: "File",
     border: "border-orange-200",
@@ -70,7 +70,7 @@ export const nodeTypeMeta = {
     handle: "!border-orange-400",
     plusBg: "bg-orange-100 text-orange-700 hover:bg-orange-200",
   },
-  "github-projects": {
+  "github-project": {
     label: "GitHub project",
     shortLabel: "GitHub",
     border: "border-orange-200",

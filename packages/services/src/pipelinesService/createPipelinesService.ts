@@ -17,8 +17,7 @@ import {
 } from "@repo/models";
 import { extractJsonFromText } from "@repo/agent";
 import { logger } from "@repo/logger";
-import { PipelineSchema, type PipelineData } from "@repo/pipeline-engine/schemas";
-import type { ObjectType } from "@repo/schemas";
+import { PipelineSchema, type PipelineData, type ObjectType } from "@repo/schemas";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
 import { normalizeSettingsRecord } from "../settingsService/normalizeSettingsRecord";
 

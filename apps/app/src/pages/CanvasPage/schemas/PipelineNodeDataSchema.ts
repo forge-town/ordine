@@ -1,23 +1,23 @@
 import { z } from "zod/v4";
 import {
-  CodeFileNodeDataSchema,
-  FolderNodeDataSchema,
-  GitHubProjectNodeDataSchema,
-  OperationNodeDataSchema,
-  OutputProjectPathNodeDataSchema,
-  OutputLocalPathNodeDataSchema,
+  FileObjectNodeDataSchema,
+  FolderObjectNodeDataSchema,
+  GithubProjectObjectNodeDataSchema,
+  ProjectPathOutputNodeDataSchema,
+  LocalPathOutputNodeDataSchema,
   CompoundNodeDataSchema,
-} from "@repo/pipeline-engine/schemas";
-import { PromptNodeDataSchema } from "@repo/schemas";
+  PromptObjectNodeDataSchema,
+} from "@repo/schemas";
+import { OperationNodeDataSchema } from "./OperationNodeDataSchema";
 
 export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
-  CodeFileNodeDataSchema,
-  FolderNodeDataSchema,
-  GitHubProjectNodeDataSchema,
+  FileObjectNodeDataSchema,
+  FolderObjectNodeDataSchema,
+  GithubProjectObjectNodeDataSchema,
   OperationNodeDataSchema,
-  OutputProjectPathNodeDataSchema,
-  OutputLocalPathNodeDataSchema,
+  ProjectPathOutputNodeDataSchema,
+  LocalPathOutputNodeDataSchema,
   CompoundNodeDataSchema,
-  PromptNodeDataSchema,
+  PromptObjectNodeDataSchema,
 ]);
 export type PipelineNodeData = z.infer<typeof PipelineNodeDataSchema>;

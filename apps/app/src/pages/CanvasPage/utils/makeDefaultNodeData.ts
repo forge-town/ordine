@@ -1,4 +1,4 @@
-import type { BuiltinNodeType } from "@repo/pipeline-engine/schemas";
+import type { BuiltinNodeType } from "@repo/schemas";
 import type { PipelineNodeData } from "../schemas/PipelineNodeDataSchema";
 
 export const makeDefaultNodeData = (
@@ -16,10 +16,10 @@ export const makeDefaultNodeData = (
         config: {},
       };
     }
-    case "code-file": {
+    case "file": {
       return {
         label: options?.label ?? "Code file",
-        nodeType: "code-file",
+        nodeType: "file",
         filePath: "",
         language: "typescript",
         description: "",
@@ -33,10 +33,10 @@ export const makeDefaultNodeData = (
         description: "",
       };
     }
-    case "github-projects": {
+    case "github-project": {
       return {
         label: options?.label ?? "GitHub project",
-        nodeType: "github-projects",
+        nodeType: "github-project",
         owner: "",
         repo: "",
         branch: "main",

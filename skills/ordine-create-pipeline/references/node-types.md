@@ -65,37 +65,48 @@
 - `outputMode`: `"overwrite"` 覆盖 | `"append"` 追加
 - `dualOutput`: `true` 时同时输出 markdown 和 JSON
 
-## prompt — 文本/指令输入
-
-用于提供纯文本或指令作为输入，不依赖任何文件或目录。适用于处理文本、翻译、总结等任务。
+## file — 代码文件输入
 
 ```json
 {
-  "id": "n_prompt",
-  "type": "prompt",
+  "id": "n_file",
+  "type": "file",
   "data": {
-    "label": "任务指令",
-    "nodeType": "prompt",
-    "prompt": "请分析以下数据并生成总结报告"
+    "label": "目标文件",
+    "nodeType": "file",
+    "filePath": "/path/to/file.ts"
   },
   "position": { "x": 0, "y": 0 }
 }
 ```
-
-**注意**: `prompt` 字段是必填项，包含要传递给后续节点的文本内容。
 
 ## github-project — GitHub 项目输入
 
 ```json
 {
   "id": "n_github",
-  "type": "github-projects",
+  "type": "github-project",
   "data": {
     "label": "GitHub 项目",
-    "nodeType": "github-projects",
+    "nodeType": "github-project",
     "repo": "owner/repo",
     "branch": "main"
   },
   "position": { "x": 0, "y": 0 }
+}
+```
+
+## condition — 条件分支
+
+```json
+{
+  "id": "n_condition",
+  "type": "condition",
+  "data": {
+    "label": "是否有违规",
+    "nodeType": "condition",
+    "condition": "violations > 0"
+  },
+  "position": { "x": 500, "y": 200 }
 }
 ```

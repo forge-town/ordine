@@ -1,6 +1,6 @@
 import type { PipelineEngineDeps } from "../deps";
-import type { OperationConfigInput } from "@repo/schemas";
-import type { NodeCtx, PipelineNode } from "../schemas";
+import type { OperationConfigInput, PipelineNode } from "@repo/schemas";
+import type { NodeCtx } from "../schemas";
 import type { PipelineRunError } from "../errors";
 
 export type NodeResult = { ok: true } | { ok: false; error: PipelineRunError | null };

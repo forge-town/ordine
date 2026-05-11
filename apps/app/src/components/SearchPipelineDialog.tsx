@@ -7,7 +7,7 @@ import { useStore } from "zustand";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@repo/ui/dialog";
 import { Input } from "@repo/ui/input";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { PipelineData } from "@repo/schemas";
 import { useSidebarStore } from "@/store/sidebarStore";
 
 export const SearchPipelineDialog = () => {

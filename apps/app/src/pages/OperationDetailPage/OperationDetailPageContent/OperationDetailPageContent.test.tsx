@@ -47,7 +47,7 @@ const mockOp: Operation = {
       },
       {
         name: "techStack",
-        kind: "text",
+        kind: "prompt",
         required: false,
         description: "Technology stack choices.",
       },

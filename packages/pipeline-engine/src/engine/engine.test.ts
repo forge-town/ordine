@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
 import { pipelineEngine } from "../engine";
 import type { PipelineEngineDeps } from "../deps";
-import type { PipelineNode, PipelineEdge } from "../schemas";
+import type { PipelineNode, PipelineEdge } from "@repo/schemas";
 import type { PipelineOptions } from "../pipeline";
 import type { OperationInfo } from "../nodes/types";
 
@@ -119,20 +119,20 @@ describe("executePipeline", () => {
     });
   });
 
-  describe("code-file node", () => {
+  describe("file node", () => {
     it("reads a code file and passes content forward", async () => {
       const filePath = join(testDir, "test-code.ts");
       await writeFile(filePath, "const x = 42;", "utf8");
 
       const deps = makeDeps();
-      const nodes = [makeNode("cf", "code-file", { filePath })];
+      const nodes = [makeNode("cf", "file", { filePath })];
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
     });
 
     it("handles non-existent code file", async () => {
       const deps = makeDeps();
-      const nodes = [makeNode("cf", "code-file", { filePath: "/no-file-12345.ts" })];
+      const nodes = [makeNode("cf", "file", { filePath: "/no-file-12345.ts" })];
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
     });
@@ -526,7 +526,7 @@ describe("executePipeline", () => {
 
       const deps = makeDeps();
       const nodes = [
-        makeNode("gh", "github-projects", {
+        makeNode("gh", "github-project", {
           sourceType: "local",
           localPath,
           owner: "",

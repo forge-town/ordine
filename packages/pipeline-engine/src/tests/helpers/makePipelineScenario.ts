@@ -2,7 +2,7 @@ import { vi } from "vitest";
 import type { PipelineEngineDeps } from "../../deps";
 import { pipelineEngine } from "../../engine";
 import type { PipelineOptions } from "../../pipeline";
-import type { PipelineEdge, PipelineNode } from "../../schemas";
+import type { PipelineEdge, PipelineNode } from "@repo/schemas";
 
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),

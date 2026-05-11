@@ -3,14 +3,14 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
-import type { OutputProjectPathNodeData } from "@repo/pipeline-engine/schemas";
+import type { ProjectPathOutputNodeData } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
 import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
 
 export interface OutputProjectPathNodeProps {
   id: string;
-  data: OutputProjectPathNodeData;
+  data: ProjectPathOutputNodeData;
   selected?: boolean;
 }
 

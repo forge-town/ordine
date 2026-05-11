@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
-import type { CompoundNodeData } from "@repo/pipeline-engine/schemas";
+import type { CompoundNodeData } from "@repo/schemas";
 
 export interface CompoundNodeProps {
   id: string;

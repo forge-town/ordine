@@ -6,7 +6,7 @@ import { homedir, tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
 import { processOutputLocalPathNode } from "./OutputLocalPathNode";
 import type { PipelineEngineDeps } from "../../deps";
-import type { PipelineNode } from "../../schemas";
+import type { PipelineNode } from "@repo/schemas";
 import type { NodeContext } from "../types";
 
 vi.mock("@repo/obs", () => ({

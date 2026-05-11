@@ -4,7 +4,7 @@ import { useHarnessCanvasStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
 import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap } from "@xyflow/react";
 import { CompoundNode } from "../CompoundNode";
-import { CodeFileNode } from "../CodeFileNode";
+import { FileNode } from "../FileNode";
 import { ErrorNode } from "../ErrorNode";
 import { FolderNode } from "../FolderNode";
 import { GitHubProjectNode } from "../GitHubProjectNode";
@@ -20,9 +20,9 @@ const nodeTypes = {
   default: ErrorNode,
   operation: OperationNode,
   compound: CompoundNode,
-  "code-file": CodeFileNode,
+  file: FileNode,
   folder: FolderNode,
-  "github-projects": GitHubProjectNode,
+  "github-project": GitHubProjectNode,
   prompt: PromptNode,
   "output-project-path": OutputProjectPathNode,
   "output-local-path": OutputLocalPathNode,

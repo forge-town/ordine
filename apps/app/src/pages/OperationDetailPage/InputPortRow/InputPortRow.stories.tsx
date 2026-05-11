@@ -24,7 +24,7 @@ export const Optional: Story = {
   args: {
     port: {
       name: "config",
-      kind: "text",
+      kind: "prompt",
       required: false,
       description: "可选配置参数",
     },

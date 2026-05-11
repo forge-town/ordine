@@ -1,5 +1,4 @@
-import type { Distillation, Job } from "@repo/schemas";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { Distillation, Job, PipelineData } from "@repo/schemas";
 
 const ACTIVITY_DAYS = 7;
 const MAX_PIPELINE_ROWS = 6;
