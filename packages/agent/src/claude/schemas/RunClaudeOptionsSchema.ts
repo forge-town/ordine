@@ -1,6 +1,8 @@
 import { z } from "zod/v4";
 import { ToolNameSchema } from "./ToolNameSchema";
 
+const MAX_SYSTEM_PROMPT_CHARS = 10_000;
+
 export const SshConnectionOptionsSchema = z.object({
   host: z.string(),
   user: z.string(),
@@ -11,7 +13,7 @@ export const SshConnectionOptionsSchema = z.object({
 export type SshConnectionOptions = z.infer<typeof SshConnectionOptionsSchema>;
 
 export const RunClaudeOptionsSchema = z.object({
-  systemPrompt: z.string(),
+  systemPrompt: z.string().max(MAX_SYSTEM_PROMPT_CHARS),
   userPrompt: z.string(),
   cwd: z.string(),
   allowedTools: z.array(ToolNameSchema).readonly().optional(),

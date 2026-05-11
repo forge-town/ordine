@@ -18,8 +18,10 @@
     "@repo/models": "workspace:*",
     "@repo/schemas": "workspace:*",
     "@repo/services": "workspace:*",
+    "@trpc/server": "^11.16.0",
     "hono": "^4.7.10",
     "neverthrow": "^8.2.0",
+    "superjson": "^2.2.6",
     "zod": "^4.3.6"
   },
   "devDependencies": {

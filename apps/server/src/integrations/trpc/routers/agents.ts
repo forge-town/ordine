@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { authedProcedure, router } from "../init";
-import { agentsService } from "../services";
 import { AgentIdSchema, AgentPatchSchema, AgentSchema } from "@repo/schemas";
+import { authedProcedure, router } from "../init";
+import { agentsService } from "../../../services";
 
 export const agentsRouter = router({
   getMany: authedProcedure.query(() => agentsService.getAll()),
