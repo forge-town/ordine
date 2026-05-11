@@ -68,7 +68,7 @@ export const NewPipelineDialog = () => {
 
   return (
     <Dialog open={open} onOpenChange={handleNewPipelineDialogOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col overflow-hidden">
         {phase.step === "success" && (
           <>
             <div className="flex flex-col items-center gap-4 py-6">
@@ -121,7 +121,7 @@ export const NewPipelineDialog = () => {
               <DialogTitle>{t("newPipelineDialog.analysisTitle")}</DialogTitle>
               <DialogDescription>{t("newPipelineDialog.analysisDescription")}</DialogDescription>
             </DialogHeader>
-            <div className="animate-in fade-in slide-in-from-bottom-1 duration-200 py-2">
+            <div className="min-h-0 flex-1 overflow-y-auto py-2">
               <PipelinePreviewGraph
                 matchedOperations={phase.matchedOperations}
                 unmatchedSteps={phase.unmatchedSteps}
