@@ -28,6 +28,7 @@ import {
   ExecutorTypeSchema,
   AgentModeSchema,
   ScriptLanguageSchema,
+  type OperationConfigInput,
 } from "@repo/schemas";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { useStore } from "zustand";
@@ -62,34 +63,34 @@ const createFormSchema = z.object({
   scriptLanguage: ScriptLanguageSchema,
 });
 
-const buildConfig = (values: CreateFormValues): string => {
+const buildConfig = (values: CreateFormValues): OperationConfigInput => {
   if (values.executorType === "agent") {
     if (values.agentMode === "skill") {
-      return JSON.stringify({
+      return {
         executor: {
           type: "agent",
           agentMode: "skill",
           skillId: values.skillId,
         },
-      });
+      };
     }
 
-    return JSON.stringify({
+    return {
       executor: {
         type: "agent",
         agentMode: "prompt",
         prompt: values.promptText,
       },
-    });
+    };
   }
 
-  return JSON.stringify({
+  return {
     executor: {
       type: "script",
       command: values.scriptCommand,
       language: values.scriptLanguage,
     },
-  });
+  };
 };
 
 type CreateFormValues = z.infer<typeof createFormSchema>;
