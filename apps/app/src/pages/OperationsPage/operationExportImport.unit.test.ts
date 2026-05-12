@@ -38,7 +38,7 @@ describe("toOperationMd", () => {
 
   it("omits input when all object types are present", () => {
     const md = toOperationMd(
-      makeOperation({ acceptedObjectTypes: ["file", "folder", "project", "prompt"] }),
+      makeOperation({ acceptedObjectTypes: ["file", "folder", "project", "prompt"] })
     );
     expect(md).not.toContain("input:");
   });
@@ -67,7 +67,7 @@ describe("toOperationMd", () => {
           inputs: [],
           outputs: [{ name: "report", kind: "file", description: "A report", templateIds: [] }],
         },
-      }),
+      })
     );
     expect(md).toContain("- **report.md**: A report");
   });
@@ -185,7 +185,7 @@ describe("parseOperationZip", () => {
     const folder = zip.folder("check-dao-pattern");
     folder!.file(
       "OPERATION.md",
-      "---\nname: Check DAO\ndescription: DAO check\ninput: folder\n---\n\n# Check DAO\n\nCheck DAO layer.\n\n## Outputs\n\n- **report.md**: Report\n",
+      "---\nname: Check DAO\ndescription: DAO check\ninput: folder\n---\n\n# Check DAO\n\nCheck DAO layer.\n\n## Outputs\n\n- **report.md**: Report\n"
     );
 
     const data = await zip.generateAsync({ type: "uint8array" });
@@ -213,14 +213,14 @@ describe("parseOperationZip", () => {
     const folder = zip.folder("my-op");
     folder!.file(
       "OPERATION.md",
-      "---\nname: Op\ndescription: Desc\ninput: folder\n---\n\n# Op\n\nDo stuff.\n\n## Outputs\n\n- **report.md**: Report\n- **data.json**: Data\n",
+      "---\nname: Op\ndescription: Desc\ninput: folder\n---\n\n# Op\n\nDo stuff.\n\n## Outputs\n\n- **report.md**: Report\n- **data.json**: Data\n"
     );
     folder!.file(
       "_outputs.json",
       JSON.stringify([
         { name: "report.md", templateIds: ["tpl-1"] },
         { name: "data.json", templateIds: ["tpl-2", "tpl-3"] },
-      ]),
+      ])
     );
     const tplFolder = folder!.folder("templates");
     tplFolder!.file(
@@ -229,7 +229,7 @@ describe("parseOperationZip", () => {
         { id: "tpl-1", name: "Report Template", description: null, contentType: "markdown" },
         { id: "tpl-2", name: "Data Template", description: "JSON data", contentType: "json" },
         { id: "tpl-3", name: "Extra", description: null, contentType: "text" },
-      ]),
+      ])
     );
     tplFolder!.file("tpl-1.md", "# Report\n\nBody");
     tplFolder!.file("tpl-2.json", '{"key": "value"}');
@@ -260,7 +260,7 @@ describe("parseOperationZip", () => {
     const folder = zip.folder("my-op");
     folder!.file(
       "OPERATION.md",
-      "---\nname: Op\ndescription: Desc\n---\n\n# Op\n\nPrompt.\n\n## Outputs\n\n- **out.md**: Output\n",
+      "---\nname: Op\ndescription: Desc\n---\n\n# Op\n\nPrompt.\n\n## Outputs\n\n- **out.md**: Output\n"
     );
 
     const data = await zip.generateAsync({ type: "uint8array" });
