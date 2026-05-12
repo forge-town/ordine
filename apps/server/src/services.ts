@@ -8,6 +8,7 @@ import {
   createDistillationsService,
   createJobsService,
   createOperationsService,
+  createOperationRunnerService,
   createPipelineRunnerService,
   createPipelinesService,
   createRecipesService,
@@ -24,6 +25,7 @@ export const codeSnippetsService = createCodeSnippetsService(db);
 export const distillationsService = createDistillationsService(db);
 export const jobsService = createJobsService(db);
 export const operationsService = createOperationsService(db);
+export const operationRunnerService = createOperationRunnerService(db);
 export const pipelinesService = createPipelinesService(db);
 export const pipelineRunnerService = createPipelineRunnerService(db);
 export const recipesService = createRecipesService(db);

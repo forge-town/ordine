@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { operationsService } from "../services";
-import { ObjectTypeSchema, OperationConfigSchema } from "@repo/schemas";
+import { operationsService, operationRunnerService } from "../services";
+import { AgentRuntimeSchema, ObjectTypeSchema, OperationConfigSchema } from "@repo/schemas";
 
 export const operationsRouter = router({
   getMany: publicProcedure.query(() => operationsService.getAll()),
@@ -41,4 +41,22 @@ export const operationsRouter = router({
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(({ input }) => operationsService.delete(input.id)),
+
+  run: publicProcedure
+    .input(
+      z.object({
+        operationId: z.string(),
+        inputPath: z.string().optional(),
+        inputContent: z.string().optional(),
+        agentOverride: AgentRuntimeSchema.optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const result = await operationRunnerService.startRun(input);
+      if (result.isErr()) {
+        throw result.error;
+      }
+
+      return result.value;
+    }),
 });

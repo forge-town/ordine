@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { runAgent } = vi.hoisted(() => ({
-  runAgent: vi.fn().mockResolvedValue(
-    '{"type":"check","summary":"ok","findings":[],"stats":{"totalFiles":1,"totalFindings":0,"errors":0,"warnings":0,"infos":0,"skipped":0}}',
-  ),
+  runAgent: vi
+    .fn()
+    .mockResolvedValue(
+      '{"type":"check","summary":"ok","findings":[],"stats":{"totalFiles":1,"totalFindings":0,"errors":0,"warnings":0,"infos":0,"skipped":0}}',
+    ),
 }));
 
 vi.mock("../agentRunner/agentRunner", () => ({
@@ -84,7 +86,7 @@ describe("skillExecutor systemPrompt", () => {
     });
 
     expect(result.isOk()).toBe(true);
-    const callArgs = runAgent.mock.calls[0][0];
+    const callArgs = runAgent.mock.calls[0]![0];
     expect(callArgs.userPrompt).toContain("## Expected Output Items");
     expect(callArgs.userPrompt).toContain("1. **report** (file): Markdown report");
     expect(callArgs.userPrompt).toContain("2. **htmlReport** (file): HTML report");
@@ -101,7 +103,7 @@ describe("skillExecutor systemPrompt", () => {
     });
 
     expect(result.isOk()).toBe(true);
-    const callArgs = runAgent.mock.calls[0][0];
+    const callArgs = runAgent.mock.calls[0]![0];
     expect(callArgs.userPrompt).not.toContain("## Expected Output Items");
   });
 
@@ -120,8 +122,10 @@ describe("skillExecutor systemPrompt", () => {
     });
 
     expect(result.isOk()).toBe(true);
-    const callArgs = runAgent.mock.calls[0][0];
-    expect(callArgs.userPrompt).toContain("Write all output files to the directory: /output/results");
+    const callArgs = runAgent.mock.calls[0]![0];
+    expect(callArgs.userPrompt).toContain(
+      "Write all output files to the directory: /output/results",
+    );
   });
 
   it("does not include outputDir instruction when outputDir is absent", async () => {
@@ -138,7 +142,7 @@ describe("skillExecutor systemPrompt", () => {
     });
 
     expect(result.isOk()).toBe(true);
-    const callArgs = runAgent.mock.calls[0][0];
+    const callArgs = runAgent.mock.calls[0]![0];
     expect(callArgs.userPrompt).not.toContain("Write all output files to the directory");
   });
 });

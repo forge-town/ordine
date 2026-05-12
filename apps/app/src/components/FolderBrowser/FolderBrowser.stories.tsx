@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
-import { canvasStoryDataProvider } from "../storybookData";
+import { canvasStoryDataProvider } from "../../pages/CanvasPage/storybookData";
 import { FolderBrowser } from "./FolderBrowser";
 
 const FolderBrowserStory = (args: React.ComponentProps<typeof FolderBrowser>) => {

@@ -9,6 +9,7 @@ export * from "./filesystemService";
 export * from "./githubProjectsService";
 export * from "./jobsService";
 export * from "./operationsService";
+export * from "./operationRunnerService";
 export * from "./pipelinesService";
 export * from "./pipelineRunnerService";
 export * from "./recipesService";

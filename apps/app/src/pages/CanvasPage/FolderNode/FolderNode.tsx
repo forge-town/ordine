@@ -6,7 +6,7 @@ import { useShallow } from "zustand/shallow";
 import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { FolderObjectNodeData } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
-import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
+import { FolderBrowser } from "@/components/FolderBrowser/FolderBrowser";
 import { FolderTreePreview } from "./FolderTreePreview";
 import { Input } from "@repo/ui/input";
 import { Button } from "@repo/ui/button";

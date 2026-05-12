@@ -134,7 +134,7 @@ export const FolderBrowser = ({
             return (
               <span key={`${seg}-${i}`} className="flex items-center gap-1">
                 <button
-                  className="shrink-0 truncate max-w-[120px] rounded px-1 hover:bg-accent hover:text-accent-foreground"
+                  className="shrink-0 truncate max-w-30 rounded px-1 hover:bg-accent hover:text-accent-foreground"
                   type="button"
                   onClick={() => handleSegmentClick(fullPath)}
                 >
@@ -149,7 +149,7 @@ export const FolderBrowser = ({
         </div>
 
         {/* Directory listing */}
-        <ScrollArea className="h-[280px] rounded-md border">
+        <ScrollArea className="h-70 rounded-md border">
           {query.isLoading && (
             <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
               {t("nodes.outputLocalPath.loading")}

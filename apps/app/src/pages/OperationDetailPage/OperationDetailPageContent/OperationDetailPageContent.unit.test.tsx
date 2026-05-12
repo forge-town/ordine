@@ -39,6 +39,7 @@ vi.mock("@refinedev/core", () => ({
   useCustomMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
   useInvalidate: () => vi.fn(),
   useOne: () => ({ result: mockUseLoaderData(), isLoading: false }),
+  useCustom: () => ({ result: { data: null }, isLoading: false }),
 }));
 
 const renderWithStore = (ui: React.ReactElement) =>

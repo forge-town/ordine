@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@repo/ui/dialog";
-import { FolderBrowser } from "../OutputLocalPathNode/FolderBrowser";
+import { FolderBrowser } from "@/components/FolderBrowser/FolderBrowser";
 
 export interface LocalFolderInfo {
   localPath: string;

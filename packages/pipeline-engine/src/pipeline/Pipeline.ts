@@ -3,10 +3,7 @@ import { rm } from "node:fs/promises";
 import { ResultAsync } from "neverthrow";
 import { trace } from "@repo/obs";
 import { pluginRegistry } from "@repo/plugin";
-import {
-  resolveMetaType,
-  type NodeCtx,
-} from "../schemas";
+import { resolveMetaType, type NodeCtx } from "../schemas";
 import {
   NODE_TYPE_ENUM,
   type PipelineEdge,
@@ -232,7 +229,10 @@ export class Pipeline {
     const outputNode = nodes.find(
       (n) => childIds.includes(n.id) && n.data.nodeType === NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH,
     );
-    const configuredPath = outputNode?.data.localPath ?? "";
+    const configuredPath =
+      outputNode?.data.nodeType === NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH
+        ? (outputNode.data.localPath ?? "")
+        : "";
     const resolved = configuredPath || this.opts.defaultOutputPath || "";
 
     return resolved || undefined;

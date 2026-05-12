@@ -6,7 +6,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import { NodeCard } from "../NodeCard";
-import { FolderBrowser } from "./FolderBrowser";
+import { FolderBrowser } from "@/components/FolderBrowser/FolderBrowser";
 
 export interface OutputLocalPathNodeProps {
   id: string;

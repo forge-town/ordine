@@ -1,4 +1,4 @@
-import { Pencil, XCircle } from "lucide-react";
+import { Pencil, Play, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { Operation, OperationConfig, OperationConfigInput, OutputItem } from "@repo/schemas";
@@ -13,6 +13,7 @@ import { useOperationDetailPageStore } from "../_store";
 import { OutputItemsPanel } from "./OutputItemsPanel";
 import { ItemDetailPanel } from "./ItemDetailPanel";
 import { OperationMetaPanel } from "./OperationMetaPanel";
+import { OperationRunPanel } from "../OperationRunPanel";
 
 const parseConfig = (raw: OperationConfigInput): OperationConfig => {
   return {
@@ -34,14 +35,16 @@ export const OperationDetailPageContent = () => {
   const { t } = useTranslation();
 
   const store = useOperationDetailPageStore();
-  const { selectedItemIndex, handleNavigateBack, handleNavigateToEdit } = useStore(
-    store,
-    useShallow((s) => ({
-      selectedItemIndex: s.selectedItemIndex,
-      handleNavigateBack: s.handleNavigateBack,
-      handleNavigateToEdit: s.handleNavigateToEdit,
-    }))
-  );
+  const { selectedItemIndex, handleNavigateBack, handleNavigateToEdit, handleOpenRunPanel } =
+    useStore(
+      store,
+      useShallow((s) => ({
+        selectedItemIndex: s.selectedItemIndex,
+        handleNavigateBack: s.handleNavigateBack,
+        handleNavigateToEdit: s.handleNavigateToEdit,
+        handleOpenRunPanel: s.handleOpenRunPanel,
+      }))
+    );
 
   const config = operation ? parseConfig(operation.config) : null;
   const selectedItem: OutputItem | undefined = config?.outputs[selectedItemIndex];
@@ -73,15 +76,26 @@ export const OperationDetailPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         actions={
-          <Button
-            aria-label={t("common.edit")}
-            size="sm"
-            variant="outline"
-            onClick={handleNavigateToEdit.bind(null, operation.id)}
-          >
-            <Pencil className="h-4 w-4" />
-            {t("common.edit")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              aria-label={t("operations.run.run", "Run")}
+              size="sm"
+              variant="default"
+              onClick={handleOpenRunPanel}
+            >
+              <Play className="h-4 w-4" />
+              {t("operations.run.run", "Run")}
+            </Button>
+            <Button
+              aria-label={t("common.edit")}
+              size="sm"
+              variant="outline"
+              onClick={handleNavigateToEdit.bind(null, operation.id)}
+            >
+              <Pencil className="h-4 w-4" />
+              {t("common.edit")}
+            </Button>
+          </div>
         }
         backTo="/pipelines/operations"
         title={operation.name}
@@ -97,6 +111,9 @@ export const OperationDetailPageContent = () => {
 
         <OperationMetaPanel config={config} operation={operation} />
       </div>
+
+      {/* Run panel */}
+      <OperationRunPanel operationId={operation.id} operationName={operation.name} />
     </div>
   );
 };

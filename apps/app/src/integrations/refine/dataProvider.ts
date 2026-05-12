@@ -717,6 +717,13 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+    if (url === "operations/run") {
+      const data = await trpcClient.operations.run.mutate(
+        payload as unknown as Parameters<typeof trpcClient.operations.run.mutate>[0]
+      );
+
+      return { data: data as unknown as TData };
+    }
     throw new Error(`custom: unknown url "${url}"`);
   },
 };
