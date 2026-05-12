@@ -8,6 +8,7 @@ export interface OperationDetailPageSlice {
   activeTab: "definition" | "templates";
   selectedTemplateIndex: number;
   templates: Record<string, OperationOutputItemTemplate>;
+  templateViewMode: "raw" | "preview";
 
   handleSelectItem: (index: number) => void;
   handleSetActiveTab: (tab: "definition" | "templates") => void;
@@ -16,6 +17,7 @@ export interface OperationDetailPageSlice {
   handleNavigateBack: () => void;
   handleNavigateToEdit: (operationId: string) => void;
   handleSwitchToTemplatesTab: (templateIds: string[]) => void;
+  handleSetTemplateViewMode: (mode: "raw" | "preview") => void;
 }
 
 export const createOperationDetailPageSlice: StateCreator<OperationDetailPageSlice> = (
@@ -26,6 +28,7 @@ export const createOperationDetailPageSlice: StateCreator<OperationDetailPageSli
   activeTab: "definition",
   selectedTemplateIndex: 0,
   templates: {},
+  templateViewMode: "raw",
 
   handleSelectItem: (index) =>
     set({ selectedItemIndex: index, activeTab: "definition", selectedTemplateIndex: 0 }),
@@ -73,4 +76,6 @@ export const createOperationDetailPageSlice: StateCreator<OperationDetailPageSli
     set({ activeTab: "templates" });
     get().handleFetchTemplates(templateIds);
   },
+
+  handleSetTemplateViewMode: (mode) => set({ templateViewMode: mode }),
 });

@@ -91,7 +91,7 @@ export const OperationDetailPageContent = () => {
       <div className="flex flex-1 overflow-hidden">
         <OutputItemsPanel outputs={config.outputs} />
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
           <ItemDetailPanel selectedItem={selectedItem} />
         </div>
 

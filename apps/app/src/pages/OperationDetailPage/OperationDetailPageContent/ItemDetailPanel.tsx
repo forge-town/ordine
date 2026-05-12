@@ -5,6 +5,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import type { OutputItem } from "@repo/schemas";
 import { useOperationDetailPageStore } from "../_store";
+import { TemplateContentView } from "./TemplateContentView";
 
 interface ItemDetailPanelProps {
   selectedItem: OutputItem | undefined;
@@ -131,24 +132,7 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
                   );
                 }
 
-                return (
-                  <div className="rounded-xl border border-border bg-card p-4">
-                    <div className="mb-3 flex items-center gap-2">
-                      <span className="font-mono text-sm font-semibold text-foreground">
-                        {tpl.name}
-                      </span>
-                      <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        {tpl.contentType}
-                      </span>
-                    </div>
-                    {tpl.description && (
-                      <p className="mb-3 text-xs text-muted-foreground">{tpl.description}</p>
-                    )}
-                    <pre className="max-h-96 overflow-auto rounded-lg bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">
-                      {tpl.content}
-                    </pre>
-                  </div>
-                );
+                return <TemplateContentView template={tpl} />;
               })()}
             </>
           )}
