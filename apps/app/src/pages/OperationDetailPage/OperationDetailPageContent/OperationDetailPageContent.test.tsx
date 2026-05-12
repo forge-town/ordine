@@ -56,8 +56,8 @@ const mockOp: Operation = {
       {
         name: "planDocument",
         kind: "file",
-        path: ".specify/{feature}/plan.md",
         description: "Technical plan document.",
+        templateIds: [],
       },
     ],
   },
@@ -91,16 +91,17 @@ describe("OperationDetailPageContent", () => {
     expect(screen.getByText("必填")).toBeInTheDocument();
   });
 
-  it("renders the outputs section with port names", () => {
+  it("renders the outputs section with item names", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
     render(<OperationDetailPageContent />);
     expect(screen.getByText("planDocument")).toBeInTheDocument();
   });
 
-  it("renders output path", () => {
+  it("renders output kind badge", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
     render(<OperationDetailPageContent />);
-    expect(screen.getByText(".specify/{feature}/plan.md")).toBeInTheDocument();
+    const matches = screen.getAllByText("file");
+    expect(matches.length).toBeGreaterThan(0);
   });
 
   it("renders accepted object types", () => {

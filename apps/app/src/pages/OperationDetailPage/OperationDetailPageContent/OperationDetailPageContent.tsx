@@ -27,7 +27,7 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/pipelines.operations.$operationId.index";
 import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
-import { OutputPortRow } from "../OutputPortRow";
+import { OutputItemRow } from "../OutputItemRow";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -57,7 +57,9 @@ const parseConfig = (raw: OperationConfigInput): OperationConfig => {
   return {
     executor: raw.executor,
     inputs: Array.isArray(raw.inputs) ? raw.inputs : [],
-    outputs: Array.isArray(raw.outputs) ? raw.outputs : [],
+    outputs: Array.isArray(raw.outputs)
+      ? raw.outputs.map((o) => ({ ...o, templateIds: o.templateIds ?? [] }))
+      : [],
   };
 };
 
@@ -214,7 +216,7 @@ export const OperationDetailPageContent = () => {
             <SectionHeader icon={FileOutput} label={`输出 (${config.outputs.length})`} />
             <div>
               {config.outputs.map((port) => (
-                <OutputPortRow key={port.name} port={port} />
+                <OutputItemRow key={port.name} item={port} />
               ))}
             </div>
           </div>

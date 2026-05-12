@@ -17,6 +17,7 @@ import {
   createRulesService,
   createSettingsService,
   createSkillsService,
+  createOperationOutputItemTemplatesService,
 } from "@repo/services";
 
 export const agentsService = createAgentsService(db);
@@ -36,3 +37,4 @@ export const refinementsService = createRefinementsService(db);
 export const rulesService = createRulesService(db);
 export const settingsService = createSettingsService(db);
 export const skillsService = createSkillsService(db);
+export const operationOutputItemTemplatesService = createOperationOutputItemTemplatesService(db);

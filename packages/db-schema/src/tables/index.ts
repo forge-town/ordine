@@ -22,5 +22,6 @@ export * from "./rules_table";
 export * from "./sessions_table";
 export * from "./settings_table";
 export * from "./skills_table";
+export * from "./operation_output_item_templates_table";
 export * from "./users_table";
 export * from "./verifications_table";

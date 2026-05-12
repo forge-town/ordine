@@ -20,3 +20,4 @@ export * from "./refinementsDao";
 export * from "./rulesDao";
 export * from "./settingsDao";
 export * from "./skillsDao";
+export * from "./operationOutputItemTemplatesDao";

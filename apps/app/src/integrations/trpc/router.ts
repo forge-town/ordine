@@ -15,6 +15,7 @@ import { refinementsRouter } from "./routers/refinements";
 import { rulesRouter } from "./routers/rules";
 import { settingsRouter } from "./routers/settings";
 import { skillsRouter } from "./routers/skills";
+import { operationOutputItemTemplatesRouter } from "./routers/operationOutputItemTemplates";
 
 export const appRouter = router({
   agents: agentsRouter,
@@ -33,6 +34,7 @@ export const appRouter = router({
   checklist: checklistRouter,
   codeSnippets: codeSnippetsRouter,
   distillations: distillationsRouter,
+  operationOutputItemTemplates: operationOutputItemTemplatesRouter,
 });
 
 export type AppRouter = typeof appRouter;

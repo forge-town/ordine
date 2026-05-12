@@ -1,31 +1,31 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { OutputPortRow } from "./OutputPortRow";
+import { OutputItemRow } from "./OutputItemRow";
 
-describe("OutputPortRow", () => {
-  it("renders port name and path", () => {
+describe("OutputItemRow", () => {
+  it("renders item name and kind", () => {
     render(
-      <OutputPortRow
-        port={{
+      <OutputItemRow
+        item={{
           name: "result",
           kind: "file",
-          path: "/output/result.json",
           description: "输出结果",
+          templateIds: [],
         }}
       />
     );
     expect(screen.getByText("result")).toBeInTheDocument();
-    expect(screen.getByText("/output/result.json")).toBeInTheDocument();
+    expect(screen.getByText("file")).toBeInTheDocument();
   });
 
   it("renders description", () => {
     render(
-      <OutputPortRow
-        port={{
+      <OutputItemRow
+        item={{
           name: "out",
           kind: "folder",
-          path: "/out",
           description: "输出文件夹",
+          templateIds: [],
         }}
       />
     );

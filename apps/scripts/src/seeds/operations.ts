@@ -30,7 +30,7 @@ interface InputPort {
   description: string;
 }
 
-interface OutputPort {
+interface OutputItem {
   name: string;
   kind: PortKind;
   path: string;
@@ -49,7 +49,7 @@ interface ExecutorConfig {
 interface OperationConfig {
   executor?: ExecutorConfig;
   inputs: InputPort[];
-  outputs: OutputPort[];
+  outputs: OutputItem[];
 }
 
 const cfg = (config: OperationConfig): OperationConfig => {

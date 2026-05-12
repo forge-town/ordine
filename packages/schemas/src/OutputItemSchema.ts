@@ -1,10 +1,10 @@
 import { z } from "zod/v4";
 import { PortKindSchema } from "./PortKindSchema";
 
-export const OutputPortSchema = z.object({
+export const OutputItemSchema = z.object({
   name: z.string(),
   kind: PortKindSchema,
-  path: z.string(),
   description: z.string().optional(),
+  templateIds: z.array(z.string()).default([]),
 });
-export type OutputPort = z.infer<typeof OutputPortSchema>;
+export type OutputItem = z.infer<typeof OutputItemSchema>;

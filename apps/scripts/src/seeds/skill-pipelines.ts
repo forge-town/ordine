@@ -39,7 +39,7 @@ interface InputPort {
   description: string;
 }
 
-interface OutputPort {
+interface OutputItem {
   name: string;
   kind: "file" | "folder" | "github-project" | "prompt";
   path: string;
@@ -57,7 +57,7 @@ interface OperationConfig {
     allowedTools?: readonly string[];
   };
   inputs: InputPort[];
-  outputs: OutputPort[];
+  outputs: OutputItem[];
 }
 
 const cfg = (config: OperationConfig): OperationConfig => {

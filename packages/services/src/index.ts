@@ -17,3 +17,4 @@ export * from "./rulesService";
 export * from "./serviceFactory";
 export * from "./settingsService";
 export * from "./skillsService";
+export * from "./operationOutputItemTemplatesService";
