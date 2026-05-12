@@ -228,7 +228,9 @@ export const dataProvider: DataProvider = {
         return { data: data as unknown as TData };
       }
       case ResourceName.operationOutputItemTemplates: {
-        const data = await trpcClient.operationOutputItemTemplates.getById.query({ id: String(id) });
+        const data = await trpcClient.operationOutputItemTemplates.getById.query({
+          id: String(id),
+        });
 
         return { data: data as unknown as TData };
       }
@@ -563,7 +565,9 @@ export const dataProvider: DataProvider = {
         return { data: data as unknown as TData };
       }
       case ResourceName.operationOutputItemTemplates: {
-        const data = await trpcClient.operationOutputItemTemplates.delete.mutate({ id: String(id) });
+        const data = await trpcClient.operationOutputItemTemplates.delete.mutate({
+          id: String(id),
+        });
 
         return { data: data as unknown as TData };
       }

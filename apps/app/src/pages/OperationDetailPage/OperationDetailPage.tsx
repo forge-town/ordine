@@ -1,5 +1,10 @@
 import { OperationDetailPageContent } from "./OperationDetailPageContent";
+import { OperationDetailPageStoreProvider } from "./_store";
 
 export const OperationDetailPage = () => {
-  return <OperationDetailPageContent />;
+  return (
+    <OperationDetailPageStoreProvider>
+      <OperationDetailPageContent />
+    </OperationDetailPageStoreProvider>
+  );
 };

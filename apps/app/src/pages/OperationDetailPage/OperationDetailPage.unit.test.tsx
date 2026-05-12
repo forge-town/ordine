@@ -11,6 +11,13 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
   useNavigate: () => vi.fn(),
   createFileRoute: () => () => ({ useLoaderData: () => null }),
+  createRootRoute: vi.fn(() => ({})),
+  createRoute: vi.fn(() => ({})),
+  createRouter: vi.fn(() => ({ navigate: vi.fn() })),
+}));
+
+vi.mock("@/router", () => ({
+  router: { navigate: vi.fn() },
 }));
 
 vi.mock("@/services/operationsService", () => ({
