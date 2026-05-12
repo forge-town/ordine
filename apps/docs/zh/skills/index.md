@@ -32,12 +32,14 @@ Skills 是预制的指令集，你可以复制并提供给你的 AI agent。agen
 
 ### 执行与监控
 
-| Skill                                        | 说明                         |
-| -------------------------------------------- | ---------------------------- |
-| [运行流水线](/zh/skills/ordine-run-pipeline) | 运行流水线并监控任务执行     |
-| [运行操作](/zh/skills/ordine-run-operation)  | 运行单个操作并监控创建的任务 |
-| [管理任务](/zh/skills/ordine-manage-job)     | 查看、过滤和管理任务记录     |
-| [浏览追踪](/zh/skills/ordine-browse-traces)  | 读取追踪日志并诊断失败       |
+| Skill                                             | 说明                                       |
+| ------------------------------------------------- | ------------------------------------------ |
+| [运行流水线](/zh/skills/ordine-run-pipeline)      | 运行流水线并监控任务执行                   |
+| [运行操作](/zh/skills/ordine-run-operation)       | 运行单个操作并监控创建的任务               |
+| [管理蒸馏](/zh/skills/ordine-manage-distillation) | 将任务、流水线或人工上下文蒸馏为可复用洞察 |
+| [管理精炼](/zh/skills/ordine-manage-refinement)   | 启动并监控迭代式流水线精炼循环             |
+| [管理任务](/zh/skills/ordine-manage-job)          | 查看、过滤和管理任务记录                   |
+| [浏览追踪](/zh/skills/ordine-browse-traces)       | 读取追踪日志并诊断失败                     |
 
 ### 内容管理
 

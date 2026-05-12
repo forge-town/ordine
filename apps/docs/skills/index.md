@@ -32,12 +32,14 @@ Skills are pre-built instruction sets that you can copy and give to your AI agen
 
 ### Execute & Monitor
 
-| Skill                                         | Description                                        |
-| --------------------------------------------- | -------------------------------------------------- |
-| [Run Pipeline](/skills/ordine-run-pipeline)   | Run pipelines and monitor job execution            |
-| [Run Operation](/skills/ordine-run-operation) | Run a single operation and monitor the created job |
-| [Manage Jobs](/skills/ordine-manage-job)      | View, filter, and manage job records               |
-| [Browse Traces](/skills/ordine-browse-traces) | Read trace logs and diagnose failures              |
+| Skill                                                     | Description                                                       |
+| --------------------------------------------------------- | ----------------------------------------------------------------- |
+| [Run Pipeline](/skills/ordine-run-pipeline)               | Run pipelines and monitor job execution                           |
+| [Run Operation](/skills/ordine-run-operation)             | Run a single operation and monitor the created job                |
+| [Manage Distillation](/skills/ordine-manage-distillation) | Distill jobs, pipelines, or manual context into reusable insights |
+| [Manage Refinement](/skills/ordine-manage-refinement)     | Start and monitor iterative pipeline refinement loops             |
+| [Manage Jobs](/skills/ordine-manage-job)                  | View, filter, and manage job records                              |
+| [Browse Traces](/skills/ordine-browse-traces)             | Read trace logs and diagnose failures                             |
 
 ### Manage Content
 
