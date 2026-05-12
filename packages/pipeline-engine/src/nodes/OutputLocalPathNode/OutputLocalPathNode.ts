@@ -32,7 +32,6 @@ export const processOutputLocalPathNode = async (
   const rawPath = resolveRawPath(configuredPath, defaultOutputPath);
   const baseOutputFileName = data.outputFileName?.trim() || "output.md";
   const outputMode = data.outputMode ?? "overwrite";
-  const dualOutput = data.dualOutput === true;
 
   const shortJobId = jobId.slice(0, 8);
   const timestamp = new Date().toISOString().replaceAll(/[:.]/g, "-").slice(0, 19);
@@ -81,36 +80,16 @@ export const processOutputLocalPathNode = async (
 
   await trace(
     jobId,
-    `Output path set: ${resolvedPath} (mode: ${outputMode}, dualOutput: ${dualOutput})`,
+    `Output path set: ${resolvedPath} (mode: ${outputMode})`,
   );
   if (resolvedPath && input.content) {
-    if (dualOutput) {
-      const outputDir = dirname(resolvedPath);
-      const baseName = basename(resolvedPath, extname(resolvedPath));
-      await mkdir(outputDir, { recursive: true });
-
-      const cleanContent = input.content
-        .replace(/^```json\s*\n?/, "")
-        .replace(/\n?\s*```\s*$/, "")
-        .trim();
-
-      const jsonPath = join(outputDir, `${baseName}.json`);
-      await writeFile(jsonPath, cleanContent, "utf8");
-      await trace(jobId, `Wrote JSON output to: ${jsonPath} (${cleanContent.length} chars)`);
-
-      const mdPath = join(outputDir, `${baseName}.md`);
-      const mdContent = deps.structuredJsonToMarkdown(cleanContent);
-      await writeFile(mdPath, mdContent, "utf8");
-      await trace(jobId, `Wrote Markdown output to: ${mdPath} (${mdContent.length} chars)`);
-    } else {
-      const outputContent =
-        extname(resolvedPath) === ".md"
-          ? deps.structuredJsonToMarkdown(input.content)
-          : input.content;
-      await mkdir(dirname(resolvedPath), { recursive: true });
-      await writeFile(resolvedPath, outputContent, "utf8");
-      await trace(jobId, `Wrote output to: ${resolvedPath} (${outputContent.length} chars)`);
-    }
+    const outputContent =
+      extname(resolvedPath) === ".md"
+        ? deps.structuredJsonToMarkdown(input.content)
+        : input.content;
+    await mkdir(dirname(resolvedPath), { recursive: true });
+    await writeFile(resolvedPath, outputContent, "utf8");
+    await trace(jobId, `Wrote output to: ${resolvedPath} (${outputContent.length} chars)`);
   }
   nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
   await trace(jobId, `@@NODE_DONE::${node.id}`);

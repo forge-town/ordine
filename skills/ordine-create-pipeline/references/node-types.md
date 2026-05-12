@@ -54,7 +54,6 @@
     "nodeType": "output-local-path",
     "localPath": "/Users/amin/projects/my-project/.ordine/results/check-report",
     "outputMode": "overwrite",
-    "dualOutput": true,
     "description": "DAO 层规范检查报告"
   },
   "position": { "x": 1000, "y": 0 }
@@ -63,7 +62,6 @@
 
 **字段说明**:
 - `outputMode`: `"overwrite"` 覆盖 | `"append"` 追加
-- `dualOutput`: `true` 时同时输出 markdown 和 JSON
 
 ## file — 代码文件输入
 

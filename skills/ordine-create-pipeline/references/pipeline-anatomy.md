@@ -40,7 +40,7 @@
 | `file` | 输入源 - 代码文件 | `filePath` |
 | `github-project` | 输入源 - GitHub 项目 | `repo`, `branch` |
 | `operation` | 执行动作（检查/修复） | `operationId`, `operationName`, `status` |
-| `output-local-path` | 输出目标 - 本地路径 | `localPath`, `outputMode`, `dualOutput` |
+| `output-local-path` | 输出目标 - 本地路径 | `localPath`, `outputMode` |
 | `condition` | 条件分支 | `condition` |
 
 ## 边 (edges)

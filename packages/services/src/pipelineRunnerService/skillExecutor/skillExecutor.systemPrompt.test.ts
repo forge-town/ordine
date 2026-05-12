@@ -68,4 +68,40 @@ describe("skillExecutor systemPrompt", () => {
       }),
     );
   });
+
+  it("includes output items in the user prompt when provided", async () => {
+    const result = await skillExecutor.run({
+      skillId: "s1",
+      skillDescription: "desc",
+      inputContent: "foo",
+      inputPath: "/tmp/foo",
+      agent: "claude-code",
+      jobId: "j1",
+      outputItems: [
+        { name: "report", kind: "file", description: "Markdown report", templateIds: [] },
+        { name: "htmlReport", kind: "file", description: "HTML report", templateIds: [] },
+      ],
+    });
+
+    expect(result.isOk()).toBe(true);
+    const callArgs = runAgent.mock.calls[0][0];
+    expect(callArgs.userPrompt).toContain("## Expected Output Items");
+    expect(callArgs.userPrompt).toContain("1. **report** (file): Markdown report");
+    expect(callArgs.userPrompt).toContain("2. **htmlReport** (file): HTML report");
+  });
+
+  it("does not include output items section when no items provided", async () => {
+    const result = await skillExecutor.run({
+      skillId: "s1",
+      skillDescription: "desc",
+      inputContent: "foo",
+      inputPath: "/tmp/foo",
+      agent: "claude-code",
+      jobId: "j1",
+    });
+
+    expect(result.isOk()).toBe(true);
+    const callArgs = runAgent.mock.calls[0][0];
+    expect(callArgs.userPrompt).not.toContain("## Expected Output Items");
+  });
 });

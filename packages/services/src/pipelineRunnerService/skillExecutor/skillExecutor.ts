@@ -10,7 +10,7 @@ import {
 } from "@repo/agent";
 import { logger } from "@repo/logger";
 import type { RunSkillOptions as EngineRunSkillOptions } from "@repo/pipeline-engine";
-import type { SshConnection } from "@repo/schemas";
+import type { OutputItem, SshConnection } from "@repo/schemas";
 import { runAgent } from "../agentRunner/agentRunner";
 
 const CHECK_OUTPUT_EXAMPLE: CheckOutput = {
@@ -93,12 +93,28 @@ const buildSkillUserPrompt = ({
   skillDescription,
   inputContent,
   inputPath,
+  outputItems,
 }: {
   skillId: string;
   skillDescription: string;
   inputContent: string;
   inputPath: string;
+  outputItems?: readonly OutputItem[];
 }): string => {
+  const outputItemsSection =
+    outputItems && outputItems.length > 0
+      ? [
+          "",
+          "## Expected Output Items",
+          "Your response MUST include ALL of the following output items:",
+          ...outputItems.map(
+            (item, i) =>
+              `${i + 1}. **${item.name}** (${item.kind})${item.description ? `: ${item.description}` : ""}`,
+          ),
+          "",
+        ]
+      : [];
+
   return [
     `Skill ID: ${skillId}`,
     `Skill description: ${skillDescription}`,
@@ -113,6 +129,7 @@ const buildSkillUserPrompt = ({
     "Use the fix structure when reporting applied changes:",
     JSON.stringify(FIX_OUTPUT_EXAMPLE, null, 2),
     "",
+    ...outputItemsSection,
     inputPath ? `Project path: ${inputPath}` : "",
     "",
     "Input:",
@@ -159,6 +176,7 @@ const run = ({
   apiKey,
   model,
   ssh,
+  outputItems,
 }: RunSkillExecutorOptions): ResultAsync<string, SkillExecutionError> => {
   const effectiveSystemPrompt = systemPrompt ?? DEFAULT_SKILL_SYSTEM_PROMPT;
   const userPrompt = buildSkillUserPrompt({
@@ -166,6 +184,7 @@ const run = ({
     skillDescription,
     inputContent,
     inputPath,
+    outputItems,
   });
 
   const parsedCustomTools = customAllowedTools

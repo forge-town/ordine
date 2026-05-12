@@ -7,7 +7,6 @@ export const LocalPathOutputNodeDataSchema = z.object({
   localPath: z.string(),
   outputFileName: z.string().optional(),
   outputMode: OutputModeSchema.optional(),
-  dualOutput: z.boolean().optional(),
   description: z.string().optional(),
 });
 export type LocalPathOutputNodeData = z.infer<typeof LocalPathOutputNodeDataSchema>;

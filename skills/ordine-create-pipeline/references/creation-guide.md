@@ -76,7 +76,6 @@ curl -s -X POST http://localhost:9433/api/pipelines \
           "nodeType": "output-local-path",
           "localPath": ".ordine/results/classname-report",
           "outputMode": "overwrite",
-          "dualOutput": true,
           "description": "ClassName 规范检查报告"
         },
         "position": { "x": 1000, "y": 0 }
