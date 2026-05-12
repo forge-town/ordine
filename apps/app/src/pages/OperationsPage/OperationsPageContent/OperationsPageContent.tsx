@@ -11,7 +11,7 @@ import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { useToastStore } from "@/store/toastStore";
 import { useStore } from "zustand";
-import { safeJsonParse } from "@/lib/safeJson";
+import { parseOperationZip } from "../importOperation";
 import {
   Select,
   SelectContent,
@@ -98,13 +98,12 @@ export const OperationsPageContent = () => {
     if (!file) return;
     handleSetImporting(true);
 
-    const text = await file.text();
-    const parseResult = safeJsonParse<Partial<Operation>>(text);
+    const parseResult = await parseOperationZip(file);
     if (parseResult.isErr()) {
       addToast({
         type: "error",
         title: t("common.import"),
-        description: t("errors.networkError"),
+        description: parseResult.error,
       });
       handleSetImporting(false);
       e.target.value = "";
@@ -112,25 +111,38 @@ export const OperationsPageContent = () => {
       return;
     }
     const parsed = parseResult.value;
-    if (!parsed.name || typeof parsed.name !== "string" || !parsed.name.trim()) {
-      addToast({
-        type: "error",
-        title: t("common.import"),
-        description: `JSON ${t("validation.nameRequired")}`,
-      });
-      handleSetImporting(false);
-      e.target.value = "";
 
-      return;
+    // Create templates first if present
+    const templateIdMap = new Map<string, string>();
+    for (const tpl of parsed.templates) {
+      const newId = `tpl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      templateIdMap.set(tpl.id, newId);
+      await createOpMutate({
+        resource: ResourceName.operationOutputItemTemplates,
+        values: {
+          id: newId,
+          name: tpl.name,
+          description: tpl.description,
+          content: tpl.content,
+          contentType: tpl.contentType,
+        },
+      });
     }
+
+    // Remap templateIds in outputs to new IDs
+    const outputs = parsed.config.outputs.map((o) => ({
+      ...o,
+      templateIds: o.templateIds.map((id) => templateIdMap.get(id) ?? id),
+    }));
+
     const result = await createOpMutate({
       resource: ResourceName.operations,
       values: {
         id: `op-${Date.now()}`,
         name: parsed.name,
-        description: parsed.description ?? null,
-        config: parsed.config ?? "{}",
-        acceptedObjectTypes: parsed.acceptedObjectTypes ?? ["file", "folder", "project"],
+        description: parsed.description,
+        config: { ...parsed.config, outputs },
+        acceptedObjectTypes: parsed.acceptedObjectTypes,
       },
     });
     const created = result.data;
@@ -169,7 +181,7 @@ export const OperationsPageContent = () => {
             </Button>
             <input
               ref={importInputRef}
-              accept=".json,application/json"
+              accept=".zip,application/zip"
               className="hidden"
               type="file"
               onChange={handleImportFile}
