@@ -13,6 +13,7 @@ export const RunPromptOptionsSchema = z.object({
   extraTools: z.array(z.string()).optional(),
   githubToken: z.string().optional(),
   outputItems: z.array(OutputItemSchema).optional(),
+  outputDir: z.string().optional(),
 });
 export type RunPromptOptions = z.infer<typeof RunPromptOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;

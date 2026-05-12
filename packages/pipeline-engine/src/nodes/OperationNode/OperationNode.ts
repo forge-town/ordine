@@ -149,6 +149,7 @@ export const executeOperationNode = async (
       extraTools: extraTools.length > 0 ? extraTools : undefined,
       githubToken: input.githubRemote ? ctx.githubToken : undefined,
       outputItems: config.outputs.length > 0 ? config.outputs : undefined,
+      outputDir: ctx.outputDir,
     });
     if (promptResult.isErr()) {
       await trace(jobId, `@@NODE_FAIL::${node.id}`);
@@ -187,6 +188,7 @@ export const executeOperationNode = async (
       onChunk: handleChunk,
       onProgress,
       outputItems: config.outputs.length > 0 ? config.outputs : undefined,
+      outputDir: ctx.outputDir,
     });
     opResult.value = skillResult.isOk() ? skillResult.value : "";
     if (skillResult.isErr()) {

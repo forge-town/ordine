@@ -94,19 +94,25 @@ const buildSkillUserPrompt = ({
   inputContent,
   inputPath,
   outputItems,
+  outputDir,
 }: {
   skillId: string;
   skillDescription: string;
   inputContent: string;
   inputPath: string;
   outputItems?: readonly OutputItem[];
+  outputDir?: string;
 }): string => {
   const outputItemsSection =
     outputItems && outputItems.length > 0
       ? [
           "",
           "## Expected Output Items",
-          "Your response MUST include ALL of the following output items:",
+          "Your response MUST include ALL of the following output items.",
+          ...(outputDir
+            ? [`Write all output files to the directory: ${outputDir}`]
+            : []),
+          "Include the file paths in an \"outputs\" field in your JSON response.",
           ...outputItems.map(
             (item, i) =>
               `${i + 1}. **${item.name}** (${item.kind})${item.description ? `: ${item.description}` : ""}`,
@@ -177,6 +183,7 @@ const run = ({
   model,
   ssh,
   outputItems,
+  outputDir,
 }: RunSkillExecutorOptions): ResultAsync<string, SkillExecutionError> => {
   const effectiveSystemPrompt = systemPrompt ?? DEFAULT_SKILL_SYSTEM_PROMPT;
   const userPrompt = buildSkillUserPrompt({
@@ -185,6 +192,7 @@ const run = ({
     inputContent,
     inputPath,
     outputItems,
+    outputDir,
   });
 
   const parsedCustomTools = customAllowedTools

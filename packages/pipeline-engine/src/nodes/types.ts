@@ -25,6 +25,7 @@ export interface OperationNodeContext extends NodeContext {
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
   lookupBestPractice: (id: string) => Promise<{ title: string; content: string } | null>;
   githubToken?: string;
+  outputDir?: string;
 }
 
 export interface AgentInfo {

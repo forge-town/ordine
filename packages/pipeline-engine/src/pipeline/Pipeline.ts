@@ -182,6 +182,7 @@ export class Pipeline {
           lookupSkill: this.opts.lookupSkill,
           lookupBestPractice: this.opts.lookupBestPractice,
           githubToken: this.opts.githubToken,
+          outputDir: this.resolveOutputDirForNode(node.id),
         };
 
         return this.wrapNodeResult(node.id, processOperationNode(node, input, opCtx));
@@ -223,6 +224,18 @@ export class Pipeline {
     await trace(jobId, `@@NODE_DONE::${node.id}`);
 
     return { ok: true };
+  }
+
+  private resolveOutputDirForNode(nodeId: string): string | undefined {
+    const { edges, nodes } = this.opts.pipeline;
+    const childIds = edges.filter((e) => e.source === nodeId).map((e) => e.target);
+    const outputNode = nodes.find(
+      (n) => childIds.includes(n.id) && n.data.nodeType === NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH,
+    );
+    const configuredPath = outputNode?.data.localPath ?? "";
+    const resolved = configuredPath || this.opts.defaultOutputPath || "";
+
+    return resolved || undefined;
   }
 
   /**

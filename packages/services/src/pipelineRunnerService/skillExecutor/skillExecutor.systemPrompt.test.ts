@@ -104,4 +104,41 @@ describe("skillExecutor systemPrompt", () => {
     const callArgs = runAgent.mock.calls[0][0];
     expect(callArgs.userPrompt).not.toContain("## Expected Output Items");
   });
+
+  it("includes outputDir in the user prompt when provided with output items", async () => {
+    const result = await skillExecutor.run({
+      skillId: "s1",
+      skillDescription: "desc",
+      inputContent: "foo",
+      inputPath: "/tmp/foo",
+      agent: "claude-code",
+      jobId: "j1",
+      outputItems: [
+        { name: "report", kind: "file", description: "Markdown report", templateIds: [] },
+      ],
+      outputDir: "/output/results",
+    });
+
+    expect(result.isOk()).toBe(true);
+    const callArgs = runAgent.mock.calls[0][0];
+    expect(callArgs.userPrompt).toContain("Write all output files to the directory: /output/results");
+  });
+
+  it("does not include outputDir instruction when outputDir is absent", async () => {
+    const result = await skillExecutor.run({
+      skillId: "s1",
+      skillDescription: "desc",
+      inputContent: "foo",
+      inputPath: "/tmp/foo",
+      agent: "claude-code",
+      jobId: "j1",
+      outputItems: [
+        { name: "report", kind: "file", description: "Markdown report", templateIds: [] },
+      ],
+    });
+
+    expect(result.isOk()).toBe(true);
+    const callArgs = runAgent.mock.calls[0][0];
+    expect(callArgs.userPrompt).not.toContain("Write all output files to the directory");
+  });
 });
