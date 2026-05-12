@@ -16,7 +16,7 @@ interface ChecklistItemEditorProps {
       ChecklistItemDraft,
       "title" | "description" | "checkType" | "script" | "sortOrder"
     >,
-    value: string | number
+    value: string | number,
   ) => void;
   onDelete: (id: string) => void;
 }

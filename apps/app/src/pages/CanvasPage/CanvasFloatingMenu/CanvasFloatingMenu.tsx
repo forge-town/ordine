@@ -86,7 +86,7 @@ export const CanvasFloatingMenu = () => {
           onSuccess: () => {
             handlePipelineIdChange(newId);
           },
-        }
+        },
       );
     }
   };

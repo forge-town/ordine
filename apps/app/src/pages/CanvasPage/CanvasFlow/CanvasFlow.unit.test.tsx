@@ -130,7 +130,7 @@ const renderWithStore = (nodes: PipelineNode[], isConsoleOpen = false) => {
       <ReactFlowProvider>
         <CanvasFlow />
       </ReactFlowProvider>
-    </HarnessCanvasStoreContext.Provider>
+    </HarnessCanvasStoreContext.Provider>,
   );
 };
 
@@ -151,7 +151,7 @@ describe("CanvasFlow", () => {
         <ReactFlowProvider>
           <CanvasFlow />
         </ReactFlowProvider>
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-nodes-draggable", "false");
@@ -197,7 +197,7 @@ describe("CanvasFlow", () => {
         <ReactFlowProvider>
           <CanvasFlow />
         </ReactFlowProvider>
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     expect(screen.queryByTestId("mini-map")).not.toBeInTheDocument();
@@ -220,7 +220,7 @@ describe("CanvasFlow", () => {
         <ReactFlowProvider>
           <CanvasFlow />
         </ReactFlowProvider>
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     screen.getByTestId("react-flow").dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
@@ -237,7 +237,7 @@ describe("CanvasFlow", () => {
         <ReactFlowProvider>
           <CanvasFlow viewportRef={viewportRef} />
         </ReactFlowProvider>
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     expect(viewportRef.current).toBe(screen.getByTestId("canvas-flow-viewport"));

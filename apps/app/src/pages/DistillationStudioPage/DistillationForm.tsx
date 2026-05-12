@@ -142,7 +142,7 @@ export const DistillationForm = () => {
         distillation: existingDistillationResult,
         fallbackTitle: initialTitle,
         search,
-      })
+      }),
     );
     setLatestDistillation(existingDistillationResult);
   }, [existingDistillationResult, form, initialTitle, search, setLatestDistillation]);

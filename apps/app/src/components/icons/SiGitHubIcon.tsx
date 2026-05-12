@@ -13,7 +13,7 @@ export const SiGitHubIcon = React.forwardRef<SVGSVGElement, React.SVGProps<SVGSV
     >
       <path d={siGithub.path} />
     </svg>
-  )
+  ),
 );
 
 SiGitHubIcon.displayName = "SiGitHubIcon";

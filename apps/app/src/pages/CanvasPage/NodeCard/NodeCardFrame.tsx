@@ -61,7 +61,7 @@ export const NodeCardFrame = memo(
             "ring-2 ring-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.4)] animate-pulse",
           runStatus === "pass" && "ring-2 ring-green-500",
           runStatus === "fail" && "ring-2 ring-red-500",
-          dimmed && "opacity-40 pointer-events-none"
+          dimmed && "opacity-40 pointer-events-none",
         )}
         size="sm"
       >
@@ -70,7 +70,7 @@ export const NodeCardFrame = memo(
             <div
               className={cn(
                 "flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
-                t.iconBg
+                t.iconBg,
               )}
             >
               <Icon className={cn("h-4 w-4", t.iconColor)} />
@@ -81,7 +81,7 @@ export const NodeCardFrame = memo(
                   aria-label={translate("canvas.nodeLabel")}
                   className={cn(
                     "nodrag nopan w-auto max-w-full bg-transparent text-xs font-semibold leading-tight [field-sizing:content] focus:outline-none",
-                    isLabelEditing ? "select-text" : "cursor-default select-none"
+                    isLabelEditing ? "select-text" : "cursor-default select-none",
                   )}
                   name="nodeLabel"
                   readOnly={!isLabelEditing}
@@ -111,6 +111,6 @@ export const NodeCardFrame = memo(
         )}
       </Card>
     );
-  }
+  },
 );
 NodeCardFrame.displayName = "NodeCardFrame";

@@ -30,7 +30,7 @@ export const useOperationDetailPageStore = () => {
   const context = useContext(OperationDetailPageStoreContext);
   if (!context) {
     throw new Error(
-      "useOperationDetailPageStore must be used within a OperationDetailPageStoreProvider"
+      "useOperationDetailPageStore must be used within a OperationDetailPageStoreProvider",
     );
   }
 

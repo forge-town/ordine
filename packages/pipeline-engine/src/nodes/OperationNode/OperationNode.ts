@@ -54,7 +54,10 @@ export const executeOperationNode = async (
 
         return agent.defaultRuntime as ExecutorConfig["agent"];
       }
-      await trace(jobId, `WARNING: Agent ${data.agentId} not found or has no runtime, falling back`);
+      await trace(
+        jobId,
+        `WARNING: Agent ${data.agentId} not found or has no runtime, falling back`,
+      );
     }
 
     return data.agentRuntime as ExecutorConfig["agent"] | undefined;
@@ -99,6 +102,9 @@ export const executeOperationNode = async (
 
   await trace(jobId, `Executing operation "${operation.name}" (${executor.type})`);
 
+  const effectiveAgentMode =
+    executor.agentMode ?? (executor.type === "agent" ? "prompt" : undefined);
+
   const chunkState = { lastTime: 0 };
   const handleChunk = async (accumulated: string) => {
     const now = Date.now();
@@ -127,8 +133,8 @@ export const executeOperationNode = async (
     }
     opResult.value = scriptResult.value;
     await trace(jobId, `Script output (${opResult.value.length} chars)`);
-  } else if (executor.type === "agent" && executor.agentMode === "prompt") {
-    const prompt = executor.prompt ?? "";
+  } else if (executor.type === "agent" && effectiveAgentMode === "prompt") {
+    const prompt = executor.prompt ?? executor.systemPrompt ?? "";
     if (!prompt.trim()) {
       await trace(
         jobId,
@@ -159,7 +165,7 @@ export const executeOperationNode = async (
     opResult.value = promptResult.value;
     await trace(jobId, `@@LLM_CONTENT::${node.id}::${opResult.value}`);
     await trace(jobId, `Prompt output (${opResult.value.length} chars)`);
-  } else if (executor.type === "agent" && executor.agentMode === "skill") {
+  } else if (executor.type === "agent" && effectiveAgentMode === "skill") {
     const skillId = executor.skillId ?? "";
     if (!skillId) {
       await trace(

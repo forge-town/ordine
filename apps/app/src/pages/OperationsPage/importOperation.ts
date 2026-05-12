@@ -51,7 +51,7 @@ const CONTENT_TYPE_TO_EXT: Record<string, string> = {
 };
 
 const parseFrontmatter = (
-  content: string
+  content: string,
 ): Result<{ frontmatter: Record<string, string>; body: string }, string> => {
   const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) {
@@ -70,7 +70,7 @@ const parseFrontmatter = (
 };
 
 const parseOutputs = (
-  body: string
+  body: string,
 ): Array<{ name: string; kind: PortKind; description: string; templateIds: string[] }> => {
   const outputsMatch = body.match(/## Outputs\n\n([\s\S]*?)(?:\n## |\n*$)/);
   if (!outputsMatch) return [];
@@ -120,7 +120,7 @@ export const parseOperationMd = (content: string): Result<ParsedOperation, strin
 };
 
 export const parseOperationZip = async (
-  file: File | Blob | ArrayBuffer | Uint8Array
+  file: File | Blob | ArrayBuffer | Uint8Array,
 ): Promise<Result<ParsedOperation, string>> => {
   const zip = await JSZip.loadAsync(file);
 

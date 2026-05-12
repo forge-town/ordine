@@ -32,7 +32,7 @@ export const RuleCard = ({
     <div
       className={cn(
         "group rounded-xl border border-border bg-card p-4 transition-all",
-        !rule.enabled && "opacity-50"
+        !rule.enabled && "opacity-50",
       )}
     >
       <div className="flex items-start justify-between gap-3">

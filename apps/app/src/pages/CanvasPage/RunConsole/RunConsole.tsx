@@ -46,7 +46,7 @@ const parseStructuredLogs = (
     onNodeDone: (nodeId: string) => void;
     onNodeFail: (nodeId: string) => void;
     onLlmContent: (nodeId: string, content: string) => void;
-  }
+  },
 ) => {
   for (const log of logs) {
     const msg = log.replace(/^\[[^\]]+\]\s*/, "");
@@ -120,7 +120,7 @@ export const RunConsole = () => {
         }
       });
     },
-    [markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent]
+    [markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent],
   );
 
   const { query: jobQuery } = useOne<JobData>({
@@ -185,7 +185,7 @@ export const RunConsole = () => {
     <div
       className={cn(
         "absolute bottom-0 left-0 right-0 z-30 border-t bg-background shadow-lg transition-all",
-        isConsoleCollapsed ? "h-9" : "h-64"
+        isConsoleCollapsed ? "h-9" : "h-64",
       )}
     >
       {/* Status bar */}
@@ -203,7 +203,7 @@ export const RunConsole = () => {
                   job.status === "running" && "text-blue-600",
                   job.status === "done" && "text-green-600",
                   job.status === "failed" && "text-red-600",
-                  job.status === "expired" && "text-slate-600"
+                  job.status === "expired" && "text-slate-600",
                 )}
               >
                 {t(statusLabelKeys[job.status])}
@@ -259,7 +259,7 @@ export const RunConsole = () => {
                       log.includes("ERROR") && "text-red-600 font-medium",
                       log.includes("Pipeline complete") && "text-green-600 font-medium",
                       log.includes("Cloned to") && "text-blue-600",
-                      log.includes("Skill output") && "text-violet-600"
+                      log.includes("Skill output") && "text-violet-600",
                     )}
                   >
                     {parseMessage(log)}

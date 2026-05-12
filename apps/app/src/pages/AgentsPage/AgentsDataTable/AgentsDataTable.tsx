@@ -78,7 +78,7 @@ export const AgentsDataTable = ({ data }: { data: Agent[] }) => {
     (agentId: string) => {
       navigate({ to: "/agents/$agentId", params: { agentId } });
     },
-    [navigate]
+    [navigate],
   );
 
   return (

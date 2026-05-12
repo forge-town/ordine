@@ -31,7 +31,7 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
       handleSetActiveTab: s.handleSetActiveTab,
       handleSwitchToTemplatesTab: s.handleSwitchToTemplatesTab,
       handleSelectTemplate: s.handleSelectTemplate,
-    }))
+    })),
   );
 
   if (!selectedItem) {

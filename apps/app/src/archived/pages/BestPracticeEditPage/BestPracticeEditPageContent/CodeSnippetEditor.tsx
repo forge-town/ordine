@@ -16,7 +16,7 @@ interface CodeSnippetEditorProps {
   onUpdate: (
     id: string,
     field: keyof Pick<CodeSnippetDraft, "title" | "language" | "code" | "sortOrder">,
-    value: string | number
+    value: string | number,
   ) => void;
   onDelete: (id: string) => void;
 }

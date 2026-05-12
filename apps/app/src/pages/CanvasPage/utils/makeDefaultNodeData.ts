@@ -3,7 +3,7 @@ import type { PipelineNodeData } from "../schemas/PipelineNodeDataSchema";
 
 export const makeDefaultNodeData = (
   type: BuiltinNodeType,
-  options?: { label?: string }
+  options?: { label?: string },
 ): PipelineNodeData => {
   switch (type) {
     case "operation": {

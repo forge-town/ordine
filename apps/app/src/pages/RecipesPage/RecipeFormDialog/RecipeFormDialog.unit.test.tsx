@@ -72,7 +72,7 @@ describe("RecipeFormDialog", () => {
         bestPractices={mockBestPractices}
         initial={mockRecipe}
         operations={mockOperations}
-      />
+      />,
     );
     expect(screen.getByText("编辑配方")).toBeInTheDocument();
   });

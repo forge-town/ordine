@@ -36,7 +36,7 @@ export const CanvasTopChrome = () => {
           <CanvasFloatingMenu />
           {renderPipelineTitle(
             "hidden min-w-0 min-[700px]:flex min-[700px]:w-[clamp(10rem,calc(50vw-17rem),18rem)]",
-            "canvas-title-desktop"
+            "canvas-title-desktop",
           )}
         </div>
 

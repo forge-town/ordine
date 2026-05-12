@@ -20,14 +20,14 @@ export const PipelineRow = ({ pipeline, selected }: PipelineRowProps) => {
         "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
         selected
           ? "border-primary/50 bg-primary/5"
-          : "border-border bg-card hover:border-primary/50 hover:bg-accent"
+          : "border-border bg-card hover:border-primary/50 hover:bg-accent",
       )}
       onClick={handleSelect}
     >
       <span
         className={cn(
           "flex h-7 w-7 shrink-0 items-center justify-center rounded",
-          selected ? "bg-primary" : "bg-primary/10"
+          selected ? "bg-primary" : "bg-primary/10",
         )}
       >
         <Layers
@@ -43,7 +43,7 @@ export const PipelineRow = ({ pipeline, selected }: PipelineRowProps) => {
       <ChevronRight
         className={cn(
           "h-3.5 w-3.5 shrink-0 transition-colors",
-          selected ? "text-primary" : "text-muted-foreground"
+          selected ? "text-primary" : "text-muted-foreground",
         )}
       />
     </button>

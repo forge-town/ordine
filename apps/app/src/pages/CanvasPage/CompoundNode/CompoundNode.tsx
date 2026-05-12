@@ -33,7 +33,7 @@ export const CompoundNode = ({ id, data, selected }: CompoundNodeProps) => {
       className={cn(
         "relative rounded-xl border-2 border-dashed bg-indigo-50/30 transition-all duration-200",
         selected ? "border-indigo-500 shadow-lg" : "border-indigo-300/60",
-        isHovered && "border-indigo-400 bg-indigo-50/50 shadow-md"
+        isHovered && "border-indigo-400 bg-indigo-50/50 shadow-md",
       )}
       style={{ width: "100%", height: "100%", minWidth: 200, minHeight: 120 }}
     >

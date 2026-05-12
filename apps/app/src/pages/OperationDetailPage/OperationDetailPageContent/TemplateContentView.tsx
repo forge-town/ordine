@@ -18,7 +18,7 @@ export const TemplateContentView = ({ template }: TemplateContentViewProps) => {
     useShallow((s) => ({
       templateViewMode: s.templateViewMode,
       handleSetTemplateViewMode: s.handleSetTemplateViewMode,
-    }))
+    })),
   );
 
   const canPreview = PREVIEWABLE_TYPES.has(template.contentType);

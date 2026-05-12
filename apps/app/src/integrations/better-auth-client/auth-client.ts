@@ -26,7 +26,7 @@ export const signUpWithEmail = (input: {
       ...input,
       callbackURL: input.callbackURL ?? "/",
     }),
-    (e) => new AuthError(e instanceof Error ? e.message : "Signup request failed")
+    (e) => new AuthError(e instanceof Error ? e.message : "Signup request failed"),
   ).andThen(({ data, error }) => {
     if (error) return err(new AuthError(error.message ?? "Signup failed"));
 
@@ -44,7 +44,7 @@ export const signInWithEmail = (input: {
       ...input,
       callbackURL: input.callbackURL ?? "/",
     }),
-    (e) => new AuthError(e instanceof Error ? e.message : "Login request failed")
+    (e) => new AuthError(e instanceof Error ? e.message : "Login request failed"),
   ).andThen(({ data, error }) => {
     if (error) return err(new AuthError(error.message ?? "Login failed"));
 

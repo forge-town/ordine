@@ -43,7 +43,7 @@ export const CanvasSettingsDrawer = () => {
 
   const handleSettingChange = (
     id: keyof CanvasSettingsState,
-    event: ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>,
   ) => {
     updateCanvasSettings({ [id]: event.target.checked } as Partial<CanvasSettingsState>);
   };
@@ -111,7 +111,7 @@ export const CanvasSettingsDrawer = () => {
                   checked={settings[id]}
                   className={cn(
                     "mt-1 size-4 rounded border-slate-300 text-slate-900",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
                   )}
                   id={inputId}
                   type="checkbox"

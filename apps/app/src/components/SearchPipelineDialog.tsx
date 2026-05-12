@@ -29,7 +29,7 @@ export const SearchPipelineDialog = () => {
     if (!q) return items;
 
     return items.filter(
-      (p) => p.name.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q)
+      (p) => p.name.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q),
     );
   }, [pipelinesData, query]);
 

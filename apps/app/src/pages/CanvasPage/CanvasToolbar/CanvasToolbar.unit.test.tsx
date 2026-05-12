@@ -125,7 +125,7 @@ describe("CanvasToolbar - Run Test button", () => {
       expect(mockTrpcUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
           id: "pipe-test",
-        })
+        }),
       );
     });
 
@@ -140,7 +140,7 @@ describe("CanvasToolbar - Run Test button", () => {
     await user.click(screen.getByRole("button", { name: i18n.t("canvas.runTest") }));
     await waitFor(() => {
       expect(toastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "success" })])
+        expect.arrayContaining([expect.objectContaining({ type: "success" })]),
       );
     });
   });
@@ -152,7 +152,7 @@ describe("CanvasToolbar - Run Test button", () => {
     await user.click(screen.getByRole("button", { name: i18n.t("canvas.runTest") }));
     await waitFor(() => {
       expect(toastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "error" })])
+        expect.arrayContaining([expect.objectContaining({ type: "error" })]),
       );
     });
     expect(mockTrpcRun).not.toHaveBeenCalled();
@@ -165,7 +165,7 @@ describe("CanvasToolbar - Run Test button", () => {
     await user.click(screen.getByRole("button", { name: i18n.t("canvas.runTest") }));
     await waitFor(() => {
       expect(toastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "error" })])
+        expect.arrayContaining([expect.objectContaining({ type: "error" })]),
       );
     });
   });
@@ -183,7 +183,7 @@ describe("CanvasToolbar - interactive state", () => {
     await user.click(toggle);
 
     expect(
-      screen.getByRole("button", { name: i18n.t("canvas.enableInteractivity") })
+      screen.getByRole("button", { name: i18n.t("canvas.enableInteractivity") }),
     ).toHaveAttribute("aria-pressed", "false");
   });
 });

@@ -43,7 +43,7 @@ export const OperationDetailPageContent = () => {
         handleNavigateBack: s.handleNavigateBack,
         handleNavigateToEdit: s.handleNavigateToEdit,
         handleOpenRunPanel: s.handleOpenRunPanel,
-      }))
+      })),
     );
 
   const config = operation ? parseConfig(operation.config) : null;

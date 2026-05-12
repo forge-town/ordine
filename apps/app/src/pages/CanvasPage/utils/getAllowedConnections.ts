@@ -6,5 +6,5 @@ import type { Operation } from "@repo/schemas";
 import type { z } from "zod/v4";
 
 export const getAllowedConnections = (
-  _operations?: Operation[]
+  _operations?: Operation[],
 ): z.infer<typeof NodeConnectionRulesSchema> => NODE_CONNECTION_RULES;

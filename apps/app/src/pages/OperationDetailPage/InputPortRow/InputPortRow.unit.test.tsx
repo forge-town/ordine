@@ -12,7 +12,7 @@ describe("InputPortRow", () => {
           required: true,
           description: "输入文件",
         }}
-      />
+      />,
     );
     expect(screen.getByText("source_file")).toBeInTheDocument();
   });

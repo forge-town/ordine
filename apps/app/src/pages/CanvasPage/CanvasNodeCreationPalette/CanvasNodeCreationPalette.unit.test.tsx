@@ -44,7 +44,7 @@ const renderQuickAdd = () => {
   render(
     <HarnessCanvasStoreContext.Provider value={store}>
       <CanvasNodeCreationPalette getCreateNodeScreenPosition={() => ({ x: 700, y: 500 })} />
-    </HarnessCanvasStoreContext.Provider>
+    </HarnessCanvasStoreContext.Provider>,
   );
 
   return store;

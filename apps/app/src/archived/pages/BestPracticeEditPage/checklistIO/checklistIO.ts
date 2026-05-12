@@ -26,7 +26,7 @@ export const fromJson = (text: string): Result<ChecklistExportItem[], string> =>
             : "llm") as "script" | "llm",
           script: item.script == null ? null : String(item.script),
           sortOrder: typeof item.sortOrder === "number" ? item.sortOrder : idx,
-        }))
+        })),
       );
     });
 };
@@ -48,7 +48,7 @@ export const toCsv = (items: ChecklistExportItem[]): string => {
       item.checkType,
       escapeCsvField(item.script ?? ""),
       String(item.sortOrder),
-    ].join(",")
+    ].join(","),
   );
 
   return [header, ...rows].join("\n");

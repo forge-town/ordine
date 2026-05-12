@@ -78,7 +78,7 @@ export const NodeContextMenu = () => {
       e.preventDefault();
       handleNodeContextDuplicate();
     },
-    [handleNodeContextDuplicate]
+    [handleNodeContextDuplicate],
   );
 
   if (!nodeContextMenu || !node) return null;
@@ -99,7 +99,7 @@ export const NodeContextMenu = () => {
     if (!objectType) return operations;
 
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project" | "prompt")
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project" | "prompt"),
     );
   })();
 
@@ -153,7 +153,7 @@ export const NodeContextMenu = () => {
           <span
             className={cn(
               "flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold text-white",
-              meta.iconBg
+              meta.iconBg,
             )}
           >
             {getNodeTypeShortLabel(t, node.type).charAt(0)}
@@ -176,7 +176,7 @@ export const NodeContextMenu = () => {
 
             {/* Object types */}
             {["file", "folder", "github-project", "prompt"].some((t) =>
-              availableTypes.includes(t as BuiltinNodeType)
+              availableTypes.includes(t as BuiltinNodeType),
             ) && (
               <ContextMenuGroup>
                 <ContextMenuLabel>{t("canvas.contextMenu.processingObject")}</ContextMenuLabel>
@@ -195,7 +195,7 @@ export const NodeContextMenu = () => {
                         <span
                           className={cn(
                             "flex size-4 shrink-0 items-center justify-center rounded",
-                            m.iconBg
+                            m.iconBg,
                           )}
                         >
                           <Icon className="size-2.5 text-white" />
@@ -266,7 +266,7 @@ export const NodeContextMenu = () => {
 
             {/* Output nodes */}
             {(["output-project-path", "output-local-path"] as BuiltinNodeType[]).some((t) =>
-              availableTypes.includes(t)
+              availableTypes.includes(t),
             ) && (
               <>
                 <ContextMenuSeparator />
@@ -287,7 +287,7 @@ export const NodeContextMenu = () => {
                           <span
                             className={cn(
                               "flex size-4 shrink-0 items-center justify-center rounded",
-                              m.iconBg
+                              m.iconBg,
                             )}
                           >
                             <Icon className="size-2.5 text-white" />

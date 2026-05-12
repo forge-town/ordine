@@ -76,7 +76,7 @@ describe("canvas connection actions", () => {
         isValid: null,
         fromNode: { id: source.id },
         fromHandle: { id: null, type: "source" },
-      } as FinalConnectionState
+      } as FinalConnectionState,
     );
 
     expect(store.getState().connectStart).toEqual({
@@ -108,7 +108,7 @@ describe("canvas connection actions", () => {
         isValid: null,
         fromNode: { id: source.id },
         fromHandle: { id: "right-port-0", type: null },
-      } as unknown as FinalConnectionState
+      } as unknown as FinalConnectionState,
     );
 
     expect(store.getState().connectStart).toBeNull();

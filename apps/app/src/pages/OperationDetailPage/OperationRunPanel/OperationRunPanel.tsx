@@ -80,7 +80,7 @@ export const OperationRunPanel = ({ operationId, operationName }: OperationRunPa
       handleSetRunInputContent: s.handleSetRunInputContent,
       handleStartRun: s.handleStartRun,
       handleCloseRunPanel: s.handleCloseRunPanel,
-    }))
+    })),
   );
 
   const { result: job } = useOne<JobData>({
@@ -175,7 +175,7 @@ export const OperationRunPanel = ({ operationId, operationName }: OperationRunPa
                 disabled={isRunning}
                 placeholder={t(
                   "operations.run.inputContentPlaceholder",
-                  "Or paste content directly..."
+                  "Or paste content directly...",
                 )}
                 rows={4}
                 value={runInputContent}
@@ -211,7 +211,7 @@ export const OperationRunPanel = ({ operationId, operationName }: OperationRunPa
                 <span
                   className={cn(
                     "ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium",
-                    STATUS_STYLES[job.status]
+                    STATUS_STYLES[job.status],
                   )}
                 >
                   {job.status}
@@ -239,7 +239,7 @@ export const OperationRunPanel = ({ operationId, operationName }: OperationRunPa
                           "break-all",
                           log.includes("ERROR") && "text-red-600 font-medium",
                           log.includes("completed successfully") && "text-green-600 font-medium",
-                          log.includes("Skill output") && "text-violet-600"
+                          log.includes("Skill output") && "text-violet-600",
                         )}
                       >
                         {parseMessage(log)}

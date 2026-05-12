@@ -50,7 +50,7 @@ describe("FolderBrowser", () => {
 
   it("shows files in file mode", async () => {
     render(
-      <FolderBrowser open mode="file" onOpenChange={handleOpenChange} onSelect={handleSelect} />
+      <FolderBrowser open mode="file" onOpenChange={handleOpenChange} onSelect={handleSelect} />,
     );
     expect(screen.getByText("Desktop")).toBeInTheDocument();
     expect(screen.getByText(".zshrc")).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe("FolderBrowser", () => {
       .mockReturnValueOnce(makeQueryResult(subEntries));
 
     const { rerender } = render(
-      <FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />
+      <FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />,
     );
 
     await user.click(screen.getByText("Desktop"));
@@ -75,7 +75,7 @@ describe("FolderBrowser", () => {
     expect(mockUseList).toHaveBeenCalledWith(
       expect.objectContaining({
         filters: [{ field: "path", operator: "eq", value: "/Users/test/Desktop" }],
-      })
+      }),
     );
   });
 
@@ -91,7 +91,7 @@ describe("FolderBrowser", () => {
       .mockReturnValueOnce(makeQueryResult(subEntries));
 
     const { rerender } = render(
-      <FolderBrowser open onOpenChange={handleOpenChangeSpy} onSelect={handleSelectSpy} />
+      <FolderBrowser open onOpenChange={handleOpenChangeSpy} onSelect={handleSelectSpy} />,
     );
 
     await user.click(screen.getByText("Desktop"));

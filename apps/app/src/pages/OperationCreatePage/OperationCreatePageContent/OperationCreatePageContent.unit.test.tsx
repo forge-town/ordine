@@ -112,7 +112,7 @@ describe("OperationCreatePageContent", () => {
       expect(mockCreateMutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
           values: expect.objectContaining({ name: "Test Op" }),
-        })
+        }),
       );
     });
   });
@@ -131,7 +131,7 @@ describe("OperationCreatePageContent", () => {
         expect.objectContaining({
           to: "/pipelines/operations/$operationId",
           params: { operationId: "new-op-id" },
-        })
+        }),
       );
     });
   });

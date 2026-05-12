@@ -41,7 +41,7 @@ const inferOutputFilename = (output: OutputItem, contentTypeHint?: string): stri
 
 export const toOperationMd = (
   op: Operation,
-  templateMap?: Map<string, OperationOutputItemTemplate>
+  templateMap?: Map<string, OperationOutputItemTemplate>,
 ): string => {
   const lines: string[] = ["---"];
   lines.push(`name: ${op.name}`);
@@ -90,8 +90,8 @@ export const exportOperation = async (op: Operation) => {
         dataProvider.getOne!<OperationOutputItemTemplate>({
           resource: ResourceName.operationOutputItemTemplates,
           id,
-        }).then((r) => r.data)
-      )
+        }).then((r) => r.data),
+      ),
     );
     for (const tpl of templateResults) {
       if (tpl) templateMap.set(tpl.id, tpl);

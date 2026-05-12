@@ -64,7 +64,7 @@ describe("NodeCard", () => {
     render(
       <NodeCard icon={Box} label="Node" theme="emerald">
         <span>Body content</span>
-      </NodeCard>
+      </NodeCard>,
     );
     expect(screen.getByText("Body content")).toBeInTheDocument();
   });
@@ -92,31 +92,31 @@ describe("NodeCard", () => {
         icon={Box}
         label="Very Long Node Name That Should Not Break The Card Layout"
         theme="violet"
-      />
+      />,
     );
 
     expect(container.firstElementChild).toHaveClass("relative");
     expect(container.querySelector('[data-slot="card"]')).toHaveClass(
       "w-72",
-      "data-[size=sm]:py-0"
+      "data-[size=sm]:py-0",
     );
     expect(container.querySelector('[data-slot="card-header"] > div')).toHaveClass(
       "w-full",
-      "min-w-0"
+      "min-w-0",
     );
     expect(container.querySelector('[data-slot="card-header"]')).toHaveClass(
       "min-h-14",
-      "rounded-none"
+      "rounded-none",
     );
     expect(container.querySelector('[data-slot="card-action"]')).toHaveClass(
       "shrink-0",
-      "self-center"
+      "self-center",
     );
   });
 
   it("applies selected ring for each theme", () => {
     const { container, rerender } = render(
-      <NodeCard selected icon={Box} label="Node" theme="emerald" />
+      <NodeCard selected icon={Box} label="Node" theme="emerald" />,
     );
     expect(container.querySelector('[data-slot="card"]')).toHaveClass("ring-emerald-500");
 
@@ -234,7 +234,7 @@ describe("NodeCard", () => {
         leftHandleCount={2}
         rightHandleCount={3}
         theme="violet"
-      />
+      />,
     );
 
     const targetHandles = screen.getAllByTestId("target-handle");
@@ -263,7 +263,7 @@ describe("NodeCard", () => {
         label="Editable Node"
         theme="emerald"
         onLabelChange={handleLabelChange}
-      />
+      />,
     );
 
     const input = screen.getByLabelText(/Node label|节点标签/);
@@ -284,7 +284,7 @@ describe("NodeCard", () => {
         label="Keyboard Editable Node"
         theme="emerald"
         onLabelChange={handleLabelChange}
-      />
+      />,
     );
 
     const input = screen.getByLabelText(/Node label|节点标签/);

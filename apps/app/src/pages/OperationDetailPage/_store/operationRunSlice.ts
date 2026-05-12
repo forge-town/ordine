@@ -48,7 +48,7 @@ export const createOperationRunSlice: StateCreator<OperationRunSlice> = (set, ge
           agentOverride: runAgentOverride,
         },
       }),
-      () => new Error("Failed to start operation run")
+      () => new Error("Failed to start operation run"),
     )
       .map((response) => {
         set({ runJobId: response.data.jobId });

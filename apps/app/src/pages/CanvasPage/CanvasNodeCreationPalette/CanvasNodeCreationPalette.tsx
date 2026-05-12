@@ -76,7 +76,7 @@ export const CanvasNodeCreationPalette = ({
   const operationItems = operations.filter((operation) =>
     search === ""
       ? true
-      : includesSearch([operation.name, operation.description, "operation"], search)
+      : includesSearch([operation.name, operation.description, "operation"], search),
   );
 
   const recipeItems = recipes
@@ -85,12 +85,12 @@ export const CanvasNodeCreationPalette = ({
       operation: operations.find((operation) => operation.id === recipe.operationId),
     }))
     .filter(
-      (item): item is { recipe: Recipe; operation: Operation } => item.operation !== undefined
+      (item): item is { recipe: Recipe; operation: Operation } => item.operation !== undefined,
     )
     .filter(({ recipe, operation }) =>
       search === ""
         ? true
-        : includesSearch([recipe.name, recipe.description, operation.name, "recipe"], search)
+        : includesSearch([recipe.name, recipe.description, operation.name, "recipe"], search),
     );
 
   const hasResults = objectItems.length > 0 || operationItems.length > 0 || recipeItems.length > 0;
@@ -150,7 +150,7 @@ export const CanvasNodeCreationPalette = ({
                       <span
                         className={cn(
                           "flex size-6 shrink-0 items-center justify-center rounded",
-                          meta.iconBg
+                          meta.iconBg,
                         )}
                       >
                         <Icon className="size-3.5 text-white" />

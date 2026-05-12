@@ -11,7 +11,7 @@ export const rulesRouter = router({
           category: RuleCategorySchema.optional(),
           enabled: z.boolean().optional(),
         })
-        .optional()
+        .optional(),
     )
     .query(({ input }) => rulesService.getAll(input ?? {})),
 
@@ -32,7 +32,7 @@ export const rulesRouter = router({
         acceptedObjectTypes: z.array(z.string()).default(["file", "folder", "project"]),
         enabled: z.boolean().default(true),
         tags: z.array(z.string()).default([]),
-      })
+      }),
     )
     .mutation(({ input }) => rulesService.create(input)),
 
@@ -49,7 +49,7 @@ export const rulesRouter = router({
         acceptedObjectTypes: z.array(z.string()).optional(),
         enabled: z.boolean().optional(),
         tags: z.array(z.string()).optional(),
-      })
+      }),
     )
     .mutation(({ input }) => {
       const { id, ...rest } = input;

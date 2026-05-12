@@ -53,14 +53,14 @@ const mockBestPractice = {
 describe("RecipeCard", () => {
   it("renders recipe name", () => {
     render(
-      <RecipeCard bestPractice={mockBestPractice} operation={mockOperation} recipe={mockRecipe} />
+      <RecipeCard bestPractice={mockBestPractice} operation={mockOperation} recipe={mockRecipe} />,
     );
     expect(screen.getByText("Check ClassName 规范")).toBeInTheDocument();
   });
 
   it("renders operation and best practice names", () => {
     render(
-      <RecipeCard bestPractice={mockBestPractice} operation={mockOperation} recipe={mockRecipe} />
+      <RecipeCard bestPractice={mockBestPractice} operation={mockOperation} recipe={mockRecipe} />,
     );
     expect(screen.getByText("Check")).toBeInTheDocument();
     expect(screen.getByText("ClassName 转换规则")).toBeInTheDocument();
@@ -68,7 +68,7 @@ describe("RecipeCard", () => {
 
   it("renders description when provided", () => {
     render(
-      <RecipeCard bestPractice={mockBestPractice} operation={mockOperation} recipe={mockRecipe} />
+      <RecipeCard bestPractice={mockBestPractice} operation={mockOperation} recipe={mockRecipe} />,
     );
     expect(screen.getByText("检查 className 模板字符串")).toBeInTheDocument();
   });

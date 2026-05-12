@@ -1,7 +1,7 @@
-import type { MetaNodeType, BuiltinNodeType } from "@repo/schemas";
+import { type MetaNodeType, type BuiltinNodeType, META_NODE_TYPE_ENUM } from "@repo/schemas";
 
 const BUILTIN_META_MAP: Record<BuiltinNodeType, MetaNodeType> = {
-  "file": "object",
+  file: "object",
   folder: "object",
   "github-project": "object",
   prompt: "object",
@@ -11,11 +11,17 @@ const BUILTIN_META_MAP: Record<BuiltinNodeType, MetaNodeType> = {
   "output-project-path": "output",
 };
 
+const VALID_META_TYPES: ReadonlySet<string> = new Set(Object.values(META_NODE_TYPE_ENUM));
+
 /**
  * Resolve the metaType for a node.
- * - If `metaType` is explicitly set, use it.
+ * - If `metaType` is explicitly set **and valid**, use it.
  * - If `type` is a built-in type, look up from the map.
  * - Otherwise default to `"object"` (plugin-registered types are objects).
  */
-export const resolveMetaType = (type: string, metaType?: MetaNodeType): MetaNodeType =>
-  metaType ?? BUILTIN_META_MAP[type as BuiltinNodeType] ?? "object";
+export const resolveMetaType = (type: string, metaType?: string): MetaNodeType => {
+  const validMeta =
+    metaType && VALID_META_TYPES.has(metaType) ? (metaType as MetaNodeType) : undefined;
+
+  return validMeta ?? BUILTIN_META_MAP[type as BuiltinNodeType] ?? "object";
+};

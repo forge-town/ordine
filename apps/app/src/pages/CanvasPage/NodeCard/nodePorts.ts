@@ -43,7 +43,7 @@ const getNodePortIndex = (side: NodePortSide, handleId?: string | null): number 
 
 const getPendingPortSide = (
   pendingConnection: PendingNodePortConnection | null | undefined,
-  nodeId: string
+  nodeId: string,
 ): NodePortSide | null => {
   if (!pendingConnection || pendingConnection.nodeId !== nodeId) {
     return null;
@@ -78,7 +78,7 @@ export const getNodePortOffsets = (count: number, maxSpread?: number): number[] 
   const clampedSpread = clampPortSpread(spread, maxSpread);
 
   return Array.from({ length: safeCount }, (_item, index) =>
-    Math.round(-clampedSpread + (clampedSpread * 2 * index) / (safeCount - 1))
+    Math.round(-clampedSpread + (clampedSpread * 2 * index) / (safeCount - 1)),
   );
 };
 
@@ -86,10 +86,10 @@ export const getNodePortCount = (
   edges: PipelineEdge[],
   nodeId: string,
   side: NodePortSide,
-  pendingConnection?: PendingNodePortConnection | null
+  pendingConnection?: PendingNodePortConnection | null,
 ): number => {
   const connectionCount = edges.filter((edge) =>
-    side === "left" ? edge.target === nodeId : edge.source === nodeId
+    side === "left" ? edge.target === nodeId : edge.source === nodeId,
   ).length;
   const pendingConnectionCount = getPendingPortSide(pendingConnection, nodeId) === side ? 1 : 0;
 
@@ -99,14 +99,14 @@ export const getNodePortCount = (
 export const getNodePortCounts = (
   edges: PipelineEdge[],
   nodeId: string,
-  pendingConnection?: PendingNodePortConnection | null
+  pendingConnection?: PendingNodePortConnection | null,
 ) => {
   const { leftConnectionCount, rightConnectionCount } = edges.reduce(
     (counts, edge) => ({
       leftConnectionCount: counts.leftConnectionCount + (edge.target === nodeId ? 1 : 0),
       rightConnectionCount: counts.rightConnectionCount + (edge.source === nodeId ? 1 : 0),
     }),
-    { leftConnectionCount: 0, rightConnectionCount: 0 }
+    { leftConnectionCount: 0, rightConnectionCount: 0 },
   );
   const pendingSide = getPendingPortSide(pendingConnection, nodeId);
 
@@ -155,14 +155,14 @@ const makePortAssignments = (
   nodes: PipelineNode[],
   edges: PipelineEdge[],
   side: NodePortSide,
-  pendingConnection?: PendingNodePortConnection | null
+  pendingConnection?: PendingNodePortConnection | null,
 ): Map<string, string> => {
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const assignments = new Map<string, string>();
 
   for (const node of nodes) {
     const sideEdges = [...getSideEdges(edges, node.id, side)].sort(
-      compareByOtherNodeY(nodeById, side)
+      compareByOtherNodeY(nodeById, side),
     );
     const hasPendingConnection = getPendingPortSide(pendingConnection, node.id) === side;
     const slotCount = Math.max(1, sideEdges.length + (hasPendingConnection ? 1 : 0));
@@ -205,7 +205,7 @@ const makePortAssignments = (
 export const decorateEdgesWithPortHandles = (
   nodes: PipelineNode[],
   edges: PipelineEdge[],
-  pendingConnection?: PendingNodePortConnection | null
+  pendingConnection?: PendingNodePortConnection | null,
 ): PipelineEdge[] => {
   const sourceHandleByEdgeId = makePortAssignments(nodes, edges, "right", pendingConnection);
   const targetHandleByEdgeId = makePortAssignments(nodes, edges, "left", pendingConnection);

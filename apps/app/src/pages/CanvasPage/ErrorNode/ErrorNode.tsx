@@ -17,7 +17,7 @@ export const ErrorNode = ({ id, type, selected }: ErrorNodeProps) => {
     <div
       className={cn(
         "rounded-lg border-2 bg-red-50 px-4 py-3 shadow-sm transition-all duration-200",
-        selected ? "border-red-500 shadow-md" : "border-red-300"
+        selected ? "border-red-500 shadow-md" : "border-red-300",
       )}
       style={{ minWidth: 200 }}
     >

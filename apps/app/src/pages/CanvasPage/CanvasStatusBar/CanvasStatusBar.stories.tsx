@@ -45,7 +45,7 @@ const renderStatusBar = (
   nodes: PipelineNode[],
   edges: PipelineEdge[],
   selectedNodeId: string | null,
-  viewportZoom: number
+  viewportZoom: number,
 ) => {
   const store = createHarnessCanvasStore(nodes, edges);
   store.setState({ selectedNodeId, viewportZoom });

@@ -65,7 +65,7 @@ const addBPToZip = (
   zip: JSZip,
   bp: BPData,
   items: ChecklistItem[],
-  snippets: CodeSnippetItem[]
+  snippets: CodeSnippetItem[],
 ) => {
   const folder = zip.folder(bp.id);
   if (!folder) return;
@@ -82,8 +82,8 @@ const addBPToZip = (
         tags: bp.tags,
       },
       null,
-      2
-    )
+      2,
+    ),
   );
 
   folder.file("content.md", bp.content || "");
@@ -281,7 +281,7 @@ export const previewBestPracticesImport = async (entries: ParsedBestPractice[]) 
 };
 
 export const submitBestPracticesImport = async (
-  entries: ParsedBestPractice[]
+  entries: ParsedBestPractice[],
 ): Promise<ImportBulkResult> => {
   const { data } = await dataProvider.custom!<ImportBulkResult>({
     url: "bestPractices/importBulk",

@@ -134,7 +134,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
           resource: "pipelines",
           id: "pipe-001",
           values: expect.objectContaining({ nodes: [], edges: [] }),
-        })
+        }),
       );
     });
 
@@ -162,7 +162,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
             edges: [],
           }),
         }),
-        expect.objectContaining({ onSuccess: expect.any(Function) })
+        expect.objectContaining({ onSuccess: expect.any(Function) }),
       );
     });
 
@@ -448,7 +448,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     openMenu();

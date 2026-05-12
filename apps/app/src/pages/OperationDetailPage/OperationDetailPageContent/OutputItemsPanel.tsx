@@ -18,7 +18,7 @@ export const OutputItemsPanel = ({ outputs }: OutputItemsPanelProps) => {
     useShallow((s) => ({
       selectedItemIndex: s.selectedItemIndex,
       handleSelectItem: s.handleSelectItem,
-    }))
+    })),
   );
 
   return (

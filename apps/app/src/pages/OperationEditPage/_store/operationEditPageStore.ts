@@ -28,7 +28,7 @@ export const useOperationEditPageStore = () => {
   const context = useContext(OperationEditPageStoreContext);
   if (!context) {
     throw new Error(
-      "useOperationEditPageStore must be used within a OperationEditPageStoreProvider"
+      "useOperationEditPageStore must be used within a OperationEditPageStoreProvider",
     );
   }
 

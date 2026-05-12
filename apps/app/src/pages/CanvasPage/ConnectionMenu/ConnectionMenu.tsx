@@ -78,7 +78,7 @@ export const ConnectionMenu = () => {
     if (!objectType) return operations;
 
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project" | "prompt")
+      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project" | "prompt"),
     );
   })();
 
@@ -139,7 +139,7 @@ export const ConnectionMenu = () => {
           <span
             className={cn(
               "flex size-4 shrink-0 items-center justify-center rounded",
-              sourceMeta.iconBg
+              sourceMeta.iconBg,
             )}
           >
             <SourceIcon className="size-2.5 text-white" />
@@ -154,7 +154,7 @@ export const ConnectionMenu = () => {
 
         {/* Object types */}
         {["file", "folder", "github-project"].some((t) =>
-          availableTypes.includes(t as BuiltinNodeType)
+          availableTypes.includes(t as BuiltinNodeType),
         ) && (
           <ContextMenuGroup>
             <ContextMenuLabel>{t("canvas.contextMenu.processingObject")}</ContextMenuLabel>
@@ -173,7 +173,7 @@ export const ConnectionMenu = () => {
                     <span
                       className={cn(
                         "flex size-4 shrink-0 items-center justify-center rounded",
-                        typeMeta.iconBg
+                        typeMeta.iconBg,
                       )}
                     >
                       <Icon className="size-2.5 text-white" />
@@ -253,7 +253,7 @@ export const ConnectionMenu = () => {
 
         {/* Output node types */}
         {(["output-project-path", "output-local-path"] as BuiltinNodeType[]).some((t) =>
-          availableTypes.includes(t)
+          availableTypes.includes(t),
         ) && (
           <>
             <ContextMenuSeparator />
@@ -274,7 +274,7 @@ export const ConnectionMenu = () => {
                       <span
                         className={cn(
                           "flex size-4 shrink-0 items-center justify-center rounded",
-                          typeMeta.iconBg
+                          typeMeta.iconBg,
                         )}
                       >
                         <Icon className="size-2.5 text-white" />

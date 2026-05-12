@@ -23,14 +23,14 @@ export const createProjectWorkspacePageStore = () => {
 };
 
 export const ProjectWorkspacePageStoreContext = createContext<ProjectWorkspacePageStore | null>(
-  null
+  null,
 );
 
 export const useProjectWorkspacePageStore = () => {
   const context = useContext(ProjectWorkspacePageStoreContext);
   if (!context) {
     throw new Error(
-      "useProjectWorkspacePageStore must be used within a ProjectWorkspacePageStoreProvider"
+      "useProjectWorkspacePageStore must be used within a ProjectWorkspacePageStoreProvider",
     );
   }
 

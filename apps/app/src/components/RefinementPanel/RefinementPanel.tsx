@@ -74,7 +74,7 @@ export const RefinementPanel = ({ refinementId }: { refinementId: string }) => {
                 </span>
                 <Badge className="text-xs" variant={statusVariant(round.status)}>
                   {t(
-                    `distillations.refinementStatus${round.status.charAt(0).toUpperCase()}${round.status.slice(1)}` as never
+                    `distillations.refinementStatus${round.status.charAt(0).toUpperCase()}${round.status.slice(1)}` as never,
                   )}
                 </Badge>
               </div>

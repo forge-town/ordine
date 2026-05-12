@@ -41,7 +41,7 @@ export const jobsRouter = router({
           .nullable()
           .default(null)
           .transform((v) => (v == null ? null : new Date(v))),
-      })
+      }),
     )
     .mutation(({ input }) => jobsService.create(input)),
 
@@ -59,7 +59,7 @@ export const jobsRouter = router({
           .number()
           .optional()
           .transform((v) => (v == null ? undefined : new Date(v))),
-      })
+      }),
     )
     .mutation(({ input }) => {
       const { id, status, ...extra } = input;

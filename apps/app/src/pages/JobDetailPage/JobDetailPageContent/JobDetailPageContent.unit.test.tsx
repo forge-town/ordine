@@ -122,14 +122,14 @@ describe("JobDetailPageContent", () => {
             sourceId: mockJob.id,
             mode: "pipeline",
           }),
-        })
+        }),
       );
       expect(mockCustomMutationMutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
           url: "distillations/run",
           method: "post",
           values: { id: mockDistillationId },
-        })
+        }),
       );
       expect(mockNavigate).toHaveBeenCalledWith({
         to: "/distillations/$distillationId",

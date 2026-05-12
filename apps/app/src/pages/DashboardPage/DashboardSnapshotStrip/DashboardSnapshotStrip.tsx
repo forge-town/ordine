@@ -18,7 +18,7 @@ export const DashboardSnapshotStrip = () => {
     jobsResult?.data ?? [],
     pipelinesResult?.data ?? [],
     projectsResult?.data?.length ?? 0,
-    distillationsResult?.data ?? []
+    distillationsResult?.data ?? [],
   );
 
   return (

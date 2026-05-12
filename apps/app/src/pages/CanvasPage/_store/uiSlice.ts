@@ -121,7 +121,7 @@ export const createUISlice = (
   get: Parameters<HarnessCanvasStoreSlice>[1],
 
   pipelineId: string | null = null,
-  pipelineName = ""
+  pipelineName = "",
 ): UISlice => ({
   pipelineId,
   pipelineName,

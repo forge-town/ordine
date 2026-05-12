@@ -30,7 +30,7 @@ export const CanvasToolbar = () => {
   const isCanvasInteractive = useStore(store, (state) => state.isCanvasInteractive);
   const handleToggleCanvasInteractive = useStore(
     store,
-    (state) => state.handleToggleCanvasInteractive
+    (state) => state.handleToggleCanvasInteractive,
   );
   const isQuickAddOpen = useStore(store, (state) => state.isQuickAddOpen);
   const handleToggleQuickAdd = useStore(store, (state) => state.handleToggleQuickAdd);

@@ -24,7 +24,7 @@ const renderTopChrome = () => {
   render(
     <HarnessCanvasStoreContext.Provider value={store}>
       <CanvasTopChrome />
-    </HarnessCanvasStoreContext.Provider>
+    </HarnessCanvasStoreContext.Provider>,
   );
 
   return store;
@@ -38,14 +38,14 @@ describe("CanvasTopChrome", () => {
       "absolute",
       "top-3",
       "z-50",
-      "pointer-events-none"
+      "pointer-events-none",
     );
     const toolbarSlot = screen.getByTestId("canvas-toolbar").parentElement;
     expect(toolbarSlot).not.toBeNull();
     expect(toolbarSlot as HTMLElement).toHaveClass(
       "max-w-full",
       "overflow-x-auto",
-      "max-[420px]:justify-self-start"
+      "max-[420px]:justify-self-start",
     );
     expect(screen.getByTestId("canvas-title-desktop")).toHaveClass("hidden", "min-[700px]:flex");
     expect(screen.getByTestId("canvas-title-narrow")).toHaveClass("mt-2", "min-[700px]:hidden");

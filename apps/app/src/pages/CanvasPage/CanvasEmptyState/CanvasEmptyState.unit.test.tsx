@@ -10,7 +10,7 @@ const renderEmptyState = () => {
   render(
     <HarnessCanvasStoreContext.Provider value={store}>
       <CanvasEmptyState />
-    </HarnessCanvasStoreContext.Provider>
+    </HarnessCanvasStoreContext.Provider>,
   );
 
   return store;

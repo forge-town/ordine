@@ -60,7 +60,7 @@ const renderOperationNode = (
   parentHandlers: {
     handleParentClick?: () => void;
     handleParentMouseDown?: () => void;
-  } = {}
+  } = {},
 ) => {
   const node = {
     id: nodeId,
@@ -100,7 +100,7 @@ describe("OperationNode", () => {
       "h-8",
       "w-full",
       "nodrag",
-      "nopan"
+      "nopan",
     );
     expect(screen.getByRole("spinbutton", { name: "最大循环次数" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "循环验收条件" })).toBeInTheDocument();

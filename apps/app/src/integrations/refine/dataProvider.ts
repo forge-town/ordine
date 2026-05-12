@@ -36,7 +36,7 @@ export const ResourceName = {
 
 export const dataProvider: DataProvider = {
   getList: async <TData extends BaseRecord = BaseRecord>(
-    params: GetListParams
+    params: GetListParams,
   ): Promise<GetListResponse<TData>> => {
     const { resource } = params;
 
@@ -140,7 +140,7 @@ export const dataProvider: DataProvider = {
   },
 
   getOne: async <TData extends BaseRecord = BaseRecord>(
-    params: GetOneParams
+    params: GetOneParams,
   ): Promise<GetOneResponse<TData>> => {
     const { resource, id } = params;
 
@@ -246,105 +246,105 @@ export const dataProvider: DataProvider = {
   },
 
   create: async <TData extends BaseRecord = BaseRecord, TVariables = object>(
-    params: CreateParams<TVariables>
+    params: CreateParams<TVariables>,
   ): Promise<CreateResponse<TData>> => {
     const { resource, variables } = params;
 
     switch (resource) {
       case ResourceName.agents: {
         const data = await trpcClient.agents.create.mutate(
-          variables as Parameters<typeof trpcClient.agents.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.agents.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.agentRuntimes: {
         const data = await trpcClient.agentRuntimes.create.mutate(
-          variables as Parameters<typeof trpcClient.agentRuntimes.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.agentRuntimes.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.operations: {
         const data = await trpcClient.operations.create.mutate(
-          variables as Parameters<typeof trpcClient.operations.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.operations.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.pipelines: {
         const data = await trpcClient.pipelines.create.mutate(
-          variables as Parameters<typeof trpcClient.pipelines.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.pipelines.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.jobs: {
         const data = await trpcClient.jobs.create.mutate(
-          variables as Parameters<typeof trpcClient.jobs.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.jobs.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.rules: {
         const data = await trpcClient.rules.create.mutate(
-          variables as Parameters<typeof trpcClient.rules.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.rules.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.bestPractices: {
         const data = await trpcClient.bestPractices.create.mutate(
-          variables as Parameters<typeof trpcClient.bestPractices.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.bestPractices.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.githubProjects: {
         const data = await trpcClient.githubProjects.create.mutate(
-          variables as Parameters<typeof trpcClient.githubProjects.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.githubProjects.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.skills: {
         const data = await trpcClient.skills.create.mutate(
-          variables as Parameters<typeof trpcClient.skills.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.skills.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.recipes: {
         const data = await trpcClient.recipes.create.mutate(
-          variables as Parameters<typeof trpcClient.recipes.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.recipes.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.checklistItems: {
         const data = await trpcClient.checklist.createItem.mutate(
-          variables as Parameters<typeof trpcClient.checklist.createItem.mutate>[0]
+          variables as Parameters<typeof trpcClient.checklist.createItem.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.codeSnippets: {
         const data = await trpcClient.codeSnippets.create.mutate(
-          variables as Parameters<typeof trpcClient.codeSnippets.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.codeSnippets.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.distillations: {
         const data = await trpcClient.distillations.create.mutate(
-          variables as Parameters<typeof trpcClient.distillations.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.distillations.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
       }
       case ResourceName.operationOutputItemTemplates: {
         const data = await trpcClient.operationOutputItemTemplates.create.mutate(
-          variables as Parameters<typeof trpcClient.operationOutputItemTemplates.create.mutate>[0]
+          variables as Parameters<typeof trpcClient.operationOutputItemTemplates.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
@@ -356,7 +356,7 @@ export const dataProvider: DataProvider = {
   },
 
   update: async <TData extends BaseRecord = BaseRecord, TVariables = object>(
-    params: UpdateParams<TVariables>
+    params: UpdateParams<TVariables>,
   ): Promise<UpdateResponse<TData>> => {
     const { resource, id, variables } = params;
 
@@ -475,7 +475,7 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.settings: {
         const data = await trpcClient.settings.update.mutate(
-          variables as Parameters<typeof trpcClient.settings.update.mutate>[0]
+          variables as Parameters<typeof trpcClient.settings.update.mutate>[0],
         );
 
         return { data: data as unknown as TData };
@@ -487,7 +487,7 @@ export const dataProvider: DataProvider = {
   },
 
   deleteOne: async <TData extends BaseRecord = BaseRecord, TVariables = object>(
-    params: DeleteOneParams<TVariables>
+    params: DeleteOneParams<TVariables>,
   ): Promise<DeleteOneResponse<TData>> => {
     const { resource, id } = params;
 
@@ -592,21 +592,21 @@ export const dataProvider: DataProvider = {
 
     if (url === "pipelines/run") {
       const data = await trpcClient.pipelines.run.mutate(
-        payload as unknown as Parameters<typeof trpcClient.pipelines.run.mutate>[0]
+        payload as unknown as Parameters<typeof trpcClient.pipelines.run.mutate>[0],
       );
 
       return { data: data as unknown as TData };
     }
     if (url === "pipelines/analyzeIntent") {
       const data = await trpcClient.pipelines.analyzeIntent.mutate(
-        payload as unknown as Parameters<typeof trpcClient.pipelines.analyzeIntent.mutate>[0]
+        payload as unknown as Parameters<typeof trpcClient.pipelines.analyzeIntent.mutate>[0],
       );
 
       return { data: data as unknown as TData };
     }
     if (url === "pipelines/generateStructure") {
       const data = await trpcClient.pipelines.generateStructure.mutate(
-        payload as unknown as Parameters<typeof trpcClient.pipelines.generateStructure.mutate>[0]
+        payload as unknown as Parameters<typeof trpcClient.pipelines.generateStructure.mutate>[0],
       );
 
       return { data: data as unknown as TData };
@@ -615,14 +615,14 @@ export const dataProvider: DataProvider = {
       const data = await trpcClient.pipelines.optimizeFromDistillation.mutate(
         payload as unknown as Parameters<
           typeof trpcClient.pipelines.optimizeFromDistillation.mutate
-        >[0]
+        >[0],
       );
 
       return { data: data as unknown as TData };
     }
     if (url === "rules/toggle") {
       const data = await trpcClient.rules.toggle.mutate(
-        payload as unknown as Parameters<typeof trpcClient.rules.toggle.mutate>[0]
+        payload as unknown as Parameters<typeof trpcClient.rules.toggle.mutate>[0],
       );
 
       return { data: data as unknown as TData };
@@ -638,7 +638,7 @@ export const dataProvider: DataProvider = {
           const spans = await trpcClient.jobs.getAgentRunSpans.query({ rawExportId: run.id });
 
           return [run.id, spans] as const;
-        })
+        }),
       );
 
       return {
@@ -674,28 +674,28 @@ export const dataProvider: DataProvider = {
     }
     if (url === "bestPractices/previewImport") {
       const data = await trpcClient.bestPractices.previewImport.mutate(
-        payload as unknown as Parameters<typeof trpcClient.bestPractices.previewImport.mutate>[0]
+        payload as unknown as Parameters<typeof trpcClient.bestPractices.previewImport.mutate>[0],
       );
 
       return { data: data as unknown as TData };
     }
     if (url === "bestPractices/importBulk") {
       const data = await trpcClient.bestPractices.importBulk.mutate(
-        payload as unknown as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0]
+        payload as unknown as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0],
       );
 
       return { data: data as unknown as TData };
     }
     if (url === "refinements/start") {
       const data = await trpcClient.refinements.start.mutate(
-        payload as unknown as Parameters<typeof trpcClient.refinements.start.mutate>[0]
+        payload as unknown as Parameters<typeof trpcClient.refinements.start.mutate>[0],
       );
 
       return { data: data as unknown as TData };
     }
     if (url === "distillations/run") {
       const data = await trpcClient.distillations.run.mutate(
-        payload as unknown as Parameters<typeof trpcClient.distillations.run.mutate>[0]
+        payload as unknown as Parameters<typeof trpcClient.distillations.run.mutate>[0],
       );
 
       return { data: data as unknown as TData };
@@ -707,7 +707,7 @@ export const dataProvider: DataProvider = {
     }
     if (url === "agentRuntimes/syncAll") {
       const data = await trpcClient.agentRuntimes.syncAll.mutate(
-        payload as unknown as Parameters<typeof trpcClient.agentRuntimes.syncAll.mutate>[0]
+        payload as unknown as Parameters<typeof trpcClient.agentRuntimes.syncAll.mutate>[0],
       );
 
       return { data: data as unknown as TData };
@@ -719,7 +719,7 @@ export const dataProvider: DataProvider = {
     }
     if (url === "operations/run") {
       const data = await trpcClient.operations.run.mutate(
-        payload as unknown as Parameters<typeof trpcClient.operations.run.mutate>[0]
+        payload as unknown as Parameters<typeof trpcClient.operations.run.mutate>[0],
       );
 
       return { data: data as unknown as TData };

@@ -22,7 +22,7 @@ export interface OperationDetailPageSlice {
 
 export const createOperationDetailPageSlice: StateCreator<OperationDetailPageSlice> = (
   set,
-  get
+  get,
 ) => ({
   selectedItemIndex: 0,
   activeTab: "definition",

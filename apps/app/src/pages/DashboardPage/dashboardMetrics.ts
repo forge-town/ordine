@@ -102,7 +102,7 @@ export const buildActivity = (jobs: Job[]): DashboardActivityDatum[] => {
 
   for (const offset of Array.from(
     { length: ACTIVITY_DAYS },
-    (_, index) => ACTIVITY_DAYS - 1 - index
+    (_, index) => ACTIVITY_DAYS - 1 - index,
   )) {
     const bucketDate = new Date(today);
     bucketDate.setHours(0, 0, 0, 0);
@@ -170,7 +170,7 @@ export const buildStatuses = (jobs: Job[]): DashboardStatusDatum[] => {
 
 export const buildPipelineRows = (
   _jobs: Job[],
-  pipelines: PipelineData[]
+  pipelines: PipelineData[],
 ): DashboardPipelineDatum[] => {
   // Pipeline run data is now in the pipeline_runs table.
   // This will be populated once a pipeline runs API endpoint is available.
@@ -213,7 +213,7 @@ export const buildSnapshot = (
   jobs: Job[],
   pipelines: PipelineData[],
   projectsCount: number,
-  distillations: Distillation[]
+  distillations: Distillation[],
 ): DashboardSnapshotMetric[] => {
   const completedJobs = jobs.filter((job) => job.status === "done").length;
   const failedJobs = jobs.filter((job) => job.status === "failed").length;
@@ -247,11 +247,11 @@ export const buildSnapshot = (
 };
 
 export const buildRecentDistillations = (
-  distillations: Distillation[]
+  distillations: Distillation[],
 ): DashboardDistillationPreview[] =>
   [...distillations]
     .sort(
-      (left, right) => getDistillationDate(right).getTime() - getDistillationDate(left).getTime()
+      (left, right) => getDistillationDate(right).getTime() - getDistillationDate(left).getTime(),
     )
     .slice(0, MAX_RECENT_DISTILLATIONS)
     .map((distillation) => ({
@@ -268,7 +268,7 @@ export const buildDashboardMetrics = (
   jobs: Job[],
   pipelines: PipelineData[],
   projectsCount: number,
-  distillations: Distillation[]
+  distillations: Distillation[],
 ): DashboardMetrics => ({
   activity: buildActivity(jobs),
   statuses: buildStatuses(jobs),

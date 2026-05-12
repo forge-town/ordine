@@ -31,7 +31,7 @@ export const JobActivityRow = ({ job }: JobActivityRowProps) => {
           className={cn(
             "h-4 w-4 shrink-0",
             JOB_STATUS_CLS[job.status],
-            job.status === "running" && "animate-spin"
+            job.status === "running" && "animate-spin",
           )}
         />
         <div className="min-w-0 flex-1">

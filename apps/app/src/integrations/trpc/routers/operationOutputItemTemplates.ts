@@ -18,7 +18,7 @@ export const operationOutputItemTemplatesRouter = router({
         description: z.string().nullable().default(null),
         content: z.string(),
         contentType: TemplateContentTypeSchema,
-      })
+      }),
     )
     .mutation(({ input }) => operationOutputItemTemplatesService.create(input)),
 
@@ -30,7 +30,7 @@ export const operationOutputItemTemplatesRouter = router({
         description: z.string().nullable().optional(),
         content: z.string().optional(),
         contentType: TemplateContentTypeSchema.optional(),
-      })
+      }),
     )
     .mutation(({ input }) => {
       const { id, ...rest } = input;

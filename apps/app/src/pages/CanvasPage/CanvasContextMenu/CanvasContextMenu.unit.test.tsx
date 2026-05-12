@@ -30,7 +30,7 @@ describe("CanvasContextMenu", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasContextMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
     expect(screen.getByText("New Node")).toBeTruthy();
   });

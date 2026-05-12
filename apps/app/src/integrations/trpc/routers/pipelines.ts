@@ -18,7 +18,7 @@ export const pipelinesRouter = router({
         ...input,
         nodes: input.nodes as never,
         edges: input.edges as never,
-      })
+      }),
     ),
 
   update: publicProcedure
@@ -26,14 +26,14 @@ export const pipelinesRouter = router({
       z.object({
         id: z.string(),
         patch: PipelineSchema.omit({ createdAt: true, updatedAt: true }).partial(),
-      })
+      }),
     )
     .mutation(({ input }) =>
       pipelinesService.update(input.id, {
         ...input.patch,
         nodes: input.patch.nodes as never,
         edges: input.patch.edges as never,
-      })
+      }),
     ),
 
   delete: publicProcedure
@@ -46,7 +46,7 @@ export const pipelinesRouter = router({
         id: z.string(),
         inputPath: z.string().optional(),
         githubToken: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const pipeline = await pipelinesService.getById(input.id);
@@ -74,7 +74,7 @@ export const pipelinesRouter = router({
         userPrompt: z
           .string()
           .default("Optimize this pipeline based on the distillation insights."),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const result = await pipelinesService.optimizeFromDistillation({
@@ -103,7 +103,7 @@ export const pipelinesRouter = router({
               operationId: z.string(),
               operationName: z.string(),
               reason: z.string(),
-            })
+            }),
           )
           .optional(),
         unmatchedSteps: z
@@ -111,10 +111,10 @@ export const pipelinesRouter = router({
             z.object({
               step: z.string(),
               reason: z.string(),
-            })
+            }),
           )
           .optional(),
-      })
+      }),
     )
     .mutation(({ input }) => pipelinesService.generateStructure(input)),
 

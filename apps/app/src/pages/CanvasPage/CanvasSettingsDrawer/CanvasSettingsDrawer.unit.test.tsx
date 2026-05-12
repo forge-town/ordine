@@ -30,7 +30,7 @@ const renderOpenDrawer = () => {
   render(
     <HarnessCanvasStoreContext.Provider value={store}>
       <CanvasSettingsDrawer />
-    </HarnessCanvasStoreContext.Provider>
+    </HarnessCanvasStoreContext.Provider>,
   );
 
   return store;
@@ -47,7 +47,7 @@ describe("CanvasSettingsDrawer", () => {
     expect(screen.getByLabelText(/Snap nodes to grid|节点吸附到网格/)).not.toBeChecked();
     expect(screen.getByRole("link", { name: /Open global settings|打开全局设置/ })).toHaveAttribute(
       "href",
-      "/settings"
+      "/settings",
     );
   });
 
@@ -75,7 +75,7 @@ describe("CanvasSettingsDrawer", () => {
     expect(store.getState().canvasSettings.showBackground).toBe(false);
 
     await user.click(
-      screen.getByRole("button", { name: /Close Canvas settings|关闭 Canvas 设置/ })
+      screen.getByRole("button", { name: /Close Canvas settings|关闭 Canvas 设置/ }),
     );
     expect(store.getState().isCanvasSettingsOpen).toBe(false);
     expect(store.getState().nodes).toHaveLength(1);

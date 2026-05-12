@@ -20,7 +20,7 @@ describe("ConnectionMenu", () => {
     const { container } = render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <ConnectionMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
     // Returns null when no connectStart in store – that's expected
     expect(container).toBeTruthy();

@@ -57,7 +57,7 @@ export const NewPipelineDialog = () => {
       handleNewPipelineOpenInCanvasButtonClick: s.handleNewPipelineOpenInCanvasButtonClick,
       handleNewPipelineRunNowButtonClick: s.handleNewPipelineRunNowButtonClick,
       handleNewPipelineCreateAnotherButtonClick: s.handleNewPipelineCreateAnotherButtonClick,
-    }))
+    })),
   );
 
   const form = useForm<NewPipelineFormValues>({

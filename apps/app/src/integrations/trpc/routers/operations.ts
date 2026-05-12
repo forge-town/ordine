@@ -18,7 +18,7 @@ export const operationsRouter = router({
         description: z.string().nullable().default(null),
         config: OperationConfigSchema.optional(),
         acceptedObjectTypes: z.array(ObjectTypeSchema).default(["file", "folder", "project"]),
-      })
+      }),
     )
     .mutation(({ input }) => operationsService.create(input)),
 
@@ -30,7 +30,7 @@ export const operationsRouter = router({
         description: z.string().nullable().optional(),
         config: OperationConfigSchema.optional(),
         acceptedObjectTypes: z.array(ObjectTypeSchema).optional(),
-      })
+      }),
     )
     .mutation(({ input }) => {
       const { id, ...rest } = input;
@@ -49,7 +49,7 @@ export const operationsRouter = router({
         inputPath: z.string().optional(),
         inputContent: z.string().optional(),
         agentOverride: AgentRuntimeSchema.optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const result = await operationRunnerService.startRun(input);

@@ -90,7 +90,7 @@ describe("PipelineDetailPageContent", () => {
       <PipelineDetailPageContent
         operations={ops}
         pipeline={makePipeline({ tags: ["ci", "lint"] })}
-      />
+      />,
     );
     expect(screen.getByText("ci")).toBeInTheDocument();
     expect(screen.getByText("lint")).toBeInTheDocument();

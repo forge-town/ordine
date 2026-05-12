@@ -33,7 +33,7 @@ describe("CanvasStatusBar", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasStatusBar />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     expect(screen.getByText(/1 (nodes|个节点)/)).toBeInTheDocument();

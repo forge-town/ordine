@@ -196,7 +196,7 @@ export const AgentFormDialog = ({ initial }: AgentFormDialogProps) => {
                                 "flex items-center gap-2.5 rounded-lg border p-3 text-left transition-all",
                                 isSelected
                                   ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                                  : "border-border hover:border-muted-foreground/30 hover:bg-muted/50"
+                                  : "border-border hover:border-muted-foreground/30 hover:bg-muted/50",
                               )}
                               type="button"
                               onClick={() => handleRuntimeSelect(rt)}
@@ -206,7 +206,7 @@ export const AgentFormDialog = ({ initial }: AgentFormDialogProps) => {
                                   "flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
                                   isSelected
                                     ? "bg-primary/10 text-primary"
-                                    : "bg-muted text-muted-foreground"
+                                    : "bg-muted text-muted-foreground",
                                 )}
                               >
                                 {meta?.icon ?? <Cpu className="h-4 w-4" />}

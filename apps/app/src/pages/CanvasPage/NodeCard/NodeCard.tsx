@@ -21,7 +21,7 @@ export interface NodeCardProps extends NodeCardFrameProps {
 
 const useCardMaxPortSpread = (
   wrapperRef: React.RefObject<HTMLDivElement | null>,
-  enabled: boolean
+  enabled: boolean,
 ) => {
   const [cardMaxPortSpread, setCardMaxPortSpread] = useState<number | undefined>(undefined);
 
@@ -42,7 +42,7 @@ const useCardMaxPortSpread = (
       const nextMaxSpread =
         Number.isFinite(height) && height > 0 ? Math.floor(height / 2) : undefined;
       setCardMaxPortSpread((currentMaxSpread) =>
-        currentMaxSpread === nextMaxSpread ? currentMaxSpread : nextMaxSpread
+        currentMaxSpread === nextMaxSpread ? currentMaxSpread : nextMaxSpread,
       );
     };
 
@@ -131,6 +131,6 @@ export const NodeCard = memo(
         )}
       </div>
     );
-  }
+  },
 );
 NodeCard.displayName = "NodeCard";

@@ -50,7 +50,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const isCanvasInteractive = useStore(store, (s) => s.isCanvasInteractive);
   const portRoutedEdges = useMemo(
     () => decorateEdgesWithPortHandles(nodes, edges, connectStart),
-    [connectStart, edges, nodes]
+    [connectStart, edges, nodes],
   );
   const isConsoleOpen = useStore(store, (s) => s.isConsoleOpen);
   const canvasSettings = useStore(store, (s) => s.canvasSettings);
@@ -91,7 +91,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
       e.preventDefault();
       handleUndo();
     },
-    { preventDefault: false }
+    { preventDefault: false },
   );
   useHotkeys(
     "mod+shift+z, mod+y",
@@ -99,7 +99,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
       e.preventDefault();
       handleRedo();
     },
-    { preventDefault: false }
+    { preventDefault: false },
   );
 
   return (

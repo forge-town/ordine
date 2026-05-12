@@ -46,7 +46,7 @@ export interface NewPipelineDialogSlice {
 
 export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSlice> = (
   set,
-  get
+  get,
 ) => {
   const formControl = createFormControl<NewPipelineFormValues>({
     defaultValues: { name: "", description: "" },

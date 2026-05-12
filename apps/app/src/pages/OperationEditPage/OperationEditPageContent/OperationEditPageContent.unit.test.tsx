@@ -75,7 +75,7 @@ describe("OperationEditPageContent", () => {
 
   it("renders inside a <form> element (react-hook-form)", () => {
     const { container } = render(
-      <OperationEditPageContent operation={mockOp} skills={mockSkills} />
+      <OperationEditPageContent operation={mockOp} skills={mockSkills} />,
     );
     expect(container.querySelector("form")).not.toBeNull();
   });
@@ -130,7 +130,7 @@ describe("OperationEditPageContent", () => {
         expect.objectContaining({
           id: "op-123",
           values: expect.objectContaining({ name: "Run ESLint" }),
-        })
+        }),
       );
     });
   });
@@ -159,7 +159,7 @@ describe("OperationEditPageContent", () => {
 
   it("header back link points to pipeline operation detail route", () => {
     const { container } = render(
-      <OperationEditPageContent operation={mockOp} skills={mockSkills} />
+      <OperationEditPageContent operation={mockOp} skills={mockSkills} />,
     );
     const backLink = container.querySelector('a[href="/pipelines/operations/op-123"]');
     expect(backLink).not.toBeNull();

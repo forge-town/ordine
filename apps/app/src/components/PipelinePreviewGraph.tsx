@@ -17,7 +17,7 @@ type PipelinePreviewGraphProps = {
 
 const buildNodes = (
   matched: PipelinePreviewGraphProps["matchedOperations"],
-  unmatched: PipelinePreviewGraphProps["unmatchedSteps"]
+  unmatched: PipelinePreviewGraphProps["unmatchedSteps"],
 ): PreviewNode[] => {
   const existing: PreviewNode[] = matched.map((op) => ({
     id: op.operationId,
@@ -49,7 +49,7 @@ const NodeCard = ({ node }: { node: PreviewNode }) => {
                 "flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2",
                 isExisting
                   ? "border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-950/30"
-                  : "border-blue-300 border-dashed bg-blue-50 dark:border-blue-700 dark:bg-blue-950/30"
+                  : "border-blue-300 border-dashed bg-blue-50 dark:border-blue-700 dark:bg-blue-950/30",
               )}
             />
           }

@@ -12,7 +12,7 @@ describe("OutputItemRow", () => {
           description: "输出结果",
           templateIds: [],
         }}
-      />
+      />,
     );
     expect(screen.getByText("result")).toBeInTheDocument();
     expect(screen.getByText("file")).toBeInTheDocument();
@@ -27,7 +27,7 @@ describe("OutputItemRow", () => {
           description: "输出文件夹",
           templateIds: [],
         }}
-      />
+      />,
     );
     expect(screen.getByText("输出文件夹")).toBeInTheDocument();
   });

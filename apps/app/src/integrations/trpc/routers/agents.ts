@@ -17,7 +17,7 @@ export const agentsRouter = router({
       z.object({
         id: AgentIdSchema,
         patch: AgentPatchSchema,
-      })
+      }),
     )
     .mutation(({ input }) => agentsService.update(input.id, input.patch)),
 
