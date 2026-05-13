@@ -40,7 +40,7 @@ const portRoutingCache: {
 const getCachedDecoratedEdges = (
   nodes: PipelineNode[],
   edges: PipelineEdge[],
-  connectStart: PendingNodePortConnection | null
+  connectStart: PendingNodePortConnection | null,
 ) => {
   if (
     portRoutingCache.nodesRef === nodes &&
@@ -64,5 +64,5 @@ export const selectNodePortCounts = (nodeId: string) => (state: HarnessCanvasSta
     state.edges,
     nodeId,
     state.connectStart,
-    getCachedDecoratedEdges(state.nodes, state.edges, state.connectStart)
+    getCachedDecoratedEdges(state.nodes, state.edges, state.connectStart),
   );

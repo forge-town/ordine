@@ -142,7 +142,7 @@ describe("NodeCard", () => {
       "before:opacity-30",
       "before:scale-75",
       "group-hover/node-card:before:opacity-75",
-      "before:!bg-orange-500"
+      "before:!bg-orange-500",
     );
     expect(screen.getByTestId("source-handle")).toHaveClass(
       "!right-2.5",
@@ -153,7 +153,7 @@ describe("NodeCard", () => {
       "before:opacity-30",
       "before:scale-75",
       "group-hover/node-card:before:opacity-75",
-      "before:!bg-orange-500"
+      "before:!bg-orange-500",
     );
     expect(screen.getByTestId("target-handle")).toHaveAttribute("data-handleid", "left-port-0");
     expect(screen.getByTestId("target-handle")).toHaveAttribute("data-port-state", "idle");
@@ -182,7 +182,7 @@ describe("NodeCard", () => {
         rightConnectedPortCount={1}
         rightConnectedPortMask={1}
         theme="teal"
-      />
+      />,
     );
 
     const targetHandles = screen.getAllByTestId("target-handle");
@@ -195,11 +195,11 @@ describe("NodeCard", () => {
     expect(sourceHandle).toHaveAttribute("data-port-state", "connected");
     expect(sourceHandle).toHaveClass(
       "data-[connected=true]:before:opacity-90",
-      "data-[connected=true]:before:scale-100"
+      "data-[connected=true]:before:scale-100",
     );
     expect(targetHandles[0]).toHaveClass(
       "data-[active=true]:before:opacity-100",
-      "data-[active=true]:before:scale-125"
+      "data-[active=true]:before:scale-125",
     );
   });
 
@@ -213,7 +213,7 @@ describe("NodeCard", () => {
         rightConnectedPortCount={53}
         rightHandleCount={54}
         theme="teal"
-      />
+      />,
     );
 
     const sourceHandles = screen.getAllByTestId("source-handle");

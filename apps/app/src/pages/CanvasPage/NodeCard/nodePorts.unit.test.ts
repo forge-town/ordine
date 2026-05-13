@@ -90,8 +90,8 @@ describe("node port helpers", () => {
           nodeId: "node",
           handleId: "right-port-0",
           handleType: "source",
-        }
-      )
+        },
+      ),
     ).toEqual({
       leftActivePortCount: 0,
       leftActivePortMask: 0,
@@ -120,7 +120,7 @@ describe("node port helpers", () => {
         nodeId: "source",
         handleId: "right-port-0",
         handleType: "source",
-      })
+      }),
     ).toMatchObject({
       rightActivePortMask: 1,
       rightConnectedPortMask: 2,

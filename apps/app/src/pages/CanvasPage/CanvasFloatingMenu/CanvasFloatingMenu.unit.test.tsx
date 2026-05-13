@@ -71,11 +71,11 @@ const wrapperWithTestPipeline = ({ children }: React.PropsWithChildren) => (
 const makeNode = (id: string): PipelineNode =>
   ({
     id,
-    type: "code-file",
+    type: "file",
     position: { x: 0, y: 0 },
     data: {
       label: id,
-      nodeType: "code-file",
+      nodeType: "file",
       filePath: "",
       language: "typescript",
       description: "",
@@ -108,9 +108,9 @@ const expectImportFailedToast = async () => {
       toastStore
         .getState()
         .toasts.some(
-          (toast) => toast.type === "error" && /^(Import failed|导入失败)$/.test(toast.title)
-        )
-    ).toBe(true)
+          (toast) => toast.type === "error" && /^(Import failed|导入失败)$/.test(toast.title),
+        ),
+    ).toBe(true),
   );
 };
 
@@ -252,7 +252,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     uploadJsonFile(
@@ -260,7 +260,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
         name: "Imported Pipeline",
         nodes: [node],
         edges: [{ id: "edge-1", source: "n1", target: "n2", type: "default", animated: true }],
-      })
+      }),
     );
 
     await waitFor(() => expect(store.getState().pipelineName).toBe("Imported Pipeline"));
@@ -277,7 +277,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     uploadJsonFile(
@@ -285,7 +285,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
         title: "Legacy Pipeline Title",
         nodes: [node],
         edges: [],
-      })
+      }),
     );
 
     await waitFor(() => expect(store.getState().pipelineName).toBe("Legacy Pipeline Title"));
@@ -301,7 +301,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     uploadJsonFile(JSON.stringify({ name: "Invalid Pipeline", nodes: "not-array", edges: [] }));
@@ -320,7 +320,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     uploadJsonFile(
@@ -328,7 +328,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
         name: "Invalid Type Pipeline",
         nodes: [{ ...makeNode("bad-type"), type: "custom-plugin-node" }],
         edges: [],
-      })
+      }),
     );
 
     await expectImportFailedToast();
@@ -345,7 +345,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     uploadJsonFile(
@@ -367,7 +367,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
           },
         ],
         edges: [],
-      })
+      }),
     );
 
     await expectImportFailedToast();
@@ -384,7 +384,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     uploadJsonFile("{");
@@ -403,7 +403,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     uploadJsonFile("x".repeat(MAX_CANVAS_IMPORT_BYTES + 1));
@@ -419,13 +419,13 @@ describe("CanvasFloatingMenu - save behavior", () => {
     const initialEdge = makeEdge("existing-edge");
     const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
     const importedNodes = Array.from({ length: MAX_CANVAS_IMPORT_NODES + 1 }, (_, index) =>
-      makeNode(`oversized-${index}`)
+      makeNode(`oversized-${index}`),
     );
 
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     uploadJsonFile(
@@ -433,7 +433,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
         name: "Oversized Pipeline",
         nodes: importedNodes,
         edges: [],
-      })
+      }),
     );
 
     await expectImportFailedToast();

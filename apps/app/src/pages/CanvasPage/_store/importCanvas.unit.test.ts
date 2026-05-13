@@ -4,9 +4,9 @@ import type { PipelineNode, PipelineEdge } from "./canvasSlice";
 
 const makeNode = (id: string): PipelineNode => ({
   id,
-  type: "code-file",
+  type: "file",
   position: { x: 0, y: 0 },
-  data: { label: id, nodeType: "code-file", filePath: "" },
+  data: { label: id, nodeType: "file", filePath: "" },
 });
 
 const makeChildNode = (id: string, parentId: string): PipelineNode => ({

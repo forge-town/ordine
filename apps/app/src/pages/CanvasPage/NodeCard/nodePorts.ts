@@ -249,7 +249,7 @@ const addPortIndexToMask = (mask: number, index: number): number => {
 
 const getConnectedPortMasks = (
   edges: PipelineEdge[],
-  nodeId: string
+  nodeId: string,
 ): { left: number; right: number; leftCount: number; rightCount: number } =>
   edges.reduce(
     (acc, edge) => {
@@ -266,7 +266,7 @@ const getConnectedPortMasks = (
 
       return acc;
     },
-    { left: 0, right: 0, leftCount: 0, rightCount: 0 }
+    { left: 0, right: 0, leftCount: 0, rightCount: 0 },
   );
 
 const getActivePortMask = (
@@ -274,7 +274,7 @@ const getActivePortMask = (
   nodeId: string,
   side: NodePortSide,
   portCount: number,
-  connectedPortMask: number
+  connectedPortMask: number,
 ): number => {
   if (getPendingPortSide(pendingConnection, nodeId) !== side) {
     return 0;
@@ -287,7 +287,7 @@ const getActivePortMask = (
 
   const safePortCount = Math.min(portCount, MAX_SAFE_PORT_INDEX + 1);
   const availableIndex = Array.from({ length: safePortCount }, (_item, index) => index).find(
-    (index) => !hasPortIndex(connectedPortMask, index)
+    (index) => !hasPortIndex(connectedPortMask, index),
   );
 
   return availableIndex === undefined ? 0 : getPortIndexMask(availableIndex);
@@ -298,7 +298,7 @@ export const getNodePortVisualCounts = (
   edges: PipelineEdge[],
   nodeId: string,
   pendingConnection?: PendingNodePortConnection | null,
-  decoratedEdgesOverride?: PipelineEdge[]
+  decoratedEdgesOverride?: PipelineEdge[],
 ): NodePortVisualCounts => {
   const decoratedEdges =
     decoratedEdgesOverride ?? decorateEdgesWithPortHandles(nodes, edges, pendingConnection);
@@ -324,14 +324,14 @@ export const getNodePortVisualCounts = (
       nodeId,
       "left",
       counts.leftPortCount,
-      leftConnectedPortMask
+      leftConnectedPortMask,
     ),
     rightActivePortMask: getActivePortMask(
       pendingConnection,
       nodeId,
       "right",
       counts.rightPortCount,
-      rightConnectedPortMask
+      rightConnectedPortMask,
     ),
   };
 };

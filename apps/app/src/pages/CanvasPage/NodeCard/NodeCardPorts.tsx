@@ -69,7 +69,7 @@ const getNodePortVisualState = (
   leftConnectedPortMask?: number,
   rightConnectedPortMask?: number,
   leftActivePortMask?: number,
-  rightActivePortMask?: number
+  rightActivePortMask?: number,
 ) => {
   const connectedPortCount = side === "left" ? leftConnectedPortCount : rightConnectedPortCount;
   const activePortCount = side === "left" ? leftActivePortCount : rightActivePortCount;
@@ -145,7 +145,7 @@ export const NodeCardPorts = ({
             leftConnectedPortMask,
             rightConnectedPortMask,
             leftActivePortMask,
-            rightActivePortMask
+            rightActivePortMask,
           );
 
           return (
@@ -174,7 +174,7 @@ export const NodeCardPorts = ({
             leftConnectedPortMask,
             rightConnectedPortMask,
             leftActivePortMask,
-            rightActivePortMask
+            rightActivePortMask,
           );
 
           return (

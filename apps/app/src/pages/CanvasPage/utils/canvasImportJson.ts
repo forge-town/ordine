@@ -1,11 +1,11 @@
 import { err, ok, Result } from "neverthrow";
 import { z } from "zod/v4";
 import {
+  AgentRuntimeSchema,
   BuiltinNodeTypeSchema,
   PipelineEdgeSchema,
   PipelineNodeSchema,
-} from "@repo/pipeline-engine/schemas";
-import { AgentRuntimeSchema } from "@repo/schemas";
+} from "@repo/schemas";
 import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";
 import { PipelineNodeDataSchema } from "../schemas/PipelineNodeDataSchema";
 
@@ -30,7 +30,7 @@ const CanvasPipelineNodeDataSchema = PipelineNodeDataSchema.refine(
   {
     message: "operation agentRuntime must be supported",
     path: ["agentRuntime"],
-  }
+  },
 );
 const CanvasImportNodeSchema = PipelineNodeSchema.extend({
   type: BuiltinNodeTypeSchema,
@@ -75,7 +75,7 @@ export type CanvasImportPayload = Omit<CanvasImportJson, "nodes" | "edges"> & {
 
 const parseJson = Result.fromThrowable(
   (text: string) => JSON.parse(text) as unknown,
-  () => "invalid-json" as const
+  () => "invalid-json" as const,
 );
 
 export const isCanvasImportFileTooLarge = (file: Pick<File, "size">): boolean =>
@@ -89,7 +89,7 @@ const toCanvasImportPayload = (payload: CanvasImportJson): CanvasImportPayload =
 });
 
 export const parseCanvasImportJson = (
-  text: string
+  text: string,
 ): Result<CanvasImportPayload, CanvasImportError> =>
   parseJson(text).andThen((parsed) => {
     const result = CanvasImportJsonSchema.safeParse(parsed);
