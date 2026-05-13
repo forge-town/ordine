@@ -44,7 +44,7 @@ export const OutputItemsPanel = ({ outputs }: OutputItemsPanelProps) => {
               >
                 <span className="block truncate font-mono">{item.name}</span>
                 <span className="block truncate text-[10px] text-muted-foreground">
-                  {item.kind}
+                  {item.contentType}
                 </span>
               </button>
             ))}

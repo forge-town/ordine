@@ -18,17 +18,20 @@ const PROMPT_AGENT_ID = "prompt-executor";
 
 type PromptExecutorOptions = RunPromptOptions & { ssh?: SshConnection };
 
-const buildOutputItemsSection = (outputItems?: readonly OutputItem[], outputDir?: string): string => {
+const buildOutputItemsSection = (
+  outputItems?: readonly OutputItem[],
+  outputDir?: string,
+): string => {
   if (!outputItems || outputItems.length === 0) return "";
   const lines = [
     "",
     "## Expected Output Items",
     "Your response MUST include ALL of the following output items.",
     ...(outputDir ? [`Write all output files to the directory: ${outputDir}`] : []),
-    "Include the file paths in an \"outputs\" field in your JSON response.",
+    'Include the file paths in an "outputs" field in your JSON response.',
     ...outputItems.map(
       (item, i) =>
-        `${i + 1}. **${item.name}** (${item.kind})${item.description ? `: ${item.description}` : ""}`,
+        `${i + 1}. **${item.name}** (${item.contentType})${item.description ? `: ${item.description}` : ""}`,
     ),
     "",
   ];

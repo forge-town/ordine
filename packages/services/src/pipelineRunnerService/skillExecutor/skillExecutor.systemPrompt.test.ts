@@ -80,16 +80,21 @@ describe("skillExecutor systemPrompt", () => {
       agent: "claude-code",
       jobId: "j1",
       outputItems: [
-        { name: "report", kind: "file", description: "Markdown report", templateIds: [] },
-        { name: "htmlReport", kind: "file", description: "HTML report", templateIds: [] },
+        {
+          name: "report",
+          contentType: "markdown",
+          description: "Markdown report",
+          templateIds: [],
+        },
+        { name: "htmlReport", contentType: "html", description: "HTML report", templateIds: [] },
       ],
     });
 
     expect(result.isOk()).toBe(true);
     const callArgs = runAgent.mock.calls[0]![0];
     expect(callArgs.userPrompt).toContain("## Expected Output Items");
-    expect(callArgs.userPrompt).toContain("1. **report** (file): Markdown report");
-    expect(callArgs.userPrompt).toContain("2. **htmlReport** (file): HTML report");
+    expect(callArgs.userPrompt).toContain("1. **report** (markdown): Markdown report");
+    expect(callArgs.userPrompt).toContain("2. **htmlReport** (html): HTML report");
   });
 
   it("does not include output items section when no items provided", async () => {
@@ -116,7 +121,12 @@ describe("skillExecutor systemPrompt", () => {
       agent: "claude-code",
       jobId: "j1",
       outputItems: [
-        { name: "report", kind: "file", description: "Markdown report", templateIds: [] },
+        {
+          name: "report",
+          contentType: "markdown",
+          description: "Markdown report",
+          templateIds: [],
+        },
       ],
       outputDir: "/output/results",
     });
@@ -137,7 +147,12 @@ describe("skillExecutor systemPrompt", () => {
       agent: "claude-code",
       jobId: "j1",
       outputItems: [
-        { name: "report", kind: "file", description: "Markdown report", templateIds: [] },
+        {
+          name: "report",
+          contentType: "markdown",
+          description: "Markdown report",
+          templateIds: [],
+        },
       ],
     });
 

@@ -29,20 +29,17 @@ const CONTENT_TYPE_EXT: Record<string, string> = {
 /**
  * Infer a filename for an output item.
  * If the name already has an extension, keep it.
- * Otherwise use the contentType hint (from the first template) or default to `.md`.
+ * Otherwise use the output item's selected content type.
  */
-const inferOutputFilename = (output: OutputItem, contentTypeHint?: string): string => {
+const inferOutputFilename = (output: OutputItem): string => {
   if (output.name.includes(".")) return output.name;
 
-  const ext = contentTypeHint ? (CONTENT_TYPE_EXT[contentTypeHint] ?? "md") : "md";
+  const ext = CONTENT_TYPE_EXT[output.contentType] ?? "md";
 
   return `${output.name}.${ext}`;
 };
 
-export const toOperationMd = (
-  op: Operation,
-  templateMap?: Map<string, OperationOutputItemTemplate>,
-): string => {
+export const toOperationMd = (op: Operation): string => {
   const lines: string[] = ["---"];
   lines.push(`name: ${op.name}`);
   lines.push(`description: ${op.description ?? ""}`);
@@ -63,8 +60,7 @@ export const toOperationMd = (
   if (op.config.outputs.length > 0) {
     lines.push("## Outputs", "");
     for (const output of op.config.outputs) {
-      const firstTpl = output.templateIds[0] ? templateMap?.get(output.templateIds[0]) : undefined;
-      const filename = inferOutputFilename(output, firstTpl?.contentType);
+      const filename = inferOutputFilename(output);
       const desc = output.description ?? output.name;
       lines.push(`- **${filename}**: ${desc}`);
     }
@@ -98,16 +94,14 @@ export const exportOperation = async (op: Operation) => {
     }
   }
 
-  folder.file("OPERATION.md", toOperationMd(op, templateMap));
+  folder.file("OPERATION.md", toOperationMd(op));
 
   // Write output-to-template mapping if any outputs have templateIds
   const hasTemplates = op.config.outputs.some((o) => o.templateIds.length > 0);
   if (hasTemplates) {
     const outputsMeta = op.config.outputs.map((o) => {
-      const firstTpl = o.templateIds[0] ? templateMap.get(o.templateIds[0]) : undefined;
-
       return {
-        name: inferOutputFilename(o, firstTpl?.contentType),
+        name: inferOutputFilename(o),
         templateIds: o.templateIds,
       };
     });

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { toOperationMd } from "./exportOperation";
 import { parseOperationMd, parseOperationZip } from "./importOperation";
-import type { Operation, OperationOutputItemTemplate } from "@repo/schemas";
+import type { Operation } from "@repo/schemas";
 import JSZip from "jszip";
 
 vi.mock("@/integrations/refine/dataProvider", () => ({
@@ -21,8 +21,8 @@ const makeOperation = (overrides: Partial<Operation> = {}): Operation => ({
     },
     inputs: [],
     outputs: [
-      { name: "report.md", kind: "file", description: "检查报告", templateIds: [] },
-      { name: "stats.json", kind: "file", description: "统计数据", templateIds: [] },
+      { name: "report.md", contentType: "markdown", description: "检查报告", templateIds: [] },
+      { name: "stats.json", contentType: "json", description: "统计数据", templateIds: [] },
     ],
   },
   ...overrides,
@@ -65,34 +65,31 @@ describe("toOperationMd", () => {
       makeOperation({
         config: {
           inputs: [],
-          outputs: [{ name: "report", kind: "file", description: "A report", templateIds: [] }],
+          outputs: [
+            { name: "report", contentType: "markdown", description: "A report", templateIds: [] },
+          ],
         },
       }),
     );
     expect(md).toContain("- **report.md**: A report");
   });
 
-  it("infers extension from template contentType when provided", () => {
+  it("infers extension from output contentType", () => {
     const op = makeOperation({
       config: {
         inputs: [],
         outputs: [
-          { name: "dashboard", kind: "file", description: "Dashboard", templateIds: ["tpl-1"] },
-          { name: "data", kind: "file", description: "Data", templateIds: ["tpl-2"] },
+          {
+            name: "dashboard",
+            contentType: "html",
+            description: "Dashboard",
+            templateIds: ["tpl-1"],
+          },
+          { name: "data", contentType: "json", description: "Data", templateIds: ["tpl-2"] },
         ],
       },
     });
-    const templateMap = new Map([
-      [
-        "tpl-1",
-        { id: "tpl-1", name: "T1", description: null, content: "", contentType: "html" as const },
-      ],
-      [
-        "tpl-2",
-        { id: "tpl-2", name: "T2", description: null, content: "", contentType: "json" as const },
-      ],
-    ]) as Map<string, OperationOutputItemTemplate>;
-    const md = toOperationMd(op, templateMap);
+    const md = toOperationMd(op);
     expect(md).toContain("- **dashboard.html**: Dashboard");
     expect(md).toContain("- **data.json**: Data");
   });
@@ -126,7 +123,9 @@ describe("parseOperationMd", () => {
     expect(parsed.config.executor.systemPrompt).toContain("对目标代码中的 DAO 层进行检查。");
     expect(parsed.config.outputs).toHaveLength(2);
     expect(parsed.config.outputs[0]!.name).toBe("report.md");
+    expect(parsed.config.outputs[0]!.contentType).toBe("markdown");
     expect(parsed.config.outputs[1]!.name).toBe("stats.json");
+    expect(parsed.config.outputs[1]!.contentType).toBe("json");
   });
 
   it("defaults input to any when omitted", () => {
@@ -174,7 +173,9 @@ describe("roundtrip: toOperationMd → parseOperationMd", () => {
     expect(parsed.acceptedObjectTypes).toEqual(original.acceptedObjectTypes);
     expect(parsed.config.outputs).toHaveLength(original.config.outputs.length);
     expect(parsed.config.outputs[0]!.name).toBe("report.md");
+    expect(parsed.config.outputs[0]!.contentType).toBe("markdown");
     expect(parsed.config.outputs[1]!.name).toBe("stats.json");
+    expect(parsed.config.outputs[1]!.contentType).toBe("json");
     expect(parsed.config.executor.systemPrompt).toContain("对目标代码中的 DAO 层进行检查。");
   });
 });
@@ -196,6 +197,7 @@ describe("parseOperationZip", () => {
     expect(parsed.name).toBe("Check DAO");
     expect(parsed.acceptedObjectTypes).toEqual(["folder"]);
     expect(parsed.config.outputs[0]!.name).toBe("report.md");
+    expect(parsed.config.outputs[0]!.contentType).toBe("markdown");
   });
 
   it("returns error when ZIP has no OPERATION.md", async () => {
@@ -252,7 +254,9 @@ describe("parseOperationZip", () => {
 
     // Output→template mapping preserved
     expect(parsed.config.outputs[0]!.templateIds).toEqual(["tpl-1"]);
+    expect(parsed.config.outputs[0]!.contentType).toBe("markdown");
     expect(parsed.config.outputs[1]!.templateIds).toEqual(["tpl-2", "tpl-3"]);
+    expect(parsed.config.outputs[1]!.contentType).toBe("json");
   });
 
   it("preserves empty templateIds for outputs without templates", async () => {
@@ -270,5 +274,6 @@ describe("parseOperationZip", () => {
     const parsed = result._unsafeUnwrap();
     expect(parsed.templates).toHaveLength(0);
     expect(parsed.config.outputs[0]!.templateIds).toEqual([]);
+    expect(parsed.config.outputs[0]!.contentType).toBe("markdown");
   });
 });

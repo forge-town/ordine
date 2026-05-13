@@ -50,7 +50,25 @@ const mockOp: Operation = {
   id: "op-123",
   name: "Run ESLint",
   description: "Lints the code",
-  config: { inputs: [], outputs: [], executor: { type: "script", command: "eslint src/" } },
+  config: {
+    inputs: [
+      {
+        name: "source",
+        kind: "file",
+        required: true,
+        description: "File to lint",
+      },
+    ],
+    outputs: [
+      {
+        name: "report",
+        contentType: "markdown",
+        description: "Lint report",
+        templateIds: ["template-1"],
+      },
+    ],
+    executor: { type: "script", command: "eslint src/" },
+  },
   acceptedObjectTypes: ["file", "folder"],
   meta: { createdAt: new Date(1000), updatedAt: new Date(2000) },
 };
@@ -130,6 +148,90 @@ describe("OperationEditPageContent", () => {
         expect.objectContaining({
           id: "op-123",
           values: expect.objectContaining({ name: "Run ESLint" }),
+        }),
+      );
+    });
+  });
+
+  it("keeps existing inputs and outputs when saving executor changes", async () => {
+    mockUpdateMutateAsync.mockResolvedValue({ data: { ...mockOp } });
+    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    fireEvent.click(screen.getByRole("button", { name: /保存/ }));
+
+    await waitFor(() => {
+      expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          values: expect.objectContaining({
+            config: expect.objectContaining({
+              inputs: mockOp.config.inputs,
+              outputs: mockOp.config.outputs,
+              executor: expect.objectContaining({
+                type: "script",
+                command: "eslint src/",
+              }),
+            }),
+          }),
+        }),
+      );
+    });
+  });
+
+  it("saves edited output items", async () => {
+    mockUpdateMutateAsync.mockResolvedValue({ data: { ...mockOp } });
+    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    fireEvent.change(screen.getByDisplayValue("report"), {
+      target: { value: "lint-summary" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /保存/ }));
+
+    await waitFor(() => {
+      expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          values: expect.objectContaining({
+            config: expect.objectContaining({
+              outputs: [
+                expect.objectContaining({
+                  name: "lint-summary",
+                  contentType: "markdown",
+                  description: "Lint report",
+                  templateIds: ["template-1"],
+                }),
+              ],
+            }),
+          }),
+        }),
+      );
+    });
+  });
+
+  it("adds new output items", async () => {
+    mockUpdateMutateAsync.mockResolvedValue({ data: { ...mockOp } });
+    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    fireEvent.click(screen.getByRole("button", { name: /添加输出/ }));
+    const outputNameInputs = screen.getAllByPlaceholderText(/例如 report/i);
+    const newOutputNameInput = outputNameInputs.at(-1);
+    expect(newOutputNameInput).toBeDefined();
+    fireEvent.change(newOutputNameInput as HTMLElement, {
+      target: { value: "new-output" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /保存/ }));
+
+    await waitFor(() => {
+      expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          values: expect.objectContaining({
+            config: expect.objectContaining({
+              outputs: [
+                expect.objectContaining({ name: "report" }),
+                expect.objectContaining({
+                  name: "new-output",
+                  contentType: "markdown",
+                  description: undefined,
+                  templateIds: [],
+                }),
+              ],
+            }),
+          }),
         }),
       );
     });

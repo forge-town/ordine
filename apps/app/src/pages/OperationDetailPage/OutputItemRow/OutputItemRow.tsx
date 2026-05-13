@@ -11,7 +11,7 @@ export const OutputItemRow: FC<OutputItemRowProps> = ({ item }) => (
       <div className="flex items-center gap-2">
         <span className="font-mono text-xs font-semibold text-foreground">{item.name}</span>
         <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-          {item.kind}
+          {item.contentType}
         </span>
       </div>
       <p className="text-xs leading-relaxed text-muted-foreground">{item.description}</p>

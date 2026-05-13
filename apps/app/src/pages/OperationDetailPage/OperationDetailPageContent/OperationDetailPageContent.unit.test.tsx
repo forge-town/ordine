@@ -67,7 +67,7 @@ const mockOp: Operation = {
     outputs: [
       {
         name: "planDocument",
-        kind: "file",
+        contentType: "markdown",
         description: "Technical plan document.",
         templateIds: [],
       },
@@ -110,17 +110,9 @@ describe("OperationDetailPageContent", () => {
     expect(matches.length).toBeGreaterThan(0);
   });
 
-  it("renders output kind badge", () => {
-    mockUseLoaderData.mockReturnValue(mockOp);
-    renderWithStore(<OperationDetailPageContent />);
-    const matches = screen.getAllByText("file");
-    expect(matches.length).toBeGreaterThan(0);
-  });
-
   it("renders accepted object types", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
     renderWithStore(<OperationDetailPageContent />);
-    // "file" appears in acceptedObjectTypes chip and also in port kind badges
     const matches = screen.getAllByText("file");
     expect(matches.length).toBeGreaterThan(0);
   });

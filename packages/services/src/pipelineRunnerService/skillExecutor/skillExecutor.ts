@@ -109,13 +109,11 @@ const buildSkillUserPrompt = ({
           "",
           "## Expected Output Items",
           "Your response MUST include ALL of the following output items.",
-          ...(outputDir
-            ? [`Write all output files to the directory: ${outputDir}`]
-            : []),
-          "Include the file paths in an \"outputs\" field in your JSON response.",
+          ...(outputDir ? [`Write all output files to the directory: ${outputDir}`] : []),
+          'Include the file paths in an "outputs" field in your JSON response.',
           ...outputItems.map(
             (item, i) =>
-              `${i + 1}. **${item.name}** (${item.kind})${item.description ? `: ${item.description}` : ""}`,
+              `${i + 1}. **${item.name}** (${item.contentType})${item.description ? `: ${item.description}` : ""}`,
           ),
           "",
         ]
@@ -198,7 +196,8 @@ const run = ({
   const parsedCustomTools = customAllowedTools
     ? ToolNameSchema.array().readonly().safeParse(customAllowedTools)
     : null;
-  const allowedTools = (parsedCustomTools?.success ? parsedCustomTools.data : null) ?? READ_ONLY_TOOLS;
+  const allowedTools =
+    (parsedCustomTools?.success ? parsedCustomTools.data : null) ?? READ_ONLY_TOOLS;
 
   return ResultAsync.fromPromise(
     (async () => {

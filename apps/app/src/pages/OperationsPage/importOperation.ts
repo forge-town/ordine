@@ -1,6 +1,6 @@
 import JSZip from "jszip";
 import { ok, err, type Result } from "neverthrow";
-import type { ObjectType, PortKind, TemplateContentType } from "@repo/schemas";
+import type { ObjectType, TemplateContentType } from "@repo/schemas";
 
 export type ParsedTemplate = {
   id: string;
@@ -17,7 +17,12 @@ export type ParsedOperation = {
   config: {
     executor: { type: "agent"; systemPrompt: string };
     inputs: [];
-    outputs: Array<{ name: string; kind: PortKind; description: string; templateIds: string[] }>;
+    outputs: Array<{
+      name: string;
+      contentType: TemplateContentType;
+      description: string;
+      templateIds: string[];
+    }>;
   };
   templates: ParsedTemplate[];
 };
@@ -30,22 +35,26 @@ const INPUT_TO_OBJECT_TYPES: Record<string, ObjectType[]> = {
   any: ["file", "folder", "project", "prompt"],
 };
 
-const EXT_TO_KIND: Record<string, PortKind> = {
-  md: "file",
-  json: "file",
-  txt: "file",
-  svg: "file",
-  html: "file",
-  csv: "file",
-  yaml: "file",
-};
-
 const CONTENT_TYPE_TO_EXT: Record<string, string> = {
   markdown: "md",
   json: "json",
   yaml: "yaml",
   text: "txt",
   html: "html",
+  xml: "xml",
+  csv: "csv",
+};
+
+const EXT_TO_CONTENT_TYPE: Record<string, TemplateContentType> = {
+  md: "markdown",
+  markdown: "markdown",
+  json: "json",
+  yaml: "yaml",
+  yml: "yaml",
+  txt: "text",
+  text: "text",
+  html: "html",
+  htm: "html",
   xml: "xml",
   csv: "csv",
 };
@@ -71,7 +80,12 @@ const parseFrontmatter = (
 
 const parseOutputs = (
   body: string,
-): Array<{ name: string; kind: PortKind; description: string; templateIds: string[] }> => {
+): Array<{
+  name: string;
+  contentType: TemplateContentType;
+  description: string;
+  templateIds: string[];
+}> => {
   const outputsMatch = body.match(/## Outputs\n\n([\s\S]*?)(?:\n## |\n*$)/);
   if (!outputsMatch) return [];
 
@@ -79,11 +93,11 @@ const parseOutputs = (
 
   return matches.map((m) => {
     const filename = m[1]!;
-    const ext = filename.split(".").pop() ?? "";
+    const ext = filename.split(".").pop()?.toLowerCase() ?? "";
 
     return {
       name: filename,
-      kind: EXT_TO_KIND[ext] ?? ("file" as PortKind),
+      contentType: EXT_TO_CONTENT_TYPE[ext] ?? "markdown",
       description: m[2]!,
       templateIds: [],
     };

@@ -13,7 +13,7 @@ export const Default: Story = {
   args: {
     item: {
       name: "result",
-      kind: "file",
+      contentType: "markdown",
       description: "分析结果文件",
       templateIds: [],
     },

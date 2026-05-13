@@ -80,7 +80,7 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
                 {selectedItem.name}
               </span>
               <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                {selectedItem.kind}
+                {selectedItem.contentType}
               </span>
             </div>
             {selectedItem.description && (

@@ -1,9 +1,9 @@
 import { z } from "zod/v4";
-import { PortKindSchema } from "./PortKindSchema";
+import { TemplateContentTypeSchema } from "./TemplateContentTypeSchema";
 
 export const OutputItemSchema = z.object({
   name: z.string(),
-  kind: PortKindSchema,
+  contentType: TemplateContentTypeSchema,
   description: z.string().optional(),
   templateIds: z.array(z.string()).default([]),
 });

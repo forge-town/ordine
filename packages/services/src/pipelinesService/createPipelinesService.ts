@@ -608,7 +608,14 @@ export const createPipelinesService = (db: DbConnection) => {
               prompt: systemPrompt,
             },
             inputs: [],
-            outputs: [{ name: "result", kind: "file", path: "output.md" }],
+            outputs: [
+              {
+                name: "result",
+                contentType: "markdown",
+                description: "Generated result",
+                templateIds: [],
+              },
+            ],
           };
           pendingOperations.push({
             id: opId,
