@@ -65,7 +65,7 @@ const OPERATIONS: OperationSeed[] = [
     name: "Constitution",
     description:
       "Establish the project's governing principles, architectural constraints, quality standards, and development guidelines that all subsequent work must follow.",
-    acceptedObjectTypes: ["project"],
+    acceptedObjectTypes: ["github-project"],
     config: cfg({
       inputs: [
         {
@@ -112,7 +112,7 @@ const OPERATIONS: OperationSeed[] = [
     name: "Specify",
     description:
       "Translate a raw feature idea into a structured specification document covering user stories, acceptance criteria, and scope boundaries.",
-    acceptedObjectTypes: ["project", "folder"],
+    acceptedObjectTypes: ["github-project", "folder"],
     config: cfg({
       inputs: [
         {
@@ -385,7 +385,7 @@ const OPERATIONS: OperationSeed[] = [
     name: "Check",
     description:
       "Run quality checks on the codebase: linting, type checking, and tests. Reports issues found and suggests fixes.",
-    acceptedObjectTypes: ["file", "folder", "project"],
+    acceptedObjectTypes: ["file", "folder", "github-project"],
     config: cfg({
       executor: {
         type: "agent",

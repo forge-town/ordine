@@ -10,7 +10,6 @@ export * from "./InputPortSchema";
 export * from "./job";
 export * from "./LogLevelSchema";
 export * from "./meta";
-export * from "./ObjectTypeSchema";
 export * from "./OperationConfigSchema";
 export * from "./OperationSchema";
 export * from "./OutputItemSchema";

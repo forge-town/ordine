@@ -90,7 +90,7 @@ const OPERATIONS: OperationSeed[] = [
     name: "扫描垃圾代码",
     description:
       "扫描目标代码，按检查清单逐项检查（未使用导入、console.log、注释代码段、死代码、空函数、重复导入、调试断点），输出违规清单。",
-    acceptedObjectTypes: ["file", "folder", "project"],
+    acceptedObjectTypes: ["file", "folder", "github-project"],
     config: cfg({
       executor: {
         type: "agent",
@@ -142,7 +142,7 @@ const OPERATIONS: OperationSeed[] = [
     id: "op_clean_junk_code",
     name: "清理垃圾代码",
     description: "根据违规清单执行代码清理，删除确认无用的代码，输出清理报告和修改后的文件列表。",
-    acceptedObjectTypes: ["file", "folder", "project"],
+    acceptedObjectTypes: ["file", "folder", "github-project"],
     config: cfg({
       executor: {
         type: "agent",
@@ -338,7 +338,7 @@ Markdown 转换报告：
     name: "发现最佳实践技能",
     description:
       "扫描技能库（.agents/skills 目录），列出所有以 best-practice 结尾的技能名称和描述。",
-    acceptedObjectTypes: ["project"],
+    acceptedObjectTypes: ["github-project"],
     config: cfg({
       executor: {
         type: "agent",
@@ -381,7 +381,7 @@ Markdown 列表：
     id: "op_run_best_practice_checks",
     name: "执行最佳实践检查",
     description: "按技能列表依次对项目执行每个 best-practice 检查，生成汇总报告。",
-    acceptedObjectTypes: ["project"],
+    acceptedObjectTypes: ["github-project"],
     config: cfg({
       executor: {
         type: "agent",

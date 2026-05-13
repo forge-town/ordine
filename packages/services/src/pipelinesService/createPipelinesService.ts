@@ -17,7 +17,7 @@ import {
 } from "@repo/models";
 import { extractJsonFromText } from "@repo/agent";
 import { logger } from "@repo/logger";
-import { PipelineSchema, type PipelineData, type ObjectType } from "@repo/schemas";
+import { PipelineSchema, type PipelineData, type ObjectNodeType } from "@repo/schemas";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
 import { normalizeSettingsRecord } from "../settingsService/normalizeSettingsRecord";
 
@@ -279,7 +279,7 @@ export const createPipelinesService = (db: DbConnection) => {
         name: string;
         description: string;
         config: Record<string, unknown>;
-        acceptedObjectTypes: ObjectType[];
+        acceptedObjectTypes: ObjectNodeType[];
       }>,
     ) => {
       for (const op of pendingOperations) {
@@ -566,7 +566,7 @@ export const createPipelinesService = (db: DbConnection) => {
             name: string;
             description: string;
             config: Record<string, unknown>;
-            acceptedObjectTypes: ObjectType[];
+            acceptedObjectTypes: ObjectNodeType[];
           }>;
         }
       | { error: string }
@@ -583,7 +583,7 @@ export const createPipelinesService = (db: DbConnection) => {
         name: string;
         description: string;
         config: Record<string, unknown>;
-        acceptedObjectTypes: ObjectType[];
+        acceptedObjectTypes: ObjectNodeType[];
       }> = [];
       const newOperations: Array<{ id: string; name: string; description: string }> = [];
 
@@ -622,7 +622,7 @@ export const createPipelinesService = (db: DbConnection) => {
             name: step.step,
             description: step.reason,
             config,
-            acceptedObjectTypes: ["file", "folder", "project", "prompt"] as ObjectType[],
+            acceptedObjectTypes: ["file", "folder", "github-project", "prompt"] as ObjectNodeType[],
           });
           newOperations.push({ id: opId, name: step.step, description: step.reason });
           logger.info(
@@ -643,7 +643,7 @@ export const createPipelinesService = (db: DbConnection) => {
           id: op.id,
           name: op.name,
           description: op.description,
-          acceptedObjectTypes: ["file", "folder", "project", "prompt"] as ObjectType[],
+          acceptedObjectTypes: ["file", "folder", "github-project", "prompt"] as ObjectNodeType[],
         })),
       ];
 
