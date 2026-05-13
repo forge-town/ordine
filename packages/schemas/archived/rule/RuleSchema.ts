@@ -2,8 +2,8 @@ import { z } from "zod/v4";
 import { RuleCategorySchema } from "./RuleCategorySchema";
 import { RuleSeveritySchema } from "./RuleSeveritySchema";
 import { RuleScriptLanguageSchema } from "./RuleScriptLanguageSchema";
-import { ObjectTypeSchema } from "./ObjectTypeSchema";
-import { MetaSchema } from "./meta";
+import { ObjectTypeSchema } from "../ObjectTypeSchema";
+import { MetaSchema } from "../meta";
 
 export const RuleSchema = z.object({
   id: z.string(),

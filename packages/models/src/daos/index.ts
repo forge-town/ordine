@@ -17,7 +17,6 @@ export * from "./pipelinesDao";
 export * from "./recipesDao";
 export * from "./refinementRunsDao";
 export * from "./refinementsDao";
-export * from "./rulesDao";
 export * from "./settingsDao";
 export * from "./skillsDao";
 export * from "./operationOutputItemTemplatesDao";
