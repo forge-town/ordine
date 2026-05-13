@@ -4,6 +4,7 @@
       "entry": ["src/router.tsx", "src/routes/**/*.tsx"],
       "project": ["src/**/*.{ts,tsx}"],
       "ignore": ["src/archived/**"],
+      "ignoreDependencies": ["@tailwindcss/typography", "@types/bcryptjs"],
       "drizzle": false
     },
     "apps/scripts": {
@@ -22,6 +23,9 @@
     "packages/oxlint-config": {
       "entry": ["plugins/**/*.js"],
       "project": ["plugins/**/*.js"]
+    },
+    "packages/logger": {
+      "ignoreDependencies": ["pino-pretty"]
     }
   },
   "ignoreDependencies": [

@@ -14,8 +14,6 @@
   "dependencies": {
     "@hono/node-server": "^1.14.3",
     "@repo/db": "workspace:*",
-    "@repo/db-schema": "workspace:*",
-    "@repo/models": "workspace:*",
     "@repo/schemas": "workspace:*",
     "@repo/services": "workspace:*",
     "@trpc/server": "^11.16.0",
