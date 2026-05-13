@@ -1,6 +1,5 @@
 import { timestamp, text, pgTable } from "drizzle-orm/pg-core";
 import { operationsTable } from "./operations_table";
-import { bestPracticesTable } from "./best_practices_table";
 
 export const recipesTable = pgTable("recipes", {
   id: text("id").primaryKey(),
@@ -9,9 +8,7 @@ export const recipesTable = pgTable("recipes", {
   operationId: text("operation_id")
     .notNull()
     .references(() => operationsTable.id),
-  bestPracticeId: text("best_practice_id")
-    .notNull()
-    .references(() => bestPracticesTable.id),
+  bestPracticeId: text("best_practice_id").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

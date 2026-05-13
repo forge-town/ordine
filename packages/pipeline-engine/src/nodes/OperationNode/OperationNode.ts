@@ -63,22 +63,6 @@ export const executeOperationNode = async (
     return data.agentRuntime as ExecutorConfig["agent"] | undefined;
   })();
 
-  const bestPracticeContent = await (async () => {
-    if (!data.bestPracticeId) return "";
-    const bp = await ctx.lookupBestPractice(data.bestPracticeId);
-    if (bp) {
-      await trace(jobId, `Loaded best practice "${bp.title}" (${bp.content.length} chars)`);
-
-      return bp.content;
-    }
-    await trace(
-      jobId,
-      `WARNING: Best practice ${data.bestPracticeId} not found, continuing without standards`,
-    );
-
-    return "";
-  })();
-
   const configResult = await safeParseConfig(operation.config, operation.name);
   if (configResult.isErr()) {
     await trace(jobId, `WARNING: ${configResult.error.message}, skipping`);
@@ -118,9 +102,7 @@ export const executeOperationNode = async (
     await trace(jobId, line);
   };
 
-  const effectiveInput = bestPracticeContent
-    ? `## Standards (Best Practice)\n\n${bestPracticeContent}\n\n---\n\n${input.content}`
-    : input.content;
+  const effectiveInput = input.content;
 
   const opResult = { value: "" };
 

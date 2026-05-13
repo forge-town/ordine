@@ -16,7 +16,6 @@ import {
   createJobsDao,
   createJobTracesDao,
   createSkillsDao,
-  createBestPracticesDao,
   createAgentRawExportsDao,
   createAgentSpansDao,
   createSettingsDao,
@@ -37,7 +36,6 @@ export const createOperationRunnerService = (db: DbConnection) => {
   const jobsDao = createJobsDao(db);
   const jobTracesDao = createJobTracesDao(db);
   const skillsDao = createSkillsDao(db);
-  const bestPracticesDao = createBestPracticesDao(db);
   const agentRawExportsDao = createAgentRawExportsDao(db);
   const agentSpansDao = createAgentSpansDao(db);
   const settingsDao = createSettingsDao(db);
@@ -131,12 +129,6 @@ export const createOperationRunnerService = (db: DbConnection) => {
               : null;
           };
 
-          const lookupBestPractice = async (bpId: string) => {
-            const bp = await bestPracticesDao.findById(bpId);
-
-            return bp ? { title: bp.title, content: bp.content } : null;
-          };
-
           const lookupAgent = async (agentId: string) => {
             const agent = await agentsDao.findById(agentId);
 
@@ -175,7 +167,6 @@ export const createOperationRunnerService = (db: DbConnection) => {
             operations: operationsMap,
             lookupAgent,
             lookupSkill,
-            lookupBestPractice,
           };
 
           const result = await executeOperationNode(syntheticNode, input, opCtx);

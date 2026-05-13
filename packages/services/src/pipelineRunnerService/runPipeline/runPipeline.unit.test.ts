@@ -9,7 +9,6 @@ import type {
   JobsDao,
   PipelineRunsDao,
   SkillsDao,
-  BestPracticesDao,
 } from "@repo/models";
 
 vi.mock("@repo/obs", () => ({
@@ -54,7 +53,6 @@ const makeOpts = (overrides = {}) => ({
     update: vi.fn().mockResolvedValue(undefined),
   } as unknown as PipelineRunsDao,
   skillsDao: { findById: vi.fn(), findByName: vi.fn() } as unknown as SkillsDao,
-  bestPracticesDao: { findById: vi.fn() } as unknown as BestPracticesDao,
   engineDeps: {
     runPrompt: vi.fn().mockReturnValue(okAsync("")),
     runSkill: vi.fn().mockReturnValue(okAsync("")),

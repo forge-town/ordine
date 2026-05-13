@@ -43,7 +43,6 @@ export interface PipelineOptions {
   deps: PipelineEngineDeps;
   lookupAgent: (id: string) => Promise<AgentInfo | null>;
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
-  lookupBestPractice: (id: string) => Promise<{ title: string; content: string } | null>;
 }
 
 export class Pipeline {
@@ -177,7 +176,6 @@ export class Pipeline {
           operations: this.opts.operations,
           lookupAgent: this.opts.lookupAgent,
           lookupSkill: this.opts.lookupSkill,
-          lookupBestPractice: this.opts.lookupBestPractice,
           githubToken: this.opts.githubToken,
           outputDir: this.resolveOutputDirForNode(node.id),
         };

@@ -15,7 +15,6 @@ import type {
   JobsDao,
   PipelineRunsDao,
   SkillsDao,
-  BestPracticesDao,
 } from "@repo/models";
 
 /**
@@ -70,7 +69,6 @@ export const pipelineRunExecutor = {
     jobsDao: JobsDao;
     pipelineRunsDao: PipelineRunsDao;
     skillsDao: SkillsDao;
-    bestPracticesDao: BestPracticesDao;
     engineDeps: PipelineEngineDeps;
   }): Promise<void> => {
     const {
@@ -83,7 +81,6 @@ export const pipelineRunExecutor = {
       jobsDao,
       pipelineRunsDao,
       skillsDao,
-      bestPracticesDao,
       engineDeps,
     } = opts;
 
@@ -118,12 +115,6 @@ export const pipelineRunExecutor = {
             : null;
         };
 
-        const lookupBestPractice = async (bpId: string) => {
-          const bp = await bestPracticesDao.findById(bpId);
-
-          return bp ? { title: bp.title, content: bp.content } : null;
-        };
-
         const lookupAgent = async (agentId: string) => {
           const agent = await agentsDao.findById(agentId);
 
@@ -148,7 +139,6 @@ export const pipelineRunExecutor = {
             deps: engineDeps,
             lookupAgent,
             lookupSkill,
-            lookupBestPractice,
           }),
           (cause): PipelineRunError =>
             new ScriptExecutionError(cause instanceof Error ? cause.message : String(cause), cause),

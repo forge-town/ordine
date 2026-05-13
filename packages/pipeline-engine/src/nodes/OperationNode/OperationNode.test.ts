@@ -56,7 +56,6 @@ const makeCtx = (
   operations,
   lookupAgent: vi.fn().mockResolvedValue(null),
   lookupSkill: vi.fn().mockResolvedValue(null),
-  lookupBestPractice: vi.fn().mockResolvedValue(null),
   jobId: "job-1",
   ...overrides,
 });
@@ -162,27 +161,6 @@ describe("executeOperationNode", () => {
 
     expect(result.ok).toBe(false);
     expect(trace).toHaveBeenCalledWith("job-1", expect.stringContaining("No executor configured"));
-  });
-
-  it("prepends best practice content when available", async () => {
-    const deps = makeDeps();
-    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Analyze" });
-    const ops = new Map([["op-id", op]]);
-    const node = makeNode({ operationId: "op-id", bestPracticeId: "bp-1" });
-    const ctx = makeCtx(deps, ops, {
-      lookupBestPractice: vi.fn().mockResolvedValue({
-        title: "Clean Code",
-        content: "Write tests first",
-      }),
-    });
-
-    await executeOperationNode(node, makeInput(), ctx);
-
-    expect(deps.runPrompt).toHaveBeenCalledWith(
-      expect.objectContaining({
-        inputContent: expect.stringContaining("Write tests first"),
-      }),
-    );
   });
 
   it("returns error when runPrompt fails", async () => {

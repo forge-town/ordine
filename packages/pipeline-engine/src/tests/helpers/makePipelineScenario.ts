@@ -32,7 +32,6 @@ export const makePipelineScenario = ({
   deps,
   lookupAgent: async () => null,
   lookupSkill: async () => null,
-  lookupBestPractice: async () => null,
   ...extra,
 });
 

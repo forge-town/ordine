@@ -65,7 +65,6 @@ const makeOpts = (
   deps,
   lookupAgent: vi.fn().mockResolvedValue(null),
   lookupSkill: vi.fn().mockResolvedValue(null),
-  lookupBestPractice: vi.fn().mockResolvedValue(null),
   ...extra,
 });
 

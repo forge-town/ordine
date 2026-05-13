@@ -61,7 +61,6 @@ const makeOpts = (
   deps,
   lookupAgent: vi.fn().mockResolvedValue(null),
   lookupSkill: vi.fn().mockResolvedValue(null),
-  lookupBestPractice: vi.fn().mockResolvedValue(null),
   ...extra,
 });
 
@@ -300,29 +299,6 @@ describe("executePipeline", () => {
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps, { operations }));
       expect(result.ok).toBe(true);
       expect(deps.runPrompt).not.toHaveBeenCalled();
-    });
-
-    it("loads best practice content when bestPracticeId is set", async () => {
-      const deps = makeDeps();
-      const opId = "op-bp";
-      const operations = new Map([
-        [
-          opId,
-          makeOp(opId, "BP Op", {
-            executor: { type: "agent", agentMode: "prompt", prompt: "Check standards" },
-          }),
-        ],
-      ]);
-      const lookupBestPractice = vi
-        .fn()
-        .mockResolvedValue({ title: "DAO Guide", content: "Use class-based DAOs" });
-
-      const nodes = [makeNode("op", "operation", { operationId: opId, bestPracticeId: "bp-1" })];
-      const result = await pipelineEngine.execute(
-        makeOpts(nodes, [], deps, { operations, lookupBestPractice }),
-      );
-      expect(result.ok).toBe(true);
-      expect(lookupBestPractice).toHaveBeenCalledWith("bp-1");
     });
   });
 

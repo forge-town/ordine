@@ -12,8 +12,6 @@ export const OperationNodeDataSchema = z.object({
   notes: z.string().optional(),
   agentId: z.string().optional(),
   agentRuntime: AgentRuntimeSchema.optional(),
-  bestPracticeId: z.string().optional(),
-  bestPracticeName: z.string().optional(),
   loopEnabled: z.boolean().optional(),
   maxLoopCount: z.number().int().min(1).max(20).optional(),
   loopConditionPrompt: z.string().optional(),
