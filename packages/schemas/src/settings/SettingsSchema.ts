@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { AgentRuntimeSchema } from "./agent-runtime/AgentRuntimeSchema";
-import { MetaSchema } from "./meta";
+import { AgentRuntimeSchema } from "../agent-runtime/AgentRuntimeSchema";
+import { MetaSchema } from "../meta";
 
 export const SettingsSchema = z.object({
   id: z.string(),

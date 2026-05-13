@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import { OperationExecutorTypeSchema } from "./OperationExecutorTypeSchema";
 import { AgentModeSchema } from "../agent/AgentModeSchema";
 import { AgentRuntimeSchema } from "../agent-runtime/AgentRuntimeSchema";
-import { ScriptLanguageSchema } from "../ScriptLanguageSchema";
+import { ScriptLanguageSchema } from "../common/ScriptLanguageSchema";
 
 export const OperationExecutorConfigSchema = z.object({
   type: OperationExecutorTypeSchema,
