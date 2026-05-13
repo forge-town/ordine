@@ -6,7 +6,7 @@ import { MetaSchema } from "./meta";
 export const OperationSchema = z.object({
   id: z.string(),
   name: z.string(),
-  description: z.string().nullable().default(null),
+  description: z.string().default(""),
   config: OperationConfigSchema,
   acceptedObjectTypes: z.array(ObjectTypeSchema).default(["file", "folder", "project", "prompt"]),
   meta: MetaSchema.optional(),

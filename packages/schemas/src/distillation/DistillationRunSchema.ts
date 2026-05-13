@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { DistillationResultSchema } from "./DistillationSchema";
-import { MetaSchema } from "./meta";
+import { MetaSchema } from "../meta";
+import { DistillationResultSchema } from "./DistillationResultSchema";
 
 export const DistillationRunSchema = z.object({
   id: z.string(),

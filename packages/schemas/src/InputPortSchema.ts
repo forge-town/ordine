@@ -1,9 +1,9 @@
 import { z } from "zod/v4";
-import { PortKindSchema } from "./PortKindSchema";
+import { ObjectNodeTypeSchema } from "./pipeline/node/ObjectNodeTypeSchema";
 
 export const InputPortSchema = z.object({
   name: z.string(),
-  kind: PortKindSchema,
+  kind: ObjectNodeTypeSchema,
   required: z.boolean(),
   description: z.string().optional(),
 });
