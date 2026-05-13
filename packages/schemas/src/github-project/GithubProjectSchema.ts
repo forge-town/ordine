@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { MetaSchema } from "./meta";
+import { MetaSchema } from "../meta";
 
 export const GithubProjectSchema = z.object({
   id: z.string(),

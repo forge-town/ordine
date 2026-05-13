@@ -2,7 +2,7 @@ export * from "./agent";
 export * from "./agent-runtime";
 export * from "./agent-trace";
 export * from "./distillation";
-export * from "./GithubProjectSchema";
+export * from "./github-project";
 export * from "./job";
 export * from "./LogLevelSchema";
 export * from "./meta";
