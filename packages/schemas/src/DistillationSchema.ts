@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { AgentRuntimeSchema } from "./AgentRuntimeSchema";
+import { AgentRuntimeSchema } from "./agent-runtime/AgentRuntimeSchema";
 import { MetaSchema } from "./meta";
 
 export const DistillationSourceTypeSchema = z.enum(["job", "pipeline", "manual"]);

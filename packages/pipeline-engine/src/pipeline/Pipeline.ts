@@ -3,12 +3,16 @@ import { rm } from "node:fs/promises";
 import { ResultAsync } from "neverthrow";
 import { trace } from "@repo/obs";
 import { pluginRegistry } from "@repo/plugin";
-import { resolveMetaType, type NodeCtx } from "../schemas";
+import { type NodeCtx } from "../schemas";
 import {
   BUILTIN_NODE_TYPE_ENUM,
+  OBJECT_NODE_TYPE_ENUM,
+  OPERATION_NODE_TYPE_ENUM,
+  OUTPUT_NODE_TYPE_ENUM,
   type PipelineEdge,
   type PipelineNode,
   type PipelineNodeData,
+  type MetaNodeType,
 } from "@repo/schemas";
 import type { PipelineEngineDeps } from "../deps";
 import { ScriptExecutionError, type PipelineRunError } from "../errors";
@@ -21,6 +25,19 @@ import { processGitHubProjectNode } from "../nodes/GitHubProjectNode";
 import { processPromptNode } from "../nodes/PromptNode";
 import { processOutputLocalPathNode } from "../nodes/OutputLocalPathNode";
 import { processOperationNode } from "../nodes/OperationNode";
+
+const OBJECT_TYPES: ReadonlySet<string> = new Set(Object.values(OBJECT_NODE_TYPE_ENUM));
+const OPERATION_TYPES: ReadonlySet<string> = new Set(Object.values(OPERATION_NODE_TYPE_ENUM));
+const OUTPUT_TYPES: ReadonlySet<string> = new Set(Object.values(OUTPUT_NODE_TYPE_ENUM));
+
+const resolveMetaType = (type: string): MetaNodeType =>
+  OBJECT_TYPES.has(type)
+    ? "object"
+    : OPERATION_TYPES.has(type)
+      ? "operation"
+      : OUTPUT_TYPES.has(type)
+        ? "output"
+        : "object";
 
 export type PipelineRunResult =
   | { ok: true; summary: string }
@@ -161,7 +178,7 @@ export class Pipeline {
       defaultOutputPath: this.opts.defaultOutputPath,
     };
 
-    const metaType = resolveMetaType(node.type, node.metaType);
+    const metaType = resolveMetaType(node.type);
 
     // ── object metaType ──────────────────────────────────────────────────
     if (metaType === "object") {
@@ -225,7 +242,8 @@ export class Pipeline {
     const { edges, nodes } = this.opts.pipeline;
     const childIds = edges.filter((e) => e.source === nodeId).map((e) => e.target);
     const outputNode = nodes.find(
-      (n) => childIds.includes(n.id) && n.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH,
+      (n) =>
+        childIds.includes(n.id) && n.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH,
     );
     const configuredPath =
       outputNode?.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH

@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { AgentRuntimeSchema } from "./AgentRuntimeSchema";
-import { AgentRunStatusSchema } from "./AgentRunStatusSchema";
+import { AgentRuntimeSchema } from "../agent-runtime/AgentRuntimeSchema";
+import { AgentRunStatusSchema } from "../agent-runtime/AgentRunStatusSchema";
 
 export const AgentRawExportSchema = z.object({
   id: z.number(),
