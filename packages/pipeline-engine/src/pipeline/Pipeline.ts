@@ -5,7 +5,7 @@ import { trace } from "@repo/obs";
 import { pluginRegistry } from "@repo/plugin";
 import { resolveMetaType, type NodeCtx } from "../schemas";
 import {
-  NODE_TYPE_ENUM,
+  BUILTIN_NODE_TYPE_ENUM,
   type PipelineEdge,
   type PipelineNode,
   type PipelineNodeData,
@@ -103,7 +103,7 @@ export class Pipeline {
     }
 
     const outputPaths = nodes.flatMap((n) => {
-      if (n.data.nodeType !== NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) return [];
+      if (n.data.nodeType !== BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) return [];
       const configuredPath = n.data.localPath ?? "";
       const path = configuredPath || this.opts.defaultOutputPath || "";
 
@@ -171,7 +171,7 @@ export class Pipeline {
 
     // ── operation metaType ───────────────────────────────────────────────
     if (metaType === "operation") {
-      if (node.type === NODE_TYPE_ENUM.OPERATION) {
+      if (node.type === BUILTIN_NODE_TYPE_ENUM.OPERATION) {
         const opCtx: OperationNodeContext = {
           ...baseCtx,
           operations: this.opts.operations,
@@ -195,11 +195,11 @@ export class Pipeline {
 
     // ── output metaType ──────────────────────────────────────────────────
     if (metaType === "output") {
-      if (node.type === NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) {
+      if (node.type === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) {
         return this.wrapNodeResult(node.id, processOutputLocalPathNode(baseCtx));
       }
 
-      if (node.data.nodeType === NODE_TYPE_ENUM.OUTPUT_PROJECT_PATH) {
+      if (node.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_PROJECT_PATH) {
         const projPath = node.data.path ?? input.inputPath;
         await trace(jobId, `Output-to-project: changes written directly to ${projPath}`);
         this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
@@ -227,10 +227,10 @@ export class Pipeline {
     const { edges, nodes } = this.opts.pipeline;
     const childIds = edges.filter((e) => e.source === nodeId).map((e) => e.target);
     const outputNode = nodes.find(
-      (n) => childIds.includes(n.id) && n.data.nodeType === NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH,
+      (n) => childIds.includes(n.id) && n.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH,
     );
     const configuredPath =
-      outputNode?.data.nodeType === NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH
+      outputNode?.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH
         ? (outputNode.data.localPath ?? "")
         : "";
     const resolved = configuredPath || this.opts.defaultOutputPath || "";
@@ -279,19 +279,19 @@ export class Pipeline {
     }
 
     // Built-in object handlers
-    if (node.type === NODE_TYPE_ENUM.FOLDER) {
+    if (node.type === BUILTIN_NODE_TYPE_ENUM.FOLDER) {
       return this.wrapNodeResult(node.id, processFolderNode(baseCtx));
     }
 
-    if (node.type === NODE_TYPE_ENUM.FILE) {
+    if (node.type === BUILTIN_NODE_TYPE_ENUM.FILE) {
       return this.wrapNodeResult(node.id, processFileNode(baseCtx));
     }
 
-    if (node.type === NODE_TYPE_ENUM.PROMPT) {
+    if (node.type === BUILTIN_NODE_TYPE_ENUM.PROMPT) {
       return this.wrapNodeResult(node.id, processPromptNode(baseCtx));
     }
 
-    if (node.type === NODE_TYPE_ENUM.GITHUB_PROJECT) {
+    if (node.type === BUILTIN_NODE_TYPE_ENUM.GITHUB_PROJECT) {
       return this.wrapNodeResult(
         node.id,
         processGitHubProjectNode({ ...baseCtx, githubToken: this.opts.githubToken }),

@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { NodeRunStatusSchema } from "./NodeRunStatusSchema";
-import { AgentRuntimeSchema } from "../AgentRuntimeSchema";
+import { AgentRuntimeSchema } from "../../AgentRuntimeSchema";
 
 export const OperationNodeDataSchema = z.object({
   label: z.string(),

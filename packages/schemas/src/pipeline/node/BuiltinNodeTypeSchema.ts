@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-export const NODE_TYPE_ENUM = {
+export const BUILTIN_NODE_TYPE_ENUM = {
   COMPOUND: "compound",
   FILE: "file",
   FOLDER: "folder",
@@ -10,6 +10,5 @@ export const NODE_TYPE_ENUM = {
   OUTPUT_LOCAL_PATH: "output-local-path",
   PROMPT: "prompt",
 } as const;
-
-export const BuiltinNodeTypeSchema = z.enum(NODE_TYPE_ENUM);
+export const BuiltinNodeTypeSchema = z.enum(BUILTIN_NODE_TYPE_ENUM);
 export type BuiltinNodeType = z.infer<typeof BuiltinNodeTypeSchema>;

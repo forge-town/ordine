@@ -5,6 +5,5 @@ export const OUTPUT_MODE_ENUM = {
   ERROR_IF_EXISTS: "error_if_exists",
   AUTO_RENAME: "auto_rename",
 } as const;
-
 export const OutputModeSchema = z.enum(OUTPUT_MODE_ENUM);
 export type OutputMode = z.infer<typeof OutputModeSchema>;

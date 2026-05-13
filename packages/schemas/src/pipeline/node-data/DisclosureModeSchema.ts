@@ -5,6 +5,5 @@ export const DISCLOSURE_MODE_ENUM = {
   FULL: "full",
   FILES_ONLY: "files-only",
 } as const;
-
 export const DisclosureModeSchema = z.enum(DISCLOSURE_MODE_ENUM);
 export type DisclosureMode = z.infer<typeof DisclosureModeSchema>;

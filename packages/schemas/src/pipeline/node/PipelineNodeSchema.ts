@@ -1,11 +1,11 @@
 import { z } from "zod/v4";
-import { NodeTypeSchema } from "./NodeTypeSchema";
+import { BuiltinNodeTypeSchema } from "./BuiltinNodeTypeSchema";
 import { MetaNodeTypeSchema } from "./MetaNodeTypeSchema";
-import { PipelineNodeDataSchema } from "./PipelineNodeDataSchema";
+import { PipelineNodeDataSchema } from "../node-data/PipelineNodeDataSchema";
 
 export const PipelineNodeSchema = z.object({
   id: z.string(),
-  type: NodeTypeSchema,
+  type: BuiltinNodeTypeSchema,
   metaType: MetaNodeTypeSchema.optional(),
   position: z.object({ x: z.number(), y: z.number() }),
   data: PipelineNodeDataSchema,

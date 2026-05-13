@@ -6,6 +6,5 @@ export const NODE_RUN_STATUS_ENUM = {
   PASS: "pass",
   FAIL: "fail",
 } as const;
-
 export const NodeRunStatusSchema = z.enum(NODE_RUN_STATUS_ENUM);
 export type NodeRunStatus = z.infer<typeof NodeRunStatusSchema>;

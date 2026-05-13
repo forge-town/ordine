@@ -5,6 +5,5 @@ export const META_NODE_TYPE_ENUM = {
   OPERATION: "operation",
   OUTPUT: "output",
 } as const;
-
 export const MetaNodeTypeSchema = z.enum(META_NODE_TYPE_ENUM);
 export type MetaNodeType = z.infer<typeof MetaNodeTypeSchema>;
