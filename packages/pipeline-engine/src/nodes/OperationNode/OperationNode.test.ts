@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { okAsync, errAsync } from "neverthrow";
 import { executeOperationNode, processOperationNode } from "./OperationNode";
 import type { PipelineEngineDeps } from "../../deps";
-import type { ExecutorConfig, PipelineNode } from "@repo/schemas";
+import type { OperationExecutorConfig, PipelineNode } from "@repo/schemas";
 import type { NodeCtx } from "../../schemas";
 import type { OperationNodeContext, OperationInfo } from "../types";
 
@@ -37,7 +37,7 @@ const makeInput = (content = "input text", inputPath = "/src"): NodeCtx => ({
   content,
 });
 
-const makeOperation = (executor: ExecutorConfig): OperationInfo => ({
+const makeOperation = (executor: OperationExecutorConfig): OperationInfo => ({
   id: "op-id",
   name: "Test Op",
   config: { executor },
@@ -402,7 +402,11 @@ describe("executeOperationNode — agent override", () => {
       prompt: "Analyze",
     });
     const ops = new Map([["op-id", op]]);
-    const node = makeNode({ operationId: "op-id", agentId: "missing-agent", agentRuntime: "mastra" });
+    const node = makeNode({
+      operationId: "op-id",
+      agentId: "missing-agent",
+      agentRuntime: "mastra",
+    });
     const lookupAgent = vi.fn().mockResolvedValue(null);
     const ctx = makeCtx(deps, ops, { lookupAgent });
 

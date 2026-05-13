@@ -1,10 +1,10 @@
 import { z } from "zod/v4";
-import { ExecutorConfigSchema } from "../ExecutorConfigSchema";
+import { OperationExecutorConfigSchema } from "./OperationExecutorConfigSchema";
 import { InputPortSchema } from "./InputPortSchema";
 import { OutputItemSchema } from "./OutputItemSchema";
 
 export const OperationConfigSchema = z.object({
-  executor: ExecutorConfigSchema.optional(),
+  executor: OperationExecutorConfigSchema.optional(),
   inputs: z.array(InputPortSchema).default([]),
   outputs: z.array(OutputItemSchema).default([]),
 });

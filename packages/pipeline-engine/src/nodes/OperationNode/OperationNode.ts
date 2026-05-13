@@ -1,4 +1,4 @@
-import type { ExecutorConfig, PipelineNode } from "@repo/schemas";
+import type { OperationExecutorConfig, PipelineNode } from "@repo/schemas";
 import type { NodeCtx } from "../../schemas";
 import { trace } from "@repo/obs";
 import { ScriptExecutionError } from "../../errors";
@@ -52,7 +52,7 @@ export const executeOperationNode = async (
       if (agent?.defaultRuntime) {
         await trace(jobId, `Using agent "${agent.name}" with runtime "${agent.defaultRuntime}"`);
 
-        return agent.defaultRuntime as ExecutorConfig["agent"];
+        return agent.defaultRuntime as OperationExecutorConfig["agent"];
       }
       await trace(
         jobId,
@@ -60,7 +60,7 @@ export const executeOperationNode = async (
       );
     }
 
-    return data.agentRuntime as ExecutorConfig["agent"] | undefined;
+    return data.agentRuntime as OperationExecutorConfig["agent"] | undefined;
   })();
 
   const configResult = await safeParseConfig(operation.config, operation.name);
