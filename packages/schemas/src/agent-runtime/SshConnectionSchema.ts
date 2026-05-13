@@ -7,5 +7,4 @@ export const SshConnectionSchema = z.object({
   port: z.number().int().positive().optional(),
   keyPath: z.string().optional(),
 });
-
 export type SshConnection = z.infer<typeof SshConnectionSchema>;
