@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ObjectNodeTypeSchema } from "./pipeline/node/ObjectNodeTypeSchema";
+import { ObjectNodeTypeSchema } from "../pipeline/node/ObjectNodeTypeSchema";
 
 export const InputPortSchema = z.object({
   name: z.string(),

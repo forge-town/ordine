@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { TemplateContentTypeSchema } from "./TemplateContentTypeSchema";
-import { MetaSchema } from "./meta";
+import { MetaSchema } from "../meta";
 
 export const OperationOutputItemTemplateSchema = z.object({
   id: z.string(),

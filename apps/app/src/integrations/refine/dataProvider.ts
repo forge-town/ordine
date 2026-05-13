@@ -21,13 +21,9 @@ export const ResourceName = {
   operations: "operations",
   pipelines: "pipelines",
   jobs: "jobs",
-  rules: "rules",
-  bestPractices: "bestPractices",
   githubProjects: "githubProjects",
   skills: "skills",
   recipes: "recipes",
-  checklistItems: "checklistItems",
-  codeSnippets: "codeSnippets",
   distillations: "distillations",
   refinements: "refinements",
   settings: "settings",
@@ -71,16 +67,6 @@ export const dataProvider: DataProvider = {
 
         return { data: data as unknown as TData[], total: data.length };
       }
-      case ResourceName.rules: {
-        const data = await trpcClient.rules.getMany.query({});
-
-        return { data: data as unknown as TData[], total: data.length };
-      }
-      case ResourceName.bestPractices: {
-        const data = await trpcClient.bestPractices.getMany.query();
-
-        return { data: data as unknown as TData[], total: data.length };
-      }
       case ResourceName.githubProjects: {
         const data = await trpcClient.githubProjects.getMany.query();
 
@@ -93,28 +79,6 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.recipes: {
         const data = await trpcClient.recipes.getMany.query();
-
-        return { data: data as unknown as TData[], total: data.length };
-      }
-      case ResourceName.checklistItems: {
-        const bpFilter = params.filters?.find((f) => "field" in f && f.field === "bestPracticeId");
-        const bestPracticeId =
-          bpFilter && "value" in bpFilter ? (bpFilter.value as string) : undefined;
-        if (!bestPracticeId) {
-          return { data: [] as unknown as TData[], total: 0 };
-        }
-        const data = await trpcClient.checklist.getItemsByBestPracticeId.query({ bestPracticeId });
-
-        return { data: data as unknown as TData[], total: data.length };
-      }
-      case ResourceName.codeSnippets: {
-        const bpFilter = params.filters?.find((f) => "field" in f && f.field === "bestPracticeId");
-        const bestPracticeId =
-          bpFilter && "value" in bpFilter ? (bpFilter.value as string) : undefined;
-        if (!bestPracticeId) {
-          return { data: [] as unknown as TData[], total: 0 };
-        }
-        const data = await trpcClient.codeSnippets.getByBestPracticeId.query({ bestPracticeId });
 
         return { data: data as unknown as TData[], total: data.length };
       }
@@ -178,18 +142,6 @@ export const dataProvider: DataProvider = {
 
         return { data: data as unknown as TData };
       }
-      case ResourceName.rules: {
-        const data = await trpcClient.rules.getById.query({ id: String(id) });
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.bestPractices: {
-        const data = await trpcClient.bestPractices.getById.query({
-          id: String(id),
-        });
-
-        return { data: data as unknown as TData };
-      }
       case ResourceName.githubProjects: {
         const data = await trpcClient.githubProjects.getById.query({
           id: String(id),
@@ -204,16 +156,6 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.recipes: {
         const data = await trpcClient.recipes.getById.query({ id: String(id) });
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.checklistItems: {
-        const data = await trpcClient.checklist.getItemById.query({ id: String(id) });
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.codeSnippets: {
-        const data = await trpcClient.codeSnippets.getById.query({ id: String(id) });
 
         return { data: data as unknown as TData };
       }
@@ -286,20 +228,6 @@ export const dataProvider: DataProvider = {
 
         return { data: data as unknown as TData };
       }
-      case ResourceName.rules: {
-        const data = await trpcClient.rules.create.mutate(
-          variables as Parameters<typeof trpcClient.rules.create.mutate>[0],
-        );
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.bestPractices: {
-        const data = await trpcClient.bestPractices.create.mutate(
-          variables as Parameters<typeof trpcClient.bestPractices.create.mutate>[0],
-        );
-
-        return { data: data as unknown as TData };
-      }
       case ResourceName.githubProjects: {
         const data = await trpcClient.githubProjects.create.mutate(
           variables as Parameters<typeof trpcClient.githubProjects.create.mutate>[0],
@@ -317,20 +245,6 @@ export const dataProvider: DataProvider = {
       case ResourceName.recipes: {
         const data = await trpcClient.recipes.create.mutate(
           variables as Parameters<typeof trpcClient.recipes.create.mutate>[0],
-        );
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.checklistItems: {
-        const data = await trpcClient.checklist.createItem.mutate(
-          variables as Parameters<typeof trpcClient.checklist.createItem.mutate>[0],
-        );
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.codeSnippets: {
-        const data = await trpcClient.codeSnippets.create.mutate(
-          variables as Parameters<typeof trpcClient.codeSnippets.create.mutate>[0],
         );
 
         return { data: data as unknown as TData };
@@ -401,22 +315,6 @@ export const dataProvider: DataProvider = {
 
         return { data: data as unknown as TData };
       }
-      case ResourceName.rules: {
-        const data = await trpcClient.rules.update.mutate({
-          id: String(id),
-          ...(variables as Record<string, unknown>),
-        } as Parameters<typeof trpcClient.rules.update.mutate>[0]);
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.bestPractices: {
-        const data = await trpcClient.bestPractices.update.mutate({
-          id: String(id),
-          patch: variables as Record<string, unknown>,
-        } as Parameters<typeof trpcClient.bestPractices.update.mutate>[0]);
-
-        return { data: data as unknown as TData };
-      }
       case ResourceName.githubProjects: {
         const data = await trpcClient.githubProjects.update.mutate({
           id: String(id),
@@ -438,22 +336,6 @@ export const dataProvider: DataProvider = {
           id: String(id),
           patch: variables as Record<string, unknown>,
         } as Parameters<typeof trpcClient.recipes.update.mutate>[0]);
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.checklistItems: {
-        const data = await trpcClient.checklist.updateItem.mutate({
-          id: String(id),
-          patch: variables as Record<string, unknown>,
-        } as Parameters<typeof trpcClient.checklist.updateItem.mutate>[0]);
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.codeSnippets: {
-        const data = await trpcClient.codeSnippets.update.mutate({
-          id: String(id),
-          patch: variables as Record<string, unknown>,
-        } as Parameters<typeof trpcClient.codeSnippets.update.mutate>[0]);
 
         return { data: data as unknown as TData };
       }
@@ -520,18 +402,6 @@ export const dataProvider: DataProvider = {
 
         return { data: data as unknown as TData };
       }
-      case ResourceName.rules: {
-        const data = await trpcClient.rules.delete.mutate({ id: String(id) });
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.bestPractices: {
-        const data = await trpcClient.bestPractices.delete.mutate({
-          id: String(id),
-        });
-
-        return { data: data as unknown as TData };
-      }
       case ResourceName.githubProjects: {
         const data = await trpcClient.githubProjects.delete.mutate({
           id: String(id),
@@ -546,16 +416,6 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.recipes: {
         const data = await trpcClient.recipes.delete.mutate({ id: String(id) });
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.checklistItems: {
-        const data = await trpcClient.checklist.deleteItem.mutate({ id: String(id) });
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.codeSnippets: {
-        const data = await trpcClient.codeSnippets.delete.mutate({ id: String(id) });
 
         return { data: data as unknown as TData };
       }
@@ -620,13 +480,6 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
-    if (url === "rules/toggle") {
-      const data = await trpcClient.rules.toggle.mutate(
-        payload as unknown as Parameters<typeof trpcClient.rules.toggle.mutate>[0],
-      );
-
-      return { data: data as unknown as TData };
-    }
     if (url === "jobs/analysis") {
       const { jobId } = payload as { jobId: string };
       const [traces, agentRuns] = await Promise.all([
@@ -666,25 +519,6 @@ export const dataProvider: DataProvider = {
       const spans = await trpcClient.jobs.getAgentRunSpans.query({ rawExportId });
 
       return { data: { spans } as unknown as TData };
-    }
-    if (url === "bestPractices/exportAsZip") {
-      const base64 = await trpcClient.bestPractices.exportAsZip.query();
-
-      return { data: { base64 } as unknown as TData };
-    }
-    if (url === "bestPractices/previewImport") {
-      const data = await trpcClient.bestPractices.previewImport.mutate(
-        payload as unknown as Parameters<typeof trpcClient.bestPractices.previewImport.mutate>[0],
-      );
-
-      return { data: data as unknown as TData };
-    }
-    if (url === "bestPractices/importBulk") {
-      const data = await trpcClient.bestPractices.importBulk.mutate(
-        payload as unknown as Parameters<typeof trpcClient.bestPractices.importBulk.mutate>[0],
-      );
-
-      return { data: data as unknown as TData };
     }
     if (url === "refinements/start") {
       const data = await trpcClient.refinements.start.mutate(

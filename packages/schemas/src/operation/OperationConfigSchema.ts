@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ExecutorConfigSchema } from "./ExecutorConfigSchema";
+import { ExecutorConfigSchema } from "../ExecutorConfigSchema";
 import { InputPortSchema } from "./InputPortSchema";
 import { OutputItemSchema } from "./OutputItemSchema";
 

@@ -17,7 +17,6 @@ import type {
   UpdateResponse,
 } from "@refinedev/core";
 import type {
-  BestPractice,
   GithubProject,
   Job,
   JobTrace,
@@ -33,7 +32,7 @@ export const canvasStoryOperations: Operation[] = [
     name: "Review Code",
     description: "Find correctness issues before merging.",
     config: { inputs: [], outputs: [] },
-    acceptedObjectTypes: ["file", "folder", "project"],
+    acceptedObjectTypes: ["file", "folder", "github-project"],
   },
   {
     id: "clean-code",
@@ -47,30 +46,7 @@ export const canvasStoryOperations: Operation[] = [
     name: "Project Map",
     description: "Summarize a repository's module structure.",
     config: { inputs: [], outputs: [] },
-    acceptedObjectTypes: ["project"],
-  },
-];
-
-export const canvasStoryBestPractices: BestPractice[] = [
-  {
-    id: "bp-strict-review",
-    title: "Strict Review",
-    condition: "Block correctness regressions before merge.",
-    content: "Review changed code for defects, missing tests, and risky assumptions.",
-    category: "review",
-    language: "typescript",
-    codeSnippet: "",
-    tags: ["review", "quality"],
-  },
-  {
-    id: "bp-slop-cleanup",
-    title: "Slop Cleanup",
-    condition: "Generated code contains noisy abstractions or vague naming.",
-    content: "Remove low-signal wrappers and keep behavior stable.",
-    category: "refactor",
-    language: "typescript",
-    codeSnippet: "",
-    tags: ["cleanup"],
+    acceptedObjectTypes: ["github-project"],
   },
 ];
 
@@ -80,14 +56,12 @@ export const canvasStoryRecipes: Recipe[] = [
     name: "Strict Review",
     description: "Review with stronger checks.",
     operationId: "review-code",
-    bestPracticeId: "bp-strict-review",
   },
   {
     id: "slop-cleanup",
     name: "Slop Cleanup",
     description: "Remove low-signal generated code patterns.",
     operationId: "clean-code",
-    bestPracticeId: "bp-slop-cleanup",
   },
 ];
 
@@ -200,7 +174,6 @@ const getFilterValue = (params: GetListParams, field: string): unknown => {
 const getCanvasStoryRecords = (resource: string, params?: GetListParams): BaseRecord[] => {
   if (resource === ResourceName.operations) return canvasStoryOperations;
   if (resource === ResourceName.recipes) return canvasStoryRecipes;
-  if (resource === ResourceName.bestPractices) return canvasStoryBestPractices;
   if (resource === ResourceName.githubProjects) return canvasStoryGithubProjects;
   if (resource === ResourceName.jobs) return canvasStoryJobs;
   if (resource === ResourceName.pipelines) return [canvasStoryPipeline];

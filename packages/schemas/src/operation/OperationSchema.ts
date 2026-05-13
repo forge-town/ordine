@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { OperationConfigSchema } from "./OperationConfigSchema";
-import { ObjectNodeTypeSchema } from "./pipeline/node/ObjectNodeTypeSchema";
-import { MetaSchema } from "./meta";
+import { ObjectNodeTypeSchema } from "../pipeline/node/ObjectNodeTypeSchema";
+import { MetaSchema } from "../meta";
 
 export const OperationSchema = z.object({
   id: z.string(),
