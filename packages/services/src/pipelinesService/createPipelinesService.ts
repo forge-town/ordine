@@ -239,7 +239,7 @@ const buildOptimizeSystemPrompt = (skillReferences: string): string =>
     "=== OPERATION SELECTION RULES ===",
     "- ONLY use operations whose purpose logically matches the pipeline's task",
     "- Check each operation's acceptedObjectTypes — it must accept the type flowing from the previous node",
-    "  - github-project nodes produce 'project' type",
+    "  - github-project nodes produce 'github-project' type",
     "  - folder nodes produce 'folder' type",
     "  - code-file nodes produce 'file' or 'code-file' type",
     "- Do NOT add extra operations just to fill space. If only 1 operation is relevant, use only 1",

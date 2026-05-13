@@ -10,10 +10,30 @@ const mockDao = {
 };
 const mockOperationsDao = {
   findMany: vi.fn().mockResolvedValue([
-    { id: "op-lint", name: "lint-code", description: "Run linting on source code", acceptedObjectTypes: ["file", "folder"] },
-    { id: "op-test", name: "run-tests", description: "Execute unit tests", acceptedObjectTypes: ["project"] },
-    { id: "op-format", name: "format-code", description: "Auto-format source files", acceptedObjectTypes: ["file", "folder"] },
-    { id: "op-deploy", name: "deploy-app", description: "Deploy application to server", acceptedObjectTypes: ["project"] },
+    {
+      id: "op-lint",
+      name: "lint-code",
+      description: "Run linting on source code",
+      acceptedObjectTypes: ["file", "folder"],
+    },
+    {
+      id: "op-test",
+      name: "run-tests",
+      description: "Execute unit tests",
+      acceptedObjectTypes: ["github-project"],
+    },
+    {
+      id: "op-format",
+      name: "format-code",
+      description: "Auto-format source files",
+      acceptedObjectTypes: ["file", "folder"],
+    },
+    {
+      id: "op-deploy",
+      name: "deploy-app",
+      description: "Deploy application to server",
+      acceptedObjectTypes: ["github-project"],
+    },
   ]),
 };
 const mockSettingsDao = {
@@ -72,7 +92,10 @@ describe("analyzeIntent", () => {
         { operationId: "op-test", operationName: "run-tests", reason: "User wants to run tests" },
       ],
       unmatchedSteps: [
-        { step: "Generate coverage report", reason: "No existing operation for coverage reporting" },
+        {
+          step: "Generate coverage report",
+          reason: "No existing operation for coverage reporting",
+        },
       ],
     });
     mockRunAgent.mockResolvedValue(agentResponse);
