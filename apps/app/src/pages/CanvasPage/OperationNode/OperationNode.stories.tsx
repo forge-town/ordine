@@ -13,8 +13,6 @@ const baseData: OperationNodeData = {
   operationName: "Review Code",
   status: "idle",
   config: {},
-  bestPracticeId: "bp-strict-review",
-  bestPracticeName: "Strict Review",
 };
 
 const withCanvasProviders = (Story: React.ComponentType, context: { args: OperationNodeProps }) => {

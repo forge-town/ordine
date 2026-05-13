@@ -26,7 +26,7 @@ import { exportOperation } from "../exportOperation";
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
   folder: Folder,
-  project: FolderGit2,
+  "github-project": FolderGit2,
   prompt: MessageSquareText,
 };
 
@@ -60,7 +60,7 @@ export const OperationCard = ({ operation }: OperationCardProps) => {
   const complexity = getComplexity(operation);
   const objectTypes = Array.isArray(operation.acceptedObjectTypes)
     ? operation.acceptedObjectTypes
-    : (["file", "folder", "project"] as ObjectType[]);
+    : (["file", "folder", "github-project", "prompt"] as ObjectType[]);
 
   return (
     <Link

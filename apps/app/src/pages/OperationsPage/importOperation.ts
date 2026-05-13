@@ -30,9 +30,9 @@ export type ParsedOperation = {
 const INPUT_TO_OBJECT_TYPES: Record<string, ObjectType[]> = {
   file: ["file"],
   folder: ["folder"],
-  "github-project": ["project"],
+  "github-project": ["github-project"],
   prompt: ["prompt"],
-  any: ["file", "folder", "project", "prompt"],
+  any: ["file", "folder", "github-project", "prompt"],
 };
 
 const CONTENT_TYPE_TO_EXT: Record<string, string> = {

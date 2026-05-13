@@ -3,7 +3,7 @@ import { ChefHat, Plus, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import type { Recipe, Operation, BestPractice } from "@repo/schemas";
+import type { Recipe, Operation } from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -20,12 +20,8 @@ export const RecipesPageContent = () => {
   const { result: operationsResult, query: operationsQuery } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: bestPracticesResult, query: bestPracticesQuery } = useList<BestPractice>({
-    resource: ResourceName.bestPractices,
-  });
   const recipes = recipesResult?.data ?? [];
   const operations = operationsResult?.data ?? [];
-  const bestPractices = bestPracticesResult?.data ?? [];
   const store = useRecipesPageStore();
   const search = useStore(store, (s) => s.search);
   const showForm = useStore(store, (s) => s.showForm);
@@ -50,9 +46,8 @@ export const RecipesPageContent = () => {
   };
 
   const opMap = new Map<string, Operation>(operations.map((o: Operation) => [o.id, o]));
-  const bpMap = new Map<string, BestPractice>(bestPractices.map((bp: BestPractice) => [bp.id, bp]));
 
-  if (recipesQuery?.isLoading || operationsQuery?.isLoading || bestPracticesQuery?.isLoading) {
+  if (recipesQuery?.isLoading || operationsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
         <PageHeader title={t("recipes.title")} />
@@ -114,24 +109,13 @@ export const RecipesPageContent = () => {
         ) : (
           <div className="grid grid-cols-1 gap-4 max-w-4xl">
             {filtered.map((r) => (
-              <RecipeCard
-                key={r.id}
-                bestPractice={bpMap.get(r.bestPracticeId)}
-                operation={opMap.get(r.operationId)}
-                recipe={r}
-              />
+              <RecipeCard key={r.id} operation={opMap.get(r.operationId)} recipe={r} />
             ))}
           </div>
         )}
       </div>
 
-      {showForm && (
-        <RecipeFormDialog
-          bestPractices={bestPractices}
-          initial={editing ?? undefined}
-          operations={operations}
-        />
-      )}
+      {showForm && <RecipeFormDialog initial={editing ?? undefined} operations={operations} />}
     </div>
   );
 };

@@ -45,7 +45,7 @@ vi.mock("@xyflow/react", () => ({
 const makeOp = (id: string, name: string, description?: string): Operation => ({
   id,
   name,
-  description: description ?? null,
+  description: description ?? "",
   config: { inputs: [], outputs: [] },
   acceptedObjectTypes: ["file"],
   meta: { createdAt: new Date(), updatedAt: new Date() },

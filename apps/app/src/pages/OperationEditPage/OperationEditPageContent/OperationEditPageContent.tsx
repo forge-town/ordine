@@ -36,15 +36,15 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import {
   type Operation,
   type Skill,
-  ObjectTypeSchema,
+  ObjectNodeTypeSchema,
   type ObjectType,
-  ExecutorTypeSchema,
+  OperationExecutorTypeSchema,
   AgentModeSchema,
   ScriptLanguageSchema,
   OutputItemSchema,
   TemplateContentTypeSchema,
   type TemplateContentType,
-  type ExecutorType,
+  type OperationExecutorType,
   type AgentMode,
   type OperationConfigInput,
 } from "@repo/schemas";
@@ -65,7 +65,7 @@ const AGENT_MODE_ICONS = {
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
   folder: Folder,
-  project: FolderGit2,
+  "github-project": FolderGit2,
   prompt: MessageSquareText,
 };
 
@@ -84,8 +84,8 @@ const OUTPUT_CONTENT_TYPE_OPTIONS: {
 const editFormSchema = z.object({
   name: z.string().min(1, "名称不能为空"),
   description: z.string(),
-  acceptedObjectTypes: z.array(ObjectTypeSchema).min(1),
-  executorType: ExecutorTypeSchema,
+  acceptedObjectTypes: z.array(ObjectNodeTypeSchema).min(1),
+  executorType: OperationExecutorTypeSchema,
   agentMode: AgentModeSchema,
   skillId: z.string(),
   promptText: z.string(),
@@ -129,7 +129,7 @@ const buildConfig = (values: EditFormValues): OperationConfigInput => {
 const parseExecutorDefaults = (
   config: OperationConfigInput,
 ): {
-  executorType: ExecutorType;
+  executorType: OperationExecutorType;
   agentMode: AgentMode;
   skillId: string;
   promptText: string;
@@ -137,7 +137,7 @@ const parseExecutorDefaults = (
   scriptLanguage: "bash" | "python" | "javascript";
 } => {
   const defaults = {
-    executorType: "script" as ExecutorType,
+    executorType: "script" as OperationExecutorType,
     agentMode: "skill" as AgentMode,
     skillId: "",
     promptText: "",
@@ -151,14 +151,14 @@ const parseExecutorDefaults = (
   const { executorType, agentMode } = (() => {
     if (ex.type === "agent") {
       return {
-        executorType: "agent" as ExecutorType,
+        executorType: "agent" as OperationExecutorType,
         agentMode: (["skill", "prompt"].includes(ex.agentMode ?? "")
           ? ex.agentMode
           : "skill") as AgentMode,
       };
     }
 
-    return { executorType: "script" as ExecutorType, agentMode: "skill" as AgentMode };
+    return { executorType: "script" as OperationExecutorType, agentMode: "skill" as AgentMode };
   })();
 
   return {
@@ -239,9 +239,9 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
       icon: OBJECT_TYPE_ICONS.folder,
     },
     {
-      value: "project",
+      value: "github-project",
       label: t("operations.objectTypeProject"),
-      icon: OBJECT_TYPE_ICONS.project,
+      icon: OBJECT_TYPE_ICONS["github-project"],
     },
     {
       value: "prompt",
@@ -257,7 +257,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
       description: operation.description ?? "",
       acceptedObjectTypes: Array.isArray(operation.acceptedObjectTypes)
         ? [...operation.acceptedObjectTypes]
-        : ["file", "folder", "project"],
+        : ["file", "folder", "github-project"],
       outputs: (operation.config.outputs ?? []).map((output) => ({
         name: output.name,
         contentType: output.contentType,

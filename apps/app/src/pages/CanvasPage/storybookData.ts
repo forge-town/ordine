@@ -16,14 +16,7 @@ import type {
   UpdateParams,
   UpdateResponse,
 } from "@refinedev/core";
-import type {
-  GithubProject,
-  Job,
-  JobTrace,
-  Operation,
-  Recipe,
-  PipelineData,
-} from "@repo/schemas";
+import type { GithubProject, Job, JobTrace, Operation, Recipe, PipelineData } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 
 export const canvasStoryOperations: Operation[] = [
@@ -56,12 +49,14 @@ export const canvasStoryRecipes: Recipe[] = [
     name: "Strict Review",
     description: "Review with stronger checks.",
     operationId: "review-code",
+    bestPracticeId: "bp-1",
   },
   {
     id: "slop-cleanup",
     name: "Slop Cleanup",
     description: "Remove low-signal generated code patterns.",
     operationId: "clean-code",
+    bestPracticeId: "bp-2",
   },
 ];
 

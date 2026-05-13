@@ -30,7 +30,7 @@ import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, Recipe, NodeType, BuiltinNodeType } from "@repo/schemas";
+import type { Operation, Recipe, BuiltinNodeType } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
 import { getNodeMeta, getNodeTypeLabel, getNodeTypeShortLabel } from "../utils/nodeTypeMeta";
 import { cn } from "@repo/ui/lib/utils";
@@ -92,14 +92,16 @@ export const NodeContextMenu = () => {
     const objectTypeMap: Record<string, string> = {
       file: "file",
       folder: "folder",
-      "github-project": "project",
+      "github-project": "github-project",
       prompt: "prompt",
     };
     const objectType = objectTypeMap[node.type];
     if (!objectType) return operations;
 
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project" | "prompt"),
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "github-project" | "prompt",
+      ),
     );
   })();
 
@@ -183,14 +185,14 @@ export const NodeContextMenu = () => {
                 {["file", "folder", "github-project", "prompt"]
                   .filter((t) => availableTypes.includes(t as BuiltinNodeType))
                   .map((type) => {
-                    const Icon = TYPE_ICONS[type as NodeType];
+                    const Icon = TYPE_ICONS[type as BuiltinNodeType];
                     const m = getNodeMeta(type)!;
 
                     return (
                       <ContextMenuItem
                         key={type}
                         closeOnClick={false}
-                        onClick={() => handleNodeContextAddObject(type as NodeType)}
+                        onClick={() => handleNodeContextAddObject(type as BuiltinNodeType)}
                       >
                         <span
                           className={cn(

@@ -1,6 +1,6 @@
 import { sortParentBeforeChildren, type PipelineEdge, type PipelineNode } from "./canvasSlice";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
-import type { Operation, Recipe, NodeType, BuiltinNodeType } from "@repo/schemas";
+import type { Operation, Recipe, BuiltinNodeType } from "@repo/schemas";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
@@ -83,10 +83,10 @@ export interface ActionsSlice {
   handleDragEndOnCompound: (draggedNodeId: string, isCompound: boolean) => void;
   handleRunTest: () => Promise<void>;
   addNodeAndAutoConnect: (node: PipelineNode) => void;
-  createObjectNode: (type: NodeType) => void;
+  createObjectNode: (type: BuiltinNodeType) => void;
   createOperationNode: (operation: Operation) => void;
   createRecipeNode: (recipe: Recipe, operation: Operation) => void;
-  handleCreateObjectNode: (type: NodeType, screenPosition: XYPosition) => void;
+  handleCreateObjectNode: (type: BuiltinNodeType, screenPosition: XYPosition) => void;
   handleCreateOperationNode: (operation: Operation, screenPosition: XYPosition) => void;
   handleCreateRecipeNode: (
     recipe: Recipe,
@@ -95,7 +95,7 @@ export interface ActionsSlice {
   ) => void;
   dismissContextMenu: () => void;
   handleContextMenuOpenChange: (open: boolean) => void;
-  connectObjectNode: (type: NodeType) => void;
+  connectObjectNode: (type: BuiltinNodeType) => void;
   connectOperationNode: (operation: Operation) => void;
   connectRecipeNode: (recipe: Recipe, operation: Operation) => void;
   dismissConnectionMenu: () => void;
@@ -108,7 +108,7 @@ export interface ActionsSlice {
   nodeContextUngroup: () => void;
   nodeContextDetach: () => void;
   nodeContextGroupSelected: () => void;
-  nodeContextAddObject: (type: NodeType) => void;
+  nodeContextAddObject: (type: BuiltinNodeType) => void;
   nodeContextAddOperation: (operation: Operation) => void;
   nodeContextAddRecipe: (recipe: Recipe, operation: Operation) => void;
 
@@ -513,8 +513,6 @@ export const createActionsSlice = (
       data: {
         ...makeOperationNodeData(operation),
         label: recipe.name,
-        bestPracticeId: recipe.bestPracticeId,
-        bestPracticeName: recipe.name,
       },
     });
   },
@@ -553,8 +551,6 @@ export const createActionsSlice = (
       data: {
         ...makeOperationNodeData(operation),
         label: recipe.name,
-        bestPracticeId: recipe.bestPracticeId,
-        bestPracticeName: recipe.name,
       },
     });
     set({ isQuickAddOpen: false, quickAddQuery: "" });
@@ -612,8 +608,6 @@ export const createActionsSlice = (
       data: {
         ...makeOperationNodeData(operation),
         label: recipe.name,
-        bestPracticeId: recipe.bestPracticeId,
-        bestPracticeName: recipe.name,
       },
     });
   },
@@ -732,8 +726,6 @@ export const createActionsSlice = (
       data: {
         ...makeOperationNodeData(operation),
         label: recipe.name,
-        bestPracticeId: recipe.bestPracticeId,
-        bestPracticeName: recipe.name,
       },
     });
     get().handleConnect({

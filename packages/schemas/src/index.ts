@@ -7,6 +7,7 @@ export * from "./job";
 export * from "./common";
 export * from "./log";
 export * from "./meta";
+export * from "./object";
 export * from "./operation";
 export * from "./recipe";
 export * from "./refinement";

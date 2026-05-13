@@ -12,6 +12,7 @@ import {
   Layers,
   FlaskConical,
   RefreshCw,
+  Zap,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -64,6 +65,7 @@ const TYPE_CONFIG: Record<JobType, { icon: React.ElementType }> = {
   pipeline_run: { icon: Layers },
   distillation_run: { icon: FlaskConical },
   refinement_run: { icon: RefreshCw },
+  operation_run: { icon: Zap },
 };
 
 const getStatusLabel = (status: JobStatus, t: (key: string) => string): string => {
@@ -84,6 +86,7 @@ const getJobTypeLabel = (type: JobType, t: (key: string) => string): string => {
     pipeline_run: t("jobs.typePipeline"),
     distillation_run: t("jobs.typeDistillation"),
     refinement_run: t("jobs.typeRefinement"),
+    operation_run: t("jobs.typeOperation"),
   };
 
   return typeMap[type];

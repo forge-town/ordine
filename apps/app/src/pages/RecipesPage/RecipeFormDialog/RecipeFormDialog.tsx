@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import type { Recipe, Operation, BestPractice } from "@repo/schemas";
+import type { Recipe, Operation } from "@repo/schemas";
 import { useCreate, useUpdate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useRecipesPageStore } from "../_store";
@@ -34,10 +34,9 @@ type FormValues = z.infer<typeof formSchema>;
 export type RecipeFormDialogProps = {
   initial?: Recipe;
   operations: Operation[];
-  bestPractices: BestPractice[];
 };
 
-export const RecipeFormDialog = ({ initial, operations, bestPractices }: RecipeFormDialogProps) => {
+export const RecipeFormDialog = ({ initial, operations }: RecipeFormDialogProps) => {
   const { t } = useTranslation();
   const store = useRecipesPageStore();
   const handleSetShowForm = useStore(store, (s) => s.handleSetShowForm);
@@ -68,10 +67,6 @@ export const RecipeFormDialog = ({ initial, operations, bestPractices }: RecipeF
   const [operationOpen, setOperationOpen] = useState(false);
   const handleOperationOpenChange = (v: boolean) => setOperationOpen(v);
   const handleOperationToggle = () => setOperationOpen((prev) => !prev);
-
-  const [bestPracticeOpen, setBestPracticeOpen] = useState(false);
-  const handleBestPracticeOpenChange = (v: boolean) => setBestPracticeOpen(v);
-  const handleBestPracticeToggle = () => setBestPracticeOpen((prev) => !prev);
 
   const onSubmit = async (values: FormValues) => {
     if (initial) {
@@ -189,42 +184,17 @@ export const RecipeFormDialog = ({ initial, operations, bestPractices }: RecipeF
             <FormField
               control={form.control}
               name="bestPracticeId"
-              render={({ field }) => {
-                const handleChange = (v: string | null) => {
-                  field.onChange(v);
-                  setBestPracticeOpen(false);
-                };
-
-                return (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium text-muted-foreground">
-                      {t("recipes.bestPracticeLabel")}
-                    </FormLabel>
-                    <FormControl>
-                      <Select
-                        open={bestPracticeOpen}
-                        value={field.value}
-                        onOpenChange={handleBestPracticeOpenChange}
-                        onValueChange={handleChange}
-                      >
-                        <SelectTrigger className="w-full" onClick={handleBestPracticeToggle}>
-                          <SelectValue placeholder={t("recipes.bestPracticePlaceholder")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {bestPractices.map((bp) => (
-                              <SelectItem key={bp.id} value={bp.id}>
-                                {bp.title}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-medium text-muted-foreground">
+                    {t("recipes.bestPracticeLabel")}
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder={t("recipes.bestPracticePlaceholder")} {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
             />
 
             <div className="flex shrink-0 justify-end gap-2 pt-1">

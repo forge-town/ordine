@@ -12,7 +12,6 @@ import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
 import { makeDefaultNodeData } from "../utils/makeDefaultNodeData";
 import { ConnectionRuleSchema } from "@repo/pipeline-engine/schemas";
 import type {
-  NodeType,
   BuiltinNodeType,
   CompoundNodeData,
   PipelineEdgeData,
@@ -37,7 +36,7 @@ export const sortParentBeforeChildren = (nodes: PipelineNode[]): void => {
   });
 };
 
-export type PipelineNode = Node<PipelineNodeData, NodeType>;
+export type PipelineNode = Node<PipelineNodeData, BuiltinNodeType>;
 
 export type PipelineEdge = Edge<PipelineEdgeData>;
 
@@ -52,7 +51,7 @@ export interface CanvasSlice {
   handleEdgesChange: (changes: EdgeChange<PipelineEdge>[]) => void;
   handleConnect: (connection: Connection) => void;
   addNode: (node: PipelineNode) => void;
-  addNodeWithEdge: (sourceId: string, targetType: NodeType) => void;
+  addNodeWithEdge: (sourceId: string, targetType: BuiltinNodeType) => void;
   removeNode: (nodeId: string) => void;
   updateNodeData: (nodeId: string, data: Record<string, unknown>) => void;
   updateEdgeData: (edgeId: string, data: Partial<PipelineEdgeData>) => void;
@@ -134,7 +133,7 @@ export const createCanvasSlice = (
         },
         (draft) => {
           draft.edges = addEdge(
-            { ...connection, type: "default", animated: true, data: {} },
+            { ...connection, type: "default", animated: true, data: { label: "" } },
             draft.edges,
           );
         },
@@ -176,7 +175,7 @@ export const createCanvasSlice = (
         target: newId,
         type: "default",
         animated: true,
-        data: {},
+        data: { label: "" },
       };
 
       recordCommand(
@@ -241,7 +240,7 @@ export const createCanvasSlice = (
     updateEdgeData: (edgeId, data) =>
       set((state) => ({
         edges: state.edges.map((e) =>
-          e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e,
+          e.id === edgeId ? ({ ...e, data: { ...e.data, ...data } } as PipelineEdge) : e,
         ),
       })),
 

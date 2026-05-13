@@ -1,17 +1,16 @@
 import { ChefHat, Zap, Lightbulb, Pencil, Trash2 } from "lucide-react";
 import { useDelete } from "@refinedev/core";
 import { useStore } from "zustand";
-import type { Recipe, Operation, BestPractice } from "@repo/schemas";
+import type { Recipe, Operation } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useRecipesPageStore } from "../_store";
 
 export type RecipeCardProps = {
   recipe: Recipe;
   operation?: Operation;
-  bestPractice?: BestPractice;
 };
 
-export const RecipeCard = ({ recipe, operation, bestPractice }: RecipeCardProps) => {
+export const RecipeCard = ({ recipe, operation }: RecipeCardProps) => {
   const store = useRecipesPageStore();
   const handleSetEditing = useStore(store, (s) => s.handleSetEditing);
   const handleSetShowForm = useStore(store, (s) => s.handleSetShowForm);
@@ -67,9 +66,7 @@ export const RecipeCard = ({ recipe, operation, bestPractice }: RecipeCardProps)
         <span className="text-muted-foreground text-xs">+</span>
         <div className="flex items-center gap-1.5">
           <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
-          <span className="text-xs font-medium text-foreground">
-            {bestPractice?.title ?? recipe.bestPracticeId}
-          </span>
+          <span className="text-xs font-medium text-foreground">{recipe.bestPracticeId}</span>
         </div>
       </div>
     </div>

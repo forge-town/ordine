@@ -16,7 +16,7 @@ import { ExecutorCard } from "./ExecutorCard";
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
   folder: Folder,
-  project: FolderGit2,
+  "github-project": FolderGit2,
   prompt: MessageSquareText,
 };
 

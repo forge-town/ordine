@@ -24,7 +24,7 @@ import {
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, Recipe, NodeType, BuiltinNodeType } from "@repo/schemas";
+import type { Operation, Recipe, BuiltinNodeType } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
 import { getNodeMeta, getNodeTypeLabel } from "../utils/nodeTypeMeta";
 import { cn } from "@repo/ui/lib/utils";
@@ -66,10 +66,10 @@ export const CanvasContextMenu = () => {
 
   // Determine available node types
   const availableTypes = (() => {
-    if (!connectStart) return [...OBJECT_TYPES, "operation"] as NodeType[];
+    if (!connectStart) return [...OBJECT_TYPES, "operation"] as BuiltinNodeType[];
 
     const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
-    if (!sourceNode) return [...OBJECT_TYPES, "operation"] as NodeType[];
+    if (!sourceNode) return [...OBJECT_TYPES, "operation"] as BuiltinNodeType[];
     // Return allowed target types for the source node
     return allowedConnections[sourceNode.type as BuiltinNodeType] ?? [];
   })();
@@ -85,14 +85,16 @@ export const CanvasContextMenu = () => {
     const objectTypeMap: Record<string, string> = {
       file: "file",
       folder: "folder",
-      "github-project": "project",
+      "github-project": "github-project",
       prompt: "prompt",
     };
     const objectType = objectTypeMap[sourceNode.type];
     if (!objectType) return operations;
     // Only show operations that accept this object type
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project" | "prompt"),
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "github-project" | "prompt",
+      ),
     );
   })();
 

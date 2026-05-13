@@ -9,6 +9,7 @@ import {
   Layers,
   FlaskConical,
   RefreshCw,
+  Zap,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
@@ -47,6 +48,7 @@ const TYPE_ICON: Record<JobType, React.ElementType> = {
   pipeline_run: Layers,
   distillation_run: FlaskConical,
   refinement_run: RefreshCw,
+  operation_run: Zap,
 };
 
 export type JobRowProps = {
@@ -64,6 +66,7 @@ export const JobRow = ({ job }: JobRowProps) => {
     pipeline_run: t("jobs.typePipeline"),
     distillation_run: t("jobs.typeDistillation"),
     refinement_run: t("jobs.typeRefinement"),
+    operation_run: t("jobs.typeOperation"),
   };
   const duration =
     job.startedAt && job.finishedAt

@@ -58,7 +58,7 @@ vi.mock("@refinedev/core", () => ({
 }));
 
 const makeOp = (overrides: Partial<Operation> & { id: string; name: string }): Operation => ({
-  description: null,
+  description: "",
   config: { inputs: [], outputs: [] },
   acceptedObjectTypes: ["file"],
   meta: { createdAt: new Date(), updatedAt: new Date() },

@@ -23,7 +23,7 @@ import {
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
   folder: Folder,
-  project: FolderGit2,
+  "github-project": FolderGit2,
   prompt: MessageSquareText,
 };
 
@@ -62,7 +62,7 @@ export const OperationListRow = ({ operation }: OperationListRowProps) => {
   const complexity = getComplexity(operation);
   const objectTypes = Array.isArray(operation.acceptedObjectTypes)
     ? operation.acceptedObjectTypes
-    : (["file", "folder", "project"] as ObjectType[]);
+    : (["file", "folder", "github-project", "prompt"] as ObjectType[]);
 
   const handleRowClick = () => {
     navigate({

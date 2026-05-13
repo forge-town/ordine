@@ -88,7 +88,7 @@ const makeEdge = (id: string): PipelineEdge => ({
   target: "target",
   type: "default",
   animated: true,
-  data: {},
+  data: { label: "" },
 });
 
 const uploadJsonFile = (content: string) => {

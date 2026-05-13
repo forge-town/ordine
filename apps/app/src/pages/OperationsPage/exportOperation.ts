@@ -4,13 +4,12 @@ import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 
 /**
  * Map DB acceptedObjectTypes array to OPERATION.md `input` field.
- * "project" in DB corresponds to "github-project" in OPERATION.md.
  */
 const mapInputField = (types: readonly string[]): string | undefined => {
-  const allTypes = ["file", "folder", "project", "prompt"];
+  const allTypes = ["file", "folder", "github-project", "prompt"];
   if (types.length === 0 || types.length === allTypes.length) return undefined;
   if (types.length === 1) {
-    return types[0] === "project" ? "github-project" : types[0];
+    return types[0];
   }
 
   return "any";

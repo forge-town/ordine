@@ -44,14 +44,14 @@ const mockOperations: Operation[] = [
   {
     id: "op-1",
     name: "Lint Check",
-    description: null,
+    description: "",
     config: { inputs: [], outputs: [] },
     acceptedObjectTypes: ["file"],
   },
   {
     id: "op-2",
     name: "Format",
-    description: null,
+    description: "",
     config: { inputs: [], outputs: [] },
     acceptedObjectTypes: ["file"],
   },

@@ -24,7 +24,7 @@ import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, Recipe, NodeType, BuiltinNodeType } from "@repo/schemas";
+import type { Operation, Recipe, BuiltinNodeType } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
 import { getNodeMeta, getNodeTypeLabel } from "../utils/nodeTypeMeta";
 import { cn } from "@repo/ui/lib/utils";
@@ -61,7 +61,7 @@ export const ConnectionMenu = () => {
   const sourceNode = connectStart ? nodes.find((n) => n.id === connectStart.nodeId) : null;
 
   const allowedConnections = getAllowedConnections(operations);
-  const availableTypes: NodeType[] = sourceNode
+  const availableTypes: BuiltinNodeType[] = sourceNode
     ? (allowedConnections[sourceNode.type as BuiltinNodeType] ?? [])
     : [];
 
@@ -71,14 +71,16 @@ export const ConnectionMenu = () => {
     const objectTypeMap: Record<string, string> = {
       file: "file",
       folder: "folder",
-      "github-project": "project",
+      "github-project": "github-project",
       prompt: "prompt",
     };
     const objectType = objectTypeMap[sourceNode.type];
     if (!objectType) return operations;
 
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project" | "prompt"),
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "github-project" | "prompt",
+      ),
     );
   })();
 
@@ -161,14 +163,14 @@ export const ConnectionMenu = () => {
             {["file", "folder", "github-project"]
               .filter((t) => availableTypes.includes(t as BuiltinNodeType))
               .map((type) => {
-                const Icon = TYPE_ICONS[type as NodeType];
+                const Icon = TYPE_ICONS[type as BuiltinNodeType];
                 const typeMeta = getNodeMeta(type)!;
 
                 return (
                   <ContextMenuItem
                     key={type}
                     closeOnClick={false}
-                    onClick={() => handleConnectObjectNode(type as NodeType)}
+                    onClick={() => handleConnectObjectNode(type as BuiltinNodeType)}
                   >
                     <span
                       className={cn(

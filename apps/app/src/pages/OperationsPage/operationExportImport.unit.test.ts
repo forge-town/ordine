@@ -38,13 +38,13 @@ describe("toOperationMd", () => {
 
   it("omits input when all object types are present", () => {
     const md = toOperationMd(
-      makeOperation({ acceptedObjectTypes: ["file", "folder", "project", "prompt"] }),
+      makeOperation({ acceptedObjectTypes: ["file", "folder", "github-project", "prompt"] }),
     );
     expect(md).not.toContain("input:");
   });
 
-  it("maps project to github-project", () => {
-    const md = toOperationMd(makeOperation({ acceptedObjectTypes: ["project"] }));
+  it("exports github-project", () => {
+    const md = toOperationMd(makeOperation({ acceptedObjectTypes: ["github-project"] }));
     expect(md).toContain("input: github-project");
   });
 
@@ -135,16 +135,16 @@ describe("parseOperationMd", () => {
     expect(result._unsafeUnwrap().acceptedObjectTypes).toEqual([
       "file",
       "folder",
-      "project",
+      "github-project",
       "prompt",
     ]);
   });
 
-  it("maps github-project to project object type", () => {
+  it("parses github-project input", () => {
     const md =
       "---\nname: Test\ndescription: Desc\ninput: github-project\n---\n\n# Test\n\n## Outputs\n\n- **out.md**: output\n";
     const result = parseOperationMd(md);
-    expect(result._unsafeUnwrap().acceptedObjectTypes).toEqual(["project"]);
+    expect(result._unsafeUnwrap().acceptedObjectTypes).toEqual(["github-project"]);
   });
 
   it("returns error for missing frontmatter", () => {

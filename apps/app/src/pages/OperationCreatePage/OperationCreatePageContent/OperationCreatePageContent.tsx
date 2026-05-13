@@ -23,9 +23,9 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageHeader } from "@/components/PageHeader";
 import {
   type Skill,
-  ObjectTypeSchema,
+  ObjectNodeTypeSchema,
   type ObjectType,
-  ExecutorTypeSchema,
+  OperationExecutorTypeSchema,
   AgentModeSchema,
   ScriptLanguageSchema,
   type OperationConfigInput,
@@ -47,15 +47,15 @@ const AGENT_MODE_ICONS = {
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
   folder: Folder,
-  project: FolderGit2,
+  "github-project": FolderGit2,
   prompt: MessageSquareText,
 };
 
 const createFormSchema = z.object({
   name: z.string().min(1, "名称不能为空"),
   description: z.string(),
-  acceptedObjectTypes: z.array(ObjectTypeSchema).min(1),
-  executorType: ExecutorTypeSchema,
+  acceptedObjectTypes: z.array(ObjectNodeTypeSchema).min(1),
+  executorType: OperationExecutorTypeSchema,
   agentMode: AgentModeSchema,
   skillId: z.string(),
   promptText: z.string(),
@@ -118,7 +118,7 @@ export const OperationCreatePageContent = () => {
     defaultValues: {
       name: "",
       description: "",
-      acceptedObjectTypes: ["file", "folder", "project"],
+      acceptedObjectTypes: ["file", "folder", "github-project"],
       executorType: "agent" as const,
       agentMode: "skill" as const,
       skillId: "",
@@ -197,9 +197,9 @@ export const OperationCreatePageContent = () => {
       icon: OBJECT_TYPE_ICONS.folder,
     },
     {
-      value: "project",
+      value: "github-project",
       label: t("operations.objectTypeProject"),
-      icon: OBJECT_TYPE_ICONS.project,
+      icon: OBJECT_TYPE_ICONS["github-project"],
     },
   ];
 

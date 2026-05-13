@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { operationsService, operationRunnerService } from "../services";
-import { AgentRuntimeSchema, ObjectTypeSchema, OperationConfigSchema } from "@repo/schemas";
+import { AgentRuntimeSchema, ObjectNodeTypeSchema, OperationConfigSchema } from "@repo/schemas";
 
 export const operationsRouter = router({
   getMany: publicProcedure.query(() => operationsService.getAll()),
@@ -17,7 +17,9 @@ export const operationsRouter = router({
         name: z.string(),
         description: z.string().nullable().default(null),
         config: OperationConfigSchema.optional(),
-        acceptedObjectTypes: z.array(ObjectTypeSchema).default(["file", "folder", "project"]),
+        acceptedObjectTypes: z
+          .array(ObjectNodeTypeSchema)
+          .default(["file", "folder", "github-project"]),
       }),
     )
     .mutation(({ input }) => operationsService.create(input)),
@@ -29,7 +31,7 @@ export const operationsRouter = router({
         name: z.string().optional(),
         description: z.string().nullable().optional(),
         config: OperationConfigSchema.optional(),
-        acceptedObjectTypes: z.array(ObjectTypeSchema).optional(),
+        acceptedObjectTypes: z.array(ObjectNodeTypeSchema).optional(),
       }),
     )
     .mutation(({ input }) => {

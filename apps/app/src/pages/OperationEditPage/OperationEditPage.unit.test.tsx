@@ -7,7 +7,7 @@ import type { Operation } from "@repo/schemas";
 const mockOp: Operation = {
   id: "op-1",
   name: "Lint",
-  description: null,
+  description: "",
   config: { inputs: [], outputs: [] },
   acceptedObjectTypes: ["file"],
   meta: { createdAt: new Date(1000), updatedAt: new Date(1000) },
