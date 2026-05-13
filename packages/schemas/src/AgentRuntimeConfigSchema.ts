@@ -8,5 +8,4 @@ export const AgentRuntimeConfigSchema = z.object({
   type: AgentRuntimeSchema,
   connection: RuntimeConnectionSchema,
 });
-
 export type AgentRuntimeConfig = z.infer<typeof AgentRuntimeConfigSchema>;

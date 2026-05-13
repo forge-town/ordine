@@ -1,10 +1,11 @@
 import { z } from "zod/v4";
-import { AgentSystemSchema, AgentRunStatusSchema } from "./AgentSystemSchema";
+import { AgentRuntimeSchema } from "./AgentRuntimeSchema";
+import { AgentRunStatusSchema } from "./AgentRunStatusSchema";
 
 export const AgentRawExportSchema = z.object({
   id: z.number(),
   jobId: z.string(),
-  agentSystem: AgentSystemSchema,
+  agentRuntime: AgentRuntimeSchema,
   agentId: z.string(),
   modelId: z.string().nullable(),
   rawPayload: z.unknown(),

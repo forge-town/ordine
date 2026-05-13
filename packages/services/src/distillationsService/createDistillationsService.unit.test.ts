@@ -45,16 +45,16 @@ const mockJobsDao = {
 };
 
 const mockJobTracesDao = {
-  findByJobId: vi.fn().mockResolvedValue([
-    { level: "info", message: "Started", createdAt: new Date(0) },
-  ]),
+  findByJobId: vi
+    .fn()
+    .mockResolvedValue([{ level: "info", message: "Started", createdAt: new Date(0) }]),
 };
 
 const mockAgentRawExportsDao = {
   findByJobId: vi.fn().mockResolvedValue([
     {
       id: 1,
-      agentSystem: "mastra",
+      agentRuntime: "mastra",
       agentId: "prompt-executor",
       modelId: "kimi-k2",
       tokenInput: 20,

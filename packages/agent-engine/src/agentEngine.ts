@@ -284,7 +284,7 @@ const recordObservability = async ({
     recordAgentRunWithSpans(
       {
         jobId,
-        agentSystem: agent,
+        agentRuntime: agent,
         agentId,
         modelId: null,
         rawPayload: {

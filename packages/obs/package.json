@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@repo/db-schema": "workspace:*",
-    "@repo/models": "workspace:*"
+    "@repo/models": "workspace:*",
+    "@repo/schemas": "workspace:*"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

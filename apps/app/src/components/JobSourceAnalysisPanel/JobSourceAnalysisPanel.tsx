@@ -96,7 +96,7 @@ export const JobSourceAnalysisPanel = ({ jobId }: JobSourceAnalysisPanelProps) =
       key: `agent-${run.id}`,
       type: "agent",
       label: run.agentId,
-      description: `${run.agentSystem}${run.modelId ? ` · ${run.modelId}` : ""}`,
+      description: `${run.agentRuntime}${run.modelId ? ` · ${run.modelId}` : ""}`,
       createdAt: run.createdAt,
     }));
 

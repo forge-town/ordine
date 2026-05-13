@@ -373,7 +373,7 @@ const AgentRunCard = ({ run }: { run: AgentRawExport }) => {
           {run.agentId}
         </span>
         <Badge className="h-4 text-[10px]" variant="secondary">
-          {run.agentSystem}
+          {run.agentRuntime}
         </Badge>
         {run.modelId && (
           <Badge className="h-4 text-[10px]" variant="outline">

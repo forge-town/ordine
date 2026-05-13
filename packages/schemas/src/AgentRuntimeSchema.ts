@@ -6,6 +6,5 @@ export const AGENT_RUNTIME_ENUM = {
   MASTRA: "mastra",
   OPENCLAW: "openclaw",
 } as const;
-
 export const AgentRuntimeSchema = z.enum(AGENT_RUNTIME_ENUM);
 export type AgentRuntime = z.infer<typeof AgentRuntimeSchema>;

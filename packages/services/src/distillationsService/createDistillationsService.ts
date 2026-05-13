@@ -69,7 +69,7 @@ const normalizeDistillationRecord = <
     updatedAt: Date;
   },
 >(
-  record: T
+  record: T,
 ): Omit<T, "config" | "result"> & {
   config: DistillationConfig;
   result: DistillationResult | null;
@@ -128,7 +128,7 @@ const buildJobSnapshot = async ({
     })),
     agentRuns: agentRuns.slice(0, 8).map((run) => ({
       id: run.id,
-      agentSystem: run.agentSystem,
+      agentRuntime: run.agentRuntime,
       agentId: run.agentId,
       modelId: run.modelId,
       tokenInput: run.tokenInput,
@@ -321,15 +321,15 @@ export const createDistillationsService = (db: DbConnection) => {
           apiKey: settings.defaultApiKey,
           model: distillation.config.model ?? settings.defaultModel,
         }),
-        (cause) => (cause instanceof Error ? cause : new Error(String(cause)))
+        (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
       ).andThen((raw) =>
         ResultAsync.fromPromise(
           Promise.resolve().then(() => ({
             raw,
             parsed: parseDistillationResult({ raw }),
           })),
-          (cause) => (cause instanceof Error ? cause : new Error(String(cause)))
-        )
+          (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+        ),
       );
 
       return execution.match(
@@ -340,7 +340,7 @@ export const createDistillationsService = (db: DbConnection) => {
               summary: parsed.summary,
               inputSnapshot: sourceSnapshot,
               result: parsed,
-            })
+            }),
           ),
         async (error) => {
           logger.error({ err: error, distillationId: id }, "runDistillation: failed");
@@ -353,9 +353,9 @@ export const createDistillationsService = (db: DbConnection) => {
                 type: "failed",
                 error: error.message,
               },
-            })
+            }),
           );
-        }
+        },
       );
     },
   };

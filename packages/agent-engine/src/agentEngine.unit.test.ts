@@ -107,7 +107,7 @@ describe("agentEngine", () => {
     expect(recordAgentRunWithSpans).toHaveBeenCalledWith(
       expect.objectContaining({
         jobId: "job-1",
-        agentSystem: "claude-code",
+        agentRuntime: "claude-code",
         agentId: "test-agent",
         rawPayload: expect.objectContaining({
           system: "sys",
