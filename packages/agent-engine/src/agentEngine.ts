@@ -47,11 +47,15 @@ const toAsyncProgress = (
 
 const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
   const extraEnv = opts.githubToken ? { GITHUB_TOKEN: opts.githubToken } : undefined;
+  const effectiveTools =
+    opts.allowedTools && opts.allowedTools.length > 0
+      ? (opts.allowedTools as ToolName[])
+      : undefined;
   const result = await runClaude({
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
-    allowedTools: (opts.allowedTools ?? []) as ToolName[],
+    ...(effectiveTools ? { allowedTools: effectiveTools } : {}),
     onProgress: toAsyncProgress(opts.onProgress),
     extraEnv,
     ssh: opts.ssh,
@@ -310,7 +314,10 @@ const recordObservability = async ({
   );
 
   if (obsResult.isErr()) {
-    logger.warn({ err: obsResult.error, agentId, jobId }, "agentEngine: failed to record observability");
+    logger.warn(
+      { err: obsResult.error, agentId, jobId },
+      "agentEngine: failed to record observability",
+    );
   }
 };
 
