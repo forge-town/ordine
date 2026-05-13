@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@repo/ui/button";
+import { Label } from "@repo/ui/label";
 import {
   Sheet,
   SheetClose,
@@ -99,9 +100,9 @@ export const CanvasSettingsDrawer = () => {
                   <Icon className="size-4" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <label className="block text-sm font-medium text-slate-800" htmlFor={inputId}>
+                  <Label className="text-slate-800" htmlFor={inputId}>
                     {t(`canvas.settingsDrawer.${id}.label`)}
-                  </label>
+                  </Label>
                   <p className="mt-0.5 text-xs leading-5 text-slate-500" id={descriptionId}>
                     {t(`canvas.settingsDrawer.${id}.description`)}
                   </p>

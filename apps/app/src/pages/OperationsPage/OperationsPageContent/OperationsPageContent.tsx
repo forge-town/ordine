@@ -7,6 +7,7 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { Operation } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import { Label } from "@repo/ui/label";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { useToastStore } from "@/store/toastStore";
@@ -205,9 +206,9 @@ export const OperationsPageContent = () => {
           />
         </div>
 
-        <label className="sr-only" htmlFor="sort-select">
+        <Label className="sr-only" htmlFor="sort-select">
           {t("common.actions")}
-        </label>
+        </Label>
         <Select
           open={sortOpen}
           value={sortBy}

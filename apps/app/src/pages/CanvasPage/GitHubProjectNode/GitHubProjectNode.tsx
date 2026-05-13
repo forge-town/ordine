@@ -80,7 +80,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
   const handleAddExcluded = (path: string) => handleNodeAddExcludedPath(id, path);
 
   return (
-    <div className="group relative" style={{ overflow: "visible" }}>
+    <div className="group relative overflow-visible">
       <NodeCard
         rightHandle
         bodyClassName="space-y-2"

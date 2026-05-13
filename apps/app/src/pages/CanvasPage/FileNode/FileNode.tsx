@@ -46,7 +46,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
   };
 
   return (
-    <div className="group relative" style={{ overflow: "visible" }}>
+    <div className="group relative overflow-visible">
       <NodeCard
         rightHandle
         bodyClassName="space-y-2"

@@ -38,7 +38,7 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
     updateNodeData(id, { description: e.target.value });
 
   return (
-    <div className="group relative" style={{ overflow: "visible" }}>
+    <div className="group relative overflow-visible">
       <NodeCard
         leftHandle
         bodyClassName="space-y-2"

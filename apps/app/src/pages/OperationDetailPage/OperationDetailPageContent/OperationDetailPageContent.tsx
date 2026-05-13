@@ -65,9 +65,9 @@ export const OperationDetailPageContent = () => {
         <p className="text-sm font-medium text-muted-foreground">
           {t("operations.operationNotFound")}
         </p>
-        <button className="text-xs text-primary hover:underline" onClick={handleNavigateBack}>
+        <Button className="h-auto p-0 text-xs" onClick={handleNavigateBack} variant="link">
           {t("common.backToList")}
-        </button>
+        </Button>
       </div>
     );
   }
