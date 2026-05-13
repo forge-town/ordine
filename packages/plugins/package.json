@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@repo/plugin": "workspace:*",
+    "@repo/schemas": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {

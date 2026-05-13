@@ -1,5 +1,4 @@
-import type { BuiltinNodeType } from "@repo/schemas";
-import type { PipelineNodeData } from "../schemas/PipelineNodeDataSchema";
+import type { BuiltinNodeType, PipelineNodeData } from "@repo/schemas";
 
 export const makeDefaultNodeData = (
   type: BuiltinNodeType,

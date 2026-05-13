@@ -5,9 +5,9 @@ import {
   BuiltinNodeTypeSchema,
   PipelineEdgeSchema,
   PipelineNodeSchema,
+  PipelineNodeDataSchema,
 } from "@repo/schemas";
 import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";
-import { PipelineNodeDataSchema } from "../schemas/PipelineNodeDataSchema";
 
 export const MAX_CANVAS_IMPORT_BYTES = 2_000_000;
 export const MAX_CANVAS_IMPORT_NODES = 500;

@@ -318,6 +318,7 @@
       "version": "0.0.2-preview.2",
       "dependencies": {
         "@repo/plugin": "workspace:*",
+        "@repo/schemas": "workspace:*",
         "zod": "^4.3.6",
       },
       "devDependencies": {
