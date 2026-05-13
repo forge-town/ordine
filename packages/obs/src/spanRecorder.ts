@@ -1,6 +1,5 @@
 import type { AgentRawExportsDao, AgentSpansDao } from "@repo/models";
-import type { SpanType, SpanStatus } from "@repo/db-schema";
-import type { AgentRuntime } from "@repo/schemas";
+import type { AgentRuntime, SpanType, SpanStatus } from "@repo/schemas";
 
 export interface SpanRecorderDeps {
   agentRawExportsDao: AgentRawExportsDao;

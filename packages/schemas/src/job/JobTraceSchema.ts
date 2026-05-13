@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { LogLevelSchema } from "./LogLevelSchema";
+import { LogLevelSchema } from "../LogLevelSchema";
 
 export const JobTraceSchema = z.object({
   id: z.number(),

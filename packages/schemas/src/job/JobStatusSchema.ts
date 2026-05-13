@@ -8,6 +8,5 @@ export const JOB_STATUS_ENUM = {
   CANCELLED: "cancelled",
   EXPIRED: "expired",
 } as const;
-
 export const JobStatusSchema = z.enum(JOB_STATUS_ENUM);
 export type JobStatus = z.infer<typeof JobStatusSchema>;

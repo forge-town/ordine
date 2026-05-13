@@ -1,10 +1,8 @@
 import { sql } from "drizzle-orm";
 import { text, timestamp, pgTable, index, serial, integer, jsonb } from "drizzle-orm/pg-core";
+import type { SpanType, SpanStatus } from "@repo/schemas";
 import { jobsTable } from "./jobs_table";
 import { agentRawExportsTable } from "./agent_raw_exports_table";
-
-export type SpanType = "agent_run" | "llm_call" | "tool_call" | "tool_result";
-export type SpanStatus = "running" | "completed" | "error";
 
 export const agentSpansTable = pgTable(
   "agent_spans",

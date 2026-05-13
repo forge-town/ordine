@@ -1,16 +1,6 @@
 import { sql } from "drizzle-orm";
 import { text, timestamp, boolean, pgTable, jsonb } from "drizzle-orm/pg-core";
-
-export type RuleSeverity = "error" | "warning" | "info";
-export type RuleCategory =
-  | "lint"
-  | "security"
-  | "style"
-  | "performance"
-  | "structure"
-  | "testing"
-  | "custom";
-export type RuleScriptLanguage = "typescript" | "bash";
+import type { RuleSeverity, RuleCategory, RuleScriptLanguage } from "@repo/schemas";
 
 export const rulesTable = pgTable("rules", {
   id: text("id").primaryKey(),

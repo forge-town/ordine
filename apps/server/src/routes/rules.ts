@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type { RuleCategory } from "@repo/db-schema";
+import type { RuleCategory } from "@repo/schemas";
 import { rulesService } from "../services.js";
 
 export const rulesRoutes = new Hono();
@@ -42,8 +42,7 @@ rulesRoutes.put("/", async (c) => {
 rulesRoutes.get("/:id", async (c) => {
   const id = c.req.param("id");
   const rule = await rulesService.getById(id);
-  if (!rule)
- return c.json({ error: "Rule not found" }, 404);
+  if (!rule) return c.json({ error: "Rule not found" }, 404);
 
   return c.json(rule);
 });
@@ -59,8 +58,7 @@ rulesRoutes.patch("/:id", async (c) => {
 rulesRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");
   const existing = await rulesService.getById(id);
-  if (!existing)
- return c.json({ error: "Rule not found" }, 404);
+  if (!existing) return c.json({ error: "Rule not found" }, 404);
   await rulesService.delete(id);
 
   return c.body(null, 204);

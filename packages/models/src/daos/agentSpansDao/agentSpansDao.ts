@@ -1,5 +1,6 @@
 import { eq, desc } from "drizzle-orm";
-import { agentSpansTable, type SpanStatus } from "@repo/db-schema";
+import { agentSpansTable } from "@repo/db-schema";
+import type { SpanStatus } from "@repo/schemas";
 import type { DbExecutor } from "../../types";
 
 export type InsertAgentSpan = Omit<typeof agentSpansTable.$inferInsert, "id">;

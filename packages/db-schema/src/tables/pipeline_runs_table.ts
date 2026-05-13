@@ -23,7 +23,6 @@ export const pipelineRunsTable = pgTable(
       .notNull()
       .default(sql`ARRAY[]::text[]`),
     result: jsonb("result").$type<PipelineRunResult>(),
-    tmuxSessionName: text("tmux_session_name"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

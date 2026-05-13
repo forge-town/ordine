@@ -1,7 +1,5 @@
 import { text, timestamp, pgTable, index } from "drizzle-orm/pg-core";
-
-export type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled" | "expired";
-export type JobType = "pipeline_run" | "distillation_run" | "refinement_run" | "operation_run";
+import type { JobStatus, JobType } from "@repo/schemas";
 
 export const jobsTable = pgTable(
   "jobs",

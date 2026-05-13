@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { JobStatusSchema } from "./JobStatusSchema";
 import { JobTypeSchema } from "./JobTypeSchema";
-import { MetaSchema } from "./meta";
+import { MetaSchema } from "../meta";
 
 export const JobSchema = z.object({
   id: z.string(),

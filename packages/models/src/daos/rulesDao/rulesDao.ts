@@ -1,5 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
-import { rulesTable, type RuleCategory } from "@repo/db-schema";
+import { rulesTable } from "@repo/db-schema";
+import type { RuleCategory } from "@repo/schemas";
 import type { DbExecutor } from "../../types";
 
 export class RulesDao {
