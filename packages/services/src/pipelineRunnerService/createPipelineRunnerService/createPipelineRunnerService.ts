@@ -73,6 +73,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       pipelineId: string;
       inputPath?: string;
       githubToken?: string;
+      inputs?: Record<string, string>;
     }): Promise<Result<{ jobId: string }, PipelineNotFoundError>> => {
       const pipeline = await pipelinesDao.findById(opts.pipelineId);
       if (!pipeline) {
@@ -113,6 +114,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           pipelineId: opts.pipelineId,
           inputPath: opts.inputPath,
           githubToken: opts.githubToken,
+          inputs: opts.inputs,
           defaultOutputPath: settings.defaultOutputPath,
           jobId,
           pipelinesDao,

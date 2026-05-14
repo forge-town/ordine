@@ -127,7 +127,7 @@ export const pipelineRunExecutor = {
         // Inject dynamic inputs into prompt nodes before execution
         const nodes = pipeline.nodes.map((n) => {
           if (opts.inputs && n.data.nodeType === "prompt" && opts.inputs[n.id]) {
-            return { ...n, data: { ...n.data, prompt: opts.inputs[n.id] } };
+            return { ...n, data: { ...n.data, prompt: opts.inputs[n.id]! } };
           }
 
           return n;
