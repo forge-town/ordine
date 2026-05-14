@@ -126,7 +126,7 @@ export const runClaude = async ({
   userPrompt,
   cwd,
   allowedTools = DEFAULT_READ_ONLY_TOOLS,
-  timeoutMs = 10 * 60 * 1000,
+  timeoutMs = 20 * 60 * 1000,
   maxBudgetUsd = 5,
   onProgress,
   extraEnv,

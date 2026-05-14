@@ -70,11 +70,13 @@ pipelinesRoutes.post("/:id/run", async (c) => {
   ).unwrapOr({});
   const inputPath = (body as Record<string, unknown>).inputPath as string | undefined;
   const githubToken = (body as Record<string, unknown>).githubToken as string | undefined;
+  const inputs = (body as Record<string, unknown>).inputs as Record<string, string> | undefined;
 
   const result = await pipelineRunnerService.startRun({
     pipelineId: id,
     inputPath,
     githubToken,
+    inputs,
   });
 
   if (result.isErr()) {

@@ -60,6 +60,7 @@ export const pipelineRunExecutor = {
   run: async (opts: {
     pipelineId: string;
     inputPath?: string;
+    inputs?: Record<string, string>;
     jobId: string;
     githubToken?: string;
     defaultOutputPath?: string;
@@ -123,12 +124,21 @@ export const pipelineRunExecutor = {
             : null;
         };
 
+        // Inject dynamic inputs into prompt nodes before execution
+        const nodes = pipeline.nodes.map((n) => {
+          if (opts.inputs && n.data.nodeType === "prompt" && opts.inputs[n.id]) {
+            return { ...n, data: { ...n.data, prompt: opts.inputs[n.id] } };
+          }
+
+          return n;
+        });
+
         const result = await ResultAsync.fromPromise(
           pipelineEngine.execute({
             pipeline: {
               id: pipeline.id,
               name: pipeline.name,
-              nodes: pipeline.nodes,
+              nodes,
               edges: pipeline.edges,
             },
             jobId,
