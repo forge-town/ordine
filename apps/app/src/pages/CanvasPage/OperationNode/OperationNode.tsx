@@ -72,7 +72,6 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     handleOperationConditionChange,
     handleOperationCardClick,
     handleOperationAgentDropdownOpenChange,
-    handleOperationAgentDropdownToggle,
   } = useStore(
     store,
     useShallow((s) => ({
@@ -86,7 +85,6 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
       handleOperationConditionChange: s.handleOperationConditionChange,
       handleOperationCardClick: s.handleOperationCardClick,
       handleOperationAgentDropdownOpenChange: s.handleOperationAgentDropdownOpenChange,
-      handleOperationAgentDropdownToggle: s.handleOperationAgentDropdownToggle,
     })),
   );
   const {
@@ -135,13 +133,6 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     onMouseDown: stopCanvasInteraction,
     onClick: stopCanvasInteraction,
     onKeyDown: stopCanvasInteraction,
-  };
-  const handleAgentTriggerClick = (event: SyntheticEvent) => {
-    stopCanvasInteraction(event);
-    handleOperationAgentDropdownToggle(id);
-  };
-  const handleAgentChange = (agentId: string | null) => {
-    handleOperationAgentChange(id, agentId);
   };
   const handleLoopButtonClick = (event: SyntheticEvent) => {
     stopCanvasInteraction(event);
@@ -233,12 +224,11 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             open={agentOpen}
             value={selectedAgentId || "__default__"}
             onOpenChange={handleOperationAgentDropdownOpenChange.bind(null, id)}
-            onValueChange={handleAgentChange}
+            onValueChange={handleOperationAgentChange.bind(null, id)}
           >
             <SelectTrigger
               aria-label={t("nodes.operation.agent")}
               className="nodrag nopan h-8 w-full min-w-0 px-2.5 text-xs"
-              onClick={handleAgentTriggerClick}
             >
               <span className="truncate">{selectedAgentLabel}</span>
             </SelectTrigger>
