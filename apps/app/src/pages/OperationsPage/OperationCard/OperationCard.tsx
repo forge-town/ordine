@@ -14,7 +14,6 @@ import { useTranslation } from "react-i18next";
 import type { Operation, ObjectType } from "@repo/schemas";
 import { useDelete } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Button } from "@repo/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -76,14 +75,11 @@ export const OperationCard = ({ operation }: OperationCardProps) => {
           <h3 className="text-sm font-semibold text-foreground leading-tight">{operation.name}</h3>
         </div>
         <DropdownMenu>
-          <DropdownMenuTrigger onClick={handlePreventDefault}>
-            <Button
-              className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              size="icon"
-              variant="ghost"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
+          <DropdownMenuTrigger
+            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-accent"
+            onClick={handlePreventDefault}
+          >
+            <MoreHorizontal className="h-4 w-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" onClick={handlePreventDefault}>
             <DropdownMenuItem title={t("common.edit")} onClick={handleEdit}>

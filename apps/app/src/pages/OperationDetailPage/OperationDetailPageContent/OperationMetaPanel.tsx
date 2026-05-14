@@ -6,6 +6,7 @@ import {
   Info,
   Tag,
   MessageSquareText,
+  HelpCircle,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Operation, ObjectType, OperationConfig } from "@repo/schemas";
@@ -43,7 +44,7 @@ export const OperationMetaPanel = ({ operation, config }: OperationMetaPanelProp
             </span>
             <div className="flex flex-wrap gap-1.5">
               {operation.acceptedObjectTypes.map((type) => {
-                const Icon = OBJECT_TYPE_ICONS[type];
+                const Icon = OBJECT_TYPE_ICONS[type] ?? HelpCircle;
 
                 return (
                   <span

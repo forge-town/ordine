@@ -262,7 +262,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
         name: output.name,
         contentType: output.contentType,
         description: output.description ?? "",
-        templateIds: [...output.templateIds],
+        templateIds: [...(output.templateIds ?? [])],
       })),
       ...parseExecutorDefaults(operation.config),
     },
