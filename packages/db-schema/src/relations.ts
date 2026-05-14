@@ -3,7 +3,6 @@ import { githubProjectsTable } from "./tables/github_projects_table";
 import { jobsTable } from "./tables/jobs_table";
 import { operationsTable } from "./tables/operations_table";
 import { pipelinesTable } from "./tables/pipelines_table";
-import { recipesTable } from "./tables/recipes_table";
 import { pipelineRunsTable } from "./tables/pipeline_runs_table";
 import { distillationRunsTable } from "./tables/distillation_runs_table";
 import { distillationsTable } from "./tables/distillations_table";
@@ -67,13 +66,4 @@ export const refinementRunsRelations = relations(refinementRunsTable, ({ one }) 
   }),
 }));
 
-export const operationsRelations = relations(operationsTable, ({ many }) => ({
-  recipes: many(recipesTable),
-}));
 
-export const recipesRelations = relations(recipesTable, ({ one }) => ({
-  operation: one(operationsTable, {
-    fields: [recipesTable.operationId],
-    references: [operationsTable.id],
-  }),
-}));

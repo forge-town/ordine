@@ -8,7 +8,6 @@ import {
   Folder,
   FolderOutput,
   HardDrive,
-  BookOpen,
   Group,
   Ungroup,
   GitBranch,
@@ -30,7 +29,7 @@ import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, Recipe, BuiltinNodeType } from "@repo/schemas";
+import type { Operation, BuiltinNodeType } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
 import { getNodeMeta, getNodeTypeLabel, getNodeTypeShortLabel } from "../utils/nodeTypeMeta";
 import { cn } from "@repo/ui/lib/utils";
@@ -52,9 +51,7 @@ export const NodeContextMenu = () => {
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: recipesResult } = useList<Recipe>({ resource: ResourceName.recipes });
   const operations = operationsResult?.data ?? [];
-  const recipes = recipesResult?.data ?? [];
   const store = useHarnessCanvasStore();
   const nodeContextMenu = useStore(store, (s) => s.nodeContextMenu);
   const nodes = useStore(store, (s) => s.nodes);
@@ -65,7 +62,6 @@ export const NodeContextMenu = () => {
   const handleNodeContextGroupSelected = useStore(store, (s) => s.nodeContextGroupSelected);
   const handleNodeContextAddObject = useStore(store, (s) => s.nodeContextAddObject);
   const nodeContextAddOperation = useStore(store, (s) => s.nodeContextAddOperation);
-  const nodeContextAddRecipe = useStore(store, (s) => s.nodeContextAddRecipe);
   const handleNodeContextMenuOpenChange = useStore(store, (s) => s.handleNodeContextMenuOpenChange);
 
   const nodeId = nodeContextMenu?.nodeId;
@@ -130,14 +126,6 @@ export const NodeContextMenu = () => {
     const operation = operations.find((op) => op.id === operationId);
     if (!operation) return;
     nodeContextAddOperation(operation);
-  };
-
-  const handleAddRecipe = (recipeId: string) => {
-    const recipe = recipes.find((r) => r.id === recipeId);
-    if (!recipe) return;
-    const operation = operations.find((op) => op.id === recipe.operationId);
-    if (!operation) return;
-    nodeContextAddRecipe(recipe, operation);
   };
 
   return (
@@ -240,28 +228,6 @@ export const NodeContextMenu = () => {
                   <p className="px-1.5 py-1 text-xs text-muted-foreground">
                     {t("canvas.contextMenu.noOperationsForType")}
                   </p>
-                </ContextMenuGroup>
-              </>
-            )}
-
-            {/* Recipes */}
-            {canAddOperation && recipes.length > 0 && (
-              <>
-                <ContextMenuSeparator />
-                <ContextMenuGroup>
-                  <ContextMenuLabel>{t("canvas.contextMenu.recipeNode")}</ContextMenuLabel>
-                  {recipes.map((recipe) => (
-                    <ContextMenuItem
-                      key={recipe.id}
-                      closeOnClick={false}
-                      onClick={() => handleAddRecipe(recipe.id)}
-                    >
-                      <span className="flex size-4 shrink-0 items-center justify-center rounded bg-amber-500">
-                        <BookOpen className="size-2.5 text-white" />
-                      </span>
-                      <span className="truncate">{recipe.name}</span>
-                    </ContextMenuItem>
-                  ))}
                 </ContextMenuGroup>
               </>
             )}

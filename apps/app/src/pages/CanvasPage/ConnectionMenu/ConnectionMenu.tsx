@@ -6,7 +6,6 @@ import {
   Folder,
   HardDrive,
   FolderOutput,
-  BookOpen,
   Group,
   GitBranch,
   MessageSquareText,
@@ -24,7 +23,7 @@ import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, Recipe, BuiltinNodeType } from "@repo/schemas";
+import type { Operation, BuiltinNodeType } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
 import { getNodeMeta, getNodeTypeLabel } from "../utils/nodeTypeMeta";
 import { cn } from "@repo/ui/lib/utils";
@@ -46,16 +45,13 @@ export const ConnectionMenu = () => {
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: recipesResult } = useList<Recipe>({ resource: ResourceName.recipes });
   const operations = operationsResult?.data;
-  const recipes = recipesResult?.data;
   const store = useHarnessCanvasStore();
   const connectionMenu = useStore(store, (s) => s.connectionMenu);
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);
   const handleConnectObjectNode = useStore(store, (s) => s.connectObjectNode);
   const connectOperationNode = useStore(store, (s) => s.connectOperationNode);
-  const connectRecipeNode = useStore(store, (s) => s.connectRecipeNode);
   const handleConnectionMenuOpenChange = useStore(store, (s) => s.handleConnectionMenuOpenChange);
 
   const sourceNode = connectStart ? nodes.find((n) => n.id === connectStart.nodeId) : null;
@@ -92,13 +88,6 @@ export const ConnectionMenu = () => {
     connectOperationNode(operation);
   };
 
-  const handleSelectRecipe = (recipeId: string) => {
-    const recipe = recipes.find((r) => r.id === recipeId);
-    if (!recipe) return;
-    const operation = operations.find((op) => op.id === recipe.operationId);
-    if (!operation) return;
-    connectRecipeNode(recipe, operation);
-  };
 
   if (!connectionMenu || !sourceNode || availableTypes.length === 0) return null;
 
@@ -224,31 +213,6 @@ export const ConnectionMenu = () => {
               <p className="px-1.5 py-1 text-xs text-muted-foreground">
                 {t("canvas.contextMenu.noOperationsForType")}
               </p>
-            </ContextMenuGroup>
-          </>
-        )}
-
-        {/* Recipes */}
-        {canAddOperation && recipes.length > 0 && (
-          <>
-            <ContextMenuSeparator />
-            <ContextMenuGroup>
-              <ContextMenuLabel>{t("canvas.contextMenu.recipeNode")}</ContextMenuLabel>
-              {recipes.map((recipe) => (
-                <ContextMenuItem
-                  key={recipe.id}
-                  closeOnClick={false}
-                  onClick={() => handleSelectRecipe(recipe.id)}
-                >
-                  <span className="flex size-4 shrink-0 items-center justify-center rounded bg-amber-500">
-                    <BookOpen className="size-2.5 text-white" />
-                  </span>
-                  <span className="truncate text-xs font-medium text-foreground">
-                    {recipe.name}
-                  </span>
-                  <Plus className="ml-auto size-3 text-muted-foreground" />
-                </ContextMenuItem>
-              ))}
             </ContextMenuGroup>
           </>
         )}

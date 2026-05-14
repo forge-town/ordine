@@ -10,7 +10,6 @@ export * from "./jobsDao";
 export * from "./operationsDao";
 export * from "./pipelineRunsDao";
 export * from "./pipelinesDao";
-export * from "./recipesDao";
 export * from "./refinementRunsDao";
 export * from "./refinementsDao";
 export * from "./settingsDao";

@@ -11,7 +11,6 @@ import {
   Layers,
   Activity,
   Zap,
-  ChefHat,
   FlaskConical,
   Box,
   Puzzle,
@@ -70,7 +69,6 @@ const pipelineItems: NavItem[] = [
   { labelKey: "nav.preview", icon: Eye, to: "/pipelines", exact: true },
   { labelKey: "nav.objects", icon: Box, to: "/pipelines/objects" },
   { labelKey: "nav.operations", icon: Zap, to: "/pipelines/operations" },
-  { labelKey: "nav.recipes", icon: ChefHat, to: "/pipelines/recipes" },
   { labelKey: "nav.jobs", icon: Activity, to: "/pipelines/jobs" },
 ];
 

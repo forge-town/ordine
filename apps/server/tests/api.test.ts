@@ -36,13 +36,6 @@ vi.mock("../src/services.js", () => ({
     getTracesByJobId: vi.fn(),
     updateStatus: vi.fn(),
   },
-  recipesService: {
-    getAll: vi.fn(),
-    getById: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  },
   distillationsService: {
     getAll: vi.fn(),
     getById: vi.fn(),
@@ -61,7 +54,6 @@ import {
   skillsService,
   operationsService,
   jobsService,
-  recipesService,
   distillationsService,
   listDirectory,
 } from "../src/services.js";
@@ -71,7 +63,6 @@ const mockPipelineRunnerService = vi.mocked(pipelineRunnerService);
 const mockSkillsService = vi.mocked(skillsService);
 const mockOperationsService = vi.mocked(operationsService);
 const mockJobsService = vi.mocked(jobsService);
-const mockRecipesService = vi.mocked(recipesService);
 const mockDistillationsService = vi.mocked(distillationsService);
 const mockListDirectory = vi.mocked(listDirectory);
 
@@ -378,53 +369,6 @@ describe("Jobs API", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "failed" }),
     });
-    expect(res.status).toBe(404);
-  });
-});
-
-// ─── Recipes ─────────────────────────────────────────────────────────
-
-describe("Recipes API", () => {
-  const mockRecipe = { id: "recipe-1", name: "Code Review" };
-
-  it("GET /api/recipes returns list", async () => {
-    mockRecipesService.getAll.mockResolvedValueOnce([mockRecipe] as never);
-    const res = await app.request("/api/recipes");
-    expect(res.status).toBe(200);
-    expect(await res.json()).toHaveLength(1);
-  });
-
-  it("POST /api/recipes creates recipe", async () => {
-    mockRecipesService.create.mockResolvedValueOnce(mockRecipe as never);
-    const res = await app.request("/api/recipes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(mockRecipe),
-    });
-    expect(res.status).toBe(201);
-  });
-
-  it("PUT /api/recipes upserts - creates when new", async () => {
-    mockRecipesService.getById.mockResolvedValueOnce(null as never);
-    mockRecipesService.create.mockResolvedValueOnce(mockRecipe as never);
-    const res = await app.request("/api/recipes", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(mockRecipe),
-    });
-    expect(res.status).toBe(201);
-  });
-
-  it("DELETE /api/recipes/:id removes recipe", async () => {
-    mockRecipesService.getById.mockResolvedValueOnce(mockRecipe as never);
-    mockRecipesService.delete.mockResolvedValueOnce(undefined as never);
-    const res = await app.request("/api/recipes/recipe-1", { method: "DELETE" });
-    expect(res.status).toBe(204);
-  });
-
-  it("DELETE /api/recipes/:id returns 404 for missing", async () => {
-    mockRecipesService.getById.mockResolvedValueOnce(null as never);
-    const res = await app.request("/api/recipes/nonexistent", { method: "DELETE" });
     expect(res.status).toBe(404);
   });
 });

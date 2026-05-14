@@ -1,6 +1,6 @@
 import { sortParentBeforeChildren, type PipelineEdge, type PipelineNode } from "./canvasSlice";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
-import type { Operation, Recipe, BuiltinNodeType } from "@repo/schemas";
+import type { Operation, BuiltinNodeType } from "@repo/schemas";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
@@ -85,19 +85,12 @@ export interface ActionsSlice {
   addNodeAndAutoConnect: (node: PipelineNode) => void;
   createObjectNode: (type: BuiltinNodeType) => void;
   createOperationNode: (operation: Operation) => void;
-  createRecipeNode: (recipe: Recipe, operation: Operation) => void;
   handleCreateObjectNode: (type: BuiltinNodeType, screenPosition: XYPosition) => void;
   handleCreateOperationNode: (operation: Operation, screenPosition: XYPosition) => void;
-  handleCreateRecipeNode: (
-    recipe: Recipe,
-    operation: Operation,
-    screenPosition: XYPosition,
-  ) => void;
   dismissContextMenu: () => void;
   handleContextMenuOpenChange: (open: boolean) => void;
   connectObjectNode: (type: BuiltinNodeType) => void;
   connectOperationNode: (operation: Operation) => void;
-  connectRecipeNode: (recipe: Recipe, operation: Operation) => void;
   dismissConnectionMenu: () => void;
   handleConnectionMenuOpenChange: (open: boolean) => void;
 
@@ -110,7 +103,6 @@ export interface ActionsSlice {
   nodeContextGroupSelected: () => void;
   nodeContextAddObject: (type: BuiltinNodeType) => void;
   nodeContextAddOperation: (operation: Operation) => void;
-  nodeContextAddRecipe: (recipe: Recipe, operation: Operation) => void;
 
   // Node data actions
   handleGitHubProjectPick: (nodeId: string, picked: PickedProject) => void;
@@ -503,20 +495,6 @@ export const createActionsSlice = (
     });
   },
 
-  createRecipeNode: (recipe, operation) => {
-    const { contextMenu } = get();
-    if (!contextMenu) return;
-    get().addNodeAndAutoConnect({
-      id: `op-recipe-${Date.now()}`,
-      type: "operation",
-      position: { x: contextMenu.flowX, y: contextMenu.flowY },
-      data: {
-        ...makeOperationNodeData(operation),
-        label: recipe.name,
-      },
-    });
-  },
-
   handleCreateObjectNode: (type, screenPosition) => {
     const position = get().screenToFlowPosition(screenPosition);
     get().addNodeAndAutoConnect({
@@ -537,21 +515,6 @@ export const createActionsSlice = (
       origin: QUICK_ADD_NODE_ORIGIN,
       position,
       data: makeOperationNodeData(operation),
-    });
-    set({ isQuickAddOpen: false, quickAddQuery: "" });
-  },
-
-  handleCreateRecipeNode: (recipe, operation, screenPosition) => {
-    const position = get().screenToFlowPosition(screenPosition);
-    get().addNodeAndAutoConnect({
-      id: `op-recipe-${Date.now()}`,
-      type: "operation",
-      origin: QUICK_ADD_NODE_ORIGIN,
-      position,
-      data: {
-        ...makeOperationNodeData(operation),
-        label: recipe.name,
-      },
     });
     set({ isQuickAddOpen: false, quickAddQuery: "" });
   },
@@ -592,23 +555,6 @@ export const createActionsSlice = (
         CONNECTION_MENU_NODE_OFFSET,
       ),
       data: makeOperationNodeData(operation),
-    });
-  },
-
-  connectRecipeNode: (recipe, operation) => {
-    const { connectionMenu } = get();
-    if (!connectionMenu) return;
-    get().addNodeAndAutoConnect({
-      id: `op-recipe-${Date.now()}`,
-      type: "operation",
-      position: offsetPosition(
-        { x: connectionMenu.flowX, y: connectionMenu.flowY },
-        CONNECTION_MENU_NODE_OFFSET,
-      ),
-      data: {
-        ...makeOperationNodeData(operation),
-        label: recipe.name,
-      },
     });
   },
 
@@ -703,30 +649,6 @@ export const createActionsSlice = (
       type: "operation",
       position: offsetPosition(node.position, NODE_CONTEXT_CONNECT_OFFSET),
       data: makeOperationNodeData(operation),
-    });
-    get().handleConnect({
-      source: nodeContextMenu.nodeId,
-      sourceHandle: null,
-      target: newId,
-      targetHandle: null,
-    });
-    set({ nodeContextMenu: null });
-  },
-
-  nodeContextAddRecipe: (recipe, operation) => {
-    const { nodeContextMenu, nodes } = get();
-    if (!nodeContextMenu) return;
-    const node = nodes.find((n) => n.id === nodeContextMenu.nodeId);
-    if (!node) return;
-    const newId = `op-recipe-${Date.now()}`;
-    get().addNode({
-      id: newId,
-      type: "operation",
-      position: offsetPosition(node.position, NODE_CONTEXT_CONNECT_OFFSET),
-      data: {
-        ...makeOperationNodeData(operation),
-        label: recipe.name,
-      },
     });
     get().handleConnect({
       source: nodeContextMenu.nodeId,

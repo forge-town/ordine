@@ -1,7 +1,7 @@
 import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Operation, Recipe } from "@repo/schemas";
+import type { Operation } from "@repo/schemas";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store/harnessCanvasStore";
 import { CanvasNodeCreationPalette } from "./CanvasNodeCreationPalette";
@@ -16,20 +16,10 @@ const operations = [
   },
 ] as Operation[];
 
-const recipes = [
-  {
-    id: "strict-review",
-    name: "Strict Review",
-    description: "Review with stronger checks",
-    operationId: "review-code",
-    bestPracticeId: "bp-strict",
-  },
-] as Recipe[];
-
 vi.mock("@refinedev/core", () => ({
-  useList: ({ resource }: { resource: string }) => ({
+  useList: () => ({
     result: {
-      data: resource === "operations" ? operations : recipes,
+      data: operations,
     },
   }),
 }));
@@ -56,19 +46,17 @@ describe("CanvasNodeCreationPalette", () => {
     Object.defineProperty(globalThis, "innerHeight", { configurable: true, value: 800 });
   });
 
-  it("filters object nodes, operations, and recipes by search text", async () => {
+  it("filters object nodes and operations by search text", async () => {
     const user = userEvent.setup();
     renderQuickAdd();
 
     expect(screen.getAllByText("File").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /Review Code\s*OP/ })).toBeInTheDocument();
-    expect(screen.getByText("Strict Review")).toBeInTheDocument();
 
-    await user.type(screen.getByPlaceholderText(/Search nodes|搜索节点/), "strict");
+    await user.type(screen.getByPlaceholderText(/Search nodes|搜索节点/), "review");
 
     expect(screen.queryByText("File")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Review Code\s*OP/ })).not.toBeInTheDocument();
-    expect(screen.getByText("Strict Review")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Review Code\s*OP/ })).toBeInTheDocument();
   });
 
   it("creates the selected item centered in the viewport and closes", async () => {

@@ -26,7 +26,6 @@ Skills 是预制的指令集，你可以复制并提供给你的 AI agent。agen
 | [创建流水线](/zh/skills/ordine-create-pipeline)       | 设计和创建 DAG 流水线工作流          |
 | [创建技能](/zh/skills/ordine-create-skill)            | 注册新的 AI agent 能力               |
 | [创建最佳实践](/zh/skills/ordine-create-bestpractice) | 创建带检查清单的编码规范             |
-| [创建配方](/zh/skills/ordine-create-recipe)           | 将操作与最佳实践绑定                 |
 | [创建规则](/zh/skills/ordine-create-rule)             | 定义自定义检查规则                   |
 | [创建项目](/zh/skills/ordine-create-project)          | 将 GitHub 仓库关联到成序             |
 

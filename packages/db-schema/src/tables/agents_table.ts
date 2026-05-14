@@ -33,7 +33,7 @@ export const agentsTable = pgTable(
   (table) => [
     check(
       "agents_system_prompt_max_length",
-      sql`length(${table.systemPrompt}) <= ${MAX_AGENT_SYSTEM_PROMPT_LENGTH}`,
+      sql`length(${table.systemPrompt}) <= ${sql.raw(String(MAX_AGENT_SYSTEM_PROMPT_LENGTH))}`,
     ),
   ],
 );

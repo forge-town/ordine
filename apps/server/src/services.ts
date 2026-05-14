@@ -7,7 +7,6 @@ import {
   createOperationRunnerService,
   createPipelineRunnerService,
   createPipelinesService,
-  createRecipesService,
   createSkillsService,
   listDirectory,
 } from "@repo/services";
@@ -19,7 +18,6 @@ export const operationsService = createOperationsService(db);
 export const operationRunnerService = createOperationRunnerService(db);
 export const pipelinesService = createPipelinesService(db);
 export const pipelineRunnerService = createPipelineRunnerService(db);
-export const recipesService = createRecipesService(db);
 export const skillsService = createSkillsService(db);
 
 export { listDirectory };

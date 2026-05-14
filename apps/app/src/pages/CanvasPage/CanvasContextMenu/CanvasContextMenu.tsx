@@ -5,7 +5,6 @@ import {
   HardDrive,
   FolderOutput,
   Zap,
-  BookOpen,
   Group,
   GitBranch,
   MessageSquareText,
@@ -24,7 +23,7 @@ import {
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, Recipe, BuiltinNodeType } from "@repo/schemas";
+import type { Operation, BuiltinNodeType } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
 import { getNodeMeta, getNodeTypeLabel } from "../utils/nodeTypeMeta";
 import { cn } from "@repo/ui/lib/utils";
@@ -48,16 +47,13 @@ export const CanvasContextMenu = () => {
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: recipesResult } = useList<Recipe>({ resource: ResourceName.recipes });
   const operations = operationsResult?.data ?? [];
-  const recipes = recipesResult?.data ?? [];
   const store = useHarnessCanvasStore();
   const contextMenu = useStore(store, (s) => s.contextMenu);
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);
   const handleCreateObjectNode = useStore(store, (s) => s.createObjectNode);
   const createOperationNode = useStore(store, (s) => s.createOperationNode);
-  const createRecipeNode = useStore(store, (s) => s.createRecipeNode);
   const handleContextMenuOpenChange = useStore(store, (s) => s.handleContextMenuOpenChange);
   const groupSelectedNodes = useStore(store, (s) => s.groupSelectedNodes);
 
@@ -108,14 +104,6 @@ export const CanvasContextMenu = () => {
     const operation = operations.find((op) => op.id === operationId);
     if (!operation) return;
     createOperationNode(operation);
-  };
-
-  const handleCreateRecipe = (recipeId: string) => {
-    const recipe = recipes.find((r) => r.id === recipeId);
-    if (!recipe) return;
-    const operation = operations.find((op) => op.id === recipe.operationId);
-    if (!operation) return;
-    createRecipeNode(recipe, operation);
   };
 
   if (!contextMenu) return null;
@@ -257,28 +245,6 @@ export const CanvasContextMenu = () => {
               <p className="px-1.5 py-1 text-xs text-muted-foreground">
                 {t("canvas.contextMenu.noOperationsForType")}
               </p>
-            </ContextMenuGroup>
-          </>
-        )}
-
-        {/* Recipes group */}
-        {canAddOperation && recipes.length > 0 && (
-          <>
-            <ContextMenuSeparator />
-            <ContextMenuGroup>
-              <ContextMenuLabel>{t("canvas.contextMenu.recipeNodes")}</ContextMenuLabel>
-              {recipes.map((recipe) => (
-                <ContextMenuItem
-                  key={recipe.id}
-                  closeOnClick={false}
-                  onClick={() => handleCreateRecipe(recipe.id)}
-                >
-                  <span className="flex size-4 shrink-0 items-center justify-center rounded bg-amber-500">
-                    <BookOpen className="size-2.5 text-white" />
-                  </span>
-                  <span className="truncate text-xs font-medium">{recipe.name}</span>
-                </ContextMenuItem>
-              ))}
             </ContextMenuGroup>
           </>
         )}

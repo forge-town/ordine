@@ -28,7 +28,6 @@ import { Route as LayoutDistillationsIndexRouteImport } from './routes/_layout/d
 import { Route as LayoutAgentsIndexRouteImport } from './routes/_layout/agents.index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
-import { Route as LayoutPipelinesRecipesRouteImport } from './routes/_layout/pipelines.recipes'
 import { Route as LayoutPipelinesJobsRouteImport } from './routes/_layout/pipelines.jobs'
 import { Route as LayoutPipelinesPipelineIdRouteImport } from './routes/_layout/pipelines.$pipelineId'
 import { Route as LayoutDistillationsNewRouteImport } from './routes/_layout/distillations.new'
@@ -141,11 +140,6 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutPipelinesRecipesRoute = LayoutPipelinesRecipesRouteImport.update({
-  id: '/recipes',
-  path: '/recipes',
-  getParentRoute: () => LayoutPipelinesRoute,
-} as any)
 const LayoutPipelinesJobsRoute = LayoutPipelinesJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -252,7 +246,6 @@ export interface FileRoutesByFullPath {
   '/distillations/new': typeof LayoutDistillationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/pipelines/jobs': typeof LayoutPipelinesJobsRouteWithChildren
-  '/pipelines/recipes': typeof LayoutPipelinesRecipesRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/agents/': typeof LayoutAgentsIndexRoute
@@ -284,7 +277,6 @@ export interface FileRoutesByTo {
   '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
   '/distillations/new': typeof LayoutDistillationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
-  '/pipelines/recipes': typeof LayoutPipelinesRecipesRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/agents': typeof LayoutAgentsIndexRoute
@@ -322,7 +314,6 @@ export interface FileRoutesById {
   '/_layout/distillations/new': typeof LayoutDistillationsNewRoute
   '/_layout/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/_layout/pipelines/jobs': typeof LayoutPipelinesJobsRouteWithChildren
-  '/_layout/pipelines/recipes': typeof LayoutPipelinesRecipesRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/_layout/agents/': typeof LayoutAgentsIndexRoute
@@ -360,7 +351,6 @@ export interface FileRouteTypes {
     | '/distillations/new'
     | '/pipelines/$pipelineId'
     | '/pipelines/jobs'
-    | '/pipelines/recipes'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/agents/'
@@ -392,7 +382,6 @@ export interface FileRouteTypes {
     | '/distillations/$distillationId'
     | '/distillations/new'
     | '/pipelines/$pipelineId'
-    | '/pipelines/recipes'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/agents'
@@ -429,7 +418,6 @@ export interface FileRouteTypes {
     | '/_layout/distillations/new'
     | '/_layout/pipelines/$pipelineId'
     | '/_layout/pipelines/jobs'
-    | '/_layout/pipelines/recipes'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/_layout/agents/'
@@ -593,13 +581,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_layout/pipelines/recipes': {
-      id: '/_layout/pipelines/recipes'
-      path: '/recipes'
-      fullPath: '/pipelines/recipes'
-      preLoaderRoute: typeof LayoutPipelinesRecipesRouteImport
-      parentRoute: typeof LayoutPipelinesRoute
-    }
     '/_layout/pipelines/jobs': {
       id: '/_layout/pipelines/jobs'
       path: '/jobs'
@@ -740,7 +721,6 @@ const LayoutPipelinesJobsRouteWithChildren =
 interface LayoutPipelinesRouteChildren {
   LayoutPipelinesPipelineIdRoute: typeof LayoutPipelinesPipelineIdRoute
   LayoutPipelinesJobsRoute: typeof LayoutPipelinesJobsRouteWithChildren
-  LayoutPipelinesRecipesRoute: typeof LayoutPipelinesRecipesRoute
   LayoutPipelinesIndexRoute: typeof LayoutPipelinesIndexRoute
   LayoutPipelinesObjectsObjectTypeIdRoute: typeof LayoutPipelinesObjectsObjectTypeIdRoute
   LayoutPipelinesOperationsNewRoute: typeof LayoutPipelinesOperationsNewRoute
@@ -753,7 +733,6 @@ interface LayoutPipelinesRouteChildren {
 const LayoutPipelinesRouteChildren: LayoutPipelinesRouteChildren = {
   LayoutPipelinesPipelineIdRoute: LayoutPipelinesPipelineIdRoute,
   LayoutPipelinesJobsRoute: LayoutPipelinesJobsRouteWithChildren,
-  LayoutPipelinesRecipesRoute: LayoutPipelinesRecipesRoute,
   LayoutPipelinesIndexRoute: LayoutPipelinesIndexRoute,
   LayoutPipelinesObjectsObjectTypeIdRoute:
     LayoutPipelinesObjectsObjectTypeIdRoute,

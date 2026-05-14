@@ -9,7 +9,6 @@ vi.mock("@/routes/canvas", () => ({
     useLoaderData: () => ({
       pipeline: null,
       operations: [],
-      recipes: [],
       bestPractices: [],
     }),
   },

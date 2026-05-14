@@ -9,7 +9,6 @@ import {
   createOperationRunnerService,
   createPipelineRunnerService,
   createPipelinesService,
-  createRecipesService,
   createRefinementsService,
   createSettingsService,
   createSkillsService,
@@ -25,7 +24,6 @@ export const operationsService = createOperationsService(db);
 export const operationRunnerService = createOperationRunnerService(db);
 export const pipelinesService = createPipelinesService(db);
 export const pipelineRunnerService = createPipelineRunnerService(db);
-export const recipesService = createRecipesService(db);
 export const refinementsService = createRefinementsService(db);
 export const settingsService = createSettingsService(db);
 export const skillsService = createSkillsService(db);

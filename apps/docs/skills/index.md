@@ -26,7 +26,6 @@ Skills are pre-built instruction sets that you can copy and give to your AI agen
 | [Create Pipeline](/skills/ordine-create-pipeline)          | Design and create a DAG pipeline workflow                      |
 | [Create Skill](/skills/ordine-create-skill)                | Register a new AI agent capability                             |
 | [Create Best Practice](/skills/ordine-create-bestpractice) | Create coding standards with checklists                        |
-| [Create Recipe](/skills/ordine-create-recipe)              | Bind an operation to a best practice                           |
 | [Create Rule](/skills/ordine-create-rule)                  | Define custom check rules                                      |
 | [Create Project](/skills/ordine-create-project)            | Link a GitHub repository to Ordine                             |
 
