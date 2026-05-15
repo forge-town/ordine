@@ -5,5 +5,8 @@ const RouteComponent = () => {
 };
 
 export const Route = createFileRoute("/_layout/assistant")({
+  head: () => ({
+    meta: [{ title: "Assistant | Ordine" }],
+  }),
   component: RouteComponent,
 });

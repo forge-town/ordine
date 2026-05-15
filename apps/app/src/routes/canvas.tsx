@@ -30,6 +30,9 @@ const CanvasRouteComponent = () => {
 };
 
 export const Route = createFileRoute("/canvas")({
+  head: () => ({
+    meta: [{ title: "Canvas | Ordine" }],
+  }),
   validateSearch: z.object({
     id: z.string().optional(),
   }),

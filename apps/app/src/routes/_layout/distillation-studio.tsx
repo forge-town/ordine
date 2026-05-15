@@ -12,6 +12,9 @@ export const distillationStudioSearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_layout/distillation-studio")({
+  head: () => ({
+    meta: [{ title: "Distillation Studio | Ordine" }],
+  }),
   validateSearch: distillationStudioSearchSchema,
   component: DistillationStudioPage,
 });
