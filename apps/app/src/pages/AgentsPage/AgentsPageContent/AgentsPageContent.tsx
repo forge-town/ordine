@@ -23,17 +23,8 @@ export const AgentsPageContent = () => {
   const search = useStore(store, (s) => s.search);
   const showForm = useStore(store, (s) => s.showForm);
   const editing = useStore(store, (s) => s.editing);
-  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
-  const handleSetShowForm = useStore(store, (s) => s.handleSetShowForm);
-  const handleSetEditing = useStore(store, (s) => s.handleSetEditing);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    handleSetSearch(e.target.value);
-
-  const handleAddAgent = () => {
-    handleSetEditing(null);
-    handleSetShowForm(true);
-  };
+  const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
+  const handleAddAgentButtonClick = useStore(store, (s) => s.handleAddAgentButtonClick);
 
   const filtered = agents.filter((a: Agent) => {
     const matchesSearch =
@@ -56,7 +47,7 @@ export const AgentsPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         actions={
-          <Button size="sm" onClick={handleAddAgent}>
+          <Button size="sm" onClick={handleAddAgentButtonClick}>
             <Plus className="h-4 w-4" />
             {t("agents.create")}
           </Button>
@@ -79,7 +70,7 @@ export const AgentsPageContent = () => {
             className="h-8 pl-8 text-sm"
             placeholder={t("agents.searchPlaceholder")}
             value={search}
-            onChange={handleSearchChange}
+            onChange={handleSearchInputChange}
           />
         </div>
       </div>
