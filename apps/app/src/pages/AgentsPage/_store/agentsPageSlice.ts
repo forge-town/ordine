@@ -1,5 +1,7 @@
 import type { ChangeEvent } from "react";
 import type { StateCreator } from "zustand";
+import { createFormControl } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
 import { type Agent } from "@repo/schemas";
 import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
@@ -14,10 +16,21 @@ export const agentFormSchema = z.object({
 
 export type AgentFormValues = z.infer<typeof agentFormSchema>;
 
+type AgentFormControl = ReturnType<typeof createFormControl<AgentFormValues>>;
+
+const emptyAgentFormValues: AgentFormValues = {
+  name: "",
+  description: "",
+  defaultRuntime: "",
+  systemPrompt: "",
+  tags: "",
+};
+
 export interface AgentsPageSlice {
   search: string;
   showForm: boolean;
   editing: Agent | null;
+  agentFormControl: AgentFormControl;
 
   handleSearchInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
   handleAddAgentButtonClick: () => void;
@@ -27,15 +40,27 @@ export interface AgentsPageSlice {
 }
 
 export const createAgentsPageSlice: StateCreator<AgentsPageSlice> = (set, get) => {
-  const closeForm = () => set({ showForm: false, editing: null });
+  const agentFormControl = createFormControl<AgentFormValues>({
+    defaultValues: emptyAgentFormValues,
+    resolver: zodResolver(agentFormSchema),
+  });
+
+  const closeForm = () => {
+    agentFormControl.reset(emptyAgentFormValues);
+    set({ showForm: false, editing: null });
+  };
 
   return {
     search: "",
     showForm: false,
     editing: null,
+    agentFormControl,
 
     handleSearchInputChange: (event) => set({ search: event.target.value }),
-    handleAddAgentButtonClick: () => set({ editing: null, showForm: true }),
+    handleAddAgentButtonClick: () => {
+      agentFormControl.reset(emptyAgentFormValues);
+      set({ editing: null, showForm: true });
+    },
     handleDialogOpenChange: (open) => {
       if (!open) closeForm();
     },

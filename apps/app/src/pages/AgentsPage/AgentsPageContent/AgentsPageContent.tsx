@@ -22,7 +22,6 @@ export const AgentsPageContent = () => {
   const store = useAgentsPageStore();
   const search = useStore(store, (s) => s.search);
   const showForm = useStore(store, (s) => s.showForm);
-  const editing = useStore(store, (s) => s.editing);
   const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
   const handleAddAgentButtonClick = useStore(store, (s) => s.handleAddAgentButtonClick);
 
@@ -61,7 +60,7 @@ export const AgentsPageContent = () => {
         title={t("agents.title")}
       />
 
-      {showForm && <AgentFormDialog initial={editing ?? undefined} />}
+      {showForm && <AgentFormDialog />}
 
       <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3">
         <div className="relative max-w-xs flex-1">

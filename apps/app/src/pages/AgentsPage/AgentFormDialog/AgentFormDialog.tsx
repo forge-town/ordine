@@ -1,5 +1,4 @@
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Terminal, Cpu, Zap, Cog } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -14,13 +13,9 @@ import {
   DialogTitle,
 } from "@repo/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import { type Agent, AGENT_RUNTIME_ENUM } from "@repo/schemas";
+import { AGENT_RUNTIME_ENUM } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
-import {
-  agentFormSchema,
-  type AgentFormValues,
-  useAgentsPageStore,
-} from "../_store";
+import { type AgentFormValues, useAgentsPageStore } from "../_store";
 
 const RUNTIME_META: Record<string, { label: string; icon: React.ReactNode; description: string }> =
   {
@@ -46,33 +41,16 @@ const RUNTIME_META: Record<string, { label: string; icon: React.ReactNode; descr
     },
   };
 
-export type AgentFormDialogProps = {
-  initial?: Agent;
-};
-
-export const AgentFormDialog = ({ initial }: AgentFormDialogProps) => {
+export const AgentFormDialog = () => {
   const { t } = useTranslation();
   const store = useAgentsPageStore();
+  const editing = useStore(store, (s) => s.editing);
+  const agentFormControl = useStore(store, (s) => s.agentFormControl);
   const handleDialogOpenChange = useStore(store, (s) => s.handleDialogOpenChange);
   const handleCancelButtonClick = useStore(store, (s) => s.handleCancelButtonClick);
   const handleFormSubmit = useStore(store, (s) => s.handleFormSubmit);
   const form = useForm<AgentFormValues>({
-    resolver: zodResolver(agentFormSchema),
-    defaultValues: initial
-      ? {
-          name: initial.name,
-          description: initial.description ?? "",
-          defaultRuntime: initial.defaultRuntime ?? "",
-          systemPrompt: initial.systemPrompt ?? "",
-          tags: initial.tags.join(", "),
-        }
-      : {
-          name: "",
-          description: "",
-          defaultRuntime: "",
-          systemPrompt: "",
-          tags: "",
-        },
+    formControl: agentFormControl.formControl,
   });
 
   const runtimeOptions = Object.values(AGENT_RUNTIME_ENUM);
@@ -82,7 +60,7 @@ export const AgentFormDialog = ({ initial }: AgentFormDialogProps) => {
       <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {initial ? t("agents.editTitle") : t("agents.createTitle")}
+            {editing ? t("agents.editTitle") : t("agents.createTitle")}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -229,7 +207,7 @@ export const AgentFormDialog = ({ initial }: AgentFormDialogProps) => {
                 {t("agents.form.cancel")}
               </Button>
               <Button size="sm" type="submit">
-                {initial ? t("agents.form.save") : t("agents.form.create")}
+                {editing ? t("agents.form.save") : t("agents.form.create")}
               </Button>
             </DialogFooter>
           </form>
