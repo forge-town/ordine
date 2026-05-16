@@ -1,7 +1,6 @@
 import { relations } from "drizzle-orm";
 import { githubProjectsTable } from "./tables/github_projects_table";
 import { jobsTable } from "./tables/jobs_table";
-import { operationsTable } from "./tables/operations_table";
 import { pipelinesTable } from "./tables/pipelines_table";
 import { pipelineRunsTable } from "./tables/pipeline_runs_table";
 import { distillationRunsTable } from "./tables/distillation_runs_table";
