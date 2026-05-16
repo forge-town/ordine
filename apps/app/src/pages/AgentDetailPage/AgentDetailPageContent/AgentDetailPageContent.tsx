@@ -1,5 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
-import { useOne, useDelete } from "@refinedev/core";
+import { useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import {
   Bot,
@@ -29,43 +28,20 @@ const s = "agents";
 
 export const AgentDetailPageContent = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { agentId } = Route.useParams();
   const { result, query: agentQuery } = useOne<Agent>({
     resource: ResourceName.agents,
     id: agentId,
   });
-  const { mutateAsync: deleteMutate } = useDelete();
 
   const store = useAgentDetailPageStore();
   const deleteConfirm = useStore(store, (s) => s.deleteConfirm);
   const copied = useStore(store, (s) => s.copied);
-  const handleDeleteConfirmSet = useStore(store, (s) => s.handleDeleteConfirmSet);
-  const handleDeleteBlur = useStore(store, (s) => s.handleDeleteBlur);
-  const handleCopied = useStore(store, (s) => s.handleCopied);
+  const handleDeleteButtonClick = useStore(store, (s) => s.handleDeleteButtonClick);
+  const handleDeleteButtonBlur = useStore(store, (s) => s.handleDeleteButtonBlur);
+  const handleCopyIdButtonClick = useStore(store, (s) => s.handleCopyIdButtonClick);
 
   const agent = result ?? null;
-
-  const handleDeleteClick = () => {
-    if (!deleteConfirm) {
-      handleDeleteConfirmSet(true);
-
-      return;
-    }
-    if (!agent) return;
-    deleteMutate({
-      resource: ResourceName.agents,
-      id: agent.id,
-    }).then(() => {
-      navigate({ to: "/agents" });
-    });
-  };
-
-  const handleCopyId = () => {
-    if (!agent) return;
-    navigator.clipboard.writeText(agent.id);
-    handleCopied();
-  };
 
   if (agentQuery.isLoading || !agent) {
     return (
@@ -105,8 +81,8 @@ export const AgentDetailPageContent = () => {
             <Button
               size="icon"
               variant={deleteConfirm ? "destructive" : "ghost"}
-              onBlur={handleDeleteBlur}
-              onClick={handleDeleteClick}
+              onBlur={handleDeleteButtonBlur}
+              onClick={() => handleDeleteButtonClick(agent.id)}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -163,7 +139,7 @@ export const AgentDetailPageContent = () => {
 
             <div className="flex items-center justify-between">
               <span className="font-mono text-[10px] text-muted-foreground">{agent.id}</span>
-              <Button className="h-6 w-6" size="icon" variant="ghost" onClick={handleCopyId}>
+              <Button className="h-6 w-6" size="icon" variant="ghost" onClick={() => handleCopyIdButtonClick(agent.id)}>
                 {copied ? (
                   <Check className="h-3 w-3 text-green-500" />
                 ) : (

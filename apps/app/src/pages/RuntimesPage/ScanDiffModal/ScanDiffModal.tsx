@@ -20,17 +20,16 @@ export const ScanDiffModal = ({ onConfirm }: ScanDiffModalProps) => {
   const { t } = useTranslation();
   const store = useRuntimesPageStore();
   const diff = useStore(store, (s) => s.scanDiff);
-  const closeScanModal = useStore(store, (s) => s.closeScanModal);
+  const handleScanDiffModalOpenChange = useStore(store, (s) => s.handleScanDiffModalOpenChange);
 
   const open = diff !== null;
   const hasChanges = (diff?.added.length ?? 0) + (diff?.removed.length ?? 0) > 0;
 
-  const handleClose = () => closeScanModal();
-  const handleConfirm = () => onConfirm();
-  const handleOpenChange = (v: boolean) => !v && closeScanModal();
+  const handleCancelButtonClick = () => handleScanDiffModalOpenChange(false);
+  const handleConfirmButtonClick = () => onConfirm();
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={handleScanDiffModalOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("runtimes.scanResults")}</DialogTitle>
@@ -65,10 +64,10 @@ export const ScanDiffModal = ({ onConfirm }: ScanDiffModalProps) => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
+          <Button variant="outline" onClick={handleCancelButtonClick}>
             {t("common.cancel")}
           </Button>
-          {hasChanges && <Button onClick={handleConfirm}>{t("runtimes.confirmSync")}</Button>}
+          {hasChanges && <Button onClick={handleConfirmButtonClick}>{t("runtimes.confirmSync")}</Button>}
         </DialogFooter>
       </DialogContent>
     </Dialog>

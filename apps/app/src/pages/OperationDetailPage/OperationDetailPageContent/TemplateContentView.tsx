@@ -13,11 +13,11 @@ const PREVIEWABLE_TYPES = new Set(["markdown", "html"]);
 
 export const TemplateContentView = ({ template }: TemplateContentViewProps) => {
   const store = useOperationDetailPageStore();
-  const { templateViewMode, handleSetTemplateViewMode } = useStore(
+  const { templateViewMode, handleTemplateViewModeButtonClick } = useStore(
     store,
     useShallow((s) => ({
       templateViewMode: s.templateViewMode,
-      handleSetTemplateViewMode: s.handleSetTemplateViewMode,
+      handleTemplateViewModeButtonClick: s.handleTemplateViewModeButtonClick,
     })),
   );
 
@@ -40,7 +40,7 @@ export const TemplateContentView = ({ template }: TemplateContentViewProps) => {
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
-              onClick={handleSetTemplateViewMode.bind(null, "raw")}
+              onClick={handleTemplateViewModeButtonClick.bind(null, "raw")}
             >
               <Code className="h-3 w-3" />
               Raw
@@ -51,7 +51,7 @@ export const TemplateContentView = ({ template }: TemplateContentViewProps) => {
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
-              onClick={handleSetTemplateViewMode.bind(null, "preview")}
+              onClick={handleTemplateViewModeButtonClick.bind(null, "preview")}
             >
               <Eye className="h-3 w-3" />
               Preview

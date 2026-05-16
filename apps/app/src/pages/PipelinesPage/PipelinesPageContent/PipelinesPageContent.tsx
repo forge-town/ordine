@@ -25,9 +25,10 @@ export const PipelinesPageContent = () => {
   const store = usePipelinesPageStore();
   const search = useStore(store, (s) => s.search);
   const selectedTags = useStore(store, (s) => s.selectedTags);
-  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
-  const handleToggleTag = useStore(store, (s) => s.handleToggleTag);
-  const handleClearTags = useStore(store, (s) => s.handleClearTags);
+  const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
+  const handleClearSearchButtonClick = useStore(store, (s) => s.handleClearSearchButtonClick);
+  const handleTagBadgeClick = useStore(store, (s) => s.handleTagBadgeClick);
+  const handleClearTagsButtonClick = useStore(store, (s) => s.handleClearTagsButtonClick);
   const navigate = useNavigate();
   const { mutateAsync: createPipelineMutate } = useCreate();
 
@@ -40,14 +41,6 @@ export const PipelinesPageContent = () => {
 
     return [...tagSet].sort();
   }, [pipelinesData]);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    handleSetSearch(e.target.value);
-  const handleClearSearch = () => handleSetSearch("");
-
-  const handleTagClick = (tag: string) => () => {
-    handleToggleTag(tag);
-  };
 
   const filtered = useMemo(() => {
     const items = pipelinesData ?? [];
@@ -120,12 +113,12 @@ export const PipelinesPageContent = () => {
             placeholder={t("common.search")}
             type="text"
             value={search}
-            onChange={handleSearchChange}
+            onChange={handleSearchInputChange}
           />
           {search && (
             <button
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
-              onClick={handleClearSearch}
+              onClick={handleClearSearchButtonClick}
             >
               <X className="h-3 w-3" />
             </button>
@@ -138,7 +131,7 @@ export const PipelinesPageContent = () => {
                 className="mr-1 h-6 px-2 text-[11px]"
                 size="sm"
                 variant="ghost"
-                onClick={handleClearTags}
+                onClick={handleClearTagsButtonClick}
               >
                 {t("common.clear")}
               </Button>
@@ -153,7 +146,7 @@ export const PipelinesPageContent = () => {
                     : "bg-muted text-muted-foreground hover:bg-muted/80",
                 )}
                 variant="secondary"
-                onClick={handleTagClick(tag)}
+                onClick={() => handleTagBadgeClick(tag)}
               >
                 #{tag}
               </Badge>

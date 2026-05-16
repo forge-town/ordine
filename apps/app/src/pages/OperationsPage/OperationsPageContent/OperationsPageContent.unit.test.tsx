@@ -28,11 +28,16 @@ const testStore = createStore<Record<string, unknown>>((set) => ({
   sortBy: "default",
   sortOpen: false,
   importing: false,
-  handleSetSearchQuery: (q: string) => set({ searchQuery: q }),
-  handleSetSortBy: (s: string) => set({ sortBy: s }),
-  handleSetSortOpen: (o: boolean) => set({ sortOpen: o }),
-  handleToggleSortOpen: () => set((state) => ({ sortOpen: !state.sortOpen })),
-  handleSetImporting: (i: boolean) => set({ importing: i }),
+  activeGroup: "all",
+  viewMode: "grid",
+  handleSearchInputChange: (e: { target: { value: string } }) => set({ searchQuery: e.target.value }),
+  handleClearSearchButtonClick: () => set({ searchQuery: "" }),
+  handleSortItemSelect: (v: string | null) => set({ sortBy: v ?? "default", sortOpen: false }),
+  handleSortSelectOpenChange: (o: boolean) => set({ sortOpen: o }),
+  handleSortSelectTriggerClick: () => set((state) => ({ sortOpen: !state.sortOpen })),
+  handleImportFileInputChange: async () => {},
+  handleGroupTabClick: (g: string) => set({ activeGroup: g }),
+  handleViewModeButtonClick: (m: string) => set({ viewMode: m }),
 }));
 vi.mock("../_store", () => ({
   useOperationsPageStore: () => testStore,
@@ -67,7 +72,14 @@ const makeOp = (overrides: Partial<Operation> & { id: string; name: string }): O
 
 describe("OperationsPageContent", () => {
   beforeEach(() => {
-    testStore.setState({ searchQuery: "", sortBy: "default", sortOpen: false, importing: false });
+    testStore.setState({
+      searchQuery: "",
+      sortBy: "default",
+      sortOpen: false,
+      importing: false,
+      activeGroup: "all",
+      viewMode: "grid",
+    });
     mockOps.mockReturnValue([]);
     mockNavigate.mockClear();
   });

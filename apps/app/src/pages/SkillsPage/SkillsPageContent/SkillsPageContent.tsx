@@ -41,12 +41,8 @@ export const SkillsPageContent = () => {
   const store = useSkillsPageStore();
   const search = useStore(store, (s) => s.search);
   const category = useStore(store, (s) => s.category);
-  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
-  const handleSetCategory = useStore(store, (s) => s.handleSetCategory);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    handleSetSearch(e.target.value);
-  const handleCategoryClick = (cat: SkillCategory) => () => handleSetCategory(cat);
+  const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
+  const handleCategoryButtonClick = useStore(store, (s) => s.handleCategoryButtonClick);
 
   const filtered = skills.filter((s: Skill) => {
     const matchesSearch =
@@ -84,7 +80,7 @@ export const SkillsPageContent = () => {
             placeholder={t("common.search")}
             type="text"
             value={search}
-            onChange={handleSearchChange}
+            onChange={handleSearchInputChange}
           />
         </div>
         <div className="flex items-center gap-1">
@@ -94,7 +90,7 @@ export const SkillsPageContent = () => {
               className="text-xs h-7 px-2.5"
               size="sm"
               variant={category === cat ? "default" : "ghost"}
-              onClick={handleCategoryClick(cat)}
+              onClick={() => handleCategoryButtonClick(cat)}
             >
               {categoryLabels[cat]}
             </Button>

@@ -4,18 +4,19 @@ export interface OperationEditPageSlice {
   skillOpen: boolean;
   scriptLangOpen: boolean;
 
-  handleSetSkillOpen: (open: boolean) => void;
-  handleToggleSkillOpen: () => void;
-  handleSetScriptLangOpen: (open: boolean) => void;
-  handleToggleScriptLangOpen: () => void;
+  handleSkillSelectOpenChange: (open: boolean) => void;
+  handleSkillSelectTriggerClick: () => void;
+  handleScriptLangSelectOpenChange: (open: boolean) => void;
+  handleScriptLangSelectTriggerClick: () => void;
 }
 
 export const createOperationEditPageSlice: StateCreator<OperationEditPageSlice> = (set) => ({
   skillOpen: false,
   scriptLangOpen: false,
 
-  handleSetSkillOpen: (open) => set({ skillOpen: open }),
-  handleToggleSkillOpen: () => set((state) => ({ skillOpen: !state.skillOpen })),
-  handleSetScriptLangOpen: (open) => set({ scriptLangOpen: open }),
-  handleToggleScriptLangOpen: () => set((state) => ({ scriptLangOpen: !state.scriptLangOpen })),
+  handleSkillSelectOpenChange: (open) => set({ skillOpen: open }),
+  handleSkillSelectTriggerClick: () => set((state) => ({ skillOpen: !state.skillOpen })),
+  handleScriptLangSelectOpenChange: (open) => set({ scriptLangOpen: open }),
+  handleScriptLangSelectTriggerClick: () =>
+    set((state) => ({ scriptLangOpen: !state.scriptLangOpen })),
 });

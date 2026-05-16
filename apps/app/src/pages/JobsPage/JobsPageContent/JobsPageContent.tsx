@@ -21,8 +21,8 @@ export const JobsPageContent = () => {
   const store = useJobsPageStore();
   const search = useStore(store, (s) => s.search);
   const statusFilter = useStore(store, (s) => s.statusFilter);
-  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
-  const handleSetStatusFilter = useStore(store, (s) => s.handleSetStatusFilter);
+  const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
+  const handleStatusFilterButtonClick = useStore(store, (s) => s.handleStatusFilterButtonClick);
 
   const STATUS_FILTERS: { value: JobStatus | "all"; label: string }[] = [
     { value: "all", label: t("jobs.filterAll") },
@@ -33,10 +33,6 @@ export const JobsPageContent = () => {
     { value: "cancelled", label: t("jobs.filterCancelled") },
     { value: "expired", label: t("jobs.filterExpired") },
   ];
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    handleSetSearch(e.target.value);
-  const handleStatusFilterClick = (value: JobStatus | "all") => () => handleSetStatusFilter(value);
 
   const filtered = jobs.filter((j: Job) => {
     const matchStatus = statusFilter === "all" || j.status === statusFilter;
@@ -134,7 +130,7 @@ export const JobsPageContent = () => {
             placeholder={t("common.search")}
             type="text"
             value={search}
-            onChange={handleSearchChange}
+            onChange={handleSearchInputChange}
           />
         </div>
         <Filter className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -145,7 +141,7 @@ export const JobsPageContent = () => {
               className="h-7 px-3 text-xs"
               size="sm"
               variant={statusFilter === f.value ? "default" : "ghost"}
-              onClick={handleStatusFilterClick(f.value)}
+              onClick={() => handleStatusFilterButtonClick(f.value)}
             >
               {f.label}
               {f.value !== "all" && (

@@ -13,11 +13,11 @@ export const OutputItemsPanel = ({ outputs }: OutputItemsPanelProps) => {
   const { t } = useTranslation();
 
   const store = useOperationDetailPageStore();
-  const { selectedItemIndex, handleSelectItem } = useStore(
+  const { selectedItemIndex, handleOutputItemRowClick } = useStore(
     store,
     useShallow((s) => ({
       selectedItemIndex: s.selectedItemIndex,
-      handleSelectItem: s.handleSelectItem,
+      handleOutputItemRowClick: s.handleOutputItemRowClick,
     })),
   );
 
@@ -40,7 +40,7 @@ export const OutputItemsPanel = ({ outputs }: OutputItemsPanelProps) => {
                     ? "bg-primary/10 font-semibold text-primary"
                     : "text-foreground hover:bg-muted"
                 }`}
-                onClick={handleSelectItem.bind(null, index)}
+                onClick={handleOutputItemRowClick.bind(null, index)}
               >
                 <span className="block truncate font-mono">{item.name}</span>
                 <span className="block truncate text-[10px] text-muted-foreground">

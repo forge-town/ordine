@@ -19,18 +19,18 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
     activeTab,
     selectedTemplateIndex,
     templates,
-    handleSetActiveTab,
-    handleSwitchToTemplatesTab,
-    handleSelectTemplate,
+    handleDefinitionTabButtonClick,
+    handleTemplatesTabButtonClick,
+    handleTemplateItemClick,
   } = useStore(
     store,
     useShallow((s) => ({
       activeTab: s.activeTab,
       selectedTemplateIndex: s.selectedTemplateIndex,
       templates: s.templates,
-      handleSetActiveTab: s.handleSetActiveTab,
-      handleSwitchToTemplatesTab: s.handleSwitchToTemplatesTab,
-      handleSelectTemplate: s.handleSelectTemplate,
+      handleDefinitionTabButtonClick: s.handleDefinitionTabButtonClick,
+      handleTemplatesTabButtonClick: s.handleTemplatesTabButtonClick,
+      handleTemplateItemClick: s.handleTemplateItemClick,
     })),
   );
 
@@ -52,7 +52,7 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           }`}
-          onClick={handleSetActiveTab.bind(null, "definition")}
+          onClick={handleDefinitionTabButtonClick}
         >
           {t("operations.definition")}
         </button>
@@ -62,7 +62,7 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           }`}
-          onClick={handleSwitchToTemplatesTab.bind(null, selectedItem.templateIds)}
+          onClick={handleTemplatesTabButtonClick.bind(null, selectedItem.templateIds)}
         >
           <span className="flex items-center justify-center gap-1.5">
             <LayoutTemplate className="h-3.5 w-3.5" />
@@ -112,7 +112,7 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
                           ? "border-b-2 border-primary text-foreground"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
-                      onClick={handleSelectTemplate.bind(null, idx)}
+                      onClick={handleTemplateItemClick.bind(null, idx)}
                     >
                       {tpl?.name ?? templateId}
                     </button>

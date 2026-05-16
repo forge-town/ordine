@@ -48,7 +48,7 @@ export const CanvasNodeCreationPalette = ({
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const query = useStore(store, (state) => state.quickAddQuery);
-  const handleSetQuickAddQuery = useStore(store, (state) => state.handleSetQuickAddQuery);
+  const handleQuickAddInputChange = useStore(store, (state) => state.handleQuickAddInputChange);
   const handleCloseQuickAdd = useStore(store, (state) => state.handleCloseQuickAdd);
   const handleQuickAddKeyDown = useStore(store, (state) => state.handleQuickAddKeyDown);
   const handleCreateObjectNode = useStore(store, (state) => state.handleCreateObjectNode);
@@ -91,7 +91,7 @@ export const CanvasNodeCreationPalette = ({
           name="canvasQuickAddSearch"
           placeholder={t("canvas.quickAdd.searchPlaceholder")}
           value={query}
-          onChange={(event) => handleSetQuickAddQuery(event.target.value)}
+          onChange={handleQuickAddInputChange}
           onKeyDown={handleQuickAddKeyDown}
         />
         <Button

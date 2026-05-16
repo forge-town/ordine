@@ -35,14 +35,14 @@ export const OperationDetailPageContent = () => {
   const { t } = useTranslation();
 
   const store = useOperationDetailPageStore();
-  const { selectedItemIndex, handleNavigateBack, handleNavigateToEdit, handleOpenRunPanel } =
+  const { selectedItemIndex, handleBackLinkClick, handleEditButtonClick, handleOpenRunPanelButtonClick } =
     useStore(
       store,
       useShallow((s) => ({
         selectedItemIndex: s.selectedItemIndex,
-        handleNavigateBack: s.handleNavigateBack,
-        handleNavigateToEdit: s.handleNavigateToEdit,
-        handleOpenRunPanel: s.handleOpenRunPanel,
+        handleBackLinkClick: s.handleBackLinkClick,
+        handleEditButtonClick: s.handleEditButtonClick,
+        handleOpenRunPanelButtonClick: s.handleOpenRunPanelButtonClick,
       })),
     );
 
@@ -65,7 +65,7 @@ export const OperationDetailPageContent = () => {
         <p className="text-sm font-medium text-muted-foreground">
           {t("operations.operationNotFound")}
         </p>
-        <Button className="h-auto p-0 text-xs" variant="link" onClick={handleNavigateBack}>
+        <Button className="h-auto p-0 text-xs" variant="link" onClick={handleBackLinkClick}>
           {t("common.backToList")}
         </Button>
       </div>
@@ -81,7 +81,7 @@ export const OperationDetailPageContent = () => {
               aria-label={t("operations.run.run", "Run")}
               size="sm"
               variant="default"
-              onClick={handleOpenRunPanel}
+              onClick={handleOpenRunPanelButtonClick}
             >
               <Play className="h-4 w-4" />
               {t("operations.run.run", "Run")}
@@ -90,7 +90,7 @@ export const OperationDetailPageContent = () => {
               aria-label={t("common.edit")}
               size="sm"
               variant="outline"
-              onClick={handleNavigateToEdit.bind(null, operation.id)}
+              onClick={handleEditButtonClick.bind(null, operation.id)}
             >
               <Pencil className="h-4 w-4" />
               {t("common.edit")}

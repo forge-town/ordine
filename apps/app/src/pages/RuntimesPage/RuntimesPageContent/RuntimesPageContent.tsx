@@ -1,5 +1,4 @@
-import { useCallback } from "react";
-import { useList, useCustom, useCreate, useDelete } from "@refinedev/core";
+import { useList } from "@refinedev/core";
 import { useStore } from "zustand";
 import { Loader2, Radar, Server } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -9,86 +8,37 @@ import { Skeleton } from "@repo/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
 import { RuntimesDataTable } from "../RuntimesDataTable";
 import { ScanDiffModal } from "../ScanDiffModal";
-import { useRuntimesPageStore, type ScanDiff } from "../_store";
+import { useRuntimesPageStore } from "../_store";
 
 const s = "runtimes";
-
-interface DetectedRuntime {
-  type: string;
-  binaryName: string;
-  path: string;
-  version?: string;
-}
-
-const computeDiff = (existing: AgentRuntimeConfig[], detected: DetectedRuntime[]): ScanDiff => {
-  const detectedIds = new Set(detected.map((d) => `local-${d.type}`));
-  const existingIds = new Set(existing.map((e) => e.id));
-
-  const added: AgentRuntimeConfig[] = detected
-    .filter((d) => !existingIds.has(`local-${d.type}`))
-    .map((d) => ({
-      id: `local-${d.type}`,
-      name: d.type,
-      type: d.type as AgentRuntimeConfig["type"],
-      connection: { mode: "local" as const },
-    }));
-
-  const removed = existing.filter((e) => e.id.startsWith("local-") && !detectedIds.has(e.id));
-  const unchanged = existing.filter((e) => detectedIds.has(e.id));
-
-  return { added, removed, unchanged };
-};
 
 export const RuntimesPageContent = () => {
   const { t } = useTranslation();
   const store = useRuntimesPageStore();
   const isScanning = useStore(store, (s) => s.isScanning);
-  const setScanDiff = useStore(store, (s) => s.setScanDiff);
-  const setIsScanning = useStore(store, (s) => s.setIsScanning);
-  const scanDiff = useStore(store, (s) => s.scanDiff);
-  const closeScanModal = useStore(store, (s) => s.closeScanModal);
+  const handleScanButtonClick = useStore(store, (s) => s.handleScanButtonClick);
+  const handleConfirmSyncButtonClick = useStore(store, (s) => s.handleConfirmSyncButtonClick);
 
   const { result: runtimesResult, query: runtimesQuery } = useList<AgentRuntimeConfig>({
     resource: "agentRuntimes",
   });
-
-  const { query: scanQuery } = useCustom<DetectedRuntime[]>({
-    method: "get",
-    url: "settings/scanRuntimes",
-    queryOptions: { enabled: false },
-  });
-
-  const { mutateAsync: createRuntime } = useCreate();
-  const { mutateAsync: deleteRuntime } = useDelete();
-
-  const handleScan = useCallback(async () => {
-    setIsScanning(true);
-    const result = await scanQuery.refetch();
-    const detected = (result.data?.data ?? []) as DetectedRuntime[];
-    const diff = computeDiff(runtimesResult.data, detected);
-    setScanDiff(diff);
-    setIsScanning(false);
-  }, [scanQuery, runtimesResult.data, setScanDiff, setIsScanning]);
-
-  const handleConfirm = useCallback(async () => {
-    if (!scanDiff) return;
-    for (const item of scanDiff.added) {
-      await createRuntime({ resource: "agentRuntimes", values: item });
-    }
-    for (const item of scanDiff.removed) {
-      await deleteRuntime({ resource: "agentRuntimes", id: item.id });
-    }
-    closeScanModal();
-    await runtimesQuery.refetch();
-  }, [scanDiff, createRuntime, deleteRuntime, runtimesQuery, closeScanModal]);
-
   const runtimes = runtimesResult.data;
+
+  const handleConfirmSync = async () => {
+    await handleConfirmSyncButtonClick();
+    await runtimesQuery.refetch();
+  };
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         actions={
-          <Button disabled={isScanning} size="sm" variant="outline" onClick={handleScan}>
+          <Button
+            disabled={isScanning}
+            size="sm"
+            variant="outline"
+            onClick={() => handleScanButtonClick(runtimes)}
+          >
             {isScanning ? (
               <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
             ) : (
@@ -123,7 +73,7 @@ export const RuntimesPageContent = () => {
         )}
       </div>
 
-      <ScanDiffModal onConfirm={handleConfirm} />
+      <ScanDiffModal onConfirm={handleConfirmSync} />
     </div>
   );
 };

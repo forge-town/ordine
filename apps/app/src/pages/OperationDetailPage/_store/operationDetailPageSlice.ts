@@ -10,34 +10,20 @@ export interface OperationDetailPageSlice {
   templates: Record<string, OperationOutputItemTemplate>;
   templateViewMode: "raw" | "preview";
 
-  handleSelectItem: (index: number) => void;
-  handleSetActiveTab: (tab: "definition" | "templates") => void;
-  handleSelectTemplate: (index: number) => void;
-  handleFetchTemplates: (templateIds: string[]) => void;
-  handleNavigateBack: () => void;
-  handleNavigateToEdit: (operationId: string) => void;
-  handleSwitchToTemplatesTab: (templateIds: string[]) => void;
-  handleSetTemplateViewMode: (mode: "raw" | "preview") => void;
+  handleOutputItemRowClick: (index: number) => void;
+  handleDefinitionTabButtonClick: () => void;
+  handleTemplatesTabButtonClick: (templateIds: string[]) => void;
+  handleTemplateItemClick: (index: number) => void;
+  handleBackLinkClick: () => void;
+  handleEditButtonClick: (operationId: string) => void;
+  handleTemplateViewModeButtonClick: (mode: "raw" | "preview") => void;
 }
 
 export const createOperationDetailPageSlice: StateCreator<OperationDetailPageSlice> = (
   set,
   get,
-) => ({
-  selectedItemIndex: 0,
-  activeTab: "definition",
-  selectedTemplateIndex: 0,
-  templates: {},
-  templateViewMode: "raw",
-
-  handleSelectItem: (index) =>
-    set({ selectedItemIndex: index, activeTab: "definition", selectedTemplateIndex: 0 }),
-
-  handleSetActiveTab: (tab) => set({ activeTab: tab }),
-
-  handleSelectTemplate: (index) => set({ selectedTemplateIndex: index }),
-
-  handleFetchTemplates: (templateIds) => {
+) => {
+  const fetchTemplates = (templateIds: string[]) => {
     const { templates } = get();
     const idsToFetch = templateIds.filter((id) => !templates[id]);
     if (idsToFetch.length === 0) return;
@@ -59,23 +45,38 @@ export const createOperationDetailPageSlice: StateCreator<OperationDetailPageSli
           /* template not found — ignore */
         });
     }
-  },
+  };
 
-  handleNavigateBack: () => {
-    void router.navigate({ to: "/pipelines/operations" });
-  },
+  return {
+    selectedItemIndex: 0,
+    activeTab: "definition",
+    selectedTemplateIndex: 0,
+    templates: {},
+    templateViewMode: "raw",
 
-  handleNavigateToEdit: (operationId) => {
-    void router.navigate({
-      to: "/pipelines/operations/$operationId/edit",
-      params: { operationId },
-    });
-  },
+    handleOutputItemRowClick: (index) =>
+      set({ selectedItemIndex: index, activeTab: "definition", selectedTemplateIndex: 0 }),
 
-  handleSwitchToTemplatesTab: (templateIds) => {
-    set({ activeTab: "templates" });
-    get().handleFetchTemplates(templateIds);
-  },
+    handleDefinitionTabButtonClick: () => set({ activeTab: "definition" }),
 
-  handleSetTemplateViewMode: (mode) => set({ templateViewMode: mode }),
-});
+    handleTemplatesTabButtonClick: (templateIds) => {
+      set({ activeTab: "templates" });
+      fetchTemplates(templateIds);
+    },
+
+    handleTemplateItemClick: (index) => set({ selectedTemplateIndex: index }),
+
+    handleBackLinkClick: () => {
+      void router.navigate({ to: "/pipelines/operations" });
+    },
+
+    handleEditButtonClick: (operationId) => {
+      void router.navigate({
+        to: "/pipelines/operations/$operationId/edit",
+        params: { operationId },
+      });
+    },
+
+    handleTemplateViewModeButtonClick: (mode) => set({ templateViewMode: mode }),
+  };
+};

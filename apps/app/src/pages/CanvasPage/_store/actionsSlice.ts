@@ -237,12 +237,12 @@ export const createActionsSlice = (
 
       return position.x >= cx && position.x <= cx + cw && position.y >= cy && position.y <= cy + ch;
     });
-    get().setHoveredCompound(foundCompound?.id ?? null);
+    set({ hoveredCompoundId: foundCompound?.id ?? null });
   },
 
   handleDragEndOnCompound: (draggedNodeId, isCompound) => {
     if (isCompound) {
-      get().setHoveredCompound(null);
+      set({ hoveredCompoundId: null });
     } else {
       get().dropNodeOntoCompound(draggedNodeId);
     }
@@ -370,7 +370,6 @@ export const createActionsSlice = (
       nodes,
       edges,
       startTestRun,
-      setActiveJobId,
     } = get();
     const t = i18n.t.bind(i18n);
 
@@ -425,7 +424,7 @@ export const createActionsSlice = (
     runResult.match(
       (data) => {
         const result = data.data as { jobId: string };
-        setActiveJobId(result.jobId);
+        set({ activeJobId: result.jobId, isConsoleOpen: true });
         toastStore.getState().addToast({
           type: "success",
           title: t("canvas.runCompleted"),
@@ -753,7 +752,7 @@ export const createActionsSlice = (
   handleOperationCardClick: (nodeId) => {
     const { isTestRunning, nodeLlmContent } = get();
     if (isTestRunning || nodeLlmContent[nodeId]) {
-      get().setInspectingNodeId(nodeId);
+      set({ inspectingNodeId: nodeId });
     }
   },
 

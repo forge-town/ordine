@@ -1,5 +1,5 @@
+import type { ChangeEvent } from "react";
 import type { StateCreator } from "zustand";
-import type { AgentRuntime } from "@repo/schemas";
 import { ResultAsync } from "neverthrow";
 import { dataProvider } from "@/integrations/refine/dataProvider";
 
@@ -10,15 +10,14 @@ export interface OperationRunSlice {
   runStatus: OperationRunStatus;
   runInputPath: string;
   runInputContent: string;
-  runAgentOverride: AgentRuntime | undefined;
   isRunPanelOpen: boolean;
 
-  handleSetRunInputPath: (path: string) => void;
-  handleSetRunInputContent: (content: string) => void;
-  handleSetRunAgentOverride: (agent: AgentRuntime | undefined) => void;
-  handleStartRun: (operationId: string) => void;
-  handleOpenRunPanel: () => void;
-  handleCloseRunPanel: () => void;
+  handleRunInputPathInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  handleRunInputPathBrowserSelect: (path: string) => void;
+  handleRunInputContentTextareaChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
+  handleStartRunButtonClick: (operationId: string) => void;
+  handleOpenRunPanelButtonClick: () => void;
+  handleCloseRunPanelButtonClick: () => void;
 }
 
 export const createOperationRunSlice: StateCreator<OperationRunSlice> = (set, get) => ({
@@ -26,15 +25,14 @@ export const createOperationRunSlice: StateCreator<OperationRunSlice> = (set, ge
   runStatus: "idle",
   runInputPath: "",
   runInputContent: "",
-  runAgentOverride: undefined,
   isRunPanelOpen: false,
 
-  handleSetRunInputPath: (path) => set({ runInputPath: path }),
-  handleSetRunInputContent: (content) => set({ runInputContent: content }),
-  handleSetRunAgentOverride: (agent) => set({ runAgentOverride: agent }),
+  handleRunInputPathInputChange: (event) => set({ runInputPath: event.target.value }),
+  handleRunInputPathBrowserSelect: (path) => set({ runInputPath: path }),
+  handleRunInputContentTextareaChange: (event) => set({ runInputContent: event.target.value }),
 
-  handleStartRun: (operationId) => {
-    const { runInputPath, runInputContent, runAgentOverride } = get();
+  handleStartRunButtonClick: (operationId) => {
+    const { runInputPath, runInputContent } = get();
     set({ runStatus: "running", isRunPanelOpen: true });
 
     void ResultAsync.fromPromise(
@@ -45,7 +43,6 @@ export const createOperationRunSlice: StateCreator<OperationRunSlice> = (set, ge
           operationId,
           inputPath: runInputPath || undefined,
           inputContent: runInputContent || undefined,
-          agentOverride: runAgentOverride,
         },
       }),
       () => new Error("Failed to start operation run"),
@@ -58,6 +55,6 @@ export const createOperationRunSlice: StateCreator<OperationRunSlice> = (set, ge
       });
   },
 
-  handleOpenRunPanel: () => set({ isRunPanelOpen: true }),
-  handleCloseRunPanel: () => set({ isRunPanelOpen: false }),
+  handleOpenRunPanelButtonClick: () => set({ isRunPanelOpen: true }),
+  handleCloseRunPanelButtonClick: () => set({ isRunPanelOpen: false }),
 });

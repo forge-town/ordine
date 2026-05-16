@@ -288,12 +288,12 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
 
   const store = useOperationEditPageStore();
   const skillOpen = useStore(store, (s) => s.skillOpen);
-  const handleSkillOpenChange = useStore(store, (s) => s.handleSetSkillOpen);
-  const handleSkillToggle = useStore(store, (s) => s.handleToggleSkillOpen);
+  const handleSkillSelectOpenChange = useStore(store, (s) => s.handleSkillSelectOpenChange);
+  const handleSkillSelectTriggerClick = useStore(store, (s) => s.handleSkillSelectTriggerClick);
 
   const scriptLangOpen = useStore(store, (s) => s.scriptLangOpen);
-  const handleScriptLangOpenChange = useStore(store, (s) => s.handleSetScriptLangOpen);
-  const handleScriptLangToggle = useStore(store, (s) => s.handleToggleScriptLangOpen);
+  const handleScriptLangSelectOpenChange = useStore(store, (s) => s.handleScriptLangSelectOpenChange);
+  const handleScriptLangSelectTriggerClick = useStore(store, (s) => s.handleScriptLangSelectTriggerClick);
 
   const getObjectTypeLabel = (type: ObjectType) =>
     OBJECT_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? type;
@@ -577,7 +577,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                             render={({ field }) => {
                               const handleChange = (v: string | null) => {
                                 if (v) field.onChange(v);
-                                handleSkillOpenChange(false);
+                                handleSkillSelectOpenChange(false);
                               };
 
                               return (
@@ -589,12 +589,12 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                     <Select
                                       open={skillOpen}
                                       value={field.value}
-                                      onOpenChange={handleSkillOpenChange}
+                                      onOpenChange={handleSkillSelectOpenChange}
                                       onValueChange={handleChange}
                                     >
                                       <SelectTrigger
                                         className="h-10 w-full"
-                                        onClick={handleSkillToggle}
+                                        onClick={handleSkillSelectTriggerClick}
                                       >
                                         <SelectValue placeholder={t("operations.selectSkill")} />
                                       </SelectTrigger>
@@ -671,7 +671,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                           render={({ field }) => {
                             const handleChange = (v: string | null) => {
                               if (v) field.onChange(v);
-                              handleScriptLangOpenChange(false);
+                              handleScriptLangSelectOpenChange(false);
                             };
 
                             return (
@@ -683,12 +683,12 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                   <Select
                                     open={scriptLangOpen}
                                     value={field.value}
-                                    onOpenChange={handleScriptLangOpenChange}
+                                    onOpenChange={handleScriptLangSelectOpenChange}
                                     onValueChange={handleChange}
                                   >
                                     <SelectTrigger
                                       className="h-10 w-full"
-                                      onClick={handleScriptLangToggle}
+                                      onClick={handleScriptLangSelectTriggerClick}
                                     >
                                       <SelectValue />
                                     </SelectTrigger>

@@ -1,3 +1,4 @@
+import type { ChangeEvent } from "react";
 import type { StateCreator } from "zustand";
 import type { JobStatus } from "@repo/schemas";
 
@@ -5,14 +6,14 @@ export interface JobsPageSlice {
   search: string;
   statusFilter: JobStatus | "all";
 
-  handleSetSearch: (search: string) => void;
-  handleSetStatusFilter: (status: JobStatus | "all") => void;
+  handleSearchInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  handleStatusFilterButtonClick: (status: JobStatus | "all") => void;
 }
 
 export const createJobsPageSlice: StateCreator<JobsPageSlice> = (set) => ({
   search: "",
   statusFilter: "all",
 
-  handleSetSearch: (search) => set({ search }),
-  handleSetStatusFilter: (status) => set({ statusFilter: status }),
+  handleSearchInputChange: (event) => set({ search: event.target.value }),
+  handleStatusFilterButtonClick: (status) => set({ statusFilter: status }),
 });

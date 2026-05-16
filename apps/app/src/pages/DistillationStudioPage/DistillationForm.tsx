@@ -1,16 +1,7 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreate, useCustomMutation, useOne, useUpdate } from "@refinedev/core";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { z } from "zod/v4";
-import {
-  AgentRuntimeSchema,
-  DistillationModeSchema,
-  DistillationSourceTypeSchema,
-  type Distillation,
-} from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
@@ -24,79 +15,9 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
-import { ResourceName } from "@/integrations/refine/dataProvider";
+import { AgentRuntimeSchema } from "@repo/schemas";
 import { Route } from "@/routes/_layout/distillation-studio";
-import { useDistillationStudioPageStore } from "./_store";
-
-const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  summary: z.string(),
-  sourceType: DistillationSourceTypeSchema,
-  sourceId: z.string(),
-  sourceLabel: z.string(),
-  mode: DistillationModeSchema,
-  objective: z.string(),
-  agent: AgentRuntimeSchema.optional(),
-  model: z.string(),
-  systemPrompt: z.string(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-type SubmissionMode = "draft" | "run";
-
-const buildFormValues = ({
-  distillation,
-  fallbackTitle,
-  search,
-}: {
-  distillation?: Distillation | null;
-  fallbackTitle: string;
-  search: ReturnType<typeof Route.useSearch>;
-}): FormValues => {
-  if (distillation) {
-    return {
-      title: distillation.title,
-      summary: distillation.summary,
-      sourceType: distillation.sourceType,
-      sourceId: distillation.sourceId ?? "",
-      sourceLabel: distillation.sourceLabel,
-      mode: distillation.mode,
-      objective: distillation.config.objective ?? "",
-      agent: distillation.config.agent,
-      model: distillation.config.model ?? "",
-      systemPrompt: distillation.config.systemPrompt ?? "",
-    };
-  }
-
-  return {
-    title: fallbackTitle,
-    summary: "",
-    sourceType: search.sourceType ?? "manual",
-    sourceId: search.sourceId ?? "",
-    sourceLabel: search.sourceLabel ?? "",
-    mode: search.mode ?? "pipeline",
-    objective: "",
-    agent: undefined,
-    model: "",
-    systemPrompt: "",
-  };
-};
-
-const buildDistillationPayload = (values: FormValues) => ({
-  title: values.title.trim(),
-  summary: values.summary.trim(),
-  sourceType: values.sourceType,
-  sourceId: values.sourceId.trim() || null,
-  sourceLabel: values.sourceLabel.trim(),
-  mode: values.mode,
-  config: {
-    objective: values.objective.trim(),
-    ...(values.agent ? { agent: values.agent } : {}),
-    ...(values.model.trim() ? { model: values.model.trim() } : {}),
-    ...(values.systemPrompt.trim() ? { systemPrompt: values.systemPrompt.trim() } : {}),
-  },
-});
+import { type DistillationFormValues, useDistillationStudioPageStore } from "./_store";
 
 export const DistillationForm = () => {
   const { t } = useTranslation();
@@ -105,121 +26,43 @@ export const DistillationForm = () => {
 
   const store = useDistillationStudioPageStore();
   const submissionMode = useStore(store, (s) => s.submissionMode);
-  const setLatestDistillation = useStore(store, (s) => s.handleSetLatestDistillation);
-  const setSubmissionMode = useStore(store, (s) => s.handleSetSubmissionMode);
-  const setCurrentSourceType = useStore(store, (s) => s.handleSetCurrentSourceType);
-  const setCurrentSourceId = useStore(store, (s) => s.handleSetCurrentSourceId);
+  const distillationFormControl = useStore(store, (s) => s.distillationFormControl);
+  const handleLoadDistillation = useStore(store, (s) => s.handleLoadDistillation);
+  const handleSaveDraftButtonClick = useStore(store, (s) => s.handleSaveDraftButtonClick);
+  const handleRunButtonClick = useStore(store, (s) => s.handleRunButtonClick);
 
-  const { mutateAsync: createDistillation } = useCreate();
-  const { mutateAsync: updateDistillation } = useUpdate();
-  const { mutateAsync: runDistillation } = useCustomMutation();
-  const { result: existingDistillationResult } = useOne<Distillation>({
-    resource: ResourceName.distillations,
-    id: existingDistillationId,
-    queryOptions: { enabled: !!existingDistillationId },
-  });
-
-  const initialTitle = useMemo(() => {
-    if (search.sourceLabel) {
-      return `${t("distillations.defaultTitlePrefix")} ${search.sourceLabel}`;
-    }
-
-    return t("distillations.defaultUntitled");
-  }, [search.sourceLabel, t]);
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: buildFormValues({ fallbackTitle: initialTitle, search }),
+  const form = useForm<DistillationFormValues>({
+    formControl: distillationFormControl.formControl,
   });
 
   useEffect(() => {
-    if (!existingDistillationResult) {
-      return;
-    }
-
-    form.reset(
-      buildFormValues({
-        distillation: existingDistillationResult,
-        fallbackTitle: initialTitle,
-        search,
-      }),
-    );
-    setLatestDistillation(existingDistillationResult);
-  }, [existingDistillationResult, form, initialTitle, search, setLatestDistillation]);
-
-  const currentSourceType = form.watch("sourceType");
-  const currentSourceId = form.watch("sourceId");
-
-  useEffect(() => {
-    setCurrentSourceType(currentSourceType);
-  }, [currentSourceType, setCurrentSourceType]);
-
-  useEffect(() => {
-    setCurrentSourceId(currentSourceId.trim());
-  }, [currentSourceId, setCurrentSourceId]);
-
-  const persistDistillation = async (values: FormValues, mode: SubmissionMode) => {
-    const payload = buildDistillationPayload(values);
-
-    if (existingDistillationId) {
-      const updated = await updateDistillation({
-        resource: ResourceName.distillations,
-        id: existingDistillationId,
-        values:
-          mode === "run"
-            ? {
-                ...payload,
-                status: "draft",
-                inputSnapshot: null,
-                result: null,
-              }
-            : payload,
-      });
-
-      return updated.data as Distillation;
-    }
-
-    const created = await createDistillation({
-      resource: ResourceName.distillations,
-      values: {
-        id: crypto.randomUUID(),
-        ...payload,
-        status: "draft",
-        inputSnapshot: null,
-        result: null,
-      },
+    const fallbackTitle = search.sourceLabel
+      ? `${t("distillations.defaultTitlePrefix")} ${search.sourceLabel}`
+      : t("distillations.defaultUntitled");
+    void handleLoadDistillation({
+      distillationId: existingDistillationId,
+      fallbackTitle,
+      searchSourceType: search.sourceType,
+      searchSourceId: search.sourceId,
+      searchSourceLabel: search.sourceLabel,
+      searchMode: search.mode,
     });
-
-    return created.data as Distillation;
-  };
-
-  const onSubmit = async (values: FormValues, mode: SubmissionMode) => {
-    const draft = await persistDistillation(values, mode);
-
-    if (mode === "draft") {
-      setLatestDistillation(draft);
-
-      return;
-    }
-
-    const executed = await runDistillation({
-      url: "distillations/run",
-      method: "post",
-      values: { id: draft.id },
-    });
-    if (executed?.data) {
-      setLatestDistillation(executed.data as Distillation);
-    }
-  };
+  }, [
+    existingDistillationId,
+    handleLoadDistillation,
+    search.sourceType,
+    search.sourceId,
+    search.sourceLabel,
+    search.mode,
+    t,
+  ]);
 
   const isBusy = form.formState.isSubmitting;
-  const handleSubmitDraft = () => {
-    setSubmissionMode("draft");
-    void form.handleSubmit((values) => onSubmit(values, "draft"))();
+  const handleSaveButtonClick = () => {
+    void handleSaveDraftButtonClick(existingDistillationId);
   };
-  const handleSubmitRun = () => {
-    setSubmissionMode("run");
-    void form.handleSubmit((values) => onSubmit(values, "run"))();
+  const handleRunSubmitButtonClick = () => {
+    void handleRunButtonClick(existingDistillationId);
   };
 
   return (
@@ -245,12 +88,12 @@ export const DistillationForm = () => {
               control={form.control}
               name="sourceType"
               render={({ field }) => {
-                const handleSourceTypeChange = field.onChange;
+                const handleSourceTypeSelectChange = field.onChange;
 
                 return (
                   <FormItem>
                     <FormLabel>{t("distillations.sourceType")}</FormLabel>
-                    <Select value={field.value} onValueChange={handleSourceTypeChange}>
+                    <Select value={field.value} onValueChange={handleSourceTypeSelectChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -274,12 +117,12 @@ export const DistillationForm = () => {
               control={form.control}
               name="mode"
               render={({ field }) => {
-                const handleModeChange = field.onChange;
+                const handleModeSelectChange = field.onChange;
 
                 return (
                   <FormItem>
                     <FormLabel>{t("distillations.modeLabel")}</FormLabel>
-                    <Select value={field.value} onValueChange={handleModeChange}>
+                    <Select value={field.value} onValueChange={handleModeSelectChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -369,12 +212,12 @@ export const DistillationForm = () => {
               control={form.control}
               name="agent"
               render={({ field }) => {
-                const handleAgentChange = field.onChange;
+                const handleAgentSelectChange = field.onChange;
 
                 return (
                   <FormItem>
                     <FormLabel>{t("distillations.agentLabel")}</FormLabel>
-                    <Select value={field.value} onValueChange={handleAgentChange}>
+                    <Select value={field.value} onValueChange={handleAgentSelectChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t("distillations.useDefaultAgent")} />
@@ -431,12 +274,12 @@ export const DistillationForm = () => {
           />
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button disabled={isBusy} type="button" variant="outline" onClick={handleSubmitDraft}>
+            <Button disabled={isBusy} type="button" variant="outline" onClick={handleSaveButtonClick}>
               {existingDistillationId
                 ? t("distillations.saveChanges")
                 : t("distillations.saveDraft")}
             </Button>
-            <Button disabled={isBusy} type="button" onClick={handleSubmitRun}>
+            <Button disabled={isBusy} type="button" onClick={handleRunSubmitButtonClick}>
               {isBusy && submissionMode === "run"
                 ? t("distillations.running")
                 : existingDistillationId

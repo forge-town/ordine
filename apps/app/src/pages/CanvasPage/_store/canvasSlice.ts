@@ -60,7 +60,6 @@ export interface CanvasSlice {
   duplicateNode: (nodeId: string) => void;
   clearCanvas: () => void;
   formatLayout: () => void;
-  setHoveredCompound: (compoundId: string | null) => void;
   addNodeToCompound: (nodeId: string, compoundId: string) => void;
   removeNodeFromCompound: (nodeId: string, compoundId: string) => void;
   groupSelectedNodes: (nodeIds: string[]) => void;
@@ -293,10 +292,6 @@ export const createCanvasSlice = (
       const layouted = computeAutoLayout(nodes, edges);
       sortParentBeforeChildren(layouted);
       set({ nodes: layouted });
-    },
-
-    setHoveredCompound: (compoundId) => {
-      set({ hoveredCompoundId: compoundId });
     },
 
     addNodeToCompound: (nodeId, compoundId) => {

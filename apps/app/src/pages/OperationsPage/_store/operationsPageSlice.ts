@@ -1,4 +1,9 @@
+import type { ChangeEvent } from "react";
 import type { StateCreator } from "zustand";
+import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
+import { toastStore } from "@/store/toastStore";
+import i18n from "@/lib/i18n";
+import { parseOperationZip } from "../importOperation";
 
 type SortKey = "default" | "name-asc" | "name-desc" | "date-asc" | "date-desc";
 export type OperationGroupKey =
@@ -22,13 +27,14 @@ export interface OperationsPageSlice {
   activeGroup: OperationGroupKey;
   viewMode: ViewMode;
 
-  handleSetSearchQuery: (query: string) => void;
-  handleSetSortBy: (sort: SortKey) => void;
-  handleSetSortOpen: (open: boolean) => void;
-  handleToggleSortOpen: () => void;
-  handleSetImporting: (importing: boolean) => void;
-  handleSetActiveGroup: (group: OperationGroupKey) => void;
-  handleSetViewMode: (mode: ViewMode) => void;
+  handleSearchInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  handleClearSearchButtonClick: () => void;
+  handleSortItemSelect: (value: string | null) => void;
+  handleSortSelectOpenChange: (open: boolean) => void;
+  handleSortSelectTriggerClick: () => void;
+  handleImportFileInputChange: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
+  handleGroupTabClick: (group: OperationGroupKey) => void;
+  handleViewModeButtonClick: (mode: ViewMode) => void;
 }
 
 export const createOperationsPageSlice: StateCreator<OperationsPageSlice> = (set) => ({
@@ -39,11 +45,76 @@ export const createOperationsPageSlice: StateCreator<OperationsPageSlice> = (set
   activeGroup: "all",
   viewMode: "grid",
 
-  handleSetSearchQuery: (query) => set({ searchQuery: query }),
-  handleSetSortBy: (sort) => set({ sortBy: sort }),
-  handleSetSortOpen: (open) => set({ sortOpen: open }),
-  handleToggleSortOpen: () => set((state) => ({ sortOpen: !state.sortOpen })),
-  handleSetImporting: (importing) => set({ importing }),
-  handleSetActiveGroup: (activeGroup) => set({ activeGroup }),
-  handleSetViewMode: (viewMode) => set({ viewMode }),
+  handleSearchInputChange: (event) => set({ searchQuery: event.target.value }),
+  handleClearSearchButtonClick: () => set({ searchQuery: "" }),
+  handleSortItemSelect: (value) => set({ sortBy: (value ?? "default") as SortKey, sortOpen: false }),
+  handleSortSelectOpenChange: (open) => set({ sortOpen: open }),
+  handleSortSelectTriggerClick: () => set((state) => ({ sortOpen: !state.sortOpen })),
+  handleGroupTabClick: (group) => set({ activeGroup: group }),
+  handleViewModeButtonClick: (mode) => set({ viewMode: mode }),
+
+  handleImportFileInputChange: async (event) => {
+    const fileInput = event.target;
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    set({ importing: true });
+    const addToast = toastStore.getState().addToast;
+
+    const parseResult = await parseOperationZip(file);
+    if (parseResult.isErr()) {
+      addToast({
+        type: "error",
+        title: i18n.t("common.import"),
+        description: parseResult.error,
+      });
+      set({ importing: false });
+      fileInput.value = "";
+
+      return;
+    }
+    const parsed = parseResult.value;
+
+    const templateIdMap = new Map<string, string>();
+    for (const tpl of parsed.templates) {
+      const newId = `tpl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      templateIdMap.set(tpl.id, newId);
+      await dataProvider.create({
+        resource: ResourceName.operationOutputItemTemplates,
+        variables: {
+          id: newId,
+          name: tpl.name,
+          description: tpl.description,
+          content: tpl.content,
+          contentType: tpl.contentType,
+        },
+      });
+    }
+
+    const outputs = parsed.config.outputs.map((o) => ({
+      ...o,
+      templateIds: o.templateIds.map((id) => templateIdMap.get(id) ?? id),
+    }));
+
+    const result = await dataProvider.create({
+      resource: ResourceName.operations,
+      variables: {
+        id: `op-${Date.now()}`,
+        name: parsed.name,
+        description: parsed.description,
+        config: { ...parsed.config, outputs },
+        acceptedObjectTypes: parsed.acceptedObjectTypes,
+      },
+    });
+    const created = result.data;
+    if (created) {
+      addToast({
+        type: "success",
+        title: i18n.t("common.import"),
+        description: `${i18n.t("operations.createNew")} ${parsed.name}`,
+      });
+    }
+    set({ importing: false });
+    fileInput.value = "";
+  },
 });
