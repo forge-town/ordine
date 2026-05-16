@@ -4,11 +4,11 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 
 export const LlmContentCard = () => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const inspectingNodeId = useStore(store, (s) => s.inspectingNodeId);
   const handleDismissInspection = useStore(store, (s) => s.handleDismissInspection);
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);

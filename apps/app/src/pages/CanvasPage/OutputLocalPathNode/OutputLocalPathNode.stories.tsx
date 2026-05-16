@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
 import { ReactFlowProvider } from "@xyflow/react";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { canvasStoryDataProvider } from "../storybookData";
 import { OutputLocalPathNode } from "./OutputLocalPathNode";
 
@@ -23,13 +23,13 @@ const meta: Meta<typeof OutputLocalPathNode> = {
   decorators: [
     (Story) => (
       <Refine dataProvider={canvasStoryDataProvider}>
-        <HarnessCanvasStoreProvider>
+        <CanvasPageStoreProvider>
           <ReactFlowProvider>
             <div className="p-6">
               <Story />
             </div>
           </ReactFlowProvider>
-        </HarnessCanvasStoreProvider>
+        </CanvasPageStoreProvider>
       </Refine>
     ),
   ],

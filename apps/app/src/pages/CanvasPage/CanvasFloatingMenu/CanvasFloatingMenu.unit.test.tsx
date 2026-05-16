@@ -2,9 +2,9 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasFloatingMenu } from "./CanvasFloatingMenu";
 import {
-  createHarnessCanvasStore,
-  HarnessCanvasStoreContext,
-  HarnessCanvasStoreProvider,
+  createCanvasPageStore,
+  CanvasPageStoreContext,
+  CanvasPageStoreProvider,
 } from "../_store";
 import { toastStore } from "@/store/toastStore";
 import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";
@@ -51,21 +51,21 @@ const clickSave = () => {
 };
 
 const wrapperWithPipeline = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider
+  <CanvasPageStoreProvider
     pipeline={{ id: "pipe-001", name: "My Pipeline", nodes: [], edges: [] }}
   >
     {children}
-  </HarnessCanvasStoreProvider>
+  </CanvasPageStoreProvider>
 );
 
 const wrapperWithNullPipeline = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
+  <CanvasPageStoreProvider pipeline={null}>{children}</CanvasPageStoreProvider>
 );
 
 const wrapperWithTestPipeline = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={{ id: "pipe-001", name: "Test", nodes: [], edges: [] }}>
+  <CanvasPageStoreProvider pipeline={{ id: "pipe-001", name: "Test", nodes: [], edges: [] }}>
     {children}
-  </HarnessCanvasStoreProvider>
+  </CanvasPageStoreProvider>
 );
 
 const makeNode = (id: string): PipelineNode =>
@@ -228,7 +228,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
   });
 
   it("imports exported pipeline JSON with title, nodes, and edges", async () => {
-    const store = createHarnessCanvasStore([], [], null, "Existing Pipeline");
+    const store = createCanvasPageStore([], [], null, "Existing Pipeline");
     const baseNode = makeNode("n1");
     const node = {
       ...baseNode,
@@ -250,9 +250,9 @@ describe("CanvasFloatingMenu - save behavior", () => {
     };
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     uploadJsonFile(
@@ -271,13 +271,13 @@ describe("CanvasFloatingMenu - save behavior", () => {
   });
 
   it("imports legacy pipeline JSON title through the file picker", async () => {
-    const store = createHarnessCanvasStore([], [], null, "Existing Pipeline");
+    const store = createCanvasPageStore([], [], null, "Existing Pipeline");
     const node = makeNode("legacy-node");
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     uploadJsonFile(
@@ -296,12 +296,12 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state for invalid pipeline JSON", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     uploadJsonFile(JSON.stringify({ name: "Invalid Pipeline", nodes: "not-array", edges: [] }));
@@ -315,12 +315,12 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state for unsupported node types", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     uploadJsonFile(
@@ -340,12 +340,12 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state for invalid operation runtime", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     uploadJsonFile(
@@ -379,12 +379,12 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state for bad JSON", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     uploadJsonFile("{");
@@ -398,12 +398,12 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state when the import file is too large", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     uploadJsonFile("x".repeat(MAX_CANVAS_IMPORT_BYTES + 1));
@@ -417,15 +417,15 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state when the import graph is too large", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
     const importedNodes = Array.from({ length: MAX_CANVAS_IMPORT_NODES + 1 }, (_, index) =>
       makeNode(`oversized-${index}`),
     );
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     uploadJsonFile(
@@ -443,12 +443,12 @@ describe("CanvasFloatingMenu - save behavior", () => {
   });
 
   it("opens in-canvas settings from the menu", () => {
-    const store = createHarnessCanvasStore();
+    const store = createCanvasPageStore();
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <CanvasFloatingMenu />
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     openMenu();

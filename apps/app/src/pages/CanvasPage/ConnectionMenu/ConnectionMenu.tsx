@@ -20,7 +20,7 @@ import {
 } from "@repo/ui/context-menu";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { Operation, BuiltinNodeType } from "@repo/schemas";
@@ -46,7 +46,7 @@ export const ConnectionMenu = () => {
     resource: ResourceName.operations,
   });
   const operations = operationsResult?.data;
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const connectionMenu = useStore(store, (s) => s.connectionMenu);
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);

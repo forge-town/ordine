@@ -2,11 +2,11 @@ import { MousePointer2, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 
 export const CanvasEmptyState = () => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const handleOpenQuickAdd = useStore(store, (state) => state.handleOpenQuickAdd);
 
   return (

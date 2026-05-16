@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store";
+import { createCanvasPageStore, CanvasPageStoreContext } from "../_store";
 import { canvasStoryDataProvider } from "../storybookData";
 import { CanvasNodeCreationPalette } from "./CanvasNodeCreationPalette";
 
@@ -13,7 +13,7 @@ const meta: Meta<typeof CanvasNodeCreationPalette> = {
   },
   decorators: [
     (Story) => {
-      const store = createHarnessCanvasStore();
+      const store = createCanvasPageStore();
       store.setState({
         isQuickAddOpen: true,
         screenToFlowPosition: (position) => position,
@@ -21,11 +21,11 @@ const meta: Meta<typeof CanvasNodeCreationPalette> = {
 
       return (
         <Refine dataProvider={canvasStoryDataProvider}>
-          <HarnessCanvasStoreContext.Provider value={store}>
+          <CanvasPageStoreContext.Provider value={store}>
             <div className="relative h-[32rem] w-full bg-slate-50">
               <Story />
             </div>
-          </HarnessCanvasStoreContext.Provider>
+          </CanvasPageStoreContext.Provider>
         </Refine>
       );
     },

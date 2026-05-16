@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { CanvasFlow } from "./CanvasFlow";
 
 const meta: Meta<typeof CanvasFlow> = {
@@ -9,11 +9,11 @@ const meta: Meta<typeof CanvasFlow> = {
   tags: ["autodocs"],
   decorators: [
     (Story) => (
-      <HarnessCanvasStoreProvider pipeline={null}>
+      <CanvasPageStoreProvider pipeline={null}>
         <ReactFlowProvider>
           <Story />
         </ReactFlowProvider>
-      </HarnessCanvasStoreProvider>
+      </CanvasPageStoreProvider>
     ),
   ],
   parameters: {

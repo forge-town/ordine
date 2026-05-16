@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext, type PipelineNode } from "../_store";
+import { createCanvasPageStore, CanvasPageStoreContext, type PipelineNode } from "../_store";
 import { LlmContentCard } from "./LlmContentCard";
 
 const operationNode = {
@@ -17,7 +17,7 @@ const operationNode = {
 } as PipelineNode;
 
 const withInspectionStore = (Story: React.ComponentType) => {
-  const store = createHarnessCanvasStore([operationNode]);
+  const store = createCanvasPageStore([operationNode]);
   store.setState({
     inspectingNodeId: "review-op",
     nodeRunStatuses: { "review-op": "running" },
@@ -28,11 +28,11 @@ const withInspectionStore = (Story: React.ComponentType) => {
   });
 
   return (
-    <HarnessCanvasStoreContext.Provider value={store}>
+    <CanvasPageStoreContext.Provider value={store}>
       <div className="relative h-96 w-full rounded-md border bg-slate-50">
         <Story />
       </div>
-    </HarnessCanvasStoreContext.Provider>
+    </CanvasPageStoreContext.Provider>
   );
 };
 
@@ -67,7 +67,7 @@ export const WithContent: Story = {
 export const WaitingForContent: Story = {
   decorators: [
     (Story) => {
-      const store = createHarnessCanvasStore([operationNode]);
+      const store = createCanvasPageStore([operationNode]);
       store.setState({
         inspectingNodeId: "review-op",
         nodeRunStatuses: { "review-op": "running" },
@@ -75,11 +75,11 @@ export const WaitingForContent: Story = {
       });
 
       return (
-        <HarnessCanvasStoreContext.Provider value={store}>
+        <CanvasPageStoreContext.Provider value={store}>
           <div className="relative h-96 w-full rounded-md border bg-slate-50">
             <Story />
           </div>
-        </HarnessCanvasStoreContext.Provider>
+        </CanvasPageStoreContext.Provider>
       );
     },
   ],

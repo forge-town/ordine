@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore, selectSelectedNode } from "../_store";
+import { useCanvasPageStore, selectSelectedNode } from "../_store";
 import { formatZoomPercent } from "../utils/canvasViewport";
 
 export const CanvasStatusBar = () => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
   const viewportZoom = useStore(store, (state) => state.viewportZoom);

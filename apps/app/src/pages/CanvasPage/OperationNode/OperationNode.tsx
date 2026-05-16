@@ -12,7 +12,7 @@ import {
 } from "@repo/ui/select";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
+import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { OperationNodeData, NodeRunStatus, Operation, Agent } from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -51,7 +51,7 @@ const stopCanvasInteraction = (event: SyntheticEvent) => event.stopPropagation()
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const { runStatus: nodeRunStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,

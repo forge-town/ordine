@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store";
+import { createCanvasPageStore, CanvasPageStoreContext } from "../_store";
 import { canvasStoryDataProvider } from "../storybookData";
 import { CanvasContextMenu } from "./CanvasContextMenu";
 
@@ -10,18 +10,18 @@ const meta: Meta<typeof CanvasContextMenu> = {
   tags: ["autodocs"],
   decorators: [
     (Story) => {
-      const store = createHarnessCanvasStore();
+      const store = createCanvasPageStore();
       store.setState({
         contextMenu: { screenX: 200, screenY: 120, flowX: 100, flowY: 80 },
       });
 
       return (
         <Refine dataProvider={canvasStoryDataProvider}>
-          <HarnessCanvasStoreContext.Provider value={store}>
+          <CanvasPageStoreContext.Provider value={store}>
             <div className="relative h-96 w-full bg-slate-50">
               <Story />
             </div>
-          </HarnessCanvasStoreContext.Provider>
+          </CanvasPageStoreContext.Provider>
         </Refine>
       );
     },

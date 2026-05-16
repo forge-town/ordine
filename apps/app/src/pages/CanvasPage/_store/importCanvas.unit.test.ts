@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { createHarnessCanvasStore } from "./harnessCanvasStore";
+import { createCanvasPageStore } from "./canvasPageStore";
 import type { PipelineNode, PipelineEdge } from "./canvasSlice";
 
 const makeNode = (id: string): PipelineNode => ({
@@ -26,10 +26,10 @@ const makeEdge = (id: string): PipelineEdge =>
   }) as unknown as PipelineEdge;
 
 describe("importCanvas store action", () => {
-  const ctx = { store: null as ReturnType<typeof createHarnessCanvasStore> | null };
+  const ctx = { store: null as ReturnType<typeof createCanvasPageStore> | null };
 
   beforeEach(() => {
-    ctx.store = createHarnessCanvasStore([], [], null, "");
+    ctx.store = createCanvasPageStore([], [], null, "");
   });
 
   it("sets nodes and edges from imported data", () => {
@@ -69,7 +69,7 @@ describe("importCanvas store action", () => {
 
   it("replaces existing canvas content", () => {
     const initialNode = makeNode("old");
-    ctx.store = createHarnessCanvasStore([initialNode], [], null, "");
+    ctx.store = createCanvasPageStore([initialNode], [], null, "");
     expect(ctx.store.getState().nodes).toHaveLength(1);
 
     ctx.store.getState().importCanvas({ nodes: [], edges: [] });

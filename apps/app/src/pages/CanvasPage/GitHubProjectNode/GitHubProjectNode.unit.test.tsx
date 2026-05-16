@@ -2,7 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { GitHubProjectNode } from "./GitHubProjectNode";
 
 vi.mock("@refinedev/core", () => ({
@@ -17,9 +17,9 @@ vi.mock("@refinedev/core", () => ({
 }));
 
 const wrapper = ({ children }: { children?: React.ReactNode }) => (
-  <HarnessCanvasStoreProvider>
+  <CanvasPageStoreProvider>
     <ReactFlowProvider>{children}</ReactFlowProvider>
-  </HarnessCanvasStoreProvider>
+  </CanvasPageStoreProvider>
 );
 
 const baseData = {

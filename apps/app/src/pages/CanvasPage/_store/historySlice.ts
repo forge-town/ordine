@@ -16,7 +16,7 @@
  */
 
 import { produceWithPatches, applyPatches, enablePatches, type Patch } from "immer";
-import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
+import type { CanvasPageStoreSlice } from "./canvasPageStore";
 import { sortParentBeforeChildren, type PipelineNode, type PipelineEdge } from "./canvasSlice";
 
 // Enable immer's patch plugin (must be called once, at module level)
@@ -98,8 +98,8 @@ export interface HistorySlice {
 // ─── Factory ──────────────────────────────────────────────────────────────────
 
 export const createHistorySlice = (
-  set: Parameters<HarnessCanvasStoreSlice>[0],
-  get: Parameters<HarnessCanvasStoreSlice>[1],
+  set: Parameters<CanvasPageStoreSlice>[0],
+  get: Parameters<CanvasPageStoreSlice>[1],
 ): HistorySlice => ({
   _history: [],
   _future: [],

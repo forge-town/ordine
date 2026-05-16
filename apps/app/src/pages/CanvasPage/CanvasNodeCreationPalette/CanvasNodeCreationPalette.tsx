@@ -18,7 +18,7 @@ import { Input } from "@repo/ui/input";
 import { cn } from "@repo/ui/lib/utils";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 import { getNodeMeta, getNodeTypeLabel, getNodeTypeShortLabel } from "../utils/nodeTypeMeta";
 import type { XYPosition } from "@xyflow/system";
 
@@ -46,7 +46,7 @@ export const CanvasNodeCreationPalette = ({
   getCreateNodeScreenPosition,
 }: CanvasNodeCreationPaletteProps) => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const query = useStore(store, (state) => state.quickAddQuery);
   const handleSetQuickAddQuery = useStore(store, (state) => state.handleSetQuickAddQuery);
   const handleCloseQuickAdd = useStore(store, (state) => state.handleCloseQuickAdd);

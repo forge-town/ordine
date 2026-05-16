@@ -1,5 +1,5 @@
 import { type ReactNode, useRef } from "react";
-import { HarnessCanvasStoreContext, createHarnessCanvasStore } from "./harnessCanvasStore";
+import { CanvasPageStoreContext, createCanvasPageStore } from "./canvasPageStore";
 import type { PipelineNode, PipelineEdge } from "./canvasSlice";
 
 interface LoadedPipeline {
@@ -14,13 +14,13 @@ interface Props {
   pipeline?: LoadedPipeline | null;
 }
 
-export const HarnessCanvasStoreProvider = ({ children, pipeline }: Props) => {
-  const storeRef = useRef<ReturnType<typeof createHarnessCanvasStore> | null>(null);
+export const CanvasPageStoreProvider = ({ children, pipeline }: Props) => {
+  const storeRef = useRef<ReturnType<typeof createCanvasPageStore> | null>(null);
   const pipelineIdRef = useRef<string | null | undefined>(undefined);
 
   if (!storeRef.current || pipelineIdRef.current !== pipeline?.id) {
     pipelineIdRef.current = pipeline?.id;
-    storeRef.current = createHarnessCanvasStore(
+    storeRef.current = createCanvasPageStore(
       pipeline?.nodes as PipelineNode[] | undefined,
       pipeline?.edges as PipelineEdge[] | undefined,
       pipeline?.id ?? null,
@@ -29,8 +29,8 @@ export const HarnessCanvasStoreProvider = ({ children, pipeline }: Props) => {
   }
 
   return (
-    <HarnessCanvasStoreContext.Provider value={storeRef.current}>
+    <CanvasPageStoreContext.Provider value={storeRef.current}>
       {children}
-    </HarnessCanvasStoreContext.Provider>
+    </CanvasPageStoreContext.Provider>
   );
 };

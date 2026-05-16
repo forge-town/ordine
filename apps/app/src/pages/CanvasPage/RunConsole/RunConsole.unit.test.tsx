@@ -2,7 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RunConsole } from "./RunConsole";
-import { HarnessCanvasStoreProvider, useHarnessCanvasStore } from "../_store";
+import { CanvasPageStoreProvider, useCanvasPageStore } from "../_store";
 import { useRef } from "react";
 
 vi.mock("@xyflow/react", () => ({
@@ -29,7 +29,7 @@ vi.mock("@/integrations/trpc/client", () => ({
 }));
 
 const wrapper = ({ children }: { children?: React.ReactNode }) => (
-  <HarnessCanvasStoreProvider>{children}</HarnessCanvasStoreProvider>
+  <CanvasPageStoreProvider>{children}</CanvasPageStoreProvider>
 );
 
 const JobActivator = ({
@@ -39,7 +39,7 @@ const JobActivator = ({
   jobId: string | null;
   children?: React.ReactNode;
 }) => {
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const initializedRef = useRef(false);
   if (!initializedRef.current) {
     initializedRef.current = true;
@@ -51,9 +51,9 @@ const JobActivator = ({
 
 const wrapperWithJob = (jobId: string | null) => {
   const Wrapper = ({ children }: { children?: React.ReactNode }) => (
-    <HarnessCanvasStoreProvider>
+    <CanvasPageStoreProvider>
       <JobActivator jobId={jobId}>{children}</JobActivator>
-    </HarnessCanvasStoreProvider>
+    </CanvasPageStoreProvider>
   );
 
   return Wrapper;

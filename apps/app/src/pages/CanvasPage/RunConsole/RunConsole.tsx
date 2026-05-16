@@ -6,7 +6,7 @@ import { ScrollArea } from "@repo/ui/scroll-area";
 import { cn } from "@repo/ui/lib/utils";
 import { useCustom, useDataProvider, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 import { StatusIcon } from "./StatusIcon";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { JobData, JobStatus } from "./types";
@@ -78,7 +78,7 @@ const isTerminalStatus = (s: JobStatus) =>
 
 export const RunConsole = () => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const jobId = useStore(store, (s) => s.activeJobId);
   const handleCloseConsole = useStore(store, (s) => s.handleCloseConsole);
   const markNodeRunning = useStore(store, (s) => s.markNodeRunning);

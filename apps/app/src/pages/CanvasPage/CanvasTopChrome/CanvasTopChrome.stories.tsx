@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { CanvasTopChrome } from "./CanvasTopChrome";
 
 const meta: Meta<typeof CanvasTopChrome> = {
@@ -7,7 +7,7 @@ const meta: Meta<typeof CanvasTopChrome> = {
   component: CanvasTopChrome,
   decorators: [
     (Story) => (
-      <HarnessCanvasStoreProvider
+      <CanvasPageStoreProvider
         pipeline={{
           id: "story-pipeline",
           name: "Aligned canvas pipeline",
@@ -18,7 +18,7 @@ const meta: Meta<typeof CanvasTopChrome> = {
         <div className="relative h-40 w-full bg-slate-50">
           <Story />
         </div>
-      </HarnessCanvasStoreProvider>
+      </CanvasPageStoreProvider>
     ),
   ],
 };

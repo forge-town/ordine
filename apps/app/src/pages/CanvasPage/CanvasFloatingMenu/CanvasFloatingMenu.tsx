@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 import { Menu, Home, Save, FileDown, FileUp, Settings, Undo, Redo } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useCreate, useUpdate } from "@refinedev/core";
@@ -17,7 +17,7 @@ import {
 
 export const CanvasFloatingMenu = () => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const nodes = useStore(store, (state) => state.nodes);

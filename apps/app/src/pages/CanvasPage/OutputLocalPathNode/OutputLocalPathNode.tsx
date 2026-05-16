@@ -4,7 +4,7 @@ import { AlertTriangle, FolderOpen, HardDrive } from "lucide-react";
 import { OUTPUT_MODE_ENUM, type OutputMode, type LocalPathOutputNodeData } from "@repo/schemas";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
+import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import { NodeCard } from "../NodeCard";
 import { FolderBrowser } from "@/components/FolderBrowser/FolderBrowser";
 
@@ -24,7 +24,7 @@ const MODE_LABEL_KEYS: Record<OutputMode, string> = {
 
 export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeProps) => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const {

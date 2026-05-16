@@ -3,11 +3,11 @@ import { useStore } from "zustand";
 import { Input } from "@repo/ui/input";
 import { CanvasFloatingMenu } from "../CanvasFloatingMenu";
 import { CanvasToolbar } from "../CanvasToolbar";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 
 export const CanvasTopChrome = () => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const handlePipelineNameChange = useStore(store, (state) => state.handlePipelineNameChange);
 

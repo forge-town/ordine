@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { CanvasEmptyState } from "./CanvasEmptyState";
 
 const meta: Meta<typeof CanvasEmptyState> = {
@@ -8,11 +8,11 @@ const meta: Meta<typeof CanvasEmptyState> = {
   tags: ["autodocs"],
   decorators: [
     (Story) => (
-      <HarnessCanvasStoreProvider pipeline={null}>
+      <CanvasPageStoreProvider pipeline={null}>
         <div className="relative h-96 w-full bg-slate-50">
           <Story />
         </div>
-      </HarnessCanvasStoreProvider>
+      </CanvasPageStoreProvider>
     ),
   ],
   parameters: {

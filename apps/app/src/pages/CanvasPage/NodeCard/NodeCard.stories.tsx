@@ -43,7 +43,7 @@ const themeCases: Array<{ icon: React.ElementType; label: string; theme: NodeThe
 ];
 
 const meta: Meta<typeof NodeCard> = {
-  title: "HarnessCanvas/NodeCard",
+  title: "CanvasPage/NodeCard",
   component: NodeCard,
   tags: ["autodocs"],
   args: {

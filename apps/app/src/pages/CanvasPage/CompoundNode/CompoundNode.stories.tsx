@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { CompoundNode } from "./CompoundNode";
 
 const meta: Meta<typeof CompoundNode> = {
@@ -17,13 +17,13 @@ const meta: Meta<typeof CompoundNode> = {
   },
   decorators: [
     (Story) => (
-      <HarnessCanvasStoreProvider>
+      <CanvasPageStoreProvider>
         <ReactFlowProvider>
           <div className="h-48 w-80 p-4">
             <Story />
           </div>
         </ReactFlowProvider>
-      </HarnessCanvasStoreProvider>
+      </CanvasPageStoreProvider>
     ),
   ],
   parameters: {

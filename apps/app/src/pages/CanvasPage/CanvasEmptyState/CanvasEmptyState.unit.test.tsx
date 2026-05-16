@@ -2,15 +2,15 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store/harnessCanvasStore";
+import { createCanvasPageStore, CanvasPageStoreContext } from "../_store/canvasPageStore";
 import { CanvasEmptyState } from "./CanvasEmptyState";
 
 const renderEmptyState = () => {
-  const store = createHarnessCanvasStore();
+  const store = createCanvasPageStore();
   render(
-    <HarnessCanvasStoreContext.Provider value={store}>
+    <CanvasPageStoreContext.Provider value={store}>
       <CanvasEmptyState />
-    </HarnessCanvasStoreContext.Provider>,
+    </CanvasPageStoreContext.Provider>,
   );
 
   return store;

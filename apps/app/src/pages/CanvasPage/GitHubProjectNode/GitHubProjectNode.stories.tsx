@@ -1,21 +1,21 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { GitHubProjectNode } from "./GitHubProjectNode";
 
 const meta: Meta<typeof GitHubProjectNode> = {
-  title: "HarnessCanvas/GitHubProjectNode",
+  title: "CanvasPage/GitHubProjectNode",
   component: GitHubProjectNode,
   tags: ["autodocs"],
   decorators: [
     (Story) => (
-      <HarnessCanvasStoreProvider>
+      <CanvasPageStoreProvider>
         <ReactFlowProvider>
           <div style={{ padding: 24 }}>
             <Story />
           </div>
         </ReactFlowProvider>
-      </HarnessCanvasStoreProvider>
+      </CanvasPageStoreProvider>
     ),
   ],
   parameters: {

@@ -14,7 +14,7 @@ import {
   SheetTitle,
 } from "@repo/ui/sheet";
 import { cn } from "@repo/ui/lib/utils";
-import { useHarnessCanvasStore, type CanvasSettingsState } from "../_store";
+import { useCanvasPageStore, type CanvasSettingsState } from "../_store";
 
 const settingEntries = [
   { id: "showMiniMap" as const, icon: Map },
@@ -25,7 +25,7 @@ const settingEntries = [
 
 export const CanvasSettingsDrawer = () => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const isOpen = useStore(store, (s) => s.isCanvasSettingsOpen);
   const settings = useStore(store, (s) => s.canvasSettings);
   const openCanvasSettings = useStore(store, (s) => s.openCanvasSettings);

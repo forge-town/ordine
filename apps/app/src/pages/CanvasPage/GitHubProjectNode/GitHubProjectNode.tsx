@@ -3,7 +3,7 @@ import { Link2, Lock, Globe, BookMarked, FolderOpen, FolderInput, X, Eye } from 
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
+import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { GithubProjectObjectNodeData } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
 import { FolderTreePreview } from "../FolderNode/FolderTreePreview";
@@ -25,7 +25,7 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps) => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const [pickOpen, setPickOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);

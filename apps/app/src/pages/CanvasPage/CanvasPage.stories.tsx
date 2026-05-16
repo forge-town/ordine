@@ -3,9 +3,9 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
 import { CanvasPageContent } from "./CanvasPageContent";
 import {
-  HarnessCanvasStoreContext,
-  createHarnessCanvasStore,
-  type HarnessCanvasStore,
+  CanvasPageStoreContext,
+  createCanvasPageStore,
+  type CanvasPageStore,
   type PipelineEdge,
   type PipelineNode,
 } from "./_store";
@@ -64,10 +64,10 @@ const CanvasStory = ({
   isTestRunning = false,
   selectedNodeId = null,
 }: CanvasStoryProps) => {
-  const storeRef = useRef<HarnessCanvasStore | null>(null);
+  const storeRef = useRef<CanvasPageStore | null>(null);
 
   if (!storeRef.current) {
-    storeRef.current = createHarnessCanvasStore(nodes, edges, "story-pipeline", "Story Pipeline");
+    storeRef.current = createCanvasPageStore(nodes, edges, "story-pipeline", "Story Pipeline");
     storeRef.current.setState({
       isQuickAddOpen,
       isConsoleOpen,
@@ -81,11 +81,11 @@ const CanvasStory = ({
 
   return (
     <Refine dataProvider={canvasStoryDataProvider}>
-      <HarnessCanvasStoreContext.Provider value={storeRef.current}>
+      <CanvasPageStoreContext.Provider value={storeRef.current}>
         <div style={{ width: "100vw", height: "100vh" }}>
           <CanvasPageContent />
         </div>
-      </HarnessCanvasStoreContext.Provider>
+      </CanvasPageStoreContext.Provider>
     </Refine>
   );
 };

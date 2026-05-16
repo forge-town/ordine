@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
 import { ReactFlowProvider } from "@xyflow/react";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { canvasStoryDataProvider } from "../storybookData";
 import { CanvasPageContent } from "./CanvasPageContent";
 
@@ -12,11 +12,11 @@ const meta: Meta<typeof CanvasPageContent> = {
   decorators: [
     (Story) => (
       <Refine dataProvider={canvasStoryDataProvider}>
-        <HarnessCanvasStoreProvider pipeline={null}>
+        <CanvasPageStoreProvider pipeline={null}>
           <ReactFlowProvider>
             <Story />
           </ReactFlowProvider>
-        </HarnessCanvasStoreProvider>
+        </CanvasPageStoreProvider>
       </Refine>
     ),
   ],

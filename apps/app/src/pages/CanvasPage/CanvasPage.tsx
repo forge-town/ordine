@@ -4,7 +4,7 @@ import { CanvasLayout } from "@/components/CanvasLayout";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/canvas";
-import { HarnessCanvasStoreProvider } from "./_store";
+import { CanvasPageStoreProvider } from "./_store";
 import { CanvasPageContent } from "./CanvasPageContent";
 
 export const CanvasPage = () => {
@@ -26,9 +26,9 @@ export const CanvasPage = () => {
 
   return (
     <CanvasLayout>
-      <HarnessCanvasStoreProvider pipeline={pipeline}>
+      <CanvasPageStoreProvider pipeline={pipeline}>
         <CanvasPageContent />
-      </HarnessCanvasStoreProvider>
+      </CanvasPageStoreProvider>
     </CanvasLayout>
   );
 };

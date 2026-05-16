@@ -2,7 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store/harnessCanvasStore";
+import { createCanvasPageStore, CanvasPageStoreContext } from "../_store/canvasPageStore";
 import { CanvasStatusBar } from "./CanvasStatusBar";
 
 const node = {
@@ -27,13 +27,13 @@ const edge = {
 
 describe("CanvasStatusBar", () => {
   it("shows node count, edge count, zoom, and selected node label", () => {
-    const store = createHarnessCanvasStore([node], [edge]);
+    const store = createCanvasPageStore([node], [edge]);
     store.setState({ selectedNodeId: "node-1", viewportZoom: 1.25 });
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <CanvasStatusBar />
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     expect(screen.getByText(/1 (nodes|个节点)/)).toBeInTheDocument();

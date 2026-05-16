@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import {
-  createHarnessCanvasStore,
-  HarnessCanvasStoreContext,
+  createCanvasPageStore,
+  CanvasPageStoreContext,
   type PipelineEdge,
   type PipelineNode,
 } from "../_store";
@@ -47,15 +47,15 @@ const renderStatusBar = (
   selectedNodeId: string | null,
   viewportZoom: number,
 ) => {
-  const store = createHarnessCanvasStore(nodes, edges);
+  const store = createCanvasPageStore(nodes, edges);
   store.setState({ selectedNodeId, viewportZoom });
 
   return (
-    <HarnessCanvasStoreContext.Provider value={store}>
+    <CanvasPageStoreContext.Provider value={store}>
       <div className="relative h-24 w-full bg-slate-50">
         <CanvasStatusBar />
       </div>
-    </HarnessCanvasStoreContext.Provider>
+    </CanvasPageStoreContext.Provider>
   );
 };
 

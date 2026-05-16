@@ -1,5 +1,5 @@
 export * from "./provider";
-export * from "./harnessCanvasStore";
+export * from "./canvasPageStore";
 export * from "./canvasSlice";
 export * from "./historySlice";
 export * from "./actionsSlice";

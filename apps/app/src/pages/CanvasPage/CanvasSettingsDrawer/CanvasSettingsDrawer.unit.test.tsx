@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store";
+import { createCanvasPageStore, CanvasPageStoreContext } from "../_store";
 import { CanvasSettingsDrawer } from "./CanvasSettingsDrawer";
 
 vi.mock("@tanstack/react-router", () => ({
@@ -24,13 +24,13 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 const renderOpenDrawer = () => {
-  const store = createHarnessCanvasStore();
+  const store = createCanvasPageStore();
   store.setState({ isCanvasSettingsOpen: true });
 
   render(
-    <HarnessCanvasStoreContext.Provider value={store}>
+    <CanvasPageStoreContext.Provider value={store}>
       <CanvasSettingsDrawer />
-    </HarnessCanvasStoreContext.Provider>,
+    </CanvasPageStoreContext.Provider>,
   );
 
   return store;

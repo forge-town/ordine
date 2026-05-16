@@ -1,5 +1,5 @@
 import type { NodeRunStatus } from "@repo/schemas";
-import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
+import type { CanvasPageStoreSlice } from "./canvasPageStore";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 
 export type SidebarPanel = "components" | "properties" | "ai-assistant" | null;
@@ -117,8 +117,8 @@ export interface UISlice {
 }
 
 export const createUISlice = (
-  set: Parameters<HarnessCanvasStoreSlice>[0],
-  get: Parameters<HarnessCanvasStoreSlice>[1],
+  set: Parameters<CanvasPageStoreSlice>[0],
+  get: Parameters<CanvasPageStoreSlice>[1],
 
   pipelineId: string | null = null,
   pipelineName = "",

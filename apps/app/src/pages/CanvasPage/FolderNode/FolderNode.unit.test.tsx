@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { FolderNode } from "./FolderNode";
 
 vi.mock("@xyflow/react", () => ({
@@ -24,7 +24,7 @@ vi.mock("@refinedev/core", () => ({
 }));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <HarnessCanvasStoreProvider>{children}</HarnessCanvasStoreProvider>
+  <CanvasPageStoreProvider>{children}</CanvasPageStoreProvider>
 );
 
 const baseData = {
@@ -82,9 +82,9 @@ describe("FolderNode", () => {
 
     // Simulate re-render with updated data (store would trigger this in real app)
     rerender(
-      <HarnessCanvasStoreProvider>
+      <CanvasPageStoreProvider>
         <FolderNode data={{ ...data, excludedPaths: ["dist"] }} id="test" />
-      </HarnessCanvasStoreProvider>,
+      </CanvasPageStoreProvider>,
     );
 
     expect(screen.queryByText("node_modules")).not.toBeInTheDocument();

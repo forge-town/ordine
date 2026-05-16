@@ -1,5 +1,5 @@
 import type { NodeRunStatus } from "@repo/schemas";
-import type { HarnessCanvasState } from "./harnessCanvasStore";
+import type { CanvasPageState } from "./canvasPageStore";
 import {
   decorateEdgesWithPortHandles,
   getNodePortVisualCounts,
@@ -14,7 +14,7 @@ export interface NodeRunState {
 
 export const selectNodeRunState =
   (nodeId: string) =>
-  (state: HarnessCanvasState): NodeRunState => {
+  (state: CanvasPageState): NodeRunState => {
     const runStatus = state.nodeRunStatuses[nodeId];
     const dimmed =
       state.isTestRunning &&
@@ -58,7 +58,7 @@ const getCachedDecoratedEdges = (
   return portRoutingCache.decoratedEdges;
 };
 
-export const selectNodePortCounts = (nodeId: string) => (state: HarnessCanvasState) =>
+export const selectNodePortCounts = (nodeId: string) => (state: CanvasPageState) =>
   getNodePortVisualCounts(
     state.nodes,
     state.edges,

@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { FileNode } from "./CodeFileNode";
 
 vi.mock("@xyflow/react", () => ({
@@ -23,7 +23,7 @@ vi.mock("@refinedev/core", () => ({
 }));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <HarnessCanvasStoreProvider>{children}</HarnessCanvasStoreProvider>
+  <CanvasPageStoreProvider>{children}</CanvasPageStoreProvider>
 );
 
 const baseData = {

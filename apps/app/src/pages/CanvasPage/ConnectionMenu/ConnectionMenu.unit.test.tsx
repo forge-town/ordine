@@ -1,6 +1,6 @@
 import { render } from "@/test/test-wrapper";
 import { describe, expect, it, vi } from "vitest";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store/harnessCanvasStore";
+import { createCanvasPageStore, CanvasPageStoreContext } from "../_store/canvasPageStore";
 import { ConnectionMenu } from "./ConnectionMenu";
 
 vi.mock("@/routes/canvas", () => ({
@@ -15,11 +15,11 @@ vi.mock("@/routes/canvas", () => ({
 
 describe("ConnectionMenu", () => {
   it("renders without crashing", () => {
-    const store = createHarnessCanvasStore();
+    const store = createCanvasPageStore();
     const { container } = render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <ConnectionMenu />
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
     // Returns null when no connectStart in store – that's expected
     expect(container).toBeTruthy();

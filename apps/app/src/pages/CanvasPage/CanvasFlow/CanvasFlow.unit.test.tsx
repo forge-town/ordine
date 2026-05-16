@@ -4,9 +4,9 @@ import { ReactFlowProvider } from "@xyflow/react";
 import type * as XyFlowReact from "@xyflow/react";
 import type { PipelineNode } from "../_store/canvasSlice";
 import {
-  createHarnessCanvasStore,
-  HarnessCanvasStoreContext,
-  HarnessCanvasStoreProvider,
+  createCanvasPageStore,
+  CanvasPageStoreContext,
+  CanvasPageStoreProvider,
 } from "../_store";
 import { CanvasFlow } from "./CanvasFlow";
 
@@ -116,21 +116,21 @@ const makeNode = (id: string): PipelineNode =>
   }) as PipelineNode;
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>
+  <CanvasPageStoreProvider pipeline={null}>
     <ReactFlowProvider>{children}</ReactFlowProvider>
-  </HarnessCanvasStoreProvider>
+  </CanvasPageStoreProvider>
 );
 
 const renderWithStore = (nodes: PipelineNode[], isConsoleOpen = false) => {
-  const store = createHarnessCanvasStore(nodes, []);
+  const store = createCanvasPageStore(nodes, []);
   store.setState({ isConsoleOpen });
 
   render(
-    <HarnessCanvasStoreContext.Provider value={store}>
+    <CanvasPageStoreContext.Provider value={store}>
       <ReactFlowProvider>
         <CanvasFlow />
       </ReactFlowProvider>
-    </HarnessCanvasStoreContext.Provider>,
+    </CanvasPageStoreContext.Provider>,
   );
 };
 
@@ -143,15 +143,15 @@ describe("CanvasFlow", () => {
   });
 
   it("uses custom toolbar state instead of React Flow built-in interactivity controls", () => {
-    const store = createHarnessCanvasStore([], []);
+    const store = createCanvasPageStore([], []);
     store.setState({ isCanvasInteractive: false });
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <ReactFlowProvider>
           <CanvasFlow />
         </ReactFlowProvider>
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-nodes-draggable", "false");
@@ -182,7 +182,7 @@ describe("CanvasFlow", () => {
   });
 
   it("applies canvas view settings to React Flow", () => {
-    const store = createHarnessCanvasStore([makeNode("a"), makeNode("b")], []);
+    const store = createCanvasPageStore([makeNode("a"), makeNode("b")], []);
     store.setState({
       canvasSettings: {
         showMiniMap: false,
@@ -193,11 +193,11 @@ describe("CanvasFlow", () => {
     });
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <ReactFlowProvider>
           <CanvasFlow />
         </ReactFlowProvider>
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     expect(screen.queryByTestId("mini-map")).not.toBeInTheDocument();
@@ -213,14 +213,14 @@ describe("CanvasFlow", () => {
   });
 
   it("records viewport zoom changes", () => {
-    const store = createHarnessCanvasStore([], []);
+    const store = createCanvasPageStore([], []);
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <ReactFlowProvider>
           <CanvasFlow />
         </ReactFlowProvider>
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     screen.getByTestId("react-flow").dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
@@ -229,15 +229,15 @@ describe("CanvasFlow", () => {
   });
 
   it("exposes the React Flow viewport element through the provided ref", () => {
-    const store = createHarnessCanvasStore([], []);
+    const store = createCanvasPageStore([], []);
     const viewportRef = { current: null as HTMLDivElement | null };
 
     render(
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <ReactFlowProvider>
           <CanvasFlow viewportRef={viewportRef} />
         </ReactFlowProvider>
-      </HarnessCanvasStoreContext.Provider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     expect(viewportRef.current).toBe(screen.getByTestId("canvas-flow-viewport"));

@@ -1,6 +1,6 @@
 import { useMemo, type Ref } from "react";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
 import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap } from "@xyflow/react";
 import { CompoundNode } from "../CompoundNode";
@@ -42,7 +42,7 @@ interface CanvasFlowProps {
 }
 
 export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
 
   const nodes = useStore(store, (s) => s.nodes);
   const edges = useStore(store, (s) => s.edges);

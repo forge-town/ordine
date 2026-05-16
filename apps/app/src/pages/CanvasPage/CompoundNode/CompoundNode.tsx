@@ -3,7 +3,7 @@ import { Group } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 import type { CompoundNodeData } from "@repo/schemas";
 
 export interface CompoundNodeProps {
@@ -18,7 +18,7 @@ const handleMouseDown = (e: React.MouseEvent) => {
 
 export const CompoundNode = ({ id, data, selected }: CompoundNodeProps) => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const hoveredCompoundId = useStore(store, (s) => s.hoveredCompoundId);
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
 

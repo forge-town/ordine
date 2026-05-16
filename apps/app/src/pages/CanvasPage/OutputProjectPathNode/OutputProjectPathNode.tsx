@@ -2,7 +2,7 @@ import { FolderOutput } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
+import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { ProjectPathOutputNodeData } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
 import { Input } from "@repo/ui/input";
@@ -18,7 +18,7 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
 export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathNodeProps) => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const {

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { CanvasFloatingMenu } from "./CanvasFloatingMenu";
 
 const meta: Meta<typeof CanvasFloatingMenu> = {
@@ -8,9 +8,9 @@ const meta: Meta<typeof CanvasFloatingMenu> = {
   tags: ["autodocs"],
   decorators: [
     (Story) => (
-      <HarnessCanvasStoreProvider pipeline={null}>
+      <CanvasPageStoreProvider pipeline={null}>
         <Story />
-      </HarnessCanvasStoreProvider>
+      </CanvasPageStoreProvider>
     ),
   ],
   parameters: {

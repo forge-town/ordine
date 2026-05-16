@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 import { CanvasFlow } from "../CanvasFlow";
 import { CanvasContextMenu } from "../CanvasContextMenu";
 import { ConnectionMenu } from "../ConnectionMenu";
@@ -15,7 +15,7 @@ import { CanvasTopChrome } from "../CanvasTopChrome";
 import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePosition";
 
 export const CanvasInner = () => {
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const flowViewportRef = useRef<HTMLDivElement>(null);
 
   const contextMenu = useStore(store, (state) => state.contextMenu);

@@ -26,7 +26,7 @@ import {
 } from "@repo/ui/context-menu";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { Operation, BuiltinNodeType } from "@repo/schemas";
@@ -52,7 +52,7 @@ export const NodeContextMenu = () => {
     resource: ResourceName.operations,
   });
   const operations = operationsResult?.data ?? [];
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const nodeContextMenu = useStore(store, (s) => s.nodeContextMenu);
   const nodes = useStore(store, (s) => s.nodes);
   const handleNodeContextDuplicate = useStore(store, (s) => s.nodeContextDuplicate);

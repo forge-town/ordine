@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
 import {
-  createHarnessCanvasStore,
-  HarnessCanvasStoreContext,
+  createCanvasPageStore,
+  CanvasPageStoreContext,
   type PipelineEdge,
   type PipelineNode,
 } from "../_store";
@@ -44,7 +44,7 @@ const edge = {
 } as PipelineEdge;
 
 const withRunConsoleStore = (Story: React.ComponentType) => {
-  const store = createHarnessCanvasStore([sourceNode, operationNode], [edge]);
+  const store = createCanvasPageStore([sourceNode, operationNode], [edge]);
   store.setState({
     activeJobId: "job-story",
     isConsoleOpen: true,
@@ -55,11 +55,11 @@ const withRunConsoleStore = (Story: React.ComponentType) => {
 
   return (
     <Refine dataProvider={canvasStoryDataProvider}>
-      <HarnessCanvasStoreContext.Provider value={store}>
+      <CanvasPageStoreContext.Provider value={store}>
         <div className="relative h-80 w-full overflow-hidden rounded-md border bg-slate-50">
           <Story />
         </div>
-      </HarnessCanvasStoreContext.Provider>
+      </CanvasPageStoreContext.Provider>
     </Refine>
   );
 };

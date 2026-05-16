@@ -3,7 +3,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Operation } from "@repo/schemas";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store/harnessCanvasStore";
+import { createCanvasPageStore, CanvasPageStoreContext } from "../_store/canvasPageStore";
 import { CanvasNodeCreationPalette } from "./CanvasNodeCreationPalette";
 
 const operations = [
@@ -25,16 +25,16 @@ vi.mock("@refinedev/core", () => ({
 }));
 
 const renderQuickAdd = () => {
-  const store = createHarnessCanvasStore();
+  const store = createCanvasPageStore();
   store.setState({
     isQuickAddOpen: true,
     screenToFlowPosition: (pos) => ({ x: pos.x / 2, y: pos.y / 2 }),
   });
 
   render(
-    <HarnessCanvasStoreContext.Provider value={store}>
+    <CanvasPageStoreContext.Provider value={store}>
       <CanvasNodeCreationPalette getCreateNodeScreenPosition={() => ({ x: 700, y: 500 })} />
-    </HarnessCanvasStoreContext.Provider>,
+    </CanvasPageStoreContext.Provider>,
   );
 
   return store;

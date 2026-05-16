@@ -4,7 +4,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { OperationNodeData } from "@repo/schemas";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext, type PipelineNode } from "../_store";
+import { createCanvasPageStore, CanvasPageStoreContext, type PipelineNode } from "../_store";
 import { OperationNode } from "./OperationNode";
 
 vi.mock("@xyflow/react", () => ({
@@ -72,17 +72,17 @@ const renderOperationNode = (
     position: { x: 0, y: 0 },
     data,
   } as PipelineNode;
-  const store = createHarnessCanvasStore([node]);
+  const store = createCanvasPageStore([node]);
 
   const wrapper = ({ children }: React.PropsWithChildren) => (
-    <HarnessCanvasStoreContext.Provider value={store}>
+    <CanvasPageStoreContext.Provider value={store}>
       <div
         onClick={parentHandlers.handleParentClick}
         onMouseDown={parentHandlers.handleParentMouseDown}
       >
         {children}
       </div>
-    </HarnessCanvasStoreContext.Provider>
+    </CanvasPageStoreContext.Provider>
   );
 
   render(<OperationNode data={data} id={nodeId} />, { wrapper });

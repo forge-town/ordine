@@ -3,7 +3,7 @@ import i18n from "@/lib/i18n";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store";
+import { createCanvasPageStore, CanvasPageStoreContext } from "../_store";
 import { CanvasTopChrome } from "./CanvasTopChrome";
 
 vi.mock("../CanvasFloatingMenu", () => ({
@@ -19,12 +19,12 @@ vi.mock("../CanvasToolbar", () => ({
 }));
 
 const renderTopChrome = () => {
-  const store = createHarnessCanvasStore([], []);
+  const store = createCanvasPageStore([], []);
 
   render(
-    <HarnessCanvasStoreContext.Provider value={store}>
+    <CanvasPageStoreContext.Provider value={store}>
       <CanvasTopChrome />
-    </HarnessCanvasStoreContext.Provider>,
+    </CanvasPageStoreContext.Provider>,
   );
 
   return store;

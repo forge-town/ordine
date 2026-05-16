@@ -4,7 +4,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasToolbar } from "./CanvasToolbar";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { toastStore } from "@/store/toastStore";
 
 const mockTrpcUpdate = vi.fn();
@@ -59,15 +59,15 @@ vi.mock("@repo/ui/tooltip", () => ({
 }));
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider pipeline={null}>{children}</HarnessCanvasStoreProvider>
+  <CanvasPageStoreProvider pipeline={null}>{children}</CanvasPageStoreProvider>
 );
 
 const wrapperWithPipeline = ({ children }: React.PropsWithChildren) => (
-  <HarnessCanvasStoreProvider
+  <CanvasPageStoreProvider
     pipeline={{ id: "pipe-test", name: "Test Pipeline", nodes: [], edges: [] }}
   >
     {children}
-  </HarnessCanvasStoreProvider>
+  </CanvasPageStoreProvider>
 );
 
 describe("CanvasToolbar - export removed", () => {

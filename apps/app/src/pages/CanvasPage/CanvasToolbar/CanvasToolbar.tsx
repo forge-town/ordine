@@ -1,5 +1,5 @@
 import { useStore } from "zustand";
-import { useHarnessCanvasStore } from "../_store";
+import { useCanvasPageStore } from "../_store";
 import {
   ZoomIn,
   ZoomOut,
@@ -20,7 +20,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
 
 export const CanvasToolbar = () => {
   const { t } = useTranslation();
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const selectedNodeId = useStore(store, (state) => state.selectedNodeId);
   const canUndo = useStore(store, (state) => state.canUndo);
   const canRedo = useStore(store, (state) => state.canRedo);

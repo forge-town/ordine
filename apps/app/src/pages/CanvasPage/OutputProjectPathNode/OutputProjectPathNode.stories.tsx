@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { HarnessCanvasStoreProvider } from "../_store";
+import { CanvasPageStoreProvider } from "../_store";
 import { OutputProjectPathNode } from "./OutputProjectPathNode";
 
 const meta: Meta<typeof OutputProjectPathNode> = {
@@ -19,13 +19,13 @@ const meta: Meta<typeof OutputProjectPathNode> = {
   },
   decorators: [
     (Story) => (
-      <HarnessCanvasStoreProvider>
+      <CanvasPageStoreProvider>
         <ReactFlowProvider>
           <div className="p-6">
             <Story />
           </div>
         </ReactFlowProvider>
-      </HarnessCanvasStoreProvider>
+      </CanvasPageStoreProvider>
     ),
   ],
   parameters: {

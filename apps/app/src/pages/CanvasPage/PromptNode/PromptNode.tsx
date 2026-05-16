@@ -1,7 +1,7 @@
 import { MessageSquareText } from "lucide-react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useHarnessCanvasStore, selectNodeRunState, selectNodePortCounts } from "../_store";
+import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { PromptObjectNodeData } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
 import { Textarea } from "@repo/ui/textarea";
@@ -15,7 +15,7 @@ export interface PromptNodeProps {
 const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
 export const PromptNode = ({ id, data, selected }: PromptNodeProps) => {
-  const store = useHarnessCanvasStore();
+  const store = useCanvasPageStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const { rightPortCount } = useStore(store, useShallow(selectNodePortCounts(id)));

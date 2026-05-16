@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FinalConnectionState } from "@xyflow/system";
-import { createHarnessCanvasStore } from "./harnessCanvasStore";
+import { createCanvasPageStore } from "./canvasPageStore";
 import type { PipelineNode } from "./canvasSlice";
 
 const makeNode = (id: string, type: PipelineNode["type"]): PipelineNode =>
@@ -15,7 +15,7 @@ describe("canvas connection actions", () => {
   it("keeps the dragged source handle when creating a connected node", () => {
     const source = makeNode("source", "operation");
     const target = makeNode("target", "output-local-path");
-    const store = createHarnessCanvasStore([source], [], null, "");
+    const store = createCanvasPageStore([source], [], null, "");
 
     store.getState().handleConnectStart({
       nodeId: source.id,
@@ -39,7 +39,7 @@ describe("canvas connection actions", () => {
   it("keeps the dragged target handle when creating a connected upstream node", () => {
     const source = makeNode("source", "folder");
     const target = makeNode("target", "operation");
-    const store = createHarnessCanvasStore([target], [], null, "");
+    const store = createCanvasPageStore([target], [], null, "");
 
     store.getState().handleConnectStart({
       nodeId: target.id,
@@ -62,7 +62,7 @@ describe("canvas connection actions", () => {
 
   it("falls back to the original connect start handle when connect end omits handle id", () => {
     const source = makeNode("source", "operation");
-    const store = createHarnessCanvasStore([source], [], null, "");
+    const store = createCanvasPageStore([source], [], null, "");
 
     store.getState().handleConnectStart({
       nodeId: source.id,
@@ -94,7 +94,7 @@ describe("canvas connection actions", () => {
 
   it("clears connect start instead of opening the connection menu without a handle type", () => {
     const source = makeNode("source", "operation");
-    const store = createHarnessCanvasStore([source], [], null, "");
+    const store = createCanvasPageStore([source], [], null, "");
 
     store.getState().handleConnectStart({
       nodeId: source.id,
