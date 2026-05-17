@@ -99,7 +99,7 @@ export interface UISlice {
   // Pipeline run actions
   startTestRun: () => void;
   stopTestRun: () => void;
-  setNodeLlmContent: (nodeId: string, content: string) => void;
+  applyNodeLlmContent: (nodeId: string, content: string) => void;
 
   // Semantic actions
   handleCloseConsole: () => void;
@@ -285,7 +285,7 @@ export const createUISlice = (
     set({ isTestRunning: false, runningNodeId: null });
   },
 
-  setNodeLlmContent: (nodeId, content) => {
+  applyNodeLlmContent: (nodeId, content) => {
     set((state) => ({
       nodeLlmContent: { ...state.nodeLlmContent, [nodeId]: content },
     }));

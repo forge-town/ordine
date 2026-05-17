@@ -12,7 +12,8 @@ import {
   Wand2,
 } from "lucide-react";
 import { useState } from "react";
-import { NodeCard, type NodeTheme } from "./NodeCard";
+import { NodeCard } from "./NodeCard";
+import type { NodeTheme } from "./nodeCardTheme";
 
 const passBadge = <span className="text-[10px] font-medium text-green-500">Pass</span>;
 const queuedBadge = <span className="text-[10px] font-medium text-gray-500">Queued</span>;

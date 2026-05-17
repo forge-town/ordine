@@ -1,7 +1,7 @@
 import { createFormControl } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod/v4";
 import type { SidebarStoreSlice } from "./sidebarStore";
+import { newPipelineFormSchema, type NewPipelineFormValues } from "./newPipelineForm";
 import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 import i18n from "@/lib/i18n";
 import { router } from "@/router";
@@ -21,13 +21,6 @@ export type NewPipelineDialogPhase =
   | { step: "creating" }
   | { step: "error"; message: string }
   | { step: "success"; pipelineId: string; pipelineName: string };
-
-export const newPipelineFormSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-});
-
-export type NewPipelineFormValues = z.infer<typeof newPipelineFormSchema>;
 
 type FormControlReturn = ReturnType<typeof createFormControl<NewPipelineFormValues>>;
 

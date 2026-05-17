@@ -1,5 +1,5 @@
 import { Loader2, CheckCircle2, XCircle, Clock, Terminal } from "lucide-react";
-import type { JobStatus } from "./types";
+import type { JobStatus } from "@repo/schemas";
 
 interface StatusIconProps {
   status: JobStatus;

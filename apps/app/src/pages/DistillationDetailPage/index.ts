@@ -1,1 +1,1 @@
-export { DistillationDetailPage } from "./DistillationDetailPage";
+export * from "./DistillationDetailPage";

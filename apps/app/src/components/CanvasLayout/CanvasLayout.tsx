@@ -1,5 +1,5 @@
 import { ToastContainer } from "@/components/ToastContainer";
-import { ToastStoreProvider } from "@/store/toastProvider";
+import { ToastStoreProvider } from "@/store/toastStore";
 
 interface CanvasLayoutProps {
   children: React.ReactNode;

@@ -1,4 +1,3 @@
-import type { ChangeEvent } from "react";
 import type { StateCreator } from "zustand";
 import { createFormControl } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -97,7 +96,7 @@ export interface DistillationStudioPageSlice {
   currentSourceId: string;
   distillationFormControl: DistillationFormControl;
 
-  handleRefinementRoundsSelectChange: (event: ChangeEvent<HTMLSelectElement>) => void;
+  handleRefinementRoundsSelectChange: (value: string | null) => void;
   handleLoadDistillation: (context: DistillationLoadContext) => Promise<void>;
   handleSaveDraftButtonClick: (existingDistillationId: string) => Promise<void>;
   handleRunButtonClick: (existingDistillationId: string) => Promise<void>;
@@ -174,8 +173,9 @@ export const createDistillationStudioPageSlice: StateCreator<DistillationStudioP
     currentSourceId: "",
     distillationFormControl,
 
-    handleRefinementRoundsSelectChange: (event) =>
-      set({ refinementRounds: Number(event.target.value) }),
+    handleRefinementRoundsSelectChange: (value) => {
+      if (value !== null) set({ refinementRounds: Number(value) });
+    },
 
     handleLoadDistillation: async (context) => {
       const fallback = emptyFormValues(

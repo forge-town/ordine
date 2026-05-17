@@ -15,7 +15,7 @@ export const SearchPipelineDialog = () => {
   const navigate = useNavigate();
   const store = useSidebarStore();
   const open = useStore(store, (s) => s.searchOpen);
-  const setOpen = useStore(store, (s) => s.setSearchOpen);
+  const handleSearchDialogOpenChange = useStore(store, (s) => s.handleSearchDialogOpenChange);
   const [query, setQuery] = useState("");
 
   const { result: pipelinesResult } = useList<PipelineData>({
@@ -34,7 +34,7 @@ export const SearchPipelineDialog = () => {
   }, [pipelinesData, query]);
 
   const handleSelect = (pipeline: PipelineData) => {
-    setOpen(false);
+    handleSearchDialogOpenChange(false);
     setQuery("");
     void navigate({ to: "/canvas", search: { id: pipeline.id } });
   };
@@ -44,7 +44,7 @@ export const SearchPipelineDialog = () => {
   };
 
   const handleOpenChange = (value: boolean) => {
-    setOpen(value);
+    handleSearchDialogOpenChange(value);
     if (!value) setQuery("");
   };
 

@@ -25,8 +25,7 @@ import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
 import { Form, FormField, FormItem, FormControl } from "@repo/ui/form";
 import { PipelinePreviewGraph } from "@/components/PipelinePreviewGraph";
-import { useSidebarStore } from "@/store/sidebarStore";
-import type { NewPipelineFormValues } from "@/store/newPipelineDialogSlice";
+import { useSidebarStore, type NewPipelineFormValues } from "@/store/sidebarStore";
 
 export const NewPipelineDialog = () => {
   const { t } = useTranslation();

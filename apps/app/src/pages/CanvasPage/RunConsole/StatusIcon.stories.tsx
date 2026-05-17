@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import type { JobStatus } from "./types";
+import type { JobStatus } from "@repo/schemas";
 import { StatusIcon } from "./StatusIcon";
 
 const statuses: JobStatus[] = ["queued", "running", "done", "failed", "cancelled", "expired"];

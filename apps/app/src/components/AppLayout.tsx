@@ -1,8 +1,8 @@
 import { SidebarInset, SidebarProvider } from "@repo/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { ToastContainer } from "./ToastContainer";
-import { ToastStoreProvider } from "@/store/toastProvider";
-import { SidebarStoreProvider } from "@/store/sidebarProvider";
+import { ToastStoreProvider } from "@/store/toastStore";
+import { SidebarStoreProvider } from "@/store/sidebarStore";
 import { SearchPipelineDialog } from "./SearchPipelineDialog";
 import { NewPipelineDialog } from "./NewPipelineDialog";
 

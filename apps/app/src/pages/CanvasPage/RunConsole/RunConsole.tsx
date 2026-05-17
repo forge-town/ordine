@@ -9,7 +9,7 @@ import { useStore } from "zustand";
 import { useCanvasPageStore } from "../_store";
 import { StatusIcon } from "./StatusIcon";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { JobData, JobStatus } from "./types";
+import type { Job, JobStatus } from "@repo/schemas";
 
 const POLL_INTERVAL = 1500;
 
@@ -84,7 +84,7 @@ export const RunConsole = () => {
   const markNodeRunning = useStore(store, (s) => s.markNodeRunning);
   const markNodePassed = useStore(store, (s) => s.markNodePassed);
   const markNodeFailed = useStore(store, (s) => s.markNodeFailed);
-  const setNodeLlmContent = useStore(store, (s) => s.setNodeLlmContent);
+  const applyNodeLlmContent = useStore(store, (s) => s.applyNodeLlmContent);
   const stopTestRun = useStore(store, (s) => s.stopTestRun);
   const isConsoleCollapsed = useStore(store, (s) => s.isConsoleCollapsed);
   const handleToggleConsoleCollapse = useStore(store, (s) => s.handleToggleConsoleCollapse);
@@ -111,7 +111,7 @@ export const RunConsole = () => {
         onNodeStart: markNodeRunning,
         onNodeDone: markNodePassed,
         onNodeFail: markNodeFailed,
-        onLlmContent: setNodeLlmContent,
+        onLlmContent: applyNodeLlmContent,
       });
 
       requestAnimationFrame(() => {
@@ -120,17 +120,17 @@ export const RunConsole = () => {
         }
       });
     },
-    [markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent],
+    [markNodeRunning, markNodePassed, markNodeFailed, applyNodeLlmContent],
   );
 
-  const { query: jobQuery } = useOne<JobData>({
+  const { query: jobQuery } = useOne<Job>({
     resource: ResourceName.jobs,
     id: jobId ?? "",
     queryOptions: {
       enabled: !!jobId,
       queryFn: async () => {
         const currentJobId = jobId ?? "";
-        const response = await dataProvider.getOne!<JobData>({
+        const response = await dataProvider.getOne!<Job>({
           resource: ResourceName.jobs,
           id: currentJobId,
         });
@@ -142,7 +142,7 @@ export const RunConsole = () => {
         return response;
       },
       refetchInterval: (query) => {
-        const status = (query.state.data?.data as JobData | undefined)?.status;
+        const status = (query.state.data?.data as Job | undefined)?.status;
         if (status && isTerminalStatus(status)) return false;
 
         return POLL_INTERVAL;
@@ -150,7 +150,7 @@ export const RunConsole = () => {
     },
   });
 
-  const job = (jobQuery.data?.data as JobData | undefined) ?? null;
+  const job = (jobQuery.data?.data as Job | undefined) ?? null;
   const jobRef = useRef(job);
   jobRef.current = job;
 

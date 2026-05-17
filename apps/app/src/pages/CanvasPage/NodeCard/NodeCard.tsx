@@ -2,8 +2,6 @@ import { memo, useLayoutEffect, useRef, useState } from "react";
 import { NodeCardFrame, type NodeCardFrameProps } from "./NodeCardFrame";
 import { NodeCardPorts } from "./NodeCardPorts";
 
-export type { NodeTheme } from "./nodeCardTheme";
-
 export interface NodeCardProps extends NodeCardFrameProps {
   leftActivePortCount?: number;
   leftActivePortMask?: number;

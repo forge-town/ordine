@@ -1,8 +1,18 @@
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/select";
 import { FlaskConical, Sparkles } from "lucide-react";
 import { useDistillationStudioPageStore } from "./_store";
+
+const REFINEMENT_ROUND_OPTIONS = [1, 2, 3, 5, 8, 10];
 
 export const DistillationActionBar = () => {
   const { t } = useTranslation();
@@ -31,17 +41,20 @@ export const DistillationActionBar = () => {
   return (
     <div className="flex items-center justify-end gap-2">
       <div className="flex items-center gap-1.5">
-        <select
-          className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-          value={refinementRounds}
-          onChange={handleRefinementRoundsSelectChange}
-        >
-          {[1, 2, 3, 5, 8, 10].map((n) => (
-            <option key={n} value={n}>
-              {n} {t("distillations.refinementRounds")}
-            </option>
-          ))}
-        </select>
+        <Select value={String(refinementRounds)} onValueChange={handleRefinementRoundsSelectChange}>
+          <SelectTrigger className="h-8 w-32 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {REFINEMENT_ROUND_OPTIONS.map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n} {t("distillations.refinementRounds")}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
         <Button
           disabled={!!refinementId}
           size="sm"
