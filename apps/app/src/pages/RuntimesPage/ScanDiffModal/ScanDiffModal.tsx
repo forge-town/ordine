@@ -67,7 +67,9 @@ export const ScanDiffModal = ({ onConfirm }: ScanDiffModalProps) => {
           <Button variant="outline" onClick={handleCancelButtonClick}>
             {t("common.cancel")}
           </Button>
-          {hasChanges && <Button onClick={handleConfirmButtonClick}>{t("runtimes.confirmSync")}</Button>}
+          {hasChanges && (
+            <Button onClick={handleConfirmButtonClick}>{t("runtimes.confirmSync")}</Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

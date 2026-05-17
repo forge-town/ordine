@@ -9,7 +9,7 @@ export const DashboardPipelineChart = () => {
   const { result: pipelinesResult } = useList<PipelineData>({
     resource: ResourceName.pipelines,
   });
-  const data = buildPipelineRows(jobsResult?.data ?? [], pipelinesResult?.data ?? []);
+  const data = buildPipelineRows(jobsResult.data, pipelinesResult.data);
 
   return (
     <div className="h-65 w-full">

@@ -362,15 +362,8 @@ export const createActionsSlice = (
   },
 
   handleRunTest: async () => {
-    const {
-      isRunning,
-      isTestRunning,
-      pipelineId,
-      pipelineName,
-      nodes,
-      edges,
-      startTestRun,
-    } = get();
+    const { isRunning, isTestRunning, pipelineId, pipelineName, nodes, edges, startTestRun } =
+      get();
     const t = i18n.t.bind(i18n);
 
     if (isRunning || isTestRunning) return;

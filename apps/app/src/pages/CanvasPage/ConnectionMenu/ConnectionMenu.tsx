@@ -88,7 +88,6 @@ export const ConnectionMenu = () => {
     connectOperationNode(operation);
   };
 
-
   if (!connectionMenu || !sourceNode || availableTypes.length === 0) return null;
 
   const sourceMeta = getNodeMeta(sourceNode.type)!;

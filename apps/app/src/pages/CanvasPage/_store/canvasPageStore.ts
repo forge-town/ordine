@@ -12,12 +12,7 @@ import { createActionsSlice, type ActionsSlice } from "./actionsSlice";
 
 export interface CanvasPageState extends CanvasSlice, UISlice, HistorySlice, ActionsSlice {}
 
-export type CanvasPageStoreSlice<T = CanvasPageState> = StateCreator<
-  CanvasPageState,
-  [],
-  [],
-  T
->;
+export type CanvasPageStoreSlice<T = CanvasPageState> = StateCreator<CanvasPageState, [], [], T>;
 
 export type CanvasPageStore = Mutate<StoreApi<CanvasPageState>, []>;
 

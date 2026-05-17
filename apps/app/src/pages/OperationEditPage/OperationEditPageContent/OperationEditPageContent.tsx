@@ -292,8 +292,14 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
   const handleSkillSelectTriggerClick = useStore(store, (s) => s.handleSkillSelectTriggerClick);
 
   const scriptLangOpen = useStore(store, (s) => s.scriptLangOpen);
-  const handleScriptLangSelectOpenChange = useStore(store, (s) => s.handleScriptLangSelectOpenChange);
-  const handleScriptLangSelectTriggerClick = useStore(store, (s) => s.handleScriptLangSelectTriggerClick);
+  const handleScriptLangSelectOpenChange = useStore(
+    store,
+    (s) => s.handleScriptLangSelectOpenChange,
+  );
+  const handleScriptLangSelectTriggerClick = useStore(
+    store,
+    (s) => s.handleScriptLangSelectTriggerClick,
+  );
 
   const getObjectTypeLabel = (type: ObjectType) =>
     OBJECT_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? type;

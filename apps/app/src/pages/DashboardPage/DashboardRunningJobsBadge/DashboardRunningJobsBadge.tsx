@@ -6,7 +6,7 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 export const DashboardRunningJobsBadge = () => {
   const { t } = useTranslation();
   const { result } = useList<Job>({ resource: ResourceName.jobs });
-  const runningJobs = (result?.data ?? []).filter((job) => job.status === "running").length;
+  const runningJobs = result.data.filter((job) => job.status === "running").length;
 
   if (runningJobs === 0) {
     return null;

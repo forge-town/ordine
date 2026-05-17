@@ -16,7 +16,7 @@ export const JobsPageContent = () => {
   const { result: jobsResult, query: jobsQuery } = useList<Job>({
     resource: ResourceName.jobs,
   });
-  const jobs = jobsResult?.data ?? [];
+  const jobs = jobsResult.data;
   const { t } = useTranslation();
   const store = useJobsPageStore();
   const search = useStore(store, (s) => s.search);

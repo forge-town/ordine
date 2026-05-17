@@ -26,7 +26,7 @@ export const SkillsPageContent = () => {
   const { result: skillsResult, query: skillsQuery } = useList<Skill>({
     resource: ResourceName.skills,
   });
-  const skills = skillsResult?.data ?? ([] as Skill[]);
+  const skills = skillsResult.data;
   const { t } = useTranslation();
 
   const categoryLabels: Record<SkillCategory, string> = {

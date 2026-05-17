@@ -109,7 +109,7 @@ export const OperationCreatePageContent = () => {
   const { result: skillsResult, query: skillsQuery } = useList<Skill>({
     resource: ResourceName.skills,
   });
-  const skills = skillsResult?.data ?? [];
+  const skills = skillsResult.data;
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -137,8 +137,14 @@ export const OperationCreatePageContent = () => {
   const handleSkillSelectTriggerClick = useStore(store, (s) => s.handleSkillSelectTriggerClick);
 
   const scriptLangOpen = useStore(store, (s) => s.scriptLangOpen);
-  const handleScriptLangSelectOpenChange = useStore(store, (s) => s.handleScriptLangSelectOpenChange);
-  const handleScriptLangSelectTriggerClick = useStore(store, (s) => s.handleScriptLangSelectTriggerClick);
+  const handleScriptLangSelectOpenChange = useStore(
+    store,
+    (s) => s.handleScriptLangSelectOpenChange,
+  );
+  const handleScriptLangSelectTriggerClick = useStore(
+    store,
+    (s) => s.handleScriptLangSelectTriggerClick,
+  );
 
   const { mutateAsync: createOpMutate } = useCreate();
 
@@ -418,7 +424,10 @@ export const OperationCreatePageContent = () => {
                                   onOpenChange={handleSkillSelectOpenChange}
                                   onValueChange={handleChange}
                                 >
-                                  <SelectTrigger className="h-9 w-full" onClick={handleSkillSelectTriggerClick}>
+                                  <SelectTrigger
+                                    className="h-9 w-full"
+                                    onClick={handleSkillSelectTriggerClick}
+                                  >
                                     <SelectValue placeholder={t("operations.selectSkill")} />
                                   </SelectTrigger>
                                   <SelectContent>

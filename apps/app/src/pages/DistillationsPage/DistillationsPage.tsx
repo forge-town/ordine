@@ -26,7 +26,7 @@ export const DistillationsPage = () => {
     resource: ResourceName.distillations,
   });
   const { mutate: deleteDistillation } = useDelete();
-  const distillations = result?.data ?? [];
+  const distillations = result.data;
 
   const handleDelete = (id: string) => () => {
     deleteDistillation({ resource: ResourceName.distillations, id });

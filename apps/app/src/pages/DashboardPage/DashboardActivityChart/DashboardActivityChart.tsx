@@ -14,7 +14,7 @@ import { buildActivity } from "../dashboardMetrics";
 
 export const DashboardActivityChart = () => {
   const { result } = useList<Job>({ resource: ResourceName.jobs });
-  const data = buildActivity(result?.data ?? []);
+  const data = buildActivity(result.data);
 
   return (
     <div className="h-80 w-full">

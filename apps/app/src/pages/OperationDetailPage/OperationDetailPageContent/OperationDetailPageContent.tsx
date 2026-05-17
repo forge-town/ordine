@@ -35,16 +35,20 @@ export const OperationDetailPageContent = () => {
   const { t } = useTranslation();
 
   const store = useOperationDetailPageStore();
-  const { selectedItemIndex, handleBackLinkClick, handleEditButtonClick, handleOpenRunPanelButtonClick } =
-    useStore(
-      store,
-      useShallow((s) => ({
-        selectedItemIndex: s.selectedItemIndex,
-        handleBackLinkClick: s.handleBackLinkClick,
-        handleEditButtonClick: s.handleEditButtonClick,
-        handleOpenRunPanelButtonClick: s.handleOpenRunPanelButtonClick,
-      })),
-    );
+  const {
+    selectedItemIndex,
+    handleBackLinkClick,
+    handleEditButtonClick,
+    handleOpenRunPanelButtonClick,
+  } = useStore(
+    store,
+    useShallow((s) => ({
+      selectedItemIndex: s.selectedItemIndex,
+      handleBackLinkClick: s.handleBackLinkClick,
+      handleEditButtonClick: s.handleEditButtonClick,
+      handleOpenRunPanelButtonClick: s.handleOpenRunPanelButtonClick,
+    })),
+  );
 
   const config = operation ? parseConfig(operation.config) : null;
   const selectedItem: OutputItem | undefined = config?.outputs[selectedItemIndex];

@@ -139,7 +139,12 @@ export const AgentDetailPageContent = () => {
 
             <div className="flex items-center justify-between">
               <span className="font-mono text-[10px] text-muted-foreground">{agent.id}</span>
-              <Button className="h-6 w-6" size="icon" variant="ghost" onClick={() => handleCopyIdButtonClick(agent.id)}>
+              <Button
+                className="h-6 w-6"
+                size="icon"
+                variant="ghost"
+                onClick={() => handleCopyIdButtonClick(agent.id)}
+              >
                 {copied ? (
                   <Check className="h-3 w-3 text-green-500" />
                 ) : (

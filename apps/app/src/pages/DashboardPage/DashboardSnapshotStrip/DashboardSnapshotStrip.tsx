@@ -15,10 +15,10 @@ export const DashboardSnapshotStrip = () => {
     resource: ResourceName.distillations,
   });
   const metrics = buildSnapshot(
-    jobsResult?.data ?? [],
-    pipelinesResult?.data ?? [],
+    jobsResult.data,
+    pipelinesResult.data,
     projectsResult?.data?.length ?? 0,
-    distillationsResult?.data ?? [],
+    distillationsResult.data,
   );
 
   return (

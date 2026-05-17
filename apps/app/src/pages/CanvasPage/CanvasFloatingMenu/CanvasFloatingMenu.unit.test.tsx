@@ -1,11 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasFloatingMenu } from "./CanvasFloatingMenu";
-import {
-  createCanvasPageStore,
-  CanvasPageStoreContext,
-  CanvasPageStoreProvider,
-} from "../_store";
+import { createCanvasPageStore, CanvasPageStoreContext, CanvasPageStoreProvider } from "../_store";
 import { toastStore } from "@/store/toastStore";
 import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";
 import { MAX_CANVAS_IMPORT_BYTES, MAX_CANVAS_IMPORT_NODES } from "../utils/canvasImportJson";
@@ -51,9 +47,7 @@ const clickSave = () => {
 };
 
 const wrapperWithPipeline = ({ children }: React.PropsWithChildren) => (
-  <CanvasPageStoreProvider
-    pipeline={{ id: "pipe-001", name: "My Pipeline", nodes: [], edges: [] }}
-  >
+  <CanvasPageStoreProvider pipeline={{ id: "pipe-001", name: "My Pipeline", nodes: [], edges: [] }}>
     {children}
   </CanvasPageStoreProvider>
 );

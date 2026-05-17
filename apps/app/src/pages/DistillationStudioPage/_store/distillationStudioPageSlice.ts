@@ -60,9 +60,7 @@ const emptyFormValues = (
   systemPrompt: "",
 });
 
-const distillationToFormValues = (
-  distillation: Distillation,
-): DistillationFormValues => ({
+const distillationToFormValues = (distillation: Distillation): DistillationFormValues => ({
   title: distillation.title,
   summary: distillation.summary,
   sourceType: distillation.sourceType,
@@ -212,20 +210,22 @@ export const createDistillationStudioPageSlice: StateCreator<DistillationStudioP
     handleSaveDraftButtonClick: async (existingDistillationId) => {
       set({ submissionMode: "draft" });
       await new Promise<void>((resolve) => {
-        void distillationFormControl
-          .handleSubmit(async (values) => {
+        void distillationFormControl.handleSubmit(
+          async (values) => {
             const draft = await persistDistillation(values, "draft", existingDistillationId);
             set({ latestDistillation: draft });
             resolve();
-          }, () => resolve())();
+          },
+          () => resolve(),
+        )();
       });
     },
 
     handleRunButtonClick: async (existingDistillationId) => {
       set({ submissionMode: "run" });
       await new Promise<void>((resolve) => {
-        void distillationFormControl
-          .handleSubmit(async (values) => {
+        void distillationFormControl.handleSubmit(
+          async (values) => {
             const draft = await persistDistillation(values, "run", existingDistillationId);
             const executed = await dataProvider.custom!<Distillation>({
               url: "distillations/run",
@@ -236,7 +236,9 @@ export const createDistillationStudioPageSlice: StateCreator<DistillationStudioP
               set({ latestDistillation: executed.data });
             }
             resolve();
-          }, () => resolve())();
+          },
+          () => resolve(),
+        )();
       });
     },
 

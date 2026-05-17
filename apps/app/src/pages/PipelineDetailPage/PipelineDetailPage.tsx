@@ -18,7 +18,7 @@ export const PipelineDetailPage = () => {
     resource: ResourceName.operations,
   });
   const pipeline = pipelineResult ?? null;
-  const operations = operationsResult?.data ?? [];
+  const operations = operationsResult.data;
 
   if (pipelineQuery?.isLoading || operationsQuery?.isLoading) {
     return (

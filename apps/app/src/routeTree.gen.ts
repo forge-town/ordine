@@ -8,775 +8,761 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignUpRouteImport } from './routes/sign-up'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as CanvasRouteImport } from './routes/canvas'
-import { Route as LayoutRouteImport } from './routes/_layout'
-import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
-import { Route as LayoutSkillsRouteImport } from './routes/_layout/skills'
-import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
-import { Route as LayoutRuntimesRouteImport } from './routes/_layout/runtimes'
-import { Route as LayoutPluginsRouteImport } from './routes/_layout/plugins'
-import { Route as LayoutPipelinesRouteImport } from './routes/_layout/pipelines'
-import { Route as LayoutDistillationsRouteImport } from './routes/_layout/distillations'
-import { Route as LayoutDistillationStudioRouteImport } from './routes/_layout/distillation-studio'
-import { Route as LayoutAssistantRouteImport } from './routes/_layout/assistant'
-import { Route as LayoutRuntimesIndexRouteImport } from './routes/_layout/runtimes.index'
-import { Route as LayoutPipelinesIndexRouteImport } from './routes/_layout/pipelines.index'
-import { Route as LayoutDistillationsIndexRouteImport } from './routes/_layout/distillations.index'
-import { Route as LayoutAgentsIndexRouteImport } from './routes/_layout/agents.index'
-import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
-import { Route as LayoutPipelinesJobsRouteImport } from './routes/_layout/pipelines.jobs'
-import { Route as LayoutPipelinesPipelineIdRouteImport } from './routes/_layout/pipelines.$pipelineId'
-import { Route as LayoutDistillationsNewRouteImport } from './routes/_layout/distillations.new'
-import { Route as LayoutDistillationsDistillationIdRouteImport } from './routes/_layout/distillations.$distillationId'
-import { Route as LayoutRuntimesRuntimeIdIndexRouteImport } from './routes/_layout/runtimes.$runtimeId.index'
-import { Route as LayoutPipelinesOperationsIndexRouteImport } from './routes/_layout/pipelines.operations.index'
-import { Route as LayoutPipelinesObjectsIndexRouteImport } from './routes/_layout/pipelines.objects.index'
-import { Route as LayoutPipelinesJobsIndexRouteImport } from './routes/_layout/pipelines.jobs.index'
-import { Route as LayoutAgentsAgentIdIndexRouteImport } from './routes/_layout/agents.$agentId.index'
-import { Route as LayoutRuntimesRuntimeIdEditRouteImport } from './routes/_layout/runtimes.$runtimeId.edit'
-import { Route as LayoutPipelinesOperationsNewRouteImport } from './routes/_layout/pipelines.operations.new'
-import { Route as LayoutPipelinesObjectsObjectTypeIdRouteImport } from './routes/_layout/pipelines.objects.$objectTypeId'
-import { Route as LayoutPipelinesJobsJobIdRouteImport } from './routes/_layout/pipelines.jobs.$jobId'
-import { Route as LayoutPipelinesOperationsOperationIdIndexRouteImport } from './routes/_layout/pipelines.operations.$operationId.index'
-import { Route as LayoutPipelinesOperationsOperationIdEditRouteImport } from './routes/_layout/pipelines.operations.$operationId.edit'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as SignUpRouteImport } from "./routes/sign-up";
+import { Route as LoginRouteImport } from "./routes/login";
+import { Route as CanvasRouteImport } from "./routes/canvas";
+import { Route as LayoutRouteImport } from "./routes/_layout";
+import { Route as LayoutIndexRouteImport } from "./routes/_layout/index";
+import { Route as LayoutSkillsRouteImport } from "./routes/_layout/skills";
+import { Route as LayoutSettingsRouteImport } from "./routes/_layout/settings";
+import { Route as LayoutRuntimesRouteImport } from "./routes/_layout/runtimes";
+import { Route as LayoutPluginsRouteImport } from "./routes/_layout/plugins";
+import { Route as LayoutPipelinesRouteImport } from "./routes/_layout/pipelines";
+import { Route as LayoutDistillationsRouteImport } from "./routes/_layout/distillations";
+import { Route as LayoutDistillationStudioRouteImport } from "./routes/_layout/distillation-studio";
+import { Route as LayoutAssistantRouteImport } from "./routes/_layout/assistant";
+import { Route as LayoutRuntimesIndexRouteImport } from "./routes/_layout/runtimes.index";
+import { Route as LayoutPipelinesIndexRouteImport } from "./routes/_layout/pipelines.index";
+import { Route as LayoutDistillationsIndexRouteImport } from "./routes/_layout/distillations.index";
+import { Route as LayoutAgentsIndexRouteImport } from "./routes/_layout/agents.index";
+import { Route as ApiTrpcSplatRouteImport } from "./routes/api/trpc.$";
+import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth.$";
+import { Route as LayoutPipelinesJobsRouteImport } from "./routes/_layout/pipelines.jobs";
+import { Route as LayoutPipelinesPipelineIdRouteImport } from "./routes/_layout/pipelines.$pipelineId";
+import { Route as LayoutDistillationsNewRouteImport } from "./routes/_layout/distillations.new";
+import { Route as LayoutDistillationsDistillationIdRouteImport } from "./routes/_layout/distillations.$distillationId";
+import { Route as LayoutRuntimesRuntimeIdIndexRouteImport } from "./routes/_layout/runtimes.$runtimeId.index";
+import { Route as LayoutPipelinesOperationsIndexRouteImport } from "./routes/_layout/pipelines.operations.index";
+import { Route as LayoutPipelinesObjectsIndexRouteImport } from "./routes/_layout/pipelines.objects.index";
+import { Route as LayoutPipelinesJobsIndexRouteImport } from "./routes/_layout/pipelines.jobs.index";
+import { Route as LayoutAgentsAgentIdIndexRouteImport } from "./routes/_layout/agents.$agentId.index";
+import { Route as LayoutRuntimesRuntimeIdEditRouteImport } from "./routes/_layout/runtimes.$runtimeId.edit";
+import { Route as LayoutPipelinesOperationsNewRouteImport } from "./routes/_layout/pipelines.operations.new";
+import { Route as LayoutPipelinesObjectsObjectTypeIdRouteImport } from "./routes/_layout/pipelines.objects.$objectTypeId";
+import { Route as LayoutPipelinesJobsJobIdRouteImport } from "./routes/_layout/pipelines.jobs.$jobId";
+import { Route as LayoutPipelinesOperationsOperationIdIndexRouteImport } from "./routes/_layout/pipelines.operations.$operationId.index";
+import { Route as LayoutPipelinesOperationsOperationIdEditRouteImport } from "./routes/_layout/pipelines.operations.$operationId.edit";
 
 const SignUpRoute = SignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
+  id: "/sign-up",
+  path: "/sign-up",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+  id: "/login",
+  path: "/login",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const CanvasRoute = CanvasRouteImport.update({
-  id: '/canvas',
-  path: '/canvas',
+  id: "/canvas",
+  path: "/canvas",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const LayoutRoute = LayoutRouteImport.update({
-  id: '/_layout',
+  id: "/_layout",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const LayoutIndexRoute = LayoutIndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => LayoutRoute,
-} as any)
+} as any);
 const LayoutSkillsRoute = LayoutSkillsRouteImport.update({
-  id: '/skills',
-  path: '/skills',
+  id: "/skills",
+  path: "/skills",
   getParentRoute: () => LayoutRoute,
-} as any)
+} as any);
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+  id: "/settings",
+  path: "/settings",
   getParentRoute: () => LayoutRoute,
-} as any)
+} as any);
 const LayoutRuntimesRoute = LayoutRuntimesRouteImport.update({
-  id: '/runtimes',
-  path: '/runtimes',
+  id: "/runtimes",
+  path: "/runtimes",
   getParentRoute: () => LayoutRoute,
-} as any)
+} as any);
 const LayoutPluginsRoute = LayoutPluginsRouteImport.update({
-  id: '/plugins',
-  path: '/plugins',
+  id: "/plugins",
+  path: "/plugins",
   getParentRoute: () => LayoutRoute,
-} as any)
+} as any);
 const LayoutPipelinesRoute = LayoutPipelinesRouteImport.update({
-  id: '/pipelines',
-  path: '/pipelines',
+  id: "/pipelines",
+  path: "/pipelines",
   getParentRoute: () => LayoutRoute,
-} as any)
+} as any);
 const LayoutDistillationsRoute = LayoutDistillationsRouteImport.update({
-  id: '/distillations',
-  path: '/distillations',
+  id: "/distillations",
+  path: "/distillations",
   getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutDistillationStudioRoute =
-  LayoutDistillationStudioRouteImport.update({
-    id: '/distillation-studio',
-    path: '/distillation-studio',
-    getParentRoute: () => LayoutRoute,
-  } as any)
+} as any);
+const LayoutDistillationStudioRoute = LayoutDistillationStudioRouteImport.update({
+  id: "/distillation-studio",
+  path: "/distillation-studio",
+  getParentRoute: () => LayoutRoute,
+} as any);
 const LayoutAssistantRoute = LayoutAssistantRouteImport.update({
-  id: '/assistant',
-  path: '/assistant',
+  id: "/assistant",
+  path: "/assistant",
   getParentRoute: () => LayoutRoute,
-} as any)
+} as any);
 const LayoutRuntimesIndexRoute = LayoutRuntimesIndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => LayoutRuntimesRoute,
-} as any)
+} as any);
 const LayoutPipelinesIndexRoute = LayoutPipelinesIndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => LayoutPipelinesRoute,
-} as any)
-const LayoutDistillationsIndexRoute =
-  LayoutDistillationsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => LayoutDistillationsRoute,
-  } as any)
-const LayoutAgentsIndexRoute = LayoutAgentsIndexRouteImport.update({
-  id: '/agents/',
-  path: '/agents/',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
-  id: '/api/trpc/$',
-  path: '/api/trpc/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LayoutPipelinesJobsRoute = LayoutPipelinesJobsRouteImport.update({
-  id: '/jobs',
-  path: '/jobs',
-  getParentRoute: () => LayoutPipelinesRoute,
-} as any)
-const LayoutPipelinesPipelineIdRoute =
-  LayoutPipelinesPipelineIdRouteImport.update({
-    id: '/$pipelineId',
-    path: '/$pipelineId',
-    getParentRoute: () => LayoutPipelinesRoute,
-  } as any)
-const LayoutDistillationsNewRoute = LayoutDistillationsNewRouteImport.update({
-  id: '/new',
-  path: '/new',
+} as any);
+const LayoutDistillationsIndexRoute = LayoutDistillationsIndexRouteImport.update({
+  id: "/",
+  path: "/",
   getParentRoute: () => LayoutDistillationsRoute,
-} as any)
-const LayoutDistillationsDistillationIdRoute =
-  LayoutDistillationsDistillationIdRouteImport.update({
-    id: '/$distillationId',
-    path: '/$distillationId',
-    getParentRoute: () => LayoutDistillationsRoute,
-  } as any)
-const LayoutRuntimesRuntimeIdIndexRoute =
-  LayoutRuntimesRuntimeIdIndexRouteImport.update({
-    id: '/$runtimeId/',
-    path: '/$runtimeId/',
-    getParentRoute: () => LayoutRuntimesRoute,
-  } as any)
-const LayoutPipelinesOperationsIndexRoute =
-  LayoutPipelinesOperationsIndexRouteImport.update({
-    id: '/operations/',
-    path: '/operations/',
-    getParentRoute: () => LayoutPipelinesRoute,
-  } as any)
-const LayoutPipelinesObjectsIndexRoute =
-  LayoutPipelinesObjectsIndexRouteImport.update({
-    id: '/objects/',
-    path: '/objects/',
-    getParentRoute: () => LayoutPipelinesRoute,
-  } as any)
-const LayoutPipelinesJobsIndexRoute =
-  LayoutPipelinesJobsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => LayoutPipelinesJobsRoute,
-  } as any)
-const LayoutAgentsAgentIdIndexRoute =
-  LayoutAgentsAgentIdIndexRouteImport.update({
-    id: '/agents/$agentId/',
-    path: '/agents/$agentId/',
-    getParentRoute: () => LayoutRoute,
-  } as any)
-const LayoutRuntimesRuntimeIdEditRoute =
-  LayoutRuntimesRuntimeIdEditRouteImport.update({
-    id: '/$runtimeId/edit',
-    path: '/$runtimeId/edit',
-    getParentRoute: () => LayoutRuntimesRoute,
-  } as any)
-const LayoutPipelinesOperationsNewRoute =
-  LayoutPipelinesOperationsNewRouteImport.update({
-    id: '/operations/new',
-    path: '/operations/new',
-    getParentRoute: () => LayoutPipelinesRoute,
-  } as any)
+} as any);
+const LayoutAgentsIndexRoute = LayoutAgentsIndexRouteImport.update({
+  id: "/agents/",
+  path: "/agents/",
+  getParentRoute: () => LayoutRoute,
+} as any);
+const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
+  id: "/api/trpc/$",
+  path: "/api/trpc/$",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: "/api/auth/$",
+  path: "/api/auth/$",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const LayoutPipelinesJobsRoute = LayoutPipelinesJobsRouteImport.update({
+  id: "/jobs",
+  path: "/jobs",
+  getParentRoute: () => LayoutPipelinesRoute,
+} as any);
+const LayoutPipelinesPipelineIdRoute = LayoutPipelinesPipelineIdRouteImport.update({
+  id: "/$pipelineId",
+  path: "/$pipelineId",
+  getParentRoute: () => LayoutPipelinesRoute,
+} as any);
+const LayoutDistillationsNewRoute = LayoutDistillationsNewRouteImport.update({
+  id: "/new",
+  path: "/new",
+  getParentRoute: () => LayoutDistillationsRoute,
+} as any);
+const LayoutDistillationsDistillationIdRoute = LayoutDistillationsDistillationIdRouteImport.update({
+  id: "/$distillationId",
+  path: "/$distillationId",
+  getParentRoute: () => LayoutDistillationsRoute,
+} as any);
+const LayoutRuntimesRuntimeIdIndexRoute = LayoutRuntimesRuntimeIdIndexRouteImport.update({
+  id: "/$runtimeId/",
+  path: "/$runtimeId/",
+  getParentRoute: () => LayoutRuntimesRoute,
+} as any);
+const LayoutPipelinesOperationsIndexRoute = LayoutPipelinesOperationsIndexRouteImport.update({
+  id: "/operations/",
+  path: "/operations/",
+  getParentRoute: () => LayoutPipelinesRoute,
+} as any);
+const LayoutPipelinesObjectsIndexRoute = LayoutPipelinesObjectsIndexRouteImport.update({
+  id: "/objects/",
+  path: "/objects/",
+  getParentRoute: () => LayoutPipelinesRoute,
+} as any);
+const LayoutPipelinesJobsIndexRoute = LayoutPipelinesJobsIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => LayoutPipelinesJobsRoute,
+} as any);
+const LayoutAgentsAgentIdIndexRoute = LayoutAgentsAgentIdIndexRouteImport.update({
+  id: "/agents/$agentId/",
+  path: "/agents/$agentId/",
+  getParentRoute: () => LayoutRoute,
+} as any);
+const LayoutRuntimesRuntimeIdEditRoute = LayoutRuntimesRuntimeIdEditRouteImport.update({
+  id: "/$runtimeId/edit",
+  path: "/$runtimeId/edit",
+  getParentRoute: () => LayoutRuntimesRoute,
+} as any);
+const LayoutPipelinesOperationsNewRoute = LayoutPipelinesOperationsNewRouteImport.update({
+  id: "/operations/new",
+  path: "/operations/new",
+  getParentRoute: () => LayoutPipelinesRoute,
+} as any);
 const LayoutPipelinesObjectsObjectTypeIdRoute =
   LayoutPipelinesObjectsObjectTypeIdRouteImport.update({
-    id: '/objects/$objectTypeId',
-    path: '/objects/$objectTypeId',
+    id: "/objects/$objectTypeId",
+    path: "/objects/$objectTypeId",
     getParentRoute: () => LayoutPipelinesRoute,
-  } as any)
-const LayoutPipelinesJobsJobIdRoute =
-  LayoutPipelinesJobsJobIdRouteImport.update({
-    id: '/$jobId',
-    path: '/$jobId',
-    getParentRoute: () => LayoutPipelinesJobsRoute,
-  } as any)
+  } as any);
+const LayoutPipelinesJobsJobIdRoute = LayoutPipelinesJobsJobIdRouteImport.update({
+  id: "/$jobId",
+  path: "/$jobId",
+  getParentRoute: () => LayoutPipelinesJobsRoute,
+} as any);
 const LayoutPipelinesOperationsOperationIdIndexRoute =
   LayoutPipelinesOperationsOperationIdIndexRouteImport.update({
-    id: '/operations/$operationId/',
-    path: '/operations/$operationId/',
+    id: "/operations/$operationId/",
+    path: "/operations/$operationId/",
     getParentRoute: () => LayoutPipelinesRoute,
-  } as any)
+  } as any);
 const LayoutPipelinesOperationsOperationIdEditRoute =
   LayoutPipelinesOperationsOperationIdEditRouteImport.update({
-    id: '/operations/$operationId/edit',
-    path: '/operations/$operationId/edit',
+    id: "/operations/$operationId/edit",
+    path: "/operations/$operationId/edit",
     getParentRoute: () => LayoutPipelinesRoute,
-  } as any)
+  } as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof LayoutIndexRoute
-  '/canvas': typeof CanvasRoute
-  '/login': typeof LoginRoute
-  '/sign-up': typeof SignUpRoute
-  '/assistant': typeof LayoutAssistantRoute
-  '/distillation-studio': typeof LayoutDistillationStudioRoute
-  '/distillations': typeof LayoutDistillationsRouteWithChildren
-  '/pipelines': typeof LayoutPipelinesRouteWithChildren
-  '/plugins': typeof LayoutPluginsRoute
-  '/runtimes': typeof LayoutRuntimesRouteWithChildren
-  '/settings': typeof LayoutSettingsRoute
-  '/skills': typeof LayoutSkillsRoute
-  '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
-  '/distillations/new': typeof LayoutDistillationsNewRoute
-  '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
-  '/pipelines/jobs': typeof LayoutPipelinesJobsRouteWithChildren
-  '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/trpc/$': typeof ApiTrpcSplatRoute
-  '/agents/': typeof LayoutAgentsIndexRoute
-  '/distillations/': typeof LayoutDistillationsIndexRoute
-  '/pipelines/': typeof LayoutPipelinesIndexRoute
-  '/runtimes/': typeof LayoutRuntimesIndexRoute
-  '/pipelines/jobs/$jobId': typeof LayoutPipelinesJobsJobIdRoute
-  '/pipelines/objects/$objectTypeId': typeof LayoutPipelinesObjectsObjectTypeIdRoute
-  '/pipelines/operations/new': typeof LayoutPipelinesOperationsNewRoute
-  '/runtimes/$runtimeId/edit': typeof LayoutRuntimesRuntimeIdEditRoute
-  '/agents/$agentId/': typeof LayoutAgentsAgentIdIndexRoute
-  '/pipelines/jobs/': typeof LayoutPipelinesJobsIndexRoute
-  '/pipelines/objects/': typeof LayoutPipelinesObjectsIndexRoute
-  '/pipelines/operations/': typeof LayoutPipelinesOperationsIndexRoute
-  '/runtimes/$runtimeId/': typeof LayoutRuntimesRuntimeIdIndexRoute
-  '/pipelines/operations/$operationId/edit': typeof LayoutPipelinesOperationsOperationIdEditRoute
-  '/pipelines/operations/$operationId/': typeof LayoutPipelinesOperationsOperationIdIndexRoute
+  "/": typeof LayoutIndexRoute;
+  "/canvas": typeof CanvasRoute;
+  "/login": typeof LoginRoute;
+  "/sign-up": typeof SignUpRoute;
+  "/assistant": typeof LayoutAssistantRoute;
+  "/distillation-studio": typeof LayoutDistillationStudioRoute;
+  "/distillations": typeof LayoutDistillationsRouteWithChildren;
+  "/pipelines": typeof LayoutPipelinesRouteWithChildren;
+  "/plugins": typeof LayoutPluginsRoute;
+  "/runtimes": typeof LayoutRuntimesRouteWithChildren;
+  "/settings": typeof LayoutSettingsRoute;
+  "/skills": typeof LayoutSkillsRoute;
+  "/distillations/$distillationId": typeof LayoutDistillationsDistillationIdRoute;
+  "/distillations/new": typeof LayoutDistillationsNewRoute;
+  "/pipelines/$pipelineId": typeof LayoutPipelinesPipelineIdRoute;
+  "/pipelines/jobs": typeof LayoutPipelinesJobsRouteWithChildren;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/api/trpc/$": typeof ApiTrpcSplatRoute;
+  "/agents/": typeof LayoutAgentsIndexRoute;
+  "/distillations/": typeof LayoutDistillationsIndexRoute;
+  "/pipelines/": typeof LayoutPipelinesIndexRoute;
+  "/runtimes/": typeof LayoutRuntimesIndexRoute;
+  "/pipelines/jobs/$jobId": typeof LayoutPipelinesJobsJobIdRoute;
+  "/pipelines/objects/$objectTypeId": typeof LayoutPipelinesObjectsObjectTypeIdRoute;
+  "/pipelines/operations/new": typeof LayoutPipelinesOperationsNewRoute;
+  "/runtimes/$runtimeId/edit": typeof LayoutRuntimesRuntimeIdEditRoute;
+  "/agents/$agentId/": typeof LayoutAgentsAgentIdIndexRoute;
+  "/pipelines/jobs/": typeof LayoutPipelinesJobsIndexRoute;
+  "/pipelines/objects/": typeof LayoutPipelinesObjectsIndexRoute;
+  "/pipelines/operations/": typeof LayoutPipelinesOperationsIndexRoute;
+  "/runtimes/$runtimeId/": typeof LayoutRuntimesRuntimeIdIndexRoute;
+  "/pipelines/operations/$operationId/edit": typeof LayoutPipelinesOperationsOperationIdEditRoute;
+  "/pipelines/operations/$operationId/": typeof LayoutPipelinesOperationsOperationIdIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/canvas': typeof CanvasRoute
-  '/login': typeof LoginRoute
-  '/sign-up': typeof SignUpRoute
-  '/assistant': typeof LayoutAssistantRoute
-  '/distillation-studio': typeof LayoutDistillationStudioRoute
-  '/plugins': typeof LayoutPluginsRoute
-  '/settings': typeof LayoutSettingsRoute
-  '/skills': typeof LayoutSkillsRoute
-  '/': typeof LayoutIndexRoute
-  '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
-  '/distillations/new': typeof LayoutDistillationsNewRoute
-  '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/trpc/$': typeof ApiTrpcSplatRoute
-  '/agents': typeof LayoutAgentsIndexRoute
-  '/distillations': typeof LayoutDistillationsIndexRoute
-  '/pipelines': typeof LayoutPipelinesIndexRoute
-  '/runtimes': typeof LayoutRuntimesIndexRoute
-  '/pipelines/jobs/$jobId': typeof LayoutPipelinesJobsJobIdRoute
-  '/pipelines/objects/$objectTypeId': typeof LayoutPipelinesObjectsObjectTypeIdRoute
-  '/pipelines/operations/new': typeof LayoutPipelinesOperationsNewRoute
-  '/runtimes/$runtimeId/edit': typeof LayoutRuntimesRuntimeIdEditRoute
-  '/agents/$agentId': typeof LayoutAgentsAgentIdIndexRoute
-  '/pipelines/jobs': typeof LayoutPipelinesJobsIndexRoute
-  '/pipelines/objects': typeof LayoutPipelinesObjectsIndexRoute
-  '/pipelines/operations': typeof LayoutPipelinesOperationsIndexRoute
-  '/runtimes/$runtimeId': typeof LayoutRuntimesRuntimeIdIndexRoute
-  '/pipelines/operations/$operationId/edit': typeof LayoutPipelinesOperationsOperationIdEditRoute
-  '/pipelines/operations/$operationId': typeof LayoutPipelinesOperationsOperationIdIndexRoute
+  "/canvas": typeof CanvasRoute;
+  "/login": typeof LoginRoute;
+  "/sign-up": typeof SignUpRoute;
+  "/assistant": typeof LayoutAssistantRoute;
+  "/distillation-studio": typeof LayoutDistillationStudioRoute;
+  "/plugins": typeof LayoutPluginsRoute;
+  "/settings": typeof LayoutSettingsRoute;
+  "/skills": typeof LayoutSkillsRoute;
+  "/": typeof LayoutIndexRoute;
+  "/distillations/$distillationId": typeof LayoutDistillationsDistillationIdRoute;
+  "/distillations/new": typeof LayoutDistillationsNewRoute;
+  "/pipelines/$pipelineId": typeof LayoutPipelinesPipelineIdRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/api/trpc/$": typeof ApiTrpcSplatRoute;
+  "/agents": typeof LayoutAgentsIndexRoute;
+  "/distillations": typeof LayoutDistillationsIndexRoute;
+  "/pipelines": typeof LayoutPipelinesIndexRoute;
+  "/runtimes": typeof LayoutRuntimesIndexRoute;
+  "/pipelines/jobs/$jobId": typeof LayoutPipelinesJobsJobIdRoute;
+  "/pipelines/objects/$objectTypeId": typeof LayoutPipelinesObjectsObjectTypeIdRoute;
+  "/pipelines/operations/new": typeof LayoutPipelinesOperationsNewRoute;
+  "/runtimes/$runtimeId/edit": typeof LayoutRuntimesRuntimeIdEditRoute;
+  "/agents/$agentId": typeof LayoutAgentsAgentIdIndexRoute;
+  "/pipelines/jobs": typeof LayoutPipelinesJobsIndexRoute;
+  "/pipelines/objects": typeof LayoutPipelinesObjectsIndexRoute;
+  "/pipelines/operations": typeof LayoutPipelinesOperationsIndexRoute;
+  "/runtimes/$runtimeId": typeof LayoutRuntimesRuntimeIdIndexRoute;
+  "/pipelines/operations/$operationId/edit": typeof LayoutPipelinesOperationsOperationIdEditRoute;
+  "/pipelines/operations/$operationId": typeof LayoutPipelinesOperationsOperationIdIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/_layout': typeof LayoutRouteWithChildren
-  '/canvas': typeof CanvasRoute
-  '/login': typeof LoginRoute
-  '/sign-up': typeof SignUpRoute
-  '/_layout/assistant': typeof LayoutAssistantRoute
-  '/_layout/distillation-studio': typeof LayoutDistillationStudioRoute
-  '/_layout/distillations': typeof LayoutDistillationsRouteWithChildren
-  '/_layout/pipelines': typeof LayoutPipelinesRouteWithChildren
-  '/_layout/plugins': typeof LayoutPluginsRoute
-  '/_layout/runtimes': typeof LayoutRuntimesRouteWithChildren
-  '/_layout/settings': typeof LayoutSettingsRoute
-  '/_layout/skills': typeof LayoutSkillsRoute
-  '/_layout/': typeof LayoutIndexRoute
-  '/_layout/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
-  '/_layout/distillations/new': typeof LayoutDistillationsNewRoute
-  '/_layout/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
-  '/_layout/pipelines/jobs': typeof LayoutPipelinesJobsRouteWithChildren
-  '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/trpc/$': typeof ApiTrpcSplatRoute
-  '/_layout/agents/': typeof LayoutAgentsIndexRoute
-  '/_layout/distillations/': typeof LayoutDistillationsIndexRoute
-  '/_layout/pipelines/': typeof LayoutPipelinesIndexRoute
-  '/_layout/runtimes/': typeof LayoutRuntimesIndexRoute
-  '/_layout/pipelines/jobs/$jobId': typeof LayoutPipelinesJobsJobIdRoute
-  '/_layout/pipelines/objects/$objectTypeId': typeof LayoutPipelinesObjectsObjectTypeIdRoute
-  '/_layout/pipelines/operations/new': typeof LayoutPipelinesOperationsNewRoute
-  '/_layout/runtimes/$runtimeId/edit': typeof LayoutRuntimesRuntimeIdEditRoute
-  '/_layout/agents/$agentId/': typeof LayoutAgentsAgentIdIndexRoute
-  '/_layout/pipelines/jobs/': typeof LayoutPipelinesJobsIndexRoute
-  '/_layout/pipelines/objects/': typeof LayoutPipelinesObjectsIndexRoute
-  '/_layout/pipelines/operations/': typeof LayoutPipelinesOperationsIndexRoute
-  '/_layout/runtimes/$runtimeId/': typeof LayoutRuntimesRuntimeIdIndexRoute
-  '/_layout/pipelines/operations/$operationId/edit': typeof LayoutPipelinesOperationsOperationIdEditRoute
-  '/_layout/pipelines/operations/$operationId/': typeof LayoutPipelinesOperationsOperationIdIndexRoute
+  __root__: typeof rootRouteImport;
+  "/_layout": typeof LayoutRouteWithChildren;
+  "/canvas": typeof CanvasRoute;
+  "/login": typeof LoginRoute;
+  "/sign-up": typeof SignUpRoute;
+  "/_layout/assistant": typeof LayoutAssistantRoute;
+  "/_layout/distillation-studio": typeof LayoutDistillationStudioRoute;
+  "/_layout/distillations": typeof LayoutDistillationsRouteWithChildren;
+  "/_layout/pipelines": typeof LayoutPipelinesRouteWithChildren;
+  "/_layout/plugins": typeof LayoutPluginsRoute;
+  "/_layout/runtimes": typeof LayoutRuntimesRouteWithChildren;
+  "/_layout/settings": typeof LayoutSettingsRoute;
+  "/_layout/skills": typeof LayoutSkillsRoute;
+  "/_layout/": typeof LayoutIndexRoute;
+  "/_layout/distillations/$distillationId": typeof LayoutDistillationsDistillationIdRoute;
+  "/_layout/distillations/new": typeof LayoutDistillationsNewRoute;
+  "/_layout/pipelines/$pipelineId": typeof LayoutPipelinesPipelineIdRoute;
+  "/_layout/pipelines/jobs": typeof LayoutPipelinesJobsRouteWithChildren;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/api/trpc/$": typeof ApiTrpcSplatRoute;
+  "/_layout/agents/": typeof LayoutAgentsIndexRoute;
+  "/_layout/distillations/": typeof LayoutDistillationsIndexRoute;
+  "/_layout/pipelines/": typeof LayoutPipelinesIndexRoute;
+  "/_layout/runtimes/": typeof LayoutRuntimesIndexRoute;
+  "/_layout/pipelines/jobs/$jobId": typeof LayoutPipelinesJobsJobIdRoute;
+  "/_layout/pipelines/objects/$objectTypeId": typeof LayoutPipelinesObjectsObjectTypeIdRoute;
+  "/_layout/pipelines/operations/new": typeof LayoutPipelinesOperationsNewRoute;
+  "/_layout/runtimes/$runtimeId/edit": typeof LayoutRuntimesRuntimeIdEditRoute;
+  "/_layout/agents/$agentId/": typeof LayoutAgentsAgentIdIndexRoute;
+  "/_layout/pipelines/jobs/": typeof LayoutPipelinesJobsIndexRoute;
+  "/_layout/pipelines/objects/": typeof LayoutPipelinesObjectsIndexRoute;
+  "/_layout/pipelines/operations/": typeof LayoutPipelinesOperationsIndexRoute;
+  "/_layout/runtimes/$runtimeId/": typeof LayoutRuntimesRuntimeIdIndexRoute;
+  "/_layout/pipelines/operations/$operationId/edit": typeof LayoutPipelinesOperationsOperationIdEditRoute;
+  "/_layout/pipelines/operations/$operationId/": typeof LayoutPipelinesOperationsOperationIdIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/canvas'
-    | '/login'
-    | '/sign-up'
-    | '/assistant'
-    | '/distillation-studio'
-    | '/distillations'
-    | '/pipelines'
-    | '/plugins'
-    | '/runtimes'
-    | '/settings'
-    | '/skills'
-    | '/distillations/$distillationId'
-    | '/distillations/new'
-    | '/pipelines/$pipelineId'
-    | '/pipelines/jobs'
-    | '/api/auth/$'
-    | '/api/trpc/$'
-    | '/agents/'
-    | '/distillations/'
-    | '/pipelines/'
-    | '/runtimes/'
-    | '/pipelines/jobs/$jobId'
-    | '/pipelines/objects/$objectTypeId'
-    | '/pipelines/operations/new'
-    | '/runtimes/$runtimeId/edit'
-    | '/agents/$agentId/'
-    | '/pipelines/jobs/'
-    | '/pipelines/objects/'
-    | '/pipelines/operations/'
-    | '/runtimes/$runtimeId/'
-    | '/pipelines/operations/$operationId/edit'
-    | '/pipelines/operations/$operationId/'
-  fileRoutesByTo: FileRoutesByTo
+    | "/"
+    | "/canvas"
+    | "/login"
+    | "/sign-up"
+    | "/assistant"
+    | "/distillation-studio"
+    | "/distillations"
+    | "/pipelines"
+    | "/plugins"
+    | "/runtimes"
+    | "/settings"
+    | "/skills"
+    | "/distillations/$distillationId"
+    | "/distillations/new"
+    | "/pipelines/$pipelineId"
+    | "/pipelines/jobs"
+    | "/api/auth/$"
+    | "/api/trpc/$"
+    | "/agents/"
+    | "/distillations/"
+    | "/pipelines/"
+    | "/runtimes/"
+    | "/pipelines/jobs/$jobId"
+    | "/pipelines/objects/$objectTypeId"
+    | "/pipelines/operations/new"
+    | "/runtimes/$runtimeId/edit"
+    | "/agents/$agentId/"
+    | "/pipelines/jobs/"
+    | "/pipelines/objects/"
+    | "/pipelines/operations/"
+    | "/runtimes/$runtimeId/"
+    | "/pipelines/operations/$operationId/edit"
+    | "/pipelines/operations/$operationId/";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/canvas'
-    | '/login'
-    | '/sign-up'
-    | '/assistant'
-    | '/distillation-studio'
-    | '/plugins'
-    | '/settings'
-    | '/skills'
-    | '/'
-    | '/distillations/$distillationId'
-    | '/distillations/new'
-    | '/pipelines/$pipelineId'
-    | '/api/auth/$'
-    | '/api/trpc/$'
-    | '/agents'
-    | '/distillations'
-    | '/pipelines'
-    | '/runtimes'
-    | '/pipelines/jobs/$jobId'
-    | '/pipelines/objects/$objectTypeId'
-    | '/pipelines/operations/new'
-    | '/runtimes/$runtimeId/edit'
-    | '/agents/$agentId'
-    | '/pipelines/jobs'
-    | '/pipelines/objects'
-    | '/pipelines/operations'
-    | '/runtimes/$runtimeId'
-    | '/pipelines/operations/$operationId/edit'
-    | '/pipelines/operations/$operationId'
+    | "/canvas"
+    | "/login"
+    | "/sign-up"
+    | "/assistant"
+    | "/distillation-studio"
+    | "/plugins"
+    | "/settings"
+    | "/skills"
+    | "/"
+    | "/distillations/$distillationId"
+    | "/distillations/new"
+    | "/pipelines/$pipelineId"
+    | "/api/auth/$"
+    | "/api/trpc/$"
+    | "/agents"
+    | "/distillations"
+    | "/pipelines"
+    | "/runtimes"
+    | "/pipelines/jobs/$jobId"
+    | "/pipelines/objects/$objectTypeId"
+    | "/pipelines/operations/new"
+    | "/runtimes/$runtimeId/edit"
+    | "/agents/$agentId"
+    | "/pipelines/jobs"
+    | "/pipelines/objects"
+    | "/pipelines/operations"
+    | "/runtimes/$runtimeId"
+    | "/pipelines/operations/$operationId/edit"
+    | "/pipelines/operations/$operationId";
   id:
-    | '__root__'
-    | '/_layout'
-    | '/canvas'
-    | '/login'
-    | '/sign-up'
-    | '/_layout/assistant'
-    | '/_layout/distillation-studio'
-    | '/_layout/distillations'
-    | '/_layout/pipelines'
-    | '/_layout/plugins'
-    | '/_layout/runtimes'
-    | '/_layout/settings'
-    | '/_layout/skills'
-    | '/_layout/'
-    | '/_layout/distillations/$distillationId'
-    | '/_layout/distillations/new'
-    | '/_layout/pipelines/$pipelineId'
-    | '/_layout/pipelines/jobs'
-    | '/api/auth/$'
-    | '/api/trpc/$'
-    | '/_layout/agents/'
-    | '/_layout/distillations/'
-    | '/_layout/pipelines/'
-    | '/_layout/runtimes/'
-    | '/_layout/pipelines/jobs/$jobId'
-    | '/_layout/pipelines/objects/$objectTypeId'
-    | '/_layout/pipelines/operations/new'
-    | '/_layout/runtimes/$runtimeId/edit'
-    | '/_layout/agents/$agentId/'
-    | '/_layout/pipelines/jobs/'
-    | '/_layout/pipelines/objects/'
-    | '/_layout/pipelines/operations/'
-    | '/_layout/runtimes/$runtimeId/'
-    | '/_layout/pipelines/operations/$operationId/edit'
-    | '/_layout/pipelines/operations/$operationId/'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/_layout"
+    | "/canvas"
+    | "/login"
+    | "/sign-up"
+    | "/_layout/assistant"
+    | "/_layout/distillation-studio"
+    | "/_layout/distillations"
+    | "/_layout/pipelines"
+    | "/_layout/plugins"
+    | "/_layout/runtimes"
+    | "/_layout/settings"
+    | "/_layout/skills"
+    | "/_layout/"
+    | "/_layout/distillations/$distillationId"
+    | "/_layout/distillations/new"
+    | "/_layout/pipelines/$pipelineId"
+    | "/_layout/pipelines/jobs"
+    | "/api/auth/$"
+    | "/api/trpc/$"
+    | "/_layout/agents/"
+    | "/_layout/distillations/"
+    | "/_layout/pipelines/"
+    | "/_layout/runtimes/"
+    | "/_layout/pipelines/jobs/$jobId"
+    | "/_layout/pipelines/objects/$objectTypeId"
+    | "/_layout/pipelines/operations/new"
+    | "/_layout/runtimes/$runtimeId/edit"
+    | "/_layout/agents/$agentId/"
+    | "/_layout/pipelines/jobs/"
+    | "/_layout/pipelines/objects/"
+    | "/_layout/pipelines/operations/"
+    | "/_layout/runtimes/$runtimeId/"
+    | "/_layout/pipelines/operations/$operationId/edit"
+    | "/_layout/pipelines/operations/$operationId/";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  LayoutRoute: typeof LayoutRouteWithChildren
-  CanvasRoute: typeof CanvasRoute
-  LoginRoute: typeof LoginRoute
-  SignUpRoute: typeof SignUpRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
-  ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
+  LayoutRoute: typeof LayoutRouteWithChildren;
+  CanvasRoute: typeof CanvasRoute;
+  LoginRoute: typeof LoginRoute;
+  SignUpRoute: typeof SignUpRoute;
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
+  ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/sign-up': {
-      id: '/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof SignUpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/canvas': {
-      id: '/canvas'
-      path: '/canvas'
-      fullPath: '/canvas'
-      preLoaderRoute: typeof CanvasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_layout': {
-      id: '/_layout'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof LayoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_layout/': {
-      id: '/_layout/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof LayoutIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/skills': {
-      id: '/_layout/skills'
-      path: '/skills'
-      fullPath: '/skills'
-      preLoaderRoute: typeof LayoutSkillsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/settings': {
-      id: '/_layout/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof LayoutSettingsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/runtimes': {
-      id: '/_layout/runtimes'
-      path: '/runtimes'
-      fullPath: '/runtimes'
-      preLoaderRoute: typeof LayoutRuntimesRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/plugins': {
-      id: '/_layout/plugins'
-      path: '/plugins'
-      fullPath: '/plugins'
-      preLoaderRoute: typeof LayoutPluginsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/pipelines': {
-      id: '/_layout/pipelines'
-      path: '/pipelines'
-      fullPath: '/pipelines'
-      preLoaderRoute: typeof LayoutPipelinesRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/distillations': {
-      id: '/_layout/distillations'
-      path: '/distillations'
-      fullPath: '/distillations'
-      preLoaderRoute: typeof LayoutDistillationsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/distillation-studio': {
-      id: '/_layout/distillation-studio'
-      path: '/distillation-studio'
-      fullPath: '/distillation-studio'
-      preLoaderRoute: typeof LayoutDistillationStudioRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/assistant': {
-      id: '/_layout/assistant'
-      path: '/assistant'
-      fullPath: '/assistant'
-      preLoaderRoute: typeof LayoutAssistantRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/runtimes/': {
-      id: '/_layout/runtimes/'
-      path: '/'
-      fullPath: '/runtimes/'
-      preLoaderRoute: typeof LayoutRuntimesIndexRouteImport
-      parentRoute: typeof LayoutRuntimesRoute
-    }
-    '/_layout/pipelines/': {
-      id: '/_layout/pipelines/'
-      path: '/'
-      fullPath: '/pipelines/'
-      preLoaderRoute: typeof LayoutPipelinesIndexRouteImport
-      parentRoute: typeof LayoutPipelinesRoute
-    }
-    '/_layout/distillations/': {
-      id: '/_layout/distillations/'
-      path: '/'
-      fullPath: '/distillations/'
-      preLoaderRoute: typeof LayoutDistillationsIndexRouteImport
-      parentRoute: typeof LayoutDistillationsRoute
-    }
-    '/_layout/agents/': {
-      id: '/_layout/agents/'
-      path: '/agents'
-      fullPath: '/agents/'
-      preLoaderRoute: typeof LayoutAgentsIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/api/trpc/$': {
-      id: '/api/trpc/$'
-      path: '/api/trpc/$'
-      fullPath: '/api/trpc/$'
-      preLoaderRoute: typeof ApiTrpcSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_layout/pipelines/jobs': {
-      id: '/_layout/pipelines/jobs'
-      path: '/jobs'
-      fullPath: '/pipelines/jobs'
-      preLoaderRoute: typeof LayoutPipelinesJobsRouteImport
-      parentRoute: typeof LayoutPipelinesRoute
-    }
-    '/_layout/pipelines/$pipelineId': {
-      id: '/_layout/pipelines/$pipelineId'
-      path: '/$pipelineId'
-      fullPath: '/pipelines/$pipelineId'
-      preLoaderRoute: typeof LayoutPipelinesPipelineIdRouteImport
-      parentRoute: typeof LayoutPipelinesRoute
-    }
-    '/_layout/distillations/new': {
-      id: '/_layout/distillations/new'
-      path: '/new'
-      fullPath: '/distillations/new'
-      preLoaderRoute: typeof LayoutDistillationsNewRouteImport
-      parentRoute: typeof LayoutDistillationsRoute
-    }
-    '/_layout/distillations/$distillationId': {
-      id: '/_layout/distillations/$distillationId'
-      path: '/$distillationId'
-      fullPath: '/distillations/$distillationId'
-      preLoaderRoute: typeof LayoutDistillationsDistillationIdRouteImport
-      parentRoute: typeof LayoutDistillationsRoute
-    }
-    '/_layout/runtimes/$runtimeId/': {
-      id: '/_layout/runtimes/$runtimeId/'
-      path: '/$runtimeId'
-      fullPath: '/runtimes/$runtimeId/'
-      preLoaderRoute: typeof LayoutRuntimesRuntimeIdIndexRouteImport
-      parentRoute: typeof LayoutRuntimesRoute
-    }
-    '/_layout/pipelines/operations/': {
-      id: '/_layout/pipelines/operations/'
-      path: '/operations'
-      fullPath: '/pipelines/operations/'
-      preLoaderRoute: typeof LayoutPipelinesOperationsIndexRouteImport
-      parentRoute: typeof LayoutPipelinesRoute
-    }
-    '/_layout/pipelines/objects/': {
-      id: '/_layout/pipelines/objects/'
-      path: '/objects'
-      fullPath: '/pipelines/objects/'
-      preLoaderRoute: typeof LayoutPipelinesObjectsIndexRouteImport
-      parentRoute: typeof LayoutPipelinesRoute
-    }
-    '/_layout/pipelines/jobs/': {
-      id: '/_layout/pipelines/jobs/'
-      path: '/'
-      fullPath: '/pipelines/jobs/'
-      preLoaderRoute: typeof LayoutPipelinesJobsIndexRouteImport
-      parentRoute: typeof LayoutPipelinesJobsRoute
-    }
-    '/_layout/agents/$agentId/': {
-      id: '/_layout/agents/$agentId/'
-      path: '/agents/$agentId'
-      fullPath: '/agents/$agentId/'
-      preLoaderRoute: typeof LayoutAgentsAgentIdIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/runtimes/$runtimeId/edit': {
-      id: '/_layout/runtimes/$runtimeId/edit'
-      path: '/$runtimeId/edit'
-      fullPath: '/runtimes/$runtimeId/edit'
-      preLoaderRoute: typeof LayoutRuntimesRuntimeIdEditRouteImport
-      parentRoute: typeof LayoutRuntimesRoute
-    }
-    '/_layout/pipelines/operations/new': {
-      id: '/_layout/pipelines/operations/new'
-      path: '/operations/new'
-      fullPath: '/pipelines/operations/new'
-      preLoaderRoute: typeof LayoutPipelinesOperationsNewRouteImport
-      parentRoute: typeof LayoutPipelinesRoute
-    }
-    '/_layout/pipelines/objects/$objectTypeId': {
-      id: '/_layout/pipelines/objects/$objectTypeId'
-      path: '/objects/$objectTypeId'
-      fullPath: '/pipelines/objects/$objectTypeId'
-      preLoaderRoute: typeof LayoutPipelinesObjectsObjectTypeIdRouteImport
-      parentRoute: typeof LayoutPipelinesRoute
-    }
-    '/_layout/pipelines/jobs/$jobId': {
-      id: '/_layout/pipelines/jobs/$jobId'
-      path: '/$jobId'
-      fullPath: '/pipelines/jobs/$jobId'
-      preLoaderRoute: typeof LayoutPipelinesJobsJobIdRouteImport
-      parentRoute: typeof LayoutPipelinesJobsRoute
-    }
-    '/_layout/pipelines/operations/$operationId/': {
-      id: '/_layout/pipelines/operations/$operationId/'
-      path: '/operations/$operationId'
-      fullPath: '/pipelines/operations/$operationId/'
-      preLoaderRoute: typeof LayoutPipelinesOperationsOperationIdIndexRouteImport
-      parentRoute: typeof LayoutPipelinesRoute
-    }
-    '/_layout/pipelines/operations/$operationId/edit': {
-      id: '/_layout/pipelines/operations/$operationId/edit'
-      path: '/operations/$operationId/edit'
-      fullPath: '/pipelines/operations/$operationId/edit'
-      preLoaderRoute: typeof LayoutPipelinesOperationsOperationIdEditRouteImport
-      parentRoute: typeof LayoutPipelinesRoute
-    }
+    "/sign-up": {
+      id: "/sign-up";
+      path: "/sign-up";
+      fullPath: "/sign-up";
+      preLoaderRoute: typeof SignUpRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/login": {
+      id: "/login";
+      path: "/login";
+      fullPath: "/login";
+      preLoaderRoute: typeof LoginRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/canvas": {
+      id: "/canvas";
+      path: "/canvas";
+      fullPath: "/canvas";
+      preLoaderRoute: typeof CanvasRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_layout": {
+      id: "/_layout";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof LayoutRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_layout/": {
+      id: "/_layout/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof LayoutIndexRouteImport;
+      parentRoute: typeof LayoutRoute;
+    };
+    "/_layout/skills": {
+      id: "/_layout/skills";
+      path: "/skills";
+      fullPath: "/skills";
+      preLoaderRoute: typeof LayoutSkillsRouteImport;
+      parentRoute: typeof LayoutRoute;
+    };
+    "/_layout/settings": {
+      id: "/_layout/settings";
+      path: "/settings";
+      fullPath: "/settings";
+      preLoaderRoute: typeof LayoutSettingsRouteImport;
+      parentRoute: typeof LayoutRoute;
+    };
+    "/_layout/runtimes": {
+      id: "/_layout/runtimes";
+      path: "/runtimes";
+      fullPath: "/runtimes";
+      preLoaderRoute: typeof LayoutRuntimesRouteImport;
+      parentRoute: typeof LayoutRoute;
+    };
+    "/_layout/plugins": {
+      id: "/_layout/plugins";
+      path: "/plugins";
+      fullPath: "/plugins";
+      preLoaderRoute: typeof LayoutPluginsRouteImport;
+      parentRoute: typeof LayoutRoute;
+    };
+    "/_layout/pipelines": {
+      id: "/_layout/pipelines";
+      path: "/pipelines";
+      fullPath: "/pipelines";
+      preLoaderRoute: typeof LayoutPipelinesRouteImport;
+      parentRoute: typeof LayoutRoute;
+    };
+    "/_layout/distillations": {
+      id: "/_layout/distillations";
+      path: "/distillations";
+      fullPath: "/distillations";
+      preLoaderRoute: typeof LayoutDistillationsRouteImport;
+      parentRoute: typeof LayoutRoute;
+    };
+    "/_layout/distillation-studio": {
+      id: "/_layout/distillation-studio";
+      path: "/distillation-studio";
+      fullPath: "/distillation-studio";
+      preLoaderRoute: typeof LayoutDistillationStudioRouteImport;
+      parentRoute: typeof LayoutRoute;
+    };
+    "/_layout/assistant": {
+      id: "/_layout/assistant";
+      path: "/assistant";
+      fullPath: "/assistant";
+      preLoaderRoute: typeof LayoutAssistantRouteImport;
+      parentRoute: typeof LayoutRoute;
+    };
+    "/_layout/runtimes/": {
+      id: "/_layout/runtimes/";
+      path: "/";
+      fullPath: "/runtimes/";
+      preLoaderRoute: typeof LayoutRuntimesIndexRouteImport;
+      parentRoute: typeof LayoutRuntimesRoute;
+    };
+    "/_layout/pipelines/": {
+      id: "/_layout/pipelines/";
+      path: "/";
+      fullPath: "/pipelines/";
+      preLoaderRoute: typeof LayoutPipelinesIndexRouteImport;
+      parentRoute: typeof LayoutPipelinesRoute;
+    };
+    "/_layout/distillations/": {
+      id: "/_layout/distillations/";
+      path: "/";
+      fullPath: "/distillations/";
+      preLoaderRoute: typeof LayoutDistillationsIndexRouteImport;
+      parentRoute: typeof LayoutDistillationsRoute;
+    };
+    "/_layout/agents/": {
+      id: "/_layout/agents/";
+      path: "/agents";
+      fullPath: "/agents/";
+      preLoaderRoute: typeof LayoutAgentsIndexRouteImport;
+      parentRoute: typeof LayoutRoute;
+    };
+    "/api/trpc/$": {
+      id: "/api/trpc/$";
+      path: "/api/trpc/$";
+      fullPath: "/api/trpc/$";
+      preLoaderRoute: typeof ApiTrpcSplatRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/auth/$": {
+      id: "/api/auth/$";
+      path: "/api/auth/$";
+      fullPath: "/api/auth/$";
+      preLoaderRoute: typeof ApiAuthSplatRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_layout/pipelines/jobs": {
+      id: "/_layout/pipelines/jobs";
+      path: "/jobs";
+      fullPath: "/pipelines/jobs";
+      preLoaderRoute: typeof LayoutPipelinesJobsRouteImport;
+      parentRoute: typeof LayoutPipelinesRoute;
+    };
+    "/_layout/pipelines/$pipelineId": {
+      id: "/_layout/pipelines/$pipelineId";
+      path: "/$pipelineId";
+      fullPath: "/pipelines/$pipelineId";
+      preLoaderRoute: typeof LayoutPipelinesPipelineIdRouteImport;
+      parentRoute: typeof LayoutPipelinesRoute;
+    };
+    "/_layout/distillations/new": {
+      id: "/_layout/distillations/new";
+      path: "/new";
+      fullPath: "/distillations/new";
+      preLoaderRoute: typeof LayoutDistillationsNewRouteImport;
+      parentRoute: typeof LayoutDistillationsRoute;
+    };
+    "/_layout/distillations/$distillationId": {
+      id: "/_layout/distillations/$distillationId";
+      path: "/$distillationId";
+      fullPath: "/distillations/$distillationId";
+      preLoaderRoute: typeof LayoutDistillationsDistillationIdRouteImport;
+      parentRoute: typeof LayoutDistillationsRoute;
+    };
+    "/_layout/runtimes/$runtimeId/": {
+      id: "/_layout/runtimes/$runtimeId/";
+      path: "/$runtimeId";
+      fullPath: "/runtimes/$runtimeId/";
+      preLoaderRoute: typeof LayoutRuntimesRuntimeIdIndexRouteImport;
+      parentRoute: typeof LayoutRuntimesRoute;
+    };
+    "/_layout/pipelines/operations/": {
+      id: "/_layout/pipelines/operations/";
+      path: "/operations";
+      fullPath: "/pipelines/operations/";
+      preLoaderRoute: typeof LayoutPipelinesOperationsIndexRouteImport;
+      parentRoute: typeof LayoutPipelinesRoute;
+    };
+    "/_layout/pipelines/objects/": {
+      id: "/_layout/pipelines/objects/";
+      path: "/objects";
+      fullPath: "/pipelines/objects/";
+      preLoaderRoute: typeof LayoutPipelinesObjectsIndexRouteImport;
+      parentRoute: typeof LayoutPipelinesRoute;
+    };
+    "/_layout/pipelines/jobs/": {
+      id: "/_layout/pipelines/jobs/";
+      path: "/";
+      fullPath: "/pipelines/jobs/";
+      preLoaderRoute: typeof LayoutPipelinesJobsIndexRouteImport;
+      parentRoute: typeof LayoutPipelinesJobsRoute;
+    };
+    "/_layout/agents/$agentId/": {
+      id: "/_layout/agents/$agentId/";
+      path: "/agents/$agentId";
+      fullPath: "/agents/$agentId/";
+      preLoaderRoute: typeof LayoutAgentsAgentIdIndexRouteImport;
+      parentRoute: typeof LayoutRoute;
+    };
+    "/_layout/runtimes/$runtimeId/edit": {
+      id: "/_layout/runtimes/$runtimeId/edit";
+      path: "/$runtimeId/edit";
+      fullPath: "/runtimes/$runtimeId/edit";
+      preLoaderRoute: typeof LayoutRuntimesRuntimeIdEditRouteImport;
+      parentRoute: typeof LayoutRuntimesRoute;
+    };
+    "/_layout/pipelines/operations/new": {
+      id: "/_layout/pipelines/operations/new";
+      path: "/operations/new";
+      fullPath: "/pipelines/operations/new";
+      preLoaderRoute: typeof LayoutPipelinesOperationsNewRouteImport;
+      parentRoute: typeof LayoutPipelinesRoute;
+    };
+    "/_layout/pipelines/objects/$objectTypeId": {
+      id: "/_layout/pipelines/objects/$objectTypeId";
+      path: "/objects/$objectTypeId";
+      fullPath: "/pipelines/objects/$objectTypeId";
+      preLoaderRoute: typeof LayoutPipelinesObjectsObjectTypeIdRouteImport;
+      parentRoute: typeof LayoutPipelinesRoute;
+    };
+    "/_layout/pipelines/jobs/$jobId": {
+      id: "/_layout/pipelines/jobs/$jobId";
+      path: "/$jobId";
+      fullPath: "/pipelines/jobs/$jobId";
+      preLoaderRoute: typeof LayoutPipelinesJobsJobIdRouteImport;
+      parentRoute: typeof LayoutPipelinesJobsRoute;
+    };
+    "/_layout/pipelines/operations/$operationId/": {
+      id: "/_layout/pipelines/operations/$operationId/";
+      path: "/operations/$operationId";
+      fullPath: "/pipelines/operations/$operationId/";
+      preLoaderRoute: typeof LayoutPipelinesOperationsOperationIdIndexRouteImport;
+      parentRoute: typeof LayoutPipelinesRoute;
+    };
+    "/_layout/pipelines/operations/$operationId/edit": {
+      id: "/_layout/pipelines/operations/$operationId/edit";
+      path: "/operations/$operationId/edit";
+      fullPath: "/pipelines/operations/$operationId/edit";
+      preLoaderRoute: typeof LayoutPipelinesOperationsOperationIdEditRouteImport;
+      parentRoute: typeof LayoutPipelinesRoute;
+    };
   }
 }
 
 interface LayoutDistillationsRouteChildren {
-  LayoutDistillationsDistillationIdRoute: typeof LayoutDistillationsDistillationIdRoute
-  LayoutDistillationsNewRoute: typeof LayoutDistillationsNewRoute
-  LayoutDistillationsIndexRoute: typeof LayoutDistillationsIndexRoute
+  LayoutDistillationsDistillationIdRoute: typeof LayoutDistillationsDistillationIdRoute;
+  LayoutDistillationsNewRoute: typeof LayoutDistillationsNewRoute;
+  LayoutDistillationsIndexRoute: typeof LayoutDistillationsIndexRoute;
 }
 
 const LayoutDistillationsRouteChildren: LayoutDistillationsRouteChildren = {
-  LayoutDistillationsDistillationIdRoute:
-    LayoutDistillationsDistillationIdRoute,
+  LayoutDistillationsDistillationIdRoute: LayoutDistillationsDistillationIdRoute,
   LayoutDistillationsNewRoute: LayoutDistillationsNewRoute,
   LayoutDistillationsIndexRoute: LayoutDistillationsIndexRoute,
-}
+};
 
-const LayoutDistillationsRouteWithChildren =
-  LayoutDistillationsRoute._addFileChildren(LayoutDistillationsRouteChildren)
+const LayoutDistillationsRouteWithChildren = LayoutDistillationsRoute._addFileChildren(
+  LayoutDistillationsRouteChildren,
+);
 
 interface LayoutPipelinesJobsRouteChildren {
-  LayoutPipelinesJobsJobIdRoute: typeof LayoutPipelinesJobsJobIdRoute
-  LayoutPipelinesJobsIndexRoute: typeof LayoutPipelinesJobsIndexRoute
+  LayoutPipelinesJobsJobIdRoute: typeof LayoutPipelinesJobsJobIdRoute;
+  LayoutPipelinesJobsIndexRoute: typeof LayoutPipelinesJobsIndexRoute;
 }
 
 const LayoutPipelinesJobsRouteChildren: LayoutPipelinesJobsRouteChildren = {
   LayoutPipelinesJobsJobIdRoute: LayoutPipelinesJobsJobIdRoute,
   LayoutPipelinesJobsIndexRoute: LayoutPipelinesJobsIndexRoute,
-}
+};
 
-const LayoutPipelinesJobsRouteWithChildren =
-  LayoutPipelinesJobsRoute._addFileChildren(LayoutPipelinesJobsRouteChildren)
+const LayoutPipelinesJobsRouteWithChildren = LayoutPipelinesJobsRoute._addFileChildren(
+  LayoutPipelinesJobsRouteChildren,
+);
 
 interface LayoutPipelinesRouteChildren {
-  LayoutPipelinesPipelineIdRoute: typeof LayoutPipelinesPipelineIdRoute
-  LayoutPipelinesJobsRoute: typeof LayoutPipelinesJobsRouteWithChildren
-  LayoutPipelinesIndexRoute: typeof LayoutPipelinesIndexRoute
-  LayoutPipelinesObjectsObjectTypeIdRoute: typeof LayoutPipelinesObjectsObjectTypeIdRoute
-  LayoutPipelinesOperationsNewRoute: typeof LayoutPipelinesOperationsNewRoute
-  LayoutPipelinesObjectsIndexRoute: typeof LayoutPipelinesObjectsIndexRoute
-  LayoutPipelinesOperationsIndexRoute: typeof LayoutPipelinesOperationsIndexRoute
-  LayoutPipelinesOperationsOperationIdEditRoute: typeof LayoutPipelinesOperationsOperationIdEditRoute
-  LayoutPipelinesOperationsOperationIdIndexRoute: typeof LayoutPipelinesOperationsOperationIdIndexRoute
+  LayoutPipelinesPipelineIdRoute: typeof LayoutPipelinesPipelineIdRoute;
+  LayoutPipelinesJobsRoute: typeof LayoutPipelinesJobsRouteWithChildren;
+  LayoutPipelinesIndexRoute: typeof LayoutPipelinesIndexRoute;
+  LayoutPipelinesObjectsObjectTypeIdRoute: typeof LayoutPipelinesObjectsObjectTypeIdRoute;
+  LayoutPipelinesOperationsNewRoute: typeof LayoutPipelinesOperationsNewRoute;
+  LayoutPipelinesObjectsIndexRoute: typeof LayoutPipelinesObjectsIndexRoute;
+  LayoutPipelinesOperationsIndexRoute: typeof LayoutPipelinesOperationsIndexRoute;
+  LayoutPipelinesOperationsOperationIdEditRoute: typeof LayoutPipelinesOperationsOperationIdEditRoute;
+  LayoutPipelinesOperationsOperationIdIndexRoute: typeof LayoutPipelinesOperationsOperationIdIndexRoute;
 }
 
 const LayoutPipelinesRouteChildren: LayoutPipelinesRouteChildren = {
   LayoutPipelinesPipelineIdRoute: LayoutPipelinesPipelineIdRoute,
   LayoutPipelinesJobsRoute: LayoutPipelinesJobsRouteWithChildren,
   LayoutPipelinesIndexRoute: LayoutPipelinesIndexRoute,
-  LayoutPipelinesObjectsObjectTypeIdRoute:
-    LayoutPipelinesObjectsObjectTypeIdRoute,
+  LayoutPipelinesObjectsObjectTypeIdRoute: LayoutPipelinesObjectsObjectTypeIdRoute,
   LayoutPipelinesOperationsNewRoute: LayoutPipelinesOperationsNewRoute,
   LayoutPipelinesObjectsIndexRoute: LayoutPipelinesObjectsIndexRoute,
   LayoutPipelinesOperationsIndexRoute: LayoutPipelinesOperationsIndexRoute,
-  LayoutPipelinesOperationsOperationIdEditRoute:
-    LayoutPipelinesOperationsOperationIdEditRoute,
-  LayoutPipelinesOperationsOperationIdIndexRoute:
-    LayoutPipelinesOperationsOperationIdIndexRoute,
-}
+  LayoutPipelinesOperationsOperationIdEditRoute: LayoutPipelinesOperationsOperationIdEditRoute,
+  LayoutPipelinesOperationsOperationIdIndexRoute: LayoutPipelinesOperationsOperationIdIndexRoute,
+};
 
 const LayoutPipelinesRouteWithChildren = LayoutPipelinesRoute._addFileChildren(
   LayoutPipelinesRouteChildren,
-)
+);
 
 interface LayoutRuntimesRouteChildren {
-  LayoutRuntimesIndexRoute: typeof LayoutRuntimesIndexRoute
-  LayoutRuntimesRuntimeIdEditRoute: typeof LayoutRuntimesRuntimeIdEditRoute
-  LayoutRuntimesRuntimeIdIndexRoute: typeof LayoutRuntimesRuntimeIdIndexRoute
+  LayoutRuntimesIndexRoute: typeof LayoutRuntimesIndexRoute;
+  LayoutRuntimesRuntimeIdEditRoute: typeof LayoutRuntimesRuntimeIdEditRoute;
+  LayoutRuntimesRuntimeIdIndexRoute: typeof LayoutRuntimesRuntimeIdIndexRoute;
 }
 
 const LayoutRuntimesRouteChildren: LayoutRuntimesRouteChildren = {
   LayoutRuntimesIndexRoute: LayoutRuntimesIndexRoute,
   LayoutRuntimesRuntimeIdEditRoute: LayoutRuntimesRuntimeIdEditRoute,
   LayoutRuntimesRuntimeIdIndexRoute: LayoutRuntimesRuntimeIdIndexRoute,
-}
+};
 
 const LayoutRuntimesRouteWithChildren = LayoutRuntimesRoute._addFileChildren(
   LayoutRuntimesRouteChildren,
-)
+);
 
 interface LayoutRouteChildren {
-  LayoutAssistantRoute: typeof LayoutAssistantRoute
-  LayoutDistillationStudioRoute: typeof LayoutDistillationStudioRoute
-  LayoutDistillationsRoute: typeof LayoutDistillationsRouteWithChildren
-  LayoutPipelinesRoute: typeof LayoutPipelinesRouteWithChildren
-  LayoutPluginsRoute: typeof LayoutPluginsRoute
-  LayoutRuntimesRoute: typeof LayoutRuntimesRouteWithChildren
-  LayoutSettingsRoute: typeof LayoutSettingsRoute
-  LayoutSkillsRoute: typeof LayoutSkillsRoute
-  LayoutIndexRoute: typeof LayoutIndexRoute
-  LayoutAgentsIndexRoute: typeof LayoutAgentsIndexRoute
-  LayoutAgentsAgentIdIndexRoute: typeof LayoutAgentsAgentIdIndexRoute
+  LayoutAssistantRoute: typeof LayoutAssistantRoute;
+  LayoutDistillationStudioRoute: typeof LayoutDistillationStudioRoute;
+  LayoutDistillationsRoute: typeof LayoutDistillationsRouteWithChildren;
+  LayoutPipelinesRoute: typeof LayoutPipelinesRouteWithChildren;
+  LayoutPluginsRoute: typeof LayoutPluginsRoute;
+  LayoutRuntimesRoute: typeof LayoutRuntimesRouteWithChildren;
+  LayoutSettingsRoute: typeof LayoutSettingsRoute;
+  LayoutSkillsRoute: typeof LayoutSkillsRoute;
+  LayoutIndexRoute: typeof LayoutIndexRoute;
+  LayoutAgentsIndexRoute: typeof LayoutAgentsIndexRoute;
+  LayoutAgentsAgentIdIndexRoute: typeof LayoutAgentsAgentIdIndexRoute;
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -791,10 +777,9 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutAgentsIndexRoute: LayoutAgentsIndexRoute,
   LayoutAgentsAgentIdIndexRoute: LayoutAgentsAgentIdIndexRoute,
-}
+};
 
-const LayoutRouteWithChildren =
-  LayoutRoute._addFileChildren(LayoutRouteChildren)
+const LayoutRouteWithChildren = LayoutRoute._addFileChildren(LayoutRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
@@ -803,16 +788,16 @@ const rootRouteChildren: RootRouteChildren = {
   SignUpRoute: SignUpRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
+import type { getRouter } from "./router.tsx";
+import type { createStart } from "@tanstack/react-start";
+declare module "@tanstack/react-start" {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
   }
 }

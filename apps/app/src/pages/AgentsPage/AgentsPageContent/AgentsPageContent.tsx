@@ -16,7 +16,7 @@ export const AgentsPageContent = () => {
   const { result: agentsResult, query: agentsQuery } = useList<Agent>({
     resource: ResourceName.agents,
   });
-  const agents = agentsResult?.data ?? ([] as Agent[]);
+  const agents = agentsResult.data;
   const { t } = useTranslation();
 
   const store = useAgentsPageStore();

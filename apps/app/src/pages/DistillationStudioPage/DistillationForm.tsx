@@ -274,7 +274,12 @@ export const DistillationForm = () => {
           />
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button disabled={isBusy} type="button" variant="outline" onClick={handleSaveButtonClick}>
+            <Button
+              disabled={isBusy}
+              type="button"
+              variant="outline"
+              onClick={handleSaveButtonClick}
+            >
               {existingDistillationId
                 ? t("distillations.saveChanges")
                 : t("distillations.saveDraft")}

@@ -28,7 +28,7 @@ export const OperationsPageContent = () => {
   const { result: operationsResult, query: operationsQuery } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const operations = operationsResult?.data ?? [];
+  const operations = operationsResult.data;
 
   const { t } = useTranslation();
   const navigate = useNavigate();

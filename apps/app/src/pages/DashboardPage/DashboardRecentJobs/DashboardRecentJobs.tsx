@@ -9,7 +9,7 @@ import { buildRecentJobs } from "../dashboardMetrics";
 export const DashboardRecentJobs = () => {
   const { t } = useTranslation();
   const { result } = useList<Job>({ resource: ResourceName.jobs });
-  const recentJobs = buildRecentJobs(result?.data ?? []);
+  const recentJobs = buildRecentJobs(result.data);
 
   if (recentJobs.length === 0) {
     return (

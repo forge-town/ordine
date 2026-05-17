@@ -47,7 +47,7 @@ export const CanvasContextMenu = () => {
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const operations = operationsResult?.data ?? [];
+  const operations = operationsResult.data;
   const store = useCanvasPageStore();
   const contextMenu = useStore(store, (s) => s.contextMenu);
   const connectStart = useStore(store, (s) => s.connectStart);

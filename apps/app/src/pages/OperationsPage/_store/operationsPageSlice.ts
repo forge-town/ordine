@@ -47,7 +47,8 @@ export const createOperationsPageSlice: StateCreator<OperationsPageSlice> = (set
 
   handleSearchInputChange: (event) => set({ searchQuery: event.target.value }),
   handleClearSearchButtonClick: () => set({ searchQuery: "" }),
-  handleSortItemSelect: (value) => set({ sortBy: (value ?? "default") as SortKey, sortOpen: false }),
+  handleSortItemSelect: (value) =>
+    set({ sortBy: (value ?? "default") as SortKey, sortOpen: false }),
   handleSortSelectOpenChange: (open) => set({ sortOpen: open }),
   handleSortSelectTriggerClick: () => set((state) => ({ sortOpen: !state.sortOpen })),
   handleGroupTabClick: (group) => set({ activeGroup: group }),

@@ -1,7 +1,13 @@
 {
   "$schema": "../../node_modules/oxlint/configuration_schema.json",
-  "jsPlugins": ["./plugins/jsx-sort-props.js", "./plugins/no-let.js", "./plugins/newline-before-return.js"],
+  "jsPlugins": [
+    "./plugins/jsx-sort-props.js",
+    "./plugins/no-let.js",
+    "./plugins/newline-before-return.js",
+    "./plugins/no-use-list-data-fallback.js"
+  ],
   "rules": {
+    "ordine-refine/no-use-list-data-fallback": "error",
     "ordine/jsx-sort-props": [
       "error",
       {

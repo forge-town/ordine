@@ -25,7 +25,7 @@ export const ObjectTypeDetailPageContent = ({ objectTypeId }: Props) => {
     queryOptions: { enabled: !!resourceName },
   });
 
-  const items = result?.data ?? [];
+  const items = result.data;
 
   if (!objectType) {
     return (

@@ -18,7 +18,7 @@ export const OperationEditPage = () => {
     resource: ResourceName.skills,
   });
   const operation = operationResult ?? null;
-  const skills = skillsResult?.data ?? [];
+  const skills = skillsResult.data;
   const { t } = useTranslation();
 
   if (operationQuery?.isLoading || skillsQuery?.isLoading) {

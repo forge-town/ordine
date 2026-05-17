@@ -18,7 +18,7 @@ const STATUS_LABELS: Record<DashboardDistillationPreview["status"], string> = {
 
 export const DashboardDistillationSummary = () => {
   const { result } = useList<Distillation>({ resource: ResourceName.distillations });
-  const distillations = result?.data ?? [];
+  const distillations = result.data;
   const artifacts = buildArtifactMix(distillations);
   const recentDistillations = buildRecentDistillations(distillations);
 

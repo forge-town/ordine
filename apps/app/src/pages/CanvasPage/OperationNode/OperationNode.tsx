@@ -24,28 +24,29 @@ export interface OperationNodeProps {
   selected?: boolean;
 }
 
-const statusConfig: Record<NodeRunStatus, { icon: ElementType; color: string; labelKey: string }> = {
-  idle: {
-    icon: Circle,
-    color: "text-gray-400",
-    labelKey: "nodes.operation.statusIdle",
-  },
-  running: {
-    icon: Loader2,
-    color: "text-blue-500 animate-spin",
-    labelKey: "nodes.operation.statusRunning",
-  },
-  pass: {
-    icon: CheckCircle2,
-    color: "text-green-500",
-    labelKey: "nodes.operation.statusPass",
-  },
-  fail: {
-    icon: XCircle,
-    color: "text-red-500",
-    labelKey: "nodes.operation.statusFail",
-  },
-};
+const statusConfig: Record<NodeRunStatus, { icon: ElementType; color: string; labelKey: string }> =
+  {
+    idle: {
+      icon: Circle,
+      color: "text-gray-400",
+      labelKey: "nodes.operation.statusIdle",
+    },
+    running: {
+      icon: Loader2,
+      color: "text-blue-500 animate-spin",
+      labelKey: "nodes.operation.statusRunning",
+    },
+    pass: {
+      icon: CheckCircle2,
+      color: "text-green-500",
+      labelKey: "nodes.operation.statusPass",
+    },
+    fail: {
+      icon: XCircle,
+      color: "text-red-500",
+      labelKey: "nodes.operation.statusFail",
+    },
+  };
 
 const stopCanvasInteraction = (event: SyntheticEvent) => event.stopPropagation();
 
@@ -59,8 +60,8 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const { result: agentsResult } = useList<Agent>({
     resource: ResourceName.agents,
   });
-  const operations = operationsResult?.data ?? [];
-  const agents = agentsResult?.data ?? [];
+  const operations = operationsResult.data;
+  const agents = agentsResult.data;
   const {
     isTestRunning,
     nodeLlmContent,
@@ -119,7 +120,9 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     isSkillOperation && !!selectedAgent && selectedAgent.defaultRuntime === "hermes";
   const selectedAgentLabel = isAgentIncompatible
     ? `${selectedAgent.name} (${t("nodes.operation.agentIncompatible")})`
-    : (selectedAgentId ? (selectedAgent?.name ?? selectedAgentId) : t("nodes.operation.defaultAgent"));
+    : selectedAgentId
+      ? (selectedAgent?.name ?? selectedAgentId)
+      : t("nodes.operation.defaultAgent");
 
   const hasLlmContent = !!nodeLlmContent[id];
   const canInspect = isTestRunning || hasLlmContent;

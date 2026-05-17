@@ -5,13 +5,7 @@ import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@repo/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { AGENT_RUNTIME_ENUM } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
@@ -59,9 +53,7 @@ export const AgentFormDialog = () => {
     <Dialog open onOpenChange={handleDialogOpenChange}>
       <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {editing ? t("agents.editTitle") : t("agents.createTitle")}
-          </DialogTitle>
+          <DialogTitle>{editing ? t("agents.editTitle") : t("agents.createTitle")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form

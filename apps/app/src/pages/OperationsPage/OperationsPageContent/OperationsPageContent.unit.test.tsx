@@ -30,7 +30,8 @@ const testStore = createStore<Record<string, unknown>>((set) => ({
   importing: false,
   activeGroup: "all",
   viewMode: "grid",
-  handleSearchInputChange: (e: { target: { value: string } }) => set({ searchQuery: e.target.value }),
+  handleSearchInputChange: (e: { target: { value: string } }) =>
+    set({ searchQuery: e.target.value }),
   handleClearSearchButtonClick: () => set({ searchQuery: "" }),
   handleSortItemSelect: (v: string | null) => set({ sortBy: v ?? "default", sortOpen: false }),
   handleSortSelectOpenChange: (o: boolean) => set({ sortOpen: o }),

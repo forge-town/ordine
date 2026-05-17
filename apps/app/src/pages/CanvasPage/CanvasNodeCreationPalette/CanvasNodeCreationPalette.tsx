@@ -57,7 +57,7 @@ export const CanvasNodeCreationPalette = ({
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const operations = operationsResult?.data ?? [];
+  const operations = operationsResult.data;
   const search = normalizeSearch(query);
 
   const objectItems = QUICK_ADD_OBJECT_TYPES.filter((type) => {

@@ -3,11 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
 import type * as XyFlowReact from "@xyflow/react";
 import type { PipelineNode } from "../_store/canvasSlice";
-import {
-  createCanvasPageStore,
-  CanvasPageStoreContext,
-  CanvasPageStoreProvider,
-} from "../_store";
+import { createCanvasPageStore, CanvasPageStoreContext, CanvasPageStoreProvider } from "../_store";
 import { CanvasFlow } from "./CanvasFlow";
 
 vi.mock("@xyflow/react", async (importOriginal) => {

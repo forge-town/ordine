@@ -13,7 +13,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export const DashboardStatusChart = () => {
   const { result } = useList<Job>({ resource: ResourceName.jobs });
-  const data = buildStatuses(result?.data ?? []);
+  const data = buildStatuses(result.data);
 
   return (
     <div className="h-[220px] w-full">
