@@ -22,9 +22,9 @@ const mockJobs: Job[] = [
     type: "distillation_run",
     parentJobId: null,
     error: null,
-    startedAt: new Date(Date.now() - 10000),
+    startedAt: new Date(Date.now() - 10_000),
     finishedAt: new Date(Date.now() - 2000),
-    meta: { createdAt: new Date(Date.now() - 12000), updatedAt: new Date() },
+    meta: { createdAt: new Date(Date.now() - 12_000), updatedAt: new Date() },
   },
   {
     id: "job-003",

@@ -10,17 +10,17 @@ import {
 } from "@xyflow/react";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
 import { makeDefaultNodeData } from "../utils/makeDefaultNodeData";
-import type { PipelineNodeData } from "../schemas/PipelineNodeDataSchema";
-import {
-  ConnectionRuleSchema,
-  type NodeType,
-  type BuiltinNodeType,
-  type CompoundNodeData,
-  type PipelineEdgeData,
-} from "@repo/pipeline-engine/schemas";
+import { ConnectionRuleSchema } from "@repo/pipeline-engine/schemas";
+import type {
+  BuiltinNodeType,
+  CompoundNodeData,
+  PipelineEdgeData,
+  PipelineNodeData,
+} from "@repo/schemas";
 
 import { computeAutoLayout } from "./autoLayout";
 import { DUPLICATE_NODE_OFFSET, offsetPosition } from "../utils/nodePosition";
+import i18n from "@/lib/i18n";
 
 /**
  * Sort nodes so that parents (compound nodes) appear before their children.
@@ -36,7 +36,7 @@ export const sortParentBeforeChildren = (nodes: PipelineNode[]): void => {
   });
 };
 
-export type PipelineNode = Node<PipelineNodeData, NodeType>;
+export type PipelineNode = Node<PipelineNodeData, BuiltinNodeType>;
 
 export type PipelineEdge = Edge<PipelineEdgeData>;
 
@@ -51,7 +51,7 @@ export interface CanvasSlice {
   handleEdgesChange: (changes: EdgeChange<PipelineEdge>[]) => void;
   handleConnect: (connection: Connection) => void;
   addNode: (node: PipelineNode) => void;
-  addNodeWithEdge: (sourceId: string, targetType: NodeType) => void;
+  addNodeWithEdge: (sourceId: string, targetType: BuiltinNodeType) => void;
   removeNode: (nodeId: string) => void;
   updateNodeData: (nodeId: string, data: Record<string, unknown>) => void;
   updateEdgeData: (edgeId: string, data: Partial<PipelineEdgeData>) => void;
@@ -71,11 +71,19 @@ const initialNodes: PipelineNode[] = [];
 
 const initialEdges: PipelineEdge[] = [];
 
+const makeLocalizedDefaultNodeData = (type: BuiltinNodeType) => {
+  const fallback = makeDefaultNodeData(type);
+
+  return makeDefaultNodeData(type, {
+    label: i18n.t(`canvas.nodeTypes.${type}.label`, { defaultValue: fallback.label }),
+  });
+};
+
 export const createCanvasSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
   get: Parameters<HarnessCanvasStoreSlice>[1],
   overrideNodes?: PipelineNode[],
-  overrideEdges?: PipelineEdge[]
+  overrideEdges?: PipelineEdge[],
 ): CanvasSlice => {
   // Ensure parent nodes appear before children on init (ReactFlow requirement)
   const sortedNodes = overrideNodes ? [...overrideNodes] : initialNodes;
@@ -117,15 +125,18 @@ export const createCanvasSlice = (
       recordCommand(
         {
           type: "ADD_EDGE",
-          label: `连接 ${sourceNode.data.label} → ${targetNode.data.label}`,
+          label: i18n.t("canvas.history.addEdge", {
+            source: sourceNode.data.label,
+            target: targetNode.data.label,
+          }),
           payload: { source: connection.source, target: connection.target },
         },
         (draft) => {
           draft.edges = addEdge(
-            { ...connection, type: "default", animated: true, data: {} },
-            draft.edges
+            { ...connection, type: "default", animated: true, data: { label: "" } },
+            draft.edges,
           );
-        }
+        },
       );
     },
 
@@ -135,12 +146,12 @@ export const createCanvasSlice = (
       recordCommand(
         {
           type: "ADD_NODE",
-          label: `添加节点 ${node.data.label}`,
+          label: i18n.t("canvas.history.addNode", { label: node.data.label }),
           payload: { id: node.id, nodeType: node.type },
         },
         (draft) => {
           draft.nodes.push(node);
-        }
+        },
       );
     },
 
@@ -156,7 +167,7 @@ export const createCanvasSlice = (
         id: newId,
         type: targetType,
         position: { x: source.position.x + 300, y: source.position.y },
-        data: makeDefaultNodeData(targetType as BuiltinNodeType),
+        data: makeLocalizedDefaultNodeData(targetType as BuiltinNodeType),
       };
       const newEdge: PipelineEdge = {
         id: `e-${sourceId}-${newId}`,
@@ -164,19 +175,19 @@ export const createCanvasSlice = (
         target: newId,
         type: "default",
         animated: true,
-        data: {},
+        data: { label: "" },
       };
 
       recordCommand(
         {
           type: "ADD_NODE_WITH_EDGE",
-          label: `添加 ${newNode.data.label} 并连接`,
+          label: i18n.t("canvas.history.addNodeWithEdge", { label: newNode.data.label }),
           payload: { sourceId, targetType, newId },
         },
         (draft) => {
           draft.nodes.push(newNode);
           draft.edges.push(newEdge);
-        }
+        },
       );
     },
 
@@ -190,13 +201,13 @@ export const createCanvasSlice = (
       recordCommand(
         {
           type: "REMOVE_NODE",
-          label: `删除节点 ${node.data.label}`,
+          label: i18n.t("canvas.history.removeNode", { label: node.data.label }),
           payload: { id: nodeId },
         },
         (draft) => {
           draft.nodes = draft.nodes.filter((n) => n.id !== nodeId);
           draft.edges = draft.edges.filter((e) => e.source !== nodeId && e.target !== nodeId);
-        }
+        },
       );
       // Clear selection outside of history-tracked state
       set((s) => ({
@@ -214,7 +225,7 @@ export const createCanvasSlice = (
       recordCommand(
         {
           type: "UPDATE_NODE_DATA",
-          label: `编辑 ${node.data.label}`,
+          label: i18n.t("canvas.history.updateNode", { label: node.data.label }),
           payload: { id: nodeId, fields: Object.keys(data) },
         },
         (draft) => {
@@ -222,14 +233,14 @@ export const createCanvasSlice = (
           if (n) {
             n.data = { ...n.data, ...data } as PipelineNodeData;
           }
-        }
+        },
       );
     },
 
     updateEdgeData: (edgeId, data) =>
       set((state) => ({
         edges: state.edges.map((e) =>
-          e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e
+          e.id === edgeId ? ({ ...e, data: { ...e.data, ...data } } as PipelineEdge) : e,
         ),
       })),
 
@@ -256,21 +267,24 @@ export const createCanvasSlice = (
       recordCommand(
         {
           type: "DUPLICATE_NODE",
-          label: `复制节点 ${source.data.label}`,
+          label: i18n.t("canvas.history.duplicateNode", { label: source.data.label }),
           payload: { sourceId: nodeId, newId },
         },
         (draft) => {
           draft.nodes.push(newNode);
-        }
+        },
       );
     },
 
     clearCanvas: () => {
       const { recordCommand } = get();
-      recordCommand({ type: "CLEAR_CANVAS", label: "清空画布" }, (draft) => {
-        draft.nodes = [];
-        draft.edges = [];
-      });
+      recordCommand(
+        { type: "CLEAR_CANVAS", label: i18n.t("canvas.history.clearCanvas") },
+        (draft) => {
+          draft.nodes = [];
+          draft.edges = [];
+        },
+      );
       set({ selectedNodeId: null, selectedEdgeId: null });
     },
 
@@ -297,7 +311,10 @@ export const createCanvasSlice = (
       state.recordCommand(
         {
           type: "ADD_TO_COMPOUND",
-          label: `添加 ${node.data.label} 到 ${compound.data.label}`,
+          label: i18n.t("canvas.history.addToCompound", {
+            node: node.data.label,
+            compound: compound.data.label,
+          }),
           payload: { nodeId, compoundId },
         },
         (draft) => {
@@ -334,7 +351,7 @@ export const createCanvasSlice = (
 
           // Ensure parent appears before children in array
           sortParentBeforeChildren(draft.nodes);
-        }
+        },
       );
     },
 
@@ -347,7 +364,10 @@ export const createCanvasSlice = (
       state.recordCommand(
         {
           type: "REMOVE_FROM_COMPOUND",
-          label: `从 ${compound.data.label} 移除 ${node.data.label}`,
+          label: i18n.t("canvas.history.removeFromCompound", {
+            node: node.data.label,
+            compound: compound.data.label,
+          }),
           payload: { nodeId, compoundId },
         },
         (draft) => {
@@ -369,7 +389,7 @@ export const createCanvasSlice = (
             child.parentId = undefined;
             child.extent = undefined;
           }
-        }
+        },
       );
     },
 
@@ -385,7 +405,7 @@ export const createCanvasSlice = (
       const childW = 240;
       const childH = 120;
       const compoundId = `compound-${Date.now()}`;
-      const compoundData = makeDefaultNodeData("compound") as CompoundNodeData;
+      const compoundData = makeLocalizedDefaultNodeData("compound") as CompoundNodeData;
       compoundData.childNodeIds = [...nodeIds];
 
       const minX = Math.min(...selectedNodes.map((n) => n.position.x));
@@ -408,7 +428,7 @@ export const createCanvasSlice = (
       state.recordCommand(
         {
           type: "GROUP_NODES",
-          label: `编组 ${nodeIds.length} 个节点`,
+          label: i18n.t("canvas.history.groupNodes", { count: nodeIds.length }),
           payload: { compoundId, nodeIds },
         },
         (draft) => {
@@ -426,7 +446,7 @@ export const createCanvasSlice = (
           }
           // Ensure parent appears before children in array
           sortParentBeforeChildren(draft.nodes);
-        }
+        },
       );
     },
 
@@ -441,7 +461,7 @@ export const createCanvasSlice = (
       state.recordCommand(
         {
           type: "UNGROUP_COMPOUND",
-          label: `解散编组 ${compound.data.label}`,
+          label: i18n.t("canvas.history.ungroupCompound", { label: compound.data.label }),
           payload: { compoundId, childIds },
         },
         (draft) => {
@@ -460,9 +480,9 @@ export const createCanvasSlice = (
           // Remove compound node and its edges
           draft.nodes = draft.nodes.filter((n) => n.id !== compoundId);
           draft.edges = draft.edges.filter(
-            (e) => e.source !== compoundId && e.target !== compoundId
+            (e) => e.source !== compoundId && e.target !== compoundId,
           );
-        }
+        },
       );
     },
   };

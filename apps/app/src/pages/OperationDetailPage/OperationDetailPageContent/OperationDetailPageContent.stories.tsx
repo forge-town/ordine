@@ -16,14 +16,14 @@ const queryClient = new QueryClient({
 const rootRoute = createRootRoute();
 const opRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/operations/$operationId",
+  path: "/pipelines/operations/$operationId",
   component: OperationDetailPageContent,
 });
 rootRoute.addChildren([opRoute]);
 
 const router = createRouter({
   routeTree: rootRoute.addChildren([opRoute]),
-  history: createMemoryHistory({ initialEntries: ["/operations/op-1"] }),
+  history: createMemoryHistory({ initialEntries: ["/pipelines/operations/op-1"] }),
 });
 
 const meta: Meta<typeof OperationDetailPageContent> = {

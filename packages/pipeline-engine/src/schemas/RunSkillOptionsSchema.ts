@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { AgentRuntimeSchema } from "@repo/schemas";
+import { AgentRuntimeSchema, OutputItemSchema } from "@repo/schemas";
 
 export const RunSkillOptionsSchema = z.object({
   skillId: z.string(),
@@ -12,6 +12,8 @@ export const RunSkillOptionsSchema = z.object({
   agent: AgentRuntimeSchema.optional(),
   apiKey: z.string().optional(),
   model: z.string().optional(),
+  outputItems: z.array(OutputItemSchema).optional(),
+  outputDir: z.string().optional(),
 });
 export type RunSkillOptions = z.infer<typeof RunSkillOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;

@@ -1,6 +1,6 @@
 {
   "name": "@ordine/scripts",
-  "version": "0.0.2-preview.0",
+  "version": "0.0.2-preview.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,9 +12,7 @@
     "quality": "bun run check-types && bun run lint"
   },
   "dependencies": {
-    "@repo/db-schema": "workspace:*",
-    "drizzle-orm": "^0.45.2",
-    "postgres": "^3.4.8",
+    "neverthrow": "^8.2.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

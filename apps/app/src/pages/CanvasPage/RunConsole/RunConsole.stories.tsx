@@ -11,11 +11,11 @@ import { RunConsole } from "./RunConsole";
 
 const sourceNode = {
   id: "source-file",
-  type: "code-file",
+  type: "file",
   position: { x: 0, y: 0 },
   data: {
     label: "Source File",
-    nodeType: "code-file",
+    nodeType: "file",
     filePath: "src/index.ts",
     language: "typescript",
   },

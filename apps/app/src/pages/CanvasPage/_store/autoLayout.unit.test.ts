@@ -149,7 +149,7 @@ describe("computeAutoLayout", () => {
     x = 0,
     y = 0,
     w = 280,
-    h = 120
+    h = 120,
   ): PipelineNode =>
     ({
       id,

@@ -8,12 +8,12 @@ import {
   Pencil,
   Download,
   Trash2,
+  MessageSquareText,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Operation, ObjectType } from "@repo/schemas";
 import { useDelete } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Button } from "@repo/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +25,8 @@ import { exportOperation } from "../exportOperation";
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
   folder: Folder,
-  project: FolderGit2,
+  "github-project": FolderGit2,
+  prompt: MessageSquareText,
 };
 
 const getComplexity = (op: Operation) => {
@@ -48,20 +49,23 @@ export const OperationCard = ({ operation }: OperationCardProps) => {
   const navigate = useNavigate();
   const { mutate: deleteOpMutate } = useDelete();
   const handleEdit = () =>
-    navigate({ to: "/operations/$operationId/edit", params: { operationId: operation.id } });
+    navigate({
+      to: "/pipelines/operations/$operationId/edit",
+      params: { operationId: operation.id },
+    });
   const handleDelete = () =>
     deleteOpMutate({ resource: ResourceName.operations, id: operation.id });
   const handleExport = () => exportOperation(operation);
   const complexity = getComplexity(operation);
   const objectTypes = Array.isArray(operation.acceptedObjectTypes)
     ? operation.acceptedObjectTypes
-    : (["file", "folder", "project"] as ObjectType[]);
+    : (["file", "folder", "github-project", "prompt"] as ObjectType[]);
 
   return (
     <Link
       className="group relative flex flex-col rounded-xl border border-border bg-card p-5 transition-colors hover:bg-accent/50"
       params={{ operationId: operation.id }}
-      to="/operations/$operationId"
+      to="/pipelines/operations/$operationId"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -71,14 +75,11 @@ export const OperationCard = ({ operation }: OperationCardProps) => {
           <h3 className="text-sm font-semibold text-foreground leading-tight">{operation.name}</h3>
         </div>
         <DropdownMenu>
-          <DropdownMenuTrigger onClick={handlePreventDefault}>
-            <Button
-              className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              size="icon"
-              variant="ghost"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
+          <DropdownMenuTrigger
+            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-accent"
+            onClick={handlePreventDefault}
+          >
+            <MoreHorizontal className="h-4 w-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" onClick={handlePreventDefault}>
             <DropdownMenuItem title={t("common.edit")} onClick={handleEdit}>

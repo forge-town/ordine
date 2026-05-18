@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Terminal, Wand2 } from "lucide-react";
 import { SectionHeader } from "../SectionHeader";
-import type { ExecutorConfig } from "@repo/schemas";
+import type { OperationExecutorConfig } from "@repo/schemas";
 
 const EXECUTOR_ICON: Record<string, React.ElementType> = {
   agent: Wand2,
@@ -19,7 +19,7 @@ const AGENT_MODE_LABEL: Record<string, string> = {
 };
 
 interface ExecutorCardProps {
-  executor: ExecutorConfig;
+  executor: OperationExecutorConfig;
 }
 
 export const ExecutorCard = ({ executor: raw }: ExecutorCardProps) => {

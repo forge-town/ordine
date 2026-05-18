@@ -1,6 +1,7 @@
 import {
   runClaude,
   runCodex,
+  runHermes,
   runMastra,
   runOpenclaw,
   type ClaudeStreamEvent,
@@ -47,11 +48,15 @@ const toAsyncProgress = (
 
 const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
   const extraEnv = opts.githubToken ? { GITHUB_TOKEN: opts.githubToken } : undefined;
+  const effectiveTools =
+    opts.allowedTools && opts.allowedTools.length > 0
+      ? (opts.allowedTools as ToolName[])
+      : undefined;
   const result = await runClaude({
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
-    allowedTools: (opts.allowedTools ?? []) as ToolName[],
+    ...(effectiveTools ? { allowedTools: effectiveTools } : {}),
     onProgress: toAsyncProgress(opts.onProgress),
     extraEnv,
     ssh: opts.ssh,
@@ -83,6 +88,23 @@ const runMastraDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> =
 
 type DriverFn = (opts: AgentRunOptions) => Promise<AgentRunResult>;
 
+const runHermesDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
+  const result = await runHermes({
+    systemPrompt: opts.systemPrompt,
+    userPrompt: opts.userPrompt,
+    cwd: opts.cwd,
+    model: opts.model,
+    allowedTools: opts.allowedTools,
+    onProgress: toAsyncProgress(opts.onProgress),
+  });
+
+  if (result.isErr()) {
+    return Promise.reject(result.error);
+  }
+
+  return { text: result.value, events: [] };
+};
+
 const runOpenclawDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
   const result = await runOpenclaw({
     systemPrompt: opts.systemPrompt,
@@ -97,6 +119,7 @@ const runOpenclawDirect = async (opts: AgentRunOptions): Promise<AgentRunResult>
 const DRIVERS: Record<AgentRuntime, DriverFn> = {
   "claude-code": runLocalClaudeDirect,
   codex: runCodexDirect,
+  hermes: runHermesDirect,
   mastra: runMastraDirect,
   openclaw: runOpenclawDirect,
 };
@@ -280,7 +303,7 @@ const recordObservability = async ({
     recordAgentRunWithSpans(
       {
         jobId,
-        agentSystem: agent,
+        agentRuntime: agent,
         agentId,
         modelId: null,
         rawPayload: {
@@ -310,7 +333,10 @@ const recordObservability = async ({
   );
 
   if (obsResult.isErr()) {
-    logger.warn({ err: obsResult.error, agentId, jobId }, "agentEngine: failed to record observability");
+    logger.warn(
+      { err: obsResult.error, agentId, jobId },
+      "agentEngine: failed to record observability",
+    );
   }
 };
 

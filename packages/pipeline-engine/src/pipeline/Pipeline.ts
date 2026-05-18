@@ -3,24 +3,41 @@ import { rm } from "node:fs/promises";
 import { ResultAsync } from "neverthrow";
 import { trace } from "@repo/obs";
 import { pluginRegistry } from "@repo/plugin";
+import { type NodeCtx } from "../schemas";
 import {
-  resolveMetaType,
-  NODE_TYPE_ENUM,
+  BUILTIN_NODE_TYPE_ENUM,
+  OBJECT_NODE_TYPE_ENUM,
+  OPERATION_NODE_TYPE_ENUM,
+  OUTPUT_NODE_TYPE_ENUM,
   type PipelineEdge,
   type PipelineNode,
   type PipelineNodeData,
-  type NodeCtx,
-} from "../schemas";
+  type MetaNodeType,
+} from "@repo/schemas";
 import type { PipelineEngineDeps } from "../deps";
 import { ScriptExecutionError, type PipelineRunError } from "../errors";
 import { buildExecutionLevels, getParentIds, type CycleDetectedError } from "../dagScheduler";
 import { safeReadInputFile } from "../infrastructure";
-import type { OperationInfo, SkillInfo, OperationNodeContext } from "../nodes/types";
-import { processCodeFileNode } from "../nodes/CodeFileNode";
+import type { AgentInfo, OperationInfo, SkillInfo, OperationNodeContext } from "../nodes/types";
+import { processFileNode } from "../nodes/FileNode";
 import { processFolderNode } from "../nodes/FolderNode";
 import { processGitHubProjectNode } from "../nodes/GitHubProjectNode";
+import { processPromptNode } from "../nodes/PromptNode";
 import { processOutputLocalPathNode } from "../nodes/OutputLocalPathNode";
 import { processOperationNode } from "../nodes/OperationNode";
+
+const OBJECT_TYPES: ReadonlySet<string> = new Set(Object.values(OBJECT_NODE_TYPE_ENUM));
+const OPERATION_TYPES: ReadonlySet<string> = new Set(Object.values(OPERATION_NODE_TYPE_ENUM));
+const OUTPUT_TYPES: ReadonlySet<string> = new Set(Object.values(OUTPUT_NODE_TYPE_ENUM));
+
+const resolveMetaType = (type: string): MetaNodeType =>
+  OBJECT_TYPES.has(type)
+    ? "object"
+    : OPERATION_TYPES.has(type)
+      ? "operation"
+      : OUTPUT_TYPES.has(type)
+        ? "output"
+        : "object";
 
 export type PipelineRunResult =
   | { ok: true; summary: string }
@@ -41,8 +58,8 @@ export interface PipelineOptions {
   defaultOutputPath?: string;
   operations: Map<string, OperationInfo>;
   deps: PipelineEngineDeps;
+  lookupAgent: (id: string) => Promise<AgentInfo | null>;
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
-  lookupBestPractice: (id: string) => Promise<{ title: string; content: string } | null>;
 }
 
 export class Pipeline {
@@ -102,7 +119,7 @@ export class Pipeline {
     }
 
     const outputPaths = nodes.flatMap((n) => {
-      if (n.data.nodeType !== NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) return [];
+      if (n.data.nodeType !== BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) return [];
       const configuredPath = n.data.localPath ?? "";
       const path = configuredPath || this.opts.defaultOutputPath || "";
 
@@ -161,7 +178,7 @@ export class Pipeline {
       defaultOutputPath: this.opts.defaultOutputPath,
     };
 
-    const metaType = resolveMetaType(node.type, node.metaType);
+    const metaType = resolveMetaType(node.type);
 
     // ── object metaType ──────────────────────────────────────────────────
     if (metaType === "object") {
@@ -170,13 +187,14 @@ export class Pipeline {
 
     // ── operation metaType ───────────────────────────────────────────────
     if (metaType === "operation") {
-      if (node.type === NODE_TYPE_ENUM.OPERATION) {
+      if (node.type === BUILTIN_NODE_TYPE_ENUM.OPERATION) {
         const opCtx: OperationNodeContext = {
           ...baseCtx,
           operations: this.opts.operations,
+          lookupAgent: this.opts.lookupAgent,
           lookupSkill: this.opts.lookupSkill,
-          lookupBestPractice: this.opts.lookupBestPractice,
           githubToken: this.opts.githubToken,
+          outputDir: this.resolveOutputDirForNode(node.id),
         };
 
         return this.wrapNodeResult(node.id, processOperationNode(node, input, opCtx));
@@ -192,11 +210,11 @@ export class Pipeline {
 
     // ── output metaType ──────────────────────────────────────────────────
     if (metaType === "output") {
-      if (node.type === NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) {
+      if (node.type === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) {
         return this.wrapNodeResult(node.id, processOutputLocalPathNode(baseCtx));
       }
 
-      if (node.data.nodeType === NODE_TYPE_ENUM.OUTPUT_PROJECT_PATH) {
+      if (node.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_PROJECT_PATH) {
         const projPath = node.data.path ?? input.inputPath;
         await trace(jobId, `Output-to-project: changes written directly to ${projPath}`);
         this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
@@ -218,6 +236,22 @@ export class Pipeline {
     await trace(jobId, `@@NODE_DONE::${node.id}`);
 
     return { ok: true };
+  }
+
+  private resolveOutputDirForNode(nodeId: string): string | undefined {
+    const { edges, nodes } = this.opts.pipeline;
+    const childIds = edges.filter((e) => e.source === nodeId).map((e) => e.target);
+    const outputNode = nodes.find(
+      (n) =>
+        childIds.includes(n.id) && n.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH,
+    );
+    const configuredPath =
+      outputNode?.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH
+        ? (outputNode.data.localPath ?? "")
+        : "";
+    const resolved = configuredPath || this.opts.defaultOutputPath || "";
+
+    return resolved || undefined;
   }
 
   /**
@@ -261,15 +295,19 @@ export class Pipeline {
     }
 
     // Built-in object handlers
-    if (node.type === NODE_TYPE_ENUM.FOLDER) {
+    if (node.type === BUILTIN_NODE_TYPE_ENUM.FOLDER) {
       return this.wrapNodeResult(node.id, processFolderNode(baseCtx));
     }
 
-    if (node.type === NODE_TYPE_ENUM.CODE_FILE) {
-      return this.wrapNodeResult(node.id, processCodeFileNode(baseCtx));
+    if (node.type === BUILTIN_NODE_TYPE_ENUM.FILE) {
+      return this.wrapNodeResult(node.id, processFileNode(baseCtx));
     }
 
-    if (node.type === NODE_TYPE_ENUM.GITHUB_PROJECT) {
+    if (node.type === BUILTIN_NODE_TYPE_ENUM.PROMPT) {
+      return this.wrapNodeResult(node.id, processPromptNode(baseCtx));
+    }
+
+    if (node.type === BUILTIN_NODE_TYPE_ENUM.GITHUB_PROJECT) {
       return this.wrapNodeResult(
         node.id,
         processGitHubProjectNode({ ...baseCtx, githubToken: this.opts.githubToken }),

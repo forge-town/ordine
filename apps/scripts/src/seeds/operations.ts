@@ -21,7 +21,7 @@ interface OperationSeed {
 
 // ─── Config DSL ──────────────────────────────────────────────────────────────
 
-type PortKind = "text" | "file" | "folder" | "project";
+type PortKind = "file" | "folder" | "github-project" | "prompt";
 
 interface InputPort {
   name: string;
@@ -30,7 +30,7 @@ interface InputPort {
   description: string;
 }
 
-interface OutputPort {
+interface OutputItem {
   name: string;
   kind: PortKind;
   path: string;
@@ -49,7 +49,7 @@ interface ExecutorConfig {
 interface OperationConfig {
   executor?: ExecutorConfig;
   inputs: InputPort[];
-  outputs: OutputPort[];
+  outputs: OutputItem[];
 }
 
 const cfg = (config: OperationConfig): OperationConfig => {
@@ -65,30 +65,30 @@ const OPERATIONS: OperationSeed[] = [
     name: "Constitution",
     description:
       "Establish the project's governing principles, architectural constraints, quality standards, and development guidelines that all subsequent work must follow.",
-    acceptedObjectTypes: ["project"],
+    acceptedObjectTypes: ["github-project"],
     config: cfg({
       inputs: [
         {
           name: "projectName",
-          kind: "text",
+          kind: "prompt",
           required: true,
           description: "Name of the project being governed.",
         },
         {
           name: "teamContext",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description: "Optional: team size, experience level, and working conventions.",
         },
         {
           name: "techPreferences",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description: "Preferred languages, frameworks, or cloud providers.",
         },
         {
           name: "qualityStandards",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description:
             "Testing requirements, performance targets, accessibility requirements, etc.",
@@ -112,12 +112,12 @@ const OPERATIONS: OperationSeed[] = [
     name: "Specify",
     description:
       "Translate a raw feature idea into a structured specification document covering user stories, acceptance criteria, and scope boundaries.",
-    acceptedObjectTypes: ["project", "folder"],
+    acceptedObjectTypes: ["github-project", "folder"],
     config: cfg({
       inputs: [
         {
           name: "featureDescription",
-          kind: "text",
+          kind: "prompt",
           required: true,
           description: "Free-form description of the feature — what & why, not how.",
         },
@@ -157,7 +157,7 @@ const OPERATIONS: OperationSeed[] = [
         },
         {
           name: "clarificationQuestions",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description: "Optional: specific questions or concerns to address during clarification.",
         },
@@ -196,7 +196,7 @@ const OPERATIONS: OperationSeed[] = [
         },
         {
           name: "techStack",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description:
             "Technology stack and architectural decisions (e.g. 'Next.js 15, Drizzle, PostgreSQL').",
@@ -276,7 +276,7 @@ const OPERATIONS: OperationSeed[] = [
         },
         {
           name: "checklistFocus",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description: "Optional focus areas, e.g. 'security, accessibility, performance'.",
         },
@@ -385,7 +385,7 @@ const OPERATIONS: OperationSeed[] = [
     name: "Check",
     description:
       "Run quality checks on the codebase: linting, type checking, and tests. Reports issues found and suggests fixes.",
-    acceptedObjectTypes: ["file", "folder", "project"],
+    acceptedObjectTypes: ["file", "folder", "github-project"],
     config: cfg({
       executor: {
         type: "agent",
@@ -395,13 +395,13 @@ const OPERATIONS: OperationSeed[] = [
       inputs: [
         {
           name: "target",
-          kind: "project",
+          kind: "github-project",
           required: true,
           description: "The file, folder, or project to run checks on.",
         },
         {
           name: "checkTypes",
-          kind: "text",
+          kind: "prompt",
           required: false,
           description:
             "Comma-separated list of checks to run: lint, typecheck, test. Defaults to all.",

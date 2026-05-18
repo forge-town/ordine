@@ -9,12 +9,12 @@ import {
   type OperationInfo,
 } from "@repo/pipeline-engine";
 import type {
+  AgentsDao,
   OperationsDao,
   PipelinesDao,
   JobsDao,
   PipelineRunsDao,
   SkillsDao,
-  BestPracticesDao,
 } from "@repo/models";
 
 /**
@@ -60,15 +60,16 @@ export const pipelineRunExecutor = {
   run: async (opts: {
     pipelineId: string;
     inputPath?: string;
+    inputs?: Record<string, string>;
     jobId: string;
     githubToken?: string;
     defaultOutputPath?: string;
     pipelinesDao: PipelinesDao;
     operationsDao: OperationsDao;
+    agentsDao: AgentsDao;
     jobsDao: JobsDao;
     pipelineRunsDao: PipelineRunsDao;
     skillsDao: SkillsDao;
-    bestPracticesDao: BestPracticesDao;
     engineDeps: PipelineEngineDeps;
   }): Promise<void> => {
     const {
@@ -77,10 +78,10 @@ export const pipelineRunExecutor = {
       githubToken,
       pipelinesDao,
       operationsDao,
+      agentsDao,
       jobsDao,
       pipelineRunsDao,
       skillsDao,
-      bestPracticesDao,
       engineDeps,
     } = opts;
 
@@ -115,18 +116,29 @@ export const pipelineRunExecutor = {
             : null;
         };
 
-        const lookupBestPractice = async (bpId: string) => {
-          const bp = await bestPracticesDao.findById(bpId);
+        const lookupAgent = async (agentId: string) => {
+          const agent = await agentsDao.findById(agentId);
 
-          return bp ? { title: bp.title, content: bp.content } : null;
+          return agent
+            ? { id: agent.id, name: agent.name, defaultRuntime: agent.defaultRuntime }
+            : null;
         };
+
+        // Inject dynamic inputs into prompt nodes before execution
+        const nodes = pipeline.nodes.map((n) => {
+          if (opts.inputs && n.data.nodeType === "prompt" && opts.inputs[n.id]) {
+            return { ...n, data: { ...n.data, prompt: opts.inputs[n.id]! } };
+          }
+
+          return n;
+        });
 
         const result = await ResultAsync.fromPromise(
           pipelineEngine.execute({
             pipeline: {
               id: pipeline.id,
               name: pipeline.name,
-              nodes: pipeline.nodes,
+              nodes,
               edges: pipeline.edges,
             },
             jobId,
@@ -135,8 +147,8 @@ export const pipelineRunExecutor = {
             defaultOutputPath: opts.defaultOutputPath,
             operations: operationsMap,
             deps: engineDeps,
+            lookupAgent,
             lookupSkill,
-            lookupBestPractice,
           }),
           (cause): PipelineRunError =>
             new ScriptExecutionError(cause instanceof Error ? cause.message : String(cause), cause),

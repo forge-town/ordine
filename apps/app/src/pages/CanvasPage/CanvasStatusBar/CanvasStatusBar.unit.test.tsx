@@ -7,11 +7,11 @@ import { CanvasStatusBar } from "./CanvasStatusBar";
 
 const node = {
   id: "node-1",
-  type: "code-file",
+  type: "file",
   position: { x: 0, y: 0 },
   data: {
     label: "Source File",
-    nodeType: "code-file",
+    nodeType: "file",
     filePath: "src/index.ts",
     language: "typescript",
     description: "",
@@ -33,7 +33,7 @@ describe("CanvasStatusBar", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasStatusBar />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
 
     expect(screen.getByText(/1 (nodes|个节点)/)).toBeInTheDocument();

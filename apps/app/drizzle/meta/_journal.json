@@ -162,6 +162,20 @@
       "when": 1777533361070,
       "tag": "0022_add-auth-tables",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1778253517515,
+      "tag": "0023_many_dragon_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1778485461000,
+      "tag": "0024_add_agents_system_prompt_check",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,6 @@
 {
   "name": "ordine",
+  "version": "0.0.2-preview.2",
   "private": true,
   "description": "AI-first meta-orchestration engine",
   "homepage": "https://ordine.ai",
@@ -18,7 +19,8 @@
     "dev": "turbo run dev",
     "test": "turbo run test -- --run",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "oxfmt --config packages/oxc-formatter-config/oxfmt.json --write \"**/*.{js,jsx,ts,tsx,json,jsonc,md}\" \"!apps/scripts/src/best-practices/**/code-snippet.*\"",
+    "format:check": "oxfmt --config packages/oxc-formatter-config/oxfmt.json --check \"**/*.{js,jsx,ts,tsx,json,jsonc,md}\" \"!apps/scripts/src/best-practices/**/code-snippet.*\"",
     "check-types": "turbo run check-types",
     "quality": "turbo quality",
     "knip": "knip",
@@ -27,16 +29,20 @@
     "sync-skills": "bunx skills add https://github.com/forge-town/skills",
     "changeset": "changeset",
     "version-packages": "changeset version",
+    "release:tag": "bun apps/scripts/src/releases/create-release-tag.ts",
     "release": "changeset publish"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.31.0",
+    "@esbuild/darwin-x64": "^0.25.12",
     "@oxlint/binding-darwin-arm64": "^1.59.0",
+    "@oxlint/binding-darwin-x64": "^1.62.0",
     "@rollup/rollup-darwin-arm64": "^4.60.1",
+    "@rollup/rollup-darwin-x64": "^4.60.2",
     "knip": "^6.4.0",
+    "oxfmt": "0.44.0",
     "oxlint": "^1.59.0",
-    "prettier": "^3.7.4",
     "turbo": "^2.8.21",
     "typescript": "5.9.2"
   },

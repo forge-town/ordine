@@ -20,10 +20,7 @@ interface DetectedRuntime {
   version?: string;
 }
 
-const computeDiff = (
-  existing: AgentRuntimeConfig[],
-  detected: DetectedRuntime[],
-): ScanDiff => {
+const computeDiff = (existing: AgentRuntimeConfig[], detected: DetectedRuntime[]): ScanDiff => {
   const detectedIds = new Set(detected.map((d) => `local-${d.type}`));
   const existingIds = new Set(existing.map((e) => e.id));
 
@@ -91,12 +88,7 @@ export const RuntimesPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         actions={
-          <Button
-            disabled={isScanning}
-            size="sm"
-            variant="outline"
-            onClick={handleScan}
-          >
+          <Button disabled={isScanning} size="sm" variant="outline" onClick={handleScan}>
             {isScanning ? (
               <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
             ) : (

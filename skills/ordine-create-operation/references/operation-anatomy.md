@@ -8,7 +8,7 @@
 | `name` | `string` | 人类可读名称 |
 | `description` | `string \| null` | 操作描述 |
 | `config` | `string (JSON)` | 执行器配置（JSON 字符串） |
-| `acceptedObjectTypes` | `string[] \| null` | 接受的对象类型，如 `["folder", "code-file", "github-project"]` |
+| `acceptedObjectTypes` | `string[] \| null` | 接受的对象类型，如 `["folder", "file", "github-project"]` |
 | `createdAt` | `timestamp` | 创建时间 |
 | `updatedAt` | `timestamp` | 更新时间 |
 
@@ -57,7 +57,7 @@
 | 字段 | 说明 |
 |---|---|
 | `name` | 输入名称，Pipeline 中用于映射数据流 |
-| `kind` | 输入类型：`"folder"`, `"code-file"`, `"github-project"`, `"text"`, `"json"` |
+| `kind` | 输入类型：`"file"`, `"folder"`, `"github-project"`, `"prompt"` |
 | `required` | 是否必填 |
 
 ### outputs（输出）
@@ -75,10 +75,9 @@
 Operation 声明自己可以处理哪些类型的对象：
 
 - `folder` — 文件夹
-- `code-file` — 代码文件
+- `file` — 文件
 - `github-project` — GitHub 项目
-- `text` — 纯文本
-- `json` — JSON 数据
+- `prompt` — 提示词/纯文本
 
 ## Operation 的两种类型
 
@@ -100,6 +99,6 @@ Operation 声明自己可以处理哪些类型的对象：
   "name": "检查 DAO 规范",
   "description": "检查 DAO 文件是否遵循 Drizzle ORM 最佳实践",
   "config": "{\"executor\":{\"type\":\"skill\",\"skillId\":\"skill_check_dao\"},\"inputs\":[{\"name\":\"target_folder\",\"kind\":\"folder\",\"required\":true}],\"outputs\":[{\"name\":\"report\",\"kind\":\"file\",\"path\":\"reports/dao-check-report.md\"}]}",
-  "acceptedObjectTypes": ["folder", "code-file"]
+  "acceptedObjectTypes": ["folder", "file"]
 }
 ```

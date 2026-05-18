@@ -8,6 +8,7 @@ import {
   Pencil,
   Download,
   Trash2,
+  MessageSquareText,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Operation, ObjectType } from "@repo/schemas";
@@ -22,7 +23,8 @@ import {
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
   folder: Folder,
-  project: FolderGit2,
+  "github-project": FolderGit2,
+  prompt: MessageSquareText,
 };
 
 const getComplexity = (op: Operation) => {
@@ -50,18 +52,21 @@ export const OperationListRow = ({ operation }: OperationListRowProps) => {
   const { mutate: deleteOpMutate } = useDelete();
 
   const handleEdit = () =>
-    navigate({ to: "/operations/$operationId/edit", params: { operationId: operation.id } });
+    navigate({
+      to: "/pipelines/operations/$operationId/edit",
+      params: { operationId: operation.id },
+    });
   const handleDelete = () =>
     deleteOpMutate({ resource: ResourceName.operations, id: operation.id });
   const handleExport = () => exportOperation(operation);
   const complexity = getComplexity(operation);
   const objectTypes = Array.isArray(operation.acceptedObjectTypes)
     ? operation.acceptedObjectTypes
-    : (["file", "folder", "project"] as ObjectType[]);
+    : (["file", "folder", "github-project", "prompt"] as ObjectType[]);
 
   const handleRowClick = () => {
     navigate({
-      to: "/operations/$operationId",
+      to: "/pipelines/operations/$operationId",
       params: { operationId: operation.id },
     });
   };

@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import { defineConfig } from "vitest/config";
 import viteReact from "@vitejs/plugin-react";
 import viteTsConfigPaths from "vite-tsconfig-paths";
@@ -19,6 +18,7 @@ export default defineConfig({
     exclude: [
       "node_modules/",
       "src/test/",
+      "src/archived/",
       "e2e/",
       "**/*.d.ts",
       "**/*.config.*",

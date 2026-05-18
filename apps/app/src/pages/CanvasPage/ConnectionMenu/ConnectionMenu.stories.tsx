@@ -1,17 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
-import type { PipelineNode } from "../_store";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store";
+import { createHarnessCanvasStore, HarnessCanvasStoreContext, type PipelineNode } from "../_store";
 import { canvasStoryDataProvider } from "../storybookData";
 import { ConnectionMenu } from "./ConnectionMenu";
 
 const sourceNode = {
   id: "source-file",
-  type: "code-file",
+  type: "file",
   position: { x: 80, y: 120 },
   data: {
     label: "Source File",
-    nodeType: "code-file",
+    nodeType: "file",
     filePath: "src/index.ts",
     language: "typescript",
     description: "Pipeline source",
@@ -58,7 +57,7 @@ export const Default: Story = {
     docs: {
       description: {
         story:
-          "Open connection menu from a code-file source node using local Operation and Recipe data.",
+          "Open connection menu from a file source node using local Operation and Recipe data.",
       },
     },
   },

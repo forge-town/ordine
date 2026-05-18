@@ -8,10 +8,10 @@ import {
   Folder,
   FolderOutput,
   HardDrive,
-  BookOpen,
   Group,
   Ungroup,
   GitBranch,
+  MessageSquareText,
 } from "lucide-react";
 import {
   ContextMenu,
@@ -29,19 +29,19 @@ import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, Recipe } from "@repo/schemas";
+import type { Operation, BuiltinNodeType } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
-import { getNodeMeta } from "../utils/nodeTypeMeta";
-import type { NodeType, BuiltinNodeType } from "@repo/pipeline-engine/schemas";
+import { getNodeMeta, getNodeTypeLabel, getNodeTypeShortLabel } from "../utils/nodeTypeMeta";
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
   operation: Zap,
   compound: Group,
   condition: GitBranch,
-  "code-file": FileCode,
+  file: FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
+  prompt: MessageSquareText,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
 };
@@ -51,9 +51,7 @@ export const NodeContextMenu = () => {
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: recipesResult } = useList<Recipe>({ resource: ResourceName.recipes });
   const operations = operationsResult?.data ?? [];
-  const recipes = recipesResult?.data ?? [];
   const store = useHarnessCanvasStore();
   const nodeContextMenu = useStore(store, (s) => s.nodeContextMenu);
   const nodes = useStore(store, (s) => s.nodes);
@@ -64,7 +62,6 @@ export const NodeContextMenu = () => {
   const handleNodeContextGroupSelected = useStore(store, (s) => s.nodeContextGroupSelected);
   const handleNodeContextAddObject = useStore(store, (s) => s.nodeContextAddObject);
   const nodeContextAddOperation = useStore(store, (s) => s.nodeContextAddOperation);
-  const nodeContextAddRecipe = useStore(store, (s) => s.nodeContextAddRecipe);
   const handleNodeContextMenuOpenChange = useStore(store, (s) => s.handleNodeContextMenuOpenChange);
 
   const nodeId = nodeContextMenu?.nodeId;
@@ -77,7 +74,7 @@ export const NodeContextMenu = () => {
       e.preventDefault();
       handleNodeContextDuplicate();
     },
-    [handleNodeContextDuplicate]
+    [handleNodeContextDuplicate],
   );
 
   if (!nodeContextMenu || !node) return null;
@@ -89,15 +86,18 @@ export const NodeContextMenu = () => {
   // Filter operations based on source type
   const availableOperations = (() => {
     const objectTypeMap: Record<string, string> = {
-      "code-file": "file",
+      file: "file",
       folder: "folder",
-      "github-project": "project",
+      "github-project": "github-project",
+      prompt: "prompt",
     };
     const objectType = objectTypeMap[node.type];
     if (!objectType) return operations;
 
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "github-project" | "prompt",
+      ),
     );
   })();
 
@@ -128,14 +128,6 @@ export const NodeContextMenu = () => {
     nodeContextAddOperation(operation);
   };
 
-  const handleAddRecipe = (recipeId: string) => {
-    const recipe = recipes.find((r) => r.id === recipeId);
-    if (!recipe) return;
-    const operation = operations.find((op) => op.id === recipe.operationId);
-    if (!operation) return;
-    nodeContextAddRecipe(recipe, operation);
-  };
-
   return (
     <ContextMenu open onOpenChange={handleNodeContextMenuOpenChange}>
       <ContextMenuContent
@@ -151,52 +143,54 @@ export const NodeContextMenu = () => {
           <span
             className={cn(
               "flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold text-white",
-              meta.iconBg
+              meta.iconBg,
             )}
           >
-            {meta.shortLabel.charAt(0)}
+            {getNodeTypeShortLabel(t, node.type).charAt(0)}
           </span>
-          <span className="text-xs font-medium text-foreground">{meta.label}</span>
+          <span className="text-xs font-medium text-foreground">
+            {getNodeTypeLabel(t, node.type)}
+          </span>
         </div>
 
         {/* Actions submenu */}
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <Zap className="size-4 text-muted-foreground" />
-            Actions
+            {t("canvas.contextMenu.actions")}
           </ContextMenuSubTrigger>
           <ContextMenuSubContent className="min-w-52">
             <ContextMenuGroup>
-              <ContextMenuLabel>连接新节点</ContextMenuLabel>
+              <ContextMenuLabel>{t("canvas.contextMenu.connectNewNode")}</ContextMenuLabel>
             </ContextMenuGroup>
 
             {/* Object types */}
-            {["code-file", "folder", "github-project"].some((t) =>
-              availableTypes.includes(t as BuiltinNodeType)
+            {["file", "folder", "github-project", "prompt"].some((t) =>
+              availableTypes.includes(t as BuiltinNodeType),
             ) && (
               <ContextMenuGroup>
-                <ContextMenuLabel>处理对象</ContextMenuLabel>
-                {["code-file", "folder", "github-project"]
+                <ContextMenuLabel>{t("canvas.contextMenu.processingObject")}</ContextMenuLabel>
+                {["file", "folder", "github-project", "prompt"]
                   .filter((t) => availableTypes.includes(t as BuiltinNodeType))
                   .map((type) => {
-                    const Icon = TYPE_ICONS[type as NodeType];
+                    const Icon = TYPE_ICONS[type as BuiltinNodeType];
                     const m = getNodeMeta(type)!;
 
                     return (
                       <ContextMenuItem
                         key={type}
                         closeOnClick={false}
-                        onClick={() => handleNodeContextAddObject(type as NodeType)}
+                        onClick={() => handleNodeContextAddObject(type as BuiltinNodeType)}
                       >
                         <span
                           className={cn(
                             "flex size-4 shrink-0 items-center justify-center rounded",
-                            m.iconBg
+                            m.iconBg,
                           )}
                         >
                           <Icon className="size-2.5 text-white" />
                         </span>
-                        {m.shortLabel}
+                        {getNodeTypeShortLabel(t, type)}
                       </ContextMenuItem>
                     );
                   })}
@@ -232,42 +226,20 @@ export const NodeContextMenu = () => {
                 <ContextMenuGroup>
                   <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
                   <p className="px-1.5 py-1 text-xs text-muted-foreground">
-                    没有接受此类型的 Operation
+                    {t("canvas.contextMenu.noOperationsForType")}
                   </p>
-                </ContextMenuGroup>
-              </>
-            )}
-
-            {/* Recipes */}
-            {canAddOperation && recipes.length > 0 && (
-              <>
-                <ContextMenuSeparator />
-                <ContextMenuGroup>
-                  <ContextMenuLabel>快捷配方</ContextMenuLabel>
-                  {recipes.map((recipe) => (
-                    <ContextMenuItem
-                      key={recipe.id}
-                      closeOnClick={false}
-                      onClick={() => handleAddRecipe(recipe.id)}
-                    >
-                      <span className="flex size-4 shrink-0 items-center justify-center rounded bg-amber-500">
-                        <BookOpen className="size-2.5 text-white" />
-                      </span>
-                      <span className="truncate">{recipe.name}</span>
-                    </ContextMenuItem>
-                  ))}
                 </ContextMenuGroup>
               </>
             )}
 
             {/* Output nodes */}
             {(["output-project-path", "output-local-path"] as BuiltinNodeType[]).some((t) =>
-              availableTypes.includes(t)
+              availableTypes.includes(t),
             ) && (
               <>
                 <ContextMenuSeparator />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>输出终点</ContextMenuLabel>
+                  <ContextMenuLabel>{t("canvas.contextMenu.outputEndpoint")}</ContextMenuLabel>
                   {(["output-project-path", "output-local-path"] as BuiltinNodeType[])
                     .filter((t) => availableTypes.includes(t))
                     .map((type) => {
@@ -283,12 +255,12 @@ export const NodeContextMenu = () => {
                           <span
                             className={cn(
                               "flex size-4 shrink-0 items-center justify-center rounded",
-                              m.iconBg
+                              m.iconBg,
                             )}
                           >
                             <Icon className="size-2.5 text-white" />
                           </span>
-                          {m.label}
+                          {getNodeTypeLabel(t, type)}
                         </ContextMenuItem>
                       );
                     })}
@@ -301,7 +273,7 @@ export const NodeContextMenu = () => {
         {/* Duplicate */}
         <ContextMenuItem closeOnClick={false} onClick={handleNodeContextDuplicate}>
           <Copy className="size-4 text-muted-foreground" />
-          Duplicate
+          {t("canvas.contextMenu.duplicate")}
           <span className="ml-auto text-xs tracking-widest text-muted-foreground">⌘D</span>
         </ContextMenuItem>
 
@@ -309,7 +281,7 @@ export const NodeContextMenu = () => {
         {selectedIds.length >= 2 && (
           <ContextMenuItem closeOnClick={false} onClick={handleNodeContextGroupSelected}>
             <Group className="size-4 text-muted-foreground" />
-            编组 {selectedIds.length} 个选中节点
+            {t("canvas.contextMenu.groupSelected", { count: selectedIds.length })}
           </ContextMenuItem>
         )}
 
@@ -317,7 +289,7 @@ export const NodeContextMenu = () => {
         {node.type === "compound" && (
           <ContextMenuItem closeOnClick={false} onClick={handleNodeContextUngroup}>
             <Ungroup className="size-4 text-muted-foreground" />
-            解散编组
+            {t("canvas.contextMenu.ungroup")}
           </ContextMenuItem>
         )}
 
@@ -325,7 +297,7 @@ export const NodeContextMenu = () => {
         {node.parentId && (
           <ContextMenuItem closeOnClick={false} onClick={handleNodeContextDetach}>
             <Ungroup className="size-4 text-muted-foreground" />
-            从编组中移除
+            {t("canvas.contextMenu.detachFromGroup")}
           </ContextMenuItem>
         )}
 
@@ -338,7 +310,7 @@ export const NodeContextMenu = () => {
           onClick={handleNodeContextDelete}
         >
           <Trash2 className="size-4" />
-          Delete
+          {t("canvas.contextMenu.delete")}
           <span className="ml-auto text-xs tracking-widest text-destructive/40">⌫</span>
         </ContextMenuItem>
       </ContextMenuContent>

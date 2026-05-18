@@ -1,7 +1,14 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasFloatingMenu } from "./CanvasFloatingMenu";
-import { HarnessCanvasStoreProvider } from "../_store";
+import {
+  createHarnessCanvasStore,
+  HarnessCanvasStoreContext,
+  HarnessCanvasStoreProvider,
+} from "../_store";
+import { toastStore } from "@/store/toastStore";
+import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";
+import { MAX_CANVAS_IMPORT_BYTES, MAX_CANVAS_IMPORT_NODES } from "../utils/canvasImportJson";
 
 // ─── Mock @refinedev/core ─────────────────────────────────────────────────────
 
@@ -35,12 +42,12 @@ vi.mock("@tanstack/react-router", () => ({
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const openMenu = () => {
-  fireEvent.click(screen.getByTitle("菜单"));
+  fireEvent.click(screen.getByTitle("Menu"));
 };
 
 const clickSave = () => {
   openMenu();
-  fireEvent.click(screen.getByText("保存"));
+  fireEvent.click(screen.getByText("Save"));
 };
 
 const wrapperWithPipeline = ({ children }: React.PropsWithChildren) => (
@@ -61,12 +68,59 @@ const wrapperWithTestPipeline = ({ children }: React.PropsWithChildren) => (
   </HarnessCanvasStoreProvider>
 );
 
+const makeNode = (id: string): PipelineNode =>
+  ({
+    id,
+    type: "file",
+    position: { x: 0, y: 0 },
+    data: {
+      label: id,
+      nodeType: "file",
+      filePath: "",
+      language: "typescript",
+      description: "",
+    },
+  }) as PipelineNode;
+
+const makeEdge = (id: string): PipelineEdge => ({
+  id,
+  source: "existing",
+  target: "target",
+  type: "default",
+  animated: true,
+  data: { label: "" },
+});
+
+const uploadJsonFile = (content: string) => {
+  const input = document.querySelector<HTMLInputElement>("input[name='canvasImportFile']");
+  expect(input).toBeTruthy();
+
+  fireEvent.change(input!, {
+    target: {
+      files: [new File([content], "pipeline.json", { type: "application/json" })],
+    },
+  });
+};
+
+const expectImportFailedToast = async () => {
+  await waitFor(() =>
+    expect(
+      toastStore
+        .getState()
+        .toasts.some(
+          (toast) => toast.type === "error" && /^(Import failed|导入失败)$/.test(toast.title),
+        ),
+    ).toBe(true),
+  );
+};
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("CanvasFloatingMenu - save behavior", () => {
   beforeEach(() => {
     mockUpdate.mockClear();
     mockCreate.mockClear();
+    toastStore.setState({ toasts: [] });
   });
 
   describe("when pipelineId exists (update path)", () => {
@@ -80,7 +134,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
           resource: "pipelines",
           id: "pipe-001",
           values: expect.objectContaining({ nodes: [], edges: [] }),
-        })
+        }),
       );
     });
 
@@ -103,12 +157,12 @@ describe("CanvasFloatingMenu - save behavior", () => {
           resource: "pipelines",
           values: expect.objectContaining({
             id: expect.any(String),
-            name: "无标题",
+            name: "Untitled Pipeline",
             nodes: [],
             edges: [],
           }),
         }),
-        expect.objectContaining({ onSuccess: expect.any(Function) })
+        expect.objectContaining({ onSuccess: expect.any(Function) }),
       );
     });
 
@@ -137,7 +191,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
       mockCreate.mockClear();
       mockUpdate.mockClear();
       openMenu();
-      fireEvent.click(screen.getByText("保存"));
+      fireEvent.click(screen.getByText("Save"));
 
       expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: generatedId }));
       expect(mockCreate).not.toHaveBeenCalled();
@@ -145,16 +199,16 @@ describe("CanvasFloatingMenu - save behavior", () => {
   });
 
   describe("menu items", () => {
-    it("renders 导入 item in the menu", () => {
+    it("renders Import item in the menu", () => {
       render(<CanvasFloatingMenu />, { wrapper: wrapperWithNullPipeline });
       openMenu();
-      expect(screen.getByText("导入")).toBeInTheDocument();
+      expect(screen.getByText("Import")).toBeInTheDocument();
     });
 
-    it("renders 导出 item in the menu", () => {
+    it("renders Export item in the menu", () => {
       render(<CanvasFloatingMenu />, { wrapper: wrapperWithNullPipeline });
       openMenu();
-      expect(screen.getByText("导出")).toBeInTheDocument();
+      expect(screen.getByText("Export")).toBeInTheDocument();
     });
   });
   it("save button is disabled while a mutation is pending", () => {
@@ -168,8 +222,238 @@ describe("CanvasFloatingMenu - save behavior", () => {
     // the disabled prop is wired to the button element.
     render(<CanvasFloatingMenu />, { wrapper: wrapperWithTestPipeline });
     openMenu();
-    const saveBtn = screen.getByText("保存").closest("button");
+    const saveBtn = screen.getByText("Save").closest("button");
     expect(saveBtn).not.toBeDisabled();
     isPendingUpdate.mockRestore?.();
+  });
+
+  it("imports exported pipeline JSON with title, nodes, and edges", async () => {
+    const store = createHarnessCanvasStore([], [], null, "Existing Pipeline");
+    const baseNode = makeNode("n1");
+    const node = {
+      ...baseNode,
+      className: "unexpected-import-class",
+      hidden: true,
+      style: {
+        width: 240,
+        height: 120,
+        backgroundImage: "url(https://example.invalid/tracker)",
+      },
+      data: { ...baseNode.data, importMetadata: { shouldSurviveValidation: true } },
+    };
+    const sanitizedNode = {
+      ...baseNode,
+      style: {
+        width: 240,
+        height: 120,
+      },
+    };
+
+    render(
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <CanvasFloatingMenu />
+      </HarnessCanvasStoreContext.Provider>,
+    );
+
+    uploadJsonFile(
+      JSON.stringify({
+        name: "Imported Pipeline",
+        nodes: [node],
+        edges: [{ id: "edge-1", source: "n1", target: "n2", type: "default", animated: true }],
+      }),
+    );
+
+    await waitFor(() => expect(store.getState().pipelineName).toBe("Imported Pipeline"));
+    expect(store.getState().nodes).toEqual([sanitizedNode]);
+    expect(store.getState().edges).toEqual([
+      { id: "edge-1", source: "n1", target: "n2", type: "default", animated: true },
+    ]);
+  });
+
+  it("imports legacy pipeline JSON title through the file picker", async () => {
+    const store = createHarnessCanvasStore([], [], null, "Existing Pipeline");
+    const node = makeNode("legacy-node");
+
+    render(
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <CanvasFloatingMenu />
+      </HarnessCanvasStoreContext.Provider>,
+    );
+
+    uploadJsonFile(
+      JSON.stringify({
+        title: "Legacy Pipeline Title",
+        nodes: [node],
+        edges: [],
+      }),
+    );
+
+    await waitFor(() => expect(store.getState().pipelineName).toBe("Legacy Pipeline Title"));
+    expect(store.getState().nodes).toEqual([node]);
+    expect(store.getState().edges).toEqual([]);
+  });
+
+  it("shows a toast and preserves canvas state for invalid pipeline JSON", async () => {
+    const initialNode = makeNode("existing");
+    const initialEdge = makeEdge("existing-edge");
+    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+
+    render(
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <CanvasFloatingMenu />
+      </HarnessCanvasStoreContext.Provider>,
+    );
+
+    uploadJsonFile(JSON.stringify({ name: "Invalid Pipeline", nodes: "not-array", edges: [] }));
+
+    await expectImportFailedToast();
+    expect(store.getState().pipelineName).toBe("Existing Pipeline");
+    expect(store.getState().nodes).toEqual([initialNode]);
+    expect(store.getState().edges).toEqual([initialEdge]);
+  });
+
+  it("shows a toast and preserves canvas state for unsupported node types", async () => {
+    const initialNode = makeNode("existing");
+    const initialEdge = makeEdge("existing-edge");
+    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+
+    render(
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <CanvasFloatingMenu />
+      </HarnessCanvasStoreContext.Provider>,
+    );
+
+    uploadJsonFile(
+      JSON.stringify({
+        name: "Invalid Type Pipeline",
+        nodes: [{ ...makeNode("bad-type"), type: "custom-plugin-node" }],
+        edges: [],
+      }),
+    );
+
+    await expectImportFailedToast();
+    expect(store.getState().pipelineName).toBe("Existing Pipeline");
+    expect(store.getState().nodes).toEqual([initialNode]);
+    expect(store.getState().edges).toEqual([initialEdge]);
+  });
+
+  it("shows a toast and preserves canvas state for invalid operation runtime", async () => {
+    const initialNode = makeNode("existing");
+    const initialEdge = makeEdge("existing-edge");
+    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+
+    render(
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <CanvasFloatingMenu />
+      </HarnessCanvasStoreContext.Provider>,
+    );
+
+    uploadJsonFile(
+      JSON.stringify({
+        name: "Invalid Runtime Pipeline",
+        nodes: [
+          {
+            id: "operation-invalid-runtime",
+            type: "operation",
+            position: { x: 0, y: 0 },
+            data: {
+              label: "Operation Node",
+              nodeType: "operation",
+              operationId: "op-1",
+              operationName: "Operation",
+              status: "idle",
+              agentRuntime: "unsupported-runtime",
+            },
+          },
+        ],
+        edges: [],
+      }),
+    );
+
+    await expectImportFailedToast();
+    expect(store.getState().pipelineName).toBe("Existing Pipeline");
+    expect(store.getState().nodes).toEqual([initialNode]);
+    expect(store.getState().edges).toEqual([initialEdge]);
+  });
+
+  it("shows a toast and preserves canvas state for bad JSON", async () => {
+    const initialNode = makeNode("existing");
+    const initialEdge = makeEdge("existing-edge");
+    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+
+    render(
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <CanvasFloatingMenu />
+      </HarnessCanvasStoreContext.Provider>,
+    );
+
+    uploadJsonFile("{");
+
+    await expectImportFailedToast();
+    expect(store.getState().pipelineName).toBe("Existing Pipeline");
+    expect(store.getState().nodes).toEqual([initialNode]);
+    expect(store.getState().edges).toEqual([initialEdge]);
+  });
+
+  it("shows a toast and preserves canvas state when the import file is too large", async () => {
+    const initialNode = makeNode("existing");
+    const initialEdge = makeEdge("existing-edge");
+    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+
+    render(
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <CanvasFloatingMenu />
+      </HarnessCanvasStoreContext.Provider>,
+    );
+
+    uploadJsonFile("x".repeat(MAX_CANVAS_IMPORT_BYTES + 1));
+
+    await expectImportFailedToast();
+    expect(store.getState().pipelineName).toBe("Existing Pipeline");
+    expect(store.getState().nodes).toEqual([initialNode]);
+    expect(store.getState().edges).toEqual([initialEdge]);
+  });
+
+  it("shows a toast and preserves canvas state when the import graph is too large", async () => {
+    const initialNode = makeNode("existing");
+    const initialEdge = makeEdge("existing-edge");
+    const store = createHarnessCanvasStore([initialNode], [initialEdge], null, "Existing Pipeline");
+    const importedNodes = Array.from({ length: MAX_CANVAS_IMPORT_NODES + 1 }, (_, index) =>
+      makeNode(`oversized-${index}`),
+    );
+
+    render(
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <CanvasFloatingMenu />
+      </HarnessCanvasStoreContext.Provider>,
+    );
+
+    uploadJsonFile(
+      JSON.stringify({
+        name: "Oversized Pipeline",
+        nodes: importedNodes,
+        edges: [],
+      }),
+    );
+
+    await expectImportFailedToast();
+    expect(store.getState().pipelineName).toBe("Existing Pipeline");
+    expect(store.getState().nodes).toEqual([initialNode]);
+    expect(store.getState().edges).toEqual([initialEdge]);
+  });
+
+  it("opens in-canvas settings from the menu", () => {
+    const store = createHarnessCanvasStore();
+
+    render(
+      <HarnessCanvasStoreContext.Provider value={store}>
+        <CanvasFloatingMenu />
+      </HarnessCanvasStoreContext.Provider>,
+    );
+
+    openMenu();
+    fireEvent.click(screen.getByText(/Settings|设置/));
+
+    expect(store.getState().isCanvasSettingsOpen).toBe(true);
   });
 });

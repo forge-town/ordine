@@ -50,7 +50,7 @@ Ordine 提供统一的编排层：
 - **插件** — 封装领域特定的知识和能力
 - **技能** — 插入新的 AI 能力
 - **操作** — 使用任意执行器后端定义自定义任务
-- **节点类型** — folder、code-file、operation、output、compound、condition、github-project
+- **节点类型** — folder、file、operation、output、compound、condition、github-project
 
 ### 插件系统
 

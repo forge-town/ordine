@@ -44,7 +44,7 @@ export const DistillationActionBar = () => {
             params: { pipelineId: pipeline.id },
           });
         },
-      }
+      },
     );
   };
 
@@ -63,7 +63,7 @@ export const DistillationActionBar = () => {
           const result = data.data as { id: string };
           setRefinementId(result.id);
         },
-      }
+      },
     );
   };
 

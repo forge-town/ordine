@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { HarnessCanvasStoreProvider } from "../_store";
-import { CodeFileNode } from "./CodeFileNode";
+import { FileNode } from "./CodeFileNode";
 
-const meta: Meta<typeof CodeFileNode> = {
+const meta: Meta<typeof FileNode> = {
   title: "HarnessCanvas/CodeFileNode",
-  component: CodeFileNode,
+  component: FileNode,
   tags: ["autodocs"],
   decorators: [
     (Story) => (
@@ -29,12 +29,12 @@ const meta: Meta<typeof CodeFileNode> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof CodeFileNode>;
+type Story = StoryObj<typeof FileNode>;
 
 export const Default: Story = {
   args: {
     data: {
-      nodeType: "code-file",
+      nodeType: "file",
       label: "main.ts",
       filePath: "src/main.ts",
       language: "typescript",
@@ -54,7 +54,7 @@ export const Selected: Story = {
   args: {
     selected: true,
     data: {
-      nodeType: "code-file",
+      nodeType: "file",
       label: "canvasSlice.ts",
       filePath: "src/pages/CanvasPage/_store/canvasSlice.ts",
       language: "typescript",
@@ -63,7 +63,7 @@ export const Selected: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Selected code-file node state inside a React Flow context.",
+        story: "Selected file node state inside a React Flow context.",
       },
     },
   },
@@ -72,7 +72,7 @@ export const Selected: Story = {
 export const NoPath: Story = {
   args: {
     data: {
-      nodeType: "code-file",
+      nodeType: "file",
       label: "新文件",
       filePath: "",
       language: "python",
@@ -81,7 +81,7 @@ export const NoPath: Story = {
   parameters: {
     docs: {
       description: {
-        story: "New code-file node before a file path has been selected.",
+        story: "New file node before a file path has been selected.",
       },
     },
   },

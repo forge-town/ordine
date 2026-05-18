@@ -25,13 +25,13 @@ export const JobActivityRow = ({ job }: JobActivityRowProps) => {
   const Icon = JOB_STATUS_ICON[job.status] ?? Clock;
 
   return (
-    <Link params={{ jobId: job.id }} to="/jobs/$jobId">
+    <Link params={{ jobId: job.id }} to="/pipelines/jobs/$jobId">
       <div className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-accent transition-colors">
         <Icon
           className={cn(
             "h-4 w-4 shrink-0",
             JOB_STATUS_CLS[job.status],
-            job.status === "running" && "animate-spin"
+            job.status === "running" && "animate-spin",
           )}
         />
         <div className="min-w-0 flex-1">

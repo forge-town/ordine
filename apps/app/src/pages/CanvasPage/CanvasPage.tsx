@@ -1,5 +1,5 @@
 import { useOne } from "@refinedev/core";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { PipelineData } from "@repo/schemas";
 import { CanvasLayout } from "@/components/CanvasLayout";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { ResourceName } from "@/integrations/refine/dataProvider";

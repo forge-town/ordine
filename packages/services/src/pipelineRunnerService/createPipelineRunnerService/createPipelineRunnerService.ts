@@ -7,12 +7,12 @@ import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
 import {
+  createAgentsDao,
   createOperationsDao,
   createPipelinesDao,
   createJobsDao,
   createJobTracesDao,
   createSkillsDao,
-  createBestPracticesDao,
   createAgentRawExportsDao,
   createAgentSpansDao,
   createSettingsDao,
@@ -29,13 +29,13 @@ export class PipelineNotFoundError extends Error {
 }
 
 export const createPipelineRunnerService = (db: DbConnection) => {
+  const agentsDao = createAgentsDao(db);
   const operationsDao = createOperationsDao(db);
   const pipelinesDao = createPipelinesDao(db);
   const jobsDao = createJobsDao(db);
   const pipelineRunsDao = createPipelineRunsDao(db);
   const jobTracesDao = createJobTracesDao(db);
   const skillsDao = createSkillsDao(db);
-  const bestPracticesDao = createBestPracticesDao(db);
   const agentRawExportsDao = createAgentRawExportsDao(db);
   const agentSpansDao = createAgentSpansDao(db);
   const settingsDao = createSettingsDao(db);
@@ -73,6 +73,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       pipelineId: string;
       inputPath?: string;
       githubToken?: string;
+      inputs?: Record<string, string>;
     }): Promise<Result<{ jobId: string }, PipelineNotFoundError>> => {
       const pipeline = await pipelinesDao.findById(opts.pipelineId);
       if (!pipeline) {
@@ -113,14 +114,15 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           pipelineId: opts.pipelineId,
           inputPath: opts.inputPath,
           githubToken: opts.githubToken,
+          inputs: opts.inputs,
           defaultOutputPath: settings.defaultOutputPath,
           jobId,
           pipelinesDao,
           operationsDao,
+          agentsDao,
           jobsDao,
           pipelineRunsDao,
           skillsDao,
-          bestPracticesDao,
           engineDeps: buildDepsForJob({
             jobId,
             apiKey: settings.defaultApiKey,

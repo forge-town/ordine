@@ -26,7 +26,7 @@ A single source file. Use when you want to target a specific file for processing
 
 ```json
 {
-  "type": "code-file",
+  "type": "file",
   "data": { "path": "./src/index.ts" }
 }
 ```

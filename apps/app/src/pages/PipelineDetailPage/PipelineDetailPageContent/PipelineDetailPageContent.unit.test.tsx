@@ -2,8 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { Operation } from "@repo/schemas";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { Operation, PipelineData } from "@repo/schemas";
 import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
 
 const mockNavigate = vi.fn();
@@ -46,7 +45,7 @@ vi.mock("@xyflow/react", () => ({
 const makeOp = (id: string, name: string, description?: string): Operation => ({
   id,
   name,
-  description: description ?? null,
+  description: description ?? "",
   config: { inputs: [], outputs: [] },
   acceptedObjectTypes: ["file"],
   meta: { createdAt: new Date(), updatedAt: new Date() },
@@ -91,7 +90,7 @@ describe("PipelineDetailPageContent", () => {
       <PipelineDetailPageContent
         operations={ops}
         pipeline={makePipeline({ tags: ["ci", "lint"] })}
-      />
+      />,
     );
     expect(screen.getByText("ci")).toBeInTheDocument();
     expect(screen.getByText("lint")).toBeInTheDocument();

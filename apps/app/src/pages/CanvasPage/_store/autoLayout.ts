@@ -142,7 +142,7 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
 
           return d > acc.maxDist ? { maxDist: d, bestPred: p } : acc;
         },
-        { maxDist: -1, bestPred: null as string | null }
+        { maxDist: -1, bestPred: null as string | null },
       );
       dist.set(id, best.maxDist + 1);
       parentOf.set(id, best.bestPred);
@@ -155,7 +155,7 @@ export const computeAutoLayout = (nodes: PipelineNode[], edges: PipelineEdge[]):
 
       return d > acc.maxD ? { id, maxD: d } : acc;
     },
-    { id: trunkOrder[0], maxD: 0 }
+    { id: trunkOrder[0], maxD: 0 },
   ).id;
 
   const mainPath: string[] = [];

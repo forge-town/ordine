@@ -1,8 +1,5 @@
-import type {
-  AgentRawExportsDao,
-  AgentSpansDao,
-} from "@repo/models";
-import type { AgentSystem, SpanType, SpanStatus } from "@repo/db-schema";
+import type { AgentRawExportsDao, AgentSpansDao } from "@repo/models";
+import type { AgentRuntime, SpanType, SpanStatus } from "@repo/schemas";
 
 export interface SpanRecorderDeps {
   agentRawExportsDao: AgentRawExportsDao;
@@ -27,7 +24,7 @@ const getDeps = (): SpanRecorderDeps => {
 
 export interface RecordAgentRunOptions {
   jobId: string;
-  agentSystem: AgentSystem;
+  agentRuntime: AgentRuntime;
   agentId: string;
   modelId?: string | null;
   rawPayload: unknown;

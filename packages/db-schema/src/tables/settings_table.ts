@@ -1,10 +1,10 @@
 import { text, pgTable, timestamp } from "drizzle-orm/pg-core";
-import type { AgentRuntime } from "@repo/schemas";
+import type { DefaultAgentRuntime } from "@repo/schemas";
 
 export const settingsTable = pgTable("settings", {
   id: text("id").primaryKey().default("default"),
   defaultAgentRuntime: text("default_agent_runtime")
-    .$type<AgentRuntime>()
+    .$type<DefaultAgentRuntime>()
     .notNull()
     .default("mastra"),
   defaultApiKey: text("default_api_key").notNull().default(""),

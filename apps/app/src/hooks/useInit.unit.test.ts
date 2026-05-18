@@ -25,7 +25,7 @@ describe("useBeginning", () => {
         counter.value++;
 
         return counter.value;
-      })
+      }),
     );
     expect(result.current).toBe(1);
     rerender();

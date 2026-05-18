@@ -1,27 +1,27 @@
-import { useEffect, useState, type ElementType } from "react";
+import { useEffect, type ElementType } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useStore } from "zustand";
 import {
   ArrowLeft,
+  Bot,
   LayoutDashboard,
   Workflow,
   BookOpen,
   Settings,
   Layers,
-  FolderGit2,
-  Lightbulb,
   Activity,
-  ShieldCheck,
   Zap,
-  ChefHat,
   FlaskConical,
   Box,
-  Globe,
   Puzzle,
   ExternalLink,
+  Eye,
   ChevronRight,
   Server,
   LogOut,
   ChevronsUpDown,
+  Search,
+  SquarePen,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -46,59 +46,38 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
-import { pluginRegistry } from "@repo/plugin";
 import { useSession, signOut } from "@/integrations/better-auth-client";
+import { useSidebarStore } from "@/store/sidebarStore";
+import { SidebarView } from "@/store/sidebarSlice";
 
 interface NavItem {
   labelKey: string;
   icon: ElementType;
   to: string;
   badge?: string;
+  exact?: boolean;
 }
-
-type SidebarView = "main" | "pipeline";
-
-const featuredItems: NavItem[] = [
-  { labelKey: "nav.canvas", icon: Workflow, to: "/canvas" },
-  { labelKey: "distillations.studioTitle", icon: FlaskConical, to: "/distillation-studio" },
-];
 
 const mainItems: NavItem[] = [{ labelKey: "nav.dashboard", icon: LayoutDashboard, to: "/" }];
 
 const mainPeerItems: NavItem[] = [
   { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
+  { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
 ];
 
 const pipelineItems: NavItem[] = [
-  { labelKey: "nav.operations", icon: Zap, to: "/operations" },
-  { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
-  { labelKey: "nav.recipes", icon: ChefHat, to: "/recipes" },
-  { labelKey: "nav.rules", icon: ShieldCheck, to: "/rules" },
-  { labelKey: "nav.bestPractices", icon: Lightbulb, to: "/best-practices" },
-  { labelKey: "nav.jobs", icon: Activity, to: "/jobs" },
+  { labelKey: "nav.preview", icon: Eye, to: "/pipelines", exact: true },
+  { labelKey: "nav.objects", icon: Box, to: "/pipelines/objects" },
+  { labelKey: "nav.operations", icon: Zap, to: "/pipelines/operations" },
+  { labelKey: "nav.jobs", icon: Activity, to: "/pipelines/jobs" },
 ];
 
-const objectNavItems: NavItem[] = [{ labelKey: "nav.projects", icon: FolderGit2, to: "/projects" }];
-
 const configItems: NavItem[] = [
+  { labelKey: "nav.agents", icon: Bot, to: "/agents" },
+  { labelKey: "nav.plugins", icon: Puzzle, to: "/plugins" },
   { labelKey: "nav.runtimes", icon: Server, to: "/runtimes" },
   { labelKey: "nav.settings", icon: Settings, to: "/settings" },
 ];
-
-const iconMap: Record<string, ElementType> = {
-  globe: Globe,
-  github: FolderGit2,
-  box: Box,
-  puzzle: Puzzle,
-};
-
-const getPluginObjectNavItems = (): NavItem[] => {
-  return pluginRegistry.getAllObjectTypes().map((objType) => ({
-    labelKey: objType.label,
-    icon: iconMap[objType.icon ?? ""] ?? Puzzle,
-    to: `/objects/${objType.id}`,
-  }));
-};
 
 const isPipelinePath = (path: string) => {
   return (
@@ -129,8 +108,9 @@ const NavGroup = ({
           {items.map((item) => {
             const Icon = item.icon;
             const labelText = t(item.labelKey);
-            const isActive =
-              currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
+            const isActive = item.exact
+              ? currentPath === item.to
+              : currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
 
             return (
               <SidebarMenuItem key={item.to}>
@@ -165,25 +145,25 @@ export const AppSidebar = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { data: session } = useSession();
+  const store = useSidebarStore();
+  const sidebarView = useStore(store, (s) => s.view);
+  const setView = useStore(store, (s) => s.setView);
+  const handleShowPipelineView = useStore(store, (s) => s.handleShowPipelineView);
+  const handleShowMainView = useStore(store, (s) => s.handleShowMainView);
+  const handleOpenSearch = useStore(store, (s) => s.handleOpenSearch);
+  const handleOpenNewPipeline = useStore(store, (s) => s.handleOpenNewPipeline);
   const currentPath = location.pathname;
-  const [sidebarView, setSidebarView] = useState<SidebarView>(() =>
-    isPipelinePath(currentPath) ? "pipeline" : "main"
-  );
-  const pluginObjectItems = getPluginObjectNavItems();
-  const allObjectItems = [...objectNavItems, ...pluginObjectItems];
   const pipelineActive = isPipelinePath(currentPath);
 
   useEffect(() => {
     if (isPipelinePath(currentPath)) {
-      setSidebarView("pipeline");
+      setView(SidebarView.Pipeline);
 
       return;
     }
-    setSidebarView("main");
-  }, [currentPath]);
+    setView(SidebarView.Main);
+  }, [currentPath, setView]);
 
-  const handleShowPipelineView = () => setSidebarView("pipeline");
-  const handleShowMainView = () => setSidebarView("main");
   const handleLogout = async () => {
     await signOut();
     navigate({ to: "/login" });
@@ -206,31 +186,31 @@ export const AppSidebar = () => {
 
       <div className="shrink-0 border-b border-sidebar-border px-2 py-2">
         <SidebarMenu className="gap-1">
-          {featuredItems.map((item) => {
-            const Icon = item.icon;
-            const label = t(item.labelKey);
-            const isActive =
-              currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to));
-
-            return (
-              <SidebarMenuItem key={item.to}>
-                <SidebarMenuButton
-                  className="h-8 font-medium"
-                  isActive={isActive}
-                  render={<Link to={item.to as "/"} />}
-                  tooltip={label}
-                >
-                  <Icon />
-                  <span>{label}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="h-8 text-muted-foreground"
+              tooltip={t("nav.search")}
+              onClick={handleOpenSearch}
+            >
+              <Search />
+              <span>{t("nav.search")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="h-8 text-muted-foreground"
+              tooltip={t("nav.newPipeline")}
+              onClick={handleOpenNewPipeline}
+            >
+              <SquarePen />
+              <span>{t("nav.newPipeline")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </div>
 
       <SidebarContent className="py-2">
-        {sidebarView === "main" ? (
+        {sidebarView === SidebarView.Main ? (
           <div className="animate-in fade-in-0 slide-in-from-left-1 duration-150">
             <NavGroup
               ariaLabel={t("nav.workspace")}
@@ -263,44 +243,6 @@ export const AppSidebar = () => {
               items={mainPeerItems}
               t={t}
             />
-            <SidebarSeparator className="my-1 bg-sidebar-border/60" />
-            <SidebarGroup aria-label={t("nav.objects")} className="p-0 px-2">
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {allObjectItems.map((item) => {
-                    const Icon = item.icon;
-                    const label = item.labelKey.startsWith("nav.")
-                      ? t(item.labelKey)
-                      : item.labelKey;
-                    const isActive =
-                      currentPath === item.to ||
-                      (item.to !== "/" && currentPath.startsWith(item.to));
-
-                    return (
-                      <SidebarMenuItem key={item.to}>
-                        <SidebarMenuButton
-                          className="h-8"
-                          isActive={isActive}
-                          render={<Link to={item.to as "/"} />}
-                          tooltip={label}
-                        >
-                          <Icon />
-                          <span>{label}</span>
-                          {item.badge && (
-                            <Badge
-                              className="ml-auto h-4 px-1.5 text-[10px] group-data-[state=collapsed]/sidebar:hidden"
-                              variant="secondary"
-                            >
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
             <NavGroup
               separated
               ariaLabel="Configure"

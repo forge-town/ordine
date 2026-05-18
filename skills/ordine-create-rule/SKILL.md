@@ -41,7 +41,7 @@ curl -X POST http://localhost:9433/api/rules \
     "severity": "warning",
     "checkScript": "grep -rn \"className={\`\" --include=\"*.tsx\" --include=\"*.jsx\" $TARGET_PATH",
     "scriptLanguage": "bash",
-    "acceptedObjectTypes": ["folder", "code-file"],
+    "acceptedObjectTypes": ["folder", "file"],
     "enabled": true,
     "tags": ["classname", "style", "react"]
   }'

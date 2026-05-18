@@ -20,3 +20,9 @@ export function withMeta<T extends { createdAt: Date; updatedAt: Date }>(
 
   return { ...rest, meta: { createdAt, updatedAt } };
 }
+
+export const mapWithMeta = <T extends { createdAt: Date; updatedAt: Date }>(
+  records: T[],
+): (Omit<T, "createdAt" | "updatedAt"> & { meta: Meta })[] => {
+  return records.map((r) => withMeta(r));
+};

@@ -17,7 +17,7 @@ Object ──► Operation ──► Pipeline ──► Rule
 | Object Type | Description |
 |-------------|-------------|
 | `folder` | A directory tree — all files under a path |
-| `code-file` | A single source file |
+| `file` | A single source file |
 | `github-project` | A GitHub repository |
 
 Objects are the entry points of a pipeline. They appear as source nodes in the DAG and their content flows downstream to operations for processing.
@@ -47,7 +47,7 @@ A **Pipeline** composes operations into a multi-step workflow, represented as a 
 | Type | Description |
 |------|-------------|
 | `folder` | Directory input — reads a folder tree |
-| `code-file` | Single file input |
+| `file` | Single file input |
 | `operation` | Executes an operation |
 | `output-local-path` | Writes output to a local directory |
 | `compound` | Groups multiple nodes |

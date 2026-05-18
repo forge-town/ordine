@@ -27,6 +27,8 @@
     "@repo/utils": "0.0.1"
   },
   "changesets": [
-    "initial-preview"
+    "floppy-crabs-end",
+    "initial-preview",
+    "quick-preview-cli"
   ]
 }

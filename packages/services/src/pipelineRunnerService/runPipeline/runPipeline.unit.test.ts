@@ -3,12 +3,12 @@ import { okAsync } from "neverthrow";
 import { pipelineEngine, type PipelineEngineDeps } from "@repo/pipeline-engine";
 import type * as PipelineEngineModule from "@repo/pipeline-engine";
 import type {
+  AgentsDao,
   PipelinesDao,
   OperationsDao,
   JobsDao,
   PipelineRunsDao,
   SkillsDao,
-  BestPracticesDao,
 } from "@repo/models";
 
 vi.mock("@repo/obs", () => ({
@@ -44,6 +44,7 @@ const makeOpts = (overrides = {}) => ({
     }),
   } as unknown as PipelinesDao,
   operationsDao: { findById: vi.fn() } as unknown as OperationsDao,
+  agentsDao: { findById: vi.fn() } as unknown as AgentsDao,
   jobsDao: {
     create: vi.fn().mockResolvedValue(undefined),
     updateStatus: vi.fn().mockResolvedValue(undefined),
@@ -52,7 +53,6 @@ const makeOpts = (overrides = {}) => ({
     update: vi.fn().mockResolvedValue(undefined),
   } as unknown as PipelineRunsDao,
   skillsDao: { findById: vi.fn(), findByName: vi.fn() } as unknown as SkillsDao,
-  bestPracticesDao: { findById: vi.fn() } as unknown as BestPracticesDao,
   engineDeps: {
     runPrompt: vi.fn().mockReturnValue(okAsync("")),
     runSkill: vi.fn().mockReturnValue(okAsync("")),

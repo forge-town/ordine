@@ -7,7 +7,7 @@ const renderWithStore = (initial = {}) =>
   render(
     <SettingsPageStoreProvider initialSettings={initial}>
       <LanguageSection />
-    </SettingsPageStoreProvider>
+    </SettingsPageStoreProvider>,
   );
 
 describe("LanguageSection", () => {

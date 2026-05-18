@@ -1,15 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import type { PipelineEdge, PipelineNode } from "../_store";
-import { createHarnessCanvasStore, HarnessCanvasStoreContext } from "../_store";
+import {
+  createHarnessCanvasStore,
+  HarnessCanvasStoreContext,
+  type PipelineEdge,
+  type PipelineNode,
+} from "../_store";
 import { CanvasStatusBar } from "./CanvasStatusBar";
 
 const sourceNode = {
   id: "source-file",
-  type: "code-file",
+  type: "file",
   position: { x: 0, y: 0 },
   data: {
     label: "Source File",
-    nodeType: "code-file",
+    nodeType: "file",
     filePath: "src/index.ts",
     language: "typescript",
     description: "Pipeline source",
@@ -41,7 +45,7 @@ const renderStatusBar = (
   nodes: PipelineNode[],
   edges: PipelineEdge[],
   selectedNodeId: string | null,
-  viewportZoom: number
+  viewportZoom: number,
 ) => {
   const store = createHarnessCanvasStore(nodes, edges);
   store.setState({ selectedNodeId, viewportZoom });

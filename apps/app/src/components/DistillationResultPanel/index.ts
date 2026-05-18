@@ -1,1 +1,1 @@
-export { DistillationResultPanel } from "./DistillationResultPanel";
+export * from "./DistillationResultPanel";

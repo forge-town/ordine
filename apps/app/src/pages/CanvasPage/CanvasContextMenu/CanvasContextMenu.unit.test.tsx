@@ -9,7 +9,6 @@ vi.mock("@/routes/canvas", () => ({
     useLoaderData: () => ({
       pipeline: null,
       operations: [],
-      recipes: [],
       bestPractices: [],
     }),
   },
@@ -30,8 +29,8 @@ describe("CanvasContextMenu", () => {
     render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <CanvasContextMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
-    expect(screen.getByText("新建节点")).toBeTruthy();
+    expect(screen.getByText("New Node")).toBeTruthy();
   });
 });

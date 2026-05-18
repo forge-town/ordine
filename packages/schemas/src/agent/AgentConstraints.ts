@@ -1,0 +1,9 @@
+export const MAX_AGENT_ID_LENGTH = 64;
+export const MAX_AGENT_NAME_LENGTH = 120;
+export const MAX_AGENT_DESCRIPTION_LENGTH = 2000;
+export const MAX_AGENT_SYSTEM_PROMPT_LENGTH = 10_000;
+export const MAX_AGENT_CAPABILITIES = 50;
+export const MAX_AGENT_ALLOWED_TOOLS = 100;
+export const MAX_AGENT_ALLOWED_SKILLS = 100;
+export const MAX_AGENT_TAGS = 50;
+export const MAX_AGENT_TAG_LENGTH = 64;

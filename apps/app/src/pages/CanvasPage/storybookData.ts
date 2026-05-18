@@ -16,8 +16,7 @@ import type {
   UpdateParams,
   UpdateResponse,
 } from "@refinedev/core";
-import type { BestPractice, GithubProject, Job, JobTrace, Operation, Recipe } from "@repo/schemas";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { GithubProject, Job, JobTrace, Operation, PipelineData } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 
 export const canvasStoryOperations: Operation[] = [
@@ -26,7 +25,7 @@ export const canvasStoryOperations: Operation[] = [
     name: "Review Code",
     description: "Find correctness issues before merging.",
     config: { inputs: [], outputs: [] },
-    acceptedObjectTypes: ["file", "folder", "project"],
+    acceptedObjectTypes: ["file", "folder", "github-project"],
   },
   {
     id: "clean-code",
@@ -40,47 +39,7 @@ export const canvasStoryOperations: Operation[] = [
     name: "Project Map",
     description: "Summarize a repository's module structure.",
     config: { inputs: [], outputs: [] },
-    acceptedObjectTypes: ["project"],
-  },
-];
-
-export const canvasStoryBestPractices: BestPractice[] = [
-  {
-    id: "bp-strict-review",
-    title: "Strict Review",
-    condition: "Block correctness regressions before merge.",
-    content: "Review changed code for defects, missing tests, and risky assumptions.",
-    category: "review",
-    language: "typescript",
-    codeSnippet: "",
-    tags: ["review", "quality"],
-  },
-  {
-    id: "bp-slop-cleanup",
-    title: "Slop Cleanup",
-    condition: "Generated code contains noisy abstractions or vague naming.",
-    content: "Remove low-signal wrappers and keep behavior stable.",
-    category: "refactor",
-    language: "typescript",
-    codeSnippet: "",
-    tags: ["cleanup"],
-  },
-];
-
-export const canvasStoryRecipes: Recipe[] = [
-  {
-    id: "strict-review",
-    name: "Strict Review",
-    description: "Review with stronger checks.",
-    operationId: "review-code",
-    bestPracticeId: "bp-strict-review",
-  },
-  {
-    id: "slop-cleanup",
-    name: "Slop Cleanup",
-    description: "Remove low-signal generated code patterns.",
-    operationId: "clean-code",
-    bestPracticeId: "bp-slop-cleanup",
+    acceptedObjectTypes: ["github-project"],
   },
 ];
 
@@ -192,8 +151,6 @@ const getFilterValue = (params: GetListParams, field: string): unknown => {
 
 const getCanvasStoryRecords = (resource: string, params?: GetListParams): BaseRecord[] => {
   if (resource === ResourceName.operations) return canvasStoryOperations;
-  if (resource === ResourceName.recipes) return canvasStoryRecipes;
-  if (resource === ResourceName.bestPractices) return canvasStoryBestPractices;
   if (resource === ResourceName.githubProjects) return canvasStoryGithubProjects;
   if (resource === ResourceName.jobs) return canvasStoryJobs;
   if (resource === ResourceName.pipelines) return [canvasStoryPipeline];
@@ -215,7 +172,7 @@ const findCanvasStoryRecord = (resource: string, id: string): BaseRecord => {
 };
 
 const getCanvasStoryList = <TData extends BaseRecord = BaseRecord>(
-  params: GetListParams
+  params: GetListParams,
 ): Promise<GetListResponse<TData>> => {
   const data = getCanvasStoryRecords(params.resource, params);
 
@@ -226,18 +183,18 @@ const getCanvasStoryList = <TData extends BaseRecord = BaseRecord>(
 };
 
 const getCanvasStoryMany = <TData extends BaseRecord = BaseRecord>(
-  params: GetManyParams
+  params: GetManyParams,
 ): Promise<GetManyResponse<TData>> => {
   const ids = new Set(params.ids.map(String));
   const data = getCanvasStoryRecords(params.resource).filter((record) =>
-    ids.has(String(record.id))
+    ids.has(String(record.id)),
   );
 
   return Promise.resolve({ data: data as TData[] });
 };
 
 const getCanvasStoryOne = <TData extends BaseRecord = BaseRecord>(
-  params: GetOneParams
+  params: GetOneParams,
 ): Promise<GetOneResponse<TData>> => {
   const data = findCanvasStoryRecord(params.resource, String(params.id));
 
@@ -245,7 +202,7 @@ const getCanvasStoryOne = <TData extends BaseRecord = BaseRecord>(
 };
 
 const createCanvasStoryRecord = <TData extends BaseRecord = BaseRecord, TVariables = object>(
-  params: CreateParams<TVariables>
+  params: CreateParams<TVariables>,
 ): Promise<CreateResponse<TData>> => {
   const variables = params.variables as Record<string, unknown>;
   const id = typeof variables.id === "string" ? variables.id : `${params.resource}-story-created`;
@@ -254,7 +211,7 @@ const createCanvasStoryRecord = <TData extends BaseRecord = BaseRecord, TVariabl
 };
 
 const updateCanvasStoryRecord = <TData extends BaseRecord = BaseRecord, TVariables = object>(
-  params: UpdateParams<TVariables>
+  params: UpdateParams<TVariables>,
 ): Promise<UpdateResponse<TData>> => {
   const existing = findCanvasStoryRecord(params.resource, String(params.id));
   const variables = params.variables as Record<string, unknown>;
@@ -263,7 +220,7 @@ const updateCanvasStoryRecord = <TData extends BaseRecord = BaseRecord, TVariabl
 };
 
 const deleteCanvasStoryRecord = <TData extends BaseRecord = BaseRecord, TVariables = object>(
-  params: DeleteOneParams<TVariables>
+  params: DeleteOneParams<TVariables>,
 ): Promise<DeleteOneResponse<TData>> => {
   const existing = findCanvasStoryRecord(params.resource, String(params.id));
 
@@ -291,7 +248,7 @@ const getCanvasStoryCustom = <
   TQuery = unknown,
   TPayload = unknown,
 >(
-  params: CustomParams<TQuery, TPayload>
+  params: CustomParams<TQuery, TPayload>,
 ): Promise<CustomResponse<TData>> => {
   if (params.url === "jobs/traces") {
     const jobId = getPayloadJobId(params.payload);

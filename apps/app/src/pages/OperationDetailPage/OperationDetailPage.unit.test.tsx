@@ -3,7 +3,7 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { OperationDetailPage } from "./OperationDetailPage";
 
-vi.mock("@/routes/_layout/operations.$operationId.index", () => ({
+vi.mock("@/routes/_layout/pipelines.operations.$operationId.index", () => ({
   Route: { useLoaderData: () => null, useParams: () => ({ operationId: "op-1" }) },
 }));
 
@@ -11,6 +11,13 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
   useNavigate: () => vi.fn(),
   createFileRoute: () => () => ({ useLoaderData: () => null }),
+  createRootRoute: vi.fn(() => ({})),
+  createRoute: vi.fn(() => ({})),
+  createRouter: vi.fn(() => ({ navigate: vi.fn() })),
+}));
+
+vi.mock("@/router", () => ({
+  router: { navigate: vi.fn() },
 }));
 
 vi.mock("@/services/operationsService", () => ({

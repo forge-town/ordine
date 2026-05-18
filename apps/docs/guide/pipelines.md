@@ -37,7 +37,7 @@ Provides a single file as input.
 ```json
 {
   "id": "file-1",
-  "type": "code-file",
+  "type": "file",
   "data": {
     "label": "README",
     "filePath": "README.md"
@@ -56,6 +56,21 @@ Executes a registered operation.
   "data": {
     "label": "Lint Check",
     "operationId": "lint-check"
+  }
+}
+```
+
+### Prompt Node
+
+Provides text or instructions as input, without depending on any file or directory.
+
+```json
+{
+  "id": "prompt-1",
+  "type": "prompt",
+  "data": {
+    "label": "Task Instructions",
+    "prompt": "Analyze the data and generate a summary report"
   }
 }
 ```

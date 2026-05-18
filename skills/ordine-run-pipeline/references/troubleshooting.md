@@ -34,6 +34,7 @@ curl -s http://localhost:9433/api/jobs/<job-id> | python3 -m json.tool
 **常见原因**：
 - Pipeline 中引用的 Operation 不存在
 - Operation 的 executor skill 不存在
+- Operation 使用 prompt 模式但 prompt 内容为空
 - 输入数据类型不匹配
 
 ### 3. Pipeline 不存在

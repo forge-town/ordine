@@ -6,7 +6,7 @@ import { okAsync } from "neverthrow";
 import { processGitHubProjectNode } from "./GitHubProjectNode";
 import { listDirTree } from "@repo/utils";
 import type { PipelineEngineDeps } from "../../deps";
-import type { PipelineNode } from "../../schemas";
+import type { PipelineNode } from "@repo/schemas";
 import type { NodeContext } from "../types";
 
 vi.mock("@repo/obs", () => ({

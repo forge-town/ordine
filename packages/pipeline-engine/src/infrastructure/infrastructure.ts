@@ -6,7 +6,12 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { ResultAsync, ok, okAsync, errAsync } from "neverthrow";
 import { ScriptExecutionError, GitCloneError, ConfigParseError } from "../errors";
-import { type OperationConfig, type OperationConfigInput, type ExecutorConfig, OperationConfigSchema } from "@repo/schemas";
+import {
+  type OperationConfig,
+  type OperationConfigInput,
+  type OperationExecutorConfig,
+  OperationConfigSchema,
+} from "@repo/schemas";
 
 const execAsync = promisify(exec);
 
@@ -40,7 +45,7 @@ export const safeReadInputFile = (
   ).orElse((fallback) => ok(fallback));
 
 export const runScript = (
-  executor: ExecutorConfig,
+  executor: OperationExecutorConfig,
   inputPath: string,
   inputContent: string,
 ): ResultAsync<string, ScriptExecutionError> => {

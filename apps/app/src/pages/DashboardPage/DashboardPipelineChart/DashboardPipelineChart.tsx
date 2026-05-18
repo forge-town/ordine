@@ -1,7 +1,6 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useList } from "@refinedev/core";
-import type { Job } from "@repo/schemas";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { Job, PipelineData } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { buildPipelineRows } from "../dashboardMetrics";
 

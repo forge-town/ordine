@@ -19,7 +19,7 @@ export const DashboardPanel = ({
     <section
       className={cn(
         "rounded-[24px] border border-border/80 bg-card/80 p-5 shadow-sm backdrop-blur-sm",
-        className
+        className,
       )}
     >
       <div className="flex items-start justify-between gap-4">

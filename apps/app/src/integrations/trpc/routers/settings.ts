@@ -1,10 +1,10 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { settingsService } from "../services";
-import { AgentRuntimeSchema } from "@repo/schemas";
+import { DefaultAgentRuntimeSchema } from "@repo/schemas";
 
 const UpdateSettingsSchema = z.object({
-  defaultAgentRuntime: AgentRuntimeSchema.optional(),
+  defaultAgentRuntime: DefaultAgentRuntimeSchema.optional(),
   defaultApiKey: z.string().optional(),
   defaultModel: z.string().optional(),
   defaultOutputPath: z.string().optional(),

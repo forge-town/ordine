@@ -9,6 +9,7 @@ import {
   Layers,
   FlaskConical,
   RefreshCw,
+  Zap,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
@@ -47,6 +48,7 @@ const TYPE_ICON: Record<JobType, React.ElementType> = {
   pipeline_run: Layers,
   distillation_run: FlaskConical,
   refinement_run: RefreshCw,
+  operation_run: Zap,
 };
 
 export type JobRowProps = {
@@ -64,18 +66,19 @@ export const JobRow = ({ job }: JobRowProps) => {
     pipeline_run: t("jobs.typePipeline"),
     distillation_run: t("jobs.typeDistillation"),
     refinement_run: t("jobs.typeRefinement"),
+    operation_run: t("jobs.typeOperation"),
   };
   const duration =
     job.startedAt && job.finishedAt
       ? ((new Date(job.finishedAt).getTime() - new Date(job.startedAt).getTime()) / 1000).toFixed(
-          1
+          1,
         ) + "s"
       : job.startedAt
         ? t("jobs.inProgress")
         : null;
 
   const handleClick = () => {
-    void navigate({ to: "/jobs/$jobId", params: { jobId: job.id } });
+    void navigate({ to: "/pipelines/jobs/$jobId", params: { jobId: job.id } });
   };
 
   const handleDelete = (e: React.MouseEvent) => {

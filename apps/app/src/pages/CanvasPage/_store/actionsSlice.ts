@@ -1,12 +1,11 @@
-import type { PipelineEdge, PipelineNode } from "./canvasSlice";
+import { sortParentBeforeChildren, type PipelineEdge, type PipelineNode } from "./canvasSlice";
 import type { HarnessCanvasStoreSlice } from "./harnessCanvasStore";
-import type { Operation, Recipe } from "@repo/schemas";
+import type { Operation, BuiltinNodeType } from "@repo/schemas";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
 import { makeDefaultNodeData } from "../utils/makeDefaultNodeData";
 import { makeOperationNodeData } from "../utils/makeOperationNodeData";
-import type { NodeType, BuiltinNodeType } from "@repo/pipeline-engine/schemas";
 import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
 import { ResultAsync } from "neverthrow";
@@ -19,10 +18,36 @@ import {
   QUICK_ADD_NODE_ORIGIN,
   offsetPosition,
 } from "../utils/nodePosition";
+import type { ConnectStartState } from "./uiSlice";
+import type { CanvasImportPayload } from "../utils/canvasImportJson";
+
+const getConnectStartHandleId = (
+  connectionState: FinalConnectionState,
+  currentConnectStart: ConnectStartState | null,
+  fromNodeId: string,
+): string | null =>
+  connectionState.fromHandle?.id ??
+  (currentConnectStart?.nodeId === fromNodeId ? currentConnectStart.handleId : null);
+
+const getConnectStartHandleType = (
+  connectionState: FinalConnectionState,
+  currentConnectStart: ConnectStartState | null,
+  fromNodeId: string,
+): ConnectStartState["handleType"] =>
+  connectionState.fromHandle?.type ??
+  (currentConnectStart?.nodeId === fromNodeId ? currentConnectStart.handleType : null);
+
+const makeLocalizedDefaultNodeData = (type: BuiltinNodeType) => {
+  const fallback = makeDefaultNodeData(type);
+
+  return makeDefaultNodeData(type, {
+    label: i18n.t(`canvas.nodeTypes.${type}.label`, { defaultValue: fallback.label }),
+  });
+};
 
 export interface ActionsSlice {
   exportCanvas: () => void;
-  importCanvas: (data: { nodes: PipelineNode[]; edges: PipelineEdge[] }) => void;
+  importCanvas: (data: CanvasImportPayload) => void;
   fitView: (options?: { padding?: number }) => void;
   screenToFlowPosition: (pos: XYPosition) => XYPosition;
   handleFitView: () => void;
@@ -34,7 +59,7 @@ export interface ActionsSlice {
   handleFlowConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void;
   handleFlowConnectEnd: (
     event: MouseEvent | TouchEvent,
-    connectionState: FinalConnectionState
+    connectionState: FinalConnectionState,
   ) => void;
   handleFlowNodeClick: (event: React.MouseEvent, node: PipelineNode) => void;
   handleFlowNodeContextMenu: (event: React.MouseEvent, node: PipelineNode) => void;
@@ -45,7 +70,7 @@ export interface ActionsSlice {
   handleFlowNodeDragStop: (
     event: React.MouseEvent,
     node: PipelineNode,
-    nodes: PipelineNode[]
+    nodes: PipelineNode[],
   ) => void;
 
   // Cross-slice semantic actions
@@ -58,21 +83,14 @@ export interface ActionsSlice {
   handleDragEndOnCompound: (draggedNodeId: string, isCompound: boolean) => void;
   handleRunTest: () => Promise<void>;
   addNodeAndAutoConnect: (node: PipelineNode) => void;
-  createObjectNode: (type: NodeType) => void;
+  createObjectNode: (type: BuiltinNodeType) => void;
   createOperationNode: (operation: Operation) => void;
-  createRecipeNode: (recipe: Recipe, operation: Operation) => void;
-  handleCreateObjectNode: (type: NodeType, screenPosition: XYPosition) => void;
+  handleCreateObjectNode: (type: BuiltinNodeType, screenPosition: XYPosition) => void;
   handleCreateOperationNode: (operation: Operation, screenPosition: XYPosition) => void;
-  handleCreateRecipeNode: (
-    recipe: Recipe,
-    operation: Operation,
-    screenPosition: XYPosition
-  ) => void;
   dismissContextMenu: () => void;
   handleContextMenuOpenChange: (open: boolean) => void;
-  connectObjectNode: (type: NodeType) => void;
+  connectObjectNode: (type: BuiltinNodeType) => void;
   connectOperationNode: (operation: Operation) => void;
-  connectRecipeNode: (recipe: Recipe, operation: Operation) => void;
   dismissConnectionMenu: () => void;
   handleConnectionMenuOpenChange: (open: boolean) => void;
 
@@ -83,9 +101,8 @@ export interface ActionsSlice {
   nodeContextUngroup: () => void;
   nodeContextDetach: () => void;
   nodeContextGroupSelected: () => void;
-  nodeContextAddObject: (type: NodeType) => void;
+  nodeContextAddObject: (type: BuiltinNodeType) => void;
   nodeContextAddOperation: (operation: Operation) => void;
-  nodeContextAddRecipe: (recipe: Recipe, operation: Operation) => void;
 
   // Node data actions
   handleGitHubProjectPick: (nodeId: string, picked: PickedProject) => void;
@@ -93,11 +110,23 @@ export interface ActionsSlice {
   handleGitHubProjectLocalFolder: (nodeId: string, info: LocalFolderInfo) => void;
   handleNodeAddExcludedPath: (nodeId: string, path: string) => void;
   handleNodeRemoveExcludedPath: (nodeId: string, path: string) => void;
+
+  // Operation node actions
+  handleOperationLabelChange: (nodeId: string, label: string) => void;
+  handleOperationAgentChange: (nodeId: string, agentId: string | null) => void;
+  handleOperationLoopToggle: (nodeId: string) => void;
+  handleOperationMaxLoopChange: (nodeId: string, value: number) => void;
+  handleOperationConditionChange: (nodeId: string, prompt: string) => void;
+  handleOperationCardClick: (nodeId: string) => void;
+  handleOperationAgentDropdownOpen: (nodeId: string) => void;
+  handleOperationAgentDropdownClose: () => void;
+  handleOperationAgentDropdownToggle: (nodeId: string) => void;
+  handleOperationAgentDropdownOpenChange: (nodeId: string, open: boolean) => void;
 }
 
 export const createActionsSlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
-  get: Parameters<HarnessCanvasStoreSlice>[1]
+  get: Parameters<HarnessCanvasStoreSlice>[1],
 ): ActionsSlice => ({
   exportCanvas: () => {
     const state = get();
@@ -120,8 +149,20 @@ export const createActionsSlice = (
     a.remove();
     URL.revokeObjectURL(url);
   },
-  importCanvas: ({ nodes, edges }) => {
-    set({ nodes, edges, selectedNodeId: null, selectedEdgeId: null });
+  importCanvas: ({ name, title, nodes, edges }) => {
+    const pipelineName =
+      typeof name === "string" ? name : typeof title === "string" ? title : undefined;
+    const sortedNodes = [...nodes];
+    sortParentBeforeChildren(sortedNodes);
+    get().clearHistory();
+
+    set({
+      nodes: sortedNodes,
+      edges,
+      selectedNodeId: null,
+      selectedEdgeId: null,
+      ...(pipelineName === undefined ? {} : { pipelineName }),
+    });
   },
   fitView: () => {},
   screenToFlowPosition: (pos) => pos,
@@ -219,11 +260,11 @@ export const createActionsSlice = (
   },
 
   handleFlowConnectStart: (_event, params) => {
-    if (!params.nodeId) return;
+    if (!params.nodeId || !params.handleType) return;
     get().handleConnectStart({
       nodeId: params.nodeId,
       handleId: params.handleId ?? null,
-      handleType: params.handleType ?? null,
+      handleType: params.handleType,
     });
   },
 
@@ -235,12 +276,24 @@ export const createActionsSlice = (
     }
 
     const fromNodeId = connectionState.fromNode?.id ?? null;
+    const currentConnectStart = get().connectStart;
 
     if (fromNodeId) {
+      const handleType = getConnectStartHandleType(
+        connectionState,
+        currentConnectStart,
+        fromNodeId,
+      );
+      if (!handleType) {
+        get().handleConnectStart(null);
+
+        return;
+      }
+
       get().handleConnectStart({
         nodeId: fromNodeId,
-        handleId: connectionState.fromHandle?.id ?? null,
-        handleType: connectionState.fromHandle?.type ?? null,
+        handleId: getConnectStartHandleId(connectionState, currentConnectStart, fromNodeId),
+        handleType,
       });
 
       const { clientX, clientY } =
@@ -346,7 +399,7 @@ export const createActionsSlice = (
           edges,
         },
       }),
-      () => "save-failed" as const
+      () => "save-failed" as const,
     );
 
     if (saveResult.isErr()) {
@@ -366,7 +419,7 @@ export const createActionsSlice = (
         method: "post",
         payload: { id: pipelineId },
       }),
-      () => "Failed to start pipeline"
+      () => t("canvas.runStartFailed"),
     );
 
     runResult.match(
@@ -376,7 +429,7 @@ export const createActionsSlice = (
         toastStore.getState().addToast({
           type: "success",
           title: t("canvas.runCompleted"),
-          description: `Job ${result.jobId} ${t("canvas.runSuccess")}`,
+          description: t("canvas.runSuccessDescription", { jobId: result.jobId }),
         });
       },
       (error) => {
@@ -385,32 +438,33 @@ export const createActionsSlice = (
           title: t("canvas.runFailed"),
           description: error,
         });
-      }
+      },
     );
 
     set({ isRunning: false });
   },
 
   addNodeAndAutoConnect: (node) => {
-    const state = get();
-    state.addNode(node);
+    const connectStart = get().connectStart;
+    get().addNode(node);
 
-    if (state.connectStart) {
-      const sourceNode = state.nodes.find((n) => n.id === state.connectStart!.nodeId);
+    if (connectStart) {
+      const state = get();
+      const sourceNode = state.nodes.find((n) => n.id === connectStart.nodeId);
       if (sourceNode) {
-        if (state.connectStart.handleType === "source") {
+        if (connectStart.handleType === "source") {
           state.handleConnect({
-            source: state.connectStart.nodeId,
-            sourceHandle: state.connectStart.handleId,
+            source: connectStart.nodeId,
+            sourceHandle: connectStart.handleId,
             target: node.id,
             targetHandle: null,
           });
-        } else {
+        } else if (connectStart.handleType === "target") {
           state.handleConnect({
             source: node.id,
             sourceHandle: null,
-            target: state.connectStart.nodeId,
-            targetHandle: state.connectStart.handleId,
+            target: connectStart.nodeId,
+            targetHandle: connectStart.handleId,
           });
         }
       }
@@ -426,7 +480,7 @@ export const createActionsSlice = (
       id: `${type}-${Date.now()}`,
       type,
       position: { x: contextMenu.flowX, y: contextMenu.flowY },
-      data: makeDefaultNodeData(type as BuiltinNodeType),
+      data: makeLocalizedDefaultNodeData(type as BuiltinNodeType),
     });
   },
 
@@ -441,22 +495,6 @@ export const createActionsSlice = (
     });
   },
 
-  createRecipeNode: (recipe, operation) => {
-    const { contextMenu } = get();
-    if (!contextMenu) return;
-    get().addNodeAndAutoConnect({
-      id: `op-recipe-${Date.now()}`,
-      type: "operation",
-      position: { x: contextMenu.flowX, y: contextMenu.flowY },
-      data: {
-        ...makeOperationNodeData(operation),
-        label: recipe.name,
-        bestPracticeId: recipe.bestPracticeId,
-        bestPracticeName: recipe.name,
-      },
-    });
-  },
-
   handleCreateObjectNode: (type, screenPosition) => {
     const position = get().screenToFlowPosition(screenPosition);
     get().addNodeAndAutoConnect({
@@ -464,7 +502,7 @@ export const createActionsSlice = (
       type,
       origin: QUICK_ADD_NODE_ORIGIN,
       position,
-      data: makeDefaultNodeData(type as BuiltinNodeType),
+      data: makeLocalizedDefaultNodeData(type as BuiltinNodeType),
     });
     set({ isQuickAddOpen: false, quickAddQuery: "" });
   },
@@ -477,23 +515,6 @@ export const createActionsSlice = (
       origin: QUICK_ADD_NODE_ORIGIN,
       position,
       data: makeOperationNodeData(operation),
-    });
-    set({ isQuickAddOpen: false, quickAddQuery: "" });
-  },
-
-  handleCreateRecipeNode: (recipe, operation, screenPosition) => {
-    const position = get().screenToFlowPosition(screenPosition);
-    get().addNodeAndAutoConnect({
-      id: `op-recipe-${Date.now()}`,
-      type: "operation",
-      origin: QUICK_ADD_NODE_ORIGIN,
-      position,
-      data: {
-        ...makeOperationNodeData(operation),
-        label: recipe.name,
-        bestPracticeId: recipe.bestPracticeId,
-        bestPracticeName: recipe.name,
-      },
     });
     set({ isQuickAddOpen: false, quickAddQuery: "" });
   },
@@ -517,9 +538,9 @@ export const createActionsSlice = (
       type,
       position: offsetPosition(
         { x: connectionMenu.flowX, y: connectionMenu.flowY },
-        CONNECTION_MENU_NODE_OFFSET
+        CONNECTION_MENU_NODE_OFFSET,
       ),
-      data: makeDefaultNodeData(type as BuiltinNodeType),
+      data: makeLocalizedDefaultNodeData(type as BuiltinNodeType),
     });
   },
 
@@ -531,28 +552,9 @@ export const createActionsSlice = (
       type: "operation",
       position: offsetPosition(
         { x: connectionMenu.flowX, y: connectionMenu.flowY },
-        CONNECTION_MENU_NODE_OFFSET
+        CONNECTION_MENU_NODE_OFFSET,
       ),
       data: makeOperationNodeData(operation),
-    });
-  },
-
-  connectRecipeNode: (recipe, operation) => {
-    const { connectionMenu } = get();
-    if (!connectionMenu) return;
-    get().addNodeAndAutoConnect({
-      id: `op-recipe-${Date.now()}`,
-      type: "operation",
-      position: offsetPosition(
-        { x: connectionMenu.flowX, y: connectionMenu.flowY },
-        CONNECTION_MENU_NODE_OFFSET
-      ),
-      data: {
-        ...makeOperationNodeData(operation),
-        label: recipe.name,
-        bestPracticeId: recipe.bestPracticeId,
-        bestPracticeName: recipe.name,
-      },
     });
   },
 
@@ -625,7 +627,7 @@ export const createActionsSlice = (
       id: newId,
       type,
       position: offsetPosition(node.position, NODE_CONTEXT_CONNECT_OFFSET),
-      data: makeDefaultNodeData(type as BuiltinNodeType),
+      data: makeLocalizedDefaultNodeData(type as BuiltinNodeType),
     });
     get().handleConnect({
       source: nodeContextMenu.nodeId,
@@ -647,32 +649,6 @@ export const createActionsSlice = (
       type: "operation",
       position: offsetPosition(node.position, NODE_CONTEXT_CONNECT_OFFSET),
       data: makeOperationNodeData(operation),
-    });
-    get().handleConnect({
-      source: nodeContextMenu.nodeId,
-      sourceHandle: null,
-      target: newId,
-      targetHandle: null,
-    });
-    set({ nodeContextMenu: null });
-  },
-
-  nodeContextAddRecipe: (recipe, operation) => {
-    const { nodeContextMenu, nodes } = get();
-    if (!nodeContextMenu) return;
-    const node = nodes.find((n) => n.id === nodeContextMenu.nodeId);
-    if (!node) return;
-    const newId = `op-recipe-${Date.now()}`;
-    get().addNode({
-      id: newId,
-      type: "operation",
-      position: offsetPosition(node.position, NODE_CONTEXT_CONNECT_OFFSET),
-      data: {
-        ...makeOperationNodeData(operation),
-        label: recipe.name,
-        bestPracticeId: recipe.bestPracticeId,
-        bestPracticeName: recipe.name,
-      },
     });
     get().handleConnect({
       source: nodeContextMenu.nodeId,
@@ -742,5 +718,59 @@ export const createActionsSlice = (
     get().updateNodeData(nodeId, {
       excludedPaths: current.filter((p) => p !== path),
     });
+  },
+
+  handleOperationLabelChange: (nodeId, label) => {
+    get().updateNodeData(nodeId, { label, operationName: label });
+  },
+
+  handleOperationAgentChange: (nodeId, agentId) => {
+    if (!agentId || agentId === "__default__") {
+      get().updateNodeData(nodeId, { agentId: undefined, agentRuntime: undefined });
+    } else {
+      get().updateNodeData(nodeId, { agentId, agentRuntime: undefined });
+    }
+    set({ operationAgentDropdownNodeId: null });
+  },
+
+  handleOperationLoopToggle: (nodeId) => {
+    const node = get().nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+    const data = node.data as Record<string, unknown>;
+    get().updateNodeData(nodeId, { loopEnabled: !data.loopEnabled });
+  },
+
+  handleOperationMaxLoopChange: (nodeId, value) => {
+    if (value >= 1 && value <= 20) {
+      get().updateNodeData(nodeId, { maxLoopCount: value });
+    }
+  },
+
+  handleOperationConditionChange: (nodeId, prompt) => {
+    get().updateNodeData(nodeId, { loopConditionPrompt: prompt });
+  },
+
+  handleOperationCardClick: (nodeId) => {
+    const { isTestRunning, nodeLlmContent } = get();
+    if (isTestRunning || nodeLlmContent[nodeId]) {
+      get().setInspectingNodeId(nodeId);
+    }
+  },
+
+  handleOperationAgentDropdownOpen: (nodeId) => {
+    set({ operationAgentDropdownNodeId: nodeId });
+  },
+
+  handleOperationAgentDropdownClose: () => {
+    set({ operationAgentDropdownNodeId: null });
+  },
+
+  handleOperationAgentDropdownToggle: (nodeId) => {
+    const current = get().operationAgentDropdownNodeId;
+    set({ operationAgentDropdownNodeId: current === nodeId ? null : nodeId });
+  },
+
+  handleOperationAgentDropdownOpenChange: (nodeId, open) => {
+    set({ operationAgentDropdownNodeId: open ? nodeId : null });
   },
 });

@@ -55,7 +55,7 @@ export const DistillationDetailPage = () => {
           const pipeline = data.data as { id: string };
           void navigate({ to: "/pipelines/$pipelineId", params: { pipelineId: pipeline.id } });
         },
-      }
+      },
     );
   };
 

@@ -60,4 +60,19 @@ describe("createSettingsService", () => {
 
     expect(result.defaultAgentRuntime).toBe("mastra");
   });
+
+  it("normalizes Hermes out of workspace default runtime", async () => {
+    mockDao.get.mockResolvedValueOnce({
+      defaultAgentRuntime: "hermes",
+      defaultApiKey: "key",
+      defaultModel: "kimi-for-coding/k2p6",
+      createdAt: new Date(0),
+      updatedAt: new Date(0),
+    });
+
+    const svc = createSettingsService({} as never);
+    const result = await svc.get();
+
+    expect(result.defaultAgentRuntime).toBe("mastra");
+  });
 });

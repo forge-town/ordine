@@ -2,7 +2,7 @@ import { vi } from "vitest";
 import type { PipelineEngineDeps } from "../../deps";
 import { pipelineEngine } from "../../engine";
 import type { PipelineOptions } from "../../pipeline";
-import type { PipelineEdge, PipelineNode } from "../../schemas";
+import type { PipelineEdge, PipelineNode } from "@repo/schemas";
 
 vi.mock("@repo/obs", () => ({
   trace: vi.fn().mockResolvedValue(undefined),
@@ -30,8 +30,8 @@ export const makePipelineScenario = ({
   jobId: "job-12345678",
   operations: new Map(),
   deps,
+  lookupAgent: async () => null,
   lookupSkill: async () => null,
-  lookupBestPractice: async () => null,
   ...extra,
 });
 

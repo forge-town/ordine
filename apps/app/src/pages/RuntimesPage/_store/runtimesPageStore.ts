@@ -4,7 +4,12 @@ import { createRuntimesPageSlice, type RuntimesPageSlice } from "./runtimesPageS
 
 export interface RuntimesPageState extends RuntimesPageSlice {}
 
-export type RuntimesPageStoreSlice<T = RuntimesPageState> = StateCreator<RuntimesPageState, [], [], T>;
+export type RuntimesPageStoreSlice<T = RuntimesPageState> = StateCreator<
+  RuntimesPageState,
+  [],
+  [],
+  T
+>;
 
 export type RuntimesPageStore = StoreApi<RuntimesPageState>;
 

@@ -1,4 +1,5 @@
 import { useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Terminal, X, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
@@ -12,13 +13,13 @@ import type { JobData, JobStatus } from "./types";
 
 const POLL_INTERVAL = 1500;
 
-const statusLabel: Record<JobStatus, string> = {
-  queued: "Queued",
-  running: "Running",
-  done: "Done",
-  failed: "Failed",
-  cancelled: "Cancelled",
-  expired: "Expired",
+const statusLabelKeys: Record<JobStatus, string> = {
+  queued: "canvas.runConsole.statusQueued",
+  running: "canvas.runConsole.statusRunning",
+  done: "canvas.runConsole.statusDone",
+  failed: "canvas.runConsole.statusFailed",
+  cancelled: "canvas.runConsole.statusCancelled",
+  expired: "canvas.runConsole.statusExpired",
 };
 
 const parseTimestamp = (log: string): string => {
@@ -45,7 +46,7 @@ const parseStructuredLogs = (
     onNodeDone: (nodeId: string) => void;
     onNodeFail: (nodeId: string) => void;
     onLlmContent: (nodeId: string, content: string) => void;
-  }
+  },
 ) => {
   for (const log of logs) {
     const msg = log.replace(/^\[[^\]]+\]\s*/, "");
@@ -76,6 +77,7 @@ const isTerminalStatus = (s: JobStatus) =>
   s === "done" || s === "failed" || s === "cancelled" || s === "expired";
 
 export const RunConsole = () => {
+  const { t } = useTranslation();
   const store = useHarnessCanvasStore();
   const jobId = useStore(store, (s) => s.activeJobId);
   const handleCloseConsole = useStore(store, (s) => s.handleCloseConsole);
@@ -118,7 +120,7 @@ export const RunConsole = () => {
         }
       });
     },
-    [markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent]
+    [markNodeRunning, markNodePassed, markNodeFailed, setNodeLlmContent],
   );
 
   const { query: jobQuery } = useOne<JobData>({
@@ -183,14 +185,14 @@ export const RunConsole = () => {
     <div
       className={cn(
         "absolute bottom-0 left-0 right-0 z-30 border-t bg-background shadow-lg transition-all",
-        isConsoleCollapsed ? "h-9" : "h-64"
+        isConsoleCollapsed ? "h-9" : "h-64",
       )}
     >
       {/* Status bar */}
       <div className="flex h-9 items-center justify-between border-b bg-muted/50 px-3">
         <div className="flex items-center gap-2 text-xs">
           <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="font-medium">Console</span>
+          <span className="font-medium">{t("canvas.runConsole.title")}</span>
           {job && (
             <>
               <span className="text-muted-foreground">|</span>
@@ -201,13 +203,15 @@ export const RunConsole = () => {
                   job.status === "running" && "text-blue-600",
                   job.status === "done" && "text-green-600",
                   job.status === "failed" && "text-red-600",
-                  job.status === "expired" && "text-slate-600"
+                  job.status === "expired" && "text-slate-600",
                 )}
               >
-                {statusLabel[job.status]}
+                {t(statusLabelKeys[job.status])}
               </span>
               {job.status === "running" && (
-                <span className="text-muted-foreground">({traceLogs.length} logs)</span>
+                <span className="text-muted-foreground">
+                  ({t("canvas.runConsole.logs", { count: traceLogs.length })})
+                </span>
               )}
             </>
           )}
@@ -239,7 +243,7 @@ export const RunConsole = () => {
             {!job && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Loading...
+                {t("canvas.runConsole.loading")}
               </div>
             )}
             {traceLogs
@@ -255,7 +259,7 @@ export const RunConsole = () => {
                       log.includes("ERROR") && "text-red-600 font-medium",
                       log.includes("Pipeline complete") && "text-green-600 font-medium",
                       log.includes("Cloned to") && "text-blue-600",
-                      log.includes("Skill output") && "text-violet-600"
+                      log.includes("Skill output") && "text-violet-600",
                     )}
                   >
                     {parseMessage(log)}

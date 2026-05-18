@@ -20,5 +20,5 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "dist", ".output", "src/routeTree.gen.ts"]
+  "exclude": ["node_modules", "dist", ".output", "src/routeTree.gen.ts", "vitest.config.ts", "src/archived"]
 }

@@ -283,35 +283,6 @@ export const deleteJob = async (id: string): Promise<void> => {
   console.log(`Deleted job: ${id}`);
 };
 
-// ─── Recipes ─────────────────────────────────────────────────────────
-
-export const listRecipes = async (): Promise<void> => {
-  const recipes = assertOk(await api.get<IdRecord[]>("/api/recipes"), "list recipes");
-
-  if (recipes.length === 0) {
-    console.log("No recipes found.");
-
-    return;
-  }
-
-  console.log(`\n  Recipes (${recipes.length}):\n`);
-  for (const r of recipes) {
-    printRecord(r);
-  }
-  console.log();
-};
-
-export const createRecipe = async (jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
-  const recipe = assertOk(await api.post<IdRecord>("/api/recipes", body), "create recipe");
-  console.log(`Created recipe: ${recipe.id}`);
-};
-
-export const deleteRecipe = async (id: string): Promise<void> => {
-  assertOk(await api.del(`/api/recipes/${id}`), "delete recipe");
-  console.log(`Deleted recipe: ${id}`);
-};
-
 // ─── Best Practices ──────────────────────────────────────────────────
 
 export const listBestPractices = async (): Promise<void> => {

@@ -1,5 +1,6 @@
 import { eq, desc, and, lt, isNull, or, sql } from "drizzle-orm";
-import { jobsTable, type JobRecord, type JobStatus, type JobType } from "@repo/db-schema";
+import { jobsTable, type JobRecord } from "@repo/db-schema";
+import type { JobStatus, JobType } from "@repo/schemas";
 import type { DbExecutor } from "../../types";
 
 export class JobsDao {

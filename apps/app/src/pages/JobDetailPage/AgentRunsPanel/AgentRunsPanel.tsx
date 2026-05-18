@@ -243,7 +243,7 @@ const FindingsView = ({ output }: { output: string }) => {
         }>;
         stats?: Record<string, number>;
       },
-    () => null
+    () => null,
   )();
   if (parsed.isErr()) return null;
   const data = parsed.value;
@@ -325,7 +325,7 @@ const ConversationView = ({ payload }: { payload: Record<string, unknown> }) => 
 const OutputSection = ({ output }: { output: string }) => {
   const parsed = Result.fromThrowable(
     () => JSON.parse(output) as { findings?: unknown[] },
-    () => null
+    () => null,
   )();
   if (parsed.isOk() && parsed.value?.findings) {
     return <FindingsView output={output} />;
@@ -373,7 +373,7 @@ const AgentRunCard = ({ run }: { run: AgentRawExport }) => {
           {run.agentId}
         </span>
         <Badge className="h-4 text-[10px]" variant="secondary">
-          {run.agentSystem}
+          {run.agentRuntime}
         </Badge>
         {run.modelId && (
           <Badge className="h-4 text-[10px]" variant="outline">

@@ -25,7 +25,7 @@ type CustomRenderOptions = Omit<RenderOptions, "wrapper"> & {
   wrapper?: React.ComponentType<React.PropsWithChildren>;
 };
 
-export function render(ui: React.ReactElement, options: CustomRenderOptions = {}) {
+export const render = (ui: React.ReactElement, options: CustomRenderOptions = {}) => {
   const { wrapper: UserWrapper, ...rest } = options;
 
   const Wrapper = UserWrapper
@@ -37,4 +37,4 @@ export function render(ui: React.ReactElement, options: CustomRenderOptions = {}
     : TestWrapper;
 
   return rtlRender(ui, { ...rest, wrapper: Wrapper });
-}
+};

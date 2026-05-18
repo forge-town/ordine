@@ -44,8 +44,8 @@ describe("pipeline scenario: merge flow", () => {
         ],
       ]),
       nodes: [
-        makeNode("file-a", "code-file", { filePath: firstFile }),
-        makeNode("file-b", "code-file", { filePath: secondFile }),
+        makeNode("file-a", "file", { filePath: firstFile }),
+        makeNode("file-b", "file", { filePath: secondFile }),
         makeNode("merge-op", "operation", { operationId }),
       ],
       edges: [makeEdge("file-a", "merge-op"), makeEdge("file-b", "merge-op")],

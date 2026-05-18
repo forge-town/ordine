@@ -76,7 +76,6 @@ curl -s -X POST http://localhost:9433/api/pipelines \
           "nodeType": "output-local-path",
           "localPath": ".ordine/results/classname-report",
           "outputMode": "overwrite",
-          "dualOutput": true,
           "description": "ClassName 规范检查报告"
         },
         "position": { "x": 1000, "y": 0 }
@@ -126,6 +125,14 @@ curl -s http://localhost:9433/api/pipelines/pipe_check_classname | python3 -m js
 [folder] ├→ [op_check_b] → [output_b]
          └→ [op_check_c] → [output_c]
 ```
+
+### 文本驱动（无文件输入）
+
+```
+[prompt] → [op_analyze] → [output]
+```
+
+适用于不依赖文件/目录的任务（文本分析、翻译、总结等），使用 `prompt` 节点作为输入源。
 
 ## 命名约定
 

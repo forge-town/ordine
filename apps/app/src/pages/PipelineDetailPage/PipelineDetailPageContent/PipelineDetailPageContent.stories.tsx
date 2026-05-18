@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { PipelineData } from "@repo/schemas";
 import type { Operation } from "@repo/schemas";
 import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
 
@@ -44,14 +44,14 @@ const mockOperations: Operation[] = [
   {
     id: "op-1",
     name: "Lint Check",
-    description: null,
+    description: "",
     config: { inputs: [], outputs: [] },
     acceptedObjectTypes: ["file"],
   },
   {
     id: "op-2",
     name: "Format",
-    description: null,
+    description: "",
     config: { inputs: [], outputs: [] },
     acceptedObjectTypes: ["file"],
   },

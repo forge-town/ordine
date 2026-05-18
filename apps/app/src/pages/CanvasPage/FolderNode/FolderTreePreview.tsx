@@ -1,5 +1,6 @@
 import { Folder, File, Ban, RotateCw } from "lucide-react";
 import { useList } from "@refinedev/core";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -23,6 +24,7 @@ export const FolderTreePreview = ({
   excludedPaths,
   onExclude,
 }: FolderTreePreviewProps) => {
+  const { t } = useTranslation();
   const { query } = useList<DirectoryEntry>({
     resource: ResourceName.filesystem,
     filters: folderPath ? [{ field: "path", operator: "eq", value: folderPath }] : [],
@@ -38,7 +40,7 @@ export const FolderTreePreview = ({
     return (
       <div className="flex items-center gap-1 px-1 py-1 text-[10px] text-slate-400">
         <RotateCw className="h-3 w-3 animate-spin" />
-        加载中…
+        {t("canvas.folderTreeLoading")}
       </div>
     );
   }
@@ -68,14 +70,14 @@ export const FolderTreePreview = ({
             <span
               className={cn(
                 "flex-1 truncate font-mono",
-                isExcluded ? "line-through text-slate-400" : "text-slate-600"
+                isExcluded ? "line-through text-slate-400" : "text-slate-600",
               )}
             >
               {entry.name}
             </span>
             {!isExcluded && entry.type === "directory" && (
               <Button
-                aria-label={`排除 ${entry.name}`}
+                aria-label={t("canvas.excludePath", { name: entry.name })}
                 className="nodrag nopan opacity-0 group-hover/entry:opacity-100 rounded p-0.5 text-red-400 hover:bg-red-100 hover:text-red-600 transition-all h-auto"
                 size="icon-xs"
                 type="button"

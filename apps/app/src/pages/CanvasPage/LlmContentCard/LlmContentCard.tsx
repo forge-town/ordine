@@ -1,11 +1,13 @@
 import { X, Brain, Loader2 } from "lucide-react";
 import Markdown from "react-markdown";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 
 export const LlmContentCard = () => {
+  const { t } = useTranslation();
   const store = useHarnessCanvasStore();
   const inspectingNodeId = useStore(store, (s) => s.inspectingNodeId);
   const handleDismissInspection = useStore(store, (s) => s.handleDismissInspection);
@@ -25,7 +27,9 @@ export const LlmContentCard = () => {
       <div className="flex shrink-0 items-center justify-between border-b px-4 py-2.5">
         <div className="flex items-center gap-2">
           <Brain className="h-4 w-4 text-violet-500" />
-          <span className="text-sm font-semibold truncate">{nodeLabel ?? "LLM"} — 思考内容</span>
+          <span className="text-sm font-semibold truncate">
+            {t("canvas.llmContent.title", { label: nodeLabel ?? "LLM" })}
+          </span>
           {status === "running" && <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />}
         </div>
         <Button
@@ -42,7 +46,7 @@ export const LlmContentCard = () => {
           {status === "running" && !content && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>LLM 正在思考中...</span>
+              <span>{t("canvas.llmContent.running")}</span>
             </div>
           )}
           {content ? (
@@ -51,7 +55,7 @@ export const LlmContentCard = () => {
             </div>
           ) : (
             status !== "running" && (
-              <p className="text-sm text-muted-foreground">暂无 LLM 输出内容</p>
+              <p className="text-sm text-muted-foreground">{t("canvas.llmContent.empty")}</p>
             )
           )}
         </div>

@@ -142,7 +142,7 @@ export const DistillationForm = () => {
         distillation: existingDistillationResult,
         fallbackTitle: initialTitle,
         search,
-      })
+      }),
     );
     setLatestDistillation(existingDistillationResult);
   }, [existingDistillationResult, form, initialTitle, search, setLatestDistillation]);
@@ -382,9 +382,11 @@ export const DistillationForm = () => {
                       </FormControl>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectItem value="mastra">mastra</SelectItem>
-                          <SelectItem value="codex">codex</SelectItem>
-                          <SelectItem value="claude-code">claude-code</SelectItem>
+                          {AgentRuntimeSchema.options.map((agent) => (
+                            <SelectItem key={agent} value={agent}>
+                              {agent}
+                            </SelectItem>
+                          ))}
                         </SelectGroup>
                       </SelectContent>
                     </Select>

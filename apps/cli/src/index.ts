@@ -26,9 +26,6 @@ import {
   listJobs,
   getJob,
   deleteJob,
-  listRecipes,
-  createRecipe,
-  deleteRecipe,
   listBestPractices,
   getBestPractice,
   createBestPractice,
@@ -173,23 +170,6 @@ jobsCmd
   .command("delete <id>")
   .description("Delete a job")
   .action((id: string) => deleteJob(id));
-
-// ─── Recipes ─────────────────────────────────────────────────────────
-
-const recipesCmd = program.command("recipes").description("Manage recipes");
-recipesCmd
-  .command("list")
-  .alias("ls")
-  .description("List all recipes")
-  .action(() => listRecipes());
-recipesCmd
-  .command("create <jsonFile>")
-  .description("Create a recipe from JSON file")
-  .action((f: string) => createRecipe(f));
-recipesCmd
-  .command("delete <id>")
-  .description("Delete a recipe")
-  .action((id: string) => deleteRecipe(id));
 
 // ─── Best Practices ──────────────────────────────────────────────────
 

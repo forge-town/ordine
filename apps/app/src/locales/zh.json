@@ -34,7 +34,8 @@
     "noResults": "没有匹配的结果",
     "metadata": "元数据",
     "createdAt": "创建时间",
-    "updatedAt": "更新时间"
+    "updatedAt": "更新时间",
+    "generating": "生成中..."
   },
   "nav": {
     "dashboard": "仪表盘",
@@ -48,14 +49,30 @@
     "skills": "技能",
     "rules": "规则",
     "bestPractices": "最佳实践",
-    "recipes": "配方",
     "runtimes": "运行时",
     "settings": "设置",
     "back": "返回",
     "workspace": "工作区",
     "library": "库",
     "knowledge": "知识",
+    "search": "搜索...",
+    "newPipeline": "新建流水线",
+    "preview": "预览",
+    "plugins": "插件",
+    "agents": "智能体",
     "logout": "退出登录"
+  },
+  "plugins": {
+    "title": "插件",
+    "subtitle": "已安装的插件及其贡献的对象类型。",
+    "version": "版本",
+    "objectTypes": "对象类型",
+    "noPlugins": "暂无已安装的插件"
+  },
+  "objects": {
+    "title": "对象",
+    "subtitle": "由已安装插件贡献的对象类型。",
+    "noObjects": "暂无已注册的对象类型"
   },
   "sidebar": {
     "user": "Ordine 用户"
@@ -220,17 +237,47 @@
     "scriptCommand": "脚本命令",
     "scriptLanguage": "语言",
     "basicInfo": "基本信息",
+    "identityAndScope": "身份与范围",
+    "identityAndScopeDescription": "定义 Operation 名称，以及 Agent 可以把它应用到哪些对象上。",
+    "executionContract": "执行契约",
+    "executionContractDescription": "选择这个 Operation 被调用时实际运行的执行器。",
+    "dataContract": "数据契约",
+    "dataContractDescription": "这里展示已有输入和输出，保存时会保留这些定义。",
+    "operationSummary": "Operation 摘要",
+    "operationId": "Operation ID",
+    "currentExecutor": "当前执行器",
+    "selectedObjects": "已选对象",
+    "configuredInputs": "输入",
+    "configuredOutputs": "输出",
+    "noConfiguredInputs": "暂无已配置输入",
+    "noConfiguredOutputs": "暂无已配置输出",
+    "templates": "模板",
+    "addOutputItem": "添加输出",
+    "removeOutputItem": "删除输出",
+    "unnamedOutputItem": "未命名输出",
+    "outputName": "名称",
+    "outputContentType": "文件格式",
+    "outputDescription": "描述",
+    "outputNamePlaceholder": "例如 report",
+    "outputDescriptionPlaceholder": "描述这个输出包含什么",
+    "preservedOnSave": "保存时会保留已有输入定义，并写入输出项修改。",
+    "unsavedChanges": "有未保存修改",
+    "noUnsavedChanges": "没有未保存修改",
     "visibilityLabel": "可见性",
     "public": "公开",
     "team": "团队",
     "private": "私有",
     "inputPorts": "输入端口",
-    "outputPorts": "输出端口",
+    "outputItems": "输出项",
     "noInputPorts": "无输入端口",
-    "noOutputPorts": "无输出端口",
+    "noOutputItems": "无输出项",
+    "definition": "定义",
+    "noTemplates": "未绑定模板",
+    "inputs": "输入",
     "objectTypeFile": "文件",
     "objectTypeFolder": "文件夹",
     "objectTypeProject": "整个项目",
+    "objectTypePrompt": "Prompt",
     "backToOperations": "返回 Operations",
     "editOperation": "编辑 Operation",
     "operationNotFound": "Operation 不存在",
@@ -271,7 +318,7 @@
     "nodeList": "节点列表",
     "nodeTypes": {
       "operation": "操作",
-      "code-file": "代码文件",
+      "file": "文件",
       "folder": "文件夹",
       "github-project": "GitHub",
       "output-local-path": "本地输出",
@@ -279,10 +326,30 @@
       "condition": "条件"
     }
   },
+  "newPipelineDialog": {
+    "descriptionPlaceholder": "描述这个流水线要做什么...",
+    "pipelineReady": "Pipeline 已就绪",
+    "pipelineCreatedDescription": "您的 Pipeline 已成功创建",
+    "openInCanvas": "在画布中打开",
+    "runNow": "立即运行",
+    "createAnother": "继续创建",
+    "analyzing": "正在分析意图...",
+    "analysisTitle": "意图分析",
+    "analysisDescription": "已将您的描述与可用操作进行匹配",
+    "matchedOperations": "匹配的操作",
+    "unmatchedSteps": "需要新建的操作",
+    "unmatchedStepsHint": "这些步骤将在生成流水线时创建新的操作",
+    "noMatchesFound": "未找到匹配的操作，将从头生成新的流水线。",
+    "proceedWithGeneration": "生成 Pipeline",
+    "backToEdit": "返回"
+  },
   "canvas": {
     "title": "画布",
+    "menu": "菜单",
+    "backToWorkspace": "回到工作区",
     "pipelineTitle": "Pipeline 标题",
     "pipelineTitlePlaceholder": "无标题 Pipeline",
+    "nodeLabel": "节点标签",
     "unsavedPipeline": "未保存的 Pipeline",
     "saveSuccess": "Pipeline 已保存",
     "saveFailed": "保存失败",
@@ -291,8 +358,37 @@
     "noPipelineId": "Pipeline 尚未保存",
     "runFailed": "Pipeline 验证失败，请重试",
     "runSaveFailed": "Pipeline 验证结果保存失败",
+    "runStartFailed": "Pipeline 启动失败",
     "runCompleted": "Pipeline 运行完成提醒",
+    "runSuccessDescription": "Job {{jobId}} 已完成 Pipeline 验证",
     "runTest": "运行测试",
+    "importFailed": "导入失败",
+    "importInvalidJson": "所选文件不是有效 JSON。",
+    "importInvalidPipelineJson": "所选 JSON 不是有效的 Pipeline 导出文件。",
+    "importFileTooLarge": "所选 JSON 文件过大。",
+    "settingsDrawer": {
+      "menuLabel": "设置",
+      "title": "Canvas 设置",
+      "description": "不离开当前 Pipeline，调整此画布视图。",
+      "close": "关闭 Canvas 设置",
+      "globalSettings": "打开全局设置",
+      "showMiniMap": {
+        "label": "显示 MiniMap",
+        "description": "画布中有多个节点时显示缩略地图。"
+      },
+      "showControls": {
+        "label": "显示视图控制",
+        "description": "保留缩放、适配视图和交互状态控制。"
+      },
+      "showBackground": {
+        "label": "显示网格背景",
+        "description": "使用点状网格辅助节点对齐。"
+      },
+      "snapToGrid": {
+        "label": "节点吸附到网格",
+        "description": "拖动节点时对齐到画布网格。"
+      }
+    },
     "collapseSidebar": "收起侧栏",
     "expandSidebar": "展开侧栏",
     "nodeLibrary": "节点库",
@@ -317,6 +413,9 @@
     "zoomIn": "放大",
     "zoomOut": "缩小",
     "fitView": "适配视图",
+    "interactivity": "画布交互",
+    "enableInteractivity": "开启画布交互",
+    "disableInteractivity": "锁定画布交互",
     "formatLayout": "格式化排版",
     "undo": "撤销",
     "redo": "重做",
@@ -346,6 +445,7 @@
       "noSelection": "未选中节点"
     },
     "contextMenu": {
+      "actions": "操作",
       "addCodeFile": "添加 Code File",
       "addFolder": "添加 Folder",
       "addCondition": "添加 Condition",
@@ -360,8 +460,96 @@
       "recipeNode": "快捷配方",
       "outputEndpoint": "输出终点",
       "noOperationsForType": "没有接受此类型的 Operation",
-      "newNode": "新建节点"
+      "newNode": "新建节点",
+      "group": "编组",
+      "newCompoundNode": "新建复合节点",
+      "groupSelected": "编组 {{count}} 个选中节点",
+      "ungroup": "解散编组",
+      "detachFromGroup": "从编组中移除",
+      "duplicate": "复制",
+      "delete": "删除"
     },
+    "floatingMenu": {
+      "menu": "菜单",
+      "backToWorkspace": "回到工作区",
+      "save": "保存",
+      "export": "导出",
+      "import": "导入",
+      "settings": "设置",
+      "importJson": "导入 Canvas JSON",
+      "saveSuccessDescription": "Pipeline「{{name}}」已保存",
+      "createSuccessDescription": "Pipeline「{{name}}」已创建",
+      "saveFailedDescription": "请稍后重试"
+    },
+    "nodeTypes": {
+      "operation": {
+        "label": "操作节点",
+        "shortLabel": "操作"
+      },
+      "file": {
+        "label": "文件",
+        "shortLabel": "文件"
+      },
+      "folder": {
+        "label": "文件夹",
+        "shortLabel": "文件夹"
+      },
+      "github-project": {
+        "label": "GitHub 项目",
+        "shortLabel": "GitHub"
+      },
+      "output-project-path": {
+        "label": "项目输出",
+        "shortLabel": "输出"
+      },
+      "output-local-path": {
+        "label": "本地输出",
+        "shortLabel": "本地"
+      },
+      "compound": {
+        "label": "复合节点",
+        "shortLabel": "组"
+      },
+      "prompt": {
+        "label": "提示词",
+        "shortLabel": "提示"
+      }
+    },
+    "compoundNode": {
+      "childCount": "{{count}} 个节点"
+    },
+    "llmContent": {
+      "title": "{{label}} - 思考内容",
+      "running": "LLM 正在思考中...",
+      "empty": "暂无 LLM 输出内容"
+    },
+    "runConsole": {
+      "title": "控制台",
+      "logs": "{{count}} 条日志",
+      "loading": "加载中...",
+      "statusQueued": "排队中",
+      "statusRunning": "运行中",
+      "statusDone": "完成",
+      "statusFailed": "失败",
+      "statusCancelled": "已取消",
+      "statusExpired": "已过期"
+    },
+    "history": {
+      "addEdge": "连接 {{source}} -> {{target}}",
+      "addNode": "添加节点 {{label}}",
+      "addNodeWithEdge": "添加 {{label}} 并连接",
+      "removeNode": "删除节点 {{label}}",
+      "updateNode": "编辑 {{label}}",
+      "duplicateNode": "复制节点 {{label}}",
+      "clearCanvas": "清空画布",
+      "addToCompound": "添加 {{node}} 到 {{compound}}",
+      "removeFromCompound": "从 {{compound}} 移除 {{node}}",
+      "groupNodes": "编组 {{count}} 个节点",
+      "ungroupCompound": "解散编组 {{label}}"
+    },
+    "unknownNode": "未知节点",
+    "folderTreeLoading": "加载中...",
+    "excludePath": "排除 {{name}}",
     "folderDescPlaceholder": "文件夹描述...",
     "clickToSwitchRepo": "点击切换仓库",
     "pickFromLibrary": "从项目库选取",
@@ -617,6 +805,35 @@
     "networkError": "网络错误，请稍后重试"
   },
   "nodes": {
+    "operation": {
+      "customDescription": "自定义操作",
+      "statusIdle": "待运行",
+      "statusRunning": "运行中",
+      "statusPass": "成功",
+      "statusFail": "失败",
+      "config": "配置",
+      "acceptedObjectTypes": "接受的对象类型",
+      "objectTypes": {
+        "file": "文件",
+        "folder": "文件夹",
+        "project": "项目"
+      },
+      "agentRuntime": "Agent 运行时",
+      "agent": "Agent",
+      "runtime": "运行时",
+      "runtimeSelectLabel": "选择 Agent Runtime",
+      "defaultRuntime": "默认",
+      "defaultAgent": "默认",
+      "agentIncompatible": "不兼容",
+      "inspectLlmOutput": "点击查看 LLM 输出",
+      "loopEnabled": "循环已开启",
+      "enableLoop": "开启循环",
+      "maxLoopCount": "最大轮次",
+      "maxLoopCountAria": "最大循环次数",
+      "acceptanceCondition": "验收条件",
+      "loopConditionAria": "循环验收条件",
+      "loopConditionPlaceholder": "描述输出需要满足的条件..."
+    },
     "outputLocalPath": {
       "label": "路径",
       "selectFolder": "选择文件夹",
@@ -633,6 +850,9 @@
       "selectThisFolder": "选择此文件夹"
     },
     "codeFile": {
+      "pathLabel": "代码文件路径",
+      "languageLabel": "代码文件语言",
+      "descriptionLabel": "代码文件描述",
       "descriptionPlaceholder": "文件描述...",
       "browseFile": "浏览文件"
     },
@@ -645,11 +865,13 @@
       "statusFail": "失败"
     },
     "outputProjectPath": {
+      "description": "项目输出",
       "descriptionPlaceholder": "描述此输出...",
       "projectIdLabel": "项目 ID",
       "pathLabel": "路径"
     },
     "outputLocalPathNode": {
+      "description": "本地输出",
       "pathLabel": "路径",
       "filenameLabel": "文件名",
       "writeModeLabel": "写入模式",
@@ -681,11 +903,28 @@
     "defaultBranch": "默认分支",
     "connectRepo": "连接仓库",
     "back": "返回",
+    "private": "Private",
+    "public": "Public",
     "tokenConfigured": "已配置 Token（可访问私有仓库）",
     "tokenMissing": "未配置 Token（仅可访问公开仓库）",
     "configure": "配置",
     "modify": "修改",
-    "urlParseError": "无法解析 GitHub URL，请输入完整的仓库链接"
+    "urlParseError": "无法解析 GitHub URL，请输入完整的仓库链接",
+    "tokenTitle": "GitHub Personal Access Token",
+    "tokenStatusConfigured": "Token 已配置",
+    "tokenPrivateAccess": "可访问私有仓库",
+    "tokenStatusMissing": "未配置 Token",
+    "tokenPrivateRequiresPat": "访问私有仓库需要填写 Personal Access Token",
+    "personalAccessToken": "Personal Access Token",
+    "showToken": "显示 Token",
+    "hideToken": "隐藏 Token",
+    "verify": "验证",
+    "verifySuccess": "验证成功，已登录为 {{login}}",
+    "tokenLocalOnly": "Token 仅保存在本地浏览器，不会上传至服务器。",
+    "createTokenLink": "在 GitHub 创建 Token（需勾选 repo 权限）",
+    "clearToken": "清除 Token",
+    "projectListEmpty": "项目库为空，请先在「项目」页面连接 GitHub 仓库",
+    "projectListNoResults": "未找到匹配的项目"
   },
   "skills": {
     "pageStructure": "页面结构",
@@ -731,22 +970,33 @@
     "conditionRequired": "适用时机不能为空",
     "objectTypeRequired": "至少选择一种对象类型"
   },
-  "recipes": {
-    "title": "配方",
-    "addNew": "新增配方",
-    "editTitle": "编辑配方",
-    "createTitle": "新增配方",
-    "noItems": "还没有任何配方",
-    "noItemsHint": "配方 = 操作 + 最佳实践的快捷组合",
-    "nameLabel": "名称 *",
-    "namePlaceholder": "e.g. Check ClassName 规范",
-    "descriptionLabel": "描述",
-    "descriptionPlaceholder": "描述这个配方的用途...",
-    "operationLabel": "操作 *",
-    "operationPlaceholder": "选择一个操作",
-    "bestPracticeLabel": "最佳实践 *",
-    "bestPracticePlaceholder": "选择一个最佳实践",
-    "searchPlaceholder": "搜索配方...",
-    "count": "条"
+  "agents": {
+    "title": "智能体",
+    "noAgents": "暂无智能体",
+    "searchPlaceholder": "搜索智能体...",
+    "capabilities": "能力",
+    "allowedTools": "允许的工具",
+    "allowedSkills": "允许的技能",
+    "noCapabilities": "未定义能力",
+    "defaultRuntime": "默认运行时",
+    "tags": "标签",
+    "create": "创建智能体",
+    "createTitle": "创建智能体",
+    "editTitle": "编辑智能体",
+    "form": {
+      "name": "名称",
+      "namePlaceholder": "输入智能体名称",
+      "description": "描述",
+      "descriptionPlaceholder": "描述该智能体的功能",
+      "defaultRuntime": "默认运行时",
+      "runtimePlaceholder": "选择运行时",
+      "systemPrompt": "系统提示词",
+      "systemPromptPlaceholder": "输入该智能体的系统提示词",
+      "tags": "标签",
+      "tagsPlaceholder": "用逗号分隔的标签",
+      "cancel": "取消",
+      "save": "保存",
+      "create": "创建"
+    }
   }
 }

@@ -99,7 +99,7 @@ export interface HistorySlice {
 
 export const createHistorySlice = (
   set: Parameters<HarnessCanvasStoreSlice>[0],
-  get: Parameters<HarnessCanvasStoreSlice>[1]
+  get: Parameters<HarnessCanvasStoreSlice>[1],
 ): HistorySlice => ({
   _history: [],
   _future: [],

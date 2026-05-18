@@ -99,4 +99,10 @@ describe("DashboardPageContent", () => {
     render(<DashboardPageContent />);
     expect(screen.getByText("运行 Pipeline")).toBeInTheDocument();
   });
+
+  it("shows active quick actions and does not expose Best Practices", () => {
+    render(<DashboardPageContent />);
+    expect(screen.getByText("关联 GitHub 仓库")).toBeInTheDocument();
+    expect(screen.queryByText("最佳实践")).not.toBeInTheDocument();
+  });
 });

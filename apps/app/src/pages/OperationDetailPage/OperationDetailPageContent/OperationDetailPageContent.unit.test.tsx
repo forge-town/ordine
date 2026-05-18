@@ -2,11 +2,12 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { OperationDetailPageContent } from "./OperationDetailPageContent";
+import { OperationDetailPageStoreProvider } from "../_store";
 import type { Operation } from "@repo/schemas";
 
 const mockUseLoaderData = vi.fn();
 
-vi.mock("@/routes/_layout/operations.$operationId.index", () => ({
+vi.mock("@/routes/_layout/pipelines.operations.$operationId.index", () => ({
   Route: {
     useLoaderData: () => mockUseLoaderData(),
     useParams: () => ({ operationId: "op_plan" }),
@@ -16,6 +17,13 @@ vi.mock("@/routes/_layout/operations.$operationId.index", () => ({
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
   useNavigate: () => vi.fn(),
+  createRootRoute: vi.fn(() => ({})),
+  createRoute: vi.fn(() => ({})),
+  createRouter: vi.fn(() => ({ navigate: vi.fn() })),
+}));
+
+vi.mock("@/router", () => ({
+  router: { navigate: vi.fn() },
 }));
 
 vi.mock("@refinedev/core", () => ({
@@ -31,7 +39,11 @@ vi.mock("@refinedev/core", () => ({
   useCustomMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
   useInvalidate: () => vi.fn(),
   useOne: () => ({ result: mockUseLoaderData(), isLoading: false }),
+  useCustom: () => ({ result: { data: null }, isLoading: false }),
 }));
+
+const renderWithStore = (ui: React.ReactElement) =>
+  render(ui, { wrapper: OperationDetailPageStoreProvider });
 
 const mockOp: Operation = {
   id: "op_plan",
@@ -47,7 +59,7 @@ const mockOp: Operation = {
       },
       {
         name: "techStack",
-        kind: "text",
+        kind: "prompt",
         required: false,
         description: "Technology stack choices.",
       },
@@ -55,9 +67,9 @@ const mockOp: Operation = {
     outputs: [
       {
         name: "planDocument",
-        kind: "file",
-        path: ".specify/{feature}/plan.md",
+        contentType: "markdown",
         description: "Technical plan document.",
+        templateIds: [],
       },
     ],
   },
@@ -68,52 +80,46 @@ const mockOp: Operation = {
 describe("OperationDetailPageContent", () => {
   it("renders the operation name in the header", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
-    render(<OperationDetailPageContent />);
+    renderWithStore(<OperationDetailPageContent />);
     expect(screen.getByText("Plan")).toBeInTheDocument();
   });
 
   it("renders the description", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
-    render(<OperationDetailPageContent />);
+    renderWithStore(<OperationDetailPageContent />);
     expect(screen.getByText("Produce a technical implementation plan.")).toBeInTheDocument();
   });
 
   it("renders the inputs section with port names", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
-    render(<OperationDetailPageContent />);
+    renderWithStore(<OperationDetailPageContent />);
     expect(screen.getByText("specDocument")).toBeInTheDocument();
     expect(screen.getByText("techStack")).toBeInTheDocument();
   });
 
   it("marks required inputs as required", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
-    render(<OperationDetailPageContent />);
+    renderWithStore(<OperationDetailPageContent />);
     expect(screen.getByText("必填")).toBeInTheDocument();
   });
 
-  it("renders the outputs section with port names", () => {
+  it("renders the outputs section with item names", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
-    render(<OperationDetailPageContent />);
-    expect(screen.getByText("planDocument")).toBeInTheDocument();
-  });
-
-  it("renders output path", () => {
-    mockUseLoaderData.mockReturnValue(mockOp);
-    render(<OperationDetailPageContent />);
-    expect(screen.getByText(".specify/{feature}/plan.md")).toBeInTheDocument();
+    renderWithStore(<OperationDetailPageContent />);
+    const matches = screen.getAllByText("planDocument");
+    expect(matches.length).toBeGreaterThan(0);
   });
 
   it("renders accepted object types", () => {
     mockUseLoaderData.mockReturnValue(mockOp);
-    render(<OperationDetailPageContent />);
-    // "file" appears in acceptedObjectTypes chip and also in port kind badges
+    renderWithStore(<OperationDetailPageContent />);
     const matches = screen.getAllByText("file");
     expect(matches.length).toBeGreaterThan(0);
   });
 
   it("shows not-found state when operation is null", () => {
     mockUseLoaderData.mockReturnValue(null);
-    render(<OperationDetailPageContent />);
+    renderWithStore(<OperationDetailPageContent />);
     expect(screen.getByText("Operation 不存在")).toBeInTheDocument();
   });
 
@@ -133,13 +139,13 @@ describe("OperationDetailPageContent", () => {
 
     it("shows executor section when config has an executor", () => {
       mockUseLoaderData.mockReturnValue(executorOp);
-      render(<OperationDetailPageContent />);
+      renderWithStore(<OperationDetailPageContent />);
       expect(screen.getByText(/执行方式/i)).toBeInTheDocument();
     });
 
     it("shows script command when executor type is script", () => {
       mockUseLoaderData.mockReturnValue(executorOp);
-      render(<OperationDetailPageContent />);
+      renderWithStore(<OperationDetailPageContent />);
       expect(screen.getByText("eslint src/")).toBeInTheDocument();
     });
 
@@ -153,7 +159,7 @@ describe("OperationDetailPageContent", () => {
         },
       };
       mockUseLoaderData.mockReturnValue(op);
-      render(<OperationDetailPageContent />);
+      renderWithStore(<OperationDetailPageContent />);
       expect(screen.getByText("lint-check")).toBeInTheDocument();
     });
 
@@ -167,13 +173,13 @@ describe("OperationDetailPageContent", () => {
         },
       };
       mockUseLoaderData.mockReturnValue(op);
-      render(<OperationDetailPageContent />);
+      renderWithStore(<OperationDetailPageContent />);
       expect(screen.getByText("You are a code reviewer")).toBeInTheDocument();
     });
 
     it("does not render a visibility badge", () => {
       mockUseLoaderData.mockReturnValue(executorOp);
-      render(<OperationDetailPageContent />);
+      renderWithStore(<OperationDetailPageContent />);
       expect(screen.queryByText("public")).not.toBeInTheDocument();
       expect(screen.queryByText("private")).not.toBeInTheDocument();
       expect(screen.queryByText("team")).not.toBeInTheDocument();

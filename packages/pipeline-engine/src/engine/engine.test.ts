@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
 import { pipelineEngine } from "../engine";
 import type { PipelineEngineDeps } from "../deps";
-import type { PipelineNode, PipelineEdge } from "../schemas";
+import type { PipelineNode, PipelineEdge } from "@repo/schemas";
 import type { PipelineOptions } from "../pipeline";
 import type { OperationInfo } from "../nodes/types";
 
@@ -59,8 +59,8 @@ const makeOpts = (
   jobId: "job-12345678",
   operations: new Map(),
   deps,
+  lookupAgent: vi.fn().mockResolvedValue(null),
   lookupSkill: vi.fn().mockResolvedValue(null),
-  lookupBestPractice: vi.fn().mockResolvedValue(null),
   ...extra,
 });
 
@@ -118,20 +118,20 @@ describe("executePipeline", () => {
     });
   });
 
-  describe("code-file node", () => {
+  describe("file node", () => {
     it("reads a code file and passes content forward", async () => {
       const filePath = join(testDir, "test-code.ts");
       await writeFile(filePath, "const x = 42;", "utf8");
 
       const deps = makeDeps();
-      const nodes = [makeNode("cf", "code-file", { filePath })];
+      const nodes = [makeNode("cf", "file", { filePath })];
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
     });
 
     it("handles non-existent code file", async () => {
       const deps = makeDeps();
-      const nodes = [makeNode("cf", "code-file", { filePath: "/no-file-12345.ts" })];
+      const nodes = [makeNode("cf", "file", { filePath: "/no-file-12345.ts" })];
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
       expect(result.ok).toBe(true);
     });
@@ -299,29 +299,6 @@ describe("executePipeline", () => {
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps, { operations }));
       expect(result.ok).toBe(true);
       expect(deps.runPrompt).not.toHaveBeenCalled();
-    });
-
-    it("loads best practice content when bestPracticeId is set", async () => {
-      const deps = makeDeps();
-      const opId = "op-bp";
-      const operations = new Map([
-        [
-          opId,
-          makeOp(opId, "BP Op", {
-            executor: { type: "agent", agentMode: "prompt", prompt: "Check standards" },
-          }),
-        ],
-      ]);
-      const lookupBestPractice = vi
-        .fn()
-        .mockResolvedValue({ title: "DAO Guide", content: "Use class-based DAOs" });
-
-      const nodes = [makeNode("op", "operation", { operationId: opId, bestPracticeId: "bp-1" })];
-      const result = await pipelineEngine.execute(
-        makeOpts(nodes, [], deps, { operations, lookupBestPractice }),
-      );
-      expect(result.ok).toBe(true);
-      expect(lookupBestPractice).toHaveBeenCalledWith("bp-1");
     });
   });
 

@@ -1,9 +1,17 @@
 import type { ElementType } from "react";
 import { useTranslation } from "react-i18next";
 import { useList } from "@refinedev/core";
-import type { Operation, Recipe } from "@repo/schemas";
-import type { BuiltinNodeType } from "@repo/pipeline-engine/schemas";
-import { BookOpen, FileCode, Folder, FolderOutput, HardDrive, Search, Zap, X } from "lucide-react";
+import type { Operation, BuiltinNodeType } from "@repo/schemas";
+import {
+  FileCode,
+  Folder,
+  FolderOutput,
+  HardDrive,
+  MessageSquareText,
+  Search,
+  Zap,
+  X,
+} from "lucide-react";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -11,15 +19,16 @@ import { cn } from "@repo/ui/lib/utils";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useHarnessCanvasStore } from "../_store";
-import { getNodeMeta } from "../utils/nodeTypeMeta";
+import { getNodeMeta, getNodeTypeLabel, getNodeTypeShortLabel } from "../utils/nodeTypeMeta";
 import type { XYPosition } from "@xyflow/system";
 
-const QUICK_ADD_OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-project"];
+const QUICK_ADD_OBJECT_TYPES: BuiltinNodeType[] = ["file", "folder", "github-project", "prompt"];
 
 const TYPE_ICONS: Record<string, ElementType> = {
-  "code-file": FileCode,
+  file: FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
+  prompt: MessageSquareText,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
 };
@@ -44,44 +53,28 @@ export const CanvasNodeCreationPalette = ({
   const handleQuickAddKeyDown = useStore(store, (state) => state.handleQuickAddKeyDown);
   const handleCreateObjectNode = useStore(store, (state) => state.handleCreateObjectNode);
   const handleCreateOperationNode = useStore(store, (state) => state.handleCreateOperationNode);
-  const handleCreateRecipeNode = useStore(store, (state) => state.handleCreateRecipeNode);
 
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: recipesResult } = useList<Recipe>({ resource: ResourceName.recipes });
-
   const operations = operationsResult?.data ?? [];
-  const recipes = recipesResult?.data ?? [];
   const search = normalizeSearch(query);
 
   const objectItems = QUICK_ADD_OBJECT_TYPES.filter((type) => {
     const meta = getNodeMeta(type);
+    const label = getNodeTypeLabel(t, type);
+    const shortLabel = getNodeTypeShortLabel(t, type);
 
-    return search === "" || includesSearch([meta?.label, meta?.shortLabel, type], search);
+    return search === "" || includesSearch([label, shortLabel, meta?.label, type], search);
   });
 
   const operationItems = operations.filter((operation) =>
     search === ""
       ? true
-      : includesSearch([operation.name, operation.description, "operation"], search)
+      : includesSearch([operation.name, operation.description, "operation"], search),
   );
 
-  const recipeItems = recipes
-    .map((recipe) => ({
-      recipe,
-      operation: operations.find((operation) => operation.id === recipe.operationId),
-    }))
-    .filter(
-      (item): item is { recipe: Recipe; operation: Operation } => item.operation !== undefined
-    )
-    .filter(({ recipe, operation }) =>
-      search === ""
-        ? true
-        : includesSearch([recipe.name, recipe.description, operation.name, "recipe"], search)
-    );
-
-  const hasResults = objectItems.length > 0 || operationItems.length > 0 || recipeItems.length > 0;
+  const hasResults = objectItems.length > 0 || operationItems.length > 0;
 
   return (
     <div
@@ -124,6 +117,8 @@ export const CanvasNodeCreationPalette = ({
                 {objectItems.map((type) => {
                   const Icon = TYPE_ICONS[type];
                   const meta = getNodeMeta(type);
+                  const label = getNodeTypeLabel(t, type);
+                  const shortLabel = getNodeTypeShortLabel(t, type);
                   if (!meta) return null;
 
                   return (
@@ -136,13 +131,13 @@ export const CanvasNodeCreationPalette = ({
                       <span
                         className={cn(
                           "flex size-6 shrink-0 items-center justify-center rounded",
-                          meta.iconBg
+                          meta.iconBg,
                         )}
                       >
                         <Icon className="size-3.5 text-white" />
                       </span>
-                      <span className="min-w-0 flex-1 truncate font-medium">{meta.label}</span>
-                      <span className="text-xs text-muted-foreground">{meta.shortLabel}</span>
+                      <span className="min-w-0 flex-1 truncate font-medium">{label}</span>
+                      <span className="text-xs text-muted-foreground">{shortLabel}</span>
                     </button>
                   );
                 })}
@@ -169,34 +164,8 @@ export const CanvasNodeCreationPalette = ({
                       <Zap className="size-3.5 text-white" />
                     </span>
                     <span className="min-w-0 flex-1 truncate font-medium">{operation.name}</span>
-                    <span className="text-xs text-muted-foreground">OP</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {recipeItems.length > 0 && (
-            <section>
-              <div className="px-2 py-1 text-[11px] font-semibold uppercase text-muted-foreground">
-                {t("canvas.quickAdd.recipes")}
-              </div>
-              <div className="space-y-0.5">
-                {recipeItems.map(({ recipe, operation }) => (
-                  <button
-                    key={recipe.id}
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    type="button"
-                    onClick={() =>
-                      handleCreateRecipeNode(recipe, operation, getCreateNodeScreenPosition())
-                    }
-                  >
-                    <span className="flex size-6 shrink-0 items-center justify-center rounded bg-amber-500">
-                      <BookOpen className="size-3.5 text-white" />
-                    </span>
-                    <span className="min-w-0 flex-1 truncate font-medium">{recipe.name}</span>
-                    <span className="max-w-28 truncate text-xs text-muted-foreground">
-                      {operation.name}
+                    <span className="text-xs text-muted-foreground">
+                      {t("canvas.nodeTypes.operation.shortLabel")}
                     </span>
                   </button>
                 ))}

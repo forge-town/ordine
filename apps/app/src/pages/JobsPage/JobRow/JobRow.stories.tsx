@@ -11,7 +11,7 @@ const baseJob: Job = {
   error: null,
   startedAt: new Date(Date.now() - 5000),
   finishedAt: null,
-  meta: { createdAt: new Date(Date.now() - 10000), updatedAt: new Date() },
+  meta: { createdAt: new Date(Date.now() - 10_000), updatedAt: new Date() },
 };
 
 const meta: Meta<typeof JobRow> = {

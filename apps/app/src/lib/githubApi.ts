@@ -37,7 +37,7 @@ export const verifyGitHubToken = async (token: string | null): Promise<GitHubTok
     fetch(`${GITHUB_API_BASE}/user`, {
       headers: getGitHubHeaders(token),
     }),
-    () => `NETWORK_ERROR:${t("github.networkError")}`
+    () => `NETWORK_ERROR:${t("github.networkError")}`,
   );
 
   if (result.isErr()) {
@@ -62,7 +62,7 @@ export const verifyGitHubToken = async (token: string | null): Promise<GitHubTok
   if (res.status === 403) {
     const jsonResult = await ResultAsync.fromPromise(
       res.json() as Promise<Record<string, unknown>>,
-      () => ({})
+      () => ({}),
     );
     const data = jsonResult.unwrapOr({});
     const msg = (data as { message?: string }).message ?? "";
@@ -91,7 +91,7 @@ export interface ParsedGitHubUrl {
 export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
   const urlResult = Result.fromThrowable(
     () => new URL(url.trim()),
-    () => null
+    () => null,
   )();
   if (urlResult.isErr()) return null;
 
@@ -113,7 +113,7 @@ export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
 export class GitHubApiError extends Error {
   constructor(
     message: string,
-    public readonly statusCode?: number
+    public readonly statusCode?: number,
   ) {
     super(message);
     this.name = "GitHubApiError";
@@ -124,18 +124,18 @@ export const fetchRepoInfo = (
   owner: string,
   repo: string,
   token?: string | null,
-  branchHint?: string
+  branchHint?: string,
 ): ResultAsync<GitHubRepoInfo, string> => {
   const t = i18n.t.bind(i18n);
   const headers = getGitHubHeaders(token);
 
   return ResultAsync.fromPromise(
     fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}`, { headers }),
-    () => t("github.connectError")
+    () => t("github.connectError"),
   ).andThen((repoRes) => {
     if (repoRes.ok) {
       return ResultAsync.fromPromise(repoRes.json() as Promise<Record<string, unknown>>, () =>
-        t("github.parseRepoError")
+        t("github.parseRepoError"),
       ).map((repoData) => {
         const defaultBranch = repoData.default_branch as string;
         const targetBranch = branchHint ?? defaultBranch;

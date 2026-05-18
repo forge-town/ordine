@@ -24,7 +24,7 @@ const {
 const mockWriteText = vi.fn().mockResolvedValue(undefined);
 const mockDistillationId = "00000000-0000-4000-8000-000000000001";
 
-vi.mock("@/routes/_layout/jobs.$jobId", () => ({
+vi.mock("@/routes/_layout/pipelines.jobs.$jobId", () => ({
   Route: { useParams: () => ({ jobId: "job-1" }), useLoaderData: () => mockUseLoaderData() },
 }));
 
@@ -122,14 +122,14 @@ describe("JobDetailPageContent", () => {
             sourceId: mockJob.id,
             mode: "pipeline",
           }),
-        })
+        }),
       );
       expect(mockCustomMutationMutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
           url: "distillations/run",
           method: "post",
           values: { id: mockDistillationId },
-        })
+        }),
       );
       expect(mockNavigate).toHaveBeenCalledWith({
         to: "/distillations/$distillationId",

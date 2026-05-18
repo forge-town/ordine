@@ -1,1 +1,1 @@
-export { JobSourceAnalysisPanel } from "./JobSourceAnalysisPanel";
+export * from "./JobSourceAnalysisPanel";

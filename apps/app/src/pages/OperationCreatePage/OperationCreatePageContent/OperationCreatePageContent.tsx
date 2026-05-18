@@ -2,7 +2,15 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
-import { FileCode, Folder, FolderGit2, Puzzle, Terminal, Wand2 } from "lucide-react";
+import {
+  FileCode,
+  Folder,
+  FolderGit2,
+  MessageSquareText,
+  Puzzle,
+  Terminal,
+  Wand2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
@@ -15,11 +23,12 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageHeader } from "@/components/PageHeader";
 import {
   type Skill,
-  ObjectTypeSchema,
+  ObjectNodeTypeSchema,
   type ObjectType,
-  ExecutorTypeSchema,
+  OperationExecutorTypeSchema,
   AgentModeSchema,
   ScriptLanguageSchema,
+  type OperationConfigInput,
 } from "@repo/schemas";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { useStore } from "zustand";
@@ -38,14 +47,15 @@ const AGENT_MODE_ICONS = {
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
   folder: Folder,
-  project: FolderGit2,
+  "github-project": FolderGit2,
+  prompt: MessageSquareText,
 };
 
 const createFormSchema = z.object({
   name: z.string().min(1, "名称不能为空"),
   description: z.string(),
-  acceptedObjectTypes: z.array(ObjectTypeSchema).min(1),
-  executorType: ExecutorTypeSchema,
+  acceptedObjectTypes: z.array(ObjectNodeTypeSchema).min(1),
+  executorType: OperationExecutorTypeSchema,
   agentMode: AgentModeSchema,
   skillId: z.string(),
   promptText: z.string(),
@@ -53,34 +63,34 @@ const createFormSchema = z.object({
   scriptLanguage: ScriptLanguageSchema,
 });
 
-const buildConfig = (values: CreateFormValues): string => {
+const buildConfig = (values: CreateFormValues): OperationConfigInput => {
   if (values.executorType === "agent") {
     if (values.agentMode === "skill") {
-      return JSON.stringify({
+      return {
         executor: {
           type: "agent",
           agentMode: "skill",
           skillId: values.skillId,
         },
-      });
+      };
     }
 
-    return JSON.stringify({
+    return {
       executor: {
         type: "agent",
         agentMode: "prompt",
         prompt: values.promptText,
       },
-    });
+    };
   }
 
-  return JSON.stringify({
+  return {
     executor: {
       type: "script",
       command: values.scriptCommand,
       language: values.scriptLanguage,
     },
-  });
+  };
 };
 
 type CreateFormValues = z.infer<typeof createFormSchema>;
@@ -108,7 +118,7 @@ export const OperationCreatePageContent = () => {
     defaultValues: {
       name: "",
       description: "",
-      acceptedObjectTypes: ["file", "folder", "project"],
+      acceptedObjectTypes: ["file", "folder", "github-project"],
       executorType: "agent" as const,
       agentMode: "skill" as const,
       skillId: "",
@@ -187,14 +197,14 @@ export const OperationCreatePageContent = () => {
       icon: OBJECT_TYPE_ICONS.folder,
     },
     {
-      value: "project",
+      value: "github-project",
       label: t("operations.objectTypeProject"),
-      icon: OBJECT_TYPE_ICONS.project,
+      icon: OBJECT_TYPE_ICONS["github-project"],
     },
   ];
 
   const handleCancel = () => {
-    void navigate({ to: "/operations" });
+    void navigate({ to: "/pipelines/operations" });
   };
 
   const onSubmit = async (values: CreateFormValues) => {
@@ -211,7 +221,7 @@ export const OperationCreatePageContent = () => {
     const created = result.data;
     if (created) {
       void navigate({
-        to: "/operations/$operationId",
+        to: "/pipelines/operations/$operationId",
         params: { operationId: (created as { id: string }).id },
       });
     }
@@ -219,7 +229,7 @@ export const OperationCreatePageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <PageHeader backTo="/operations" title={t("operations.createNew")} />
+      <PageHeader backTo="/pipelines/operations" title={t("operations.createNew")} />
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-6">
@@ -284,7 +294,7 @@ export const OperationCreatePageContent = () => {
                                   "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                                   selected
                                     ? "border-primary/50 bg-primary/10 text-primary"
-                                    : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                    : "border-border bg-background text-muted-foreground hover:bg-muted",
                                 )}
                                 type="button"
                                 onClick={() => handleChange(toggleObjectType(field.value, value))}
@@ -327,7 +337,7 @@ export const OperationCreatePageContent = () => {
                                 "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
                                 selected
                                   ? "border-primary/50 bg-primary/10 text-primary"
-                                  : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                  : "border-border bg-background text-muted-foreground hover:bg-muted",
                               )}
                               type="button"
                               onClick={() => handleChange(value)}
@@ -368,7 +378,7 @@ export const OperationCreatePageContent = () => {
                                     "flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                                     selected
                                       ? "border-primary/50 bg-primary/10 text-primary"
-                                      : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                      : "border-border bg-background text-muted-foreground hover:bg-muted",
                                   )}
                                   type="button"
                                   onClick={() => handleChange(value)}

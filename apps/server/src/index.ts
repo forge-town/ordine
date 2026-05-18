@@ -7,7 +7,7 @@ import { getEnv } from "./integrations/env";
 const env = getEnv();
 const port = env.PORT ?? 9433;
 
-const DEFAULT_JOB_TIMEOUT_MS = env.JOB_TIMEOUT_MS ?? 15 * 60 * 1000; // 15 min
+const DEFAULT_JOB_TIMEOUT_MS = env.JOB_TIMEOUT_MS ?? 60 * 60 * 1000; // 60 min
 const EXPIRE_CHECK_INTERVAL_MS = 60_000; // every 60s
 
 setInterval(async () => {

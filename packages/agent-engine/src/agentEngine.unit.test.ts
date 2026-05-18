@@ -20,6 +20,21 @@ vi.mock("@repo/agent", () => ({
     await opts.onProgress?.("progress");
     return "fake codex output";
   }),
+  runHermes: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
+    await opts.onProgress?.("progress");
+    return {
+      isErr: () => false,
+      value: "fake hermes output",
+    };
+  }),
+  runMastra: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
+    await opts.onProgress?.("progress");
+    return { text: "fake mastra output", events: [] };
+  }),
+  runOpenclaw: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
+    await opts.onProgress?.("progress");
+    return { text: "fake openclaw output" };
+  }),
 }));
 
 vi.mock("@repo/obs", () => ({
@@ -31,6 +46,7 @@ vi.mock("@repo/logger", () => ({
 }));
 
 import { agentEngine } from "./agentEngine";
+import { runHermes } from "@repo/agent";
 import { recordAgentRunWithSpans } from "@repo/obs";
 
 describe("agentEngine", () => {
@@ -63,6 +79,30 @@ describe("agentEngine", () => {
 
     expect(result.text).toBe("fake codex output");
     expect(result.events).toEqual([]);
+  });
+
+  it("dispatches to runHermes for hermes", async () => {
+    const result = await agentEngine.run({
+      agent: "hermes",
+      mode: "direct",
+      systemPrompt: "Analyze this",
+      userPrompt: "Hello",
+      cwd: "/tmp/test",
+      model: "nous-hermes-4",
+      allowedTools: ["WebSearch"],
+    });
+
+    expect(result.text).toBe("fake hermes output");
+    expect(result.events).toEqual([]);
+    expect(runHermes).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: "/tmp/test",
+        model: "nous-hermes-4",
+        allowedTools: ["WebSearch"],
+        systemPrompt: "Analyze this",
+        userPrompt: "Hello",
+      }),
+    );
   });
 
   it("throws for unsupported agent backend", async () => {
@@ -107,7 +147,7 @@ describe("agentEngine", () => {
     expect(recordAgentRunWithSpans).toHaveBeenCalledWith(
       expect.objectContaining({
         jobId: "job-1",
-        agentSystem: "claude-code",
+        agentRuntime: "claude-code",
         agentId: "test-agent",
         rawPayload: expect.objectContaining({
           system: "sys",
@@ -118,6 +158,44 @@ describe("agentEngine", () => {
       }),
       expect.any(Function),
     );
+  });
+
+  it("records hermes observability with empty event spans", async () => {
+    await agentEngine.run({
+      agent: "hermes",
+      mode: "direct",
+      systemPrompt: "sys",
+      userPrompt: "user",
+      cwd: "/tmp",
+      jobId: "job-1",
+      agentId: "hermes-agent",
+    });
+
+    expect(recordAgentRunWithSpans).toHaveBeenCalledOnce();
+    expect(recordAgentRunWithSpans).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jobId: "job-1",
+        agentRuntime: "hermes",
+        agentId: "hermes-agent",
+        rawPayload: expect.objectContaining({
+          system: "sys",
+          prompt: "user",
+          output: "fake hermes output",
+        }),
+      }),
+      expect.any(Function),
+    );
+
+    const buildSpans = vi.mocked(recordAgentRunWithSpans).mock.calls[0]![1];
+    expect(buildSpans(123)).toEqual([
+      expect.objectContaining({
+        rawExportId: 123,
+        spanType: "agent_run",
+        name: "hermes-agent",
+        output: "fake hermes output",
+        status: "completed",
+      }),
+    ]);
   });
 
   it("skips observability when jobId or agentId is missing", async () => {

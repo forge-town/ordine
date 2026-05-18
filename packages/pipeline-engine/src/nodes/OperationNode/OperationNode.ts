@@ -1,5 +1,5 @@
-import type { ExecutorConfig } from "@repo/schemas";
-import type { PipelineNode, NodeCtx } from "../../schemas";
+import type { OperationExecutorConfig, PipelineNode } from "@repo/schemas";
+import type { NodeCtx } from "../../schemas";
 import { trace } from "@repo/obs";
 import { ScriptExecutionError } from "../../errors";
 import { runScript, safeParseConfig } from "../../infrastructure";
@@ -46,22 +46,21 @@ export const executeOperationNode = async (
     return { ok: false, error: null };
   }
 
-  const agentOverride = data.agentRuntime as ExecutorConfig["agent"] | undefined;
+  const agentOverride = await (async () => {
+    if (data.agentId) {
+      const agent = await ctx.lookupAgent(data.agentId);
+      if (agent?.defaultRuntime) {
+        await trace(jobId, `Using agent "${agent.name}" with runtime "${agent.defaultRuntime}"`);
 
-  const bestPracticeContent = await (async () => {
-    if (!data.bestPracticeId) return "";
-    const bp = await ctx.lookupBestPractice(data.bestPracticeId);
-    if (bp) {
-      await trace(jobId, `Loaded best practice "${bp.title}" (${bp.content.length} chars)`);
-
-      return bp.content;
+        return agent.defaultRuntime as OperationExecutorConfig["agent"];
+      }
+      await trace(
+        jobId,
+        `WARNING: Agent ${data.agentId} not found or has no runtime, falling back`,
+      );
     }
-    await trace(
-      jobId,
-      `WARNING: Best practice ${data.bestPracticeId} not found, continuing without standards`,
-    );
 
-    return "";
+    return data.agentRuntime as OperationExecutorConfig["agent"] | undefined;
   })();
 
   const configResult = await safeParseConfig(operation.config, operation.name);
@@ -74,6 +73,7 @@ export const executeOperationNode = async (
 
   const config = configResult.value;
   const executor = config.executor;
+  await trace(jobId, `Operation outputs: ${JSON.stringify(config.outputs)}`);
   if (!executor) {
     await trace(
       jobId,
@@ -85,6 +85,9 @@ export const executeOperationNode = async (
   }
 
   await trace(jobId, `Executing operation "${operation.name}" (${executor.type})`);
+
+  const effectiveAgentMode =
+    executor.agentMode ?? (executor.type === "agent" ? "prompt" : undefined);
 
   const chunkState = { lastTime: 0 };
   const handleChunk = async (accumulated: string) => {
@@ -99,9 +102,7 @@ export const executeOperationNode = async (
     await trace(jobId, line);
   };
 
-  const effectiveInput = bestPracticeContent
-    ? `## Standards (Best Practice)\n\n${bestPracticeContent}\n\n---\n\n${input.content}`
-    : input.content;
+  const effectiveInput = input.content;
 
   const opResult = { value: "" };
 
@@ -114,8 +115,8 @@ export const executeOperationNode = async (
     }
     opResult.value = scriptResult.value;
     await trace(jobId, `Script output (${opResult.value.length} chars)`);
-  } else if (executor.type === "agent" && executor.agentMode === "prompt") {
-    const prompt = executor.prompt ?? "";
+  } else if (executor.type === "agent" && effectiveAgentMode === "prompt") {
+    const prompt = executor.prompt ?? executor.systemPrompt ?? "";
     if (!prompt.trim()) {
       await trace(
         jobId,
@@ -135,6 +136,8 @@ export const executeOperationNode = async (
       onProgress,
       extraTools: extraTools.length > 0 ? extraTools : undefined,
       githubToken: input.githubRemote ? ctx.githubToken : undefined,
+      outputItems: config.outputs.length > 0 ? config.outputs : undefined,
+      outputDir: ctx.outputDir,
     });
     if (promptResult.isErr()) {
       await trace(jobId, `@@NODE_FAIL::${node.id}`);
@@ -144,7 +147,7 @@ export const executeOperationNode = async (
     opResult.value = promptResult.value;
     await trace(jobId, `@@LLM_CONTENT::${node.id}::${opResult.value}`);
     await trace(jobId, `Prompt output (${opResult.value.length} chars)`);
-  } else if (executor.type === "agent" && executor.agentMode === "skill") {
+  } else if (executor.type === "agent" && effectiveAgentMode === "skill") {
     const skillId = executor.skillId ?? "";
     if (!skillId) {
       await trace(
@@ -160,6 +163,18 @@ export const executeOperationNode = async (
     const skillDescription = skill
       ? `${skill.label}: ${skill.description}`
       : `Skill "${skillId}" (no description available)`;
+    const agent = agentOverride ?? executor.agent;
+
+    if (agent === "hermes") {
+      const message = `Hermes is not available for skill operation "${operation.name}" because skills require local tool permissions`;
+      await trace(
+        jobId,
+        `WARNING: ${message}`,
+      );
+      await trace(jobId, `@@NODE_FAIL::${node.id}`);
+
+      return { ok: false, error: new ScriptExecutionError(message) };
+    }
 
     await trace(jobId, `Running skill "${skillId}"${skill ? ` (${skill.label})` : ""}...`);
     const skillResult = await deps.runSkill({
@@ -168,10 +183,12 @@ export const executeOperationNode = async (
       systemPrompt: executor.systemPrompt,
       inputContent: effectiveInput,
       inputPath: input.inputPath,
-      agent: agentOverride ?? executor.agent,
+      agent,
       allowedTools: executor.allowedTools,
       onChunk: handleChunk,
       onProgress,
+      outputItems: config.outputs.length > 0 ? config.outputs : undefined,
+      outputDir: ctx.outputDir,
     });
     opResult.value = skillResult.isOk() ? skillResult.value : "";
     if (skillResult.isErr()) {

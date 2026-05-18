@@ -1,9 +1,7 @@
 import { sql } from "drizzle-orm";
 import { text, timestamp, pgTable, index, serial, integer, jsonb } from "drizzle-orm/pg-core";
+import type { AgentRunStatus, AgentRuntime } from "@repo/schemas";
 import { jobsTable } from "./jobs_table";
-
-export type AgentSystem = "claude-code" | "codex" | "mastra" | "openclaw" | "custom";
-export type AgentRunStatus = "completed" | "error";
 
 export const agentRawExportsTable = pgTable(
   "agent_raw_exports",
@@ -12,7 +10,7 @@ export const agentRawExportsTable = pgTable(
     jobId: text("job_id")
       .notNull()
       .references(() => jobsTable.id, { onDelete: "cascade" }),
-    agentSystem: text("agent_system").$type<AgentSystem>().notNull(),
+    agentRuntime: text("agent_runtime").$type<AgentRuntime>().notNull(),
     agentId: text("agent_id").notNull(),
     modelId: text("model_id"),
     rawPayload: jsonb("raw_payload").notNull(),

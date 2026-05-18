@@ -1,7 +1,7 @@
 import { ResultAsync, errAsync } from "neverthrow";
 import { logger } from "@repo/logger";
 import type { RunPromptOptions } from "@repo/pipeline-engine";
-import type { SshConnection } from "@repo/schemas";
+import type { OutputItem, SshConnection } from "@repo/schemas";
 import { runAgent } from "../agentRunner/agentRunner";
 
 export class PromptExecutionError extends Error {
@@ -18,6 +18,27 @@ const PROMPT_AGENT_ID = "prompt-executor";
 
 type PromptExecutorOptions = RunPromptOptions & { ssh?: SshConnection };
 
+const buildOutputItemsSection = (
+  outputItems?: readonly OutputItem[],
+  outputDir?: string,
+): string => {
+  if (!outputItems || outputItems.length === 0) return "";
+  const lines = [
+    "",
+    "## Expected Output Items",
+    "Your response MUST include ALL of the following output items.",
+    ...(outputDir ? [`Write all output files to the directory: ${outputDir}`] : []),
+    'Include the file paths in an "outputs" field in your JSON response.',
+    ...outputItems.map(
+      (item, i) =>
+        `${i + 1}. **${item.name}** (${item.contentType})${item.description ? `: ${item.description}` : ""}`,
+    ),
+    "",
+  ];
+
+  return lines.join("\n");
+};
+
 const run = ({
   prompt,
   inputContent,
@@ -31,17 +52,22 @@ const run = ({
   extraTools,
   githubToken,
   ssh,
+  outputItems,
+  outputDir,
 }: PromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
   }
+
+  const outputSection = buildOutputItemsSection(outputItems, outputDir);
+  const effectiveInput = outputSection ? `${inputContent}\n${outputSection}` : inputContent;
 
   return ResultAsync.fromPromise(
     (async () => {
       const raw = await runAgent({
         agent,
         systemPrompt: prompt,
-        userPrompt: inputContent,
+        userPrompt: effectiveInput,
         inputPath,
         jobId,
         agentId: PROMPT_AGENT_ID,

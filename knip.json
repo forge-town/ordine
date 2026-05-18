@@ -2,12 +2,18 @@
   "workspaces": {
     "apps/app": {
       "entry": ["src/router.tsx", "src/routes/**/*.tsx"],
-      "project": ["src/**/*.{ts,tsx}"]
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignore": ["src/archived/**"],
+      "ignoreDependencies": ["@tailwindcss/typography", "@types/bcryptjs"],
+      "drizzle": false
     },
     "apps/scripts": {
       "entry": ["src/**/*.ts"],
       "project": ["src/**/*.ts"],
       "ignore": ["src/best-practices/**/code-snippet.ts"]
+    },
+    "apps/server": {
+      "project": ["src/**/*.ts"]
     },
     "packages/ui": {
       "includeEntryExports": true,
@@ -17,6 +23,9 @@
     "packages/oxlint-config": {
       "entry": ["plugins/**/*.js"],
       "project": ["plugins/**/*.js"]
+    },
+    "packages/logger": {
+      "ignoreDependencies": ["pino-pretty"]
     }
   },
   "ignoreDependencies": [
@@ -30,10 +39,13 @@
     "shadcn",
     "@oxfmt/binding-darwin-arm64",
     "@oxlint/binding-darwin-arm64",
+    "@oxlint/binding-darwin-x64",
     "@rollup/rollup-darwin-arm64",
+    "@rollup/rollup-darwin-x64",
+    "@esbuild/darwin-x64",
     "@repo/oxlint-config",
     "@tanstack/router-plugin"
   ],
   "ignoreBinaries": ["tsx"],
-  "ignore": ["**/*.stories.tsx"]
+  "ignore": ["**/*.stories.tsx", "**/archived/**", "scripts/check-schema-exports.ts"]
 }

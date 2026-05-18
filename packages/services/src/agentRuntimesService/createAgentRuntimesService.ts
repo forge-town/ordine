@@ -1,15 +1,11 @@
 import { createAgentRuntimesDao, type DbConnection } from "@repo/models";
-import { withMeta, type AgentRuntimeConfig } from "@repo/schemas";
+import { mapWithMeta, withMeta, type AgentRuntimeConfig } from "@repo/schemas";
 
 export const createAgentRuntimesService = (db: DbConnection) => {
   const dao = createAgentRuntimesDao(db);
 
   return {
-    getAll: async () => {
-      const records = await dao.findMany();
-
-      return records.map(withMeta);
-    },
+    getAll: async () => mapWithMeta(await dao.findMany()),
     getById: async (id: string) => withMeta(await dao.findById(id)),
     create: async (data: Parameters<typeof dao.create>[0]) => withMeta(await dao.create(data)),
     update: async (id: string, patch: Parameters<typeof dao.update>[1]) =>
@@ -34,7 +30,7 @@ export const createAgentRuntimesService = (db: DbConnection) => {
 
       const updated = await dao.findMany();
 
-      return updated.map(withMeta);
+      return mapWithMeta(updated);
     },
   };
 };

@@ -65,7 +65,7 @@ export const RuntimeEditPageContent = () => {
       });
       navigate({ to: "/runtimes/$runtimeId", params: { runtimeId } });
     },
-    [syncAll, navigate, runtimeId]
+    [syncAll, navigate, runtimeId],
   );
 
   const handleConnectionModeChange = useCallback(
@@ -77,7 +77,7 @@ export const RuntimeEditPageContent = () => {
         form.setValue("connection", { mode: "ssh", host: "", user: "" }, { shouldDirty: true });
       }
     },
-    [form]
+    [form],
   );
 
   if (runtimeQuery.isLoading || !runtime) {

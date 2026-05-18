@@ -61,7 +61,7 @@ export default async function check(target: RuleTarget): Promise<boolean> {
   return true;
 }`,
     scriptLanguage: "typescript",
-    acceptedObjectTypes: ["file", "folder", "project"],
+    acceptedObjectTypes: ["file", "folder", "github-project"],
     enabled: true,
     tags: ["debug", "cleanup"],
   },
@@ -117,7 +117,7 @@ export default async function check(target: RuleTarget): Promise<boolean> {
   return true;
 }`,
     scriptLanguage: "typescript",
-    acceptedObjectTypes: ["file", "folder", "project"],
+    acceptedObjectTypes: ["file", "folder", "github-project"],
     enabled: true,
     tags: ["typescript", "type-safety"],
   },
@@ -153,7 +153,7 @@ export default async function check(target: RuleTarget): Promise<boolean> {
   return true;
 }`,
     scriptLanguage: "typescript",
-    acceptedObjectTypes: ["file", "folder", "project"],
+    acceptedObjectTypes: ["file", "folder", "github-project"],
     enabled: true,
     tags: ["injection", "owasp"],
   },
@@ -188,7 +188,7 @@ export default async function check(target: RuleTarget): Promise<boolean> {
   return true;
 }`,
     scriptLanguage: "typescript",
-    acceptedObjectTypes: ["file", "folder", "project"],
+    acceptedObjectTypes: ["file", "folder", "github-project"],
     enabled: true,
     tags: ["secrets", "owasp"],
   },
@@ -225,7 +225,7 @@ export default async function check(target: RuleTarget): Promise<boolean> {
   return true;
 }`,
     scriptLanguage: "typescript",
-    acceptedObjectTypes: ["folder", "project"],
+    acceptedObjectTypes: ["folder", "github-project"],
     enabled: true,
     tags: ["naming", "convention"],
   },
@@ -259,7 +259,7 @@ export default async function check(target: RuleTarget): Promise<boolean> {
   return true;
 }`,
     scriptLanguage: "typescript",
-    acceptedObjectTypes: ["folder", "project"],
+    acceptedObjectTypes: ["folder", "github-project"],
     enabled: true,
     tags: ["complexity", "readability"],
   },
@@ -377,7 +377,7 @@ export default async function check(target: RuleTarget): Promise<boolean> {
   return true;
 }`,
     scriptLanguage: "typescript",
-    acceptedObjectTypes: ["folder", "project"],
+    acceptedObjectTypes: ["folder", "github-project"],
     enabled: true,
     tags: ["barrel", "module"],
   },

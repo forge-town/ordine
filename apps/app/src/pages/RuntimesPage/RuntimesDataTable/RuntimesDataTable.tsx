@@ -70,7 +70,7 @@ export const RuntimesDataTable = ({ data }: { data: AgentRuntimeConfig[] }) => {
     (runtimeId: string) => {
       navigate({ to: "/runtimes/$runtimeId", params: { runtimeId } });
     },
-    [navigate]
+    [navigate],
   );
 
   return (

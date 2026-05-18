@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { ResultAsync } from "neverthrow";
 import { api } from "./api";
 
 const HEARTBEAT_INTERVAL_MS = 15_000;
@@ -16,8 +17,24 @@ interface DetectedRuntime {
 const RUNTIME_BINARIES: Record<string, string> = {
   "claude-code": "claude",
   codex: "codex",
+  hermes: "hermes",
   mastra: "mastra",
   openclaw: "openclaw",
+};
+
+const LOCATE_BINARY_COMMAND = process.platform === "win32" ? "where.exe" : "which";
+
+const firstPath = (stdout: string): string | undefined => {
+  const paths = stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (process.platform === "win32") {
+    return paths.find((line) => line.toLowerCase().endsWith(".exe")) ?? paths[0];
+  }
+
+  return paths[0];
 };
 
 const execFileAsync = (bin: string, args: string[]): Promise<{ stdout: string; stderr: string }> =>
@@ -25,6 +42,7 @@ const execFileAsync = (bin: string, args: string[]): Promise<{ stdout: string; s
     execFile(bin, args, {}, (error, stdout, stderr) => {
       if (error) {
         reject(error);
+
         return;
       }
       resolve({ stdout: String(stdout), stderr: String(stderr) });
@@ -35,14 +53,20 @@ const detectBinary = async (
   type: string,
   binaryName: string,
 ): Promise<DetectedRuntime | undefined> => {
-  const whichResult = await execFileAsync("which", [binaryName]).catch(() => undefined);
-  if (!whichResult) return undefined;
+  const whichResult = await ResultAsync.fromPromise(
+    execFileAsync(LOCATE_BINARY_COMMAND, [binaryName]),
+    () => undefined as never,
+  );
+  if (whichResult.isErr()) return undefined;
 
-  const path = whichResult.stdout.trim();
+  const path = firstPath(whichResult.value.stdout);
   if (!path) return undefined;
 
-  const versionResult = await execFileAsync(path, ["--version"]).catch(() => undefined);
-  const version = versionResult?.stdout.trim() || undefined;
+  const versionResult = await ResultAsync.fromPromise(
+    execFileAsync(path, ["--version"]),
+    () => undefined as never,
+  );
+  const version = versionResult.isOk() ? versionResult.value.stdout.trim() || undefined : undefined;
 
   return {
     id: `local-${type}`,
@@ -60,6 +84,7 @@ const scanLocalRuntimes = async (): Promise<DetectedRuntime[]> => {
   const results = await Promise.all(
     entries.map(([type, binaryName]) => detectBinary(type, binaryName)),
   );
+
   return results.filter((r): r is DetectedRuntime => r !== undefined);
 };
 
@@ -77,6 +102,7 @@ const syncRuntimes = async (runtimes: DetectedRuntime[]): Promise<boolean> => {
   if (!result.ok) {
     console.error(`    Server responded: ${result.message}`);
   }
+
   return result.ok;
 };
 

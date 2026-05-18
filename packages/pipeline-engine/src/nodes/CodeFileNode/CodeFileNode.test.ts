@@ -3,9 +3,9 @@ import { writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { okAsync } from "neverthrow";
-import { processCodeFileNode } from "./CodeFileNode";
+import { processFileNode } from "./CodeFileNode";
 import type { PipelineEngineDeps } from "../../deps";
-import type { PipelineNode } from "../../schemas";
+import type { PipelineNode } from "@repo/schemas";
 import type { NodeContext } from "../types";
 
 vi.mock("@repo/obs", () => ({
@@ -15,7 +15,7 @@ vi.mock("@repo/obs", () => ({
 
 import { trace } from "@repo/obs";
 
-const testDir = join(tmpdir(), `code-file-node-test-${Date.now()}`);
+const testDir = join(tmpdir(), `file-node-test-${Date.now()}`);
 const testFile = join(testDir, "hello.ts");
 
 beforeAll(async () => {
@@ -40,9 +40,9 @@ const makeDeps = (): PipelineEngineDeps => ({
 
 const makeNode = (data: Record<string, unknown> = {}): PipelineNode => ({
   id: "code-1",
-  type: "code-file",
+  type: "file",
   position: { x: 0, y: 0 },
-  data: { label: "code-1", nodeType: "code-file", ...data } as PipelineNode["data"],
+  data: { label: "code-1", nodeType: "file", ...data } as PipelineNode["data"],
 });
 
 const makeCtx = (node: PipelineNode, deps: PipelineEngineDeps): NodeContext => ({
@@ -60,7 +60,7 @@ describe("processCodeFileNode", () => {
     const node = makeNode({ filePath: testFile });
     const ctx = makeCtx(node, deps);
 
-    const result = await processCodeFileNode(ctx);
+    const result = await processFileNode(ctx);
 
     expect(result.ok).toBe(true);
     const output = ctx.nodeOutputs.get("code-1");
@@ -76,7 +76,7 @@ describe("processCodeFileNode", () => {
     const node = makeNode({ filePath: "/nonexistent/file.ts" });
     const ctx = makeCtx(node, deps);
 
-    const result = await processCodeFileNode(ctx);
+    const result = await processFileNode(ctx);
 
     expect(result.ok).toBe(true);
     const output = ctx.nodeOutputs.get("code-1");
@@ -90,7 +90,7 @@ describe("processCodeFileNode", () => {
     const node = makeNode({});
     const ctx = makeCtx(node, deps);
 
-    const result = await processCodeFileNode(ctx);
+    const result = await processFileNode(ctx);
 
     expect(result.ok).toBe(true);
     const output = ctx.nodeOutputs.get("code-1");
@@ -103,7 +103,7 @@ describe("processCodeFileNode", () => {
     const node = makeNode({ filePath: testFile });
     const ctx = makeCtx(node, deps);
 
-    await processCodeFileNode(ctx);
+    await processFileNode(ctx);
 
     expect(trace).toHaveBeenCalledWith("job-1", "@@NODE_DONE::code-1");
   });

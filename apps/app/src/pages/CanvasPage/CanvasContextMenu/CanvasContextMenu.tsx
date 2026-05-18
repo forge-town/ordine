@@ -5,9 +5,9 @@ import {
   HardDrive,
   FolderOutput,
   Zap,
-  BookOpen,
   Group,
   GitBranch,
+  MessageSquareText,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -23,40 +23,37 @@ import {
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, Recipe } from "@repo/schemas";
+import type { Operation, BuiltinNodeType } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
-import { getNodeMeta } from "../utils/nodeTypeMeta";
-import type { NodeType, BuiltinNodeType } from "@repo/pipeline-engine/schemas";
+import { getNodeMeta, getNodeTypeLabel } from "../utils/nodeTypeMeta";
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
   operation: Zap,
   compound: Group,
   condition: GitBranch,
-  "code-file": FileCode,
+  file: FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
+  prompt: MessageSquareText,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
 };
 
-const OBJECT_TYPES: BuiltinNodeType[] = ["code-file", "folder", "github-project"];
+const OBJECT_TYPES: BuiltinNodeType[] = ["file", "folder", "github-project", "prompt"];
 
 export const CanvasContextMenu = () => {
   const { t } = useTranslation();
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: recipesResult } = useList<Recipe>({ resource: ResourceName.recipes });
   const operations = operationsResult?.data ?? [];
-  const recipes = recipesResult?.data ?? [];
   const store = useHarnessCanvasStore();
   const contextMenu = useStore(store, (s) => s.contextMenu);
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);
   const handleCreateObjectNode = useStore(store, (s) => s.createObjectNode);
   const createOperationNode = useStore(store, (s) => s.createOperationNode);
-  const createRecipeNode = useStore(store, (s) => s.createRecipeNode);
   const handleContextMenuOpenChange = useStore(store, (s) => s.handleContextMenuOpenChange);
   const groupSelectedNodes = useStore(store, (s) => s.groupSelectedNodes);
 
@@ -65,10 +62,10 @@ export const CanvasContextMenu = () => {
 
   // Determine available node types
   const availableTypes = (() => {
-    if (!connectStart) return [...OBJECT_TYPES, "operation"] as NodeType[];
+    if (!connectStart) return [...OBJECT_TYPES, "operation"] as BuiltinNodeType[];
 
     const sourceNode = nodes.find((n) => n.id === connectStart.nodeId);
-    if (!sourceNode) return [...OBJECT_TYPES, "operation"] as NodeType[];
+    if (!sourceNode) return [...OBJECT_TYPES, "operation"] as BuiltinNodeType[];
     // Return allowed target types for the source node
     return allowedConnections[sourceNode.type as BuiltinNodeType] ?? [];
   })();
@@ -82,15 +79,18 @@ export const CanvasContextMenu = () => {
 
     // Map node type to object type
     const objectTypeMap: Record<string, string> = {
-      "code-file": "file",
+      file: "file",
       folder: "folder",
-      "github-project": "project",
+      "github-project": "github-project",
+      prompt: "prompt",
     };
     const objectType = objectTypeMap[sourceNode.type];
     if (!objectType) return operations;
     // Only show operations that accept this object type
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "github-project" | "prompt",
+      ),
     );
   })();
 
@@ -106,14 +106,6 @@ export const CanvasContextMenu = () => {
     createOperationNode(operation);
   };
 
-  const handleCreateRecipe = (recipeId: string) => {
-    const recipe = recipes.find((r) => r.id === recipeId);
-    if (!recipe) return;
-    const operation = operations.find((op) => op.id === recipe.operationId);
-    if (!operation) return;
-    createRecipeNode(recipe, operation);
-  };
-
   if (!contextMenu) return null;
 
   // Clamp to viewport edges
@@ -125,12 +117,12 @@ export const CanvasContextMenu = () => {
     if (!connectStart) return null;
     const node = nodes.find((n) => n.id === connectStart.nodeId);
 
-    return node ? { type: node.type, label: getNodeMeta(node.type)!.label } : null;
+    return node ? { type: node.type, label: getNodeTypeLabel(t, node.type) } : null;
   })();
 
   // Filter object types based on available connections
   const visibleObjectTypes = OBJECT_TYPES.filter((t) =>
-    isConnectMode ? availableTypes.includes(t) : true
+    isConnectMode ? availableTypes.includes(t) : true,
   );
 
   const virtualAnchor = {
@@ -172,7 +164,7 @@ export const CanvasContextMenu = () => {
             <span
               className={cn(
                 "flex size-4 shrink-0 items-center justify-center rounded",
-                getNodeMeta(sourceNodeInfo.type)!.iconBg
+                getNodeMeta(sourceNodeInfo.type)!.iconBg,
               )}
             >
               {(() => {
@@ -182,19 +174,24 @@ export const CanvasContextMenu = () => {
               })()}
             </span>
             <ArrowRight className="size-3 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground">连接到...</span>
+            <span className="text-xs font-medium text-muted-foreground">
+              {t("canvas.contextMenu.connectTo")}
+            </span>
           </div>
         ) : (
-          <div className="px-1.5 py-1 text-xs font-medium text-muted-foreground">新建节点</div>
+          <div className="px-1.5 py-1 text-xs font-medium text-muted-foreground">
+            {t("canvas.contextMenu.newNode")}
+          </div>
         )}
 
         {/* Object types group */}
         {visibleObjectTypes.length > 0 && (
           <ContextMenuGroup>
-            <ContextMenuLabel>处理对象 (Object)</ContextMenuLabel>
+            <ContextMenuLabel>{t("canvas.contextMenu.objectTypes")}</ContextMenuLabel>
             {visibleObjectTypes.map((type) => {
               const Icon = TYPE_ICONS[type];
               const typeMeta = getNodeMeta(type)!;
+              const typeLabel = getNodeTypeLabel(t, type);
 
               return (
                 <ContextMenuItem
@@ -205,12 +202,12 @@ export const CanvasContextMenu = () => {
                   <span
                     className={cn(
                       "flex size-4 shrink-0 items-center justify-center rounded",
-                      typeMeta.iconBg
+                      typeMeta.iconBg,
                     )}
                   >
                     <Icon className="size-2.5 text-white" />
                   </span>
-                  <span className="text-xs font-medium">{typeMeta.label}</span>
+                  <span className="text-xs font-medium">{typeLabel}</span>
                 </ContextMenuItem>
               );
             })}
@@ -244,32 +241,10 @@ export const CanvasContextMenu = () => {
           <>
             <ContextMenuSeparator />
             <ContextMenuGroup>
-              <ContextMenuLabel>操作节点 (Operation)</ContextMenuLabel>
+              <ContextMenuLabel>{t("canvas.contextMenu.operationNodes")}</ContextMenuLabel>
               <p className="px-1.5 py-1 text-xs text-muted-foreground">
-                没有接受此类型的 Operation
+                {t("canvas.contextMenu.noOperationsForType")}
               </p>
-            </ContextMenuGroup>
-          </>
-        )}
-
-        {/* Recipes group */}
-        {canAddOperation && recipes.length > 0 && (
-          <>
-            <ContextMenuSeparator />
-            <ContextMenuGroup>
-              <ContextMenuLabel>{t("canvas.contextMenu.recipeNodes")}</ContextMenuLabel>
-              {recipes.map((recipe) => (
-                <ContextMenuItem
-                  key={recipe.id}
-                  closeOnClick={false}
-                  onClick={() => handleCreateRecipe(recipe.id)}
-                >
-                  <span className="flex size-4 shrink-0 items-center justify-center rounded bg-amber-500">
-                    <BookOpen className="size-2.5 text-white" />
-                  </span>
-                  <span className="truncate text-xs font-medium">{recipe.name}</span>
-                </ContextMenuItem>
-              ))}
             </ContextMenuGroup>
           </>
         )}
@@ -277,12 +252,12 @@ export const CanvasContextMenu = () => {
         {/* Compound / Group section */}
         <ContextMenuSeparator />
         <ContextMenuGroup>
-          <ContextMenuLabel>编组</ContextMenuLabel>
+          <ContextMenuLabel>{t("canvas.contextMenu.group")}</ContextMenuLabel>
           <ContextMenuItem closeOnClick={false} onClick={() => handleCreateObjectNode("compound")}>
             <span className="flex size-4 shrink-0 items-center justify-center rounded bg-indigo-500">
               <Group className="size-2.5 text-white" />
             </span>
-            <span className="text-xs font-medium">新建复合节点</span>
+            <span className="text-xs font-medium">{t("canvas.contextMenu.newCompoundNode")}</span>
           </ContextMenuItem>
           {(() => {
             if (selectedIds.length < 2) return null;
@@ -292,7 +267,9 @@ export const CanvasContextMenu = () => {
                 <span className="flex size-4 shrink-0 items-center justify-center rounded bg-indigo-500">
                   <Group className="size-2.5 text-white" />
                 </span>
-                <span className="text-xs font-medium">编组 {selectedIds.length} 个选中节点</span>
+                <span className="text-xs font-medium">
+                  {t("canvas.contextMenu.groupSelected", { count: selectedIds.length })}
+                </span>
               </ContextMenuItem>
             );
           })()}

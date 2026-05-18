@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOne, useUpdate } from "@refinedev/core";
 import { Input } from "@repo/ui/input";
-import { AgentRuntimeSchema, type AgentRuntime, type Settings } from "@repo/schemas";
+import { DefaultAgentRuntimeSchema, type DefaultAgentRuntime, type Settings } from "@repo/schemas";
 import {
   Select,
   SelectContent,
@@ -15,7 +15,7 @@ import { Field } from "../../Field";
 import { SaveButton } from "../../SaveButton";
 import { SectionHeader } from "../../SectionHeader";
 
-const AGENT_RUNTIME_OPTIONS = AgentRuntimeSchema.options;
+const AGENT_RUNTIME_OPTIONS = DefaultAgentRuntimeSchema.options;
 
 export const DeveloperSection = () => {
   const { t } = useTranslation();
@@ -24,7 +24,7 @@ export const DeveloperSection = () => {
     id: "default",
   });
   const { mutateAsync: updateSettings } = useUpdate();
-  const [defaultAgentRuntime, setDefaultAgentRuntime] = useState<AgentRuntime | null>(null);
+  const [defaultAgentRuntime, setDefaultAgentRuntime] = useState<DefaultAgentRuntime | null>(null);
   const [defaultOutputPath, setDefaultOutputPath] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -32,7 +32,7 @@ export const DeveloperSection = () => {
     defaultAgentRuntime ?? settingsResult?.defaultAgentRuntime ?? AGENT_RUNTIME_OPTIONS[0];
   const currentPath = defaultOutputPath ?? settingsResult?.defaultOutputPath ?? "";
 
-  const handleAgentRuntimeChange = useCallback((value: AgentRuntime | null) => {
+  const handleAgentRuntimeChange = useCallback((value: DefaultAgentRuntime | null) => {
     if (!value) return;
 
     setDefaultAgentRuntime(value);

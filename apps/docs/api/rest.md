@@ -72,15 +72,6 @@ Response:
 | `PUT` | `/rules` | Upsert a rule |
 | `DELETE` | `/rules/:id` | Delete a rule |
 
-### Recipes
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/recipes` | List all recipes |
-| `POST` | `/recipes` | Create a recipe |
-| `PUT` | `/recipes` | Upsert a recipe |
-| `DELETE` | `/recipes/:id` | Delete a recipe |
-
 ### Jobs
 
 | Method | Path | Description |

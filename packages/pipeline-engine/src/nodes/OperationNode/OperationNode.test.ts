@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { okAsync, errAsync } from "neverthrow";
 import { executeOperationNode, processOperationNode } from "./OperationNode";
 import type { PipelineEngineDeps } from "../../deps";
-import type { ExecutorConfig } from "@repo/schemas";
-import type { PipelineNode, NodeCtx } from "../../schemas";
+import type { OperationExecutorConfig, PipelineNode } from "@repo/schemas";
+import type { NodeCtx } from "../../schemas";
 import type { OperationNodeContext, OperationInfo } from "../types";
 
 vi.mock("@repo/obs", () => ({
@@ -37,7 +37,7 @@ const makeInput = (content = "input text", inputPath = "/src"): NodeCtx => ({
   content,
 });
 
-const makeOperation = (executor: ExecutorConfig): OperationInfo => ({
+const makeOperation = (executor: OperationExecutorConfig): OperationInfo => ({
   id: "op-id",
   name: "Test Op",
   config: { executor },
@@ -54,8 +54,8 @@ const makeCtx = (
   nodeOutputs: new Map(),
   tempDirs: [],
   operations,
+  lookupAgent: vi.fn().mockResolvedValue(null),
   lookupSkill: vi.fn().mockResolvedValue(null),
-  lookupBestPractice: vi.fn().mockResolvedValue(null),
   jobId: "job-1",
   ...overrides,
 });
@@ -161,27 +161,6 @@ describe("executeOperationNode", () => {
 
     expect(result.ok).toBe(false);
     expect(trace).toHaveBeenCalledWith("job-1", expect.stringContaining("No executor configured"));
-  });
-
-  it("prepends best practice content when available", async () => {
-    const deps = makeDeps();
-    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Analyze" });
-    const ops = new Map([["op-id", op]]);
-    const node = makeNode({ operationId: "op-id", bestPracticeId: "bp-1" });
-    const ctx = makeCtx(deps, ops, {
-      lookupBestPractice: vi.fn().mockResolvedValue({
-        title: "Clean Code",
-        content: "Write tests first",
-      }),
-    });
-
-    await executeOperationNode(node, makeInput(), ctx);
-
-    expect(deps.runPrompt).toHaveBeenCalledWith(
-      expect.objectContaining({
-        inputContent: expect.stringContaining("Write tests first"),
-      }),
-    );
   });
 
   it("returns error when runPrompt fails", async () => {
@@ -327,6 +306,52 @@ describe("executeOperationNode — agent override", () => {
     expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ agent: "claude-code" }));
   });
 
+  it("blocks Hermes for skill operations because local tool permissions cannot be preserved", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "skill",
+      skillId: "sk-1",
+      agent: "claude-code",
+    });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id", agentRuntime: "hermes" });
+    const ctx = makeCtx(deps, ops);
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error?.message).toContain("Hermes is not available");
+    expect(deps.runSkill).not.toHaveBeenCalled();
+    expect(trace).toHaveBeenCalledWith(
+      "job-1",
+      expect.stringContaining("Hermes is not available for skill operation"),
+    );
+  });
+
+  it("propagates Hermes skill failures instead of marking the node done", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "skill",
+      skillId: "sk-1",
+      agent: "claude-code",
+    });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id", agentRuntime: "hermes" });
+    const ctx = makeCtx(deps, ops, { node });
+
+    const result = await processOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).not.toBeNull();
+      expect(result.error?.message).toContain("Hermes is not available");
+    }
+    expect(ctx.nodeOutputs.has("op-1")).toBe(false);
+    expect(trace).not.toHaveBeenCalledWith("job-1", "@@NODE_DONE::op-1");
+  });
+
   it("falls back to executor.agent when agentRuntime is not set", async () => {
     const deps = makeDeps();
     const op = makeOperation({
@@ -343,6 +368,98 @@ describe("executeOperationNode — agent override", () => {
 
     expect(result.ok).toBe(true);
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
+  });
+
+  it("resolves agentId to agent runtime for prompt mode", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "prompt",
+      prompt: "Analyze",
+      agent: "claude-code",
+    });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id", agentId: "agent-1" });
+    const lookupAgent = vi.fn().mockResolvedValue({
+      id: "agent-1",
+      name: "My Codex Agent",
+      defaultRuntime: "codex",
+    });
+    const ctx = makeCtx(deps, ops, { lookupAgent });
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    expect(lookupAgent).toHaveBeenCalledWith("agent-1");
+    expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
+  });
+
+  it("resolves agentId to agent runtime for skill mode", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "skill",
+      skillId: "sk-1",
+      agent: "claude-code",
+    });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id", agentId: "agent-2" });
+    const lookupAgent = vi.fn().mockResolvedValue({
+      id: "agent-2",
+      name: "My Claude Agent",
+      defaultRuntime: "claude-code",
+    });
+    const ctx = makeCtx(deps, ops, { lookupAgent });
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    expect(lookupAgent).toHaveBeenCalledWith("agent-2");
+    expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ agent: "claude-code" }));
+  });
+
+  it("agentId takes priority over agentRuntime", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "prompt",
+      prompt: "Analyze",
+    });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id", agentId: "agent-1", agentRuntime: "mastra" });
+    const lookupAgent = vi.fn().mockResolvedValue({
+      id: "agent-1",
+      name: "Codex Agent",
+      defaultRuntime: "codex",
+    });
+    const ctx = makeCtx(deps, ops, { lookupAgent });
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
+  });
+
+  it("falls back to agentRuntime when agentId lookup returns null", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "prompt",
+      prompt: "Analyze",
+    });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({
+      operationId: "op-id",
+      agentId: "missing-agent",
+      agentRuntime: "mastra",
+    });
+    const lookupAgent = vi.fn().mockResolvedValue(null);
+    const ctx = makeCtx(deps, ops, { lookupAgent });
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "mastra" }));
   });
 });
 

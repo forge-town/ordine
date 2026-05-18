@@ -41,9 +41,6 @@ import {
   listJobs,
   getJob,
   deleteJob,
-  listRecipes,
-  createRecipe,
-  deleteRecipe,
   listBestPractices,
   getBestPractice,
   createBestPractice,
@@ -447,50 +444,6 @@ describe("deleteJob", () => {
     await deleteJob("j-1");
 
     expect(console.log).toHaveBeenCalledWith("Deleted job: j-1");
-  });
-});
-
-// ─── Recipes ─────────────────────────────────────────────────────────
-
-describe("listRecipes", () => {
-  it("prints recipes", async () => {
-    mockApi.get.mockResolvedValueOnce({
-      ok: true,
-      data: [{ id: "rec-1", name: "Review" }],
-    } as never);
-
-    await listRecipes();
-
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Recipes (1)"));
-  });
-
-  it("prints message when empty", async () => {
-    mockApi.get.mockResolvedValueOnce({ ok: true, data: [] } as never);
-
-    await listRecipes();
-
-    expect(console.log).toHaveBeenCalledWith("No recipes found.");
-  });
-});
-
-describe("createRecipe", () => {
-  it("creates from JSON file", async () => {
-    mockJsonFile({ name: "New Recipe" });
-    mockApi.post.mockResolvedValueOnce({ ok: true, data: { id: "rec-new" } } as never);
-
-    await createRecipe("/tmp/recipe.json");
-
-    expect(console.log).toHaveBeenCalledWith("Created recipe: rec-new");
-  });
-});
-
-describe("deleteRecipe", () => {
-  it("deletes recipe", async () => {
-    mockApi.del.mockResolvedValueOnce({ ok: true, data: undefined } as never);
-
-    await deleteRecipe("rec-1");
-
-    expect(console.log).toHaveBeenCalledWith("Deleted recipe: rec-1");
   });
 });
 

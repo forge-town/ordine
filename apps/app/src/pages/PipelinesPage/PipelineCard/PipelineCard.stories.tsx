@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
-import { PipelineSchema } from "@repo/pipeline-engine/schemas";
+import type { PipelineData } from "@repo/schemas";
+import { PipelineSchema } from "@repo/schemas";
 import { PipelineCard } from "./PipelineCard";
 
 const mockPipelineInput = PipelineSchema.parse({

@@ -8,6 +8,8 @@ vi.mock("@xyflow/react", () => ({
   Handle: () => null,
   Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
   ReactFlowProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
+  useNodeId: () => "test",
+  useUpdateNodeInternals: () => () => undefined,
 }));
 
 vi.mock("@refinedev/core", () => ({
@@ -75,14 +77,14 @@ describe("FolderNode", () => {
       wrapper,
     });
 
-    const removeButtons = screen.getAllByRole("button", { name: /移除排除/ });
+    const removeButtons = screen.getAllByRole("button", { name: /Remove exclude/ });
     await user.click(removeButtons[0]);
 
     // Simulate re-render with updated data (store would trigger this in real app)
     rerender(
       <HarnessCanvasStoreProvider>
         <FolderNode data={{ ...data, excludedPaths: ["dist"] }} id="test" />
-      </HarnessCanvasStoreProvider>
+      </HarnessCanvasStoreProvider>,
     );
 
     expect(screen.queryByText("node_modules")).not.toBeInTheDocument();

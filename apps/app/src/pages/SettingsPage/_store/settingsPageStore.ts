@@ -29,7 +29,7 @@ const defaultSettings: AppSettings = {
 };
 
 export const createSettingsPageStore = (
-  initialOverrides?: Partial<AppSettings>
+  initialOverrides?: Partial<AppSettings>,
 ): SettingsPageStore => {
   const initial: AppSettings = {
     language: { ...defaultSettings.language, ...initialOverrides?.language },

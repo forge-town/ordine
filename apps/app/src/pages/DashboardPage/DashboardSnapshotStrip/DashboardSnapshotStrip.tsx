@@ -1,6 +1,5 @@
 import { useList } from "@refinedev/core";
-import type { Distillation, GithubProject, Job } from "@repo/schemas";
-import type { PipelineData } from "@repo/pipeline-engine/schemas";
+import type { Distillation, GithubProject, Job, PipelineData } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { buildSnapshot } from "../dashboardMetrics";
 
@@ -19,7 +18,7 @@ export const DashboardSnapshotStrip = () => {
     jobsResult?.data ?? [],
     pipelinesResult?.data ?? [],
     projectsResult?.data?.length ?? 0,
-    distillationsResult?.data ?? []
+    distillationsResult?.data ?? [],
   );
 
   return (

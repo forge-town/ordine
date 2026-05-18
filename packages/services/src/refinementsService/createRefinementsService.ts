@@ -32,6 +32,10 @@ const waitForJobCompletion = async (
   return { status: "failed", error: "Job timed out" };
 };
 
+const sourceDistillationConfig = () => ({
+  objective: "Distill insights from refinement round for next optimization.",
+});
+
 export const createRefinementsService = (db: DbConnection) => {
   const dao = createRefinementsDao(db);
   const jobsDao = createJobsDao(db);
@@ -52,41 +56,6 @@ export const createRefinementsService = (db: DbConnection) => {
     await dao.update(refinementId, { rounds: updated });
 
     return updated;
-  };
-
-  return {
-    getAll: () => dao.findMany(),
-    getById: (id: string) => dao.findById(id),
-    delete: (id: string) => dao.delete(id),
-
-    start: async (opts: { sourceDistillationId: string; maxRounds: number }) => {
-      const sourceDistillation = await distillationsDao.findById(opts.sourceDistillationId);
-      if (!sourceDistillation) return undefined;
-
-      const id = crypto.randomUUID();
-      const rounds: RefinementRound[] = Array.from({ length: opts.maxRounds }, (_, i) => ({
-        round: i + 1,
-        pipelineId: null,
-        jobId: null,
-        distillationId: null,
-        status: "pending",
-        summary: "",
-        error: null,
-      }));
-
-      const refinement = await dao.create({
-        id,
-        sourceDistillationId: opts.sourceDistillationId,
-        maxRounds: opts.maxRounds,
-        currentRound: 0,
-        status: "running",
-        rounds,
-      });
-
-      void runLoop(id, opts.sourceDistillationId, rounds);
-
-      return refinement;
-    },
   };
 
   const runLoop = async (
@@ -213,8 +182,39 @@ export const createRefinementsService = (db: DbConnection) => {
       },
     );
   };
-};
 
-const sourceDistillationConfig = () => ({
-  objective: "Distill insights from refinement round for next optimization.",
-});
+  return {
+    getAll: () => dao.findMany(),
+    getById: (id: string) => dao.findById(id),
+    delete: (id: string) => dao.delete(id),
+
+    start: async (opts: { sourceDistillationId: string; maxRounds: number }) => {
+      const sourceDistillation = await distillationsDao.findById(opts.sourceDistillationId);
+      if (!sourceDistillation) return undefined;
+
+      const id = crypto.randomUUID();
+      const rounds: RefinementRound[] = Array.from({ length: opts.maxRounds }, (_, i) => ({
+        round: i + 1,
+        pipelineId: null,
+        jobId: null,
+        distillationId: null,
+        status: "pending",
+        summary: "",
+        error: null,
+      }));
+
+      const refinement = await dao.create({
+        id,
+        sourceDistillationId: opts.sourceDistillationId,
+        maxRounds: opts.maxRounds,
+        currentRound: 0,
+        status: "running",
+        rounds,
+      });
+
+      void runLoop(id, opts.sourceDistillationId, rounds);
+
+      return refinement;
+    },
+  };
+};

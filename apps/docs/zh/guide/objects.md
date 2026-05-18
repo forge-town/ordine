@@ -26,7 +26,7 @@
 
 ```json
 {
-  "type": "code-file",
+  "type": "file",
   "data": { "path": "./src/index.ts" }
 }
 ```

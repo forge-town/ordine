@@ -7,7 +7,7 @@ import type { Operation } from "@repo/schemas";
 const mockOp: Operation = {
   id: "op-1",
   name: "Lint",
-  description: null,
+  description: "",
   config: { inputs: [], outputs: [] },
   acceptedObjectTypes: ["file"],
   meta: { createdAt: new Date(1000), updatedAt: new Date(1000) },
@@ -23,7 +23,7 @@ vi.mock("@/services/operationsService", () => ({
   updateOperation: vi.fn().mockResolvedValue({}),
 }));
 
-vi.mock("@/routes/_layout/operations.$operationId.edit", () => ({
+vi.mock("@/routes/_layout/pipelines.operations.$operationId.edit", () => ({
   Route: {
     useLoaderData: () => ({ operation: mockOp, skills: [] }),
     useParams: () => ({ operationId: "op-1" }),

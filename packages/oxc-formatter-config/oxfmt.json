@@ -5,7 +5,7 @@
   "lineEnding": "lf",
   "printWidth": 100,
   "quoteStyle": "single",
-  "trailingComma": "es5",
+  "trailingComma": "all",
   "semicolons": true,
   "arrowParens": "always",
   "bracketSpacing": true,

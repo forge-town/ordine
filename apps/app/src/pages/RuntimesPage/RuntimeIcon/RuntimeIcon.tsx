@@ -1,9 +1,10 @@
-import { Bot, Flame, Globe, Cpu, Server } from "lucide-react";
+import { Bot, Flame, Globe, Cpu, Server, Sparkles } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 
 const ICON_MAP: Record<string, { icon: typeof Bot; color: string }> = {
   "claude-code": { icon: Flame, color: "text-orange-500" },
   codex: { icon: Globe, color: "text-emerald-500" },
+  hermes: { icon: Sparkles, color: "text-cyan-500" },
   openclaw: { icon: Bot, color: "text-rose-500" },
   mastra: { icon: Cpu, color: "text-violet-500" },
 };

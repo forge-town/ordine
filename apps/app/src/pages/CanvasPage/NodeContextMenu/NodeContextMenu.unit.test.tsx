@@ -8,7 +8,6 @@ vi.mock("@/routes/canvas", () => ({
     useLoaderData: () => ({
       pipeline: null,
       operations: [],
-      recipes: [],
       bestPractices: [],
     }),
   },
@@ -20,7 +19,7 @@ describe("NodeContextMenu", () => {
     const { container } = render(
       <HarnessCanvasStoreContext.Provider value={store}>
         <NodeContextMenu />
-      </HarnessCanvasStoreContext.Provider>
+      </HarnessCanvasStoreContext.Provider>,
     );
     // Returns null when nodeContextMenu is null in store – that's expected
     expect(container).toBeTruthy();

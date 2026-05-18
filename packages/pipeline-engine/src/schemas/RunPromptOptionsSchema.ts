@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { AgentRuntimeSchema } from "@repo/schemas";
+import { AgentRuntimeSchema, OutputItemSchema } from "@repo/schemas";
 
 export const RunPromptOptionsSchema = z.object({
   prompt: z.string(),
@@ -12,6 +12,8 @@ export const RunPromptOptionsSchema = z.object({
   model: z.string().optional(),
   extraTools: z.array(z.string()).optional(),
   githubToken: z.string().optional(),
+  outputItems: z.array(OutputItemSchema).optional(),
+  outputDir: z.string().optional(),
 });
 export type RunPromptOptions = z.infer<typeof RunPromptOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;

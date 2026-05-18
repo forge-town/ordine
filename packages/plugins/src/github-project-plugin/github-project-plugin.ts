@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 import { definePlugin } from "@repo/plugin";
-
-const DisclosureModeSchema = z.enum(["tree", "full", "files-only"]);
+import { DisclosureModeSchema } from "@repo/schemas";
 
 const GitHubProjectDataSchema = z.object({
   label: z.string(),
@@ -18,7 +17,7 @@ const GitHubProjectDataSchema = z.object({
 });
 
 export const githubProjectsPlugin = definePlugin({
-  id: "builtin:github-projects",
+  id: "builtin:github-project",
   name: "GitHub Projects",
   version: "1.0.0",
   objectTypes: [

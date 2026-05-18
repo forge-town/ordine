@@ -6,9 +6,9 @@ import {
   Folder,
   HardDrive,
   FolderOutput,
-  BookOpen,
   Group,
   GitBranch,
+  MessageSquareText,
 } from "lucide-react";
 import {
   ContextMenu,
@@ -23,19 +23,19 @@ import { useStore } from "zustand";
 import { useHarnessCanvasStore } from "../_store";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, Recipe } from "@repo/schemas";
+import type { Operation, BuiltinNodeType } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
-import { getNodeMeta } from "../utils/nodeTypeMeta";
-import type { NodeType, BuiltinNodeType } from "@repo/pipeline-engine/schemas";
+import { getNodeMeta, getNodeTypeLabel } from "../utils/nodeTypeMeta";
 import { cn } from "@repo/ui/lib/utils";
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
   operation: Zap,
   compound: Group,
   condition: GitBranch,
-  "code-file": FileCode,
+  file: FileCode,
   folder: Folder,
   "github-project": SiGitHubIcon,
+  prompt: MessageSquareText,
   "output-project-path": FolderOutput,
   "output-local-path": HardDrive,
 };
@@ -45,22 +45,19 @@ export const ConnectionMenu = () => {
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: recipesResult } = useList<Recipe>({ resource: ResourceName.recipes });
   const operations = operationsResult?.data;
-  const recipes = recipesResult?.data;
   const store = useHarnessCanvasStore();
   const connectionMenu = useStore(store, (s) => s.connectionMenu);
   const connectStart = useStore(store, (s) => s.connectStart);
   const nodes = useStore(store, (s) => s.nodes);
   const handleConnectObjectNode = useStore(store, (s) => s.connectObjectNode);
   const connectOperationNode = useStore(store, (s) => s.connectOperationNode);
-  const connectRecipeNode = useStore(store, (s) => s.connectRecipeNode);
   const handleConnectionMenuOpenChange = useStore(store, (s) => s.handleConnectionMenuOpenChange);
 
   const sourceNode = connectStart ? nodes.find((n) => n.id === connectStart.nodeId) : null;
 
   const allowedConnections = getAllowedConnections(operations);
-  const availableTypes: NodeType[] = sourceNode
+  const availableTypes: BuiltinNodeType[] = sourceNode
     ? (allowedConnections[sourceNode.type as BuiltinNodeType] ?? [])
     : [];
 
@@ -68,15 +65,18 @@ export const ConnectionMenu = () => {
   const availableOperations = (() => {
     if (!sourceNode) return operations;
     const objectTypeMap: Record<string, string> = {
-      "code-file": "file",
+      file: "file",
       folder: "folder",
-      "github-project": "project",
+      "github-project": "github-project",
+      prompt: "prompt",
     };
     const objectType = objectTypeMap[sourceNode.type];
     if (!objectType) return operations;
 
     return operations.filter((op) =>
-      op.acceptedObjectTypes?.includes(objectType as "file" | "folder" | "project")
+      op.acceptedObjectTypes?.includes(
+        objectType as "file" | "folder" | "github-project" | "prompt",
+      ),
     );
   })();
 
@@ -88,13 +88,6 @@ export const ConnectionMenu = () => {
     connectOperationNode(operation);
   };
 
-  const handleSelectRecipe = (recipeId: string) => {
-    const recipe = recipes.find((r) => r.id === recipeId);
-    if (!recipe) return;
-    const operation = operations.find((op) => op.id === recipe.operationId);
-    if (!operation) return;
-    connectRecipeNode(recipe, operation);
-  };
 
   if (!connectionMenu || !sourceNode || availableTypes.length === 0) return null;
 
@@ -137,42 +130,48 @@ export const ConnectionMenu = () => {
           <span
             className={cn(
               "flex size-4 shrink-0 items-center justify-center rounded",
-              sourceMeta.iconBg
+              sourceMeta.iconBg,
             )}
           >
             <SourceIcon className="size-2.5 text-white" />
           </span>
-          <span className="text-xs font-medium text-foreground">{sourceMeta.label}</span>
-          <span className="ml-auto text-xs text-muted-foreground">连接到</span>
+          <span className="text-xs font-medium text-foreground">
+            {getNodeTypeLabel(t, sourceNode.type)}
+          </span>
+          <span className="ml-auto text-xs text-muted-foreground">
+            {t("canvas.contextMenu.connectTo")}
+          </span>
         </div>
 
         {/* Object types */}
-        {["code-file", "folder", "github-project"].some((t) =>
-          availableTypes.includes(t as BuiltinNodeType)
+        {["file", "folder", "github-project"].some((t) =>
+          availableTypes.includes(t as BuiltinNodeType),
         ) && (
           <ContextMenuGroup>
-            <ContextMenuLabel>处理对象</ContextMenuLabel>
-            {["code-file", "folder", "github-project"]
+            <ContextMenuLabel>{t("canvas.contextMenu.processingObject")}</ContextMenuLabel>
+            {["file", "folder", "github-project"]
               .filter((t) => availableTypes.includes(t as BuiltinNodeType))
               .map((type) => {
-                const Icon = TYPE_ICONS[type as NodeType];
+                const Icon = TYPE_ICONS[type as BuiltinNodeType];
                 const typeMeta = getNodeMeta(type)!;
 
                 return (
                   <ContextMenuItem
                     key={type}
                     closeOnClick={false}
-                    onClick={() => handleConnectObjectNode(type as NodeType)}
+                    onClick={() => handleConnectObjectNode(type as BuiltinNodeType)}
                   >
                     <span
                       className={cn(
                         "flex size-4 shrink-0 items-center justify-center rounded",
-                        typeMeta.iconBg
+                        typeMeta.iconBg,
                       )}
                     >
                       <Icon className="size-2.5 text-white" />
                     </span>
-                    <span className="text-xs font-medium text-foreground">{typeMeta.label}</span>
+                    <span className="text-xs font-medium text-foreground">
+                      {getNodeTypeLabel(t, type)}
+                    </span>
                     <Plus className="ml-auto size-3 text-muted-foreground" />
                   </ContextMenuItem>
                 );
@@ -210,7 +209,7 @@ export const ConnectionMenu = () => {
           <>
             <ContextMenuSeparator />
             <ContextMenuGroup>
-              <ContextMenuLabel>操作节点</ContextMenuLabel>
+              <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
               <p className="px-1.5 py-1 text-xs text-muted-foreground">
                 {t("canvas.contextMenu.noOperationsForType")}
               </p>
@@ -218,39 +217,14 @@ export const ConnectionMenu = () => {
           </>
         )}
 
-        {/* Recipes */}
-        {canAddOperation && recipes.length > 0 && (
-          <>
-            <ContextMenuSeparator />
-            <ContextMenuGroup>
-              <ContextMenuLabel>快捷配方</ContextMenuLabel>
-              {recipes.map((recipe) => (
-                <ContextMenuItem
-                  key={recipe.id}
-                  closeOnClick={false}
-                  onClick={() => handleSelectRecipe(recipe.id)}
-                >
-                  <span className="flex size-4 shrink-0 items-center justify-center rounded bg-amber-500">
-                    <BookOpen className="size-2.5 text-white" />
-                  </span>
-                  <span className="truncate text-xs font-medium text-foreground">
-                    {recipe.name}
-                  </span>
-                  <Plus className="ml-auto size-3 text-muted-foreground" />
-                </ContextMenuItem>
-              ))}
-            </ContextMenuGroup>
-          </>
-        )}
-
         {/* Output node types */}
         {(["output-project-path", "output-local-path"] as BuiltinNodeType[]).some((t) =>
-          availableTypes.includes(t)
+          availableTypes.includes(t),
         ) && (
           <>
             <ContextMenuSeparator />
             <ContextMenuGroup>
-              <ContextMenuLabel>输出终点</ContextMenuLabel>
+              <ContextMenuLabel>{t("canvas.contextMenu.outputEndpoint")}</ContextMenuLabel>
               {(["output-project-path", "output-local-path"] as BuiltinNodeType[])
                 .filter((t) => availableTypes.includes(t))
                 .map((type) => {
@@ -266,12 +240,14 @@ export const ConnectionMenu = () => {
                       <span
                         className={cn(
                           "flex size-4 shrink-0 items-center justify-center rounded",
-                          typeMeta.iconBg
+                          typeMeta.iconBg,
                         )}
                       >
                         <Icon className="size-2.5 text-white" />
                       </span>
-                      <span className="text-xs font-medium text-foreground">{typeMeta.label}</span>
+                      <span className="text-xs font-medium text-foreground">
+                        {getNodeTypeLabel(t, type)}
+                      </span>
                       <Plus className="ml-auto size-3 text-muted-foreground" />
                     </ContextMenuItem>
                   );

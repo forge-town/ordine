@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link2, Loader2, AlertCircle, Lock, Globe, Key } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
@@ -29,6 +30,7 @@ export const GitHubConnectDialog = ({
   onConnect,
   initialUrl = "",
 }: GitHubConnectDialogProps) => {
+  const { t } = useTranslation();
   const { token } = useGithubToken();
   const [url, setUrl] = useState(initialUrl);
   const [loading, setLoading] = useState(false);
@@ -44,7 +46,7 @@ export const GitHubConnectDialog = ({
 
     const parsed = parseGitHubUrl(url);
     if (!parsed) {
-      setError("无法解析 GitHub URL，请输入完整的仓库链接");
+      setError(t("github.urlParseError"));
       setLoading(false);
 
       return;
@@ -56,7 +58,7 @@ export const GitHubConnectDialog = ({
         setRepoInfo(info);
         setStep("confirm");
       },
-      (errorMsg) => setError(errorMsg)
+      (errorMsg) => setError(errorMsg),
     );
     setLoading(false);
   };
@@ -99,35 +101,35 @@ export const GitHubConnectDialog = ({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Link2 className="h-4 w-4" />
-              连接 GitHub 仓库
+              {t("github.connectTitle")}
             </DialogTitle>
           </DialogHeader>
 
           {step === "input" && (
             <div className="space-y-4">
-              {/* Token 状态提示 */}
+              {/* Token state hint */}
               <div
                 className={cn(
                   "flex items-center justify-between rounded-md px-3 py-2 text-xs",
-                  token ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700"
+                  token ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700",
                 )}
               >
                 <div className="flex items-center gap-1.5">
                   <Key className="h-3.5 w-3.5" />
-                  {token ? "已配置 Token（可访问私有仓库）" : "未配置 Token（仅可访问公开仓库）"}
+                  {token ? t("github.tokenConfigured") : t("github.tokenMissing")}
                 </div>
                 <button
                   className="font-medium underline underline-offset-2 hover:no-underline"
                   type="button"
                   onClick={handleOpenTokenDialog}
                 >
-                  {token ? "修改" : "配置"}
+                  {token ? t("github.modify") : t("github.configure")}
                 </button>
               </div>
 
-              {/* URL 输入 */}
+              {/* URL input */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">GitHub 仓库 URL</label>
+                <label className="text-sm font-medium">{t("github.urlLabel")}</label>
                 <div className="flex gap-2">
                   <Input
                     className="font-mono text-sm"
@@ -144,10 +146,7 @@ export const GitHubConnectDialog = ({
                     )}
                   </Button>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  支持格式：https://github.com/owner/repo 或
-                  https://github.com/owner/repo/tree/branch
-                </div>
+                <div className="text-xs text-muted-foreground">{t("github.urlHint")}</div>
               </div>
 
               {error && (
@@ -161,7 +160,7 @@ export const GitHubConnectDialog = ({
 
           {step === "confirm" && repoInfo && (
             <div className="space-y-4">
-              {/* 仓库预览 */}
+              {/* Repository preview */}
               <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   {repoInfo.isPrivate ? (
@@ -171,17 +170,17 @@ export const GitHubConnectDialog = ({
                   )}
                   <span className="font-mono text-sm font-semibold">{repoInfo.fullName}</span>
                   <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                    {repoInfo.isPrivate ? "Private" : "Public"}
+                    {repoInfo.isPrivate ? t("github.private") : t("github.public")}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-muted-foreground">分支</span>
+                    <span className="text-muted-foreground">{t("github.branch")}</span>
                     <div className="font-mono font-medium">{repoInfo.branch}</div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">默认分支</span>
+                    <span className="text-muted-foreground">{t("github.defaultBranch")}</span>
                     <div className="font-mono font-medium">{repoInfo.defaultBranch}</div>
                   </div>
                 </div>
@@ -195,10 +194,10 @@ export const GitHubConnectDialog = ({
 
               <div className="flex gap-2 justify-end">
                 <Button size="sm" variant="outline" onClick={handleGoToInput}>
-                  返回
+                  {t("github.back")}
                 </Button>
                 <Button size="sm" onClick={handleConfirm}>
-                  连接仓库
+                  {t("github.connectRepo")}
                 </Button>
               </div>
             </div>

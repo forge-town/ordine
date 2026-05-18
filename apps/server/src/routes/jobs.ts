@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type { JobStatus, JobType } from "@repo/db-schema";
+import type { JobStatus, JobType } from "@repo/schemas";
 import { jobsService } from "../services.js";
 
 export const jobsRoutes = new Hono();

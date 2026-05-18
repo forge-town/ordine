@@ -1,1 +1,1 @@
-export { InputSnapshotPanel } from "./InputSnapshotPanel";
+export * from "./InputSnapshotPanel";

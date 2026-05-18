@@ -72,7 +72,7 @@ export const JobSourceAnalysisPanel = ({ jobId }: JobSourceAnalysisPanelProps) =
         input: totals.input + (run.tokenInput ?? 0),
         output: totals.output + (run.tokenOutput ?? 0),
       }),
-      { input: 0, output: 0 }
+      { input: 0, output: 0 },
     );
 
     return {
@@ -96,7 +96,7 @@ export const JobSourceAnalysisPanel = ({ jobId }: JobSourceAnalysisPanelProps) =
       key: `agent-${run.id}`,
       type: "agent",
       label: run.agentId,
-      description: `${run.agentSystem}${run.modelId ? ` · ${run.modelId}` : ""}`,
+      description: `${run.agentRuntime}${run.modelId ? ` · ${run.modelId}` : ""}`,
       createdAt: run.createdAt,
     }));
 

@@ -58,7 +58,7 @@ vi.mock("@refinedev/core", () => ({
 }));
 
 const makeOp = (overrides: Partial<Operation> & { id: string; name: string }): Operation => ({
-  description: null,
+  description: "",
   config: { inputs: [], outputs: [] },
   acceptedObjectTypes: ["file"],
   meta: { createdAt: new Date(), updatedAt: new Date() },
@@ -213,13 +213,13 @@ describe("OperationsPageContent", () => {
     it.skip("clicking edit button navigates to /operations/$operationId/edit", async () => {
       const { container } = render(<OperationsPageContent />);
       const menuTrigger = container.querySelector(
-        '[data-slot="dropdown-menu-trigger"]'
+        '[data-slot="dropdown-menu-trigger"]',
       ) as HTMLElement;
       await userEvent.click(menuTrigger);
       const editItem = await screen.findByText("common.edit");
       await userEvent.click(editItem);
       expect(mockNavigate).toHaveBeenCalledWith({
-        to: "/operations/$operationId/edit",
+        to: "/pipelines/operations/$operationId/edit",
         params: { operationId: "op-1" },
       });
     });
@@ -228,7 +228,7 @@ describe("OperationsPageContent", () => {
     it.skip("clicking edit button does NOT show an inline form", async () => {
       const { container, queryByText } = render(<OperationsPageContent />);
       const menuTrigger = container.querySelector(
-        '[data-slot="dropdown-menu-trigger"]'
+        '[data-slot="dropdown-menu-trigger"]',
       ) as HTMLElement;
       await userEvent.click(menuTrigger);
       const editItem = await screen.findByText("common.edit");
@@ -242,7 +242,7 @@ describe("OperationsPageContent", () => {
       render(<OperationsPageContent />);
       const buttons = screen.getAllByText("新建 Operation");
       fireEvent.click(buttons[0]);
-      expect(mockNavigate).toHaveBeenCalledWith({ to: "/operations/new" });
+      expect(mockNavigate).toHaveBeenCalledWith({ to: "/pipelines/operations/new" });
     });
 
     it("does NOT open the inline form after clicking 新建 Operation", () => {

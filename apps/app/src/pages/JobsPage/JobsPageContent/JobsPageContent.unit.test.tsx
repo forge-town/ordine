@@ -6,7 +6,7 @@ import type { Job } from "@repo/schemas";
 
 const mockUseLoaderData = vi.fn(() => [] as Job[]);
 
-vi.mock("@/routes/_layout/jobs.index", () => ({
+vi.mock("@/routes/_layout/pipelines.jobs.index", () => ({
   Route: { useLoaderData: () => mockUseLoaderData() },
 }));
 

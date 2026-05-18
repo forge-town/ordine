@@ -1,45 +1,147 @@
 {
   "version": 1,
   "skills": {
+    "assess-automation-checklist": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/assess-automation-checklist/SKILL.md",
+      "computedHash": "8012a43820a7283f13d63e4d8075ac6659e104f1b81fce451f3d3d70e113baac"
+    },
     "barrel-export-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "d206019ecd15404775c3c6e3914b12bd7256fa9c573b228dbd9ac214502be7b9"
+      "skillPath": "skills/barrel-export-best-practice/SKILL.md",
+      "computedHash": "879114dd7530e0cc3e04d3422b496879257ac036899c25ed9f03a3a8de8e0b31"
     },
     "better-auth-integration": {
       "source": "forge-town/skills",
       "sourceType": "github",
       "computedHash": "1495f5138e7d2fa07497c18c5566002c53ad1ce2da4e293086016d1c29a9e3fc"
     },
+    "brainstorming": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/brainstorming/SKILL.md",
+      "computedHash": "d5bf9322e3823d8bcc1769121b113bfba3d9f273d9edea78a3e7b2c5824cfc45"
+    },
     "check-all-best-practices": {
       "source": "forge-town/skills",
       "sourceType": "github",
+      "skillPath": "skills/check-all-best-practices/SKILL.md",
       "computedHash": "4cd41179c6b2fe01740acd48e626870a8da80aff2b8eecf1032ec8e60dea4b63"
+    },
+    "check-all-components-design": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/check-all-components-design/SKILL.md",
+      "computedHash": "1dc4895adad8cfd3a128823430ac82b11369ddcdb5ec425d0da59bea01f593c2"
     },
     "check-all-skills": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "10c23fa0fab9f1ce40e9d303267c5e480ecc2cbd6c853045888179c8d0b6ad82"
+      "skillPath": "skills/check-all-skills/SKILL.md",
+      "computedHash": "7ea741fec2d7b5cbd30fb667d69bca0e0900aa0186fd75726123136af4140e46"
     },
     "check-barrel-export": {
       "source": "forge-town/skills",
       "sourceType": "github",
+      "skillPath": "skills/check-barrel-export/SKILL.md",
       "computedHash": "1a92867d61db01db75feb522e04fab6298c6e265a60d83cdb9de9e57c9028a3f"
+    },
+    "check-checklist": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/check-checklist/SKILL.md",
+      "computedHash": "349fc02e8b7a952bb8250f77f445db1e39d5097cf29c277c8f389b3f3fe4a5ba"
+    },
+    "check-component-consistency": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/check-component-consistency/SKILL.md",
+      "computedHash": "581f4c051df83955abb4142dd8fd5de6d065216389c12fa142ef8895f5bf9e56"
+    },
+    "check-components": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/check-components/SKILL.md",
+      "computedHash": "fa1481680c718a6c07c112fb372d9287c074a87b9ebe8eae6286a7916493b519"
+    },
+    "check-error-handling": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/check-error-handling/SKILL.md",
+      "computedHash": "8bb665af8e49a4091a94ec19d43d56f6e96168af8edbd05efe48022b3735afc0"
+    },
+    "check-hardcode": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/check-hardcode/SKILL.md",
+      "computedHash": "0a49bc394bc35a08fa374bd53aa63f857cdfffed171ef917683bac5e8a7b0ae5"
+    },
+    "check-props-drilling": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/check-props-drilling/SKILL.md",
+      "computedHash": "02de21dd39adf9a4ac7f8aa43e4d6088f9d7ded12de11c5f1713cd8b51588f5c"
     },
     "check-refine-trpc": {
       "source": "forge-town/skills",
       "sourceType": "github",
+      "skillPath": "skills/check-refine-trpc/SKILL.md",
       "computedHash": "06ce20bf3b81c2493724608d3c6e1ebac1220fbb412c9b65e238e7f346108b84"
     },
     "check-svg": {
       "source": "forge-town/skills",
       "sourceType": "github",
+      "skillPath": "skills/check-svg/SKILL.md",
       "computedHash": "5d4f0a5c951713f685879cc7f3ddc211c08a8419a22b3d55754a67fe0225efb2"
     },
     "check-try-catch": {
       "source": "forge-town/skills",
       "sourceType": "github",
       "computedHash": "df6098f651f5342618b4591be0cbfa473c6ea5e6d8a97b57ee9d875a37b14515"
+    },
+    "check-ui-components": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/check-ui-components/SKILL.md",
+      "computedHash": "b44aad64a963e0d8d5524fbcd90c72ed213791c8ac3ea1f92edcd0762adbda2c"
+    },
+    "check-zod-infer-type": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/check-zod-infer-type/SKILL.md",
+      "computedHash": "427ea79bde74aaa3d4c9e1ef18366a55ce743f045329bce76e25c9cc13bfb04c"
+    },
+    "checklist-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/checklist-best-practice/SKILL.md",
+      "computedHash": "3d491bca204ba7dfeb3f525935d21d0916db37ebf578da8efd5c80a5175c6499"
+    },
+    "clean-hardcode": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/clean-hardcode/SKILL.md",
+      "computedHash": "962b33d2fafa76fa6710922eab83d50a76e53f8e0aa3bac4250182864776f92f"
+    },
+    "component-design-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/component-design-best-practice/SKILL.md",
+      "computedHash": "5c860fec0f584fc206cf76e1e84d5121f4c8ea7ab540f6f0c4cdf4f52366f46d"
+    },
+    "component-unit-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/component-unit-best-practice/SKILL.md",
+      "computedHash": "c7c33ddfd68343c15971ce0a92e6cd5243ea45d4c0dbf383de336bd6069f844f"
+    },
+    "create-skill": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/create-skill/SKILL.md",
+      "computedHash": "b3eaa8559d683af1687a19ac367d8140ebaccdaa7b52b1a92a13528a3fce4cd2"
     },
     "create-skills": {
       "source": "forge-town/skills",
@@ -49,112 +151,211 @@
     "dao-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "e1998ad8ffe9fff97b9c7375df4253b2bf5e5f4714cbd847400da55600888629"
+      "skillPath": "skills/dao-best-practice/SKILL.md",
+      "computedHash": "15e4b3c6bf3e3f9f7d30df59b8f2844c6d6b572eaec12162515e10fca3bd0706"
     },
     "db-table-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "cf5900e286903786a1ef27c381dfac9b9a79eb76c608aa93789921f6f4d04b72"
+      "skillPath": "skills/db-table-best-practice/SKILL.md",
+      "computedHash": "745b5a33b9d1b944374f3a7e4aa63cea3293cffb9be7756bb8fd0f056967bd35"
     },
     "error-handling-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "5d73a7acea405fe3a8f6fee213fd389b28dfdbb685d4452bbb808ef64d6f9ab2"
+      "skillPath": "skills/error-handling-best-practice/SKILL.md",
+      "computedHash": "1b04623bed9df21c0d47f50b4b5af057de336c516fad7feb2eacaaba36c21a54"
     },
     "fix-all-best-practices": {
       "source": "forge-town/skills",
       "sourceType": "github",
+      "skillPath": "skills/fix-all-best-practices/SKILL.md",
       "computedHash": "a2e39cd717e62dc280a55d6a68e3bbbbf4cc2d73d614a7757be994456227f6dc"
     },
     "form-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "4141715f43e58a125c41d522b8ca3e187038bada483caab585eac896ff02a624"
+      "skillPath": "skills/form-best-practice/SKILL.md",
+      "computedHash": "57353eb1c4933379d6168518f248970ebe3e5236f1483aff841ec0ff912a7b50"
     },
     "generate-preview": {
       "source": "forge-town/skills",
       "sourceType": "github",
+      "skillPath": "skills/generate-preview/SKILL.md",
       "computedHash": "76287ebeb2d81424ca20184b6f0f278f1524f8b5b4713a99b1ac090fd63be3dc"
+    },
+    "i18n-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/i18n-best-practice/SKILL.md",
+      "computedHash": "3f1eb8fd8e60ce9019be6025e23f5c84d014df8e9b1f9044c28211e48854bb32"
+    },
+    "implement-automation-checklist": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/implement-automation-checklist/SKILL.md",
+      "computedHash": "9dd52da9117aff5f41a0f1241f0b2073de736e612fc5dac78fadf3a12f683bf0"
+    },
+    "implement-feature": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/implement-feature/SKILL.md",
+      "computedHash": "0925fb90b5303b9186e8bb760449a8155fd9825348c8420eeb677fb540ff30e7"
     },
     "implement-split": {
       "source": "forge-town/skills",
       "sourceType": "github",
+      "skillPath": "skills/implement-split/SKILL.md",
       "computedHash": "393e8b1e63a3877e717e0bdbd988fb14fa7495002360dcdc25f305130efbe32a"
     },
     "implement-trpc-query": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "954470ef48b290e7cc3552b463c51f350f7621dab8a1c39ec3fb5e9d23f88f37"
+      "skillPath": "skills/implement-trpc-query/SKILL.md",
+      "computedHash": "22bbad873828a385c6b4f9988db5d3d1101736a5e06f4494b1d06ccd0df4b7c3"
+    },
+    "integrate-better-auth": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/integrate-better-auth/SKILL.md",
+      "computedHash": "b4df238249e17def5d720d7c164f3cf9ab238b643c92e88913db831d4523a8be"
+    },
+    "integrate-zod-env": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/integrate-zod-env/SKILL.md",
+      "computedHash": "d1584732be683fa4e3004209600cca543ace29035d40d7b29fc9c8f847c5dcd6"
+    },
+    "introspect-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/introspect-best-practice/SKILL.md",
+      "computedHash": "722d08792aed751774373f67a901ebc7c94c921b4d1813d25e7b0e9dc0e3153e"
+    },
+    "no-re-export-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/no-re-export-best-practice/SKILL.md",
+      "computedHash": "83cdec9b868d802144b4e57bb74a08af1c71b64d8781b5f0784c971805b80234"
     },
     "one-component-per-file-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "c8aeab7ef76e73645793a1d67a0fe37aca633f834bb0390cf458c061ff31c739"
+      "skillPath": "skills/one-component-per-file-best-practice/SKILL.md",
+      "computedHash": "cdb14d91e2017d8ffa605378221ebd80048f7fa300ea8bef43bdc99d80c2ebe8"
     },
     "page-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "29f9c8a6ce11f57d6ca53a5a0063f46bc3bcc1b361d493abd33e3947e7be1fc1"
+      "skillPath": "skills/page-best-practice/SKILL.md",
+      "computedHash": "b89d48943dd4276af51062cd44e679b1e3cbd9739f809e1cab4592c209238ba3"
     },
     "refactor-classname": {
       "source": "forge-town/skills",
       "sourceType": "github",
+      "skillPath": "skills/refactor-classname/SKILL.md",
       "computedHash": "ea8b8692d574e2a34fdd2ff50504915b20a8ceb398fe1f40b0f9d9a00b65944c"
+    },
+    "refactor-ui-components": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/refactor-ui-components/SKILL.md",
+      "computedHash": "967c3e76492ffb17e104667ca2b1b5fc5006f438e2cdf8dfca2067432539975c"
     },
     "refine-trpc-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "3229672ecbdd890f735c044297ece94537902e7143fbdc966dd28be396dd662b"
+      "skillPath": "skills/refine-trpc-best-practice/SKILL.md",
+      "computedHash": "6e3c18a807fdb50b62aba4c1ab7aedbd6e9df13d1200bcc11ad1860eb4964c6c"
     },
     "remove-comments": {
       "source": "forge-town/skills",
       "sourceType": "github",
+      "skillPath": "skills/remove-comments/SKILL.md",
       "computedHash": "1811c026540eb1f2c1a54fee977613ae7c33eebfb9f1c6624448804d5268b664"
     },
     "repository-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "a3cf53be828f53aac5862b9d30d4941fe1c6d6f196f2e79630ac96487929dabd"
+      "skillPath": "skills/repository-best-practice/SKILL.md",
+      "computedHash": "14670b7c4bcbc4c9fbc6921d1468c4948c1820fac8c026cc3ec085698c2e2fad"
     },
     "schema-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "388ca9e8863f7b1aeec7da85a41508bd47fd4f72974bd74ac6e8d6825e91e252"
+      "skillPath": "skills/schema-best-practice/SKILL.md",
+      "computedHash": "c4d186c60c8d8d2d682bfd6f15ca09232802bbe20a562f241d2bbff030bffff9"
     },
     "service-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "5bbdb9c87528e849e2132c4a16ed759afeb8249e7e11d350d7985cf8914385d7"
+      "skillPath": "skills/service-best-practice/SKILL.md",
+      "computedHash": "0a1035155b64e2b7c2f672c396a30e1fba031150cc3f3e0202a53972350e21d7"
     },
     "skill-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "9bf4092d54f3e928b95e3e4e8815549dddd0bd3cff14c3e3a5a99ada565f85a1"
+      "skillPath": "skills/skill-best-practice/SKILL.md",
+      "computedHash": "dd9558e405f32e9d6edc530c9e7bfb7d8da4ca9c3d25a294e871f4b7774ba0a0"
     },
     "store-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "690d277f0c2cdc27427a382e3c14018d2188e78dc21f4ce9926e240aec99cfef"
+      "skillPath": "skills/store-best-practice/SKILL.md",
+      "computedHash": "7df0c8e85d07a629e71147ad92996b1692aabfe189d1ce1d009cbc8fb07a98f4"
     },
     "storybook-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "c20deb0e1f58c6bb2f6b2d393aebdc1169bd8429834074446d6a75680129b758"
+      "skillPath": "skills/storybook-best-practice/SKILL.md",
+      "computedHash": "97a943e9f6321cb78ebf9a4789f63f4002d4f002186eb94e8aabc15588ef1e7d"
+    },
+    "subagent-driven-development": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/subagent-driven-development/SKILL.md",
+      "computedHash": "c82828e045df581c5a65966bbec7517db86d9e866ba3f016b5a333750f745e2c"
     },
     "svg-icon-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "c05ea9b128fdc21833f213aac857cb17b5e824eebf6070a1ebe6d2f116c75c43"
+      "skillPath": "skills/svg-icon-best-practice/SKILL.md",
+      "computedHash": "b2f0b9fa992224f27ebedf21dfb47ac4e3e35e58b139d339761cb907db24b440"
+    },
+    "test-driven-development": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/test-driven-development/SKILL.md",
+      "computedHash": "c1040e969e9d832f5449b5308bb1713e6c4df4e8faaa3a479587e4ba261ca169"
+    },
+    "ui-components-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/ui-components-best-practice/SKILL.md",
+      "computedHash": "659b015de71666cdbef146b72d47da5f6c3f12d21e6358175c52076e14cf0a52"
     },
     "use-store-not-props-best-practice": {
       "source": "forge-town/skills",
       "sourceType": "github",
-      "computedHash": "f008cfb53679c0702a55ca57589e8f8650d9712ae355bc92e0bb7235baba86ef"
+      "skillPath": "skills/use-store-not-props-best-practice/SKILL.md",
+      "computedHash": "118fde0840bfbb6d68c4bd2ad13f2f29e6eba38cbc59048a3affabdd2daa0c0b"
+    },
+    "writing-plans": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/writing-plans/SKILL.md",
+      "computedHash": "b14702fc43eae87b94855cac3de5e26a5475167ff4e356085dfa876410790a4e"
     },
     "zod-env-integration": {
       "source": "forge-town/skills",
       "sourceType": "github",
       "computedHash": "6581d29955f147497946ad6e90b3f66203e736e9c9e6fd8de6d669f3fd0bd484"
+    },
+    "zod-infer-type-best-practice": {
+      "source": "forge-town/skills",
+      "sourceType": "github",
+      "skillPath": "skills/zod-infer-type-best-practice/SKILL.md",
+      "computedHash": "7079791ffe13cb379eb814c40c88d728997e286d1d7771fcfe77f98d3459e49c"
     }
   }
 }

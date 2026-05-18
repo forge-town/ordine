@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Key, Eye, EyeOff, ExternalLink, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
@@ -38,6 +39,7 @@ const GitHubTokenDialogContent = ({
   handleClose: () => void;
   handleTokenSaved?: (token: string | null) => void;
 }) => {
+  const { t } = useTranslation();
   const { token: savedToken, setToken } = useGithubToken();
   const [inputValue, setInputValue] = useState(savedToken ?? "");
   const [showToken, setShowToken] = useState(false);
@@ -84,42 +86,42 @@ const GitHubTokenDialogContent = ({
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
           <Key className="h-4 w-4 text-primary" />
-          GitHub Personal Access Token
+          {t("github.tokenTitle")}
         </DialogTitle>
       </DialogHeader>
 
       <div className="space-y-4">
-        {/* 当前状态 */}
+        {/* Current token state */}
         <div
           className={cn(
             "flex items-start gap-2 rounded-lg p-3 text-sm",
             savedToken
               ? "bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
-              : "bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400"
+              : "bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400",
           )}
         >
           {savedToken ? (
             <>
               <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <div>
-                <div className="font-medium">Token 已配置</div>
-                <div className="opacity-80">可访问私有仓库</div>
+                <div className="font-medium">{t("github.tokenStatusConfigured")}</div>
+                <div className="opacity-80">{t("github.tokenPrivateAccess")}</div>
               </div>
             </>
           ) : (
             <>
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <div>
-                <div className="font-medium">未配置 Token</div>
-                <div className="mt-0.5">访问私有仓库需要填写 Personal Access Token</div>
+                <div className="font-medium">{t("github.tokenStatusMissing")}</div>
+                <div className="mt-0.5">{t("github.tokenPrivateRequiresPat")}</div>
               </div>
             </>
           )}
         </div>
 
-        {/* Token 输入 */}
+        {/* Token input */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium">Personal Access Token</Label>
+          <Label className="text-sm font-medium">{t("github.personalAccessToken")}</Label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Input
@@ -130,7 +132,8 @@ const GitHubTokenDialogContent = ({
                 onChange={handleInputChange}
               />
               <Button
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground h-auto p-0"
+                aria-label={showToken ? t("github.hideToken") : t("github.showToken")}
+                className="absolute right-2 top-1/2 h-auto -translate-y-1/2 p-0 text-muted-foreground hover:text-foreground"
                 type="button"
                 variant="ghost"
                 onClick={handleToggleShowToken}
@@ -144,15 +147,19 @@ const GitHubTokenDialogContent = ({
               variant="outline"
               onClick={handleVerify}
             >
-              {verifying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "验证"}
+              {verifying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t("github.verify")}
             </Button>
           </div>
 
-          {/* 验证结果 */}
+          {/* Verification result */}
           {verifiedLogin && (
             <div className="flex items-center gap-1.5 text-xs text-green-600">
               <CheckCircle className="h-3.5 w-3.5" />
-              验证成功，已登录为 <strong>{verifiedLogin}</strong>
+              <Trans
+                components={{ strong: <strong /> }}
+                i18nKey="github.verifySuccess"
+                values={{ login: verifiedLogin }}
+              />
             </div>
           )}
           {verifyError && (
@@ -163,20 +170,21 @@ const GitHubTokenDialogContent = ({
           )}
         </div>
 
-        {/* 说明 */}
+        {/* Token storage note */}
         <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
-          <div>Token 仅保存在本地浏览器，不会上传至服务器</div>
+          <div>{t("github.tokenLocalOnly")}</div>
           <a
             className="inline-flex items-center gap-1 text-primary hover:underline"
             href="https://github.com/settings/tokens/new?scopes=repo&description=Ordine"
             rel="noopener noreferrer"
             target="_blank"
           >
-            <ExternalLink className="h-3 w-3" />在 GitHub 创建 Token（需勾选 repo 权限）
+            <ExternalLink className="h-3 w-3" />
+            {t("github.createTokenLink")}
           </a>
         </div>
 
-        {/* 操作按钮 */}
+        {/* Actions */}
         <div className="flex justify-between">
           {savedToken && (
             <Button
@@ -185,15 +193,15 @@ const GitHubTokenDialogContent = ({
               variant="ghost"
               onClick={handleClear}
             >
-              清除 Token
+              {t("github.clearToken")}
             </Button>
           )}
           <div className="ml-auto flex gap-2">
             <Button size="sm" variant="outline" onClick={handleClose}>
-              取消
+              {t("common.cancel")}
             </Button>
             <Button disabled={!inputValue.trim()} size="sm" onClick={handleSave}>
-              保存
+              {t("common.save")}
             </Button>
           </div>
         </div>

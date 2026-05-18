@@ -12,6 +12,7 @@ import {
   Layers,
   FlaskConical,
   RefreshCw,
+  Zap,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -19,7 +20,7 @@ import { Button } from "@repo/ui/button";
 import type { Distillation, Job, JobStatus, JobType, JobTrace, LogLevel } from "@repo/schemas";
 import { useCreate, useCustom, useCustomMutation, useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Route } from "@/routes/_layout/jobs.$jobId";
+import { Route } from "@/routes/_layout/pipelines.jobs.$jobId";
 import { useState } from "react";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
@@ -64,6 +65,7 @@ const TYPE_CONFIG: Record<JobType, { icon: React.ElementType }> = {
   pipeline_run: { icon: Layers },
   distillation_run: { icon: FlaskConical },
   refinement_run: { icon: RefreshCw },
+  operation_run: { icon: Zap },
 };
 
 const getStatusLabel = (status: JobStatus, t: (key: string) => string): string => {
@@ -84,6 +86,7 @@ const getJobTypeLabel = (type: JobType, t: (key: string) => string): string => {
     pipeline_run: t("jobs.typePipeline"),
     distillation_run: t("jobs.typeDistillation"),
     refinement_run: t("jobs.typeRefinement"),
+    operation_run: t("jobs.typeOperation"),
   };
 
   return typeMap[type];
@@ -117,7 +120,7 @@ export const JobDetailPageContent = () => {
   const toastStoreRef = useToastStore();
   const addToast = useStore(toastStoreRef, (s) => s.addToast);
 
-  const handleNavigateJobs = () => void navigate({ to: "/jobs" });
+  const handleNavigateJobs = () => void navigate({ to: "/pipelines/jobs" });
   const handleNavigateDistillationStudio = () => {
     if (!job) return;
     void navigate({
@@ -154,7 +157,7 @@ export const JobDetailPageContent = () => {
           result: null,
         },
       }),
-      (cause) => (cause instanceof Error ? cause : new Error(String(cause)))
+      (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
     )
       .map((created) => created.data as Distillation)
       .andThen((created) =>
@@ -164,8 +167,8 @@ export const JobDetailPageContent = () => {
             method: "post",
             values: { id: created.id },
           }),
-          (cause) => (cause instanceof Error ? cause : new Error(String(cause)))
-        ).map((executed) => (executed.data ?? created) as Distillation)
+          (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+        ).map((executed) => (executed.data ?? created) as Distillation),
       );
 
     void execution.match(
@@ -183,7 +186,7 @@ export const JobDetailPageContent = () => {
           title: t("distillations.runFailed"),
           description: error.message,
         });
-      }
+      },
     );
   };
 
@@ -238,12 +241,12 @@ export const JobDetailPageContent = () => {
             </Button>
           </>
         }
-        backTo="/jobs"
+        backTo="/pipelines/jobs"
         badge={
           <span
             className={cn(
               "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-              s.cls
+              s.cls,
             )}
           >
             <StatusIcon className={cn("h-3.5 w-3.5", job.status === "running" && "animate-spin")} />
@@ -325,7 +328,7 @@ export const JobDetailPageContent = () => {
                     <span
                       className={cn(
                         "shrink-0 w-12 text-[10px] font-mono uppercase",
-                        LEVEL_COLOR[tr.level]
+                        LEVEL_COLOR[tr.level],
                       )}
                     >
                       {tr.level}

@@ -1,4 +1,4 @@
-import type { PipelineNode } from "../../schemas";
+import type { PipelineNode } from "@repo/schemas";
 
 export const makeNode = (
   id: string,
