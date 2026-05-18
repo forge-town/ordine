@@ -5,7 +5,6 @@ import { PipelineDetailPage } from "./PipelineDetailPage";
 
 vi.mock("@/routes/_layout/pipelines.$pipelineId", () => ({
   Route: {
-    useLoaderData: () => ({ pipeline: null, operations: [] }),
     useParams: () => ({ pipelineId: "pipe-1" }),
   },
 }));
@@ -24,6 +23,7 @@ vi.mock("@refinedev/core", () => ({
     result: null,
     query: { isLoading: false },
   }),
+  useCustomMutation: () => ({ mutate: vi.fn() }),
 }));
 
 describe("PipelineDetailPage", () => {

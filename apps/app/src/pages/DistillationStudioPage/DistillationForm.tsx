@@ -1,3 +1,8 @@
+// Bootstrap pattern: URL search params → slice handleLoadDistillation.
+// Infrastructure limitation: the slice (and its formControl) lives inside
+// DistillationStudioPageStoreProvider, which is mounted deeper in the tree
+// than TanStack Router's route loader. Therefore we cannot move this
+// initialization into the route loader and must keep the useEffect here.
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";

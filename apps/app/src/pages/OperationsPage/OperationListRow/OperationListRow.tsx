@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Operation, ObjectType } from "@repo/schemas";
+import { useDelete, useOne } from "@refinedev/core";
 import { Button } from "@repo/ui/button";
 import {
   DropdownMenu,
@@ -19,6 +20,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { exportOperation } from "../exportOperation";
 
 const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   file: FileCode,
@@ -36,20 +39,22 @@ const getComplexity = (op: Operation) => {
   return inputs + outputs;
 };
 
-import { useDelete } from "@refinedev/core";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { exportOperation } from "../exportOperation";
-
 const handleStopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
 interface OperationListRowProps {
-  operation: Operation;
+  operationId: string;
 }
 
-export const OperationListRow = ({ operation }: OperationListRowProps) => {
+export const OperationListRow = ({ operationId }: OperationListRowProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { mutate: deleteOpMutate } = useDelete();
+  const { result: operation } = useOne<Operation>({
+    resource: ResourceName.operations,
+    id: operationId,
+  });
+
+  if (!operation) return null;
 
   const handleEdit = () =>
     navigate({

@@ -31,7 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@repo/ui/separator";
 import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import { useUpdate } from "@refinedev/core";
+import { useUpdate, useOne, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import {
   type Operation,
@@ -51,6 +51,8 @@ import {
 import { useStore } from "zustand";
 import { useOperationEditPageStore } from "../_store";
 import { PageHeader } from "@/components/PageHeader";
+import { PageLoadingState } from "@/components/PageLoadingState";
+import { Route } from "@/routes/_layout/pipelines.operations.$operationId.edit";
 
 const EXECUTOR_ICONS = {
   agent: Wand2,
@@ -183,15 +185,21 @@ const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[]
   return [...current, type];
 };
 
-interface Props {
-  operation: Operation;
-  skills: Skill[];
-}
-
-export const OperationEditPageContent = ({ operation, skills }: Props) => {
+export const OperationEditPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { operationId } = Route.useParams();
   const { mutateAsync: updateOpMutate } = useUpdate();
+
+  const { result: operationResult, query: operationQuery } = useOne<Operation>({
+    resource: ResourceName.operations,
+    id: operationId,
+  });
+  const { result: skillsResult, query: skillsQuery } = useList<Skill>({
+    resource: ResourceName.skills,
+  });
+  const operation = operationResult ?? null;
+  const skills = skillsResult.data;
 
   const EXECUTOR_TYPE_OPTIONS = [
     {
@@ -249,6 +257,23 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
       icon: OBJECT_TYPE_ICONS.prompt,
     },
   ];
+
+  if (operationQuery?.isLoading || skillsQuery?.isLoading) {
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("operations.editTitle")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
+  }
+
+  if (!operation) {
+    return (
+      <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+        {t("operations.operationNotFound")}
+      </div>
+    );
+  }
 
   const form = useForm<EditFormValues>({
     resolver: zodResolver(editFormSchema),
@@ -435,15 +460,16 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                   const selected = field.value.includes(value);
 
                                   return (
-                                    <button
+                                    <Button
                                       key={value}
                                       className={cn(
-                                        "flex min-h-12 items-center justify-between gap-3 rounded-md border px-3 py-2 text-left text-sm transition-colors",
+                                        "flex h-auto min-h-12 items-center justify-between gap-3 rounded-md border px-3 py-2 text-left text-sm font-normal",
                                         selected
-                                          ? "border-primary/50 bg-primary/10 text-primary"
-                                          : "border-border bg-background text-muted-foreground hover:bg-muted",
+                                          ? "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                                          : "border-border bg-background text-muted-foreground",
                                       )}
                                       type="button"
+                                      variant="ghost"
                                       onClick={() =>
                                         handleChange(toggleObjectType(field.value, value))
                                       }
@@ -453,7 +479,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                         <span className="truncate font-medium">{label}</span>
                                       </span>
                                       {selected && <CheckCircle2 className="h-4 w-4 shrink-0" />}
-                                    </button>
+                                    </Button>
                                   );
                                 })}
                               </div>
@@ -498,15 +524,16 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                     const selected = field.value === value;
 
                                     return (
-                                      <button
+                                      <Button
                                         key={value}
                                         className={cn(
-                                          "flex min-h-20 items-start gap-3 rounded-md border px-4 py-3 text-left text-sm transition-colors",
+                                          "flex h-auto min-h-20 items-start justify-start gap-3 rounded-md border px-4 py-3 text-left text-sm font-normal",
                                           selected
-                                            ? "border-primary/50 bg-primary/10 text-primary"
-                                            : "border-border bg-background text-muted-foreground hover:bg-muted",
+                                            ? "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                                            : "border-border bg-background text-muted-foreground",
                                         )}
                                         type="button"
+                                        variant="ghost"
                                         onClick={() => handleChange(value)}
                                       >
                                         <Icon className="mt-0.5 h-4 w-4 shrink-0" />
@@ -516,7 +543,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                             {description}
                                           </span>
                                         </span>
-                                      </button>
+                                      </Button>
                                     );
                                   },
                                 )}
@@ -547,15 +574,16 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                         const selected = field.value === value;
 
                                         return (
-                                          <button
+                                          <Button
                                             key={value}
                                             className={cn(
-                                              "flex min-h-16 items-start gap-3 rounded-md border px-4 py-3 text-left text-sm transition-colors",
+                                              "flex h-auto min-h-16 items-start justify-start gap-3 rounded-md border px-4 py-3 text-left text-sm font-normal",
                                               selected
-                                                ? "border-primary/50 bg-primary/10 text-primary"
-                                                : "border-border bg-background text-muted-foreground hover:bg-muted",
+                                                ? "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                                                : "border-border bg-background text-muted-foreground",
                                             )}
                                             type="button"
+                                            variant="ghost"
                                             onClick={() => handleChange(value)}
                                           >
                                             <Icon className="mt-0.5 h-4 w-4 shrink-0" />
@@ -565,7 +593,7 @@ export const OperationEditPageContent = ({ operation, skills }: Props) => {
                                                 {description}
                                               </span>
                                             </span>
-                                          </button>
+                                          </Button>
                                         );
                                       },
                                     )}

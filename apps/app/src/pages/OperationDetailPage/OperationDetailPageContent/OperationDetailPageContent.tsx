@@ -1,7 +1,7 @@
 import { Pencil, Play, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import type { Operation, OperationConfig, OperationConfigInput, OutputItem } from "@repo/schemas";
+import type { Operation } from "@repo/schemas";
 import { useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
@@ -15,16 +15,6 @@ import { ItemDetailPanel } from "./ItemDetailPanel";
 import { OperationMetaPanel } from "./OperationMetaPanel";
 import { OperationRunPanel } from "../OperationRunPanel";
 
-const parseConfig = (raw: OperationConfigInput): OperationConfig => {
-  return {
-    executor: raw.executor,
-    inputs: Array.isArray(raw.inputs) ? raw.inputs : [],
-    outputs: Array.isArray(raw.outputs)
-      ? raw.outputs.map((o) => ({ ...o, templateIds: o.templateIds ?? [] }))
-      : [],
-  };
-};
-
 export const OperationDetailPageContent = () => {
   const { operationId } = Route.useParams();
   const { result: operationResult, query: operationQuery } = useOne<Operation>({
@@ -35,23 +25,14 @@ export const OperationDetailPageContent = () => {
   const { t } = useTranslation();
 
   const store = useOperationDetailPageStore();
-  const {
-    selectedItemIndex,
-    handleBackLinkClick,
-    handleEditButtonClick,
-    handleOpenRunPanelButtonClick,
-  } = useStore(
+  const { handleBackLinkClick, handleEditButtonClick, handleOpenRunPanelButtonClick } = useStore(
     store,
     useShallow((s) => ({
-      selectedItemIndex: s.selectedItemIndex,
       handleBackLinkClick: s.handleBackLinkClick,
       handleEditButtonClick: s.handleEditButtonClick,
       handleOpenRunPanelButtonClick: s.handleOpenRunPanelButtonClick,
     })),
   );
-
-  const config = operation ? parseConfig(operation.config) : null;
-  const selectedItem: OutputItem | undefined = config?.outputs[selectedItemIndex];
 
   if (operationQuery?.isLoading) {
     return (
@@ -62,7 +43,7 @@ export const OperationDetailPageContent = () => {
     );
   }
 
-  if (!operation || !config) {
+  if (!operation) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
         <XCircle className="h-10 w-10 text-muted-foreground/30" />
@@ -107,17 +88,17 @@ export const OperationDetailPageContent = () => {
 
       {/* Three-column body */}
       <div className="flex flex-1 overflow-hidden">
-        <OutputItemsPanel outputs={config.outputs} />
+        <OutputItemsPanel />
 
         <div className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
-          <ItemDetailPanel selectedItem={selectedItem} />
+          <ItemDetailPanel />
         </div>
 
-        <OperationMetaPanel config={config} operation={operation} />
+        <OperationMetaPanel />
       </div>
 
       {/* Run panel */}
-      <OperationRunPanel operationId={operation.id} operationName={operation.name} />
+      <OperationRunPanel operationId={operation.id} />
     </div>
   );
 };

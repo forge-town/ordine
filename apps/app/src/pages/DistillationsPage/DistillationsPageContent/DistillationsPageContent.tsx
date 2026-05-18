@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useDelete, useList } from "@refinedev/core";
 import { FlaskConical, Plus, Trash2, ExternalLink, FlaskRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { buttonVariants } from "@repo/ui/button";
+import { buttonVariants, Button } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import type { Distillation, DistillationStatus } from "@repo/schemas";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -120,13 +120,15 @@ export const DistillationsPageContent = () => {
                     >
                       <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                     </Link>
-                    <button
-                      className="rounded p-1 hover:bg-destructive/10"
+                    <Button
+                      className="size-7 hover:bg-destructive/10"
+                      size="icon"
                       type="button"
+                      variant="ghost"
                       onClick={handleDelete(distillation.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                    </button>
+                    </Button>
                   </div>
                 </div>
 

@@ -20,22 +20,20 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 export const SignUpPageContent = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: { name: "", email: "", password: "" },
   });
+  const loading = form.formState.isSubmitting;
 
   const handleSubmit = async (values: SignUpFormValues) => {
     setError("");
-    setLoading(true);
     const result = await signUpWithEmail({ ...values, callbackURL: "/" });
     result.match(
       () => navigate({ to: "/" }),
       (error) => setError(error.message),
     );
-    setLoading(false);
   };
 
   return (

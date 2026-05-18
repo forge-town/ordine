@@ -20,7 +20,7 @@ export const CanvasTopChrome = () => {
           name="pipelineName"
           placeholder={t("canvas.pipelineTitlePlaceholder")}
           value={pipelineName}
-          onChange={(e) => handlePipelineNameChange(e.target.value)}
+          onChange={handlePipelineNameChange}
         />
       </div>
     </div>

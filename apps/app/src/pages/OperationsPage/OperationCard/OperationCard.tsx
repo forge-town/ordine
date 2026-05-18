@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Operation, ObjectType } from "@repo/schemas";
-import { useDelete } from "@refinedev/core";
+import { useDelete, useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import {
   DropdownMenu,
@@ -41,13 +41,20 @@ const getComplexity = (op: Operation) => {
 const handlePreventDefault = (e: React.MouseEvent) => e.preventDefault();
 
 interface OperationCardProps {
-  operation: Operation;
+  operationId: string;
 }
 
-export const OperationCard = ({ operation }: OperationCardProps) => {
+export const OperationCard = ({ operationId }: OperationCardProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { mutate: deleteOpMutate } = useDelete();
+  const { result: operation } = useOne<Operation>({
+    resource: ResourceName.operations,
+    id: operationId,
+  });
+
+  if (!operation) return null;
+
   const handleEdit = () =>
     navigate({
       to: "/pipelines/operations/$operationId/edit",

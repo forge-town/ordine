@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useList } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
+import type { DirectoryEntry } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
 import {
   Dialog,
@@ -14,12 +15,6 @@ import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { Folder, FileCode, ChevronRight, Home, ArrowUp } from "lucide-react";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-
-interface DirectoryEntry {
-  name: string;
-  type: "file" | "directory";
-  path: string;
-}
 
 export interface FolderBrowserProps {
   open: boolean;

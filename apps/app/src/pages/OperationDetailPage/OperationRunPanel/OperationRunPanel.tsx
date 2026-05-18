@@ -22,6 +22,11 @@ interface JobData {
   error: string | null;
 }
 
+interface OperationDataForName {
+  id: string;
+  name: string;
+}
+
 const POLL_INTERVAL = 1500;
 
 const isTerminalStatus = (s: JobStatus) =>
@@ -52,11 +57,15 @@ const STATUS_STYLES: Partial<Record<JobStatus, string>> = {
 
 interface OperationRunPanelProps {
   operationId: string;
-  operationName: string;
 }
 
-export const OperationRunPanel = ({ operationId, operationName }: OperationRunPanelProps) => {
+export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
   const { t } = useTranslation();
+  const { result: operation } = useOne<OperationDataForName>({
+    resource: ResourceName.operations,
+    id: operationId,
+  });
+  const operationName = operation?.name ?? "";
   const store = useOperationDetailPageStore();
   const {
     runJobId,

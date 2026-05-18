@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm } from "react-hook-form";
+import { z } from "zod/v4";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "zustand";
 import { useSettingsPageStore } from "../../_store";
-import { Field } from "../../Field";
-import { SaveButton } from "../../SaveButton";
-import { SectionHeader } from "../../SectionHeader";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
 import {
   Select,
   SelectContent,
@@ -13,6 +14,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
+import { SaveButton } from "../../SaveButton";
+import { SectionHeader } from "../../SectionHeader";
+
+const SAVED_INDICATOR_MS = 2000;
+
+const languageSchema = z.object({
+  language: z.string(),
+  timezone: z.string(),
+});
+
+type LanguageFormValues = z.infer<typeof languageSchema>;
 
 export const LanguageSection = () => {
   const { i18n, t } = useTranslation();
@@ -20,74 +32,90 @@ export const LanguageSection = () => {
   const values = useStore(store, (s) => s.language);
   const updateSection = useStore(store, (s) => s.updateSection);
   const save = useStore(store, (s) => s.save);
-  const saved = useStore(store, (s) => s.saved);
-  const resetSaved = useStore(store, (s) => s.resetSaved);
+  const [saved, setSaved] = useState(false);
 
-  const handleLanguageChange = (value: string | null) => {
-    const lang = value ?? values.language;
-    updateSection("language", { language: lang });
-    const i18nLang = lang.startsWith("zh") ? "zh" : "en";
+  const form = useForm<LanguageFormValues>({
+    resolver: zodResolver(languageSchema),
+    defaultValues: {
+      language: values.language,
+      timezone: values.timezone,
+    },
+  });
+
+  const handleSubmit = (formValues: LanguageFormValues) => {
+    updateSection("language", formValues);
+    const i18nLang = formValues.language.startsWith("zh") ? "zh" : "en";
     void i18n.changeLanguage(i18nLang);
-    setLanguageOpen(false);
-  };
-  const handleTimezoneChange = (value: string | null) => {
-    updateSection("language", { timezone: value ?? values.timezone });
-    setTimezoneOpen(false);
-  };
-
-  const [languageOpen, setLanguageOpen] = useState(false);
-  const handleLanguageOpenChange = (v: boolean) => setLanguageOpen(v);
-  const handleLanguageToggle = () => setLanguageOpen((prev) => !prev);
-
-  const [timezoneOpen, setTimezoneOpen] = useState(false);
-  const handleTimezoneOpenChange = (v: boolean) => setTimezoneOpen(v);
-  const handleTimezoneToggle = () => setTimezoneOpen((prev) => !prev);
-  const handleSave = () => {
     save();
-    setTimeout(resetSaved, 2000);
+    setSaved(true);
+    setTimeout(() => setSaved(false), SAVED_INDICATOR_MS);
   };
 
   return (
-    <>
-      <SectionHeader description={t("settings.selectLanguage")} title={t("settings.language")} />
-      <Field label={t("settings.language")}>
-        <Select
-          open={languageOpen}
-          value={values.language}
-          onOpenChange={handleLanguageOpenChange}
-          onValueChange={handleLanguageChange}
-        >
-          <SelectTrigger className="w-48" onClick={handleLanguageToggle}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="zh-CN">简体中文</SelectItem>
-              <SelectItem value="en-US">English (US)</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </Field>
-      <Field label={t("settings.timezone")}>
-        <Select
-          open={timezoneOpen}
-          value={values.timezone}
-          onOpenChange={handleTimezoneOpenChange}
-          onValueChange={handleTimezoneChange}
-        >
-          <SelectTrigger className="w-48" onClick={handleTimezoneToggle}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="Asia/Shanghai">亚洲 / 上海 (UTC+8)</SelectItem>
-              <SelectItem value="UTC">UTC</SelectItem>
-              <SelectItem value="America/New_York">美洲 / 纽约 (UTC-5)</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </Field>
-      <SaveButton saved={saved} onSave={handleSave} />
-    </>
+    <Form {...form}>
+      <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
+        <SectionHeader description={t("settings.selectLanguage")} title={t("settings.language")} />
+        <FormField
+          control={form.control}
+          name="language"
+          render={({ field }) => {
+            const handleValueChange = (value: string | null) => {
+              if (value) field.onChange(value);
+            };
+
+            return (
+              <FormItem>
+                <FormLabel>{t("settings.language")}</FormLabel>
+                <FormControl>
+                  <Select value={field.value} onValueChange={handleValueChange}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="zh-CN">简体中文</SelectItem>
+                        <SelectItem value="en-US">English (US)</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
+        <FormField
+          control={form.control}
+          name="timezone"
+          render={({ field }) => {
+            const handleValueChange = (value: string | null) => {
+              if (value) field.onChange(value);
+            };
+
+            return (
+              <FormItem>
+                <FormLabel>{t("settings.timezone")}</FormLabel>
+                <FormControl>
+                  <Select value={field.value} onValueChange={handleValueChange}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="Asia/Shanghai">亚洲 / 上海 (UTC+8)</SelectItem>
+                        <SelectItem value="UTC">UTC</SelectItem>
+                        <SelectItem value="America/New_York">美洲 / 纽约 (UTC-5)</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
+        <SaveButton saved={saved} onSave={form.handleSubmit(handleSubmit)} />
+      </form>
+    </Form>
   );
 };

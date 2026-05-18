@@ -118,13 +118,14 @@ export const GitHubConnectDialog = ({
                   <Key className="h-3.5 w-3.5" />
                   {token ? t("github.tokenConfigured") : t("github.tokenMissing")}
                 </div>
-                <button
-                  className="font-medium underline underline-offset-2 hover:no-underline"
+                <Button
+                  className="h-auto p-0 font-medium underline underline-offset-2 hover:no-underline"
                   type="button"
+                  variant="link"
                   onClick={handleOpenTokenDialog}
                 >
                   {token ? t("github.modify") : t("github.configure")}
-                </button>
+                </Button>
               </div>
 
               {/* URL input */}

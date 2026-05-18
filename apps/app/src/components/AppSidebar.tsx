@@ -38,6 +38,7 @@ import {
   SidebarTrigger,
 } from "@repo/ui/sidebar";
 import { Badge } from "@repo/ui/badge";
+import { Button } from "@repo/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/avatar";
 import {
   DropdownMenu,
@@ -287,7 +288,7 @@ export const AppSidebar = () => {
             <DropdownMenu>
               <DropdownMenuTrigger
                 className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-sidebar-accent"
-                render={<button type="button" />}
+                render={<Button type="button" variant="ghost" />}
               >
                 <Avatar size="sm">
                   {session?.user?.image && (

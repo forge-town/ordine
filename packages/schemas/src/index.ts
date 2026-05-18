@@ -2,6 +2,7 @@ export * from "./agent";
 export * from "./agent-runtime";
 export * from "./agent-trace";
 export * from "./distillation";
+export * from "./filesystem";
 export * from "./github-project";
 export * from "./job";
 export * from "./common";

@@ -14,6 +14,12 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
+vi.mock("@/routes/_layout/pipelines.operations.$operationId.edit", () => ({
+  Route: {
+    useParams: () => ({ operationId: "op-123" }),
+  },
+}));
+
 vi.mock("@/services/operationsService", () => ({
   updateOperation: vi.fn(),
 }));
@@ -29,21 +35,6 @@ vi.mock("../_store", () => ({
       handleSetScriptLangOpen: vi.fn(),
       handleToggleScriptLangOpen: vi.fn(),
     })),
-}));
-
-vi.mock("@refinedev/core", () => ({
-  useList: () => ({
-    result: { data: [], total: 0 },
-    data: { data: [], total: 0 },
-    isLoading: false,
-    isError: false,
-  }),
-  useDelete: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
-  useCreate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
-  useUpdate: () => ({ mutate: vi.fn(), mutateAsync: mockUpdateMutateAsync }),
-  useCustomMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
-  useInvalidate: () => vi.fn(),
-  useOne: () => ({ result: null, isLoading: false }),
 }));
 
 const mockOp: Operation = {
@@ -85,46 +76,65 @@ const mockSkills: Skill[] = [
   },
 ];
 
+const mockUseOne = vi.fn();
+const mockUseList = vi.fn();
+
+vi.mock("@refinedev/core", () => ({
+  useList: (...args: unknown[]) => mockUseList(...args),
+  useOne: (...args: unknown[]) => mockUseOne(...args),
+  useDelete: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+  useCreate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+  useUpdate: () => ({ mutate: vi.fn(), mutateAsync: mockUpdateMutateAsync }),
+  useCustomMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+  useInvalidate: () => vi.fn(),
+}));
+
 describe("OperationEditPageContent", () => {
   beforeEach(() => {
     mockNavigate.mockClear();
     mockUpdateMutateAsync.mockClear();
+    mockUseOne.mockReturnValue({
+      result: mockOp,
+      query: { isLoading: false, data: { data: mockOp } },
+    });
+    mockUseList.mockReturnValue({
+      result: { data: mockSkills, total: mockSkills.length },
+      query: { isLoading: false, data: { data: mockSkills, total: mockSkills.length } },
+    });
   });
 
   it("renders inside a <form> element (react-hook-form)", () => {
-    const { container } = render(
-      <OperationEditPageContent operation={mockOp} skills={mockSkills} />,
-    );
+    const { container } = render(<OperationEditPageContent />);
     expect(container.querySelector("form")).not.toBeNull();
   });
 
   it("renders the edit form pre-filled with operation data", () => {
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     const nameInput = screen.getByPlaceholderText(/e.g. Run ESLint/i) as HTMLInputElement;
     expect(nameInput.value).toBe("Run ESLint");
   });
 
   it("renders description and executor type selector", () => {
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     expect(screen.getByPlaceholderText(/简单描述/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Agent/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Script/i })).toBeInTheDocument();
   });
 
   it("does not render a visibility field", () => {
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     expect(screen.queryByText(/可见性/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/公开/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/私有/i)).not.toBeInTheDocument();
   });
 
   it("shows 编辑 Operation header", () => {
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     expect(screen.getByText("编辑 Operation")).toBeInTheDocument();
   });
 
   it("shows validation error when name is cleared and form submitted", async () => {
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     const nameInput = screen.getByPlaceholderText(/e.g. Run ESLint/i);
     fireEvent.change(nameInput, { target: { value: "" } });
     fireEvent.click(screen.getByRole("button", { name: /保存/ }));
@@ -134,13 +144,13 @@ describe("OperationEditPageContent", () => {
   });
 
   it("save button is visible", () => {
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     expect(screen.getByRole("button", { name: /保存/ })).toBeInTheDocument();
   });
 
   it("calls updateOperation with correct data on save", async () => {
     mockUpdateMutateAsync.mockResolvedValue({ data: { ...mockOp, name: "Run ESLint" } });
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     fireEvent.click(screen.getByRole("button", { name: /保存/ }));
 
     await waitFor(() => {
@@ -155,7 +165,7 @@ describe("OperationEditPageContent", () => {
 
   it("keeps existing inputs and outputs when saving executor changes", async () => {
     mockUpdateMutateAsync.mockResolvedValue({ data: { ...mockOp } });
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     fireEvent.click(screen.getByRole("button", { name: /保存/ }));
 
     await waitFor(() => {
@@ -178,7 +188,7 @@ describe("OperationEditPageContent", () => {
 
   it("saves edited output items", async () => {
     mockUpdateMutateAsync.mockResolvedValue({ data: { ...mockOp } });
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     fireEvent.change(screen.getByDisplayValue("report"), {
       target: { value: "lint-summary" },
     });
@@ -206,7 +216,7 @@ describe("OperationEditPageContent", () => {
 
   it("adds new output items", async () => {
     mockUpdateMutateAsync.mockResolvedValue({ data: { ...mockOp } });
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     fireEvent.click(screen.getByRole("button", { name: /添加输出/ }));
     const outputNameInputs = screen.getAllByPlaceholderText(/例如 report/i);
     const newOutputNameInput = outputNameInputs.at(-1);
@@ -239,7 +249,7 @@ describe("OperationEditPageContent", () => {
 
   it("navigates to detail page after successful save", async () => {
     mockUpdateMutateAsync.mockResolvedValue({ data: { ...mockOp } });
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     fireEvent.click(screen.getByRole("button", { name: /保存/ }));
 
     await waitFor(() => {
@@ -251,7 +261,7 @@ describe("OperationEditPageContent", () => {
   });
 
   it("navigates back on cancel", () => {
-    render(<OperationEditPageContent operation={mockOp} skills={mockSkills} />);
+    render(<OperationEditPageContent />);
     fireEvent.click(screen.getByRole("button", { name: /取消/ }));
     expect(mockNavigate).toHaveBeenCalledWith({
       to: "/pipelines/operations/$operationId",
@@ -260,9 +270,7 @@ describe("OperationEditPageContent", () => {
   });
 
   it("header back link points to pipeline operation detail route", () => {
-    const { container } = render(
-      <OperationEditPageContent operation={mockOp} skills={mockSkills} />,
-    );
+    const { container } = render(<OperationEditPageContent />);
     const backLink = container.querySelector('a[href="/pipelines/operations/op-123"]');
     expect(backLink).not.toBeNull();
   });

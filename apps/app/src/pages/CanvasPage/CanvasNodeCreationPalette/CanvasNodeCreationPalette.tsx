@@ -122,10 +122,11 @@ export const CanvasNodeCreationPalette = ({
                   if (!meta) return null;
 
                   return (
-                    <button
+                    <Button
                       key={type}
-                      className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="flex h-auto w-full items-center justify-start gap-2 px-2 py-2 text-left text-sm font-normal"
                       type="button"
+                      variant="ghost"
                       onClick={() => handleCreateObjectNode(type, getCreateNodeScreenPosition())}
                     >
                       <span
@@ -138,7 +139,7 @@ export const CanvasNodeCreationPalette = ({
                       </span>
                       <span className="min-w-0 flex-1 truncate font-medium">{label}</span>
                       <span className="text-xs text-muted-foreground">{shortLabel}</span>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -152,10 +153,11 @@ export const CanvasNodeCreationPalette = ({
               </div>
               <div className="space-y-0.5">
                 {operationItems.map((operation) => (
-                  <button
+                  <Button
                     key={operation.id}
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="flex h-auto w-full items-center justify-start gap-2 px-2 py-2 text-left text-sm font-normal"
                     type="button"
+                    variant="ghost"
                     onClick={() =>
                       handleCreateOperationNode(operation, getCreateNodeScreenPosition())
                     }
@@ -167,7 +169,7 @@ export const CanvasNodeCreationPalette = ({
                     <span className="text-xs text-muted-foreground">
                       {t("canvas.nodeTypes.operation.shortLabel")}
                     </span>
-                  </button>
+                  </Button>
                 ))}
               </div>
             </section>

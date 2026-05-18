@@ -216,13 +216,13 @@ export const OperationsPageContent = () => {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredOperations.map((op) => (
-              <OperationCard key={op.id} operation={op} />
+              <OperationCard key={op.id} operationId={op.id} />
             ))}
           </div>
         ) : (
           <div className="divide-y divide-border">
             {filteredOperations.map((op) => (
-              <OperationListRow key={op.id} operation={op} />
+              <OperationListRow key={op.id} operationId={op.id} />
             ))}
           </div>
         )}

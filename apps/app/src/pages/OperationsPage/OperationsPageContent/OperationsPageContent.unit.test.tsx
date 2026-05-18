@@ -60,7 +60,10 @@ vi.mock("@refinedev/core", () => ({
   useUpdate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
   useCustomMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
   useInvalidate: () => vi.fn(),
-  useOne: () => ({ result: null, isLoading: false }),
+  useOne: ({ id }: { id: string }) => ({
+    result: mockOps().find((op) => op.id === id) ?? null,
+    isLoading: false,
+  }),
 }));
 
 const makeOp = (overrides: Partial<Operation> & { id: string; name: string }): Operation => ({

@@ -6,16 +6,14 @@ import { pluginRegistry } from "@repo/plugin";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { Route } from "@/routes/_layout/pipelines.objects.$objectTypeId";
 
 const objectTypeResourceMap: Record<string, string> = {
   "github-project": ResourceName.githubProjects,
 };
 
-interface Props {
-  objectTypeId: string;
-}
-
-export const ObjectTypeDetailPageContent = ({ objectTypeId }: Props) => {
+export const ObjectTypeDetailPageContent = () => {
+  const { objectTypeId } = Route.useParams();
   const { t } = useTranslation();
   const objectType = pluginRegistry.getObjectType(objectTypeId);
   const resourceName = objectTypeResourceMap[objectTypeId];

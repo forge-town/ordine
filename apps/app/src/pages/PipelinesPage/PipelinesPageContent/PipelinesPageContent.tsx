@@ -116,12 +116,14 @@ export const PipelinesPageContent = () => {
             onChange={handleSearchInputChange}
           />
           {search && (
-            <button
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
+            <Button
+              className="absolute right-1 top-1/2 size-6 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              size="icon"
+              variant="ghost"
               onClick={handleClearSearchButtonClick}
             >
               <X className="h-3 w-3" />
-            </button>
+            </Button>
           )}
         </div>
         {allTags.length > 0 && (
@@ -167,7 +169,7 @@ export const PipelinesPageContent = () => {
         ) : (
           <div className="grid grid-cols-3 gap-4">
             {filtered.map((p) => (
-              <PipelineCard key={p.id} pipeline={p} />
+              <PipelineCard key={p.id} pipelineId={p.id} />
             ))}
           </div>
         )}

@@ -1,8 +1,11 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm } from "react-hook-form";
+import { z } from "zod/v4";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useOne, useUpdate } from "@refinedev/core";
 import { Input } from "@repo/ui/input";
-import { DefaultAgentRuntimeSchema, type DefaultAgentRuntime, type Settings } from "@repo/schemas";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
 import {
   Select,
   SelectContent,
@@ -11,11 +14,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
-import { Field } from "../../Field";
+import { DefaultAgentRuntimeSchema, type Settings } from "@repo/schemas";
 import { SaveButton } from "../../SaveButton";
 import { SectionHeader } from "../../SectionHeader";
 
 const AGENT_RUNTIME_OPTIONS = DefaultAgentRuntimeSchema.options;
+
+const SAVED_INDICATOR_MS = 2000;
+
+const developerSchema = z.object({
+  defaultAgentRuntime: DefaultAgentRuntimeSchema,
+  defaultOutputPath: z.string(),
+});
+
+type DeveloperFormValues = z.infer<typeof developerSchema>;
 
 export const DeveloperSection = () => {
   const { t } = useTranslation();
@@ -24,65 +36,82 @@ export const DeveloperSection = () => {
     id: "default",
   });
   const { mutateAsync: updateSettings } = useUpdate();
-  const [defaultAgentRuntime, setDefaultAgentRuntime] = useState<DefaultAgentRuntime | null>(null);
-  const [defaultOutputPath, setDefaultOutputPath] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const currentAgentRuntime =
-    defaultAgentRuntime ?? settingsResult?.defaultAgentRuntime ?? AGENT_RUNTIME_OPTIONS[0];
-  const currentPath = defaultOutputPath ?? settingsResult?.defaultOutputPath ?? "";
+  const form = useForm<DeveloperFormValues>({
+    resolver: zodResolver(developerSchema),
+    defaultValues: {
+      defaultAgentRuntime: settingsResult?.defaultAgentRuntime ?? AGENT_RUNTIME_OPTIONS[0],
+      defaultOutputPath: settingsResult?.defaultOutputPath ?? "",
+    },
+  });
 
-  const handleAgentRuntimeChange = useCallback((value: DefaultAgentRuntime | null) => {
-    if (!value) return;
-
-    setDefaultAgentRuntime(value);
-  }, []);
-
-  const handlePathChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setDefaultOutputPath(e.target.value);
-  }, []);
-
-  const handleSave = useCallback(async () => {
+  const handleSubmit = async (values: DeveloperFormValues) => {
     await updateSettings({
       resource: "settings",
       id: "default",
-      values: {
-        defaultAgentRuntime: currentAgentRuntime,
-        defaultOutputPath: currentPath,
-      },
+      values,
     });
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }, [currentAgentRuntime, currentPath, updateSettings]);
+    setTimeout(() => setSaved(false), SAVED_INDICATOR_MS);
+  };
 
   if (settingsQuery.isLoading) return null;
 
   return (
-    <>
-      <SectionHeader
-        description={t("settings.developerSection.description")}
-        title={t("settings.developerSection.title")}
-      />
-      <Field label={t("settings.developerSection.defaultAgentRuntime")}>
-        <Select value={currentAgentRuntime} onValueChange={handleAgentRuntimeChange}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {AGENT_RUNTIME_OPTIONS.map((runtime) => (
-                <SelectItem key={runtime} value={runtime}>
-                  {runtime}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </Field>
-      <Field label={t("settings.developerSection.defaultOutputPath")}>
-        <Input placeholder="/home/user/projects/" value={currentPath} onChange={handlePathChange} />
-      </Field>
-      <SaveButton saved={saved} onSave={handleSave} />
-    </>
+    <Form {...form}>
+      <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
+        <SectionHeader
+          description={t("settings.developerSection.description")}
+          title={t("settings.developerSection.title")}
+        />
+        <FormField
+          control={form.control}
+          name="defaultAgentRuntime"
+          render={({ field }) => {
+            const handleValueChange = (value: string | null) => {
+              if (value) field.onChange(value);
+            };
+
+            return (
+              <FormItem>
+                <FormLabel>{t("settings.developerSection.defaultAgentRuntime")}</FormLabel>
+                <FormControl>
+                  <Select value={field.value} onValueChange={handleValueChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {AGENT_RUNTIME_OPTIONS.map((runtime) => (
+                          <SelectItem key={runtime} value={runtime}>
+                            {runtime}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
+        <FormField
+          control={form.control}
+          name="defaultOutputPath"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("settings.developerSection.defaultOutputPath")}</FormLabel>
+              <FormControl>
+                <Input placeholder="/home/user/projects/" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <SaveButton saved={saved} onSave={form.handleSubmit(handleSubmit)} />
+      </form>
+    </Form>
   );
 };

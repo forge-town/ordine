@@ -9,7 +9,10 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { Operation, ObjectType, OperationConfig } from "@repo/schemas";
+import { useOne } from "@refinedev/core";
+import type { Operation, ObjectType } from "@repo/schemas";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { Route } from "@/routes/_layout/pipelines.operations.$operationId.index";
 import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
 import { ExecutorCard } from "./ExecutorCard";
@@ -21,13 +24,18 @@ const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   prompt: MessageSquareText,
 };
 
-interface OperationMetaPanelProps {
-  operation: Operation;
-  config: OperationConfig;
-}
-
-export const OperationMetaPanel = ({ operation, config }: OperationMetaPanelProps) => {
+export const OperationMetaPanel = () => {
   const { t } = useTranslation();
+  const { operationId } = Route.useParams();
+  const { result: operation } = useOne<Operation>({
+    resource: ResourceName.operations,
+    id: operationId,
+  });
+
+  if (!operation) return null;
+
+  const inputs = Array.isArray(operation.config.inputs) ? operation.config.inputs : [];
+  const executor = operation.config.executor;
 
   return (
     <div className="w-72 shrink-0 border-l border-border overflow-y-auto">
@@ -61,17 +69,17 @@ export const OperationMetaPanel = ({ operation, config }: OperationMetaPanelProp
         </div>
 
         {/* Executor */}
-        {config.executor && <ExecutorCard executor={config.executor} />}
+        {executor && <ExecutorCard executor={executor} />}
 
         {/* Inputs */}
-        {config.inputs.length > 0 && (
+        {inputs.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-4">
             <SectionHeader
               icon={FileInput}
-              label={`${t("operations.inputs")} (${config.inputs.length})`}
+              label={`${t("operations.inputs")} (${inputs.length})`}
             />
             <div>
-              {config.inputs.map((port) => (
+              {inputs.map((port) => (
                 <InputPortRow key={port.name} port={port} />
               ))}
             </div>

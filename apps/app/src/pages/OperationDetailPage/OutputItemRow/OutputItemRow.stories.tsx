@@ -11,11 +11,6 @@ type Story = StoryObj<typeof OutputItemRow>;
 
 export const Default: Story = {
   args: {
-    item: {
-      name: "result",
-      contentType: "markdown",
-      description: "分析结果文件",
-      templateIds: [],
-    },
+    itemIndex: 0,
   },
 };

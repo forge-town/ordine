@@ -1,15 +1,10 @@
 import { Folder, File, Ban, RotateCw } from "lucide-react";
 import { useList } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
+import type { DirectoryEntry } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-
-interface DirectoryEntry {
-  name: string;
-  type: "file" | "directory";
-  path: string;
-}
 
 interface FolderTreePreviewProps {
   folderPath: string;

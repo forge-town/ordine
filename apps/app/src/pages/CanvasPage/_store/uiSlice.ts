@@ -93,7 +93,7 @@ export interface UISlice {
   handleToggleCanvasInteractive: () => void;
   handleQuickAddKeyDown: (event: React.KeyboardEvent) => void;
   handleConnectStart: (state: ConnectStartState | null) => void;
-  handlePipelineNameChange: (name: string) => void;
+  handlePipelineNameChange: (event: ChangeEvent<HTMLInputElement>) => void;
   handleFlowMove: (zoom: number) => void;
 
   // Pipeline run actions
@@ -260,8 +260,8 @@ export const createUISlice = (
     set({ connectStart: state });
   },
 
-  handlePipelineNameChange: (name) => {
-    set({ pipelineName: name });
+  handlePipelineNameChange: (event) => {
+    set({ pipelineName: event.target.value });
   },
 
   handleFlowMove: (zoom) => {

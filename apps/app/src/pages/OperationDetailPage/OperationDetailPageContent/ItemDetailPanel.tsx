@@ -3,19 +3,26 @@ import { LayoutTemplate } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import type { OutputItem } from "@repo/schemas";
+import { useOne } from "@refinedev/core";
+import type { Operation } from "@repo/schemas";
+import { Button } from "@repo/ui/button";
+import { cn } from "@repo/ui/lib/utils";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { Route } from "@/routes/_layout/pipelines.operations.$operationId.index";
 import { useOperationDetailPageStore } from "../_store";
 import { TemplateContentView } from "./TemplateContentView";
 
-interface ItemDetailPanelProps {
-  selectedItem: OutputItem | undefined;
-}
-
-export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
+export const ItemDetailPanel = () => {
   const { t } = useTranslation();
+  const { operationId } = Route.useParams();
+  const { result: operation } = useOne<Operation>({
+    resource: ResourceName.operations,
+    id: operationId,
+  });
 
   const store = useOperationDetailPageStore();
   const {
+    selectedItemIndex,
     activeTab,
     selectedTemplateIndex,
     templates,
@@ -25,6 +32,7 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
   } = useStore(
     store,
     useShallow((s) => ({
+      selectedItemIndex: s.selectedItemIndex,
       activeTab: s.activeTab,
       selectedTemplateIndex: s.selectedTemplateIndex,
       templates: s.templates,
@@ -34,6 +42,9 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
     })),
   );
 
+  const outputs = Array.isArray(operation?.config.outputs) ? operation.config.outputs : [];
+  const selectedItem = outputs[selectedItemIndex];
+
   if (!selectedItem) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -42,33 +53,39 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
     );
   }
 
+  const templateIds = selectedItem.templateIds ?? [];
+
   return (
     <div className="p-5">
       {/* Tab bar */}
       <div className="mb-4 flex gap-1 rounded-lg bg-muted p-1">
-        <button
-          className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+        <Button
+          className={cn(
+            "flex-1 rounded-md px-3 py-1.5 text-xs font-medium",
             activeTab === "definition"
               ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
+              : "text-muted-foreground hover:text-foreground",
+          )}
+          variant="ghost"
           onClick={handleDefinitionTabButtonClick}
         >
           {t("operations.definition")}
-        </button>
-        <button
-          className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+        </Button>
+        <Button
+          className={cn(
+            "flex-1 rounded-md px-3 py-1.5 text-xs font-medium",
             activeTab === "templates"
               ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-          onClick={handleTemplatesTabButtonClick.bind(null, selectedItem.templateIds)}
+              : "text-muted-foreground hover:text-foreground",
+          )}
+          variant="ghost"
+          onClick={handleTemplatesTabButtonClick.bind(null, templateIds)}
         >
           <span className="flex items-center justify-center gap-1.5">
             <LayoutTemplate className="h-3.5 w-3.5" />
-            Templates ({selectedItem.templateIds.length})
+            Templates ({templateIds.length})
           </span>
-        </button>
+        </Button>
       </div>
 
       {/* Tab content */}
@@ -92,7 +109,7 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
         </div>
       ) : (
         <div className="space-y-3">
-          {selectedItem.templateIds.length === 0 ? (
+          {templateIds.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border py-12 text-center">
               <LayoutTemplate className="h-8 w-8 text-muted-foreground/30" />
               <p className="text-xs text-muted-foreground">{t("operations.noTemplates")}</p>
@@ -101,30 +118,31 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
             <>
               {/* Template sub-tabs */}
               <div className="flex gap-1 border-b border-border pb-2">
-                {selectedItem.templateIds.map((templateId, idx) => {
+                {templateIds.map((templateId, idx) => {
                   const tpl = templates[templateId];
 
                   return (
-                    <button
+                    <Button
                       key={templateId}
-                      className={`rounded-t-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                      className={cn(
+                        "rounded-t-md px-3 py-1.5 text-xs font-medium",
                         idx === selectedTemplateIndex
                           ? "border-b-2 border-primary text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
+                      variant="ghost"
                       onClick={handleTemplateItemClick.bind(null, idx)}
                     >
                       {tpl?.name ?? templateId}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
 
               {/* Selected template content */}
               {(() => {
-                const activeTemplateId = selectedItem.templateIds[selectedTemplateIndex];
-                const tpl = activeTemplateId ? templates[activeTemplateId] : undefined;
-                if (!tpl) {
+                const activeTemplateId = templateIds[selectedTemplateIndex];
+                if (!activeTemplateId) {
                   return (
                     <div className="flex items-center justify-center py-8">
                       <span className="text-xs text-muted-foreground">Loading…</span>
@@ -132,7 +150,7 @@ export const ItemDetailPanel = ({ selectedItem }: ItemDetailPanelProps) => {
                   );
                 }
 
-                return <TemplateContentView template={tpl} />;
+                return <TemplateContentView templateId={activeTemplateId} />;
               })()}
             </>
           )}

@@ -8,10 +8,6 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
-vi.mock("@refinedev/core", () => ({
-  useDelete: () => ({ mutate: vi.fn() }),
-}));
-
 const mockPipelineInput = PipelineSchema.parse({
   id: "pipe-001",
   name: "测试 Pipeline",
@@ -30,9 +26,14 @@ const mockPipeline: PipelineData = {
   updatedAt: new Date(mockPipelineInput.updatedAt),
 };
 
+vi.mock("@refinedev/core", () => ({
+  useDelete: () => ({ mutate: vi.fn() }),
+  useOne: () => ({ result: mockPipeline, isLoading: false }),
+}));
+
 describe("PipelineCard", () => {
   it("renders pipeline name", () => {
-    render(<PipelineCard pipeline={mockPipeline} />);
+    render(<PipelineCard pipelineId="pipe-001" />);
     expect(screen.getByText("测试 Pipeline")).toBeInTheDocument();
   });
 });

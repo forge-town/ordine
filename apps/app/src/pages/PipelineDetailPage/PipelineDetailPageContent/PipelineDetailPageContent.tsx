@@ -24,17 +24,14 @@ import "@xyflow/react/dist/style.css";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { useOne, useCustomMutation } from "@refinedev/core";
+import { useOne, useCustomMutation, useList } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
 import type { Operation, PipelineData, PipelineNode } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { Route } from "@/routes/_layout/pipelines.$pipelineId";
 import { PageHeader } from "@/components/PageHeader";
+import { PageLoadingState } from "@/components/PageLoadingState";
 import { Stat } from "../Stat";
-
-interface Props {
-  pipeline: PipelineData;
-  operations: Operation[];
-}
 
 // ─── Node type metadata ───────────────────────────────────────────────────────
 
@@ -99,9 +96,20 @@ const getNodeLabel = (node: PipelineNode, operations: Operation[]): string => {
 
 type RunState = "idle" | "running" | "done" | "failed";
 
-export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
+export const PipelineDetailPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { pipelineId } = Route.useParams();
+
+  const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
+    resource: ResourceName.pipelines,
+    id: pipelineId,
+  });
+  const { result: operationsResult, query: operationsQuery } = useList<Operation>({
+    resource: ResourceName.operations,
+  });
+  const pipeline = pipelineResult ?? null;
+  const operations = operationsResult.data;
 
   // ── Run panel state ─────────────────────────────────────────────────────────
   const [inputPath, setInputPath] = useState("");
@@ -152,7 +160,7 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
       {
         url: "pipelines/run",
         method: "post",
-        values: { id: pipeline.id, inputPath: inputPath || undefined },
+        values: { id: pipeline!.id, inputPath: inputPath || undefined },
       },
       {
         onSuccess: (data) => {
@@ -174,6 +182,24 @@ export const PipelineDetailPageContent = ({ pipeline, operations }: Props) => {
   };
 
   const handleClickRun = () => handleRun();
+
+  if (pipelineQuery?.isLoading || operationsQuery?.isLoading) {
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader title={t("pipelines.title")} />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
+  }
+
+  if (!pipeline) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-muted-foreground">Pipeline 不存在</p>
+      </div>
+    );
+  }
+
   const handleCanvasClick = () => void navigate({ to: "/canvas", search: { id: pipeline.id } });
   const handleOpenDistillationStudio = () =>
     void navigate({

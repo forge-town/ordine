@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Globe, Code, ChevronRight, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { DeveloperSection, LanguageSection } from "../sections";
@@ -33,20 +34,21 @@ export const SettingsPageContent = () => {
             const handleClick = () => setActive(id);
 
             return (
-              <button
+              <Button
                 key={id}
                 className={cn(
-                  "flex w-full items-center gap-2.5 px-4 py-2 text-sm transition-colors",
+                  "h-auto w-full justify-start gap-2.5 rounded-none px-4 py-2 text-sm",
                   active === id
                     ? "bg-accent text-accent-foreground font-medium"
                     : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
                 )}
+                variant="ghost"
                 onClick={handleClick}
               >
                 <Icon className="h-4 w-4 shrink-0" />
                 {label}
                 {active === id && <ChevronRight className="ml-auto h-3.5 w-3.5 text-primary" />}
-              </button>
+              </Button>
             );
           })}
         </nav>

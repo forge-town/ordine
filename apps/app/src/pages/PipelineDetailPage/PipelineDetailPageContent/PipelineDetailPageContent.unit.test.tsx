@@ -1,7 +1,7 @@
 import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { Operation, PipelineData } from "@repo/schemas";
 import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
 
@@ -29,6 +29,12 @@ vi.mock("@tanstack/react-router", () => ({
         {children}
       </a>
     );
+  },
+}));
+
+vi.mock("@/routes/_layout/pipelines.$pipelineId", () => ({
+  Route: {
+    useParams: () => ({ pipelineId: "pipe-1" }),
   },
 }));
 
@@ -74,57 +80,102 @@ const ops: Operation[] = [
   makeOp("op-deploy", "Deploy", "Deploy to production"),
 ];
 
+const mockUseOne = vi.fn();
+const mockUseList = vi.fn();
+const mockUseCustomMutation = vi.fn();
+
+vi.mock("@refinedev/core", () => ({
+  useOne: (...args: unknown[]) => mockUseOne(...args),
+  useList: (...args: unknown[]) => mockUseList(...args),
+  useCustomMutation: () => mockUseCustomMutation(),
+}));
+
 describe("PipelineDetailPageContent", () => {
+  beforeEach(() => {
+    mockNavigate.mockClear();
+    mockUseOne.mockReturnValue({
+      result: makePipeline(),
+      query: { isLoading: false, data: { data: makePipeline() } },
+    });
+    mockUseList.mockReturnValue({
+      result: { data: ops, total: ops.length },
+      query: { isLoading: false, data: { data: ops, total: ops.length } },
+    });
+    mockUseCustomMutation.mockReturnValue({ mutate: vi.fn() });
+  });
+
   it("renders the pipeline name in the header", () => {
-    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline()} />);
+    render(<PipelineDetailPageContent />);
     expect(screen.getByRole("heading", { name: "My Pipeline" })).toBeInTheDocument();
   });
 
   it("renders the pipeline description", () => {
-    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline()} />);
+    render(<PipelineDetailPageContent />);
     expect(screen.getByText("A test pipeline")).toBeInTheDocument();
   });
 
   it("renders tags when present", () => {
-    render(
-      <PipelineDetailPageContent
-        operations={ops}
-        pipeline={makePipeline({ tags: ["ci", "lint"] })}
-      />,
-    );
+    mockUseOne.mockReturnValue({
+      result: makePipeline({ tags: ["ci", "lint"] }),
+      query: { isLoading: false, data: { data: makePipeline({ tags: ["ci", "lint"] }) } },
+    });
+    render(<PipelineDetailPageContent />);
     expect(screen.getByText("ci")).toBeInTheDocument();
     expect(screen.getByText("lint")).toBeInTheDocument();
   });
 
   it("renders node count stat", () => {
-    const pipeline = makePipeline({
-      nodes: [
-        {
-          id: "n1",
-          type: "operation",
-          position: { x: 0, y: 0 },
-          data: {
-            label: "Step",
-            nodeType: "operation",
-            operationId: "op-lint",
-            operationName: "Run ESLint",
-            status: "idle",
+    mockUseOne.mockReturnValue({
+      result: makePipeline({
+        nodes: [
+          {
+            id: "n1",
+            type: "operation",
+            position: { x: 0, y: 0 },
+            data: {
+              label: "Step",
+              nodeType: "operation",
+              operationId: "op-lint",
+              operationName: "Run ESLint",
+              status: "idle",
+            },
           },
+        ],
+      }),
+      query: {
+        isLoading: false,
+        data: {
+          data: makePipeline({
+            nodes: [
+              {
+                id: "n1",
+                type: "operation",
+                position: { x: 0, y: 0 },
+                data: {
+                  label: "Step",
+                  nodeType: "operation",
+                  operationId: "op-lint",
+                  operationName: "Run ESLint",
+                  status: "idle",
+                },
+              },
+            ],
+          }),
         },
-      ],
+      },
     });
-    render(<PipelineDetailPageContent operations={ops} pipeline={pipeline} />);
+    render(<PipelineDetailPageContent />);
     expect(screen.getByText("1")).toBeInTheDocument();
   });
 
   it("renders a canvas preview area", () => {
-    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline()} />);
+    render(<PipelineDetailPageContent />);
     expect(screen.getByTestId("canvas-preview")).toBeInTheDocument();
   });
 
   it("clicking canvas preview navigates to canvas with pipeline id", async () => {
     const user = userEvent.setup();
-    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline()} />);
+    render(<PipelineDetailPageContent />);
     await user.click(screen.getByTestId("canvas-preview"));
     expect(mockNavigate).toHaveBeenCalledWith({
       to: "/canvas",
@@ -133,14 +184,14 @@ describe("PipelineDetailPageContent", () => {
   });
 
   it("has a link button to open in canvas", () => {
-    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline()} />);
+    render(<PipelineDetailPageContent />);
     const link = screen.getByRole("link", { name: /在 Canvas 中编辑/i });
     expect(link).toBeInTheDocument();
     expect(link.getAttribute("href")).toContain("pipe-1");
   });
 
   it("shows empty state message inside canvas area when no nodes", () => {
-    render(<PipelineDetailPageContent operations={ops} pipeline={makePipeline({ nodes: [] })} />);
+    render(<PipelineDetailPageContent />);
     expect(screen.getByText(/还没有操作步骤/i)).toBeInTheDocument();
   });
 });

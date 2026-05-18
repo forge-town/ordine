@@ -23,25 +23,23 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export const LoginPageContent = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
+  const loading = form.formState.isSubmitting;
 
   const handleGitHubClick = () => signInWithGitHub("/");
   const handleGoogleClick = () => signInWithGoogle("/");
 
   const handleSubmit = async (values: LoginFormValues) => {
     setError("");
-    setLoading(true);
     const result = await signInWithEmail({ ...values, callbackURL: "/" });
     result.match(
       () => navigate({ to: "/" }),
       (error) => setError(error.message),
     );
-    setLoading(false);
   };
 
   return (

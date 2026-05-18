@@ -117,15 +117,15 @@ export const AgentFormDialog = () => {
                             const isSelected = field.value === rt;
 
                             return (
-                              <button
+                              <Button
                                 key={rt}
                                 className={cn(
-                                  "flex items-center gap-2.5 rounded-lg border p-3 text-left transition-all",
-                                  isSelected
-                                    ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                                    : "border-border hover:border-muted-foreground/30 hover:bg-muted/50",
+                                  "flex h-auto items-center justify-start gap-2.5 p-3 text-left",
+                                  isSelected &&
+                                    "border-primary bg-primary/5 ring-1 ring-primary/20",
                                 )}
                                 type="button"
+                                variant={isSelected ? "outline" : "outline"}
                                 onClick={() => handleRuntimeSelect(rt)}
                               >
                                 <div
@@ -146,7 +146,7 @@ export const AgentFormDialog = () => {
                                     {meta?.description ?? rt}
                                   </div>
                                 </div>
-                              </button>
+                              </Button>
                             );
                           })}
                         </div>

@@ -1,41 +1,5 @@
 import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
-import { Route } from "@/routes/_layout/pipelines.$pipelineId";
-import { useOne, useList } from "@refinedev/core";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { Operation, PipelineData } from "@repo/schemas";
-import { PageLoadingState } from "@/components/PageLoadingState";
-import { PageHeader } from "@/components/PageHeader";
-import { useTranslation } from "react-i18next";
 
 export const PipelineDetailPage = () => {
-  const { pipelineId } = Route.useParams();
-  const { t } = useTranslation();
-  const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
-    resource: ResourceName.pipelines,
-    id: pipelineId,
-  });
-  const { result: operationsResult, query: operationsQuery } = useList<Operation>({
-    resource: ResourceName.operations,
-  });
-  const pipeline = pipelineResult ?? null;
-  const operations = operationsResult.data;
-
-  if (pipelineQuery?.isLoading || operationsQuery?.isLoading) {
-    return (
-      <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("pipelines.title")} />
-        <PageLoadingState variant="detail" />
-      </div>
-    );
-  }
-
-  if (!pipeline) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-muted-foreground">Pipeline 不存在</p>
-      </div>
-    );
-  }
-
-  return <PipelineDetailPageContent operations={operations} pipeline={pipeline} />;
+  return <PipelineDetailPageContent />;
 };

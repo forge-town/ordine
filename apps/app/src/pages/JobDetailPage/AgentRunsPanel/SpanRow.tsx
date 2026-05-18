@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Clock, Coins, Code2 } from "lucide-react";
+import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { Badge } from "@repo/ui/badge";
 import type { AgentSpan } from "@repo/schemas";
@@ -39,10 +40,11 @@ export const SpanRow = ({ span }: SpanRowProps) => {
 
   return (
     <div className={cn("text-xs", bgClass)}>
-      <button
-        className="flex items-center gap-2 w-full py-2 px-3 hover:bg-muted/50 text-left"
+      <Button
+        className="flex h-auto w-full items-center justify-start gap-2 rounded-none px-3 py-2 text-left hover:bg-muted/50"
         disabled={!hasContent}
         type="button"
+        variant="ghost"
         onClick={handleSpanRowClick}
       >
         {hasContent ? (
@@ -75,7 +77,7 @@ export const SpanRow = ({ span }: SpanRowProps) => {
             </span>
           )}
         </div>
-      </button>
+      </Button>
       {expanded && hasContent && (
         <div className="px-3 pb-2 ml-8">
           {span.input && (

@@ -1,8 +1,9 @@
 import { GitBranch, Clock, ArrowRight, Trash2, ExternalLink } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useDelete } from "@refinedev/core";
+import { useDelete, useOne } from "@refinedev/core";
 import { Card } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
+import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import type { PipelineData } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -34,16 +35,23 @@ const formatRelativeTime = (ts: Date | string): string => {
 };
 
 interface PipelineCardProps {
-  pipeline: PipelineData;
+  pipelineId: string;
 }
 
 const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
   e.stopPropagation();
 };
 
-export const PipelineCard = ({ pipeline }: PipelineCardProps) => {
+export const PipelineCard = ({ pipelineId }: PipelineCardProps) => {
   const navigate = useNavigate();
   const { mutate: deletePipeline } = useDelete();
+  const { result: pipeline } = useOne<PipelineData>({
+    resource: ResourceName.pipelines,
+    id: pipelineId,
+  });
+
+  if (!pipeline) return null;
+
   const typeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     const t = n.type ?? "unknown";
     acc[t] = (acc[t] ?? 0) + 1;
@@ -73,13 +81,15 @@ export const PipelineCard = ({ pipeline }: PipelineCardProps) => {
       onKeyDown={handleKeyDown}
     >
       {/* Delete button */}
-      <button
+      <Button
         aria-label="删除"
-        className="absolute right-9 top-3 hidden rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:flex"
+        className="absolute right-9 top-3 hidden size-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:flex"
+        size="icon"
+        variant="ghost"
         onClick={handleDeleteClick}
       >
         <Trash2 className="h-3.5 w-3.5" />
-      </button>
+      </Button>
 
       {/* View detail button */}
       <Link

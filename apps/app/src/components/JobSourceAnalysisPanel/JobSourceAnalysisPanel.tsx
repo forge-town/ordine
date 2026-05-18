@@ -1,7 +1,14 @@
 import { useMemo } from "react";
 import { useCustom, useOne } from "@refinedev/core";
 import { Bot, Clock3, Terminal, Wrench } from "lucide-react";
-import type { AgentRawExport, AgentSpan, Job, JobTrace } from "@repo/schemas";
+import type {
+  AgentRawExport,
+  AgentSpan,
+  Job,
+  JobAnalysisData,
+  JobTimelineEvent,
+  JobTrace,
+} from "@repo/schemas";
 import { Badge } from "@repo/ui/badge";
 import { Card } from "@repo/ui/card";
 import { PageLoadingState } from "@/components/PageLoadingState";
@@ -14,20 +21,6 @@ const EMPTY_SPANS_BY_RUN: Record<number, AgentSpan[]> = {};
 
 type JobSourceAnalysisPanelProps = {
   jobId: string;
-};
-
-type TimelineEvent = {
-  key: string;
-  type: "trace" | "agent";
-  label: string;
-  description: string;
-  createdAt: Date;
-};
-
-type JobAnalysisData = {
-  traces: JobTrace[];
-  agentRuns: AgentRawExport[];
-  spansByRun: Record<number, AgentSpan[]>;
 };
 
 const formatDuration = (startedAt?: Date | null, finishedAt?: Date | null) => {
@@ -85,14 +78,14 @@ export const JobSourceAnalysisPanel = ({ jobId }: JobSourceAnalysisPanelProps) =
   }, [agentRuns, spansByRun, traces.length]);
 
   const timeline = useMemo(() => {
-    const traceEvents: TimelineEvent[] = traces.map((trace) => ({
+    const traceEvents: JobTimelineEvent[] = traces.map((trace) => ({
       key: `trace-${trace.id}`,
       type: "trace",
       label: trace.level,
       description: trace.message,
       createdAt: trace.createdAt,
     }));
-    const agentEvents: TimelineEvent[] = agentRuns.map((run) => ({
+    const agentEvents: JobTimelineEvent[] = agentRuns.map((run) => ({
       key: `agent-${run.id}`,
       type: "agent",
       label: run.agentId,

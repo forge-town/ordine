@@ -1,19 +1,10 @@
 import { useOne } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
-import type { RefinementRound, RefinementRoundStatus } from "@repo/schemas";
+import type { Refinement, RefinementRoundStatus } from "@repo/schemas";
 import { Badge } from "@repo/ui/badge";
 import { Card } from "@repo/ui/card";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CheckCircle2, Circle, Loader2, XCircle } from "lucide-react";
-
-type RefinementRecord = {
-  id: string;
-  sourceDistillationId: string;
-  maxRounds: number;
-  currentRound: number;
-  status: string;
-  rounds: RefinementRound[];
-};
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
   completed: <CheckCircle2 className="h-4 w-4 text-green-500" />,
@@ -37,12 +28,12 @@ const POLL_INTERVAL = 3000;
 export const RefinementPanel = ({ refinementId }: { refinementId: string }) => {
   const { t } = useTranslation();
 
-  const { result: refinement } = useOne<RefinementRecord>({
+  const { result: refinement } = useOne<Refinement>({
     resource: ResourceName.refinements,
     id: refinementId,
     queryOptions: {
       refetchInterval: (query) => {
-        const status = (query.state.data?.data as RefinementRecord | undefined)?.status;
+        const status = (query.state.data?.data as Refinement | undefined)?.status;
         if (status === "completed" || status === "failed") return false;
 
         return POLL_INTERVAL;

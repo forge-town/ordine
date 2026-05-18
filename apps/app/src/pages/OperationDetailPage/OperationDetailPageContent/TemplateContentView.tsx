@@ -2,24 +2,34 @@ import Markdown from "react-markdown";
 import { Code, Eye } from "lucide-react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import type { OperationOutputItemTemplate } from "@repo/schemas";
+import { Button } from "@repo/ui/button";
+import { cn } from "@repo/ui/lib/utils";
 import { useOperationDetailPageStore } from "../_store";
 
 interface TemplateContentViewProps {
-  template: OperationOutputItemTemplate;
+  templateId: string;
 }
 
 const PREVIEWABLE_TYPES = new Set(["markdown", "html"]);
 
-export const TemplateContentView = ({ template }: TemplateContentViewProps) => {
+export const TemplateContentView = ({ templateId }: TemplateContentViewProps) => {
   const store = useOperationDetailPageStore();
-  const { templateViewMode, handleTemplateViewModeButtonClick } = useStore(
+  const { template, templateViewMode, handleTemplateViewModeButtonClick } = useStore(
     store,
     useShallow((s) => ({
+      template: s.templates[templateId],
       templateViewMode: s.templateViewMode,
       handleTemplateViewModeButtonClick: s.handleTemplateViewModeButtonClick,
     })),
   );
+
+  if (!template) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <span className="text-xs text-muted-foreground">Loading…</span>
+      </div>
+    );
+  }
 
   const canPreview = PREVIEWABLE_TYPES.has(template.contentType);
 
@@ -34,28 +44,32 @@ export const TemplateContentView = ({ template }: TemplateContentViewProps) => {
         </div>
         {canPreview && (
           <div className="flex gap-0.5 rounded-md bg-muted p-0.5">
-            <button
-              className={`flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors ${
+            <Button
+              className={cn(
+                "flex h-auto items-center gap-1 rounded px-2 py-1 text-[10px] font-medium",
                 templateViewMode === "raw"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+              variant="ghost"
               onClick={handleTemplateViewModeButtonClick.bind(null, "raw")}
             >
               <Code className="h-3 w-3" />
               Raw
-            </button>
-            <button
-              className={`flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors ${
+            </Button>
+            <Button
+              className={cn(
+                "flex h-auto items-center gap-1 rounded px-2 py-1 text-[10px] font-medium",
                 templateViewMode === "preview"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+              variant="ghost"
               onClick={handleTemplateViewModeButtonClick.bind(null, "preview")}
             >
               <Eye className="h-3 w-3" />
               Preview
-            </button>
+            </Button>
           </div>
         )}
       </div>
