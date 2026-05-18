@@ -44,7 +44,7 @@ const meta: Meta<typeof ConnectionMenu> = {
     docs: {
       description: {
         component:
-          "Connection-end menu shown after dragging from a node handle to empty canvas space. It offers compatible target node types, Operations, Recipes, and output endpoints.",
+          "Connection-end menu shown after dragging from a node handle to empty canvas space. It offers compatible target node types, Operations, and output endpoints.",
       },
     },
   },
@@ -56,8 +56,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          "Open connection menu from a file source node using local Operation and Recipe data.",
+        story: "Open connection menu from a file source node using local Operation data.",
       },
     },
   },

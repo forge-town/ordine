@@ -1,6 +1,5 @@
 import type { ChangeEvent } from "react";
 import type { StateCreator } from "zustand";
-import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
 import i18n from "@/lib/i18n";
 import { parseOperationZip } from "../importOperation";
@@ -18,6 +17,12 @@ export type OperationGroupKey =
   | "other";
 
 type ViewMode = "grid" | "list";
+type CreateResult = { data?: unknown };
+
+export interface OperationsImportDependencies {
+  createOperation: (values: Record<string, unknown>) => Promise<CreateResult>;
+  createOutputTemplate: (values: Record<string, unknown>) => Promise<CreateResult>;
+}
 
 export interface OperationsPageSlice {
   searchQuery: string;
@@ -32,7 +37,10 @@ export interface OperationsPageSlice {
   handleSortItemSelect: (value: string | null) => void;
   handleSortSelectOpenChange: (open: boolean) => void;
   handleSortSelectTriggerClick: () => void;
-  handleImportFileInputChange: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
+  handleImportFileInputChange: (
+    event: ChangeEvent<HTMLInputElement>,
+    dependencies: OperationsImportDependencies,
+  ) => Promise<void>;
   handleGroupTabClick: (group: OperationGroupKey) => void;
   handleViewModeButtonClick: (mode: ViewMode) => void;
 }
@@ -54,7 +62,7 @@ export const createOperationsPageSlice: StateCreator<OperationsPageSlice> = (set
   handleGroupTabClick: (group) => set({ activeGroup: group }),
   handleViewModeButtonClick: (mode) => set({ viewMode: mode }),
 
-  handleImportFileInputChange: async (event) => {
+  handleImportFileInputChange: async (event, dependencies) => {
     const fileInput = event.target;
     const file = fileInput.files?.[0];
     if (!file) return;
@@ -80,15 +88,12 @@ export const createOperationsPageSlice: StateCreator<OperationsPageSlice> = (set
     for (const tpl of parsed.templates) {
       const newId = `tpl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       templateIdMap.set(tpl.id, newId);
-      await dataProvider.create({
-        resource: ResourceName.operationOutputItemTemplates,
-        variables: {
-          id: newId,
-          name: tpl.name,
-          description: tpl.description,
-          content: tpl.content,
-          contentType: tpl.contentType,
-        },
+      await dependencies.createOutputTemplate({
+        id: newId,
+        name: tpl.name,
+        description: tpl.description,
+        content: tpl.content,
+        contentType: tpl.contentType,
       });
     }
 
@@ -97,15 +102,12 @@ export const createOperationsPageSlice: StateCreator<OperationsPageSlice> = (set
       templateIds: o.templateIds.map((id) => templateIdMap.get(id) ?? id),
     }));
 
-    const result = await dataProvider.create({
-      resource: ResourceName.operations,
-      variables: {
-        id: `op-${Date.now()}`,
-        name: parsed.name,
-        description: parsed.description,
-        config: { ...parsed.config, outputs },
-        acceptedObjectTypes: parsed.acceptedObjectTypes,
-      },
+    const result = await dependencies.createOperation({
+      id: `op-${Date.now()}`,
+      name: parsed.name,
+      description: parsed.description,
+      config: { ...parsed.config, outputs },
+      acceptedObjectTypes: parsed.acceptedObjectTypes,
     });
     const created = result.data;
     if (created) {

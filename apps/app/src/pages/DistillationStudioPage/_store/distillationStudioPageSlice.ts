@@ -2,6 +2,7 @@ import type { StateCreator } from "zustand";
 import { createFormControl } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
+import { ResultAsync, okAsync } from "neverthrow";
 import {
   AgentRuntimeSchema,
   DistillationModeSchema,
@@ -9,10 +10,8 @@ import {
   type Distillation,
   type DistillationSourceType,
 } from "@repo/schemas";
-import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
-import { router } from "@/router";
 
-type SubmissionMode = "draft" | "run";
+export type SubmissionMode = "draft" | "run";
 
 export const distillationFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -40,7 +39,7 @@ export interface DistillationLoadContext {
 
 type DistillationFormControl = ReturnType<typeof createFormControl<DistillationFormValues>>;
 
-const emptyFormValues = (
+export const emptyFormValues = (
   fallbackTitle: string,
   searchSourceType: DistillationSourceType | undefined,
   searchSourceId: string | undefined,
@@ -59,7 +58,7 @@ const emptyFormValues = (
   systemPrompt: "",
 });
 
-const distillationToFormValues = (distillation: Distillation): DistillationFormValues => ({
+export const distillationToFormValues = (distillation: Distillation): DistillationFormValues => ({
   title: distillation.title,
   summary: distillation.summary,
   sourceType: distillation.sourceType,
@@ -72,7 +71,7 @@ const distillationToFormValues = (distillation: Distillation): DistillationFormV
   systemPrompt: distillation.config.systemPrompt ?? "",
 });
 
-const buildDistillationPayload = (values: DistillationFormValues) => ({
+export const buildDistillationPayload = (values: DistillationFormValues) => ({
   title: values.title.trim(),
   summary: values.summary.trim(),
   sourceType: values.sourceType,
@@ -87,6 +86,23 @@ const buildDistillationPayload = (values: DistillationFormValues) => ({
   },
 });
 
+export interface PersistDistillationInput {
+  values: DistillationFormValues;
+  mode: SubmissionMode;
+  existingDistillationId: string;
+}
+
+export interface DistillationSubmitDependencies {
+  persistDistillation: (input: PersistDistillationInput) => Promise<Distillation>;
+  runDistillation: (distillationId: string) => Promise<Distillation | null>;
+}
+
+export interface DistillationActionDependencies {
+  startRefinement: (sourceDistillationId: string, maxRounds: number) => Promise<string>;
+  optimizePipeline: (distillationId: string) => Promise<string>;
+  navigateToPipeline: (pipelineId: string) => void;
+}
+
 export interface DistillationStudioPageSlice {
   latestDistillation: Distillation | null;
   submissionMode: SubmissionMode | null;
@@ -97,12 +113,25 @@ export interface DistillationStudioPageSlice {
   distillationFormControl: DistillationFormControl;
 
   handleRefinementRoundsSelectChange: (value: string | null) => void;
-  handleLoadDistillation: (context: DistillationLoadContext) => Promise<void>;
-  handleSaveDraftButtonClick: (existingDistillationId: string) => Promise<void>;
-  handleRunButtonClick: (existingDistillationId: string) => Promise<void>;
-  handleStartRefinementButtonClick: () => Promise<void>;
-  handleOptimizePipelineButtonClick: () => Promise<void>;
+  handleLoadDistillation: (
+    context: DistillationLoadContext,
+    existingDistillation: Distillation | null,
+  ) => void;
+  handleSaveDraftButtonClick: (
+    existingDistillationId: string,
+    dependencies: DistillationSubmitDependencies,
+  ) => Promise<void>;
+  handleRunButtonClick: (
+    existingDistillationId: string,
+    dependencies: DistillationSubmitDependencies,
+  ) => Promise<void>;
+  handleStartRefinementButtonClick: (dependencies: DistillationActionDependencies) => Promise<void>;
+  handleOptimizePipelineButtonClick: (
+    dependencies: DistillationActionDependencies,
+  ) => Promise<void>;
 }
+
+const toError = (cause: unknown) => (cause instanceof Error ? cause : new Error(String(cause)));
 
 export const createDistillationStudioPageSlice: StateCreator<DistillationStudioPageSlice> = (
   set,
@@ -125,44 +154,44 @@ export const createDistillationStudioPageSlice: StateCreator<DistillationStudioP
     }
   });
 
-  const persistDistillation = async (
-    values: DistillationFormValues,
+  const submitDistillation = (
     mode: SubmissionMode,
     existingDistillationId: string,
-  ): Promise<Distillation> => {
-    const payload = buildDistillationPayload(values);
+    dependencies: DistillationSubmitDependencies,
+  ): Promise<void> =>
+    new Promise((resolve) => {
+      const finish = () => {
+        set({ submissionMode: null });
+        resolve();
+      };
 
-    if (existingDistillationId) {
-      const updated = await dataProvider.update({
-        resource: ResourceName.distillations,
-        id: existingDistillationId,
-        variables:
-          mode === "run"
-            ? {
-                ...payload,
-                status: "draft",
-                inputSnapshot: null,
-                result: null,
+      void distillationFormControl.handleSubmit(
+        (values) => {
+          void ResultAsync.fromPromise(
+            dependencies.persistDistillation({ values, mode, existingDistillationId }),
+            toError,
+          )
+            .andThen((draft) => {
+              set({ latestDistillation: draft });
+              if (mode === "draft") {
+                return okAsync<Distillation, Error>(draft);
               }
-            : payload,
-      });
 
-      return updated.data as Distillation;
-    }
-
-    const created = await dataProvider.create({
-      resource: ResourceName.distillations,
-      variables: {
-        id: crypto.randomUUID(),
-        ...payload,
-        status: "draft",
-        inputSnapshot: null,
-        result: null,
-      },
+              return ResultAsync.fromPromise(dependencies.runDistillation(draft.id), toError).map(
+                (executed) => executed ?? draft,
+              );
+            })
+            .match(
+              (distillation) => {
+                set({ latestDistillation: distillation });
+                finish();
+              },
+              () => finish(),
+            );
+        },
+        () => finish(),
+      )();
     });
-
-    return created.data as Distillation;
-  };
 
   return {
     latestDistillation: null,
@@ -177,7 +206,7 @@ export const createDistillationStudioPageSlice: StateCreator<DistillationStudioP
       if (value !== null) set({ refinementRounds: Number(value) });
     },
 
-    handleLoadDistillation: async (context) => {
+    handleLoadDistillation: (context, existingDistillation) => {
       const fallback = emptyFormValues(
         context.fallbackTitle,
         context.searchSourceType,
@@ -193,82 +222,47 @@ export const createDistillationStudioPageSlice: StateCreator<DistillationStudioP
         return;
       }
 
-      const result = await dataProvider.getOne<Distillation>({
-        resource: ResourceName.distillations,
-        id: context.distillationId,
-      });
-      const distillation = result.data;
-      if (distillation) {
-        distillationFormControl.reset(distillationToFormValues(distillation));
-        set({ latestDistillation: distillation });
+      if (existingDistillation) {
+        distillationFormControl.reset(distillationToFormValues(existingDistillation));
+        set({ latestDistillation: existingDistillation });
       } else {
         distillationFormControl.reset(fallback);
         set({ latestDistillation: null });
       }
     },
 
-    handleSaveDraftButtonClick: async (existingDistillationId) => {
+    handleSaveDraftButtonClick: async (existingDistillationId, dependencies) => {
       set({ submissionMode: "draft" });
-      await new Promise<void>((resolve) => {
-        void distillationFormControl.handleSubmit(
-          async (values) => {
-            const draft = await persistDistillation(values, "draft", existingDistillationId);
-            set({ latestDistillation: draft });
-            resolve();
-          },
-          () => resolve(),
-        )();
-      });
+      await submitDistillation("draft", existingDistillationId, dependencies);
     },
 
-    handleRunButtonClick: async (existingDistillationId) => {
+    handleRunButtonClick: async (existingDistillationId, dependencies) => {
       set({ submissionMode: "run" });
-      await new Promise<void>((resolve) => {
-        void distillationFormControl.handleSubmit(
-          async (values) => {
-            const draft = await persistDistillation(values, "run", existingDistillationId);
-            const executed = await dataProvider.custom!<Distillation>({
-              url: "distillations/run",
-              method: "post",
-              payload: { id: draft.id },
-            });
-            if (executed?.data) {
-              set({ latestDistillation: executed.data });
-            }
-            resolve();
-          },
-          () => resolve(),
-        )();
-      });
+      await submitDistillation("run", existingDistillationId, dependencies);
     },
 
-    handleStartRefinementButtonClick: async () => {
+    handleStartRefinementButtonClick: async (dependencies) => {
       const { latestDistillation, refinementRounds } = get();
       if (!latestDistillation?.result) return;
-      const result = await dataProvider.custom!<{ id: string }>({
-        url: "refinements/start",
-        method: "post",
-        payload: {
-          sourceDistillationId: latestDistillation.id,
-          maxRounds: refinementRounds,
-        },
-      });
-      set({ refinementId: result.data.id });
+      await ResultAsync.fromPromise(
+        dependencies.startRefinement(latestDistillation.id, refinementRounds),
+        toError,
+      ).match(
+        (refinementId) => set({ refinementId }),
+        () => undefined,
+      );
     },
 
-    handleOptimizePipelineButtonClick: async () => {
+    handleOptimizePipelineButtonClick: async (dependencies) => {
       const { latestDistillation } = get();
       if (!latestDistillation?.result) return;
-      const result = await dataProvider.custom!<{ id: string }>({
-        url: "pipelines/optimizeFromDistillation",
-        method: "post",
-        payload: { distillationId: latestDistillation.id },
-      });
-      const pipelineId = result.data.id;
-      void router.navigate({
-        to: "/pipelines/$pipelineId",
-        params: { pipelineId },
-      });
+      await ResultAsync.fromPromise(
+        dependencies.optimizePipeline(latestDistillation.id),
+        toError,
+      ).match(
+        (pipelineId) => dependencies.navigateToPipeline(pipelineId),
+        () => undefined,
+      );
     },
   };
 };

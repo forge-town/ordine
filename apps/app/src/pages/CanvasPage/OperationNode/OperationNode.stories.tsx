@@ -58,7 +58,7 @@ const meta: Meta<typeof OperationNode> = {
     docs: {
       description: {
         component:
-          "Operation node used to run a configured operation or recipe. The Docs stories load mocked Operations and Best Practices through the Canvas Storybook data provider.",
+          "Operation node used to run a configured operation. The Docs stories load mocked Operations and Best Practices through the Canvas Storybook data provider.",
       },
     },
   },

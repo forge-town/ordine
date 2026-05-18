@@ -6,7 +6,7 @@ Use when 需要在 Ordine 系统中列出或发现已有的 Operation、Pipeline
 
 复制以下内容并提供给你的 AI agent：
 
-```markdown
+````markdown
 ---
 name: ordine-list-entities
 description: Use when 需要在 Ordine 系统中列出或发现已有的 Operation、Pipeline、Best Practice 等实体以复用，避免重复创建。触发词：list entities、列出operation、查找pipeline、有没有已有的、复用检查、发现实体。
@@ -34,8 +34,9 @@ ops = json.load(sys.stdin)
 keyword = 'lint'
 for op in ops:
     if keyword.lower() in op['name'].lower() or keyword.lower() in (op.get('description') or '').lower():
-        print(f\"{op['id']}: {op['name']} — {op.get('description', '')}\")" 
+        print(f\"{op['id']}: {op['name']} — {op.get('description', '')}\")"
 ```
+````
 
 ### 搜索 Pipeline
 
@@ -78,13 +79,6 @@ for bp in bps:
 curl -s http://localhost:9433/api/skills | python3 -m json.tool
 ```
 
-### 搜索 Recipe
-
-```bash
-# 列出所有 Recipe（Operation + Best Practice 绑定）
-curl -s http://localhost:9433/api/recipes | python3 -m json.tool
-```
-
 ## 复用策略
 
 ### 决策树
@@ -97,7 +91,7 @@ curl -s http://localhost:9433/api/recipes | python3 -m json.tool
   │     └── 无匹配 → 创建新 Operation（参考 ordine-create-operation）
   │
   ├── 搜索 Best Practice：已有对应规范？
-  │     ├── 完全匹配 → 直接绑定 Recipe
+  │     ├── 完全匹配 → 作为 Operation/Pipeline 的规范参考
   │     └── 无匹配 → 创建新 Best Practice（参考 ordine-create-bestpractice）
   │
   └── 搜索 Pipeline：已有包含此检查的？
@@ -131,5 +125,7 @@ curl -s "http://localhost:9433/api/code-snippets?bestPracticeId=<BP_ID>" | pytho
 - 搜索在客户端执行，所有 `GET /api/<resource>` 返回全量数据
 - 搜索时建议同时匹配 `name` 和 `description` 字段
 - Pipeline 的 `config` 字段包含完整 DAG 定义（JSON），可进一步解析查看包含的 Operation 节点
+
+```
 
 ```

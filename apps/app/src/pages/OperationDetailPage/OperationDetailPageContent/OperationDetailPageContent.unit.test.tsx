@@ -37,6 +37,9 @@ vi.mock("@refinedev/core", () => ({
   useCreate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
   useUpdate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
   useCustomMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+  useDataProvider: () => () => ({
+    getOne: vi.fn(),
+  }),
   useInvalidate: () => vi.fn(),
   useOne: () => ({ result: mockUseLoaderData(), isLoading: false }),
   useCustom: () => ({ result: { data: null }, isLoading: false }),

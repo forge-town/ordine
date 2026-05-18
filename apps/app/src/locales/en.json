@@ -396,7 +396,6 @@
     "objectTypes": "Object Types (Object)",
     "operationNodes": "Operation Nodes",
     "outputEndpoint": "Output Endpoints",
-    "recipeNodes": "Recipe Nodes",
     "connectNodesHint": "Connect node ports to define data flow",
     "addNode": "Add node",
     "addNodeTypes": {
@@ -423,7 +422,7 @@
     "aiMode": "AI Mode",
     "emptyState": {
       "title": "Start with a node",
-      "description": "Add an input object, Operation, or Recipe to shape the first pipeline path.",
+      "description": "Add an input object or Operation to shape the first pipeline path.",
       "quickAdd": "Quick add node",
       "contextHint": "You can also right-click blank canvas space to create nodes."
     },
@@ -431,10 +430,9 @@
       "title": "Quick add node",
       "open": "Quick add node",
       "close": "Close quick add",
-      "searchPlaceholder": "Search nodes, Operations, or Recipes...",
+      "searchPlaceholder": "Search nodes or Operations...",
       "objects": "Object nodes",
       "operations": "Operations",
-      "recipes": "Recipes",
       "noResults": "No matching nodes"
     },
     "status": {
@@ -452,12 +450,10 @@
       "addOperation": "Add Operation",
       "objectTypes": "Object Types",
       "operationNodes": "Operation Nodes",
-      "recipeNodes": "Recipe Nodes",
       "connectTo": "Connect to",
       "connectNewNode": "Connect New Node",
       "processingObject": "Object",
       "operationNode": "Operation",
-      "recipeNode": "Recipe",
       "outputEndpoint": "Output",
       "noOperationsForType": "No operations accept this type",
       "newNode": "New Node",

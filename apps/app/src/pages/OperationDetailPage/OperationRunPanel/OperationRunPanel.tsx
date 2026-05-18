@@ -8,7 +8,7 @@ import { Card } from "@repo/ui/card";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@repo/ui/sheet";
 import { cn } from "@repo/ui/lib/utils";
-import { useCustom, useOne } from "@refinedev/core";
+import { useCustom, useCustomMutation, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -65,6 +65,7 @@ export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
     resource: ResourceName.operations,
     id: operationId,
   });
+  const { mutateAsync: runOperation } = useCustomMutation();
   const operationName = operation?.name ?? "";
   const store = useOperationDetailPageStore();
   const {
@@ -127,6 +128,17 @@ export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
   const handleOpenBrowser = () => setIsBrowserOpen(true);
   const handleSheetOpenChange = (open: boolean) => {
     if (!open) handleCloseRunPanelButtonClick();
+  };
+  const handleRunButtonClick = () => {
+    handleStartRunButtonClick(operationId, async (input) => {
+      const result = await runOperation({
+        url: "operations/run",
+        method: "post",
+        values: input,
+      });
+
+      return (result.data as { jobId: string }).jobId;
+    });
   };
 
   const traceLogs = (tracesResult.data?.traces ?? []).map((trace) => trace.message);
@@ -198,7 +210,7 @@ export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
               className="w-full"
               disabled={isRunning || (!runInputPath && !runInputContent)}
               size="sm"
-              onClick={() => handleStartRunButtonClick(operationId)}
+              onClick={handleRunButtonClick}
             >
               {isRunning ? (
                 <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />

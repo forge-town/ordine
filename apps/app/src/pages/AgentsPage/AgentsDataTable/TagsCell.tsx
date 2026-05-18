@@ -1,19 +1,12 @@
-import { useOne } from "@refinedev/core";
 import type { Agent } from "@repo/schemas";
 import { Badge } from "@repo/ui/badge";
-import { ResourceName } from "@/integrations/refine/dataProvider";
 
 interface TagsCellProps {
-  agentId: string;
+  agent: Agent;
 }
 
-export const TagsCell = ({ agentId }: TagsCellProps) => {
-  const { result: agent } = useOne<Agent>({
-    resource: ResourceName.agents,
-    id: agentId,
-  });
-
-  if (!agent || agent.tags.length === 0) {
+export const TagsCell = ({ agent }: TagsCellProps) => {
+  if (agent.tags.length === 0) {
     return <span className="text-sm text-muted-foreground/50">—</span>;
   }
 

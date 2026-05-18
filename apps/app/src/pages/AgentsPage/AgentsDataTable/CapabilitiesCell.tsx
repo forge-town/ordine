@@ -1,19 +1,12 @@
 import { Sparkles } from "lucide-react";
-import { useOne } from "@refinedev/core";
 import type { Agent } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
 
 interface CapabilitiesCellProps {
-  agentId: string;
+  agent: Agent;
 }
 
-export const CapabilitiesCell = ({ agentId }: CapabilitiesCellProps) => {
-  const { result: agent } = useOne<Agent>({
-    resource: ResourceName.agents,
-    id: agentId,
-  });
-
-  if (!agent || agent.capabilities.length === 0) {
+export const CapabilitiesCell = ({ agent }: CapabilitiesCellProps) => {
+  if (agent.capabilities.length === 0) {
     return <span className="text-sm text-muted-foreground/50">—</span>;
   }
 

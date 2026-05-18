@@ -1,19 +1,12 @@
 import { Cpu } from "lucide-react";
-import { useOne } from "@refinedev/core";
 import type { Agent } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
 
 interface RuntimeCellProps {
-  agentId: string;
+  agent: Agent;
 }
 
-export const RuntimeCell = ({ agentId }: RuntimeCellProps) => {
-  const { result: agent } = useOne<Agent>({
-    resource: ResourceName.agents,
-    id: agentId,
-  });
-
-  if (!agent || !agent.defaultRuntime) {
+export const RuntimeCell = ({ agent }: RuntimeCellProps) => {
+  if (!agent.defaultRuntime) {
     return <span className="text-sm text-muted-foreground/50">—</span>;
   }
 

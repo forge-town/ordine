@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, Zap, Search, Upload, LayoutGrid, List } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useList } from "@refinedev/core";
+import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { Operation } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
@@ -46,6 +46,7 @@ export const OperationsPageContent = () => {
   const handleImportFileInputChange = useStore(pageStore, (s) => s.handleImportFileInputChange);
   const handleViewModeButtonClick = useStore(pageStore, (s) => s.handleViewModeButtonClick);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const { mutateAsync: createResource } = useCreate();
 
   const filteredOperations = operations
     .filter((op: Operation) => {
@@ -79,6 +80,20 @@ export const OperationsPageContent = () => {
   const handleImportClick = () => {
     importInputRef.current?.click();
   };
+  const handleImportInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    void handleImportFileInputChange(event, {
+      createOperation: (values) =>
+        createResource({
+          resource: ResourceName.operations,
+          values,
+        }),
+      createOutputTemplate: (values) =>
+        createResource({
+          resource: ResourceName.operationOutputItemTemplates,
+          values,
+        }),
+    });
+  };
 
   if (operationsQuery?.isLoading) {
     return (
@@ -107,7 +122,7 @@ export const OperationsPageContent = () => {
               accept=".zip,application/zip"
               className="hidden"
               type="file"
-              onChange={handleImportFileInputChange}
+              onChange={handleImportInputChange}
             />
           </>
         }
@@ -216,13 +231,13 @@ export const OperationsPageContent = () => {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredOperations.map((op) => (
-              <OperationCard key={op.id} operationId={op.id} />
+              <OperationCard key={op.id} operation={op} />
             ))}
           </div>
         ) : (
           <div className="divide-y divide-border">
             {filteredOperations.map((op) => (
-              <OperationListRow key={op.id} operationId={op.id} />
+              <OperationListRow key={op.id} operation={op} />
             ))}
           </div>
         )}

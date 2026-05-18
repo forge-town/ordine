@@ -274,4 +274,35 @@ describe("OperationEditPageContent", () => {
     const backLink = container.querySelector('a[href="/pipelines/operations/op-123"]');
     expect(backLink).not.toBeNull();
   });
+
+  it("keeps hook order stable when loading resolves", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockUseOne.mockReturnValueOnce({
+      result: null,
+      query: { isLoading: true, data: undefined },
+    });
+    mockUseList.mockReturnValueOnce({
+      result: { data: [], total: 0 },
+      query: { isLoading: true, data: undefined },
+    });
+
+    const { rerender } = render(<OperationEditPageContent />);
+
+    mockUseOne.mockReturnValue({
+      result: mockOp,
+      query: { isLoading: false, data: { data: mockOp } },
+    });
+    mockUseList.mockReturnValue({
+      result: { data: mockSkills, total: mockSkills.length },
+      query: { isLoading: false, data: { data: mockSkills, total: mockSkills.length } },
+    });
+    rerender(<OperationEditPageContent />);
+
+    expect(
+      consoleError.mock.calls.some((call) =>
+        call.some((part) => String(part).includes("change in the order of Hooks")),
+      ),
+    ).toBe(false);
+    consoleError.mockRestore();
+  });
 });

@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
+import { useCreate, useCustomMutation, useUpdate } from "@refinedev/core";
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
@@ -20,11 +21,21 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
-import { AgentRuntimeSchema } from "@repo/schemas";
+import { AgentRuntimeSchema, type Distillation } from "@repo/schemas";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/distillation-studio";
-import { type DistillationFormValues, useDistillationStudioPageStore } from "./_store";
+import {
+  buildDistillationPayload,
+  type DistillationFormValues,
+  type DistillationSubmitDependencies,
+  useDistillationStudioPageStore,
+} from "./_store";
 
-export const DistillationForm = () => {
+interface DistillationFormProps {
+  existingDistillation: Distillation | null;
+}
+
+export const DistillationForm = ({ existingDistillation }: DistillationFormProps) => {
   const { t } = useTranslation();
   const search = Route.useSearch();
   const existingDistillationId = search.distillationId ?? "";
@@ -35,25 +46,77 @@ export const DistillationForm = () => {
   const handleLoadDistillation = useStore(store, (s) => s.handleLoadDistillation);
   const handleSaveDraftButtonClick = useStore(store, (s) => s.handleSaveDraftButtonClick);
   const handleRunButtonClick = useStore(store, (s) => s.handleRunButtonClick);
+  const { mutateAsync: createDistillation } = useCreate();
+  const { mutateAsync: updateDistillation } = useUpdate();
+  const { mutateAsync: runDistillation } = useCustomMutation();
 
   const form = useForm<DistillationFormValues>({
     formControl: distillationFormControl.formControl,
   });
 
+  const submitDependencies: DistillationSubmitDependencies = {
+    persistDistillation: async ({ values, mode, existingDistillationId }) => {
+      const payload = buildDistillationPayload(values);
+      if (existingDistillationId) {
+        const updated = await updateDistillation({
+          resource: ResourceName.distillations,
+          id: existingDistillationId,
+          values:
+            mode === "run"
+              ? {
+                  ...payload,
+                  status: "draft",
+                  inputSnapshot: null,
+                  result: null,
+                }
+              : payload,
+        });
+
+        return updated.data as Distillation;
+      }
+
+      const created = await createDistillation({
+        resource: ResourceName.distillations,
+        values: {
+          id: crypto.randomUUID(),
+          ...payload,
+          status: "draft",
+          inputSnapshot: null,
+          result: null,
+        },
+      });
+
+      return created.data as Distillation;
+    },
+    runDistillation: async (distillationId) => {
+      const executed = await runDistillation({
+        url: "distillations/run",
+        method: "post",
+        values: { id: distillationId },
+      });
+
+      return (executed.data ?? null) as Distillation | null;
+    },
+  };
+
   useEffect(() => {
     const fallbackTitle = search.sourceLabel
       ? `${t("distillations.defaultTitlePrefix")} ${search.sourceLabel}`
       : t("distillations.defaultUntitled");
-    void handleLoadDistillation({
-      distillationId: existingDistillationId,
-      fallbackTitle,
-      searchSourceType: search.sourceType,
-      searchSourceId: search.sourceId,
-      searchSourceLabel: search.sourceLabel,
-      searchMode: search.mode,
-    });
+    handleLoadDistillation(
+      {
+        distillationId: existingDistillationId,
+        fallbackTitle,
+        searchSourceType: search.sourceType,
+        searchSourceId: search.sourceId,
+        searchSourceLabel: search.sourceLabel,
+        searchMode: search.mode,
+      },
+      existingDistillation,
+    );
   }, [
     existingDistillationId,
+    existingDistillation,
     handleLoadDistillation,
     search.sourceType,
     search.sourceId,
@@ -64,10 +127,10 @@ export const DistillationForm = () => {
 
   const isBusy = form.formState.isSubmitting;
   const handleSaveButtonClick = () => {
-    void handleSaveDraftButtonClick(existingDistillationId);
+    void handleSaveDraftButtonClick(existingDistillationId, submitDependencies);
   };
   const handleRunSubmitButtonClick = () => {
-    void handleRunButtonClick(existingDistillationId);
+    void handleRunButtonClick(existingDistillationId, submitDependencies);
   };
 
   return (

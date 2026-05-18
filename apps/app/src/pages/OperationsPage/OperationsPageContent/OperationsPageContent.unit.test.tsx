@@ -7,6 +7,7 @@ import { OperationsPageContent } from "./OperationsPageContent";
 
 const mockOps = vi.fn<() => Operation[]>(() => []);
 const mockNavigate = vi.fn();
+const mockUseOne = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
@@ -60,10 +61,7 @@ vi.mock("@refinedev/core", () => ({
   useUpdate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
   useCustomMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
   useInvalidate: () => vi.fn(),
-  useOne: ({ id }: { id: string }) => ({
-    result: mockOps().find((op) => op.id === id) ?? null,
-    isLoading: false,
-  }),
+  useOne: (...args: unknown[]) => mockUseOne(...args),
 }));
 
 const makeOp = (overrides: Partial<Operation> & { id: string; name: string }): Operation => ({
@@ -86,6 +84,11 @@ describe("OperationsPageContent", () => {
     });
     mockOps.mockReturnValue([]);
     mockNavigate.mockClear();
+    mockUseOne.mockClear();
+    mockUseOne.mockImplementation(({ id }: { id: string }) => ({
+      result: mockOps().find((op) => op.id === id) ?? null,
+      isLoading: false,
+    }));
   });
 
   describe("displays all operations", () => {
@@ -101,6 +104,12 @@ describe("OperationsPageContent", () => {
       expect(screen.getByText("Alpha Op")).toBeInTheDocument();
       expect(screen.getByText("Beta Op")).toBeInTheDocument();
       expect(screen.getByText("Gamma Op")).toBeInTheDocument();
+    });
+
+    it("renders list data without refetching each card", () => {
+      mockOps.mockReturnValue(ops);
+      render(<OperationsPageContent />);
+      expect(mockUseOne).not.toHaveBeenCalled();
     });
   });
 

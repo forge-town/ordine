@@ -1,38 +1,46 @@
 import type { StateCreator } from "zustand";
-import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
-import { router } from "@/router";
+
+interface DeleteAgentDependencies {
+  deleteAgent: (agentId: string) => Promise<unknown>;
+  navigateToAgents: () => void;
+}
 
 export interface AgentDetailPageSlice {
   deleteConfirm: boolean;
   copied: boolean;
 
-  handleDeleteButtonClick: (agentId: string) => Promise<void>;
+  handleDeleteButtonClick: (
+    agentId: string,
+    dependencies: DeleteAgentDependencies,
+  ) => Promise<void>;
   handleDeleteButtonBlur: () => void;
-  handleCopyIdButtonClick: (agentId: string) => Promise<void>;
+  handleCopyIdButtonClick: (
+    agentId: string,
+    copyAgentId: (agentId: string) => Promise<boolean>,
+  ) => Promise<void>;
 }
 
 export const createAgentDetailPageSlice: StateCreator<AgentDetailPageSlice> = (set, get) => ({
   deleteConfirm: false,
   copied: false,
 
-  handleDeleteButtonClick: async (agentId) => {
+  handleDeleteButtonClick: async (agentId, dependencies) => {
     if (!get().deleteConfirm) {
       set({ deleteConfirm: true });
 
       return;
     }
-    await dataProvider.deleteOne({
-      resource: ResourceName.agents,
-      id: agentId,
-    });
-    void router.navigate({ to: "/agents" });
+    await dependencies.deleteAgent(agentId);
+    dependencies.navigateToAgents();
   },
 
   handleDeleteButtonBlur: () => set({ deleteConfirm: false }),
 
-  handleCopyIdButtonClick: async (agentId) => {
-    await navigator.clipboard.writeText(agentId);
-    set({ copied: true });
-    setTimeout(() => set({ copied: false }), 1500);
+  handleCopyIdButtonClick: async (agentId, copyAgentId) => {
+    const copied = await copyAgentId(agentId);
+    if (copied) {
+      set({ copied: true });
+      setTimeout(() => set({ copied: false }), 1500);
+    }
   },
 });

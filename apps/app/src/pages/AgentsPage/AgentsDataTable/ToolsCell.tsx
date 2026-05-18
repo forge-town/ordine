@@ -1,19 +1,12 @@
 import { Wrench } from "lucide-react";
-import { useOne } from "@refinedev/core";
 import type { Agent } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
 
 interface ToolsCellProps {
-  agentId: string;
+  agent: Agent;
 }
 
-export const ToolsCell = ({ agentId }: ToolsCellProps) => {
-  const { result: agent } = useOne<Agent>({
-    resource: ResourceName.agents,
-    id: agentId,
-  });
-
-  if (!agent || agent.allowedTools.length === 0) {
+export const ToolsCell = ({ agent }: ToolsCellProps) => {
+  if (agent.allowedTools.length === 0) {
     return <span className="text-sm text-muted-foreground/50">—</span>;
   }
 

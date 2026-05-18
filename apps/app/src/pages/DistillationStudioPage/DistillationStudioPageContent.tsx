@@ -25,11 +25,13 @@ export const DistillationStudioPageContent = () => {
   const currentSourceType = useStore(store, (s) => s.currentSourceType);
   const currentSourceId = useStore(store, (s) => s.currentSourceId);
 
-  const { query: existingDistillationQuery } = useOne<Distillation>({
-    resource: ResourceName.distillations,
-    id: existingDistillationId,
-    queryOptions: { enabled: !!existingDistillationId },
-  });
+  const { result: existingDistillationResult, query: existingDistillationQuery } =
+    useOne<Distillation>({
+      resource: ResourceName.distillations,
+      id: existingDistillationId,
+      queryOptions: { enabled: !!existingDistillationId },
+    });
+  const existingDistillation = existingDistillationResult ?? null;
 
   if (existingDistillationId && existingDistillationQuery?.isLoading) {
     return (
@@ -57,7 +59,7 @@ export const DistillationStudioPageContent = () => {
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid max-w-7xl grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-          <DistillationForm />
+          <DistillationForm existingDistillation={existingDistillation} />
 
           <div className="space-y-4">
             <DistillationActionBar />

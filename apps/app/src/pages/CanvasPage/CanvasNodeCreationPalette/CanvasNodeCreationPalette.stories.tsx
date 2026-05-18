@@ -34,7 +34,7 @@ const meta: Meta<typeof CanvasNodeCreationPalette> = {
     docs: {
       description: {
         component:
-          "Toolbar quick-add dialog for creating object nodes, Operations, and Recipes at the current viewport center. Stories use local mock Refine data so the menu is stable without a running API.",
+          "Toolbar quick-add dialog for creating object nodes and Operations at the current viewport center. Stories use local mock Refine data so the menu is stable without a running API.",
       },
     },
   },
@@ -48,7 +48,7 @@ export const Open: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Open quick-add menu with object nodes, mocked Operations, and mocked Recipes.",
+        story: "Open quick-add menu with object nodes and mocked Operations.",
       },
     },
   },

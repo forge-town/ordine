@@ -1,6 +1,5 @@
 import type { StateCreator } from "zustand";
 import type { AgentRuntimeConfig } from "@repo/schemas";
-import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 
 export interface ScanDiff {
   added: AgentRuntimeConfig[];
@@ -8,7 +7,7 @@ export interface ScanDiff {
   unchanged: AgentRuntimeConfig[];
 }
 
-interface DetectedRuntime {
+export interface DetectedRuntime {
   type: string;
   binaryName: string;
   path: string;
@@ -38,8 +37,14 @@ export interface RuntimesPageSlice {
   scanDiff: ScanDiff | null;
   isScanning: boolean;
 
-  handleScanButtonClick: (existingRuntimes: AgentRuntimeConfig[]) => Promise<void>;
-  handleConfirmSyncButtonClick: () => Promise<void>;
+  handleScanButtonClick: (
+    existingRuntimes: AgentRuntimeConfig[],
+    scanRuntimes: () => Promise<DetectedRuntime[]>,
+  ) => Promise<void>;
+  handleConfirmSyncButtonClick: (dependencies: {
+    createRuntime: (values: AgentRuntimeConfig) => Promise<unknown>;
+    deleteRuntime: (id: string) => Promise<unknown>;
+  }) => Promise<void>;
   handleScanDiffModalOpenChange: (open: boolean) => void;
 }
 
@@ -47,31 +52,21 @@ export const createRuntimesPageSlice: StateCreator<RuntimesPageSlice> = (set, ge
   scanDiff: null,
   isScanning: false,
 
-  handleScanButtonClick: async (existingRuntimes) => {
+  handleScanButtonClick: async (existingRuntimes, scanRuntimes) => {
     set({ isScanning: true });
-    const result = await dataProvider.custom!<DetectedRuntime[]>({
-      method: "get",
-      url: "settings/scanRuntimes",
-    });
-    const detected = result.data;
+    const detected = await scanRuntimes();
     const diff = computeDiff(existingRuntimes, detected);
     set({ scanDiff: diff, isScanning: false });
   },
 
-  handleConfirmSyncButtonClick: async () => {
+  handleConfirmSyncButtonClick: async (dependencies) => {
     const diff = get().scanDiff;
     if (!diff) return;
     for (const item of diff.added) {
-      await dataProvider.create({
-        resource: ResourceName.agentRuntimes,
-        variables: item,
-      });
+      await dependencies.createRuntime(item);
     }
     for (const item of diff.removed) {
-      await dataProvider.deleteOne({
-        resource: ResourceName.agentRuntimes,
-        id: item.id,
-      });
+      await dependencies.deleteRuntime(item.id);
     }
     set({ scanDiff: null });
   },

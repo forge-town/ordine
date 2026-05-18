@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import { useCreate, useUpdate } from "@refinedev/core";
 import { Terminal, Cpu, Zap, Cog } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -9,7 +10,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { AGENT_RUNTIME_ENUM } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
-import { type AgentFormValues, useAgentsPageStore } from "../_store";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { type AgentFormValues, toAgentFormMutationValues, useAgentsPageStore } from "../_store";
 
 const RUNTIME_META: Record<string, { label: string; icon: React.ReactNode; description: string }> =
   {
@@ -42,12 +44,39 @@ export const AgentFormDialog = () => {
   const agentFormControl = useStore(store, (s) => s.agentFormControl);
   const handleDialogOpenChange = useStore(store, (s) => s.handleDialogOpenChange);
   const handleCancelButtonClick = useStore(store, (s) => s.handleCancelButtonClick);
-  const handleFormSubmit = useStore(store, (s) => s.handleFormSubmit);
+  const handleFormSubmitSuccess = useStore(store, (s) => s.handleFormSubmitSuccess);
+  const { mutateAsync: createAgent } = useCreate();
+  const { mutateAsync: updateAgent } = useUpdate();
   const form = useForm<AgentFormValues>({
     formControl: agentFormControl.formControl,
   });
 
   const runtimeOptions = Object.values(AGENT_RUNTIME_ENUM);
+  const handleFormSubmit = async (values: AgentFormValues) => {
+    const mutationValues = toAgentFormMutationValues(values);
+    if (editing) {
+      await updateAgent({
+        resource: ResourceName.agents,
+        id: editing.id,
+        values: mutationValues,
+      });
+      handleFormSubmitSuccess();
+
+      return;
+    }
+
+    await createAgent({
+      resource: ResourceName.agents,
+      values: {
+        id: crypto.randomUUID(),
+        ...mutationValues,
+        capabilities: [],
+        allowedTools: [],
+        allowedSkillIds: [],
+      },
+    });
+    handleFormSubmitSuccess();
+  };
 
   return (
     <Dialog open onOpenChange={handleDialogOpenChange}>

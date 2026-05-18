@@ -4,7 +4,6 @@ import { createFormControl } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
 import { type Agent } from "@repo/schemas";
-import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 
 export const agentFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -15,6 +14,13 @@ export const agentFormSchema = z.object({
 });
 
 export type AgentFormValues = z.infer<typeof agentFormSchema>;
+export type AgentFormMutationValues = {
+  name: string;
+  description: string | null;
+  defaultRuntime: string | null;
+  systemPrompt: string | null;
+  tags: string[];
+};
 
 type AgentFormControl = ReturnType<typeof createFormControl<AgentFormValues>>;
 
@@ -26,6 +32,17 @@ const emptyAgentFormValues: AgentFormValues = {
   tags: "",
 };
 
+export const toAgentFormMutationValues = (values: AgentFormValues): AgentFormMutationValues => ({
+  name: values.name.trim(),
+  description: values.description || null,
+  defaultRuntime: values.defaultRuntime || null,
+  systemPrompt: values.systemPrompt || null,
+  tags: values.tags
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean),
+});
+
 export interface AgentsPageSlice {
   search: string;
   showForm: boolean;
@@ -36,10 +53,10 @@ export interface AgentsPageSlice {
   handleAddAgentButtonClick: () => void;
   handleDialogOpenChange: (open: boolean) => void;
   handleCancelButtonClick: () => void;
-  handleFormSubmit: (values: AgentFormValues) => Promise<void>;
+  handleFormSubmitSuccess: () => void;
 }
 
-export const createAgentsPageSlice: StateCreator<AgentsPageSlice> = (set, get) => {
+export const createAgentsPageSlice: StateCreator<AgentsPageSlice> = (set) => {
   const agentFormControl = createFormControl<AgentFormValues>({
     defaultValues: emptyAgentFormValues,
     resolver: zodResolver(agentFormSchema),
@@ -65,42 +82,6 @@ export const createAgentsPageSlice: StateCreator<AgentsPageSlice> = (set, get) =
       if (!open) closeForm();
     },
     handleCancelButtonClick: closeForm,
-    handleFormSubmit: async (values) => {
-      const editing = get().editing;
-      const tags = values.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
-
-      if (editing) {
-        await dataProvider.update({
-          resource: ResourceName.agents,
-          id: editing.id,
-          variables: {
-            name: values.name.trim(),
-            description: values.description || null,
-            defaultRuntime: values.defaultRuntime || null,
-            systemPrompt: values.systemPrompt || null,
-            tags,
-          },
-        });
-      } else {
-        await dataProvider.create({
-          resource: ResourceName.agents,
-          variables: {
-            id: crypto.randomUUID(),
-            name: values.name.trim(),
-            description: values.description || null,
-            defaultRuntime: values.defaultRuntime || null,
-            systemPrompt: values.systemPrompt || null,
-            capabilities: [],
-            allowedTools: [],
-            allowedSkillIds: [],
-            tags,
-          },
-        });
-      }
-      closeForm();
-    },
+    handleFormSubmitSuccess: closeForm,
   };
 };

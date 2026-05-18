@@ -30,7 +30,7 @@ const meta: Meta<typeof CanvasContextMenu> = {
     docs: {
       description: {
         component:
-          "Blank-canvas context menu for creating object nodes, Operation nodes, Recipes, and compound groups at the pointer position.",
+          "Blank-canvas context menu for creating object nodes, Operation nodes, and compound groups at the pointer position.",
       },
     },
   },
@@ -42,7 +42,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Open blank-canvas context menu backed by local Operation and Recipe story data.",
+        story: "Open blank-canvas context menu backed by local Operation story data.",
       },
     },
   },

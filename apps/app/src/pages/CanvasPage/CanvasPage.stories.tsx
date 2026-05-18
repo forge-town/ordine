@@ -99,7 +99,7 @@ const meta: Meta<typeof CanvasStory> = {
     docs: {
       description: {
         component:
-          "Full Canvas workbench scenarios covering the empty state, toolbar quick-add, connected nodes, run console, and MiniMap visibility. Mock Refine data keeps Operation and Recipe lists available in Storybook.",
+          "Full Canvas workbench scenarios covering the empty state, toolbar quick-add, connected nodes, run console, and MiniMap visibility. Mock Refine data keeps Operation lists available in Storybook.",
       },
     },
   },

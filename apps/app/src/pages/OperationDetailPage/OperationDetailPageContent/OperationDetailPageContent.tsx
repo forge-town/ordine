@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { Pencil, Play, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
@@ -23,6 +24,7 @@ export const OperationDetailPageContent = () => {
   });
   const operation = operationResult ?? null;
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const store = useOperationDetailPageStore();
   const { handleBackLinkClick, handleEditButtonClick, handleOpenRunPanelButtonClick } = useStore(
@@ -33,6 +35,23 @@ export const OperationDetailPageContent = () => {
       handleOpenRunPanelButtonClick: s.handleOpenRunPanelButtonClick,
     })),
   );
+  const handleBackToOperationsClick = () => {
+    handleBackLinkClick({
+      navigateBack: () => {
+        void navigate({ to: "/pipelines/operations" });
+      },
+    });
+  };
+  const handleEditOperationClick = (id: string) => {
+    handleEditButtonClick(id, {
+      navigateToEdit: (operationIdToEdit) => {
+        void navigate({
+          to: "/pipelines/operations/$operationId/edit",
+          params: { operationId: operationIdToEdit },
+        });
+      },
+    });
+  };
 
   if (operationQuery?.isLoading) {
     return (
@@ -50,7 +69,7 @@ export const OperationDetailPageContent = () => {
         <p className="text-sm font-medium text-muted-foreground">
           {t("operations.operationNotFound")}
         </p>
-        <Button className="h-auto p-0 text-xs" variant="link" onClick={handleBackLinkClick}>
+        <Button className="h-auto p-0 text-xs" variant="link" onClick={handleBackToOperationsClick}>
           {t("common.backToList")}
         </Button>
       </div>
@@ -75,7 +94,7 @@ export const OperationDetailPageContent = () => {
               aria-label={t("common.edit")}
               size="sm"
               variant="outline"
-              onClick={handleEditButtonClick.bind(null, operation.id)}
+              onClick={() => handleEditOperationClick(operation.id)}
             >
               <Pencil className="h-4 w-4" />
               {t("common.edit")}

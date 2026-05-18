@@ -25,7 +25,7 @@ ops = json.load(sys.stdin)
 keyword = 'lint'
 for op in ops:
     if keyword.lower() in op['name'].lower() or keyword.lower() in (op.get('description') or '').lower():
-        print(f\"{op['id']}: {op['name']} — {op.get('description', '')}\")" 
+        print(f\"{op['id']}: {op['name']} — {op.get('description', '')}\")"
 ```
 
 ### 搜索 Pipeline
@@ -69,13 +69,6 @@ for bp in bps:
 curl -s http://localhost:9433/api/skills | python3 -m json.tool
 ```
 
-### 搜索 Recipe
-
-```bash
-# 列出所有 Recipe（Operation + Best Practice 绑定）
-curl -s http://localhost:9433/api/recipes | python3 -m json.tool
-```
-
 ## 复用策略
 
 ### 决策树
@@ -88,7 +81,7 @@ curl -s http://localhost:9433/api/recipes | python3 -m json.tool
   │     └── 无匹配 → 创建新 Operation（参考 ordine-create-operation）
   │
   ├── 搜索 Best Practice：已有对应规范？
-  │     ├── 完全匹配 → 直接绑定 Recipe
+  │     ├── 完全匹配 → 作为 Operation/Pipeline 的规范参考
   │     └── 无匹配 → 创建新 Best Practice（参考 ordine-create-bestpractice）
   │
   └── 搜索 Pipeline：已有包含此检查的？

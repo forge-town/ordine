@@ -28,4 +28,4 @@
 ## 关联性
 
 - [ ] 如果是 fix 操作，是否有对应的 check 操作
-- [ ] 是否需要创建对应的 Recipe 绑定 Best Practice
+- [ ] 是否需要在 Pipeline 或文档中关联对应的 Best Practice

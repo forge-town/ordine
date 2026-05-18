@@ -3,8 +3,8 @@ import { LayoutTemplate } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import { useOne } from "@refinedev/core";
-import type { Operation } from "@repo/schemas";
+import { useDataProvider, useOne } from "@refinedev/core";
+import type { Operation, OperationOutputItemTemplate } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -15,6 +15,7 @@ import { TemplateContentView } from "./TemplateContentView";
 export const ItemDetailPanel = () => {
   const { t } = useTranslation();
   const { operationId } = Route.useParams();
+  const getDataProvider = useDataProvider();
   const { result: operation } = useOne<Operation>({
     resource: ResourceName.operations,
     id: operationId,
@@ -54,6 +55,19 @@ export const ItemDetailPanel = () => {
   }
 
   const templateIds = selectedItem.templateIds ?? [];
+  const handleTemplatesTabClick = () => {
+    const dataProvider = getDataProvider();
+    handleTemplatesTabButtonClick(templateIds, {
+      fetchTemplate: async (templateId) => {
+        const result = await dataProvider.getOne!<OperationOutputItemTemplate>({
+          resource: ResourceName.operationOutputItemTemplates,
+          id: templateId,
+        });
+
+        return result.data ?? null;
+      },
+    });
+  };
 
   return (
     <div className="p-5">
@@ -79,7 +93,7 @@ export const ItemDetailPanel = () => {
               : "text-muted-foreground hover:text-foreground",
           )}
           variant="ghost"
-          onClick={handleTemplatesTabButtonClick.bind(null, templateIds)}
+          onClick={handleTemplatesTabClick}
         >
           <span className="flex items-center justify-center gap-1.5">
             <LayoutTemplate className="h-3.5 w-3.5" />

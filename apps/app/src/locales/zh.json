@@ -396,7 +396,6 @@
     "objectTypes": "处理对象 (Object)",
     "operationNodes": "操作节点 (Operation)",
     "outputEndpoint": "输出终点 (Output)",
-    "recipeNodes": "快捷配方 (Recipe)",
     "connectNodesHint": "连接节点端口以定义数据流向",
     "addNode": "添加节点",
     "addNodeTypes": {
@@ -423,7 +422,7 @@
     "aiMode": "AI 模式",
     "emptyState": {
       "title": "从一个节点开始",
-      "description": "添加输入对象、Operation 或 Recipe，搭出第一条流水线。",
+      "description": "添加输入对象或 Operation，搭出第一条流水线。",
       "quickAdd": "快速新建节点",
       "contextHint": "也可以在画布空白处右键创建节点。"
     },
@@ -431,10 +430,9 @@
       "title": "快速新建节点",
       "open": "快速新建节点",
       "close": "关闭快速新建",
-      "searchPlaceholder": "搜索节点、Operation 或 Recipe...",
+      "searchPlaceholder": "搜索节点或 Operation...",
       "objects": "对象节点",
       "operations": "Operation",
-      "recipes": "Recipe",
       "noResults": "没有匹配的节点"
     },
     "status": {
@@ -452,12 +450,10 @@
       "addOperation": "添加 Operation",
       "objectTypes": "处理对象 (Object)",
       "operationNodes": "操作节点 (Operation)",
-      "recipeNodes": "快捷配方 (Recipe)",
       "connectTo": "连接到",
       "connectNewNode": "连接新节点",
       "processingObject": "处理对象",
       "operationNode": "操作节点",
-      "recipeNode": "快捷配方",
       "outputEndpoint": "输出终点",
       "noOperationsForType": "没有接受此类型的 Operation",
       "newNode": "新建节点",

@@ -1,4 +1,6 @@
-import { useOne } from "@refinedev/core";
+import { ResultAsync } from "neverthrow";
+import { useDelete, useOne } from "@refinedev/core";
+import { useNavigate } from "@tanstack/react-router";
 import { useStore } from "zustand";
 import {
   Bot,
@@ -29,6 +31,8 @@ const s = "agents";
 export const AgentDetailPageContent = () => {
   const { t } = useTranslation();
   const { agentId } = Route.useParams();
+  const navigate = useNavigate();
+  const { mutateAsync: deleteAgent } = useDelete();
   const { result, query: agentQuery } = useOne<Agent>({
     resource: ResourceName.agents,
     id: agentId,
@@ -42,6 +46,27 @@ export const AgentDetailPageContent = () => {
   const handleCopyIdButtonClick = useStore(store, (s) => s.handleCopyIdButtonClick);
 
   const agent = result ?? null;
+  const handleDeleteAgentButtonClick = (id: string) => {
+    void handleDeleteButtonClick(id, {
+      deleteAgent: (agentIdToDelete) =>
+        deleteAgent({
+          resource: ResourceName.agents,
+          id: agentIdToDelete,
+        }),
+      navigateToAgents: () => navigate({ to: "/agents" }),
+    });
+  };
+  const handleCopyAgentIdButtonClick = (id: string) => {
+    void handleCopyIdButtonClick(id, (agentIdToCopy) =>
+      ResultAsync.fromPromise(
+        navigator.clipboard.writeText(agentIdToCopy),
+        () => "clipboard-copy-failed" as const,
+      ).match(
+        () => true,
+        () => false,
+      ),
+    );
+  };
 
   if (agentQuery.isLoading || !agent) {
     return (
@@ -82,7 +107,7 @@ export const AgentDetailPageContent = () => {
               size="icon"
               variant={deleteConfirm ? "destructive" : "ghost"}
               onBlur={handleDeleteButtonBlur}
-              onClick={() => handleDeleteButtonClick(agent.id)}
+              onClick={() => handleDeleteAgentButtonClick(agent.id)}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -143,7 +168,7 @@ export const AgentDetailPageContent = () => {
                 className="h-6 w-6"
                 size="icon"
                 variant="ghost"
-                onClick={() => handleCopyIdButtonClick(agent.id)}
+                onClick={() => handleCopyAgentIdButtonClick(agent.id)}
               >
                 {copied ? (
                   <Check className="h-3 w-3 text-green-500" />

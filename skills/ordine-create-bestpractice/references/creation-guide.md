@@ -93,6 +93,7 @@ curl -X POST http://localhost:9433/api/best-practices/import \
 ### Step 1: 定义规范边界
 
 明确这条最佳实践回答的核心问题：
+
 - **什么时候**触发？→ 填写 `condition`
 - **怎么做**？→ 填写 `content`
 - **属于哪类**？→ 选择 `category`
@@ -104,27 +105,29 @@ curl -X POST http://localhost:9433/api/best-practices/import \
 ### Step 3: 添加 Checklist Items
 
 将规范拆解为可逐条验证的检查项，每项必须是 yes/no 可判定的：
+
 - ✅ "所有 className 使用 cn() 函数" — 可判定
 - ❌ "代码风格良好" — 不可判定
 
 ### Step 4: 添加详细 Code Snippets
 
 对于复杂场景，添加多个 Code Snippet，涵盖：
+
 - 正确用法
 - 错误用法
 - 边界情况
 
-### Step 5: 绑定到 Recipe（可选）
+### Step 5: 关联自动化入口（可选）
 
-如果有对应的 Operation 可以自动检查/修复此规范，创建 Recipe 绑定。
+如果有对应的 Operation 可以自动检查/修复此规范，在相关 Pipeline 或文档中引用该 Operation。
 
 ## 命名规范
 
-| ID 格式 | 说明 | 示例 |
-|---|---|---|
-| `bp_<noun>_<detail>` | Best Practice | `bp_classname_convention`, `bp_barrel_export` |
-| `cli_<bp_short>_<n>` | Checklist Item | `cli_cn_1`, `cli_barrel_1` |
-| `cs_<bp_short>_<label>` | Code Snippet | `cs_cn_good`, `cs_barrel_bad` |
+| ID 格式                 | 说明           | 示例                                          |
+| ----------------------- | -------------- | --------------------------------------------- |
+| `bp_<noun>_<detail>`    | Best Practice  | `bp_classname_convention`, `bp_barrel_export` |
+| `cli_<bp_short>_<n>`    | Checklist Item | `cli_cn_1`, `cli_barrel_1`                    |
+| `cs_<bp_short>_<label>` | Code Snippet   | `cs_cn_good`, `cs_barrel_bad`                 |
 
 ## 最佳实践的最佳实践
 

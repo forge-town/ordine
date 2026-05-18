@@ -21,7 +21,7 @@ const columns: ColumnDef<Agent>[] = [
 
       return t(`${s}.title`);
     },
-    cell: ({ row }) => <AgentNameCell agentId={row.original.id} />,
+    cell: ({ row }) => <AgentNameCell agent={row.original} />,
   },
   {
     id: "runtime",
@@ -31,7 +31,7 @@ const columns: ColumnDef<Agent>[] = [
 
       return t(`${s}.defaultRuntime`);
     },
-    cell: ({ row }) => <RuntimeCell agentId={row.original.id} />,
+    cell: ({ row }) => <RuntimeCell agent={row.original} />,
   },
   {
     id: "capabilities",
@@ -41,7 +41,7 @@ const columns: ColumnDef<Agent>[] = [
 
       return t(`${s}.capabilities`);
     },
-    cell: ({ row }) => <CapabilitiesCell agentId={row.original.id} />,
+    cell: ({ row }) => <CapabilitiesCell agent={row.original} />,
   },
   {
     id: "tools",
@@ -51,7 +51,7 @@ const columns: ColumnDef<Agent>[] = [
 
       return t(`${s}.allowedTools`);
     },
-    cell: ({ row }) => <ToolsCell agentId={row.original.id} />,
+    cell: ({ row }) => <ToolsCell agent={row.original} />,
   },
   {
     id: "tags",
@@ -61,7 +61,7 @@ const columns: ColumnDef<Agent>[] = [
 
       return t(`${s}.tags`);
     },
-    cell: ({ row }) => <TagsCell agentId={row.original.id} />,
+    cell: ({ row }) => <TagsCell agent={row.original} />,
   },
 ];
 

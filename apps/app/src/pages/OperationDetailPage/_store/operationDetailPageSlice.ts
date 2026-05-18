@@ -1,7 +1,12 @@
 import type { StateCreator } from "zustand";
 import type { OperationOutputItemTemplate } from "@repo/schemas";
-import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
-import { router } from "@/router";
+import { ResultAsync } from "neverthrow";
+
+export interface OperationDetailDependencies {
+  fetchTemplate: (templateId: string) => Promise<OperationOutputItemTemplate | null>;
+  navigateBack: () => void;
+  navigateToEdit: (operationId: string) => void;
+}
 
 export interface OperationDetailPageSlice {
   selectedItemIndex: number;
@@ -12,10 +17,16 @@ export interface OperationDetailPageSlice {
 
   handleOutputItemRowClick: (index: number) => void;
   handleDefinitionTabButtonClick: () => void;
-  handleTemplatesTabButtonClick: (templateIds: string[]) => void;
+  handleTemplatesTabButtonClick: (
+    templateIds: string[],
+    dependencies: Pick<OperationDetailDependencies, "fetchTemplate">,
+  ) => void;
   handleTemplateItemClick: (index: number) => void;
-  handleBackLinkClick: () => void;
-  handleEditButtonClick: (operationId: string) => void;
+  handleBackLinkClick: (dependencies: Pick<OperationDetailDependencies, "navigateBack">) => void;
+  handleEditButtonClick: (
+    operationId: string,
+    dependencies: Pick<OperationDetailDependencies, "navigateToEdit">,
+  ) => void;
   handleTemplateViewModeButtonClick: (mode: "raw" | "preview") => void;
 }
 
@@ -23,27 +34,25 @@ export const createOperationDetailPageSlice: StateCreator<OperationDetailPageSli
   set,
   get,
 ) => {
-  const fetchTemplates = (templateIds: string[]) => {
+  const fetchTemplates = (
+    templateIds: string[],
+    dependencies: Pick<OperationDetailDependencies, "fetchTemplate">,
+  ) => {
     const { templates } = get();
     const idsToFetch = templateIds.filter((id) => !templates[id]);
     if (idsToFetch.length === 0) return;
 
     for (const id of idsToFetch) {
-      dataProvider
-        .getOne<OperationOutputItemTemplate>({
-          resource: ResourceName.operationOutputItemTemplates,
-          id,
-        })
-        .then(({ data }) => {
-          if (data) {
+      void ResultAsync.fromPromise(dependencies.fetchTemplate(id), () => null).match(
+        (template) => {
+          if (template) {
             set((state) => ({
-              templates: { ...state.templates, [id]: data },
+              templates: { ...state.templates, [id]: template },
             }));
           }
-        })
-        .catch(() => {
-          /* template not found — ignore */
-        });
+        },
+        () => undefined,
+      );
     }
   };
 
@@ -59,22 +68,19 @@ export const createOperationDetailPageSlice: StateCreator<OperationDetailPageSli
 
     handleDefinitionTabButtonClick: () => set({ activeTab: "definition" }),
 
-    handleTemplatesTabButtonClick: (templateIds) => {
+    handleTemplatesTabButtonClick: (templateIds, dependencies) => {
       set({ activeTab: "templates" });
-      fetchTemplates(templateIds);
+      fetchTemplates(templateIds, dependencies);
     },
 
     handleTemplateItemClick: (index) => set({ selectedTemplateIndex: index }),
 
-    handleBackLinkClick: () => {
-      void router.navigate({ to: "/pipelines/operations" });
+    handleBackLinkClick: (dependencies) => {
+      dependencies.navigateBack();
     },
 
-    handleEditButtonClick: (operationId) => {
-      void router.navigate({
-        to: "/pipelines/operations/$operationId/edit",
-        params: { operationId },
-      });
+    handleEditButtonClick: (operationId, dependencies) => {
+      dependencies.navigateToEdit(operationId);
     },
 
     handleTemplateViewModeButtonClick: (mode) => set({ templateViewMode: mode }),

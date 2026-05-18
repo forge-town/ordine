@@ -1,4 +1,4 @@
-import { useList } from "@refinedev/core";
+import { useCreate, useDataProvider, useDelete, useList } from "@refinedev/core";
 import { useStore } from "zustand";
 import { Loader2, Radar, Server } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -8,7 +8,7 @@ import { Skeleton } from "@repo/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
 import { RuntimesDataTable } from "../RuntimesDataTable";
 import { ScanDiffModal } from "../ScanDiffModal";
-import { useRuntimesPageStore } from "../_store";
+import { type DetectedRuntime, useRuntimesPageStore } from "../_store";
 
 const s = "runtimes";
 
@@ -18,14 +18,40 @@ export const RuntimesPageContent = () => {
   const isScanning = useStore(store, (s) => s.isScanning);
   const handleScanButtonClick = useStore(store, (s) => s.handleScanButtonClick);
   const handleConfirmSyncButtonClick = useStore(store, (s) => s.handleConfirmSyncButtonClick);
+  const getDataProvider = useDataProvider();
+  const { mutateAsync: createRuntime } = useCreate();
+  const { mutateAsync: deleteRuntime } = useDelete();
 
   const { result: runtimesResult, query: runtimesQuery } = useList<AgentRuntimeConfig>({
     resource: "agentRuntimes",
   });
   const runtimes = runtimesResult.data;
 
+  const handleScan = () => {
+    const dataProvider = getDataProvider();
+    void handleScanButtonClick(runtimes, async () => {
+      const result = await dataProvider.custom!<DetectedRuntime[]>({
+        method: "get",
+        url: "settings/scanRuntimes",
+      });
+
+      return result.data;
+    });
+  };
+
   const handleConfirmSync = async () => {
-    await handleConfirmSyncButtonClick();
+    await handleConfirmSyncButtonClick({
+      createRuntime: (values) =>
+        createRuntime({
+          resource: "agentRuntimes",
+          values,
+        }),
+      deleteRuntime: (id) =>
+        deleteRuntime({
+          resource: "agentRuntimes",
+          id,
+        }),
+    });
     await runtimesQuery.refetch();
   };
 
@@ -33,12 +59,7 @@ export const RuntimesPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         actions={
-          <Button
-            disabled={isScanning}
-            size="sm"
-            variant="outline"
-            onClick={() => handleScanButtonClick(runtimes)}
-          >
+          <Button disabled={isScanning} size="sm" variant="outline" onClick={handleScan}>
             {isScanning ? (
               <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
             ) : (

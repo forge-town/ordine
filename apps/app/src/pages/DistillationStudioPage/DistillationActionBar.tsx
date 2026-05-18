@@ -1,3 +1,5 @@
+import { useNavigate } from "@tanstack/react-router";
+import { useCustomMutation } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
@@ -10,12 +12,15 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { FlaskConical, Sparkles } from "lucide-react";
-import { useDistillationStudioPageStore } from "./_store";
+import { type DistillationActionDependencies, useDistillationStudioPageStore } from "./_store";
 
 const REFINEMENT_ROUND_OPTIONS = [1, 2, 3, 5, 8, 10];
 
 export const DistillationActionBar = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { mutateAsync: startRefinement } = useCustomMutation();
+  const { mutateAsync: optimizePipeline } = useCustomMutation();
 
   const store = useDistillationStudioPageStore();
   const latestDistillation = useStore(store, (s) => s.latestDistillation);
@@ -38,6 +43,38 @@ export const DistillationActionBar = () => {
     return null;
   }
 
+  const actionDependencies: DistillationActionDependencies = {
+    startRefinement: async (sourceDistillationId, maxRounds) => {
+      const result = await startRefinement({
+        url: "refinements/start",
+        method: "post",
+        values: { sourceDistillationId, maxRounds },
+      });
+
+      return (result.data as { id: string }).id;
+    },
+    optimizePipeline: async (distillationId) => {
+      const result = await optimizePipeline({
+        url: "pipelines/optimizeFromDistillation",
+        method: "post",
+        values: { distillationId },
+      });
+
+      return (result.data as { id: string }).id;
+    },
+    navigateToPipeline: (pipelineId) => {
+      void navigate({ to: "/pipelines/$pipelineId", params: { pipelineId } });
+    },
+  };
+
+  const handleStartRefinementClick = () => {
+    void handleStartRefinementButtonClick(actionDependencies);
+  };
+
+  const handleOptimizePipelineClick = () => {
+    void handleOptimizePipelineButtonClick(actionDependencies);
+  };
+
   return (
     <div className="flex items-center justify-end gap-2">
       <div className="flex items-center gap-1.5">
@@ -59,13 +96,13 @@ export const DistillationActionBar = () => {
           disabled={!!refinementId}
           size="sm"
           variant="secondary"
-          onClick={handleStartRefinementButtonClick}
+          onClick={handleStartRefinementClick}
         >
           <FlaskConical className="mr-1.5 h-3.5 w-3.5" />
           {t("distillations.startRefinement")}
         </Button>
       </div>
-      <Button size="sm" onClick={handleOptimizePipelineButtonClick}>
+      <Button size="sm" onClick={handleOptimizePipelineClick}>
         <Sparkles className="mr-1.5 h-3.5 w-3.5" />
         {t("distillations.optimizePipeline")}
       </Button>

@@ -34,4 +34,4 @@
 ## 关联性
 
 - [ ] 是否有对应的 Operation 可以自动检查此规范
-- [ ] 如果有，是否已创建 Recipe 绑定
+- [ ] 如果有，是否已在相关 Pipeline 或文档中引用该 Operation
