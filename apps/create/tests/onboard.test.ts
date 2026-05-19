@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdirSync, rmSync, existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, rmSync, existsSync, readFileSync, mkdtempSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   resolveDataDir,
   generateEnvConfig,
   prepareDataDir,
+  resolveEnvConfig,
   writeEnvFile,
   formatOutput,
   isExistingInstall,
@@ -50,6 +51,36 @@ describe("generateEnvConfig", () => {
     const config1 = generateEnvConfig("/tmp/test-ordine");
     const config2 = generateEnvConfig("/tmp/test-ordine");
     expect(config1.SECRET_KEY).not.toBe(config2.SECRET_KEY);
+  });
+});
+
+describe("resolveEnvConfig", () => {
+  it("creates a new config when no existing install is present", () => {
+    const config = resolveEnvConfig("/tmp/test-ordine", null, "postgres://ordine:ordine@127.0.0.1:5480/ordine");
+    expect(config.DATA_DIR).toBe("/tmp/test-ordine");
+    expect(config.DATABASE_URL).toBe("postgres://ordine:ordine@127.0.0.1:5480/ordine");
+  });
+
+  it("preserves existing fields while refreshing the database url", () => {
+    const existing = {
+      APP_PORT: 9432,
+      APP_URL: "http://localhost:9432",
+      SECRET_KEY: "fixed-secret",
+      DATA_DIR: "/tmp/existing-ordine",
+      DATABASE_URL: "postgres://ordine:ordine@127.0.0.1:5480/ordine",
+    };
+
+    const config = resolveEnvConfig(
+      "/tmp/existing-ordine",
+      existing,
+      "postgres://ordine:ordine@127.0.0.1:5481/ordine",
+    );
+
+    expect(config.APP_PORT).toBe(9432);
+    expect(config.APP_URL).toBe("http://localhost:9432");
+    expect(config.SECRET_KEY).toBe("fixed-secret");
+    expect(config.DATA_DIR).toBe("/tmp/existing-ordine");
+    expect(config.DATABASE_URL).toBe("postgres://ordine:ordine@127.0.0.1:5481/ordine");
   });
 });
 
@@ -191,16 +222,79 @@ describe("readExistingEnv", () => {
 });
 
 describe("resolveAppServerEntry", () => {
-  it("resolves the app server entry path", () => {
-    const entry = resolveAppServerEntry();
-    expect(entry).toContain("server");
-    expect(entry).toContain("index.mjs");
+  const tempDirs: string[] = [];
+
+  afterEach(() => {
+    for (const dir of tempDirs) {
+      if (existsSync(dir)) {
+        rmSync(dir, { recursive: true });
+      }
+    }
+    tempDirs.length = 0;
+  });
+
+  it("prefers the sibling app build when a custom base dir is provided", () => {
+    const rootDir = mkdtempSync(join(tmpdir(), "ordine-app-entry-"));
+    tempDirs.push(rootDir);
+    const moduleDir = join(rootDir, "dist");
+    const siblingServerEntry = join(rootDir, "app", "server", "index.mjs");
+
+    mkdirSync(dirname(siblingServerEntry), { recursive: true });
+    mkdirSync(moduleDir, { recursive: true });
+    writeFileSync(siblingServerEntry, "export default {};\n", "utf8");
+
+    const entry = resolveAppServerEntry(moduleDir);
+    expect(entry).toBe(siblingServerEntry);
+  });
+
+  it("falls back to the bundled dist app when a sibling build is unavailable", () => {
+    const rootDir = mkdtempSync(join(tmpdir(), "ordine-app-entry-"));
+    tempDirs.push(rootDir);
+    const moduleDir = join(rootDir, "dist");
+    const bundledServerEntry = join(moduleDir, "app", "server", "index.mjs");
+
+    mkdirSync(dirname(bundledServerEntry), { recursive: true });
+    writeFileSync(bundledServerEntry, "export default {};\n", "utf8");
+
+    const entry = resolveAppServerEntry(moduleDir);
+    expect(entry).toBe(bundledServerEntry);
   });
 });
 
 describe("resolveMigrationsDir", () => {
-  it("resolves the migrations directory", () => {
-    const dir = resolveMigrationsDir();
-    expect(dir).toContain("migrations");
+  const tempDirs: string[] = [];
+
+  afterEach(() => {
+    for (const dir of tempDirs) {
+      if (existsSync(dir)) {
+        rmSync(dir, { recursive: true });
+      }
+    }
+    tempDirs.length = 0;
+  });
+
+  it("prefers the sibling migrations directory when a custom base dir is provided", () => {
+    const rootDir = mkdtempSync(join(tmpdir(), "ordine-migrations-"));
+    tempDirs.push(rootDir);
+    const moduleDir = join(rootDir, "dist");
+    const siblingMigrationsDir = join(rootDir, "migrations");
+
+    mkdirSync(moduleDir, { recursive: true });
+    mkdirSync(siblingMigrationsDir, { recursive: true });
+
+    const dir = resolveMigrationsDir(moduleDir);
+    expect(dir).toBe(siblingMigrationsDir);
+  });
+
+  it("falls back to the bundled migrations directory when no sibling directory exists", () => {
+    const rootDir = mkdtempSync(join(tmpdir(), "ordine-migrations-"));
+    tempDirs.push(rootDir);
+    const moduleDir = join(rootDir, "dist");
+    const bundledMigrationsDir = join(moduleDir, "migrations");
+
+    mkdirSync(bundledMigrationsDir, { recursive: true });
+
+    const dir = resolveMigrationsDir(moduleDir);
+    expect(dir).toBe(bundledMigrationsDir);
   });
 });

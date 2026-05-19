@@ -40,6 +40,20 @@ export const generateEnvConfig = (dataDir: string, databaseUrl?: string): EnvCon
   DATABASE_URL: databaseUrl ?? "",
 });
 
+export const resolveEnvConfig = (
+  dataDir: string,
+  existingConfig: EnvConfig | null,
+  databaseUrl: string,
+): EnvConfig => {
+  const baseConfig = existingConfig ?? generateEnvConfig(dataDir, databaseUrl);
+
+  return {
+    ...baseConfig,
+    DATA_DIR: baseConfig.DATA_DIR || dataDir,
+    DATABASE_URL: databaseUrl,
+  };
+};
+
 export const isExistingInstall = (dataDir: string): boolean =>
   existsSync(join(dataDir, ".env"));
 
@@ -114,8 +128,11 @@ export const formatOutput = (result: OnboardResult): string => {
   return lines.join("\n");
 };
 
-export const resolveAppServerEntry = (): string => {
-  const thisDir = dirname(fileURLToPath(import.meta.url));
+const getModuleDir = (): string =>
+  dirname(fileURLToPath(import.meta.url));
+
+export const resolveAppServerEntry = (baseDir = getModuleDir()): string => {
+  const thisDir = baseDir;
 
   const devPath = join(thisDir, "..", "app", "server", "index.mjs");
   if (existsSync(devPath)) return devPath;
@@ -126,8 +143,8 @@ export const resolveAppServerEntry = (): string => {
   throw new Error("App server entry not found. Ensure the app is built.");
 };
 
-export const resolveMigrationsDir = (): string => {
-  const thisDir = dirname(fileURLToPath(import.meta.url));
+export const resolveMigrationsDir = (baseDir = getModuleDir()): string => {
+  const thisDir = baseDir;
 
   const devPath = join(thisDir, "..", "migrations");
   if (existsSync(devPath)) return devPath;
@@ -196,18 +213,13 @@ export const onboard = async (options: OnboardOptions): Promise<void> => {
   console.log(`PostgreSQL running on port ${pg.port}`);
 
   const existing = isExistingInstall(dataDir);
-  const envConfig = existing
-    ? readExistingEnv(dataDir).unwrapOr(generateEnvConfig(dataDir, pg.connectionString))
-    : generateEnvConfig(dataDir, pg.connectionString);
+  const existingConfig = existing ? readExistingEnv(dataDir).unwrapOr(null) : null;
+  const envConfig = resolveEnvConfig(dataDir, existingConfig, pg.connectionString);
 
-  envConfig.DATABASE_URL = pg.connectionString;
-
-  if (!existing) {
-    const writeResult = writeEnvFile(dataDir, envConfig);
-    if (writeResult.isErr()) {
-      await shutdownPg();
-      throw new Error(writeResult.error.message);
-    }
+  const writeResult = writeEnvFile(dataDir, envConfig);
+  if (writeResult.isErr()) {
+    await shutdownPg();
+    throw new Error(writeResult.error.message);
   }
 
   const migrationsDir = resolveMigrationsDir();
