@@ -1,5 +1,11 @@
 # @repo/shared
 
+## 0.0.2-preview.3
+
+### Patch Changes
+
+- easy install test
+
 ## 0.0.2-preview.2
 
 ### Patch Changes

@@ -1,5 +1,22 @@
 # @ordine/app
 
+## 0.0.2-preview.3
+
+### Patch Changes
+
+- easy install test
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.3
+  - @repo/db-schema@0.0.2-preview.3
+  - @repo/services@0.0.2-preview.3
+  - @repo/plugins@0.0.2-preview.3
+  - @repo/schemas@0.0.2-preview.3
+  - @repo/plugin@0.0.2-preview.3
+  - @repo/agent@0.0.2-preview.3
+  - @repo/db@0.0.2-preview.3
+  - @repo/ui@0.0.2-preview.3
+
 ## 0.0.2-preview.2
 
 ### Patch Changes

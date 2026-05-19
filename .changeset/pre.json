@@ -24,9 +24,11 @@
     "@repo/shared": "0.0.1",
     "@repo/typescript-config": "0.0.1",
     "@repo/ui": "0.0.1",
-    "@repo/utils": "0.0.1"
+    "@repo/utils": "0.0.1",
+    "@ordine/create": "0.0.2-preview.2"
   },
   "changesets": [
+    "curly-bikes-exist",
     "floppy-crabs-end",
     "initial-preview",
     "quick-preview-cli"

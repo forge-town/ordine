@@ -1,5 +1,22 @@
 # @repo/services
 
+## 0.0.2-preview.3
+
+### Patch Changes
+
+- easy install test
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.3
+  - @repo/agent-engine@0.0.2-preview.3
+  - @repo/schemas@0.0.2-preview.3
+  - @repo/logger@0.0.2-preview.3
+  - @repo/models@0.0.2-preview.3
+  - @repo/agent@0.0.2-preview.3
+  - @repo/utils@0.0.2-preview.3
+  - @repo/obs@0.0.2-preview.3
+  - @repo/db@0.0.2-preview.3
+
 ## 0.0.2-preview.2
 
 ### Patch Changes

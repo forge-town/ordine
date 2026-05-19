@@ -1,5 +1,15 @@
 # @repo/plugins
 
+## 0.0.2-preview.3
+
+### Patch Changes
+
+- easy install test
+
+- Updated dependencies []:
+  - @repo/schemas@0.0.2-preview.3
+  - @repo/plugin@0.0.2-preview.3
+
 ## 0.0.2-preview.2
 
 ### Patch Changes

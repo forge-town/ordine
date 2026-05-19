@@ -1,5 +1,16 @@
 # @ordine/server
 
+## 0.0.2-preview.3
+
+### Patch Changes
+
+- easy install test
+
+- Updated dependencies []:
+  - @repo/services@0.0.2-preview.3
+  - @repo/schemas@0.0.2-preview.3
+  - @repo/db@0.0.2-preview.3
+
 ## 0.0.2-preview.2
 
 ### Patch Changes
