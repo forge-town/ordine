@@ -1,5 +1,11 @@
 # @repo/oxc-formatter-config
 
+## 0.0.2-preview.4
+
+### Patch Changes
+
+- fix create script
+
 ## 0.0.2-preview.3
 
 ### Patch Changes

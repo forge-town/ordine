@@ -1,5 +1,15 @@
 # @repo/plugins
 
+## 0.0.2-preview.4
+
+### Patch Changes
+
+- fix create script
+
+- Updated dependencies []:
+  - @repo/schemas@0.0.2-preview.4
+  - @repo/plugin@0.0.2-preview.4
+
 ## 0.0.2-preview.3
 
 ### Patch Changes

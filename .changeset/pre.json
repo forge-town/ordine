@@ -4,7 +4,7 @@
   "initialVersions": {
     "@ordine/app": "0.0.1",
     "@ordine/cli": "0.0.1",
-    "@ordine/create": "0.0.1",
+    "@ordine/create": "0.0.2-preview.2",
     "@ordine/docs": "0.0.1",
     "@ordine/scripts": "0.0.1",
     "@ordine/server": "0.0.1",
@@ -25,13 +25,13 @@
     "@repo/shared": "0.0.1",
     "@repo/typescript-config": "0.0.1",
     "@repo/ui": "0.0.1",
-    "@repo/utils": "0.0.1",
-    "@ordine/create": "0.0.2-preview.2"
+    "@repo/utils": "0.0.1"
   },
   "changesets": [
     "curly-bikes-exist",
     "floppy-crabs-end",
     "initial-preview",
+    "perky-bears-sin",
     "quick-preview-cli"
   ]
 }

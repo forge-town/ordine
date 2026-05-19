@@ -1,5 +1,14 @@
 # @repo/db
 
+## 0.0.2-preview.4
+
+### Patch Changes
+
+- fix create script
+
+- Updated dependencies []:
+  - @repo/db-schema@0.0.2-preview.4
+
 ## 0.0.2-preview.3
 
 ### Patch Changes
