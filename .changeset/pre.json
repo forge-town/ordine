@@ -4,6 +4,7 @@
   "initialVersions": {
     "@ordine/app": "0.0.1",
     "@ordine/cli": "0.0.1",
+    "@ordine/create": "0.0.1",
     "@ordine/docs": "0.0.1",
     "@ordine/scripts": "0.0.1",
     "@ordine/server": "0.0.1",

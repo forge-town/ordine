@@ -6,6 +6,7 @@
     [
       "@ordine/app",
       "@ordine/cli",
+      "@ordine/create",
       "@ordine/docs",
       "@ordine/scripts",
       "@ordine/server",
