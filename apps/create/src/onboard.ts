@@ -1,9 +1,12 @@
 import { ok, Result } from "neverthrow";
-import { mkdirSync, writeFileSync, readFileSync, existsSync, openSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import { randomBytes } from "node:crypto";
-import { spawn } from "node:child_process";
+import { fork } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { startEmbeddedPostgres, type EmbeddedPgInstance } from "./embedded-pg";
+import { runMigrations } from "./migrations";
 
 export interface OnboardOptions {
   nonInteractive: boolean;
@@ -13,31 +16,28 @@ export interface OnboardOptions {
 export interface OnboardResult {
   dataDir: string;
   appUrl: string;
-  apiUrl: string;
+  databaseUrl: string;
 }
 
 export interface EnvConfig {
   APP_PORT: number;
-  API_PORT: number;
   APP_URL: string;
-  API_URL: string;
   SECRET_KEY: string;
   DATA_DIR: string;
+  DATABASE_URL: string;
 }
 
 const DEFAULT_APP_PORT = 9430;
-const DEFAULT_API_PORT = 9433;
 
 export const resolveDataDir = (custom?: string): string =>
   custom ?? join(homedir(), ".ordine", "default");
 
-export const generateEnvConfig = (dataDir: string): EnvConfig => ({
+export const generateEnvConfig = (dataDir: string, databaseUrl?: string): EnvConfig => ({
   APP_PORT: DEFAULT_APP_PORT,
-  API_PORT: DEFAULT_API_PORT,
   APP_URL: `http://localhost:${DEFAULT_APP_PORT}`,
-  API_URL: `http://localhost:${DEFAULT_API_PORT}`,
   SECRET_KEY: randomBytes(32).toString("hex"),
   DATA_DIR: dataDir,
+  DATABASE_URL: databaseUrl ?? "",
 });
 
 export const isExistingInstall = (dataDir: string): boolean =>
@@ -61,11 +61,10 @@ export const readExistingEnv = (dataDir: string): Result<EnvConfig, Error> => {
 
       return {
         APP_PORT: Number(env["APP_PORT"]) || DEFAULT_APP_PORT,
-        API_PORT: Number(env["API_PORT"]) || DEFAULT_API_PORT,
         APP_URL: env["APP_URL"] ?? `http://localhost:${DEFAULT_APP_PORT}`,
-        API_URL: env["API_URL"] ?? `http://localhost:${DEFAULT_API_PORT}`,
         SECRET_KEY: env["SECRET_KEY"] ?? randomBytes(32).toString("hex"),
         DATA_DIR: env["DATA_DIR"] ?? dataDir,
+        DATABASE_URL: env["DATABASE_URL"] ?? "",
       };
     },
     (e) => new Error(`Failed to read existing .env: ${String(e)}`),
@@ -105,82 +104,72 @@ export const formatOutput = (result: OnboardResult): string => {
     "Ordine is running locally.",
     "",
     `App:      ${result.appUrl}`,
-    `API:      ${result.apiUrl}`,
+    `Database: ${result.databaseUrl}`,
     `Data:     ${result.dataDir}`,
-    `Status:   ordine status`,
-    `Stop:     ordine stop`,
-    `Logs:     ordine logs`,
+    "",
+    "Press Ctrl+C to stop.",
     "",
   ];
 
   return lines.join("\n");
 };
 
-export const startLocalService = (dataDir: string, envConfig: EnvConfig): Result<number, Error> => {
-  const logFile = join(dataDir, "ordine.log");
+export const resolveAppServerEntry = (): string => {
+  const thisDir = dirname(fileURLToPath(import.meta.url));
 
-  const logFd = Result.fromThrowable(
-    () => openSync(logFile, "a"),
-    (e) => new Error(`Failed to open log file: ${String(e)}`),
-  )();
+  const devPath = join(thisDir, "..", "app", "server", "index.mjs");
+  if (existsSync(devPath)) return devPath;
 
-  if (logFd.isErr()) {
-    return logFd as unknown as Result<number, Error>;
-  }
+  const distPath = join(thisDir, "app", "server", "index.mjs");
+  if (existsSync(distPath)) return distPath;
 
-  const spawnResult = Result.fromThrowable(
-    () => {
-      const child = spawn("npx", ["@ordine/server"], {
-        detached: true,
-        stdio: ["ignore", logFd.value, logFd.value],
-        env: {
-          ...process.env,
-          PORT: String(envConfig.APP_PORT),
-          API_PORT: String(envConfig.API_PORT),
-          ORDINE_DATA_DIR: dataDir,
-        },
-      });
-      child.unref();
-
-      return child.pid ?? 0;
-    },
-    (e) => new Error(`Failed to start service: ${String(e)}`),
-  )();
-
-  return spawnResult;
+  throw new Error("App server entry not found. Ensure the app is built.");
 };
 
-export const startDaemon = (dataDir: string, envConfig: EnvConfig): Result<number, Error> => {
-  const logFile = join(dataDir, "daemon.log");
+export const resolveMigrationsDir = (): string => {
+  const thisDir = dirname(fileURLToPath(import.meta.url));
 
-  const logFd = Result.fromThrowable(
-    () => openSync(logFile, "a"),
-    (e) => new Error(`Failed to open daemon log: ${String(e)}`),
-  )();
+  const devPath = join(thisDir, "..", "migrations");
+  if (existsSync(devPath)) return devPath;
 
-  if (logFd.isErr()) {
-    return logFd as unknown as Result<number, Error>;
-  }
+  const distPath = join(thisDir, "migrations");
+  if (existsSync(distPath)) return distPath;
 
-  const spawnResult = Result.fromThrowable(
-    () => {
-      const child = spawn("npx", ["ordine", "daemon"], {
-        detached: true,
-        stdio: ["ignore", logFd.value, logFd.value],
-        env: {
-          ...process.env,
-          ORDINE_API_URL: envConfig.API_URL,
-        },
-      });
-      child.unref();
-
-      return child.pid ?? 0;
-    },
-    (e) => new Error(`Failed to start daemon: ${String(e)}`),
-  )();
-
-  return spawnResult;
+  throw new Error("Migrations directory not found. Ensure the app is built.");
 };
+
+export const startAppServer = (
+  serverEntry: string,
+  envConfig: EnvConfig,
+): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const child = fork(serverEntry, [], {
+      env: {
+        ...process.env,
+        NODE_ENV: "production",
+        PORT: String(envConfig.APP_PORT),
+        DATABASE_URL: envConfig.DATABASE_URL,
+        BETTER_AUTH_SECRET: envConfig.SECRET_KEY,
+      },
+      stdio: "inherit",
+    });
+
+    child.on("error", reject);
+    child.on("exit", (code) => {
+      if (code === 0 || code === null) {
+        resolve();
+      } else {
+        reject(new Error(`App server exited with code ${code}`));
+      }
+    });
+
+    const shutdown = () => {
+      child.kill("SIGTERM");
+    };
+
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
+  });
 
 export const onboard = async (options: OnboardOptions): Promise<void> => {
   const dataDir = resolveDataDir(options.dataDir);
@@ -190,33 +179,54 @@ export const onboard = async (options: OnboardOptions): Promise<void> => {
     throw new Error(prepareResult.error.message);
   }
 
+  console.log("Starting embedded PostgreSQL...");
+  const pgResult = await startEmbeddedPostgres(dataDir);
+  if (pgResult.isErr()) {
+    throw new Error(pgResult.error.message);
+  }
+
+  const pg: EmbeddedPgInstance = pgResult.value;
+  const shutdownPg = async () => {
+    await pg.stop();
+  };
+
+  process.on("SIGINT", () => void shutdownPg());
+  process.on("SIGTERM", () => void shutdownPg());
+
+  console.log(`PostgreSQL running on port ${pg.port}`);
+
   const existing = isExistingInstall(dataDir);
   const envConfig = existing
-    ? readExistingEnv(dataDir).unwrapOr(generateEnvConfig(dataDir))
-    : generateEnvConfig(dataDir);
+    ? readExistingEnv(dataDir).unwrapOr(generateEnvConfig(dataDir, pg.connectionString))
+    : generateEnvConfig(dataDir, pg.connectionString);
+
+  envConfig.DATABASE_URL = pg.connectionString;
 
   if (!existing) {
     const writeResult = writeEnvFile(dataDir, envConfig);
     if (writeResult.isErr()) {
+      await shutdownPg();
       throw new Error(writeResult.error.message);
     }
   }
 
-  const serviceResult = startLocalService(dataDir, envConfig);
-  if (serviceResult.isErr()) {
-    console.error(`Warning: Could not start service: ${serviceResult.error.message}`);
+  const migrationsDir = resolveMigrationsDir();
+  console.log("Running database migrations...");
+  const migrateResult = await runMigrations(pg.connectionString, migrationsDir);
+  if (migrateResult.isErr()) {
+    await shutdownPg();
+    throw new Error(migrateResult.error.message);
   }
+  console.log(`Applied ${migrateResult.value} migration file(s).`);
 
-  const daemonResult = startDaemon(dataDir, envConfig);
-  if (daemonResult.isErr()) {
-    console.error(`Warning: Could not start daemon: ${daemonResult.error.message}`);
-  }
-
+  const serverEntry = resolveAppServerEntry();
   const result: OnboardResult = {
     dataDir,
     appUrl: envConfig.APP_URL,
-    apiUrl: envConfig.API_URL,
+    databaseUrl: pg.connectionString,
   };
 
   console.log(formatOutput(result));
+  await startAppServer(serverEntry, envConfig);
+  await shutdownPg();
 };

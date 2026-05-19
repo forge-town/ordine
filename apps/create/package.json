@@ -12,14 +12,18 @@
     "create-ordine": "dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "app",
+    "migrations"
   ],
   "type": "module",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --target=node --format=esm --outfile=./dist/index.js",
+    "build:cli": "bun build ./src/index.ts --target=node --format=esm --outfile=./dist/index.js --external=embedded-postgres --external=postgres",
+    "build:app": "cd ../app && bun run build && cd ../create && rm -rf app && cp -r ../app/.output app",
+    "build": "bun run build:cli && bun run build:app",
     "dev": "bun src/index.ts",
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
@@ -29,7 +33,9 @@
   },
   "dependencies": {
     "commander": "^14.0.0",
+    "embedded-postgres": "^18.1.0-beta.16",
     "neverthrow": "^8.2.0",
+    "postgres": "^3.4.8",
     "zod": "^4.3.6"
   },
   "devDependencies": {

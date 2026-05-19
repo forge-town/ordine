@@ -8,10 +8,10 @@ import {
   prepareDataDir,
   writeEnvFile,
   formatOutput,
-  startLocalService,
-  startDaemon,
   isExistingInstall,
   readExistingEnv,
+  resolveAppServerEntry,
+  resolveMigrationsDir,
 } from "../src/onboard";
 
 describe("resolveDataDir", () => {
@@ -28,13 +28,16 @@ describe("resolveDataDir", () => {
 });
 
 describe("generateEnvConfig", () => {
-  it("generates config with default ports", () => {
+  it("generates config with default port", () => {
     const config = generateEnvConfig("/tmp/test-ordine");
     expect(config.APP_PORT).toBe(9430);
-    expect(config.API_PORT).toBe(9433);
     expect(config.APP_URL).toBe("http://localhost:9430");
-    expect(config.API_URL).toBe("http://localhost:9433");
     expect(config.DATA_DIR).toBe("/tmp/test-ordine");
+  });
+
+  it("includes DATABASE_URL when provided", () => {
+    const config = generateEnvConfig("/tmp/test-ordine", "postgres://ordine:ordine@127.0.0.1:5480/ordine");
+    expect(config.DATABASE_URL).toBe("postgres://ordine:ordine@127.0.0.1:5480/ordine");
   });
 
   it("generates a 64-character hex secret key", () => {
@@ -89,7 +92,7 @@ describe("writeEnvFile", () => {
   });
 
   it("writes .env file with all config keys", () => {
-    const config = generateEnvConfig(testDir);
+    const config = generateEnvConfig(testDir, "postgres://ordine:ordine@127.0.0.1:5480/ordine");
     const result = writeEnvFile(testDir, config);
     expect(result.isOk()).toBe(true);
 
@@ -98,11 +101,10 @@ describe("writeEnvFile", () => {
 
     const content = readFileSync(envPath, "utf-8");
     expect(content).toContain("APP_PORT=9430");
-    expect(content).toContain("API_PORT=9433");
     expect(content).toContain("APP_URL=http://localhost:9430");
-    expect(content).toContain("API_URL=http://localhost:9433");
     expect(content).toContain("DATA_DIR=");
     expect(content).toContain("SECRET_KEY=");
+    expect(content).toContain("DATABASE_URL=postgres://ordine:ordine@127.0.0.1:5480/ordine");
   });
 
   it("returns the env file path on success", () => {
@@ -117,16 +119,14 @@ describe("formatOutput", () => {
     const output = formatOutput({
       dataDir: "~/.ordine/default",
       appUrl: "http://localhost:9430",
-      apiUrl: "http://localhost:9433",
+      databaseUrl: "postgres://ordine:ordine@127.0.0.1:5480/ordine",
     });
 
     expect(output).toContain("Ordine is running locally.");
     expect(output).toContain("App:      http://localhost:9430");
-    expect(output).toContain("API:      http://localhost:9433");
+    expect(output).toContain("Database: postgres://ordine:ordine@127.0.0.1:5480/ordine");
     expect(output).toContain("Data:     ~/.ordine/default");
-    expect(output).toContain("Status:   ordine status");
-    expect(output).toContain("Stop:     ordine stop");
-    expect(output).toContain("Logs:     ordine logs");
+    expect(output).toContain("Press Ctrl+C to stop.");
   });
 });
 
@@ -168,15 +168,15 @@ describe("readExistingEnv", () => {
   });
 
   it("reads back the same config that was written", () => {
-    const config = generateEnvConfig(testDir);
+    const config = generateEnvConfig(testDir, "postgres://ordine:ordine@127.0.0.1:5480/ordine");
     writeEnvFile(testDir, config);
 
     const result = readExistingEnv(testDir);
     expect(result.isOk()).toBe(true);
     const read = result._unsafeUnwrap();
     expect(read.APP_PORT).toBe(config.APP_PORT);
-    expect(read.API_PORT).toBe(config.API_PORT);
     expect(read.SECRET_KEY).toBe(config.SECRET_KEY);
+    expect(read.DATABASE_URL).toBe(config.DATABASE_URL);
   });
 
   it("preserves the original secret on re-read (idempotent)", () => {
@@ -190,68 +190,17 @@ describe("readExistingEnv", () => {
   });
 });
 
-describe("startLocalService", () => {
-  const testDir = join(tmpdir(), `ordine-svc-test-${Date.now()}`);
-
-  beforeEach(() => {
-    mkdirSync(testDir, { recursive: true });
-  });
-
-  afterEach(() => {
-    if (existsSync(testDir)) {
-      rmSync(testDir, { recursive: true });
-    }
-  });
-
-  it("spawns a process and returns its pid", () => {
-    const config = generateEnvConfig(testDir);
-    const result = startLocalService(testDir, config);
-    expect(result.isOk()).toBe(true);
-    const pid = result._unsafeUnwrap();
-    expect(pid).toBeGreaterThan(0);
-
-    // Clean up spawned process
-    try {
-      process.kill(pid, "SIGTERM");
-    } catch {
-      // may already be gone
-    }
+describe("resolveAppServerEntry", () => {
+  it("resolves the app server entry path", () => {
+    const entry = resolveAppServerEntry();
+    expect(entry).toContain("server");
+    expect(entry).toContain("index.mjs");
   });
 });
 
-describe("startDaemon", () => {
-  const testDir = join(tmpdir(), `ordine-daemon-test-${Date.now()}`);
-
-  beforeEach(() => {
-    mkdirSync(testDir, { recursive: true });
-  });
-
-  afterEach(() => {
-    if (existsSync(testDir)) {
-      rmSync(testDir, { recursive: true });
-    }
-  });
-
-  it("spawns a daemon process and returns its pid", () => {
-    const config = generateEnvConfig(testDir);
-    const result = startDaemon(testDir, config);
-    expect(result.isOk()).toBe(true);
-    const pid = result._unsafeUnwrap();
-    expect(pid).toBeGreaterThan(0);
-
-    // Clean up spawned process
-    try {
-      process.kill(pid, "SIGTERM");
-    } catch {
-      // may already be gone
-    }
-  });
-
-  it("writes to daemon.log file", () => {
-    const config = generateEnvConfig(testDir);
-    startDaemon(testDir, config);
-
-    const logFile = join(testDir, "daemon.log");
-    expect(existsSync(logFile)).toBe(true);
+describe("resolveMigrationsDir", () => {
+  it("resolves the migrations directory", () => {
+    const dir = resolveMigrationsDir();
+    expect(dir).toContain("migrations");
   });
 });
