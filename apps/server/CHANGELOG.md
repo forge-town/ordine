@@ -1,5 +1,16 @@
 # @ordine/server
 
+## 0.0.2-preview.10
+
+### Patch Changes
+
+- fix login auth issue
+
+- Updated dependencies []:
+  - @repo/services@0.0.2-preview.10
+  - @repo/schemas@0.0.2-preview.10
+  - @repo/db@0.0.2-preview.10
+
 ## 0.0.2-preview.9
 
 ### Patch Changes

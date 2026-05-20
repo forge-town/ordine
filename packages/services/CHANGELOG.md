@@ -1,5 +1,22 @@
 # @repo/services
 
+## 0.0.2-preview.10
+
+### Patch Changes
+
+- fix login auth issue
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.10
+  - @repo/agent-engine@0.0.2-preview.10
+  - @repo/schemas@0.0.2-preview.10
+  - @repo/logger@0.0.2-preview.10
+  - @repo/models@0.0.2-preview.10
+  - @repo/agent@0.0.2-preview.10
+  - @repo/utils@0.0.2-preview.10
+  - @repo/obs@0.0.2-preview.10
+  - @repo/db@0.0.2-preview.10
+
 ## 0.0.2-preview.9
 
 ### Patch Changes

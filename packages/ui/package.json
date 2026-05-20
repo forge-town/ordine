@@ -1,6 +1,6 @@
 {
   "name": "@repo/ui",
-  "version": "0.0.2-preview.9",
+  "version": "0.0.2-preview.10",
   "private": true,
   "exports": {
     "./lib/utils": "./src/lib/utils.ts",

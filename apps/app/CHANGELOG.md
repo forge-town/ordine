@@ -1,5 +1,22 @@
 # @ordine/app
 
+## 0.0.2-preview.10
+
+### Patch Changes
+
+- fix login auth issue
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.10
+  - @repo/db-schema@0.0.2-preview.10
+  - @repo/services@0.0.2-preview.10
+  - @repo/plugins@0.0.2-preview.10
+  - @repo/schemas@0.0.2-preview.10
+  - @repo/plugin@0.0.2-preview.10
+  - @repo/agent@0.0.2-preview.10
+  - @repo/db@0.0.2-preview.10
+  - @repo/ui@0.0.2-preview.10
+
 ## 0.0.2-preview.9
 
 ### Patch Changes
