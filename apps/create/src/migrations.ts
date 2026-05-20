@@ -1,10 +1,9 @@
 import { ResultAsync } from "neverthrow";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import type { PGlite } from "@electric-sql/pglite";
 
 type SchemaCoverage = "complete" | "empty" | "partial";
-
-const PG_DATABASE = "ordine";
 
 const quoteSqlLiteral = (value: string): string =>
   `'${value.replaceAll("'", "''")}'`;
@@ -27,32 +26,11 @@ export const classifySchemaCoverage = (
   return expectedTables.every((tableName) => existingSet.has(tableName)) ? "complete" : "partial";
 };
 
-export const runMigrations = (connectionString: string, migrationsDir: string): ResultAsync<number, Error> =>
+export const runMigrations = (db: PGlite, migrationsDir: string): ResultAsync<number, Error> =>
   ResultAsync.fromPromise(
     (async () => {
-      const { default: postgres } = (await import("postgres")) as {
-        default: (url: string, opts?: { onnotice: () => void }) => {
-          unsafe(query: string): Promise<unknown[]>;
-          end(): Promise<void>;
-        };
-      };
-
-      // Connect to "postgres" database to create the target database
-      const adminUrl = connectionString.replace(/\/[^/]+$/, "/postgres");
-      const adminSql = postgres(adminUrl, { onnotice: () => {} });
-      const existingDatabases = await adminSql.unsafe(
-        `SELECT datname FROM pg_database WHERE datname = ${quoteSqlLiteral(PG_DATABASE)}`,
-      ) as Array<{ datname: string }>;
-      if (existingDatabases.length === 0) {
-        await adminSql.unsafe(`CREATE DATABASE "${PG_DATABASE}"`);
-      }
-      await adminSql.end();
-
-      // Now connect to the target database for migrations
-      const sql = postgres(connectionString, { onnotice: () => {} });
-
       // Create migrations tracking table
-      await sql.unsafe(`
+      await db.exec(`
         CREATE TABLE IF NOT EXISTS _ordine_migrations (
           id serial PRIMARY KEY,
           name text NOT NULL UNIQUE,
@@ -61,26 +39,24 @@ export const runMigrations = (connectionString: string, migrationsDir: string): 
       `);
 
       // Get already-applied migrations
-      const applied = await sql.unsafe(`SELECT name FROM _ordine_migrations`) as Array<{ name: string }>;
-      const appliedSet = new Set(applied.map((r) => r.name));
+      const appliedResult = await db.query<{ name: string }>(`SELECT name FROM _ordine_migrations`);
+      const appliedSet = new Set(appliedResult.rows.map((r) => r.name));
 
       const files = readdirSync(migrationsDir)
         .filter((f) => f.endsWith(".sql"))
         .sort();
 
       if (files.length === 0) {
-        await sql.end();
-
         return 0;
       }
 
       // If tracking table is empty but database already has user tables,
       // infer whether we have a complete pre-tracking bootstrap or a partial failure.
       if (appliedSet.size === 0) {
-        const tables = await sql.unsafe(
+        const tablesResult = await db.query<{ tablename: string }>(
           `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename != '_ordine_migrations'`,
-        ) as Array<{ tablename: string }>;
-        const existingTableNames = tables.map((table) => table.tablename);
+        );
+        const existingTableNames = tablesResult.rows.map((table) => table.tablename);
 
         if (existingTableNames.length > 0) {
           if (files.length !== 1) {
@@ -104,11 +80,9 @@ export const runMigrations = (connectionString: string, migrationsDir: string): 
           }
 
           if (schemaCoverage === "complete") {
-            await sql.unsafe(
-              `INSERT INTO _ordine_migrations (name) VALUES (${quoteSqlLiteral(initialMigration)})`,
+            await db.exec(
+              `INSERT INTO _ordine_migrations (name) VALUES (${quoteSqlLiteral(initialMigration!)})`,
             );
-
-            await sql.end();
 
             return 0;
           }
@@ -125,13 +99,11 @@ export const runMigrations = (connectionString: string, migrationsDir: string): 
           .filter((s) => s.length > 0);
 
         for (const statement of statements) {
-          await sql.unsafe(statement);
+          await db.exec(statement);
         }
 
-        await sql.unsafe(`INSERT INTO _ordine_migrations (name) VALUES (${quoteSqlLiteral(file)})`);
+        await db.exec(`INSERT INTO _ordine_migrations (name) VALUES (${quoteSqlLiteral(file)})`);
       }
-
-      await sql.end();
 
       return pending.length;
     })(),

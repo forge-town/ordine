@@ -27,7 +27,8 @@ describe("create package metadata", () => {
     expect(changelog).toContain("# @ordine/create");
   });
 
-  it("keeps the CLI version string aligned with package.json", () => {
-    expect(cliSource).toContain(`.version("${packageJson.version}")`);
+  it("keeps the CLI version string sourced from package.json", () => {
+    expect(cliSource).toContain('require("../package.json")');
+    expect(cliSource).toContain(".version(version)");
   });
 });
