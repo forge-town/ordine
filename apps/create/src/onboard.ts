@@ -167,6 +167,7 @@ export const startAppServer = (
         PORT: String(envConfig.APP_PORT),
         PGLITE_DATA_DIR: envConfig.PGLITE_DATA_DIR,
         BETTER_AUTH_SECRET: envConfig.SECRET_KEY,
+        ORDINE_LOCAL_MODE: "true",
       },
       stdio: "inherit",
     });

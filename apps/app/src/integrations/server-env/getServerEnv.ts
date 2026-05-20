@@ -6,7 +6,7 @@ export const getServerEnv = () => {
     throw new Error(`Server env not valid: ${JSON.stringify(error.issues, null, 2)}`);
   }
 
-  if (data.ORDINE_LOCAL_MODE && data.NODE_ENV === "production") {
+  if (data.ORDINE_LOCAL_MODE && data.NODE_ENV === "production" && !data.PGLITE_DATA_DIR) {
     throw new Error(
       "ORDINE_LOCAL_MODE=true is not allowed in production. " +
         "Local mode is for self-hosted single-machine use only. " +
