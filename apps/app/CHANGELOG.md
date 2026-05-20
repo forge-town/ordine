@@ -1,5 +1,22 @@
 # @ordine/app
 
+## 0.0.2-preview.9
+
+### Patch Changes
+
+- fix local redirect to login issue
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.9
+  - @repo/db-schema@0.0.2-preview.9
+  - @repo/services@0.0.2-preview.9
+  - @repo/plugins@0.0.2-preview.9
+  - @repo/schemas@0.0.2-preview.9
+  - @repo/plugin@0.0.2-preview.9
+  - @repo/agent@0.0.2-preview.9
+  - @repo/db@0.0.2-preview.9
+  - @repo/ui@0.0.2-preview.9
+
 ## 0.0.2-preview.8
 
 ### Patch Changes

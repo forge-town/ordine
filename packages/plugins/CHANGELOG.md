@@ -1,5 +1,15 @@
 # @repo/plugins
 
+## 0.0.2-preview.9
+
+### Patch Changes
+
+- fix local redirect to login issue
+
+- Updated dependencies []:
+  - @repo/schemas@0.0.2-preview.9
+  - @repo/plugin@0.0.2-preview.9
+
 ## 0.0.2-preview.8
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@repo/services",
-  "version": "0.0.2-preview.8",
+  "version": "0.0.2-preview.9",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",

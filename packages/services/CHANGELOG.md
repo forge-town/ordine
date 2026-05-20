@@ -1,5 +1,22 @@
 # @repo/services
 
+## 0.0.2-preview.9
+
+### Patch Changes
+
+- fix local redirect to login issue
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.9
+  - @repo/agent-engine@0.0.2-preview.9
+  - @repo/schemas@0.0.2-preview.9
+  - @repo/logger@0.0.2-preview.9
+  - @repo/models@0.0.2-preview.9
+  - @repo/agent@0.0.2-preview.9
+  - @repo/utils@0.0.2-preview.9
+  - @repo/obs@0.0.2-preview.9
+  - @repo/db@0.0.2-preview.9
+
 ## 0.0.2-preview.8
 
 ### Patch Changes
