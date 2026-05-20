@@ -1,5 +1,22 @@
 # @repo/services
 
+## 0.0.2-preview.6
+
+### Patch Changes
+
+- optionalDependencies @embedded-postgres
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.6
+  - @repo/agent-engine@0.0.2-preview.6
+  - @repo/schemas@0.0.2-preview.6
+  - @repo/logger@0.0.2-preview.6
+  - @repo/models@0.0.2-preview.6
+  - @repo/agent@0.0.2-preview.6
+  - @repo/utils@0.0.2-preview.6
+  - @repo/obs@0.0.2-preview.6
+  - @repo/db@0.0.2-preview.6
+
 ## 0.0.2-preview.5
 
 ### Patch Changes

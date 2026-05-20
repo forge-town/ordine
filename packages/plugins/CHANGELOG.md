@@ -1,5 +1,15 @@
 # @repo/plugins
 
+## 0.0.2-preview.6
+
+### Patch Changes
+
+- optionalDependencies @embedded-postgres
+
+- Updated dependencies []:
+  - @repo/schemas@0.0.2-preview.6
+  - @repo/plugin@0.0.2-preview.6
+
 ## 0.0.2-preview.5
 
 ### Patch Changes

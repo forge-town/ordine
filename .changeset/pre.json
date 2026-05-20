@@ -28,6 +28,7 @@
     "@repo/utils": "0.0.1"
   },
   "changesets": [
+    "big-rooms-glow",
     "curly-bikes-exist",
     "floppy-crabs-end",
     "initial-preview",

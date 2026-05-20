@@ -1,5 +1,22 @@
 # @ordine/app
 
+## 0.0.2-preview.6
+
+### Patch Changes
+
+- optionalDependencies @embedded-postgres
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.6
+  - @repo/db-schema@0.0.2-preview.6
+  - @repo/services@0.0.2-preview.6
+  - @repo/plugins@0.0.2-preview.6
+  - @repo/schemas@0.0.2-preview.6
+  - @repo/plugin@0.0.2-preview.6
+  - @repo/agent@0.0.2-preview.6
+  - @repo/db@0.0.2-preview.6
+  - @repo/ui@0.0.2-preview.6
+
 ## 0.0.2-preview.5
 
 ### Patch Changes

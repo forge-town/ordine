@@ -1,5 +1,11 @@
 # @ordine/cli
 
+## 0.0.2-preview.6
+
+### Patch Changes
+
+- optionalDependencies @embedded-postgres
+
 ## 0.0.2-preview.5
 
 ### Patch Changes
