@@ -115,8 +115,8 @@ export const nodeTypeMeta = {
     plusBg: "bg-indigo-100 text-indigo-700 hover:bg-indigo-200",
   },
   prompt: {
-    label: "提示词",
-    shortLabel: "提示",
+    label: "Prompt",
+    shortLabel: "Prompt",
     border: "border-sky-200",
     selectedBorder: "border-sky-500",
     header: "bg-sky-50",

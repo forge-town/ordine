@@ -13,7 +13,7 @@ export type { SshConnectionOptions } from "./schemas/RunClaudeOptionsSchema";
 
 const shellEscape = (s: string) => `'${s.replaceAll("'", "'\\\\''")}'`;
 
-const CLAUDE_BIN = "/Users/amin/.local/bin/claude";
+const CLAUDE_BIN = process.env.CLAUDE_BIN ?? (process.platform === "win32" ? "claude.cmd" : "claude");
 const MAX_SYSTEM_PROMPT_CHARS = 10_000;
 const UNSAFE_SYSTEM_PROMPT_CONTROL_CHARS =
   /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
@@ -176,6 +176,14 @@ export const runClaude = async ({
         sshArgs.push(remoteCmd);
 
         return spawn("ssh", sshArgs, {
+          stdio: ["pipe", "pipe", "pipe"],
+          env: extraEnv ? { ...process.env, ...extraEnv } : undefined,
+        });
+      }
+
+      if (process.platform === "win32") {
+        return spawn("cmd.exe", ["/d", "/s", "/c", CLAUDE_BIN, ...claudeArgs], {
+          cwd,
           stdio: ["pipe", "pipe", "pipe"],
           env: extraEnv ? { ...process.env, ...extraEnv } : undefined,
         });

@@ -1,5 +1,10 @@
 import type { ChangeEvent } from "react";
-import type { NodeRunStatus } from "@repo/schemas";
+import { applyPipelineActions } from "@repo/pipeline-engine/actions";
+import type {
+  NodeRunStatus,
+  PipelineActionDiagnostic,
+  PipelineActionProposal,
+} from "@repo/schemas";
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 
@@ -38,6 +43,13 @@ export const DEFAULT_CANVAS_SETTINGS: CanvasSettingsState = {
   snapToGrid: false,
 };
 
+export interface AgentPanelState {
+  isOpen: boolean;
+  pendingProposal: PipelineActionProposal | null;
+  diagnostics: PipelineActionDiagnostic[] | null;
+  isLoading: boolean;
+}
+
 export interface UISlice {
   pipelineId: string | null;
   pipelineName: string;
@@ -66,6 +78,9 @@ export interface UISlice {
   nodeRunStatuses: Record<string, NodeRunStatus>;
   nodeLlmContent: Record<string, string>;
   inspectingNodeId: string | null;
+
+  // Agent panel state
+  agentPanel: AgentPanelState;
 
   // Operation node UI state
   operationAgentDropdownNodeId: string | null;
@@ -110,6 +125,15 @@ export interface UISlice {
   markNodeRunning: (nodeId: string) => void;
   markNodePassed: (nodeId: string) => void;
   markNodeFailed: (nodeId: string) => void;
+
+  // Agent panel actions
+  toggleAgentPanel: () => void;
+  setPendingProposal: (
+    proposal: PipelineActionProposal | null,
+    diagnostics: PipelineActionDiagnostic[] | null,
+  ) => void;
+  clearPendingProposal: () => void;
+  applyAgentProposal: (proposal: PipelineActionProposal) => boolean;
 }
 
 export const createUISlice = (
@@ -145,6 +169,12 @@ export const createUISlice = (
   nodeRunStatuses: {},
   nodeLlmContent: {},
   inspectingNodeId: null,
+  agentPanel: {
+    isOpen: false,
+    pendingProposal: null,
+    diagnostics: null,
+    isLoading: false,
+  },
   operationAgentDropdownNodeId: null,
   handlePipelineIdChange: (id) => {
     set({ pipelineId: id });
@@ -357,5 +387,90 @@ export const createUISlice = (
         [nodeId]: "fail" as NodeRunStatus,
       },
     }));
+  },
+
+  toggleAgentPanel: () => {
+    set((state) => ({
+      sidebarPanel: state.agentPanel.isOpen ? null : "ai-assistant",
+      agentPanel: {
+        ...state.agentPanel,
+        isOpen: !state.agentPanel.isOpen,
+        ...(state.agentPanel.isOpen ? { pendingProposal: null, diagnostics: null } : {}),
+      },
+    }));
+  },
+
+  setPendingProposal: (proposal, diagnostics) => {
+    set((state) => ({
+      agentPanel: {
+        ...state.agentPanel,
+        pendingProposal: proposal,
+        diagnostics,
+        isLoading: false,
+      },
+    }));
+  },
+
+  clearPendingProposal: () => {
+    set((state) => ({
+      agentPanel: {
+        ...state.agentPanel,
+        pendingProposal: null,
+        diagnostics: null,
+        isLoading: false,
+      },
+    }));
+  },
+
+  applyAgentProposal: (proposal) => {
+    const { edges, nodes, recordCommand } = get();
+    const result = applyPipelineActions({ nodes, edges }, proposal.actions);
+
+    if (result.isErr()) {
+      set((state) => ({
+        agentPanel: {
+          ...state.agentPanel,
+          diagnostics: result.error,
+          isLoading: false,
+        },
+      }));
+
+      return false;
+    }
+
+    const next = result.value;
+    recordCommand(
+      {
+        type: "APPLY_AGENT_PROPOSAL",
+        label: `Apply AI proposal: ${proposal.summary}`,
+        payload: {
+          actionCount: proposal.actions.length,
+          summary: proposal.summary,
+        },
+      },
+      (draft) => {
+        draft.nodes = next.nodes as typeof draft.nodes;
+        draft.edges = next.edges as typeof draft.edges;
+      },
+    );
+
+    set((state) => ({
+      selectedNodeId: null,
+      selectedEdgeId: null,
+      contextMenu: null,
+      connectionMenu: null,
+      nodeContextMenu: null,
+      connectStart: null,
+      isQuickAddOpen: false,
+      quickAddQuery: "",
+      agentPanel: {
+        ...state.agentPanel,
+        pendingProposal: null,
+        diagnostics: null,
+        isLoading: false,
+      },
+    }));
+
+    return true;
   },
 });

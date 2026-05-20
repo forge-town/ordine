@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../init";
 import { pipelinesService, pipelineRunnerService } from "../services";
-import { PipelineSchema } from "@repo/schemas";
+import { PipelineGraphSnapshotSchema, PipelineSchema } from "@repo/schemas";
 
 export const pipelinesRouter = router({
   getMany: publicProcedure.query(() => pipelinesService.getAll()),
@@ -91,6 +91,26 @@ export const pipelinesRouter = router({
 
       return result;
     }),
+
+  proposeActions: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        snapshot: PipelineGraphSnapshotSchema,
+        message: z.string().trim().min(1),
+        pipelineName: z.string().optional(),
+        runtimeId: z.string().optional(),
+      }),
+    )
+    .mutation(({ input }) =>
+      pipelinesService.proposeActions({
+        pipelineId: input.id,
+        snapshot: input.snapshot,
+        message: input.message,
+        pipelineName: input.pipelineName,
+        runtimeId: input.runtimeId,
+      }),
+    ),
 
   generateStructure: publicProcedure
     .input(

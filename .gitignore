@@ -92,5 +92,6 @@ AGENTS.md
 # Local browser/test artifacts
 .playwright-cli/
 storybook-static/
-
+.playwright-mcp/
+pr-assets/
 backlog

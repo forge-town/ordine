@@ -66,6 +66,7 @@ export const CanvasFloatingMenu = () => {
             name: displayPipelineName,
             description: "",
             tags: [],
+            timeoutMs: null,
             createdAt: Date.now(),
             updatedAt: Date.now(),
             nodes,

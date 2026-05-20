@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { homedir } from "node:os";
+import { join } from "node:path";
 
 const mockRunAgent = vi.fn();
 const mockDao = {
@@ -170,12 +171,13 @@ describe("generateStructure", () => {
     });
 
     const home = homedir();
+    const desktopPath = join(home, "Desktop");
     if ("error" in result) throw new Error("unexpected error");
     const folderNode = result.nodes.find((n) => n.data.nodeType === "folder");
-    expect(folderNode!.data).toHaveProperty("folderPath", `${home}/Desktop`);
+    expect(folderNode!.data).toHaveProperty("folderPath", desktopPath);
 
     const outputNode = result.nodes.find((n) => n.data.nodeType === "output-local-path");
-    expect(outputNode!.data).toHaveProperty("localPath", `${home}/Desktop`);
+    expect(outputNode!.data).toHaveProperty("localPath", desktopPath);
   });
 
   it("includes matchedOperations block in user prompt when provided", async () => {

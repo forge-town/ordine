@@ -37,7 +37,8 @@ export type CommandType =
   | "REMOVE_FROM_COMPOUND"
   | "GROUP_NODES"
   | "UNGROUP_COMPOUND"
-  | "CLEAR_CANVAS";
+  | "CLEAR_CANVAS"
+  | "APPLY_AGENT_PROPOSAL";
 
 export interface CommandMeta {
   type: CommandType;

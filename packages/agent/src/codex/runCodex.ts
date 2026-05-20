@@ -1,3 +1,6 @@
+import { readFile, unlink } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { spawn } from "node:child_process";
 import { logger } from "@repo/logger";
 
@@ -11,7 +14,7 @@ export interface RunCodexOptions {
   onProgress?: (line: string) => Promise<void>;
 }
 
-const CODEX_BIN = "codex";
+const CODEX_BIN = process.platform === "win32" ? "codex.cmd" : "codex";
 
 export const CODEX_SANDBOX_MODES = {
   readOnly: "read-only",
@@ -33,8 +36,22 @@ export const runCodex = async ({
     userPrompt.length > MAX_INPUT_CHARS
       ? `${userPrompt.slice(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${userPrompt.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
       : userPrompt;
+  const outputFile = join(
+    tmpdir(),
+    `ordine-codex-last-message-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`,
+  );
 
-  const args = ["exec", "--sandbox", sandbox, "--ephemeral", "--skip-git-repo-check", "-C", cwd];
+  const args = [
+    "exec",
+    "--sandbox",
+    sandbox,
+    "--ephemeral",
+    "--skip-git-repo-check",
+    "-C",
+    cwd,
+    "--output-last-message",
+    outputFile,
+  ];
 
   if (model) {
     args.push("--model", model);
@@ -44,11 +61,26 @@ export const runCodex = async ({
   await onProgress?.(`[Codex] Starting codex exec (cwd=${cwd}, sandbox=${sandbox})...`);
 
   return new Promise<string>((resolve, reject) => {
-    const child = spawn(CODEX_BIN, args, {
-      cwd,
-      stdio: ["pipe", "pipe", "pipe"],
-      env: { ...process.env },
-    });
+    const removeOutputFile = () => {
+      unlink(outputFile, (error) => {
+        if (error && error.code !== "ENOENT") {
+          logger.debug({ err: error.message }, "runCodex: failed to remove output file");
+        }
+      });
+    };
+
+    const child =
+      process.platform === "win32"
+        ? spawn("cmd.exe", ["/d", "/s", "/c", CODEX_BIN, ...args], {
+            cwd,
+            stdio: ["pipe", "pipe", "pipe"],
+            env: { ...process.env },
+          })
+        : spawn(CODEX_BIN, args, {
+            cwd,
+            stdio: ["pipe", "pipe", "pipe"],
+            env: { ...process.env },
+          });
 
     const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];
@@ -62,11 +94,13 @@ export const runCodex = async ({
 
     const timer = setTimeout(() => {
       child.kill("SIGTERM");
+      removeOutputFile();
       reject(new Error(`codex timed out after ${timeoutMs / 1000}s`));
     }, timeoutMs);
 
     child.on("error", (error) => {
       clearTimeout(timer);
+      removeOutputFile();
       logger.error({ err: error.message }, "runCodex: spawn error");
       void onProgress?.(`[Codex] Spawn error: ${error.message}`);
       reject(error);
@@ -76,30 +110,36 @@ export const runCodex = async ({
       clearTimeout(timer);
       const stdout = Buffer.concat(stdoutChunks).toString("utf8");
       const stderr = Buffer.concat(stderrChunks).toString("utf8");
+      readFile(outputFile, "utf8", (readError, fileOutput) => {
+        removeOutputFile();
+        const output = readError ? stdout : fileOutput;
 
-      if (code !== 0 && stdout.trim().length === 0) {
-        logger.error({ code, stderr: stderr.slice(0, 500) }, "runCodex: non-zero exit");
-        void onProgress?.(`[Codex] Exit code ${code}: ${stderr.slice(0, 200)}`);
-        reject(new Error(`codex exited with code ${code}: ${stderr.slice(0, 500)}`));
+        if (code !== 0 && output.trim().length === 0) {
+          logger.error({ code, stderr: stderr.slice(0, 500) }, "runCodex: non-zero exit");
+          void onProgress?.(`[Codex] Exit code ${code}: ${stderr.slice(0, 200)}`);
+          reject(new Error(`codex exited with code ${code}: ${stderr.slice(0, 500)}`));
 
-        return;
-      }
+          return;
+        }
 
-      if (code !== 0) {
-        logger.warn(
-          { code, stdoutLen: stdout.length, stderr: stderr.slice(0, 300) },
-          "runCodex: non-zero exit but stdout present, using output",
-        );
-        void onProgress?.(`[Codex] Exit code ${code} (non-fatal, ${stdout.length} chars captured)`);
-      }
+        if (code !== 0) {
+          logger.warn(
+            { code, outputLen: output.length, stderr: stderr.slice(0, 300) },
+            "runCodex: non-zero exit but output present, using output",
+          );
+          void onProgress?.(
+            `[Codex] Exit code ${code} (non-fatal, ${output.length} chars captured)`,
+          );
+        }
 
-      if (stderr) {
-        logger.debug({ stderr: stderr.slice(0, 500) }, "runCodex: stderr");
-      }
+        if (stderr) {
+          logger.debug({ stderr: stderr.slice(0, 500) }, "runCodex: stderr");
+        }
 
-      logger.info({ len: stdout.length }, "runCodex: complete");
-      void onProgress?.(`[Codex] Complete (${stdout.length} chars)`);
-      resolve(stdout);
+        logger.info({ len: output.length }, "runCodex: complete");
+        void onProgress?.(`[Codex] Complete (${output.length} chars)`);
+        resolve(output);
+      });
     });
   });
 };

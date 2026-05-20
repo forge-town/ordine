@@ -6,6 +6,7 @@ import { CanvasContextMenu } from "../CanvasContextMenu";
 import { ConnectionMenu } from "../ConnectionMenu";
 import { NodeContextMenu } from "../NodeContextMenu";
 import { RunConsole } from "../RunConsole";
+import { AgentPanel } from "../AgentPanel";
 import { LlmContentCard } from "../LlmContentCard/LlmContentCard";
 import { CanvasEmptyState } from "../CanvasEmptyState";
 import { CanvasNodeCreationPalette } from "../CanvasNodeCreationPalette";
@@ -23,6 +24,7 @@ export const CanvasInner = () => {
   const nodeContextMenu = useStore(store, (state) => state.nodeContextMenu);
   const isConsoleOpen = useStore(store, (state) => state.isConsoleOpen);
   const isQuickAddOpen = useStore(store, (state) => state.isQuickAddOpen);
+  const agentPanelIsOpen = useStore(store, (state) => state.agentPanel.isOpen);
   const nodes = useStore(store, (state) => state.nodes);
 
   const getFlowViewportScreenCenter = useCallback(() => {
@@ -56,6 +58,8 @@ export const CanvasInner = () => {
       <LlmContentCard />
 
       {isConsoleOpen && <RunConsole />}
+
+      {agentPanelIsOpen && <AgentPanel />}
     </div>
   );
 };

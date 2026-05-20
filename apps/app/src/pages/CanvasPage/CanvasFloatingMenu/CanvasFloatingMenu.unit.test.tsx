@@ -152,6 +152,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
           values: expect.objectContaining({
             id: expect.any(String),
             name: "Untitled Pipeline",
+            timeoutMs: null,
             nodes: [],
             edges: [],
           }),

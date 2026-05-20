@@ -69,7 +69,7 @@ export const makeDefaultNodeData = (
     }
     case "prompt": {
       return {
-        label: "提示词",
+        label: options?.label ?? "Prompt",
         nodeType: "prompt",
         prompt: "",
       };

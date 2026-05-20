@@ -10,6 +10,7 @@ import {
   Play,
   AlignLeft,
   Plus,
+  Bot,
   Lock,
   Unlock,
 } from "lucide-react";
@@ -41,6 +42,8 @@ export const CanvasToolbar = () => {
   const handleRedo = useStore(store, (state) => state.handleRedo);
   const handleFormatLayout = useStore(store, (state) => state.formatLayout);
   const handleRunTest = useStore(store, (state) => state.handleRunTest);
+  const handleToggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
+  const agentPanelIsOpen = useStore(store, (state) => state.agentPanel.isOpen);
   const interactivityActionLabel = isCanvasInteractive
     ? t("canvas.disableInteractivity")
     : t("canvas.enableInteractivity");
@@ -183,6 +186,26 @@ export const CanvasToolbar = () => {
           <TooltipContent>{t("canvas.quickAdd.open")}</TooltipContent>
         </Tooltip>
 
+        {/* AI Assistant */}
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                aria-label={t("canvas.agentPanel.toggle")}
+                aria-pressed={agentPanelIsOpen}
+                className="h-7 w-7 text-primary hover:bg-primary/10"
+                size="icon"
+                title={t("canvas.agentPanel.toggle")}
+                variant="ghost"
+                onClick={handleToggleAgentPanel}
+              />
+            }
+          >
+            <Bot className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>{t("canvas.agentPanel.toggle")}</TooltipContent>
+        </Tooltip>
+
         <Separator className="mx-1 h-5" orientation="vertical" />
 
         {/* Delete */}
@@ -190,9 +213,11 @@ export const CanvasToolbar = () => {
           <TooltipTrigger
             render={
               <Button
+                aria-label={t("canvas.deleteNode")}
                 className="h-7 w-7 text-destructive hover:bg-destructive/10 disabled:text-muted-foreground/30"
                 disabled={!selectedNodeId}
                 size="icon"
+                title={t("canvas.deleteNode")}
                 variant="ghost"
                 onClick={handleDeleteSelected}
               />
