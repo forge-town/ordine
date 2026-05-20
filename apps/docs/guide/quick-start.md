@@ -2,13 +2,32 @@
 
 Get Ordine running locally in minutes.
 
-## Prerequisites
+## Quick Install (recommended)
+
+The fastest way to run Ordine — no external database or configuration needed:
+
+```sh
+npm create @ordine -- --yes
+```
+
+This starts Ordine at `http://localhost:9430` with embedded PostgreSQL (PGLite), automatically runs database migrations, and enables local mode (single-user, no login required).
+
+To stop, press `Ctrl+C`.
+
+For interactive mode (choose data directory, port, etc.):
+
+```sh
+npm create @ordine
+```
+
+## Develop from Source
+
+### Prerequisites
 
 - [Node.js](https://nodejs.org/) v20+
 - [Bun](https://bun.sh/) v1.0+
-- PostgreSQL (local or remote)
 
-## Installation
+### Installation
 
 ```sh
 # Clone the repository
@@ -19,7 +38,7 @@ cd ordine
 bun install
 ```
 
-## Database Setup
+### Database Setup
 
 Create local env files first:
 
@@ -28,7 +47,21 @@ cp apps/app/.env.example apps/app/.env
 cp apps/server/.env.example apps/server/.env
 ```
 
-Set the same `DATABASE_URL` in both files, then push the schema to your database:
+**Pick one database option:**
+
+- **PGLite (embedded, no external PostgreSQL required):**
+  ```sh
+  # In both .env files, set:
+  PGLITE_DATA_DIR=./.pglite
+  ```
+
+- **PostgreSQL (external):**
+  ```sh
+  # In both .env files, set:
+  DATABASE_URL=postgresql://postgres:<password>@localhost:5432/ordine
+  ```
+
+Then push the schema:
 
 ```sh
 cd apps/app
@@ -36,10 +69,10 @@ bun run db:push
 ```
 
 ::: tip
-Make sure your PostgreSQL connection string is configured in the environment. See `.env.example` for the required variables.
+PGLite is the easiest option for local development — no need to install or run a separate PostgreSQL server. Data is stored in the directory you specify.
 :::
 
-## Start Development
+### Start Development
 
 ```sh
 # From the root directory
@@ -52,6 +85,17 @@ This starts all apps in parallel via Turborepo:
 |-----|-----|-------------|
 | `apps/app` | `http://localhost:9430` | Main web application |
 | `apps/server` | `http://localhost:9433` | API server (Hono) |
+
+### Local Mode
+
+For self-hosted single-machine use, enable Local Mode to skip the login page:
+
+```sh
+# In apps/app/.env
+ORDINE_LOCAL_MODE=true
+```
+
+A default local user is auto-created and logged in on first visit. ⚠️ Do NOT enable in shared or production environments.
 
 ## Create Your First Pipeline
 

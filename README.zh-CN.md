@@ -34,7 +34,7 @@
 - **操作** — 原子级任务，支持 AI agent 或脚本作为执行器
 - **流水线** — 将操作链接成多步骤 DAG 工作流
 - **技能** — 可插拔的 AI agent 能力，驱动操作执行
-- **Agent** — 任意选择喜欢的 AI agent 作为执行器 — Claude、GPT、Gemini 或自定义
+- **Agent** — 任意选择喜欢的 AI agent 作为执行器 — Claude、GPT、Gemini 或自定义 Agent
 - **任务** — 实时跟踪后台执行进度和追踪日志
 - **插件** — 扩展新的对象类型、操作和领域特定工作流
 
@@ -42,21 +42,71 @@
 
 ## 快速开始
 
-\`\`\`sh
+### 方式一 — 快速安装（推荐）
+
+最快的本地运行方式 — 无需外部数据库或配置：
+
+```sh
+npm create @ordine -- --yes
+```
+
+这会在 `http://localhost:9430` 启动成序，使用嵌入式 PostgreSQL（PGLite），自动运行迁移，并启用本地模式（单用户，无需登录）。
+
+按 `Ctrl+C` 停止。
+
+交互模式（可选择数据目录、端口等）：
+
+```sh
+npm create @ordine
+```
+
+### 方式二 — 从源码开发
+
+```sh
+# 克隆仓库
+git clone https://github.com/forge-town/ordine.git
+cd ordine
+
+# 安装依赖
 bun install
+
+# 创建环境文件
 cp apps/app/.env.example apps/app/.env
 cp apps/server/.env.example apps/server/.env
+```
 
-# 先在两个 env 文件里配置 DATABASE_URL
+**数据库 — 二选一：**
+
+- **PGLite（嵌入式，无需外部数据库）：**
+  ```sh
+  # 在两个 .env 文件中设置：
+  PGLITE_DATA_DIR=./.pglite
+  ```
+
+- **PostgreSQL（外部）：**
+  ```sh
+  # 在两个 .env 文件中设置：
+  DATABASE_URL=postgresql://postgres:<密码>@localhost:5432/ordine
+  ```
+
+推送 schema：
+```sh
 cd apps/app && bun run db:push && cd ../..
+```
 
+启动开发环境：
+```sh
 bun dev
-\`\`\`
+```
 
 | 服务 | 地址 |
 |------|------|
 | 主应用 | http://localhost:9430 |
 | API 服务 | http://localhost:9433 |
+
+> **💡 Local Mode（自托管、单用户）：**
+> 在 `apps/app/.env` 中设置 `ORDINE_LOCAL_MODE=true`，首次访问时自动创建本地用户并跳过登录页。
+> ⚠️ 请勿在共享或生产环境中启用。
 
 ---
 
