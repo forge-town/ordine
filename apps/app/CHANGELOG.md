@@ -1,5 +1,22 @@
 # @ordine/app
 
+## 0.0.2-preview.8
+
+### Patch Changes
+
+- try fix local install db not connect correct issue
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.8
+  - @repo/db-schema@0.0.2-preview.8
+  - @repo/services@0.0.2-preview.8
+  - @repo/plugins@0.0.2-preview.8
+  - @repo/schemas@0.0.2-preview.8
+  - @repo/plugin@0.0.2-preview.8
+  - @repo/agent@0.0.2-preview.8
+  - @repo/db@0.0.2-preview.8
+  - @repo/ui@0.0.2-preview.8
+
 ## 0.0.2-preview.7
 
 ### Patch Changes

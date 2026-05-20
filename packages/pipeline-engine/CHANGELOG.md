@@ -1,5 +1,17 @@
 # @repo/pipeline-engine
 
+## 0.0.2-preview.8
+
+### Patch Changes
+
+- try fix local install db not connect correct issue
+
+- Updated dependencies []:
+  - @repo/schemas@0.0.2-preview.8
+  - @repo/plugin@0.0.2-preview.8
+  - @repo/utils@0.0.2-preview.8
+  - @repo/obs@0.0.2-preview.8
+
 ## 0.0.2-preview.7
 
 ### Patch Changes

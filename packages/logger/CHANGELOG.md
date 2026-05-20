@@ -1,5 +1,11 @@
 # @repo/logger
 
+## 0.0.2-preview.8
+
+### Patch Changes
+
+- try fix local install db not connect correct issue
+
 ## 0.0.2-preview.7
 
 ### Patch Changes

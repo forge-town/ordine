@@ -1,6 +1,6 @@
 {
   "name": "@ordine/server",
-  "version": "0.0.2-preview.7",
+  "version": "0.0.2-preview.8",
   "private": true,
   "type": "module",
   "scripts": {
