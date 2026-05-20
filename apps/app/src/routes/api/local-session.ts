@@ -12,6 +12,10 @@ const LOCAL_USER_PASSWORD = "ordine-local-mode";
 export const Route = createFileRoute("/api/local-session")({
   server: {
     handlers: {
+      // TODO: This endpoint creates a user and establishes a session on first
+      // call — semantically it should be a POST, not GET. Also, DB and Better
+      // Auth calls should be wrapped with neverthrow for explicit error
+      // handling instead of returning generic 500s.
       GET: async ({ request }) => {
         const { ORDINE_LOCAL_MODE } = getServerEnv();
 

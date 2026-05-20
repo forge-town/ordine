@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import ky from "ky";
+import { ResultAsync } from "neverthrow";
 import { AppLayout } from "@/components/AppLayout";
 import { getSession } from "@/integrations/better-auth-client";
 
@@ -12,13 +13,17 @@ export const Route = createFileRoute("/_layout")({
     if (session) return;
 
     // Attempt local auto-login (404s when ORDINE_LOCAL_MODE is off)
-    try {
-      await ky.get("/api/local-session", { credentials: "include" });
-      globalThis.location.reload();
-      await new Promise(() => {}); // suspend until reload completes
-    } catch {
+    const result = await ResultAsync.fromPromise(
+      ky.get("/api/local-session", { credentials: "include" }),
+      () => new Error("local-session-failed"),
+    );
+
+    if (result.isErr()) {
       throw redirect({ to: "/login" });
     }
+
+    globalThis.location.reload();
+    await new Promise(() => {}); // suspend until reload completes
   },
   component: () => (
     <AppLayout>
