@@ -1,5 +1,16 @@
 # @ordine/server
 
+## 0.0.2-preview.5
+
+### Patch Changes
+
+- local mode
+
+- Updated dependencies []:
+  - @repo/services@0.0.2-preview.5
+  - @repo/schemas@0.0.2-preview.5
+  - @repo/db@0.0.2-preview.5
+
 ## 0.0.2-preview.4
 
 ### Patch Changes

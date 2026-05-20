@@ -1,5 +1,11 @@
 # @repo/utils
 
+## 0.0.2-preview.5
+
+### Patch Changes
+
+- local mode
+
 ## 0.0.2-preview.4
 
 ### Patch Changes

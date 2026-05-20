@@ -1,5 +1,14 @@
 # @repo/agent
 
+## 0.0.2-preview.5
+
+### Patch Changes
+
+- local mode
+
+- Updated dependencies []:
+  - @repo/logger@0.0.2-preview.5
+
 ## 0.0.2-preview.4
 
 ### Patch Changes
