@@ -1,5 +1,11 @@
 # @repo/shared
 
+## 0.0.2-preview.7
+
+### Patch Changes
+
+- migrate to pglite
+
 ## 0.0.2-preview.6
 
 ### Patch Changes

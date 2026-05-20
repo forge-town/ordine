@@ -1,5 +1,15 @@
 # @repo/models
 
+## 0.0.2-preview.7
+
+### Patch Changes
+
+- migrate to pglite
+
+- Updated dependencies []:
+  - @repo/db-schema@0.0.2-preview.7
+  - @repo/schemas@0.0.2-preview.7
+
 ## 0.0.2-preview.6
 
 ### Patch Changes

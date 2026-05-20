@@ -1,5 +1,22 @@
 # @ordine/app
 
+## 0.0.2-preview.7
+
+### Patch Changes
+
+- migrate to pglite
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.7
+  - @repo/db-schema@0.0.2-preview.7
+  - @repo/services@0.0.2-preview.7
+  - @repo/plugins@0.0.2-preview.7
+  - @repo/schemas@0.0.2-preview.7
+  - @repo/plugin@0.0.2-preview.7
+  - @repo/agent@0.0.2-preview.7
+  - @repo/db@0.0.2-preview.7
+  - @repo/ui@0.0.2-preview.7
+
 ## 0.0.2-preview.6
 
 ### Patch Changes

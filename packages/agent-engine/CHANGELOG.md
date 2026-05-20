@@ -1,5 +1,17 @@
 # @repo/agent-engine
 
+## 0.0.2-preview.7
+
+### Patch Changes
+
+- migrate to pglite
+
+- Updated dependencies []:
+  - @repo/schemas@0.0.2-preview.7
+  - @repo/logger@0.0.2-preview.7
+  - @repo/agent@0.0.2-preview.7
+  - @repo/obs@0.0.2-preview.7
+
 ## 0.0.2-preview.6
 
 ### Patch Changes
