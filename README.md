@@ -53,6 +53,11 @@ cd apps/app && bun run db:push && cd ../..
 bun dev
 \`\`\`
 
+> **💡 Local Mode (self-hosted, single-user):**
+> Set `ORDINE_LOCAL_MODE=true` in `apps/app/.env` to skip the login page entirely.
+> A default local user is auto-created and logged in on first visit.
+> ⚠️ Do NOT enable in shared or production environments.
+
 | Service | URL |
 |---------|-----|
 | Main app | http://localhost:9430 |

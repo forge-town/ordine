@@ -1,37 +1,28 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import ky from "ky";
 import { AppLayout } from "@/components/AppLayout";
-import { useSession } from "@/integrations/better-auth-client";
+import { getSession } from "@/integrations/better-auth-client";
 
-const LayoutComponent = () => {
-  const navigate = useNavigate();
-  const { data: session, isPending } = useSession();
+export const Route = createFileRoute("/_layout")({
+  beforeLoad: async () => {
+    // Skip server-side — session cookies are only available in the browser
+    if (globalThis.document === undefined) return;
 
-  useEffect(() => {
-    if (!isPending && !session) {
-      navigate({ to: "/login" });
+    const { data: session } = await getSession();
+    if (session) return;
+
+    // Attempt local auto-login (404s when ORDINE_LOCAL_MODE is off)
+    try {
+      await ky.get("/api/local-session", { credentials: "include" });
+      globalThis.location.reload();
+      await new Promise(() => {}); // suspend until reload completes
+    } catch {
+      throw redirect({ to: "/login" });
     }
-  }, [isPending, session, navigate]);
-
-  if (isPending) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null;
-  }
-
-  return (
+  },
+  component: () => (
     <AppLayout>
       <Outlet />
     </AppLayout>
-  );
-};
-
-export const Route = createFileRoute("/_layout")({
-  component: LayoutComponent,
+  ),
 });
