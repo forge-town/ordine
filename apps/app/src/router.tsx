@@ -6,6 +6,7 @@ import { routeTree } from "./routeTree.gen.ts";
 const createAppRouter = () =>
   createRouter({
     routeTree,
+    context: { session: null, isLocalMode: false },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     Wrap: ({ children }) => {

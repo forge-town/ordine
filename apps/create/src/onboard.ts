@@ -5,7 +5,7 @@ import { homedir } from "node:os";
 import { randomBytes } from "node:crypto";
 import { fork } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { startEmbeddedPostgres, type EmbeddedPgInstance } from "./embedded-pg";
+import { startEmbeddedPostgres } from "./embedded-pg";
 import { runMigrations } from "./migrations";
 
 export interface OnboardOptions {
@@ -24,7 +24,7 @@ export interface EnvConfig {
   APP_URL: string;
   SECRET_KEY: string;
   DATA_DIR: string;
-  DATABASE_URL: string;
+  PGLITE_DATA_DIR: string;
 }
 
 const DEFAULT_APP_PORT = 9430;
@@ -32,25 +32,25 @@ const DEFAULT_APP_PORT = 9430;
 export const resolveDataDir = (custom?: string): string =>
   custom ?? join(homedir(), ".ordine", "default");
 
-export const generateEnvConfig = (dataDir: string, databaseUrl?: string): EnvConfig => ({
+export const generateEnvConfig = (dataDir: string, pgliteDataDir?: string): EnvConfig => ({
   APP_PORT: DEFAULT_APP_PORT,
   APP_URL: `http://localhost:${DEFAULT_APP_PORT}`,
   SECRET_KEY: randomBytes(32).toString("hex"),
   DATA_DIR: dataDir,
-  DATABASE_URL: databaseUrl ?? "",
+  PGLITE_DATA_DIR: pgliteDataDir ?? join(dataDir, "pglite"),
 });
 
 export const resolveEnvConfig = (
   dataDir: string,
   existingConfig: EnvConfig | null,
-  databaseUrl: string,
+  pgliteDataDir: string,
 ): EnvConfig => {
-  const baseConfig = existingConfig ?? generateEnvConfig(dataDir, databaseUrl);
+  const baseConfig = existingConfig ?? generateEnvConfig(dataDir, pgliteDataDir);
 
   return {
     ...baseConfig,
     DATA_DIR: baseConfig.DATA_DIR || dataDir,
-    DATABASE_URL: databaseUrl,
+    PGLITE_DATA_DIR: pgliteDataDir,
   };
 };
 
@@ -78,7 +78,7 @@ export const readExistingEnv = (dataDir: string): Result<EnvConfig, Error> => {
         APP_URL: env["APP_URL"] ?? `http://localhost:${DEFAULT_APP_PORT}`,
         SECRET_KEY: env["SECRET_KEY"] ?? randomBytes(32).toString("hex"),
         DATA_DIR: env["DATA_DIR"] ?? dataDir,
-        DATABASE_URL: env["DATABASE_URL"] ?? "",
+        PGLITE_DATA_DIR: env["PGLITE_DATA_DIR"] ?? join(dataDir, "pglite"),
       };
     },
     (e) => new Error(`Failed to read existing .env: ${String(e)}`),
@@ -165,8 +165,9 @@ export const startAppServer = (
         ...process.env,
         NODE_ENV: "production",
         PORT: String(envConfig.APP_PORT),
-        DATABASE_URL: envConfig.DATABASE_URL,
+        PGLITE_DATA_DIR: envConfig.PGLITE_DATA_DIR,
         BETTER_AUTH_SECRET: envConfig.SECRET_KEY,
+        ORDINE_LOCAL_MODE: "true",
       },
       stdio: "inherit",
     });
@@ -202,43 +203,39 @@ export const onboard = async (options: OnboardOptions): Promise<void> => {
     throw new Error(pgResult.error.message);
   }
 
-  const pg: EmbeddedPgInstance = pgResult.value;
-  const shutdownPg = async () => {
-    await pg.stop();
-  };
+  const pg = pgResult.value;
 
-  process.on("SIGINT", () => void shutdownPg());
-  process.on("SIGTERM", () => void shutdownPg());
-
-  console.log(`PostgreSQL running on port ${pg.port}`);
+  console.log("PostgreSQL ready (PGlite)");
 
   const existing = isExistingInstall(dataDir);
   const existingConfig = existing ? readExistingEnv(dataDir).unwrapOr(null) : null;
-  const envConfig = resolveEnvConfig(dataDir, existingConfig, pg.connectionString);
+  const envConfig = resolveEnvConfig(dataDir, existingConfig, pg.dataDir);
 
   const writeResult = writeEnvFile(dataDir, envConfig);
   if (writeResult.isErr()) {
-    await shutdownPg();
+    await pg.stop();
     throw new Error(writeResult.error.message);
   }
 
   const migrationsDir = resolveMigrationsDir();
   console.log("Running database migrations...");
-  const migrateResult = await runMigrations(pg.connectionString, migrationsDir);
+  const migrateResult = await runMigrations(pg.db, migrationsDir);
   if (migrateResult.isErr()) {
-    await shutdownPg();
+    await pg.stop();
     throw new Error(migrateResult.error.message);
   }
   console.log(`Applied ${migrateResult.value} migration file(s).`);
+
+  // Close PGlite before starting app server (PGlite doesn't support multi-process access)
+  await pg.stop();
 
   const serverEntry = resolveAppServerEntry();
   const result: OnboardResult = {
     dataDir,
     appUrl: envConfig.APP_URL,
-    databaseUrl: pg.connectionString,
+    databaseUrl: `pglite://${pg.dataDir}`,
   };
 
   console.log(formatOutput(result));
   await startAppServer(serverEntry, envConfig);
-  await shutdownPg();
 };

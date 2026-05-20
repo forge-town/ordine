@@ -28,10 +28,16 @@
     "@repo/utils": "0.0.1"
   },
   "changesets": [
+    "big-rooms-glow",
     "curly-bikes-exist",
+    "easy-ravens-build",
+    "eleven-toys-wave",
     "floppy-crabs-end",
     "initial-preview",
+    "jolly-bars-drive",
+    "lucky-lizards-cry",
     "perky-bears-sin",
-    "quick-preview-cli"
+    "quick-preview-cli",
+    "shaggy-windows-throw"
   ]
 }

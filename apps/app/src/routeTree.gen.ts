@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
+import { Route as ApiLocalSessionRouteImport } from './routes/api/local-session'
 import { Route as LayoutSkillsRouteImport } from './routes/_layout/skills'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutRuntimesRouteImport } from './routes/_layout/runtimes'
@@ -67,6 +68,11 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LayoutRoute,
+} as any)
+const ApiLocalSessionRoute = ApiLocalSessionRouteImport.update({
+  id: '/api/local-session',
+  path: '/api/local-session',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutSkillsRoute = LayoutSkillsRouteImport.update({
   id: '/skills',
@@ -242,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/runtimes': typeof LayoutRuntimesRouteWithChildren
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
+  '/api/local-session': typeof ApiLocalSessionRoute
   '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
   '/distillations/new': typeof LayoutDistillationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
@@ -273,6 +280,7 @@ export interface FileRoutesByTo {
   '/plugins': typeof LayoutPluginsRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
+  '/api/local-session': typeof ApiLocalSessionRoute
   '/': typeof LayoutIndexRoute
   '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
   '/distillations/new': typeof LayoutDistillationsNewRoute
@@ -309,6 +317,7 @@ export interface FileRoutesById {
   '/_layout/runtimes': typeof LayoutRuntimesRouteWithChildren
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/skills': typeof LayoutSkillsRoute
+  '/api/local-session': typeof ApiLocalSessionRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
   '/_layout/distillations/new': typeof LayoutDistillationsNewRoute
@@ -347,6 +356,7 @@ export interface FileRouteTypes {
     | '/runtimes'
     | '/settings'
     | '/skills'
+    | '/api/local-session'
     | '/distillations/$distillationId'
     | '/distillations/new'
     | '/pipelines/$pipelineId'
@@ -378,6 +388,7 @@ export interface FileRouteTypes {
     | '/plugins'
     | '/settings'
     | '/skills'
+    | '/api/local-session'
     | '/'
     | '/distillations/$distillationId'
     | '/distillations/new'
@@ -413,6 +424,7 @@ export interface FileRouteTypes {
     | '/_layout/runtimes'
     | '/_layout/settings'
     | '/_layout/skills'
+    | '/api/local-session'
     | '/_layout/'
     | '/_layout/distillations/$distillationId'
     | '/_layout/distillations/new'
@@ -442,6 +454,7 @@ export interface RootRouteChildren {
   CanvasRoute: typeof CanvasRoute
   LoginRoute: typeof LoginRoute
   SignUpRoute: typeof SignUpRoute
+  ApiLocalSessionRoute: typeof ApiLocalSessionRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
@@ -482,6 +495,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
+    }
+    '/api/local-session': {
+      id: '/api/local-session'
+      path: '/api/local-session'
+      fullPath: '/api/local-session'
+      preLoaderRoute: typeof ApiLocalSessionRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_layout/skills': {
       id: '/_layout/skills'
@@ -801,6 +821,7 @@ const rootRouteChildren: RootRouteChildren = {
   CanvasRoute: CanvasRoute,
   LoginRoute: LoginRoute,
   SignUpRoute: SignUpRoute,
+  ApiLocalSessionRoute: ApiLocalSessionRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }

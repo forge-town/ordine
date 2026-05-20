@@ -1,37 +1,39 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import ky from "ky";
+import { ResultAsync } from "neverthrow";
 import { AppLayout } from "@/components/AppLayout";
-import { useSession } from "@/integrations/better-auth-client";
 
-const LayoutComponent = () => {
-  const navigate = useNavigate();
-  const { data: session, isPending } = useSession();
-
-  useEffect(() => {
-    if (!isPending && !session) {
-      navigate({ to: "/login" });
+export const Route = createFileRoute("/_layout")({
+  beforeLoad: async ({ context }) => {
+    if (context.session) {
+      return;
     }
-  }, [isPending, session, navigate]);
 
-  if (isPending) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
+    // Server-side: local mode allows access without session
+    if (globalThis.document === undefined) {
+      if (context.isLocalMode) {
+        return;
+      }
+
+      throw redirect({ to: "/login" });
+    }
+
+    // Client-side: attempt local auto-login (404s when ORDINE_LOCAL_MODE is off)
+    const result = await ResultAsync.fromPromise(
+      ky.get("/api/local-session", { credentials: "include" }),
+      () => new Error("local-session-failed"),
     );
-  }
 
-  if (!session) {
-    return null;
-  }
+    if (result.isErr()) {
+      throw redirect({ to: "/login" });
+    }
 
-  return (
+    globalThis.location.reload();
+    await new Promise(() => {}); // suspend until reload completes
+  },
+  component: () => (
     <AppLayout>
       <Outlet />
     </AppLayout>
-  );
-};
-
-export const Route = createFileRoute("/_layout")({
-  component: LayoutComponent,
+  ),
 });

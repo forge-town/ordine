@@ -1,6 +1,6 @@
 {
   "name": "@ordine/app",
-  "version": "0.0.2-preview.4",
+  "version": "0.0.2-preview.10",
   "private": true,
   "type": "module",
   "scripts": {
@@ -59,6 +59,7 @@
     "i18next-browser-languagedetector": "^8.2.1",
     "immer": "^11.1.4",
     "jszip": "^3.10.1",
+    "ky": "^2.0.2",
     "lucide-react": "^1.7.0",
     "neverthrow": "^8.2.0",
     "postgres": "^3.4.8",

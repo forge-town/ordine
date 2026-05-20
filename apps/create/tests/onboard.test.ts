@@ -36,9 +36,9 @@ describe("generateEnvConfig", () => {
     expect(config.DATA_DIR).toBe("/tmp/test-ordine");
   });
 
-  it("includes DATABASE_URL when provided", () => {
-    const config = generateEnvConfig("/tmp/test-ordine", "postgres://ordine:ordine@127.0.0.1:5480/ordine");
-    expect(config.DATABASE_URL).toBe("postgres://ordine:ordine@127.0.0.1:5480/ordine");
+  it("includes PGLITE_DATA_DIR when provided", () => {
+    const config = generateEnvConfig("/tmp/test-ordine", "/tmp/test-ordine/pglite");
+    expect(config.PGLITE_DATA_DIR).toBe("/tmp/test-ordine/pglite");
   });
 
   it("generates a 64-character hex secret key", () => {
@@ -56,31 +56,31 @@ describe("generateEnvConfig", () => {
 
 describe("resolveEnvConfig", () => {
   it("creates a new config when no existing install is present", () => {
-    const config = resolveEnvConfig("/tmp/test-ordine", null, "postgres://ordine:ordine@127.0.0.1:5480/ordine");
+    const config = resolveEnvConfig("/tmp/test-ordine", null, "/tmp/test-ordine/pglite");
     expect(config.DATA_DIR).toBe("/tmp/test-ordine");
-    expect(config.DATABASE_URL).toBe("postgres://ordine:ordine@127.0.0.1:5480/ordine");
+    expect(config.PGLITE_DATA_DIR).toBe("/tmp/test-ordine/pglite");
   });
 
-  it("preserves existing fields while refreshing the database url", () => {
+  it("preserves existing fields while refreshing the pglite data dir", () => {
     const existing = {
       APP_PORT: 9432,
       APP_URL: "http://localhost:9432",
       SECRET_KEY: "fixed-secret",
       DATA_DIR: "/tmp/existing-ordine",
-      DATABASE_URL: "postgres://ordine:ordine@127.0.0.1:5480/ordine",
+      PGLITE_DATA_DIR: "/tmp/existing-ordine/pglite",
     };
 
     const config = resolveEnvConfig(
       "/tmp/existing-ordine",
       existing,
-      "postgres://ordine:ordine@127.0.0.1:5481/ordine",
+      "/tmp/existing-ordine/pglite-new",
     );
 
     expect(config.APP_PORT).toBe(9432);
     expect(config.APP_URL).toBe("http://localhost:9432");
     expect(config.SECRET_KEY).toBe("fixed-secret");
     expect(config.DATA_DIR).toBe("/tmp/existing-ordine");
-    expect(config.DATABASE_URL).toBe("postgres://ordine:ordine@127.0.0.1:5481/ordine");
+    expect(config.PGLITE_DATA_DIR).toBe("/tmp/existing-ordine/pglite-new");
   });
 });
 
@@ -123,7 +123,7 @@ describe("writeEnvFile", () => {
   });
 
   it("writes .env file with all config keys", () => {
-    const config = generateEnvConfig(testDir, "postgres://ordine:ordine@127.0.0.1:5480/ordine");
+    const config = generateEnvConfig(testDir, "/tmp/pglite-data");
     const result = writeEnvFile(testDir, config);
     expect(result.isOk()).toBe(true);
 
@@ -135,7 +135,7 @@ describe("writeEnvFile", () => {
     expect(content).toContain("APP_URL=http://localhost:9430");
     expect(content).toContain("DATA_DIR=");
     expect(content).toContain("SECRET_KEY=");
-    expect(content).toContain("DATABASE_URL=postgres://ordine:ordine@127.0.0.1:5480/ordine");
+    expect(content).toContain("PGLITE_DATA_DIR=/tmp/pglite-data");
   });
 
   it("returns the env file path on success", () => {
@@ -150,12 +150,12 @@ describe("formatOutput", () => {
     const output = formatOutput({
       dataDir: "~/.ordine/default",
       appUrl: "http://localhost:9430",
-      databaseUrl: "postgres://ordine:ordine@127.0.0.1:5480/ordine",
+      databaseUrl: "pglite://~/.ordine/default/pglite",
     });
 
     expect(output).toContain("Ordine is running locally.");
     expect(output).toContain("App:      http://localhost:9430");
-    expect(output).toContain("Database: postgres://ordine:ordine@127.0.0.1:5480/ordine");
+    expect(output).toContain("Database: pglite://~/.ordine/default/pglite");
     expect(output).toContain("Data:     ~/.ordine/default");
     expect(output).toContain("Press Ctrl+C to stop.");
   });
@@ -199,7 +199,7 @@ describe("readExistingEnv", () => {
   });
 
   it("reads back the same config that was written", () => {
-    const config = generateEnvConfig(testDir, "postgres://ordine:ordine@127.0.0.1:5480/ordine");
+    const config = generateEnvConfig(testDir, "/tmp/pglite-data");
     writeEnvFile(testDir, config);
 
     const result = readExistingEnv(testDir);
@@ -207,7 +207,7 @@ describe("readExistingEnv", () => {
     const read = result._unsafeUnwrap();
     expect(read.APP_PORT).toBe(config.APP_PORT);
     expect(read.SECRET_KEY).toBe(config.SECRET_KEY);
-    expect(read.DATABASE_URL).toBe(config.DATABASE_URL);
+    expect(read.PGLITE_DATA_DIR).toBe(config.PGLITE_DATA_DIR);
   });
 
   it("preserves the original secret on re-read (idempotent)", () => {

@@ -4,7 +4,8 @@
     "./plugins/jsx-sort-props.js",
     "./plugins/no-let.js",
     "./plugins/newline-before-return.js",
-    "./plugins/no-use-list-data-fallback.js"
+    "./plugins/no-use-list-data-fallback.js",
+    "./plugins/no-try.js"
   ],
   "rules": {
     "ordine-refine/no-use-list-data-fallback": "error",
@@ -27,6 +28,7 @@
     "prefer-const": "error",
     "ordine-vars/no-let": "error",
     "ordine-return/newline-before-return": "error",
+    "ordine-error/no-try": "error",
     "consistent-type-exports": "error",
     "func-style": ["warn", "expression", { "allowArrowFunctions": true }],
 

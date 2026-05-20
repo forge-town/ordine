@@ -1,5 +1,107 @@
 # @repo/services
 
+## 0.0.2-preview.10
+
+### Patch Changes
+
+- fix login auth issue
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.10
+  - @repo/agent-engine@0.0.2-preview.10
+  - @repo/schemas@0.0.2-preview.10
+  - @repo/logger@0.0.2-preview.10
+  - @repo/models@0.0.2-preview.10
+  - @repo/agent@0.0.2-preview.10
+  - @repo/utils@0.0.2-preview.10
+  - @repo/obs@0.0.2-preview.10
+  - @repo/db@0.0.2-preview.10
+
+## 0.0.2-preview.9
+
+### Patch Changes
+
+- fix local redirect to login issue
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.9
+  - @repo/agent-engine@0.0.2-preview.9
+  - @repo/schemas@0.0.2-preview.9
+  - @repo/logger@0.0.2-preview.9
+  - @repo/models@0.0.2-preview.9
+  - @repo/agent@0.0.2-preview.9
+  - @repo/utils@0.0.2-preview.9
+  - @repo/obs@0.0.2-preview.9
+  - @repo/db@0.0.2-preview.9
+
+## 0.0.2-preview.8
+
+### Patch Changes
+
+- try fix local install db not connect correct issue
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.8
+  - @repo/agent-engine@0.0.2-preview.8
+  - @repo/schemas@0.0.2-preview.8
+  - @repo/logger@0.0.2-preview.8
+  - @repo/models@0.0.2-preview.8
+  - @repo/agent@0.0.2-preview.8
+  - @repo/utils@0.0.2-preview.8
+  - @repo/obs@0.0.2-preview.8
+  - @repo/db@0.0.2-preview.8
+
+## 0.0.2-preview.7
+
+### Patch Changes
+
+- migrate to pglite
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.7
+  - @repo/agent-engine@0.0.2-preview.7
+  - @repo/schemas@0.0.2-preview.7
+  - @repo/logger@0.0.2-preview.7
+  - @repo/models@0.0.2-preview.7
+  - @repo/agent@0.0.2-preview.7
+  - @repo/utils@0.0.2-preview.7
+  - @repo/obs@0.0.2-preview.7
+  - @repo/db@0.0.2-preview.7
+
+## 0.0.2-preview.6
+
+### Patch Changes
+
+- optionalDependencies @embedded-postgres
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.6
+  - @repo/agent-engine@0.0.2-preview.6
+  - @repo/schemas@0.0.2-preview.6
+  - @repo/logger@0.0.2-preview.6
+  - @repo/models@0.0.2-preview.6
+  - @repo/agent@0.0.2-preview.6
+  - @repo/utils@0.0.2-preview.6
+  - @repo/obs@0.0.2-preview.6
+  - @repo/db@0.0.2-preview.6
+
+## 0.0.2-preview.5
+
+### Patch Changes
+
+- local mode
+
+- Updated dependencies []:
+  - @repo/pipeline-engine@0.0.2-preview.5
+  - @repo/agent-engine@0.0.2-preview.5
+  - @repo/schemas@0.0.2-preview.5
+  - @repo/logger@0.0.2-preview.5
+  - @repo/models@0.0.2-preview.5
+  - @repo/agent@0.0.2-preview.5
+  - @repo/utils@0.0.2-preview.5
+  - @repo/obs@0.0.2-preview.5
+  - @repo/db@0.0.2-preview.5
+
 ## 0.0.2-preview.4
 
 ### Patch Changes

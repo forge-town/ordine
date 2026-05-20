@@ -42,21 +42,72 @@ No more scattered scripts. No more babysitting agent runs. Define your workflow 
 
 ## Quick Start
 
-\`\`\`sh
+### Option 1 — Quick install (recommended)
+
+The fastest way to run Ordine locally — no external database or configuration needed:
+
+```sh
+npm create @ordine -- --yes
+```
+
+This starts Ordine at `http://localhost:9430` with embedded PostgreSQL (PGLite), auto-runs migrations, and enables local mode (single-user, no login required).
+
+To stop, press `Ctrl+C`.
+
+For interactive mode (choose data directory, port, etc.):
+
+```sh
+npm create @ordine
+```
+
+### Option 2 — Develop from source
+
+```sh
+# Clone the repository
+git clone https://github.com/forge-town/ordine.git
+cd ordine
+
+# Install dependencies
 bun install
+
+# Create env files
 cp apps/app/.env.example apps/app/.env
 cp apps/server/.env.example apps/server/.env
+```
 
-# Set DATABASE_URL in both env files first
+**Database — pick one:**
+
+- **PGLite (embedded, no external DB required):**
+  ```sh
+  # In both .env files, set:
+  PGLITE_DATA_DIR=./.pglite
+  ```
+
+- **PostgreSQL (external):**
+  ```sh
+  # In both .env files, set:
+  DATABASE_URL=postgresql://postgres:<password>@localhost:5432/ordine
+  ```
+
+Push the schema:
+```sh
 cd apps/app && bun run db:push && cd ../..
+```
 
+Start development:
+```sh
 bun dev
-\`\`\`
+```
 
 | Service | URL |
 |---------|-----|
 | Main app | http://localhost:9430 |
 | API server | http://localhost:9433 |
+
+> **💡 Local Mode (self-hosted, single-user):**
+> Set `ORDINE_LOCAL_MODE=true` in `apps/app/.env` to skip the login page entirely.
+> A default local user is auto-created and logged in on first visit.
+> ⚠️ Do NOT enable in shared or production environments.
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "name": "@ordine/create",
-  "version": "0.0.2-preview.4",
+  "version": "0.0.2-preview.10",
   "private": false,
   "description": "Create a local Ordine instance — npm create @ordine",
   "repository": {
@@ -21,7 +21,7 @@
     "access": "public"
   },
   "scripts": {
-    "build:cli": "bun build ./src/index.ts --target=node --format=esm --outfile=./dist/index.js --external=embedded-postgres --external=postgres",
+    "build:cli": "bun build ./src/index.ts --target=node --format=esm --outfile=./dist/index.js --external=@electric-sql/pglite",
     "build:app": "rm -rf app && cp -r ../app/.output app",
     "build": "bun run build:cli && bun run build:app",
     "dev": "bun src/index.ts",
@@ -32,10 +32,10 @@
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
+    "@electric-sql/pglite": "0.4.5",
     "commander": "^14.0.0",
-    "embedded-postgres": "^18.1.0-beta.16",
+    "drizzle-orm": "^0.45.2",
     "neverthrow": "^8.2.0",
-    "postgres": "^3.4.8",
     "zod": "^4.3.6"
   },
   "devDependencies": {
