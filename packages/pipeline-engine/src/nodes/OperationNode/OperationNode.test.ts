@@ -69,7 +69,7 @@ describe("executeOperationNode", () => {
     const result = await executeOperationNode(node, makeInput(), ctx);
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toBeNull();
+    if (!result.ok) expect(result.error?.message).toContain("missing");
     expect(trace).toHaveBeenCalledWith("job-1", expect.stringContaining("not found"));
   });
 

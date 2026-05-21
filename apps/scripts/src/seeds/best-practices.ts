@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { ResultAsync } from "neverthrow";
 import { apiPut, apiDelete } from "../api";
 
 const BP_DIR = resolve(import.meta.dirname ?? __dirname, "../best-practices");
@@ -127,11 +128,11 @@ const seed = async () => {
     "bp_props_drilling",
   ];
   for (const id of DUPLICATES) {
-    try {
-      await apiDelete(`/api/best-practices/${id}`);
+    const result = await ResultAsync.fromPromise(apiDelete(`/api/best-practices/${id}`), (err) =>
+      err instanceof Error ? err.message : String(err),
+    );
+    if (result.isOk()) {
       console.log(`  🗑️  ${id} — deleted (duplicate)`);
-    } catch {
-      // ignore if not found
     }
   }
 
@@ -140,7 +141,12 @@ const seed = async () => {
   );
 };
 
-seed().catch((error: unknown) => {
-  console.error("❌ Seed failed:", error);
-  throw error instanceof Error ? error : new Error(String(error));
-});
+void ResultAsync.fromPromise(seed(), (err) =>
+  err instanceof Error ? err : new Error(String(err)),
+).match(
+  () => {},
+  (error) => {
+    console.error("❌ Seed failed:", error);
+    process.exitCode = 1;
+  },
+);

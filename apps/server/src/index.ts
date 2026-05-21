@@ -6,6 +6,7 @@ import { getEnv } from "./integrations/env";
 
 const env = getEnv();
 const port = env.PORT ?? 9433;
+const hostname = env.DESKTOP_MODE ? "127.0.0.1" : "0.0.0.0";
 
 const DEFAULT_JOB_TIMEOUT_MS = env.JOB_TIMEOUT_MS ?? 60 * 60 * 1000; // 60 min
 const EXPIRE_CHECK_INTERVAL_MS = 60_000; // every 60s
@@ -20,6 +21,6 @@ setInterval(async () => {
   }
 }, EXPIRE_CHECK_INTERVAL_MS);
 
-serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`Server running at http://localhost:${info.port}`);
+serve({ fetch: app.fetch, port, hostname }, (info) => {
+  console.log(`Server running at http://${hostname}:${info.port}`);
 });

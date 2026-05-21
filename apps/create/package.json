@@ -22,7 +22,8 @@
   },
   "scripts": {
     "build:cli": "bun build ./src/index.ts --target=node --format=esm --outfile=./dist/index.js --external=@electric-sql/pglite",
-    "build:app": "rm -rf app && cp -r ../app/.output app",
+    "build:app": "rm -rf app && cp -r ../app/.output app && bun run copy-pglite-assets",
+    "copy-pglite-assets": "bun scripts/copy-pglite-assets.ts",
     "build": "bun run build:cli && bun run build:app",
     "dev": "bun src/index.ts",
     "check-types": "tsc --noEmit",

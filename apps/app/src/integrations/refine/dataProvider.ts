@@ -204,9 +204,13 @@ export const dataProvider: DataProvider = {
         return { data: data as unknown as TData };
       }
       case ResourceName.pipelines: {
-        const data = await trpcClient.pipelines.create.mutate(
-          variables as Parameters<typeof trpcClient.pipelines.create.mutate>[0],
-        );
+        const { pendingOperations, ...pipelineData } = variables as Record<string, unknown>;
+        const data = await trpcClient.pipelines.create.mutate({
+          pipeline: pipelineData,
+          pendingOperations: pendingOperations as
+            | Parameters<typeof trpcClient.pipelines.create.mutate>[0]["pendingOperations"]
+            | undefined,
+        } as Parameters<typeof trpcClient.pipelines.create.mutate>[0]);
 
         return { data: data as unknown as TData };
       }
