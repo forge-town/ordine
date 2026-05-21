@@ -40,10 +40,10 @@ export const executeOperationNode = async (
   const operation = operations.get(operationId);
 
   if (!operation) {
-    await trace(jobId, `WARNING: Operation ${operationId} not found, skipping`);
+    await trace(jobId, `ERROR: Operation ${operationId} not found`);
     await trace(jobId, `@@NODE_FAIL::${node.id}`);
 
-    return { ok: false, error: null };
+    return { ok: false, error: new ScriptExecutionError(`Operation "${operationId}" not found`) };
   }
 
   const agentOverride = await (async () => {
@@ -167,10 +167,7 @@ export const executeOperationNode = async (
 
     if (agent === "hermes") {
       const message = `Hermes is not available for skill operation "${operation.name}" because skills require local tool permissions`;
-      await trace(
-        jobId,
-        `WARNING: ${message}`,
-      );
+      await trace(jobId, `WARNING: ${message}`);
       await trace(jobId, `@@NODE_FAIL::${node.id}`);
 
       return { ok: false, error: new ScriptExecutionError(message) };

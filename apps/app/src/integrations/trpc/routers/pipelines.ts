@@ -12,14 +12,35 @@ export const pipelinesRouter = router({
     .query(({ input }) => pipelinesService.getById(input.id)),
 
   create: publicProcedure
-    .input(PipelineSchema.omit({ createdAt: true, updatedAt: true }))
-    .mutation(({ input }) =>
-      pipelinesService.create({
-        ...input,
-        nodes: input.nodes as never,
-        edges: input.edges as never,
+    .input(
+      z.object({
+        pipeline: PipelineSchema.omit({ createdAt: true, updatedAt: true }),
+        pendingOperations: z
+          .array(
+            z.object({
+              id: z.string(),
+              name: z.string(),
+              description: z.string(),
+              config: z.record(z.string(), z.unknown()),
+              acceptedObjectTypes: z.array(z.string()),
+            }),
+          )
+          .optional(),
       }),
-    ),
+    )
+    .mutation(async ({ input }) => {
+      if (input.pendingOperations && input.pendingOperations.length > 0) {
+        await pipelinesService.createPendingOperations(
+          input.pendingOperations as Parameters<typeof pipelinesService.createPendingOperations>[0],
+        );
+      }
+
+      return pipelinesService.create({
+        ...input.pipeline,
+        nodes: input.pipeline.nodes as never,
+        edges: input.pipeline.edges as never,
+      });
+    }),
 
   update: publicProcedure
     .input(
