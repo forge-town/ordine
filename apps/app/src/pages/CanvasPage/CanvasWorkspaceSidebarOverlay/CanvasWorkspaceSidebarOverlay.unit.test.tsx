@@ -53,4 +53,12 @@ describe("CanvasWorkspaceSidebarOverlay", () => {
     );
     expect(store.getState().isWorkspaceSidebarOpen).toBe(false);
   });
+
+  it("renders a single close control", () => {
+    renderOpenOverlay();
+
+    expect(
+      screen.getAllByRole("button", { name: /Close|关闭|canvas\.settingsDrawer\.close/i }),
+    ).toHaveLength(1);
+  });
 });

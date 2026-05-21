@@ -1,5 +1,5 @@
 import { render } from "@/test/test-wrapper";
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { createCanvasPageStore, CanvasPageStoreContext } from "../_store";
@@ -19,9 +19,26 @@ const fileNode = {
   },
 } as PipelineNode;
 
-const renderPanel = () => {
-  const store = createCanvasPageStore([fileNode]);
-  store.setState({ selectedNodeId: fileNode.id, sidebarPanel: "properties" });
+const operationNode = {
+  id: "operation-1",
+  type: "operation",
+  position: { x: 0, y: 0 },
+  data: {
+    label: "Review Code",
+    nodeType: "operation",
+    operationId: "review-code",
+    operationName: "Review Code",
+    status: "idle",
+    config: {},
+    loopEnabled: true,
+    maxLoopCount: 3,
+    loopConditionPrompt: "",
+  },
+} as PipelineNode;
+
+const renderPanel = (node: PipelineNode = fileNode) => {
+  const store = createCanvasPageStore([node]);
+  store.setState({ selectedNodeId: node.id, sidebarPanel: "properties" });
 
   render(
     <CanvasPageStoreContext.Provider value={store}>
@@ -57,5 +74,18 @@ describe("CanvasNodePropertiesPanel", () => {
 
     expect(store.getState().sidebarPanel).toBe("components");
     expect(store.getState().selectedNodeId).toBeNull();
+  });
+
+  it("stores operation max loop count edits as a number", () => {
+    const store = renderPanel(operationNode);
+
+    fireEvent.change(screen.getByRole("spinbutton", { name: /Max loop count/i }), {
+      target: { value: "8" },
+    });
+
+    const data = store.getState().nodes[0]?.data as { maxLoopCount?: unknown };
+
+    expect(data.maxLoopCount).toBe(8);
+    expect(typeof data.maxLoopCount).toBe("number");
   });
 });

@@ -31,6 +31,10 @@ export const CanvasNodePropertiesPanel = () => {
   const store = useCanvasPageStore();
   const selectedNode = useStore(store, selectSelectedNode);
   const updateNodeData = useStore(store, (state) => state.updateNodeData);
+  const handleOperationMaxLoopChange = useStore(
+    store,
+    (state) => state.handleOperationMaxLoopChange,
+  );
   const clearSelection = useStore(store, (state) => state.clearSelection);
   const handleBackToComponentsClick = () => {
     clearSelection();
@@ -116,6 +120,48 @@ export const CanvasNodePropertiesPanel = () => {
           rows={4}
           value={value}
           onChange={(event) => handleUpdateNodeData({ [field]: event.target.value })}
+        />
+      </div>
+    );
+  };
+
+  const renderIntegerField = ({
+    field,
+    label,
+    max,
+    min,
+    value,
+    handleValueChange,
+  }: {
+    field: string;
+    label: string;
+    max?: number;
+    min?: number;
+    value: number;
+    handleValueChange: (value: number) => void;
+  }) => {
+    const id = fieldId(selectedNode.id, field);
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const nextValue = Number.parseInt(event.target.value, 10);
+
+      if (!Number.isNaN(nextValue)) {
+        handleValueChange(nextValue);
+      }
+    };
+
+    return (
+      <div className="space-y-1.5">
+        <Label htmlFor={id}>{label}</Label>
+        <Input
+          id={id}
+          inputMode="numeric"
+          max={max}
+          min={min}
+          name={id}
+          step={1}
+          type="number"
+          value={value}
+          onChange={handleInputChange}
         />
       </div>
     );
@@ -251,10 +297,13 @@ export const CanvasNodePropertiesPanel = () => {
               label: "Agent ID",
               value: data.agentId ?? "",
             })}
-            {renderTextField({
+            {renderIntegerField({
               field: "maxLoopCount",
               label: "Max loop count",
-              value: String(data.maxLoopCount ?? 3),
+              max: 20,
+              min: 1,
+              value: data.maxLoopCount ?? 3,
+              handleValueChange: (value) => handleOperationMaxLoopChange(selectedNode.id, value),
             })}
             {renderTextareaField({
               field: "loopConditionPrompt",
