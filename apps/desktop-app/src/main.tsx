@@ -5,6 +5,7 @@ import { Refine } from "@refinedev/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 import { dataProvider } from "./integrations/refine/dataProvider";
+import { ServerGate } from "./components/ServerGate";
 import "./lib/i18n";
 import "./styles.css";
 
@@ -21,11 +22,13 @@ const rootElement = document.getElementById("root");
 if (rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <Refine dataProvider={dataProvider}>
-          <RouterProvider router={router} />
-        </Refine>
-      </QueryClientProvider>
+      <ServerGate>
+        <QueryClientProvider client={queryClient}>
+          <Refine dataProvider={dataProvider}>
+            <RouterProvider router={router} />
+          </Refine>
+        </QueryClientProvider>
+      </ServerGate>
     </StrictMode>,
   );
 }

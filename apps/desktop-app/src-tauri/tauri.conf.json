@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:9431",
-    "beforeBuildCommand": "bun run build",
+    "beforeBuildCommand": "bun run bundle-server && bun run build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -27,6 +27,13 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "externalBin": ["binaries/ordine-server"],
+    "resources": [
+      "resources/server/server-bundle.mjs",
+      "resources/server/pglite.wasm",
+      "resources/server/pglite.data",
+      "resources/server/initdb.wasm"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

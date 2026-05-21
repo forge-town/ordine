@@ -1,3 +1,4 @@
+import { Result } from "neverthrow";
 import { getEnv } from "./integrations/env";
 
 /**
@@ -24,13 +25,10 @@ const request = async <T>(method: string, path: string, body?: unknown): Promise
   });
 
   const text = await res.text();
-  const data: T = (() => {
-    try {
-      return JSON.parse(text) as T;
-    } catch {
-      return text as unknown as T;
-    }
-  })();
+  const data: T = Result.fromThrowable(
+    () => JSON.parse(text) as T,
+    () => text as unknown as T,
+  )().unwrapOr(text as unknown as T);
 
   return { ok: res.ok, status: res.status, data };
 };
