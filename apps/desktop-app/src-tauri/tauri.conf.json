@@ -4,10 +4,10 @@
   "version": "0.0.1",
   "identifier": "ai.ordine.desktop",
   "build": {
-    "beforeDevCommand": "cd ../app && bun run dev -- --port 9431",
+    "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:9431",
-    "beforeBuildCommand": "cd ../app && bun run build",
-    "frontendDist": "../../app/dist"
+    "beforeBuildCommand": "bun run build",
+    "frontendDist": "../dist"
   },
   "app": {
     "windows": [
@@ -16,7 +16,8 @@
         "width": 1280,
         "height": 800,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "devtools": true
       }
     ],
     "security": {

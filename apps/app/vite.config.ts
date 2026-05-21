@@ -20,6 +20,7 @@ export default defineConfig({
         }
 
         const realFilePath = realpathSync(filePath);
+
         return {
           code: `export default ${JSON.stringify(readFileSync(realFilePath, "utf8"))}`,
           moduleType: "js",
@@ -34,6 +35,9 @@ export default defineConfig({
     ...(!IS_STORYBOOK ? [tanstackStart()] : []),
     viteReact(),
   ],
+  server: {
+    strictPort: true,
+  },
   build: {
     target: "esnext",
   },

@@ -1,0 +1,31 @@
+{
+  "name": "@repo/views",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./AppLayout": "./src/components/AppLayout.tsx",
+    "./AppSidebar": "./src/components/AppSidebar.tsx",
+    "./DashboardPage": "./src/pages/DashboardPage/index.ts",
+    "./PageHeader": "./src/components/PageHeader/index.ts",
+    "./ToastContainer": "./src/components/ToastContainer.tsx",
+    "./store/sidebarStore": "./src/store/sidebarStore/index.ts",
+    "./store/toastStore": "./src/store/toastStore/index.ts"
+  },
+  "dependencies": {
+    "@refinedev/core": "^5.0.12",
+    "@repo/schemas": "workspace:*",
+    "@repo/ui": "workspace:*",
+    "@tanstack/react-router": "^1.168.7",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.510.0",
+    "react": "^19.1.0",
+    "react-hook-form": "^7.56.4",
+    "react-i18next": "^15.5.3",
+    "recharts": "^2.15.3",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
