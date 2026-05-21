@@ -128,9 +128,8 @@ const seed = async () => {
     "bp_props_drilling",
   ];
   for (const id of DUPLICATES) {
-    const result = await ResultAsync.fromPromise(
-      apiDelete(`/api/best-practices/${id}`),
-      () => "not found" as const,
+    const result = await ResultAsync.fromPromise(apiDelete(`/api/best-practices/${id}`), (err) =>
+      err instanceof Error ? err.message : String(err),
     );
     if (result.isOk()) {
       console.log(`  🗑️  ${id} — deleted (duplicate)`);
@@ -142,7 +141,12 @@ const seed = async () => {
   );
 };
 
-seed().catch((error: unknown) => {
-  console.error("❌ Seed failed:", error);
-  throw error instanceof Error ? error : new Error(String(error));
-});
+void ResultAsync.fromPromise(seed(), (err) =>
+  err instanceof Error ? err : new Error(String(err)),
+).match(
+  () => {},
+  (error) => {
+    console.error("❌ Seed failed:", error);
+    process.exitCode = 1;
+  },
+);

@@ -1,31 +1,39 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
+import { ResultAsync } from "neverthrow";
+import { useMount } from "../hooks/useMount";
 import { startServer, stopServer } from "../integrations/sidecar/server";
 
 type ServerState = "starting" | "ready" | "error";
 
-export function ServerGate({ children }: { children: ReactNode }) {
+export const ServerGate = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<ServerState>("starting");
   const [error, setError] = useState<string | null>(null);
+  const cancelledRef = useRef(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  useMount(() => {
+    const result = ResultAsync.fromPromise(startServer(), (err) =>
+      err instanceof Error ? err.message : String(err),
+    );
 
-    startServer()
-      .then(() => {
-        if (!cancelled) setState("ready");
-      })
-      .catch((err: Error) => {
-        if (!cancelled) {
-          setState("error");
-          setError(err.message);
+    void result.match(
+      () => {
+        if (!cancelledRef.current) {
+          setState("ready");
         }
-      });
+      },
+      (errMsg) => {
+        if (!cancelledRef.current) {
+          setState("error");
+          setError(errMsg);
+        }
+      },
+    );
 
     return () => {
-      cancelled = true;
-      stopServer();
+      cancelledRef.current = true;
+      void stopServer();
     };
-  }, []);
+  });
 
   if (state === "starting") {
     return (

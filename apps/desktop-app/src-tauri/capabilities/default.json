@@ -11,17 +11,12 @@
       "identifier": "shell:allow-spawn",
       "allow": [
         {
-          "args": true,
-          "name": "binaries/ordine-server",
-          "sidecar": true
-        }
-      ]
-    },
-    {
-      "identifier": "shell:allow-execute",
-      "allow": [
-        {
-          "args": true,
+          "args": [
+            {
+              "validator": "regex",
+              "value": "^.*/resources/server/server-bundle\\.mjs$"
+            }
+          ],
           "name": "binaries/ordine-server",
           "sidecar": true
         }

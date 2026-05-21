@@ -8,11 +8,31 @@ import { jobsRoutes } from "./routes/jobs";
 import { operationsRoutes } from "./routes/operations";
 import { pipelinesRoutes } from "./routes/pipelines";
 import { skillsRoutes } from "./routes/skills";
+import { getEnv } from "./integrations/env";
+
+const env = getEnv();
 
 export const app = new Hono();
 
 app.use("*", logger());
-app.use("*", cors());
+
+if (env.DESKTOP_MODE) {
+  app.use("*", cors({ origin: "http://localhost" }));
+  app.use("*", async (c, next) => {
+    // Health endpoint doesn't require auth (used for startup probe)
+    if (c.req.path === "/health") {
+      return next();
+    }
+    const token = c.req.header("X-Desktop-Token");
+    if (!env.DESKTOP_AUTH_TOKEN || token !== env.DESKTOP_AUTH_TOKEN) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    return next();
+  });
+} else {
+  app.use("*", cors());
+}
 
 app.route("/api/agents", agentsRoutes);
 app.route("/api/distillations", distillationsRoutes);

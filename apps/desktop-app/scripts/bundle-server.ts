@@ -1,14 +1,19 @@
 import { cpSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { execSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
-const ROOT = resolve(dirname(import.meta.url.replace("file://", "")), "..");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const ROOT = resolve(__dirname, "..");
 const RESOURCES_DIR = resolve(ROOT, "src-tauri/resources/server");
 const BINARIES_DIR = resolve(ROOT, "src-tauri/binaries");
-const PGLITE_DIST = resolve(
-  ROOT,
-  "../../node_modules/.bun/@electric-sql+pglite@0.4.5/node_modules/@electric-sql/pglite/dist",
-);
+
+// Resolve PGlite dist via package resolution (not hardcoded .bun store path)
+const require = createRequire(import.meta.url);
+const pgliteEntry = require.resolve("@electric-sql/pglite");
+const PGLITE_DIST = resolve(dirname(pgliteEntry), "dist");
 
 mkdirSync(RESOURCES_DIR, { recursive: true });
 mkdirSync(BINARIES_DIR, { recursive: true });
@@ -26,10 +31,11 @@ cpSync(resolve(PGLITE_DIST, "pglite.wasm"), resolve(RESOURCES_DIR, "pglite.wasm"
 cpSync(resolve(PGLITE_DIST, "pglite.data"), resolve(RESOURCES_DIR, "pglite.data"));
 cpSync(resolve(PGLITE_DIST, "initdb.wasm"), resolve(RESOURCES_DIR, "initdb.wasm"));
 
-// 3. Copy bun binary as sidecar (both architectures for Rosetta)
+// 3. Copy bun binary as sidecar (macOS only — restrict to current platform)
 console.log("Copying bun runtime as sidecar...");
 const bunPath = execSync("which bun", { encoding: "utf-8" }).trim();
-cpSync(bunPath, resolve(BINARIES_DIR, "ordine-server-aarch64-apple-darwin"));
-cpSync(bunPath, resolve(BINARIES_DIR, "ordine-server-x86_64-apple-darwin"));
+const arch = process.arch === "arm64" ? "aarch64" : "x86_64";
+const targetTriple = `${arch}-apple-darwin`;
+cpSync(bunPath, resolve(BINARIES_DIR, `ordine-server-${targetTriple}`));
 
 console.log("Done! Server bundle ready.");

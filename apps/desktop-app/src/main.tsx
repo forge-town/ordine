@@ -18,7 +18,7 @@ declare module "@tanstack/react-router" {
   }
 }
 
-const rootElement = document.getElementById("root");
+const rootElement = document.querySelector("#root");
 if (rootElement) {
   createRoot(rootElement).render(
     <StrictMode>

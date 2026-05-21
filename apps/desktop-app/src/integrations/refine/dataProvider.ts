@@ -14,8 +14,9 @@ import type {
   UpdateParams,
   UpdateResponse,
 } from "@refinedev/core";
+import { getDesktopAuthToken } from "../sidecar/server";
 
-const API_BASE = "http://localhost:9433/api";
+const API_BASE = "http://127.0.0.1:9433/api";
 
 const RESOURCE_PATH: Record<string, string> = {
   agents: "agents",
@@ -34,6 +35,16 @@ const RESOURCE_PATH: Record<string, string> = {
 
 const getPath = (resource: string) => RESOURCE_PATH[resource] ?? resource;
 
+const getAuthHeaders = (): Record<string, string> => {
+  const token = getDesktopAuthToken();
+
+  if (token) {
+    return { "X-Desktop-Token": token };
+  }
+
+  return {};
+};
+
 export const dataProvider: DataProvider = {
   getList: async <TData extends BaseRecord = BaseRecord>(
     params: GetListParams,
@@ -41,7 +52,7 @@ export const dataProvider: DataProvider = {
     const { resource } = params;
     const path = getPath(resource);
 
-    const response = await fetch(`${API_BASE}/${path}`);
+    const response = await fetch(`${API_BASE}/${path}`, { headers: getAuthHeaders() });
     if (!response.ok) {
       return { data: [] as TData[], total: 0 };
     }
@@ -56,7 +67,10 @@ export const dataProvider: DataProvider = {
     const { resource, id } = params;
     const path = getPath(resource);
 
-    const response = await fetch(`${API_BASE}/${path}/${id}`);
+    const response = await fetch(`${API_BASE}/${path}/${id}`, { headers: getAuthHeaders() });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${resource}/${id}: ${response.status}`);
+    }
     const data = (await response.json()) as TData;
 
     return { data };
@@ -70,9 +84,12 @@ export const dataProvider: DataProvider = {
 
     const response = await fetch(`${API_BASE}/${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify(variables),
     });
+    if (!response.ok) {
+      throw new Error(`Failed to create ${resource}: ${response.status}`);
+    }
     const data = (await response.json()) as TData;
 
     return { data };
@@ -86,9 +103,12 @@ export const dataProvider: DataProvider = {
 
     const response = await fetch(`${API_BASE}/${path}/${id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify(variables),
     });
+    if (!response.ok) {
+      throw new Error(`Failed to update ${resource}/${id}: ${response.status}`);
+    }
     const data = (await response.json()) as TData;
 
     return { data };
@@ -102,7 +122,11 @@ export const dataProvider: DataProvider = {
 
     const response = await fetch(`${API_BASE}/${path}/${id}`, {
       method: "DELETE",
+      headers: getAuthHeaders(),
     });
+    if (!response.ok) {
+      throw new Error(`Failed to delete ${resource}/${id}: ${response.status}`);
+    }
     const data = (await response.json()) as TData;
 
     return { data };
@@ -118,9 +142,14 @@ export const dataProvider: DataProvider = {
 
     const response = await fetch(fetchUrl, {
       method: method.toUpperCase(),
-      headers: payload ? { "Content-Type": "application/json" } : undefined,
+      headers: { ...(payload ? { "Content-Type": "application/json" } : {}), ...getAuthHeaders() },
       body: payload ? JSON.stringify(payload) : undefined,
     });
+    if (!response.ok) {
+      throw new Error(
+        `Custom request failed: ${method.toUpperCase()} ${fetchUrl} ${response.status}`,
+      );
+    }
     const data = (await response.json()) as TData;
 
     return { data };

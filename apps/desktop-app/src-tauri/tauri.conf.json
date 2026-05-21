@@ -21,12 +21,12 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:9433; img-src 'self' data:; font-src 'self' data:"
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["dmg", "app"],
     "externalBin": ["binaries/ordine-server"],
     "resources": [
       "resources/server/server-bundle.mjs",

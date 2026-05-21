@@ -1,0 +1,7 @@
+{
+  "extends": ["../../packages/oxlint-config/.oxlintrc.json"],
+  "rules": {
+    "unicorn/no-abusive-eslint-disable": "off"
+  },
+  "ignorePatterns": ["src/routeTree.gen.ts", "src/components/ui/**"]
+}

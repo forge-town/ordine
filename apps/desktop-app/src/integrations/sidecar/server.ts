@@ -2,42 +2,59 @@ import { Command, type Child } from "@tauri-apps/plugin-shell";
 import { resolveResource } from "@tauri-apps/api/path";
 
 const SERVER_PORT = 9433;
-const HEALTH_URL = `http://localhost:${SERVER_PORT}/health`;
+const HEALTH_URL = `http://127.0.0.1:${SERVER_PORT}/health`;
 const MAX_RETRIES = 30;
 const RETRY_INTERVAL_MS = 200;
 
-let serverProcess: Child | null = null;
+const serverState = {
+  process: null as Child | null,
+  authToken: null as string | null,
+};
 
-async function waitForHealth(): Promise<void> {
-  for (let i = 0; i < MAX_RETRIES; i++) {
-    try {
-      const res = await fetch(HEALTH_URL);
-      if (res.ok) return;
-    } catch {
-      // server not ready yet
-    }
-    await new Promise((r) => setTimeout(r, RETRY_INTERVAL_MS));
+export const getDesktopAuthToken = (): string | null => serverState.authToken;
+
+const waitForHealth = async (remaining: number = MAX_RETRIES): Promise<void> => {
+  if (remaining <= 0) {
+    throw new Error(
+      `Server failed to start within ${(MAX_RETRIES * RETRY_INTERVAL_MS) / 1000}s`,
+    );
   }
-  throw new Error(`Server failed to start within ${(MAX_RETRIES * RETRY_INTERVAL_MS) / 1000}s`);
-}
 
-async function isServerAlreadyRunning(): Promise<boolean> {
-  try {
-    const res = await fetch(HEALTH_URL);
-    return res.ok;
-  } catch {
-    return false;
+  const res = await fetch(HEALTH_URL).catch(() => null);
+
+  if (res?.ok) {
+    return;
   }
-}
 
-export async function startServer(): Promise<void> {
-  if (serverProcess) return;
+  await new Promise((r) => setTimeout(r, RETRY_INTERVAL_MS));
+
+  return waitForHealth(remaining - 1);
+};
+
+const isServerAlreadyRunning = async (): Promise<boolean> => {
+  const res = await fetch(HEALTH_URL).catch(() => null);
+
+  return res?.ok ?? false;
+};
+
+export const startServer = async (): Promise<void> => {
+  if (serverState.process) {
+    return;
+  }
 
   // If server is already running (e.g. dev mode), skip sidecar spawn
   if (await isServerAlreadyRunning()) {
     console.log("[sidecar] server already running, skipping spawn");
+
     return;
   }
+
+  // Generate per-launch auth token
+  const tokenBytes = new Uint8Array(32);
+  crypto.getRandomValues(tokenBytes);
+  serverState.authToken = Array.from(tokenBytes, (b) =>
+    b.toString(16).padStart(2, "0"),
+  ).join("");
 
   // Resolve the bundle path from Tauri resources
   const bundlePath = await resolveResource("resources/server/server-bundle.mjs");
@@ -45,6 +62,8 @@ export async function startServer(): Promise<void> {
   const command = Command.sidecar("binaries/ordine-server", [bundlePath], {
     env: {
       NODE_ENV: "production",
+      DESKTOP_MODE: "true",
+      DESKTOP_AUTH_TOKEN: serverState.authToken,
     },
   });
 
@@ -62,20 +81,18 @@ export async function startServer(): Promise<void> {
 
   command.on("close", (data) => {
     console.log(`[sidecar] server exited with code ${data.code}, signal ${data.signal}`);
-    serverProcess = null;
+    serverState.process = null;
   });
 
-  serverProcess = await command.spawn();
+  serverState.process = await command.spawn();
   await waitForHealth();
-}
+};
 
-export async function stopServer(): Promise<void> {
-  if (serverProcess) {
-    await serverProcess.kill();
-    serverProcess = null;
+export const stopServer = async (): Promise<void> => {
+  if (serverState.process) {
+    await serverState.process.kill();
+    serverState.process = null;
   }
-}
+};
 
-export function isServerRunning(): boolean {
-  return serverProcess !== null;
-}
+export const isServerRunning = (): boolean => serverState.process !== null;
