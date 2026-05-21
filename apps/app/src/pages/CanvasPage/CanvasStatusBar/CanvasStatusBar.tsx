@@ -13,7 +13,10 @@ export const CanvasStatusBar = () => {
 
   return (
     <div className="pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2">
-      <div className="flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-border bg-background/90 px-3 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+      <div
+        className="flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-border bg-background/90 px-3 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur-sm"
+        data-testid="canvas-status-bar"
+      >
         <span className="whitespace-nowrap">
           {t("canvas.status.nodeCount", { count: nodes.length })}
         </span>

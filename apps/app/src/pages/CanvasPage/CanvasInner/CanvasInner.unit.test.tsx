@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
 import type * as XyFlowReact from "@xyflow/react";
@@ -23,9 +24,32 @@ vi.mock("@/services/pipelinesService", () => ({
 }));
 
 vi.mock("@refinedev/core", () => ({
-  useList: () => ({ result: { data: [] } }),
+  useList: ({ resource }: { resource: string }) => ({
+    result: {
+      data:
+        resource === "operations"
+          ? [
+              {
+                id: "review-code",
+                name: "Review Code",
+                description: "",
+                config: {},
+                acceptedObjectTypes: ["file"],
+              },
+            ]
+          : [],
+    },
+  }),
   useUpdate: () => ({ mutate: vi.fn(), mutation: { isPending: false } }),
   useCreate: () => ({ mutate: vi.fn(), mutation: { isPending: false } }),
+}));
+
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children, to, ...props }: React.PropsWithChildren<{ to: string }>) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 const queryClient = new QueryClient({
@@ -71,6 +95,25 @@ describe("CanvasInner", () => {
   it("renders without crashing", () => {
     const { container } = render(<CanvasInner />, { wrapper: wrapperWithoutPipeline });
     expect(container.firstChild).toBeTruthy();
+  });
+
+  it("renders the LangFlow shell with mini sidebar and component panel", () => {
+    render(<CanvasInner />, { wrapper });
+
+    expect(screen.getByTestId("canvas-langflow-shell")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-mini-sidebar")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-component-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-flow-viewport")).toBeInTheDocument();
+  });
+
+  it("opens the workspace sidebar overlay from the mini sidebar", async () => {
+    const user = userEvent.setup();
+    render(<CanvasInner />, { wrapper });
+
+    await user.click(screen.getByRole("button", { name: /Workspace/i }));
+
+    expect(screen.getByTestId("canvas-workspace-sidebar-overlay")).toBeInTheDocument();
+    expect(screen.getByText("Dashboard")).toBeInTheDocument();
   });
 
   it("shows the canvas empty state when there are no nodes", () => {

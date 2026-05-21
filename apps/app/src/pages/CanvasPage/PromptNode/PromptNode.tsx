@@ -17,6 +17,7 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 export const PromptNode = ({ id, data, selected }: PromptNodeProps) => {
   const store = useCanvasPageStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
+  const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const { rightPortCount } = useStore(store, useShallow(selectNodePortCounts(id)));
 
@@ -28,6 +29,7 @@ export const PromptNode = ({ id, data, selected }: PromptNodeProps) => {
     <NodeCard
       rightHandle
       bodyClassName="space-y-2"
+      compact={nodeCardMode === "compact"}
       description="Prompt"
       dimmed={dimmed}
       icon={MessageSquareText}

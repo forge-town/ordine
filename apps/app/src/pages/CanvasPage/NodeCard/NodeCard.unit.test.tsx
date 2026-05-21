@@ -69,6 +69,17 @@ describe("NodeCard", () => {
     expect(screen.getByText("Body content")).toBeInTheDocument();
   });
 
+  it("hides card body when compact", () => {
+    const { container } = render(
+      <NodeCard compact icon={Box} label="Node" theme="emerald">
+        <span>Body content</span>
+      </NodeCard>,
+    );
+
+    expect(screen.queryByText("Body content")).not.toBeInTheDocument();
+    expect(container.firstElementChild).toHaveAttribute("data-card-mode", "compact");
+  });
+
   it("does not render body wrapper when no children", () => {
     const { container } = render(<NodeCard icon={Box} label="Node" theme="emerald" />);
     const wrapper = container.firstElementChild;

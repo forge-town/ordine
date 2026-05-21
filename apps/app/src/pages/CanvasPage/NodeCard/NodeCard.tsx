@@ -15,6 +15,7 @@ export interface NodeCardProps extends NodeCardFrameProps {
   rightConnectedPortMask?: number;
   leftHandleCount?: number;
   rightHandleCount?: number;
+  compact?: boolean;
 }
 
 const useCardMaxPortSpread = (
@@ -73,6 +74,7 @@ export const NodeCard = memo(
     rightConnectedPortMask,
     leftHandleCount = 1,
     rightHandleCount = 1,
+    compact = false,
     selected,
     theme,
     icon,
@@ -93,6 +95,7 @@ export const NodeCard = memo(
       <div
         ref={wrapperRef}
         className="group/node-card relative"
+        data-card-mode={compact ? "compact" : "expanded"}
         data-selected={selected ? "true" : "false"}
       >
         <NodeCardFrame
@@ -107,7 +110,7 @@ export const NodeCard = memo(
           theme={theme}
           onLabelChange={handleLabelChange}
         >
-          {children}
+          {compact ? undefined : children}
         </NodeCardFrame>
         {hasPorts && (
           <NodeCardPorts

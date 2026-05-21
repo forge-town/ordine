@@ -20,6 +20,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
+  const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const { rightPortCount } = useStore(store, useShallow(selectNodePortCounts(id)));
   const [browserOpen, setBrowserOpen] = useState(false);
@@ -50,6 +51,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
       <NodeCard
         rightHandle
         bodyClassName="space-y-2"
+        compact={nodeCardMode === "compact"}
         description={t("canvas.nodeTypes.file.label")}
         dimmed={dimmed}
         icon={FileCode}

@@ -54,6 +54,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const { runStatus: nodeRunStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
+  const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
@@ -151,6 +152,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         leftHandle
         rightHandle
         bodyClassName="space-y-2"
+        compact={nodeCardMode === "compact"}
         description={operation?.description || t("nodes.operation.customDescription")}
         dimmed={dimmed}
         headerRight={

@@ -1,4 +1,13 @@
-import { Grid3X3, Map, MousePointer2, Settings2, X, Magnet } from "lucide-react";
+import {
+  Grid3X3,
+  Map,
+  MousePointer2,
+  PanelLeft,
+  PanelRight,
+  Settings2,
+  X,
+  Magnet,
+} from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -14,7 +23,7 @@ import {
   SheetTitle,
 } from "@repo/ui/sheet";
 import { cn } from "@repo/ui/lib/utils";
-import { useCanvasPageStore, type CanvasSettingsState } from "../_store";
+import { useCanvasPageStore, type CanvasSettingsState, type NodeCardMode } from "../_store";
 
 const settingEntries = [
   { id: "showMiniMap" as const, icon: Map },
@@ -23,14 +32,21 @@ const settingEntries = [
   { id: "snapToGrid" as const, icon: Magnet },
 ];
 
+const nodeCardModeOptions = [
+  { id: "compact" as const, icon: PanelLeft },
+  { id: "expanded" as const, icon: PanelRight },
+];
+
 export const CanvasSettingsDrawer = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const isOpen = useStore(store, (s) => s.isCanvasSettingsOpen);
   const settings = useStore(store, (s) => s.canvasSettings);
+  const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const openCanvasSettings = useStore(store, (s) => s.openCanvasSettings);
   const closeCanvasSettings = useStore(store, (s) => s.closeCanvasSettings);
   const updateCanvasSettings = useStore(store, (s) => s.updateCanvasSettings);
+  const setNodeCardMode = useStore(store, (s) => s.setNodeCardMode);
 
   const handleOpenChange = (open: boolean) => {
     if (open) {
@@ -51,6 +67,10 @@ export const CanvasSettingsDrawer = () => {
 
   const handleGlobalSettingsClick = () => {
     closeCanvasSettings();
+  };
+
+  const handleNodeCardModeClick = (mode: NodeCardMode) => {
+    setNodeCardMode(mode);
   };
 
   return (
@@ -121,6 +141,39 @@ export const CanvasSettingsDrawer = () => {
               </div>
             );
           })}
+
+          <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-600">
+                <PanelLeft className="size-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <Label className="text-slate-800">
+                  {t("canvas.settingsDrawer.nodeCardMode.label", {
+                    defaultValue: "Node card mode",
+                  })}
+                </Label>
+                <div className="mt-3 grid grid-cols-2 overflow-hidden rounded-md border border-slate-200 bg-slate-50 p-1">
+                  {nodeCardModeOptions.map(({ id, icon: Icon }) => (
+                    <Button
+                      key={id}
+                      aria-pressed={nodeCardMode === id}
+                      className="h-8 gap-1.5"
+                      size="sm"
+                      type="button"
+                      variant={nodeCardMode === id ? "secondary" : "ghost"}
+                      onClick={() => handleNodeCardModeClick(id)}
+                    >
+                      <Icon className="size-3.5" />
+                      {t(`canvas.settingsDrawer.nodeCardMode.${id}`, {
+                        defaultValue: id === "compact" ? "Compact" : "Expanded",
+                      })}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="border-t bg-slate-50 p-4">

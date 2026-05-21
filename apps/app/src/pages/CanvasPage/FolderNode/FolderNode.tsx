@@ -24,6 +24,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
+  const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const handleNodeAddExcludedPath = useStore(store, (s) => s.handleNodeAddExcludedPath);
   const handleNodeRemoveExcludedPath = useStore(store, (s) => s.handleNodeRemoveExcludedPath);
@@ -66,6 +67,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
       <NodeCard
         rightHandle
         bodyClassName="space-y-2"
+        compact={nodeCardMode === "compact"}
         description={t("canvas.nodeTypes.folder.label")}
         dimmed={dimmed}
         icon={Folder}

@@ -27,6 +27,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
+  const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const [pickOpen, setPickOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
   const [localFolderOpen, setLocalFolderOpen] = useState(false);
@@ -84,6 +85,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
       <NodeCard
         rightHandle
         bodyClassName="space-y-2"
+        compact={nodeCardMode === "compact"}
         description={t("canvas.nodeTypes.github-project.label")}
         dimmed={dimmed}
         icon={SiGitHubIcon}
