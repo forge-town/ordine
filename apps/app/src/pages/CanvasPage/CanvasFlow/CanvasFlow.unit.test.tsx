@@ -1,9 +1,13 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
 import type * as XyFlowReact from "@xyflow/react";
 import type { PipelineNode } from "../_store/canvasSlice";
 import { createCanvasPageStore, CanvasPageStoreContext, CanvasPageStoreProvider } from "../_store";
+import {
+  CANVAS_COMPONENT_DRAG_MIME,
+  encodeCanvasComponentDragPayload,
+} from "../utils/canvasComponentDragPayload";
 import { CanvasFlow } from "./CanvasFlow";
 
 vi.mock("@xyflow/react", async (importOriginal) => {
@@ -130,6 +134,19 @@ const renderWithStore = (nodes: PipelineNode[], isConsoleOpen = false) => {
   );
 };
 
+const makeDragEvent = (
+  type: "dragover" | "drop",
+  dataTransfer: object,
+  position?: { clientX: number; clientY: number },
+) => {
+  const event = new Event(type, { bubbles: true, cancelable: true });
+  Object.defineProperty(event, "dataTransfer", { value: dataTransfer });
+  Object.defineProperty(event, "clientX", { value: position?.clientX ?? 0 });
+  Object.defineProperty(event, "clientY", { value: position?.clientY ?? 0 });
+
+  return event;
+};
+
 describe("CanvasFlow", () => {
   it("renders without crashing", () => {
     const { container } = render(<CanvasFlow />, { wrapper });
@@ -237,5 +254,40 @@ describe("CanvasFlow", () => {
     );
 
     expect(viewportRef.current).toBe(screen.getByTestId("canvas-flow-viewport"));
+  });
+
+  it("drops dragged palette items onto the flow viewport", () => {
+    const store = createCanvasPageStore([], []);
+    const dataTransfer = {
+      dropEffect: "none",
+      types: [CANVAS_COMPONENT_DRAG_MIME],
+      getData: vi.fn(() =>
+        encodeCanvasComponentDragPayload({
+          kind: "object",
+          type: "file",
+        }),
+      ),
+    };
+
+    render(
+      <CanvasPageStoreContext.Provider value={store}>
+        <ReactFlowProvider>
+          <CanvasFlow />
+        </ReactFlowProvider>
+      </CanvasPageStoreContext.Provider>,
+    );
+
+    const viewport = screen.getByTestId("canvas-flow-viewport");
+    fireEvent(viewport, makeDragEvent("dragover", dataTransfer));
+    fireEvent(viewport, makeDragEvent("drop", dataTransfer, { clientX: 240, clientY: 180 }));
+
+    expect(dataTransfer.dropEffect).toBe("copy");
+    expect(store.getState().nodes).toEqual([
+      expect.objectContaining({
+        type: "file",
+        origin: [0.5, 0.5],
+        position: { x: 240, y: 180 },
+      }),
+    ]);
   });
 });

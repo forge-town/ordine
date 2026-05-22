@@ -75,23 +75,31 @@ export const NodeCardFrame = memo(
             >
               <Icon className={cn("h-4 w-4", t.iconColor)} />
             </div>
-            <div className="flex min-h-8 flex-1 min-w-0 flex-col justify-center">
+            <div className="flex min-h-8 flex-1 min-w-0 flex-col items-start justify-center">
               {handleChange ? (
-                <input
-                  aria-label={translate("canvas.nodeLabel")}
-                  className={cn(
-                    "nodrag nopan w-auto max-w-full bg-transparent text-xs font-semibold leading-tight [field-sizing:content] focus:outline-none",
-                    isLabelEditing ? "select-text" : "cursor-default select-none",
-                  )}
-                  name="nodeLabel"
-                  readOnly={!isLabelEditing}
-                  value={label}
-                  onBlur={handleLabelBlur}
-                  onChange={handleChange}
-                  onClick={handleLabelClick}
-                  onFocus={handleLabelFocus}
-                  onMouseDown={handleMouseDown}
-                />
+                <span className="relative inline-block max-w-full min-w-0 overflow-hidden align-top">
+                  <span
+                    aria-hidden="true"
+                    className="invisible block max-w-full truncate whitespace-pre text-xs font-semibold leading-tight"
+                  >
+                    {label || " "}
+                  </span>
+                  <input
+                    aria-label={translate("canvas.nodeLabel")}
+                    className={cn(
+                      "nodrag nopan absolute inset-0 h-full w-full min-w-0 max-w-full truncate border-0 bg-transparent p-0 text-xs font-semibold leading-tight focus:outline-none",
+                      isLabelEditing ? "select-text" : "cursor-default select-none",
+                    )}
+                    name="nodeLabel"
+                    readOnly={!isLabelEditing}
+                    value={label}
+                    onBlur={handleLabelBlur}
+                    onChange={handleChange}
+                    onClick={handleLabelClick}
+                    onFocus={handleLabelFocus}
+                    onMouseDown={handleMouseDown}
+                  />
+                </span>
               ) : (
                 <CardTitle className="truncate text-xs font-semibold leading-tight">
                   {label}

@@ -287,6 +287,27 @@ describe("NodeCard", () => {
     expect(input).toHaveAttribute("readonly");
   });
 
+  it("sizes editable label input to the title text instead of the header row", () => {
+    const handleLabelChange = vi.fn();
+    render(
+      <NodeCard
+        icon={Box}
+        label="Editable Node"
+        theme="emerald"
+        onLabelChange={handleLabelChange}
+      />,
+    );
+
+    const input = screen.getByLabelText(/Node label|节点标签/);
+    const labelSizer = input.parentElement;
+    const mirrorLabel = labelSizer?.firstElementChild;
+
+    expect(labelSizer).toHaveClass("relative", "inline-block", "max-w-full", "overflow-hidden");
+    expect(mirrorLabel).toHaveClass("invisible", "block", "truncate", "whitespace-pre");
+    expect(input).toHaveClass("absolute", "inset-0", "w-full", "max-w-full", "truncate", "p-0");
+    expect(input).not.toHaveClass("w-auto");
+  });
+
   it("enables editable label when focused by keyboard", () => {
     const handleLabelChange = vi.fn();
     render(

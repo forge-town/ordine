@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ElementType } from "react";
+import { useEffect, useRef, useState, type DragEvent, type ElementType } from "react";
 import { Link } from "@tanstack/react-router";
 import { useList } from "@refinedev/core";
 import type { BuiltinNodeType, Operation, Skill } from "@repo/schemas";
@@ -25,6 +25,11 @@ import { cn } from "@repo/ui/lib/utils";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useCanvasPageStore, type CanvasComponentCategory } from "../_store";
+import {
+  CANVAS_COMPONENT_DRAG_MIME,
+  encodeCanvasComponentDragPayload,
+  type CanvasComponentDragPayload,
+} from "../utils/canvasComponentDragPayload";
 import { getNodeMeta, getNodeTypeLabel, getNodeTypeShortLabel } from "../utils/nodeTypeMeta";
 
 interface CanvasComponentPanelProps {
@@ -54,11 +59,41 @@ const shouldHandleSlashShortcut = (target: EventTarget | null) => {
   return !["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) && !target.isContentEditable;
 };
 
+const createDragImage = ({
+  iconBg,
+  label,
+  shortLabel,
+}: {
+  iconBg: string;
+  label: string;
+  shortLabel: string;
+}) => {
+  const image = document.createElement("div");
+  image.className = "canvas-component-drag-image";
+
+  const icon = document.createElement("span");
+  icon.className = `canvas-component-drag-image__icon ${iconBg}`;
+
+  const text = document.createElement("span");
+  text.className = "canvas-component-drag-image__text";
+  text.textContent = label;
+
+  const meta = document.createElement("span");
+  meta.className = "canvas-component-drag-image__meta";
+  meta.textContent = shortLabel;
+
+  image.append(icon, text, meta);
+  document.body.append(image);
+
+  return image;
+};
+
 export const CanvasComponentPanel = ({
   getCreateNodeScreenPosition,
 }: CanvasComponentPanelProps) => {
   const { t } = useTranslation();
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const [draggingComponentId, setDraggingComponentId] = useState<string | null>(null);
   const store = useCanvasPageStore();
   const componentSearchQuery = useStore(store, (state) => state.componentSearchQuery);
   const collapsedComponentCategories = useStore(
@@ -105,6 +140,38 @@ export const CanvasComponentPanel = ({
 
   const handleSkillItemClick = (skill: Skill) => () => {
     void handleCreateSkillOperationNode(skill, getCreateNodeScreenPosition());
+  };
+
+  const handleComponentDragStart =
+    ({
+      dragId,
+      iconBg,
+      label,
+      payload,
+      shortLabel,
+    }: {
+      dragId: string;
+      iconBg: string;
+      label: string;
+      payload: CanvasComponentDragPayload;
+      shortLabel: string;
+    }) =>
+    (event: DragEvent<HTMLButtonElement>) => {
+      event.dataTransfer.effectAllowed = "copy";
+      event.dataTransfer.setData(
+        CANVAS_COMPONENT_DRAG_MIME,
+        encodeCanvasComponentDragPayload(payload),
+      );
+      event.dataTransfer.setData("text/plain", label);
+
+      const dragImage = createDragImage({ iconBg, label, shortLabel });
+      event.dataTransfer.setDragImage(dragImage, 24, 24);
+      setTimeout(() => dragImage.remove(), 0);
+      setDraggingComponentId(dragId);
+    };
+
+  const handleComponentDragEnd = () => {
+    setDraggingComponentId(null);
   };
 
   const objectItems = INPUT_NODE_TYPES.filter((type) => {
@@ -169,10 +236,22 @@ export const CanvasComponentPanel = ({
     return (
       <Button
         key={type}
-        className="h-10 w-full justify-start gap-2 rounded-md px-2 text-left"
+        draggable
+        className={cn(
+          "h-10 w-full cursor-grab justify-start gap-2 rounded-md px-2 text-left transition-[opacity,transform,background-color] active:cursor-grabbing",
+          draggingComponentId === type && "scale-[0.98] opacity-60",
+        )}
         type="button"
         variant="ghost"
         onClick={handleNodeTypeItemClick(type)}
+        onDragEnd={handleComponentDragEnd}
+        onDragStart={handleComponentDragStart({
+          dragId: type,
+          iconBg: meta.iconBg,
+          label,
+          payload: { kind: "object", type },
+          shortLabel,
+        })}
       >
         <span
           className={cn("flex size-6 shrink-0 items-center justify-center rounded", meta.iconBg)}
@@ -221,10 +300,22 @@ export const CanvasComponentPanel = ({
             {operationItems.map((operation) => (
               <Button
                 key={operation.id}
-                className="h-10 w-full justify-start gap-2 rounded-md px-2 text-left"
+                draggable
+                className={cn(
+                  "h-10 w-full cursor-grab justify-start gap-2 rounded-md px-2 text-left transition-[opacity,transform,background-color] active:cursor-grabbing",
+                  draggingComponentId === operation.id && "scale-[0.98] opacity-60",
+                )}
                 type="button"
                 variant="ghost"
                 onClick={handleOperationItemClick(operation)}
+                onDragEnd={handleComponentDragEnd}
+                onDragStart={handleComponentDragStart({
+                  dragId: operation.id,
+                  iconBg: "bg-violet-500",
+                  label: operation.name,
+                  payload: { kind: "operation", operation },
+                  shortLabel: "Operation",
+                })}
               >
                 <span className="flex size-6 shrink-0 items-center justify-center rounded bg-violet-500">
                   <Zap className="size-3.5 text-white" />
@@ -244,10 +335,22 @@ export const CanvasComponentPanel = ({
             {skillItems.map((skill) => (
               <Button
                 key={skill.id}
-                className="h-auto min-h-10 w-full justify-start gap-2 rounded-md px-2 py-2 text-left"
+                draggable
+                className={cn(
+                  "h-auto min-h-10 w-full cursor-grab justify-start gap-2 rounded-md px-2 py-2 text-left transition-[opacity,transform,background-color] active:cursor-grabbing",
+                  draggingComponentId === skill.id && "scale-[0.98] opacity-60",
+                )}
                 type="button"
                 variant="ghost"
                 onClick={handleSkillItemClick(skill)}
+                onDragEnd={handleComponentDragEnd}
+                onDragStart={handleComponentDragStart({
+                  dragId: skill.id,
+                  iconBg: "bg-amber-500",
+                  label: skill.label,
+                  payload: { kind: "skill", skill },
+                  shortLabel: skill.tags[0] ?? "Skill",
+                })}
               >
                 <span className="flex size-6 shrink-0 items-center justify-center rounded bg-amber-500">
                   <Sparkles className="size-3.5 text-white" />

@@ -1,4 +1,4 @@
-import { useMemo, type Ref } from "react";
+import { useMemo, type DragEvent, type Ref } from "react";
 import { useStore } from "zustand";
 import { useCanvasPageStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -12,6 +12,11 @@ import { OperationNode } from "../OperationNode";
 import { PromptNode } from "../PromptNode";
 import { OutputProjectPathNode } from "../OutputProjectPathNode";
 import { OutputLocalPathNode } from "../OutputLocalPathNode";
+import {
+  CANVAS_COMPONENT_DRAG_MIME,
+  decodeCanvasComponentDragPayload,
+  hasCanvasComponentDragPayload,
+} from "../utils/canvasComponentDragPayload";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 import { decorateEdgesWithPortHandles } from "../NodeCard";
 
@@ -41,6 +46,15 @@ interface CanvasFlowProps {
   viewportRef?: Ref<HTMLDivElement>;
 }
 
+const handleComponentDragOver = (event: DragEvent<HTMLDivElement>) => {
+  if (!hasCanvasComponentDragPayload(event.dataTransfer.types)) {
+    return;
+  }
+
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "copy";
+};
+
 export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const store = useCanvasPageStore();
 
@@ -67,6 +81,9 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const handleFlowEdgeClick = useStore(store, (s) => s.handleFlowEdgeClick);
   const handleFlowPaneClick = useStore(store, (s) => s.handleFlowPaneClick);
   const handleFlowPaneContextMenu = useStore(store, (s) => s.handleFlowPaneContextMenu);
+  const handleCreateObjectNode = useStore(store, (s) => s.handleCreateObjectNode);
+  const handleCreateOperationNode = useStore(store, (s) => s.handleCreateOperationNode);
+  const handleCreateSkillOperationNode = useStore(store, (s) => s.handleCreateSkillOperationNode);
   const handleFlowNodeDrag = useStore(store, (s) => s.handleFlowNodeDrag);
   const handleFlowNodeDragStop = useStore(store, (s) => s.handleFlowNodeDragStop);
   const handleFlowMove = useStore(store, (s) => s.handleFlowMove);
@@ -102,8 +119,41 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
     { preventDefault: false },
   );
 
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    const payload = decodeCanvasComponentDragPayload(
+      event.dataTransfer.getData(CANVAS_COMPONENT_DRAG_MIME),
+    );
+    if (!payload) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const screenPosition = { x: event.clientX, y: event.clientY };
+    if (payload.kind === "object") {
+      handleCreateObjectNode(payload.type, screenPosition);
+
+      return;
+    }
+
+    if (payload.kind === "operation") {
+      handleCreateOperationNode(payload.operation, screenPosition);
+
+      return;
+    }
+
+    void handleCreateSkillOperationNode(payload.skill, screenPosition);
+  };
+
   return (
-    <div ref={viewportRef} className="h-full w-full" data-testid="canvas-flow-viewport">
+    <div
+      ref={viewportRef}
+      className="h-full w-full"
+      data-testid="canvas-flow-viewport"
+      onDragOver={handleComponentDragOver}
+      onDrop={handleDrop}
+    >
       <ReactFlow
         className="bg-slate-50/50"
         defaultEdgeOptions={defaultEdgeOptions}

@@ -1,9 +1,10 @@
 import { render } from "@/test/test-wrapper";
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Operation, Skill } from "@repo/schemas";
 import { describe, expect, it, vi } from "vitest";
 import { createCanvasPageStore, CanvasPageStoreContext } from "../_store";
+import { CANVAS_COMPONENT_DRAG_MIME } from "../utils/canvasComponentDragPayload";
 import { CanvasComponentPanel } from "./CanvasComponentPanel";
 
 const operations = [
@@ -86,5 +87,31 @@ describe("CanvasComponentPanel", () => {
 
     expect(screen.queryByRole("button", { name: /Review Code/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Error Handling/i })).toBeInTheDocument();
+  });
+
+  it("serializes palette items for drag creation", () => {
+    renderPanel();
+
+    const data = new Map<string, string>();
+    const dataTransfer = {
+      effectAllowed: "none",
+      setData: vi.fn((type: string, value: string) => data.set(type, value)),
+      setDragImage: vi.fn(),
+    };
+
+    fireEvent.dragStart(screen.getByRole("button", { name: /Review Code/i }), {
+      dataTransfer,
+    });
+
+    expect(dataTransfer.effectAllowed).toBe("copy");
+    expect(dataTransfer.setData).toHaveBeenCalledWith(
+      CANVAS_COMPONENT_DRAG_MIME,
+      expect.any(String),
+    );
+    expect(JSON.parse(data.get(CANVAS_COMPONENT_DRAG_MIME) ?? "{}")).toMatchObject({
+      kind: "operation",
+      operation: { id: "review-code" },
+    });
+    expect(dataTransfer.setDragImage).toHaveBeenCalled();
   });
 });

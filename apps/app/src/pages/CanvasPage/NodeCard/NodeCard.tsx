@@ -94,7 +94,7 @@ export const NodeCard = memo(
     return (
       <div
         ref={wrapperRef}
-        className="group/node-card relative"
+        className="canvas-node-pop group/node-card relative"
         data-card-mode={compact ? "compact" : "expanded"}
         data-selected={selected ? "true" : "false"}
       >
