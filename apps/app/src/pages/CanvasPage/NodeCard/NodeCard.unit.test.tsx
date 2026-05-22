@@ -115,11 +115,17 @@ describe("NodeCard", () => {
       "w-full",
       "min-w-0",
     );
+    expect(container.querySelector('[data-slot="card-description"]')).toHaveClass(
+      "w-full",
+      "max-w-full",
+      "truncate",
+    );
     expect(container.querySelector('[data-slot="card-header"]')).toHaveClass(
       "min-h-14",
       "rounded-none",
     );
     expect(container.querySelector('[data-slot="card-action"]')).toHaveClass(
+      "ml-auto",
       "shrink-0",
       "self-center",
     );

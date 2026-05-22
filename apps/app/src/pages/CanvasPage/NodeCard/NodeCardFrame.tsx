@@ -75,7 +75,7 @@ export const NodeCardFrame = memo(
             >
               <Icon className={cn("h-4 w-4", t.iconColor)} />
             </div>
-            <div className="flex min-h-8 flex-1 min-w-0 flex-col items-start justify-center">
+            <div className="flex min-h-8 min-w-0 flex-1 flex-col items-start justify-center overflow-hidden">
               {handleChange ? (
                 <span className="relative inline-block max-w-full min-w-0 overflow-hidden align-top">
                   <span
@@ -101,17 +101,19 @@ export const NodeCardFrame = memo(
                   />
                 </span>
               ) : (
-                <CardTitle className="truncate text-xs font-semibold leading-tight">
+                <CardTitle className="w-full max-w-full truncate text-xs font-semibold leading-tight">
                   {label}
                 </CardTitle>
               )}
               {description && (
-                <CardDescription className="truncate text-[10px] leading-tight">
+                <CardDescription className="w-full max-w-full truncate text-[10px] leading-tight">
                   {description}
                 </CardDescription>
               )}
             </div>
-            {headerRight && <CardAction className="shrink-0 self-center">{headerRight}</CardAction>}
+            {headerRight && (
+              <CardAction className="ml-auto shrink-0 self-center">{headerRight}</CardAction>
+            )}
           </div>
         </CardHeader>
         {children && (

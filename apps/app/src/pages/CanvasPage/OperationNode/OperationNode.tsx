@@ -158,7 +158,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         headerRight={
           <div
             className={cn(
-              "flex shrink-0 items-center gap-1.5 rounded-md border px-2 py-1 shadow-sm",
+              "flex min-w-fit shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1 shadow-sm",
               data.status === "pass" && "bg-green-50 border-green-100",
               data.status === "fail" && "bg-red-50 border-red-100",
               data.status === "running" && "bg-blue-50 border-blue-100",
