@@ -88,4 +88,17 @@ describe("CanvasNodePropertiesPanel", () => {
     expect(data.maxLoopCount).toBe(8);
     expect(typeof data.maxLoopCount).toBe("number");
   });
+
+  it("uses number input semantics for max loop count edits", () => {
+    const store = renderPanel(operationNode);
+    const input = screen.getByRole("spinbutton", { name: /Max loop count/i });
+    const readMaxLoopCount = () =>
+      (store.getState().nodes[0]?.data as { maxLoopCount?: unknown } | undefined)?.maxLoopCount;
+
+    fireEvent.change(input, { target: { value: "1e2" } });
+    expect(readMaxLoopCount()).toBe(20);
+
+    fireEvent.change(input, { target: { value: "7.5" } });
+    expect(readMaxLoopCount()).toBe(20);
+  });
 });

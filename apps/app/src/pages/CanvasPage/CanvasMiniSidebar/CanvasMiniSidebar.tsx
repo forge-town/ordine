@@ -5,6 +5,8 @@ import { Button } from "@repo/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
 import { useCanvasPageStore } from "../_store";
 
+export const CANVAS_WORKSPACE_SIDEBAR_ID = "canvas-workspace-sidebar-overlay";
+
 export const CanvasMiniSidebar = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
@@ -16,9 +18,10 @@ export const CanvasMiniSidebar = () => {
 
   const workspaceLabel = t("canvas.workspaceSidebar.title", { defaultValue: "Workspace" });
   const settingsLabel = t("canvas.settingsDrawer.menuLabel");
-  const nodeCardLabel =
+  const compactCardsLabel = t("canvas.nodeCardMode.compact", { defaultValue: "Compact cards" });
+  const nodeCardModeLabel =
     nodeCardMode === "compact"
-      ? t("canvas.nodeCardMode.compact", { defaultValue: "Compact cards" })
+      ? compactCardsLabel
       : t("canvas.nodeCardMode.expanded", { defaultValue: "Expanded cards" });
   const handleOpenWorkspaceSidebar = () => {
     openWorkspaceSidebar();
@@ -44,8 +47,9 @@ export const CanvasMiniSidebar = () => {
           <TooltipTrigger
             render={
               <Button
+                aria-controls={CANVAS_WORKSPACE_SIDEBAR_ID}
+                aria-expanded={isWorkspaceSidebarOpen}
                 aria-label={workspaceLabel}
-                aria-pressed={isWorkspaceSidebarOpen}
                 className="size-9 rounded-md"
                 size="icon"
                 variant={isWorkspaceSidebarOpen ? "secondary" : "ghost"}
@@ -62,11 +66,11 @@ export const CanvasMiniSidebar = () => {
           <TooltipTrigger
             render={
               <Button
-                aria-label={nodeCardLabel}
-                aria-pressed={nodeCardMode === "expanded"}
+                aria-label={compactCardsLabel}
+                aria-pressed={nodeCardMode === "compact"}
                 className="size-9 rounded-md"
                 size="icon"
-                variant={nodeCardMode === "expanded" ? "secondary" : "ghost"}
+                variant={nodeCardMode === "compact" ? "secondary" : "ghost"}
                 onClick={handleToggleNodeCardMode}
               />
             }
@@ -77,7 +81,7 @@ export const CanvasMiniSidebar = () => {
               <PanelRight className="size-4" />
             )}
           </TooltipTrigger>
-          <TooltipContent>{nodeCardLabel}</TooltipContent>
+          <TooltipContent>{nodeCardModeLabel}</TooltipContent>
         </Tooltip>
 
         <Tooltip>

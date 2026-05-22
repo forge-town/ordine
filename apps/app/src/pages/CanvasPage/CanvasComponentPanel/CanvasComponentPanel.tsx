@@ -113,6 +113,31 @@ export const CanvasComponentPanel = ({
   const operations = operationsResult.data;
   const skills = skillsResult.data;
   const search = normalizeSearch(componentSearchQuery);
+  const componentSearchLabel = t("canvas.componentPanel.searchLabel", {
+    defaultValue: "Search components",
+  });
+  const componentSearchPlaceholder = t("canvas.componentPanel.searchPlaceholder", {
+    defaultValue: "Search components...",
+  });
+  const inputCategoryLabel = t("canvas.componentPanel.categories.input", {
+    defaultValue: "Input Objects",
+  });
+  const operationsCategoryLabel = t("canvas.componentPanel.categories.operations", {
+    defaultValue: "Operations",
+  });
+  const skillsCategoryLabel = t("canvas.componentPanel.categories.skills", {
+    defaultValue: "Skills",
+  });
+  const outputCategoryLabel = t("canvas.componentPanel.categories.output", {
+    defaultValue: "Output",
+  });
+  const operationShortLabel = t("canvas.nodeTypes.operation.shortLabel");
+  const skillFallbackLabel = t("canvas.componentPanel.skillFallbackLabel", {
+    defaultValue: "Skill",
+  });
+  const newCustomOperationLabel = t("canvas.componentPanel.newCustomOperation", {
+    defaultValue: "New Custom Operation",
+  });
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -213,7 +238,10 @@ export const CanvasComponentPanel = ({
     return (
       <Button
         aria-expanded={!collapsed}
-        aria-label={`${label} category`}
+        aria-label={t("canvas.componentPanel.categoryAriaLabel", {
+          label,
+          defaultValue: "{{label}} category",
+        })}
         className="h-9 w-full justify-start gap-2 rounded-none border-t px-5 text-sm font-semibold"
         type="button"
         variant="ghost"
@@ -275,10 +303,10 @@ export const CanvasComponentPanel = ({
           <Search className="size-4 text-muted-foreground" />
           <Input
             ref={searchInputRef}
-            aria-label="Search components"
+            aria-label={componentSearchLabel}
             className="h-8 border-none bg-transparent px-0 shadow-none focus-visible:ring-0"
             name="canvasComponentSearch"
-            placeholder="Search components..."
+            placeholder={componentSearchPlaceholder}
             value={componentSearchQuery}
             onChange={handleComponentSearchChange}
           />
@@ -289,12 +317,12 @@ export const CanvasComponentPanel = ({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {renderCategoryHeader("input", "Input Objects", objectItems.length)}
+        {renderCategoryHeader("input", inputCategoryLabel, objectItems.length)}
         {!collapsedComponentCategories.input && (
           <div className="space-y-1 p-3">{objectItems.map(renderNodeTypeItem)}</div>
         )}
 
-        {renderCategoryHeader("operations", "Operations", operationItems.length)}
+        {renderCategoryHeader("operations", operationsCategoryLabel, operationItems.length)}
         {!collapsedComponentCategories.operations && (
           <div className="space-y-1 p-3">
             {operationItems.map((operation) => (
@@ -314,7 +342,7 @@ export const CanvasComponentPanel = ({
                   iconBg: "bg-violet-500",
                   label: operation.name,
                   payload: { kind: "operation", operation },
-                  shortLabel: "Operation",
+                  shortLabel: operationShortLabel,
                 })}
               >
                 <span className="flex size-6 shrink-0 items-center justify-center rounded bg-violet-500">
@@ -329,7 +357,7 @@ export const CanvasComponentPanel = ({
           </div>
         )}
 
-        {renderCategoryHeader("skills", "Skills", skillItems.length)}
+        {renderCategoryHeader("skills", skillsCategoryLabel, skillItems.length)}
         {!collapsedComponentCategories.skills && (
           <div className="space-y-1 p-3">
             {skillItems.map((skill) => (
@@ -349,7 +377,7 @@ export const CanvasComponentPanel = ({
                   iconBg: "bg-amber-500",
                   label: skill.label,
                   payload: { kind: "skill", skill },
-                  shortLabel: skill.tags[0] ?? "Skill",
+                  shortLabel: skill.tags[0] ?? skillFallbackLabel,
                 })}
               >
                 <span className="flex size-6 shrink-0 items-center justify-center rounded bg-amber-500">
@@ -366,7 +394,7 @@ export const CanvasComponentPanel = ({
           </div>
         )}
 
-        {renderCategoryHeader("output", "Output", outputItems.length)}
+        {renderCategoryHeader("output", outputCategoryLabel, outputItems.length)}
         {!collapsedComponentCategories.output && (
           <div className="space-y-1 p-3">{outputItems.map(renderNodeTypeItem)}</div>
         )}
@@ -378,7 +406,7 @@ export const CanvasComponentPanel = ({
           to="/pipelines/operations/new"
         >
           <Plus className="size-4" />
-          New Custom Operation
+          {newCustomOperationLabel}
         </Link>
       </div>
     </div>

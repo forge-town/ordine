@@ -37,6 +37,7 @@ import {
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
 import { useCanvasPageStore } from "../_store";
+import { CANVAS_WORKSPACE_SIDEBAR_ID } from "../CanvasMiniSidebar";
 import {
   isCanvasImportFileTooLarge,
   parseCanvasImportJson,
@@ -195,6 +196,7 @@ export const CanvasWorkspaceSidebarOverlay = () => {
       <SheetContent
         className="flex w-[min(22rem,calc(100vw-1rem))] flex-col gap-0 border-r bg-background/95 p-0 backdrop-blur"
         data-testid="canvas-workspace-sidebar-overlay"
+        id={CANVAS_WORKSPACE_SIDEBAR_ID}
         showCloseButton={false}
         side="left"
       >

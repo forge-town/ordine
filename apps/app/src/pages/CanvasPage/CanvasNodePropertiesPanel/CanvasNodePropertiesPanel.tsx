@@ -8,6 +8,7 @@ import {
   MessageSquareText,
   Zap,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { OUTPUT_MODE_ENUM, type OutputMode } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
@@ -19,15 +20,16 @@ import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { selectSelectedNode, useCanvasPageStore } from "../_store";
 import { getNodeMeta } from "../utils/nodeTypeMeta";
 
-const outputModeLabels: Record<OutputMode, string> = {
-  overwrite: "Overwrite",
-  error_if_exists: "Error if exists",
-  auto_rename: "Auto rename",
-};
+const outputModeLabelKeys = {
+  overwrite: "canvas.propertiesPanel.outputMode.overwrite",
+  error_if_exists: "canvas.propertiesPanel.outputMode.errorIfExists",
+  auto_rename: "canvas.propertiesPanel.outputMode.autoRename",
+} as const satisfies Record<OutputMode, string>;
 
 const fieldId = (nodeId: string, field: string) => `canvas-properties-${nodeId}-${field}`;
 
 export const CanvasNodePropertiesPanel = () => {
+  const { t } = useTranslation();
   const store = useCanvasPageStore();
   const selectedNode = useStore(store, selectSelectedNode);
   const updateNodeData = useStore(store, (state) => state.updateNodeData);
@@ -43,7 +45,7 @@ export const CanvasNodePropertiesPanel = () => {
   if (!selectedNode) {
     return (
       <div className="flex h-full flex-col bg-background p-4">
-        <p className="text-sm text-muted-foreground">Select a canvas node to configure it.</p>
+        <p className="text-sm text-muted-foreground">{t("canvas.propertiesPanel.empty")}</p>
       </div>
     );
   }
@@ -142,10 +144,12 @@ export const CanvasNodePropertiesPanel = () => {
   }) => {
     const id = fieldId(selectedNode.id, field);
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const nextValue = Number.parseInt(event.target.value, 10);
+      const nextValue = event.currentTarget.valueAsNumber;
 
-      if (!Number.isNaN(nextValue)) {
-        handleValueChange(nextValue);
+      if (Number.isFinite(nextValue) && Number.isInteger(nextValue)) {
+        const lowerBound = min ?? Number.NEGATIVE_INFINITY;
+        const upperBound = max ?? Number.POSITIVE_INFINITY;
+        handleValueChange(Math.min(Math.max(nextValue, lowerBound), upperBound));
       }
     };
 
@@ -180,7 +184,7 @@ export const CanvasNodePropertiesPanel = () => {
           onClick={handleBackToComponentsClick}
         >
           <ArrowLeft className="size-4" />
-          Back to components
+          {t("canvas.propertiesPanel.backToComponents")}
         </Button>
         <div className="flex items-center gap-3">
           <span
@@ -198,7 +202,7 @@ export const CanvasNodePropertiesPanel = () => {
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
         {renderTextField({
           field: "label",
-          label: "Label",
+          label: t("canvas.propertiesPanel.fields.label"),
           value: String(data.label ?? ""),
         })}
 
@@ -206,19 +210,19 @@ export const CanvasNodePropertiesPanel = () => {
           <>
             {renderTextField({
               field: "filePath",
-              label: "File path",
-              placeholder: "src/file.tsx",
+              label: t("canvas.propertiesPanel.fields.filePath"),
+              placeholder: t("canvas.propertiesPanel.placeholders.filePath"),
               value: data.filePath,
             })}
             {renderTextField({
               field: "language",
-              label: "Language",
-              placeholder: "typescript",
+              label: t("canvas.propertiesPanel.fields.language"),
+              placeholder: t("canvas.propertiesPanel.placeholders.language"),
               value: data.language ?? "",
             })}
             {renderTextareaField({
               field: "description",
-              label: "Description",
+              label: t("canvas.propertiesPanel.fields.description"),
               value: data.description ?? "",
             })}
           </>
@@ -228,13 +232,13 @@ export const CanvasNodePropertiesPanel = () => {
           <>
             {renderTextField({
               field: "folderPath",
-              label: "Folder path",
-              placeholder: "src/components",
+              label: t("canvas.propertiesPanel.fields.folderPath"),
+              placeholder: t("canvas.propertiesPanel.placeholders.folderPath"),
               value: data.folderPath,
             })}
             {renderTextareaField({
               field: "description",
-              label: "Description",
+              label: t("canvas.propertiesPanel.fields.description"),
               value: data.description ?? "",
             })}
           </>
@@ -244,27 +248,27 @@ export const CanvasNodePropertiesPanel = () => {
           <>
             {renderTextField({
               field: "owner",
-              label: "Owner",
+              label: t("canvas.propertiesPanel.fields.owner"),
               value: data.owner,
             })}
             {renderTextField({
               field: "repo",
-              label: "Repository",
+              label: t("canvas.propertiesPanel.fields.repository"),
               value: data.repo,
             })}
             {renderTextField({
               field: "branch",
-              label: "Branch",
+              label: t("canvas.propertiesPanel.fields.branch"),
               value: data.branch ?? "",
             })}
             {renderTextField({
               field: "localPath",
-              label: "Local path",
+              label: t("canvas.propertiesPanel.fields.localPath"),
               value: data.localPath ?? "",
             })}
             {renderTextareaField({
               field: "description",
-              label: "Description",
+              label: t("canvas.propertiesPanel.fields.description"),
               value: data.description ?? "",
             })}
           </>
@@ -274,12 +278,12 @@ export const CanvasNodePropertiesPanel = () => {
           <>
             {renderTextareaField({
               field: "prompt",
-              label: "Prompt",
+              label: t("canvas.propertiesPanel.fields.prompt"),
               value: data.prompt,
             })}
             {renderTextareaField({
               field: "description",
-              label: "Description",
+              label: t("canvas.propertiesPanel.fields.description"),
               value: data.description ?? "",
             })}
           </>
@@ -289,17 +293,17 @@ export const CanvasNodePropertiesPanel = () => {
           <>
             {renderTextField({
               field: "operationName",
-              label: "Operation name",
+              label: t("canvas.propertiesPanel.fields.operationName"),
               value: data.operationName,
             })}
             {renderTextField({
               field: "agentId",
-              label: "Agent ID",
+              label: t("canvas.propertiesPanel.fields.agentId"),
               value: data.agentId ?? "",
             })}
             {renderIntegerField({
               field: "maxLoopCount",
-              label: "Max loop count",
+              label: t("canvas.propertiesPanel.fields.maxLoopCount"),
               max: 20,
               min: 1,
               value: data.maxLoopCount ?? 3,
@@ -307,7 +311,7 @@ export const CanvasNodePropertiesPanel = () => {
             })}
             {renderTextareaField({
               field: "loopConditionPrompt",
-              label: "Loop condition",
+              label: t("canvas.propertiesPanel.fields.loopCondition"),
               value: data.loopConditionPrompt ?? "",
             })}
           </>
@@ -317,17 +321,17 @@ export const CanvasNodePropertiesPanel = () => {
           <>
             {renderTextField({
               field: "projectId",
-              label: "Project ID",
+              label: t("canvas.propertiesPanel.fields.projectId"),
               value: data.projectId ?? "",
             })}
             {renderTextField({
               field: "path",
-              label: "Output path",
+              label: t("canvas.propertiesPanel.fields.outputPath"),
               value: data.path,
             })}
             {renderTextareaField({
               field: "description",
-              label: "Description",
+              label: t("canvas.propertiesPanel.fields.description"),
               value: data.description ?? "",
             })}
           </>
@@ -337,16 +341,16 @@ export const CanvasNodePropertiesPanel = () => {
           <>
             {renderTextField({
               field: "localPath",
-              label: "Local path",
+              label: t("canvas.propertiesPanel.fields.localPath"),
               value: data.localPath,
             })}
             {renderTextField({
               field: "outputFileName",
-              label: "Output file name",
+              label: t("canvas.propertiesPanel.fields.outputFileName"),
               value: data.outputFileName ?? "",
             })}
             <div className="space-y-1.5">
-              <Label>Write mode</Label>
+              <Label>{t("canvas.propertiesPanel.fields.writeMode")}</Label>
               <Select
                 value={data.outputMode ?? "overwrite"}
                 onValueChange={(value) => handleUpdateNodeData({ outputMode: value as OutputMode })}
@@ -357,7 +361,7 @@ export const CanvasNodePropertiesPanel = () => {
                 <SelectContent>
                   {Object.values(OUTPUT_MODE_ENUM).map((mode) => (
                     <SelectItem key={mode} value={mode}>
-                      {outputModeLabels[mode]}
+                      {t(outputModeLabelKeys[mode])}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -365,7 +369,7 @@ export const CanvasNodePropertiesPanel = () => {
             </div>
             {renderTextareaField({
               field: "description",
-              label: "Description",
+              label: t("canvas.propertiesPanel.fields.description"),
               value: data.description ?? "",
             })}
           </>
@@ -374,7 +378,7 @@ export const CanvasNodePropertiesPanel = () => {
         {data.nodeType === "compound" &&
           renderTextareaField({
             field: "description",
-            label: "Description",
+            label: t("canvas.propertiesPanel.fields.description"),
             value: data.description ?? "",
           })}
       </div>

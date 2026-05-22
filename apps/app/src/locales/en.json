@@ -389,6 +389,60 @@
         "description": "Align dragged nodes to the canvas grid."
       }
     },
+    "workspaceSidebar": {
+      "title": "Workspace"
+    },
+    "nodeCardMode": {
+      "compact": "Compact cards",
+      "expanded": "Expanded cards"
+    },
+    "componentPanel": {
+      "searchLabel": "Search components",
+      "searchPlaceholder": "Search components...",
+      "categoryAriaLabel": "{{label}} category",
+      "skillFallbackLabel": "Skill",
+      "newCustomOperation": "New Custom Operation",
+      "categories": {
+        "input": "Input Objects",
+        "operations": "Operations",
+        "skills": "Skills",
+        "output": "Output"
+      }
+    },
+    "propertiesPanel": {
+      "empty": "Select a canvas node to configure it.",
+      "backToComponents": "Back to components",
+      "fields": {
+        "label": "Label",
+        "filePath": "File path",
+        "language": "Language",
+        "description": "Description",
+        "folderPath": "Folder path",
+        "owner": "Owner",
+        "repository": "Repository",
+        "branch": "Branch",
+        "localPath": "Local path",
+        "prompt": "Prompt",
+        "operationName": "Operation name",
+        "agentId": "Agent ID",
+        "maxLoopCount": "Max loop count",
+        "loopCondition": "Loop condition",
+        "projectId": "Project ID",
+        "outputPath": "Output path",
+        "outputFileName": "Output file name",
+        "writeMode": "Write mode"
+      },
+      "placeholders": {
+        "filePath": "src/file.tsx",
+        "language": "typescript",
+        "folderPath": "src/components"
+      },
+      "outputMode": {
+        "overwrite": "Overwrite",
+        "errorIfExists": "Error if exists",
+        "autoRename": "Auto rename"
+      }
+    },
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
     "nodeLibrary": "Node Library",
