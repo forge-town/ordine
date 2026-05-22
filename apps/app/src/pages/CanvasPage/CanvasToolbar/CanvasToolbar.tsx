@@ -51,7 +51,7 @@ export const CanvasToolbar = () => {
 
   return (
     <div className="pointer-events-auto w-max max-w-full" data-testid="canvas-toolbar">
-      <div className="flex h-10 w-max items-center gap-0.5 rounded-full border bg-background px-1.5 py-1 shadow-md max-[420px]:gap-0 max-[420px]:px-1">
+      <div className="flex h-10 w-max items-center gap-0.5 rounded-md border bg-background px-1.5 py-1 shadow-md max-[420px]:gap-0 max-[420px]:px-1">
         {/* Zoom controls */}
         <Tooltip>
           <TooltipTrigger
@@ -140,7 +140,7 @@ export const CanvasToolbar = () => {
           <TooltipContent>{t("canvas.formatLayout")}</TooltipContent>
         </Tooltip>
 
-        <Separator className="mx-1 h-5" orientation="vertical" />
+        <Separator className="mx-1 h-7" orientation="vertical" />
 
         {/* History controls */}
         <Button
@@ -164,7 +164,7 @@ export const CanvasToolbar = () => {
           <Redo2 className="h-4 w-4" />
         </Button>
 
-        <Separator className="mx-1 h-5" orientation="vertical" />
+        <Separator className="mx-1 h-7" orientation="vertical" />
 
         {/* Quick add */}
         <Tooltip>
@@ -206,7 +206,7 @@ export const CanvasToolbar = () => {
           <TooltipContent>{t("canvas.agentPanel.toggle")}</TooltipContent>
         </Tooltip>
 
-        <Separator className="mx-1 h-5" orientation="vertical" />
+        <Separator className="mx-1 h-7" orientation="vertical" />
 
         {/* Delete */}
         <Tooltip>
@@ -228,7 +228,7 @@ export const CanvasToolbar = () => {
           <TooltipContent>{t("canvas.deleteNode")}</TooltipContent>
         </Tooltip>
 
-        <Separator className="mx-1 h-5" orientation="vertical" />
+        <Separator className="mx-1 h-7" orientation="vertical" />
 
         {/* Run Test */}
         <Tooltip>

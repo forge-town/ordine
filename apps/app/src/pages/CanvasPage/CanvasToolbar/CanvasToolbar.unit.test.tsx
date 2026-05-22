@@ -38,7 +38,14 @@ vi.mock("@repo/ui/button", () => ({
     </button>
   ),
 }));
-vi.mock("@repo/ui/separator", () => ({ Separator: () => <hr /> }));
+vi.mock("@repo/ui/separator", () => ({
+  Separator: ({
+    orientation,
+    ...props
+  }: React.ComponentProps<"hr"> & { orientation?: "horizontal" | "vertical" }) => (
+    <hr data-orientation={orientation} {...props} />
+  ),
+}));
 vi.mock("@repo/ui/tooltip", () => ({
   Tooltip: ({ children }: React.PropsWithChildren) => <>{children}</>,
   TooltipTrigger: ({
@@ -83,6 +90,18 @@ describe("CanvasToolbar - export removed", () => {
 });
 
 describe("CanvasToolbar - viewport controls", () => {
+  it("uses the same medium radius as the title input and full-height separators", () => {
+    render(<CanvasToolbar />, { wrapper });
+
+    const toolbarShell = screen.getByTestId("canvas-toolbar").firstElementChild;
+    expect(toolbarShell).toHaveClass("rounded-md");
+    expect(toolbarShell).not.toHaveClass("rounded-full");
+    expect(screen.getAllByRole("separator")).toHaveLength(4);
+    for (const separator of screen.getAllByRole("separator")) {
+      expect(separator).toHaveClass("h-7");
+    }
+  });
+
   it("keeps zoom and fit view available through accessible custom controls", () => {
     render(<CanvasToolbar />, { wrapper });
 
