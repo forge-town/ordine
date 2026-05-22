@@ -7,7 +7,8 @@ import {
   RouterContextProvider,
 } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ToastStoreProvider } from "../src/store/toastProvider";
+import { ToastStoreProvider } from "../src/store/toastStore/toastProvider";
+import "@xyflow/react/dist/style.css";
 import "../src/lib/i18n";
 import "../src/styles.css";
 

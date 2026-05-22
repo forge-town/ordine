@@ -63,7 +63,7 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
   const currentMode = data.outputMode ?? "overwrite";
 
   return (
-    <div className="group relative overflow-visible">
+    <div className="group relative w-fit overflow-visible">
       <NodeCard
         leftHandle
         bodyClassName="space-y-2"

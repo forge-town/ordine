@@ -85,7 +85,7 @@ describe("NodeCard", () => {
     const wrapper = container.firstElementChild;
     const card = wrapper?.firstElementChild;
 
-    expect(wrapper).toHaveClass("relative");
+    expect(wrapper).toHaveClass("relative", "w-fit");
     expect(card).toHaveAttribute("data-slot", "card");
     expect(card?.childNodes).toHaveLength(1);
   });
@@ -106,7 +106,7 @@ describe("NodeCard", () => {
       />,
     );
 
-    expect(container.firstElementChild).toHaveClass("relative");
+    expect(container.firstElementChild).toHaveClass("relative", "w-fit");
     expect(container.querySelector('[data-slot="card"]')).toHaveClass(
       "w-72",
       "data-[size=sm]:py-0",
@@ -151,22 +151,30 @@ describe("NodeCard", () => {
     render(<NodeCard leftHandle rightHandle icon={Box} label="Node" theme="orange" />);
 
     expect(screen.getByTestId("target-handle")).toHaveClass(
-      "!left-2.5",
-      "!h-5",
-      "!w-5",
+      "!left-0",
+      "!h-0",
+      "!min-h-0",
+      "!w-0",
+      "!min-w-0",
       "!bg-transparent",
-      "before:!left-0",
+      "before:left-1/2",
+      "after:h-5",
+      "after:w-5",
       "before:opacity-30",
       "before:scale-75",
       "group-hover/node-card:before:opacity-75",
       "before:!bg-orange-500",
     );
     expect(screen.getByTestId("source-handle")).toHaveClass(
-      "!right-2.5",
-      "!h-5",
-      "!w-5",
+      "!right-0",
+      "!h-0",
+      "!min-h-0",
+      "!w-0",
+      "!min-w-0",
       "!bg-transparent",
-      "before:!left-full",
+      "before:left-1/2",
+      "after:h-5",
+      "after:w-5",
       "before:opacity-30",
       "before:scale-75",
       "group-hover/node-card:before:opacity-75",

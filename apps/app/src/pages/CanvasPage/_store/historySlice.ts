@@ -96,6 +96,13 @@ export interface HistorySlice {
   clearHistory: () => void;
 }
 
+const sortNodesAfterHistoryPatch = (nodes: PipelineNode[]): PipelineNode[] => {
+  const sortedNodes = [...nodes];
+  sortParentBeforeChildren(sortedNodes);
+
+  return sortedNodes;
+};
+
 // ─── Factory ──────────────────────────────────────────────────────────────────
 
 export const createHistorySlice = (
@@ -157,13 +164,11 @@ export const createHistorySlice = (
     };
 
     const prev = applyPatches(current, entry.inversePatches);
-    // Ensure parent-before-children ordering after undo
-    sortParentBeforeChildren(prev.nodes);
     const history = _history.slice(0, -1);
     const future = [entry, ..._future];
 
     set({
-      nodes: prev.nodes,
+      nodes: sortNodesAfterHistoryPatch(prev.nodes),
       edges: prev.edges,
       _history: history,
       _future: future,
@@ -184,13 +189,11 @@ export const createHistorySlice = (
     };
 
     const next = applyPatches(current, entry.patches);
-    // Ensure parent-before-children ordering after redo
-    sortParentBeforeChildren(next.nodes);
     const history = [..._history, entry];
     const future = _future.slice(1);
 
     set({
-      nodes: next.nodes,
+      nodes: sortNodesAfterHistoryPatch(next.nodes),
       edges: next.edges,
       _history: history,
       _future: future,

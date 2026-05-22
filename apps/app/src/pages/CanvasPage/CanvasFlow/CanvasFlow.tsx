@@ -1,8 +1,15 @@
-import { useMemo, type DragEvent, type Ref } from "react";
+import { useEffect, useMemo, type DragEvent, type Ref } from "react";
 import { useStore } from "zustand";
 import { useCanvasPageStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
-import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap } from "@xyflow/react";
+import {
+  ReactFlow,
+  Background,
+  BackgroundVariant,
+  Controls,
+  MiniMap,
+  useUpdateNodeInternals,
+} from "@xyflow/react";
 import { CompoundNode } from "../CompoundNode";
 import { FileNode } from "../FileNode";
 import { ErrorNode } from "../ErrorNode";
@@ -41,6 +48,7 @@ const defaultEdgeOptions = {
 
 const proOpts = { hideAttribution: false };
 const snapGrid: [number, number] = [24, 24];
+const nodePortRemeasureDelayMs = 220;
 
 interface CanvasFlowProps {
   viewportRef?: Ref<HTMLDivElement>;
@@ -57,6 +65,7 @@ const handleComponentDragOver = (event: DragEvent<HTMLDivElement>) => {
 
 export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const store = useCanvasPageStore();
+  const updateNodeInternals = useUpdateNodeInternals();
 
   const nodes = useStore(store, (s) => s.nodes);
   const edges = useStore(store, (s) => s.edges);
@@ -101,6 +110,25 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         onPaneContextMenu: handleFlowPaneContextMenu,
       }
     : {};
+  const nodeIds = useMemo(() => nodes.map((node) => node.id), [nodes]);
+
+  useEffect(() => {
+    if (nodeIds.length === 0) {
+      return;
+    }
+
+    const frameId = requestAnimationFrame(() => updateNodeInternals(nodeIds));
+    // Node cards pop in with scale; remeasure after that animation settles.
+    const timeoutId = globalThis.setTimeout(
+      () => updateNodeInternals(nodeIds),
+      nodePortRemeasureDelayMs,
+    );
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      globalThis.clearTimeout(timeoutId);
+    };
+  }, [connectStart, edges, nodeIds, updateNodeInternals]);
 
   useHotkeys(
     "mod+z",

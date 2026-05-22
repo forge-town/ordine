@@ -145,7 +145,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
 
   return (
     <div
-      className={cn("group relative overflow-visible", canInspect && "cursor-pointer")}
+      className={cn("group relative w-fit overflow-visible", canInspect && "cursor-pointer")}
       onClick={handleOperationCardClick.bind(null, id)}
     >
       <NodeCard
