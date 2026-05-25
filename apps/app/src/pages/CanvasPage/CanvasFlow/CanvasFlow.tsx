@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type DragEvent, type Ref } from "react";
+import { useMemo, type DragEvent, type Ref } from "react";
 import { useStore } from "zustand";
 import { useCanvasPageStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -65,8 +65,6 @@ const handleComponentDragOver = (event: DragEvent<HTMLDivElement>) => {
 
 export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const store = useCanvasPageStore();
-  const updateNodeInternals = useUpdateNodeInternals();
-
   const nodes = useStore(store, (s) => s.nodes);
   const edges = useStore(store, (s) => s.edges);
   const connectStart = useStore(store, (s) => s.connectStart);
@@ -83,24 +81,69 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const handleUndo = useStore(store, (s) => s.handleUndo);
   const handleRedo = useStore(store, (s) => s.handleRedo);
   const handleFlowInit = useStore(store, (s) => s.handleFlowInit);
-  const handleFlowConnectStart = useStore(store, (s) => s.handleFlowConnectStart);
+  const handleFlowConnectStart = useStore(
+    store,
+    (s) => s.handleFlowConnectStart,
+  );
   const handleFlowConnectEnd = useStore(store, (s) => s.handleFlowConnectEnd);
   const handleFlowNodeClick = useStore(store, (s) => s.handleFlowNodeClick);
-  const handleFlowNodeContextMenu = useStore(store, (s) => s.handleFlowNodeContextMenu);
+  const handleFlowNodeContextMenu = useStore(
+    store,
+    (s) => s.handleFlowNodeContextMenu,
+  );
   const handleFlowEdgeClick = useStore(store, (s) => s.handleFlowEdgeClick);
   const handleFlowPaneClick = useStore(store, (s) => s.handleFlowPaneClick);
-  const handleFlowPaneContextMenu = useStore(store, (s) => s.handleFlowPaneContextMenu);
-  const handleCreateObjectNode = useStore(store, (s) => s.handleCreateObjectNode);
-  const handleCreateOperationNode = useStore(store, (s) => s.handleCreateOperationNode);
-  const handleCreateSkillOperationNode = useStore(store, (s) => s.handleCreateSkillOperationNode);
+  const handleFlowPaneContextMenu = useStore(
+    store,
+    (s) => s.handleFlowPaneContextMenu,
+  );
+  const handleCreateObjectNode = useStore(
+    store,
+    (s) => s.handleCreateObjectNode,
+  );
+  const handleCreateOperationNode = useStore(
+    store,
+    (s) => s.handleCreateOperationNode,
+  );
+  const handleCreateSkillOperationNode = useStore(
+    store,
+    (s) => s.handleCreateSkillOperationNode,
+  );
   const handleFlowNodeDrag = useStore(store, (s) => s.handleFlowNodeDrag);
-  const handleFlowNodeDragStop = useStore(store, (s) => s.handleFlowNodeDragStop);
+  const handleFlowNodeDragStop = useStore(
+    store,
+    (s) => s.handleFlowNodeDragStop,
+  );
   const handleFlowMove = useStore(store, (s) => s.handleFlowMove);
+  const updateNodeInternals = useUpdateNodeInternals();
+
+  const scheduleUpdateAllNodeInternals = () => {
+    const ids = nodes.map((n) => n.id);
+    if (ids.length === 0) return;
+    requestAnimationFrame(() => {
+      updateNodeInternals(ids);
+    });
+    globalThis.setTimeout(() => {
+      updateNodeInternals(ids);
+    }, nodePortRemeasureDelayMs);
+  };
+
   const interactiveHandlers = isCanvasInteractive
     ? {
-        onConnect: handleConnect,
-        onConnectEnd: handleFlowConnectEnd,
-        onConnectStart: handleFlowConnectStart,
+        onConnect: (...args: Parameters<typeof handleConnect>) => {
+          handleConnect(...args);
+          scheduleUpdateAllNodeInternals();
+        },
+        onConnectEnd: (...args: Parameters<typeof handleFlowConnectEnd>) => {
+          handleFlowConnectEnd(...args);
+          scheduleUpdateAllNodeInternals();
+        },
+        onConnectStart: (
+          ...args: Parameters<typeof handleFlowConnectStart>
+        ) => {
+          handleFlowConnectStart(...args);
+          scheduleUpdateAllNodeInternals();
+        },
         onEdgeClick: handleFlowEdgeClick,
         onNodeClick: handleFlowNodeClick,
         onNodeContextMenu: handleFlowNodeContextMenu,
@@ -110,26 +153,6 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         onPaneContextMenu: handleFlowPaneContextMenu,
       }
     : {};
-  const nodeIds = useMemo(() => nodes.map((node) => node.id), [nodes]);
-
-  useEffect(() => {
-    if (nodeIds.length === 0) {
-      return;
-    }
-
-    const frameId = requestAnimationFrame(() => updateNodeInternals(nodeIds));
-    // Node cards pop in with scale; remeasure after that animation settles.
-    const timeoutId = globalThis.setTimeout(
-      () => updateNodeInternals(nodeIds),
-      nodePortRemeasureDelayMs,
-    );
-
-    return () => {
-      cancelAnimationFrame(frameId);
-      globalThis.clearTimeout(timeoutId);
-    };
-  }, [connectStart, edges, nodeIds, updateNodeInternals]);
-
   useHotkeys(
     "mod+z",
     (e) => {
@@ -180,8 +203,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
       className="h-full w-full"
       data-testid="canvas-flow-viewport"
       onDragOver={handleComponentDragOver}
-      onDrop={handleDrop}
-    >
+      onDrop={handleDrop}>
       <ReactFlow
         className="bg-slate-50/50"
         defaultEdgeOptions={defaultEdgeOptions}
@@ -203,9 +225,11 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         onEdgesChange={handleEdgesChange}
         onInit={handleFlowInit}
         onMove={(_event, viewport) => handleFlowMove(viewport.zoom)}
-        onNodesChange={handleNodesChange}
-        {...interactiveHandlers}
-      >
+        onNodesChange={(changes) => {
+          handleNodesChange(changes);
+          scheduleUpdateAllNodeInternals();
+        }}
+        {...interactiveHandlers}>
         {canvasSettings.showBackground && (
           <Background
             color="#cbd5e1"
@@ -235,3 +259,4 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
     </div>
   );
 };
+

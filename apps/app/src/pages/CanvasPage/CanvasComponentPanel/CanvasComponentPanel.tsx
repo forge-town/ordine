@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type DragEvent, type ElementType } from "react";
+import { useRef, useState, type DragEvent, type ElementType } from "react";
 import { Link } from "@tanstack/react-router";
 import { useList } from "@refinedev/core";
 import type { BuiltinNodeType, Operation, Skill } from "@repo/schemas";
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
+import { useHotkeys } from "react-hotkeys-hook";
 import type { XYPosition } from "@xyflow/system";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
@@ -30,14 +31,26 @@ import {
   encodeCanvasComponentDragPayload,
   type CanvasComponentDragPayload,
 } from "../utils/canvasComponentDragPayload";
-import { getNodeMeta, getNodeTypeLabel, getNodeTypeShortLabel } from "../utils/nodeTypeMeta";
+import {
+  getNodeMeta,
+  getNodeTypeLabel,
+  getNodeTypeShortLabel,
+} from "../utils/nodeTypeMeta";
 
 interface CanvasComponentPanelProps {
   getCreateNodeScreenPosition: () => XYPosition;
 }
 
-const INPUT_NODE_TYPES: BuiltinNodeType[] = ["folder", "file", "github-project", "prompt"];
-const OUTPUT_NODE_TYPES: BuiltinNodeType[] = ["output-local-path", "output-project-path"];
+const INPUT_NODE_TYPES: BuiltinNodeType[] = [
+  "folder",
+  "file",
+  "github-project",
+  "prompt",
+];
+const OUTPUT_NODE_TYPES: BuiltinNodeType[] = [
+  "output-local-path",
+  "output-project-path",
+];
 
 const TYPE_ICONS: Record<string, ElementType> = {
   file: FileCode,
@@ -50,14 +63,10 @@ const TYPE_ICONS: Record<string, ElementType> = {
 
 const normalizeSearch = (value: string) => value.trim().toLowerCase();
 
-const includesSearch = (values: Array<string | null | undefined>, query: string) =>
-  values.some((value) => value?.toLowerCase().includes(query));
-
-const shouldHandleSlashShortcut = (target: EventTarget | null) => {
-  if (!(target instanceof HTMLElement)) return true;
-
-  return !["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) && !target.isContentEditable;
-};
+const includesSearch = (
+  values: Array<string | null | undefined>,
+  query: string,
+) => values.some((value) => value?.toLowerCase().includes(query));
 
 const createDragImage = ({
   iconBg,
@@ -93,38 +102,65 @@ export const CanvasComponentPanel = ({
 }: CanvasComponentPanelProps) => {
   const { t } = useTranslation();
   const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const [draggingComponentId, setDraggingComponentId] = useState<string | null>(null);
+  const [draggingComponentId, setDraggingComponentId] = useState<string | null>(
+    null,
+  );
   const store = useCanvasPageStore();
-  const componentSearchQuery = useStore(store, (state) => state.componentSearchQuery);
+  const componentSearchQuery = useStore(
+    store,
+    (state) => state.componentSearchQuery,
+  );
   const collapsedComponentCategories = useStore(
     store,
     (state) => state.collapsedComponentCategories,
   );
-  const handleComponentSearchChange = useStore(store, (state) => state.handleComponentSearchChange);
-  const toggleComponentCategory = useStore(store, (state) => state.toggleComponentCategory);
-  const handleCreateObjectNode = useStore(store, (state) => state.handleCreateObjectNode);
-  const handleCreateOperationNode = useStore(store, (state) => state.handleCreateOperationNode);
+  const handleComponentSearchChange = useStore(
+    store,
+    (state) => state.handleComponentSearchChange,
+  );
+  const toggleComponentCategory = useStore(
+    store,
+    (state) => state.toggleComponentCategory,
+  );
+  const handleCreateObjectNode = useStore(
+    store,
+    (state) => state.handleCreateObjectNode,
+  );
+  const handleCreateOperationNode = useStore(
+    store,
+    (state) => state.handleCreateOperationNode,
+  );
   const handleCreateSkillOperationNode = useStore(
     store,
     (state) => state.handleCreateSkillOperationNode,
   );
-  const { result: operationsResult } = useList<Operation>({ resource: ResourceName.operations });
-  const { result: skillsResult } = useList<Skill>({ resource: ResourceName.skills });
+  const { result: operationsResult } = useList<Operation>({
+    resource: ResourceName.operations,
+  });
+  const { result: skillsResult } = useList<Skill>({
+    resource: ResourceName.skills,
+  });
   const operations = operationsResult.data;
   const skills = skillsResult.data;
   const search = normalizeSearch(componentSearchQuery);
   const componentSearchLabel = t("canvas.componentPanel.searchLabel", {
     defaultValue: "Search components",
   });
-  const componentSearchPlaceholder = t("canvas.componentPanel.searchPlaceholder", {
-    defaultValue: "Search components...",
-  });
+  const componentSearchPlaceholder = t(
+    "canvas.componentPanel.searchPlaceholder",
+    {
+      defaultValue: "Search components...",
+    },
+  );
   const inputCategoryLabel = t("canvas.componentPanel.categories.input", {
     defaultValue: "Input Objects",
   });
-  const operationsCategoryLabel = t("canvas.componentPanel.categories.operations", {
-    defaultValue: "Operations",
-  });
+  const operationsCategoryLabel = t(
+    "canvas.componentPanel.categories.operations",
+    {
+      defaultValue: "Operations",
+    },
+  );
   const skillsCategoryLabel = t("canvas.componentPanel.categories.skills", {
     defaultValue: "Skills",
   });
@@ -135,25 +171,25 @@ export const CanvasComponentPanel = ({
   const skillFallbackLabel = t("canvas.componentPanel.skillFallbackLabel", {
     defaultValue: "Skill",
   });
-  const newCustomOperationLabel = t("canvas.componentPanel.newCustomOperation", {
-    defaultValue: "New Custom Operation",
-  });
+  const newCustomOperationLabel = t(
+    "canvas.componentPanel.newCustomOperation",
+    {
+      defaultValue: "New Custom Operation",
+    },
+  );
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "/" || !shouldHandleSlashShortcut(event.target)) return;
-      event.preventDefault();
+  useHotkeys(
+    "/",
+    () => {
       searchInputRef.current?.focus();
+    },
+    { preventDefault: true },
+  );
+
+  const handleCategoryHeaderClick =
+    (category: CanvasComponentCategory) => () => {
+      toggleComponentCategory(category);
     };
-
-    globalThis.addEventListener("keydown", handleKeyDown);
-
-    return () => globalThis.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  const handleCategoryHeaderClick = (category: CanvasComponentCategory) => () => {
-    toggleComponentCategory(category);
-  };
 
   const handleNodeTypeItemClick = (type: BuiltinNodeType) => () => {
     handleCreateObjectNode(type, getCreateNodeScreenPosition());
@@ -204,7 +240,10 @@ export const CanvasComponentPanel = ({
     const label = getNodeTypeLabel(t, type);
     const shortLabel = getNodeTypeShortLabel(t, type);
 
-    return search === "" || includesSearch([label, shortLabel, meta?.label, type], search);
+    return (
+      search === "" ||
+      includesSearch([label, shortLabel, meta?.label, type], search)
+    );
   });
 
   const outputItems = OUTPUT_NODE_TYPES.filter((type) => {
@@ -212,19 +251,28 @@ export const CanvasComponentPanel = ({
     const label = getNodeTypeLabel(t, type);
     const shortLabel = getNodeTypeShortLabel(t, type);
 
-    return search === "" || includesSearch([label, shortLabel, meta?.label, type], search);
+    return (
+      search === "" ||
+      includesSearch([label, shortLabel, meta?.label, type], search)
+    );
   });
 
   const operationItems = operations.filter((operation) =>
     search === ""
       ? true
-      : includesSearch([operation.name, operation.description, "operation"], search),
+      : includesSearch(
+          [operation.name, operation.description, "operation"],
+          search,
+        ),
   );
 
   const skillItems = skills.filter((skill) =>
     search === ""
       ? true
-      : includesSearch([skill.name, skill.label, skill.description, ...skill.tags], search),
+      : includesSearch(
+          [skill.name, skill.label, skill.description, ...skill.tags],
+          search,
+        ),
   );
 
   const renderCategoryHeader = (
@@ -245,8 +293,7 @@ export const CanvasComponentPanel = ({
         className="h-9 w-full justify-start gap-2 rounded-none border-t px-5 text-sm font-semibold"
         type="button"
         variant="ghost"
-        onClick={handleCategoryHeaderClick(category)}
-      >
+        onClick={handleCategoryHeaderClick(category)}>
         <ChevronIcon className="size-3.5" />
         <span className="flex-1 text-left">{label}</span>
         <span className="text-xs text-muted-foreground">{count}</span>
@@ -279,14 +326,17 @@ export const CanvasComponentPanel = ({
           label,
           payload: { kind: "object", type },
           shortLabel,
-        })}
-      >
+        })}>
         <span
-          className={cn("flex size-6 shrink-0 items-center justify-center rounded", meta.iconBg)}
-        >
+          className={cn(
+            "flex size-6 shrink-0 items-center justify-center rounded",
+            meta.iconBg,
+          )}>
           <Icon className="size-3.5 text-white" />
         </span>
-        <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium">
+          {label}
+        </span>
         <span className="text-xs text-muted-foreground">{shortLabel}</span>
         <Plus className="size-3 text-muted-foreground" />
       </Button>
@@ -296,8 +346,7 @@ export const CanvasComponentPanel = ({
   return (
     <div
       className="flex h-full min-h-0 flex-col bg-background"
-      data-testid="canvas-component-panel"
-    >
+      data-testid="canvas-component-panel">
       <div className="border-b p-4">
         <div className="flex h-10 items-center gap-2 rounded-md border bg-muted/30 px-3">
           <Search className="size-4 text-muted-foreground" />
@@ -319,10 +368,16 @@ export const CanvasComponentPanel = ({
       <div className="min-h-0 flex-1 overflow-y-auto">
         {renderCategoryHeader("input", inputCategoryLabel, objectItems.length)}
         {!collapsedComponentCategories.input && (
-          <div className="space-y-1 p-3">{objectItems.map(renderNodeTypeItem)}</div>
+          <div className="space-y-1 p-3">
+            {objectItems.map(renderNodeTypeItem)}
+          </div>
         )}
 
-        {renderCategoryHeader("operations", operationsCategoryLabel, operationItems.length)}
+        {renderCategoryHeader(
+          "operations",
+          operationsCategoryLabel,
+          operationItems.length,
+        )}
         {!collapsedComponentCategories.operations && (
           <div className="space-y-1 p-3">
             {operationItems.map((operation) => (
@@ -331,7 +386,8 @@ export const CanvasComponentPanel = ({
                 draggable
                 className={cn(
                   "h-10 w-full cursor-grab justify-start gap-2 rounded-md px-2 text-left transition-[opacity,transform,background-color] active:cursor-grabbing",
-                  draggingComponentId === operation.id && "scale-[0.98] opacity-60",
+                  draggingComponentId === operation.id &&
+                    "scale-[0.98] opacity-60",
                 )}
                 type="button"
                 variant="ghost"
@@ -343,8 +399,7 @@ export const CanvasComponentPanel = ({
                   label: operation.name,
                   payload: { kind: "operation", operation },
                   shortLabel: operationShortLabel,
-                })}
-              >
+                })}>
                 <span className="flex size-6 shrink-0 items-center justify-center rounded bg-violet-500">
                   <Zap className="size-3.5 text-white" />
                 </span>
@@ -378,14 +433,18 @@ export const CanvasComponentPanel = ({
                   label: skill.label,
                   payload: { kind: "skill", skill },
                   shortLabel: skill.tags[0] ?? skillFallbackLabel,
-                })}
-              >
+                })}>
                 <span className="flex size-6 shrink-0 items-center justify-center rounded bg-amber-500">
                   <Sparkles className="size-3.5 text-white" />
                 </span>
-                <span className="min-w-0 flex-1 truncate text-sm font-medium">{skill.label}</span>
+                <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                  {skill.label}
+                </span>
                 {skill.tags.slice(0, 1).map((tag) => (
-                  <Badge key={tag} className="shrink-0 text-[10px]" variant="secondary">
+                  <Badge
+                    key={tag}
+                    className="shrink-0 text-[10px]"
+                    variant="secondary">
                     {tag}
                   </Badge>
                 ))}
@@ -394,17 +453,22 @@ export const CanvasComponentPanel = ({
           </div>
         )}
 
-        {renderCategoryHeader("output", outputCategoryLabel, outputItems.length)}
+        {renderCategoryHeader(
+          "output",
+          outputCategoryLabel,
+          outputItems.length,
+        )}
         {!collapsedComponentCategories.output && (
-          <div className="space-y-1 p-3">{outputItems.map(renderNodeTypeItem)}</div>
+          <div className="space-y-1 p-3">
+            {outputItems.map(renderNodeTypeItem)}
+          </div>
         )}
       </div>
 
       <div className="border-t p-3">
         <Link
           className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted"
-          to="/pipelines/operations/new"
-        >
+          to="/pipelines/operations/new">
           <Plus className="size-4" />
           {newCustomOperationLabel}
         </Link>
@@ -412,3 +476,4 @@ export const CanvasComponentPanel = ({
     </div>
   );
 };
+

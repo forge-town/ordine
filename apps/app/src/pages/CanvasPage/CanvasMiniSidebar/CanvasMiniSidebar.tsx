@@ -10,34 +10,39 @@ export const CANVAS_WORKSPACE_SIDEBAR_ID = "canvas-workspace-sidebar-overlay";
 export const CanvasMiniSidebar = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
-  const isWorkspaceSidebarOpen = useStore(store, (state) => state.isWorkspaceSidebarOpen);
+  const isWorkspaceSidebarOpen = useStore(
+    store,
+    (state) => state.isWorkspaceSidebarOpen,
+  );
   const nodeCardMode = useStore(store, (state) => state.nodeCardMode);
-  const openWorkspaceSidebar = useStore(store, (state) => state.openWorkspaceSidebar);
-  const openCanvasSettings = useStore(store, (state) => state.openCanvasSettings);
-  const toggleNodeCardMode = useStore(store, (state) => state.toggleNodeCardMode);
+  const openWorkspaceSidebar = useStore(
+    store,
+    (state) => state.openWorkspaceSidebar,
+  );
+  const openCanvasSettings = useStore(
+    store,
+    (state) => state.openCanvasSettings,
+  );
+  const toggleNodeCardMode = useStore(
+    store,
+    (state) => state.toggleNodeCardMode,
+  );
 
-  const workspaceLabel = t("canvas.workspaceSidebar.title", { defaultValue: "Workspace" });
+  const workspaceLabel = t("canvas.workspaceSidebar.title", {
+    defaultValue: "Workspace",
+  });
   const settingsLabel = t("canvas.settingsDrawer.menuLabel");
-  const compactCardsLabel = t("canvas.nodeCardMode.compact", { defaultValue: "Compact cards" });
+  const compactCardsLabel = t("canvas.nodeCardMode.compact", {
+    defaultValue: "Compact cards",
+  });
   const nodeCardModeLabel =
     nodeCardMode === "compact"
       ? compactCardsLabel
       : t("canvas.nodeCardMode.expanded", { defaultValue: "Expanded cards" });
-  const handleOpenWorkspaceSidebar = () => {
-    openWorkspaceSidebar();
-  };
-  const handleToggleNodeCardMode = () => {
-    toggleNodeCardMode();
-  };
-  const handleOpenCanvasSettings = () => {
-    openCanvasSettings();
-  };
-
   return (
     <aside
       className="flex w-14 shrink-0 flex-col items-center gap-2 border-r bg-background/95 px-2 py-3 backdrop-blur"
-      data-testid="canvas-mini-sidebar"
-    >
+      data-testid="canvas-mini-sidebar">
       <div className="flex size-9 items-center justify-center rounded-md border bg-muted/40 text-primary">
         <Workflow className="size-4" />
       </div>
@@ -53,10 +58,9 @@ export const CanvasMiniSidebar = () => {
                 className="size-9 rounded-md"
                 size="icon"
                 variant={isWorkspaceSidebarOpen ? "secondary" : "ghost"}
-                onClick={handleOpenWorkspaceSidebar}
+                onClick={openWorkspaceSidebar}
               />
-            }
-          >
+            }>
             <Menu className="size-4" />
           </TooltipTrigger>
           <TooltipContent>{workspaceLabel}</TooltipContent>
@@ -71,10 +75,9 @@ export const CanvasMiniSidebar = () => {
                 className="size-9 rounded-md"
                 size="icon"
                 variant={nodeCardMode === "compact" ? "secondary" : "ghost"}
-                onClick={handleToggleNodeCardMode}
+                onClick={toggleNodeCardMode}
               />
-            }
-          >
+            }>
             {nodeCardMode === "compact" ? (
               <PanelLeft className="size-4" />
             ) : (
@@ -92,10 +95,9 @@ export const CanvasMiniSidebar = () => {
                 className="size-9 rounded-md"
                 size="icon"
                 variant="ghost"
-                onClick={handleOpenCanvasSettings}
+                onClick={openCanvasSettings}
               />
-            }
-          >
+            }>
             <Settings2 className="size-4" />
           </TooltipTrigger>
           <TooltipContent>{settingsLabel}</TooltipContent>
@@ -104,3 +106,4 @@ export const CanvasMiniSidebar = () => {
     </aside>
   );
 };
+
