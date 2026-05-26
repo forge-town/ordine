@@ -12,7 +12,13 @@ import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { useSkillsPageStore } from "../_store";
 
-type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
+type SkillCategory =
+  | "all"
+  | "page"
+  | "data"
+  | "state"
+  | "form"
+  | "code-quality";
 
 const categoryColors: Record<string, string> = {
   page: "bg-violet-100 text-violet-700",
@@ -71,7 +77,9 @@ export const SkillsPageContent = () => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
-        badge={<span className="text-xs text-muted-foreground">{skills.length}</span>}
+        badge={
+          <span className="text-xs text-muted-foreground">{skills.length}</span>
+        }
         icon={<Wand2 className="h-4 w-4 text-primary" />}
         title={t("skills.title")}
       />
@@ -115,8 +123,7 @@ export const SkillsPageContent = () => {
             {filtered.map((skill) => (
               <div
                 key={skill.id}
-                className="group flex flex-col rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:shadow-sm transition-all"
-              >
+                className="group flex flex-col rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:shadow-sm transition-all">
                 <div className="flex items-start justify-between">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
                     <Wand2 className="h-4 w-4 text-primary" />
@@ -124,15 +131,18 @@ export const SkillsPageContent = () => {
                   <Badge
                     className={cn(
                       "text-[10px]",
-                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600",
+                      categoryColors[skill.category] ??
+                        "bg-gray-100 text-gray-600",
                     )}
-                    variant="secondary"
-                  >
-                    {categoryLabels[skill.category as SkillCategory] ?? skill.category}
+                    variant="secondary">
+                    {categoryLabels[skill.category as SkillCategory] ??
+                      skill.category}
                   </Badge>
                 </div>
 
-                <h3 className="mt-3 text-sm font-semibold text-foreground">{skill.label}</h3>
+                <h3 className="mt-3 text-sm font-semibold text-foreground">
+                  {skill.label}
+                </h3>
                 <p className="mt-1 flex-1 text-xs text-muted-foreground leading-relaxed">
                   {skill.description}
                 </p>
@@ -141,21 +151,21 @@ export const SkillsPageContent = () => {
                   {skill.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
-                    >
+                      className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
                       {tag}
                     </span>
                   ))}
                 </div>
 
                 <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                  <code className="text-[10px] text-muted-foreground">{skill.name}</code>
+                  <code className="text-[10px] text-muted-foreground">
+                    {skill.name}
+                  </code>
                   <Button
                     size="sm"
                     variant="outline"
                     className="h-6 px-2 text-[10px]"
-                    onClick={() => handleCreateOperationClick(skill.id)}
-                  >
+                    onClick={() => handleCreateOperationClick(skill.id)}>
                     <PlusCircle className="mr-1 h-3 w-3" />
                     {t("skills.createOperation")}
                   </Button>
