@@ -538,6 +538,20 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+    if (url === "skills/previewImport") {
+      const data = await trpcClient.skills.previewImport.query(
+        payload as unknown as Parameters<typeof trpcClient.skills.previewImport.query>[0],
+      );
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "skills/importCandidates") {
+      const data = await trpcClient.skills.importCandidates.mutate(
+        payload as unknown as Parameters<typeof trpcClient.skills.importCandidates.mutate>[0],
+      );
+
+      return { data: data as unknown as TData };
+    }
     throw new Error(`custom: unknown url "${url}"`);
   },
 };

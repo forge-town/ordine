@@ -1,4 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { mkdir, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { randomUUID } from "node:crypto";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const mockDao = {
   findMany: vi.fn().mockResolvedValue([{ id: "sk1" , createdAt: new Date(0), updatedAt: new Date(0) }]),
@@ -17,6 +21,18 @@ vi.mock("@repo/models", () => ({
 import { createSkillsService } from "./createSkillsService";
 
 describe("createSkillsService", () => {
+  const tempDir = join(tmpdir(), `ordine-skills-${randomUUID()}`);
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    await rm(tempDir, { recursive: true, force: true });
+    await mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await rm(tempDir, { recursive: true, force: true });
+  });
+
   it("getAll delegates to dao.findMany", async () => {
     const svc = createSkillsService({} as never);
     const result = await svc.getAll();
@@ -59,5 +75,51 @@ describe("createSkillsService", () => {
     const svc = createSkillsService({} as never);
     await svc.seedIfEmpty();
     expect(mockDao.seedIfEmpty).toHaveBeenCalled();
+  });
+
+  it("previewImport scans SKILL.md files into candidates", async () => {
+    const skillDir = join(tempDir, "review-code");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(
+      join(skillDir, "SKILL.md"),
+      "---\nname: review-code\ndescription: Review code carefully\n---\n\n# Steps\nInspect files.",
+    );
+
+    const svc = createSkillsService({} as never);
+    const preview = await svc.previewImport({ rootPath: tempDir });
+
+    expect(preview.errors).toEqual([]);
+    expect(preview.candidates).toEqual([
+      expect.objectContaining({
+        id: "imported-review-code",
+        name: "review-code",
+        label: "Review Code",
+        description: "Review code carefully",
+      }),
+    ]);
+  });
+
+  it("importCandidates creates missing skills", async () => {
+    mockDao.findByName.mockResolvedValueOnce(undefined);
+    const svc = createSkillsService({} as never);
+
+    await svc.importCandidates([
+      {
+        id: "imported-review-code",
+        name: "review-code",
+        label: "Review Code",
+        description: "Review code carefully",
+        path: join(tempDir, "review-code", "SKILL.md"),
+      },
+    ]);
+
+    expect(mockDao.create).toHaveBeenCalledWith({
+      id: "imported-review-code",
+      name: "review-code",
+      label: "Review Code",
+      description: "Review code carefully",
+      category: "imported",
+      tags: ["imported"],
+    });
   });
 });
