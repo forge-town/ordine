@@ -26,21 +26,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
-import { TEMPLATE_CONTENT_TYPE_ENUM } from "@repo/schemas";
+import { TemplateContentTypeSchema } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
 
+const templateContentTypes = TemplateContentTypeSchema.options;
+
 const outputItemSchema = z.object({
   name: z.string().min(1),
-  contentType: z.enum([
-    TEMPLATE_CONTENT_TYPE_ENUM.MARKDOWN,
-    TEMPLATE_CONTENT_TYPE_ENUM.JSON,
-    TEMPLATE_CONTENT_TYPE_ENUM.YAML,
-    TEMPLATE_CONTENT_TYPE_ENUM.TEXT,
-    TEMPLATE_CONTENT_TYPE_ENUM.HTML,
-    TEMPLATE_CONTENT_TYPE_ENUM.XML,
-    TEMPLATE_CONTENT_TYPE_ENUM.CSV,
-  ]),
+  contentType: TemplateContentTypeSchema,
 });
 
 const formSchema = z.object({
@@ -117,7 +111,7 @@ export const SkillToOperationDialog = ({
   };
 
   const handleAddOutput = () => {
-    append({ name: "", contentType: TEMPLATE_CONTENT_TYPE_ENUM.MARKDOWN });
+    append({ name: "", contentType: templateContentTypes[0] });
   };
 
   const handleSubmit = async (values: FormValues) => {
@@ -262,7 +256,7 @@ export const SkillToOperationDialog = ({
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectGroup>
-                                      {Object.values(TEMPLATE_CONTENT_TYPE_ENUM).map((type) => (
+                                      {templateContentTypes.map((type) => (
                                         <SelectItem key={type} value={type} className="text-xs">
                                           {type}
                                         </SelectItem>
