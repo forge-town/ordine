@@ -1,4 +1,3 @@
-import type { ChangeEvent } from "react";
 import type { StateCreator } from "zustand";
 
 type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
@@ -6,15 +5,25 @@ type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality"
 export interface SkillsPageSlice {
   search: string;
   category: SkillCategory;
+  createOperationDialogOpen: boolean;
+  selectedSkillId: string | null;
 
-  handleSearchInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  handleCategoryButtonClick: (category: SkillCategory) => void;
+  handleSetSearch: (search: string) => void;
+  handleSetCategory: (category: SkillCategory) => void;
+  handleCreateOperationClick: (skillId: string) => void;
+  handleCreateOperationDialogClose: () => void;
 }
 
 export const createSkillsPageSlice: StateCreator<SkillsPageSlice> = (set) => ({
   search: "",
   category: "all",
+  createOperationDialogOpen: false,
+  selectedSkillId: null,
 
-  handleSearchInputChange: (event) => set({ search: event.target.value }),
-  handleCategoryButtonClick: (category) => set({ category }),
+  handleSetSearch: (search) => set({ search }),
+  handleSetCategory: (category) => set({ category }),
+  handleCreateOperationClick: (skillId) =>
+    set({ createOperationDialogOpen: true, selectedSkillId: skillId }),
+  handleCreateOperationDialogClose: () =>
+    set({ createOperationDialogOpen: false, selectedSkillId: null }),
 });

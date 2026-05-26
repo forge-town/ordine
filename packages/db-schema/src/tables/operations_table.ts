@@ -11,6 +11,7 @@ export const operationsTable = pgTable("operations", {
     .$type<ObjectNodeType[]>()
     .notNull()
     .default(sql`'["file","folder","github-project"]'::jsonb`),
+  sourceSkillId: text("source_skill_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

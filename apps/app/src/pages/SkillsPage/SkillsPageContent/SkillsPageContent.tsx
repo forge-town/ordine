@@ -1,5 +1,5 @@
 import { useStore } from "zustand";
-import { Search, Wand2 } from "lucide-react";
+import { Search, Wand2, PlusCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -41,8 +41,13 @@ export const SkillsPageContent = () => {
   const store = useSkillsPageStore();
   const search = useStore(store, (s) => s.search);
   const category = useStore(store, (s) => s.category);
-  const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
-  const handleCategoryButtonClick = useStore(store, (s) => s.handleCategoryButtonClick);
+  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
+  const handleSetCategory = useStore(store, (s) => s.handleSetCategory);
+  const handleCreateOperationClick = useStore(store, (s) => s.handleCreateOperationClick);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleSetSearch(e.target.value);
+  const handleCategoryClick = (cat: SkillCategory) => () => handleSetCategory(cat);
 
   const filtered = skills.filter((s: Skill) => {
     const matchesSearch =
@@ -80,7 +85,7 @@ export const SkillsPageContent = () => {
             placeholder={t("common.search")}
             type="text"
             value={search}
-            onChange={handleSearchInputChange}
+            onChange={handleSearchChange}
           />
         </div>
         <div className="flex items-center gap-1">
@@ -90,7 +95,7 @@ export const SkillsPageContent = () => {
               className="text-xs h-7 px-2.5"
               size="sm"
               variant={category === cat ? "default" : "ghost"}
-              onClick={() => handleCategoryButtonClick(cat)}
+              onClick={handleCategoryClick(cat)}
             >
               {categoryLabels[cat]}
             </Button>
@@ -145,6 +150,15 @@ export const SkillsPageContent = () => {
 
                 <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                   <code className="text-[10px] text-muted-foreground">{skill.name}</code>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 px-2 text-[10px]"
+                    onClick={() => handleCreateOperationClick(skill.id)}
+                  >
+                    <PlusCircle className="mr-1 h-3 w-3" />
+                    {t("skills.createOperation")}
+                  </Button>
                 </div>
               </div>
             ))}

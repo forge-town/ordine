@@ -752,6 +752,14 @@
   "skills": {
     "title": "技能",
     "noSkills": "暂无 Skills",
+    "createOperation": "创建 Operation",
+    "createOperation.dialogTitle": "从 Skill 创建 Operation",
+    "createOperation.namePlaceholder": "Operation 名称",
+    "createOperation.descriptionPlaceholder": "这个 Operation 应该完成什么任务？",
+    "createOperation.outputs": "预期输出",
+    "createOperation.addOutput": "添加输出",
+    "createOperation.confirm": "创建 Operation",
+    "createOperation.success": "Operation 创建成功",
     "categories": {
       "all": "全部",
       "page": "页面结构",

@@ -752,6 +752,14 @@
   "skills": {
     "title": "Skills",
     "noSkills": "No skills found",
+    "createOperation": "Create Operation",
+    "createOperation.dialogTitle": "Create Operation from Skill",
+    "createOperation.namePlaceholder": "Operation name",
+    "createOperation.descriptionPlaceholder": "What should this operation do?",
+    "createOperation.outputs": "Expected Outputs",
+    "createOperation.addOutput": "Add Output",
+    "createOperation.confirm": "Create Operation",
+    "createOperation.success": "Operation created successfully",
     "categories": {
       "all": "All",
       "page": "Page structure",

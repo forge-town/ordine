@@ -23,6 +23,10 @@ export const ResourceName = {
   jobs: "jobs",
   githubProjects: "githubProjects",
   skills: "skills",
+  recipes: "recipes",
+  checklistItems: "checklistItems",
+  codeSnippets: "codeSnippets",
+  skillDraftOperations: "skillDraftOperations",
   distillations: "distillations",
   refinements: "refinements",
   settings: "settings",
@@ -145,6 +149,26 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.skills: {
         const data = await trpcClient.skills.getById.query({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.recipes: {
+        const data = await trpcClient.recipes.getById.query({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.checklistItems: {
+        const data = await trpcClient.checklist.getItemById.query({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.codeSnippets: {
+        const data = await trpcClient.codeSnippets.getById.query({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.skillDraftOperations: {
+        const data = await trpcClient.skills.draftOperation.query({ id: String(id) });
 
         return { data: data as unknown as TData };
       }
