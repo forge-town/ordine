@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
+import { ResultAsync } from "neverthrow";
 import { Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
@@ -33,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/select";
-import { TemplateContentTypeSchema } from "@repo/schemas";
+import { TemplateContentTypeSchema, type DraftOperation } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
 
@@ -51,18 +52,6 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
-
-interface DraftOperation {
-  name: string;
-  description: string;
-  sourceSkillId: string;
-  config: {
-    executor: { type: string; agentMode: string; skillId: string };
-    inputs: never[];
-    outputs: never[];
-  };
-  acceptedObjectTypes: readonly string[];
-}
 
 export interface SkillToOperationDialogProps {
   open: boolean;
@@ -101,15 +90,19 @@ export const SkillToOperationDialog = ({
     name: "outputs",
   });
 
+  const formRef = useRef(form);
   useEffect(() => {
-    if (draftResult) {
-      form.reset({
+    formRef.current = form;
+  });
+  useEffect(() => {
+    if (draftResult && !formRef.current.formState.isDirty) {
+      formRef.current.reset({
         name: draftResult.name,
         description: draftResult.description ?? "",
         outputs: [],
       });
     }
-  }, [draftResult, form]);
+  }, [draftResult]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -121,36 +114,54 @@ export const SkillToOperationDialog = ({
     append({ name: "", contentType: templateContentTypes[0] });
   };
 
-  const handleSubmit = async (values: FormValues) => {
+  const handleRemoveOutput = (index: number) => {
+    remove(index);
+  };
+
+  const handleCancel = onClose;
+
+  const handleSubmit = (values: FormValues) => {
     if (!draftResult || !skillId) return;
 
-    const result = await createOperation({
-      resource: ResourceName.operations,
-      values: {
-        id: crypto.randomUUID(),
-        name: values.name,
-        description: values.description,
-        config: {
-          ...draftResult.config,
-          outputs: values.outputs.map((o) => ({ ...o, templateIds: [] })),
+    void ResultAsync.fromPromise(
+      createOperation({
+        resource: ResourceName.operations,
+        values: {
+          id: crypto.randomUUID(),
+          name: values.name,
+          description: values.description,
+          config: {
+            executor: draftResult.config.executor,
+            inputs: draftResult.config.inputs,
+            outputs: values.outputs.map((o) => ({ ...o, templateIds: [] })),
+          },
+          acceptedObjectTypes: draftResult.acceptedObjectTypes,
+          sourceSkillId: skillId,
         },
-        acceptedObjectTypes: draftResult.acceptedObjectTypes,
-        sourceSkillId: skillId,
+      }),
+      () => "create-operation-failed" as const,
+    ).match(
+      (result) => {
+        toastStore.getState().addToast({
+          type: "success",
+          title: t("skills.createOperation.success"),
+        });
+
+        onClose();
+
+        const newOperationId = (result.data as { id: string }).id;
+        void navigate({
+          to: "/pipelines/operations/$operationId",
+          params: { operationId: newOperationId },
+        });
       },
-    });
-
-    toastStore.getState().addToast({
-      type: "success",
-      title: t("skills.createOperation.success"),
-    });
-
-    onClose();
-
-    const newOperationId = (result.data as { id: string }).id;
-    void navigate({
-      to: "/pipelines/operations/$operationId",
-      params: { operationId: newOperationId },
-    });
+      () => {
+        toastStore.getState().addToast({
+          type: "error",
+          title: t("skills.createOperation.error"),
+        });
+      },
+    );
   };
 
   const isLoading = draftQuery?.isLoading;
@@ -221,10 +232,10 @@ export const SkillToOperationDialog = ({
                       {t("skills.createOperation.outputs")}
                     </span>
                     <Button
+                      className="h-6 px-2 text-xs"
                       size="sm"
                       type="button"
                       variant="ghost"
-                      className="h-6 px-2 text-xs"
                       onClick={handleAddOutput}
                     >
                       <Plus className="mr-1 h-3 w-3" />
@@ -240,7 +251,7 @@ export const SkillToOperationDialog = ({
                         render={({ field: f }) => (
                           <FormItem className="flex-1">
                             <FormControl>
-                              <Input className="h-8 text-xs" placeholder="output name" {...f} />
+                              <Input {...f} className="h-8 text-xs" placeholder="output name" />
                             </FormControl>
                             <FormMessage className="text-xs" />
                           </FormItem>
@@ -250,9 +261,7 @@ export const SkillToOperationDialog = ({
                         control={form.control}
                         name={`outputs.${index}.contentType`}
                         render={({ field: f }) => {
-                          const handleValueChange = (value: string | null) => {
-                            if (value) f.onChange(value);
-                          };
+                          const handleValueChange = f.onChange;
 
                           return (
                             <FormItem className="w-28">
@@ -264,7 +273,7 @@ export const SkillToOperationDialog = ({
                                   <SelectContent>
                                     <SelectGroup>
                                       {templateContentTypes.map((type) => (
-                                        <SelectItem key={type} value={type} className="text-xs">
+                                        <SelectItem key={type} className="text-xs" value={type} >
                                           {type}
                                         </SelectItem>
                                       ))}
@@ -277,11 +286,11 @@ export const SkillToOperationDialog = ({
                         }}
                       />
                       <Button
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                         size="sm"
                         type="button"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                        onClick={() => remove(index)}
+                        onClick={() => handleRemoveOutput(index)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -292,14 +301,14 @@ export const SkillToOperationDialog = ({
 
               <DialogFooter className="mt-4">
                 <Button
+                  disabled={isBusy}
                   type="button"
                   variant="outline"
-                  disabled={isBusy}
-                  onClick={onClose}
+                  onClick={handleCancel}
                 >
                   {t("common.cancel")}
                 </Button>
-                <Button type="submit" disabled={isBusy}>
+                <Button disabled={isBusy} type="submit">
                   {t("skills.createOperation.confirm")}
                 </Button>
               </DialogFooter>

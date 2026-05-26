@@ -760,6 +760,7 @@
     "createOperation.addOutput": "添加输出",
     "createOperation.confirm": "创建 Operation",
     "createOperation.success": "Operation 创建成功",
+    "createOperation.error": "创建 Operation 失败",
     "categories": {
       "all": "全部",
       "page": "页面结构",

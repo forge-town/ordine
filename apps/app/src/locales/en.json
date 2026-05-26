@@ -760,6 +760,7 @@
     "createOperation.addOutput": "Add Output",
     "createOperation.confirm": "Create Operation",
     "createOperation.success": "Operation created successfully",
+    "createOperation.error": "Failed to create operation",
     "categories": {
       "all": "All",
       "page": "Page structure",

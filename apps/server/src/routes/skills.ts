@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { buildDraftOperation } from "@repo/schemas";
 import { skillsService } from "../services.js";
 
 export const skillsRoutes = new Hono();
@@ -47,19 +48,5 @@ skillsRoutes.get("/:id/draft-operation", async (c) => {
   const skill = await skillsService.getById(id);
   if (!skill) return c.json({ error: "Skill not found" }, 404);
 
-  return c.json({
-    name: skill.label,
-    description: skill.description,
-    sourceSkillId: skill.id,
-    config: {
-      executor: {
-        type: "agent",
-        agentMode: "skill",
-        skillId: skill.id,
-      },
-      inputs: [],
-      outputs: [],
-    },
-    acceptedObjectTypes: ["file", "folder", "github-project", "prompt"],
-  });
+  return c.json(buildDraftOperation(skill));
 });

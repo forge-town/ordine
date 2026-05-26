@@ -36,7 +36,7 @@ Skipping or reordering is a protocol violation
 
 ### 4. Zero-Tolerance Error Handling
 
-- **Absolutely no `try-catch`, `try-finally`, or `.catch()` anywhere** in the codebase
+- **Absolutely no `try-catch`, `try-finally`, or `.catch()` in application logic anywhere** in the codebase. Wrap third-party throwing APIs at the boundary using `Result.fromThrowable()` or `ResultAsync.fromPromise()`. The prohibition applies to application logic — boundary wrappers are the only permitted exception.
 - Use `neverthrow` exclusively: `Result<T, E>`, `ResultAsync<T, E>`, `Result.fromThrowable()`, `ResultAsync.fromPromise()`
 - Errors are values, not exceptions; callers must handle them explicitly
 
@@ -53,3 +53,4 @@ Skipping or reordering is a protocol violation
 - State changes through Zustand stores with slice pattern, never through mutable globals
 - Side effects isolated at the boundary; core logic remains referentially transparent
 - No implicit dependencies — everything is explicit, injectable, and testable
+
