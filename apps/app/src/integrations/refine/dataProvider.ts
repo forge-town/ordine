@@ -152,21 +152,6 @@ export const dataProvider: DataProvider = {
 
         return { data: data as unknown as TData };
       }
-      case ResourceName.recipes: {
-        const data = await trpcClient.recipes.getById.query({ id: String(id) });
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.checklistItems: {
-        const data = await trpcClient.checklist.getItemById.query({ id: String(id) });
-
-        return { data: data as unknown as TData };
-      }
-      case ResourceName.codeSnippets: {
-        const data = await trpcClient.codeSnippets.getById.query({ id: String(id) });
-
-        return { data: data as unknown as TData };
-      }
       case ResourceName.skillDraftOperations: {
         const data = await trpcClient.skills.draftOperation.query({ id: String(id) });
 
