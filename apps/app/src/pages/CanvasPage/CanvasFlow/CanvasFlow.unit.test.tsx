@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
 import type * as XyFlowReact from "@xyflow/react";
 import type { PipelineNode } from "../_store/canvasSlice";
@@ -9,6 +9,16 @@ import {
   encodeCanvasComponentDragPayload,
 } from "../utils/canvasComponentDragPayload";
 import { CanvasFlow } from "./CanvasFlow";
+
+const xyflowMocks = vi.hoisted(() => {
+  const updateNodeInternals = vi.fn();
+
+  return {
+    onNodesChange: undefined as ((changes: unknown[]) => void) | undefined,
+    updateNodeInternals,
+    useUpdateNodeInternals: vi.fn(() => updateNodeInternals),
+  };
+});
 
 vi.mock("@xyflow/react", async (importOriginal) => {
   const actual = await importOriginal<typeof XyFlowReact>();
@@ -38,6 +48,7 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       onNodeDragStop,
       onPaneClick,
       onPaneContextMenu,
+      onNodesChange,
       snapToGrid,
     }: React.PropsWithChildren<{
       defaultViewport?: { zoom: number };
@@ -61,8 +72,12 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       onNodeDragStop?: unknown;
       onPaneClick?: unknown;
       onPaneContextMenu?: unknown;
+      onNodesChange?: unknown;
       snapToGrid?: boolean;
     }>) => {
+      xyflowMocks.onNodesChange = onNodesChange as
+        | ((changes: unknown[]) => void)
+        | undefined;
       const handleMouseMove = () => onMove?.(null, { x: 0, y: 0, zoom: 0.6 });
 
       return (
@@ -98,6 +113,7 @@ vi.mock("@xyflow/react", async (importOriginal) => {
     Background: () => <div data-testid="flow-background" />,
     Controls: () => <div data-testid="flow-controls" />,
     MiniMap: () => <div data-testid="mini-map" />,
+    useUpdateNodeInternals: xyflowMocks.useUpdateNodeInternals,
   };
 });
 
@@ -148,6 +164,16 @@ const makeDragEvent = (
 };
 
 describe("CanvasFlow", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    xyflowMocks.onNodesChange = undefined;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
   it("renders without crashing", () => {
     const { container } = render(<CanvasFlow />, { wrapper });
     expect(container.firstChild).toBeTruthy();
@@ -289,5 +315,86 @@ describe("CanvasFlow", () => {
         position: { x: 240, y: 180 },
       }),
     ]);
+  });
+
+  it("coalesces repeated node-internals remeasurements", () => {
+    vi.useFakeTimers();
+
+    const scheduledFrames = new Map<number, ReturnType<typeof setTimeout>>();
+    let nextFrameId = 1;
+
+    vi.stubGlobal(
+      "requestAnimationFrame",
+      vi.fn((callback: FrameRequestCallback) => {
+        const frameId = nextFrameId++;
+        const timeoutId = globalThis.setTimeout(() => callback(16), 0);
+
+        scheduledFrames.set(frameId, timeoutId);
+
+        return frameId;
+      }),
+    );
+    vi.stubGlobal(
+      "cancelAnimationFrame",
+      vi.fn((frameId: number) => {
+        const timeoutId = scheduledFrames.get(frameId);
+
+        if (timeoutId !== undefined) {
+          globalThis.clearTimeout(timeoutId);
+          scheduledFrames.delete(frameId);
+        }
+      }),
+    );
+
+    const store = createCanvasPageStore([makeNode("a")], []);
+
+    render(
+      <CanvasPageStoreContext.Provider value={store}>
+        <ReactFlowProvider>
+          <CanvasFlow />
+        </ReactFlowProvider>
+      </CanvasPageStoreContext.Provider>,
+    );
+
+    act(() => {
+      xyflowMocks.onNodesChange?.([
+        { id: "a", type: "position", position: { x: 12, y: 18 }, dragging: false },
+      ]);
+      xyflowMocks.onNodesChange?.([
+        { id: "a", type: "position", position: { x: 24, y: 36 }, dragging: false },
+      ]);
+      vi.runAllTimers();
+    });
+
+    expect(xyflowMocks.updateNodeInternals).toHaveBeenCalledTimes(2);
+    expect(xyflowMocks.updateNodeInternals).toHaveBeenNthCalledWith(1, ["a"]);
+    expect(xyflowMocks.updateNodeInternals).toHaveBeenNthCalledWith(2, ["a"]);
+  });
+
+  it("falls back to timeout when requestAnimationFrame is unavailable", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("requestAnimationFrame", undefined);
+    vi.stubGlobal("cancelAnimationFrame", undefined);
+
+    const store = createCanvasPageStore([makeNode("a")], []);
+
+    render(
+      <CanvasPageStoreContext.Provider value={store}>
+        <ReactFlowProvider>
+          <CanvasFlow />
+        </ReactFlowProvider>
+      </CanvasPageStoreContext.Provider>,
+    );
+
+    expect(() => {
+      act(() => {
+        xyflowMocks.onNodesChange?.([
+          { id: "a", type: "position", position: { x: 12, y: 18 }, dragging: false },
+        ]);
+        vi.runAllTimers();
+      });
+    }).not.toThrow();
+    expect(xyflowMocks.updateNodeInternals).toHaveBeenCalledTimes(1);
+    expect(xyflowMocks.updateNodeInternals).toHaveBeenCalledWith(["a"]);
   });
 });

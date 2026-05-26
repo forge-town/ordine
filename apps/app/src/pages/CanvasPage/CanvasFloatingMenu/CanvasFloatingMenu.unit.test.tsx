@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { act, render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasFloatingMenu } from "./CanvasFloatingMenu";
 import { createCanvasPageStore, CanvasPageStoreContext, CanvasPageStoreProvider } from "../_store";
@@ -180,7 +180,9 @@ describe("CanvasFloatingMenu - save behavior", () => {
       expect(generatedId).toBeTruthy();
 
       // Simulate refine calling onSuccess
-      onSuccess();
+      act(() => {
+        onSuccess();
+      });
 
       // Re-click save — now it should route to UPDATE path since pipelineId was set
       mockCreate.mockClear();

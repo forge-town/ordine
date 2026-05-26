@@ -1,4 +1,4 @@
-import { useMemo, type DragEvent, type Ref } from "react";
+import { useEffect, useMemo, useRef, type DragEvent, type Ref } from "react";
 import { useStore } from "zustand";
 import { useCanvasPageStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -116,17 +116,74 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   );
   const handleFlowMove = useStore(store, (s) => s.handleFlowMove);
   const updateNodeInternals = useUpdateNodeInternals();
+  const nodeIds = useMemo(() => nodes.map((node) => node.id), [nodes]);
+  const latestNodeIdsRef = useRef(nodeIds);
+  const pendingRemeasureRef = useRef<{
+    frameId: number | null;
+    timeoutId: ReturnType<typeof globalThis.setTimeout> | null;
+  }>({
+    frameId: null,
+    timeoutId: null,
+  });
+
+  latestNodeIdsRef.current = nodeIds;
+
+  const clearScheduledNodeInternalsUpdate = () => {
+    const { frameId, timeoutId } = pendingRemeasureRef.current;
+
+    if (frameId !== null && typeof cancelAnimationFrame !== "undefined") {
+      cancelAnimationFrame(frameId);
+    }
+
+    if (timeoutId !== null) {
+      globalThis.clearTimeout(timeoutId);
+    }
+
+    pendingRemeasureRef.current = {
+      frameId: null,
+      timeoutId: null,
+    };
+  };
 
   const scheduleUpdateAllNodeInternals = () => {
-    const ids = nodes.map((n) => n.id);
-    if (ids.length === 0) return;
-    requestAnimationFrame(() => {
-      updateNodeInternals(ids);
-    });
-    globalThis.setTimeout(() => {
-      updateNodeInternals(ids);
+    clearScheduledNodeInternalsUpdate();
+
+    if (latestNodeIdsRef.current.length === 0) {
+      return;
+    }
+
+    const runUpdate = () => {
+      if (latestNodeIdsRef.current.length === 0) {
+        return;
+      }
+
+      updateNodeInternals(latestNodeIdsRef.current);
+    };
+
+    const timeoutId = globalThis.setTimeout(() => {
+      pendingRemeasureRef.current.timeoutId = null;
+      runUpdate();
     }, nodePortRemeasureDelayMs);
+    const frameId =
+      typeof requestAnimationFrame === "undefined"
+        ? null
+        : requestAnimationFrame(() => {
+            pendingRemeasureRef.current.frameId = null;
+            runUpdate();
+          });
+
+    pendingRemeasureRef.current = {
+      frameId,
+      timeoutId,
+    };
   };
+
+  useEffect(
+    () => () => {
+      clearScheduledNodeInternalsUpdate();
+    },
+    [],
+  );
 
   const interactiveHandlers = isCanvasInteractive
     ? {

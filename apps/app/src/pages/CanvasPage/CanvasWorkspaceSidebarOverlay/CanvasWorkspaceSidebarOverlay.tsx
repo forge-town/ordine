@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import {
   Activity,
   Bot,
@@ -19,10 +18,8 @@ import {
   Zap,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useCreate, useUpdate } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { ResultAsync } from "neverthrow";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Separator } from "@repo/ui/separator";
@@ -34,15 +31,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@repo/ui/sheet";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { toastStore } from "@/store/toastStore";
 import { useCanvasPageStore } from "../_store";
 import { CANVAS_WORKSPACE_SIDEBAR_ID } from "../CanvasMiniSidebar";
-import {
-  isCanvasImportFileTooLarge,
-  parseCanvasImportJson,
-  type CanvasImportError,
-} from "../utils/canvasImportJson";
+import { useCanvasWorkspacePersistence } from "../useCanvasWorkspacePersistence";
 
 const workspaceLinks = [
   { icon: LayoutDashboard, labelKey: "nav.dashboard", to: "/" },
@@ -58,35 +49,27 @@ const workspaceLinks = [
 
 export const CanvasWorkspaceSidebarOverlay = () => {
   const { t } = useTranslation();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const store = useCanvasPageStore();
   const isOpen = useStore(store, (state) => state.isWorkspaceSidebarOpen);
   const closeWorkspaceSidebar = useStore(
     store,
     (state) => state.closeWorkspaceSidebar,
   );
-  const pipelineId = useStore(store, (state) => state.pipelineId);
   const pipelineName = useStore(store, (state) => state.pipelineName);
-  const nodes = useStore(store, (state) => state.nodes);
-  const edges = useStore(store, (state) => state.edges);
   const exportCanvas = useStore(store, (state) => state.exportCanvas);
-  const importCanvas = useStore(store, (state) => state.importCanvas);
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
-  const handlePipelineIdChange = useStore(
-    store,
-    (state) => state.handlePipelineIdChange,
-  );
   const openCanvasSettings = useStore(
     store,
     (state) => state.openCanvasSettings,
   );
-
-  const { mutate: updateCanvas, mutation: updateMutation } = useUpdate();
-  const { mutate: createCanvas, mutation: createMutation } = useCreate();
   const displayPipelineName =
     pipelineName || t("canvas.pipelineTitlePlaceholder");
-  const isPending = updateMutation.isPending || createMutation.isPending;
+  const { fileInputRef, handleImport, handleImportFileChange, handleSave, isPending } =
+    useCanvasWorkspacePersistence({
+      onAfterImportFileSelect: closeWorkspaceSidebar,
+      onAfterSave: closeWorkspaceSidebar,
+    });
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -96,104 +79,6 @@ export const CanvasWorkspaceSidebarOverlay = () => {
 
   const handleCloseDrawer = () => {
     closeWorkspaceSidebar();
-  };
-
-  const showImportError = (error: CanvasImportError) => {
-    const description =
-      error === "invalid-json"
-        ? t("canvas.importInvalidJson")
-        : error === "file-too-large"
-          ? t("canvas.importFileTooLarge")
-          : t("canvas.importInvalidPipelineJson");
-
-    toastStore.getState().addToast({
-      type: "error",
-      title: t("canvas.importFailed"),
-      description,
-    });
-  };
-
-  const handleSave = () => {
-    if (pipelineId) {
-      updateCanvas({
-        resource: ResourceName.pipelines,
-        id: pipelineId,
-        values: { nodes, edges },
-        successNotification: {
-          type: "success",
-          message: t("canvas.saveSuccess"),
-          description: t("canvas.floatingMenu.saveSuccessDescription", {
-            name: displayPipelineName,
-          }),
-        },
-        errorNotification: {
-          type: "error",
-          message: t("canvas.saveFailed"),
-          description: t("canvas.floatingMenu.saveFailedDescription"),
-        },
-      });
-      handleCloseDrawer();
-
-      return;
-    }
-
-    const newId = crypto.randomUUID();
-    createCanvas(
-      {
-        resource: ResourceName.pipelines,
-        values: {
-          id: newId,
-          name: displayPipelineName,
-          description: "",
-          tags: [],
-          timeoutMs: null,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          nodes,
-          edges,
-        },
-        successNotification: {
-          type: "success",
-          message: t("canvas.saveSuccess"),
-          description: t("canvas.floatingMenu.createSuccessDescription", {
-            name: displayPipelineName,
-          }),
-        },
-        errorNotification: {
-          type: "error",
-          message: t("canvas.saveFailed"),
-          description: t("canvas.floatingMenu.saveFailedDescription"),
-        },
-      },
-      {
-        onSuccess: () => {
-          handlePipelineIdChange(newId);
-        },
-      },
-    );
-    handleCloseDrawer();
-  };
-
-  const handleImport = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    event.target.value = "";
-    handleCloseDrawer();
-
-    if (isCanvasImportFileTooLarge(file)) {
-      showImportError("file-too-large");
-
-      return;
-    }
-
-    void ResultAsync.fromPromise(file.text(), () => "invalid-json" as const)
-      .andThen((text) => parseCanvasImportJson(text))
-      .match(importCanvas, showImportError);
   };
 
   const handleActionClick = (action: () => void) => () => {
@@ -331,7 +216,7 @@ export const CanvasWorkspaceSidebarOverlay = () => {
           className="hidden"
           name="canvasImportFile"
           type="file"
-          onChange={handleFileChange}
+          onChange={handleImportFileChange}
         />
       </SheetContent>
     </Sheet>

@@ -1,138 +1,28 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useCanvasPageStore } from "../_store";
 import { Menu, Home, Save, FileDown, FileUp, Settings, Undo, Redo } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useCreate, useUpdate } from "@refinedev/core";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { toastStore } from "@/store/toastStore";
-import { ResultAsync } from "neverthrow";
-import {
-  isCanvasImportFileTooLarge,
-  parseCanvasImportJson,
-  type CanvasImportError,
-} from "../utils/canvasImportJson";
+import { useCanvasWorkspacePersistence } from "../useCanvasWorkspacePersistence";
 
 export const CanvasFloatingMenu = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
-  const pipelineId = useStore(store, (state) => state.pipelineId);
-  const pipelineName = useStore(store, (state) => state.pipelineName);
-  const nodes = useStore(store, (state) => state.nodes);
-  const edges = useStore(store, (state) => state.edges);
   const exportCanvas = useStore(store, (state) => state.exportCanvas);
-  const importCanvas = useStore(store, (state) => state.importCanvas);
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
   const openCanvasSettings = useStore(store, (state) => state.openCanvasSettings);
-  const handlePipelineIdChange = useStore(store, (state) => state.handlePipelineIdChange);
-
-  const { mutate: updateCanvas, mutation: updateMutation } = useUpdate();
-  const { mutate: createCanvas, mutation: createMutation } = useCreate();
 
   const [isOpen, setIsOpen] = useState(false);
-  const displayPipelineName = pipelineName || t("canvas.pipelineTitlePlaceholder");
-
-  const handleSave = () => {
-    if (pipelineId) {
-      updateCanvas({
-        resource: ResourceName.pipelines,
-        id: pipelineId,
-        values: { nodes, edges },
-        successNotification: {
-          type: "success",
-          message: t("canvas.saveSuccess"),
-          description: t("canvas.floatingMenu.saveSuccessDescription", {
-            name: displayPipelineName,
-          }),
-        },
-        errorNotification: {
-          type: "error",
-          message: t("canvas.saveFailed"),
-          description: t("canvas.floatingMenu.saveFailedDescription"),
-        },
-      });
-    } else {
-      const newId = crypto.randomUUID();
-      createCanvas(
-        {
-          resource: ResourceName.pipelines,
-          values: {
-            id: newId,
-            name: displayPipelineName,
-            description: "",
-            tags: [],
-            timeoutMs: null,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-            nodes,
-            edges,
-          },
-          successNotification: {
-            type: "success",
-            message: t("canvas.saveSuccess"),
-            description: t("canvas.floatingMenu.createSuccessDescription", {
-              name: displayPipelineName,
-            }),
-          },
-          errorNotification: {
-            type: "error",
-            message: t("canvas.saveFailed"),
-            description: t("canvas.floatingMenu.saveFailedDescription"),
-          },
-        },
-        {
-          onSuccess: () => {
-            handlePipelineIdChange(newId);
-          },
-        },
-      );
-    }
-  };
-
-  const isPending = updateMutation.isPending || createMutation.isPending;
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleImport = () => {
-    fileInputRef.current?.click();
-  };
-
-  const showImportError = (error: CanvasImportError) => {
-    const description =
-      error === "invalid-json"
-        ? t("canvas.importInvalidJson")
-        : error === "file-too-large"
-          ? t("canvas.importFileTooLarge")
-          : t("canvas.importInvalidPipelineJson");
-
-    toastStore.getState().addToast({
-      type: "error",
-      title: t("canvas.importFailed"),
-      description,
+  const { fileInputRef, handleImport, handleImportFileChange, handleSave, isPending } =
+    useCanvasWorkspacePersistence({
+      onAfterImportFileSelect: () => setIsOpen(false),
+      onAfterSave: () => setIsOpen(false),
     });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = "";
-    setIsOpen(false);
-
-    if (isCanvasImportFileTooLarge(file)) {
-      showImportError("file-too-large");
-
-      return;
-    }
-
-    void ResultAsync.fromPromise(file.text(), () => "invalid-json" as const)
-      .andThen((text) => parseCanvasImportJson(text))
-      .match(importCanvas, showImportError);
-  };
 
   const menuItems = [
     { icon: Home, label: t("canvas.floatingMenu.backToWorkspace"), to: "/" },
@@ -201,7 +91,7 @@ export const CanvasFloatingMenu = () => {
         className="hidden"
         name="canvasImportFile"
         type="file"
-        onChange={handleFileChange}
+        onChange={handleImportFileChange}
       />
     </div>
   );
