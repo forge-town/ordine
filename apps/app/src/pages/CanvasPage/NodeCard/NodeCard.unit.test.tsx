@@ -69,12 +69,23 @@ describe("NodeCard", () => {
     expect(screen.getByText("Body content")).toBeInTheDocument();
   });
 
+  it("hides card body when compact", () => {
+    const { container } = render(
+      <NodeCard compact icon={Box} label="Node" theme="emerald">
+        <span>Body content</span>
+      </NodeCard>,
+    );
+
+    expect(screen.queryByText("Body content")).not.toBeInTheDocument();
+    expect(container.firstElementChild).toHaveAttribute("data-card-mode", "compact");
+  });
+
   it("does not render body wrapper when no children", () => {
     const { container } = render(<NodeCard icon={Box} label="Node" theme="emerald" />);
     const wrapper = container.firstElementChild;
     const card = wrapper?.firstElementChild;
 
-    expect(wrapper).toHaveClass("relative");
+    expect(wrapper).toHaveClass("relative", "w-fit");
     expect(card).toHaveAttribute("data-slot", "card");
     expect(card?.childNodes).toHaveLength(1);
   });
@@ -95,7 +106,7 @@ describe("NodeCard", () => {
       />,
     );
 
-    expect(container.firstElementChild).toHaveClass("relative");
+    expect(container.firstElementChild).toHaveClass("relative", "w-fit");
     expect(container.querySelector('[data-slot="card"]')).toHaveClass(
       "w-72",
       "data-[size=sm]:py-0",
@@ -104,11 +115,17 @@ describe("NodeCard", () => {
       "w-full",
       "min-w-0",
     );
+    expect(container.querySelector('[data-slot="card-description"]')).toHaveClass(
+      "w-full",
+      "max-w-full",
+      "truncate",
+    );
     expect(container.querySelector('[data-slot="card-header"]')).toHaveClass(
       "min-h-14",
       "rounded-none",
     );
     expect(container.querySelector('[data-slot="card-action"]')).toHaveClass(
+      "ml-auto",
       "shrink-0",
       "self-center",
     );
@@ -134,22 +151,30 @@ describe("NodeCard", () => {
     render(<NodeCard leftHandle rightHandle icon={Box} label="Node" theme="orange" />);
 
     expect(screen.getByTestId("target-handle")).toHaveClass(
-      "!left-2.5",
-      "!h-5",
-      "!w-5",
+      "!left-0",
+      "!h-0",
+      "!min-h-0",
+      "!w-0",
+      "!min-w-0",
       "!bg-transparent",
-      "before:!left-0",
+      "before:left-1/2",
+      "after:h-5",
+      "after:w-5",
       "before:opacity-30",
       "before:scale-75",
       "group-hover/node-card:before:opacity-75",
       "before:!bg-orange-500",
     );
     expect(screen.getByTestId("source-handle")).toHaveClass(
-      "!right-2.5",
-      "!h-5",
-      "!w-5",
+      "!right-0",
+      "!h-0",
+      "!min-h-0",
+      "!w-0",
+      "!min-w-0",
       "!bg-transparent",
-      "before:!left-full",
+      "before:left-1/2",
+      "after:h-5",
+      "after:w-5",
       "before:opacity-30",
       "before:scale-75",
       "group-hover/node-card:before:opacity-75",
@@ -274,6 +299,27 @@ describe("NodeCard", () => {
 
     fireEvent.blur(input);
     expect(input).toHaveAttribute("readonly");
+  });
+
+  it("sizes editable label input to the title text instead of the header row", () => {
+    const handleLabelChange = vi.fn();
+    render(
+      <NodeCard
+        icon={Box}
+        label="Editable Node"
+        theme="emerald"
+        onLabelChange={handleLabelChange}
+      />,
+    );
+
+    const input = screen.getByLabelText(/Node label|节点标签/);
+    const labelSizer = input.parentElement;
+    const mirrorLabel = labelSizer?.firstElementChild;
+
+    expect(labelSizer).toHaveClass("relative", "inline-block", "max-w-full", "overflow-hidden");
+    expect(mirrorLabel).toHaveClass("invisible", "block", "truncate", "whitespace-pre");
+    expect(input).toHaveClass("absolute", "inset-0", "w-full", "max-w-full", "truncate", "p-0");
+    expect(input).not.toHaveClass("w-auto");
   });
 
   it("enables editable label when focused by keyboard", () => {

@@ -89,6 +89,10 @@ output
 
 # Local agent/context files
 AGENTS.md
+MEMORY.md
+Start-Ordine.cmd
+scripts/windows/
+.worktrees/
 
 # Local browser/test artifacts
 .playwright-cli/

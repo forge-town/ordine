@@ -6,14 +6,6 @@ import { describe, expect, it, vi } from "vitest";
 import { createCanvasPageStore, CanvasPageStoreContext } from "../_store";
 import { CanvasTopChrome } from "./CanvasTopChrome";
 
-vi.mock("../CanvasFloatingMenu", () => ({
-  CanvasFloatingMenu: () => (
-    <button className="pointer-events-auto h-10 w-10" title="菜单" type="button">
-      Menu
-    </button>
-  ),
-}));
-
 vi.mock("../CanvasToolbar", () => ({
   CanvasToolbar: () => <div data-testid="canvas-toolbar">Toolbar</div>,
 }));
@@ -31,30 +23,24 @@ const renderTopChrome = () => {
 };
 
 describe("CanvasTopChrome", () => {
-  it("uses one top chrome coordinate system for menu, title, and toolbar", () => {
+  it("renders the shell top bar with title and toolbar", () => {
     renderTopChrome();
 
     expect(screen.getByTestId("canvas-top-chrome")).toHaveClass(
-      "absolute",
-      "top-3",
-      "z-50",
-      "pointer-events-none",
+      "border-b",
+      "bg-background/95",
+      "backdrop-blur",
     );
     const toolbarSlot = screen.getByTestId("canvas-toolbar").parentElement;
     expect(toolbarSlot).not.toBeNull();
-    expect(toolbarSlot as HTMLElement).toHaveClass(
-      "max-w-full",
-      "overflow-x-auto",
-      "max-[420px]:justify-self-start",
-    );
-    expect(screen.getByTestId("canvas-title-desktop")).toHaveClass("hidden", "min-[700px]:flex");
-    expect(screen.getByTestId("canvas-title-narrow")).toHaveClass("mt-2", "min-[700px]:hidden");
+    expect(toolbarSlot as HTMLElement).toHaveClass("min-w-0", "max-w-full", "overflow-x-auto");
+    expect(screen.getByTestId("canvas-title-desktop")).toHaveClass("min-w-0", "flex-1");
   });
 
   it("preserves pipeline title editing", async () => {
     const user = userEvent.setup();
     const store = renderTopChrome();
-    const [desktopTitleInput] = screen.getAllByRole("textbox", {
+    const desktopTitleInput = screen.getByRole("textbox", {
       name: i18n.t("canvas.pipelineTitle"),
     });
 

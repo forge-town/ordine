@@ -1,6 +1,6 @@
 import { sortParentBeforeChildren, type PipelineEdge, type PipelineNode } from "./canvasSlice";
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
-import type { Operation, BuiltinNodeType } from "@repo/schemas";
+import type { Operation, BuiltinNodeType, Skill } from "@repo/schemas";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
@@ -45,6 +45,32 @@ const makeLocalizedDefaultNodeData = (type: BuiltinNodeType) => {
   });
 };
 
+const skillBackedOperationId = (skill: Skill) => `skill-operation-${skill.id}`;
+
+const isSkillBackedOperation = (operation: Operation, skill: Skill) => {
+  const executor = operation.config.executor;
+
+  return (
+    executor?.type === "agent" && executor.agentMode === "skill" && executor.skillId === skill.id
+  );
+};
+
+const makeSkillBackedOperation = (skill: Skill): Operation => ({
+  id: skillBackedOperationId(skill),
+  name: skill.label || skill.name,
+  description: skill.description,
+  acceptedObjectTypes: ["file", "folder", "github-project", "prompt"],
+  config: {
+    executor: {
+      type: "agent",
+      agentMode: "skill",
+      skillId: skill.id,
+    },
+    inputs: [],
+    outputs: [],
+  },
+});
+
 export interface ActionsSlice {
   exportCanvas: () => void;
   importCanvas: (data: CanvasImportPayload) => void;
@@ -87,6 +113,7 @@ export interface ActionsSlice {
   createOperationNode: (operation: Operation) => void;
   handleCreateObjectNode: (type: BuiltinNodeType, screenPosition: XYPosition) => void;
   handleCreateOperationNode: (operation: Operation, screenPosition: XYPosition) => void;
+  handleCreateSkillOperationNode: (skill: Skill, screenPosition: XYPosition) => Promise<void>;
   dismissContextMenu: () => void;
   handleContextMenuOpenChange: (open: boolean) => void;
   connectObjectNode: (type: BuiltinNodeType) => void;
@@ -178,6 +205,8 @@ export const createActionsSlice = (
     set({
       selectedNodeId: nodeId,
       selectedEdgeId: null,
+      sidebarPanel: "properties",
+      isPropertiesPanelOpen: true,
       contextMenu: null,
       connectionMenu: null,
       nodeContextMenu: null,
@@ -190,6 +219,8 @@ export const createActionsSlice = (
     set({
       selectedEdgeId: edgeId,
       selectedNodeId: null,
+      sidebarPanel: "components",
+      isPropertiesPanelOpen: false,
       contextMenu: null,
       connectionMenu: null,
       nodeContextMenu: null,
@@ -202,6 +233,8 @@ export const createActionsSlice = (
     set({
       selectedNodeId: null,
       selectedEdgeId: null,
+      sidebarPanel: "components",
+      isPropertiesPanelOpen: false,
       contextMenu: null,
       connectionMenu: null,
       nodeContextMenu: null,
@@ -509,6 +542,57 @@ export const createActionsSlice = (
       data: makeOperationNodeData(operation),
     });
     set({ isQuickAddOpen: false, quickAddQuery: "" });
+  },
+
+  handleCreateSkillOperationNode: async (skill, screenPosition) => {
+    const result = await ResultAsync.fromPromise(
+      (async () => {
+        const listResult = await dataProvider.getList!<Operation>({
+          resource: ResourceName.operations,
+        });
+        const existing = listResult.data.find((operation) =>
+          isSkillBackedOperation(operation, skill),
+        );
+
+        if (existing) {
+          return existing;
+        }
+
+        const createResult = await dataProvider.create!<Operation>({
+          resource: ResourceName.operations,
+          variables: makeSkillBackedOperation(skill),
+        });
+
+        return createResult.data;
+      })(),
+      () => "create-skill-operation-failed" as const,
+    );
+
+    result.match(
+      (operation) => {
+        const position = get().screenToFlowPosition(screenPosition);
+        get().addNodeAndAutoConnect({
+          id: `op-${operation.id}-${Date.now()}`,
+          type: "operation",
+          origin: QUICK_ADD_NODE_ORIGIN,
+          position,
+          data: makeOperationNodeData(operation),
+        });
+        set({ isQuickAddOpen: false, quickAddQuery: "" });
+      },
+      () => {
+        const t = i18n.t.bind(i18n);
+        toastStore.getState().addToast({
+          type: "error",
+          title: t("canvas.skillOperationCreateFailed", {
+            defaultValue: "Failed to add skill",
+          }),
+          description: t("canvas.skillOperationCreateFailedDescription", {
+            defaultValue: "Could not prepare a Skill Operation for this Canvas node.",
+          }),
+        });
+      },
+    );
   },
 
   // TODO: Find if it should be use

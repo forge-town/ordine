@@ -25,8 +25,12 @@ const mockSettingsDao = {
     defaultModel: "gpt-4o",
   }),
 };
+const mockAgentRuntimesDao = {
+  findMany: vi.fn().mockResolvedValue([]),
+};
 
 vi.mock("@repo/models", () => ({
+  createAgentRuntimesDao: () => mockAgentRuntimesDao,
   createPipelinesDao: () => mockDao,
   createDistillationsDao: () => ({}),
   createJobsDao: () => ({}),
@@ -106,7 +110,10 @@ describe("generateStructure", () => {
     });
 
     expect(mockRunAgent).toHaveBeenCalledTimes(1);
-    if ("error" in result) throw new Error("unexpected error");
+    expect("error" in result).toBe(false);
+    if ("error" in result) {
+      return;
+    }
     expect(result.nodes).toHaveLength(2);
     expect(result.edges).toHaveLength(1);
     expect(result.nodes[0]!.data.nodeType).toBe("folder");
@@ -172,7 +179,10 @@ describe("generateStructure", () => {
 
     const home = homedir();
     const desktopPath = join(home, "Desktop");
-    if ("error" in result) throw new Error("unexpected error");
+    expect("error" in result).toBe(false);
+    if ("error" in result) {
+      return;
+    }
     const folderNode = result.nodes.find((n) => n.data.nodeType === "folder");
     expect(folderNode!.data).toHaveProperty("folderPath", desktopPath);
 

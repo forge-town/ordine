@@ -244,7 +244,8 @@ describe("resolveAppServerEntry", () => {
     writeFileSync(siblingServerEntry, "export default {};\n", "utf8");
 
     const entry = resolveAppServerEntry(moduleDir);
-    expect(entry).toBe(siblingServerEntry);
+    expect(entry.isOk()).toBe(true);
+    expect(entry._unsafeUnwrap()).toBe(siblingServerEntry);
   });
 
   it("falls back to the bundled dist app when a sibling build is unavailable", () => {
@@ -257,7 +258,8 @@ describe("resolveAppServerEntry", () => {
     writeFileSync(bundledServerEntry, "export default {};\n", "utf8");
 
     const entry = resolveAppServerEntry(moduleDir);
-    expect(entry).toBe(bundledServerEntry);
+    expect(entry.isOk()).toBe(true);
+    expect(entry._unsafeUnwrap()).toBe(bundledServerEntry);
   });
 });
 
@@ -283,7 +285,8 @@ describe("resolveMigrationsDir", () => {
     mkdirSync(siblingMigrationsDir, { recursive: true });
 
     const dir = resolveMigrationsDir(moduleDir);
-    expect(dir).toBe(siblingMigrationsDir);
+    expect(dir.isOk()).toBe(true);
+    expect(dir._unsafeUnwrap()).toBe(siblingMigrationsDir);
   });
 
   it("falls back to the bundled migrations directory when no sibling directory exists", () => {
@@ -295,6 +298,7 @@ describe("resolveMigrationsDir", () => {
     mkdirSync(bundledMigrationsDir, { recursive: true });
 
     const dir = resolveMigrationsDir(moduleDir);
-    expect(dir).toBe(bundledMigrationsDir);
+    expect(dir.isOk()).toBe(true);
+    expect(dir._unsafeUnwrap()).toBe(bundledMigrationsDir);
   });
 });

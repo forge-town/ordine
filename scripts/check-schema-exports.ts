@@ -11,7 +11,7 @@
  * Usage: tsx scripts/check-schema-exports.ts
  */
 
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, basename, relative } from "node:path";
 
 const ROOT = join(
@@ -81,13 +81,9 @@ for (const dir of schemaDirs) {
 }
 
 const packagesSchemaSrc = join(ROOT, "packages/schemas/src");
-try {
-  if (statSync(packagesSchemaSrc).isDirectory()) {
-    dirCount++;
-    checkDirFiles(packagesSchemaSrc);
-  }
-} catch {
-  // packages/schemas/src doesn't exist, skip
+if (existsSync(packagesSchemaSrc) && statSync(packagesSchemaSrc).isDirectory()) {
+  dirCount++;
+  checkDirFiles(packagesSchemaSrc);
 }
 
 const sortedFiles = [...allSchemaFiles].sort();

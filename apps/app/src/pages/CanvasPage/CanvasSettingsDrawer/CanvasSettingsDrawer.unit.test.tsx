@@ -81,4 +81,19 @@ describe("CanvasSettingsDrawer", () => {
     expect(store.getState().nodes).toHaveLength(1);
     expect(store.getState().nodes[0]?.data.label).toBe("User Label");
   });
+
+  it("updates node card mode from the settings drawer", async () => {
+    const user = userEvent.setup();
+    const store = renderOpenDrawer();
+
+    expect(store.getState().nodeCardMode).toBe("compact");
+
+    await user.click(screen.getByRole("button", { name: /Expanded/i }));
+
+    expect(store.getState().nodeCardMode).toBe("expanded");
+
+    await user.click(screen.getByRole("button", { name: /Compact/i }));
+
+    expect(store.getState().nodeCardMode).toBe("compact");
+  });
 });

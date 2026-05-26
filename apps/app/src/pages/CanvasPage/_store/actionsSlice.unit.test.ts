@@ -36,6 +36,30 @@ describe("canvas connection actions", () => {
     expect(store.getState().connectStart).toBeNull();
   });
 
+  it("can undo and redo a created connection", () => {
+    const source = makeNode("source", "file");
+    const target = makeNode("target", "operation");
+    const store = createCanvasPageStore([source, target], [], null, "");
+
+    store.getState().handleConnect({
+      source: source.id,
+      sourceHandle: null,
+      target: target.id,
+      targetHandle: null,
+    });
+
+    expect(store.getState().edges).toHaveLength(1);
+    expect(() => store.getState().handleUndo()).not.toThrow();
+    expect(store.getState().edges).toEqual([]);
+    expect(() => store.getState().handleRedo()).not.toThrow();
+    expect(store.getState().edges).toEqual([
+      expect.objectContaining({
+        source: source.id,
+        target: target.id,
+      }),
+    ]);
+  });
+
   it("keeps the dragged target handle when creating a connected upstream node", () => {
     const source = makeNode("source", "folder");
     const target = makeNode("target", "operation");

@@ -389,6 +389,60 @@
         "description": "拖动节点时对齐到画布网格。"
       }
     },
+    "workspaceSidebar": {
+      "title": "工作区"
+    },
+    "nodeCardMode": {
+      "compact": "紧凑卡片",
+      "expanded": "展开卡片"
+    },
+    "componentPanel": {
+      "searchLabel": "搜索组件",
+      "searchPlaceholder": "搜索组件...",
+      "categoryAriaLabel": "{{label}} 分类",
+      "skillFallbackLabel": "技能",
+      "newCustomOperation": "新建自定义 Operation",
+      "categories": {
+        "input": "输入对象",
+        "operations": "Operation",
+        "skills": "技能",
+        "output": "输出"
+      }
+    },
+    "propertiesPanel": {
+      "empty": "选择一个画布节点来配置它。",
+      "backToComponents": "返回组件列表",
+      "fields": {
+        "label": "标题",
+        "filePath": "文件路径",
+        "language": "语言",
+        "description": "描述",
+        "folderPath": "文件夹路径",
+        "owner": "所有者",
+        "repository": "仓库",
+        "branch": "分支",
+        "localPath": "本地路径",
+        "prompt": "提示词",
+        "operationName": "Operation 名称",
+        "agentId": "Agent ID",
+        "maxLoopCount": "最大循环次数",
+        "loopCondition": "循环条件",
+        "projectId": "Project ID",
+        "outputPath": "输出路径",
+        "outputFileName": "输出文件名",
+        "writeMode": "写入模式"
+      },
+      "placeholders": {
+        "filePath": "src/file.tsx",
+        "language": "typescript",
+        "folderPath": "src/components"
+      },
+      "outputMode": {
+        "overwrite": "覆盖",
+        "errorIfExists": "存在时报错",
+        "autoRename": "自动重命名"
+      }
+    },
     "collapseSidebar": "收起侧栏",
     "expandSidebar": "展开侧栏",
     "nodeLibrary": "节点库",
@@ -962,7 +1016,7 @@
     "barrelExport": "桶导出规范",
     "barrelExportDesc": "生成和检查 index.ts 桶导出文件，确保所有 index 文件仅做 re-export。",
     "errorHandling": "错误处理",
-    "errorHandlingDesc": "规范化 try-catch 写法，确保 catch 块有实质处理逻辑，不为空或仅记录日志。",
+    "errorHandlingDesc": "规范 neverthrow 式错误处理，保持错误显式传递，并在应用代码中消除 try-catch。",
     "dbNaming": "数据库表命名",
     "dbNamingDesc": "验证和修正数据库表定义的命名规范，包括表名、列名和索引。",
     "svgIcon": "SVG 图标规范",
@@ -1020,3 +1074,4 @@
     }
   }
 }
+

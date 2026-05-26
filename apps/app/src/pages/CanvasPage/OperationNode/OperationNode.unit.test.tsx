@@ -73,6 +73,7 @@ const renderOperationNode = (
     data,
   } as PipelineNode;
   const store = createCanvasPageStore([node]);
+  store.setState({ nodeCardMode: "expanded" });
 
   const wrapper = ({ children }: React.PropsWithChildren) => (
     <CanvasPageStoreContext.Provider value={store}>

@@ -20,6 +20,7 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
+  const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const {
     leftActivePortCount,
@@ -38,10 +39,11 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
     updateNodeData(id, { description: e.target.value });
 
   return (
-    <div className="group relative overflow-visible">
+    <div className="group relative w-fit overflow-visible">
       <NodeCard
         leftHandle
         bodyClassName="space-y-2"
+        compact={nodeCardMode === "compact"}
         description={t("nodes.outputProjectPath.description")}
         dimmed={dimmed}
         icon={FolderOutput}
