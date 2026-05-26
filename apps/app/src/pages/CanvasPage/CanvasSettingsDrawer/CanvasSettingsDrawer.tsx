@@ -23,10 +23,7 @@ import {
   SheetTitle,
 } from "@repo/ui/sheet";
 import { cn } from "@repo/ui/lib/utils";
-import {
-  useCanvasPageStore,
-  type CanvasSettingsState,
-} from "../_store";
+import { useCanvasPageStore, type CanvasSettingsState } from "../_store";
 
 const settingEntries = [
   { id: "showMiniMap" as const, icon: Map },

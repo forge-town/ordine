@@ -65,11 +65,16 @@ export const CanvasWorkspaceSidebarOverlay = () => {
   );
   const displayPipelineName =
     pipelineName || t("canvas.pipelineTitlePlaceholder");
-  const { fileInputRef, handleImport, handleImportFileChange, handleSave, isPending } =
-    useCanvasWorkspacePersistence({
-      onAfterImportFileSelect: closeWorkspaceSidebar,
-      onAfterSave: closeWorkspaceSidebar,
-    });
+  const {
+    fileInputRef,
+    handleImport,
+    handleImportFileChange,
+    handleSave,
+    isPending,
+  } = useCanvasWorkspacePersistence({
+    onAfterImportFileSelect: closeWorkspaceSidebar,
+    onAfterSave: closeWorkspaceSidebar,
+  });
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
