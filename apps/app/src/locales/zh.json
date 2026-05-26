@@ -1016,7 +1016,7 @@
     "barrelExport": "桶导出规范",
     "barrelExportDesc": "生成和检查 index.ts 桶导出文件，确保所有 index 文件仅做 re-export。",
     "errorHandling": "错误处理",
-    "errorHandlingDesc": "规范化 try-catch 写法，确保 catch 块有实质处理逻辑，不为空或仅记录日志。",
+    "errorHandlingDesc": "规范 neverthrow 式错误处理，保持错误显式传递，并在应用代码中消除 try-catch。",
     "dbNaming": "数据库表命名",
     "dbNamingDesc": "验证和修正数据库表定义的命名规范，包括表名、列名和索引。",
     "svgIcon": "SVG 图标规范",
@@ -1074,3 +1074,4 @@
     }
   }
 }
+

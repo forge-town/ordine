@@ -1,11 +1,11 @@
-import { ok, Result } from "neverthrow";
+import { err, ok, okAsync, errAsync, Result, ResultAsync, type Result as NeverthrowResult } from "neverthrow";
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import { randomBytes } from "node:crypto";
 import { fork } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { startEmbeddedPostgres } from "./embedded-pg";
+import { startEmbeddedPostgres, type EmbeddedPgInstance } from "./embedded-pg";
 import { runMigrations } from "./migrations";
 
 export interface OnboardOptions {
@@ -28,6 +28,13 @@ export interface EnvConfig {
 }
 
 const DEFAULT_APP_PORT = 9430;
+
+const flattenAsyncResult = <T>(
+  promise: Promise<NeverthrowResult<T, Error>>,
+): ResultAsync<T, Error> => ResultAsync.fromSafePromise(promise).andThen((result) => result);
+
+const toError = (error: unknown, prefix: string): Error =>
+  new Error(`${prefix}: ${error instanceof Error ? error.message : String(error)}`);
 
 export const resolveDataDir = (custom?: string): string =>
   custom ?? join(homedir(), ".ordine", "default");
@@ -131,105 +138,144 @@ export const formatOutput = (result: OnboardResult): string => {
 const getModuleDir = (): string =>
   dirname(fileURLToPath(import.meta.url));
 
-export const resolveAppServerEntry = (baseDir = getModuleDir()): string => {
+export const resolveAppServerEntry = (baseDir = getModuleDir()): Result<string, Error> => {
   const thisDir = baseDir;
 
   const devPath = join(thisDir, "..", "app", "server", "index.mjs");
-  if (existsSync(devPath)) return devPath;
+  if (existsSync(devPath)) return ok(devPath);
 
   const distPath = join(thisDir, "app", "server", "index.mjs");
-  if (existsSync(distPath)) return distPath;
+  if (existsSync(distPath)) return ok(distPath);
 
-  throw new Error("App server entry not found. Ensure the app is built.");
+  return err(new Error("App server entry not found. Ensure the app is built."));
 };
 
-export const resolveMigrationsDir = (baseDir = getModuleDir()): string => {
+export const resolveMigrationsDir = (baseDir = getModuleDir()): Result<string, Error> => {
   const thisDir = baseDir;
 
   const devPath = join(thisDir, "..", "migrations");
-  if (existsSync(devPath)) return devPath;
+  if (existsSync(devPath)) return ok(devPath);
 
   const distPath = join(thisDir, "migrations");
-  if (existsSync(distPath)) return distPath;
+  if (existsSync(distPath)) return ok(distPath);
 
-  throw new Error("Migrations directory not found. Ensure the app is built.");
+  return err(new Error("Migrations directory not found. Ensure the app is built."));
 };
 
 export const startAppServer = (
   serverEntry: string,
   envConfig: EnvConfig,
-): Promise<void> =>
-  new Promise((resolve, reject) => {
-    const child = fork(serverEntry, [], {
-      env: {
-        ...process.env,
-        NODE_ENV: "production",
-        PORT: String(envConfig.APP_PORT),
-        PGLITE_DATA_DIR: envConfig.PGLITE_DATA_DIR,
-        BETTER_AUTH_SECRET: envConfig.SECRET_KEY,
-        ORDINE_LOCAL_MODE: "true",
-      },
-      stdio: "inherit",
-    });
+): ResultAsync<void, Error> =>
+  flattenAsyncResult(
+    new Promise<NeverthrowResult<void, Error>>((resolve) => {
+      const child = fork(serverEntry, [], {
+        env: {
+          ...process.env,
+          NODE_ENV: "production",
+          PORT: String(envConfig.APP_PORT),
+          PGLITE_DATA_DIR: envConfig.PGLITE_DATA_DIR,
+          BETTER_AUTH_SECRET: envConfig.SECRET_KEY,
+          ORDINE_LOCAL_MODE: "true",
+        },
+        stdio: "inherit",
+      });
 
-    child.on("error", reject);
-    child.on("exit", (code) => {
-      if (code === 0 || code === null) {
-        resolve();
-      } else {
-        reject(new Error(`App server exited with code ${code}`));
-      }
-    });
+      const shutdown = () => {
+        child.kill("SIGTERM");
+      };
+      const cleanup = () => {
+        process.off("SIGINT", shutdown);
+        process.off("SIGTERM", shutdown);
+      };
 
-    const shutdown = () => {
-      child.kill("SIGTERM");
-    };
+      child.on("error", (error) => {
+        cleanup();
+        resolve(err(toError(error, "Failed to start app server")));
+      });
+      child.on("exit", (code) => {
+        cleanup();
+        resolve(
+          code === 0 || code === null
+            ? ok(undefined)
+            : err(new Error(`App server exited with code ${code}`)),
+        );
+      });
 
-    process.on("SIGINT", shutdown);
-    process.on("SIGTERM", shutdown);
-  });
+      process.on("SIGINT", shutdown);
+      process.on("SIGTERM", shutdown);
+    }),
+  );
 
-export const onboard = async (options: OnboardOptions): Promise<void> => {
+const stopEmbeddedPostgres = (pg: EmbeddedPgInstance): ResultAsync<void, Error> =>
+  ResultAsync.fromPromise(pg.stop(), (error) => toError(error, "Failed to stop embedded PostgreSQL"));
+
+const stopWithError = async (
+  pg: EmbeddedPgInstance,
+  originalError: Error,
+): Promise<NeverthrowResult<never, Error>> => {
+  const stopResult = await stopEmbeddedPostgres(pg);
+
+  if (stopResult.isErr()) {
+    return err(
+      new Error(`${originalError.message}; additionally failed to stop embedded PostgreSQL: ${stopResult.error.message}`),
+    );
+  }
+
+  return err(originalError);
+};
+
+const runOnboard = async (options: OnboardOptions): Promise<NeverthrowResult<void, Error>> => {
   const dataDir = resolveDataDir(options.dataDir);
 
   const prepareResult = prepareDataDir(dataDir);
   if (prepareResult.isErr()) {
-    throw new Error(prepareResult.error.message);
+    return err(prepareResult.error);
   }
 
   console.log("Starting embedded PostgreSQL...");
   const pgResult = await startEmbeddedPostgres(dataDir);
   if (pgResult.isErr()) {
-    throw new Error(pgResult.error.message);
+    return err(pgResult.error);
   }
 
   const pg = pgResult.value;
 
   console.log("PostgreSQL ready (PGlite)");
 
-  const existing = isExistingInstall(dataDir);
-  const existingConfig = existing ? readExistingEnv(dataDir).unwrapOr(null) : null;
-  const envConfig = resolveEnvConfig(dataDir, existingConfig, pg.dataDir);
+  const existingConfigResult = isExistingInstall(dataDir) ? readExistingEnv(dataDir) : ok<EnvConfig | null>(null);
+  if (existingConfigResult.isErr()) {
+    return stopWithError(pg, existingConfigResult.error);
+  }
+
+  const envConfig = resolveEnvConfig(dataDir, existingConfigResult.value, pg.dataDir);
 
   const writeResult = writeEnvFile(dataDir, envConfig);
   if (writeResult.isErr()) {
-    await pg.stop();
-    throw new Error(writeResult.error.message);
+    return stopWithError(pg, writeResult.error);
   }
 
-  const migrationsDir = resolveMigrationsDir();
+  const migrationsDirResult = resolveMigrationsDir();
+  if (migrationsDirResult.isErr()) {
+    return stopWithError(pg, migrationsDirResult.error);
+  }
+
   console.log("Running database migrations...");
-  const migrateResult = await runMigrations(pg.db, migrationsDir);
+  const migrateResult = await runMigrations(pg.db, migrationsDirResult.value);
   if (migrateResult.isErr()) {
-    await pg.stop();
-    throw new Error(migrateResult.error.message);
+    return stopWithError(pg, migrateResult.error);
   }
   console.log(`Applied ${migrateResult.value} migration file(s).`);
 
-  // Close PGlite before starting app server (PGlite doesn't support multi-process access)
-  await pg.stop();
+  const stopResult = await stopEmbeddedPostgres(pg);
+  if (stopResult.isErr()) {
+    return err(stopResult.error);
+  }
 
-  const serverEntry = resolveAppServerEntry();
+  const serverEntryResult = resolveAppServerEntry();
+  if (serverEntryResult.isErr()) {
+    return err(serverEntryResult.error);
+  }
+
   const result: OnboardResult = {
     dataDir,
     appUrl: envConfig.APP_URL,
@@ -237,5 +283,10 @@ export const onboard = async (options: OnboardOptions): Promise<void> => {
   };
 
   console.log(formatOutput(result));
-  await startAppServer(serverEntry, envConfig);
+
+  const startServerResult = await startAppServer(serverEntryResult.value, envConfig);
+  return startServerResult.isOk() ? ok(undefined) : err(startServerResult.error);
 };
+
+export const onboard = (options: OnboardOptions): ResultAsync<void, Error> =>
+  flattenAsyncResult(runOnboard(options));

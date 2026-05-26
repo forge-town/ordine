@@ -1016,7 +1016,7 @@
     "barrelExport": "Barrel Export",
     "barrelExportDesc": "Generate and check index.ts barrel export files, ensuring all index files only do re-export.",
     "errorHandling": "Error Handling",
-    "errorHandlingDesc": "Standardize try-catch usage, ensuring catch blocks have substantive handling logic, not empty or just logging.",
+    "errorHandlingDesc": "Standardize neverthrow-based error handling, keeping errors explicit and eliminating try-catch from application code.",
     "dbNaming": "Database Table Naming",
     "dbNamingDesc": "Verify and correct database table definition naming standards, including table names, column names and indexes.",
     "svgIcon": "SVG Icon Standards",
@@ -1079,3 +1079,4 @@
     }
   }
 }
+

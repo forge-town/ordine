@@ -13,10 +13,13 @@ program
   .description("Create a local Ordine instance")
   .version(version)
   .option("-y, --yes", "Non-interactive mode, use defaults", false)
-  .action((opts: { yes: boolean }) => onboard({ nonInteractive: opts.yes }));
+  .action(async (opts: { yes: boolean }) => {
+    const result = await onboard({ nonInteractive: opts.yes });
 
-program.parseAsync().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
-  process.exit(1);
-});
+    if (result.isErr()) {
+      console.error(result.error.message);
+      process.exitCode = 1;
+    }
+  });
+
+await program.parseAsync();
