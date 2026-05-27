@@ -45,25 +45,31 @@ interface RuntimeState {
   suggestedRuntimeId: string | null;
 }
 
-const getActionLabel = (action: PipelineAction): string => {
+const getActionLabel = (
+  action: PipelineAction,
+  t: (key: string, options?: Record<string, unknown>) => string,
+): string => {
   switch (action.type) {
     case "addNode": {
-      return `添加节点: ${action.node.type}`;
+      return t("canvas.agentPanel.action.addNode", { type: action.node.type });
     }
     case "removeNode": {
-      return `删除节点: ${action.nodeId}`;
+      return t("canvas.agentPanel.action.removeNode", { nodeId: action.nodeId });
     }
     case "addEdge": {
-      return `添加连线: ${action.edge.source} → ${action.edge.target}`;
+      return t("canvas.agentPanel.action.addEdge", {
+        source: action.edge.source,
+        target: action.edge.target,
+      });
     }
     case "removeEdge": {
-      return `删除连线: ${action.edgeId}`;
+      return t("canvas.agentPanel.action.removeEdge", { edgeId: action.edgeId });
     }
     case "reconnectEdge": {
-      return `重连连线: ${action.edgeId}`;
+      return t("canvas.agentPanel.action.reconnectEdge", { edgeId: action.edgeId });
     }
     case "replaceNodeData": {
-      return `替换节点数据: ${action.nodeId}`;
+      return t("canvas.agentPanel.action.replaceNodeData", { nodeId: action.nodeId });
     }
     default: {
       return (action as { type: string }).type;
@@ -519,7 +525,7 @@ export const AgentPanel = () => {
                     key={i}
                     className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
-                    {getActionLabel(action)}
+                    {getActionLabel(action, t)}
                   </li>
                 ))}
               </ul>

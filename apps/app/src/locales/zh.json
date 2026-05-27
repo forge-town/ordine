@@ -496,7 +496,15 @@
       "runtimeLoading": "正在加载运行时...",
       "inputPlaceholder": "输入你的需求...",
       "runtimeNotConfigured": "暂未配置运行时 AI。",
-      "goToRuntimeSettings": "前往配置"
+      "goToRuntimeSettings": "前往配置",
+      "action": {
+        "addNode": "添加节点: {{type}}",
+        "removeNode": "删除节点: {{nodeId}}",
+        "addEdge": "添加连线: {{source}} → {{target}}",
+        "removeEdge": "删除连线: {{edgeId}}",
+        "reconnectEdge": "重连连线: {{edgeId}}",
+        "replaceNodeData": "替换节点数据: {{nodeId}}"
+      }
     },
     "emptyState": {
       "title": "从一个节点开始",

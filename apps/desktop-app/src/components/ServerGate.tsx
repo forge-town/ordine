@@ -11,20 +11,16 @@ export const ServerGate = ({ children }: { children: ReactNode }) => {
   const cancelledRef = useRef(false);
 
   useMount(() => {
-    const result = ResultAsync.fromPromise(startServer(), (err) =>
-      err instanceof Error ? err.message : String(err),
-    );
-
-    void result.match(
+    void startServer().match(
       () => {
         if (!cancelledRef.current) {
           setState("ready");
         }
       },
-      (errMsg) => {
+      (err) => {
         if (!cancelledRef.current) {
           setState("error");
-          setError(errMsg);
+          setError(err.message);
         }
       },
     );

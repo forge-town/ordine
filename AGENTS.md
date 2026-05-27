@@ -1,56 +1,61 @@
-# AGENTS.md
+# 智能代理规范文档
 
-> Ordine — an AI-first work scheduling framework for automated workflows
+> Ordine：一套以 AI 为核心、面向自动化工作流的任务调度框架
 
-## Core Principles
+## 核心原则
 
-### 1. AI-First Development
+### 一、AI 优先开发
 
-All implementation decisions must prioritize **AI accessibility and integration**:
+所有设计决策均以**AI 适配与集成**为首要考量：
 
-- Every feature should be designed so that an AI agent can discover, invoke, and compose it with minimal friction
-- Prefer declarative configuration over imperative code — pipelines, operations, and skills are data-driven
-- Keep interfaces narrow and typed so agents can reason about inputs/outputs without ambiguity
-- When choosing between two equally valid approaches, pick the one that is easier for an agent to automate
+- 所有功能在设计时，需保证智能代理可顺畅发现、调用及组合，尽量降低使用门槛
+- 优先采用声明式配置，而非命令式代码，流程、操作与能力均基于数据驱动
+- 精简接口并严格限定类型，让智能代理能清晰判断输入输出，消除歧义
+- 多种可行方案等价时，选择更便于智能代理自动化执行的方案
 
-### 2. Ontological Purity
+### 二、语义纯粹性
 
-Code must be **ontologically sound** — every entity, relationship, and transformation should reflect its true nature:
+代码需 **语义严谨** ，所有实体、关联关系与逻辑转换均贴合其本质定义：
 
-- A DAO is a DAO; it talks to the database and nothing else
-- A Service orchestrates business logic; it never touches SQL directly
-- A Pipeline is a directed graph of typed nodes; it never contains inline business logic
-- Types are derived from schemas (`z.infer`), never hand-duplicated
-- Naming must reflect essence: if it's a check, call it `check`; if it fixes, call it `fix`
+- 数据访问对象（DAO）仅负责数据库交互，不承担其他职责
+- 服务层统一编排业务逻辑，严禁直接编写结构化查询语句（SQL）
+- 任务流程由带类型的节点构成有向图，内部不得嵌入业务逻辑
+- 数据类型统一由模型推导生成（`z.infer`），禁止手动重复定义
+- 命名贴合功能本质：校验功能命名为 `check`，修复功能命名为 `fix`
 
-### 3. Backend-First Protocol
+### 三、后端先行流程规范
 
-Any feature involving frontend + backend must follow strict ordering:
+涉及前后端联动的功能，必须严格遵循以下开发顺序：
 
-1. **Backend** — implement API / tRPC route / DAO / Service
-2. **Backend test** — verify the interface returns correct data
-3. **Frontend** — build UI against the verified interface
-4. **Frontend test** — confirm end-to-end behavior
+1. **后端开发** ：完成接口、远程过程调用路由、数据访问对象及服务层编写
+2. **后端测试** ：验证接口数据返回结果准确无误
+3. **前端开发** ：基于已验证的接口搭建界面
+4. **前端测试** ：校验端到端整体运行效果
 
-Skipping or reordering is a protocol violation
+严禁跳过步骤或调换顺序，违者视为违反开发规范。
 
-### 4. Zero-Tolerance Error Handling
+### 四、零容错异常处理
 
-- **Absolutely no `try-catch`, `try-finally`, or `.catch()` in application logic anywhere** in the codebase. Wrap third-party throwing APIs at the boundary using `Result.fromThrowable()` or `ResultAsync.fromPromise()`. The prohibition applies to application logic — boundary wrappers are the only permitted exception.
-- Use `neverthrow` exclusively: `Result<T, E>`, `ResultAsync<T, E>`, `Result.fromThrowable()`, `ResultAsync.fromPromise()`
-- Errors are values, not exceptions; callers must handle them explicitly
+- **业务代码中禁止出现任何 `try-catch`、`try-finally`及 `.catch()`异常捕获语法** 。第三方易抛出异常的接口，仅允许在程序边界通过 `Result.fromThrowable()`或 `ResultAsync.fromPromise()`进行封装。该规则仅对边界封装代码豁免。
+- 统一使用 `neverthrow`工具库，包括 `Result<T, E>`、`ResultAsync<T, E>`、`Result.fromThrowable()`、`ResultAsync.fromPromise()`。
+- 将错误视作常规返回值，而非程序异常，调用方必须显式处理各类错误。
 
-### 5. Single Responsibility Per File
+### 五、单文件单一职责
 
-- One React component per `.tsx` file
-- One DAO per table
-- One Service per domain
-- Barrel exports (`index.ts`) only re-export; no business logic
+- 单个 `.tsx`文件仅存放一个 React 组件
+- 一张数据表对应一个数据访问对象（DAO）
+- 一个业务域对应一个服务（Service）
+- 聚合导出文件（`index.ts`）仅用于转发导出内容，不得编写业务逻辑
 
-### 6. Functional Purity
+### 六、函数纯粹性
 
-- Prefer pure functions and immutable data
-- State changes through Zustand stores with slice pattern, never through mutable globals
-- Side effects isolated at the boundary; core logic remains referentially transparent
-- No implicit dependencies — everything is explicit, injectable, and testable
+- 优先使用纯函数与不可变数据
+- 状态变更统一通过分片模式的 Zustand 状态管理器实现，禁止使用可变全局变量
+- 副作用统一隔离在程序边界，核心逻辑保持引用透明
+- 杜绝隐式依赖，所有依赖均显式声明、支持注入，便于单元测试
+
+### 七、React 开发规范
+
+- **严格限制 useEffect 使用** ：尽可能避免使用 `useEffect`，优先使用事件处理器、服务函数、状态管理器或自定义 Hook 替代副作用逻辑
+- 仅允许在处理订阅、DOM 原生监听等**不可替代**的场景下使用 `useEffect`，且必须做好清理逻辑
 

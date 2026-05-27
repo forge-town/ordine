@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
 
-type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
+export type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
 
 export interface SkillsPageSlice {
   search: string;

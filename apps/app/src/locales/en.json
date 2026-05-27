@@ -496,7 +496,15 @@
       "runtimeLoading": "Loading runtimes...",
       "inputPlaceholder": "Type your request...",
       "runtimeNotConfigured": "AI runtime is not configured yet.",
-      "goToRuntimeSettings": "Go to configuration"
+      "goToRuntimeSettings": "Go to configuration",
+      "action": {
+        "addNode": "Add node: {{type}}",
+        "removeNode": "Remove node: {{nodeId}}",
+        "addEdge": "Add edge: {{source}} → {{target}}",
+        "removeEdge": "Remove edge: {{edgeId}}",
+        "reconnectEdge": "Reconnect edge: {{edgeId}}",
+        "replaceNodeData": "Replace node data: {{nodeId}}"
+      }
     },
     "emptyState": {
       "title": "Start with a node",

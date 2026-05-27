@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
@@ -68,6 +68,8 @@ export const SkillToOperationDialog = ({
   const navigate = useNavigate();
   const { mutateAsync: createOperation } = useCreate();
 
+  const initializedRef = useRef(false);
+
   const { result: draftResult, query: draftQuery } = useOne<DraftOperation>({
     resource: ResourceName.skillDraftOperations,
     id: skillId ?? "",
@@ -90,25 +92,24 @@ export const SkillToOperationDialog = ({
     name: "outputs",
   });
 
-  const formRef = useRef(form);
-  useEffect(() => {
-    formRef.current = form;
-  });
-  useEffect(() => {
-    if (draftResult && !formRef.current.formState.isDirty) {
-      formRef.current.reset({
-        name: draftResult.name,
-        description: draftResult.description ?? "",
-        outputs: [],
-      });
-    }
-  }, [draftResult]);
+  if (!open || !skillId) {
+    initializedRef.current = false;
+  } else if (draftResult && !initializedRef.current && !form.formState.isDirty) {
+    initializedRef.current = true;
+    form.reset({
+      name: draftResult.name,
+      description: draftResult.description ?? "",
+      outputs: [],
+    });
+  }
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       onClose();
     }
   };
+
+  const handleClose = onClose;
 
   const handleAddOutput = () => {
     append({ name: "", contentType: templateContentTypes[0] });
@@ -118,7 +119,6 @@ export const SkillToOperationDialog = ({
     remove(index);
   };
 
-  const handleCancel = onClose;
 
   const handleSubmit = (values: FormValues) => {
     if (!draftResult || !skillId) return;
@@ -280,7 +280,7 @@ export const SkillToOperationDialog = ({
                                     </SelectGroup>
                                   </SelectContent>
                                 </Select>
-                              </FormControl>
+                                </FormControl>
                             </FormItem>
                           );
                         }}
@@ -304,7 +304,7 @@ export const SkillToOperationDialog = ({
                   disabled={isBusy}
                   type="button"
                   variant="outline"
-                  onClick={handleCancel}
+                  onClick={handleClose}
                 >
                   {t("common.cancel")}
                 </Button>

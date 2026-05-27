@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useStore } from "zustand";
 import { Search, Wand2, PlusCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -10,15 +11,7 @@ import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
-import { useSkillsPageStore } from "../_store";
-
-type SkillCategory =
-  | "all"
-  | "page"
-  | "data"
-  | "state"
-  | "form"
-  | "code-quality";
+import { useSkillsPageStore, type SkillCategory } from "../_store";
 
 const categoryColors: Record<string, string> = {
   page: "bg-violet-100 text-violet-700",
@@ -51,19 +44,21 @@ export const SkillsPageContent = () => {
   const handleSetCategory = useStore(store, (s) => s.handleSetCategory);
   const handleCreateOperationClick = useStore(store, (s) => s.handleCreateOperationClick);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    handleSetSearch(e.target.value);
-  const handleCategoryClick = (cat: SkillCategory) => () => handleSetCategory(cat);
+  const searchLower = search.toLowerCase();
+  const filtered = useMemo(() => {
+    if (!skills) return [];
 
-  const filtered = skills.filter((s: Skill) => {
-    const matchesSearch =
-      s.label.toLowerCase().includes(search.toLowerCase()) ||
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.description.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = category === "all" || s.category === category;
+    return skills.filter((s: Skill) => {
+      const matchesSearch =
+        !searchLower ||
+        s.label.toLowerCase().includes(searchLower) ||
+        s.name.toLowerCase().includes(searchLower) ||
+        s.description.toLowerCase().includes(searchLower);
+      const matchesCategory = category === "all" || s.category === category;
 
-    return matchesSearch && matchesCategory;
-  });
+      return matchesSearch && matchesCategory;
+    });
+  }, [skills, searchLower, category]);
 
   if (skillsQuery?.isLoading) {
     return (
@@ -93,7 +88,7 @@ export const SkillsPageContent = () => {
             placeholder={t("common.search")}
             type="text"
             value={search}
-            onChange={handleSearchChange}
+            onChange={(e) => handleSetSearch(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-1">
@@ -103,7 +98,7 @@ export const SkillsPageContent = () => {
               className="text-xs h-7 px-2.5"
               size="sm"
               variant={category === cat ? "default" : "ghost"}
-              onClick={handleCategoryClick(cat)}
+              onClick={() => handleSetCategory(cat)}
             >
               {categoryLabels[cat]}
             </Button>

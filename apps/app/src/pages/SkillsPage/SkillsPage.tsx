@@ -19,6 +19,7 @@ const SkillsPageInner = () => {
     <>
       <SkillsPageContent />
       <SkillToOperationDialog
+        key={selectedSkillId ?? "closed"}
         open={createOperationDialogOpen}
         skillId={selectedSkillId}
         onClose={handleCreateOperationDialogClose}
