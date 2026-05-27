@@ -27,6 +27,7 @@ export const ResourceName = {
   checklistItems: "checklistItems",
   codeSnippets: "codeSnippets",
   skillDraftOperations: "skillDraftOperations",
+  skillAnalyses: "skillAnalyses",
   distillations: "distillations",
   refinements: "refinements",
   settings: "settings",
@@ -154,6 +155,11 @@ export const dataProvider: DataProvider = {
       }
       case ResourceName.skillDraftOperations: {
         const data = await trpcClient.skills.draftOperation.query({ id: String(id) });
+
+        return { data: data as unknown as TData };
+      }
+      case ResourceName.skillAnalyses: {
+        const data = await trpcClient.skills.analyze.query({ id: String(id) });
 
         return { data: data as unknown as TData };
       }

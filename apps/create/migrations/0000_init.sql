@@ -138,6 +138,7 @@ CREATE TABLE "operations" (
 	"description" text,
 	"config" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"accepted_object_types" jsonb DEFAULT '["file","folder","github-project"]'::jsonb NOT NULL,
+	"source_skill_id" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );

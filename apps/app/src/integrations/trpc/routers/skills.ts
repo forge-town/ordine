@@ -38,4 +38,13 @@ export const skillsRouter = router({
 
       return buildDraftOperation(skill);
     }),
+
+  analyze: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const skill = await skillsService.getById(input.id);
+      if (!skill) throw new TRPCError({ code: "NOT_FOUND", message: "Skill not found" });
+
+      return skillsService.analyzeSkill(skill);
+    }),
 });
