@@ -16,7 +16,7 @@ const draftResultData = {
     inputs: [],
     outputs: [],
   },
-  acceptedObjectTypes: ["file", "folder", "project", "prompt"],
+  acceptedObjectTypes: ["file", "folder", "github-project", "prompt"],
 };
 
 const singleStepAnalysis = {

@@ -62,6 +62,7 @@ export const SkillStepListEditor = ({
 
   const form = useForm<StepFormValues>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       steps: initialData.steps.map((s) => ({
         name: s.name,
@@ -105,16 +106,8 @@ export const SkillStepListEditor = ({
 
   const handleRemoveStep = (stepIndex: number) => () => remove(stepIndex);
 
-  const handleSaveAsOperationsClick = () => {
-    onSaveAsOperations(form.getValues());
-  };
-
-  const handleGeneratePipelineClick = () => {
-    onGeneratePipeline(form.getValues());
-  };
-
-  const values = form.watch();
-  const isValid = values.steps.every((s) => s.name.trim().length > 0);
+  const handleSaveAsOperationsClick = form.handleSubmit(onSaveAsOperations);
+  const handleGeneratePipelineClick = form.handleSubmit(onGeneratePipeline);
 
   return (
     <Form {...form}>
@@ -300,7 +293,7 @@ export const SkillStepListEditor = ({
 
         <div className="mt-4 flex items-center justify-end gap-2">
           <Button
-            disabled={isSubmitting || !isValid}
+            disabled={isSubmitting || !form.formState.isValid}
             size="sm"
             type="button"
             variant="outline"
@@ -309,7 +302,7 @@ export const SkillStepListEditor = ({
             {t("skills.createOperation.saveAsOperations")}
           </Button>
           <Button
-            disabled={isSubmitting || !isValid}
+            disabled={isSubmitting || !form.formState.isValid}
             size="sm"
             type="button"
             onClick={handleGeneratePipelineClick}

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
@@ -105,16 +105,22 @@ export const SkillToOperationDialog = ({
     name: "outputs",
   });
 
-  if (!open || !skillId) {
-    initializedRef.current = false;
-  } else if (draftResult && !initializedRef.current && !form.formState.isDirty) {
-    initializedRef.current = true;
-    form.reset({
-      name: draftResult.name,
-      description: draftResult.description ?? "",
-      outputs: [],
-    });
-  }
+  useEffect(() => {
+    if (!open || !skillId) {
+      initializedRef.current = false;
+
+      return;
+    }
+
+    if (draftResult && !initializedRef.current && !form.formState.isDirty) {
+      initializedRef.current = true;
+      form.reset({
+        name: draftResult.name,
+        description: draftResult.description ?? "",
+        outputs: [],
+      });
+    }
+  }, [open, skillId, draftResult, form]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {

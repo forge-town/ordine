@@ -4,12 +4,15 @@ import { TemplateContentTypeSchema } from "../operation/TemplateContentTypeSchem
 export const SkillAnalysisStepSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
-  suggestedOutputs: z.array(
-    z.object({
-      name: z.string(),
-      contentType: TemplateContentTypeSchema,
-    }),
-  ),
+  suggestedOutputs: z
+    .array(
+      z.object({
+        name: z.string(),
+        contentType: TemplateContentTypeSchema,
+      }),
+    )
+    .optional()
+    .default([]),
 });
 
 export const SkillAnalysisResultSchema = z.object({

@@ -26,20 +26,24 @@ const waitForHealth = (remaining: number = MAX_RETRIES): ResultAsync<void, Error
     );
   }
 
-  return ResultAsync.fromPromise(fetch(HEALTH_URL), () => null).andThen((res) => {
-    if (res?.ok) {
-      return ResultAsync.fromSafePromise(Promise.resolve(undefined));
-    }
+  return ResultAsync.fromPromise(fetch(HEALTH_URL), () => null)
+    .orElse(() => ResultAsync.fromSafePromise(Promise.resolve(null)))
+    .andThen((res) => {
+      if (res?.ok) {
+        return ResultAsync.fromSafePromise(Promise.resolve(undefined));
+      }
 
-    return ResultAsync.fromPromise(
-      new Promise<void>((resolve) => setTimeout(resolve, RETRY_INTERVAL_MS)),
-      () => new Error("timeout"),
-    ).andThen(() => waitForHealth(remaining - 1));
-  });
+      return ResultAsync.fromPromise(
+        new Promise<void>((resolve) => setTimeout(resolve, RETRY_INTERVAL_MS)),
+        () => new Error("timeout"),
+      ).andThen(() => waitForHealth(remaining - 1));
+    });
 };
 
 const isServerAlreadyRunning = (): ResultAsync<boolean, never> =>
-  ResultAsync.fromPromise(fetch(HEALTH_URL), () => null).map((res) => res?.ok ?? false);
+  ResultAsync.fromPromise(fetch(HEALTH_URL), () => null)
+    .map((res) => res?.ok ?? false)
+    .orElse(() => ResultAsync.fromSafePromise(Promise.resolve(false)));
 
 export const startServer = (): ResultAsync<void, Error> => {
   if (serverState.process) {
@@ -93,6 +97,7 @@ export const startServer = (): ResultAsync<void, Error> => {
         (e) => new Error(`Failed to spawn server: ${e}`),
       ).andThen((child) => {
         serverState.process = child;
+
         return waitForHealth();
       });
     });
