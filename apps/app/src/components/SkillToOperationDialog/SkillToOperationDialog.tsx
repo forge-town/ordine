@@ -38,7 +38,10 @@ import { TemplateContentTypeSchema, type DraftOperation } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
 import { useAnalyzeSkill } from "./useAnalyzeSkill";
-import { SkillStepListEditor, type StepFormValues } from "./SkillStepListEditor";
+import {
+  SkillStepListEditor,
+  type StepFormValues,
+} from "./SkillStepListEditor";
 
 const templateContentTypes = TemplateContentTypeSchema.options;
 
@@ -138,10 +141,12 @@ export const SkillToOperationDialog = ({
     remove(index);
   };
 
-  const handleSubmit = (values: FormValues) => {
+  const handleSubmit = async (values: FormValues) => {
     if (!draftResult || !skillId) return;
 
-    void ResultAsync.fromPromise(
+    setIsBusy(true);
+
+    const opResult = await ResultAsync.fromPromise(
       createOperation({
         resource: ResourceName.operations,
         values: {
@@ -158,7 +163,9 @@ export const SkillToOperationDialog = ({
         },
       }),
       () => "create-operation-failed" as const,
-    ).match(
+    );
+
+    opResult.match(
       (result) => {
         toastStore.getState().addToast({
           type: "success",
@@ -180,6 +187,8 @@ export const SkillToOperationDialog = ({
         });
       },
     );
+
+    setIsBusy(false);
   };
 
   const handleSaveAsOperations = async (values: StepFormValues) => {
@@ -187,56 +196,63 @@ export const SkillToOperationDialog = ({
 
     setIsBusy(true);
 
-    const results = await ResultAsync.fromPromise(
-      Promise.all(
-        values.steps.map((step) =>
-          createOperation({
-            resource: ResourceName.operations,
-            values: {
-              id: crypto.randomUUID(),
-              name: step.name,
-              description: step.description,
-              config: {
-                executor: {
-                  type: "agent",
-                  agentMode: "prompt",
-                  systemPrompt: step.description,
-                },
-                inputs: [],
-                outputs: step.suggestedOutputs.map((o) => ({
-                  ...o,
-                  templateIds: [],
-                })),
-              },
-              acceptedObjectTypes: [
-                "file",
-                "folder",
-                "github-project",
-                "prompt",
-              ],
-              sourceSkillId: skillId,
-            },
-          }),
-        ),
-      ),
-      () => "create-operations-failed" as const,
-    );
+    const succeeded: number[] = [];
+    const failed: number[] = [];
 
-    results.match(
-      () => {
-        toastStore.getState().addToast({
-          type: "success",
-          title: t("skills.createOperation.saveAsOperationsSuccess"),
-        });
-        onClose();
-      },
-      () => {
-        toastStore.getState().addToast({
-          type: "error",
-          title: t("skills.createOperation.saveAsOperationsError"),
-        });
-      },
-    );
+    for (const [index, step] of values.steps.entries()) {
+      const result = await ResultAsync.fromPromise(
+        createOperation({
+          resource: ResourceName.operations,
+          values: {
+            id: crypto.randomUUID(),
+            name: step.name,
+            description: step.description,
+            config: {
+              executor: {
+                type: "agent",
+                agentMode: "prompt",
+                systemPrompt: step.description,
+              },
+              inputs: [],
+              outputs: step.suggestedOutputs.map((o) => ({
+                ...o,
+                templateIds: [],
+              })),
+            },
+            acceptedObjectTypes: ["file", "folder", "github-project", "prompt"],
+            sourceSkillId: skillId,
+          },
+        }),
+        () => "create-operation-failed" as const,
+      );
+
+      if (result.isOk()) {
+        succeeded.push(index);
+      } else {
+        failed.push(index);
+      }
+    }
+
+    if (failed.length === 0) {
+      toastStore.getState().addToast({
+        type: "success",
+        title: t("skills.createOperation.saveAsOperationsSuccess"),
+      });
+      onClose();
+    } else if (succeeded.length > 0) {
+      toastStore.getState().addToast({
+        type: "error",
+        title: t("skills.createOperation.saveAsOperationsPartialSuccess", {
+          succeeded: succeeded.length,
+          total: values.steps.length,
+        }),
+      });
+    } else {
+      toastStore.getState().addToast({
+        type: "error",
+        title: t("skills.createOperation.saveAsOperationsError"),
+      });
+    }
 
     setIsBusy(false);
   };
@@ -265,6 +281,7 @@ export const SkillToOperationDialog = ({
         })),
       },
       acceptedObjectTypes: ["file", "folder", "github-project", "prompt"],
+      sourceSkillId: skillId,
     }));
 
     const nodes = values.steps.map((step, index) => ({
@@ -372,8 +389,7 @@ export const SkillToOperationDialog = ({
       <Form {...form}>
         <form
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
-          onSubmit={form.handleSubmit(handleSubmit)}
-        >
+          onSubmit={form.handleSubmit(handleSubmit)}>
           <div className="flex-1 space-y-4 overflow-y-auto">
             <FormField
               control={form.control}
@@ -427,8 +443,7 @@ export const SkillToOperationDialog = ({
                   size="sm"
                   type="button"
                   variant="ghost"
-                  onClick={handleAddOutput}
-                >
+                  onClick={handleAddOutput}>
                   <Plus className="mr-1 h-3 w-3" />
                   {t("skills.createOperation.addOutput")}
                 </Button>
@@ -465,8 +480,7 @@ export const SkillToOperationDialog = ({
                           <FormControl>
                             <Select
                               value={f.value}
-                              onValueChange={handleValueChange}
-                            >
+                              onValueChange={handleValueChange}>
                               <SelectTrigger className="h-8 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
@@ -476,8 +490,7 @@ export const SkillToOperationDialog = ({
                                     <SelectItem
                                       key={type}
                                       className="text-xs"
-                                      value={type}
-                                    >
+                                      value={type}>
                                       {type}
                                     </SelectItem>
                                   ))}
@@ -494,8 +507,7 @@ export const SkillToOperationDialog = ({
                     size="sm"
                     type="button"
                     variant="ghost"
-                    onClick={() => handleRemoveOutput(index)}
-                  >
+                    onClick={() => handleRemoveOutput(index)}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -508,8 +520,7 @@ export const SkillToOperationDialog = ({
               disabled={isBusy}
               type="button"
               variant="outline"
-              onClick={handleClose}
-            >
+              onClick={handleClose}>
               {t("common.cancel")}
             </Button>
             <Button disabled={isBusy} type="submit">
@@ -533,3 +544,4 @@ export const SkillToOperationDialog = ({
     </Dialog>
   );
 };
+

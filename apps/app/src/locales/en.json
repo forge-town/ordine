@@ -775,6 +775,7 @@
     "createOperation.addStep": "Add Step",
     "createOperation.saveAsOperations": "Save as Operations",
     "createOperation.saveAsOperationsSuccess": "Operations created successfully",
+    "createOperation.saveAsOperationsPartialSuccess": "{{succeeded}} of {{total}} operations created; some steps failed",
     "createOperation.saveAsOperationsError": "Failed to create operations",
     "createOperation.generatePipeline": "Generate Pipeline Draft",
     "createOperation.generatePipelineSuccess": "Pipeline draft created successfully",

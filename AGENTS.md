@@ -1,61 +1,161 @@
-# 智能代理规范文档
+# Ordine 智能代理规范文档
 
-> Ordine：一套以 AI 为核心、面向自动化工作流的任务调度框架
+> Ordine：AI 优先的元编排引擎，面向自动化工作流任务调度。  
+> **版本**：0.0.2-preview | **包管理器**：bun@1.3.11 | **Monorepo**：Turborepo
 
-## 核心原则
+> ⚠️ **编写代码前必读：[CodeGuidelines.md](./CodeGuidelines.md)**  
+> 所有代码规范（错误处理、类型系统、DAO/Service/Store、页面结构、样式等）均在该文件中。
 
-### 一、AI 优先开发
+---
 
-所有设计决策均以**AI 适配与集成**为首要考量：
+## 一、项目结构速查
 
-- 所有功能在设计时，需保证智能代理可顺畅发现、调用及组合，尽量降低使用门槛
-- 优先采用声明式配置，而非命令式代码，流程、操作与能力均基于数据驱动
-- 精简接口并严格限定类型，让智能代理能清晰判断输入输出，消除歧义
-- 多种可行方案等价时，选择更便于智能代理自动化执行的方案
+```
+ordine/
+├── apps/
+│   ├── app/        # React SPA，端口 9430，主 UI
+│   ├── server/     # Hono API 服务，端口 9433
+│   ├── cli/        # 命令行工具
+│   ├── docs/       # VitePress 文档站
+│   └── scripts/    # 工具脚本
+├── packages/
+│   ├── schemas/        # Zod schema（共享领域类型）
+│   ├── models/         # DAO，一表一文件
+│   ├── services/       # 业务服务层
+│   ├── db-schema/      # Drizzle 表定义
+│   ├── db/             # 数据库连接与迁移
+│   ├── pipeline-engine/# DAG 执行引擎
+│   ├── agent/          # AI 代理集成
+│   ├── agent-engine/   # 代理执行引擎
+│   ├── ui/             # 共享 React 组件
+│   ├── plugin/         # 插件系统核心
+│   ├── plugins/        # 内置插件
+│   ├── shared/         # 共享工具与类型
+│   └── utils/          # 通用工具
+└── skills/             # Ordine skill 定义
+```
 
-### 二、语义纯粹性
+### apps/app 关键路径
 
-代码需 **语义严谨** ，所有实体、关联关系与逻辑转换均贴合其本质定义：
+| 路径 | 说明 |
+|------|------|
+| `src/pages/` | 页面组件，每路由一目录 |
+| `src/pages/<Page>/_store/` | 页面级 Zustand slice |
+| `src/routes/` | TanStack Router 路由定义 |
+| `src/integrations/trpc/routers/` | tRPC 路由 |
+| `src/components/` | 共享 UI 组件 |
+| `e2e/` | Playwright E2E 测试 |
 
-- 数据访问对象（DAO）仅负责数据库交互，不承担其他职责
-- 服务层统一编排业务逻辑，严禁直接编写结构化查询语句（SQL）
-- 任务流程由带类型的节点构成有向图，内部不得嵌入业务逻辑
-- 数据类型统一由模型推导生成（`z.infer`），禁止手动重复定义
-- 命名贴合功能本质：校验功能命名为 `check`，修复功能命名为 `fix`
+---
 
-### 三、后端先行流程规范
+## 二、技术栈
 
-涉及前后端联动的功能，必须严格遵循以下开发顺序：
+| 层 | 技术 |
+|----|------|
+| 前端框架 | React 19 + TanStack Router |
+| 数据获取 | tRPC + Refine + TanStack Query |
+| 状态管理 | Zustand（slice 模式） |
+| UI 组件 | Tailwind CSS v4 + shadcn/ui |
+| 后端框架 | Hono（Bun runtime） |
+| ORM | Drizzle ORM + postgres |
+| 类型验证 | Zod（类型全部由 `z.infer` 派生） |
+| 错误处理 | neverthrow（`Result<T,E>` / `ResultAsync<T,E>`） |
+| 测试 | Vitest（单元）+ Playwright（E2E） |
+| 格式化 | oxfmt |
+| Lint | oxlint |
 
-1. **后端开发** ：完成接口、远程过程调用路由、数据访问对象及服务层编写
-2. **后端测试** ：验证接口数据返回结果准确无误
-3. **前端开发** ：基于已验证的接口搭建界面
-4. **前端测试** ：校验端到端整体运行效果
+---
 
-严禁跳过步骤或调换顺序，违者视为违反开发规范。
+## 三、常用命令
 
-### 四、零容错异常处理
+```bash
+# 开发
+bun run dev                          # 启动所有 app（turbo）
+ORDINE_LOCAL_MODE=true bun run dev   # 本地模式，绕过登录
 
-- **业务代码中禁止出现任何 `try-catch`、`try-finally`及 `.catch()`异常捕获语法** 。第三方易抛出异常的接口，仅允许在程序边界通过 `Result.fromThrowable()`或 `ResultAsync.fromPromise()`进行封装。该规则仅对边界封装代码豁免。
-- 统一使用 `neverthrow`工具库，包括 `Result<T, E>`、`ResultAsync<T, E>`、`Result.fromThrowable()`、`ResultAsync.fromPromise()`。
-- 将错误视作常规返回值，而非程序异常，调用方必须显式处理各类错误。
+# 质量检查（提交前必跑）
+bun run quality          # lint + typecheck + test（turbo）
+bun run format           # oxfmt 格式化
+bun run format:check     # 格式检查（不写入）
 
-### 五、单文件单一职责
+# 测试
+bun run test                       # 全部单元测试（turbo）
+cd apps/app && bun run test        # app 单元测试
+cd apps/app && bun run test:e2e    # Playwright E2E
 
-- 单个 `.tsx`文件仅存放一个 React 组件
-- 一张数据表对应一个数据访问对象（DAO）
-- 一个业务域对应一个服务（Service）
-- 聚合导出文件（`index.ts`）仅用于转发导出内容，不得编写业务逻辑
+# 其他
+bun run check-types   # 全量 tsc
+bun run lint          # 全量 lint
+bun run knip          # 检测未使用导出
+```
 
-### 六、函数纯粹性
+---
 
-- 优先使用纯函数与不可变数据
-- 状态变更统一通过分片模式的 Zustand 状态管理器实现，禁止使用可变全局变量
-- 副作用统一隔离在程序边界，核心逻辑保持引用透明
-- 杜绝隐式依赖，所有依赖均显式声明、支持注入，便于单元测试
+## 四、核心原则
 
-### 七、React 开发规范
+详细规范见 **[CodeGuidelines.md](./CodeGuidelines.md)**，核心约束摘要：
 
-- **严格限制 useEffect 使用** ：尽可能避免使用 `useEffect`，优先使用事件处理器、服务函数、状态管理器或自定义 Hook 替代副作用逻辑
-- 仅允许在处理订阅、DOM 原生监听等**不可替代**的场景下使用 `useEffect`，且必须做好清理逻辑
+1. **后端先行**：Schema → DAO → Service → tRPC → 前端，禁止跳步
+2. **Zero try-catch**：业务代码统一用 `neverthrow`，禁止原生异常捕获
+3. **Zod 唯一真相**：所有类型从 `z.infer` 派生，禁止手写重复 interface
+4. **单文件单职责**：一个 `.tsx` 一个组件、一表一 DAO、一域一 Service
+5. **Store 不 Props**：跨组件状态走 Zustand，禁止 Props Drilling
+6. **Refine 数据层**：组件数据获取走 `useList`/`useOne`，禁止直接调用 tRPC
 
+---
+
+## 五、Git & PR 工作流
+
+### 分支规则
+
+- **不得**向上游 `forge-town/ordine` 推送工作分支
+- 所有 feature/fix 分支在 fork `woodfishhhh/ordine` 下创建并推送
+- 从最新 `upstream/develop` 切出，PR 目标指向 `upstream/develop`（非 `main`）
+
+```bash
+git fetch upstream
+git checkout develop && git merge upstream/develop
+git checkout -b issue-<N>-<slug>
+git push origin issue-<N>-<slug>
+```
+
+### 提交格式（Conventional Commits）
+
+```
+<type>: <中文描述>
+```
+
+类型：`feat` `fix` `refactor` `docs` `test` `chore` `perf` `ci`
+
+### 提交前检查清单
+
+- [ ] `bun run quality` 全部通过
+- [ ] `bun run format:check` 无差异
+- [ ] 无硬编码密钥或凭据
+- [ ] 受影响 UI 已在浏览器中验证（截图存入 `pr-assets/`）
+
+### PR 说明要求
+
+- 前端视觉变更：附 before/after 截图（desktop + narrow viewport）
+- 前端行为变更无视觉差异：说明"无视觉样式截图差异"并附浏览器验证证据
+
+---
+
+## 六、已知本地环境问题
+
+| 问题 | 说明 |
+|------|------|
+| Nitro 构建失败 | 全量 `bun run build` 时 Nitro 无法解析 Node 内置 `https`（来自全局 `C:/Users/woodfish/node_modules/ws`），属本地 env 问题，不影响 app/server 构建 |
+| E2E fixture 超时 | Playwright E2E 在本地 `/login` networkidle 前超时，属已知本地问题 |
+| 全量 tsc 阻塞 | `apps/app/src/pages/CanvasPage/OperationNode/OperationNode.tsx` 存在 Select `onValueChange` 签名不匹配，阻塞全量 tsc |
+| 本地模式登录 | 绕过登录需 `ORDINE_LOCAL_MODE=true` 启动 Vite；路由按 `local@ordine.local` 是否存在判断 sign-up，而非 users 总数 |
+
+---
+
+## 七、包规范
+
+- 一个包 = 一个领域，通过公开 API（`index.ts`）导出
+- 所有导出通过 barrel `index.ts`，**不在非 index 文件中 re-export 外部模块**
+- 新增包需在根 `package.json` workspaces 中注册
+- `package.json` 使用 `"type": "module"`
+- 内部依赖使用 `workspace:*`
