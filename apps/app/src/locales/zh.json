@@ -441,7 +441,8 @@
         "overwrite": "覆盖",
         "errorIfExists": "存在时报错",
         "autoRename": "自动重命名"
-      }
+      },
+      "operationDefinition": "Operation 定义"
     },
     "collapseSidebar": "收起侧栏",
     "expandSidebar": "展开侧栏",
