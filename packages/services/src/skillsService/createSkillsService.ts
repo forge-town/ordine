@@ -4,6 +4,7 @@ import {
   mapWithMeta,
   withMeta,
   SkillAnalysisResultSchema,
+  buildDraftOperation,
   type SkillAnalysisResult,
   type Skill,
 } from "@repo/schemas";
@@ -56,6 +57,7 @@ export const createSkillsService = (db: DbConnection) => {
     update: async (...args: Parameters<typeof dao.update>) => withMeta(await dao.update(...args)),
     delete: (id: string) => dao.delete(id),
     seedIfEmpty: () => dao.seedIfEmpty(),
+    buildDraftOperation: (skill: Skill) => buildDraftOperation(skill),
 
     analyzeSkill: async (skill: Skill): Promise<SkillAnalysisResult> => {
       const settingsRecord = await settingsDao.get();

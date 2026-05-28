@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
@@ -79,8 +79,6 @@ export const SkillToOperationDialog = ({
   const { mutateAsync: createPipeline } = useCreate();
   const [isBusy, setIsBusy] = useState(false);
 
-  const initializedRef = useRef(false);
-
   const { result: analysisResult, query: analysisQuery } = useAnalyzeSkill(
     skillId,
     open,
@@ -94,36 +92,31 @@ export const SkillToOperationDialog = ({
     },
   });
 
+  const formValues = useMemo<FormValues>(
+    () =>
+      draftResult
+        ? {
+            name: draftResult.name,
+            description: draftResult.description ?? "",
+            outputs: [],
+          }
+        : {
+            name: "",
+            description: "",
+            outputs: [],
+          },
+    [draftResult],
+  );
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      outputs: [],
-    },
+    values: formValues,
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "outputs",
   });
-
-  useEffect(() => {
-    if (!open || !skillId) {
-      initializedRef.current = false;
-
-      return;
-    }
-
-    if (draftResult && !initializedRef.current && !form.formState.isDirty) {
-      initializedRef.current = true;
-      form.reset({
-        name: draftResult.name,
-        description: draftResult.description ?? "",
-        outputs: [],
-      });
-    }
-  }, [open, skillId, draftResult, form]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -247,6 +240,7 @@ export const SkillToOperationDialog = ({
           total: values.steps.length,
         }),
       });
+      onClose();
     } else {
       toastStore.getState().addToast({
         type: "error",

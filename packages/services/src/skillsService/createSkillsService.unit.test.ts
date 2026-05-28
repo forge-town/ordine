@@ -104,6 +104,11 @@ describe("createSkillsService", () => {
           description: "Define page structure.",
           suggestedOutputs: [],
         },
+        {
+          name: "Implement Components",
+          description: "Build UI components.",
+          suggestedOutputs: [],
+        },
       ],
       rationale: "Multi-phase workflow",
     };
@@ -116,7 +121,7 @@ describe("createSkillsService", () => {
       const result = await svc.analyzeSkill(skill);
 
       expect(result.skillType).toBe("multi-step");
-      expect(result.steps).toHaveLength(1);
+      expect(result.steps).toHaveLength(2);
       expect(result.steps[0].name).toBe("Define Structure");
     });
 

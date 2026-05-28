@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../init";
 import { skillsService } from "../services";
-import { SkillSchema, buildDraftOperation } from "@repo/schemas";
+import { SkillSchema } from "@repo/schemas";
 
 export const skillsRouter = router({
   getMany: publicProcedure.query(async () => {
@@ -36,7 +36,7 @@ export const skillsRouter = router({
       const skill = await skillsService.getById(input.id);
       if (!skill) throw new TRPCError({ code: "NOT_FOUND", message: "Skill not found" });
 
-      return buildDraftOperation(skill);
+      return skillsService.buildDraftOperation(skill);
     }),
 
   analyze: publicProcedure

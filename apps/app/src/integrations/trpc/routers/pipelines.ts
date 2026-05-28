@@ -23,6 +23,7 @@ export const pipelinesRouter = router({
               description: z.string(),
               config: z.record(z.string(), z.unknown()),
               acceptedObjectTypes: z.array(z.string()),
+              sourceSkillId: z.string().optional(),
             }),
           )
           .optional(),

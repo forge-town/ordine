@@ -1,5 +1,4 @@
 import { useRef, useState, type ReactNode } from "react";
-import { ResultAsync } from "neverthrow";
 import { useMount } from "../hooks/useMount";
 import { startServer, stopServer } from "../integrations/sidecar/server";
 
