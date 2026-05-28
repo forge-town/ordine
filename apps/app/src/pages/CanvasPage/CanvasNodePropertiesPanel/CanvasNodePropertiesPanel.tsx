@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { OUTPUT_MODE_ENUM, type OutputMode } from "@repo/schemas";
+import { useList } from "@refinedev/core";
+import { OUTPUT_MODE_ENUM, type OutputMode, type Agent, type Operation } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
@@ -23,8 +24,10 @@ import {
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { selectSelectedNode, useCanvasPageStore } from "../_store";
 import { getNodeMeta } from "../utils/nodeTypeMeta";
+import { CanvasOperationPropertiesForm } from "./CanvasOperationPropertiesForm";
 
 const outputModeLabelKeys = {
   overwrite: "canvas.propertiesPanel.outputMode.overwrite",
@@ -45,6 +48,11 @@ export const CanvasNodePropertiesPanel = () => {
     (state) => state.handleOperationMaxLoopChange,
   );
   const clearSelection = useStore(store, (state) => state.clearSelection);
+  const handleClearSelection = () => clearSelection();
+  const { result: agentsResult } = useList<Agent>({
+    resource: ResourceName.agents,
+  });
+  const agents = agentsResult.data;
 
   if (!selectedNode) {
     return (
@@ -76,6 +84,10 @@ export const CanvasNodePropertiesPanel = () => {
                   : Box;
   const handleUpdateNodeData = (patch: Record<string, unknown>) => {
     updateNodeData(selectedNode.id, patch);
+  };
+
+  const handleOperationUpdated = (operation: Operation) => {
+    handleUpdateNodeData({ operationName: operation.name });
   };
 
   const renderTextField = ({
@@ -192,7 +204,7 @@ export const CanvasNodePropertiesPanel = () => {
           className="mb-3 h-8 gap-2 px-2 text-muted-foreground"
           type="button"
           variant="ghost"
-          onClick={clearSelection}>
+          onClick={handleClearSelection}>
           <ArrowLeft className="size-4" />
           {t("canvas.propertiesPanel.backToComponents")}
         </Button>
@@ -300,16 +312,31 @@ export const CanvasNodePropertiesPanel = () => {
 
         {data.nodeType === "operation" && (
           <>
-            {renderTextField({
-              field: "operationName",
-              label: t("canvas.propertiesPanel.fields.operationName"),
-              value: data.operationName,
-            })}
-            {renderTextField({
-              field: "agentId",
-              label: t("canvas.propertiesPanel.fields.agentId"),
-              value: data.agentId ?? "",
-            })}
+            <div className="space-y-1.5">
+              <Label htmlFor={fieldId(selectedNode.id, "agentId")}>
+                {t("canvas.propertiesPanel.fields.agentId")}
+              </Label>
+              <Select
+                value={data.agentId ?? "__default__"}
+                onValueChange={(value) =>
+                  handleUpdateNodeData({ agentId: value === "__default__" ? undefined : value })
+                }>
+                <SelectTrigger id={fieldId(selectedNode.id, "agentId")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__default__">
+                    {t("nodes.operation.defaultAgent")}
+                  </SelectItem>
+                  {agents.map((agent) => (
+                    <SelectItem key={agent.id} value={agent.id}>
+                      {agent.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {renderIntegerField({
               field: "maxLoopCount",
               label: t("canvas.propertiesPanel.fields.maxLoopCount"),
@@ -324,6 +351,16 @@ export const CanvasNodePropertiesPanel = () => {
               label: t("canvas.propertiesPanel.fields.loopCondition"),
               value: data.loopConditionPrompt ?? "",
             })}
+
+            <div className="border-t pt-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {t("canvas.propertiesPanel.operationDefinition")}
+              </p>
+              <CanvasOperationPropertiesForm
+                operationId={data.operationId}
+                onOperationUpdated={handleOperationUpdated}
+              />
+            </div>
           </>
         )}
 
