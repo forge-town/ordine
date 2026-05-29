@@ -6,20 +6,20 @@ import {
   FolderOutput,
   HardDrive,
   MessageSquareText,
-  Plus,
-  X,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useList } from "@refinedev/core";
 import {
   OUTPUT_MODE_ENUM,
+  DISCLOSURE_MODE_ENUM,
+  SOURCE_TYPE_ENUM,
   type OutputMode,
   type Agent,
   type Operation,
   type DisclosureMode,
+  type SourceType,
 } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -37,6 +37,7 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import { selectSelectedNode, useCanvasPageStore } from "../_store";
 import { getNodeMeta } from "../utils/nodeTypeMeta";
 import { CanvasOperationPropertiesForm } from "./CanvasOperationPropertiesForm";
+import { ExcludedPathsField } from "./ExcludedPathsField";
 
 const outputModeLabelKeys = {
   overwrite: "canvas.propertiesPanel.outputMode.overwrite",
@@ -53,7 +54,7 @@ const disclosureModeLabelKeys = {
 const sourceTypeLabelKeys = {
   github: "canvas.sourceTypeGitHub",
   local: "canvas.sourceTypeLocal",
-} as const satisfies Record<"github" | "local", string>;
+} as const satisfies Record<SourceType, string>;
 
 const fieldId = (nodeId: string, field: string) =>
   `canvas-properties-${nodeId}-${field}`;
@@ -290,7 +291,7 @@ export const CanvasNodePropertiesPanel = () => {
                 {t("canvas.propertiesPanel.fields.disclosureMode")}
               </Label>
               <Select
-                value={data.disclosureMode ?? "tree"}
+                value={data.disclosureMode ?? DISCLOSURE_MODE_ENUM.TREE}
                 onValueChange={(value) =>
                   handleUpdateNodeData({ disclosureMode: value as DisclosureMode })
                 }>
@@ -298,7 +299,7 @@ export const CanvasNodePropertiesPanel = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(["tree", "files-only", "full"] as DisclosureMode[]).map((mode) => (
+                  {(Object.values(DISCLOSURE_MODE_ENUM) as DisclosureMode[]).map((mode) => (
                     <SelectItem key={mode} value={mode}>
                       {t(disclosureModeLabelKeys[mode])}
                     </SelectItem>
@@ -345,15 +346,15 @@ export const CanvasNodePropertiesPanel = () => {
                 {t("canvas.propertiesPanel.fields.sourceType")}
               </Label>
               <Select
-                value={data.sourceType ?? "github"}
+                value={data.sourceType ?? SOURCE_TYPE_ENUM.GITHUB}
                 onValueChange={(value) =>
-                  handleUpdateNodeData({ sourceType: value as "github" | "local" })
+                  handleUpdateNodeData({ sourceType: value as SourceType })
                 }>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(["github", "local"] as const).map((type) => (
+                  {(Object.values(SOURCE_TYPE_ENUM) as SourceType[]).map((type) => (
                     <SelectItem key={type} value={type}>
                       {t(sourceTypeLabelKeys[type])}
                     </SelectItem>
@@ -381,13 +382,13 @@ export const CanvasNodePropertiesPanel = () => {
               label: t("canvas.propertiesPanel.fields.localPath"),
               value: data.localPath ?? "",
             })}
-            {data.sourceType !== "local" && (
+            {data.sourceType !== SOURCE_TYPE_ENUM.LOCAL && (
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground">
                   {t("canvas.propertiesPanel.fields.disclosureMode")}
                 </Label>
                 <Select
-                  value={data.disclosureMode ?? "tree"}
+                  value={data.disclosureMode ?? DISCLOSURE_MODE_ENUM.TREE}
                   onValueChange={(value) =>
                     handleUpdateNodeData({ disclosureMode: value as DisclosureMode })
                   }>
@@ -395,7 +396,7 @@ export const CanvasNodePropertiesPanel = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {(["tree", "files-only", "full"] as DisclosureMode[]).map((mode) => (
+                    {(Object.values(DISCLOSURE_MODE_ENUM) as DisclosureMode[]).map((mode) => (
                       <SelectItem key={mode} value={mode}>
                         {t(disclosureModeLabelKeys[mode])}
                       </SelectItem>
@@ -557,88 +558,4 @@ export const CanvasNodePropertiesPanel = () => {
   );
 };
 
-interface ExcludedPathsFieldProps {
-  excludedPaths?: string[];
-  nodeId: string;
-  onAdd: (nodeId: string, path: string) => void;
-  onRemove: (nodeId: string, path: string) => void;
-}
-
-const ExcludedPathsField = ({ excludedPaths, nodeId, onAdd, onRemove }: ExcludedPathsFieldProps) => {
-  const { t } = useTranslation();
-  const [inputValue, setInputValue] = useState("");
-  const paths = Array.isArray(excludedPaths) ? excludedPaths : [];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-  };
-
-  const handleAdd = () => {
-    const trimmed = inputValue.trim();
-
-    if (trimmed && !paths.includes(trimmed)) {
-      onAdd(nodeId, trimmed);
-      setInputValue("");
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAdd();
-    }
-  };
-
-  const handleRemove = (path: string) => {
-    onRemove(nodeId, path);
-  };
-
-  return (
-    <div className="space-y-1.5">
-      <Label className="text-xs font-medium text-muted-foreground">
-        {t("canvas.propertiesPanel.fields.excludedPaths")}
-      </Label>
-      <div className="flex items-center gap-1.5">
-        <Input
-          className="h-8 text-sm"
-          placeholder="node_modules/"
-          value={inputValue}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-        />
-        <Button
-          className="h-8 px-2"
-          disabled={!inputValue.trim()}
-          size="sm"
-          type="button"
-          variant="outline"
-          onClick={handleAdd}
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-      {paths.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {paths.map((path) => (
-            <span
-              key={path}
-              className="inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-red-200">
-              {path}
-              <Button
-                aria-label={`${t("canvas.removeExclude")} ${path}`}
-                className="h-auto rounded-sm p-0 hover:bg-red-200"
-                size="icon-xs"
-                type="button"
-                variant="ghost"
-                onClick={() => handleRemove(path)}
-              >
-                <X className="h-2.5 w-2.5" />
-              </Button>
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
