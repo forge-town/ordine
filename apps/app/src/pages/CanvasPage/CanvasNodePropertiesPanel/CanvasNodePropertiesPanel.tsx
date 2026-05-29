@@ -6,12 +6,21 @@ import {
   FolderOutput,
   HardDrive,
   MessageSquareText,
+  Plus,
+  X,
   Zap,
 } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useList } from "@refinedev/core";
-import { OUTPUT_MODE_ENUM, type OutputMode, type Agent, type Operation } from "@repo/schemas";
+import {
+  OUTPUT_MODE_ENUM,
+  type OutputMode,
+  type Agent,
+  type Operation,
+  type DisclosureMode,
+} from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
@@ -35,6 +44,17 @@ const outputModeLabelKeys = {
   auto_rename: "canvas.propertiesPanel.outputMode.autoRename",
 } as const satisfies Record<OutputMode, string>;
 
+const disclosureModeLabelKeys = {
+  tree: "canvas.disclosureTree",
+  "files-only": "canvas.disclosureFilesOnly",
+  full: "canvas.disclosureFull",
+} as const satisfies Record<DisclosureMode, string>;
+
+const sourceTypeLabelKeys = {
+  github: "canvas.sourceTypeGitHub",
+  local: "canvas.sourceTypeLocal",
+} as const satisfies Record<"github" | "local", string>;
+
 const fieldId = (nodeId: string, field: string) =>
   `canvas-properties-${nodeId}-${field}`;
 
@@ -46,6 +66,14 @@ export const CanvasNodePropertiesPanel = () => {
   const handleOperationMaxLoopChange = useStore(
     store,
     (state) => state.handleOperationMaxLoopChange,
+  );
+  const handleNodeAddExcludedPath = useStore(
+    store,
+    (state) => state.handleNodeAddExcludedPath,
+  );
+  const handleNodeRemoveExcludedPath = useStore(
+    store,
+    (state) => state.handleNodeRemoveExcludedPath,
   );
   const clearSelection = useStore(store, (state) => state.clearSelection);
   const handleClearSelection = () => clearSelection();
@@ -257,6 +285,51 @@ export const CanvasNodePropertiesPanel = () => {
               placeholder: t("canvas.propertiesPanel.placeholders.folderPath"),
               value: data.folderPath,
             })}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">
+                {t("canvas.propertiesPanel.fields.disclosureMode")}
+              </Label>
+              <Select
+                value={data.disclosureMode ?? "tree"}
+                onValueChange={(value) =>
+                  handleUpdateNodeData({ disclosureMode: value as DisclosureMode })
+                }>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(["tree", "files-only", "full"] as DisclosureMode[]).map((mode) => (
+                    <SelectItem key={mode} value={mode}>
+                      {t(disclosureModeLabelKeys[mode])}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">
+                {t("canvas.propertiesPanel.fields.includedExtensions")}
+              </Label>
+              <Input
+                className="h-8 text-sm"
+                placeholder="ts,tsx,js,jsx"
+                value={(data.includedExtensions ?? []).join(",")}
+                onChange={(e) =>
+                  handleUpdateNodeData({
+                    includedExtensions: e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  })
+                }
+              />
+            </div>
+            <ExcludedPathsField
+              excludedPaths={data.excludedPaths}
+              nodeId={selectedNode.id}
+              onAdd={handleNodeAddExcludedPath}
+              onRemove={handleNodeRemoveExcludedPath}
+            />
             {renderTextareaField({
               field: "description",
               label: t("canvas.propertiesPanel.fields.description"),
@@ -267,6 +340,27 @@ export const CanvasNodePropertiesPanel = () => {
 
         {data.nodeType === "github-project" && (
           <>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">
+                {t("canvas.propertiesPanel.fields.sourceType")}
+              </Label>
+              <Select
+                value={data.sourceType ?? "github"}
+                onValueChange={(value) =>
+                  handleUpdateNodeData({ sourceType: value as "github" | "local" })
+                }>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(["github", "local"] as const).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {t(sourceTypeLabelKeys[type])}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             {renderTextField({
               field: "owner",
               label: t("canvas.propertiesPanel.fields.owner"),
@@ -287,6 +381,35 @@ export const CanvasNodePropertiesPanel = () => {
               label: t("canvas.propertiesPanel.fields.localPath"),
               value: data.localPath ?? "",
             })}
+            {data.sourceType !== "local" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {t("canvas.propertiesPanel.fields.disclosureMode")}
+                </Label>
+                <Select
+                  value={data.disclosureMode ?? "tree"}
+                  onValueChange={(value) =>
+                    handleUpdateNodeData({ disclosureMode: value as DisclosureMode })
+                  }>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(["tree", "files-only", "full"] as DisclosureMode[]).map((mode) => (
+                      <SelectItem key={mode} value={mode}>
+                        {t(disclosureModeLabelKeys[mode])}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <ExcludedPathsField
+              excludedPaths={data.excludedPaths}
+              nodeId={selectedNode.id}
+              onAdd={handleNodeAddExcludedPath}
+              onRemove={handleNodeRemoveExcludedPath}
+            />
             {renderTextareaField({
               field: "description",
               label: t("canvas.propertiesPanel.fields.description"),
@@ -430,6 +553,91 @@ export const CanvasNodePropertiesPanel = () => {
             value: data.description ?? "",
           })}
       </div>
+    </div>
+  );
+};
+
+interface ExcludedPathsFieldProps {
+  excludedPaths?: string[];
+  nodeId: string;
+  onAdd: (nodeId: string, path: string) => void;
+  onRemove: (nodeId: string, path: string) => void;
+}
+
+const ExcludedPathsField = ({ excludedPaths, nodeId, onAdd, onRemove }: ExcludedPathsFieldProps) => {
+  const { t } = useTranslation();
+  const [inputValue, setInputValue] = useState("");
+  const paths = Array.isArray(excludedPaths) ? excludedPaths : [];
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleAdd = () => {
+    const trimmed = inputValue.trim();
+
+    if (trimmed && !paths.includes(trimmed)) {
+      onAdd(nodeId, trimmed);
+      setInputValue("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAdd();
+    }
+  };
+
+  const handleRemove = (path: string) => {
+    onRemove(nodeId, path);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs font-medium text-muted-foreground">
+        {t("canvas.propertiesPanel.fields.excludedPaths")}
+      </Label>
+      <div className="flex items-center gap-1.5">
+        <Input
+          className="h-8 text-sm"
+          placeholder="node_modules/"
+          value={inputValue}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+        />
+        <Button
+          className="h-8 px-2"
+          disabled={!inputValue.trim()}
+          size="sm"
+          type="button"
+          variant="outline"
+          onClick={handleAdd}
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+      {paths.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {paths.map((path) => (
+            <span
+              key={path}
+              className="inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-red-200">
+              {path}
+              <Button
+                aria-label={`${t("canvas.removeExclude")} ${path}`}
+                className="h-auto rounded-sm p-0 hover:bg-red-200"
+                size="icon-xs"
+                type="button"
+                variant="ghost"
+                onClick={() => handleRemove(path)}
+              >
+                <X className="h-2.5 w-2.5" />
+              </Button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

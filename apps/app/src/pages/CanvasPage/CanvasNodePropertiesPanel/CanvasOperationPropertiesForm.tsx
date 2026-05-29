@@ -408,13 +408,17 @@ export const CanvasOperationPropertiesForm = ({
     <div className="space-y-4">
       {/* Name */}
       <div className="space-y-1.5">
-        <Label>{t("operations.nameLabel")}</Label>
+        <Label className="text-xs font-medium text-muted-foreground">
+          {t("operations.nameLabel")}
+        </Label>
         <Input className="h-8 text-sm" value={name} onChange={handleNameChange} />
       </div>
 
       {/* Description */}
       <div className="space-y-1.5">
-        <Label>{t("operations.descriptionLabel")}</Label>
+        <Label className="text-xs font-medium text-muted-foreground">
+          {t("operations.descriptionLabel")}
+        </Label>
         <Input
           className="h-8 text-sm"
           placeholder={t("operations.descriptionPlaceholder")}
@@ -425,7 +429,9 @@ export const CanvasOperationPropertiesForm = ({
 
       {/* Accepted Object Types */}
       <div className="space-y-1.5">
-        <Label>{t("operations.acceptedObjectTypes")}</Label>
+        <Label className="text-xs font-medium text-muted-foreground">
+          {t("operations.acceptedObjectTypes")}
+        </Label>
         <div className="flex flex-wrap gap-1.5">
           {OBJECT_TYPE_OPTIONS.map(({ value, label, icon: Icon }) => {
             const selected = acceptedObjectTypes.includes(value);
@@ -434,10 +440,10 @@ export const CanvasOperationPropertiesForm = ({
               <Button
                 key={value}
                 className={cn(
-                  "flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs font-normal",
+                  "flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-normal transition-colors",
                   selected
                     ? "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                    : "border-border bg-background text-muted-foreground",
+                    : "border-border bg-background text-muted-foreground hover:bg-muted/60",
                 )}
                 type="button"
                 variant="ghost"
@@ -445,15 +451,18 @@ export const CanvasOperationPropertiesForm = ({
               >
                 <Icon className="h-3 w-3" />
                 {label}
+                {selected && <span className="ml-0.5 text-[10px]">✓</span>}
               </Button>
             );
           })}
         </div>
       </div>
 
-      {/* Executor Type */}
-      <div className="space-y-1.5">
-        <Label>{t("operations.executorType")}</Label>
+      {/* Executor section */}
+      <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+        <Label className="text-xs font-semibold text-foreground">
+          {t("operations.executorType")}
+        </Label>
         <div className="grid grid-cols-2 gap-2">
           {EXECUTOR_TYPE_OPTIONS.map(({ value, label, icon: Icon, description }) => {
             const selected = executorType === value;
@@ -462,10 +471,10 @@ export const CanvasOperationPropertiesForm = ({
               <Button
                 key={value}
                 className={cn(
-                  "flex h-auto flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left text-xs font-normal",
+                  "flex h-auto flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left text-xs font-normal transition-colors",
                   selected
                     ? "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                    : "border-border bg-background text-muted-foreground",
+                    : "border-border bg-background text-muted-foreground hover:bg-muted/60",
                 )}
                 type="button"
                 variant="ghost"
@@ -480,103 +489,118 @@ export const CanvasOperationPropertiesForm = ({
             );
           })}
         </div>
+
+        {/* Agent Mode */}
+        {executorType === "agent" && (
+          <>
+            <Label className="text-xs font-medium text-muted-foreground">
+              {t("operations.agentMode")}
+            </Label>
+            <div className="grid grid-cols-2 gap-2">
+              {AGENT_MODE_OPTIONS.map(({ value, label, icon: Icon, description }) => {
+                const selected = agentMode === value;
+
+                return (
+                  <Button
+                    key={value}
+                    className={cn(
+                      "flex h-auto flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left text-xs font-normal transition-colors",
+                      selected
+                        ? "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                        : "border-border bg-background text-muted-foreground hover:bg-muted/60",
+                    )}
+                    type="button"
+                    variant="ghost"
+                    onClick={() => handleAgentModeChange(value)}
+                  >
+                    <span className="flex items-center gap-1 font-medium">
+                      <Icon className="h-3 w-3" />
+                      {label}
+                    </span>
+                    <span className="text-[10px] opacity-70">{description}</span>
+                  </Button>
+                );
+              })}
+            </div>
+
+            {/* Skill Select */}
+            {agentMode === "skill" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {t("operations.skillLabel")}
+                </Label>
+                <Select value={skillId} onValueChange={handleSkillChange}>
+                  <SelectTrigger className="h-8 text-xs bg-background">
+                    <SelectValue placeholder={t("operations.selectSkill")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {skills.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Prompt */}
+            {agentMode === "prompt" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {t("operations.promptLabel")}
+                </Label>
+                <Textarea
+                  className="min-h-20 resize-y bg-background text-xs"
+                  placeholder={t("operations.promptPlaceholder")}
+                  rows={4}
+                  value={promptText}
+                  onChange={handlePromptChange}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Script */}
+        {executorType === "script" && (
+          <div className="space-y-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">
+                {t("operations.scriptCommand")}
+              </Label>
+              <Input
+                className="h-8 bg-background font-mono text-xs"
+                placeholder="e.g. eslint src/ --fix"
+                value={scriptCommand}
+                onChange={handleScriptCommandChange}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="col-span-1 space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {t("operations.scriptLanguage")}
+                </Label>
+                <Select value={scriptLanguage} onValueChange={handleScriptLanguageChange}>
+                  <SelectTrigger className="h-8 text-xs bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bash">Bash</SelectItem>
+                    <SelectItem value="python">Python</SelectItem>
+                    <SelectItem value="javascript">JavaScript</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Agent Mode */}
-      {executorType === "agent" && (
-        <div className="space-y-1.5">
-          <Label>{t("operations.agentMode")}</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {AGENT_MODE_OPTIONS.map(({ value, label, icon: Icon, description }) => {
-              const selected = agentMode === value;
-
-              return (
-                <Button
-                  key={value}
-                  className={cn(
-                    "flex h-auto flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left text-xs font-normal",
-                    selected
-                      ? "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                      : "border-border bg-background text-muted-foreground",
-                  )}
-                  type="button"
-                  variant="ghost"
-                  onClick={() => handleAgentModeChange(value)}
-                >
-                  <span className="flex items-center gap-1 font-medium">
-                    <Icon className="h-3 w-3" />
-                    {label}
-                  </span>
-                  <span className="text-[10px] opacity-70">{description}</span>
-                </Button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Skill Select */}
-      {executorType === "agent" && agentMode === "skill" && (
-        <div className="space-y-1.5">
-          <Label>{t("operations.skillLabel")}</Label>
-          <Select value={skillId} onValueChange={handleSkillChange}>
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue placeholder={t("operations.selectSkill")} />
-            </SelectTrigger>
-            <SelectContent>
-              {skills.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {/* Prompt */}
-      {executorType === "agent" && agentMode === "prompt" && (
-        <div className="space-y-1.5">
-          <Label>{t("operations.promptLabel")}</Label>
-          <Textarea
-            className="min-h-24 resize-y text-xs"
-            placeholder={t("operations.promptPlaceholder")}
-            value={promptText}
-            onChange={handlePromptChange}
-          />
-        </div>
-      )}
-
-      {/* Script */}
-      {executorType === "script" && (
-        <div className="space-y-1.5">
-          <Label>{t("operations.scriptCommand")}</Label>
-          <Input
-            className="h-8 font-mono text-xs"
-            placeholder="e.g. eslint src/ --fix"
-            value={scriptCommand}
-            onChange={handleScriptCommandChange}
-          />
-          <div className="space-y-1">
-            <Label className="text-[11px]">{t("operations.scriptLanguage")}</Label>
-            <Select value={scriptLanguage} onValueChange={handleScriptLanguageChange}>
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="bash">Bash</SelectItem>
-                <SelectItem value="python">Python</SelectItem>
-                <SelectItem value="javascript">JavaScript</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      )}
 
       {/* Save Button */}
       {hasChanges && (
         <Button
-          className="w-full"
+          className="w-full transition-all duration-200"
           disabled={isSaving || !name.trim()}
           size="sm"
           type="button"

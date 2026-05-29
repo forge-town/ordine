@@ -430,7 +430,11 @@
         "projectId": "Project ID",
         "outputPath": "Output path",
         "outputFileName": "Output file name",
-        "writeMode": "Write mode"
+        "writeMode": "Write mode",
+        "disclosureMode": "Disclosure mode",
+        "excludedPaths": "Excluded paths",
+        "includedExtensions": "Included extensions",
+        "sourceType": "Source type"
       },
       "placeholders": {
         "filePath": "src/file.tsx",
@@ -651,6 +655,8 @@
     "disclosureTree": "Directory tree only",
     "disclosureFilesOnly": "File contents only",
     "disclosureFull": "Tree + file contents",
+    "sourceTypeGitHub": "GitHub",
+    "sourceTypeLocal": "Local folder",
     "removeExclude": "Remove exclude"
   },
   "projects": {
