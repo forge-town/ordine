@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useList, useOne, useUpdate } from "@refinedev/core";
+import { ResultAsync } from "neverthrow";
 import {
   FileCode,
   Folder,
@@ -24,6 +25,7 @@ import {
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { toastStore } from "@/store/toastStore";
 import type {
   AgentMode,
   ObjectType,
@@ -295,23 +297,35 @@ export const CanvasOperationPropertiesForm = ({
       scriptCommand,
       scriptLanguage,
     );
-    const result = await updateOpMutate({
-      resource: ResourceName.operations,
-      id: operationId,
-      values: {
-        name,
-        description: description || null,
-        config: {
-          ...operation.config,
-          ...config,
+    const result = await ResultAsync.fromPromise(
+      updateOpMutate({
+        resource: ResourceName.operations,
+        id: operationId,
+        values: {
+          name,
+          description: description || null,
+          config: {
+            ...operation.config,
+            ...config,
+          },
+          acceptedObjectTypes,
         },
-        acceptedObjectTypes,
-      },
-    });
+      }),
+      (e) => (e instanceof Error ? e.message : String(e)),
+    );
     setIsSaving(false);
+    if (result.isErr()) {
+      toastStore.getState().addToast({
+        type: "error",
+        title: t("canvas.saveFailed"),
+        description: result.error,
+      });
+
+      return;
+    }
     setHasChanges(false);
-    if (result.data) {
-      const updated = result.data as Operation;
+    if (result.value.data) {
+      const updated = result.value.data as Operation;
       setName(updated.name);
       setDescription(updated.description ?? "");
       setAcceptedObjectTypes(
