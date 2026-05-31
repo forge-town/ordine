@@ -29,15 +29,11 @@ export const useCanvasWorkspacePersistence = ({
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
   const importCanvas = useStore(store, (state) => state.importCanvas);
-  const handlePipelineIdChange = useStore(
-    store,
-    (state) => state.handlePipelineIdChange,
-  );
+  const handlePipelineIdChange = useStore(store, (state) => state.handlePipelineIdChange);
   const { mutate: updateCanvas, mutation: updateMutation } = useUpdate();
   const { mutate: createCanvas, mutation: createMutation } = useCreate();
 
-  const displayPipelineName =
-    pipelineName || t("canvas.pipelineTitlePlaceholder");
+  const displayPipelineName = pipelineName || t("canvas.pipelineTitlePlaceholder");
   const isPending = updateMutation.isPending || createMutation.isPending;
 
   const showImportError = (error: CanvasImportError) => {

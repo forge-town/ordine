@@ -10,6 +10,8 @@ import type { PipelineData } from "@repo/schemas";
 type MatchedOperation = { operationId: string; operationName: string; reason: string };
 type UnmatchedStep = { step: string; reason: string };
 
+const getDefaultPipelineName = () => i18n.t("pipelines.createNew");
+
 export type NewPipelineDialogPhase =
   | { step: "form" }
   | { step: "analyzing" }
@@ -51,12 +53,10 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
     set({ newPipelinePhase: { step: "form" } });
   };
 
-  const getDefaultName = () => i18n.t("pipelines.createNew");
-
   const analyze = async () => {
     const { name, description } = formControl.getValues();
     const trimmedDescription = description.trim();
-    const pipelineName = name.trim() || getDefaultName();
+    const pipelineName = name.trim() || getDefaultPipelineName();
 
     if (!trimmedDescription) {
       void generate();
@@ -86,7 +86,7 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
     const id = `pipeline-${Date.now()}`;
     const now = new Date();
     const trimmedDescription = description.trim();
-    const pipelineName = name.trim() || getDefaultName();
+    const pipelineName = name.trim() || getDefaultPipelineName();
 
     const phase = get().newPipelinePhase;
     const currentMatchedOperations =

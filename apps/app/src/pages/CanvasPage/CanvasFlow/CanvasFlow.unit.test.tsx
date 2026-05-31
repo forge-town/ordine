@@ -3,11 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
 import type * as XyFlowReact from "@xyflow/react";
 import type { PipelineNode } from "../_store/canvasSlice";
-import {
-  createCanvasPageStore,
-  CanvasPageStoreContext,
-  CanvasPageStoreProvider,
-} from "../_store";
+import { createCanvasPageStore, CanvasPageStoreContext, CanvasPageStoreProvider } from "../_store";
 import {
   CANVAS_COMPONENT_DRAG_MIME,
   encodeCanvasComponentDragPayload,
@@ -79,9 +75,7 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       onNodesChange?: unknown;
       snapToGrid?: boolean;
     }>) => {
-      xyflowMocks.onNodesChange = onNodesChange as
-        | ((changes: unknown[]) => void)
-        | undefined;
+      xyflowMocks.onNodesChange = onNodesChange as ((changes: unknown[]) => void) | undefined;
       const handleMouseMove = () => onMove?.(null, { x: 0, y: 0, zoom: 0.6 });
 
       return (
@@ -91,22 +85,14 @@ vi.mock("@xyflow/react", async (importOriginal) => {
           data-elements-selectable={String(elementsSelectable ?? true)}
           data-has-on-connect={String(typeof onConnect === "function")}
           data-has-on-connect-end={String(typeof onConnectEnd === "function")}
-          data-has-on-connect-start={String(
-            typeof onConnectStart === "function",
-          )}
+          data-has-on-connect-start={String(typeof onConnectStart === "function")}
           data-has-on-edge-click={String(typeof onEdgeClick === "function")}
           data-has-on-node-click={String(typeof onNodeClick === "function")}
-          data-has-on-node-context-menu={String(
-            typeof onNodeContextMenu === "function",
-          )}
+          data-has-on-node-context-menu={String(typeof onNodeContextMenu === "function")}
           data-has-on-node-drag={String(typeof onNodeDrag === "function")}
-          data-has-on-node-drag-stop={String(
-            typeof onNodeDragStop === "function",
-          )}
+          data-has-on-node-drag-stop={String(typeof onNodeDragStop === "function")}
           data-has-on-pane-click={String(typeof onPaneClick === "function")}
-          data-has-on-pane-context-menu={String(
-            typeof onPaneContextMenu === "function",
-          )}
+          data-has-on-pane-context-menu={String(typeof onPaneContextMenu === "function")}
           data-nodes-connectable={String(nodesConnectable ?? true)}
           data-nodes-draggable={String(nodesDraggable ?? true)}
           data-pan-on-drag={String(panOnDrag ?? true)}
@@ -116,7 +102,8 @@ vi.mock("@xyflow/react", async (importOriginal) => {
           data-zoom-on-double-click={String(zoomOnDoubleClick ?? true)}
           data-zoom-on-pinch={String(zoomOnPinch ?? true)}
           data-zoom-on-scroll={String(zoomOnScroll ?? true)}
-          onMouseMove={handleMouseMove}>
+          onMouseMove={handleMouseMove}
+        >
           {children}
         </div>
       );
@@ -188,10 +175,7 @@ describe("CanvasFlow", () => {
   it("renders without crashing", () => {
     const { container } = render(<CanvasFlow />, { wrapper });
     expect(container.firstChild).toBeTruthy();
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-zoom",
-      "1.25",
-    );
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-zoom", "1.25");
     expect(screen.queryByTestId("flow-controls")).not.toBeInTheDocument();
   });
 
@@ -207,46 +191,16 @@ describe("CanvasFlow", () => {
       </CanvasPageStoreContext.Provider>,
     );
 
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-nodes-draggable",
-      "false",
-    );
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-nodes-connectable",
-      "false",
-    );
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-elements-selectable",
-      "false",
-    );
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-pan-on-drag",
-      "false",
-    );
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-zoom-on-scroll",
-      "false",
-    );
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-has-on-node-click",
-      "false",
-    );
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-has-on-edge-click",
-      "false",
-    );
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-has-on-pane-click",
-      "false",
-    );
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-has-on-connect",
-      "false",
-    );
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-delete-key-code",
-      "null",
-    );
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-nodes-draggable", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-nodes-connectable", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-elements-selectable", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-pan-on-drag", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-zoom-on-scroll", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-has-on-node-click", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-has-on-edge-click", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-has-on-pane-click", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-has-on-connect", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-delete-key-code", "null");
   });
 
   it("shows MiniMap when multiple nodes exist and the console is closed", () => {
@@ -255,10 +209,7 @@ describe("CanvasFlow", () => {
     expect(screen.getByTestId("mini-map")).toBeInTheDocument();
     expect(screen.getByTestId("flow-background")).toBeInTheDocument();
     expect(screen.queryByTestId("flow-controls")).not.toBeInTheDocument();
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-auto-fit",
-      "false",
-    );
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-auto-fit", "false");
   });
 
   it("hides MiniMap for a single node", () => {
@@ -289,10 +240,7 @@ describe("CanvasFlow", () => {
     expect(screen.queryByTestId("mini-map")).not.toBeInTheDocument();
     expect(screen.queryByTestId("flow-background")).not.toBeInTheDocument();
     expect(screen.queryByTestId("flow-controls")).not.toBeInTheDocument();
-    expect(screen.getByTestId("react-flow")).toHaveAttribute(
-      "data-snap-to-grid",
-      "true",
-    );
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-snap-to-grid", "true");
   });
 
   it("hides MiniMap while the console is open", () => {
@@ -312,9 +260,7 @@ describe("CanvasFlow", () => {
       </CanvasPageStoreContext.Provider>,
     );
 
-    screen
-      .getByTestId("react-flow")
-      .dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+    screen.getByTestId("react-flow").dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 
     expect(store.getState().viewportZoom).toBe(0.6);
   });
@@ -331,9 +277,7 @@ describe("CanvasFlow", () => {
       </CanvasPageStoreContext.Provider>,
     );
 
-    expect(viewportRef.current).toBe(
-      screen.getByTestId("canvas-flow-viewport"),
-    );
+    expect(viewportRef.current).toBe(screen.getByTestId("canvas-flow-viewport"));
   });
 
   it("drops dragged palette items onto the flow viewport", () => {
@@ -359,10 +303,7 @@ describe("CanvasFlow", () => {
 
     const viewport = screen.getByTestId("canvas-flow-viewport");
     fireEvent(viewport, makeDragEvent("dragover", dataTransfer));
-    fireEvent(
-      viewport,
-      makeDragEvent("drop", dataTransfer, { clientX: 240, clientY: 180 }),
-    );
+    fireEvent(viewport, makeDragEvent("drop", dataTransfer, { clientX: 240, clientY: 180 }));
 
     expect(dataTransfer.dropEffect).toBe("copy");
     expect(store.getState().nodes).toEqual([
@@ -378,12 +319,13 @@ describe("CanvasFlow", () => {
     vi.useFakeTimers();
 
     const scheduledFrames = new Map<number, ReturnType<typeof setTimeout>>();
-    let nextFrameId = 1;
+    const nextFrameId = { current: 1 };
 
     vi.stubGlobal(
       "requestAnimationFrame",
       vi.fn((callback: FrameRequestCallback) => {
-        const frameId = nextFrameId++;
+        const frameId = nextFrameId.current;
+        nextFrameId.current += 1;
         const timeoutId = globalThis.setTimeout(() => callback(16), 0);
 
         scheduledFrames.set(frameId, timeoutId);
@@ -470,4 +412,3 @@ describe("CanvasFlow", () => {
     expect(xyflowMocks.updateNodeInternals).toHaveBeenCalledWith(["a"]);
   });
 });
-

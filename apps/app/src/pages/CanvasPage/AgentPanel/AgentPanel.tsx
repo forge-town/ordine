@@ -1,16 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import {
-  Bot,
-  X,
-  Send,
-  Loader2,
-  AlertCircle,
-  AlertTriangle,
-  Check,
-  Trash2,
-} from "lucide-react";
+import { Bot, X, Send, Loader2, AlertCircle, AlertTriangle, Check, Trash2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { Input } from "@repo/ui/input";
@@ -79,22 +70,10 @@ export const AgentPanel = () => {
   const store = useCanvasPageStore();
 
   const agentPanel = useStore(store, (state) => state.agentPanel);
-  const handleToggleAgentPanel = useStore(
-    store,
-    (state) => state.toggleAgentPanel,
-  );
-  const setPendingProposal = useStore(
-    store,
-    (state) => state.setPendingProposal,
-  );
-  const clearPendingProposal = useStore(
-    store,
-    (state) => state.clearPendingProposal,
-  );
-  const applyAgentProposal = useStore(
-    store,
-    (state) => state.applyAgentProposal,
-  );
+  const handleToggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
+  const setPendingProposal = useStore(store, (state) => state.setPendingProposal);
+  const clearPendingProposal = useStore(store, (state) => state.clearPendingProposal);
+  const applyAgentProposal = useStore(store, (state) => state.applyAgentProposal);
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const nodes = useStore(store, (state) => state.nodes);
@@ -223,10 +202,7 @@ export const AgentPanel = () => {
       return;
     }
 
-    const {
-      runtimeOptions: nextRuntimeOptions,
-      suggestedRuntimeId,
-    } = runtimeSetupResult.value;
+    const { runtimeOptions: nextRuntimeOptions, suggestedRuntimeId } = runtimeSetupResult.value;
     setRuntimeOptions(nextRuntimeOptions);
     const effectiveRuntimeId =
       selectedRuntimeId && nextRuntimeOptions.some((runtime) => runtime.id === selectedRuntimeId)
@@ -293,9 +269,7 @@ export const AgentPanel = () => {
     const diagnostics = data.diagnostics ?? null;
     const reply =
       data.reply ??
-      (proposal
-        ? t("canvas.agentPanel.proposalReceived")
-        : t("canvas.agentPanel.noProposal"));
+      (proposal ? t("canvas.agentPanel.proposalReceived") : t("canvas.agentPanel.noProposal"));
 
     setPendingProposal(proposal, diagnostics);
 
@@ -332,12 +306,9 @@ export const AgentPanel = () => {
     [doSend],
   );
 
-  const handleInputValueChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setInputValue(event.target.value);
-    },
-    [],
-  );
+  const handleInputValueChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
+  }, []);
 
   const handleRuntimeValueChange = useCallback((runtimeId: string | null) => {
     setSelectedRuntimeId(runtimeId);
@@ -349,9 +320,7 @@ export const AgentPanel = () => {
   }, [doSend]);
 
   const hasBlockingDiagnostics =
-    agentPanel.diagnostics?.some(
-      (diagnostic) => diagnostic.severity === "error",
-    ) ?? false;
+    agentPanel.diagnostics?.some((diagnostic) => diagnostic.severity === "error") ?? false;
 
   const handleApply = useCallback(() => {
     if (!agentPanel.pendingProposal || hasBlockingDiagnostics) {
@@ -372,13 +341,7 @@ export const AgentPanel = () => {
       },
     ]);
     scrollToBottom();
-  }, [
-    agentPanel.pendingProposal,
-    applyAgentProposal,
-    hasBlockingDiagnostics,
-    scrollToBottom,
-    t,
-  ]);
+  }, [agentPanel.pendingProposal, applyAgentProposal, hasBlockingDiagnostics, scrollToBottom, t]);
 
   const handleDiscard = useCallback(() => {
     clearPendingProposal();
@@ -393,8 +356,7 @@ export const AgentPanel = () => {
     scrollToBottom();
   }, [clearPendingProposal, scrollToBottom, t]);
 
-  const proposal =
-    agentPanel.pendingProposal as PipelineActionProposal | null;
+  const proposal = agentPanel.pendingProposal as PipelineActionProposal | null;
   const hasProposal = proposal !== null;
 
   return (
@@ -411,7 +373,8 @@ export const AgentPanel = () => {
           size="icon"
           title={t("canvas.agentPanel.close")}
           variant="ghost"
-          onClick={handleToggleAgentPanel}>
+          onClick={handleToggleAgentPanel}
+        >
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -422,10 +385,7 @@ export const AgentPanel = () => {
           <span className="text-xs font-medium text-muted-foreground">
             {t("canvas.agentPanel.runtimeLabel")}
           </span>
-          <Select
-            value={selectedRuntimeId}
-            onValueChange={handleRuntimeValueChange}
-          >
+          <Select value={selectedRuntimeId} onValueChange={handleRuntimeValueChange}>
             <SelectTrigger
               className="h-8 w-full text-xs"
               disabled={isLoadingRuntimes || runtimeOptions.length === 0}
@@ -461,7 +421,8 @@ export const AgentPanel = () => {
                 msg.role === "user"
                   ? "ml-auto bg-primary text-primary-foreground"
                   : "mr-auto bg-muted",
-              )}>
+              )}
+            >
               {msg.content}
             </div>
           ))}
@@ -491,7 +452,8 @@ export const AgentPanel = () => {
                   d.severity === "error"
                     ? "border border-red-200 bg-red-50 text-red-700"
                     : "border border-amber-200 bg-amber-50 text-amber-700",
-                )}>
+                )}
+              >
                 {d.severity === "error" ? (
                   <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 ) : (
@@ -515,9 +477,7 @@ export const AgentPanel = () => {
               <p className="mb-2 text-xs font-medium">{proposal.summary}</p>
               <ul className="flex flex-col gap-1">
                 {proposal.actions.map((action, i) => (
-                  <li
-                    key={i}
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <li key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
                     {getActionLabel(action)}
                   </li>
@@ -527,12 +487,11 @@ export const AgentPanel = () => {
             <div className="flex items-center gap-2">
               <Button
                 className="h-8 flex-1 gap-1 text-xs"
-                disabled={
-                  isSending || agentPanel.isLoading || hasBlockingDiagnostics
-                }
+                disabled={isSending || agentPanel.isLoading || hasBlockingDiagnostics}
                 size="sm"
                 variant="default"
-                onClick={handleApply}>
+                onClick={handleApply}
+              >
                 <Check className="h-3.5 w-3.5" />
                 {t("canvas.agentPanel.apply")}
               </Button>
@@ -541,7 +500,8 @@ export const AgentPanel = () => {
                 disabled={isSending || agentPanel.isLoading}
                 size="sm"
                 variant="outline"
-                onClick={handleDiscard}>
+                onClick={handleDiscard}
+              >
                 <Trash2 className="h-3.5 w-3.5" />
                 {t("canvas.agentPanel.discard")}
               </Button>
@@ -555,9 +515,7 @@ export const AgentPanel = () => {
           <div className="flex items-center gap-2 p-3 text-xs text-amber-800">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             <span>{t("canvas.agentPanel.runtimeNotConfigured")}</span>
-            <a
-              className="font-medium underline underline-offset-2"
-              href="/runtimes">
+            <a className="font-medium underline underline-offset-2" href="/runtimes">
               {t("canvas.agentPanel.goToRuntimeSettings")}
             </a>
           </div>
@@ -587,7 +545,8 @@ export const AgentPanel = () => {
           size="icon"
           title={t("canvas.agentPanel.send")}
           variant="ghost"
-          onClick={handleSendClick}>
+          onClick={handleSendClick}
+        >
           {isSending || agentPanel.isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (

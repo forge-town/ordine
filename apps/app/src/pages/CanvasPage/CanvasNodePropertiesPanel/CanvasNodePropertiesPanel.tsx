@@ -24,13 +24,7 @@ import {
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import { SiGitHubIcon } from "@/components/icons/SiGitHubIcon";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -56,8 +50,7 @@ const sourceTypeLabelKeys = {
   local: "canvas.sourceTypeLocal",
 } as const satisfies Record<SourceType, string>;
 
-const fieldId = (nodeId: string, field: string) =>
-  `canvas-properties-${nodeId}-${field}`;
+const fieldId = (nodeId: string, field: string) => `canvas-properties-${nodeId}-${field}`;
 
 export const CanvasNodePropertiesPanel = () => {
   const { t } = useTranslation();
@@ -68,10 +61,7 @@ export const CanvasNodePropertiesPanel = () => {
     store,
     (state) => state.handleOperationMaxLoopChange,
   );
-  const handleNodeAddExcludedPath = useStore(
-    store,
-    (state) => state.handleNodeAddExcludedPath,
-  );
+  const handleNodeAddExcludedPath = useStore(store, (state) => state.handleNodeAddExcludedPath);
   const handleNodeRemoveExcludedPath = useStore(
     store,
     (state) => state.handleNodeRemoveExcludedPath,
@@ -86,9 +76,7 @@ export const CanvasNodePropertiesPanel = () => {
   if (!selectedNode) {
     return (
       <div className="flex h-full flex-col bg-background p-4">
-        <p className="text-sm text-muted-foreground">
-          {t("canvas.propertiesPanel.empty")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t("canvas.propertiesPanel.empty")}</p>
       </div>
     );
   }
@@ -140,9 +128,7 @@ export const CanvasNodePropertiesPanel = () => {
           name={id}
           placeholder={placeholder}
           value={value}
-          onChange={(event) =>
-            handleUpdateNodeData({ [field]: event.target.value })
-          }
+          onChange={(event) => handleUpdateNodeData({ [field]: event.target.value })}
         />
       </div>
     );
@@ -170,9 +156,7 @@ export const CanvasNodePropertiesPanel = () => {
           placeholder={placeholder}
           rows={4}
           value={value}
-          onChange={(event) =>
-            handleUpdateNodeData({ [field]: event.target.value })
-          }
+          onChange={(event) => handleUpdateNodeData({ [field]: event.target.value })}
         />
       </div>
     );
@@ -200,9 +184,7 @@ export const CanvasNodePropertiesPanel = () => {
       if (Number.isFinite(nextValue) && Number.isInteger(nextValue)) {
         const lowerBound = min ?? Number.NEGATIVE_INFINITY;
         const upperBound = max ?? Number.POSITIVE_INFINITY;
-        handleValueChange(
-          Math.min(Math.max(nextValue, lowerBound), upperBound),
-        );
+        handleValueChange(Math.min(Math.max(nextValue, lowerBound), upperBound));
       }
     };
 
@@ -227,19 +209,22 @@ export const CanvasNodePropertiesPanel = () => {
   return (
     <div
       className="flex h-full min-h-0 flex-col bg-background"
-      data-testid="canvas-properties-panel">
+      data-testid="canvas-properties-panel"
+    >
       <div className="border-b p-4">
         <Button
           className="mb-3 h-8 gap-2 px-2 text-muted-foreground"
           type="button"
           variant="ghost"
-          onClick={handleClearSelection}>
+          onClick={handleClearSelection}
+        >
           <ArrowLeft className="size-4" />
           {t("canvas.propertiesPanel.backToComponents")}
         </Button>
         <div className="flex items-center gap-3">
           <span
-            className={`flex size-9 items-center justify-center rounded-md ${meta?.iconBg ?? "bg-slate-500"}`}>
+            className={`flex size-9 items-center justify-center rounded-md ${meta?.iconBg ?? "bg-slate-500"}`}
+          >
             <Icon className="size-4 text-white" />
           </span>
           <div className="min-w-0">
@@ -294,7 +279,8 @@ export const CanvasNodePropertiesPanel = () => {
                 value={data.disclosureMode ?? DISCLOSURE_MODE_ENUM.TREE}
                 onValueChange={(value) =>
                   handleUpdateNodeData({ disclosureMode: value as DisclosureMode })
-                }>
+                }
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -347,9 +333,8 @@ export const CanvasNodePropertiesPanel = () => {
               </Label>
               <Select
                 value={data.sourceType ?? SOURCE_TYPE_ENUM.GITHUB}
-                onValueChange={(value) =>
-                  handleUpdateNodeData({ sourceType: value as SourceType })
-                }>
+                onValueChange={(value) => handleUpdateNodeData({ sourceType: value as SourceType })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -391,7 +376,8 @@ export const CanvasNodePropertiesPanel = () => {
                   value={data.disclosureMode ?? DISCLOSURE_MODE_ENUM.TREE}
                   onValueChange={(value) =>
                     handleUpdateNodeData({ disclosureMode: value as DisclosureMode })
-                  }>
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -444,14 +430,13 @@ export const CanvasNodePropertiesPanel = () => {
                 value={data.agentId ?? "__default__"}
                 onValueChange={(value) =>
                   handleUpdateNodeData({ agentId: value === "__default__" ? undefined : value })
-                }>
+                }
+              >
                 <SelectTrigger id={fieldId(selectedNode.id, "agentId")}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__default__">
-                    {t("nodes.operation.defaultAgent")}
-                  </SelectItem>
+                  <SelectItem value="__default__">{t("nodes.operation.defaultAgent")}</SelectItem>
                   {agents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
                       {agent.name}
@@ -467,8 +452,7 @@ export const CanvasNodePropertiesPanel = () => {
               max: 20,
               min: 1,
               value: data.maxLoopCount ?? 3,
-              handleValueChange: (value) =>
-                handleOperationMaxLoopChange(selectedNode.id, value),
+              handleValueChange: (value) => handleOperationMaxLoopChange(selectedNode.id, value),
             })}
             {renderTextareaField({
               field: "loopConditionPrompt",
@@ -524,9 +508,8 @@ export const CanvasNodePropertiesPanel = () => {
               <Label>{t("canvas.propertiesPanel.fields.writeMode")}</Label>
               <Select
                 value={data.outputMode ?? "overwrite"}
-                onValueChange={(value) =>
-                  handleUpdateNodeData({ outputMode: value as OutputMode })
-                }>
+                onValueChange={(value) => handleUpdateNodeData({ outputMode: value as OutputMode })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -557,5 +540,3 @@ export const CanvasNodePropertiesPanel = () => {
     </div>
   );
 };
-
-

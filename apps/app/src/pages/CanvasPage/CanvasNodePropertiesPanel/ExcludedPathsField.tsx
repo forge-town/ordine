@@ -5,6 +5,8 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
 
+const EMPTY_EXCLUDED_PATHS: string[] = [];
+
 interface ExcludedPathsFieldProps {
   excludedPaths?: string[];
   nodeId: string;
@@ -20,7 +22,7 @@ export const ExcludedPathsField = ({
 }: ExcludedPathsFieldProps) => {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState("");
-  const paths = Array.isArray(excludedPaths) ? excludedPaths : [];
+  const paths = excludedPaths ?? EMPTY_EXCLUDED_PATHS;
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -81,7 +83,8 @@ export const ExcludedPathsField = ({
           {paths.map((path) => (
             <span
               key={path}
-              className="inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-red-200">
+              className="inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-red-200"
+            >
               {path}
               <Button
                 aria-label={`${t("canvas.removeExclude")} ${path}`}
