@@ -16,13 +16,7 @@ import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
@@ -359,6 +353,7 @@ export const CanvasOperationPropertiesForm = ({
     updateOpMutate,
     onOperationUpdated,
     isSaving,
+    t,
   ]);
 
   const OBJECT_TYPE_OPTIONS: { value: ObjectType; label: string; icon: React.ElementType }[] = [
@@ -413,9 +408,7 @@ export const CanvasOperationPropertiesForm = ({
   }
 
   if (!operation) {
-    return (
-      <p className="text-xs text-muted-foreground">{t("operations.operationNotFound")}</p>
-    );
+    return <p className="text-xs text-muted-foreground">{t("operations.operationNotFound")}</p>;
   }
 
   return (

@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Operation } from "@repo/schemas";
 import { OperationsPageContent } from "./OperationsPageContent";
 
+const getOperationCardNames = () => screen.getAllByText(/Task$/).map((el) => el.textContent ?? "");
+
 const mockOps = vi.fn<() => Operation[]>(() => []);
 const mockNavigate = vi.fn();
 const mockUseOne = vi.fn();
@@ -191,39 +193,37 @@ describe("OperationsPageContent", () => {
       }),
     ];
 
-    const getCardNames = () => screen.getAllByText(/Task$/).map((el) => el.textContent ?? "");
-
     beforeEach(() => {
       mockOps.mockReturnValue(ops);
     });
 
     it("default order preserves insertion order", () => {
       render(<OperationsPageContent />);
-      expect(getCardNames()).toEqual(["Zebra Task", "Alpha Task", "Mango Task"]);
+      expect(getOperationCardNames()).toEqual(["Zebra Task", "Alpha Task", "Mango Task"]);
     });
 
     it("sort by name ascending (A → Z)", () => {
       testStore.setState({ sortBy: "name-asc" });
       render(<OperationsPageContent />);
-      expect(getCardNames()).toEqual(["Alpha Task", "Mango Task", "Zebra Task"]);
+      expect(getOperationCardNames()).toEqual(["Alpha Task", "Mango Task", "Zebra Task"]);
     });
 
     it("sort by name descending (Z → A)", () => {
       testStore.setState({ sortBy: "name-desc" });
       render(<OperationsPageContent />);
-      expect(getCardNames()).toEqual(["Zebra Task", "Mango Task", "Alpha Task"]);
+      expect(getOperationCardNames()).toEqual(["Zebra Task", "Mango Task", "Alpha Task"]);
     });
 
     it("sort by newest first (createdAt desc)", () => {
       testStore.setState({ sortBy: "date-desc" });
       render(<OperationsPageContent />);
-      expect(getCardNames()).toEqual(["Alpha Task", "Mango Task", "Zebra Task"]);
+      expect(getOperationCardNames()).toEqual(["Alpha Task", "Mango Task", "Zebra Task"]);
     });
 
     it("sort by oldest first (createdAt asc)", () => {
       testStore.setState({ sortBy: "date-asc" });
       render(<OperationsPageContent />);
-      expect(getCardNames()).toEqual(["Zebra Task", "Mango Task", "Alpha Task"]);
+      expect(getOperationCardNames()).toEqual(["Zebra Task", "Mango Task", "Alpha Task"]);
     });
   });
 

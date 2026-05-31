@@ -1,9 +1,5 @@
 import { Result } from "neverthrow";
-import {
-  BuiltinNodeTypeSchema,
-  OperationSchema,
-  SkillSchema,
-} from "@repo/schemas";
+import { BuiltinNodeTypeSchema, OperationSchema, SkillSchema } from "@repo/schemas";
 import { z } from "zod/v4";
 
 export const CANVAS_COMPONENT_DRAG_MIME = "application/x-ordine-canvas-component";
@@ -23,9 +19,7 @@ const CanvasComponentDragPayloadSchema = z.discriminatedUnion("kind", [
   }),
 ]);
 
-export type CanvasComponentDragPayload = z.infer<
-  typeof CanvasComponentDragPayloadSchema
->;
+export type CanvasComponentDragPayload = z.infer<typeof CanvasComponentDragPayloadSchema>;
 
 const parseJson = Result.fromThrowable(JSON.parse, () => null);
 

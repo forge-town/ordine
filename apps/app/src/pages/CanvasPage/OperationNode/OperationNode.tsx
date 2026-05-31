@@ -1,12 +1,4 @@
-import {
-  Zap,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  Circle,
-  Brain,
-  Repeat,
-} from "lucide-react";
+import { Zap, CheckCircle2, XCircle, Loader2, Circle, Brain, Repeat } from "lucide-react";
 import { type ElementType, type SyntheticEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
@@ -20,17 +12,8 @@ import {
 } from "@repo/ui/select";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import {
-  useCanvasPageStore,
-  selectNodeRunState,
-  selectNodePortCounts,
-} from "../_store";
-import type {
-  OperationNodeData,
-  NodeRunStatus,
-  Operation,
-  Agent,
-} from "@repo/schemas";
+import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
+import type { OperationNodeData, NodeRunStatus, Operation, Agent } from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { NodeCard } from "../NodeCard";
@@ -41,42 +24,36 @@ export interface OperationNodeProps {
   selected?: boolean;
 }
 
-const statusConfig: Record<
-  NodeRunStatus,
-  { icon: ElementType; color: string; labelKey: string }
-> = {
-  idle: {
-    icon: Circle,
-    color: "text-gray-400",
-    labelKey: "nodes.operation.statusIdle",
-  },
-  running: {
-    icon: Loader2,
-    color: "text-blue-500 animate-spin",
-    labelKey: "nodes.operation.statusRunning",
-  },
-  pass: {
-    icon: CheckCircle2,
-    color: "text-green-500",
-    labelKey: "nodes.operation.statusPass",
-  },
-  fail: {
-    icon: XCircle,
-    color: "text-red-500",
-    labelKey: "nodes.operation.statusFail",
-  },
-};
+const statusConfig: Record<NodeRunStatus, { icon: ElementType; color: string; labelKey: string }> =
+  {
+    idle: {
+      icon: Circle,
+      color: "text-gray-400",
+      labelKey: "nodes.operation.statusIdle",
+    },
+    running: {
+      icon: Loader2,
+      color: "text-blue-500 animate-spin",
+      labelKey: "nodes.operation.statusRunning",
+    },
+    pass: {
+      icon: CheckCircle2,
+      color: "text-green-500",
+      labelKey: "nodes.operation.statusPass",
+    },
+    fail: {
+      icon: XCircle,
+      color: "text-red-500",
+      labelKey: "nodes.operation.statusFail",
+    },
+  };
 
-const stopCanvasInteraction = (event: SyntheticEvent) =>
-  event.stopPropagation();
+const stopCanvasInteraction = (event: SyntheticEvent) => event.stopPropagation();
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
-  const { runStatus: nodeRunStatus, dimmed } = useStore(
-    store,
-    useShallow(selectNodeRunState(id)),
-  );
+  const { runStatus: nodeRunStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
@@ -109,8 +86,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
       handleOperationMaxLoopChange: s.handleOperationMaxLoopChange,
       handleOperationConditionChange: s.handleOperationConditionChange,
       handleOperationCardClick: s.handleOperationCardClick,
-      handleOperationAgentDropdownOpenChange:
-        s.handleOperationAgentDropdownOpenChange,
+      handleOperationAgentDropdownOpenChange: s.handleOperationAgentDropdownOpenChange,
     })),
   );
   const {
@@ -127,16 +103,10 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   } = useStore(store, useShallow(selectNodePortCounts(id)));
   const agentOpen = operationAgentDropdownNodeId === id;
 
-  const {
-    icon: StatusIcon,
-    color,
-    labelKey,
-  } = statusConfig[data.status ?? "idle"];
+  const { icon: StatusIcon, color, labelKey } = statusConfig[data.status ?? "idle"];
   const statusLabel = t(labelKey);
 
-  const operation = operations.find(
-    (op: Operation) => op.id === data.operationId,
-  );
+  const operation = operations.find((op: Operation) => op.id === data.operationId);
   const executor = operation?.config.executor;
   const effectiveAgentMode =
     executor?.type === "agent" ? (executor.agentMode ?? "prompt") : undefined;
@@ -148,9 +118,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const selectedAgentId = data.agentId ?? "";
   const selectedAgent = agents.find((agent) => agent.id === selectedAgentId);
   const isAgentIncompatible =
-    isSkillOperation &&
-    !!selectedAgent &&
-    selectedAgent.defaultRuntime === "hermes";
+    isSkillOperation && !!selectedAgent && selectedAgent.defaultRuntime === "hermes";
   const selectedAgentLabel = isAgentIncompatible
     ? `${selectedAgent.name} (${t("nodes.operation.agentIncompatible")})`
     : selectedAgentId
@@ -189,19 +157,15 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
 
   return (
     <div
-      className={cn(
-        "group relative w-fit overflow-visible",
-        canInspect && "cursor-pointer",
-      )}
-      onClick={handleCardClick}>
+      className={cn("group relative w-fit overflow-visible", canInspect && "cursor-pointer")}
+      onClick={handleCardClick}
+    >
       <NodeCard
         leftHandle
         rightHandle
         bodyClassName="space-y-2"
         compact={nodeCardMode === "compact"}
-        description={
-          operation?.description || t("nodes.operation.customDescription")
-        }
+        description={operation?.description || t("nodes.operation.customDescription")}
         dimmed={dimmed}
         headerRight={
           <div
@@ -210,12 +174,11 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               data.status === "pass" && "bg-green-50 border-green-100",
               data.status === "fail" && "bg-red-50 border-red-100",
               data.status === "running" && "bg-blue-50 border-blue-100",
-              (!data.status || data.status === "idle") &&
-                "bg-white border-slate-100",
-            )}>
+              (!data.status || data.status === "idle") && "bg-white border-slate-100",
+            )}
+          >
             <StatusIcon className={cn("h-3 w-3 shrink-0", color)} />
-            <span
-              className={cn("text-[10px] font-semibold tracking-wide", color)}>
+            <span className={cn("text-[10px] font-semibold tracking-wide", color)}>
               {statusLabel}
             </span>
           </div>
@@ -235,7 +198,8 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         runStatus={nodeRunStatus}
         selected={selected}
         theme="violet"
-        onLabelChange={handleLabelChange}>
+        onLabelChange={handleLabelChange}
+      >
         {data.config && Object.keys(data.config).length > 0 && (
           <div className="space-y-1">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -259,7 +223,8 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               {operation.acceptedObjectTypes.map((type) => (
                 <span
                   key={type}
-                  className="rounded bg-violet-50 px-1.5 py-0.5 text-[9px] font-medium text-violet-600">
+                  className="rounded bg-violet-50 px-1.5 py-0.5 text-[9px] font-medium text-violet-600"
+                >
                   {objectTypeLabels[type] ?? type}
                 </span>
               ))}
@@ -267,9 +232,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
           </div>
         )}
 
-        <div
-          className="nodrag nopan space-y-1.5"
-          {...canvasInteractionHandlers}>
+        <div className="nodrag nopan space-y-1.5" {...canvasInteractionHandlers}>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             <Brain className="mr-1 inline-block h-3 w-3" />
             {t("nodes.operation.agent")}
@@ -278,26 +241,26 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             open={agentOpen}
             value={selectedAgentId || "__default__"}
             onOpenChange={handleAgentDropdownChange}
-            onValueChange={handleAgentValueChange}>
+            onValueChange={handleAgentValueChange}
+          >
             <SelectTrigger
               aria-label={t("nodes.operation.agent")}
-              className="nodrag nopan h-8 w-full min-w-0 px-2.5 text-xs">
+              className="nodrag nopan h-8 w-full min-w-0 px-2.5 text-xs"
+            >
               <span className="truncate">{selectedAgentLabel}</span>
             </SelectTrigger>
             <SelectContent
               align="start"
               alignItemWithTrigger={false}
               className="nodrag nopan min-w-44"
-              sideOffset={6}>
+              sideOffset={6}
+            >
               <SelectGroup>
                 <SelectLabel>{t("nodes.operation.agent")}</SelectLabel>
-                <SelectItem value="__default__">
-                  {t("nodes.operation.defaultAgent")}
-                </SelectItem>
+                <SelectItem value="__default__">{t("nodes.operation.defaultAgent")}</SelectItem>
                 {isAgentIncompatible && (
                   <SelectItem disabled value={selectedAgentId}>
-                    {selectedAgent.name} (
-                    {t("nodes.operation.agentIncompatible")})
+                    {selectedAgent.name} ({t("nodes.operation.agentIncompatible")})
                   </SelectItem>
                 )}
                 {selectableAgents.map((agent) => (
@@ -317,9 +280,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
           </div>
         )}
 
-        <div
-          className="nodrag nopan space-y-1.5"
-          {...canvasInteractionHandlers}>
+        <div className="nodrag nopan space-y-1.5" {...canvasInteractionHandlers}>
           <button
             className={cn(
               "nodrag nopan flex h-8 w-full items-center gap-1.5 rounded-md border px-2.5 text-[11px] font-medium transition-colors",
@@ -328,11 +289,10 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
                 : "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100",
             )}
             type="button"
-            onClick={handleLoopButtonClick}>
+            onClick={handleLoopButtonClick}
+          >
             <Repeat className="h-3 w-3 shrink-0" />
-            {data.loopEnabled
-              ? t("nodes.operation.loopEnabled")
-              : t("nodes.operation.enableLoop")}
+            {data.loopEnabled ? t("nodes.operation.loopEnabled") : t("nodes.operation.enableLoop")}
           </button>
 
           {data.loopEnabled && (
@@ -350,10 +310,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
                   type="number"
                   value={data.maxLoopCount ?? 3}
                   onChange={(e) =>
-                    handleOperationMaxLoopChange(
-                      id,
-                      Number.parseInt(e.target.value, 10),
-                    )
+                    handleOperationMaxLoopChange(id, Number.parseInt(e.target.value, 10))
                   }
                 />
               </div>
@@ -368,9 +325,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
                   placeholder={t("nodes.operation.loopConditionPlaceholder")}
                   rows={2}
                   value={data.loopConditionPrompt ?? ""}
-                  onChange={(e) =>
-                    handleOperationConditionChange(id, e.target.value)
-                  }
+                  onChange={(e) => handleOperationConditionChange(id, e.target.value)}
                 />
               </div>
             </div>
@@ -380,4 +335,3 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     </div>
   );
 };
-
