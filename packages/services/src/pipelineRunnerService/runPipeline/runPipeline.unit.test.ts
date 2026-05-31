@@ -39,6 +39,7 @@ const makeOpts = (overrides = {}) => ({
     findById: vi.fn().mockResolvedValue({
       id: "pipe-1",
       name: "Test",
+      description: "Pipeline description",
       nodes: [],
       edges: [],
     }),
@@ -85,6 +86,56 @@ describe("runPipeline", () => {
       "done",
       expect.objectContaining({ finishedAt: expect.any(Date) }),
     );
+  });
+
+  it("passes pipeline and operation descriptions into engine execution", async () => {
+    vi.mocked(pipelineEngine.execute).mockResolvedValue({
+      ok: true as const,
+      summary: "All good",
+    });
+    const opts = makeOpts({
+      pipelinesDao: {
+        findById: vi.fn().mockResolvedValue({
+          id: "pipe-1",
+          name: "Context Pipeline",
+          description: "Coordinate a repository review",
+          nodes: [
+            {
+              id: "op-node",
+              type: "operation",
+              position: { x: 0, y: 0 },
+              data: { nodeType: "operation", operationId: "op-1", label: "Review" },
+            },
+          ],
+          edges: [],
+        }),
+      } as unknown as PipelinesDao,
+      operationsDao: {
+        findById: vi.fn().mockResolvedValue({
+          id: "op-1",
+          name: "Review",
+          description: "Review the current project",
+          config: { executor: { type: "agent", agentMode: "prompt", prompt: "Review" } },
+        }),
+      } as unknown as OperationsDao,
+    });
+
+    await pipelineRunExecutor.run(opts);
+
+    expect(pipelineEngine.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pipeline: expect.objectContaining({
+          name: "Context Pipeline",
+          description: "Coordinate a repository review",
+        }),
+        operations: expect.any(Map),
+      }),
+    );
+    const callArgs = vi.mocked(pipelineEngine.execute).mock.calls[0]![0];
+    expect(callArgs.operations.get("op-1")).toMatchObject({
+      name: "Review",
+      description: "Review the current project",
+    });
   });
 
   it("marks job as failed when pipeline not found", async () => {

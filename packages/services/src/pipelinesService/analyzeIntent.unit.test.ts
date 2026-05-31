@@ -52,6 +52,7 @@ vi.mock("@repo/models", () => ({
   createJobTracesDao: () => ({}),
   createOperationsDao: () => mockOperationsDao,
   createSettingsDao: () => mockSettingsDao,
+  createAgentRuntimesDao: () => ({ findMany: vi.fn().mockResolvedValue([]) }),
 }));
 
 vi.mock("../pipelineRunnerService/agentRunner/agentRunner", () => ({

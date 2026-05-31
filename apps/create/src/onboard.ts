@@ -1,4 +1,4 @@
-import { err, ok, okAsync, errAsync, Result, ResultAsync, type Result as NeverthrowResult } from "neverthrow";
+import { err, ok, Result, ResultAsync, type Result as NeverthrowResult } from "neverthrow";
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
@@ -285,6 +285,7 @@ const runOnboard = async (options: OnboardOptions): Promise<NeverthrowResult<voi
   console.log(formatOutput(result));
 
   const startServerResult = await startAppServer(serverEntryResult.value, envConfig);
+
   return startServerResult.isOk() ? ok(undefined) : err(startServerResult.error);
 };
 

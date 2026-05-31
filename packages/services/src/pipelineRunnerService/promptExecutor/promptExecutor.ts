@@ -1,6 +1,6 @@
 import { ResultAsync, errAsync } from "neverthrow";
 import { logger } from "@repo/logger";
-import type { RunPromptOptions } from "@repo/pipeline-engine";
+import type { OperationRuntimeContext, RunPromptOptions } from "@repo/pipeline-engine";
 import type { OutputItem, SshConnection } from "@repo/schemas";
 import { runAgent } from "../agentRunner/agentRunner";
 
@@ -17,6 +17,53 @@ export class PromptExecutionError extends Error {
 const PROMPT_AGENT_ID = "prompt-executor";
 
 type PromptExecutorOptions = RunPromptOptions & { ssh?: SshConnection };
+
+const buildRuntimeContextSection = (runtimeContext?: OperationRuntimeContext): string => {
+  if (!runtimeContext) return "";
+
+  const pipelineLines = runtimeContext.pipeline
+    ? [
+        "### Pipeline-global context",
+        `Pipeline name: ${runtimeContext.pipeline.name}`,
+        `Pipeline description: ${runtimeContext.pipeline.description || "(none)"}`,
+        ...(runtimeContext.pipeline.purpose
+          ? [`Workflow purpose: ${runtimeContext.pipeline.purpose}`]
+          : []),
+        "",
+      ]
+    : [];
+
+  const operation = runtimeContext.operation;
+  const operationLines = [
+    "### Operation-local context",
+    `Operation name: ${operation.name}`,
+    `Operation description: ${operation.description || "(none)"}`,
+    ...(operation.instruction ? [`Step-specific instruction: ${operation.instruction}`] : []),
+  ];
+
+  return ["## Runtime Context", ...pipelineLines, ...operationLines].join("\n");
+};
+
+const buildSystemPrompt = ({
+  prompt,
+  runtimeContext,
+}: {
+  prompt: string;
+  runtimeContext?: OperationRuntimeContext;
+}): string => {
+  const contextSection = buildRuntimeContextSection(runtimeContext);
+  if (!contextSection) return prompt;
+
+  return [
+    contextSection,
+    "",
+    "## Execution Priority",
+    "Use the pipeline-global context to preserve workflow intent, but execute the current Operation-local instruction as the immediate task.",
+    "",
+    "## Operation Prompt",
+    prompt,
+  ].join("\n");
+};
 
 const buildOutputItemsSection = (
   outputItems?: readonly OutputItem[],
@@ -54,6 +101,7 @@ const run = ({
   ssh,
   outputItems,
   outputDir,
+  runtimeContext,
 }: PromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
@@ -64,9 +112,10 @@ const run = ({
 
   return ResultAsync.fromPromise(
     (async () => {
+      const systemPrompt = buildSystemPrompt({ prompt, runtimeContext });
       const raw = await runAgent({
         agent,
-        systemPrompt: prompt,
+        systemPrompt,
         userPrompt: effectiveInput,
         inputPath,
         jobId,

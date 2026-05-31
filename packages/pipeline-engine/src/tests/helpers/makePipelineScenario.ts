@@ -24,6 +24,7 @@ export const makePipelineScenario = ({
   pipeline: {
     id: "scenario-pipeline",
     name: "Scenario Pipeline",
+    description: "Scenario pipeline description",
     nodes,
     edges,
   },

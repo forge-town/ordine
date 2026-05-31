@@ -59,7 +59,13 @@ const makeOpts = (
   deps: PipelineEngineDeps,
   extra: Partial<PipelineOptions> = {},
 ): PipelineOptions => ({
-  pipeline: { id: "test-pl", name: "Plugin Test Pipeline", nodes, edges },
+  pipeline: {
+    id: "test-pl",
+    name: "Plugin Test Pipeline",
+    description: "Plugin test pipeline description",
+    nodes,
+    edges,
+  },
   jobId: "job-plugin-test",
   operations: new Map(),
   deps,
