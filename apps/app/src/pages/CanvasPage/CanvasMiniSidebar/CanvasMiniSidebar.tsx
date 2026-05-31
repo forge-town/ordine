@@ -1,4 +1,12 @@
-import { Menu, PanelLeft, PanelRight, Settings2, Workflow } from "lucide-react";
+import {
+  Menu,
+  PanelLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRight,
+  Settings2,
+  Workflow,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
@@ -27,6 +35,11 @@ export const CanvasMiniSidebar = () => {
     store,
     (state) => state.toggleNodeCardMode,
   );
+  const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
+  const handleToggleSidebar = useStore(
+    store,
+    (state) => state.handleToggleSidebar,
+  );
 
   const workspaceLabel = t("canvas.workspaceSidebar.title", {
     defaultValue: "Workspace",
@@ -39,6 +52,9 @@ export const CanvasMiniSidebar = () => {
     nodeCardMode === "compact"
       ? compactCardsLabel
       : t("canvas.nodeCardMode.expanded", { defaultValue: "Expanded cards" });
+  const operationsPanelLabel = isSidebarOpen
+    ? t("canvas.operationsPanel.collapse", { defaultValue: "Collapse operations panel" })
+    : t("canvas.operationsPanel.expand", { defaultValue: "Expand operations panel" });
   return (
     <aside
       className="flex w-14 shrink-0 flex-col items-center gap-2 border-r bg-background/95 px-2 py-3 backdrop-blur"
@@ -64,6 +80,27 @@ export const CanvasMiniSidebar = () => {
             <Menu className="size-4" />
           </TooltipTrigger>
           <TooltipContent>{workspaceLabel}</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                aria-label={operationsPanelLabel}
+                aria-pressed={isSidebarOpen}
+                className="size-9 rounded-md"
+                size="icon"
+                variant={isSidebarOpen ? "secondary" : "ghost"}
+                onClick={handleToggleSidebar}
+              />
+            }>
+            {isSidebarOpen ? (
+              <PanelLeftClose className="size-4" />
+            ) : (
+              <PanelLeftOpen className="size-4" />
+            )}
+          </TooltipTrigger>
+          <TooltipContent>{operationsPanelLabel}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
