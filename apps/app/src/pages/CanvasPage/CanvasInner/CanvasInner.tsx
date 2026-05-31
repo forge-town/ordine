@@ -31,6 +31,7 @@ export const CanvasInner = () => {
   const agentPanelIsOpen = useStore(store, (state) => state.agentPanel.isOpen);
   const nodes = useStore(store, (state) => state.nodes);
   const sidebarPanel = useStore(store, (state) => state.sidebarPanel);
+  const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
   const selectedNode = useStore(store, selectSelectedNode);
   const showPropertiesPanel = sidebarPanel === "properties" && !!selectedNode;
 
@@ -51,16 +52,18 @@ export const CanvasInner = () => {
         <CanvasTopChrome />
 
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          <aside
-            className="h-full w-[min(22rem,28vw)] min-w-72 shrink-0 border-r bg-background"
-            data-testid="canvas-work-panel"
-          >
-            {showPropertiesPanel ? (
-              <CanvasNodePropertiesPanel />
-            ) : (
-              <CanvasComponentPanel getCreateNodeScreenPosition={getFlowViewportScreenCenter} />
-            )}
-          </aside>
+          {isSidebarOpen && (
+            <aside
+              className="h-full w-[min(22rem,28vw)] min-w-72 shrink-0 border-r bg-background"
+              data-testid="canvas-work-panel"
+            >
+              {showPropertiesPanel ? (
+                <CanvasNodePropertiesPanel />
+              ) : (
+                <CanvasComponentPanel getCreateNodeScreenPosition={getFlowViewportScreenCenter} />
+              )}
+            </aside>
+          )}
 
           <main className="relative min-w-0 flex-1 overflow-hidden">
             <CanvasFlow viewportRef={flowViewportRef} />
