@@ -88,7 +88,7 @@ describe("runPipeline", () => {
     );
   });
 
-  it("passes pipeline and operation descriptions into engine execution", async () => {
+  it("passes pipeline context and operation descriptions into engine execution", async () => {
     vi.mocked(pipelineEngine.execute).mockResolvedValue({
       ok: true as const,
       summary: "All good",
@@ -99,6 +99,7 @@ describe("runPipeline", () => {
           id: "pipe-1",
           name: "Context Pipeline",
           description: "Coordinate a repository review",
+          sharedContext: "Always produce concise review notes",
           nodes: [
             {
               id: "op-node",
@@ -127,6 +128,7 @@ describe("runPipeline", () => {
         pipeline: expect.objectContaining({
           name: "Context Pipeline",
           description: "Coordinate a repository review",
+          sharedContext: "Always produce concise review notes",
         }),
         operations: expect.any(Map),
       }),

@@ -5,6 +5,8 @@ import type { PipelineNode, PipelineEdge } from "./canvasSlice";
 interface LoadedPipeline {
   id: string;
   name: string;
+  description?: string;
+  sharedContext?: string;
   nodes: unknown[];
   edges: unknown[];
 }
@@ -25,6 +27,7 @@ export const CanvasPageStoreProvider = ({ children, pipeline }: Props) => {
       pipeline?.edges as PipelineEdge[] | undefined,
       pipeline?.id ?? null,
       pipeline?.name ?? "",
+      pipeline?.sharedContext ?? "",
     );
   }
 

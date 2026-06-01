@@ -6,6 +6,7 @@ export const PipelineSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().default(""),
+  sharedContext: z.string().default(""),
   tags: z.array(z.string()),
   timeoutMs: z.number().nullable(),
   createdAt: z.coerce.date(),

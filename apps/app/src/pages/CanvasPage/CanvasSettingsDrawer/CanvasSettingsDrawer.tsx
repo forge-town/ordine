@@ -7,6 +7,7 @@ import {
   Settings2,
   X,
   Magnet,
+  FileText,
 } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +15,7 @@ import { useStore } from "zustand";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@repo/ui/button";
 import { Label } from "@repo/ui/label";
+import { Textarea } from "@repo/ui/textarea";
 import {
   Sheet,
   SheetClose,
@@ -41,10 +43,15 @@ export const CanvasSettingsDrawer = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const isOpen = useStore(store, (s) => s.isCanvasSettingsOpen);
+  const pipelineSharedContext = useStore(store, (s) => s.pipelineSharedContext);
   const settings = useStore(store, (s) => s.canvasSettings);
   const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const openCanvasSettings = useStore(store, (s) => s.openCanvasSettings);
   const handleCloseCanvasSettings = useStore(store, (s) => s.closeCanvasSettings);
+  const handlePipelineSharedContextChange = useStore(
+    store,
+    (s) => s.handlePipelineSharedContextChange,
+  );
   const updateCanvasSettings = useStore(store, (s) => s.updateCanvasSettings);
   const setNodeCardMode = useStore(store, (s) => s.setNodeCardMode);
 
@@ -105,6 +112,36 @@ export const CanvasSettingsDrawer = () => {
           className="flex-1 space-y-3 overflow-y-auto p-4"
           role="group"
         >
+          <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-600">
+                <FileText className="size-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <Label className="text-slate-800" htmlFor="pipeline-shared-context">
+                  {t("canvas.settingsDrawer.pipelineSharedContext.label", {
+                    defaultValue: "Pipeline shared context",
+                  })}
+                </Label>
+                <p className="mt-0.5 text-xs leading-5 text-slate-500">
+                  {t("canvas.settingsDrawer.pipelineSharedContext.description", {
+                    defaultValue: "Context injected into every operation run in this pipeline.",
+                  })}
+                </p>
+                <Textarea
+                  className="mt-3 min-h-28 resize-y text-sm"
+                  id="pipeline-shared-context"
+                  name="pipelineSharedContext"
+                  placeholder={t("canvas.settingsDrawer.pipelineSharedContext.placeholder", {
+                    defaultValue: "Add pipeline-level instructions, constraints, or context...",
+                  })}
+                  value={pipelineSharedContext}
+                  onChange={handlePipelineSharedContextChange}
+                />
+              </div>
+            </div>
+          </div>
+
           {settingEntries.map(({ id, icon: Icon }) => {
             const inputId = `canvas-setting-${id}`;
             const descriptionId = `${inputId}-description`;

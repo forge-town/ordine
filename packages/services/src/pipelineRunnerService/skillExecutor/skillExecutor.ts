@@ -113,9 +113,7 @@ const buildSkillUserPrompt = ({
         "### Pipeline-global context",
         `Pipeline name: ${runtimeContext.pipeline.name}`,
         `Pipeline description: ${runtimeContext.pipeline.description || "(none)"}`,
-        ...(runtimeContext.pipeline.purpose
-          ? [`Workflow purpose: ${runtimeContext.pipeline.purpose}`]
-          : []),
+        `Pipeline shared context: ${runtimeContext.pipeline.sharedContext || "(none)"}`,
         "",
       ]
     : [];

@@ -47,6 +47,7 @@ export interface PipelineDefinition {
   id: string;
   name: string;
   description?: string;
+  sharedContext?: string;
   nodes: PipelineNode[];
   edges: PipelineEdge[];
 }
@@ -165,7 +166,7 @@ export class Pipeline {
     return {
       name: pipeline.name,
       description: pipeline.description ?? "",
-      purpose: pipeline.description ?? "",
+      sharedContext: pipeline.sharedContext ?? "",
     };
   }
 

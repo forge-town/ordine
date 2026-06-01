@@ -258,6 +258,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
     uploadJsonFile(
       JSON.stringify({
         name: "Imported Pipeline",
+        sharedContext: "Shared run context",
         nodes: [node],
         edges: [
           {
@@ -272,6 +273,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
     );
 
     await waitFor(() => expect(store.getState().pipelineName).toBe("Imported Pipeline"));
+    expect(store.getState().pipelineSharedContext).toBe("Shared run context");
     expect(store.getState().nodes).toEqual([sanitizedNode]);
     expect(store.getState().edges).toEqual([
       {

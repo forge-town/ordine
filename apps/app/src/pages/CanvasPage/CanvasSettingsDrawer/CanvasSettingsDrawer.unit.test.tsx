@@ -41,6 +41,9 @@ describe("CanvasSettingsDrawer", () => {
     renderOpenDrawer();
 
     expect(screen.getByText(/Canvas Settings|Canvas 设置/)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/Pipeline shared context|Pipeline 共享上下文/),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/Show minimap|显示 MiniMap/)).toBeChecked();
     expect(screen.getByLabelText(/Show viewport controls|显示视图控制/)).not.toBeChecked();
     expect(screen.getByLabelText(/Show grid background|显示网格背景/)).toBeChecked();
@@ -80,6 +83,18 @@ describe("CanvasSettingsDrawer", () => {
     expect(store.getState().isCanvasSettingsOpen).toBe(false);
     expect(store.getState().nodes).toHaveLength(1);
     expect(store.getState().nodes[0]?.data.label).toBe("User Label");
+  });
+
+  it("updates pipeline shared context from the settings drawer", async () => {
+    const user = userEvent.setup();
+    const store = renderOpenDrawer();
+
+    await user.type(
+      screen.getByLabelText(/Pipeline shared context|Pipeline 共享上下文/),
+      "Use concise review notes",
+    );
+
+    expect(store.getState().pipelineSharedContext).toBe("Use concise review notes");
   });
 
   it("updates node card mode from the settings drawer", async () => {

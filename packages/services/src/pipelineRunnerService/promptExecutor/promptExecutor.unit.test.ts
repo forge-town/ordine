@@ -84,7 +84,7 @@ describe("promptExecutor", () => {
         pipeline: {
           name: "Repository Review",
           description: "Review the whole repository",
-          purpose: "Review the whole repository",
+          sharedContext: "Follow repository review standards",
         },
         operation: {
           name: "Summarize Findings",
@@ -103,6 +103,9 @@ describe("promptExecutor", () => {
     const callArgs = vi.mocked(agentEngine.run).mock.calls[0]![0];
     expect(callArgs.systemPrompt).toContain("### Pipeline-global context");
     expect(callArgs.systemPrompt).toContain("Pipeline name: Repository Review");
+    expect(callArgs.systemPrompt).toContain(
+      "Pipeline shared context: Follow repository review standards",
+    );
     expect(callArgs.systemPrompt).toContain("### Operation-local context");
     expect(callArgs.systemPrompt).toContain("Operation name: Summarize Findings");
     expect(callArgs.systemPrompt).toContain("## Operation Prompt");

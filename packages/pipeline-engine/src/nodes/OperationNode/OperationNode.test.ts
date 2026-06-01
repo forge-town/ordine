@@ -97,7 +97,7 @@ describe("executeOperationNode", () => {
       pipelineContext: {
         name: "Quality Pipeline",
         description: "Review a project end to end",
-        purpose: "Review a project end to end",
+        sharedContext: "Review a project end to end",
       },
     });
 
@@ -110,7 +110,7 @@ describe("executeOperationNode", () => {
           pipeline: {
             name: "Quality Pipeline",
             description: "Review a project end to end",
-            purpose: "Review a project end to end",
+            sharedContext: "Review a project end to end",
           },
           operation: {
             name: "Test Op",
@@ -174,7 +174,7 @@ describe("executeOperationNode", () => {
       pipelineContext: {
         name: "Review Pipeline",
         description: "Review and summarize a repository",
-        purpose: "Review and summarize a repository",
+        sharedContext: "Review and summarize a repository",
       },
     });
 
@@ -187,7 +187,7 @@ describe("executeOperationNode", () => {
           pipeline: {
             name: "Review Pipeline",
             description: "Review and summarize a repository",
-            purpose: "Review and summarize a repository",
+            sharedContext: "Review and summarize a repository",
           },
           operation: {
             name: "Test Op",

@@ -59,6 +59,7 @@ const makeOpts = (
     id: "p1",
     name: "Test Pipeline",
     description: "Test pipeline description",
+    sharedContext: "Test pipeline shared context",
     nodes,
     edges,
   },
@@ -204,6 +205,7 @@ describe("executePipeline", () => {
             id: "p1",
             name: "Repository Review",
             description: "Review the whole repository for quality",
+            sharedContext: "Follow repository review standards",
             nodes,
             edges: [],
           },
@@ -218,7 +220,7 @@ describe("executePipeline", () => {
             pipeline: {
               name: "Repository Review",
               description: "Review the whole repository for quality",
-              purpose: "Review the whole repository for quality",
+              sharedContext: "Follow repository review standards",
             },
             operation: {
               name: "Prompt Op",
@@ -469,6 +471,7 @@ describe("executePipeline", () => {
         expect(call[0].runtimeContext.pipeline).toMatchObject({
           name: "Test Pipeline",
           description: "Test pipeline description",
+          sharedContext: "Test pipeline shared context",
         });
       }
     });

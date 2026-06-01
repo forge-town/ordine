@@ -109,7 +109,7 @@ describe("skillExecutor systemPrompt", () => {
         pipeline: {
           name: "Repository Review",
           description: "Review the whole repository",
-          purpose: "Review the whole repository",
+          sharedContext: "Follow repository review standards",
         },
         operation: {
           name: "Run Skill",
@@ -123,6 +123,9 @@ describe("skillExecutor systemPrompt", () => {
     const callArgs = runAgent.mock.calls[0]![0];
     expect(callArgs.userPrompt).toContain("## Runtime Context");
     expect(callArgs.userPrompt).toContain("### Pipeline-global context");
+    expect(callArgs.userPrompt).toContain(
+      "Pipeline shared context: Follow repository review standards",
+    );
     expect(callArgs.userPrompt).toContain("Pipeline name: Repository Review");
     expect(callArgs.userPrompt).toContain("### Operation-local context");
     expect(callArgs.userPrompt).toContain("Operation name: Run Skill");

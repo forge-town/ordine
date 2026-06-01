@@ -372,6 +372,11 @@
       "description": "Tune this canvas view without leaving the current pipeline.",
       "close": "Close Canvas settings",
       "globalSettings": "Open global settings",
+      "pipelineSharedContext": {
+        "label": "Pipeline shared context",
+        "description": "Context injected into every operation run in this pipeline.",
+        "placeholder": "Add pipeline-level instructions, constraints, or context..."
+      },
       "showMiniMap": {
         "label": "Show minimap",
         "description": "Display the map when multiple nodes are on the canvas."

@@ -6,6 +6,7 @@ export const pipelinesTable = pgTable("pipelines", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull().default(""),
+  sharedContext: text("shared_context").notNull().default(""),
   tags: jsonb("tags")
     .$type<string[]>()
     .notNull()

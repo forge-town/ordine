@@ -146,6 +146,7 @@ export const pipelineRunExecutor = {
               id: pipeline.id,
               name: pipeline.name,
               description: pipeline.description,
+              sharedContext: pipeline.sharedContext,
               nodes,
               edges: pipeline.edges,
             },
