@@ -85,6 +85,30 @@ export const SkillsPageContent = () => {
     setImportPath(event.target.value);
   };
 
+  const handleCreateDialogOpen = () => {
+    setShowCreateDialog(true);
+  };
+
+  const handleCreateDialogOpenChange = (open: boolean) => {
+    setShowCreateDialog(open);
+  };
+
+  const handleCreateNameInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setCreateForm((current) => ({ ...current, name: event.target.value }));
+  };
+
+  const handleCreateLabelInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setCreateForm((current) => ({ ...current, label: event.target.value }));
+  };
+
+  const handleCreateDescriptionInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setCreateForm((current) => ({ ...current, description: event.target.value }));
+  };
+
+  const handleCreateDialogCancelClick = () => {
+    setShowCreateDialog(false);
+  };
+
   const handlePreviewImportClick = async () => {
     setIsPreviewing(true);
     const response = await dataProvider.custom!<SkillImportPreview>({
@@ -134,6 +158,27 @@ export const SkillsPageContent = () => {
     setIsImporting(false);
   };
 
+  const handleCreateSkillClick = async () => {
+    await createSkill({
+      resource: ResourceName.skills,
+      values: {
+        name: createForm.name.trim(),
+        label: createForm.label.trim(),
+        description: createForm.description.trim(),
+        category: "custom",
+        tags: ["custom"],
+      },
+    });
+    setCreateForm({ name: "", label: "", description: "" });
+    setShowCreateDialog(false);
+    await skillsQuery?.refetch?.();
+  };
+
+  const handleDeleteSkillClick = (skillId: string) => async () => {
+    await deleteSkill({ resource: ResourceName.skills, id: skillId });
+    await skillsQuery?.refetch?.();
+  };
+
   if (skillsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
@@ -147,7 +192,7 @@ export const SkillsPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         actions={
-          <Button size="sm" onClick={() => setShowCreateDialog(true)}>
+          <Button size="sm" onClick={handleCreateDialogOpen}>
             <Plus className="h-4 w-4" />
             Create Skill
           </Button>
@@ -260,7 +305,7 @@ export const SkillsPageContent = () => {
         )}
       </div>
 
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+      <Dialog open={showCreateDialog} onOpenChange={handleCreateDialogOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Create Skill</DialogTitle>
@@ -272,7 +317,7 @@ export const SkillsPageContent = () => {
                 className="mt-1 h-8 text-sm"
                 placeholder="skill-name"
                 value={createForm.name}
-                onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))}
+                onChange={handleCreateNameInputChange}
               />
             </div>
             <div>
@@ -281,7 +326,7 @@ export const SkillsPageContent = () => {
                 className="mt-1 h-8 text-sm"
                 placeholder="Skill Label"
                 value={createForm.label}
-                onChange={(e) => setCreateForm((f) => ({ ...f, label: e.target.value }))}
+                onChange={handleCreateLabelInputChange}
               />
             </div>
             <div>
@@ -290,32 +335,18 @@ export const SkillsPageContent = () => {
                 className="mt-1 h-8 text-sm"
                 placeholder="What this skill does"
                 value={createForm.description}
-                onChange={(e) => setCreateForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={handleCreateDescriptionInputChange}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button size="sm" variant="outline" onClick={() => setShowCreateDialog(false)}>
+            <Button size="sm" variant="outline" onClick={handleCreateDialogCancelClick}>
               Cancel
             </Button>
             <Button
               disabled={!createForm.name.trim() || !createForm.label.trim()}
               size="sm"
-              onClick={async () => {
-                await createSkill({
-                  resource: ResourceName.skills,
-                  values: {
-                    name: createForm.name.trim(),
-                    label: createForm.label.trim(),
-                    description: createForm.description.trim(),
-                    category: "custom",
-                    tags: ["custom"],
-                  },
-                });
-                setCreateForm({ name: "", label: "", description: "" });
-                setShowCreateDialog(false);
-                await skillsQuery?.refetch?.();
-              }}
+              onClick={handleCreateSkillClick}
             >
               Create
             </Button>
@@ -374,10 +405,7 @@ export const SkillsPageContent = () => {
                     className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                     size="sm"
                     variant="ghost"
-                    onClick={async () => {
-                      await deleteSkill({ resource: ResourceName.skills, id: skill.id });
-                      await skillsQuery?.refetch?.();
-                    }}
+                    onClick={handleDeleteSkillClick(skill.id)}
                   >
                     <Trash2 className="h-3 w-3 text-destructive" />
                   </Button>

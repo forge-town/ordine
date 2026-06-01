@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { createSkillsDao, type DbConnection } from "@repo/models";
@@ -22,6 +22,12 @@ const SKILL_FILE_NAME = "SKILL.md";
 const MAX_SCAN_DEPTH = 6;
 const IMPORTED_CATEGORY = "imported";
 const IMPORTED_TAG = "imported";
+
+const toCandidateId = ({ name, path }: { name: string; path: string }) => {
+  const pathSuffix = createHash("sha1").update(path.toLowerCase()).digest("hex").slice(0, 8);
+
+  return `imported-${name}-${pathSuffix}`;
+};
 
 const toSlug = (value: string) =>
   value
@@ -52,49 +58,49 @@ const parseFrontmatter = (content: string) => {
   const fields = new Map<string, string>();
 
   const lines = frontmatterRaw.split(/\r?\n/);
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i];
+  const lineIndex = { current: 0 };
+  while (lineIndex.current < lines.length) {
+    const line = lines[lineIndex.current];
     if (!line) {
-      i++;
+      lineIndex.current++;
       continue;
     }
     const separatorIndex = line.indexOf(":");
     if (separatorIndex < 0) {
-      i++;
+      lineIndex.current++;
       continue;
     }
 
     const key = line.slice(0, separatorIndex).trim();
-    let rawValue = line.slice(separatorIndex + 1).trim();
+    const rawValue = line.slice(separatorIndex + 1).trim();
 
     if (!key) {
-      i++;
+      lineIndex.current++;
       continue;
     }
 
     if (rawValue === "|" || rawValue === ">") {
       const blockLines: string[] = [];
-      const nextLine = lines[i + 1];
+      const nextLine = lines[lineIndex.current + 1];
       const indentMatch = nextLine ? nextLine.match(/^(\s+)/) : null;
       const blockIndent = indentMatch && indentMatch[1] ? indentMatch[1].length : 2;
-      i++;
-      while (i < lines.length) {
-        const blockLine = lines[i];
+      lineIndex.current++;
+      while (lineIndex.current < lines.length) {
+        const blockLine = lines[lineIndex.current];
         if (!blockLine) {
-          i++;
+          lineIndex.current++;
           continue;
         }
         if (blockLine.trim().length === 0) {
           blockLines.push("");
-          i++;
+          lineIndex.current++;
           continue;
         }
         const spaceMatch = blockLine.match(/^(\s*)/);
         const leadingSpaces = spaceMatch && spaceMatch[1] ? spaceMatch[1].length : 0;
         if (leadingSpaces < blockIndent) break;
         blockLines.push(blockLine.slice(blockIndent));
-        i++;
+        lineIndex.current++;
       }
       const value = blockLines.join("\n").trim();
       if (value) fields.set(key, value);
@@ -103,7 +109,7 @@ const parseFrontmatter = (content: string) => {
 
     const value = rawValue.replaceAll(/^["']|["']$/g, "");
     if (value) fields.set(key, value);
-    i++;
+    lineIndex.current++;
   }
 
   return { fields, body };
@@ -117,7 +123,7 @@ const extractDescription = (body: string, frontmatterDescription?: string): stri
   const firstParagraph = body
     .split(/\n\s*\n/)
     .map((s) => s.trim())
-    .filter((s) => s.length > 0)[0];
+    .find((s) => s.length > 0);
 
   if (!firstParagraph) return "";
 
@@ -137,7 +143,7 @@ const parseSkillFile = ({
   const description = extractDescription(body, fields.get("description"));
 
   return {
-    id: `imported-${name}`,
+    id: toCandidateId({ name, path }),
     name,
     label: toLabel(name) || name,
     description: description || name,

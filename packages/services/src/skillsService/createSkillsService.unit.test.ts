@@ -91,12 +91,28 @@ describe("createSkillsService", () => {
     expect(preview.errors).toEqual([]);
     expect(preview.candidates).toEqual([
       expect.objectContaining({
-        id: "imported-review-code",
+        id: expect.stringMatching(/^imported-review-code-/),
         name: "review-code",
         label: "Review Code",
         description: "Review code carefully",
       }),
     ]);
+  });
+
+  it("previewImport assigns distinct candidate ids when multiple paths normalize to the same name", async () => {
+    const hyphenSkillDir = join(tempDir, "review-code");
+    const underscoreSkillDir = join(tempDir, "review_code");
+    await mkdir(hyphenSkillDir, { recursive: true });
+    await mkdir(underscoreSkillDir, { recursive: true });
+    await writeFile(join(hyphenSkillDir, "SKILL.md"), "# Review Code\nOne");
+    await writeFile(join(underscoreSkillDir, "SKILL.md"), "# Review Code\nTwo");
+
+    const svc = createSkillsService({} as never);
+    const preview = await svc.previewImport({ rootPath: tempDir });
+    const reviewCodeCandidates = preview.candidates.filter((candidate) => candidate.name === "review-code");
+
+    expect(reviewCodeCandidates).toHaveLength(2);
+    expect(new Set(reviewCodeCandidates.map((candidate) => candidate.id)).size).toBe(2);
   });
 
   it("importCandidates creates missing skills", async () => {

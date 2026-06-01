@@ -13,8 +13,8 @@ vi.mock("../_store", () => ({
     createStore(() => ({
       search: "",
       category: "all",
-      handleSetSearch: vi.fn(),
-      handleSetCategory: vi.fn(),
+      handleSearchInputChange: vi.fn(),
+      handleCategoryButtonClick: vi.fn(),
     })),
 }));
 
@@ -22,6 +22,15 @@ vi.mock("@refinedev/core", () => ({
   useList: () => ({
     result: { data: [], total: 0 },
     query: { isLoading: false },
+  }),
+  useDataProvider: () => () => ({
+    custom: vi.fn(),
+  }),
+  useCreate: () => ({
+    mutateAsync: vi.fn(),
+  }),
+  useDelete: () => ({
+    mutateAsync: vi.fn(),
   }),
 }));
 
