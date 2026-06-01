@@ -1,10 +1,53 @@
 import { render } from "@/test/test-wrapper";
 import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createCanvasPageStore, CanvasPageStoreContext } from "../_store";
 import type { PipelineNode } from "../_store/canvasSlice";
 import { CanvasNodePropertiesPanel } from "./CanvasNodePropertiesPanel";
+
+vi.mock("@refinedev/core", () => ({
+  useList: ({ resource }: { resource: string }) => ({
+    result: {
+      data:
+        resource === "agents"
+          ? [{ id: "agent-claude", name: "Claude", defaultRuntime: "claude-code" }]
+          : [],
+    },
+  }),
+}));
+
+vi.mock("./CanvasOperationPropertiesForm", () => ({
+  CanvasOperationPropertiesForm: ({
+    operationId,
+    onOperationUpdated,
+  }: {
+    operationId: string;
+    onOperationUpdated?: (operation: {
+      id: string;
+      name: string;
+      description: string;
+      acceptedObjectTypes: ["file"];
+      config: {};
+    }) => void;
+  }) =>
+    (() => {
+      const handleApplyOperationUpdate = () =>
+        onOperationUpdated?.({
+          id: operationId,
+          name: "Renamed Operation",
+          description: "",
+          acceptedObjectTypes: ["file"],
+          config: {},
+        });
+
+      return (
+        <button type="button" onClick={handleApplyOperationUpdate}>
+          Apply operation update
+        </button>
+      );
+    })(),
+}));
 
 const fileNode = {
   id: "file-1",
@@ -33,6 +76,7 @@ const operationNode = {
     loopEnabled: true,
     maxLoopCount: 3,
     loopConditionPrompt: "",
+    agentRuntime: "codex",
   },
 } as PipelineNode;
 
@@ -100,5 +144,50 @@ describe("CanvasNodePropertiesPanel", () => {
 
     fireEvent.change(input, { target: { value: "7.5" } });
     expect(readMaxLoopCount()).toBe(20);
+  });
+
+  it("keeps operation label and operationName in sync when editing the shared label field", async () => {
+    const user = userEvent.setup();
+    const store = renderPanel(operationNode);
+    const labelInput = screen.getByRole("textbox", { name: /Label/i });
+
+    await user.clear(labelInput);
+    await user.type(labelInput, "Review Docs");
+
+    expect(store.getState().nodes[0]?.data).toEqual(
+      expect.objectContaining({
+        label: "Review Docs",
+        operationName: "Review Docs",
+      }),
+    );
+  });
+
+  it("clears stale agentRuntime when choosing an operation agent from the properties panel", async () => {
+    const user = userEvent.setup();
+    const store = renderPanel(operationNode);
+
+    await user.click(screen.getByRole("combobox", { name: /Agent/i }));
+    await user.click(await screen.findByRole("option", { name: "Claude" }));
+
+    expect(store.getState().nodes[0]?.data).toEqual(
+      expect.objectContaining({
+        agentId: "agent-claude",
+        agentRuntime: undefined,
+      }),
+    );
+  });
+
+  it("keeps operation label and operationName in sync after saving the embedded operation editor", async () => {
+    const user = userEvent.setup();
+    const store = renderPanel(operationNode);
+
+    await user.click(screen.getByRole("button", { name: "Apply operation update" }));
+
+    expect(store.getState().nodes[0]?.data).toEqual(
+      expect.objectContaining({
+        label: "Renamed Operation",
+        operationName: "Renamed Operation",
+      }),
+    );
   });
 });

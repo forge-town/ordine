@@ -57,6 +57,8 @@ export const CanvasNodePropertiesPanel = () => {
   const store = useCanvasPageStore();
   const selectedNode = useStore(store, selectSelectedNode);
   const updateNodeData = useStore(store, (state) => state.updateNodeData);
+  const handleOperationLabelChange = useStore(store, (state) => state.handleOperationLabelChange);
+  const handleOperationAgentChange = useStore(store, (state) => state.handleOperationAgentChange);
   const handleOperationMaxLoopChange = useStore(
     store,
     (state) => state.handleOperationMaxLoopChange,
@@ -104,7 +106,7 @@ export const CanvasNodePropertiesPanel = () => {
   };
 
   const handleOperationUpdated = (operation: Operation) => {
-    handleUpdateNodeData({ operationName: operation.name });
+    handleOperationLabelChange(selectedNode.id, operation.name);
   };
 
   const renderTextField = ({
@@ -112,13 +114,24 @@ export const CanvasNodePropertiesPanel = () => {
     label,
     placeholder,
     value,
+    onChangeValue,
   }: {
     field: string;
     label: string;
     placeholder?: string;
     value: string;
+    onChangeValue?: (value: string) => void;
   }) => {
     const id = fieldId(selectedNode.id, field);
+    const handleTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (onChangeValue) {
+        onChangeValue(event.target.value);
+
+        return;
+      }
+
+      handleUpdateNodeData({ [field]: event.target.value });
+    };
 
     return (
       <div className="space-y-1.5">
@@ -128,7 +141,7 @@ export const CanvasNodePropertiesPanel = () => {
           name={id}
           placeholder={placeholder}
           value={value}
-          onChange={(event) => handleUpdateNodeData({ [field]: event.target.value })}
+          onChange={handleTextFieldChange}
         />
       </div>
     );
@@ -239,6 +252,10 @@ export const CanvasNodePropertiesPanel = () => {
           field: "label",
           label: t("canvas.propertiesPanel.fields.label"),
           value: String(data.label ?? ""),
+          onChangeValue:
+            data.nodeType === "operation"
+              ? (value) => handleOperationLabelChange(selectedNode.id, value)
+              : undefined,
         })}
 
         {data.nodeType === "file" && (
@@ -429,7 +446,10 @@ export const CanvasNodePropertiesPanel = () => {
               <Select
                 value={data.agentId ?? "__default__"}
                 onValueChange={(value) =>
-                  handleUpdateNodeData({ agentId: value === "__default__" ? undefined : value })
+                  handleOperationAgentChange(
+                    selectedNode.id,
+                    value === "__default__" ? null : value,
+                  )
                 }
               >
                 <SelectTrigger id={fieldId(selectedNode.id, "agentId")}>

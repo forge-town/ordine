@@ -25,7 +25,9 @@ export type RouterContext = {
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async () => {
     // In Tauri desktop mode, skip server-side auth (no backend server available)
-    if ("window" in globalThis && "__TAURI_INTERNALS__" in globalThis.window) {
+    const globalWindow = "window" in globalThis ? globalThis.window : undefined;
+
+    if (globalWindow && "__TAURI_INTERNALS__" in globalWindow) {
       return { session: null, isLocalMode: true };
     }
 
