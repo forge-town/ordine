@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { FolderBrowser } from "./FolderBrowser";
+import { FolderBrowserDialog } from "./FolderBrowserDialog";
 
 const mockEntries = [
   { name: "Desktop", type: "directory", path: "/Users/test/Desktop" },
@@ -35,14 +35,14 @@ const handleSelect = vi.fn();
 
 describe("FolderBrowser", () => {
   it("renders dialog with title when open", async () => {
-    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
+    render(<FolderBrowserDialog open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
     await waitFor(() => {
       expect(screen.getByText("选择文件夹")).toBeInTheDocument();
     });
   });
 
   it("displays directory entries (excluding files in folder mode)", async () => {
-    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
+    render(<FolderBrowserDialog open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
     expect(screen.getByText("Desktop")).toBeInTheDocument();
     expect(screen.getByText("Documents")).toBeInTheDocument();
     expect(screen.queryByText(".zshrc")).not.toBeInTheDocument();
@@ -50,7 +50,7 @@ describe("FolderBrowser", () => {
 
   it("shows files in file mode", async () => {
     render(
-      <FolderBrowser open mode="file" onOpenChange={handleOpenChange} onSelect={handleSelect} />,
+      <FolderBrowserDialog open mode="file" onOpenChange={handleOpenChange} onSelect={handleSelect} />,
     );
     expect(screen.getByText("Desktop")).toBeInTheDocument();
     expect(screen.getByText(".zshrc")).toBeInTheDocument();
@@ -65,12 +65,12 @@ describe("FolderBrowser", () => {
       .mockReturnValueOnce(makeQueryResult(subEntries));
 
     const { rerender } = render(
-      <FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />,
+      <FolderBrowserDialog open onOpenChange={handleOpenChange} onSelect={handleSelect} />,
     );
 
     await user.click(screen.getByText("Desktop"));
 
-    rerender(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
+    rerender(<FolderBrowserDialog open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
 
     expect(mockUseList).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -91,12 +91,12 @@ describe("FolderBrowser", () => {
       .mockReturnValueOnce(makeQueryResult(subEntries));
 
     const { rerender } = render(
-      <FolderBrowser open onOpenChange={handleOpenChangeSpy} onSelect={handleSelectSpy} />,
+      <FolderBrowserDialog open onOpenChange={handleOpenChangeSpy} onSelect={handleSelectSpy} />,
     );
 
     await user.click(screen.getByText("Desktop"));
 
-    rerender(<FolderBrowser open onOpenChange={handleOpenChangeSpy} onSelect={handleSelectSpy} />);
+    rerender(<FolderBrowserDialog open onOpenChange={handleOpenChangeSpy} onSelect={handleSelectSpy} />);
 
     await user.click(screen.getByText("选择此文件夹"));
 
@@ -114,7 +114,7 @@ describe("FolderBrowser", () => {
       },
     });
 
-    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
+    render(<FolderBrowserDialog open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
     expect(screen.getByText("加载中...")).toBeInTheDocument();
   });
 
@@ -128,7 +128,7 @@ describe("FolderBrowser", () => {
       },
     });
 
-    render(<FolderBrowser open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
+    render(<FolderBrowserDialog open onOpenChange={handleOpenChange} onSelect={handleSelect} />);
     expect(screen.getByText("Path does not exist")).toBeInTheDocument();
   });
 
@@ -143,7 +143,7 @@ describe("FolderBrowser", () => {
     );
 
     render(
-      <FolderBrowser open mode="file" onOpenChange={handleOpenChange} onSelect={handleSelect} />,
+      <FolderBrowserDialog open mode="file" onOpenChange={handleOpenChange} onSelect={handleSelect} />,
     );
 
     await user.click(screen.getByText(longFileName));

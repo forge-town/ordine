@@ -6,7 +6,7 @@ import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { FileObjectNodeData } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
-import { FolderBrowser } from "@/components/FolderBrowser/FolderBrowser";
+import { FolderBrowserDialog } from "@/components/FolderBrowserDialog/FolderBrowserDialog";
 
 export interface FileNodeProps {
   id: string;
@@ -117,7 +117,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
         />
       </NodeCard>
 
-      <FolderBrowser
+      <FolderBrowserDialog
         mode="file"
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}

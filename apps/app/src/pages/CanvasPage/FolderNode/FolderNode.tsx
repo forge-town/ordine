@@ -6,7 +6,7 @@ import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { FolderObjectNodeData } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
-import { FolderBrowser } from "@/components/FolderBrowser/FolderBrowser";
+import { FolderBrowserDialog } from "@/components/FolderBrowserDialog/FolderBrowserDialog";
 import { FolderTreePreview } from "./FolderTreePreview";
 import { Input } from "@repo/ui/input";
 import { Button } from "@repo/ui/button";
@@ -144,7 +144,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
         />
       </NodeCard>
 
-      <FolderBrowser
+      <FolderBrowserDialog
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}
         onSelect={handleFolderSelect}

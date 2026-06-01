@@ -6,7 +6,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import { NodeCard } from "../NodeCard";
-import { FolderBrowser } from "@/components/FolderBrowser/FolderBrowser";
+import { FolderBrowserDialog } from "@/components/FolderBrowserDialog/FolderBrowserDialog";
 
 export interface OutputLocalPathNodeProps {
   id: string;
@@ -157,7 +157,7 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
         />
       </NodeCard>
 
-      <FolderBrowser
+      <FolderBrowserDialog
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}
         onSelect={handleFolderSelect}
