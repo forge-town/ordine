@@ -80,6 +80,21 @@ const operationNode = {
   },
 } as PipelineNode;
 
+const folderNode = {
+  id: "folder-1",
+  type: "folder",
+  position: { x: 0, y: 0 },
+  data: {
+    label: "Source Folder",
+    nodeType: "folder",
+    folderPath: "src",
+    disclosureMode: "tree",
+    includedExtensions: ["ts"],
+    excludedPaths: ["dist"],
+    description: "",
+  },
+} as PipelineNode;
+
 const renderPanel = (node: PipelineNode = fileNode) => {
   const store = createCanvasPageStore([node]);
   store.setState({ selectedNodeId: node.id, sidebarPanel: "properties" });
@@ -187,6 +202,58 @@ describe("CanvasNodePropertiesPanel", () => {
       expect.objectContaining({
         label: "Renamed Operation",
         operationName: "Renamed Operation",
+      }),
+    );
+  });
+
+  it("gives included extensions and excluded paths fields accessible names", () => {
+    renderPanel(folderNode);
+
+    expect(screen.getByRole("textbox", { name: /Included extensions/i })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: /Excluded paths/i })).toBeInTheDocument();
+  });
+
+  it("parses included extensions by trimming values and dropping empties", () => {
+    const store = renderPanel(folderNode);
+
+    fireEvent.change(screen.getByRole("textbox", { name: /Included extensions/i }), {
+      target: { value: " ts, ,tsx, js , " },
+    });
+
+    expect(store.getState().nodes[0]?.data).toEqual(
+      expect.objectContaining({
+        includedExtensions: ["ts", "tsx", "js"],
+      }),
+    );
+  });
+
+  it("trims excluded paths, ignores duplicates, and removes paths", async () => {
+    const user = userEvent.setup();
+    const store = renderPanel(folderNode);
+    const excludedPathsInput = screen.getByRole("textbox", { name: /Excluded paths/i });
+
+    await user.type(excludedPathsInput, "  build  {enter}");
+
+    expect(store.getState().nodes[0]?.data).toEqual(
+      expect.objectContaining({
+        excludedPaths: ["dist", "build"],
+      }),
+    );
+
+    await user.clear(excludedPathsInput);
+    await user.type(excludedPathsInput, " dist {enter}");
+
+    expect(store.getState().nodes[0]?.data).toEqual(
+      expect.objectContaining({
+        excludedPaths: ["dist", "build"],
+      }),
+    );
+
+    await user.click(screen.getByRole("button", { name: /dist/ }));
+
+    expect(store.getState().nodes[0]?.data).toEqual(
+      expect.objectContaining({
+        excludedPaths: ["build"],
       }),
     );
   });
