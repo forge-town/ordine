@@ -19,27 +19,34 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 export const FileNode = ({ id, data, selected }: FileNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
-  const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
-  const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
-  const updateNodeData = useStore(store, (s) => s.updateNodeData);
-  const { rightPortCount } = useStore(store, useShallow(selectNodePortCounts(id)));
+  const {
+    runStatus,
+    dimmed,
+    nodeCardMode,
+    handleFileLabelChange,
+    handleFilePathChange,
+    handleFilePathInputChange,
+    handleFileLanguageInputChange,
+    handleFileDescriptionInputChange,
+    rightPortCount,
+  } = useStore(
+    store,
+    useShallow((s) => ({
+      ...selectNodeRunState(id)(s),
+      nodeCardMode: s.nodeCardMode,
+      handleFileLabelChange: s.handleFileLabelChange,
+      handleFilePathChange: s.handleFilePathChange,
+      handleFilePathInputChange: s.handleFilePathInputChange,
+      handleFileLanguageInputChange: s.handleFileLanguageInputChange,
+      handleFileDescriptionInputChange: s.handleFileDescriptionInputChange,
+      ...selectNodePortCounts(id)(s),
+    })),
+  );
   const [browserOpen, setBrowserOpen] = useState(false);
-
-  const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
-  const handleFilePathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    updateNodeData(id, { filePath: e.target.value });
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    updateNodeData(id, { language: e.target.value });
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    updateNodeData(id, { description: e.target.value });
 
   const handleBrowseButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setBrowserOpen(true);
-  };
-
-  const handleFileSelect = (path: string) => {
-    updateNodeData(id, { filePath: path });
   };
 
   const handleBrowserOpenChange = (open: boolean) => {
@@ -60,7 +67,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
         runStatus={runStatus}
         selected={selected}
         theme="orange"
-        onLabelChange={handleLabelChange}
+        onLabelChange={handleFileLabelChange.bind(null, id)}
       >
         <div className="flex items-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-2 py-1">
           <input
@@ -69,7 +76,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
             name={`${id}-filePath`}
             placeholder="src/file.tsx"
             value={data.filePath}
-            onChange={handleFilePathChange}
+            onChange={handleFilePathInputChange.bind(null, id)}
             onClick={handleStopPropagation}
             onKeyDown={handleStopPropagation}
             onMouseDown={handleStopPropagation}
@@ -89,7 +96,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
             name={`${id}-language`}
             placeholder="ts"
             value={data.language ?? ""}
-            onChange={handleLanguageChange}
+            onChange={handleFileLanguageInputChange.bind(null, id)}
             onClick={handleStopPropagation}
             onKeyDown={handleStopPropagation}
             onMouseDown={handleStopPropagation}
@@ -102,7 +109,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
           placeholder={t("nodes.codeFile.descriptionPlaceholder")}
           rows={2}
           value={data.description ?? ""}
-          onChange={handleDescriptionChange}
+          onChange={handleFileDescriptionInputChange.bind(null, id)}
           onMouseDown={handleStopPropagation}
         />
       </NodeCard>
@@ -111,7 +118,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
         mode="file"
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}
-        onSelect={handleFileSelect}
+        onSelect={handleFilePathChange.bind(null, id)}
       />
     </div>
   );

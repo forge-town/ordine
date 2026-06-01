@@ -149,6 +149,22 @@ export interface ActionsSlice {
   handleOperationAgentDropdownClose: () => void;
   handleOperationAgentDropdownToggle: (nodeId: string) => void;
   handleOperationAgentDropdownOpenChange: (nodeId: string, open: boolean) => void;
+
+  // File node actions
+  handleFileLabelChange: (nodeId: string, label: string) => void;
+  handleFilePathChange: (nodeId: string, filePath: string) => void;
+  handleFilePathInputChange: (
+    nodeId: string,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => void;
+  handleFileLanguageInputChange: (
+    nodeId: string,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => void;
+  handleFileDescriptionInputChange: (
+    nodeId: string,
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => void;
 }
 
 export const createActionsSlice = (
@@ -848,5 +864,27 @@ export const createActionsSlice = (
 
   handleOperationAgentDropdownOpenChange: (nodeId, open) => {
     set({ operationAgentDropdownNodeId: open ? nodeId : null });
+  },
+
+  // ── File node actions ──────────────────────────────────────────────────
+
+  handleFileLabelChange: (nodeId, label) => {
+    get().updateNodeData(nodeId, { label });
+  },
+
+  handleFilePathChange: (nodeId, filePath) => {
+    get().updateNodeData(nodeId, { filePath });
+  },
+
+  handleFilePathInputChange: (nodeId, e) => {
+    get().updateNodeData(nodeId, { filePath: e.target.value });
+  },
+
+  handleFileLanguageInputChange: (nodeId, e) => {
+    get().updateNodeData(nodeId, { language: e.target.value });
+  },
+
+  handleFileDescriptionInputChange: (nodeId, e) => {
+    get().updateNodeData(nodeId, { description: e.target.value });
   },
 });
