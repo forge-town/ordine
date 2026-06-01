@@ -23,6 +23,7 @@ export const ExcludedPathsField = ({
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState("");
   const paths = excludedPaths ?? EMPTY_EXCLUDED_PATHS;
+  const inputId = `canvas-properties-${nodeId}-excludedPaths`;
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -56,12 +57,13 @@ export const ExcludedPathsField = ({
 
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs font-medium text-muted-foreground">
+      <Label className="text-xs font-medium text-muted-foreground" htmlFor={inputId}>
         {t("canvas.propertiesPanel.fields.excludedPaths")}
       </Label>
       <div className="flex items-center gap-1.5">
         <Input
           className="h-8 text-sm"
+          id={inputId}
           placeholder="node_modules/"
           value={inputValue}
           onChange={handleInputChange}

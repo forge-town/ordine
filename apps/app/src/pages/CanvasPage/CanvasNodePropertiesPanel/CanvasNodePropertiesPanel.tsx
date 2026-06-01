@@ -311,11 +311,15 @@ export const CanvasNodePropertiesPanel = () => {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">
+              <Label
+                className="text-xs font-medium text-muted-foreground"
+                htmlFor={fieldId(selectedNode.id, "includedExtensions")}
+              >
                 {t("canvas.propertiesPanel.fields.includedExtensions")}
               </Label>
               <Input
                 className="h-8 text-sm"
+                id={fieldId(selectedNode.id, "includedExtensions")}
                 placeholder="ts,tsx,js,jsx"
                 value={(data.includedExtensions ?? []).join(",")}
                 onChange={(e) =>
