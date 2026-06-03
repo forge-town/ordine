@@ -50,7 +50,7 @@ export const CanvasToolbar = () => {
   const InteractivityIcon = isCanvasInteractive ? Unlock : Lock;
 
   return (
-    <div className="pointer-events-auto w-max max-w-full" data-testid="canvas-toolbar">
+    <div className="pointer-events-auto shrink-0 w-max max-w-full" data-testid="canvas-toolbar">
       <div className="flex h-10 w-max items-center gap-0.5 rounded-md border bg-background px-1.5 py-1 shadow-md max-[420px]:gap-0 max-[420px]:px-1">
         {/* Zoom controls */}
         <Tooltip>

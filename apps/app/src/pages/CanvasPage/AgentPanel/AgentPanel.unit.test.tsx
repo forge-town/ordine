@@ -11,6 +11,10 @@ import { err, ok } from "neverthrow";
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 vi.mock("react-i18next", () => ({
+  initReactI18next: {
+    init: vi.fn(),
+    type: "3rdParty",
+  },
   useTranslation: () => ({
     t: (key: string) => key,
     i18n: { changeLanguage: vi.fn() },
@@ -69,8 +73,14 @@ vi.mock("@repo/ui/button", () => ({
 }));
 
 vi.mock("@repo/ui/scroll-area", () => ({
-  ScrollArea: ({ children, className }: React.PropsWithChildren<{ className?: string }>) => (
-    <div className={className}>{children}</div>
+  ScrollArea: ({
+    children,
+    className,
+    ...props
+  }: React.PropsWithChildren<React.ComponentProps<"div">>) => (
+    <div className={className} {...props}>
+      {children}
+    </div>
   ),
 }));
 
@@ -293,6 +303,53 @@ describe("AgentPanel", () => {
     expect(screen.getByText("canvas.agentPanel.discard")).toBeInTheDocument();
   });
 
+  it("keeps runtime, messages, diagnostics, and proposal inside one scroll region while input stays outside", async () => {
+    const proposal = makeProposal({
+      actions: Array.from({ length: 12 }, (_, index) => ({
+        type: "addNode",
+        node: {
+          id: `op-${index}`,
+          type: "operation",
+          position: { x: 100 + index * 40, y: 100 },
+          data: {
+            nodeType: "operation",
+            operationId: `op-test-${index}`,
+            operationName: `Test Op ${index}`,
+            label: `Test Op ${index}`,
+            status: "idle",
+          },
+        },
+      })),
+    });
+    const diagnostics: PipelineActionDiagnostic[] = [
+      { code: "DUPLICATE_NODE_ID", severity: "error", message: "节点 ID 重复" },
+      { code: "INVALID_CONNECTION", severity: "warning", message: "缺少输入端口" },
+    ];
+
+    render(<AgentPanel />, {
+      wrapper: wrapperWithState({ pendingProposal: proposal, diagnostics }),
+    });
+
+    await waitFor(() => {
+      expect(mockGetList).toHaveBeenCalled();
+    });
+
+    const scrollRegion = screen.getByTestId("agent-panel-scroll-region");
+    expect(scrollRegion).toContainElement(screen.getByText("canvas.agentPanel.runtimeLabel"));
+    expect(scrollRegion).toContainElement(screen.getByText("canvas.agentPanel.proposal"));
+    expect(scrollRegion).toContainElement(screen.getByText("canvas.agentPanel.diagnostics"));
+    expect(scrollRegion).toContainElement(screen.getByText("节点 ID 重复"));
+    expect(scrollRegion).toContainElement(screen.getByText("缺少输入端口"));
+
+    const inputDock = screen.getByTestId("agent-panel-input-dock");
+    expect(inputDock).toContainElement(
+      screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder"),
+    );
+    expect(scrollRegion).not.toContainElement(
+      screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder"),
+    );
+  });
+
   it("applies proposal and shows confirmation", async () => {
     const user = userEvent.setup();
     const proposal = makeProposal();
@@ -390,7 +447,9 @@ describe("AgentPanel", () => {
       expect(mockGetList).toHaveBeenCalled();
     });
 
-    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder") as HTMLInputElement;
+    const input = screen.getByPlaceholderText(
+      "canvas.agentPanel.inputPlaceholder",
+    ) as HTMLInputElement;
     await user.type(input, "test");
     await user.keyboard("{Enter}");
 
@@ -423,7 +482,9 @@ describe("AgentPanel", () => {
     mockCustom.mockImplementation(() => new Promise(() => {}));
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
-    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder") as HTMLInputElement;
+    const input = screen.getByPlaceholderText(
+      "canvas.agentPanel.inputPlaceholder",
+    ) as HTMLInputElement;
     await waitFor(() => {
       expect(mockGetList).toHaveBeenCalled();
     });
@@ -470,7 +531,9 @@ describe("AgentPanel", () => {
     await user.keyboard("{Enter}");
 
     await waitFor(() => {
-      expect(screen.getByRole("link", { name: "canvas.agentPanel.goToRuntimeSettings" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: "canvas.agentPanel.goToRuntimeSettings" }),
+      ).toBeInTheDocument();
     });
     const link = screen.getByRole("link", { name: "canvas.agentPanel.goToRuntimeSettings" });
     expect(link).toHaveAttribute("href", "/runtimes");

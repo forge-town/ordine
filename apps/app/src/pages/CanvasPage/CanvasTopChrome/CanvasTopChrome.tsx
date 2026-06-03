@@ -12,10 +12,10 @@ export const CanvasTopChrome = () => {
 
   return (
     <div
-      className="flex min-h-16 items-center gap-3 border-b bg-background/95 px-3 py-3 backdrop-blur"
+      className="flex min-h-16 min-w-0 items-center gap-3 border-b bg-background/95 px-3 py-3 backdrop-blur"
       data-testid="canvas-top-chrome"
     >
-      <div className="min-w-0 flex-1" data-testid="canvas-title-desktop">
+      <div className="min-w-0 flex-1 basis-0" data-testid="canvas-title-desktop">
         <div className="flex h-10 w-full min-w-0 items-center rounded-md border bg-background px-3 shadow-sm">
           <Input
             aria-label={t("canvas.pipelineTitle")}
@@ -28,7 +28,7 @@ export const CanvasTopChrome = () => {
         </div>
       </div>
 
-      <div className="min-w-0 max-w-full overflow-x-auto [scrollbar-width:none]">
+      <div className="min-w-0 max-w-full shrink-0 overflow-x-auto [scrollbar-width:none]">
         <CanvasToolbar />
       </div>
     </div>

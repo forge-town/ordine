@@ -365,6 +365,37 @@ export const AgentPanel = () => {
   const proposal = agentPanel.pendingProposal as PipelineActionProposal | null;
   const hasProposal = proposal !== null;
 
+  const runtimePicker = (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs font-medium text-muted-foreground">
+        {t("canvas.agentPanel.runtimeLabel")}
+      </span>
+      <Select value={selectedRuntimeId} onValueChange={handleRuntimeValueChange}>
+        <SelectTrigger
+          className="h-8 w-full text-xs"
+          disabled={isLoadingRuntimes || runtimeOptions.length === 0}
+        >
+          <SelectValue
+            placeholder={
+              isLoadingRuntimes
+                ? t("canvas.agentPanel.runtimeLoading")
+                : t("canvas.agentPanel.runtimePlaceholder")
+            }
+          />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {runtimeOptions.map((runtime) => (
+              <SelectItem key={runtime.id} value={runtime.id}>
+                {formatRuntimeLabel(runtime)}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   return (
     <div className="absolute bottom-0 right-0 top-0 z-30 flex w-80 flex-col border-l bg-background shadow-lg">
       {/* Header */}
@@ -385,40 +416,10 @@ export const AgentPanel = () => {
         </Button>
       </div>
 
-      {/* Messages */}
-      <div className="border-b px-3 py-2">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-muted-foreground">
-            {t("canvas.agentPanel.runtimeLabel")}
-          </span>
-          <Select value={selectedRuntimeId} onValueChange={handleRuntimeValueChange}>
-            <SelectTrigger
-              className="h-8 w-full text-xs"
-              disabled={isLoadingRuntimes || runtimeOptions.length === 0}
-            >
-              <SelectValue
-                placeholder={
-                  isLoadingRuntimes
-                    ? t("canvas.agentPanel.runtimeLoading")
-                    : t("canvas.agentPanel.runtimePlaceholder")
-                }
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {runtimeOptions.map((runtime) => (
-                  <SelectItem key={runtime.id} value={runtime.id}>
-                    {formatRuntimeLabel(runtime)}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <ScrollArea className="flex-1">
+      <ScrollArea className="min-h-0 flex-1" data-testid="agent-panel-scroll-region">
         <div className="flex flex-col gap-3 p-3">
+          <div className="rounded-md border bg-background px-3 py-2">{runtimePicker}</div>
+
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -440,125 +441,122 @@ export const AgentPanel = () => {
             </div>
           )}
           <div ref={messagesEndRef} />
+          {/* Diagnostics */}
+          {agentPanel.diagnostics && agentPanel.diagnostics.length > 0 && (
+            <div className="flex flex-col gap-2 rounded-md border px-3 py-3">
+              <span className="text-xs font-medium text-muted-foreground">
+                {t("canvas.agentPanel.diagnostics")}
+              </span>
+              {agentPanel.diagnostics.map((d, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "flex items-start gap-2 rounded-md px-2.5 py-2 text-xs",
+                    d.severity === "error"
+                      ? "border border-red-200 bg-red-50 text-red-700"
+                      : "border border-amber-200 bg-amber-50 text-amber-700",
+                  )}
+                >
+                  {d.severity === "error" ? (
+                    <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  ) : (
+                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  )}
+                  <span>{d.message}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Proposal */}
+          {hasProposal && (
+            <div className="flex flex-col gap-2 rounded-md border px-3 py-3">
+              <span className="text-xs font-medium text-muted-foreground">
+                {t("canvas.agentPanel.proposal")}
+              </span>
+              <div className="rounded-md border bg-muted/50 p-2.5">
+                <p className="mb-2 text-xs font-medium">{proposal.summary}</p>
+                <ul className="flex flex-col gap-1">
+                  {proposal.actions.map((action, i) => (
+                    <li key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+                      {getActionLabel(action, t)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  className="h-8 flex-1 gap-1 text-xs"
+                  disabled={isSending || agentPanel.isLoading || hasBlockingDiagnostics}
+                  size="sm"
+                  variant="default"
+                  onClick={handleApply}
+                >
+                  <Check className="h-3.5 w-3.5" />
+                  {t("canvas.agentPanel.apply")}
+                </Button>
+                <Button
+                  className="h-8 flex-1 gap-1 text-xs"
+                  disabled={isSending || agentPanel.isLoading}
+                  size="sm"
+                  variant="outline"
+                  onClick={handleDiscard}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {t("canvas.agentPanel.discard")}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {needsRuntimeSetup && (
+            <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-800">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              <span>{t("canvas.agentPanel.runtimeNotConfigured")}</span>
+              <a className="font-medium underline underline-offset-2" href="/runtimes">
+                {t("canvas.agentPanel.goToRuntimeSettings")}
+              </a>
+            </div>
+          )}
+
+          <div className="h-1" />
         </div>
       </ScrollArea>
 
-      {/* Diagnostics */}
-      {agentPanel.diagnostics && agentPanel.diagnostics.length > 0 && (
-        <div className="border-t">
-          <div className="flex flex-col gap-2 p-3">
-            <span className="text-xs font-medium text-muted-foreground">
-              {t("canvas.agentPanel.diagnostics")}
-            </span>
-            {agentPanel.diagnostics.map((d, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "flex items-start gap-2 rounded-md px-2.5 py-2 text-xs",
-                  d.severity === "error"
-                    ? "border border-red-200 bg-red-50 text-red-700"
-                    : "border border-amber-200 bg-amber-50 text-amber-700",
-                )}
-              >
-                {d.severity === "error" ? (
-                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                ) : (
-                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                )}
-                <span>{d.message}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Proposal */}
-      {hasProposal && (
-        <div className="border-t">
-          <div className="flex flex-col gap-2 p-3">
-            <span className="text-xs font-medium text-muted-foreground">
-              {t("canvas.agentPanel.proposal")}
-            </span>
-            <div className="rounded-md border bg-muted/50 p-2.5">
-              <p className="mb-2 text-xs font-medium">{proposal.summary}</p>
-              <ul className="flex flex-col gap-1">
-                {proposal.actions.map((action, i) => (
-                  <li key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
-                    {getActionLabel(action, t)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                className="h-8 flex-1 gap-1 text-xs"
-                disabled={isSending || agentPanel.isLoading || hasBlockingDiagnostics}
-                size="sm"
-                variant="default"
-                onClick={handleApply}
-              >
-                <Check className="h-3.5 w-3.5" />
-                {t("canvas.agentPanel.apply")}
-              </Button>
-              <Button
-                className="h-8 flex-1 gap-1 text-xs"
-                disabled={isSending || agentPanel.isLoading}
-                size="sm"
-                variant="outline"
-                onClick={handleDiscard}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                {t("canvas.agentPanel.discard")}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {needsRuntimeSetup && (
-        <div className="border-t bg-amber-50/70">
-          <div className="flex items-center gap-2 p-3 text-xs text-amber-800">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-            <span>{t("canvas.agentPanel.runtimeNotConfigured")}</span>
-            <a className="font-medium underline underline-offset-2" href="/runtimes">
-              {t("canvas.agentPanel.goToRuntimeSettings")}
-            </a>
-          </div>
-        </div>
-      )}
-
       {/* Input */}
-      <div className="flex items-center gap-2 border-t p-3">
-        <Input
-          className="h-9 flex-1 text-sm"
-          disabled={isSending || agentPanel.isLoading || isLoadingRuntimes}
-          placeholder={t("canvas.agentPanel.inputPlaceholder")}
-          value={inputValue}
-          onChange={handleInputValueChange}
-          onKeyDown={handleKeyDown}
-        />
-        <Button
-          aria-label={t("canvas.agentPanel.send")}
-          className="h-9 w-9"
-          disabled={
-            isSending ||
-            agentPanel.isLoading ||
-            isLoadingRuntimes ||
-            !selectedRuntimeId ||
-            !inputValue.trim()
-          }
-          size="icon"
-          title={t("canvas.agentPanel.send")}
-          variant="ghost"
-          onClick={handleSendClick}
-        >
-          {isSending || agentPanel.isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
-        </Button>
+      <div className="border-t bg-background p-3" data-testid="agent-panel-input-dock">
+        <div className="flex items-center gap-2">
+          <Input
+            className="h-9 flex-1 text-sm"
+            disabled={isSending || agentPanel.isLoading || isLoadingRuntimes}
+            placeholder={t("canvas.agentPanel.inputPlaceholder")}
+            value={inputValue}
+            onChange={handleInputValueChange}
+            onKeyDown={handleKeyDown}
+          />
+          <Button
+            aria-label={t("canvas.agentPanel.send")}
+            className="h-9 w-9"
+            disabled={
+              isSending ||
+              agentPanel.isLoading ||
+              isLoadingRuntimes ||
+              !selectedRuntimeId ||
+              !inputValue.trim()
+            }
+            size="icon"
+            title={t("canvas.agentPanel.send")}
+            variant="ghost"
+            onClick={handleSendClick}
+          >
+            {isSending || agentPanel.isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
