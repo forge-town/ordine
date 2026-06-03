@@ -6,6 +6,7 @@ import { distillationsRoutes } from "./routes/distillations";
 import { filesystemRoutes } from "./routes/filesystem";
 import { jobsRoutes } from "./routes/jobs";
 import { operationsRoutes } from "./routes/operations";
+import { pipelineAgentSessionsRoutes } from "./routes/pipelineAgentSessions";
 import { pipelinesRoutes } from "./routes/pipelines";
 import { skillsRoutes } from "./routes/skills";
 import { getEnv } from "./integrations/env";
@@ -39,6 +40,7 @@ app.route("/api/distillations", distillationsRoutes);
 app.route("/api/filesystem", filesystemRoutes);
 app.route("/api/jobs", jobsRoutes);
 app.route("/api/operations", operationsRoutes);
+app.route("/api/pipeline-agent-sessions", pipelineAgentSessionsRoutes);
 app.route("/api/pipelines", pipelinesRoutes);
 app.route("/api/skills", skillsRoutes);
 

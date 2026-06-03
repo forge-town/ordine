@@ -8,6 +8,7 @@ export * from "./operationsService";
 export * from "./operationRunnerService";
 export * from "./pipelinesService";
 export * from "./pipelineRunnerService";
+export * from "./pipelineAgentSessionsService";
 export * from "./refinementsService";
 export * from "./serviceFactory";
 export * from "./settingsService";

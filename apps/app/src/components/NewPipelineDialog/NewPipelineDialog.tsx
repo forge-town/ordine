@@ -1,15 +1,14 @@
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { useShallow } from "zustand/shallow";
-import { useForm } from "react-hook-form";
 import {
-  ArrowLeft,
   CheckCircle2,
   ExternalLink,
   Loader2,
   Play,
   Plus,
   AlertCircle,
+  Upload,
 } from "lucide-react";
 import {
   Dialog,
@@ -21,54 +20,253 @@ import {
 } from "@repo/ui/dialog";
 import { Button } from "@repo/ui/button";
 import { Textarea } from "@repo/ui/textarea";
-import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
-import { Form, FormField, FormItem, FormControl } from "@repo/ui/form";
-import { PipelinePreviewGraph } from "@/components/PipelinePreviewGraph";
-import { useSidebarStore, type NewPipelineFormValues } from "@/store/sidebarStore";
+import { pipelineAgentSessionsClient, type PipelineAgentPlanEvent } from "@/lib/pipelineAgentSessionsClient";
+import { useSidebarStore } from "@/store/sidebarStore";
+import { dataProvider } from "@/integrations/refine/dataProvider";
+import { router } from "@/router";
+import type { PipelineAgentProposal } from "@repo/schemas";
+
+interface ConversationMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+}
+
+interface AttachmentItem {
+  id: string;
+  filename: string;
+  parseStatus: string;
+}
 
 export const NewPipelineDialog = () => {
   const { t } = useTranslation();
   const store = useSidebarStore();
-  const {
-    newPipelineOpen: open,
-    newPipelinePhase: phase,
-    newPipelineFormControl: formControl,
-    handleNewPipelineDialogOpenChange,
-    handleNewPipelineCreateButtonClick,
-    handleNewPipelineProceedButtonClick,
-    handleNewPipelineCancelButtonClick,
-    handleNewPipelineBackButtonClick,
-    handleNewPipelineOpenInCanvasButtonClick,
-    handleNewPipelineRunNowButtonClick,
-    handleNewPipelineCreateAnotherButtonClick,
-  } = useStore(
+  const open = useStore(store, (state) => state.newPipelineOpen);
+  const handleNewPipelineDialogOpenChange = useStore(
     store,
-    useShallow((s) => ({
-      newPipelineOpen: s.newPipelineOpen,
-      newPipelinePhase: s.newPipelinePhase,
-      newPipelineFormControl: s.newPipelineFormControl,
-      handleNewPipelineDialogOpenChange: s.handleNewPipelineDialogOpenChange,
-      handleNewPipelineCreateButtonClick: s.handleNewPipelineCreateButtonClick,
-      handleNewPipelineProceedButtonClick: s.handleNewPipelineProceedButtonClick,
-      handleNewPipelineCancelButtonClick: s.handleNewPipelineCancelButtonClick,
-      handleNewPipelineBackButtonClick: s.handleNewPipelineBackButtonClick,
-      handleNewPipelineOpenInCanvasButtonClick: s.handleNewPipelineOpenInCanvasButtonClick,
-      handleNewPipelineRunNowButtonClick: s.handleNewPipelineRunNowButtonClick,
-      handleNewPipelineCreateAnotherButtonClick: s.handleNewPipelineCreateAnotherButtonClick,
-    })),
+    (state) => state.handleNewPipelineDialogOpenChange,
   );
+  const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
+  const [createdPipelineId, setCreatedPipelineId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [phase, setPhase] = useState<
+    "conversation" | "planning" | "proposal_ready" | "generating" | "success"
+  >("conversation");
+  const [proposal, setProposal] = useState<PipelineAgentProposal | null>(null);
+  const [proposalId, setProposalId] = useState<string | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const welcomeMessage = t("newPipelineDialog.welcome");
 
-  const form = useForm<NewPipelineFormValues>({
-    formControl: formControl.formControl,
-  });
+  const displayName = useMemo(() => {
+    if (proposal?.mode === "generate") {
+      return proposal.purpose;
+    }
 
-  const isLoading = phase.step === "analyzing" || phase.step === "creating";
+    return createdPipelineId ?? t("pipelines.createNew");
+  }, [createdPipelineId, proposal, t]);
+
+  useEffect(() => {
+    if (!open) {
+      sessionIdRef.current = null;
+      setAttachments([]);
+      setCreatedPipelineId(null);
+      setErrorMessage(null);
+      setInputValue("");
+      setMessages([]);
+      setPhase("conversation");
+      setProposal(null);
+      setProposalId(null);
+
+      return;
+    }
+
+    setMessages((currentMessages) =>
+      currentMessages.length === 1 && currentMessages[0]?.content === welcomeMessage
+        ? currentMessages
+        : [
+            {
+              id: "welcome",
+              role: "assistant",
+              content: welcomeMessage,
+            },
+          ],
+    );
+  }, [open, welcomeMessage]);
+
+  const handleMessageInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(event.target.value);
+  };
+
+  const ensureSession = async () => {
+    if (sessionIdRef.current) {
+      return sessionIdRef.current;
+    }
+
+    const session = await pipelineAgentSessionsClient.createSession({
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+    });
+    sessionIdRef.current = session.id;
+
+    return session.id;
+  };
+
+  const handleEvent = (event: PipelineAgentPlanEvent) => {
+    if (event.type === "phase" || event.type === "progress" || event.type === "done") {
+      return;
+    }
+
+    if (event.type === "question") {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-question-${Date.now()}`,
+          role: "assistant",
+          content: event.question,
+        },
+      ]);
+      setPhase("conversation");
+
+      return;
+    }
+
+    if (event.type === "proposal_ready") {
+      setProposal(event.proposal);
+      setProposalId(event.proposalId);
+      setPhase("proposal_ready");
+
+      return;
+    }
+
+    if (event.type === "error") {
+      setErrorMessage(event.message);
+      setPhase("conversation");
+    }
+  };
+
+  const handleSend = async () => {
+    const text = inputValue.trim();
+    if (!text) {
+      return;
+    }
+
+    setErrorMessage(null);
+    setMessages((prev) => [
+      ...prev,
+      { id: `user-${Date.now()}`, role: "user", content: text },
+    ]);
+    setInputValue("");
+    setProposal(null);
+    setProposalId(null);
+    setPhase("planning");
+
+    const sessionId = await ensureSession();
+    await pipelineAgentSessionsClient.appendMessage(sessionId, {
+      role: "user",
+      kind: "text",
+      content: text,
+    });
+    await pipelineAgentSessionsClient.planSessionStream(sessionId, {
+      onEvent: handleEvent,
+    });
+  };
+
+  const handleApprove = async () => {
+    if (!sessionIdRef.current || !proposalId) {
+      return;
+    }
+
+    setErrorMessage(null);
+    setPhase("generating");
+    await pipelineAgentSessionsClient.approveProposal(sessionIdRef.current, proposalId);
+    const result = await pipelineAgentSessionsClient.generatePipelineFromApprovedProposal(
+      sessionIdRef.current,
+    );
+    setCreatedPipelineId(result.pipelineId);
+    setPhase("success");
+  };
+
+  const handleRevise = () => {
+    setProposal(null);
+    setProposalId(null);
+    setPhase("conversation");
+  };
+
+  const handleReject = () => {
+    setProposal(null);
+    setProposalId(null);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `system-reject-${Date.now()}`,
+        role: "system",
+        content: t("newPipelineDialog.rejected"),
+      },
+    ]);
+    setPhase("conversation");
+  };
+
+  const handleOpenInCanvas = () => {
+    if (!createdPipelineId) {
+      return;
+    }
+
+    handleNewPipelineDialogOpenChange(false);
+    void router.navigate({ to: "/canvas", search: { id: createdPipelineId } });
+  };
+
+  const handleRunNow = async () => {
+    if (!createdPipelineId) {
+      return;
+    }
+
+    await dataProvider.custom!({
+      url: "pipelines/run",
+      method: "post",
+      payload: { id: createdPipelineId },
+    });
+    handleNewPipelineDialogOpenChange(false);
+    void router.navigate({ to: "/canvas", search: { id: createdPipelineId } });
+  };
+
+  const handleCreateAnother = () => {
+    handleNewPipelineDialogOpenChange(false);
+    handleNewPipelineDialogOpenChange(true);
+  };
+
+  const handleUploadClick = () => {
+    void ensureSession().then(() => fileInputRef.current?.click());
+  };
+
+  const handleUploadChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    event.target.value = "";
+
+    const sessionId = await ensureSession();
+    const result = await pipelineAgentSessionsClient.uploadAttachment(sessionId, file);
+    if (result.attachment) {
+      setAttachments((prev) => [
+        ...prev,
+        {
+          id: result.attachment.id,
+          filename: result.attachment.filename,
+          parseStatus: result.attachment.parseStatus ?? "parsed",
+        },
+      ]);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleNewPipelineDialogOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col overflow-hidden">
-        {phase.step === "success" && (
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+        {phase === "success" && (
           <>
             <div className="flex flex-col items-center gap-4 py-6">
               <div className="animate-in zoom-in-50 fade-in duration-300 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
@@ -82,31 +280,23 @@ export const NewPipelineDialog = () => {
                   {t("newPipelineDialog.pipelineCreatedDescription")}
                 </DialogDescription>
                 <Badge className="mt-1 font-mono text-xs" variant="secondary">
-                  {phase.pipelineId}
+                  {createdPipelineId}
                 </Badge>
-                <p className="text-sm font-medium text-foreground">{phase.pipelineName}</p>
+                <p className="text-sm font-medium text-foreground">{displayName}</p>
               </div>
             </div>
             <DialogFooter className="animate-in fade-in slide-in-from-bottom-1 duration-500 flex-col gap-2 sm:flex-col">
               <div className="flex w-full gap-2">
-                <Button className="flex-1" onClick={handleNewPipelineOpenInCanvasButtonClick}>
+                <Button className="flex-1" onClick={handleOpenInCanvas}>
                   <ExternalLink className="mr-2 h-4 w-4" />
                   {t("newPipelineDialog.openInCanvas")}
                 </Button>
-                <Button
-                  className="flex-1"
-                  variant="secondary"
-                  onClick={handleNewPipelineRunNowButtonClick}
-                >
+                <Button className="flex-1" variant="secondary" onClick={handleRunNow}>
                   <Play className="mr-2 h-4 w-4" />
                   {t("newPipelineDialog.runNow")}
                 </Button>
               </div>
-              <Button
-                className="w-full"
-                variant="ghost"
-                onClick={handleNewPipelineCreateAnotherButtonClick}
-              >
+              <Button className="w-full" variant="ghost" onClick={handleCreateAnother}>
                 <Plus className="mr-2 h-4 w-4" />
                 {t("newPipelineDialog.createAnother")}
               </Button>
@@ -114,96 +304,109 @@ export const NewPipelineDialog = () => {
           </>
         )}
 
-        {phase.step === "analysis" && (
-          <>
-            <DialogHeader>
-              <DialogTitle>{t("newPipelineDialog.analysisTitle")}</DialogTitle>
-              <DialogDescription>{t("newPipelineDialog.analysisDescription")}</DialogDescription>
-            </DialogHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto py-2">
-              <PipelinePreviewGraph
-                matchedOperations={phase.matchedOperations}
-                unmatchedSteps={phase.unmatchedSteps}
-              />
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={handleNewPipelineBackButtonClick}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t("newPipelineDialog.backToEdit")}
-              </Button>
-              <Button onClick={handleNewPipelineProceedButtonClick}>
-                {t("newPipelineDialog.proceedWithGeneration")}
-              </Button>
-            </DialogFooter>
-          </>
-        )}
-
-        {(phase.step === "form" ||
-          phase.step === "analyzing" ||
-          phase.step === "creating" ||
-          phase.step === "error") && (
+        {phase !== "success" && (
           <>
             <DialogHeader>
               <DialogTitle>{t("nav.newPipeline")}</DialogTitle>
               <DialogDescription>{t("pipelines.newPipelineDescription")}</DialogDescription>
             </DialogHeader>
-            {phase.step === "error" && (
+
+            {errorMessage && (
               <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{phase.message}</span>
+                <span>{errorMessage}</span>
               </div>
             )}
-            <Form {...form}>
-              <div className="flex flex-col gap-3 py-2">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input disabled={isLoading} placeholder={t("nav.newPipeline")} {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Textarea
-                          disabled={isLoading}
-                          placeholder={t("newPipelineDialog.descriptionPlaceholder")}
-                          rows={3}
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+
+            <div className="min-h-0 flex-1 overflow-y-auto space-y-4 py-2">
+              <div className="space-y-3">
+                {messages.map((message) => (
+                  <div key={message.id} className="rounded-md border px-3 py-2 text-sm">
+                    {message.content}
+                  </div>
+                ))}
               </div>
-            </Form>
+
+              {attachments.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {attachments.map((attachment) => (
+                    <Badge key={attachment.id} variant="secondary">
+                      {attachment.filename}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {proposal?.mode === "generate" && (
+                <div className="space-y-2 rounded-md border px-3 py-3 text-sm">
+                  <p className="font-medium">{proposal.purpose}</p>
+                  <p>{proposal.inputs.join(", ")}</p>
+                  <p>{proposal.outputs.join(", ")}</p>
+                  <p>{proposal.majorOperations.join(", ")}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <input
+                ref={fileInputRef}
+                aria-label={t("newPipelineDialog.upload")}
+                className="hidden"
+                type="file"
+                onChange={handleUploadChange}
+              />
+
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={handleUploadClick}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  {t("newPipelineDialog.upload")}
+                </Button>
+              </div>
+
+              <Textarea
+                placeholder={t("newPipelineDialog.messagePlaceholder")}
+                rows={4}
+                value={inputValue}
+                onChange={handleMessageInputChange}
+              />
+            </div>
+
             <DialogFooter>
-              <Button
-                disabled={isLoading}
-                variant="outline"
-                onClick={handleNewPipelineCancelButtonClick}
-              >
+              <Button variant="outline" onClick={() => handleNewPipelineDialogOpenChange(false)}>
                 {t("common.cancel")}
               </Button>
-              <Button disabled={isLoading} onClick={handleNewPipelineCreateButtonClick}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {phase.step === "analyzing"
-                      ? t("newPipelineDialog.analyzing")
-                      : t("common.generating")}
-                  </>
-                ) : (
-                  t("common.create")
-                )}
-              </Button>
+
+              {proposal ? (
+                <>
+                  <Button variant="outline" onClick={handleReject}>
+                    {t("newPipelineDialog.reject")}
+                  </Button>
+                  <Button variant="outline" onClick={handleRevise}>
+                    {t("newPipelineDialog.revise")}
+                  </Button>
+                  <Button disabled={phase === "generating"} onClick={handleApprove}>
+                    {phase === "generating" ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t("common.generating")}
+                      </>
+                    ) : (
+                      t("newPipelineDialog.approve")
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <Button disabled={phase === "planning"} onClick={handleSend}>
+                  {phase === "planning" ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t("newPipelineDialog.analyzing")}
+                    </>
+                  ) : (
+                    t("newPipelineDialog.send")
+                  )}
+                </Button>
+              )}
             </DialogFooter>
           </>
         )}
