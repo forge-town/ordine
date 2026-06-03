@@ -11,6 +11,7 @@ export const OperationSchema = z.object({
   acceptedObjectTypes: z
     .array(ObjectNodeTypeSchema)
     .default(["file", "folder", "github-project", "prompt"]),
+  sourceSkillId: z.string().optional(),
   meta: MetaSchema.optional(),
 });
 export type Operation = z.infer<typeof OperationSchema>;

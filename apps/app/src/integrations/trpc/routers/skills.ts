@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../init";
 import { skillsService } from "../services";
 import { SkillSchema } from "@repo/schemas";
@@ -28,4 +29,22 @@ export const skillsRouter = router({
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(({ input }) => skillsService.delete(input.id)),
+
+  draftOperation: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const skill = await skillsService.getById(input.id);
+      if (!skill) throw new TRPCError({ code: "NOT_FOUND", message: "Skill not found" });
+
+      return skillsService.buildDraftOperation(skill);
+    }),
+
+  analyze: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const skill = await skillsService.getById(input.id);
+      if (!skill) throw new TRPCError({ code: "NOT_FOUND", message: "Skill not found" });
+
+      return skillsService.analyzeSkill(skill);
+    }),
 });

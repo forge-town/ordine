@@ -1,5 +1,6 @@
+import { useMemo } from "react";
 import { useStore } from "zustand";
-import { Search, Wand2 } from "lucide-react";
+import { Search, Wand2, PlusCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -10,9 +11,7 @@ import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
-import { useSkillsPageStore } from "../_store";
-
-type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
+import { useSkillsPageStore, type SkillCategory } from "../_store";
 
 const categoryColors: Record<string, string> = {
   page: "bg-violet-100 text-violet-700",
@@ -41,18 +40,25 @@ export const SkillsPageContent = () => {
   const store = useSkillsPageStore();
   const search = useStore(store, (s) => s.search);
   const category = useStore(store, (s) => s.category);
-  const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
-  const handleCategoryButtonClick = useStore(store, (s) => s.handleCategoryButtonClick);
+  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
+  const handleSetCategory = useStore(store, (s) => s.handleSetCategory);
+  const handleCreateOperationClick = useStore(store, (s) => s.handleCreateOperationClick);
 
-  const filtered = skills.filter((s: Skill) => {
-    const matchesSearch =
-      s.label.toLowerCase().includes(search.toLowerCase()) ||
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.description.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = category === "all" || s.category === category;
+  const searchLower = search.toLowerCase();
+  const filtered = useMemo(() => {
+    if (!skills) return [];
 
-    return matchesSearch && matchesCategory;
-  });
+    return skills.filter((s: Skill) => {
+      const matchesSearch =
+        !searchLower ||
+        s.label.toLowerCase().includes(searchLower) ||
+        s.name.toLowerCase().includes(searchLower) ||
+        s.description.toLowerCase().includes(searchLower);
+      const matchesCategory = category === "all" || s.category === category;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [skills, searchLower, category]);
 
   if (skillsQuery?.isLoading) {
     return (
@@ -66,7 +72,9 @@ export const SkillsPageContent = () => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
-        badge={<span className="text-xs text-muted-foreground">{skills.length}</span>}
+        badge={
+          <span className="text-xs text-muted-foreground">{skills.length}</span>
+        }
         icon={<Wand2 className="h-4 w-4 text-primary" />}
         title={t("skills.title")}
       />
@@ -80,7 +88,7 @@ export const SkillsPageContent = () => {
             placeholder={t("common.search")}
             type="text"
             value={search}
-            onChange={handleSearchInputChange}
+            onChange={(e) => handleSetSearch(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-1">
@@ -90,7 +98,7 @@ export const SkillsPageContent = () => {
               className="text-xs h-7 px-2.5"
               size="sm"
               variant={category === cat ? "default" : "ghost"}
-              onClick={() => handleCategoryButtonClick(cat)}
+              onClick={() => handleSetCategory(cat)}
             >
               {categoryLabels[cat]}
             </Button>
@@ -119,15 +127,19 @@ export const SkillsPageContent = () => {
                   <Badge
                     className={cn(
                       "text-[10px]",
-                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600",
+                      categoryColors[skill.category] ??
+                        "bg-gray-100 text-gray-600",
                     )}
                     variant="secondary"
                   >
-                    {categoryLabels[skill.category as SkillCategory] ?? skill.category}
+                    {categoryLabels[skill.category as SkillCategory] ??
+                      skill.category}
                   </Badge>
                 </div>
 
-                <h3 className="mt-3 text-sm font-semibold text-foreground">{skill.label}</h3>
+                <h3 className="mt-3 text-sm font-semibold text-foreground">
+                  {skill.label}
+                </h3>
                 <p className="mt-1 flex-1 text-xs text-muted-foreground leading-relaxed">
                   {skill.description}
                 </p>
@@ -144,7 +156,18 @@ export const SkillsPageContent = () => {
                 </div>
 
                 <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                  <code className="text-[10px] text-muted-foreground">{skill.name}</code>
+                  <code className="text-[10px] text-muted-foreground">
+                    {skill.name}
+                  </code>
+                  <Button
+                    className="h-6 px-2 text-[10px]"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleCreateOperationClick(skill.id)}
+                  >
+                    <PlusCircle className="mr-1 h-3 w-3" />
+                    {t("skills.createOperation")}
+                  </Button>
                 </div>
               </div>
             ))}

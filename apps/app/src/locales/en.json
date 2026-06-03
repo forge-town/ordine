@@ -496,7 +496,15 @@
       "runtimeLoading": "Loading runtimes...",
       "inputPlaceholder": "Type your request...",
       "runtimeNotConfigured": "AI runtime is not configured yet.",
-      "goToRuntimeSettings": "Go to configuration"
+      "goToRuntimeSettings": "Go to configuration",
+      "action": {
+        "addNode": "Add node: {{type}}",
+        "removeNode": "Remove node: {{nodeId}}",
+        "addEdge": "Add edge: {{source}} → {{target}}",
+        "removeEdge": "Remove edge: {{edgeId}}",
+        "reconnectEdge": "Reconnect edge: {{edgeId}}",
+        "replaceNodeData": "Replace node data: {{nodeId}}"
+      }
     },
     "emptyState": {
       "title": "Start with a node",
@@ -752,6 +760,27 @@
   "skills": {
     "title": "Skills",
     "noSkills": "No skills found",
+    "createOperation": "Create Operation",
+    "createOperation.dialogTitle": "Create Operation from Skill",
+    "createOperation.namePlaceholder": "Operation name",
+    "createOperation.descriptionPlaceholder": "What should this operation do?",
+    "createOperation.outputs": "Expected Outputs",
+    "createOperation.addOutput": "Add Output",
+    "createOperation.confirm": "Create Operation",
+    "createOperation.success": "Operation created successfully",
+    "createOperation.error": "Failed to create operation",
+    "createOperation.step": "Step",
+    "createOperation.stepNamePlaceholder": "Step name",
+    "createOperation.stepDescriptionPlaceholder": "What should this step do?",
+    "createOperation.addStep": "Add Step",
+    "createOperation.saveAsOperations": "Save as Operations",
+    "createOperation.saveAsOperationsSuccess": "Operations created successfully",
+    "createOperation.saveAsOperationsPartialSuccess": "{{succeeded}} of {{total}} operations created; some steps failed",
+    "createOperation.saveAsOperationsError": "Failed to create operations",
+    "createOperation.generatePipeline": "Generate Pipeline Draft",
+    "createOperation.generatePipelineSuccess": "Pipeline draft created successfully",
+    "createOperation.generatePipelineError": "Failed to create pipeline draft",
+    "createOperation.outputNamePlaceholder": "output name",
     "categories": {
       "all": "All",
       "page": "Page structure",
