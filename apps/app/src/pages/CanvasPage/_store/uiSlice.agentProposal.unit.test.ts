@@ -38,7 +38,7 @@ describe("uiSlice applyAgentProposal", () => {
     mockApplyPipelineActions.mockReset();
   });
 
-  it("records one history entry, updates graph atomically, and clears interaction UI", () => {
+  it("records one history entry, updates graph atomically, and clears interaction UI", async () => {
     const nodeA = makeNode("node-a");
     const nodeB = makeNode("node-b");
     const edgeA = makeEdge("edge-a", "node-a", "node-a");
@@ -65,7 +65,7 @@ describe("uiSlice applyAgentProposal", () => {
 
     mockApplyPipelineActions.mockReturnValue(ok({ nodes: [nodeB], edges: [edgeB] }));
 
-    const applied = store.getState().applyAgentProposal(proposal);
+    const applied = await store.getState().applyAgentProposal(proposal);
 
     const state = store.getState();
     expect(applied).toBe(true);
@@ -91,7 +91,33 @@ describe("uiSlice applyAgentProposal", () => {
     expect(undone.edges).toEqual([edgeA]);
   });
 
-  it("keeps graph unchanged and exposes diagnostics when action application fails", () => {
+  it("auto-layouts the proposal graph before recording the history entry", async () => {
+    const nodeA = makeNode("node-a");
+    const nodeB = makeNode("node-b");
+    const edgeB = makeEdge("edge-b", "node-a", "node-b");
+    const proposal = makeProposal();
+    const store = createCanvasPageStore([], [], "pipe-1", "Pipeline 1");
+
+    mockApplyPipelineActions.mockReturnValue(
+      ok({
+        nodes: [
+          { ...nodeA, position: { x: 0, y: 0 }, measured: { width: 280, height: 120 } },
+          { ...nodeB, position: { x: 0, y: 0 }, measured: { width: 280, height: 120 } },
+        ],
+        edges: [edgeB],
+      }),
+    );
+
+    const applied = await store.getState().applyAgentProposal(proposal);
+
+    const state = store.getState();
+    expect(applied).toBe(true);
+    expect(state.nodes[0]?.position.x).toBeLessThan(state.nodes[1]?.position.x ?? 0);
+    expect(state._history).toHaveLength(1);
+    expect(state._history.at(-1)?.command.type).toBe("APPLY_AGENT_PROPOSAL");
+  });
+
+  it("keeps graph unchanged and exposes diagnostics when action application fails", async () => {
     const nodeA = makeNode("node-a");
     const edgeA = makeEdge("edge-a", "node-a", "node-a");
     const proposal = makeProposal();
@@ -111,7 +137,7 @@ describe("uiSlice applyAgentProposal", () => {
 
     mockApplyPipelineActions.mockReturnValue(err(diagnostics));
 
-    const applied = store.getState().applyAgentProposal(proposal);
+    const applied = await store.getState().applyAgentProposal(proposal);
 
     const state = store.getState();
     expect(applied).toBe(false);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, type DragEvent, type Ref } from "react";
 import { useStore } from "zustand";
-import { useCanvasPageStore } from "../_store";
+import { useCanvasPageStore, type PipelineEdge } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
 import {
   ReactFlow,
@@ -42,13 +42,48 @@ const nodeTypes = {
 
 const defaultEdgeOptions = {
   type: "default" as const,
-  animated: true,
-  style: { stroke: "#94a3b8", strokeWidth: 2 },
+  animated: false,
+  interactionWidth: 18,
+  style: { stroke: "#94a3b8", strokeWidth: 1.25, opacity: 0.5 },
 };
 
 const proOpts = { hideAttribution: false };
 const snapGrid: [number, number] = [24, 24];
 const nodePortRemeasureDelayMs = 220;
+const canvasMinZoom = 0.35;
+
+const getReadableEdgeStyle = (
+  edge: PipelineEdge,
+  selectedNodeId: string | null,
+  selectedEdgeId: string | null,
+) => {
+  const hasSelection = Boolean(selectedNodeId || selectedEdgeId);
+  const isSelectedEdge = selectedEdgeId === edge.id;
+  const touchesSelectedNode = Boolean(
+    selectedNodeId && (edge.source === selectedNodeId || edge.target === selectedNodeId),
+  );
+  const isHighlighted = isSelectedEdge || touchesSelectedNode;
+
+  return {
+    ...defaultEdgeOptions.style,
+    ...edge.style,
+    opacity: hasSelection ? (isHighlighted ? 0.95 : 0.16) : 0.5,
+    stroke: isHighlighted ? "#7c3aed" : ((edge.style?.stroke as string | undefined) ?? "#94a3b8"),
+    strokeWidth: isHighlighted ? 2.4 : ((edge.style?.strokeWidth as number | undefined) ?? 1.25),
+  };
+};
+
+const toReadableCanvasEdge = (
+  edge: PipelineEdge,
+  selectedNodeId: string | null,
+  selectedEdgeId: string | null,
+): PipelineEdge => ({
+  ...edge,
+  animated: false,
+  interactionWidth: edge.interactionWidth ?? defaultEdgeOptions.interactionWidth,
+  style: getReadableEdgeStyle(edge, selectedNodeId, selectedEdgeId),
+  type: edge.type && edge.type !== "default" ? edge.type : "default",
+});
 
 interface CanvasFlowProps {
   viewportRef?: Ref<HTMLDivElement>;
@@ -67,11 +102,17 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const store = useCanvasPageStore();
   const nodes = useStore(store, (s) => s.nodes);
   const edges = useStore(store, (s) => s.edges);
+  const selectedNodeId = useStore(store, (s) => s.selectedNodeId);
+  const selectedEdgeId = useStore(store, (s) => s.selectedEdgeId);
   const connectStart = useStore(store, (s) => s.connectStart);
   const isCanvasInteractive = useStore(store, (s) => s.isCanvasInteractive);
   const portRoutedEdges = useMemo(
     () => decorateEdgesWithPortHandles(nodes, edges, connectStart),
     [connectStart, edges, nodes],
+  );
+  const readableEdges = useMemo(
+    () => portRoutedEdges.map((edge) => toReadableCanvasEdge(edge, selectedNodeId, selectedEdgeId)),
+    [portRoutedEdges, selectedEdgeId, selectedNodeId],
   );
   const isConsoleOpen = useStore(store, (s) => s.isConsoleOpen);
   const canvasSettings = useStore(store, (s) => s.canvasSettings);
@@ -249,8 +290,9 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         defaultEdgeOptions={defaultEdgeOptions}
         defaultViewport={DEFAULT_CANVAS_VIEWPORT}
         deleteKeyCode={isCanvasInteractive ? ["Backspace", "Delete"] : null}
-        edges={portRoutedEdges}
+        edges={readableEdges}
         elementsSelectable={isCanvasInteractive}
+        minZoom={canvasMinZoom}
         nodes={nodes}
         nodesConnectable={isCanvasInteractive}
         nodesDraggable={isCanvasInteractive}

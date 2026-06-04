@@ -46,8 +46,12 @@ const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   prompt: MessageSquareText,
 };
 
+const DEFAULT_ACCEPTED_OBJECT_TYPES: ObjectType[] = ["file", "folder", "github-project"];
+
+type LoadedOperation = Partial<Operation> & { id?: string };
+
 const parseExecutorDefaults = (
-  config: OperationConfigInput,
+  config?: OperationConfigInput,
 ): {
   executorType: OperationExecutorType;
   agentMode: AgentMode;
@@ -65,7 +69,7 @@ const parseExecutorDefaults = (
     scriptLanguage: "bash" as "bash" | "python" | "javascript",
   };
 
-  const ex = config.executor;
+  const ex = config?.executor;
   if (!ex) return defaults;
 
   const { executorType, agentMode } = (() => {
@@ -92,6 +96,17 @@ const parseExecutorDefaults = (
       : "bash") as "bash" | "python" | "javascript",
   };
 };
+
+const getOperationName = (operation: LoadedOperation, fallbackId: string): string => {
+  const name = operation.name?.trim();
+
+  return name || fallbackId;
+};
+
+const getAcceptedObjectTypes = (operation: LoadedOperation): ObjectType[] =>
+  Array.isArray(operation.acceptedObjectTypes)
+    ? [...operation.acceptedObjectTypes]
+    : DEFAULT_ACCEPTED_OBJECT_TYPES;
 
 const buildConfig = (
   executorType: OperationExecutorType,
@@ -159,18 +174,16 @@ export const CanvasOperationPropertiesForm = ({
   });
   const { mutateAsync: updateOpMutate } = useUpdate();
 
-  const operation = operationResult;
+  const operation = operationResult as LoadedOperation | undefined;
   const skills = skillsResult.data;
   const isLoading = operationQuery?.isLoading || skillsQuery?.isLoading;
 
   // Local form state derived from operation
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [acceptedObjectTypes, setAcceptedObjectTypes] = useState<ObjectType[]>([
-    "file",
-    "folder",
-    "github-project",
-  ]);
+  const [acceptedObjectTypes, setAcceptedObjectTypes] = useState<ObjectType[]>(
+    DEFAULT_ACCEPTED_OBJECT_TYPES,
+  );
   const [executorType, setExecutorType] = useState<OperationExecutorType>("agent");
   const [agentMode, setAgentMode] = useState<AgentMode>("skill");
   const [skillId, setSkillId] = useState("");
@@ -183,13 +196,9 @@ export const CanvasOperationPropertiesForm = ({
   // Initialize form when operation loads or changes
   useEffect(() => {
     if (operation) {
-      setName(operation.name);
+      setName(getOperationName(operation, operationId));
       setDescription(operation.description ?? "");
-      setAcceptedObjectTypes(
-        Array.isArray(operation.acceptedObjectTypes)
-          ? [...operation.acceptedObjectTypes]
-          : ["file", "folder", "github-project"],
-      );
+      setAcceptedObjectTypes(getAcceptedObjectTypes(operation));
       const defaults = parseExecutorDefaults(operation.config);
       setExecutorType(defaults.executorType);
       setAgentMode(defaults.agentMode);
@@ -320,13 +329,9 @@ export const CanvasOperationPropertiesForm = ({
     setHasChanges(false);
     if (result.value.data) {
       const updated = result.value.data as Operation;
-      setName(updated.name);
+      setName(getOperationName(updated, operationId));
       setDescription(updated.description ?? "");
-      setAcceptedObjectTypes(
-        Array.isArray(updated.acceptedObjectTypes)
-          ? [...updated.acceptedObjectTypes]
-          : ["file", "folder", "github-project"],
-      );
+      setAcceptedObjectTypes(getAcceptedObjectTypes(updated));
       const defaults = parseExecutorDefaults(updated.config);
       setExecutorType(defaults.executorType);
       setAgentMode(defaults.agentMode);

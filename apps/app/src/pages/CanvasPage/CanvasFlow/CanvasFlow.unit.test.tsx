@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
 import type * as XyFlowReact from "@xyflow/react";
-import type { PipelineNode } from "../_store/canvasSlice";
+import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";
 import { createCanvasPageStore, CanvasPageStoreContext, CanvasPageStoreProvider } from "../_store";
 import {
   CANVAS_COMPONENT_DRAG_MIME,
@@ -15,6 +15,12 @@ const xyflowMocks = vi.hoisted(() => {
 
   return {
     onNodesChange: undefined as ((changes: unknown[]) => void) | undefined,
+    renderedEdges: [] as Array<{
+      id: string;
+      animated?: boolean;
+      style?: { opacity?: number; stroke?: string; strokeWidth?: number };
+      type?: string;
+    }>,
     updateNodeInternals,
     useUpdateNodeInternals: vi.fn(() => updateNodeInternals),
   };
@@ -29,6 +35,7 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       children,
       defaultViewport,
       fitView,
+      minZoom,
       onMove,
       elementsSelectable,
       nodesConnectable,
@@ -50,9 +57,11 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       onPaneContextMenu,
       onNodesChange,
       snapToGrid,
+      edges,
     }: React.PropsWithChildren<{
       defaultViewport?: { zoom: number };
       fitView?: boolean;
+      minZoom?: number;
       onMove?: XyFlowReact.OnMove;
       elementsSelectable?: boolean;
       nodesConnectable?: boolean;
@@ -74,8 +83,15 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       onPaneContextMenu?: unknown;
       onNodesChange?: unknown;
       snapToGrid?: boolean;
+      edges?: Array<{
+        id: string;
+        animated?: boolean;
+        style?: { opacity?: number; stroke?: string; strokeWidth?: number };
+        type?: string;
+      }>;
     }>) => {
       xyflowMocks.onNodesChange = onNodesChange as ((changes: unknown[]) => void) | undefined;
+      xyflowMocks.renderedEdges = edges ?? [];
       const handleMouseMove = () => onMove?.(null, { x: 0, y: 0, zoom: 0.6 });
 
       return (
@@ -93,6 +109,7 @@ vi.mock("@xyflow/react", async (importOriginal) => {
           data-has-on-node-drag-stop={String(typeof onNodeDragStop === "function")}
           data-has-on-pane-click={String(typeof onPaneClick === "function")}
           data-has-on-pane-context-menu={String(typeof onPaneContextMenu === "function")}
+          data-min-zoom={String(minZoom)}
           data-nodes-connectable={String(nodesConnectable ?? true)}
           data-nodes-draggable={String(nodesDraggable ?? true)}
           data-pan-on-drag={String(panOnDrag ?? true)}
@@ -129,14 +146,26 @@ const makeNode = (id: string): PipelineNode =>
     },
   }) as PipelineNode;
 
+const makeEdge = (source: string, target: string): PipelineEdge =>
+  ({
+    id: `${source}-${target}`,
+    source,
+    target,
+    type: "default",
+  }) as PipelineEdge;
+
 const wrapper = ({ children }: React.PropsWithChildren) => (
   <CanvasPageStoreProvider pipeline={null}>
     <ReactFlowProvider>{children}</ReactFlowProvider>
   </CanvasPageStoreProvider>
 );
 
-const renderWithStore = (nodes: PipelineNode[], isConsoleOpen = false) => {
-  const store = createCanvasPageStore(nodes, []);
+const renderWithStore = (
+  nodes: PipelineNode[],
+  isConsoleOpen = false,
+  edges: PipelineEdge[] = [],
+) => {
+  const store = createCanvasPageStore(nodes, edges);
   store.setState({ isConsoleOpen });
 
   render(
@@ -165,6 +194,7 @@ describe("CanvasFlow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     xyflowMocks.onNodesChange = undefined;
+    xyflowMocks.renderedEdges = [];
   });
 
   afterEach(() => {
@@ -176,6 +206,7 @@ describe("CanvasFlow", () => {
     const { container } = render(<CanvasFlow />, { wrapper });
     expect(container.firstChild).toBeTruthy();
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-zoom", "1.25");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-min-zoom", "0.35");
     expect(screen.queryByTestId("flow-controls")).not.toBeInTheDocument();
   });
 
@@ -210,6 +241,53 @@ describe("CanvasFlow", () => {
     expect(screen.getByTestId("flow-background")).toBeInTheDocument();
     expect(screen.queryByTestId("flow-controls")).not.toBeInTheDocument();
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-auto-fit", "false");
+  });
+
+  it("renders stored default edges with quiet readable styling", () => {
+    const nodes = [makeNode("a"), makeNode("b")];
+    const edges = [makeEdge("a", "b")];
+
+    renderWithStore(nodes, false, edges);
+
+    expect(xyflowMocks.renderedEdges).toEqual([
+      expect.objectContaining({
+        animated: false,
+        id: "a-b",
+        style: expect.objectContaining({
+          opacity: 0.5,
+          stroke: "#94a3b8",
+          strokeWidth: 1.25,
+        }),
+        type: "default",
+      }),
+    ]);
+    expect(edges[0]?.type).toBe("default");
+  });
+
+  it("highlights edges attached to the selected node and fades unrelated edges", () => {
+    const nodes = [makeNode("a"), makeNode("b"), makeNode("c")];
+    const edges = [makeEdge("a", "b"), makeEdge("b", "c")];
+    const store = createCanvasPageStore(nodes, edges);
+    store.setState({ selectedNodeId: "a" });
+
+    render(
+      <CanvasPageStoreContext.Provider value={store}>
+        <ReactFlowProvider>
+          <CanvasFlow />
+        </ReactFlowProvider>
+      </CanvasPageStoreContext.Provider>,
+    );
+
+    expect(xyflowMocks.renderedEdges).toEqual([
+      expect.objectContaining({
+        id: "a-b",
+        style: expect.objectContaining({ opacity: 0.95, stroke: "#7c3aed" }),
+      }),
+      expect.objectContaining({
+        id: "b-c",
+        style: expect.objectContaining({ opacity: 0.16 }),
+      }),
+    ]);
   });
 
   it("hides MiniMap for a single node", () => {

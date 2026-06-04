@@ -6,6 +6,8 @@ import type {
   PipelineActionProposal,
 } from "@repo/schemas";
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
+import { computeAutoLayout } from "./autoLayout";
+import { fitViewAfterLayout, sortParentBeforeChildren } from "./canvasSlice";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 
 export type SidebarPanel = "components" | "properties" | "ai-assistant" | null;
@@ -159,7 +161,7 @@ export interface UISlice {
     diagnostics: PipelineActionDiagnostic[] | null,
   ) => void;
   clearPendingProposal: () => void;
-  applyAgentProposal: (proposal: PipelineActionProposal) => boolean;
+  applyAgentProposal: (proposal: PipelineActionProposal) => Promise<boolean>;
 }
 
 export const createUISlice = (
@@ -503,8 +505,15 @@ export const createUISlice = (
     }));
   },
 
-  applyAgentProposal: (proposal) => {
+  applyAgentProposal: async (proposal) => {
     const { edges, nodes, recordCommand } = get();
+    set((state) => ({
+      agentPanel: {
+        ...state.agentPanel,
+        isLoading: true,
+      },
+    }));
+
     const result = applyPipelineActions({ nodes, edges }, proposal.actions);
 
     if (result.isErr()) {
@@ -520,6 +529,9 @@ export const createUISlice = (
     }
 
     const next = result.value;
+    const layoutedNodes = await computeAutoLayout(next.nodes, next.edges);
+    sortParentBeforeChildren(layoutedNodes);
+
     recordCommand(
       {
         type: "APPLY_AGENT_PROPOSAL",
@@ -530,7 +542,7 @@ export const createUISlice = (
         },
       },
       (draft) => {
-        draft.nodes = next.nodes as typeof draft.nodes;
+        draft.nodes = layoutedNodes as typeof draft.nodes;
         draft.edges = next.edges as typeof draft.edges;
       },
     );
@@ -551,6 +563,7 @@ export const createUISlice = (
         isLoading: false,
       },
     }));
+    fitViewAfterLayout(get().fitView);
 
     return true;
   },

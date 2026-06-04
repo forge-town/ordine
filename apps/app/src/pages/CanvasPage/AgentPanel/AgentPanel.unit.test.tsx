@@ -507,8 +507,13 @@ describe("AgentPanel", () => {
 
     await userEvent.click(screen.getByText("canvas.agentPanel.apply"));
 
-    expect(mockApplyPipelineActions).toHaveBeenCalled();
-    expect(screen.getByText("canvas.agentPanel.applied")).toBeInTheDocument();
+    expect(mockApplyPipelineActions).toHaveBeenCalledWith(
+      expect.objectContaining({ nodes: expect.any(Array), edges: expect.any(Array) }),
+      proposal.actions,
+    );
+    await waitFor(() => {
+      expect(screen.getByText("canvas.agentPanel.applied")).toBeInTheDocument();
+    });
   });
 
   it("does not send when pipelineId is missing", async () => {

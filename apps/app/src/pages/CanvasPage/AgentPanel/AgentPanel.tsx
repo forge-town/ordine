@@ -563,7 +563,7 @@ export const AgentPanel = () => {
     }
 
     const run = async () => {
-      const applied = applyAgentProposal(activeProposal);
+      const applied = await applyAgentProposal(activeProposal);
       if (!applied) {
         return;
       }

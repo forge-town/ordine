@@ -12,6 +12,7 @@ import {
   type DeleteOneParams,
   type DeleteOneResponse,
 } from "@refinedev/core";
+import type { AgentRuntimeConfig, Settings } from "@repo/schemas";
 import { trpcClient } from "@/integrations/trpc/client";
 
 export const ResourceName = {
@@ -34,6 +35,25 @@ export const ResourceName = {
   operationOutputItemTemplates: "operationOutputItemTemplates",
 } as const;
 
+const isStorybookDataProvider = Boolean(import.meta.env.STORYBOOK);
+
+const storybookAgentRuntimes: AgentRuntimeConfig[] = [
+  {
+    id: "storybook-codex-local",
+    name: "Storybook Codex",
+    type: "codex",
+    connection: { mode: "local" },
+  },
+];
+
+const storybookSettings: Settings = {
+  id: "storybook-settings",
+  defaultAgentRuntime: "codex",
+  defaultApiKey: "",
+  defaultModel: "",
+  defaultOutputPath: "",
+};
+
 export const dataProvider: DataProvider = {
   getList: async <TData extends BaseRecord = BaseRecord>(
     params: GetListParams,
@@ -47,6 +67,13 @@ export const dataProvider: DataProvider = {
         return { data: data as unknown as TData[], total: data.length };
       }
       case ResourceName.agentRuntimes: {
+        if (isStorybookDataProvider) {
+          return {
+            data: storybookAgentRuntimes as unknown as TData[],
+            total: storybookAgentRuntimes.length,
+          };
+        }
+
         const data = await trpcClient.agentRuntimes.getMany.query();
 
         return { data: data as unknown as TData[], total: data.length };
@@ -116,6 +143,14 @@ export const dataProvider: DataProvider = {
         return { data: data as unknown as TData };
       }
       case ResourceName.agentRuntimes: {
+        if (isStorybookDataProvider) {
+          const data =
+            storybookAgentRuntimes.find((runtime) => runtime.id === String(id)) ??
+            storybookAgentRuntimes[0];
+
+          return { data: data as unknown as TData };
+        }
+
         const data = await trpcClient.agentRuntimes.getById.query({
           id: String(id),
         });
@@ -181,6 +216,10 @@ export const dataProvider: DataProvider = {
         return { data: data as unknown as TData };
       }
       case ResourceName.settings: {
+        if (isStorybookDataProvider) {
+          return { data: storybookSettings as unknown as TData };
+        }
+
         const data = await trpcClient.settings.get.query();
 
         return { data: data as unknown as TData };

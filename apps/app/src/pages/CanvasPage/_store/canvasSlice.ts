@@ -36,6 +36,21 @@ export const sortParentBeforeChildren = (nodes: PipelineNode[]): void => {
   });
 };
 
+export const fitViewAfterLayout = (fitView: (options?: { padding?: number }) => void): void => {
+  const runFitView = () => fitView({ padding: 0.18 });
+
+  if (typeof globalThis.requestAnimationFrame === "function") {
+    globalThis.requestAnimationFrame(() => {
+      globalThis.requestAnimationFrame(runFitView);
+    });
+    globalThis.setTimeout(runFitView, 180);
+
+    return;
+  }
+
+  globalThis.setTimeout(runFitView, 0);
+};
+
 export type PipelineNode = Node<PipelineNodeData, BuiltinNodeType>;
 
 export type PipelineEdge = Edge<PipelineEdgeData>;
@@ -59,7 +74,7 @@ export interface CanvasSlice {
   selectEdge: (edgeId: string | null) => void;
   duplicateNode: (nodeId: string) => void;
   clearCanvas: () => void;
-  formatLayout: () => void;
+  formatLayout: () => Promise<void>;
   addNodeToCompound: (nodeId: string, compoundId: string) => void;
   removeNodeFromCompound: (nodeId: string, compoundId: string) => void;
   groupSelectedNodes: (nodeIds: string[]) => void;
@@ -287,11 +302,12 @@ export const createCanvasSlice = (
       set({ selectedNodeId: null, selectedEdgeId: null });
     },
 
-    formatLayout: () => {
+    formatLayout: async () => {
       const { nodes, edges } = get();
-      const layouted = computeAutoLayout(nodes, edges);
+      const layouted = await computeAutoLayout(nodes, edges);
       sortParentBeforeChildren(layouted);
       set({ nodes: layouted });
+      fitViewAfterLayout(get().fitView);
     },
 
     addNodeToCompound: (nodeId, compoundId) => {
