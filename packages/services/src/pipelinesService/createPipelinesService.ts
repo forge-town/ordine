@@ -24,6 +24,7 @@ import {
   PipelineGraphSnapshotSchema,
   PipelineActionProposalSchema,
   PipelineSchema,
+  type AgentRuntime,
   type ObjectNodeType,
   type OperationNodeData,
   type PipelineData,
@@ -929,7 +930,7 @@ export const createPipelinesService = (db: DbConnection) => {
     analyzeIntent: async (opts: {
       name: string;
       description: string;
-      runtimeType?: string;
+      runtimeType?: AgentRuntime;
     }): Promise<{
       matchedOperations: Array<{ operationId: string; operationName: string; reason: string }>;
       unmatchedSteps: Array<{ step: string; reason: string }>;
@@ -1023,7 +1024,7 @@ export const createPipelinesService = (db: DbConnection) => {
       description: string;
       matchedOperations?: Array<{ operationId: string; operationName: string; reason: string }>;
       unmatchedSteps?: Array<{ step: string; reason: string }>;
-      runtimeType?: string;
+      runtimeType?: AgentRuntime;
     }): Promise<
       | {
           nodes: PipelineData["nodes"];

@@ -177,4 +177,30 @@ describe("applyPipelineActions", () => {
     expect(result.isErr()).toBe(true);
     expect(snapshot).toEqual(makeSnapshot([makeNode("folder-1", "folder")]));
   });
+
+  it("syncs operationName when an AI edit only changes an operation node label", () => {
+    const operationNode = makeNode("action-1", "operation", {
+      label: "Old Label",
+      operationId: "op-1",
+      operationName: "Old Label",
+    });
+    const result = applyPipelineActions(makeSnapshot([operationNode]), [
+      {
+        type: "replaceNodeData",
+        nodeId: "action-1",
+        data: {
+          ...operationNode.data,
+          label: "New Label",
+        },
+      },
+    ]);
+
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap().nodes[0]?.data).toEqual(
+      expect.objectContaining({
+        label: "New Label",
+        operationName: "New Label",
+      }),
+    );
+  });
 });

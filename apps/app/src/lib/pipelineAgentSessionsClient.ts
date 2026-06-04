@@ -15,6 +15,16 @@ export interface PipelineAgentSessionClientRecord {
   status: string;
 }
 
+export interface PipelineAgentAttachmentClientRecord {
+  id: string;
+  filename: string;
+  parseStatus?: string | null;
+}
+
+export interface PipelineAgentAttachmentUploadResult {
+  attachment?: PipelineAgentAttachmentClientRecord;
+}
+
 export type PipelineAgentPlanEvent =
   | { type: "phase"; phase: string }
   | { type: "progress"; message: string }
@@ -71,21 +81,25 @@ const parseSseMessage = (message: string): PipelineAgentPlanEvent | null => {
   }
 
   switch (eventName) {
-    case "phase":
+    case "phase": {
       return typeof parsed.phase === "string" ? { type: "phase", phase: parsed.phase } : null;
-    case "progress":
+    }
+    case "progress": {
       return typeof parsed.message === "string"
         ? { type: "progress", message: parsed.message }
         : null;
-    case "assistant_chunk":
+    }
+    case "assistant_chunk": {
       return typeof parsed.text === "string"
         ? { type: "assistant_chunk", text: parsed.text }
         : null;
-    case "question":
+    }
+    case "question": {
       return typeof parsed.question === "string"
         ? { type: "question", question: parsed.question }
         : null;
-    case "proposal_ready":
+    }
+    case "proposal_ready": {
       return isRecord(parsed.proposal) && typeof parsed.proposalId === "string"
         ? {
             type: "proposal_ready",
@@ -93,14 +107,18 @@ const parseSseMessage = (message: string): PipelineAgentPlanEvent | null => {
             proposalId: parsed.proposalId,
           }
         : null;
-    case "done":
+    }
+    case "done": {
       return typeof parsed.status === "string" ? { type: "done", status: parsed.status } : null;
-    case "error":
+    }
+    case "error": {
       return typeof parsed.message === "string"
         ? { type: "error", message: parsed.message }
         : null;
-    default:
+    }
+    default: {
       return typeof parsed.type === "string" ? (parsed as PipelineAgentPlanEvent) : null;
+    }
   }
 };
 
@@ -123,7 +141,7 @@ export const pipelineAgentSessionsClient = {
   async appendMessage(
     sessionId: string,
     input: { role: "user" | "assistant" | "system"; kind: string; content: string },
-  ) {
+  ): Promise<Record<string, unknown>> {
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/messages`, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -133,7 +151,10 @@ export const pipelineAgentSessionsClient = {
     return readResponseJson(response);
   },
 
-  async uploadAttachment(sessionId: string, file: File) {
+  async uploadAttachment(
+    sessionId: string,
+    file: File,
+  ): Promise<PipelineAgentAttachmentUploadResult> {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -142,7 +163,7 @@ export const pipelineAgentSessionsClient = {
       body: formData,
     });
 
-    return readResponseJson(response);
+    return readResponseJson<PipelineAgentAttachmentUploadResult>(response);
   },
 
   async approveProposal(sessionId: string, proposalId: string) {

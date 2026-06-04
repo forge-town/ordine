@@ -17,9 +17,9 @@ import {
 } from "@repo/models";
 import { extractJsonFromText } from "@repo/agent";
 import {
+  type AgentRuntime,
   PipelineAgentPlanReadinessSchema,
   PipelineAgentPlanningResultSchema,
-  PipelineSchema,
   type PipelineAgentAttachmentParseStatus,
   type PipelineAgentAttachmentSourceType,
   type PipelineAgentContextArtifactContent,
@@ -28,7 +28,6 @@ import {
   type PipelineAgentMessageKind,
   type PipelineAgentMessageRole,
   type PipelineAgentMode,
-  type PipelineAgentPlanningResult,
   type PipelineAgentProposal,
   type PipelineAgentProposalStatus,
   type PipelineAgentSessionStatus,
@@ -55,6 +54,7 @@ const RelaxedCanvasEditPlanningResultSchema = z.discriminatedUnion("type", [
     }),
   }),
 ]);
+type RelaxedCanvasEditPlanningResult = z.infer<typeof RelaxedCanvasEditPlanningResultSchema>;
 
 export const createPipelineAgentSessionsService = (db: DbConnection) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
@@ -68,13 +68,13 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
   const settingsDao = createSettingsDao(db);
   const resolveEffectiveRuntime = (input: {
     requestedRuntimeId?: string;
-    runtimes: Array<{ id: string; type: PipelineAgentMode | string } & Record<string, unknown>>;
+    runtimes: Array<{ id: string; type: AgentRuntime } & Record<string, unknown>>;
     defaultRuntime?: string | null;
-  }) => {
+  }): AgentRuntime => {
     if (input.requestedRuntimeId) {
       const requested = input.runtimes.find((runtime) => runtime.id === input.requestedRuntimeId);
       if (requested) {
-        return requested.type as string;
+        return requested.type;
       }
     }
 
@@ -86,10 +86,10 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     const defaultRuntime =
       input.defaultRuntime && input.runtimes.find((runtime) => runtime.type === input.defaultRuntime);
     if (defaultRuntime) {
-      return defaultRuntime.type as string;
+      return defaultRuntime.type;
     }
 
-    return (input.runtimes[0]?.type as string | undefined) ?? "codex";
+    return input.runtimes[0]?.type ?? "codex";
   };
 
   const buildPlanningPrompt = (input: {
@@ -529,20 +529,23 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       }
 
       if (session.mode === "edit") {
+        const editProposal = (
+          parsed as Extract<RelaxedCanvasEditPlanningResult, { type: "proposal" }>
+        ).proposal;
         if (!session.snapshot) {
           throw new Error(`Edit session ${sessionId} is missing a graph snapshot`);
         }
 
         const actionRequest = [
-          parsed.proposal.summary,
-          parsed.proposal.targetGraphIntent
-            ? `Target intent: ${parsed.proposal.targetGraphIntent}`
+          editProposal.summary,
+          editProposal.targetGraphIntent
+            ? `Target intent: ${editProposal.targetGraphIntent}`
             : null,
-          parsed.proposal.majorChanges.length > 0
-            ? `Requested changes: ${parsed.proposal.majorChanges.join("; ")}`
+          editProposal.majorChanges.length > 0
+            ? `Requested changes: ${editProposal.majorChanges.join("; ")}`
             : null,
-          parsed.proposal.assumptions.length > 0
-            ? `Assumptions: ${parsed.proposal.assumptions.join("; ")}`
+          editProposal.assumptions.length > 0
+            ? `Assumptions: ${editProposal.assumptions.join("; ")}`
             : null,
         ]
           .filter(Boolean)
@@ -559,14 +562,14 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
 
         const finalEditProposal: PipelineAgentProposal = {
           mode: "edit",
-          summary: parsed.proposal.summary,
-          targetGraphIntent: parsed.proposal.targetGraphIntent ?? parsed.proposal.summary,
-          majorChanges: parsed.proposal.majorChanges,
-          assumptions: parsed.proposal.assumptions,
-          openQuestions: parsed.proposal.openQuestions,
+          summary: editProposal.summary,
+          targetGraphIntent: editProposal.targetGraphIntent ?? editProposal.summary,
+          majorChanges: editProposal.majorChanges,
+          assumptions: editProposal.assumptions,
+          openQuestions: editProposal.openQuestions,
           actions: actionProposalResult.proposal.actions,
           diagnosticsPreview: actionProposalResult.diagnostics,
-          readiness: parsed.proposal.readiness,
+          readiness: editProposal.readiness,
         };
         const saved = await proposalsDao.create({
           id: crypto.randomUUID(),
@@ -588,12 +591,13 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         };
       }
 
+      const generateProposal = parsed.proposal as Extract<PipelineAgentProposal, { mode: "generate" }>;
       const saved = await proposalsDao.create({
         id: crypto.randomUUID(),
         sessionId,
         mode: session.mode,
         status: "proposal_ready",
-        proposal: parsed.proposal,
+        proposal: generateProposal,
         approvedAt: null,
       });
       await sessionsDao.update(sessionId, {
@@ -603,7 +607,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
 
       return {
         type: "proposal",
-        proposal: parsed.proposal,
+        proposal: generateProposal,
         proposalId: saved.id,
       };
     },

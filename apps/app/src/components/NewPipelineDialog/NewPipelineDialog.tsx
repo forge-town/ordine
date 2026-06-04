@@ -298,13 +298,14 @@ export const NewPipelineDialog = () => {
       return;
     }
 
-    if (uploadResult.value.attachment) {
+    const attachment = uploadResult.value.attachment;
+    if (attachment) {
       setAttachments((prev) => [
         ...prev,
         {
-          id: uploadResult.value.attachment.id,
-          filename: uploadResult.value.attachment.filename,
-          parseStatus: uploadResult.value.attachment.parseStatus ?? "parsed",
+          id: attachment.id,
+          filename: attachment.filename,
+          parseStatus: attachment.parseStatus ?? "parsed",
         },
       ]);
     }
