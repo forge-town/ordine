@@ -208,9 +208,9 @@ describe("SkillToOperationDialog", () => {
         (call) => call[0].resource === "pipelines",
       );
       expect(pipelineCall).toBeTruthy();
-      expect(pipelineCall[0].values.nodes).toHaveLength(2);
-      expect(pipelineCall[0].values.edges).toHaveLength(1);
-      expect(pipelineCall[0].values.pendingOperations).toHaveLength(2);
+      expect(pipelineCall![0].values.nodes).toHaveLength(2);
+      expect(pipelineCall![0].values.edges).toHaveLength(1);
+      expect(pipelineCall![0].values.pendingOperations).toHaveLength(2);
     });
   });
 

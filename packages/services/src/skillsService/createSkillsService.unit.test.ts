@@ -180,7 +180,7 @@ describe("createSkillsService", () => {
 
       expect(result.skillType).toBe("multi-step");
       expect(result.steps).toHaveLength(2);
-      expect(result.steps[0].name).toBe("Define Structure");
+      expect(result.steps[0]!.name).toBe("Define Structure");
     });
 
     it("falls back to single-step when agent throws", async () => {
@@ -190,7 +190,7 @@ describe("createSkillsService", () => {
       const result = await svc.analyzeSkill(skill);
 
       expect(result.skillType).toBe("single-step");
-      expect(result.steps[0].name).toBe("Page Structure");
+      expect(result.steps[0]!.name).toBe("Page Structure");
     });
 
     it("falls back to single-step when agent output is invalid JSON", async () => {
