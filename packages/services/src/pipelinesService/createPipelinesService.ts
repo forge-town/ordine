@@ -929,6 +929,7 @@ export const createPipelinesService = (db: DbConnection) => {
     analyzeIntent: async (opts: {
       name: string;
       description: string;
+      runtimeType?: string;
     }): Promise<{
       matchedOperations: Array<{ operationId: string; operationName: string; reason: string }>;
       unmatchedSteps: Array<{ step: string; reason: string }>;
@@ -971,7 +972,7 @@ export const createPipelinesService = (db: DbConnection) => {
 
       const result = await ResultAsync.fromPromise(
         runAgent({
-          agent: settings.defaultAgentRuntime,
+          agent: opts.runtimeType ?? settings.defaultAgentRuntime,
           systemPrompt: ANALYZE_SYSTEM_PROMPT,
           userPrompt: userPromptText,
           inputPath: process.cwd(),
@@ -1022,6 +1023,7 @@ export const createPipelinesService = (db: DbConnection) => {
       description: string;
       matchedOperations?: Array<{ operationId: string; operationName: string; reason: string }>;
       unmatchedSteps?: Array<{ step: string; reason: string }>;
+      runtimeType?: string;
     }): Promise<
       | {
           nodes: PipelineData["nodes"];
@@ -1156,7 +1158,7 @@ export const createPipelinesService = (db: DbConnection) => {
         for (const attempt of Array.from({ length: MAX_RETRIES }, (_, i) => i + 1)) {
           const result = await ResultAsync.fromPromise(
             runAgent({
-              agent: settings.defaultAgentRuntime,
+              agent: opts.runtimeType ?? settings.defaultAgentRuntime,
               systemPrompt,
               userPrompt: userPromptText,
               inputPath: process.cwd(),

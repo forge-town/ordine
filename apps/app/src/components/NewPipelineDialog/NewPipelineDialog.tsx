@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
+import { ResultAsync } from "neverthrow";
 import {
   CheckCircle2,
   ExternalLink,
@@ -57,6 +58,7 @@ export const NewPipelineDialog = () => {
   >("conversation");
   const [proposal, setProposal] = useState<PipelineAgentProposal | null>(null);
   const [proposalId, setProposalId] = useState<string | null>(null);
+  const [streamingAssistantText, setStreamingAssistantText] = useState("");
   const sessionIdRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const welcomeMessage = t("newPipelineDialog.welcome");
@@ -80,6 +82,7 @@ export const NewPipelineDialog = () => {
       setPhase("conversation");
       setProposal(null);
       setProposalId(null);
+      setStreamingAssistantText("");
 
       return;
     }
@@ -120,7 +123,16 @@ export const NewPipelineDialog = () => {
       return;
     }
 
+    if (event.type === "assistant_chunk") {
+      setStreamingAssistantText((current) =>
+        current.length === 0 ? event.text : `${current}\n${event.text}`,
+      );
+
+      return;
+    }
+
     if (event.type === "question") {
+      setStreamingAssistantText("");
       setMessages((prev) => [
         ...prev,
         {
@@ -135,6 +147,7 @@ export const NewPipelineDialog = () => {
     }
 
     if (event.type === "proposal_ready") {
+      setStreamingAssistantText("");
       setProposal(event.proposal);
       setProposalId(event.proposalId);
       setPhase("proposal_ready");
@@ -143,6 +156,7 @@ export const NewPipelineDialog = () => {
     }
 
     if (event.type === "error") {
+      setStreamingAssistantText("");
       setErrorMessage(event.message);
       setPhase("conversation");
     }
@@ -162,17 +176,28 @@ export const NewPipelineDialog = () => {
     setInputValue("");
     setProposal(null);
     setProposalId(null);
+    setStreamingAssistantText("");
     setPhase("planning");
 
-    const sessionId = await ensureSession();
-    await pipelineAgentSessionsClient.appendMessage(sessionId, {
-      role: "user",
-      kind: "text",
-      content: text,
-    });
-    await pipelineAgentSessionsClient.planSessionStream(sessionId, {
-      onEvent: handleEvent,
-    });
+    const sendResult = await ResultAsync.fromPromise(
+      (async () => {
+        const sessionId = await ensureSession();
+        await pipelineAgentSessionsClient.appendMessage(sessionId, {
+          role: "user",
+          kind: "text",
+          content: text,
+        });
+        await pipelineAgentSessionsClient.planSessionStream(sessionId, {
+          onEvent: handleEvent,
+        });
+      })(),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
+    );
+    if (sendResult.isErr()) {
+      setStreamingAssistantText("");
+      setErrorMessage(sendResult.error.message);
+      setPhase("conversation");
+    }
   };
 
   const handleApprove = async () => {
@@ -182,11 +207,24 @@ export const NewPipelineDialog = () => {
 
     setErrorMessage(null);
     setPhase("generating");
-    await pipelineAgentSessionsClient.approveProposal(sessionIdRef.current, proposalId);
-    const result = await pipelineAgentSessionsClient.generatePipelineFromApprovedProposal(
-      sessionIdRef.current,
+    const generationResult = await ResultAsync.fromPromise(
+      (async () => {
+        await pipelineAgentSessionsClient.approveProposal(sessionIdRef.current!, proposalId);
+
+        return pipelineAgentSessionsClient.generatePipelineFromApprovedProposal(
+          sessionIdRef.current!,
+        );
+      })(),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
     );
-    setCreatedPipelineId(result.pipelineId);
+    if (generationResult.isErr()) {
+      setErrorMessage(generationResult.error.message);
+      setPhase("proposal_ready");
+
+      return;
+    }
+
+    setCreatedPipelineId(generationResult.value.pipelineId);
     setPhase("success");
   };
 
@@ -250,14 +288,23 @@ export const NewPipelineDialog = () => {
     event.target.value = "";
 
     const sessionId = await ensureSession();
-    const result = await pipelineAgentSessionsClient.uploadAttachment(sessionId, file);
-    if (result.attachment) {
+    const uploadResult = await ResultAsync.fromPromise(
+      pipelineAgentSessionsClient.uploadAttachment(sessionId, file),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
+    );
+    if (uploadResult.isErr()) {
+      setErrorMessage(uploadResult.error.message);
+
+      return;
+    }
+
+    if (uploadResult.value.attachment) {
       setAttachments((prev) => [
         ...prev,
         {
-          id: result.attachment.id,
-          filename: result.attachment.filename,
-          parseStatus: result.attachment.parseStatus ?? "parsed",
+          id: uploadResult.value.attachment.id,
+          filename: uploadResult.value.attachment.filename,
+          parseStatus: uploadResult.value.attachment.parseStatus ?? "parsed",
         },
       ]);
     }
@@ -325,6 +372,11 @@ export const NewPipelineDialog = () => {
                     {message.content}
                   </div>
                 ))}
+                {streamingAssistantText && (
+                  <div className="rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground whitespace-pre-wrap">
+                    {streamingAssistantText}
+                  </div>
+                )}
               </div>
 
               {attachments.length > 0 && (

@@ -1,10 +1,12 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
+import JSZip from "jszip";
+import { ResultAsync } from "neverthrow";
+import { z } from "zod/v4";
 import {
   createAgentRuntimesDao,
   createOperationsDao,
-  createPipelinesDao,
   createPipelineAgentAttachmentsDao,
   createPipelineAgentContextArtifactsDao,
   createPipelineAgentMessagesDao,
@@ -15,6 +17,7 @@ import {
 } from "@repo/models";
 import { extractJsonFromText } from "@repo/agent";
 import {
+  PipelineAgentPlanReadinessSchema,
   PipelineAgentPlanningResultSchema,
   PipelineSchema,
   type PipelineAgentAttachmentParseStatus,
@@ -32,17 +35,62 @@ import {
   type PipelineGraphSnapshot,
 } from "@repo/schemas";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
+import { createPipelinesService } from "../pipelinesService/createPipelinesService";
+
+const RelaxedCanvasEditPlanningResultSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("question"),
+    question: z.string().min(1),
+  }),
+  z.object({
+    type: z.literal("proposal"),
+    proposal: z.object({
+      mode: z.literal("edit"),
+      summary: z.string().min(1),
+      targetGraphIntent: z.string().optional(),
+      majorChanges: z.array(z.string()).default([]),
+      assumptions: z.array(z.string()).default([]),
+      openQuestions: z.array(z.string()).default([]),
+      readiness: PipelineAgentPlanReadinessSchema.default("ready_for_generation"),
+    }),
+  }),
+]);
 
 export const createPipelineAgentSessionsService = (db: DbConnection) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
   const operationsDao = createOperationsDao(db);
-  const pipelinesDao = createPipelinesDao(db);
+  const pipelinesService = createPipelinesService(db);
   const sessionsDao = createPipelineAgentSessionsDao(db);
   const messagesDao = createPipelineAgentMessagesDao(db);
   const attachmentsDao = createPipelineAgentAttachmentsDao(db);
   const contextArtifactsDao = createPipelineAgentContextArtifactsDao(db);
   const proposalsDao = createPipelineAgentProposalsDao(db);
   const settingsDao = createSettingsDao(db);
+  const resolveEffectiveRuntime = (input: {
+    requestedRuntimeId?: string;
+    runtimes: Array<{ id: string; type: PipelineAgentMode | string } & Record<string, unknown>>;
+    defaultRuntime?: string | null;
+  }) => {
+    if (input.requestedRuntimeId) {
+      const requested = input.runtimes.find((runtime) => runtime.id === input.requestedRuntimeId);
+      if (requested) {
+        return requested.type as string;
+      }
+    }
+
+    const codexRuntime = input.runtimes.find((runtime) => runtime.type === "codex");
+    if (codexRuntime) {
+      return "codex";
+    }
+
+    const defaultRuntime =
+      input.defaultRuntime && input.runtimes.find((runtime) => runtime.type === input.defaultRuntime);
+    if (defaultRuntime) {
+      return defaultRuntime.type as string;
+    }
+
+    return (input.runtimes[0]?.type as string | undefined) ?? "codex";
+  };
 
   const buildPlanningPrompt = (input: {
     artifacts: Awaited<ReturnType<typeof contextArtifactsDao.findManyBySessionId>>;
@@ -115,14 +163,55 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         : "Open questions: (none)",
     ].join("\n");
 
-  const decodeText = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
+  const buildArtifactSummary = (
+    artifacts: Awaited<ReturnType<typeof contextArtifactsDao.findManyBySessionId>>,
+  ) =>
+    artifacts.length === 0
+      ? "(none)"
+      : artifacts
+          .map((artifact) => {
+            const summary =
+              typeof artifact.content.summary === "string" && artifact.content.summary.trim().length > 0
+                ? artifact.content.summary
+                : JSON.stringify(artifact.content);
 
-  const getAttachmentKindAndContent = (input: {
+            return `- ${artifact.kind}: ${summary}`;
+          })
+          .join("\n");
+
+  const decodeText = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
+  const normalizeWhitespace = (value: string) => value.replaceAll(/\s+/g, " ").trim();
+  const extractPdfText = (bytes: Uint8Array) => {
+    const raw = decodeText(bytes);
+    const matches = [...raw.matchAll(/\(([^()]+)\)/g)].map((match) => match[1] ?? "");
+
+    return normalizeWhitespace(matches.join(" "));
+  };
+  const extractDocxText = async (bytes: Uint8Array) => {
+    const zip = await JSZip.loadAsync(bytes);
+    const documentXml = await zip.file("word/document.xml")?.async("string");
+    if (!documentXml) {
+      return "";
+    }
+
+    return normalizeWhitespace(
+      documentXml
+        .replaceAll(/<[^>]+>/g, " ")
+        .replaceAll(/&amp;/g, "&")
+        .replaceAll(/&lt;/g, "<")
+        .replaceAll(/&gt;/g, ">"),
+    );
+  };
+
+  const getAttachmentKindAndContent = async (input: {
     bytes: Uint8Array;
     filename: string;
     mimeType: string;
     sizeBytes: number;
-  }): { content: PipelineAgentContextArtifactContent; kind: PipelineAgentContextArtifactKind } => {
+  }): Promise<{
+    content: PipelineAgentContextArtifactContent;
+    kind: PipelineAgentContextArtifactKind;
+  }> => {
     const extension = extname(input.filename).toLowerCase();
     const textExtensions = new Set([".txt", ".md", ".json", ".csv", ".yaml", ".yml"]);
     const documentExtensions = new Set([".pdf", ".docx"]);
@@ -155,10 +244,16 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     }
 
     if (documentExtensions.has(extension)) {
+      const extractedText = extension === ".docx" ? await extractDocxText(input.bytes) : extractPdfText(input.bytes);
+
       return {
         kind: "document_extract",
         content: {
-          summary: `Document uploaded: ${input.filename}. v1 stores this as structured document context and keeps the original file for downstream review.`,
+          text: extractedText,
+          summary:
+            extractedText.length > 0
+              ? extractedText.slice(0, 4000)
+              : `Document uploaded: ${input.filename}.`,
           mediaType: input.mimeType,
           metadata: {
             filename: input.filename,
@@ -272,7 +367,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         parseError: null,
       });
 
-      const artifactShape = getAttachmentKindAndContent(input);
+      const artifactShape = await getAttachmentKindAndContent(input);
       const artifact = await contextArtifactsDao.create({
         id: crypto.randomUUID(),
         sessionId,
@@ -389,12 +484,11 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         operationsDao.findMany(),
         agentRuntimesDao.findMany(),
       ]);
-
-      const selectedRuntime = input?.runtimeId
-        ? runtimes.find((runtime) => runtime.id === input.runtimeId) ?? null
-        : null;
-      const effectiveRuntime =
-        selectedRuntime?.type ?? settings.defaultAgentRuntime ?? "codex";
+      const effectiveRuntime = resolveEffectiveRuntime({
+        requestedRuntimeId: input?.runtimeId,
+        runtimes,
+        defaultRuntime: settings.defaultAgentRuntime ?? null,
+      });
 
       const raw = await runAgent({
         agent: effectiveRuntime,
@@ -416,9 +510,10 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         onProgress: input?.onProgress,
       });
 
-      const parsed = PipelineAgentPlanningResultSchema.parse(
-        JSON.parse(extractJsonFromText(raw)),
-      ) as PipelineAgentPlanningResult;
+      const parsed = (session.mode === "edit"
+        ? RelaxedCanvasEditPlanningResultSchema
+        : PipelineAgentPlanningResultSchema
+      ).parse(JSON.parse(extractJsonFromText(raw)));
 
       if (parsed.type === "question") {
         await messagesDao.create({
@@ -431,6 +526,66 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         await sessionsDao.update(sessionId, { status: "awaiting_user" });
 
         return parsed;
+      }
+
+      if (session.mode === "edit") {
+        if (!session.snapshot) {
+          throw new Error(`Edit session ${sessionId} is missing a graph snapshot`);
+        }
+
+        const actionRequest = [
+          parsed.proposal.summary,
+          parsed.proposal.targetGraphIntent
+            ? `Target intent: ${parsed.proposal.targetGraphIntent}`
+            : null,
+          parsed.proposal.majorChanges.length > 0
+            ? `Requested changes: ${parsed.proposal.majorChanges.join("; ")}`
+            : null,
+          parsed.proposal.assumptions.length > 0
+            ? `Assumptions: ${parsed.proposal.assumptions.join("; ")}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join("\n");
+        const actionProposalResult = await pipelinesService.proposeActions({
+          snapshot: session.snapshot,
+          message: actionRequest,
+          pipelineId: session.pipelineId ?? undefined,
+          runtimeId: input?.runtimeId,
+        });
+        if (!actionProposalResult.proposal) {
+          throw new Error("Failed to generate executable canvas edit actions");
+        }
+
+        const finalEditProposal: PipelineAgentProposal = {
+          mode: "edit",
+          summary: parsed.proposal.summary,
+          targetGraphIntent: parsed.proposal.targetGraphIntent ?? parsed.proposal.summary,
+          majorChanges: parsed.proposal.majorChanges,
+          assumptions: parsed.proposal.assumptions,
+          openQuestions: parsed.proposal.openQuestions,
+          actions: actionProposalResult.proposal.actions,
+          diagnosticsPreview: actionProposalResult.diagnostics,
+          readiness: parsed.proposal.readiness,
+        };
+        const saved = await proposalsDao.create({
+          id: crypto.randomUUID(),
+          sessionId,
+          mode: session.mode,
+          status: "proposal_ready",
+          proposal: finalEditProposal,
+          approvedAt: null,
+        });
+        await sessionsDao.update(sessionId, {
+          latestProposalId: saved.id,
+          status: "proposal_ready",
+        });
+
+        return {
+          type: "proposal",
+          proposal: finalEditProposal,
+          proposalId: saved.id,
+        };
       }
 
       const saved = await proposalsDao.create({
@@ -470,67 +625,67 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         throw new Error(`Approved generate proposal not found for session ${sessionId}`);
       }
 
-      const [settings, operations, messages, artifacts, runtimes] = await Promise.all([
-        settingsDao.get(),
-        operationsDao.findMany(),
+      const [messages, artifacts, settings, runtimes] = await Promise.all([
         messagesDao.findManyBySessionId(sessionId),
         contextArtifactsDao.findManyBySessionId(sessionId),
+        settingsDao.get(),
         agentRuntimesDao.findMany(),
       ]);
-      const effectiveRuntime =
-        runtimes.find((runtime) => runtime.type === settings.defaultAgentRuntime)?.type ??
-        settings.defaultAgentRuntime ??
-        "codex";
+      const effectiveRuntime = resolveEffectiveRuntime({
+        runtimes,
+        defaultRuntime: settings.defaultAgentRuntime ?? null,
+      });
+      const pipelineName = proposalRecord.proposal.purpose;
+      const pipelineDescription = [
+        buildGenerationDescription(proposalRecord.proposal),
+        "Conversation context:",
+        messages.map((message) => `[${message.role}/${message.kind}] ${message.content}`).join("\n") || "(none)",
+        "",
+        "Attachment context:",
+        buildArtifactSummary(artifacts),
+      ].join("\n\n");
 
       await sessionsDao.update(sessionId, { status: "generating" });
 
-      const raw = await runAgent({
-        agent: effectiveRuntime,
-        systemPrompt:
-          'Generate a pipeline graph JSON object with shape {"nodes":[...],"edges":[...]}. Return JSON only.',
-        userPrompt: [
-          "Use the approved pipeline proposal to generate the pipeline graph.",
-          "",
-          buildGenerationDescription(proposalRecord.proposal),
-          "",
-          "Conversation:",
-          messages.map((message) => `[${message.role}] ${message.content}`).join("\n") || "(none)",
-          "",
-          "Attachment context:",
-          artifacts
-            .map((artifact) => JSON.stringify({ kind: artifact.kind, content: artifact.content }))
-            .join("\n") || "(none)",
-          "",
-          "Available operations:",
-          JSON.stringify(
-            operations.map((operation) => ({
-              id: operation.id,
-              name: operation.name,
-              description: operation.description,
-              acceptedObjectTypes: operation.acceptedObjectTypes,
-            })),
-          ),
-        ].join("\n"),
-        inputPath: process.cwd(),
-        agentId: "pipeline-agent-generator",
-        allowedTools: [],
-        logPrefix: "pipelineAgentGenerate",
-        apiKey: settings.defaultApiKey,
-        model: settings.defaultModel,
-      });
+      const generationResult = await ResultAsync.fromPromise(
+        (async () => {
+          const analysis = await pipelinesService.analyzeIntent({
+            name: pipelineName,
+            description: pipelineDescription,
+            runtimeType: effectiveRuntime,
+          });
+          const generated = await pipelinesService.generateStructure({
+            name: pipelineName,
+            description: pipelineDescription,
+            matchedOperations: analysis.matchedOperations,
+            unmatchedSteps: analysis.unmatchedSteps,
+            runtimeType: effectiveRuntime,
+          });
+          if ("error" in generated) {
+            throw new Error(generated.error);
+          }
+          if (generated.pendingOperations && generated.pendingOperations.length > 0) {
+            await pipelinesService.createPendingOperations(generated.pendingOperations);
+          }
 
-      const parsedGraph = PipelineSchema.pick({ nodes: true, edges: true }).parse(
-        JSON.parse(extractJsonFromText(raw)),
+          return pipelinesService.create({
+            id: crypto.randomUUID(),
+            name: pipelineName,
+            description: pipelineDescription,
+            tags: ["agent-generated"],
+            timeoutMs: null,
+            nodes: generated.nodes,
+            edges: generated.edges,
+          });
+        })(),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
       );
-      const pipeline = await pipelinesDao.create({
-        id: crypto.randomUUID(),
-        name: proposalRecord.proposal.purpose,
-        description: buildGenerationDescription(proposalRecord.proposal),
-        tags: ["agent-generated"],
-        timeoutMs: null,
-        nodes: parsedGraph.nodes,
-        edges: parsedGraph.edges,
-      });
+      if (generationResult.isErr()) {
+        await sessionsDao.update(sessionId, { status: "proposal_ready" });
+        throw generationResult.error;
+      }
+
+      const pipeline = generationResult.value;
 
       await sessionsDao.update(sessionId, {
         status: "completed",

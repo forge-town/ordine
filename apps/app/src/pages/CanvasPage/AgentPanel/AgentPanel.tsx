@@ -133,6 +133,7 @@ export const AgentPanel = () => {
   const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
   const [localProposalPreview, setLocalProposalPreview] = useState<LocalProposalPreview | null>(null);
+  const [streamingAssistantText, setStreamingAssistantText] = useState("");
   const [streamingProgress, setStreamingProgress] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -225,7 +226,16 @@ export const AgentPanel = () => {
         return;
       }
 
+      if (event.type === "assistant_chunk") {
+        setStreamingAssistantText((current) =>
+          current.length === 0 ? event.text : `${current}\n${event.text}`,
+        );
+
+        return;
+      }
+
       if (event.type === "question") {
+        setStreamingAssistantText("");
         setMessages((prev) => [
           ...prev,
           {
@@ -243,6 +253,7 @@ export const AgentPanel = () => {
 
       if (event.type === "proposal_ready" && event.proposal.mode === "edit") {
         const editProposal = event.proposal;
+        setStreamingAssistantText("");
         proposalIdRef.current = event.proposalId;
         const nextProposal: PipelineActionProposal = {
           summary: editProposal.summary,
@@ -269,6 +280,7 @@ export const AgentPanel = () => {
       }
 
       if (event.type === "error") {
+        setStreamingAssistantText("");
         setMessages((prev) => [
           ...prev,
           {
@@ -314,6 +326,7 @@ export const AgentPanel = () => {
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setLocalProposalPreview(null);
+    setStreamingAssistantText("");
     scrollToBottom();
     setIsSending(true);
     setStreamingProgress(null);
@@ -366,16 +379,35 @@ export const AgentPanel = () => {
     setNeedsRuntimeSetup(false);
 
     const sessionId = await ensureSession();
-    await pipelineAgentSessionsClient.appendMessage(sessionId, {
-      role: "user",
-      kind: "text",
-      content: text,
-    });
+    const sendResult = await ResultAsync.fromPromise(
+      (async () => {
+        await pipelineAgentSessionsClient.appendMessage(sessionId, {
+          role: "user",
+          kind: "text",
+          content: text,
+        });
 
-    await pipelineAgentSessionsClient.planSessionStream(sessionId, {
-      runtimeId: effectiveRuntimeId,
-      onEvent: handlePlanEvent,
-    });
+        await pipelineAgentSessionsClient.planSessionStream(sessionId, {
+          runtimeId: effectiveRuntimeId,
+          onEvent: handlePlanEvent,
+        });
+      })(),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
+    );
+    if (sendResult.isErr()) {
+      setStreamingAssistantText("");
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-error-${Date.now()}`,
+          role: "assistant",
+          content: sendResult.error.message,
+        },
+      ]);
+      setStreamingProgress(null);
+      setIsSending(false);
+      scrollToBottom();
+    }
   }, [
     inputValue,
     isSending,
@@ -429,19 +461,32 @@ export const AgentPanel = () => {
       event.target.value = "";
 
       const sessionId = await ensureSession();
-      const result = await pipelineAgentSessionsClient.uploadAttachment(sessionId, file);
-      if (result.attachment) {
-      setAttachments((prev) => [
+      const uploadResult = await ResultAsync.fromPromise(
+        pipelineAgentSessionsClient.uploadAttachment(sessionId, file),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      );
+      if (uploadResult.isErr()) {
+        toastStore.getState().addToast({
+          type: "error",
+          title: t("canvas.agentPanel.errorTitle"),
+          description: uploadResult.error.message,
+        });
+
+        return;
+      }
+
+      if (uploadResult.value.attachment) {
+        setAttachments((prev) => [
           ...prev,
           {
-            id: result.attachment.id,
-            filename: result.attachment.filename,
-            parseStatus: result.attachment.parseStatus ?? "parsed",
+            id: uploadResult.value.attachment.id,
+            filename: uploadResult.value.attachment.filename,
+            parseStatus: uploadResult.value.attachment.parseStatus ?? "parsed",
           },
         ]);
       }
     },
-    [ensureSession],
+    [ensureSession, t],
   );
 
   const hasBlockingDiagnostics =
@@ -458,8 +503,24 @@ export const AgentPanel = () => {
     }
 
     const run = async () => {
-      if (sessionIdRef.current && proposalIdRef.current) {
-        await pipelineAgentSessionsClient.approveProposal(sessionIdRef.current, proposalIdRef.current);
+      const approvalResult = await ResultAsync.fromPromise(
+        sessionIdRef.current && proposalIdRef.current
+          ? pipelineAgentSessionsClient.approveProposal(sessionIdRef.current, proposalIdRef.current)
+          : Promise.resolve(),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      );
+      if (approvalResult.isErr()) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `assistant-error-${Date.now()}`,
+            role: "assistant",
+            content: approvalResult.error.message,
+          },
+        ]);
+        scrollToBottom();
+
+        return;
       }
       const applied = applyAgentProposal(activeProposal);
       if (!applied) {
@@ -581,10 +642,16 @@ export const AgentPanel = () => {
                 msg.role === "user"
                   ? "ml-auto bg-primary text-primary-foreground"
                   : "mr-auto bg-muted",
-              )}>
+              )}
+            >
               {msg.content}
             </div>
           ))}
+          {streamingAssistantText && (
+            <div className="mr-auto max-w-[90%] whitespace-pre-wrap rounded-lg border border-dashed bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+              {streamingAssistantText}
+            </div>
+          )}
 
           {(isSending || agentPanel.isLoading) && (
             <div className="mr-auto flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
@@ -593,10 +660,8 @@ export const AgentPanel = () => {
             </div>
           )}
           <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
 
-      {/* Diagnostics */}
+          {/* Diagnostics */}
           {activeDiagnostics && activeDiagnostics.length > 0 && (
             <div className="border-t">
               <div className="flex flex-col gap-2 p-3">
@@ -604,71 +669,75 @@ export const AgentPanel = () => {
                   {t("canvas.agentPanel.diagnostics")}
                 </span>
                 {activeDiagnostics.map((d, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "flex items-start gap-2 rounded-md px-2.5 py-2 text-xs",
-                  d.severity === "error"
-                    ? "border border-red-200 bg-red-50 text-red-700"
-                    : "border border-amber-200 bg-amber-50 text-amber-700",
-                )}>
-                {d.severity === "error" ? (
-                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                ) : (
-                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                )}
-                <span>{d.message}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Proposal */}
-      {hasProposal && (
-        <div className="border-t">
-          <div className="flex flex-col gap-2 p-3">
-            <span className="text-xs font-medium text-muted-foreground">
-              {t("canvas.agentPanel.proposal")}
-            </span>
-            <div className="rounded-md border bg-muted/50 p-2.5">
-              <p className="mb-2 text-xs font-medium">{proposal.summary}</p>
-              <ul className="flex flex-col gap-1">
-                {proposal.actions.map((action, i) => (
-                  <li
+                  <div
                     key={i}
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
-                    {getActionLabel(action, t)}
-                  </li>
+                    className={cn(
+                      "flex items-start gap-2 rounded-md px-2.5 py-2 text-xs",
+                      d.severity === "error"
+                        ? "border border-red-200 bg-red-50 text-red-700"
+                        : "border border-amber-200 bg-amber-50 text-amber-700",
+                    )}
+                  >
+                    {d.severity === "error" ? (
+                      <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    ) : (
+                      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    )}
+                    <span>{d.message}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                className="h-8 flex-1 gap-1 text-xs"
-                disabled={
-                  isSending || agentPanel.isLoading || hasBlockingDiagnostics
-                }
-                size="sm"
-                variant="default"
-                onClick={handleApply}>
-                <Check className="h-3.5 w-3.5" />
-                {t("canvas.agentPanel.apply")}
-              </Button>
-              <Button
-                className="h-8 flex-1 gap-1 text-xs"
-                disabled={isSending || agentPanel.isLoading}
-                size="sm"
-                variant="outline"
-                onClick={handleDiscard}>
-                <Trash2 className="h-3.5 w-3.5" />
-                {t("canvas.agentPanel.discard")}
-              </Button>
+          )}
+
+          {/* Proposal */}
+          {hasProposal && (
+            <div className="border-t">
+              <div className="flex flex-col gap-2 p-3">
+                <span className="text-xs font-medium text-muted-foreground">
+                  {t("canvas.agentPanel.proposal")}
+                </span>
+                <div className="rounded-md border bg-muted/50 p-2.5">
+                  <p className="mb-2 text-xs font-medium">{proposal.summary}</p>
+                  <ul className="flex flex-col gap-1">
+                    {proposal.actions.map((action, i) => (
+                      <li
+                        key={i}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                      >
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+                        {getActionLabel(action, t)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    className="h-8 flex-1 gap-1 text-xs"
+                    disabled={isSending || agentPanel.isLoading || hasBlockingDiagnostics}
+                    size="sm"
+                    variant="default"
+                    onClick={handleApply}
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                    {t("canvas.agentPanel.apply")}
+                  </Button>
+                  <Button
+                    className="h-8 flex-1 gap-1 text-xs"
+                    disabled={isSending || agentPanel.isLoading}
+                    size="sm"
+                    variant="outline"
+                    onClick={handleDiscard}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {t("canvas.agentPanel.discard")}
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </ScrollArea>
 
       {needsRuntimeSetup && (
         <div className="border-t bg-amber-50/70">

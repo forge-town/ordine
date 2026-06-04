@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import JSZip from "jszip";
 
 const mockSessionsDao = {
   create: vi.fn(),
@@ -45,6 +46,13 @@ const mockAgentRuntimesDao = {
 const mockPipelinesDao = {
   create: vi.fn(),
 };
+const mockPipelinesService = {
+  analyzeIntent: vi.fn(),
+  create: vi.fn(),
+  createPendingOperations: vi.fn(),
+  generateStructure: vi.fn(),
+  proposeActions: vi.fn(),
+};
 
 const mockRunAgent = vi.fn();
 const mockExtractJsonFromText = vi.fn((raw: string) => raw);
@@ -69,6 +77,10 @@ vi.mock("../pipelineRunnerService/agentRunner/agentRunner", () => ({
   runAgent: (opts: unknown) => mockRunAgent(opts),
 }));
 
+vi.mock("../pipelinesService/createPipelinesService", () => ({
+  createPipelinesService: () => mockPipelinesService,
+}));
+
 import { createPipelineAgentSessionsService } from "./createPipelineAgentSessionsService";
 
 describe("createPipelineAgentSessionsService", () => {
@@ -85,6 +97,12 @@ describe("createPipelineAgentSessionsService", () => {
       id: data.id ?? "message-1",
       ...data,
       createdAt: new Date("2026-06-03T12:00:01.000Z"),
+    }));
+    mockContextArtifactsDao.create.mockImplementation(async (data) => ({
+      id: data.id ?? "artifact-1",
+      ...data,
+      createdAt: new Date("2026-06-03T12:00:01.500Z"),
+      updatedAt: new Date("2026-06-03T12:00:01.500Z"),
     }));
     mockProposalsDao.create.mockImplementation(async (data) => ({
       id: data.id ?? "proposal-1",
@@ -154,6 +172,33 @@ describe("createPipelineAgentSessionsService", () => {
       createdAt: data.createdAt ?? new Date("2026-06-03T12:00:05.000Z"),
       updatedAt: data.updatedAt ?? new Date("2026-06-03T12:00:05.000Z"),
     }));
+    mockPipelinesService.analyzeIntent.mockResolvedValue({
+      matchedOperations: [{ operationId: "review-code", operationName: "Review Code", reason: "Matches code review" }],
+      unmatchedSteps: [],
+    });
+    mockPipelinesService.generateStructure.mockResolvedValue({
+      nodes: [],
+      edges: [],
+    });
+    mockPipelinesService.createPendingOperations.mockResolvedValue(undefined);
+    mockPipelinesService.create.mockImplementation(async (data) => ({
+      id: data.id ?? "pipeline-1",
+      ...data,
+      createdAt: new Date("2026-06-03T12:00:05.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:05.000Z"),
+    }));
+    mockPipelinesService.proposeActions.mockResolvedValue({
+      proposal: {
+        summary: "Delete invalid middle nodes",
+        actions: [
+          {
+            type: "removeNode",
+            nodeId: "node-1",
+          },
+        ],
+      },
+      diagnostics: [],
+    });
     mockProposalsDao.findManyBySessionId.mockResolvedValue([
       {
         id: "proposal-1",
@@ -447,6 +492,60 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
+  it("bridges edit planning into executable canvas actions", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-edit",
+      entrypoint: "canvas-agent-panel",
+      mode: "edit",
+      status: "draft",
+      pipelineId: "pipe-1",
+      snapshot: { nodes: [], edges: [] },
+      latestProposalId: null,
+      approvedProposalId: null,
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    mockRunAgent.mockResolvedValueOnce(
+      JSON.stringify({
+        type: "proposal",
+        proposal: {
+          mode: "edit",
+          summary: "Delete invalid middle nodes",
+          targetGraphIntent: "Simplify the graph to input and output only",
+          majorChanges: ["Remove invalid middle nodes"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+          actions: ["placeholder"],
+          diagnosticsPreview: ["placeholder"],
+        },
+      }),
+    );
+
+    const service = createPipelineAgentSessionsService({} as never);
+    const result = await service.planSession("session-edit", {
+      runtimeId: "runtime-codex",
+    });
+
+    expect(mockPipelinesService.proposeActions).toHaveBeenCalledWith({
+      snapshot: { nodes: [], edges: [] },
+      message: expect.stringContaining("Delete invalid middle nodes"),
+      pipelineId: "pipe-1",
+      runtimeId: "runtime-codex",
+    });
+    expect(result).toEqual(
+      expect.objectContaining({
+        type: "proposal",
+        proposal: expect.objectContaining({
+          mode: "edit",
+          summary: "Delete invalid middle nodes",
+          actions: [{ type: "removeNode", nodeId: "node-1" }],
+        }),
+      }),
+    );
+  });
+
   it("generates a new pipeline draft from an approved generate proposal", async () => {
     mockSessionsDao.findById.mockResolvedValueOnce({
       id: "session-1",
@@ -482,8 +581,23 @@ describe("createPipelineAgentSessionsService", () => {
     const service = createPipelineAgentSessionsService({} as never);
     const result = await service.generatePipelineFromApprovedProposal("session-1");
 
-    expect(mockRunAgent).toHaveBeenCalled();
-    expect(mockPipelinesDao.create).toHaveBeenCalledWith(
+    expect(mockPipelinesService.analyzeIntent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Review repository code",
+        description: expect.stringContaining("Purpose: Review repository code"),
+        runtimeType: "codex",
+      }),
+    );
+    expect(mockPipelinesService.generateStructure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Review repository code",
+        description: expect.stringContaining("Purpose: Review repository code"),
+        matchedOperations: expect.any(Array),
+        unmatchedSteps: expect.any(Array),
+        runtimeType: "codex",
+      }),
+    );
+    expect(mockPipelinesService.create).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Review repository code",
         nodes: [],
@@ -495,6 +609,74 @@ describe("createPipelineAgentSessionsService", () => {
       expect.objectContaining({
         status: "completed",
         createdPipelineId: result.pipeline.id,
+      }),
+    );
+  });
+
+  it("extracts text content from plain text attachments", async () => {
+    const service = createPipelineAgentSessionsService({} as never);
+
+    const result = await service.ingestAttachment("session-1", {
+      bytes: new TextEncoder().encode("hello world"),
+      filename: "brief.txt",
+      mimeType: "text/plain",
+      sizeBytes: 11,
+    });
+
+    expect(result.artifacts[0]).toEqual(
+      expect.objectContaining({
+        kind: "text_extract",
+        content: expect.objectContaining({
+          text: "hello world",
+        }),
+      }),
+    );
+  });
+
+  it("extracts basic text content from docx attachments", async () => {
+    const zip = new JSZip();
+    zip.file(
+      "word/document.xml",
+      '<?xml version="1.0" encoding="UTF-8"?><w:document><w:body><w:p><w:r><w:t>Hello DOCX</w:t></w:r></w:p></w:body></w:document>',
+    );
+    const bytes = new Uint8Array(await zip.generateAsync({ type: "uint8array" }));
+    const service = createPipelineAgentSessionsService({} as never);
+
+    const result = await service.ingestAttachment("session-1", {
+      bytes,
+      filename: "brief.docx",
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      sizeBytes: bytes.byteLength,
+    });
+
+    expect(result.artifacts[0]).toEqual(
+      expect.objectContaining({
+        kind: "document_extract",
+        content: expect.objectContaining({
+          text: expect.stringContaining("Hello DOCX"),
+        }),
+      }),
+    );
+  });
+
+  it("extracts basic text content from simple pdf attachments", async () => {
+    const pdfText = `%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\nBT /F1 12 Tf 72 720 Td (Hello PDF) Tj ET\n%%EOF`;
+    const service = createPipelineAgentSessionsService({} as never);
+
+    const result = await service.ingestAttachment("session-1", {
+      bytes: new TextEncoder().encode(pdfText),
+      filename: "brief.pdf",
+      mimeType: "application/pdf",
+      sizeBytes: pdfText.length,
+    });
+
+    expect(result.artifacts[0]).toEqual(
+      expect.objectContaining({
+        kind: "document_extract",
+        content: expect.objectContaining({
+          text: expect.stringContaining("Hello PDF"),
+        }),
       }),
     );
   });

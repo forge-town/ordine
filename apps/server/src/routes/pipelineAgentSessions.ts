@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import {
   PipelineAgentEntrypointSchema,
@@ -111,6 +112,7 @@ pipelineAgentSessionsRoutes.post("/:id/plan", async (c) => {
           runtimeId: parsed.data.runtimeId,
           onProgress: (message) => {
             send("progress", { message });
+            send("assistant_chunk", { text: message });
           },
         })
         .then((result) => {
@@ -154,9 +156,13 @@ pipelineAgentSessionsRoutes.post("/:id/approve", async (c) => {
 });
 
 pipelineAgentSessionsRoutes.post("/:id/generate", async (c) => {
-  const result = await pipelineAgentSessionsService.generatePipelineFromApprovedProposal(
-    c.req.param("id"),
+  const result = await ResultAsync.fromPromise(
+    pipelineAgentSessionsService.generatePipelineFromApprovedProposal(c.req.param("id")),
+    (error) => (error instanceof Error ? error : new Error(String(error))),
   );
+  if (result.isErr()) {
+    return c.json({ error: result.error.message }, 500);
+  }
 
-  return c.json({ pipelineId: result.pipeline.id });
+  return c.json({ pipelineId: result.value.pipeline.id });
 });
