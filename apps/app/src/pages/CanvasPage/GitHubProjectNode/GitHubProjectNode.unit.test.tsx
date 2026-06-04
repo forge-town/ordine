@@ -2,7 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
-import { CanvasPageStoreProvider } from "../_store";
+import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
 import { GitHubProjectNode } from "./GitHubProjectNode";
 
 vi.mock("@refinedev/core", () => ({
@@ -17,9 +17,16 @@ vi.mock("@refinedev/core", () => ({
 }));
 
 const wrapper = ({ children }: { children?: React.ReactNode }) => (
-  <CanvasPageStoreProvider>
+  <CanvasPageStoreContext.Provider
+    value={(() => {
+      const store = createCanvasPageStore();
+      store.setState({ nodeCardMode: "expanded" });
+
+      return store;
+    })()}
+  >
     <ReactFlowProvider>{children}</ReactFlowProvider>
-  </CanvasPageStoreProvider>
+  </CanvasPageStoreContext.Provider>
 );
 
 const baseData = {

@@ -176,6 +176,21 @@
       "when": 1778485461000,
       "tag": "0024_add_agents_system_prompt_check",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1778700000000,
+      "tag": "0025_rename_agent_system_to_agent_runtime",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1778800000000,
+      "tag": "0026_add_source_skill_id_to_operations",
+      "breakpoints": true
     }
   ]
 }
+

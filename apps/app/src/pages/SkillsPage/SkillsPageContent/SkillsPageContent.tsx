@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from "react";
+import { useMemo, useState, type ChangeEvent, type MouseEvent } from "react";
 import { useStore } from "zustand";
 import { Download, Plus, Search, Trash2, Wand2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -12,7 +12,7 @@ import { useCreate, useDataProvider, useDelete, useList } from "@refinedev/core"
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
-import { useSkillsPageStore } from "../_store";
+import { useSkillsPageStore, type SkillCategory } from "../_store";
 
 interface SkillImportCandidate {
   id: string;
@@ -26,8 +26,6 @@ interface SkillImportPreview {
   candidates: SkillImportCandidate[];
   errors: string[];
 }
-
-type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
 
 const categoryColors: Record<string, string> = {
   page: "bg-violet-100 text-violet-700",
@@ -68,18 +66,24 @@ export const SkillsPageContent = () => {
   const store = useSkillsPageStore();
   const search = useStore(store, (s) => s.search);
   const category = useStore(store, (s) => s.category);
-  const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
-  const handleCategoryButtonClick = useStore(store, (s) => s.handleCategoryButtonClick);
+  const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
+  const handleSetCategory = useStore(store, (s) => s.handleSetCategory);
 
-  const filtered = skills.filter((s: Skill) => {
-    const matchesSearch =
-      s.label.toLowerCase().includes(search.toLowerCase()) ||
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.description.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = category === "all" || s.category === category;
+  const searchLower = search.toLowerCase();
+  const filtered = useMemo(() => {
+    if (!skills) return [];
 
-    return matchesSearch && matchesCategory;
-  });
+    return skills.filter((s: Skill) => {
+      const matchesSearch =
+        !searchLower ||
+        s.label.toLowerCase().includes(searchLower) ||
+        s.name.toLowerCase().includes(searchLower) ||
+        s.description.toLowerCase().includes(searchLower);
+      const matchesCategory = category === "all" || s.category === category;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [skills, searchLower, category]);
 
   const handleImportPathInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     setImportPath(event.target.value);
@@ -93,7 +97,7 @@ export const SkillsPageContent = () => {
       payload: { rootPath: importPath },
     });
     const preview = response.data;
-    const ownedNames = new Set(skills.map((s) => s.name));
+    const ownedNames = new Set((skills ?? []).map((s) => s.name));
     setImportCandidates(preview.candidates);
     setSelectedCandidateIds(
       new Set(preview.candidates.filter((c) => !ownedNames.has(c.name)).map((c) => c.id)),
@@ -102,7 +106,7 @@ export const SkillsPageContent = () => {
     setIsPreviewing(false);
   };
 
-  const ownedSkillNames = new Set(skills.map((s) => s.name));
+  const ownedSkillNames = new Set((skills ?? []).map((s) => s.name));
 
   const handleCandidateToggle = (candidateId: string) => {
     const candidate = importCandidates.find((c) => c.id === candidateId);
@@ -134,6 +138,54 @@ export const SkillsPageContent = () => {
     setIsImporting(false);
   };
 
+  const handleOpenCreateDialogClick = () => {
+    setShowCreateDialog(true);
+  };
+
+  const handleCreateDialogOpenChange = (open: boolean) => {
+    setShowCreateDialog(open);
+  };
+
+  const handleCreateNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setCreateForm((form) => ({ ...form, name: event.target.value }));
+  };
+
+  const handleCreateLabelChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setCreateForm((form) => ({ ...form, label: event.target.value }));
+  };
+
+  const handleCreateDescriptionChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setCreateForm((form) => ({ ...form, description: event.target.value }));
+  };
+
+  const handleCreateDialogCancelClick = () => {
+    setShowCreateDialog(false);
+  };
+
+  const handleCreateSkillClick = async () => {
+    await createSkill({
+      resource: ResourceName.skills,
+      values: {
+        name: createForm.name.trim(),
+        label: createForm.label.trim(),
+        description: createForm.description.trim(),
+        category: "custom",
+        tags: ["custom"],
+      },
+    });
+    setCreateForm({ name: "", label: "", description: "" });
+    setShowCreateDialog(false);
+    await skillsQuery?.refetch?.();
+  };
+
+  const handleDeleteSkillClick = async (event: MouseEvent<HTMLButtonElement>) => {
+    const skillId = event.currentTarget.dataset.skillId;
+    if (!skillId) return;
+
+    await deleteSkill({ resource: ResourceName.skills, id: skillId });
+    await skillsQuery?.refetch?.();
+  };
+
   if (skillsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
@@ -147,7 +199,7 @@ export const SkillsPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         actions={
-          <Button size="sm" onClick={() => setShowCreateDialog(true)}>
+        <Button size="sm" onClick={handleOpenCreateDialogClick}>
             <Plus className="h-4 w-4" />
             Create Skill
           </Button>
@@ -166,7 +218,7 @@ export const SkillsPageContent = () => {
             placeholder={t("common.search")}
             type="text"
             value={search}
-            onChange={handleSearchInputChange}
+            onChange={(event) => handleSetSearch(event.target.value)}
           />
         </div>
         <div className="flex items-center gap-1">
@@ -176,7 +228,7 @@ export const SkillsPageContent = () => {
               className="text-xs h-7 px-2.5"
               size="sm"
               variant={category === cat ? "default" : "ghost"}
-              onClick={() => handleCategoryButtonClick(cat)}
+              onClick={() => handleSetCategory(cat)}
             >
               {categoryLabels[cat]}
             </Button>
@@ -260,7 +312,7 @@ export const SkillsPageContent = () => {
         )}
       </div>
 
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+      <Dialog open={showCreateDialog} onOpenChange={handleCreateDialogOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Create Skill</DialogTitle>
@@ -272,7 +324,7 @@ export const SkillsPageContent = () => {
                 className="mt-1 h-8 text-sm"
                 placeholder="skill-name"
                 value={createForm.name}
-                onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))}
+                onChange={handleCreateNameChange}
               />
             </div>
             <div>
@@ -281,7 +333,7 @@ export const SkillsPageContent = () => {
                 className="mt-1 h-8 text-sm"
                 placeholder="Skill Label"
                 value={createForm.label}
-                onChange={(e) => setCreateForm((f) => ({ ...f, label: e.target.value }))}
+                onChange={handleCreateLabelChange}
               />
             </div>
             <div>
@@ -290,32 +342,18 @@ export const SkillsPageContent = () => {
                 className="mt-1 h-8 text-sm"
                 placeholder="What this skill does"
                 value={createForm.description}
-                onChange={(e) => setCreateForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={handleCreateDescriptionChange}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button size="sm" variant="outline" onClick={() => setShowCreateDialog(false)}>
+            <Button size="sm" variant="outline" onClick={handleCreateDialogCancelClick}>
               Cancel
             </Button>
             <Button
               disabled={!createForm.name.trim() || !createForm.label.trim()}
               size="sm"
-              onClick={async () => {
-                await createSkill({
-                  resource: ResourceName.skills,
-                  values: {
-                    name: createForm.name.trim(),
-                    label: createForm.label.trim(),
-                    description: createForm.description.trim(),
-                    category: "custom",
-                    tags: ["custom"],
-                  },
-                });
-                setCreateForm({ name: "", label: "", description: "" });
-                setShowCreateDialog(false);
-                await skillsQuery?.refetch?.();
-              }}
+              onClick={handleCreateSkillClick}
             >
               Create
             </Button>
@@ -372,12 +410,10 @@ export const SkillsPageContent = () => {
                   <code className="text-[10px] text-muted-foreground">{skill.name}</code>
                   <Button
                     className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    data-skill-id={skill.id}
                     size="sm"
                     variant="ghost"
-                    onClick={async () => {
-                      await deleteSkill({ resource: ResourceName.skills, id: skill.id });
-                      await skillsQuery?.refetch?.();
-                    }}
+                    onClick={handleDeleteSkillClick}
                   >
                     <Trash2 className="h-3 w-3 text-destructive" />
                   </Button>

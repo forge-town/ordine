@@ -20,6 +20,7 @@ export const operationsRouter = router({
         acceptedObjectTypes: z
           .array(ObjectNodeTypeSchema)
           .default(["file", "folder", "github-project"]),
+        sourceSkillId: z.string().optional(),
       }),
     )
     .mutation(({ input }) => operationsService.create(input)),

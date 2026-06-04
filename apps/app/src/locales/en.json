@@ -389,6 +389,60 @@
         "description": "Align dragged nodes to the canvas grid."
       }
     },
+    "workspaceSidebar": {
+      "title": "Workspace"
+    },
+    "nodeCardMode": {
+      "compact": "Compact cards",
+      "expanded": "Expanded cards"
+    },
+    "componentPanel": {
+      "searchLabel": "Search components",
+      "searchPlaceholder": "Search components...",
+      "categoryAriaLabel": "{{label}} category",
+      "skillFallbackLabel": "Skill",
+      "newCustomOperation": "New Custom Operation",
+      "categories": {
+        "input": "Input Objects",
+        "operations": "Operations",
+        "skills": "Skills",
+        "output": "Output"
+      }
+    },
+    "propertiesPanel": {
+      "empty": "Select a canvas node to configure it.",
+      "backToComponents": "Back to components",
+      "fields": {
+        "label": "Label",
+        "filePath": "File path",
+        "language": "Language",
+        "description": "Description",
+        "folderPath": "Folder path",
+        "owner": "Owner",
+        "repository": "Repository",
+        "branch": "Branch",
+        "localPath": "Local path",
+        "prompt": "Prompt",
+        "operationName": "Operation name",
+        "agentId": "Agent ID",
+        "maxLoopCount": "Max loop count",
+        "loopCondition": "Loop condition",
+        "projectId": "Project ID",
+        "outputPath": "Output path",
+        "outputFileName": "Output file name",
+        "writeMode": "Write mode"
+      },
+      "placeholders": {
+        "filePath": "src/file.tsx",
+        "language": "typescript",
+        "folderPath": "src/components"
+      },
+      "outputMode": {
+        "overwrite": "Overwrite",
+        "errorIfExists": "Error if exists",
+        "autoRename": "Auto rename"
+      }
+    },
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
     "nodeLibrary": "Node Library",
@@ -442,7 +496,15 @@
       "runtimeLoading": "Loading runtimes...",
       "inputPlaceholder": "Type your request...",
       "runtimeNotConfigured": "AI runtime is not configured yet.",
-      "goToRuntimeSettings": "Go to configuration"
+      "goToRuntimeSettings": "Go to configuration",
+      "action": {
+        "addNode": "Add node: {{type}}",
+        "removeNode": "Remove node: {{nodeId}}",
+        "addEdge": "Add edge: {{source}} → {{target}}",
+        "removeEdge": "Remove edge: {{edgeId}}",
+        "reconnectEdge": "Reconnect edge: {{edgeId}}",
+        "replaceNodeData": "Replace node data: {{nodeId}}"
+      }
     },
     "emptyState": {
       "title": "Start with a node",
@@ -698,6 +760,27 @@
   "skills": {
     "title": "Skills",
     "noSkills": "No skills found",
+    "createOperation": "Create Operation",
+    "createOperation.dialogTitle": "Create Operation from Skill",
+    "createOperation.namePlaceholder": "Operation name",
+    "createOperation.descriptionPlaceholder": "What should this operation do?",
+    "createOperation.outputs": "Expected Outputs",
+    "createOperation.addOutput": "Add Output",
+    "createOperation.confirm": "Create Operation",
+    "createOperation.success": "Operation created successfully",
+    "createOperation.error": "Failed to create operation",
+    "createOperation.step": "Step",
+    "createOperation.stepNamePlaceholder": "Step name",
+    "createOperation.stepDescriptionPlaceholder": "What should this step do?",
+    "createOperation.addStep": "Add Step",
+    "createOperation.saveAsOperations": "Save as Operations",
+    "createOperation.saveAsOperationsSuccess": "Operations created successfully",
+    "createOperation.saveAsOperationsPartialSuccess": "{{succeeded}} of {{total}} operations created; some steps failed",
+    "createOperation.saveAsOperationsError": "Failed to create operations",
+    "createOperation.generatePipeline": "Generate Pipeline Draft",
+    "createOperation.generatePipelineSuccess": "Pipeline draft created successfully",
+    "createOperation.generatePipelineError": "Failed to create pipeline draft",
+    "createOperation.outputNamePlaceholder": "output name",
     "categories": {
       "all": "All",
       "page": "Page structure",
@@ -962,7 +1045,7 @@
     "barrelExport": "Barrel Export",
     "barrelExportDesc": "Generate and check index.ts barrel export files, ensuring all index files only do re-export.",
     "errorHandling": "Error Handling",
-    "errorHandlingDesc": "Standardize try-catch usage, ensuring catch blocks have substantive handling logic, not empty or just logging.",
+    "errorHandlingDesc": "Standardize neverthrow-based error handling, keeping errors explicit and eliminating try-catch from application code.",
     "dbNaming": "Database Table Naming",
     "dbNamingDesc": "Verify and correct database table definition naming standards, including table names, column names and indexes.",
     "svgIcon": "SVG Icon Standards",
@@ -1025,3 +1108,4 @@
     }
   }
 }
+

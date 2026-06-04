@@ -9,8 +9,6 @@ import type { RunClaudeOptions } from "./schemas/RunClaudeOptionsSchema";
 import type { RunClaudeResult } from "./schemas/RunClaudeResultSchema";
 import type { ToolName } from "./schemas/ToolNameSchema";
 
-export type { SshConnectionOptions } from "./schemas/RunClaudeOptionsSchema";
-
 const shellEscape = (s: string) => `'${s.replaceAll("'", "'\\\\''")}'`;
 
 const CLAUDE_BIN = process.env.CLAUDE_BIN ?? (process.platform === "win32" ? "claude.cmd" : "claude");

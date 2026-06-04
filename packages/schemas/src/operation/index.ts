@@ -1,3 +1,4 @@
+export * from "./DraftOperationSchema";
 export * from "./InputPortSchema";
 export * from "./OperationConfigSchema";
 export * from "./OperationExecutorConfigSchema";

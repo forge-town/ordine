@@ -588,6 +588,7 @@ export const createPipelinesService = (db: DbConnection) => {
         description: string;
         config: Record<string, unknown>;
         acceptedObjectTypes: ObjectNodeType[];
+        sourceSkillId?: string;
       }>,
     ) => {
       for (const op of pendingOperations) {

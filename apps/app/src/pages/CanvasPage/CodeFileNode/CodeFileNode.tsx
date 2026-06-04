@@ -20,6 +20,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
+  const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const {
     rightActivePortCount,
@@ -52,10 +53,11 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
   };
 
   return (
-    <div className="group relative overflow-visible">
+    <div className="group relative w-fit overflow-visible">
       <NodeCard
         rightHandle
         bodyClassName="space-y-2"
+        compact={nodeCardMode === "compact"}
         description={t("canvas.nodeTypes.file.label")}
         dimmed={dimmed}
         icon={FileCode}

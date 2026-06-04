@@ -27,7 +27,7 @@ export interface NodeCardPortsProps {
 }
 
 const nodePortClassName =
-  "node-card-port absolute !top-[calc(50%+var(--node-port-offset))] !z-10 !h-5 !w-5 rounded-full !border-0 !bg-transparent !opacity-100 transition-opacity duration-150 ease-out before:content-[''] before:absolute before:left-1/2 before:top-1/2 before:h-2 before:w-2 before:-translate-x-1/2 before:-translate-y-1/2 before:scale-75 before:rounded-full before:opacity-30 before:shadow-[0_0_0_2px_rgba(255,255,255,0.8),0_1px_4px_rgba(15,23,42,0.12)] before:transition-[opacity,transform,box-shadow] before:duration-200 before:ease-out hover:before:scale-125 hover:before:opacity-100 hover:before:shadow-[0_0_0_3px_rgba(255,255,255,0.95),0_2px_8px_rgba(15,23,42,0.28)] group-hover/node-card:before:scale-100 group-hover/node-card:before:opacity-75 group-data-[selected=true]/node-card:before:scale-110 group-data-[selected=true]/node-card:before:opacity-100 data-[connected=true]:before:scale-100 data-[connected=true]:before:opacity-90 data-[active=true]:before:scale-125 data-[active=true]:before:opacity-100";
+  "node-card-port absolute !top-[calc(50%+var(--node-port-offset))] !z-10 !h-0 !min-h-0 !w-0 !min-w-0 !border-0 !bg-transparent !opacity-100 transition-opacity duration-150 ease-out before:content-[''] before:absolute before:left-1/2 before:top-1/2 before:h-2 before:w-2 before:-translate-x-1/2 before:-translate-y-1/2 before:scale-75 before:rounded-full before:opacity-30 before:shadow-[0_0_0_2px_rgba(255,255,255,0.8),0_1px_4px_rgba(15,23,42,0.12)] before:transition-[opacity,transform,box-shadow] before:duration-200 before:ease-out after:content-[''] after:absolute after:left-1/2 after:top-1/2 after:h-5 after:w-5 after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full hover:before:scale-125 hover:before:opacity-100 hover:before:shadow-[0_0_0_3px_rgba(255,255,255,0.95),0_2px_8px_rgba(15,23,42,0.28)] group-hover/node-card:before:scale-100 group-hover/node-card:before:opacity-75 group-data-[selected=true]/node-card:before:scale-110 group-data-[selected=true]/node-card:before:opacity-100 data-[connected=true]:before:scale-100 data-[connected=true]:before:opacity-90 data-[active=true]:before:scale-125 data-[active=true]:before:opacity-100";
 
 const getNodePortStyle = (offset: number) =>
   ({
@@ -112,8 +112,8 @@ export const NodeCardPorts = ({
   const updateNodeInternals = useUpdateNodeInternals();
   const leftPortOffsets = getNodePortOffsets(leftHandleCount, cardMaxPortSpread);
   const rightPortOffsets = getNodePortOffsets(rightHandleCount, cardMaxPortSpread);
-  const leftPortClassName = cn(nodePortClassName, "!left-2.5 before:!left-0", t.handleColor);
-  const rightPortClassName = cn(nodePortClassName, "!right-2.5 before:!left-full", t.handleColor);
+  const leftPortClassName = cn(nodePortClassName, "!left-0", t.handleColor);
+  const rightPortClassName = cn(nodePortClassName, "!right-0", t.handleColor);
 
   useEffect(() => {
     if (!nodeId) {
@@ -121,6 +121,18 @@ export const NodeCardPorts = ({
     }
 
     updateNodeInternals(nodeId);
+
+    if (typeof requestAnimationFrame === "undefined") {
+      return;
+    }
+
+    const frameId = requestAnimationFrame(() => updateNodeInternals(nodeId));
+    const timeoutId = globalThis.setTimeout(() => updateNodeInternals(nodeId), 200);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      globalThis.clearTimeout(timeoutId);
+    };
   }, [
     cardMaxPortSpread,
     leftHandle,

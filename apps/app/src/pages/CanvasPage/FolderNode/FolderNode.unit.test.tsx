@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { CanvasPageStoreProvider } from "../_store";
+import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
 import { FolderNode } from "./FolderNode";
 
 vi.mock("@xyflow/react", () => ({
@@ -23,8 +23,17 @@ vi.mock("@refinedev/core", () => ({
   }),
 }));
 
+const makeExpandedStore = () => {
+  const store = createCanvasPageStore();
+  store.setState({ nodeCardMode: "expanded" });
+
+  return store;
+};
+
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <CanvasPageStoreProvider>{children}</CanvasPageStoreProvider>
+  <CanvasPageStoreContext.Provider value={makeExpandedStore()}>
+    {children}
+  </CanvasPageStoreContext.Provider>
 );
 
 const baseData = {
@@ -82,9 +91,9 @@ describe("FolderNode", () => {
 
     // Simulate re-render with updated data (store would trigger this in real app)
     rerender(
-      <CanvasPageStoreProvider>
+      <CanvasPageStoreContext.Provider value={makeExpandedStore()}>
         <FolderNode data={{ ...data, excludedPaths: ["dist"] }} id="test" />
-      </CanvasPageStoreProvider>,
+      </CanvasPageStoreContext.Provider>,
     );
 
     expect(screen.queryByText("node_modules")).not.toBeInTheDocument();

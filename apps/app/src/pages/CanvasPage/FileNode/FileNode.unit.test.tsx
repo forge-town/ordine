@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { CanvasPageStoreProvider } from "../_store";
+import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
 import { FileNode } from "./FileNode";
 
 vi.mock("@xyflow/react", () => ({
@@ -23,7 +23,16 @@ vi.mock("@refinedev/core", () => ({
 }));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <CanvasPageStoreProvider>{children}</CanvasPageStoreProvider>
+  <CanvasPageStoreContext.Provider
+    value={(() => {
+      const store = createCanvasPageStore();
+      store.setState({ nodeCardMode: "expanded" });
+
+      return store;
+    })()}
+  >
+    {children}
+  </CanvasPageStoreContext.Provider>
 );
 
 const baseData = {

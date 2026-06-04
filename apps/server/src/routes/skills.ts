@@ -41,3 +41,11 @@ skillsRoutes.delete("/:id", async (c) => {
 
   return c.body(null, 204);
 });
+
+skillsRoutes.get("/:id/draft-operation", async (c) => {
+  const id = c.req.param("id");
+  const skill = await skillsService.getById(id);
+  if (!skill) return c.json({ error: "Skill not found" }, 404);
+
+  return c.json(skillsService.buildDraftOperation(skill));
+});

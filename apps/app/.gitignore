@@ -1,0 +1,7 @@
+# PGlite local database
+.pglite-data/
+
+# Dev server output logs
+output/*.log
+output/*.err.log
+output/*.out.log

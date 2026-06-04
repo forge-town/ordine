@@ -10,6 +10,10 @@ import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 
 export type SidebarPanel = "components" | "properties" | "ai-assistant" | null;
 
+export type CanvasComponentCategory = "input" | "operations" | "skills" | "output";
+
+export type NodeCardMode = "compact" | "expanded";
+
 export interface ContextMenuState {
   screenX: number;
   screenY: number;
@@ -56,6 +60,10 @@ export interface UISlice {
   viewportZoom: number;
   canvasSettings: CanvasSettingsState;
   sidebarPanel: SidebarPanel;
+  componentSearchQuery: string;
+  collapsedComponentCategories: Record<CanvasComponentCategory, boolean>;
+  isWorkspaceSidebarOpen: boolean;
+  nodeCardMode: NodeCardMode;
   isSidebarOpen: boolean;
   isPropertiesPanelOpen: boolean;
   isCanvasSettingsOpen: boolean;
@@ -87,6 +95,13 @@ export interface UISlice {
 
   handlePipelineIdChange: (id: string) => void;
   handleSidebarPanelChange: (panel: SidebarPanel) => void;
+  handleComponentSearchChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  setComponentSearchQuery: (query: string) => void;
+  toggleComponentCategory: (category: CanvasComponentCategory) => void;
+  openWorkspaceSidebar: () => void;
+  closeWorkspaceSidebar: () => void;
+  setNodeCardMode: (mode: NodeCardMode) => void;
+  toggleNodeCardMode: () => void;
   handleToggleSidebar: () => void;
   openPropertiesPanel: () => void;
   closePropertiesPanel: () => void;
@@ -148,6 +163,15 @@ export const createUISlice = (
   viewportZoom: DEFAULT_CANVAS_VIEWPORT.zoom,
   canvasSettings: { ...DEFAULT_CANVAS_SETTINGS },
   sidebarPanel: "components",
+  componentSearchQuery: "",
+  collapsedComponentCategories: {
+    input: false,
+    operations: false,
+    skills: false,
+    output: false,
+  },
+  isWorkspaceSidebarOpen: false,
+  nodeCardMode: "compact",
   isSidebarOpen: true,
   isPropertiesPanelOpen: false,
   isCanvasSettingsOpen: false,
@@ -182,6 +206,41 @@ export const createUISlice = (
 
   handleSidebarPanelChange: (panel) => {
     set({ sidebarPanel: panel });
+  },
+
+  handleComponentSearchChange: (event) => {
+    set({ componentSearchQuery: event.target.value });
+  },
+
+  setComponentSearchQuery: (query) => {
+    set({ componentSearchQuery: query });
+  },
+
+  toggleComponentCategory: (category) => {
+    set((state) => ({
+      collapsedComponentCategories: {
+        ...state.collapsedComponentCategories,
+        [category]: !state.collapsedComponentCategories[category],
+      },
+    }));
+  },
+
+  openWorkspaceSidebar: () => {
+    set({ isWorkspaceSidebarOpen: true });
+  },
+
+  closeWorkspaceSidebar: () => {
+    set({ isWorkspaceSidebarOpen: false });
+  },
+
+  setNodeCardMode: (mode) => {
+    set({ nodeCardMode: mode });
+  },
+
+  toggleNodeCardMode: () => {
+    set((state) => ({
+      nodeCardMode: state.nodeCardMode === "compact" ? "expanded" : "compact",
+    }));
   },
 
   handleToggleSidebar: () => {
