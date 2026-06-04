@@ -710,7 +710,13 @@ describe("createPipelineAgentSessionsService", () => {
         nodes: expect.arrayContaining([
           expect.objectContaining({ type: "folder" }),
           expect.objectContaining({ type: "operation" }),
-          expect.objectContaining({ type: "output-local-path" }),
+          expect.objectContaining({
+            type: "output-local-path",
+            data: expect.objectContaining({
+              localPath: "/tmp/ordine-output",
+              outputFileName: "review-report.md",
+            }),
+          }),
         ]),
       }),
     );

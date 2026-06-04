@@ -227,9 +227,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
               const exactRightByName = rawRight ? input.operationByName.get(rawRight) : null;
               const operationId =
                 embeddedOperation?.id ??
-                (exactById
-                  ? normalizedId
-                  : exactByName?.id ?? exactRightByName?.id ?? rawLeft);
+                (exactById ? normalizedId : (exactByName?.id ?? exactRightByName?.id ?? rawLeft));
               const fallbackOperationName =
                 rawRight ||
                 exactByName?.name ||
@@ -246,7 +244,10 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
                 reason: "Recovered from approved proposal majorOperations",
               };
             })
-            .filter((value): value is { operationId: string; operationName: string; reason: string } => value !== null);
+            .filter(
+              (value): value is { operationId: string; operationName: string; reason: string } =>
+                value !== null,
+            );
     const nodes: PipelineData["nodes"] = [];
     const edges: PipelineData["edges"] = [];
     let x = 0;
@@ -319,7 +320,8 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       data: {
         nodeType: "output-local-path",
         label: "Markdown 审查报告",
-        localPath: "/tmp/ordine-output/review-report.md",
+        localPath: "/tmp/ordine-output",
+        outputFileName: "review-report.md",
         outputMode: "overwrite",
         description: "最终生成的 Markdown 审查报告输出路径。",
       },
@@ -597,13 +599,19 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         throw new Error(`Pipeline agent proposal not found: ${proposalId}`);
       }
       if (proposal.sessionId !== sessionId) {
-        throw new Error(`Pipeline agent proposal ${proposalId} does not belong to session ${sessionId}`);
+        throw new Error(
+          `Pipeline agent proposal ${proposalId} does not belong to session ${sessionId}`,
+        );
       }
       if (proposal.mode !== session.mode) {
-        throw new Error(`Pipeline agent proposal ${proposalId} mode does not match session ${sessionId}`);
+        throw new Error(
+          `Pipeline agent proposal ${proposalId} mode does not match session ${sessionId}`,
+        );
       }
       if (proposal.status !== "proposal_ready") {
-        throw new Error(`Pipeline agent proposal ${proposalId} cannot be approved from status ${proposal.status}`);
+        throw new Error(
+          `Pipeline agent proposal ${proposalId} cannot be approved from status ${proposal.status}`,
+        );
       }
       if (proposal.proposal.readiness !== "ready_for_generation") {
         throw new Error(`Pipeline agent proposal ${proposalId} is not ready for approval`);
@@ -815,7 +823,9 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         throw new Error(`Approved generate proposal not found for session ${sessionId}`);
       }
       if (proposalRecord.proposal.readiness !== "ready_for_generation") {
-        throw new Error(`Approved generate proposal is not ready for generation in session ${sessionId}`);
+        throw new Error(
+          `Approved generate proposal is not ready for generation in session ${sessionId}`,
+        );
       }
       const generateProposal = proposalRecord.proposal;
 
@@ -873,7 +883,11 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
                   proposal: generateProposal,
                 })
               : generated;
-          if (!("error" in generated) && generated.pendingOperations && generated.pendingOperations.length > 0) {
+          if (
+            !("error" in generated) &&
+            generated.pendingOperations &&
+            generated.pendingOperations.length > 0
+          ) {
             await pipelinesService.createPendingOperations(generated.pendingOperations);
           }
 
