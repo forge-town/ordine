@@ -70,11 +70,7 @@ const parseSseMessage = (message: string): PipelineAgentPlanEvent | null => {
   }
 
   const eventName = eventLine?.slice(6).trim() ?? "";
-  const parsed = parseEventPayload(
-    dataLines
-      .map((line) => line.slice(5).trimStart())
-      .join("\n"),
-  );
+  const parsed = parseEventPayload(dataLines.map((line) => line.slice(5).trimStart()).join("\n"));
 
   if (!parsed || !isRecord(parsed)) {
     return null;
@@ -112,9 +108,7 @@ const parseSseMessage = (message: string): PipelineAgentPlanEvent | null => {
       return typeof parsed.status === "string" ? { type: "done", status: parsed.status } : null;
     }
     case "error": {
-      return typeof parsed.message === "string"
-        ? { type: "error", message: parsed.message }
-        : null;
+      return typeof parsed.message === "string" ? { type: "error", message: parsed.message } : null;
     }
     default: {
       return typeof parsed.type === "string" ? (parsed as PipelineAgentPlanEvent) : null;

@@ -126,11 +126,13 @@ const PanelActivator = ({
   return <>{children}</>;
 };
 
-const wrapperWithState = (props: {
-  isOpen?: boolean;
-  pendingProposal?: PipelineActionProposal | null;
-  diagnostics?: PipelineActionDiagnostic[] | null;
-} = {}) => {
+const wrapperWithState = (
+  props: {
+    isOpen?: boolean;
+    pendingProposal?: PipelineActionProposal | null;
+    diagnostics?: PipelineActionDiagnostic[] | null;
+  } = {},
+) => {
   const Wrapper = ({ children }: { children?: ReactNode }) => (
     <CanvasPageStoreProvider
       pipeline={{ id: "pipe-1", name: "Test Pipeline", nodes: [], edges: [] }}

@@ -173,7 +173,9 @@ describe("createPipelineAgentSessionsService", () => {
       updatedAt: data.updatedAt ?? new Date("2026-06-03T12:00:05.000Z"),
     }));
     mockPipelinesService.analyzeIntent.mockResolvedValue({
-      matchedOperations: [{ operationId: "review-code", operationName: "Review Code", reason: "Matches code review" }],
+      matchedOperations: [
+        { operationId: "review-code", operationName: "Review Code", reason: "Matches code review" },
+      ],
       unmatchedSteps: [],
     });
     mockPipelinesService.generateStructure.mockResolvedValue({
@@ -645,8 +647,7 @@ describe("createPipelineAgentSessionsService", () => {
     const result = await service.ingestAttachment("session-1", {
       bytes,
       filename: "brief.docx",
-      mimeType:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       sizeBytes: bytes.byteLength,
     });
 

@@ -375,12 +375,7 @@ const validateProposalActionCatalog = (
     }
 
     if (action.type === "replaceNodeData" && action.data.nodeType === "operation") {
-      return validateOperationNodeCatalog(
-        action.nodeId,
-        action.data,
-        operationById,
-        actionIndex,
-      );
+      return validateOperationNodeCatalog(action.nodeId, action.data, operationById, actionIndex);
     }
 
     return [];
@@ -430,8 +425,7 @@ const normalizeProposalPayload = (value: unknown): unknown => {
         ? rawActionRecord.type in ACTION_TYPE_ALIASES
           ? ACTION_TYPE_ALIASES[rawActionRecord.type as keyof typeof ACTION_TYPE_ALIASES]
           : rawActionRecord.type
-        : typeof rawActionRecord.op === "string" &&
-            rawActionRecord.op in ACTION_TYPE_ALIASES
+        : typeof rawActionRecord.op === "string" && rawActionRecord.op in ACTION_TYPE_ALIASES
           ? ACTION_TYPE_ALIASES[rawActionRecord.op as keyof typeof ACTION_TYPE_ALIASES]
           : rawActionRecord.type;
     const normalizedAction: Record<string, unknown> = {
@@ -452,11 +446,19 @@ const normalizeProposalPayload = (value: unknown): unknown => {
         data: {
           ...(typeof nodeRecord.label === "string" ? { label: nodeRecord.label } : {}),
           ...(typeof nodeRecord.prompt === "string" ? { prompt: nodeRecord.prompt } : {}),
-          ...(typeof nodeRecord.folderPath === "string" ? { folderPath: nodeRecord.folderPath } : {}),
+          ...(typeof nodeRecord.folderPath === "string"
+            ? { folderPath: nodeRecord.folderPath }
+            : {}),
           ...(typeof nodeRecord.localPath === "string" ? { localPath: nodeRecord.localPath } : {}),
-          ...(typeof nodeRecord.projectPath === "string" ? { projectPath: nodeRecord.projectPath } : {}),
-          ...(typeof nodeRecord.operationId === "string" ? { operationId: nodeRecord.operationId } : {}),
-          ...(typeof nodeRecord.operationName === "string" ? { operationName: nodeRecord.operationName } : {}),
+          ...(typeof nodeRecord.projectPath === "string"
+            ? { projectPath: nodeRecord.projectPath }
+            : {}),
+          ...(typeof nodeRecord.operationId === "string"
+            ? { operationId: nodeRecord.operationId }
+            : {}),
+          ...(typeof nodeRecord.operationName === "string"
+            ? { operationName: nodeRecord.operationName }
+            : {}),
           ...(typeof nodeRecord.owner === "string" ? { owner: nodeRecord.owner } : {}),
           ...(typeof nodeRecord.repo === "string" ? { repo: nodeRecord.repo } : {}),
           ...(typeof nodeRecord.filePath === "string" ? { filePath: nodeRecord.filePath } : {}),
@@ -476,7 +478,9 @@ const normalizeProposalPayload = (value: unknown): unknown => {
         id: dataRecord.id,
         type: dataRecord.type,
         position:
-          dataRecord.position && typeof dataRecord.position === "object" && !Array.isArray(dataRecord.position)
+          dataRecord.position &&
+          typeof dataRecord.position === "object" &&
+          !Array.isArray(dataRecord.position)
             ? dataRecord.position
             : { x: 0, y: 0 },
         data: dataRecord,
@@ -495,7 +499,9 @@ const normalizeProposalPayload = (value: unknown): unknown => {
     }
 
     const node =
-      actionRecord.node && typeof actionRecord.node === "object" && !Array.isArray(actionRecord.node)
+      actionRecord.node &&
+      typeof actionRecord.node === "object" &&
+      !Array.isArray(actionRecord.node)
         ? (actionRecord.node as Record<string, unknown>)
         : null;
     const data =
@@ -517,26 +523,25 @@ const normalizeProposalPayload = (value: unknown): unknown => {
         : null;
     const parsedDataNodeType =
       typeof data.nodeType === "string" ? BuiltinNodeTypeSchema.safeParse(data.nodeType) : null;
-    const inferredNodeType =
-      parsedDataNodeType?.success
-        ? parsedDataNodeType.data
-        : parsedNodeType?.success
-          ? parsedNodeType.data
-          : typeof data.prompt === "string"
-            ? "prompt"
-            : typeof data.folderPath === "string"
-              ? "folder"
-              : typeof data.localPath === "string"
-                ? "output-local-path"
-                : typeof data.projectPath === "string"
-                  ? "output-project-path"
-                  : typeof data.operationId === "string"
-                    ? "operation"
-                    : typeof data.owner === "string" || typeof data.repo === "string"
-                      ? "github-project"
-                      : typeof data.filePath === "string"
-                        ? "file"
-                        : null;
+    const inferredNodeType = parsedDataNodeType?.success
+      ? parsedDataNodeType.data
+      : parsedNodeType?.success
+        ? parsedNodeType.data
+        : typeof data.prompt === "string"
+          ? "prompt"
+          : typeof data.folderPath === "string"
+            ? "folder"
+            : typeof data.localPath === "string"
+              ? "output-local-path"
+              : typeof data.projectPath === "string"
+                ? "output-project-path"
+                : typeof data.operationId === "string"
+                  ? "operation"
+                  : typeof data.owner === "string" || typeof data.repo === "string"
+                    ? "github-project"
+                    : typeof data.filePath === "string"
+                      ? "file"
+                      : null;
 
     if (!inferredNodeType) {
       return action;
@@ -627,7 +632,7 @@ export const createPipelinesService = (db: DbConnection) => {
       const settings = normalizeSettingsRecord(await settingsDao.get());
       const configuredRuntimes = await agentRuntimesDao.findMany();
       const selectedRuntime = opts.runtimeId
-        ? configuredRuntimes.find((runtime) => runtime.id === opts.runtimeId) ?? null
+        ? (configuredRuntimes.find((runtime) => runtime.id === opts.runtimeId) ?? null)
         : null;
 
       if (opts.runtimeId && !selectedRuntime) {
@@ -685,7 +690,10 @@ export const createPipelinesService = (db: DbConnection) => {
               logPrefix: "proposeActions",
               apiKey: settings.defaultApiKey,
               model: settings.defaultModel,
-              ssh: effectiveRuntime?.connection.mode === "ssh" ? effectiveRuntime.connection : undefined,
+              ssh:
+                effectiveRuntime?.connection.mode === "ssh"
+                  ? effectiveRuntime.connection
+                  : undefined,
             }),
             (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
           );
@@ -701,10 +709,7 @@ export const createPipelinesService = (db: DbConnection) => {
       })();
 
       if (!execution || execution.isErr()) {
-        logger.error(
-          { err: execution?.error },
-          "proposeActions: agent failed after retries",
-        );
+        logger.error({ err: execution?.error }, "proposeActions: agent failed after retries");
 
         return { proposal: null, diagnostics: [] };
       }
@@ -747,10 +752,7 @@ export const createPipelinesService = (db: DbConnection) => {
       const proposal = parsed.data;
       const validationResult = validatePipelineActions(snapshot, proposal.actions);
       const graphDiagnostics = validationResult.isErr() ? validationResult.error : [];
-      const operationDiagnostics = validateProposalActionCatalog(
-        proposal.actions,
-        operationById,
-      );
+      const operationDiagnostics = validateProposalActionCatalog(proposal.actions, operationById);
 
       return {
         proposal,

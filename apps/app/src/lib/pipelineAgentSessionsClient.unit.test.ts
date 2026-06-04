@@ -31,12 +31,14 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
 
   it("maps proposal_ready SSE events from the event line instead of the JSON payload type", async () => {
     const onEvent = vi.fn();
-    globalThis.fetch = vi.fn().mockResolvedValue(
-      createStreamResponse([
-        'event: phase\ndata: {"phase":"planning"}\n\n',
-        'event: proposal_ready\ndata: {"type":"proposal","proposal":{"mode":"generate","purpose":"Review repository code","inputs":["repo"],"outputs":["report"],"majorOperations":["review-code"],"executionFlow":["repo -> review-code -> report"],"assumptions":[],"openQuestions":[],"readiness":"ready_for_generation"},"proposalId":"proposal-1"}\n\n',
-      ]),
-    ) as typeof fetch;
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(
+        createStreamResponse([
+          'event: phase\ndata: {"phase":"planning"}\n\n',
+          'event: proposal_ready\ndata: {"type":"proposal","proposal":{"mode":"generate","purpose":"Review repository code","inputs":["repo"],"outputs":["report"],"majorOperations":["review-code"],"executionFlow":["repo -> review-code -> report"],"assumptions":[],"openQuestions":[],"readiness":"ready_for_generation"},"proposalId":"proposal-1"}\n\n',
+        ]),
+      ) as typeof fetch;
 
     await pipelineAgentSessionsClient.planSessionStream("session-1", {
       onEvent,
@@ -65,11 +67,13 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
 
   it("flushes the trailing buffer when the stream closes without a final delimiter", async () => {
     const onEvent = vi.fn();
-    globalThis.fetch = vi.fn().mockResolvedValue(
-      createStreamResponse([
-        'event: question\ndata: {"type":"question","question":"Need one more answer?"}',
-      ]),
-    ) as typeof fetch;
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(
+        createStreamResponse([
+          'event: question\ndata: {"type":"question","question":"Need one more answer?"}',
+        ]),
+      ) as typeof fetch;
 
     await pipelineAgentSessionsClient.planSessionStream("session-1", {
       onEvent,

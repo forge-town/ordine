@@ -84,7 +84,8 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     }
 
     const defaultRuntime =
-      input.defaultRuntime && input.runtimes.find((runtime) => runtime.type === input.defaultRuntime);
+      input.defaultRuntime &&
+      input.runtimes.find((runtime) => runtime.type === input.defaultRuntime);
     if (defaultRuntime) {
       return defaultRuntime.type;
     }
@@ -126,7 +127,9 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         : '{"type":"question","question":"..."} OR {"type":"proposal","proposal":{"mode":"generate","purpose":"...","inputs":["..."],"outputs":["..."],"majorOperations":["..."],"executionFlow":["..."],"assumptions":[],"openQuestions":[],"readiness":"needs_user_answer|ready_for_generation"}}',
       "",
       `Pipeline ID: ${input.pipelineId ?? "(new pipeline)"}`,
-      input.snapshot ? `Current snapshot: ${JSON.stringify(input.snapshot)}` : "Current snapshot: (none)",
+      input.snapshot
+        ? `Current snapshot: ${JSON.stringify(input.snapshot)}`
+        : "Current snapshot: (none)",
       "",
       "=== ATTACHMENT CONTEXT ===",
       artifactSummary,
@@ -148,7 +151,9 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     ].join("\n");
   };
 
-  const buildGenerationDescription = (proposal: Extract<PipelineAgentProposal, { mode: "generate" }>) =>
+  const buildGenerationDescription = (
+    proposal: Extract<PipelineAgentProposal, { mode: "generate" }>,
+  ) =>
     [
       `Purpose: ${proposal.purpose}`,
       `Inputs: ${proposal.inputs.join(", ") || "(none)"}`,
@@ -171,7 +176,8 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       : artifacts
           .map((artifact) => {
             const summary =
-              typeof artifact.content.summary === "string" && artifact.content.summary.trim().length > 0
+              typeof artifact.content.summary === "string" &&
+              artifact.content.summary.trim().length > 0
                 ? artifact.content.summary
                 : JSON.stringify(artifact.content);
 
@@ -244,7 +250,8 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     }
 
     if (documentExtensions.has(extension)) {
-      const extractedText = extension === ".docx" ? await extractDocxText(input.bytes) : extractPdfText(input.bytes);
+      const extractedText =
+        extension === ".docx" ? await extractDocxText(input.bytes) : extractPdfText(input.bytes);
 
       return {
         kind: "document_extract",
@@ -510,9 +517,10 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         onProgress: input?.onProgress,
       });
 
-      const parsed = (session.mode === "edit"
-        ? RelaxedCanvasEditPlanningResultSchema
-        : PipelineAgentPlanningResultSchema
+      const parsed = (
+        session.mode === "edit"
+          ? RelaxedCanvasEditPlanningResultSchema
+          : PipelineAgentPlanningResultSchema
       ).parse(JSON.parse(extractJsonFromText(raw)));
 
       if (parsed.type === "question") {
@@ -591,7 +599,10 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         };
       }
 
-      const generateProposal = parsed.proposal as Extract<PipelineAgentProposal, { mode: "generate" }>;
+      const generateProposal = parsed.proposal as Extract<
+        PipelineAgentProposal,
+        { mode: "generate" }
+      >;
       const saved = await proposalsDao.create({
         id: crypto.randomUUID(),
         sessionId,
@@ -643,7 +654,9 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       const pipelineDescription = [
         buildGenerationDescription(proposalRecord.proposal),
         "Conversation context:",
-        messages.map((message) => `[${message.role}/${message.kind}] ${message.content}`).join("\n") || "(none)",
+        messages
+          .map((message) => `[${message.role}/${message.kind}] ${message.content}`)
+          .join("\n") || "(none)",
         "",
         "Attachment context:",
         buildArtifactSummary(artifacts),

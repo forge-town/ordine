@@ -33,7 +33,10 @@ import type {
 } from "@repo/schemas";
 import { useCanvasPageStore } from "../_store";
 import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
-import { pipelineAgentSessionsClient, type PipelineAgentPlanEvent } from "@/lib/pipelineAgentSessionsClient";
+import {
+  pipelineAgentSessionsClient,
+  type PipelineAgentPlanEvent,
+} from "@/lib/pipelineAgentSessionsClient";
 import { toastStore } from "@/store/toastStore";
 
 interface Message {
@@ -98,22 +101,10 @@ export const AgentPanel = () => {
   const store = useCanvasPageStore();
 
   const agentPanel = useStore(store, (state) => state.agentPanel);
-  const handleToggleAgentPanel = useStore(
-    store,
-    (state) => state.toggleAgentPanel,
-  );
-  const setPendingProposal = useStore(
-    store,
-    (state) => state.setPendingProposal,
-  );
-  const clearPendingProposal = useStore(
-    store,
-    (state) => state.clearPendingProposal,
-  );
-  const applyAgentProposal = useStore(
-    store,
-    (state) => state.applyAgentProposal,
-  );
+  const handleToggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
+  const setPendingProposal = useStore(store, (state) => state.setPendingProposal);
+  const clearPendingProposal = useStore(store, (state) => state.clearPendingProposal);
+  const applyAgentProposal = useStore(store, (state) => state.applyAgentProposal);
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
@@ -132,7 +123,9 @@ export const AgentPanel = () => {
   const [runtimeOptions, setRuntimeOptions] = useState<AgentRuntimeConfig[]>([]);
   const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
-  const [localProposalPreview, setLocalProposalPreview] = useState<LocalProposalPreview | null>(null);
+  const [localProposalPreview, setLocalProposalPreview] = useState<LocalProposalPreview | null>(
+    null,
+  );
   const [streamingAssistantText, setStreamingAssistantText] = useState("");
   const [streamingProgress, setStreamingProgress] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -351,10 +344,7 @@ export const AgentPanel = () => {
       return;
     }
 
-    const {
-      runtimeOptions: nextRuntimeOptions,
-      suggestedRuntimeId,
-    } = runtimeSetupResult.value;
+    const { runtimeOptions: nextRuntimeOptions, suggestedRuntimeId } = runtimeSetupResult.value;
     setRuntimeOptions(nextRuntimeOptions);
     const effectiveRuntimeId =
       selectedRuntimeId && nextRuntimeOptions.some((runtime) => runtime.id === selectedRuntimeId)
@@ -431,12 +421,9 @@ export const AgentPanel = () => {
     [doSend],
   );
 
-  const handleInputValueChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setInputValue(event.target.value);
-    },
-    [],
-  );
+  const handleInputValueChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
+  }, []);
 
   const handleRuntimeValueChange = useCallback((runtimeId: string | null) => {
     setSelectedRuntimeId(runtimeId);
@@ -491,12 +478,11 @@ export const AgentPanel = () => {
   );
 
   const hasBlockingDiagnostics =
-    agentPanel.diagnostics?.some(
-      (diagnostic) => diagnostic.severity === "error",
-    ) ?? false;
+    agentPanel.diagnostics?.some((diagnostic) => diagnostic.severity === "error") ?? false;
 
   const activeProposal = agentPanel.pendingProposal ?? localProposalPreview?.proposal ?? null;
-  const activeDiagnostics = agentPanel.diagnostics ?? localProposalPreview?.diagnosticsPreview ?? null;
+  const activeDiagnostics =
+    agentPanel.diagnostics ?? localProposalPreview?.diagnosticsPreview ?? null;
 
   const handleApply = useCallback(() => {
     if (!activeProposal || hasBlockingDiagnostics) {
@@ -575,7 +561,8 @@ export const AgentPanel = () => {
           size="icon"
           title={t("canvas.agentPanel.close")}
           variant="ghost"
-          onClick={handleToggleAgentPanel}>
+          onClick={handleToggleAgentPanel}
+        >
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -586,10 +573,7 @@ export const AgentPanel = () => {
           <span className="text-xs font-medium text-muted-foreground">
             {t("canvas.agentPanel.runtimeLabel")}
           </span>
-          <Select
-            value={selectedRuntimeId}
-            onValueChange={handleRuntimeValueChange}
-          >
+          <Select value={selectedRuntimeId} onValueChange={handleRuntimeValueChange}>
             <SelectTrigger
               className="h-8 w-full text-xs"
               disabled={isLoadingRuntimes || runtimeOptions.length === 0}
@@ -745,9 +729,7 @@ export const AgentPanel = () => {
           <div className="flex items-center gap-2 p-3 text-xs text-amber-800">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             <span>{t("canvas.agentPanel.runtimeNotConfigured")}</span>
-            <a
-              className="font-medium underline underline-offset-2"
-              href="/runtimes">
+            <a className="font-medium underline underline-offset-2" href="/runtimes">
               {t("canvas.agentPanel.goToRuntimeSettings")}
             </a>
           </div>
@@ -777,7 +759,8 @@ export const AgentPanel = () => {
           size="icon"
           title={t("canvas.agentPanel.send")}
           variant="ghost"
-          onClick={handleSendClick}>
+          onClick={handleSendClick}
+        >
           {isSending || agentPanel.isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (

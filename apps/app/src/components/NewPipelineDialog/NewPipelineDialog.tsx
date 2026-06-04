@@ -2,15 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { ResultAsync } from "neverthrow";
-import {
-  CheckCircle2,
-  ExternalLink,
-  Loader2,
-  Play,
-  Plus,
-  AlertCircle,
-  Upload,
-} from "lucide-react";
+import { CheckCircle2, ExternalLink, Loader2, Play, Plus, AlertCircle, Upload } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +14,10 @@ import {
 import { Button } from "@repo/ui/button";
 import { Textarea } from "@repo/ui/textarea";
 import { Badge } from "@repo/ui/badge";
-import { pipelineAgentSessionsClient, type PipelineAgentPlanEvent } from "@/lib/pipelineAgentSessionsClient";
+import {
+  pipelineAgentSessionsClient,
+  type PipelineAgentPlanEvent,
+} from "@/lib/pipelineAgentSessionsClient";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { dataProvider } from "@/integrations/refine/dataProvider";
 import { router } from "@/router";
@@ -169,10 +164,7 @@ export const NewPipelineDialog = () => {
     }
 
     setErrorMessage(null);
-    setMessages((prev) => [
-      ...prev,
-      { id: `user-${Date.now()}`, role: "user", content: text },
-    ]);
+    setMessages((prev) => [...prev, { id: `user-${Date.now()}`, role: "user", content: text }]);
     setInputValue("");
     setProposal(null);
     setProposalId(null);
