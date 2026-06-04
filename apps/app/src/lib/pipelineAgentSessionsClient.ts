@@ -13,6 +13,7 @@ export interface PipelineAgentSessionClientRecord {
   entrypoint: "new-pipeline-dialog" | "canvas-agent-panel";
   mode: "generate" | "edit";
   status: string;
+  latestProposalId?: string | null;
 }
 
 export interface PipelineAgentAttachmentClientRecord {
@@ -23,6 +24,26 @@ export interface PipelineAgentAttachmentClientRecord {
 
 export interface PipelineAgentAttachmentUploadResult {
   attachment?: PipelineAgentAttachmentClientRecord;
+}
+
+export interface PipelineAgentSessionClientDetail extends PipelineAgentSessionClientRecord {
+  createdPipelineId?: string | null;
+  messages?: PipelineAgentMessageClientRecord[];
+  proposals?: PipelineAgentStoredProposalClientRecord[];
+}
+
+export interface PipelineAgentMessageClientRecord {
+  id: string;
+  role: "user" | "assistant" | "system";
+  kind: string;
+  content: string;
+}
+
+export interface PipelineAgentStoredProposalClientRecord {
+  id: string;
+  mode: "generate" | "edit";
+  status: string;
+  proposal: PipelineAgentProposal;
 }
 
 export type PipelineAgentPlanEvent =
@@ -160,6 +181,49 @@ export const pipelineAgentSessionsClient = {
     return readResponseJson<PipelineAgentAttachmentUploadResult>(response);
   },
 
+  async getSessionById(sessionId: string): Promise<PipelineAgentSessionClientDetail> {
+    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}`);
+
+    return readResponseJson<PipelineAgentSessionClientDetail>(response);
+  },
+
+  async getLatestReadyProposal(
+    sessionId: string,
+    mode: "generate" | "edit",
+    input?: { excludeProposalId?: string | null },
+  ): Promise<{ proposal: PipelineAgentProposal; proposalId: string } | null> {
+    const session = await this.getSessionById(sessionId);
+    const proposals = session.proposals ?? [];
+    const latestProposal =
+      proposals.find((proposal) => proposal.id === session.latestProposalId) ??
+      proposals.at(-1) ??
+      null;
+
+    if (
+      !latestProposal ||
+      latestProposal.id === input?.excludeProposalId ||
+      latestProposal.mode !== mode ||
+      latestProposal.status !== "proposal_ready"
+    ) {
+      return null;
+    }
+
+    return {
+      proposal: latestProposal.proposal,
+      proposalId: latestProposal.id,
+    };
+  },
+
+  async getLatestAssistantQuestion(sessionId: string): Promise<{ question: string } | null> {
+    const session = await this.getSessionById(sessionId);
+    const latestQuestion =
+      [...(session.messages ?? [])]
+        .reverse()
+        .find((message) => message.role === "assistant" && message.kind === "question") ?? null;
+
+    return latestQuestion ? { question: latestQuestion.content } : null;
+  },
+
   async approveProposal(sessionId: string, proposalId: string) {
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/approve`, {
       method: "POST",
@@ -177,6 +241,48 @@ export const pipelineAgentSessionsClient = {
     });
 
     return readResponseJson<{ pipelineId: string }>(response);
+  },
+
+  async waitForCreatedPipeline(
+    sessionId: string,
+    input?: { intervalMs?: number; signal?: AbortSignal; timeoutMs?: number },
+  ): Promise<{ pipelineId: string }> {
+    const intervalMs = input?.intervalMs ?? 1000;
+    const timeoutMs = input?.timeoutMs ?? 6 * 60 * 1000;
+    const startedAt = Date.now();
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => {
+        if (input?.signal?.aborted) {
+          resolve();
+
+          return;
+        }
+
+        const handleAbort = () => {
+          globalThis.clearTimeout(timeoutId);
+          resolve();
+        };
+        const timeoutId = globalThis.setTimeout(() => {
+          input?.signal?.removeEventListener("abort", handleAbort);
+          resolve();
+        }, ms);
+        input?.signal?.addEventListener("abort", handleAbort, { once: true });
+      });
+
+    while (Date.now() - startedAt < timeoutMs) {
+      if (input?.signal?.aborted) {
+        throw new Error(`Stopped waiting for generated pipeline in session ${sessionId}`);
+      }
+
+      const session = await this.getSessionById(sessionId);
+      if (session.status === "completed" && session.createdPipelineId) {
+        return { pipelineId: session.createdPipelineId };
+      }
+
+      await wait(intervalMs);
+    }
+
+    throw new Error(`Timed out waiting for generated pipeline in session ${sessionId}`);
   },
 
   async planSessionStream(

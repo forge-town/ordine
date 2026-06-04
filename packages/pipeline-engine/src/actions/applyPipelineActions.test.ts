@@ -175,11 +175,11 @@ describe("applyPipelineActions", () => {
     expect(snapshot).toEqual(makeSnapshot([makeNode("folder-1", "folder")]));
   });
 
-  it("syncs operationName when an AI edit only changes an operation node label", () => {
+  it("preserves provided operationName when an operation node label changes", () => {
     const operationNode = makeNode("action-1", "operation", {
       label: "Old Label",
       operationId: "op-1",
-      operationName: "Old Label",
+      operationName: "Canonical Name",
     });
     const result = applyPipelineActions(makeSnapshot([operationNode]), [
       {
@@ -196,7 +196,7 @@ describe("applyPipelineActions", () => {
     expect(result._unsafeUnwrap().nodes[0]?.data).toEqual(
       expect.objectContaining({
         label: "New Label",
-        operationName: "New Label",
+        operationName: "Canonical Name",
       }),
     );
   });

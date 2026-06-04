@@ -168,6 +168,7 @@ export const NewPipelineDialog = () => {
     setErrorMessage(null);
     setMessages((prev) => [...prev, { id: `user-${Date.now()}`, role: "user", content: text }]);
     setInputValue("");
+    const previousProposalId = proposalId;
     setProposal(null);
     setProposalId(null);
     setStreamingAssistantText("");
@@ -181,9 +182,44 @@ export const NewPipelineDialog = () => {
           kind: "text",
           content: text,
         });
+        const streamedTerminalEvent = { current: false };
         await pipelineAgentSessionsClient.planSessionStream(sessionId, {
-          onEvent: handleEvent,
+          onEvent: (event) => {
+            if (
+              event.type === "question" ||
+              event.type === "error" ||
+              (event.type === "proposal_ready" && event.proposal.mode === "generate")
+            ) {
+              streamedTerminalEvent.current = true;
+            }
+            handleEvent(event);
+          },
         });
+        if (!streamedTerminalEvent.current) {
+          const latestProposal = await pipelineAgentSessionsClient.getLatestReadyProposal(
+            sessionId,
+            "generate",
+            { excludeProposalId: previousProposalId },
+          );
+          if (latestProposal && latestProposal.proposal.mode === "generate") {
+            handleEvent({
+              type: "proposal_ready",
+              proposal: latestProposal.proposal,
+              proposalId: latestProposal.proposalId,
+            });
+
+            return;
+          }
+
+          const latestQuestion =
+            await pipelineAgentSessionsClient.getLatestAssistantQuestion(sessionId);
+          if (latestQuestion) {
+            handleEvent({
+              type: "question",
+              question: latestQuestion.question,
+            });
+          }
+        }
       })(),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
@@ -203,10 +239,30 @@ export const NewPipelineDialog = () => {
     setPhase("generating");
     const generationResult = await ResultAsync.fromPromise(
       (async () => {
-        await pipelineAgentSessionsClient.approveProposal(sessionIdRef.current!, proposalId);
+        const sessionId = sessionIdRef.current!;
+        await pipelineAgentSessionsClient.approveProposal(sessionId, proposalId);
+        const abortController = new AbortController();
 
-        return pipelineAgentSessionsClient.generatePipelineFromApprovedProposal(
-          sessionIdRef.current!,
+        return Promise.any([
+          pipelineAgentSessionsClient.generatePipelineFromApprovedProposal(sessionId),
+          pipelineAgentSessionsClient.waitForCreatedPipeline(sessionId, {
+            signal: abortController.signal,
+          }),
+        ]).then(
+          (result) => {
+            abortController.abort();
+
+            return result;
+          },
+          (error) => {
+            abortController.abort();
+            if (!(error instanceof AggregateError)) {
+              throw error;
+            }
+
+            const firstError = error.errors[0];
+            throw firstError instanceof Error ? firstError : new Error(String(firstError));
+          },
         );
       })(),
       (error) => (error instanceof Error ? error : new Error(String(error))),

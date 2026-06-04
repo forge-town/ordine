@@ -671,6 +671,169 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
+  it("falls back to a deterministic generated graph when generateStructure fails", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "approved",
+      pipelineId: null,
+      snapshot: null,
+      latestProposalId: "proposal-1",
+      approvedProposalId: "proposal-1",
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    mockMessagesDao.findManyBySessionId.mockResolvedValueOnce([
+      {
+        id: "message-1",
+        sessionId: "session-1",
+        role: "user",
+        kind: "text",
+        content: "Build me a code review pipeline",
+        createdAt: new Date("2026-06-03T12:00:01.000Z"),
+      },
+    ]);
+    mockContextArtifactsDao.findManyBySessionId.mockResolvedValueOnce([]);
+    mockPipelinesService.generateStructure.mockResolvedValueOnce({
+      error: "Agent returned invalid pipeline structure",
+    });
+
+    const service = createPipelineAgentSessionsService({} as never);
+    const result = await service.generatePipelineFromApprovedProposal("session-1");
+
+    expect(result.pipeline.nodes.length).toBeGreaterThan(0);
+    expect(result.pipeline.edges.length).toBeGreaterThan(0);
+    expect(mockPipelinesService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nodes: expect.arrayContaining([
+          expect.objectContaining({ type: "folder" }),
+          expect.objectContaining({ type: "operation" }),
+          expect.objectContaining({ type: "output-local-path" }),
+        ]),
+      }),
+    );
+  });
+
+  it("recovers fallback operation nodes from approved proposal majorOperations when analyzeIntent finds none", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "approved",
+      pipelineId: null,
+      snapshot: null,
+      latestProposalId: "proposal-1",
+      approvedProposalId: "proposal-1",
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    mockMessagesDao.findManyBySessionId.mockResolvedValueOnce([
+      {
+        id: "message-1",
+        sessionId: "session-1",
+        role: "user",
+        kind: "text",
+        content: "Build me a code review pipeline",
+        createdAt: new Date("2026-06-03T12:00:01.000Z"),
+      },
+    ]);
+    mockContextArtifactsDao.findManyBySessionId.mockResolvedValueOnce([]);
+    mockPipelinesService.analyzeIntent.mockResolvedValueOnce({
+      matchedOperations: [],
+      unmatchedSteps: [],
+    });
+    mockPipelinesService.generateStructure.mockResolvedValueOnce({
+      error: "Agent returned invalid pipeline structure",
+    });
+
+    const service = createPipelineAgentSessionsService({} as never);
+    await service.generatePipelineFromApprovedProposal("session-1");
+
+    expect(mockPipelinesService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        edges: expect.arrayContaining([
+          expect.objectContaining({
+            source: "generated-folder-input",
+            target: "generated-operation-1",
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it("recovers fallback operation ids from majorOperations strings that embed ids in parentheses", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "approved",
+      pipelineId: null,
+      snapshot: null,
+      latestProposalId: "proposal-1",
+      approvedProposalId: "proposal-1",
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    mockMessagesDao.findManyBySessionId.mockResolvedValueOnce([
+      {
+        id: "message-1",
+        sessionId: "session-1",
+        role: "user",
+        kind: "text",
+        content: "Build me a code review pipeline",
+        createdAt: new Date("2026-06-03T12:00:01.000Z"),
+      },
+    ]);
+    mockContextArtifactsDao.findManyBySessionId.mockResolvedValueOnce([]);
+    mockPipelinesService.analyzeIntent.mockResolvedValueOnce({
+      matchedOperations: [],
+      unmatchedSteps: [],
+    });
+    mockPipelinesService.generateStructure.mockResolvedValueOnce({
+      error: "Agent returned invalid pipeline structure",
+    });
+    mockProposalsDao.findById.mockResolvedValueOnce({
+      id: "proposal-1",
+      sessionId: "session-1",
+      mode: "generate",
+      status: "proposal_ready",
+      proposal: {
+        mode: "generate",
+        purpose: "Review repository code",
+        inputs: ["folder"],
+        outputs: ["markdown report"],
+        majorOperations: ["Known Operation (op-known)"],
+        executionFlow: ["folder -> review-code -> output"],
+        assumptions: [],
+        openQuestions: [],
+        readiness: "ready_for_generation",
+      },
+      createdAt: new Date("2026-06-03T12:00:02.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:02.000Z"),
+      approvedAt: null,
+    });
+
+    const service = createPipelineAgentSessionsService({} as never);
+    await service.generatePipelineFromApprovedProposal("session-1");
+
+    expect(mockPipelinesService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nodes: expect.arrayContaining([
+          expect.objectContaining({
+            data: expect.objectContaining({
+              operationId: "op-known",
+              operationName: "Known Operation",
+            }),
+          }),
+        ]),
+      }),
+    );
+  });
+
   it("extracts text content from plain text attachments", async () => {
     const service = createPipelineAgentSessionsService({} as never);
 

@@ -184,7 +184,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
           </div>
         }
         icon={Zap}
-        label={data.operationName || data.label}
+        label={data.label || data.operationName}
         leftActivePortCount={leftActivePortCount}
         leftActivePortMask={leftActivePortMask}
         leftConnectedPortCount={leftConnectedPortCount}

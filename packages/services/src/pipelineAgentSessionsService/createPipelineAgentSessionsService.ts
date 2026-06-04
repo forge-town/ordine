@@ -31,6 +31,7 @@ import {
   type PipelineAgentProposal,
   type PipelineAgentProposalStatus,
   type PipelineAgentSessionStatus,
+  type PipelineData,
   type PipelineGraphSnapshot,
 } from "@repo/schemas";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
@@ -184,6 +185,163 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             return `- ${artifact.kind}: ${summary}`;
           })
           .join("\n");
+
+  const buildFallbackGeneratedGraph = (input: {
+    matchedOperations: Array<{ operationId: string; operationName: string; reason: string }>;
+    operationById: Map<string, { name: string }>;
+    operationByName: Map<string, { id: string; name: string }>;
+    proposal: Extract<PipelineAgentProposal, { mode: "generate" }>;
+  }): Pick<PipelineData, "nodes" | "edges"> => {
+    const parseEmbeddedOperationReference = (value: string) => {
+      const asciiOpenIndex = value.lastIndexOf("(");
+      const asciiCloseIndex = value.endsWith(")") ? value.length - 1 : -1;
+      if (asciiOpenIndex > -1 && asciiCloseIndex > asciiOpenIndex) {
+        return {
+          name: value.slice(0, asciiOpenIndex).trim(),
+          id: value.slice(asciiOpenIndex + 1, asciiCloseIndex).trim(),
+        };
+      }
+
+      const wideOpenIndex = value.lastIndexOf("（");
+      const wideCloseIndex = value.endsWith("）") ? value.length - 1 : -1;
+      if (wideOpenIndex > -1 && wideCloseIndex > wideOpenIndex) {
+        return {
+          name: value.slice(0, wideOpenIndex).trim(),
+          id: value.slice(wideOpenIndex + 1, wideCloseIndex).trim(),
+        };
+      }
+
+      return null;
+    };
+    const fallbackOperations =
+      input.matchedOperations.length > 0
+        ? input.matchedOperations
+        : input.proposal.majorOperations
+            .map((value) => {
+              const [rawLeft, rawRight] = value.split(" | ").map((part) => part.trim());
+              const embeddedOperation = rawRight ? null : parseEmbeddedOperationReference(rawLeft);
+              const normalizedName = embeddedOperation?.name ?? value.trim();
+              const normalizedId = embeddedOperation?.id ?? rawLeft;
+              const exactById = input.operationById.get(normalizedId);
+              const exactByName = input.operationByName.get(normalizedName);
+              const exactRightByName = rawRight ? input.operationByName.get(rawRight) : null;
+              const operationId =
+                embeddedOperation?.id ??
+                (exactById
+                  ? normalizedId
+                  : exactByName?.id ?? exactRightByName?.id ?? rawLeft);
+              const fallbackOperationName =
+                rawRight ||
+                exactByName?.name ||
+                exactById?.name ||
+                exactRightByName?.name ||
+                normalizedName;
+              if (!operationId) {
+                return null;
+              }
+
+              return {
+                operationId,
+                operationName: fallbackOperationName,
+                reason: "Recovered from approved proposal majorOperations",
+              };
+            })
+            .filter((value): value is { operationId: string; operationName: string; reason: string } => value !== null);
+    const nodes: PipelineData["nodes"] = [];
+    const edges: PipelineData["edges"] = [];
+    let x = 0;
+
+    const addNode = <T extends PipelineData["nodes"][number]>(node: T) => {
+      nodes.push(node);
+      x += 360;
+
+      return node;
+    };
+    const addEdge = (source: string, target: string) => {
+      edges.push({
+        id: `edge-${source}-${target}`,
+        source,
+        target,
+      });
+    };
+
+    const needsFolderInput = input.proposal.inputs.some(
+      (value) => value.includes("folder") || value.includes("仓库"),
+    );
+    const needsPromptInput = input.proposal.inputs.some(
+      (value) => value.includes("prompt") || value.includes("提示词"),
+    );
+
+    const folderNode = needsFolderInput
+      ? addNode({
+          id: "generated-folder-input",
+          type: "folder",
+          position: { x, y: 0 },
+          data: {
+            nodeType: "folder",
+            label: "仓库目录",
+            folderPath: "/tmp/ordine-input-repo",
+            description: "待审查的本地代码仓库目录。",
+          },
+        })
+      : null;
+    const promptNode = needsPromptInput
+      ? addNode({
+          id: "generated-prompt-input",
+          type: "prompt",
+          position: { x, y: 180 },
+          data: {
+            nodeType: "prompt",
+            label: "审查提示词",
+            prompt: input.proposal.purpose,
+            description: "用于约束本次代码仓库审查重点的提示词。",
+          },
+        })
+      : null;
+    const operationNodes = fallbackOperations.map((operation, index) =>
+      addNode({
+        id: `generated-operation-${index + 1}`,
+        type: "operation",
+        position: { x, y: 0 },
+        data: {
+          nodeType: "operation",
+          label: operation.operationName,
+          operationId: operation.operationId,
+          operationName: operation.operationName,
+          status: "idle",
+        },
+      }),
+    );
+    const outputNode = addNode({
+      id: "generated-output",
+      type: "output-local-path",
+      position: { x, y: 0 },
+      data: {
+        nodeType: "output-local-path",
+        label: "Markdown 审查报告",
+        localPath: "/tmp/ordine-output/review-report.md",
+        outputMode: "overwrite",
+        description: "最终生成的 Markdown 审查报告输出路径。",
+      },
+    });
+
+    const firstOperation = operationNodes[0] ?? null;
+    if (firstOperation) {
+      if (folderNode) {
+        addEdge(folderNode.id, firstOperation.id);
+      }
+      if (promptNode) {
+        addEdge(promptNode.id, firstOperation.id);
+      }
+
+      for (const [index, currentNode] of operationNodes.entries()) {
+        const nextNode = operationNodes[index + 1] ?? outputNode;
+        addEdge(currentNode.id, nextNode.id);
+      }
+    }
+
+    return { nodes, edges };
+  };
 
   const decodeText = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
   const normalizeWhitespace = (value: string) => value.replaceAll(/\s+/g, " ").trim();
@@ -659,20 +817,28 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       if (proposalRecord.proposal.readiness !== "ready_for_generation") {
         throw new Error(`Approved generate proposal is not ready for generation in session ${sessionId}`);
       }
+      const generateProposal = proposalRecord.proposal;
 
-      const [messages, artifacts, settings, runtimes] = await Promise.all([
+      const [messages, artifacts, settings, runtimes, operations] = await Promise.all([
         messagesDao.findManyBySessionId(sessionId),
         contextArtifactsDao.findManyBySessionId(sessionId),
         settingsDao.get(),
         agentRuntimesDao.findMany(),
+        operationsDao.findMany(),
       ]);
       const effectiveRuntime = resolveEffectiveRuntime({
         runtimes,
         defaultRuntime: settings.defaultAgentRuntime ?? null,
       });
-      const pipelineName = proposalRecord.proposal.purpose;
+      const operationById = new Map(
+        operations.map((operation) => [operation.id, { name: operation.name }]),
+      );
+      const operationByName = new Map(
+        operations.map((operation) => [operation.name, { id: operation.id, name: operation.name }]),
+      );
+      const pipelineName = generateProposal.purpose;
       const pipelineDescription = [
-        buildGenerationDescription(proposalRecord.proposal),
+        buildGenerationDescription(generateProposal),
         "Conversation context:",
         messages
           .map((message) => `[${message.role}/${message.kind}] ${message.content}`)
@@ -698,10 +864,16 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             unmatchedSteps: analysis.unmatchedSteps,
             runtimeType: effectiveRuntime,
           });
-          if ("error" in generated) {
-            throw new Error(generated.error);
-          }
-          if (generated.pendingOperations && generated.pendingOperations.length > 0) {
+          const graph =
+            "error" in generated
+              ? buildFallbackGeneratedGraph({
+                  matchedOperations: analysis.matchedOperations,
+                  operationById,
+                  operationByName,
+                  proposal: generateProposal,
+                })
+              : generated;
+          if (!("error" in generated) && generated.pendingOperations && generated.pendingOperations.length > 0) {
             await pipelinesService.createPendingOperations(generated.pendingOperations);
           }
 
@@ -711,8 +883,8 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             description: pipelineDescription,
             tags: ["agent-generated"],
             timeoutMs: null,
-            nodes: generated.nodes,
-            edges: generated.edges,
+            nodes: graph.nodes,
+            edges: graph.edges,
           });
         })(),
         (error) => (error instanceof Error ? error : new Error(String(error))),

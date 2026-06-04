@@ -117,28 +117,6 @@ const validateNodeTypeMatchesData = (
         ),
       ];
 
-const normalizeReplacementNodeData = (
-  node: PipelineGraphNode,
-  action: Extract<PipelineAction, { type: "replaceNodeData" }>,
-) => {
-  const currentData = node.data;
-
-  if (
-    node.type === "operation" &&
-    currentData.nodeType === "operation" &&
-    action.data.nodeType === "operation" &&
-    action.data.label !== currentData.label &&
-    action.data.operationName === currentData.operationName
-  ) {
-    return {
-      ...action.data,
-      operationName: action.data.label,
-    };
-  }
-
-  return action.data;
-};
-
 const applyAction = (
   draft: PipelineGraphSnapshot,
   action: PipelineAction,
@@ -315,7 +293,7 @@ const applyAction = (
         return nodeDataDiagnostics;
       }
 
-      node.data = normalizeReplacementNodeData(node, action);
+      node.data = action.data;
 
       return [];
     }

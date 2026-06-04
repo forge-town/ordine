@@ -197,10 +197,7 @@ export const AgentPanel = () => {
       nodes,
       edges,
     });
-    if (
-      sessionIdRef.current &&
-      sessionGraphSignatureRef.current === graphSignature
-    ) {
+    if (sessionIdRef.current && sessionGraphSignatureRef.current === graphSignature) {
       return sessionIdRef.current;
     }
     const session = await pipelineAgentSessionsClient.createSession({
@@ -318,6 +315,7 @@ export const AgentPanel = () => {
       return;
     }
 
+    const previousProposalId = proposalIdRef.current;
     clearPendingProposal();
 
     const userMessage: Message = {
@@ -387,10 +385,45 @@ export const AgentPanel = () => {
           content: text,
         });
 
+        const streamedTerminalEvent = { current: false };
         await pipelineAgentSessionsClient.planSessionStream(sessionId, {
           runtimeId: effectiveRuntimeId,
-          onEvent: handlePlanEvent,
+          onEvent: (event) => {
+            if (
+              event.type === "question" ||
+              event.type === "error" ||
+              (event.type === "proposal_ready" && event.proposal.mode === "edit")
+            ) {
+              streamedTerminalEvent.current = true;
+            }
+            handlePlanEvent(event);
+          },
         });
+        if (!streamedTerminalEvent.current) {
+          const latestProposal = await pipelineAgentSessionsClient.getLatestReadyProposal(
+            sessionId,
+            "edit",
+            { excludeProposalId: previousProposalId },
+          );
+          if (latestProposal && latestProposal.proposal.mode === "edit") {
+            handlePlanEvent({
+              type: "proposal_ready",
+              proposal: latestProposal.proposal,
+              proposalId: latestProposal.proposalId,
+            });
+
+            return;
+          }
+
+          const latestQuestion =
+            await pipelineAgentSessionsClient.getLatestAssistantQuestion(sessionId);
+          if (latestQuestion) {
+            handlePlanEvent({
+              type: "question",
+              question: latestQuestion.question,
+            });
+          }
+        }
       })(),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );

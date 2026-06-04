@@ -85,3 +85,37 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
     });
   });
 });
+
+describe("pipelineAgentSessionsClient.waitForCreatedPipeline", () => {
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  it("stops polling when the abort signal is triggered", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "session-1",
+          entrypoint: "new-pipeline-dialog",
+          mode: "generate",
+          status: "generating",
+        }),
+      ),
+    ) as typeof fetch;
+
+    const controller = new AbortController();
+    const waitPromise = pipelineAgentSessionsClient.waitForCreatedPipeline("session-1", {
+      intervalMs: 10,
+      signal: controller.signal,
+      timeoutMs: 1000,
+    });
+    await Promise.resolve();
+    controller.abort();
+
+    await expect(waitPromise).rejects.toThrow(
+      "Stopped waiting for generated pipeline in session session-1",
+    );
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  });
+});

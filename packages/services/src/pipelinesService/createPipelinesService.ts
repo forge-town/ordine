@@ -381,6 +381,47 @@ const validateProposalActionCatalog = (
     return [];
   });
 
+const normalizeProposalActionCatalogNames = (
+  actions: PipelineAction[],
+  operationById: Map<string, { name: string }>,
+): PipelineAction[] =>
+  actions.map((action) => {
+    if (action.type === "addNode" && action.node.data.nodeType === "operation") {
+      const catalogOperation = operationById.get(action.node.data.operationId);
+      if (!catalogOperation) {
+        return action;
+      }
+
+      return {
+        ...action,
+        node: {
+          ...action.node,
+          data: {
+            ...action.node.data,
+            operationName: catalogOperation.name,
+          },
+        },
+      };
+    }
+
+    if (action.type === "replaceNodeData" && action.data.nodeType === "operation") {
+      const catalogOperation = operationById.get(action.data.operationId);
+      if (!catalogOperation) {
+        return action;
+      }
+
+      return {
+        ...action,
+        data: {
+          ...action.data,
+          operationName: catalogOperation.name,
+        },
+      };
+    }
+
+    return action;
+  });
+
 const NODE_TYPE_ALIASES = {
   promptInput: "prompt",
   prompt_input: "prompt",
@@ -749,7 +790,10 @@ export const createPipelinesService = (db: DbConnection) => {
         return { proposal: null, diagnostics: [] };
       }
 
-      const proposal = parsed.data;
+      const proposal = {
+        ...parsed.data,
+        actions: normalizeProposalActionCatalogNames(parsed.data.actions, operationById),
+      };
       const validationResult = validatePipelineActions(snapshot, proposal.actions);
       const graphDiagnostics = validationResult.isErr() ? validationResult.error : [];
       const operationDiagnostics = validateProposalActionCatalog(proposal.actions, operationById);

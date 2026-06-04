@@ -24,6 +24,8 @@ const mockCreateSession = vi.fn();
 const mockAppendMessage = vi.fn();
 const mockUploadAttachment = vi.fn();
 const mockPlanSessionStream = vi.fn();
+const mockGetLatestReadyProposal = vi.fn();
+const mockGetLatestAssistantQuestion = vi.fn();
 const mockApproveProposal = vi.fn();
 
 vi.mock("@repo/pipeline-engine/actions", () => ({
@@ -46,6 +48,8 @@ vi.mock("@/lib/pipelineAgentSessionsClient", () => ({
     appendMessage: (...args: unknown[]) => mockAppendMessage(...args),
     approveProposal: (...args: unknown[]) => mockApproveProposal(...args),
     createSession: (...args: unknown[]) => mockCreateSession(...args),
+    getLatestAssistantQuestion: (...args: unknown[]) => mockGetLatestAssistantQuestion(...args),
+    getLatestReadyProposal: (...args: unknown[]) => mockGetLatestReadyProposal(...args),
     planSessionStream: (...args: unknown[]) => mockPlanSessionStream(...args),
     uploadAttachment: (...args: unknown[]) => mockUploadAttachment(...args),
   },
@@ -186,6 +190,8 @@ describe("AgentPanel", () => {
       },
     });
     mockApproveProposal.mockResolvedValue(undefined);
+    mockGetLatestAssistantQuestion.mockResolvedValue(null);
+    mockGetLatestReadyProposal.mockResolvedValue(null);
     mockApplyPipelineActions.mockReturnValue(ok({ nodes: [], edges: [] }));
   });
 
@@ -296,6 +302,71 @@ describe("AgentPanel", () => {
         pipelineId: "pipe-1",
         snapshot: { nodes: [], edges: [] },
       });
+    });
+  });
+
+  it("renders an edit proposal from session fallback when the stream misses proposal_ready", async () => {
+    mockPlanSessionStream.mockResolvedValue(undefined);
+    mockGetLatestReadyProposal.mockResolvedValueOnce({
+      proposalId: "proposal-1",
+      proposal: {
+        mode: "edit",
+        summary: "Fallback edit proposal ready",
+        targetGraphIntent: "Change only the display label",
+        majorChanges: ["Rename one operation label"],
+        assumptions: [],
+        openQuestions: [],
+        readiness: "ready_for_generation",
+        diagnosticsPreview: [],
+        actions: [
+          {
+            type: "replaceNodeData",
+            nodeId: "op-1",
+            data: {
+              nodeType: "operation",
+              operationId: "review-code",
+              operationName: "Review Code",
+              label: "测试审查",
+              status: "idle",
+            },
+          },
+        ],
+      },
+    });
+
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    await waitFor(() => {
+      expect(mockGetList).toHaveBeenCalled();
+    });
+    await userEvent.type(input, "Rename the test node");
+    await userEvent.keyboard("{Enter}");
+
+    await waitFor(() => {
+      expect(mockGetLatestReadyProposal).toHaveBeenCalledWith("session-1", "edit", {
+        excludeProposalId: null,
+      });
+      expect(screen.getAllByText("Fallback edit proposal ready").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("renders a follow-up question from session fallback when the stream misses question", async () => {
+    mockPlanSessionStream.mockResolvedValue(undefined);
+    mockGetLatestAssistantQuestion.mockResolvedValueOnce({
+      question: "Which node should I rename?",
+    });
+
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    await waitFor(() => {
+      expect(mockGetList).toHaveBeenCalled();
+    });
+    await userEvent.type(input, "Rename a node");
+    await userEvent.keyboard("{Enter}");
+
+    await waitFor(() => {
+      expect(mockGetLatestAssistantQuestion).toHaveBeenCalledWith("session-1");
+      expect(screen.getByText("Which node should I rename?")).toBeInTheDocument();
     });
   });
 
