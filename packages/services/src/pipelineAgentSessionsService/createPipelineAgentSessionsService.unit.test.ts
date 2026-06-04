@@ -363,6 +363,62 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
+  it("rejects approval when a proposal still needs user input", async () => {
+    mockProposalsDao.findById.mockResolvedValueOnce({
+      id: "proposal-needs-answer",
+      sessionId: "session-1",
+      mode: "generate",
+      status: "proposal_ready",
+      proposal: {
+        mode: "generate",
+        purpose: "Review repository code",
+        inputs: ["folder"],
+        outputs: ["markdown report"],
+        majorOperations: ["review-code"],
+        executionFlow: ["folder -> review-code -> output"],
+        assumptions: [],
+        openQuestions: ["Which repository?"],
+        readiness: "needs_user_answer",
+      },
+      createdAt: new Date("2026-06-03T12:00:02.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:02.000Z"),
+      approvedAt: null,
+    });
+    const service = createPipelineAgentSessionsService({} as never);
+
+    await expect(service.approveProposal("session-1", "proposal-needs-answer")).rejects.toThrow(
+      "not ready for approval",
+    );
+  });
+
+  it("rejects approval when a proposal belongs to a different session", async () => {
+    mockProposalsDao.findById.mockResolvedValueOnce({
+      id: "proposal-foreign",
+      sessionId: "session-2",
+      mode: "generate",
+      status: "proposal_ready",
+      proposal: {
+        mode: "generate",
+        purpose: "Review repository code",
+        inputs: ["folder"],
+        outputs: ["markdown report"],
+        majorOperations: ["review-code"],
+        executionFlow: ["folder -> review-code -> output"],
+        assumptions: [],
+        openQuestions: [],
+        readiness: "ready_for_generation",
+      },
+      createdAt: new Date("2026-06-03T12:00:02.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:02.000Z"),
+      approvedAt: null,
+    });
+    const service = createPipelineAgentSessionsService({} as never);
+
+    await expect(service.approveProposal("session-1", "proposal-foreign")).rejects.toThrow(
+      "does not belong to session",
+    );
+  });
+
   it("hydrates a session with messages, attachments, artifacts, and proposals", async () => {
     const service = createPipelineAgentSessionsService({} as never);
 

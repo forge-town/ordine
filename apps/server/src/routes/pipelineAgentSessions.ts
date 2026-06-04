@@ -3,6 +3,7 @@ import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import {
   PipelineAgentEntrypointSchema,
+  PipelineGraphSnapshotSchema,
   PipelineAgentMessageKindSchema,
   PipelineAgentMessageRoleSchema,
   PipelineAgentModeSchema,
@@ -15,7 +16,7 @@ const createSessionBodySchema = z.object({
   entrypoint: PipelineAgentEntrypointSchema,
   mode: PipelineAgentModeSchema,
   pipelineId: z.string().optional(),
-  snapshot: z.unknown().optional(),
+  snapshot: PipelineGraphSnapshotSchema.optional(),
 });
 
 const appendMessageBodySchema = z.object({

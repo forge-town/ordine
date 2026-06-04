@@ -131,6 +131,7 @@ export const AgentPanel = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const sessionIdRef = useRef<string | null>(null);
+  const sessionGraphSignatureRef = useRef<string | null>(null);
   const proposalIdRef = useRef<string | null>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -191,7 +192,15 @@ export const AgentPanel = () => {
   }, [fetchRuntimeState]);
 
   const ensureSession = useCallback(async () => {
-    if (sessionIdRef.current) {
+    const graphSignature = JSON.stringify({
+      pipelineId,
+      nodes,
+      edges,
+    });
+    if (
+      sessionIdRef.current &&
+      sessionGraphSignatureRef.current === graphSignature
+    ) {
       return sessionIdRef.current;
     }
     const session = await pipelineAgentSessionsClient.createSession({
@@ -201,6 +210,7 @@ export const AgentPanel = () => {
       snapshot: { nodes, edges },
     });
     sessionIdRef.current = session.id;
+    sessionGraphSignatureRef.current = graphSignature;
 
     return session.id;
   }, [edges, nodes, pipelineId]);
@@ -490,30 +500,17 @@ export const AgentPanel = () => {
     }
 
     const run = async () => {
+      const applied = applyAgentProposal(activeProposal);
+      if (!applied) {
+        return;
+      }
+
       const approvalResult = await ResultAsync.fromPromise(
         sessionIdRef.current && proposalIdRef.current
           ? pipelineAgentSessionsClient.approveProposal(sessionIdRef.current, proposalIdRef.current)
           : Promise.resolve(),
         (error) => (error instanceof Error ? error : new Error(String(error))),
       );
-      if (approvalResult.isErr()) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `assistant-error-${Date.now()}`,
-            role: "assistant",
-            content: approvalResult.error.message,
-          },
-        ]);
-        scrollToBottom();
-
-        return;
-      }
-      const applied = applyAgentProposal(activeProposal);
-      if (!applied) {
-        return;
-      }
-
       setMessages((prev) => [
         ...prev,
         {
@@ -523,6 +520,19 @@ export const AgentPanel = () => {
         },
       ]);
       setLocalProposalPreview(null);
+      sessionIdRef.current = null;
+      sessionGraphSignatureRef.current = null;
+      proposalIdRef.current = null;
+      if (approvalResult.isErr()) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `assistant-error-${Date.now()}`,
+            role: "assistant",
+            content: approvalResult.error.message,
+          },
+        ]);
+      }
       scrollToBottom();
     };
 
@@ -546,6 +556,7 @@ export const AgentPanel = () => {
 
   const proposal = activeProposal;
   const hasProposal = proposal !== null;
+  const canApplyProposal = hasProposal && !hasBlockingDiagnostics;
 
   return (
     <div className="absolute bottom-0 right-0 top-0 z-30 flex w-80 flex-col border-l bg-background shadow-lg">
@@ -699,7 +710,7 @@ export const AgentPanel = () => {
                 <div className="flex items-center gap-2">
                   <Button
                     className="h-8 flex-1 gap-1 text-xs"
-                    disabled={isSending || agentPanel.isLoading || hasBlockingDiagnostics}
+                    disabled={isSending || agentPanel.isLoading || !canApplyProposal}
                     size="sm"
                     variant="default"
                     onClick={handleApply}

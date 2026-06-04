@@ -65,6 +65,8 @@ export const NewPipelineDialog = () => {
 
     return createdPipelineId ?? t("pipelines.createNew");
   }, [createdPipelineId, proposal, t]);
+  const isProposalReadyForApproval =
+    proposal?.mode === "generate" && proposal.readiness === "ready_for_generation";
 
   useEffect(() => {
     if (!open) {
@@ -254,11 +256,20 @@ export const NewPipelineDialog = () => {
       return;
     }
 
-    await dataProvider.custom!({
-      url: "pipelines/run",
-      method: "post",
-      payload: { id: createdPipelineId },
-    });
+    const runNowResult = await ResultAsync.fromPromise(
+      dataProvider.custom!({
+        url: "pipelines/run",
+        method: "post",
+        payload: { id: createdPipelineId },
+      }),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
+    );
+    if (runNowResult.isErr()) {
+      setErrorMessage(runNowResult.error.message);
+
+      return;
+    }
+
     handleNewPipelineDialogOpenChange(false);
     void router.navigate({ to: "/canvas", search: { id: createdPipelineId } });
   };
@@ -325,6 +336,12 @@ export const NewPipelineDialog = () => {
                 <p className="text-sm font-medium text-foreground">{displayName}</p>
               </div>
             </div>
+            {errorMessage && (
+              <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
             <DialogFooter className="animate-in fade-in slide-in-from-bottom-1 duration-500 flex-col gap-2 sm:flex-col">
               <div className="flex w-full gap-2">
                 <Button className="flex-1" onClick={handleOpenInCanvas}>
@@ -429,7 +446,10 @@ export const NewPipelineDialog = () => {
                   <Button variant="outline" onClick={handleRevise}>
                     {t("newPipelineDialog.revise")}
                   </Button>
-                  <Button disabled={phase === "generating"} onClick={handleApprove}>
+                  <Button
+                    disabled={phase === "generating" || !isProposalReadyForApproval}
+                    onClick={handleApprove}
+                  >
                     {phase === "generating" ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -429,9 +429,26 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     },
 
     approveProposal: async (sessionId: string, proposalId: string) => {
+      const session = await sessionsDao.findById(sessionId);
+      if (!session) {
+        throw new Error(`Pipeline agent session not found: ${sessionId}`);
+      }
+
       const proposal = await proposalsDao.findById(proposalId);
       if (!proposal) {
         throw new Error(`Pipeline agent proposal not found: ${proposalId}`);
+      }
+      if (proposal.sessionId !== sessionId) {
+        throw new Error(`Pipeline agent proposal ${proposalId} does not belong to session ${sessionId}`);
+      }
+      if (proposal.mode !== session.mode) {
+        throw new Error(`Pipeline agent proposal ${proposalId} mode does not match session ${sessionId}`);
+      }
+      if (proposal.status !== "proposal_ready") {
+        throw new Error(`Pipeline agent proposal ${proposalId} cannot be approved from status ${proposal.status}`);
+      }
+      if (proposal.proposal.readiness !== "ready_for_generation") {
+        throw new Error(`Pipeline agent proposal ${proposalId} is not ready for approval`);
       }
 
       await proposalsDao.update(proposalId, {
@@ -638,6 +655,9 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       const proposalRecord = await proposalsDao.findById(session.approvedProposalId);
       if (!proposalRecord || proposalRecord.proposal.mode !== "generate") {
         throw new Error(`Approved generate proposal not found for session ${sessionId}`);
+      }
+      if (proposalRecord.proposal.readiness !== "ready_for_generation") {
+        throw new Error(`Approved generate proposal is not ready for generation in session ${sessionId}`);
       }
 
       const [messages, artifacts, settings, runtimes] = await Promise.all([
