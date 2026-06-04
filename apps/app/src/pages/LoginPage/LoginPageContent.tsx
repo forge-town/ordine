@@ -20,6 +20,9 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+const handleGitHubClick = () => signInWithGitHub("/");
+const handleGoogleClick = () => signInWithGoogle("/");
+
 export const LoginPageContent = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
@@ -29,9 +32,6 @@ export const LoginPageContent = () => {
     defaultValues: { email: "", password: "" },
   });
   const loading = form.formState.isSubmitting;
-
-  const handleGitHubClick = () => signInWithGitHub("/");
-  const handleGoogleClick = () => signInWithGoogle("/");
 
   const handleSubmit = async (values: LoginFormValues) => {
     setError("");

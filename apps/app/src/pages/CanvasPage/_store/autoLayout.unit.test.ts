@@ -20,6 +20,26 @@ const makeNode = (id: string, x = 0, y = 0, w = 280, h = 120): PipelineNode =>
 const makeEdge = (source: string, target: string): PipelineEdge =>
   ({ id: `${source}-${target}`, source, target }) as PipelineEdge;
 
+const makeCompoundNode = (
+  id: string,
+  childNodeIds: string[],
+  x = 0,
+  y = 0,
+  w = 280,
+  h = 120,
+): PipelineNode =>
+  ({
+    id,
+    type: "compound",
+    position: { x, y },
+    measured: { width: w, height: h },
+    data: {
+      label: id,
+      nodeType: "compound",
+      childNodeIds,
+    },
+  }) as PipelineNode;
+
 describe("computeAutoLayout", () => {
   it("returns empty array for no nodes", () => {
     expect(computeAutoLayout([], [])).toEqual([]);
@@ -142,26 +162,6 @@ describe("computeAutoLayout", () => {
   });
 
   // ── Compound node tests ───────────────────────────────────────────────────
-
-  const makeCompoundNode = (
-    id: string,
-    childNodeIds: string[],
-    x = 0,
-    y = 0,
-    w = 280,
-    h = 120,
-  ): PipelineNode =>
-    ({
-      id,
-      type: "compound",
-      position: { x, y },
-      measured: { width: w, height: h },
-      data: {
-        label: id,
-        nodeType: "compound",
-        childNodeIds,
-      },
-    }) as PipelineNode;
 
   it("compound node with children: children positioned inside compound", () => {
     // A → [compound G contains B, C] → D

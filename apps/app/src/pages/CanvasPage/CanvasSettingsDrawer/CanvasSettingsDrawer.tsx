@@ -44,7 +44,7 @@ export const CanvasSettingsDrawer = () => {
   const settings = useStore(store, (s) => s.canvasSettings);
   const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const openCanvasSettings = useStore(store, (s) => s.openCanvasSettings);
-  const closeCanvasSettings = useStore(store, (s) => s.closeCanvasSettings);
+  const handleCloseCanvasSettings = useStore(store, (s) => s.closeCanvasSettings);
   const updateCanvasSettings = useStore(store, (s) => s.updateCanvasSettings);
   const setNodeCardMode = useStore(store, (s) => s.setNodeCardMode);
 
@@ -55,7 +55,7 @@ export const CanvasSettingsDrawer = () => {
       return;
     }
 
-    closeCanvasSettings();
+    handleCloseCanvasSettings();
   };
 
   const handleSettingChange = (
@@ -67,12 +67,17 @@ export const CanvasSettingsDrawer = () => {
     } as Partial<CanvasSettingsState>);
   };
 
+  const handleNodeCardModeClick = (id: (typeof nodeCardModeOptions)[number]["id"]) => {
+    setNodeCardMode(id);
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
       <SheetContent
         className="w-[min(24rem,calc(100vw-1rem))] max-w-sm gap-0 border-l bg-white/95 p-0 backdrop-blur"
         showCloseButton={false}
-        side="right">
+        side="right"
+      >
         <SheetHeader className="border-b pr-12">
           <div className="flex items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-md bg-slate-100 text-slate-700">
@@ -80,9 +85,7 @@ export const CanvasSettingsDrawer = () => {
             </span>
             <SheetTitle>{t("canvas.settingsDrawer.title")}</SheetTitle>
           </div>
-          <SheetDescription>
-            {t("canvas.settingsDrawer.description")}
-          </SheetDescription>
+          <SheetDescription>{t("canvas.settingsDrawer.description")}</SheetDescription>
           <SheetClose
             render={
               <Button
@@ -91,7 +94,8 @@ export const CanvasSettingsDrawer = () => {
                 size="icon-sm"
                 variant="ghost"
               />
-            }>
+            }
+          >
             <X className="size-4" />
           </SheetClose>
         </SheetHeader>
@@ -99,7 +103,8 @@ export const CanvasSettingsDrawer = () => {
         <div
           aria-label={t("canvas.settingsDrawer.title")}
           className="flex-1 space-y-3 overflow-y-auto p-4"
-          role="group">
+          role="group"
+        >
           {settingEntries.map(({ id, icon: Icon }) => {
             const inputId = `canvas-setting-${id}`;
             const descriptionId = `${inputId}-description`;
@@ -107,7 +112,8 @@ export const CanvasSettingsDrawer = () => {
             return (
               <div
                 key={id}
-                className="flex items-start gap-3 rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+                className="flex items-start gap-3 rounded-md border border-slate-200 bg-white p-3 shadow-sm"
+              >
                 <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-600">
                   <Icon className="size-4" />
                 </span>
@@ -115,9 +121,7 @@ export const CanvasSettingsDrawer = () => {
                   <Label className="text-slate-800" htmlFor={inputId}>
                     {t(`canvas.settingsDrawer.${id}.label`)}
                   </Label>
-                  <p
-                    className="mt-0.5 text-xs leading-5 text-slate-500"
-                    id={descriptionId}>
+                  <p className="mt-0.5 text-xs leading-5 text-slate-500" id={descriptionId}>
                     {t(`canvas.settingsDrawer.${id}.description`)}
                   </p>
                 </div>
@@ -156,7 +160,8 @@ export const CanvasSettingsDrawer = () => {
                       size="sm"
                       type="button"
                       variant={nodeCardMode === id ? "secondary" : "ghost"}
-                      onClick={() => setNodeCardMode(id)}>
+                      onClick={() => handleNodeCardModeClick(id)}
+                    >
                       <Icon className="size-3.5" />
                       {t(`canvas.settingsDrawer.nodeCardMode.${id}`, {
                         defaultValue: id === "compact" ? "Compact" : "Expanded",
@@ -173,7 +178,8 @@ export const CanvasSettingsDrawer = () => {
           <Link
             className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
             to="/settings"
-            onClick={closeCanvasSettings}>
+            onClick={handleCloseCanvasSettings}
+          >
             {t("canvas.settingsDrawer.globalSettings")}
           </Link>
         </div>
@@ -181,4 +187,3 @@ export const CanvasSettingsDrawer = () => {
     </Sheet>
   );
 };
-

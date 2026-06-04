@@ -51,30 +51,18 @@ export const CanvasWorkspaceSidebarOverlay = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const isOpen = useStore(store, (state) => state.isWorkspaceSidebarOpen);
-  const closeWorkspaceSidebar = useStore(
-    store,
-    (state) => state.closeWorkspaceSidebar,
-  );
+  const closeWorkspaceSidebar = useStore(store, (state) => state.closeWorkspaceSidebar);
   const pipelineName = useStore(store, (state) => state.pipelineName);
   const exportCanvas = useStore(store, (state) => state.exportCanvas);
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
-  const openCanvasSettings = useStore(
-    store,
-    (state) => state.openCanvasSettings,
-  );
-  const displayPipelineName =
-    pipelineName || t("canvas.pipelineTitlePlaceholder");
-  const {
-    fileInputRef,
-    handleImport,
-    handleImportFileChange,
-    handleSave,
-    isPending,
-  } = useCanvasWorkspacePersistence({
-    onAfterImportFileSelect: closeWorkspaceSidebar,
-    onAfterSave: closeWorkspaceSidebar,
-  });
+  const openCanvasSettings = useStore(store, (state) => state.openCanvasSettings);
+  const displayPipelineName = pipelineName || t("canvas.pipelineTitlePlaceholder");
+  const { fileInputRef, handleImport, handleImportFileChange, handleSave, isPending } =
+    useCanvasWorkspacePersistence({
+      onAfterImportFileSelect: closeWorkspaceSidebar,
+      onAfterSave: closeWorkspaceSidebar,
+    });
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -98,7 +86,8 @@ export const CanvasWorkspaceSidebarOverlay = () => {
         data-testid="canvas-workspace-sidebar-overlay"
         id={CANVAS_WORKSPACE_SIDEBAR_ID}
         showCloseButton={false}
-        side="left">
+        side="left"
+      >
         <SheetHeader className="border-b px-4 py-4 pr-12">
           <div className="flex items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -110,9 +99,7 @@ export const CanvasWorkspaceSidebarOverlay = () => {
                   defaultValue: "Workspace",
                 })}
               </SheetTitle>
-              <SheetDescription className="truncate">
-                {displayPipelineName}
-              </SheetDescription>
+              <SheetDescription className="truncate">{displayPipelineName}</SheetDescription>
             </div>
           </div>
           <SheetClose
@@ -123,7 +110,8 @@ export const CanvasWorkspaceSidebarOverlay = () => {
                 size="icon-sm"
                 variant="ghost"
               />
-            }>
+            }
+          >
             <X className="size-4" />
           </SheetClose>
         </SheetHeader>
@@ -138,21 +126,20 @@ export const CanvasWorkspaceSidebarOverlay = () => {
                 className="justify-start gap-2"
                 disabled={isPending}
                 variant="secondary"
-                onClick={handleSave}>
+                onClick={handleSave}
+              >
                 <Save className="size-4" />
                 {t("canvas.floatingMenu.save")}
               </Button>
               <Button
                 className="justify-start gap-2"
                 variant="ghost"
-                onClick={handleActionClick(exportCanvas)}>
+                onClick={handleActionClick(exportCanvas)}
+              >
                 <FileDown className="size-4" />
                 {t("canvas.floatingMenu.export")}
               </Button>
-              <Button
-                className="justify-start gap-2"
-                variant="ghost"
-                onClick={handleImport}>
+              <Button className="justify-start gap-2" variant="ghost" onClick={handleImport}>
                 <FileUp className="size-4" />
                 {t("canvas.floatingMenu.import")}
               </Button>
@@ -160,21 +147,24 @@ export const CanvasWorkspaceSidebarOverlay = () => {
               <Button
                 className="justify-start gap-2"
                 variant="ghost"
-                onClick={handleActionClick(handleUndo)}>
+                onClick={handleActionClick(handleUndo)}
+              >
                 <Undo2 className="size-4" />
                 {t("canvas.undo")}
               </Button>
               <Button
                 className="justify-start gap-2"
                 variant="ghost"
-                onClick={handleActionClick(handleRedo)}>
+                onClick={handleActionClick(handleRedo)}
+              >
                 <Redo2 className="size-4" />
                 {t("canvas.redo")}
               </Button>
               <Button
                 className="justify-start gap-2"
                 variant="ghost"
-                onClick={handleActionClick(openCanvasSettings)}>
+                onClick={handleActionClick(openCanvasSettings)}
+              >
                 <Settings2 className="size-4" />
                 {t("canvas.settingsDrawer.menuLabel")}
               </Button>
@@ -194,7 +184,8 @@ export const CanvasWorkspaceSidebarOverlay = () => {
                     key={item.to}
                     className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted"
                     to={item.to}
-                    onClick={handleCloseDrawer}>
+                    onClick={handleCloseDrawer}
+                  >
                     <Icon className="size-4" />
                     <span>{t(item.labelKey)}</span>
                   </Link>
@@ -208,7 +199,8 @@ export const CanvasWorkspaceSidebarOverlay = () => {
           <Link
             className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted"
             to="/"
-            onClick={handleCloseDrawer}>
+            onClick={handleCloseDrawer}
+          >
             <Home className="size-4" />
             {t("canvas.floatingMenu.backToWorkspace")}
           </Link>
@@ -227,4 +219,3 @@ export const CanvasWorkspaceSidebarOverlay = () => {
     </Sheet>
   );
 };
-

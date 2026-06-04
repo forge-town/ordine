@@ -1,10 +1,18 @@
 import { z } from "zod/v4";
 import { DisclosureModeSchema } from "./DisclosureModeSchema";
 
+export const SOURCE_TYPE_ENUM = {
+  GITHUB: "github",
+  LOCAL: "local",
+} as const;
+
+export const SourceTypeSchema = z.enum(SOURCE_TYPE_ENUM);
+export type SourceType = z.infer<typeof SourceTypeSchema>;
+
 export const GithubProjectObjectNodeDataSchema = z.object({
   label: z.string(),
   nodeType: z.literal("github-project"),
-  sourceType: z.enum(["github", "local"]).optional(),
+  sourceType: SourceTypeSchema.optional(),
   accessMode: z.enum(["clone", "remote"]).optional(),
   owner: z.string(),
   repo: z.string(),

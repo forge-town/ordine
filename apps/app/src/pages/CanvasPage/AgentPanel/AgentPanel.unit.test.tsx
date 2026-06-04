@@ -15,6 +15,7 @@ vi.mock("react-i18next", () => ({
     t: (key: string) => key,
     i18n: { changeLanguage: vi.fn() },
   }),
+  initReactI18next: { type: "3rdParty", init: () => {} },
 }));
 
 const mockApplyPipelineActions = vi.fn();
@@ -112,13 +113,17 @@ const PanelActivator = ({
   return <>{children}</>;
 };
 
-const wrapperWithState = (props: {
-  isOpen?: boolean;
-  pendingProposal?: PipelineActionProposal | null;
-  diagnostics?: PipelineActionDiagnostic[] | null;
-} = {}) => {
+const wrapperWithState = (
+  props: {
+    isOpen?: boolean;
+    pendingProposal?: PipelineActionProposal | null;
+    diagnostics?: PipelineActionDiagnostic[] | null;
+  } = {},
+) => {
   const Wrapper = ({ children }: { children?: ReactNode }) => (
-    <CanvasPageStoreProvider pipeline={{ id: "pipe-1", name: "Test Pipeline", nodes: [], edges: [] }}>
+    <CanvasPageStoreProvider
+      pipeline={{ id: "pipe-1", name: "Test Pipeline", nodes: [], edges: [] }}
+    >
       <PanelActivator {...props}>{children}</PanelActivator>
     </CanvasPageStoreProvider>
   );
@@ -218,7 +223,7 @@ describe("AgentPanel", () => {
           message: "添加一个操作节点",
           runtimeId: "runtime-codex",
         }),
-      })
+      }),
     );
     await waitFor(() => {
       expect(screen.getByText("已处理")).toBeInTheDocument();
@@ -292,9 +297,7 @@ describe("AgentPanel", () => {
   it("applies proposal and shows confirmation", async () => {
     const user = userEvent.setup();
     const proposal = makeProposal();
-    mockApplyPipelineActions.mockReturnValue(
-      ok({ nodes: [], edges: [] })
-    );
+    mockApplyPipelineActions.mockReturnValue(ok({ nodes: [], edges: [] }));
 
     render(<AgentPanel />, {
       wrapper: wrapperWithState({ pendingProposal: proposal }),
@@ -304,7 +307,7 @@ describe("AgentPanel", () => {
 
     expect(mockApplyPipelineActions).toHaveBeenCalledWith(
       expect.objectContaining({ nodes: expect.any(Array), edges: expect.any(Array) }),
-      proposal.actions
+      proposal.actions,
     );
     expect(screen.getByText("canvas.agentPanel.applied")).toBeInTheDocument();
   });

@@ -1,23 +1,10 @@
-import {
-  act,
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/react";
+import { act, render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasFloatingMenu } from "./CanvasFloatingMenu";
-import {
-  createCanvasPageStore,
-  CanvasPageStoreContext,
-  CanvasPageStoreProvider,
-} from "../_store";
+import { createCanvasPageStore, CanvasPageStoreContext, CanvasPageStoreProvider } from "../_store";
 import { toastStore } from "@/store/toastStore";
 import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";
-import {
-  MAX_CANVAS_IMPORT_BYTES,
-  MAX_CANVAS_IMPORT_NODES,
-} from "../utils/canvasImportJson";
+import { MAX_CANVAS_IMPORT_BYTES, MAX_CANVAS_IMPORT_NODES } from "../utils/canvasImportJson";
 
 // ─── Mock @refinedev/core ─────────────────────────────────────────────────────
 
@@ -60,8 +47,7 @@ const clickSave = () => {
 };
 
 const wrapperWithPipeline = ({ children }: React.PropsWithChildren) => (
-  <CanvasPageStoreProvider
-    pipeline={{ id: "pipe-001", name: "My Pipeline", nodes: [], edges: [] }}>
+  <CanvasPageStoreProvider pipeline={{ id: "pipe-001", name: "My Pipeline", nodes: [], edges: [] }}>
     {children}
   </CanvasPageStoreProvider>
 );
@@ -71,8 +57,7 @@ const wrapperWithNullPipeline = ({ children }: React.PropsWithChildren) => (
 );
 
 const wrapperWithTestPipeline = ({ children }: React.PropsWithChildren) => (
-  <CanvasPageStoreProvider
-    pipeline={{ id: "pipe-001", name: "Test", nodes: [], edges: [] }}>
+  <CanvasPageStoreProvider pipeline={{ id: "pipe-001", name: "Test", nodes: [], edges: [] }}>
     {children}
   </CanvasPageStoreProvider>
 );
@@ -101,16 +86,12 @@ const makeEdge = (id: string): PipelineEdge => ({
 });
 
 const uploadJsonFile = (content: string) => {
-  const input = document.querySelector<HTMLInputElement>(
-    "input[name='canvasImportFile']",
-  );
+  const input = document.querySelector<HTMLInputElement>("input[name='canvasImportFile']");
   expect(input).toBeTruthy();
 
   fireEvent.change(input!, {
     target: {
-      files: [
-        new File([content], "pipeline.json", { type: "application/json" }),
-      ],
+      files: [new File([content], "pipeline.json", { type: "application/json" })],
     },
   });
 };
@@ -121,9 +102,7 @@ const expectImportFailedToast = async () => {
       toastStore
         .getState()
         .toasts.some(
-          (toast) =>
-            toast.type === "error" &&
-            /^(Import failed|导入失败)$/.test(toast.title),
+          (toast) => toast.type === "error" && /^(Import failed|导入失败)$/.test(toast.title),
         ),
     ).toBe(true),
   );
@@ -211,9 +190,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
       openMenu();
       fireEvent.click(screen.getByText("Save"));
 
-      expect(mockUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ id: generatedId }),
-      );
+      expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: generatedId }));
       expect(mockCreate).not.toHaveBeenCalled();
     });
   });
@@ -294,9 +271,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
       }),
     );
 
-    await waitFor(() =>
-      expect(store.getState().pipelineName).toBe("Imported Pipeline"),
-    );
+    await waitFor(() => expect(store.getState().pipelineName).toBe("Imported Pipeline"));
     expect(store.getState().nodes).toEqual([sanitizedNode]);
     expect(store.getState().edges).toEqual([
       {
@@ -327,9 +302,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
       }),
     );
 
-    await waitFor(() =>
-      expect(store.getState().pipelineName).toBe("Legacy Pipeline Title"),
-    );
+    await waitFor(() => expect(store.getState().pipelineName).toBe("Legacy Pipeline Title"));
     expect(store.getState().nodes).toEqual([node]);
     expect(store.getState().edges).toEqual([]);
   });
@@ -337,12 +310,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state for invalid pipeline JSON", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createCanvasPageStore(
-      [initialNode],
-      [initialEdge],
-      null,
-      "Existing Pipeline",
-    );
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
 
     render(
       <CanvasPageStoreContext.Provider value={store}>
@@ -367,12 +335,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state for unsupported node types", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createCanvasPageStore(
-      [initialNode],
-      [initialEdge],
-      null,
-      "Existing Pipeline",
-    );
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
 
     render(
       <CanvasPageStoreContext.Provider value={store}>
@@ -397,12 +360,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state for invalid operation runtime", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createCanvasPageStore(
-      [initialNode],
-      [initialEdge],
-      null,
-      "Existing Pipeline",
-    );
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
 
     render(
       <CanvasPageStoreContext.Provider value={store}>
@@ -441,12 +399,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state for bad JSON", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createCanvasPageStore(
-      [initialNode],
-      [initialEdge],
-      null,
-      "Existing Pipeline",
-    );
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
 
     render(
       <CanvasPageStoreContext.Provider value={store}>
@@ -465,12 +418,7 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state when the import file is too large", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createCanvasPageStore(
-      [initialNode],
-      [initialEdge],
-      null,
-      "Existing Pipeline",
-    );
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
 
     render(
       <CanvasPageStoreContext.Provider value={store}>
@@ -489,15 +437,9 @@ describe("CanvasFloatingMenu - save behavior", () => {
   it("shows a toast and preserves canvas state when the import graph is too large", async () => {
     const initialNode = makeNode("existing");
     const initialEdge = makeEdge("existing-edge");
-    const store = createCanvasPageStore(
-      [initialNode],
-      [initialEdge],
-      null,
-      "Existing Pipeline",
-    );
-    const importedNodes = Array.from(
-      { length: MAX_CANVAS_IMPORT_NODES + 1 },
-      (_, index) => makeNode(`oversized-${index}`),
+    const store = createCanvasPageStore([initialNode], [initialEdge], null, "Existing Pipeline");
+    const importedNodes = Array.from({ length: MAX_CANVAS_IMPORT_NODES + 1 }, (_, index) =>
+      makeNode(`oversized-${index}`),
     );
 
     render(
@@ -535,4 +477,3 @@ describe("CanvasFloatingMenu - save behavior", () => {
     expect(store.getState().isCanvasSettingsOpen).toBe(true);
   });
 });
-

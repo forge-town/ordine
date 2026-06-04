@@ -430,7 +430,11 @@
         "projectId": "Project ID",
         "outputPath": "输出路径",
         "outputFileName": "输出文件名",
-        "writeMode": "写入模式"
+        "writeMode": "写入模式",
+        "disclosureMode": "披露模式",
+        "excludedPaths": "排除路径",
+        "includedExtensions": "包含扩展名",
+        "sourceType": "来源类型"
       },
       "placeholders": {
         "filePath": "src/file.tsx",
@@ -441,7 +445,8 @@
         "overwrite": "覆盖",
         "errorIfExists": "存在时报错",
         "autoRename": "自动重命名"
-      }
+      },
+      "operationDefinition": "Operation 定义"
     },
     "collapseSidebar": "收起侧栏",
     "expandSidebar": "展开侧栏",
@@ -650,6 +655,8 @@
     "disclosureTree": "仅目录结构",
     "disclosureFilesOnly": "仅文件内容",
     "disclosureFull": "目录结构 + 文件内容",
+    "sourceTypeGitHub": "GitHub",
+    "sourceTypeLocal": "本地文件夹",
     "removeExclude": "移除排除"
   },
   "projects": {
@@ -1103,4 +1110,3 @@
     }
   }
 }
-

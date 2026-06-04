@@ -2,10 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { err, ok } from "neverthrow";
 import { createCanvasPageStore } from "./canvasPageStore";
 import type { PipelineEdge, PipelineNode } from "./canvasSlice";
-import type {
-  PipelineActionDiagnostic,
-  PipelineActionProposal,
-} from "@repo/schemas";
+import type { PipelineActionDiagnostic, PipelineActionProposal } from "@repo/schemas";
 
 const mockApplyPipelineActions = vi.fn();
 
