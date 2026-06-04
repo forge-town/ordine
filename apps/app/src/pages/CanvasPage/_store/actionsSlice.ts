@@ -1,6 +1,6 @@
 import { sortParentBeforeChildren, type PipelineEdge, type PipelineNode } from "./canvasSlice";
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
-import type { Operation, BuiltinNodeType, Skill } from "@repo/schemas";
+import type { Operation, BuiltinNodeType, Skill, OutputMode } from "@repo/schemas";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
@@ -153,15 +153,38 @@ export interface ActionsSlice {
   // File node actions
   handleFileLabelChange: (nodeId: string, label: string) => void;
   handleFilePathChange: (nodeId: string, filePath: string) => void;
-  handleFilePathInputChange: (
-    nodeId: string,
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => void;
-  handleFileLanguageInputChange: (
-    nodeId: string,
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => void;
+  handleFilePathInputChange: (nodeId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleFileLanguageInputChange: (nodeId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
   handleFileDescriptionInputChange: (
+    nodeId: string,
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => void;
+
+  // Folder node actions
+  handleFolderLabelChange: (nodeId: string, label: string) => void;
+  handleFolderPathChange: (nodeId: string, folderPath: string) => void;
+  handleFolderPathInputChange: (nodeId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleFolderDescriptionInputChange: (
+    nodeId: string,
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => void;
+
+  // Output local path node actions
+  handleOutputLocalPathLabelChange: (nodeId: string, label: string) => void;
+  handleOutputLocalPathChange: (nodeId: string, localPath: string) => void;
+  handleOutputLocalPathInputChange: (
+    nodeId: string,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => void;
+  handleOutputLocalPathFileNameInputChange: (
+    nodeId: string,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => void;
+  handleOutputLocalPathModeChange: (
+    nodeId: string,
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => void;
+  handleOutputLocalPathDescriptionInputChange: (
     nodeId: string,
     e: React.ChangeEvent<HTMLTextAreaElement>,
   ) => void;
@@ -885,6 +908,50 @@ export const createActionsSlice = (
   },
 
   handleFileDescriptionInputChange: (nodeId, e) => {
+    get().updateNodeData(nodeId, { description: e.target.value });
+  },
+
+  // ── Folder node actions ────────────────────────────────────────────────
+
+  handleFolderLabelChange: (nodeId, label) => {
+    get().updateNodeData(nodeId, { label });
+  },
+
+  handleFolderPathChange: (nodeId, folderPath) => {
+    get().updateNodeData(nodeId, { folderPath });
+  },
+
+  handleFolderPathInputChange: (nodeId, e) => {
+    get().updateNodeData(nodeId, { folderPath: e.target.value });
+  },
+
+  handleFolderDescriptionInputChange: (nodeId, e) => {
+    get().updateNodeData(nodeId, { description: e.target.value });
+  },
+
+  // ── Output local path node actions ─────────────────────────────────────
+
+  handleOutputLocalPathLabelChange: (nodeId, label) => {
+    get().updateNodeData(nodeId, { label });
+  },
+
+  handleOutputLocalPathChange: (nodeId, localPath) => {
+    get().updateNodeData(nodeId, { localPath });
+  },
+
+  handleOutputLocalPathInputChange: (nodeId, e) => {
+    get().updateNodeData(nodeId, { localPath: e.target.value });
+  },
+
+  handleOutputLocalPathFileNameInputChange: (nodeId, e) => {
+    get().updateNodeData(nodeId, { outputFileName: e.target.value });
+  },
+
+  handleOutputLocalPathModeChange: (nodeId, e) => {
+    get().updateNodeData(nodeId, { outputMode: e.target.value as OutputMode });
+  },
+
+  handleOutputLocalPathDescriptionInputChange: (nodeId, e) => {
     get().updateNodeData(nodeId, { description: e.target.value });
   },
 });
