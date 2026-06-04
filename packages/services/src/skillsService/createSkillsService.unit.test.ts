@@ -1,12 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { mkdir, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { randomUUID } from "node:crypto";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Skill } from "@repo/schemas";
 
 const mockDao = {
-  findMany: vi.fn().mockResolvedValue([{ id: "sk1", createdAt: new Date(0), updatedAt: new Date(0) }]),
-  findById: vi.fn().mockResolvedValue({ id: "sk1", createdAt: new Date(0), updatedAt: new Date(0) }),
-  findByName: vi.fn().mockResolvedValue({ id: "sk1", name: "lint", createdAt: new Date(0), updatedAt: new Date(0) }),
-  create: vi.fn().mockResolvedValue({ id: "sk1", createdAt: new Date(0), updatedAt: new Date(0) }),
-  update: vi.fn().mockResolvedValue({ id: "sk1", createdAt: new Date(0), updatedAt: new Date(0) }),
+  findMany: vi.fn().mockResolvedValue([{ id: "sk1" , createdAt: new Date(0), updatedAt: new Date(0) }]),
+  findById: vi.fn().mockResolvedValue({ id: "sk1" , createdAt: new Date(0), updatedAt: new Date(0) }),
+  findByName: vi.fn().mockResolvedValue({ id: "sk1", name: "lint" , createdAt: new Date(0), updatedAt: new Date(0) }),
+  create: vi.fn().mockResolvedValue({ id: "sk1" , createdAt: new Date(0), updatedAt: new Date(0) }),
+  update: vi.fn().mockResolvedValue({ id: "sk1" , createdAt: new Date(0), updatedAt: new Date(0) }),
   delete: vi.fn().mockResolvedValue(undefined),
   seedIfEmpty: vi.fn().mockResolvedValue(undefined),
 };
@@ -41,15 +45,23 @@ import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
 import { extractJsonFromText } from "@repo/agent";
 
 describe("createSkillsService", () => {
-  beforeEach(() => {
+  const tempDir = join(tmpdir(), `ordine-skills-${randomUUID()}`);
+
+  beforeEach(async () => {
     vi.clearAllMocks();
+    await rm(tempDir, { recursive: true, force: true });
+    await mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await rm(tempDir, { recursive: true, force: true });
   });
 
   it("getAll delegates to dao.findMany", async () => {
     const svc = createSkillsService({} as never);
     const result = await svc.getAll();
     expect(mockDao.findMany).toHaveBeenCalled();
-    expect(result).toEqual([{ id: "sk1", meta: { createdAt: new Date(0), updatedAt: new Date(0) } }]);
+    expect(result).toEqual([{ id: "sk1" , meta: { createdAt: new Date(0), updatedAt: new Date(0) } }]);
   });
 
   it("getById delegates to dao.findById", async () => {
@@ -89,6 +101,52 @@ describe("createSkillsService", () => {
     expect(mockDao.seedIfEmpty).toHaveBeenCalled();
   });
 
+  it("previewImport scans SKILL.md files into candidates", async () => {
+    const skillDir = join(tempDir, "review-code");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(
+      join(skillDir, "SKILL.md"),
+      "---\nname: review-code\ndescription: Review code carefully\n---\n\n# Steps\nInspect files.",
+    );
+
+    const svc = createSkillsService({} as never);
+    const preview = await svc.previewImport({ rootPath: tempDir });
+
+    expect(preview.errors).toEqual([]);
+    expect(preview.candidates).toEqual([
+      expect.objectContaining({
+        id: "imported-review-code",
+        name: "review-code",
+        label: "Review Code",
+        description: "Review code carefully",
+      }),
+    ]);
+  });
+
+  it("importCandidates creates missing skills", async () => {
+    mockDao.findByName.mockResolvedValueOnce(undefined);
+    const svc = createSkillsService({} as never);
+
+    await svc.importCandidates([
+      {
+        id: "imported-review-code",
+        name: "review-code",
+        label: "Review Code",
+        description: "Review code carefully",
+        path: join(tempDir, "review-code", "SKILL.md"),
+      },
+    ]);
+
+    expect(mockDao.create).toHaveBeenCalledWith({
+      id: "imported-review-code",
+      name: "review-code",
+      label: "Review Code",
+      description: "Review code carefully",
+      category: "imported",
+      tags: ["imported"],
+    });
+  });
+
   describe("analyzeSkill", () => {
     const skill = {
       id: "skill-001",
@@ -122,7 +180,7 @@ describe("createSkillsService", () => {
 
       expect(result.skillType).toBe("multi-step");
       expect(result.steps).toHaveLength(2);
-      expect(result.steps[0].name).toBe("Define Structure");
+      expect(result.steps[0]!.name).toBe("Define Structure");
     });
 
     it("falls back to single-step when agent throws", async () => {
@@ -132,7 +190,7 @@ describe("createSkillsService", () => {
       const result = await svc.analyzeSkill(skill);
 
       expect(result.skillType).toBe("single-step");
-      expect(result.steps[0].name).toBe("Page Structure");
+      expect(result.steps[0]!.name).toBe("Page Structure");
     });
 
     it("falls back to single-step when agent output is invalid JSON", async () => {

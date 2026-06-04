@@ -26,7 +26,7 @@ export const SkillAnalysisResultSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.too_small,
         minimum: 2,
-        type: "array",
+        origin: "array",
         inclusive: true,
         message: "multi-step skill must have at least 2 steps",
         path: ["steps"],
