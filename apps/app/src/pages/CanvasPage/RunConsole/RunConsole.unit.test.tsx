@@ -1,6 +1,6 @@
 import { render } from "@/test/test-wrapper";
 import { screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RunConsole } from "./RunConsole";
 import { CanvasPageStoreProvider, useCanvasPageStore } from "../_store";
 import { useRef } from "react";
@@ -59,6 +59,31 @@ const wrapperWithJob = (jobId: string | null) => {
   return Wrapper;
 };
 
+const timelineWrapper = ({ children }: { children?: React.ReactNode }) => (
+  <CanvasPageStoreProvider
+    pipeline={{
+      id: "pipe-1",
+      name: "Pipeline",
+      nodes: [
+        { id: "file-a", type: "file", position: { x: 0, y: 0 }, data: { label: "File A" } },
+        { id: "file-b", type: "file", position: { x: 0, y: 0 }, data: { label: "File B" } },
+        {
+          id: "merge-op",
+          type: "operation",
+          position: { x: 0, y: 0 },
+          data: { label: "Merge Review" },
+        },
+      ],
+      edges: [
+        { id: "edge-a", source: "file-a", target: "merge-op" },
+        { id: "edge-b", source: "file-b", target: "merge-op" },
+      ],
+    }}
+  >
+    <JobActivator jobId="job-1">{children}</JobActivator>
+  </CanvasPageStoreProvider>
+);
+
 const mockJobRunning = {
   id: "job-1",
   title: "Pipeline run",
@@ -77,17 +102,31 @@ const mockJobDone = {
   finishedAt: Date.now(),
 };
 
+type MockTrace = {
+  createdAt?: string;
+  message: string;
+};
+
 const useOneData = vi.fn(() => mockJobRunning);
+const useTraceData = vi.fn<() => MockTrace[]>(() => [
+  { message: "[2026-04-08T16:00:00.000Z] Starting pipeline abc" },
+  { message: "[2026-04-08T16:00:01.000Z] Processing node [github-project] skills" },
+]);
+
+beforeEach(() => {
+  useOneData.mockReturnValue(mockJobRunning);
+  useTraceData.mockReturnValue([
+    { message: "[2026-04-08T16:00:00.000Z] Starting pipeline abc" },
+    { message: "[2026-04-08T16:00:01.000Z] Processing node [github-project] skills" },
+  ]);
+});
 
 vi.mock("@refinedev/core", () => ({
   useDataProvider: () => () => ({
     getOne: vi.fn(async () => ({ data: useOneData() })),
     custom: vi.fn(async () => ({
       data: {
-        traces: [
-          { message: "[2026-04-08T16:00:00.000Z] Starting pipeline abc" },
-          { message: "[2026-04-08T16:00:01.000Z] Processing node [github-project] skills" },
-        ],
+        traces: useTraceData(),
       },
     })),
   }),
@@ -100,10 +139,7 @@ vi.mock("@refinedev/core", () => ({
   useCustom: () => ({
     result: {
       data: {
-        traces: [
-          { message: "[2026-04-08T16:00:00.000Z] Starting pipeline abc" },
-          { message: "[2026-04-08T16:00:01.000Z] Processing node [github-project] skills" },
-        ],
+        traces: useTraceData(),
       },
     },
     isLoading: false,
@@ -138,7 +174,7 @@ describe("RunConsole", () => {
     await waitFor(() => {
       expect(screen.getByText(/Starting pipeline/)).toBeInTheDocument();
     });
-    expect(screen.getByText(/Processing node/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Processing node/).length).toBeGreaterThan(0);
   });
 
   it("shows done status when job completes", () => {
@@ -158,5 +194,46 @@ describe("RunConsole", () => {
     render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
     expect(screen.getByText(/Done/i)).toBeInTheDocument();
     useOneData.mockReturnValue(mockJobRunning);
+  });
+
+  it("shows run timeline, current step, artifacts, and multi-input semantics", () => {
+    useTraceData.mockReturnValue([
+      {
+        createdAt: "2026-04-08T16:00:03.000Z",
+        message: '[2026-04-08T16:00:03.000Z] Executing operation "Merge review" (agent)',
+      },
+      {
+        createdAt: "2026-04-08T16:00:04.000Z",
+        message:
+          "[2026-04-08T16:00:04.000Z] Wrote output to: C:\\tmp\\ordine-output\\review-report.md (120 chars)",
+      },
+      { createdAt: "2026-04-08T16:00:02.000Z", message: "@@NODE_START::merge-op" },
+      { createdAt: "2026-04-08T16:00:01.000Z", message: "@@NODE_DONE::file-a" },
+      { createdAt: "2026-04-08T16:00:00.000Z", message: "@@NODE_START::file-a" },
+    ]);
+
+    render(<RunConsole />, { wrapper: timelineWrapper });
+
+    expect(screen.getByText("Current step")).toBeInTheDocument();
+    expect(screen.getAllByText("Merge Review").length).toBeGreaterThan(0);
+    expect(screen.getByText("Run timeline")).toBeInTheDocument();
+    expect(screen.getByText("Output artifacts")).toBeInTheDocument();
+    expect(screen.getAllByText(/C:\\tmp\\ordine-output\\review-report.md/).length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.getByText(/wait for all parent inputs/i)).toBeInTheDocument();
+  });
+
+  it("keeps bracketed log labels out of the timestamp column", () => {
+    useTraceData.mockReturnValue([
+      { message: "[Codex] Starting codex exec (cwd=/tmp/ordine-input-repo)" },
+    ]);
+
+    render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
+
+    expect(
+      screen.getAllByText("[Codex] Starting codex exec (cwd=/tmp/ordine-input-repo)").length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText("Invalid Date")).not.toBeInTheDocument();
   });
 });

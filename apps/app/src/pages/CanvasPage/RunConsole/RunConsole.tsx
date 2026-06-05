@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Terminal, X, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
+import { Terminal, X, ChevronUp, ChevronDown, Loader2, FileText } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { cn } from "@repo/ui/lib/utils";
@@ -8,10 +8,21 @@ import { useCustom, useDataProvider, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useCanvasPageStore } from "../_store";
 import { StatusIcon } from "./StatusIcon";
+import {
+  buildRunTimeline,
+  summarizeMultiInputNodes,
+  type RunTimelineStatus,
+} from "./runTraceParser";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { Job, JobStatus } from "@repo/schemas";
 
 const POLL_INTERVAL = 1500;
+
+type RunTrace = {
+  createdAt?: Date | string;
+  id?: number;
+  message: string;
+};
 
 const statusLabelKeys: Record<JobStatus, string> = {
   queued: "canvas.runConsole.statusQueued",
@@ -26,6 +37,7 @@ const parseTimestamp = (log: string): string => {
   const match = /^\[([^\]]+)\]/.exec(log);
   if (!match) return "";
   const d = new Date(match[1]);
+  if (Number.isNaN(d.getTime())) return "";
 
   return d.toLocaleTimeString("en-US", {
     hour12: false,
@@ -34,7 +46,10 @@ const parseTimestamp = (log: string): string => {
 };
 
 const parseMessage = (log: string): string => {
-  return log.replace(/^\[[^\]]+\]\s*/, "");
+  const match = /^\[([^\]]+)\]\s*/.exec(log);
+  if (!match || Number.isNaN(new Date(match[1]).getTime())) return log;
+
+  return log.slice(match[0].length);
 };
 
 const STRUCTURED_LOG_PREFIX = "@@";
@@ -76,10 +91,18 @@ const isStructuredLog = (log: string): boolean => {
 const isTerminalStatus = (s: JobStatus) =>
   s === "done" || s === "failed" || s === "cancelled" || s === "expired";
 
+const timelineStatusLabelKeys: Record<RunTimelineStatus, string> = {
+  running: "canvas.runConsole.nodeStatusRunning",
+  done: "canvas.runConsole.nodeStatusDone",
+  failed: "canvas.runConsole.nodeStatusFailed",
+};
+
 export const RunConsole = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const jobId = useStore(store, (s) => s.activeJobId);
+  const nodes = useStore(store, (s) => s.nodes);
+  const edges = useStore(store, (s) => s.edges);
   const handleCloseConsole = useStore(store, (s) => s.handleCloseConsole);
   const markNodeRunning = useStore(store, (s) => s.markNodeRunning);
   const markNodePassed = useStore(store, (s) => s.markNodePassed);
@@ -154,7 +177,7 @@ export const RunConsole = () => {
   const jobRef = useRef(job);
   jobRef.current = job;
 
-  const { result: tracesResult } = useCustom<{ traces: Array<{ message: string }> }>({
+  const { result: tracesResult } = useCustom<{ traces: RunTrace[] }>({
     url: "jobs/traces",
     method: "get",
     config: { payload: { jobId: jobId ?? "" } },
@@ -162,7 +185,7 @@ export const RunConsole = () => {
       enabled: !!jobId,
       queryFn: async () => {
         const currentJobId = jobId ?? "";
-        const response = await dataProvider.custom!<{ traces: Array<{ message: string }> }>({
+        const response = await dataProvider.custom!<{ traces: RunTrace[] }>({
           url: "jobs/traces",
           method: "get",
           payload: { jobId: currentJobId },
@@ -179,7 +202,17 @@ export const RunConsole = () => {
       },
     },
   });
-  const traceLogs = (tracesResult.data?.traces ?? []).map((trace) => trace.message);
+  const traces = tracesResult.data?.traces ?? [];
+  const traceLogs = traces.map((trace) => trace.message);
+  const runTimeline = buildRunTimeline(traces);
+  const multiInputSummary = summarizeMultiInputNodes(edges);
+  const nodeLabelById = new Map(
+    nodes.map((node) => [node.id, node.data.label ?? node.id] as const),
+  );
+  const currentNodeLabel =
+    runTimeline.currentNodeId === null
+      ? t("canvas.runConsole.currentStepIdle")
+      : (nodeLabelById.get(runTimeline.currentNodeId) ?? runTimeline.currentNodeId);
 
   return (
     <div
@@ -239,17 +272,97 @@ export const RunConsole = () => {
       {/* Log area */}
       {!isConsoleCollapsed && (
         <ScrollArea className="h-[calc(100%-2.25rem)]">
-          <div ref={scrollRef} className="h-full overflow-auto p-2 font-mono text-xs">
+          <div ref={scrollRef} className="h-full overflow-auto p-3 text-xs">
             {!job && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 {t("canvas.runConsole.loading")}
               </div>
             )}
+            {job && (
+              <div className="mb-3 grid gap-2 lg:grid-cols-[1fr_1.15fr]">
+                <section className="rounded-lg border bg-card/70 p-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {t("canvas.runConsole.currentStep")}
+                  </div>
+                  <div className="mt-1 truncate text-sm font-semibold">{currentNodeLabel}</div>
+                  {runTimeline.latestProgressMessage && (
+                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                      {runTimeline.latestProgressMessage}
+                    </p>
+                  )}
+                  <p className="mt-2 rounded-md bg-blue-50 px-2 py-1 text-[11px] text-blue-700">
+                    {multiInputSummary.count > 0
+                      ? t("canvas.runConsole.multiInputRuleWithCount", {
+                          count: multiInputSummary.count,
+                        })
+                      : t("canvas.runConsole.multiInputRule")}
+                  </p>
+                </section>
+
+                <section className="rounded-lg border bg-card/70 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {t("canvas.runConsole.timeline")}
+                    </div>
+                    <span className="text-[11px] text-muted-foreground">
+                      {t("canvas.runConsole.timelineCount", {
+                        count: runTimeline.timeline.length,
+                      })}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {runTimeline.timeline.length === 0 ? (
+                      <span className="text-muted-foreground">
+                        {t("canvas.runConsole.timelineEmpty")}
+                      </span>
+                    ) : (
+                      runTimeline.timeline.map((item) => (
+                        <span
+                          key={item.nodeId}
+                          className={cn(
+                            "inline-flex max-w-[220px] items-center gap-1 rounded-full border px-2 py-1",
+                            item.status === "running" && "border-blue-200 bg-blue-50 text-blue-700",
+                            item.status === "done" && "border-green-200 bg-green-50 text-green-700",
+                            item.status === "failed" && "border-red-200 bg-red-50 text-red-700",
+                          )}
+                        >
+                          <span className="truncate">
+                            {nodeLabelById.get(item.nodeId) ?? item.nodeId}
+                          </span>
+                          <span className="shrink-0 text-[10px] font-semibold uppercase">
+                            {t(timelineStatusLabelKeys[item.status])}
+                          </span>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                </section>
+
+                {runTimeline.artifacts.length > 0 && (
+                  <section className="rounded-lg border bg-card/70 p-3 lg:col-span-2">
+                    <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      <FileText className="h-3.5 w-3.5" />
+                      {t("canvas.runConsole.artifacts")}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      {runTimeline.artifacts.map((artifact) => (
+                        <code
+                          key={artifact.path}
+                          className="rounded bg-muted px-2 py-1 font-mono text-[11px] text-foreground"
+                        >
+                          {artifact.path}
+                        </code>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            )}
             {traceLogs
               .filter((l) => !isStructuredLog(l))
               .map((log, i) => (
-                <div key={i} className="flex gap-2 py-0.5 hover:bg-muted/30">
+                <div key={i} className="flex gap-2 py-0.5 font-mono hover:bg-muted/30">
                   <span className="shrink-0 text-muted-foreground tabular-nums">
                     {parseTimestamp(log)}
                   </span>
