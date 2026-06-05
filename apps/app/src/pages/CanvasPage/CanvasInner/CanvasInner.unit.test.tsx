@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
@@ -104,6 +104,44 @@ describe("CanvasInner", () => {
     expect(screen.getByTestId("canvas-mini-sidebar")).toBeInTheDocument();
     expect(screen.getByTestId("canvas-component-panel")).toBeInTheDocument();
     expect(screen.getByTestId("canvas-flow-viewport")).toBeInTheDocument();
+  });
+
+  it("renders the workspace panel at the default width with a resize handle", () => {
+    render(<CanvasInner />, { wrapper });
+
+    expect(screen.getByTestId("canvas-work-panel")).toHaveStyle({ width: "352px" });
+    expect(screen.getByTestId("canvas-work-panel-resizer")).toBeInTheDocument();
+  });
+
+  it("clamps the workspace panel width while dragging the resize handle", () => {
+    render(<CanvasInner />, { wrapper });
+
+    const workPanel = screen.getByTestId("canvas-work-panel");
+    const resizeHandle = screen.getByTestId("canvas-work-panel-resizer");
+    const globalWindow = globalThis.window;
+    vi.spyOn(workPanel, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 0,
+      width: 352,
+      height: 640,
+      top: 0,
+      right: 352,
+      bottom: 640,
+      left: 0,
+      toJSON: () => ({}),
+    });
+
+    fireEvent.mouseDown(resizeHandle, { clientX: 352 });
+    fireEvent.mouseMove(globalWindow, { clientX: 120 });
+    expect(workPanel).toHaveStyle({ width: "288px" });
+
+    fireEvent.mouseMove(globalWindow, { clientX: 460 });
+    expect(workPanel).toHaveStyle({ width: "460px" });
+
+    fireEvent.mouseMove(globalWindow, { clientX: 700 });
+    expect(workPanel).toHaveStyle({ width: "560px" });
+
+    fireEvent.mouseUp(globalWindow);
   });
 
   it("opens the workspace sidebar overlay from the mini sidebar", async () => {

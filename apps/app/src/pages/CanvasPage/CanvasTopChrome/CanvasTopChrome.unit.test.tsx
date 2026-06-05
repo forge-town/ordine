@@ -35,6 +35,8 @@ describe("CanvasTopChrome", () => {
     expect(toolbarSlot).not.toBeNull();
     expect(toolbarSlot as HTMLElement).toHaveClass("min-w-0", "max-w-full", "overflow-x-auto");
     expect(screen.getByTestId("canvas-title-desktop")).toHaveClass("min-w-0", "flex-1");
+    expect(screen.getByTestId("canvas-title-desktop").firstElementChild).toHaveClass("min-w-0");
+    expect(toolbarSlot as HTMLElement).toHaveClass("shrink-0");
   });
 
   it("preserves pipeline title editing", async () => {

@@ -511,6 +511,11 @@
         "replaceNodeData": "替换节点数据: {{nodeId}}"
       }
     },
+    "operationsPanel": {
+      "collapse": "收起操作面板",
+      "expand": "展开操作面板",
+      "resize": "调整操作面板宽度"
+    },
     "emptyState": {
       "title": "从一个节点开始",
       "description": "添加输入对象或 Operation，搭出第一条流水线。",

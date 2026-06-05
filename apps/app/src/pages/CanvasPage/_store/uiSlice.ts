@@ -47,6 +47,13 @@ export const DEFAULT_CANVAS_SETTINGS: CanvasSettingsState = {
   snapToGrid: false,
 };
 
+export const DEFAULT_WORKSPACE_PANEL_WIDTH = 352;
+export const MIN_WORKSPACE_PANEL_WIDTH = 288;
+export const MAX_WORKSPACE_PANEL_WIDTH = 560;
+
+export const clampWorkspacePanelWidth = (width: number) =>
+  Math.min(MAX_WORKSPACE_PANEL_WIDTH, Math.max(MIN_WORKSPACE_PANEL_WIDTH, width));
+
 export interface AgentPanelState {
   isOpen: boolean;
   pendingProposal: PipelineActionProposal | null;
@@ -63,6 +70,7 @@ export interface UISlice {
   componentSearchQuery: string;
   collapsedComponentCategories: Record<CanvasComponentCategory, boolean>;
   isWorkspaceSidebarOpen: boolean;
+  workspacePanelWidth: number;
   nodeCardMode: NodeCardMode;
   isSidebarOpen: boolean;
   isPropertiesPanelOpen: boolean;
@@ -100,6 +108,7 @@ export interface UISlice {
   toggleComponentCategory: (category: CanvasComponentCategory) => void;
   openWorkspaceSidebar: () => void;
   closeWorkspaceSidebar: () => void;
+  setWorkspacePanelWidth: (width: number) => void;
   setNodeCardMode: (mode: NodeCardMode) => void;
   toggleNodeCardMode: () => void;
   handleToggleSidebar: () => void;
@@ -171,6 +180,7 @@ export const createUISlice = (
     output: false,
   },
   isWorkspaceSidebarOpen: false,
+  workspacePanelWidth: DEFAULT_WORKSPACE_PANEL_WIDTH,
   nodeCardMode: "compact",
   isSidebarOpen: true,
   isPropertiesPanelOpen: false,
@@ -231,6 +241,10 @@ export const createUISlice = (
 
   closeWorkspaceSidebar: () => {
     set({ isWorkspaceSidebarOpen: false });
+  },
+
+  setWorkspacePanelWidth: (width) => {
+    set({ workspacePanelWidth: clampWorkspacePanelWidth(width) });
   },
 
   setNodeCardMode: (mode) => {

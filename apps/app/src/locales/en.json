@@ -511,6 +511,11 @@
         "replaceNodeData": "Replace node data: {{nodeId}}"
       }
     },
+    "operationsPanel": {
+      "collapse": "Collapse operations panel",
+      "expand": "Expand operations panel",
+      "resize": "Resize operations panel"
+    },
     "emptyState": {
       "title": "Start with a node",
       "description": "Add an input object or Operation to shape the first pipeline path.",
