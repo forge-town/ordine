@@ -6,7 +6,7 @@ import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { FolderObjectNodeData } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
-import { FolderBrowser } from "@/components/FolderBrowser/FolderBrowser";
+import { FolderBrowserDialog } from "@/components/FolderBrowserDialog/FolderBrowserDialog";
 import { FolderTreePreview } from "./FolderTreePreview";
 import { Input } from "@repo/ui/input";
 import { Button } from "@repo/ui/button";
@@ -23,44 +23,59 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
-  const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
-  const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
-  const updateNodeData = useStore(store, (s) => s.updateNodeData);
-  const handleNodeAddExcludedPath = useStore(store, (s) => s.handleNodeAddExcludedPath);
-  const handleNodeRemoveExcludedPath = useStore(store, (s) => s.handleNodeRemoveExcludedPath);
   const {
+    runStatus,
+    dimmed,
+    nodeCardMode,
+    handleFolderLabelChange: applyFolderLabelChange,
+    handleFolderPathChange: applyFolderPathChange,
+    handleFolderPathInputChange: applyFolderPathInputChange,
+    handleFolderDescriptionInputChange: applyFolderDescriptionInputChange,
+    handleNodeAddExcludedPath,
+    handleNodeRemoveExcludedPath,
     rightActivePortCount,
     rightActivePortMask,
     rightConnectedPortCount,
     rightConnectedPortMask,
     rightPortCount,
-  } = useStore(store, useShallow(selectNodePortCounts(id)));
+  } = useStore(
+    store,
+    useShallow((s) => ({
+      ...selectNodeRunState(id)(s),
+      nodeCardMode: s.nodeCardMode,
+      handleFolderLabelChange: s.handleFolderLabelChange,
+      handleFolderPathChange: s.handleFolderPathChange,
+      handleFolderPathInputChange: s.handleFolderPathInputChange,
+      handleFolderDescriptionInputChange: s.handleFolderDescriptionInputChange,
+      handleNodeAddExcludedPath: s.handleNodeAddExcludedPath,
+      handleNodeRemoveExcludedPath: s.handleNodeRemoveExcludedPath,
+      ...selectNodePortCounts(id)(s),
+    })),
+  );
   const [browserOpen, setBrowserOpen] = useState(false);
 
   const excludedPaths: string[] = Array.isArray(data.excludedPaths) ? data.excludedPaths : [];
-
-  const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
-  const handleFolderPathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    updateNodeData(id, { folderPath: e.target.value });
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    updateNodeData(id, { description: e.target.value });
 
   const handleFolderButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setBrowserOpen(true);
   };
 
-  const handleFolderSelect = (path: string) => {
-    updateNodeData(id, { folderPath: path });
+  const handleLabelChange = applyFolderLabelChange.bind(null, id);
+
+  const handleFolderSelect = applyFolderPathChange.bind(null, id);
+
+  const handleFolderPathInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applyFolderPathInputChange(id, e.target.value);
+  };
+
+  const handleFolderDescriptionInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    applyFolderDescriptionInputChange(id, e.target.value);
   };
 
   const handleBrowserOpenChange = (open: boolean) => {
     setBrowserOpen(open);
   };
-
-  const handleRemoveExcluded = (path: string) => handleNodeRemoveExcludedPath(id, path);
-
-  const handleAddExcluded = (path: string) => handleNodeAddExcludedPath(id, path);
 
   return (
     <div className="group relative w-fit overflow-visible">
@@ -87,7 +102,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
             className="nodrag nopan font-mono text-[11px] font-semibold text-slate-700 bg-transparent focus:outline-none flex-1 min-w-0 border-none shadow-none p-0 h-auto"
             placeholder="src/components/"
             value={data.folderPath}
-            onChange={handleFolderPathChange}
+            onChange={handleFolderPathInputChange}
             onClick={handleStopPropagation}
             onKeyDown={handleStopPropagation}
             onMouseDown={handleStopPropagation}
@@ -118,7 +133,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
                   size="icon-xs"
                   type="button"
                   variant="ghost"
-                  onClick={() => handleRemoveExcluded(ep)}
+                  onClick={handleNodeRemoveExcludedPath.bind(null, id, ep)}
                   onMouseDown={handleStopPropagation}
                 >
                   <X className="h-2.5 w-2.5" />
@@ -131,7 +146,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
         <FolderTreePreview
           excludedPaths={excludedPaths}
           folderPath={data.folderPath}
-          onExclude={handleAddExcluded}
+          onExclude={handleNodeAddExcludedPath.bind(null, id)}
         />
 
         <Textarea
@@ -139,12 +154,12 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
           placeholder={t("canvas.folderDescPlaceholder")}
           rows={2}
           value={data.description ?? ""}
-          onChange={handleDescriptionChange}
+          onChange={handleFolderDescriptionInputChange}
           onMouseDown={handleStopPropagation}
         />
       </NodeCard>
 
-      <FolderBrowser
+      <FolderBrowserDialog
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}
         onSelect={handleFolderSelect}

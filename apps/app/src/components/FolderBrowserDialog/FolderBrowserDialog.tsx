@@ -24,7 +24,7 @@ export interface FolderBrowserProps {
   mode?: "folder" | "file";
 }
 
-export const FolderBrowser = ({
+export const FolderBrowserDialog = ({
   open,
   onOpenChange,
   onSelect,

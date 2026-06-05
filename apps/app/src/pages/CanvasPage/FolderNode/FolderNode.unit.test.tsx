@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
+import { CanvasPageStoreContext, createCanvasPageStore, type CanvasPageStore } from "../_store";
 import { FolderNode } from "./FolderNode";
 
 vi.mock("@xyflow/react", () => ({
@@ -23,8 +23,15 @@ vi.mock("@refinedev/core", () => ({
   }),
 }));
 
-const makeExpandedStore = () => {
-  const store = createCanvasPageStore();
+const makeExpandedStore = (data = baseData, id = "test"): CanvasPageStore => {
+  const store = createCanvasPageStore([
+    {
+      id,
+      type: "folder",
+      position: { x: 0, y: 0 },
+      data,
+    },
+  ]);
   store.setState({ nodeCardMode: "expanded" });
 
   return store;
@@ -60,8 +67,11 @@ describe("FolderNode", () => {
   });
 
   it("shows placeholder when folderPath is empty", () => {
+    const store = makeExpandedStore({ ...baseData, folderPath: "" });
     render(<FolderNode data={{ ...baseData, folderPath: "" }} id="test" />, {
-      wrapper,
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <CanvasPageStoreContext.Provider value={store}>{children}</CanvasPageStoreContext.Provider>
+      ),
     });
     expect(screen.getByPlaceholderText("src/components/")).toBeInTheDocument();
   });
@@ -74,6 +84,24 @@ describe("FolderNode", () => {
     render(<FolderNode data={data} id="test" />, { wrapper });
     expect(screen.getByText("node_modules")).toBeInTheDocument();
     expect(screen.getByText("dist")).toBeInTheDocument();
+  });
+
+  it("writes the typed folder path back to the store as a plain string", () => {
+    const store = makeExpandedStore();
+    render(<FolderNode data={baseData} id="test" />, {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <CanvasPageStoreContext.Provider value={store}>{children}</CanvasPageStoreContext.Provider>
+      ),
+    });
+
+    fireEvent.change(screen.getByDisplayValue("apps/app/src"), {
+      target: { value: "apps/app/components" },
+    });
+
+    const updatedNode = store.getState().nodes.find((node) => node.id === "test");
+    expect(updatedNode?.data).toEqual(
+      expect.objectContaining({ folderPath: "apps/app/components" }),
+    );
   });
 
   it("removes an excluded path when its remove button is clicked", async () => {

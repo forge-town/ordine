@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@repo/ui/dialog";
-import { FolderBrowser } from "@/components/FolderBrowser/FolderBrowser";
+import { FolderBrowserDialog } from "@/components/FolderBrowserDialog/FolderBrowserDialog";
 
 export interface LocalFolderInfo {
   localPath: string;
@@ -106,7 +106,7 @@ export const PickLocalFolderDialog = ({
         </DialogContent>
       </Dialog>
 
-      <FolderBrowser
+      <FolderBrowserDialog
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}
         onSelect={handleFolderSelect}

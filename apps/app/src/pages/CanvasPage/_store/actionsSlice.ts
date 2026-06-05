@@ -1,6 +1,6 @@
 import { sortParentBeforeChildren, type PipelineEdge, type PipelineNode } from "./canvasSlice";
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
-import type { Operation, BuiltinNodeType, Skill } from "@repo/schemas";
+import type { Operation, BuiltinNodeType, Skill, OutputMode } from "@repo/schemas";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
@@ -149,6 +149,27 @@ export interface ActionsSlice {
   handleOperationAgentDropdownClose: () => void;
   handleOperationAgentDropdownToggle: (nodeId: string) => void;
   handleOperationAgentDropdownOpenChange: (nodeId: string, open: boolean) => void;
+
+  // File node actions
+  handleFileLabelChange: (nodeId: string, label: string) => void;
+  handleFilePathChange: (nodeId: string, filePath: string) => void;
+  handleFilePathInputChange: (nodeId: string, filePath: string) => void;
+  handleFileLanguageInputChange: (nodeId: string, language: string) => void;
+  handleFileDescriptionInputChange: (nodeId: string, description: string) => void;
+
+  // Folder node actions
+  handleFolderLabelChange: (nodeId: string, label: string) => void;
+  handleFolderPathChange: (nodeId: string, folderPath: string) => void;
+  handleFolderPathInputChange: (nodeId: string, folderPath: string) => void;
+  handleFolderDescriptionInputChange: (nodeId: string, description: string) => void;
+
+  // Output local path node actions
+  handleOutputLocalPathLabelChange: (nodeId: string, label: string) => void;
+  handleOutputLocalPathChange: (nodeId: string, localPath: string) => void;
+  handleOutputLocalPathInputChange: (nodeId: string, localPath: string) => void;
+  handleOutputLocalPathFileNameInputChange: (nodeId: string, outputFileName: string) => void;
+  handleOutputLocalPathModeChange: (nodeId: string, outputMode: OutputMode) => void;
+  handleOutputLocalPathDescriptionInputChange: (nodeId: string, description: string) => void;
 }
 
 export const createActionsSlice = (
@@ -848,5 +869,71 @@ export const createActionsSlice = (
 
   handleOperationAgentDropdownOpenChange: (nodeId, open) => {
     set({ operationAgentDropdownNodeId: open ? nodeId : null });
+  },
+
+  // ── File node actions ──────────────────────────────────────────────────
+
+  handleFileLabelChange: (nodeId, label) => {
+    get().updateNodeData(nodeId, { label });
+  },
+
+  handleFilePathChange: (nodeId, filePath) => {
+    get().updateNodeData(nodeId, { filePath });
+  },
+
+  handleFilePathInputChange: (nodeId, filePath) => {
+    get().updateNodeData(nodeId, { filePath });
+  },
+
+  handleFileLanguageInputChange: (nodeId, language) => {
+    get().updateNodeData(nodeId, { language });
+  },
+
+  handleFileDescriptionInputChange: (nodeId, description) => {
+    get().updateNodeData(nodeId, { description });
+  },
+
+  // ── Folder node actions ────────────────────────────────────────────────
+
+  handleFolderLabelChange: (nodeId, label) => {
+    get().updateNodeData(nodeId, { label });
+  },
+
+  handleFolderPathChange: (nodeId, folderPath) => {
+    get().updateNodeData(nodeId, { folderPath });
+  },
+
+  handleFolderPathInputChange: (nodeId, folderPath) => {
+    get().updateNodeData(nodeId, { folderPath });
+  },
+
+  handleFolderDescriptionInputChange: (nodeId, description) => {
+    get().updateNodeData(nodeId, { description });
+  },
+
+  // ── Output local path node actions ─────────────────────────────────────
+
+  handleOutputLocalPathLabelChange: (nodeId, label) => {
+    get().updateNodeData(nodeId, { label });
+  },
+
+  handleOutputLocalPathChange: (nodeId, localPath) => {
+    get().updateNodeData(nodeId, { localPath });
+  },
+
+  handleOutputLocalPathInputChange: (nodeId, localPath) => {
+    get().updateNodeData(nodeId, { localPath });
+  },
+
+  handleOutputLocalPathFileNameInputChange: (nodeId, outputFileName) => {
+    get().updateNodeData(nodeId, { outputFileName });
+  },
+
+  handleOutputLocalPathModeChange: (nodeId, outputMode) => {
+    get().updateNodeData(nodeId, { outputMode });
+  },
+
+  handleOutputLocalPathDescriptionInputChange: (nodeId, description) => {
+    get().updateNodeData(nodeId, { description });
   },
 });

@@ -2,9 +2,9 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
 import { canvasStoryDataProvider } from "../../pages/CanvasPage/storybookData";
-import { FolderBrowser } from "./FolderBrowser";
+import { FolderBrowserDialog } from "./FolderBrowserDialog";
 
-const FolderBrowserStory = (args: React.ComponentProps<typeof FolderBrowser>) => {
+const FolderBrowserStory = (args: React.ComponentProps<typeof FolderBrowserDialog>) => {
   const [open, setOpen] = useState(args.open);
   const handleOpenChange = (value: boolean) => setOpen(value);
   const handleSelect = (path: string) => {
@@ -13,13 +13,13 @@ const FolderBrowserStory = (args: React.ComponentProps<typeof FolderBrowser>) =>
   };
 
   return (
-    <FolderBrowser {...args} open={open} onOpenChange={handleOpenChange} onSelect={handleSelect} />
+    <FolderBrowserDialog {...args} open={open} onOpenChange={handleOpenChange} onSelect={handleSelect} />
   );
 };
 
-const meta: Meta<typeof FolderBrowser> = {
+const meta: Meta<typeof FolderBrowserDialog> = {
   title: "CanvasPage/OutputLocalPathNode/FolderBrowser",
-  component: FolderBrowser,
+  component: FolderBrowserDialog,
   tags: ["autodocs"],
   args: {
     open: true,
@@ -47,7 +47,7 @@ const meta: Meta<typeof FolderBrowser> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof FolderBrowser>;
+type Story = StoryObj<typeof FolderBrowserDialog>;
 
 export const FolderMode: Story = {
   render: (args) => <FolderBrowserStory {...args} />,

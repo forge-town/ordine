@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
+import { CanvasPageStoreContext, createCanvasPageStore, type CanvasPageStore } from "../_store";
 import { FileNode } from "./FileNode";
 
 vi.mock("@xyflow/react", () => ({
@@ -22,19 +22,6 @@ vi.mock("@refinedev/core", () => ({
   }),
 }));
 
-const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <CanvasPageStoreContext.Provider
-    value={(() => {
-      const store = createCanvasPageStore();
-      store.setState({ nodeCardMode: "expanded" });
-
-      return store;
-    })()}
-  >
-    {children}
-  </CanvasPageStoreContext.Provider>
-);
-
 const baseData = {
   nodeType: "file" as const,
   label: "main.ts",
@@ -43,31 +30,66 @@ const baseData = {
   description: "应用入口文件",
 };
 
+const makeStore = (data = baseData, id = "test"): CanvasPageStore => {
+  const store = createCanvasPageStore([
+    {
+      id,
+      type: "file",
+      position: { x: 0, y: 0 },
+      data,
+    },
+  ]);
+  store.setState({ nodeCardMode: "expanded" });
+
+  return store;
+};
+
+const makeWrapper =
+  (store: CanvasPageStore) =>
+  ({ children }: { children: React.ReactNode }) => (
+    <CanvasPageStoreContext.Provider value={store}>{children}</CanvasPageStoreContext.Provider>
+  );
+
 describe("FileNode", () => {
   it("renders label", () => {
-    render(<FileNode data={baseData} id="test" />, { wrapper });
+    render(<FileNode data={baseData} id="test" />, { wrapper: makeWrapper(makeStore()) });
     expect(screen.getByDisplayValue("main.ts")).toBeInTheDocument();
   });
 
   it("renders filePath", () => {
-    render(<FileNode data={baseData} id="test" />, { wrapper });
+    render(<FileNode data={baseData} id="test" />, { wrapper: makeWrapper(makeStore()) });
     expect(screen.getByDisplayValue("src/main.ts")).toBeInTheDocument();
   });
 
   it("renders language badge", () => {
-    render(<FileNode data={baseData} id="test" />, { wrapper });
+    render(<FileNode data={baseData} id="test" />, { wrapper: makeWrapper(makeStore()) });
     expect(screen.getByDisplayValue("typescript")).toBeInTheDocument();
   });
 
   it("renders description", () => {
-    render(<FileNode data={baseData} id="test" />, { wrapper });
+    render(<FileNode data={baseData} id="test" />, { wrapper: makeWrapper(makeStore()) });
     expect(screen.getByDisplayValue("应用入口文件")).toBeInTheDocument();
   });
 
   it("shows placeholder when filePath is empty", () => {
+    const store = makeStore({ ...baseData, filePath: "" });
     render(<FileNode data={{ ...baseData, filePath: "" }} id="test" />, {
-      wrapper,
+      wrapper: makeWrapper(store),
     });
     expect(screen.getByPlaceholderText("src/file.tsx")).toBeInTheDocument();
+  });
+
+  it("writes the typed file path back to the store as a plain string", () => {
+    const store = makeStore();
+    render(<FileNode data={baseData} id="test" />, {
+      wrapper: makeWrapper(store),
+    });
+
+    fireEvent.change(screen.getByDisplayValue("src/main.ts"), {
+      target: { value: "src/next.tsx" },
+    });
+
+    const updatedNode = store.getState().nodes.find((node) => node.id === "test");
+    expect(updatedNode?.data).toEqual(expect.objectContaining({ filePath: "src/next.tsx" }));
   });
 });

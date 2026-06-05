@@ -12,7 +12,7 @@ import { useCustom, useCustomMutation, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { FolderBrowser } from "@/components/FolderBrowser/FolderBrowser";
+import { FolderBrowserDialog } from "@/components/FolderBrowserDialog/FolderBrowserDialog";
 import { useOperationDetailPageStore } from "../_store";
 
 type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled" | "expired";
@@ -180,7 +180,7 @@ export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
                   <FolderOpen className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              <FolderBrowser
+              <FolderBrowserDialog
                 mode="file"
                 open={isBrowserOpen}
                 onOpenChange={handleBrowserOpenChange}

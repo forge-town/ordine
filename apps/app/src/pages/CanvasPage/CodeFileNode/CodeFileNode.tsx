@@ -6,7 +6,7 @@ import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { FileObjectNodeData } from "@repo/schemas";
 import { NodeCard } from "../NodeCard";
-import { FolderBrowser } from "@/components/FolderBrowser/FolderBrowser";
+import { FolderBrowserDialog } from "@/components/FolderBrowserDialog/FolderBrowserDialog";
 
 export interface FileNodeProps {
   id: string;
@@ -19,33 +19,54 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 export const FileNode = ({ id, data, selected }: FileNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
-  const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
-  const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
-  const updateNodeData = useStore(store, (s) => s.updateNodeData);
   const {
+    runStatus,
+    dimmed,
+    nodeCardMode,
+    handleFileLabelChange: applyFileLabelChange,
+    handleFilePathChange: applyFilePathChange,
+    handleFilePathInputChange: applyFilePathInputChange,
+    handleFileLanguageInputChange: applyFileLanguageInputChange,
+    handleFileDescriptionInputChange: applyFileDescriptionInputChange,
     rightActivePortCount,
     rightActivePortMask,
     rightConnectedPortCount,
     rightConnectedPortMask,
     rightPortCount,
-  } = useStore(store, useShallow(selectNodePortCounts(id)));
+  } = useStore(
+    store,
+    useShallow((s) => ({
+      ...selectNodeRunState(id)(s),
+      nodeCardMode: s.nodeCardMode,
+      handleFileLabelChange: s.handleFileLabelChange,
+      handleFilePathChange: s.handleFilePathChange,
+      handleFilePathInputChange: s.handleFilePathInputChange,
+      handleFileLanguageInputChange: s.handleFileLanguageInputChange,
+      handleFileDescriptionInputChange: s.handleFileDescriptionInputChange,
+      ...selectNodePortCounts(id)(s),
+    })),
+  );
   const [browserOpen, setBrowserOpen] = useState(false);
-
-  const handleLabelChange = (v: string) => updateNodeData(id, { label: v });
-  const handleFilePathChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    updateNodeData(id, { filePath: e.target.value });
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    updateNodeData(id, { language: e.target.value });
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    updateNodeData(id, { description: e.target.value });
 
   const handleBrowseButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setBrowserOpen(true);
   };
 
-  const handleFileSelect = (path: string) => {
-    updateNodeData(id, { filePath: path });
+  const handleLabelChange = applyFileLabelChange.bind(null, id);
+
+  const handleFileSelect = applyFilePathChange.bind(null, id);
+
+  const handleFilePathInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applyFilePathInputChange(id, e.target.value);
+  };
+
+  const handleFileLanguageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applyFileLanguageInputChange(id, e.target.value);
+  };
+
+  const handleFileDescriptionInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    applyFileDescriptionInputChange(id, e.target.value);
   };
 
   const handleBrowserOpenChange = (open: boolean) => {
@@ -79,7 +100,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
             name={`${id}-filePath`}
             placeholder="src/file.tsx"
             value={data.filePath}
-            onChange={handleFilePathChange}
+            onChange={handleFilePathInputChange}
             onClick={handleStopPropagation}
             onKeyDown={handleStopPropagation}
             onMouseDown={handleStopPropagation}
@@ -99,7 +120,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
             name={`${id}-language`}
             placeholder="ts"
             value={data.language ?? ""}
-            onChange={handleLanguageChange}
+            onChange={handleFileLanguageInputChange}
             onClick={handleStopPropagation}
             onKeyDown={handleStopPropagation}
             onMouseDown={handleStopPropagation}
@@ -112,12 +133,12 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
           placeholder={t("nodes.codeFile.descriptionPlaceholder")}
           rows={2}
           value={data.description ?? ""}
-          onChange={handleDescriptionChange}
+          onChange={handleFileDescriptionInputChange}
           onMouseDown={handleStopPropagation}
         />
       </NodeCard>
 
-      <FolderBrowser
+      <FolderBrowserDialog
         mode="file"
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}
