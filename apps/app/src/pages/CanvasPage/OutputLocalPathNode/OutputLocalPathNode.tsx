@@ -7,6 +7,10 @@ import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import { NodeCard } from "../NodeCard";
 import { FolderBrowserDialog } from "@/components/FolderBrowserDialog/FolderBrowserDialog";
+import { Button } from "@repo/ui/button";
+import { Input } from "@repo/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
+import { Textarea } from "@repo/ui/textarea";
 
 export interface OutputLocalPathNodeProps {
   id: string;
@@ -29,12 +33,12 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
     runStatus,
     dimmed,
     nodeCardMode,
-    handleOutputLocalPathLabelChange,
-    handleOutputLocalPathChange,
-    handleOutputLocalPathInputChange,
-    handleOutputLocalPathFileNameInputChange,
-    handleOutputLocalPathModeChange,
-    handleOutputLocalPathDescriptionInputChange,
+    handleOutputLocalPathLabelChange: applyOutputLocalPathLabelChange,
+    handleOutputLocalPathChange: applyOutputLocalPathChange,
+    handleOutputLocalPathInputChange: applyOutputLocalPathInputChange,
+    handleOutputLocalPathFileNameInputChange: applyOutputLocalPathFileNameInputChange,
+    handleOutputLocalPathModeChange: applyOutputLocalPathModeChange,
+    handleOutputLocalPathDescriptionInputChange: applyOutputLocalPathDescriptionInputChange,
     leftActivePortCount,
     leftActivePortMask,
     leftConnectedPortCount,
@@ -61,6 +65,28 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
     setBrowserOpen(true);
   };
 
+  const handleLabelChange = applyOutputLocalPathLabelChange.bind(null, id);
+
+  const handleFolderSelect = applyOutputLocalPathChange.bind(null, id);
+
+  const handleLocalPathInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applyOutputLocalPathInputChange(id, e.target.value);
+  };
+
+  const handleFileNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applyOutputLocalPathFileNameInputChange(id, e.target.value);
+  };
+
+  const handleOutputModeChange = (value: OutputMode | null) => {
+    if (!value) return;
+
+    applyOutputLocalPathModeChange(id, value);
+  };
+
+  const handleDescriptionInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    applyOutputLocalPathDescriptionInputChange(id, e.target.value);
+  };
+
   const handleBrowserOpenChange = (open: boolean) => {
     setBrowserOpen(open);
   };
@@ -85,41 +111,42 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
         runStatus={runStatus}
         selected={selected}
         theme="teal"
-        onLabelChange={handleOutputLocalPathLabelChange.bind(null, id)}
+        onLabelChange={handleLabelChange}
       >
         <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
           <span className="shrink-0 text-[10px] font-medium text-teal-500">
             {t("nodes.outputLocalPathNode.pathLabel")}
           </span>
-          <input
-            className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
+          <Input
+            className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none border-none shadow-none p-0 h-auto"
             placeholder="/Users/you/Desktop/output"
             value={data.localPath}
-            onChange={handleOutputLocalPathInputChange.bind(null, id)}
+            onChange={handleLocalPathInputChange}
             onClick={handleStopPropagation}
             onKeyDown={handleStopPropagation}
             onMouseDown={handleStopPropagation}
           />
-          <button
-            className="nodrag nopan shrink-0 rounded p-0.5 text-teal-400 hover:bg-teal-100 hover:text-teal-700 transition-colors"
+          <Button
+            className="nodrag nopan shrink-0 rounded p-0.5 text-teal-400 hover:bg-teal-100 hover:text-teal-700 transition-colors h-auto"
             title={t("nodes.outputLocalPathNode.browseFolder")}
             type="button"
+            variant="ghost"
             onClick={handleFolderButtonClick}
             onMouseDown={handleStopPropagation}
           >
             <FolderOpen className="h-3.5 w-3.5" />
-          </button>
+          </Button>
         </div>
 
         <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
           <span className="shrink-0 text-[10px] font-medium text-teal-500">
             {t("nodes.outputLocalPathNode.filenameLabel")}
           </span>
-          <input
-            className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none"
+          <Input
+            className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none border-none shadow-none p-0 h-auto"
             placeholder="output.md"
             value={data.outputFileName ?? ""}
-            onChange={handleOutputLocalPathFileNameInputChange.bind(null, id)}
+            onChange={handleFileNameInputChange}
             onClick={handleStopPropagation}
             onKeyDown={handleStopPropagation}
             onMouseDown={handleStopPropagation}
@@ -130,19 +157,22 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
           <span className="shrink-0 text-[10px] font-medium text-teal-500">
             {t("nodes.outputLocalPathNode.writeModeLabel")}
           </span>
-          <select
-            className="nodrag nopan flex-1 min-w-0 bg-transparent text-[11px] font-semibold text-teal-800 focus:outline-none cursor-pointer"
-            value={currentMode}
-            onChange={handleOutputLocalPathModeChange.bind(null, id)}
-            onClick={handleStopPropagation}
-            onMouseDown={handleStopPropagation}
-          >
-            {Object.values(OUTPUT_MODE_ENUM).map((mode) => (
-              <option key={mode} value={mode}>
-                {t(MODE_LABEL_KEYS[mode])}
-              </option>
-            ))}
-          </select>
+          <Select value={currentMode} onValueChange={handleOutputModeChange}>
+            <SelectTrigger
+              className="nodrag nopan h-6 flex-1 min-w-0 border-none bg-transparent px-0 py-0 text-[11px] font-semibold text-teal-800 shadow-none focus:ring-0"
+              onClick={handleStopPropagation}
+              onMouseDown={handleStopPropagation}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(OUTPUT_MODE_ENUM).map((mode) => (
+                <SelectItem key={mode} value={mode}>
+                  {t(MODE_LABEL_KEYS[mode])}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {currentMode === "error_if_exists" && (
@@ -152,12 +182,12 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
           </div>
         )}
 
-        <textarea
-          className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
+        <Textarea
+          className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1 border-none shadow-none min-h-0 p-0"
           placeholder={t("nodes.outputLocalPathNode.descriptionPlaceholder")}
           rows={2}
           value={data.description ?? ""}
-          onChange={handleOutputLocalPathDescriptionInputChange.bind(null, id)}
+          onChange={handleDescriptionInputChange}
           onMouseDown={handleStopPropagation}
         />
       </NodeCard>
@@ -165,7 +195,7 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
       <FolderBrowserDialog
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}
-        onSelect={handleOutputLocalPathChange.bind(null, id)}
+        onSelect={handleFolderSelect}
       />
     </div>
   );

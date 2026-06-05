@@ -27,10 +27,10 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
     runStatus,
     dimmed,
     nodeCardMode,
-    handleFolderLabelChange,
-    handleFolderPathChange,
-    handleFolderPathInputChange,
-    handleFolderDescriptionInputChange,
+    handleFolderLabelChange: applyFolderLabelChange,
+    handleFolderPathChange: applyFolderPathChange,
+    handleFolderPathInputChange: applyFolderPathInputChange,
+    handleFolderDescriptionInputChange: applyFolderDescriptionInputChange,
     handleNodeAddExcludedPath,
     handleNodeRemoveExcludedPath,
     rightActivePortCount,
@@ -61,6 +61,18 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
     setBrowserOpen(true);
   };
 
+  const handleLabelChange = applyFolderLabelChange.bind(null, id);
+
+  const handleFolderSelect = applyFolderPathChange.bind(null, id);
+
+  const handleFolderPathInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applyFolderPathInputChange(id, e.target.value);
+  };
+
+  const handleFolderDescriptionInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    applyFolderDescriptionInputChange(id, e.target.value);
+  };
+
   const handleBrowserOpenChange = (open: boolean) => {
     setBrowserOpen(open);
   };
@@ -83,14 +95,14 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
         runStatus={runStatus}
         selected={selected}
         theme="orange"
-        onLabelChange={handleFolderLabelChange.bind(null, id)}
+        onLabelChange={handleLabelChange}
       >
         <div className="flex items-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-2 py-1">
           <Input
             className="nodrag nopan font-mono text-[11px] font-semibold text-slate-700 bg-transparent focus:outline-none flex-1 min-w-0 border-none shadow-none p-0 h-auto"
             placeholder="src/components/"
             value={data.folderPath}
-            onChange={handleFolderPathInputChange.bind(null, id)}
+            onChange={handleFolderPathInputChange}
             onClick={handleStopPropagation}
             onKeyDown={handleStopPropagation}
             onMouseDown={handleStopPropagation}
@@ -142,7 +154,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
           placeholder={t("canvas.folderDescPlaceholder")}
           rows={2}
           value={data.description ?? ""}
-          onChange={handleFolderDescriptionInputChange.bind(null, id)}
+          onChange={handleFolderDescriptionInputChange}
           onMouseDown={handleStopPropagation}
         />
       </NodeCard>
@@ -150,7 +162,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
       <FolderBrowserDialog
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}
-        onSelect={handleFolderPathChange.bind(null, id)}
+        onSelect={handleFolderSelect}
       />
     </div>
   );

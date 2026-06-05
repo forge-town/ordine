@@ -11,6 +11,49 @@ const makeNode = (id: string, type: PipelineNode["type"]): PipelineNode =>
     data: { label: id, nodeType: type },
   }) as PipelineNode;
 
+const makeFileNode = (id: string): PipelineNode =>
+  ({
+    id,
+    type: "file",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "main.ts",
+      nodeType: "file",
+      filePath: "src/main.ts",
+      language: "typescript",
+      description: "entry file",
+    },
+  }) as PipelineNode;
+
+const makeFolderNode = (id: string): PipelineNode =>
+  ({
+    id,
+    type: "folder",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "src",
+      nodeType: "folder",
+      folderPath: "apps/app/src",
+      description: "source folder",
+      excludedPaths: [],
+    },
+  }) as PipelineNode;
+
+const makeOutputLocalPathNode = (id: string): PipelineNode =>
+  ({
+    id,
+    type: "output-local-path",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "report",
+      nodeType: "output-local-path",
+      localPath: "/tmp/output",
+      outputFileName: "report.md",
+      outputMode: "overwrite",
+      description: "write report locally",
+    },
+  }) as PipelineNode;
+
 describe("canvas connection actions", () => {
   it("keeps the dragged source handle when creating a connected node", () => {
     const source = makeNode("source", "operation");
@@ -137,5 +180,55 @@ describe("canvas connection actions", () => {
 
     expect(store.getState().connectStart).toBeNull();
     expect(store.getState().connectionMenu).toBeNull();
+  });
+});
+
+describe("semantic node field actions", () => {
+  it("updates file, folder, and local output fields from plain values", () => {
+    const fileNode = makeFileNode("file-1");
+    const folderNode = makeFolderNode("folder-1");
+    const outputNode = makeOutputLocalPathNode("output-1");
+    const store = createCanvasPageStore([fileNode, folderNode, outputNode], [], null, "");
+    const state = store.getState();
+
+    expect(() =>
+      state.handleFilePathInputChange(fileNode.id, "src/next.tsx" as never),
+    ).not.toThrow();
+    expect(() =>
+      state.handleFolderPathInputChange(folderNode.id, "apps/app/components" as never),
+    ).not.toThrow();
+    expect(() =>
+      state.handleOutputLocalPathInputChange(outputNode.id, "/workspace/reports" as never),
+    ).not.toThrow();
+    expect(() =>
+      state.handleOutputLocalPathFileNameInputChange(outputNode.id, "summary.md" as never),
+    ).not.toThrow();
+    expect(() =>
+      state.handleOutputLocalPathModeChange(outputNode.id, "auto_rename" as never),
+    ).not.toThrow();
+    expect(() =>
+      state.handleOutputLocalPathDescriptionInputChange(
+        outputNode.id,
+        "store action takes plain values" as never,
+      ),
+    ).not.toThrow();
+
+    const nextState = store.getState();
+    const updatedFileNode = nextState.nodes.find((node) => node.id === fileNode.id);
+    const updatedFolderNode = nextState.nodes.find((node) => node.id === folderNode.id);
+    const updatedOutputNode = nextState.nodes.find((node) => node.id === outputNode.id);
+
+    expect(updatedFileNode?.data).toEqual(expect.objectContaining({ filePath: "src/next.tsx" }));
+    expect(updatedFolderNode?.data).toEqual(
+      expect.objectContaining({ folderPath: "apps/app/components" }),
+    );
+    expect(updatedOutputNode?.data).toEqual(
+      expect.objectContaining({
+        localPath: "/workspace/reports",
+        outputFileName: "summary.md",
+        outputMode: "auto_rename",
+        description: "store action takes plain values",
+      }),
+    );
   });
 });

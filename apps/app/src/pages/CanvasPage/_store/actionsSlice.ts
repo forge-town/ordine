@@ -153,41 +153,23 @@ export interface ActionsSlice {
   // File node actions
   handleFileLabelChange: (nodeId: string, label: string) => void;
   handleFilePathChange: (nodeId: string, filePath: string) => void;
-  handleFilePathInputChange: (nodeId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleFileLanguageInputChange: (nodeId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleFileDescriptionInputChange: (
-    nodeId: string,
-    e: React.ChangeEvent<HTMLTextAreaElement>,
-  ) => void;
+  handleFilePathInputChange: (nodeId: string, filePath: string) => void;
+  handleFileLanguageInputChange: (nodeId: string, language: string) => void;
+  handleFileDescriptionInputChange: (nodeId: string, description: string) => void;
 
   // Folder node actions
   handleFolderLabelChange: (nodeId: string, label: string) => void;
   handleFolderPathChange: (nodeId: string, folderPath: string) => void;
-  handleFolderPathInputChange: (nodeId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleFolderDescriptionInputChange: (
-    nodeId: string,
-    e: React.ChangeEvent<HTMLTextAreaElement>,
-  ) => void;
+  handleFolderPathInputChange: (nodeId: string, folderPath: string) => void;
+  handleFolderDescriptionInputChange: (nodeId: string, description: string) => void;
 
   // Output local path node actions
   handleOutputLocalPathLabelChange: (nodeId: string, label: string) => void;
   handleOutputLocalPathChange: (nodeId: string, localPath: string) => void;
-  handleOutputLocalPathInputChange: (
-    nodeId: string,
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => void;
-  handleOutputLocalPathFileNameInputChange: (
-    nodeId: string,
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => void;
-  handleOutputLocalPathModeChange: (
-    nodeId: string,
-    e: React.ChangeEvent<HTMLSelectElement>,
-  ) => void;
-  handleOutputLocalPathDescriptionInputChange: (
-    nodeId: string,
-    e: React.ChangeEvent<HTMLTextAreaElement>,
-  ) => void;
+  handleOutputLocalPathInputChange: (nodeId: string, localPath: string) => void;
+  handleOutputLocalPathFileNameInputChange: (nodeId: string, outputFileName: string) => void;
+  handleOutputLocalPathModeChange: (nodeId: string, outputMode: OutputMode) => void;
+  handleOutputLocalPathDescriptionInputChange: (nodeId: string, description: string) => void;
 }
 
 export const createActionsSlice = (
@@ -899,16 +881,16 @@ export const createActionsSlice = (
     get().updateNodeData(nodeId, { filePath });
   },
 
-  handleFilePathInputChange: (nodeId, e) => {
-    get().updateNodeData(nodeId, { filePath: e.target.value });
+  handleFilePathInputChange: (nodeId, filePath) => {
+    get().updateNodeData(nodeId, { filePath });
   },
 
-  handleFileLanguageInputChange: (nodeId, e) => {
-    get().updateNodeData(nodeId, { language: e.target.value });
+  handleFileLanguageInputChange: (nodeId, language) => {
+    get().updateNodeData(nodeId, { language });
   },
 
-  handleFileDescriptionInputChange: (nodeId, e) => {
-    get().updateNodeData(nodeId, { description: e.target.value });
+  handleFileDescriptionInputChange: (nodeId, description) => {
+    get().updateNodeData(nodeId, { description });
   },
 
   // ── Folder node actions ────────────────────────────────────────────────
@@ -921,12 +903,12 @@ export const createActionsSlice = (
     get().updateNodeData(nodeId, { folderPath });
   },
 
-  handleFolderPathInputChange: (nodeId, e) => {
-    get().updateNodeData(nodeId, { folderPath: e.target.value });
+  handleFolderPathInputChange: (nodeId, folderPath) => {
+    get().updateNodeData(nodeId, { folderPath });
   },
 
-  handleFolderDescriptionInputChange: (nodeId, e) => {
-    get().updateNodeData(nodeId, { description: e.target.value });
+  handleFolderDescriptionInputChange: (nodeId, description) => {
+    get().updateNodeData(nodeId, { description });
   },
 
   // ── Output local path node actions ─────────────────────────────────────
@@ -939,19 +921,19 @@ export const createActionsSlice = (
     get().updateNodeData(nodeId, { localPath });
   },
 
-  handleOutputLocalPathInputChange: (nodeId, e) => {
-    get().updateNodeData(nodeId, { localPath: e.target.value });
+  handleOutputLocalPathInputChange: (nodeId, localPath) => {
+    get().updateNodeData(nodeId, { localPath });
   },
 
-  handleOutputLocalPathFileNameInputChange: (nodeId, e) => {
-    get().updateNodeData(nodeId, { outputFileName: e.target.value });
+  handleOutputLocalPathFileNameInputChange: (nodeId, outputFileName) => {
+    get().updateNodeData(nodeId, { outputFileName });
   },
 
-  handleOutputLocalPathModeChange: (nodeId, e) => {
-    get().updateNodeData(nodeId, { outputMode: e.target.value as OutputMode });
+  handleOutputLocalPathModeChange: (nodeId, outputMode) => {
+    get().updateNodeData(nodeId, { outputMode });
   },
 
-  handleOutputLocalPathDescriptionInputChange: (nodeId, e) => {
-    get().updateNodeData(nodeId, { description: e.target.value });
+  handleOutputLocalPathDescriptionInputChange: (nodeId, description) => {
+    get().updateNodeData(nodeId, { description });
   },
 });

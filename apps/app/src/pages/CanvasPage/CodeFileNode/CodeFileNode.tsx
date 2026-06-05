@@ -23,11 +23,11 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
     runStatus,
     dimmed,
     nodeCardMode,
-    handleFileLabelChange,
-    handleFilePathChange,
-    handleFilePathInputChange,
-    handleFileLanguageInputChange,
-    handleFileDescriptionInputChange,
+    handleFileLabelChange: applyFileLabelChange,
+    handleFilePathChange: applyFilePathChange,
+    handleFilePathInputChange: applyFilePathInputChange,
+    handleFileLanguageInputChange: applyFileLanguageInputChange,
+    handleFileDescriptionInputChange: applyFileDescriptionInputChange,
     rightActivePortCount,
     rightActivePortMask,
     rightConnectedPortCount,
@@ -53,6 +53,22 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
     setBrowserOpen(true);
   };
 
+  const handleLabelChange = applyFileLabelChange.bind(null, id);
+
+  const handleFileSelect = applyFilePathChange.bind(null, id);
+
+  const handleFilePathInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applyFilePathInputChange(id, e.target.value);
+  };
+
+  const handleFileLanguageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applyFileLanguageInputChange(id, e.target.value);
+  };
+
+  const handleFileDescriptionInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    applyFileDescriptionInputChange(id, e.target.value);
+  };
+
   const handleBrowserOpenChange = (open: boolean) => {
     setBrowserOpen(open);
   };
@@ -75,7 +91,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
         runStatus={runStatus}
         selected={selected}
         theme="orange"
-        onLabelChange={handleFileLabelChange.bind(null, id)}
+        onLabelChange={handleLabelChange}
       >
         <div className="flex items-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-2 py-1">
           <input
@@ -84,7 +100,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
             name={`${id}-filePath`}
             placeholder="src/file.tsx"
             value={data.filePath}
-            onChange={handleFilePathInputChange.bind(null, id)}
+            onChange={handleFilePathInputChange}
             onClick={handleStopPropagation}
             onKeyDown={handleStopPropagation}
             onMouseDown={handleStopPropagation}
@@ -104,7 +120,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
             name={`${id}-language`}
             placeholder="ts"
             value={data.language ?? ""}
-            onChange={handleFileLanguageInputChange.bind(null, id)}
+            onChange={handleFileLanguageInputChange}
             onClick={handleStopPropagation}
             onKeyDown={handleStopPropagation}
             onMouseDown={handleStopPropagation}
@@ -117,7 +133,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
           placeholder={t("nodes.codeFile.descriptionPlaceholder")}
           rows={2}
           value={data.description ?? ""}
-          onChange={handleFileDescriptionInputChange.bind(null, id)}
+          onChange={handleFileDescriptionInputChange}
           onMouseDown={handleStopPropagation}
         />
       </NodeCard>
@@ -126,7 +142,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
         mode="file"
         open={browserOpen}
         onOpenChange={handleBrowserOpenChange}
-        onSelect={handleFilePathChange.bind(null, id)}
+        onSelect={handleFileSelect}
       />
     </div>
   );
