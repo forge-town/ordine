@@ -1,8 +1,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
+import { inflateSync } from "node:zlib";
 import JSZip from "jszip";
-import { ResultAsync } from "neverthrow";
+import { Result, ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import {
   createAgentRuntimesDao,
@@ -31,7 +32,6 @@ import {
   type PipelineAgentProposal,
   type PipelineAgentProposalStatus,
   type PipelineAgentSessionStatus,
-  type PipelineData,
   type PipelineGraphSnapshot,
 } from "@repo/schemas";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
@@ -186,172 +186,158 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
           })
           .join("\n");
 
-  const buildFallbackGeneratedGraph = (input: {
-    matchedOperations: Array<{ operationId: string; operationName: string; reason: string }>;
-    operationById: Map<string, { name: string }>;
-    operationByName: Map<string, { id: string; name: string }>;
-    proposal: Extract<PipelineAgentProposal, { mode: "generate" }>;
-  }): Pick<PipelineData, "nodes" | "edges"> => {
-    const parseEmbeddedOperationReference = (value: string) => {
-      const asciiOpenIndex = value.lastIndexOf("(");
-      const asciiCloseIndex = value.endsWith(")") ? value.length - 1 : -1;
-      if (asciiOpenIndex > -1 && asciiCloseIndex > asciiOpenIndex) {
-        return {
-          name: value.slice(0, asciiOpenIndex).trim(),
-          id: value.slice(asciiOpenIndex + 1, asciiCloseIndex).trim(),
-        };
-      }
-
-      const wideOpenIndex = value.lastIndexOf("（");
-      const wideCloseIndex = value.endsWith("）") ? value.length - 1 : -1;
-      if (wideOpenIndex > -1 && wideCloseIndex > wideOpenIndex) {
-        return {
-          name: value.slice(0, wideOpenIndex).trim(),
-          id: value.slice(wideOpenIndex + 1, wideCloseIndex).trim(),
-        };
-      }
-
-      return null;
-    };
-    const fallbackOperations =
-      input.matchedOperations.length > 0
-        ? input.matchedOperations
-        : input.proposal.majorOperations
-            .map((value) => {
-              const [rawLeft, rawRight] = value.split(" | ").map((part) => part.trim());
-              const embeddedOperation = rawRight ? null : parseEmbeddedOperationReference(rawLeft);
-              const normalizedName = embeddedOperation?.name ?? value.trim();
-              const normalizedId = embeddedOperation?.id ?? rawLeft;
-              const exactById = input.operationById.get(normalizedId);
-              const exactByName = input.operationByName.get(normalizedName);
-              const exactRightByName = rawRight ? input.operationByName.get(rawRight) : null;
-              const operationId =
-                embeddedOperation?.id ??
-                (exactById ? normalizedId : (exactByName?.id ?? exactRightByName?.id ?? rawLeft));
-              const fallbackOperationName =
-                rawRight ||
-                exactByName?.name ||
-                exactById?.name ||
-                exactRightByName?.name ||
-                normalizedName;
-              if (!operationId) {
-                return null;
-              }
-
-              return {
-                operationId,
-                operationName: fallbackOperationName,
-                reason: "Recovered from approved proposal majorOperations",
-              };
-            })
-            .filter(
-              (value): value is { operationId: string; operationName: string; reason: string } =>
-                value !== null,
-            );
-    const nodes: PipelineData["nodes"] = [];
-    const edges: PipelineData["edges"] = [];
-    let x = 0;
-
-    const addNode = <T extends PipelineData["nodes"][number]>(node: T) => {
-      nodes.push(node);
-      x += 360;
-
-      return node;
-    };
-    const addEdge = (source: string, target: string) => {
-      edges.push({
-        id: `edge-${source}-${target}`,
-        source,
-        target,
-      });
-    };
-
-    const needsFolderInput = input.proposal.inputs.some(
-      (value) => value.includes("folder") || value.includes("仓库"),
-    );
-    const needsPromptInput = input.proposal.inputs.some(
-      (value) => value.includes("prompt") || value.includes("提示词"),
-    );
-
-    const folderNode = needsFolderInput
-      ? addNode({
-          id: "generated-folder-input",
-          type: "folder",
-          position: { x, y: 0 },
-          data: {
-            nodeType: "folder",
-            label: "仓库目录",
-            folderPath: "/tmp/ordine-input-repo",
-            description: "待审查的本地代码仓库目录。",
-          },
-        })
-      : null;
-    const promptNode = needsPromptInput
-      ? addNode({
-          id: "generated-prompt-input",
-          type: "prompt",
-          position: { x, y: 180 },
-          data: {
-            nodeType: "prompt",
-            label: "审查提示词",
-            prompt: input.proposal.purpose,
-            description: "用于约束本次代码仓库审查重点的提示词。",
-          },
-        })
-      : null;
-    const operationNodes = fallbackOperations.map((operation, index) =>
-      addNode({
-        id: `generated-operation-${index + 1}`,
-        type: "operation",
-        position: { x, y: 0 },
-        data: {
-          nodeType: "operation",
-          label: operation.operationName,
-          operationId: operation.operationId,
-          operationName: operation.operationName,
-          status: "idle",
-        },
-      }),
-    );
-    const outputNode = addNode({
-      id: "generated-output",
-      type: "output-local-path",
-      position: { x, y: 0 },
-      data: {
-        nodeType: "output-local-path",
-        label: "Markdown 审查报告",
-        localPath: "/tmp/ordine-output",
-        outputFileName: "review-report.md",
-        outputMode: "overwrite",
-        description: "最终生成的 Markdown 审查报告输出路径。",
-      },
-    });
-
-    const firstOperation = operationNodes[0] ?? null;
-    if (firstOperation) {
-      if (folderNode) {
-        addEdge(folderNode.id, firstOperation.id);
-      }
-      if (promptNode) {
-        addEdge(promptNode.id, firstOperation.id);
-      }
-
-      for (const [index, currentNode] of operationNodes.entries()) {
-        const nextNode = operationNodes[index + 1] ?? outputNode;
-        addEdge(currentNode.id, nextNode.id);
-      }
-    }
-
-    return { nodes, edges };
-  };
-
   const decodeText = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
   const normalizeWhitespace = (value: string) => value.replaceAll(/\s+/g, " ").trim();
-  const extractPdfText = (bytes: Uint8Array) => {
-    const raw = decodeText(bytes);
-    const matches = [...raw.matchAll(/\(([^()]+)\)/g)].map((match) => match[1] ?? "");
+  const decodePdfBinary = (bytes: Uint8Array) => Buffer.from(bytes).toString("latin1");
+  const decodePdfTextBytes = (bytes: number[]) => {
+    if (bytes[0] === 0xfe && bytes[1] === 0xff) {
+      return Array.from({ length: Math.floor((bytes.length - 2) / 2) }, (_, offset) => {
+        const index = 2 + offset * 2;
 
-    return normalizeWhitespace(matches.join(" "));
+        return String.fromCodePoint((bytes[index]! << 8) | bytes[index + 1]!);
+      }).join("");
+    }
+
+    return Buffer.from(bytes).toString("utf8");
+  };
+  const readLiteralPdfString = (input: string, startIndex: number) => {
+    const readNext = (
+      index: number,
+      depth: number,
+      value: string,
+    ): { nextIndex: number; value: string } => {
+      if (index >= input.length || depth <= 0) {
+        return { value, nextIndex: index };
+      }
+
+      const char = input[index]!;
+      if (char === "\\") {
+        const escaped = input[index + 1];
+        if (!escaped) {
+          return readNext(index + 1, depth, value);
+        }
+        if (/[0-7]/.test(escaped)) {
+          const octal = input.slice(index + 1, index + 4).match(/^[0-7]{1,3}/)?.[0] ?? "";
+
+          return readNext(
+            index + 1 + octal.length,
+            depth,
+            `${value}${String.fromCodePoint(Number.parseInt(octal, 8))}`,
+          );
+        }
+        const escapedMap: Record<string, string> = {
+          n: "\n",
+          r: "\r",
+          t: "\t",
+          b: "\b",
+          f: "\f",
+          "(": "(",
+          ")": ")",
+          "\\": "\\",
+        };
+
+        return readNext(index + 2, depth, `${value}${escapedMap[escaped] ?? escaped}`);
+      }
+      if (char === "(") {
+        return readNext(index + 1, depth + 1, `${value}${char}`);
+      }
+      if (char === ")") {
+        const nextDepth = depth - 1;
+
+        return readNext(index + 1, nextDepth, nextDepth > 0 ? `${value}${char}` : value);
+      }
+
+      return readNext(index + 1, depth, `${value}${char}`);
+    };
+
+    return readNext(startIndex + 1, 1, "");
+  };
+  const readHexPdfString = (input: string, startIndex: number) => {
+    const endIndex = input.indexOf(">", startIndex + 1);
+    if (endIndex === -1) {
+      return { value: "", nextIndex: input.length };
+    }
+
+    const rawHex = input.slice(startIndex + 1, endIndex).replaceAll(/\s+/g, "");
+    const normalizedHex = rawHex.length % 2 === 0 ? rawHex : `${rawHex}0`;
+    const bytes = Array.from({ length: Math.floor(normalizedHex.length / 2) }, (_, offset) =>
+      Number.parseInt(normalizedHex.slice(offset * 2, offset * 2 + 2), 16),
+    ).filter((value) => !Number.isNaN(value));
+
+    return { value: decodePdfTextBytes(bytes), nextIndex: endIndex + 1 };
+  };
+  const extractPdfStreamBodies = (bytes: Uint8Array) => {
+    const raw = decodePdfBinary(bytes);
+    const readBodies = (searchIndex: number, bodies: string[]): string[] => {
+      if (searchIndex >= raw.length) {
+        return bodies;
+      }
+
+      const streamIndex = raw.indexOf("stream", searchIndex);
+      if (streamIndex === -1) {
+        return bodies;
+      }
+      const bodyStartBeforeLineBreak = streamIndex + "stream".length;
+      const bodyStart =
+        raw[bodyStartBeforeLineBreak] === "\r" && raw[bodyStartBeforeLineBreak + 1] === "\n"
+          ? bodyStartBeforeLineBreak + 2
+          : raw[bodyStartBeforeLineBreak] === "\n" || raw[bodyStartBeforeLineBreak] === "\r"
+            ? bodyStartBeforeLineBreak + 1
+            : bodyStartBeforeLineBreak;
+      const endIndex = raw.indexOf("endstream", bodyStart);
+      if (endIndex === -1) {
+        return bodies;
+      }
+
+      const dictionaryStart = raw.lastIndexOf("<<", streamIndex);
+      const dictionaryEnd = raw.lastIndexOf(">>", streamIndex);
+      const dictionary =
+        dictionaryStart !== -1 && dictionaryEnd !== -1 && dictionaryEnd > dictionaryStart
+          ? raw.slice(dictionaryStart, dictionaryEnd)
+          : "";
+      const bodyBytes = bytes.slice(bodyStart, endIndex);
+      const decodedBytes = dictionary.includes("/FlateDecode")
+        ? Result.fromThrowable(
+            () => inflateSync(Buffer.from(bodyBytes)),
+            (error) => error,
+          )().unwrapOr(Buffer.from(bodyBytes))
+        : Buffer.from(bodyBytes);
+
+      return readBodies(endIndex + "endstream".length, [...bodies, decodePdfBinary(decodedBytes)]);
+    };
+
+    const bodies = readBodies(0, []);
+
+    return bodies.length > 0 ? bodies : [raw];
+  };
+  const extractPdfTextTokens = (input: string) => {
+    const readTokens = (index: number, segments: string[]): string[] => {
+      if (index >= input.length) {
+        return segments;
+      }
+
+      const char = input[index]!;
+      if (char === "(") {
+        const parsed = readLiteralPdfString(input, index);
+
+        return readTokens(parsed.nextIndex, [...segments, parsed.value]);
+      }
+      if (char === "<" && input[index + 1] !== "<") {
+        const parsed = readHexPdfString(input, index);
+
+        return readTokens(parsed.nextIndex, parsed.value ? [...segments, parsed.value] : segments);
+      }
+
+      return readTokens(index + 1, segments);
+    };
+
+    return readTokens(0, []);
+  };
+  const extractPdfText = (bytes: Uint8Array) => {
+    const streamBodies = extractPdfStreamBodies(bytes);
+    const textSegments = streamBodies.flatMap((body) => extractPdfTextTokens(body));
+
+    return normalizeWhitespace(textSegments.join(" "));
   };
   const extractDocxText = async (bytes: Uint8Array) => {
     const zip = await JSZip.loadAsync(bytes);
@@ -363,10 +349,81 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     return normalizeWhitespace(
       documentXml
         .replaceAll(/<[^>]+>/g, " ")
-        .replaceAll(/&amp;/g, "&")
-        .replaceAll(/&lt;/g, "<")
-        .replaceAll(/&gt;/g, ">"),
+        .replaceAll("&amp;", "&")
+        .replaceAll("&lt;", "<")
+        .replaceAll("&gt;", ">"),
     );
+  };
+
+  const resolveAttachmentRuntime = (input: {
+    requestedRuntimeId?: string;
+    runtimes: Array<{ id: string; type: AgentRuntime } & Record<string, unknown>>;
+    defaultRuntime?: string | null;
+  }): AgentRuntime => {
+    if (input.requestedRuntimeId) {
+      const requested = input.runtimes.find((runtime) => runtime.id === input.requestedRuntimeId);
+      if (requested) {
+        return requested.type;
+      }
+    }
+
+    const configuredDefault =
+      input.defaultRuntime &&
+      input.runtimes.find((runtime) => runtime.type === input.defaultRuntime);
+    if (configuredDefault) {
+      return configuredDefault.type;
+    }
+
+    const mastraRuntime = input.runtimes.find((runtime) => runtime.type === "mastra");
+    if (mastraRuntime) {
+      return "mastra";
+    }
+
+    return input.runtimes[0]?.type ?? "codex";
+  };
+
+  const createImageSummaryArtifact = async (input: {
+    bytes: Uint8Array;
+    filename: string;
+    mimeType: string;
+    runtime: AgentRuntime;
+    apiKey?: string;
+    model?: string;
+  }): Promise<{
+    content: PipelineAgentContextArtifactContent;
+    kind: PipelineAgentContextArtifactKind;
+  }> => {
+    const summary = await runAgent({
+      agent: input.runtime,
+      systemPrompt:
+        "Describe the uploaded image for workflow planning. Return a concise text summary.",
+      userPrompt: "Summarize visible text, objects, structure, and workflow-relevant clues.",
+      inputPath: process.cwd(),
+      agentId: "pipeline-agent-image-summary",
+      logPrefix: "pipelineAgentImage",
+      apiKey: input.apiKey,
+      model: input.model,
+      attachments: [
+        {
+          kind: "image",
+          filename: input.filename,
+          mediaType: input.mimeType,
+          dataBase64: Buffer.from(input.bytes).toString("base64"),
+        },
+      ],
+    });
+
+    return {
+      kind: "image_summary",
+      content: {
+        mediaType: input.mimeType,
+        summary,
+        metadata: {
+          filename: input.filename,
+          sizeBytes: input.bytes.byteLength,
+        },
+      },
+    };
   };
 
   const getAttachmentKindAndContent = async (input: {
@@ -374,6 +431,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     filename: string;
     mimeType: string;
     sizeBytes: number;
+    runtimeId?: string;
   }): Promise<{
     content: PipelineAgentContextArtifactContent;
     kind: PipelineAgentContextArtifactKind;
@@ -383,17 +441,24 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     const documentExtensions = new Set([".pdf", ".docx"]);
 
     if (input.mimeType.startsWith("image/")) {
-      return {
-        kind: "image_summary",
-        content: {
-          mediaType: input.mimeType,
-          summary: `Image uploaded: ${input.filename} (${input.mimeType}, ${input.sizeBytes} bytes)`,
-          metadata: {
-            filename: input.filename,
-            sizeBytes: input.sizeBytes,
-          },
-        },
-      };
+      const [settings, runtimes] = await Promise.all([
+        settingsDao.get(),
+        agentRuntimesDao.findMany(),
+      ]);
+      const runtime = resolveAttachmentRuntime({
+        requestedRuntimeId: input.runtimeId,
+        runtimes,
+        defaultRuntime: settings.defaultAgentRuntime ?? null,
+      });
+
+      return createImageSummaryArtifact({
+        bytes: input.bytes,
+        filename: input.filename,
+        mimeType: input.mimeType,
+        runtime,
+        apiKey: settings.defaultApiKey,
+        model: settings.defaultModel,
+      });
     }
 
     if (textExtensions.has(extension) || input.mimeType.startsWith("text/")) {
@@ -514,6 +579,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         filename: string;
         mimeType: string;
         sizeBytes: number;
+        runtimeId?: string;
       },
     ) => {
       const attachmentId = crypto.randomUUID();
@@ -521,6 +587,26 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       await mkdir(storageDir, { recursive: true });
       const storageKey = join(storageDir, `${attachmentId}-${input.filename}`);
       await writeFile(storageKey, input.bytes);
+
+      const artifactShapeResult = await ResultAsync.fromPromise(
+        getAttachmentKindAndContent(input),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      );
+      if (artifactShapeResult.isErr()) {
+        const attachment = await attachmentsDao.create({
+          id: attachmentId,
+          sessionId,
+          filename: input.filename,
+          mimeType: input.mimeType,
+          sizeBytes: input.sizeBytes,
+          sourceType: "upload",
+          storageKey,
+          parseStatus: "failed",
+          parseError: artifactShapeResult.error.message,
+        });
+
+        return { attachment, artifacts: [] };
+      }
 
       const attachment = await attachmentsDao.create({
         id: attachmentId,
@@ -534,7 +620,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         parseError: null,
       });
 
-      const artifactShape = await getAttachmentKindAndContent(input);
+      const artifactShape = artifactShapeResult.value;
       const artifact = await contextArtifactsDao.create({
         id: crypto.randomUUID(),
         sessionId,
@@ -626,6 +712,23 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         status: "approved",
         approvedProposalId: proposalId,
       });
+    },
+
+    supersedeProposal: async (sessionId: string, proposalId: string) => {
+      const proposal = await proposalsDao.findById(proposalId);
+      if (!proposal || proposal.sessionId !== sessionId) {
+        throw new Error(`Pipeline agent proposal not found for session ${sessionId}`);
+      }
+
+      await proposalsDao.update(proposalId, { status: "superseded" });
+
+      const session = await sessionsDao.findById(sessionId);
+      if (session?.latestProposalId === proposalId) {
+        await sessionsDao.update(sessionId, {
+          latestProposalId: null,
+          status: "awaiting_user",
+        });
+      }
     },
 
     getSessionById: async (sessionId: string) => {
@@ -829,23 +932,16 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       }
       const generateProposal = proposalRecord.proposal;
 
-      const [messages, artifacts, settings, runtimes, operations] = await Promise.all([
+      const [messages, artifacts, settings, runtimes] = await Promise.all([
         messagesDao.findManyBySessionId(sessionId),
         contextArtifactsDao.findManyBySessionId(sessionId),
         settingsDao.get(),
         agentRuntimesDao.findMany(),
-        operationsDao.findMany(),
       ]);
       const effectiveRuntime = resolveEffectiveRuntime({
         runtimes,
         defaultRuntime: settings.defaultAgentRuntime ?? null,
       });
-      const operationById = new Map(
-        operations.map((operation) => [operation.id, { name: operation.name }]),
-      );
-      const operationByName = new Map(
-        operations.map((operation) => [operation.name, { id: operation.id, name: operation.name }]),
-      );
       const pipelineName = generateProposal.purpose;
       const pipelineDescription = [
         buildGenerationDescription(generateProposal),
@@ -874,20 +970,10 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             unmatchedSteps: analysis.unmatchedSteps,
             runtimeType: effectiveRuntime,
           });
-          const graph =
-            "error" in generated
-              ? buildFallbackGeneratedGraph({
-                  matchedOperations: analysis.matchedOperations,
-                  operationById,
-                  operationByName,
-                  proposal: generateProposal,
-                })
-              : generated;
-          if (
-            !("error" in generated) &&
-            generated.pendingOperations &&
-            generated.pendingOperations.length > 0
-          ) {
+          if ("error" in generated) {
+            throw new Error(generated.error);
+          }
+          if (generated.pendingOperations && generated.pendingOperations.length > 0) {
             await pipelinesService.createPendingOperations(generated.pendingOperations);
           }
 
@@ -897,8 +983,8 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             description: pipelineDescription,
             tags: ["agent-generated"],
             timeoutMs: null,
-            nodes: graph.nodes,
-            edges: graph.edges,
+            nodes: generated.nodes,
+            edges: generated.edges,
           });
         })(),
         (error) => (error instanceof Error ? error : new Error(String(error))),

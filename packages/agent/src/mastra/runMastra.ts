@@ -7,10 +7,18 @@ import { ResultAsync } from "neverthrow";
 
 import { getEnv } from "../integrations/env";
 
+export interface AgentInputAttachment {
+  kind: "image";
+  filename: string;
+  mediaType: string;
+  dataBase64: string;
+}
+
 export interface RunMastraOptions {
   systemPrompt: string;
   userPrompt: string;
   cwd: string;
+  attachments?: AgentInputAttachment[];
   model?: string;
   apiKey?: string;
   timeoutMs?: number;
@@ -32,6 +40,7 @@ export const runMastra = async ({
   systemPrompt,
   userPrompt,
   cwd,
+  attachments,
   model,
   apiKey,
   timeoutMs = 10 * 60 * 1000,
@@ -77,9 +86,25 @@ export const runMastra = async ({
   const tracedAgent = mastra.getAgent("ordine-mastra-agent");
 
   const startTime = Date.now();
+  const promptInput =
+    attachments && attachments.length > 0
+      ? [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: userPrompt },
+              ...attachments.map((attachment) => ({
+                type: "image",
+                mediaType: attachment.mediaType,
+                image: `data:${attachment.mediaType};base64,${attachment.dataBase64}`,
+              })),
+            ],
+          },
+        ]
+      : userPrompt;
 
   const result = await Promise.race([
-    tracedAgent.generate(userPrompt),
+    tracedAgent.generate(promptInput),
     new Promise<never>((_, reject) => {
       setTimeout(() => {
         reject(new Error(`mastra timed out after ${timeoutMs / 1000}s`));

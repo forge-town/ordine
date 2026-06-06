@@ -46,7 +46,7 @@ vi.mock("@repo/logger", () => ({
 }));
 
 import { agentEngine } from "./agentEngine";
-import { runHermes } from "@repo/agent";
+import { runHermes, runMastra } from "@repo/agent";
 import { recordAgentRunWithSpans } from "@repo/obs";
 
 describe("agentEngine", () => {
@@ -103,6 +103,55 @@ describe("agentEngine", () => {
         userPrompt: "Hello",
       }),
     );
+  });
+
+  it("forwards image attachments to the selected runtime", async () => {
+    await agentEngine.run({
+      agent: "mastra",
+      mode: "direct",
+      systemPrompt: "system",
+      userPrompt: "describe the screenshot",
+      cwd: "/tmp/test",
+      attachments: [
+        {
+          kind: "image",
+          filename: "ui.png",
+          mediaType: "image/png",
+          dataBase64: "ZmFrZQ==",
+        },
+      ],
+    });
+
+    expect(runMastra).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachments: [
+          expect.objectContaining({
+            kind: "image",
+            filename: "ui.png",
+          }),
+        ],
+      }),
+    );
+  });
+
+  it("rejects image attachments for runtimes without vision support", async () => {
+    await expect(
+      agentEngine.run({
+        agent: "codex",
+        mode: "direct",
+        systemPrompt: "system",
+        userPrompt: "describe the screenshot",
+        cwd: "/tmp/test",
+        attachments: [
+          {
+            kind: "image",
+            filename: "ui.png",
+            mediaType: "image/png",
+            dataBase64: "ZmFrZQ==",
+          },
+        ],
+      }),
+    ).rejects.toThrow("does not support image attachments");
   });
 
   it("throws for unsupported agent backend", async () => {

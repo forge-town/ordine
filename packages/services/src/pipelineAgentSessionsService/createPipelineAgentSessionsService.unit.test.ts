@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import JSZip from "jszip";
 
@@ -97,6 +98,12 @@ describe("createPipelineAgentSessionsService", () => {
       id: data.id ?? "message-1",
       ...data,
       createdAt: new Date("2026-06-03T12:00:01.000Z"),
+    }));
+    mockAttachmentsDao.create.mockImplementation(async (data) => ({
+      id: data.id ?? "attachment-1",
+      ...data,
+      createdAt: new Date("2026-06-03T12:00:01.250Z"),
+      updatedAt: new Date("2026-06-03T12:00:01.250Z"),
     }));
     mockContextArtifactsDao.create.mockImplementation(async (data) => ({
       id: data.id ?? "artifact-1",
@@ -671,7 +678,7 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
-  it("falls back to a deterministic generated graph when generateStructure fails", async () => {
+  it("does not create a fallback pipeline when generateStructure fails", async () => {
     mockSessionsDao.findById.mockResolvedValueOnce({
       id: "session-1",
       entrypoint: "new-pipeline-dialog",
@@ -701,141 +708,30 @@ describe("createPipelineAgentSessionsService", () => {
     });
 
     const service = createPipelineAgentSessionsService({} as never);
-    const result = await service.generatePipelineFromApprovedProposal("session-1");
+    await expect(service.generatePipelineFromApprovedProposal("session-1")).rejects.toThrow(
+      "Agent returned invalid pipeline structure",
+    );
 
-    expect(result.pipeline.nodes.length).toBeGreaterThan(0);
-    expect(result.pipeline.edges.length).toBeGreaterThan(0);
-    expect(mockPipelinesService.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        nodes: expect.arrayContaining([
-          expect.objectContaining({ type: "folder" }),
-          expect.objectContaining({ type: "operation" }),
-          expect.objectContaining({
-            type: "output-local-path",
-            data: expect.objectContaining({
-              localPath: "/tmp/ordine-output",
-              outputFileName: "review-report.md",
-            }),
-          }),
-        ]),
-      }),
+    expect(mockPipelinesService.create).not.toHaveBeenCalled();
+    expect(mockSessionsDao.update).toHaveBeenCalledWith(
+      "session-1",
+      expect.objectContaining({ status: "proposal_ready" }),
     );
   });
 
-  it("recovers fallback operation nodes from approved proposal majorOperations when analyzeIntent finds none", async () => {
-    mockSessionsDao.findById.mockResolvedValueOnce({
-      id: "session-1",
-      entrypoint: "new-pipeline-dialog",
-      mode: "generate",
-      status: "approved",
-      pipelineId: null,
-      snapshot: null,
-      latestProposalId: "proposal-1",
-      approvedProposalId: "proposal-1",
-      createdPipelineId: null,
-      createdAt: new Date("2026-06-03T12:00:00.000Z"),
-      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
-    });
-    mockMessagesDao.findManyBySessionId.mockResolvedValueOnce([
-      {
-        id: "message-1",
-        sessionId: "session-1",
-        role: "user",
-        kind: "text",
-        content: "Build me a code review pipeline",
-        createdAt: new Date("2026-06-03T12:00:01.000Z"),
-      },
-    ]);
-    mockContextArtifactsDao.findManyBySessionId.mockResolvedValueOnce([]);
-    mockPipelinesService.analyzeIntent.mockResolvedValueOnce({
-      matchedOperations: [],
-      unmatchedSteps: [],
-    });
-    mockPipelinesService.generateStructure.mockResolvedValueOnce({
-      error: "Agent returned invalid pipeline structure",
-    });
-
+  it("marks a proposal superseded and clears it from the active session", async () => {
     const service = createPipelineAgentSessionsService({} as never);
-    await service.generatePipelineFromApprovedProposal("session-1");
+    await service.supersedeProposal("session-1", "proposal-1");
 
-    expect(mockPipelinesService.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        edges: expect.arrayContaining([
-          expect.objectContaining({
-            source: "generated-folder-input",
-            target: "generated-operation-1",
-          }),
-        ]),
-      }),
+    expect(mockProposalsDao.update).toHaveBeenCalledWith(
+      "proposal-1",
+      expect.objectContaining({ status: "superseded" }),
     );
-  });
-
-  it("recovers fallback operation ids from majorOperations strings that embed ids in parentheses", async () => {
-    mockSessionsDao.findById.mockResolvedValueOnce({
-      id: "session-1",
-      entrypoint: "new-pipeline-dialog",
-      mode: "generate",
-      status: "approved",
-      pipelineId: null,
-      snapshot: null,
-      latestProposalId: "proposal-1",
-      approvedProposalId: "proposal-1",
-      createdPipelineId: null,
-      createdAt: new Date("2026-06-03T12:00:00.000Z"),
-      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
-    });
-    mockMessagesDao.findManyBySessionId.mockResolvedValueOnce([
-      {
-        id: "message-1",
-        sessionId: "session-1",
-        role: "user",
-        kind: "text",
-        content: "Build me a code review pipeline",
-        createdAt: new Date("2026-06-03T12:00:01.000Z"),
-      },
-    ]);
-    mockContextArtifactsDao.findManyBySessionId.mockResolvedValueOnce([]);
-    mockPipelinesService.analyzeIntent.mockResolvedValueOnce({
-      matchedOperations: [],
-      unmatchedSteps: [],
-    });
-    mockPipelinesService.generateStructure.mockResolvedValueOnce({
-      error: "Agent returned invalid pipeline structure",
-    });
-    mockProposalsDao.findById.mockResolvedValueOnce({
-      id: "proposal-1",
-      sessionId: "session-1",
-      mode: "generate",
-      status: "proposal_ready",
-      proposal: {
-        mode: "generate",
-        purpose: "Review repository code",
-        inputs: ["folder"],
-        outputs: ["markdown report"],
-        majorOperations: ["Known Operation (op-known)"],
-        executionFlow: ["folder -> review-code -> output"],
-        assumptions: [],
-        openQuestions: [],
-        readiness: "ready_for_generation",
-      },
-      createdAt: new Date("2026-06-03T12:00:02.000Z"),
-      updatedAt: new Date("2026-06-03T12:00:02.000Z"),
-      approvedAt: null,
-    });
-
-    const service = createPipelineAgentSessionsService({} as never);
-    await service.generatePipelineFromApprovedProposal("session-1");
-
-    expect(mockPipelinesService.create).toHaveBeenCalledWith(
+    expect(mockSessionsDao.update).toHaveBeenCalledWith(
+      "session-1",
       expect.objectContaining({
-        nodes: expect.arrayContaining([
-          expect.objectContaining({
-            data: expect.objectContaining({
-              operationId: "op-known",
-              operationName: "Known Operation",
-            }),
-          }),
-        ]),
+        latestProposalId: null,
+        status: "awaiting_user",
       }),
     );
   });
@@ -886,15 +782,15 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
-  it("extracts basic text content from simple pdf attachments", async () => {
-    const pdfText = `%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\nBT /F1 12 Tf 72 720 Td (Hello PDF) Tj ET\n%%EOF`;
+  it("extracts text from a real pdf fixture instead of regex-only inline text", async () => {
+    const pdfBytes = await readFile(new URL("fixtures/simple.pdf", import.meta.url));
     const service = createPipelineAgentSessionsService({} as never);
 
     const result = await service.ingestAttachment("session-1", {
-      bytes: new TextEncoder().encode(pdfText),
-      filename: "brief.pdf",
+      bytes: new Uint8Array(pdfBytes),
+      filename: "simple.pdf",
       mimeType: "application/pdf",
-      sizeBytes: pdfText.length,
+      sizeBytes: pdfBytes.byteLength,
     });
 
     expect(result.artifacts[0]).toEqual(
@@ -905,5 +801,84 @@ describe("createPipelineAgentSessionsService", () => {
         }),
       }),
     );
+  });
+
+  it("uses an agent image attachment to create image summary artifacts", async () => {
+    mockSettingsDao.get.mockResolvedValueOnce({
+      defaultAgentRuntime: "mastra",
+      defaultApiKey: "test-key",
+      defaultModel: "vision-model",
+    });
+    mockAgentRuntimesDao.findMany.mockResolvedValueOnce([
+      {
+        id: "runtime-mastra",
+        name: "Mastra",
+        type: "mastra",
+        connection: { mode: "api-key" },
+      },
+    ]);
+    mockRunAgent.mockResolvedValueOnce("Visible: task cards and arrows");
+    const service = createPipelineAgentSessionsService({} as never);
+
+    const result = await service.ingestAttachment("session-1", {
+      bytes: new Uint8Array([1, 2, 3]),
+      filename: "diagram.png",
+      mimeType: "image/png",
+      sizeBytes: 3,
+    });
+
+    expect(mockRunAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "mastra",
+        apiKey: "test-key",
+        model: "vision-model",
+        attachments: [
+          expect.objectContaining({
+            kind: "image",
+            filename: "diagram.png",
+            mediaType: "image/png",
+            dataBase64: "AQID",
+          }),
+        ],
+      }),
+    );
+    expect(result.attachment).toEqual(
+      expect.objectContaining({
+        parseStatus: "parsed",
+        parseError: null,
+      }),
+    );
+    expect(result.artifacts[0]).toEqual(
+      expect.objectContaining({
+        kind: "image_summary",
+        content: expect.objectContaining({
+          summary: "Visible: task cards and arrows",
+          mediaType: "image/png",
+        }),
+      }),
+    );
+  });
+
+  it("stores a failed attachment when image runtime lacks vision support", async () => {
+    mockRunAgent.mockRejectedValueOnce(
+      new Error("codex runtime does not support image attachments"),
+    );
+    const service = createPipelineAgentSessionsService({} as never);
+
+    const result = await service.ingestAttachment("session-1", {
+      bytes: new Uint8Array([1, 2, 3]),
+      filename: "diagram.png",
+      mimeType: "image/png",
+      sizeBytes: 3,
+    });
+
+    expect(result.attachment).toEqual(
+      expect.objectContaining({
+        filename: "diagram.png",
+        parseStatus: "failed",
+        parseError: expect.stringContaining("does not support image attachments"),
+      }),
+    );
+    expect(result.artifacts).toEqual([]);
   });
 });

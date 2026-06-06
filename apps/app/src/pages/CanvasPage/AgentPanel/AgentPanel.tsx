@@ -212,6 +212,32 @@ export const AgentPanel = () => {
     return session.id;
   }, [edges, nodes, pipelineId]);
 
+  useEffect(() => {
+    const nextSignature = JSON.stringify({
+      pipelineId,
+      nodes,
+      edges,
+    });
+    if (
+      sessionGraphSignatureRef.current &&
+      sessionGraphSignatureRef.current !== nextSignature &&
+      attachments.length > 0
+    ) {
+      setAttachments([]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `system-context-reset-${Date.now()}`,
+          role: "assistant",
+          content: t("canvas.agentPanel.contextReset"),
+        },
+      ]);
+      sessionIdRef.current = null;
+      sessionGraphSignatureRef.current = null;
+      proposalIdRef.current = null;
+    }
+  }, [attachments.length, edges, nodes, pipelineId, t]);
+
   const handlePlanEvent = useCallback(
     (event: PipelineAgentPlanEvent) => {
       if (event.type === "phase") {
@@ -492,7 +518,11 @@ export const AgentPanel = () => {
 
       const sessionId = await ensureSession();
       const uploadResult = await ResultAsync.fromPromise(
-        pipelineAgentSessionsClient.uploadAttachment(sessionId, file),
+        pipelineAgentSessionsClient.uploadAttachment(
+          sessionId,
+          file,
+          selectedRuntimeId ? { runtimeId: selectedRuntimeId } : undefined,
+        ),
         (error) => (error instanceof Error ? error : new Error(String(error))),
       );
       if (uploadResult.isErr()) {
@@ -517,7 +547,7 @@ export const AgentPanel = () => {
         ]);
       }
     },
-    [ensureSession, t],
+    [ensureSession, selectedRuntimeId, t],
   );
 
   const hasBlockingDiagnostics =
@@ -573,18 +603,44 @@ export const AgentPanel = () => {
   }, [activeProposal, applyAgentProposal, hasBlockingDiagnostics, scrollToBottom, t]);
 
   const handleDiscard = useCallback(() => {
-    clearPendingProposal();
-    setLocalProposalPreview(null);
-    proposalIdRef.current = null;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `system-${Date.now()}`,
-        role: "assistant",
-        content: t("canvas.agentPanel.discarded"),
-      },
-    ]);
-    scrollToBottom();
+    const run = async () => {
+      const sessionId = sessionIdRef.current;
+      const proposalId = proposalIdRef.current;
+      const supersedeResult = await ResultAsync.fromPromise(
+        sessionId && proposalId
+          ? pipelineAgentSessionsClient.supersedeProposal(sessionId, proposalId)
+          : Promise.resolve(),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      );
+      if (supersedeResult.isErr()) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `assistant-error-${Date.now()}`,
+            role: "assistant",
+            content: supersedeResult.error.message,
+          },
+        ]);
+        scrollToBottom();
+
+        return;
+      }
+
+      clearPendingProposal();
+      setLocalProposalPreview(null);
+      proposalIdRef.current = null;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `system-${Date.now()}`,
+          role: "assistant",
+          content: t("canvas.agentPanel.discarded"),
+        },
+      ]);
+      scrollToBottom();
+    };
+
+    void run();
   }, [clearPendingProposal, scrollToBottom, t]);
 
   const proposal = activeProposal;

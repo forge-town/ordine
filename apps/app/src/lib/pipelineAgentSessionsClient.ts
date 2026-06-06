@@ -73,7 +73,9 @@ const readResponseJson = async <T>(response: Response): Promise<T> => {
         ? parsed.error
         : body || `Request failed with status ${response.status}`;
 
-    throw new Error(message);
+    const error = new Error(message) as Error & { status: number };
+    error.status = response.status;
+    throw error;
   }
 
   return JSON.parse(body) as T;
@@ -169,9 +171,13 @@ export const pipelineAgentSessionsClient = {
   async uploadAttachment(
     sessionId: string,
     file: File,
+    input?: { runtimeId?: string | null },
   ): Promise<PipelineAgentAttachmentUploadResult> {
     const formData = new FormData();
     formData.append("file", file);
+    if (input?.runtimeId) {
+      formData.append("runtimeId", input.runtimeId);
+    }
 
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/attachments`, {
       method: "POST",
@@ -226,6 +232,17 @@ export const pipelineAgentSessionsClient = {
 
   async approveProposal(sessionId: string, proposalId: string) {
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/approve`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ proposalId }),
+    });
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+  },
+
+  async supersedeProposal(sessionId: string, proposalId: string) {
+    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/supersede`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ proposalId }),

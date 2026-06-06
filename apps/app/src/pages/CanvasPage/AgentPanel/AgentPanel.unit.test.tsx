@@ -3,7 +3,13 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AgentPanel } from "./AgentPanel";
-import { CanvasPageStoreProvider, useCanvasPageStore } from "../_store";
+import {
+  CanvasPageStoreContext,
+  CanvasPageStoreProvider,
+  createCanvasPageStore,
+  useCanvasPageStore,
+  type CanvasPageStore,
+} from "../_store";
 import { useRef, type ReactNode } from "react";
 import type { PipelineActionProposal, PipelineActionDiagnostic } from "@repo/schemas";
 import { ok } from "neverthrow";
@@ -27,6 +33,7 @@ const mockPlanSessionStream = vi.fn();
 const mockGetLatestReadyProposal = vi.fn();
 const mockGetLatestAssistantQuestion = vi.fn();
 const mockApproveProposal = vi.fn();
+const mockSupersedeProposal = vi.fn();
 
 vi.mock("@repo/pipeline-engine/actions", () => ({
   applyPipelineActions: (...args: unknown[]) => mockApplyPipelineActions(...args),
@@ -51,6 +58,7 @@ vi.mock("@/lib/pipelineAgentSessionsClient", () => ({
     getLatestAssistantQuestion: (...args: unknown[]) => mockGetLatestAssistantQuestion(...args),
     getLatestReadyProposal: (...args: unknown[]) => mockGetLatestReadyProposal(...args),
     planSessionStream: (...args: unknown[]) => mockPlanSessionStream(...args),
+    supersedeProposal: (...args: unknown[]) => mockSupersedeProposal(...args),
     uploadAttachment: (...args: unknown[]) => mockUploadAttachment(...args),
   },
 }));
@@ -148,6 +156,23 @@ const wrapperWithState = (
   return Wrapper;
 };
 
+const wrapperWithMutableStore = () => {
+  const store = createCanvasPageStore([], [], "pipe-1", "Test Pipeline");
+  store.setState({
+    agentPanel: {
+      isOpen: true,
+      pendingProposal: null,
+      diagnostics: null,
+      isLoading: false,
+    },
+  });
+  const Wrapper = ({ children }: { children?: ReactNode }) => (
+    <CanvasPageStoreContext.Provider value={store}>{children}</CanvasPageStoreContext.Provider>
+  );
+
+  return { store: store as CanvasPageStore, Wrapper };
+};
+
 describe("AgentPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -190,6 +215,7 @@ describe("AgentPanel", () => {
       },
     });
     mockApproveProposal.mockResolvedValue(undefined);
+    mockSupersedeProposal.mockResolvedValue(undefined);
     mockGetLatestAssistantQuestion.mockResolvedValue(null);
     mockGetLatestReadyProposal.mockResolvedValue(null);
     mockApplyPipelineActions.mockReturnValue(ok({ nodes: [], edges: [] }));
@@ -237,6 +263,9 @@ describe("AgentPanel", () => {
 
   it("uploads a file into the edit session context", async () => {
     render(<AgentPanel />, { wrapper: wrapperWithState() });
+    await waitFor(() => {
+      expect(mockGetList).toHaveBeenCalled();
+    });
 
     const file = new File(["hello"], "brief.txt", { type: "text/plain" });
     const input = screen.getByLabelText("canvas.agentPanel.upload") as HTMLInputElement;
@@ -245,9 +274,42 @@ describe("AgentPanel", () => {
     await waitFor(() => {
       expect(mockCreateSession).toHaveBeenCalled();
     });
-    expect(mockUploadAttachment).toHaveBeenCalledWith("session-1", file);
+    expect(mockUploadAttachment).toHaveBeenCalledWith("session-1", file, {
+      runtimeId: "runtime-codex",
+    });
     await waitFor(() => {
       expect(screen.getByText("brief.txt")).toBeInTheDocument();
+    });
+  });
+
+  it("clears uploaded attachments when graph signature changes", async () => {
+    const { store, Wrapper } = wrapperWithMutableStore();
+    render(<AgentPanel />, { wrapper: Wrapper });
+
+    const file = new File(["hello"], "brief.txt", { type: "text/plain" });
+    await userEvent.upload(screen.getByLabelText("canvas.agentPanel.upload"), file);
+    await waitFor(() => {
+      expect(screen.getByText("brief.txt")).toBeInTheDocument();
+    });
+
+    store.setState({
+      nodes: [
+        {
+          id: "node-1",
+          type: "folder",
+          position: { x: 0, y: 0 },
+          data: {
+            nodeType: "folder",
+            label: "Folder",
+            folderPath: "/tmp/project",
+          },
+        },
+      ] as never,
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText("brief.txt")).not.toBeInTheDocument();
+      expect(screen.getByText("canvas.agentPanel.contextReset")).toBeInTheDocument();
     });
   });
 
@@ -347,6 +409,53 @@ describe("AgentPanel", () => {
         excludeProposalId: null,
       });
       expect(screen.getAllByText("Fallback edit proposal ready").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("supersedes an edit proposal when discarding it", async () => {
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({
+        type: "proposal_ready",
+        proposalId: "proposal-1",
+        proposal: {
+          mode: "edit",
+          summary: "Discard this edit proposal",
+          targetGraphIntent: "Keep graph unchanged",
+          majorChanges: ["No-op"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+          diagnosticsPreview: [],
+          actions: [
+            {
+              type: "removeNode",
+              nodeId: "node-1",
+            },
+          ],
+        },
+      });
+    });
+
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+    await waitFor(() => {
+      expect(mockGetList).toHaveBeenCalled();
+    });
+    await userEvent.type(
+      screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder"),
+      "Suggest an edit",
+    );
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => {
+      expect(screen.getByText("canvas.agentPanel.discard")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("canvas.agentPanel.discard"));
+
+    await waitFor(() => {
+      expect(mockSupersedeProposal).toHaveBeenCalledWith("session-1", "proposal-1");
+    });
+    await waitFor(() => {
+      expect(screen.queryByText("canvas.agentPanel.discard")).not.toBeInTheDocument();
     });
   });
 

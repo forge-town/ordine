@@ -82,11 +82,15 @@ pipelineAgentSessionsRoutes.post("/:id/attachments", async (c) => {
   }
 
   const bytes = new Uint8Array(await file.arrayBuffer());
+  const runtimeId = formData?.get("runtimeId");
   const result = await pipelineAgentSessionsService.ingestAttachment(c.req.param("id"), {
     bytes,
     filename: file.name,
     mimeType: file.type || "application/octet-stream",
     sizeBytes: file.size,
+    ...(typeof runtimeId === "string" && runtimeId.trim().length > 0
+      ? { runtimeId: runtimeId.trim() }
+      : {}),
   });
 
   return c.json(result, 201);
@@ -152,6 +156,18 @@ pipelineAgentSessionsRoutes.post("/:id/approve", async (c) => {
   }
 
   await pipelineAgentSessionsService.approveProposal(c.req.param("id"), parsed.data.proposalId);
+
+  return c.body(null, 204);
+});
+
+pipelineAgentSessionsRoutes.post("/:id/supersede", async (c) => {
+  const body = await c.req.json().catch(() => undefined);
+  const parsed = approveProposalBodySchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json({ error: "Invalid request body" }, 400);
+  }
+
+  await pipelineAgentSessionsService.supersedeProposal(c.req.param("id"), parsed.data.proposalId);
 
   return c.body(null, 204);
 });

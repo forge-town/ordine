@@ -5,6 +5,7 @@ import {
   runMastra,
   runOpenclaw,
   type ClaudeStreamEvent,
+  type AgentInputAttachment as RuntimeAgentInputAttachment,
   type ToolName,
   type SshConnectionOptions,
 } from "@repo/agent";
@@ -18,12 +19,15 @@ export interface AgentRunResult {
   events: ClaudeStreamEvent[];
 }
 
+export type AgentInputAttachment = RuntimeAgentInputAttachment;
+
 export interface AgentRunOptions {
   agent: AgentRuntime;
   mode: "direct";
   systemPrompt: string;
   userPrompt: string;
   cwd: string;
+  attachments?: AgentInputAttachment[];
   allowedTools?: readonly string[];
   onProgress?: (msg: string) => Promise<void> | void;
   jobId?: string;
@@ -79,6 +83,7 @@ const runMastraDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> =
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
+    attachments: opts.attachments,
     apiKey: opts.apiKey,
     model: opts.model,
     onProgress: toAsyncProgress(opts.onProgress),
@@ -122,6 +127,15 @@ const DRIVERS: Record<AgentRuntime, DriverFn> = {
   hermes: runHermesDirect,
   mastra: runMastraDirect,
   openclaw: runOpenclawDirect,
+};
+
+const supportsImageAttachments = (agent: AgentRuntime) => agent === "mastra";
+
+const rejectUnsupportedAttachments = (opts: AgentRunOptions) => {
+  const hasImageAttachments = opts.attachments?.some((attachment) => attachment.kind === "image");
+  if (hasImageAttachments && !supportsImageAttachments(opts.agent)) {
+    throw new Error(`${opts.agent} runtime does not support image attachments`);
+  }
 };
 
 const extractTokenTotals = (events: ClaudeStreamEvent[]): { input: number; output: number } => {
@@ -345,6 +359,7 @@ const run = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
   if (!driver) {
     throw new Error(`Unsupported agent backend: "${opts.agent}"`);
   }
+  rejectUnsupportedAttachments(opts);
 
   const startTime = Date.now();
   const result = await driver(opts);

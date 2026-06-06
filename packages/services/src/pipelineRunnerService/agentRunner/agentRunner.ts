@@ -1,5 +1,5 @@
 import { ResultAsync } from "neverthrow";
-import { agentEngine } from "@repo/agent-engine";
+import { agentEngine, type AgentInputAttachment } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
 import type { AgentRuntime, SshConnection } from "@repo/schemas";
 import { resolveCwd } from "../resolveCwd";
@@ -14,6 +14,7 @@ export interface AgentRunnerOptions {
   allowedTools?: readonly string[];
   onProgress?: (line: string) => Promise<void> | void;
   logPrefix: string;
+  attachments?: AgentInputAttachment[];
   apiKey?: string;
   model?: string;
   githubToken?: string;
@@ -31,6 +32,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
     allowedTools,
     onProgress,
     logPrefix,
+    attachments,
     apiKey,
     model,
     githubToken,
@@ -53,6 +55,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
       systemPrompt,
       userPrompt,
       cwd,
+      attachments,
       allowedTools: allowedTools ?? [],
       onProgress,
       jobId,

@@ -241,29 +241,30 @@ export const NewPipelineDialog = () => {
       (async () => {
         const sessionId = sessionIdRef.current!;
         await pipelineAgentSessionsClient.approveProposal(sessionId, proposalId);
-        const abortController = new AbortController();
-
-        return Promise.any([
+        const generated = await ResultAsync.fromPromise(
           pipelineAgentSessionsClient.generatePipelineFromApprovedProposal(sessionId),
+          (error) => (error instanceof Error ? error : new Error(String(error))),
+        );
+        if (generated.isOk()) {
+          return generated.value;
+        }
+        if (typeof (generated.error as Error & { status?: number }).status === "number") {
+          throw generated.error;
+        }
+
+        const abortController = new AbortController();
+        const polled = await ResultAsync.fromPromise(
           pipelineAgentSessionsClient.waitForCreatedPipeline(sessionId, {
             signal: abortController.signal,
           }),
-        ]).then(
-          (result) => {
-            abortController.abort();
-
-            return result;
-          },
-          (error) => {
-            abortController.abort();
-            if (!(error instanceof AggregateError)) {
-              throw error;
-            }
-
-            const firstError = error.errors[0];
-            throw firstError instanceof Error ? firstError : new Error(String(firstError));
-          },
+          (error) => (error instanceof Error ? error : new Error(String(error))),
         );
+        abortController.abort();
+        if (polled.isOk()) {
+          return polled.value;
+        }
+
+        throw generated.error;
       })(),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
@@ -278,13 +279,43 @@ export const NewPipelineDialog = () => {
     setPhase("success");
   };
 
-  const handleRevise = () => {
+  const supersedeActiveProposal = async () => {
+    if (!sessionIdRef.current || !proposalId) {
+      return true;
+    }
+
+    const supersedeResult = await ResultAsync.fromPromise(
+      pipelineAgentSessionsClient.supersedeProposal(sessionIdRef.current, proposalId),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
+    );
+    if (supersedeResult.isErr()) {
+      setErrorMessage(supersedeResult.error.message);
+
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleRevise = async () => {
+    setErrorMessage(null);
+    const superseded = await supersedeActiveProposal();
+    if (!superseded) {
+      return;
+    }
+
     setProposal(null);
     setProposalId(null);
     setPhase("conversation");
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
+    setErrorMessage(null);
+    const superseded = await supersedeActiveProposal();
+    if (!superseded) {
+      return;
+    }
+
     setProposal(null);
     setProposalId(null);
     setMessages((prev) => [

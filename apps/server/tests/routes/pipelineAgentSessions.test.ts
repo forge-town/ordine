@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   getSessionById: vi.fn(),
   ingestAttachment: vi.fn(),
   planSession: vi.fn(),
+  supersedeProposal: vi.fn(),
 }));
 
 vi.mock("../../src/services.js", () => ({
@@ -20,6 +21,7 @@ vi.mock("../../src/services.js", () => ({
     getSessionById: mocks.getSessionById,
     ingestAttachment: mocks.ingestAttachment,
     planSession: mocks.planSession,
+    supersedeProposal: mocks.supersedeProposal,
   },
 }));
 
@@ -160,6 +162,19 @@ describe("pipelineAgentSessionsRoutes", () => {
     expect(mocks.approveProposal).toHaveBeenCalledWith("session-1", "proposal-1");
   });
 
+  it("supersedes a proposal for a session", async () => {
+    mocks.supersedeProposal.mockResolvedValue(undefined);
+
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/supersede", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ proposalId: "proposal-1" }),
+    });
+
+    expect(response.status).toBe(204);
+    expect(mocks.supersedeProposal).toHaveBeenCalledWith("session-1", "proposal-1");
+  });
+
   it("accepts multipart file uploads for a session", async () => {
     mocks.ingestAttachment.mockResolvedValue({
       attachment: {
@@ -173,6 +188,7 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     const formData = new FormData();
     formData.append("file", new File(["hello world"], "brief.txt", { type: "text/plain" }));
+    formData.append("runtimeId", "runtime-mastra");
 
     const response = await makeApp().request("/pipeline-agent-sessions/session-1/attachments", {
       method: "POST",
@@ -193,6 +209,7 @@ describe("pipelineAgentSessionsRoutes", () => {
       expect.objectContaining({
         filename: "brief.txt",
         mimeType: "text/plain",
+        runtimeId: "runtime-mastra",
       }),
     );
   });
@@ -241,5 +258,20 @@ describe("pipelineAgentSessionsRoutes", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ pipelineId: "pipeline-1" });
     expect(mocks.generatePipelineFromApprovedProposal).toHaveBeenCalledWith("session-1");
+  });
+
+  it("returns an error when pipeline generation fails", async () => {
+    mocks.generatePipelineFromApprovedProposal.mockRejectedValue(
+      new Error("Agent returned invalid pipeline structure"),
+    );
+
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/generate", {
+      method: "POST",
+    });
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: "Agent returned invalid pipeline structure",
+    });
   });
 });

@@ -64,6 +64,7 @@ export interface ListDirTreeOptions {
 const DEFAULT_EXCLUDED = [".git", "node_modules", ".next", ".turbo", "dist", "build", ".cache"];
 // TODO: should confinable
 const DEFAULT_MAX_DEPTH = 4;
+const normalizeRelativePath = (value: string) => value.replaceAll("\\", "/");
 
 export const listDirTree = async (
   rootDir: string,
@@ -79,7 +80,7 @@ export const listDirTree = async (
     if (depth >= maxDepth) return `${prefix}...\n`;
     const entries = await readdir(dir, { withFileTypes: true });
     const filtered = entries.filter((e) => {
-      const rel = relative(rootDir, join(dir, e.name));
+      const rel = normalizeRelativePath(relative(rootDir, join(dir, e.name)));
 
       return !allExcluded.some((excluded) => rel === excluded || rel.startsWith(`${excluded}/`));
     });
@@ -170,8 +171,11 @@ export const readProjectFiles = async (
   const maxDepth = options?.maxDepth ?? 6;
   const allExcluded = [...ALWAYS_EXCLUDED, ...excludedPaths];
 
-  const isExcluded = (rel: string) =>
-    allExcluded.some((ex) => rel === ex || rel.startsWith(`${ex}/`));
+  const isExcluded = (rel: string) => {
+    const normalizedRel = normalizeRelativePath(rel);
+
+    return allExcluded.some((ex) => normalizedRel === ex || normalizedRel.startsWith(`${ex}/`));
+  };
 
   const isTextFile = (name: string) => {
     const ext = extname(name).toLowerCase();
