@@ -1,4 +1,5 @@
 export * from "./PipelineSchema";
+export * from "./PipelineStatusSchema";
 export * from "./PipelineGraphSnapshotSchema";
 export * from "./PipelineActionDiagnosticSchema";
 export * from "./PipelineActionSchema";

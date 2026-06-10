@@ -1,6 +1,9 @@
 export * from "./agent";
 export * from "./agent-runtime";
 export * from "./agent-trace";
+export * from "./annotation";
+export * from "./connector";
+export * from "./conversation";
 export * from "./distillation";
 export * from "./filesystem";
 export * from "./github-project";
@@ -11,6 +14,7 @@ export * from "./meta";
 export * from "./object";
 export * from "./operation";
 export * from "./refinement";
+export * from "./routine";
 export * from "./settings";
 export * from "./skill";
 export * from "./pipeline";
