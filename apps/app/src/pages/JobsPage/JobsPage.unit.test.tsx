@@ -3,22 +3,18 @@ import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { JobsPage } from "./JobsPage";
 
-vi.mock("@/routes/_layout/pipelines.jobs.index", () => ({
-  Route: { useLoaderData: () => [] },
-}));
-
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
   useNavigate: () => vi.fn(),
 }));
 
-vi.mock("@/services/jobsService", () => ({
-  deleteJob: vi.fn().mockResolvedValue(undefined),
+vi.mock("@refinedev/core", () => ({
+  useList: () => ({ result: { data: [] }, query: { isLoading: false } }),
+  useUpdate: () => ({ mutate: vi.fn() }),
 }));
 
 describe("JobsPage", () => {
-  it("renders Jobs 监控 header", () => {
+  it("renders Jobs header", () => {
     render(<JobsPage />);
-    expect(screen.getByText("Jobs 监控")).toBeInTheDocument();
+    expect(screen.getByText("Jobs")).toBeInTheDocument();
   });
 });

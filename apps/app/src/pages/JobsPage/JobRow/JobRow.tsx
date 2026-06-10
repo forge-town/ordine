@@ -1,134 +1,154 @@
-import {
-  CheckCircle2,
-  XCircle,
-  Clock,
-  Loader2,
-  Ban,
-  Trash2,
-  ChevronRight,
-  Layers,
-  FlaskConical,
-  RefreshCw,
-  Zap,
-} from "lucide-react";
+import { ChevronRight, FlaskConical, Layers, RefreshCw, Zap, type LucideIcon } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import { Button } from "@repo/ui/button";
-import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { useDelete } from "@refinedev/core";
 import type { Job, JobStatus, JobType } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
+import { Dot, Icon, StatusPill, Tag } from "@/components/primitives";
+import { StepBar, type StepBarStep } from "../StepBar";
 
-const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot: string }> = {
-  queued: { icon: Clock, cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400" },
-  running: {
-    icon: Loader2,
-    cls: "bg-blue-50 text-blue-700",
-    dot: "bg-blue-500",
-  },
-  done: {
-    icon: CheckCircle2,
-    cls: "bg-emerald-50 text-emerald-700",
-    dot: "bg-emerald-500",
-  },
-  failed: { icon: XCircle, cls: "bg-red-50 text-red-700", dot: "bg-red-500" },
-  cancelled: {
-    icon: Ban,
-    cls: "bg-amber-50 text-amber-600",
-    dot: "bg-amber-400",
-  },
-  expired: {
-    icon: Clock,
-    cls: "bg-slate-100 text-slate-700",
-    dot: "bg-slate-400",
-  },
-};
-
-const TYPE_ICON: Record<JobType, React.ElementType> = {
+const TYPE_ICON: Record<JobType, LucideIcon> = {
   pipeline_run: Layers,
   distillation_run: FlaskConical,
   refinement_run: RefreshCw,
   operation_run: Zap,
 };
 
-export type JobRowProps = {
-  job: Job;
+const TYPE_LABELS: Record<JobType, string> = {
+  pipeline_run: "Pipeline",
+  distillation_run: "Distillation",
+  refinement_run: "Refinement",
+  operation_run: "Operation",
 };
 
-export const JobRow = ({ job }: JobRowProps) => {
-  const { t } = useTranslation();
+const STATUS_TONE: Record<JobStatus, "muted" | "success" | "error" | "warning"> = {
+  queued: "muted",
+  running: "muted",
+  done: "success",
+  failed: "error",
+  cancelled: "warning",
+  expired: "warning",
+};
+
+const ROW_WASH: Record<JobStatus, string> = {
+  queued: "ring-border",
+  running: "ring-border",
+  done: "ring-border",
+  failed: "ring-destructive/25 bg-destructive/[0.03]",
+  cancelled: "ring-warning/30 bg-warning/[0.04]",
+  expired: "ring-warning/30 bg-warning/[0.04]",
+};
+
+const STATUS_LABEL: Record<JobStatus, string> = {
+  queued: "Queued",
+  running: "Running",
+  done: "Done",
+  failed: "Failed",
+  cancelled: "Cancelled",
+  expired: "Expired",
+};
+
+const formatDuration = (job: Job) => {
+  if (!job.startedAt) return "-";
+  const end = job.finishedAt ?? new Date();
+  const seconds = Math.max(0, Math.round((end.getTime() - job.startedAt.getTime()) / 1000));
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+
+  return `${minutes}m ${rest}s`;
+};
+
+const formatTokens = (value: number | null | undefined) => {
+  if (!value) return "0";
+  if (value >= 1000) return `${Math.round(value / 1000)}k`;
+
+  return String(value);
+};
+
+const formatCost = (value: Job["totalCost"]) => {
+  const parsed = typeof value === "number" ? value : Number(value ?? 0);
+
+  return `$${parsed.toFixed(2)}`;
+};
+
+export const getJobSteps = (job: Job): StepBarStep[] =>
+  Object.entries(job.nodeStatuses ?? {}).map(([id, status]) => ({ id, status }));
+
+export const getJobStepLabel = (job: Job) => {
+  const steps = getJobSteps(job);
+  if (steps.length === 0) return "No node telemetry yet";
+  const activeIndex = steps.findIndex((step) =>
+    ["queued", "running", "retrying", "waitingForUser", "failed"].includes(step.status),
+  );
+  const currentIndex = activeIndex >= 0 ? activeIndex : steps.length - 1;
+  const current = steps[currentIndex];
+
+  return `Step ${currentIndex + 1}/${steps.length} · ${current?.id ?? "node"} · ${
+    current?.status ?? "idle"
+  }`;
+};
+
+export type JobRowProps = {
+  job: Job;
+  pipelineName: string;
+  onOpen?: (jobId: string) => void;
+};
+
+export const JobRow = ({ job, onOpen, pipelineName }: JobRowProps) => {
   const navigate = useNavigate();
-  const { mutate: deleteJob } = useDelete();
-  const s = STATUS_META[job.status];
-  const StatusIcon = s.icon;
   const TypeIcon = TYPE_ICON[job.type] ?? Layers;
-  const TYPE_LABELS: Record<JobType, string> = {
-    pipeline_run: t("jobs.typePipeline"),
-    distillation_run: t("jobs.typeDistillation"),
-    refinement_run: t("jobs.typeRefinement"),
-    operation_run: t("jobs.typeOperation"),
-  };
-  const duration =
-    job.startedAt && job.finishedAt
-      ? ((new Date(job.finishedAt).getTime() - new Date(job.startedAt).getTime()) / 1000).toFixed(
-          1,
-        ) + "s"
-      : job.startedAt
-        ? t("jobs.inProgress")
-        : null;
+  const steps = getJobSteps(job);
 
   const handleClick = () => {
+    if (onOpen) {
+      onOpen(job.id);
+
+      return;
+    }
     void navigate({ to: "/pipelines/jobs/$jobId", params: { jobId: job.id } });
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    deleteJob({ resource: ResourceName.jobs, id: job.id });
-  };
-
   return (
-    <div
-      className="group flex cursor-pointer items-center gap-4 rounded-xl border border-border bg-card px-4 py-3 hover:border-primary/50 hover:shadow-sm transition-all"
+    <button
+      className={cn(
+        "grid w-full grid-cols-[minmax(170px,210px)_minmax(220px,1fr)_120px_86px_118px_92px_24px] items-center gap-3 rounded-xl bg-surface px-3.5 py-3 text-left ring-1 shadow-soft transition-all hover:shadow-float focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        ROW_WASH[job.status],
+      )}
+      type="button"
       onClick={handleClick}
     >
-      <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", s.cls)}>
-        <StatusIcon className={cn("h-4 w-4", job.status === "running" && "animate-spin")} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-semibold text-foreground">{job.title}</p>
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
-            <TypeIcon className="h-2.5 w-2.5" />
-            {TYPE_LABELS[job.type]}
-          </span>
-        </div>
-        <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
-          <span className="font-mono">{job.id}</span>
-          {duration && <span>{duration}</span>}
-          <span>
-            {job.meta?.createdAt?.toLocaleString(undefined, {
-              month: "numeric",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            }) ?? "-"}
-          </span>
+      <div className="flex min-w-0 items-center gap-2.5">
+        <Dot ping={job.status === "running"} tone={STATUS_TONE[job.status]} />
+        <div className="min-w-0">
+          <div className="truncate text-[12.5px] font-semibold tracking-tightish">
+            {pipelineName}
+          </div>
+          <div className="truncate font-mono text-[10.5px] text-muted-foreground">{job.id}</div>
         </div>
       </div>
-      <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium", s.cls)}>
-        {t(`jobs.${job.status}`)}
-      </span>
-      <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button
-          className="h-7 w-7 hover:bg-destructive/10"
-          size="icon"
-          variant="ghost"
-          onClick={handleDelete}
-        >
-          <Trash2 className="h-3.5 w-3.5 text-red-400" />
-        </Button>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+
+      <div className="min-w-0">
+        <StepBar steps={steps} />
+        <div className="mt-1.5 truncate text-[11px] text-muted-foreground">
+          {getJobStepLabel(job)}
+        </div>
       </div>
-    </div>
+
+      <Tag className="inline-flex items-center gap-1">
+        <Icon icon={TypeIcon} size={10} />
+        {TYPE_LABELS[job.type]}
+      </Tag>
+
+      <div className="text-[11.5px] tabular-nums text-muted-foreground">{formatDuration(job)}</div>
+      <div className="text-[11.5px] tabular-nums text-muted-foreground">
+        {formatCost(job.totalCost)} · {formatTokens(job.totalTokens)}
+      </div>
+
+      <StatusPill
+        label={STATUS_LABEL[job.status]}
+        status={job.status === "expired" ? "cancelled" : job.status}
+      />
+
+      <ChevronRight className="h-4 w-4 justify-self-end text-muted-foreground" />
+    </button>
   );
 };
