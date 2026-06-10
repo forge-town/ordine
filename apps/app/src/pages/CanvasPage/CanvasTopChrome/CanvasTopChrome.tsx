@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { ChevronRight, Play } from "lucide-react";
+import { ChevronRight, Loader2, Play } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useCanvasPageStore } from "../_store";
@@ -13,10 +13,12 @@ export const CanvasTopChrome = () => {
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const phase = useStore(store, (state) => state.phase);
   const isRunning = useStore(store, (state) => state.isRunning);
+  const isTestRunning = useStore(store, (state) => state.isTestRunning);
   const handlePipelineNameChange = useStore(store, (state) => state.handlePipelineNameChange);
   const handleRunTest = useStore(store, (state) => state.handleRunTest);
   const { breadcrumbs, exitToDepth } = useDrillStack();
-  const canRun = !!pipelineId && !isRunning && (phase === "applied" || phase === "done");
+  const isRunActive = isRunning || isTestRunning || phase === "running";
+  const canRun = !!pipelineId && !isRunActive && (phase === "applied" || phase === "done");
 
   const handleRootBreadcrumbClick = () => {
     exitToDepth(0);
@@ -80,8 +82,12 @@ export const CanvasTopChrome = () => {
           variant={canRun ? "default" : "secondary"}
           onClick={handleRunTest}
         >
-          <Play className="h-3.5 w-3.5" />
-          {t("canvas.run")}
+          {isRunActive ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Play className="h-3.5 w-3.5" />
+          )}
+          {isRunActive ? t("canvas.runningStatus") : t("canvas.run")}
         </Button>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Terminal, X, ChevronUp, ChevronDown, Loader2, FileText } from "lucide-react";
 import { Button } from "@repo/ui/button";
@@ -107,8 +107,10 @@ export const RunConsole = () => {
   const markNodeRunning = useStore(store, (s) => s.markNodeRunning);
   const markNodePassed = useStore(store, (s) => s.markNodePassed);
   const markNodeFailed = useStore(store, (s) => s.markNodeFailed);
+  const setNodeRunStatuses = useStore(store, (s) => s.setNodeRunStatuses);
   const applyNodeLlmContent = useStore(store, (s) => s.applyNodeLlmContent);
   const stopTestRun = useStore(store, (s) => s.stopTestRun);
+  const setWorkspacePhase = useStore(store, (s) => s.setWorkspacePhase);
   const isConsoleCollapsed = useStore(store, (s) => s.isConsoleCollapsed);
   const handleToggleConsoleCollapse = useStore(store, (s) => s.handleToggleConsoleCollapse);
   const getDataProvider = useDataProvider();
@@ -131,9 +133,15 @@ export const RunConsole = () => {
       processedTraceRef.current.count = logs.length;
 
       parseStructuredLogs(newLogs, {
-        onNodeStart: markNodeRunning,
-        onNodeDone: markNodePassed,
-        onNodeFail: markNodeFailed,
+        onNodeStart: (nodeId) => {
+          if (!jobRef.current?.nodeStatuses) markNodeRunning(nodeId);
+        },
+        onNodeDone: (nodeId) => {
+          if (!jobRef.current?.nodeStatuses) markNodePassed(nodeId);
+        },
+        onNodeFail: (nodeId) => {
+          if (!jobRef.current?.nodeStatuses) markNodeFailed(nodeId);
+        },
         onLlmContent: applyNodeLlmContent,
       });
 
@@ -158,10 +166,6 @@ export const RunConsole = () => {
           id: currentJobId,
         });
 
-        if (isTerminalStatus(response.data.status)) {
-          stopTestRun();
-        }
-
         return response;
       },
       refetchInterval: (query) => {
@@ -176,6 +180,25 @@ export const RunConsole = () => {
   const job = (jobQuery.data?.data as Job | undefined) ?? null;
   const jobRef = useRef(job);
   jobRef.current = job;
+
+  useEffect(() => {
+    if (!job) return;
+
+    if (job.nodeStatuses) {
+      setNodeRunStatuses(job.nodeStatuses);
+    }
+
+    if (job.status === "queued" || job.status === "running") {
+      setWorkspacePhase("running");
+
+      return;
+    }
+
+    if (isTerminalStatus(job.status)) {
+      stopTestRun();
+      setWorkspacePhase("done");
+    }
+  }, [job, setNodeRunStatuses, setWorkspacePhase, stopTestRun]);
 
   const { result: tracesResult } = useCustom<{ traces: RunTrace[] }>({
     url: "jobs/traces",

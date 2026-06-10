@@ -2,8 +2,14 @@ import { render } from "@/test/test-wrapper";
 import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RunConsole } from "./RunConsole";
-import { CanvasPageStoreProvider, useCanvasPageStore } from "../_store";
+import {
+  CanvasPageStoreContext,
+  CanvasPageStoreProvider,
+  createCanvasPageStore,
+  useCanvasPageStore,
+} from "../_store";
 import { useRef } from "react";
+import type { NodeRunStatus } from "@repo/schemas";
 
 vi.mock("@xyflow/react", () => ({
   Handle: () => null,
@@ -94,6 +100,7 @@ const mockJobRunning = {
   startedAt: Date.now(),
   finishedAt: null as number | null,
   parentJobId: null,
+  nodeStatuses: null as Record<string, NodeRunStatus> | null,
 };
 
 const mockJobDone = {
@@ -181,6 +188,33 @@ describe("RunConsole", () => {
     useOneData.mockReturnValue(mockJobDone);
     render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
     expect(screen.getByText(/Done/i)).toBeInTheDocument();
+    useOneData.mockReturnValue(mockJobRunning);
+  });
+
+  it("applies job nodeStatuses to the canvas run state", async () => {
+    const store = createCanvasPageStore();
+    store.setState({ activeJobId: "job-1", isConsoleOpen: true });
+    const StatusWrapper = ({ children }: { children?: React.ReactNode }) => (
+      <CanvasPageStoreContext.Provider value={store}>{children}</CanvasPageStoreContext.Provider>
+    );
+    useOneData.mockReturnValue({
+      ...mockJobRunning,
+      nodeStatuses: {
+        "file-a": "done",
+        "merge-op": "running",
+      },
+    });
+
+    render(<RunConsole />, { wrapper: StatusWrapper });
+
+    await waitFor(() => {
+      expect(store.getState().nodeRunStatuses).toEqual({
+        "file-a": "done",
+        "merge-op": "running",
+      });
+    });
+    expect(store.getState().runningNodeId).toBe("merge-op");
+
     useOneData.mockReturnValue(mockJobRunning);
   });
 

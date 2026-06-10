@@ -54,6 +54,11 @@ export const MAX_WORKSPACE_PANEL_WIDTH = 560;
 export const clampWorkspacePanelWidth = (width: number) =>
   Math.min(MAX_WORKSPACE_PANEL_WIDTH, Math.max(MIN_WORKSPACE_PANEL_WIDTH, width));
 
+const getActiveRunNodeId = (nodeRunStatuses: Record<string, NodeRunStatus>) =>
+  Object.entries(nodeRunStatuses).find(
+    ([, status]) => status === "running" || status === "waitingForUser" || status === "retrying",
+  )?.[0] ?? null;
+
 export interface AgentPanelState {
   isOpen: boolean;
   pendingProposal: PipelineActionProposal | null;
@@ -138,6 +143,7 @@ export interface UISlice {
   // Pipeline run actions
   startTestRun: () => void;
   stopTestRun: () => void;
+  setNodeRunStatuses: (nodeRunStatuses: Record<string, NodeRunStatus>) => void;
   applyNodeLlmContent: (nodeId: string, content: string) => void;
 
   // Semantic actions
@@ -378,6 +384,7 @@ export const createUISlice = (
   startTestRun: () => {
     set({
       isTestRunning: true,
+      phase: "running",
       runningNodeId: null,
       nodeRunStatuses: {},
       nodeLlmContent: {},
@@ -387,6 +394,13 @@ export const createUISlice = (
 
   stopTestRun: () => {
     set({ isTestRunning: false, runningNodeId: null });
+  },
+
+  setNodeRunStatuses: (nodeRunStatuses) => {
+    set({
+      nodeRunStatuses: { ...nodeRunStatuses },
+      runningNodeId: getActiveRunNodeId(nodeRunStatuses),
+    });
   },
 
   applyNodeLlmContent: (nodeId, content) => {

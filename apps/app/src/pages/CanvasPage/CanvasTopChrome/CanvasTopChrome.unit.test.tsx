@@ -79,6 +79,18 @@ describe("CanvasTopChrome", () => {
     expect(handleRunTest).toHaveBeenCalledTimes(1);
   });
 
+  it("shows a running indicator while a job is active", () => {
+    renderTopChrome((store) => {
+      store.setState({ phase: "running", isTestRunning: true });
+    });
+
+    const runningButton = screen.getByRole("button", {
+      name: i18n.t("canvas.runningStatus"),
+    });
+    expect(runningButton).toBeDisabled();
+    expect(runningButton.querySelector(".animate-spin")).not.toBeNull();
+  });
+
   it("renders drill breadcrumbs and exits to the selected depth", async () => {
     const user = userEvent.setup();
     const store = renderTopChrome((targetStore) => {
