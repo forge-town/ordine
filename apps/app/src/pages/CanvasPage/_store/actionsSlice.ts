@@ -1,6 +1,6 @@
 import { sortParentBeforeChildren, type PipelineEdge, type PipelineNode } from "./canvasSlice";
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
-import type { Operation, BuiltinNodeType, Skill, OutputMode } from "@repo/schemas";
+import type { Operation, BuiltinNodeType, Skill, OutputMode, CompoundKind } from "@repo/schemas";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
@@ -44,6 +44,24 @@ const makeLocalizedDefaultNodeData = (type: BuiltinNodeType) => {
     label: i18n.t(`canvas.nodeTypes.${type}.label`, { defaultValue: fallback.label }),
   });
 };
+
+type CompoundShellKind = Exclude<CompoundKind, "custom">;
+
+const compoundShellLabels: Record<CompoundShellKind, string> = {
+  council: "Council",
+  delegation: "Delegation",
+  verify: "Verify",
+};
+
+const makeCompoundShellNodeData = (kind: CompoundShellKind) => ({
+  ...makeDefaultNodeData("compound", { label: compoundShellLabels[kind] }),
+  compoundKind: kind,
+  ...(kind === "verify"
+    ? { verifyConfig: { criteria: "", maxRounds: 3 } }
+    : kind === "council"
+      ? { councilConfig: { convergenceCondition: "", roles: [] } }
+      : { delegationConfig: { mergeStrategy: "", splitStrategy: "" } }),
+});
 
 const skillBackedOperationId = (skill: Skill) => `skill-operation-${skill.id}`;
 
@@ -113,6 +131,7 @@ export interface ActionsSlice {
   createObjectNode: (type: BuiltinNodeType) => void;
   createOperationNode: (operation: Operation) => void;
   handleCreateObjectNode: (type: BuiltinNodeType, screenPosition: XYPosition) => void;
+  handleCreateCompoundNode: (kind: CompoundShellKind, screenPosition: XYPosition) => void;
   handleCreateOperationNode: (operation: Operation, screenPosition: XYPosition) => void;
   handleCreateSkillOperationNode: (skill: Skill, screenPosition: XYPosition) => Promise<void>;
   dismissContextMenu: () => void;
@@ -563,6 +582,18 @@ export const createActionsSlice = (
       origin: QUICK_ADD_NODE_ORIGIN,
       position,
       data: makeLocalizedDefaultNodeData(type as BuiltinNodeType),
+    });
+    set({ isQuickAddOpen: false, quickAddQuery: "" });
+  },
+
+  handleCreateCompoundNode: (kind, screenPosition) => {
+    const position = get().screenToFlowPosition(screenPosition);
+    get().addNodeAndAutoConnect({
+      id: `compound-${kind}-${Date.now()}`,
+      type: "compound",
+      origin: QUICK_ADD_NODE_ORIGIN,
+      position,
+      data: makeCompoundShellNodeData(kind),
     });
     set({ isQuickAddOpen: false, quickAddQuery: "" });
   },

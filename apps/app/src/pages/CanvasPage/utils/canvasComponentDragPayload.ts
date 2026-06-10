@@ -4,6 +4,14 @@ import { z } from "zod/v4";
 
 export const CANVAS_COMPONENT_DRAG_MIME = "application/x-ordine-canvas-component";
 
+const CompoundShellKindSchema = z.enum(["verify", "council", "delegation"]);
+const SerializedOperationSchema = OperationSchema.extend({
+  sourceSkillId: z.string().nullable().optional(),
+}).transform(({ sourceSkillId, ...operation }) => ({
+  ...operation,
+  ...(sourceSkillId === null || sourceSkillId === undefined ? {} : { sourceSkillId }),
+}));
+
 const CanvasComponentDragPayloadSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("object"),
@@ -11,7 +19,11 @@ const CanvasComponentDragPayloadSchema = z.discriminatedUnion("kind", [
   }),
   z.object({
     kind: z.literal("operation"),
-    operation: OperationSchema,
+    operation: SerializedOperationSchema,
+  }),
+  z.object({
+    kind: z.literal("compound"),
+    compoundKind: CompoundShellKindSchema,
   }),
   z.object({
     kind: z.literal("skill"),

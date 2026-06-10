@@ -318,6 +318,40 @@ describe("CanvasFlow", () => {
     ]);
   });
 
+  it("drops compound palette items onto the flow viewport", () => {
+    const store = createCanvasPageStore([], []);
+    const dataTransfer = {
+      dropEffect: "none",
+      types: [CANVAS_COMPONENT_DRAG_MIME],
+      getData: vi.fn(() =>
+        encodeCanvasComponentDragPayload({
+          kind: "compound",
+          compoundKind: "delegation",
+        }),
+      ),
+    };
+
+    render(
+      <CanvasPageStoreContext.Provider value={store}>
+        <ReactFlowProvider>
+          <CanvasFlow />
+        </ReactFlowProvider>
+      </CanvasPageStoreContext.Provider>,
+    );
+
+    const viewport = screen.getByTestId("canvas-flow-viewport");
+    fireEvent(viewport, makeDragEvent("drop", dataTransfer, { clientX: 240, clientY: 180 }));
+
+    expect(store.getState().nodes).toEqual([
+      expect.objectContaining({
+        type: "compound",
+        data: expect.objectContaining({
+          compoundKind: "delegation",
+        }),
+      }),
+    ]);
+  });
+
   it("coalesces repeated node-internals remeasurements", () => {
     vi.useFakeTimers();
 

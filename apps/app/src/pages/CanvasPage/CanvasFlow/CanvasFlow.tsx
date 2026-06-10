@@ -102,6 +102,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const handleFlowPaneClick = useStore(store, (s) => s.handleFlowPaneClick);
   const handleFlowPaneContextMenu = useStore(store, (s) => s.handleFlowPaneContextMenu);
   const handleCreateObjectNode = useStore(store, (s) => s.handleCreateObjectNode);
+  const handleCreateCompoundNode = useStore(store, (s) => s.handleCreateCompoundNode);
   const handleCreateOperationNode = useStore(store, (s) => s.handleCreateOperationNode);
   const handleCreateSkillOperationNode = useStore(store, (s) => s.handleCreateSkillOperationNode);
   const handleFlowNodeDrag = useStore(store, (s) => s.handleFlowNodeDrag);
@@ -238,6 +239,12 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
 
     if (payload.kind === "operation") {
       handleCreateOperationNode(payload.operation, screenPosition);
+
+      return;
+    }
+
+    if (payload.kind === "compound") {
+      handleCreateCompoundNode(payload.compoundKind, screenPosition);
 
       return;
     }

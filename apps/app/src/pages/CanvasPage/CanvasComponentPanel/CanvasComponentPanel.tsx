@@ -8,11 +8,14 @@ import {
   FileCode,
   Folder,
   FolderOutput,
+  GitBranchPlus,
   HardDrive,
   MessageSquareText,
   Plus,
   Search,
+  ShieldCheck,
   Sparkles,
+  UsersRound,
   Zap,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -38,6 +41,29 @@ interface CanvasComponentPanelProps {
 
 const INPUT_NODE_TYPES: BuiltinNodeType[] = ["folder", "file", "github-project", "prompt"];
 const OUTPUT_NODE_TYPES: BuiltinNodeType[] = ["output-local-path", "output-project-path"];
+const COMPOUND_COMPONENTS = [
+  {
+    description: "Review with explicit pass criteria",
+    icon: ShieldCheck,
+    iconBg: "bg-emerald-500",
+    kind: "verify",
+    label: "Verify",
+  },
+  {
+    description: "Coordinate multiple perspectives",
+    icon: UsersRound,
+    iconBg: "bg-sky-500",
+    kind: "council",
+    label: "Council",
+  },
+  {
+    description: "Split work and merge results",
+    icon: GitBranchPlus,
+    iconBg: "bg-rose-500",
+    kind: "delegation",
+    label: "Delegation",
+  },
+] as const;
 
 const TYPE_ICONS: Record<string, ElementType> = {
   file: FileCode,
@@ -103,6 +129,7 @@ export const CanvasComponentPanel = ({
   const handleComponentSearchChange = useStore(store, (state) => state.handleComponentSearchChange);
   const toggleComponentCategory = useStore(store, (state) => state.toggleComponentCategory);
   const handleCreateObjectNode = useStore(store, (state) => state.handleCreateObjectNode);
+  const handleCreateCompoundNode = useStore(store, (state) => state.handleCreateCompoundNode);
   const handleCreateOperationNode = useStore(store, (state) => state.handleCreateOperationNode);
   const handleCreateSkillOperationNode = useStore(
     store,
@@ -128,6 +155,9 @@ export const CanvasComponentPanel = ({
   });
   const operationsCategoryLabel = t("canvas.componentPanel.categories.operations", {
     defaultValue: "Operations",
+  });
+  const compoundCategoryLabel = t("canvas.componentPanel.categories.compound", {
+    defaultValue: "Compound",
   });
   const skillsCategoryLabel = t("canvas.componentPanel.categories.skills", {
     defaultValue: "Skills",
@@ -182,6 +212,11 @@ export const CanvasComponentPanel = ({
   const handleOperationItemClick = (operation: Operation) => () => {
     handleCreateOperationNode(operation, getCreateNodeScreenPosition());
   };
+
+  const handleCompoundItemClick =
+    (compoundKind: (typeof COMPOUND_COMPONENTS)[number]["kind"]) => () => {
+      handleCreateCompoundNode(compoundKind, getCreateNodeScreenPosition());
+    };
 
   const handleSkillItemClick = (skill: Skill) => () => {
     void handleCreateSkillOperationNode(skill, getCreateNodeScreenPosition());
@@ -239,6 +274,12 @@ export const CanvasComponentPanel = ({
     search === ""
       ? true
       : includesSearch([operation.name, operation.description, "operation"], search),
+  );
+
+  const compoundItems = COMPOUND_COMPONENTS.filter((compound) =>
+    search === ""
+      ? true
+      : includesSearch([compound.label, compound.description, "compound", compound.kind], search),
   );
 
   const skillItems = skills.filter((skill) =>
@@ -374,6 +415,51 @@ export const CanvasComponentPanel = ({
                 <Plus className="size-3 text-muted-foreground" />
               </Button>
             ))}
+          </div>
+        )}
+
+        {renderCategoryHeader("compound", compoundCategoryLabel, compoundItems.length)}
+        {!collapsedComponentCategories.compound && (
+          <div className="space-y-1 p-3">
+            {compoundItems.map((compound) => {
+              const Icon = compound.icon;
+              const dragId = `compound-${compound.kind}`;
+
+              return (
+                <Button
+                  key={compound.kind}
+                  draggable
+                  className={cn(
+                    "h-10 w-full cursor-grab justify-start gap-2 rounded-md px-2 text-left transition-[opacity,transform,background-color] active:cursor-grabbing",
+                    draggingComponentId === dragId && "scale-[0.98] opacity-60",
+                  )}
+                  type="button"
+                  variant="ghost"
+                  onClick={handleCompoundItemClick(compound.kind)}
+                  onDragEnd={handleComponentDragEnd}
+                  onDragStart={handleComponentDragStart({
+                    dragId,
+                    iconBg: compound.iconBg,
+                    label: compound.label,
+                    payload: { kind: "compound", compoundKind: compound.kind },
+                    shortLabel: "Compound",
+                  })}
+                >
+                  <span
+                    className={cn(
+                      "flex size-6 shrink-0 items-center justify-center rounded",
+                      compound.iconBg,
+                    )}
+                  >
+                    <Icon className="size-3.5 text-white" />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                    {compound.label}
+                  </span>
+                  <Plus className="size-3 text-muted-foreground" />
+                </Button>
+              );
+            })}
           </div>
         )}
 

@@ -64,9 +64,11 @@ describe("CanvasComponentPanel", () => {
 
     expect(screen.getByRole("button", { name: /Input Objects category/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Operations category/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Compound category/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Skills category/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Output category/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Review Code/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Council/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Error Handling/i })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Operations category/i }));
@@ -113,5 +115,25 @@ describe("CanvasComponentPanel", () => {
       operation: { id: "review-code" },
     });
     expect(dataTransfer.setDragImage).toHaveBeenCalled();
+  });
+
+  it("serializes compound shell palette items for drag creation", () => {
+    renderPanel();
+
+    const data = new Map<string, string>();
+    const dataTransfer = {
+      effectAllowed: "none",
+      setData: vi.fn((type: string, value: string) => data.set(type, value)),
+      setDragImage: vi.fn(),
+    };
+
+    fireEvent.dragStart(screen.getByRole("button", { name: /Council/i }), {
+      dataTransfer,
+    });
+
+    expect(JSON.parse(data.get(CANVAS_COMPONENT_DRAG_MIME) ?? "{}")).toEqual({
+      kind: "compound",
+      compoundKind: "council",
+    });
   });
 });

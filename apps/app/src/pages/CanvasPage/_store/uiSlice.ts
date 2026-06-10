@@ -10,7 +10,7 @@ import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 
 export type SidebarPanel = "components" | "properties" | "ai-assistant" | null;
 
-export type CanvasComponentCategory = "input" | "operations" | "skills" | "output";
+export type CanvasComponentCategory = "input" | "operations" | "compound" | "skills" | "output";
 
 export type NodeCardMode = "compact" | "expanded";
 
@@ -176,6 +176,7 @@ export const createUISlice = (
   collapsedComponentCategories: {
     input: false,
     operations: false,
+    compound: false,
     skills: false,
     output: false,
   },
