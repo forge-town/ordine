@@ -5,10 +5,17 @@ import { useWorkspaceStore } from "../_store/workspaceStore";
 import { useAgentBarStore } from "./_store";
 import { AgentBar, WORKSPACE_PHASES } from "./AgentBar";
 
-vi.mock("./useAgentConversationPersistence", () => ({
-  useAgentConversationPersistence: () => ({
+vi.mock("./useAgentConversation", () => ({
+  useAgentConversation: () => ({
+    applyProposal: vi.fn(),
+    diagnostics: null,
+    hasBlockingDiagnostics: false,
     isSending: false,
-    sendMessage: vi.fn(),
+    pendingProposal: null,
+    proposalItems: [],
+    rejectProposal: vi.fn(),
+    reviseProposal: vi.fn(),
+    submitMessage: vi.fn(),
   }),
 }));
 

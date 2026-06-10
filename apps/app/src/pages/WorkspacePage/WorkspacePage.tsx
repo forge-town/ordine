@@ -30,30 +30,30 @@ export const WorkspacePage = ({ pipelineId }: WorkspacePageProps) => {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 bg-background">
-      <main className="min-w-0 flex-1 overflow-hidden">
-        <CanvasPageStoreProvider
-          pipeline={{ edges: [], id: pipelineId, name: `Pipeline ${pipelineId}`, nodes: [] }}
-        >
+    <CanvasPageStoreProvider
+      pipeline={{ edges: [], id: pipelineId, name: `Pipeline ${pipelineId}`, nodes: [] }}
+    >
+      <div className="flex min-h-0 flex-1 bg-background">
+        <main className="min-w-0 flex-1 overflow-hidden">
           <WorkspaceCanvasPhaseBridge />
           <CanvasPageContent />
-        </CanvasPageStoreProvider>
-      </main>
+        </main>
 
-      {agentOpen ? (
-        <div className="w-[360px] shrink-0 border-l border-border">
-          <AgentBar pipelineId={pipelineId} onCollapse={handleAgentBarToggle} />
-        </div>
-      ) : (
-        <button
-          aria-label="Open Agent Bar"
-          className="flex w-12 shrink-0 items-center justify-center border-l border-border bg-surface text-muted-foreground hover:bg-accent hover:text-foreground"
-          type="button"
-          onClick={handleAgentBarToggle}
-        >
-          <PanelRightOpen className="h-4 w-4" />
-        </button>
-      )}
-    </div>
+        {agentOpen ? (
+          <div className="w-[360px] shrink-0 border-l border-border">
+            <AgentBar pipelineId={pipelineId} onCollapse={handleAgentBarToggle} />
+          </div>
+        ) : (
+          <button
+            aria-label="Open Agent Bar"
+            className="flex w-12 shrink-0 items-center justify-center border-l border-border bg-surface text-muted-foreground hover:bg-accent hover:text-foreground"
+            type="button"
+            onClick={handleAgentBarToggle}
+          >
+            <PanelRightOpen className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    </CanvasPageStoreProvider>
   );
 };

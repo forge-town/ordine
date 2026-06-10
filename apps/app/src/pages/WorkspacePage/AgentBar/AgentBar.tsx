@@ -3,13 +3,13 @@ import type { WorkspacePhase } from "@repo/schemas";
 import { ChevronsRight, Eraser, Sparkles } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
-import { Bubble, Assistant } from "./messages";
+import { Bubble, Assistant, ProposalCard } from "./messages";
 import { Icon, StatusPill, Tag } from "@/components/primitives";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
 import { Composer } from "./Composer";
 import { useAgentBarStore } from "./_store";
-import { useAgentConversationPersistence } from "./useAgentConversationPersistence";
+import { useAgentConversation } from "./useAgentConversation";
 
 export const WORKSPACE_PHASES: WorkspacePhase[] = [
   "empty",
@@ -48,7 +48,17 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   const dismissRef = useWorkspaceStore((state) => state.dismiss);
   const messages = useAgentBarStore((state) => state.messages);
   const clearMessages = useAgentBarStore((state) => state.clearMessages);
-  const { isSending, sendMessage } = useAgentConversationPersistence({ phase, pipelineId });
+  const {
+    applyProposal,
+    diagnostics,
+    hasBlockingDiagnostics,
+    isSending,
+    pendingProposal,
+    proposalItems,
+    rejectProposal,
+    reviseProposal,
+    submitMessage,
+  } = useAgentConversation({ phase, pipelineId });
   const activeRefs = useMemo(
     () => canvasRefs.filter((ref) => !dismissed.includes(ref.id)),
     [canvasRefs, dismissed],
@@ -61,7 +71,10 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   const handleClearClick = () => clearMessages();
   const handleCollapseClick = () => onCollapse();
   const handleRemoveRef = (id: string) => dismissRef(id);
-  const handleComposerSubmit = sendMessage;
+  const handleComposerSubmit = submitMessage;
+  const handleProposalApply = applyProposal;
+  const handleProposalReject = rejectProposal;
+  const handleProposalRevise = reviseProposal;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -143,6 +156,25 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
             </Assistant>
           ),
         )}
+        {diagnostics && diagnostics.length > 0 ? (
+          <Assistant label="Diagnostics">
+            {diagnostics.map((diagnostic) => diagnostic.message).join(" ")}
+          </Assistant>
+        ) : null}
+        {pendingProposal ? (
+          <ProposalCard
+            items={proposalItems}
+            subtitle={
+              hasBlockingDiagnostics
+                ? "Resolve diagnostics before applying"
+                : `${pendingProposal.actions.length} graph action${pendingProposal.actions.length > 1 ? "s" : ""}`
+            }
+            title={pendingProposal.summary}
+            onApply={handleProposalApply}
+            onReject={handleProposalReject}
+            onRevise={handleProposalRevise}
+          />
+        ) : null}
       </div>
 
       <div className="shrink-0 border-t border-border/70">
