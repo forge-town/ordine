@@ -242,6 +242,7 @@ export const createActionsSlice = (
     set({
       selectedEdgeId: edgeId,
       selectedNodeId: null,
+      inspectEdgeId: edgeId,
       selectedIds: [edgeId],
       sidebarPanel: "components",
       isPropertiesPanelOpen: false,
@@ -257,6 +258,7 @@ export const createActionsSlice = (
     set({
       selectedNodeId: null,
       selectedEdgeId: null,
+      inspectEdgeId: null,
       selectedIds: [],
       sidebarPanel: "components",
       isPropertiesPanelOpen: false,

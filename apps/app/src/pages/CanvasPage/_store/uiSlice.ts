@@ -530,6 +530,7 @@ export const createUISlice = (
     set((state) => ({
       selectedNodeId: null,
       selectedEdgeId: null,
+      inspectEdgeId: null,
       selectedIds: [],
       contextMenu: null,
       connectionMenu: null,

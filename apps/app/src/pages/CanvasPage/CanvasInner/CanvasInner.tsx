@@ -19,6 +19,7 @@ import { CanvasMiniSidebar } from "../CanvasMiniSidebar";
 import { CanvasComponentPanel } from "../CanvasComponentPanel";
 import { CanvasNodePropertiesPanel } from "../CanvasNodePropertiesPanel";
 import { CanvasWorkspaceSidebarOverlay } from "../CanvasWorkspaceSidebarOverlay";
+import { EdgeInspector } from "../EdgeInspector";
 import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePosition";
 
 export const CanvasInner = () => {
@@ -154,6 +155,8 @@ export const CanvasInner = () => {
             {nodeContextMenu && <NodeContextMenu />}
 
             <LlmContentCard />
+
+            <EdgeInspector />
 
             {isConsoleOpen && <RunConsole />}
 

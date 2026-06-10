@@ -21,6 +21,7 @@ import {
   OutputProjectPathNode,
   PromptNode,
 } from "../nodes";
+import { SemanticEdge } from "../edges";
 import {
   CANVAS_COMPONENT_DRAG_MIME,
   decodeCanvasComponentDragPayload,
@@ -28,6 +29,7 @@ import {
 } from "../utils/canvasComponentDragPayload";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 import { decorateEdgesWithPortHandles } from "../NodeCard";
+import type { PipelineEdge } from "../_store/canvasSlice";
 
 // Must be defined outside the component to prevent React Flow infinite re-renders
 const nodeTypes = {
@@ -42,8 +44,12 @@ const nodeTypes = {
   "output-local-path": OutputLocalPathNode,
 };
 
+const edgeTypes = {
+  semantic: SemanticEdge,
+};
+
 const defaultEdgeOptions = {
-  type: "default" as const,
+  type: "semantic" as const,
   animated: true,
   style: { stroke: "#94a3b8", strokeWidth: 2 },
 };
@@ -74,6 +80,10 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const portRoutedEdges = useMemo(
     () => decorateEdgesWithPortHandles(nodes, edges, connectStart),
     [connectStart, edges, nodes],
+  );
+  const semanticEdges = useMemo<PipelineEdge[]>(
+    () => portRoutedEdges.map((edge) => ({ ...edge, type: "semantic" })),
+    [portRoutedEdges],
   );
   const isConsoleOpen = useStore(store, (s) => s.isConsoleOpen);
   const canvasSettings = useStore(store, (s) => s.canvasSettings);
@@ -251,7 +261,8 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         defaultEdgeOptions={defaultEdgeOptions}
         defaultViewport={DEFAULT_CANVAS_VIEWPORT}
         deleteKeyCode={isCanvasInteractive ? ["Backspace", "Delete"] : null}
-        edges={portRoutedEdges}
+        edges={semanticEdges}
+        edgeTypes={edgeTypes}
         elementsSelectable={isCanvasInteractive}
         nodes={nodes}
         nodesConnectable={isCanvasInteractive}

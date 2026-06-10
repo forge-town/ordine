@@ -146,7 +146,7 @@ export const createCanvasSlice = (
         },
         (draft) => {
           draft.edges = addEdge(
-            { ...connection, type: "default", animated: true, data: { label: "" } },
+            { ...connection, type: "semantic", animated: true, data: { label: "" } },
             draft.edges,
           );
         },
@@ -186,7 +186,7 @@ export const createCanvasSlice = (
         id: `e-${sourceId}-${newId}`,
         source: sourceId,
         target: newId,
-        type: "default",
+        type: "semantic",
         animated: true,
         data: { label: "" },
       };
