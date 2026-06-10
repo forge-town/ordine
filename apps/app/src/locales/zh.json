@@ -397,6 +397,8 @@
       "expanded": "展开卡片"
     },
     "componentPanel": {
+      "collapse": "隐藏组件面板",
+      "expand": "显示组件面板",
       "searchLabel": "搜索组件",
       "searchPlaceholder": "搜索组件...",
       "categoryAriaLabel": "{{label}} 分类",

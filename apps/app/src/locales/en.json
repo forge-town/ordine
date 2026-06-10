@@ -397,6 +397,8 @@
       "expanded": "Expanded cards"
     },
     "componentPanel": {
+      "collapse": "Hide components panel",
+      "expand": "Show components panel",
       "searchLabel": "Search components",
       "searchPlaceholder": "Search components...",
       "categoryAriaLabel": "{{label}} category",

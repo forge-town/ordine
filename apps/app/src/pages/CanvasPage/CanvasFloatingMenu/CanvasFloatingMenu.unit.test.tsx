@@ -127,7 +127,25 @@ describe("CanvasFloatingMenu - save behavior", () => {
         expect.objectContaining({
           resource: "pipelines",
           id: "pipe-001",
-          values: expect.objectContaining({ nodes: [], edges: [] }),
+          values: expect.objectContaining({ name: "My Pipeline", nodes: [], edges: [] }),
+        }),
+      );
+    });
+
+    it("persists the edited pipeline title on save", () => {
+      const store = createCanvasPageStore([], [], "pipe-001", "Old Pipeline");
+      store.setState({ pipelineName: "Renamed Pipeline" });
+
+      render(
+        <CanvasPageStoreContext.Provider value={store}>
+          <CanvasFloatingMenu />
+        </CanvasPageStoreContext.Provider>,
+      );
+      clickSave();
+
+      expect(mockUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          values: expect.objectContaining({ name: "Renamed Pipeline" }),
         }),
       );
     });

@@ -4,14 +4,25 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { createCanvasPageStore, CanvasPageStoreContext } from "../_store";
+import type { PipelineNode } from "../_store/canvasSlice";
 import { CanvasTopChrome } from "./CanvasTopChrome";
 
-vi.mock("../CanvasToolbar", () => ({
-  CanvasToolbar: () => <div data-testid="canvas-toolbar">Toolbar</div>,
-}));
+const compoundNode = {
+  id: "compound-1",
+  type: "compound",
+  position: { x: 0, y: 0 },
+  data: {
+    label: "Review Council",
+    nodeType: "compound",
+    compoundKind: "council",
+    childNodeIds: [],
+    childEdges: [],
+  },
+} as PipelineNode;
 
-const renderTopChrome = () => {
-  const store = createCanvasPageStore([], []);
+const renderTopChrome = (setup?: (store: ReturnType<typeof createCanvasPageStore>) => void) => {
+  const store = createCanvasPageStore([compoundNode], [], "pipe-test", "Draft pipeline");
+  setup?.(store);
 
   render(
     <CanvasPageStoreContext.Provider value={store}>
@@ -23,7 +34,7 @@ const renderTopChrome = () => {
 };
 
 describe("CanvasTopChrome", () => {
-  it("renders the shell top bar with title and toolbar", () => {
+  it("renders a centered pill with editable title and Run button", () => {
     renderTopChrome();
 
     expect(screen.getByTestId("canvas-top-chrome")).toHaveClass(
@@ -31,12 +42,13 @@ describe("CanvasTopChrome", () => {
       "bg-background/95",
       "backdrop-blur",
     );
-    const toolbarSlot = screen.getByTestId("canvas-toolbar").parentElement;
-    expect(toolbarSlot).not.toBeNull();
-    expect(toolbarSlot as HTMLElement).toHaveClass("min-w-0", "max-w-full", "overflow-x-auto");
-    expect(screen.getByTestId("canvas-title-desktop")).toHaveClass("min-w-0", "flex-1");
-    expect(screen.getByTestId("canvas-title-desktop").firstElementChild).toHaveClass("min-w-0");
-    expect(toolbarSlot as HTMLElement).toHaveClass("shrink-0");
+    expect(screen.queryByTestId("canvas-toolbar")).not.toBeInTheDocument();
+    expect(screen.getByTestId("canvas-title-desktop")).toHaveClass(
+      "max-w-[760px]",
+      "rounded-full",
+      "shadow-soft",
+    );
+    expect(screen.getByRole("button", { name: i18n.t("canvas.run") })).toBeDisabled();
   });
 
   it("preserves pipeline title editing", async () => {
@@ -50,5 +62,34 @@ describe("CanvasTopChrome", () => {
     await user.type(desktopTitleInput, "Aligned pipeline");
 
     expect(store.getState().pipelineName).toBe("Aligned pipeline");
+  });
+
+  it("enables Run only after the workspace is applied or done", async () => {
+    const user = userEvent.setup();
+    const handleRunTest = vi.fn();
+    renderTopChrome((store) => {
+      store.setState({ handleRunTest, phase: "applied" });
+    });
+
+    const runButton = screen.getByRole("button", { name: i18n.t("canvas.run") });
+    expect(runButton).not.toBeDisabled();
+
+    await user.click(runButton);
+
+    expect(handleRunTest).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders drill breadcrumbs and exits to the selected depth", async () => {
+    const user = userEvent.setup();
+    const store = renderTopChrome((targetStore) => {
+      targetStore.setState({ drillStack: ["compound-1"] });
+    });
+
+    expect(screen.getByRole("button", { name: "Root" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Review Council" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Root" }));
+
+    expect(store.getState().drillStack).toEqual([]);
   });
 });

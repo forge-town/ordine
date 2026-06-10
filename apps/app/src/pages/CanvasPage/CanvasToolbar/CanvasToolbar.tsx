@@ -1,66 +1,36 @@
 import { useStore } from "zustand";
-import { useCanvasPageStore } from "../_store";
-import {
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  Trash2,
-  Undo2,
-  Redo2,
-  Play,
-  AlignLeft,
-  Plus,
-  Bot,
-  Lock,
-  Unlock,
-} from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Bot, Maximize2, PanelLeftClose, PanelLeftOpen, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
+import { useCanvasPageStore } from "../_store";
 
 export const CanvasToolbar = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
-  const selectedNodeId = useStore(store, (state) => state.selectedNodeId);
-  const canUndo = useStore(store, (state) => state.canUndo);
-  const canRedo = useStore(store, (state) => state.canRedo);
   const handleFitView = useStore(store, (state) => state.handleFitView);
   const handleZoomIn = useStore(store, (state) => state.handleZoomIn);
   const handleZoomOut = useStore(store, (state) => state.handleZoomOut);
-  const isCanvasInteractive = useStore(store, (state) => state.isCanvasInteractive);
-  const handleToggleCanvasInteractive = useStore(
-    store,
-    (state) => state.handleToggleCanvasInteractive,
-  );
-  const isQuickAddOpen = useStore(store, (state) => state.isQuickAddOpen);
-  const handleToggleQuickAdd = useStore(store, (state) => state.handleToggleQuickAdd);
-  const pipelineId = useStore(store, (state) => state.pipelineId);
-  const isRunning = useStore(store, (state) => state.isRunning);
-  const handleDeleteSelected = useStore(store, (state) => state.handleDeleteSelected);
-  const handleUndo = useStore(store, (state) => state.handleUndo);
-  const handleRedo = useStore(store, (state) => state.handleRedo);
-  const handleFormatLayout = useStore(store, (state) => state.formatLayout);
-  const handleRunTest = useStore(store, (state) => state.handleRunTest);
   const handleToggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
   const agentPanelIsOpen = useStore(store, (state) => state.agentPanel.isOpen);
-  const interactivityActionLabel = isCanvasInteractive
-    ? t("canvas.disableInteractivity")
-    : t("canvas.enableInteractivity");
-  const InteractivityIcon = isCanvasInteractive ? Unlock : Lock;
+  const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
+  const handleToggleSidebar = useStore(store, (state) => state.handleToggleSidebar);
+  const SidebarIcon = isSidebarOpen ? PanelLeftClose : PanelLeftOpen;
+  const sidebarLabel = isSidebarOpen
+    ? t("canvas.componentPanel.collapse")
+    : t("canvas.componentPanel.expand");
 
   return (
-    <div className="pointer-events-auto shrink-0 w-max max-w-full" data-testid="canvas-toolbar">
-      <div className="flex h-10 w-max items-center gap-0.5 rounded-md border bg-background px-1.5 py-1 shadow-md max-[420px]:gap-0 max-[420px]:px-1">
-        {/* Zoom controls */}
+    <div className="pointer-events-auto w-max" data-testid="canvas-toolbar">
+      <div className="flex h-10 items-center gap-0.5 rounded-full border border-border bg-background/95 px-1.5 shadow-float backdrop-blur">
         <Tooltip>
           <TooltipTrigger
             render={
               <Button
                 aria-label={t("canvas.zoomOut")}
-                className="h-7 w-7"
+                className="h-7 w-7 rounded-full"
                 size="icon"
-                title={t("canvas.zoomOut")}
                 variant="ghost"
                 onClick={handleZoomOut}
               />
@@ -75,9 +45,8 @@ export const CanvasToolbar = () => {
             render={
               <Button
                 aria-label={t("canvas.zoomIn")}
-                className="h-7 w-7"
+                className="h-7 w-7 rounded-full"
                 size="icon"
-                title={t("canvas.zoomIn")}
                 variant="ghost"
                 onClick={handleZoomIn}
               />
@@ -92,9 +61,8 @@ export const CanvasToolbar = () => {
             render={
               <Button
                 aria-label={t("canvas.fitView")}
-                className="h-7 w-7"
+                className="h-7 w-7 rounded-full"
                 size="icon"
-                title={t("canvas.fitView")}
                 variant="ghost"
                 onClick={handleFitView}
               />
@@ -104,98 +72,17 @@ export const CanvasToolbar = () => {
           </TooltipTrigger>
           <TooltipContent>{t("canvas.fitView")}</TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={interactivityActionLabel}
-                aria-pressed={isCanvasInteractive}
-                className="h-7 w-7"
-                size="icon"
-                title={interactivityActionLabel}
-                variant="ghost"
-                onClick={handleToggleCanvasInteractive}
-              />
-            }
-          >
-            <InteractivityIcon className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{interactivityActionLabel}</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.formatLayout")}
-                className="h-7 w-7"
-                size="icon"
-                title={t("canvas.formatLayout")}
-                variant="ghost"
-                onClick={handleFormatLayout}
-              />
-            }
-          >
-            <AlignLeft className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.formatLayout")}</TooltipContent>
-        </Tooltip>
 
-        <Separator className="mx-1 h-7" orientation="vertical" />
+        <Separator className="mx-1 h-6" orientation="vertical" />
 
-        {/* History controls */}
-        <Button
-          className="h-7 w-7"
-          disabled={!canUndo}
-          size="icon"
-          title={t("canvas.undo")}
-          variant="ghost"
-          onClick={handleUndo}
-        >
-          <Undo2 className="h-4 w-4" />
-        </Button>
-        <Button
-          className="h-7 w-7"
-          disabled={!canRedo}
-          size="icon"
-          title={t("canvas.redo")}
-          variant="ghost"
-          onClick={handleRedo}
-        >
-          <Redo2 className="h-4 w-4" />
-        </Button>
-
-        <Separator className="mx-1 h-7" orientation="vertical" />
-
-        {/* Quick add */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.quickAdd.open")}
-                aria-pressed={isQuickAddOpen}
-                className="h-7 w-7 text-primary hover:bg-primary/10"
-                size="icon"
-                title={t("canvas.quickAdd.open")}
-                variant="ghost"
-                onClick={handleToggleQuickAdd}
-              />
-            }
-          >
-            <Plus className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.quickAdd.open")}</TooltipContent>
-        </Tooltip>
-
-        {/* AI Assistant */}
         <Tooltip>
           <TooltipTrigger
             render={
               <Button
                 aria-label={t("canvas.agentPanel.toggle")}
                 aria-pressed={agentPanelIsOpen}
-                className="h-7 w-7 text-primary hover:bg-primary/10"
+                className="h-7 w-7 rounded-full"
                 size="icon"
-                title={t("canvas.agentPanel.toggle")}
                 variant="ghost"
                 onClick={handleToggleAgentPanel}
               />
@@ -205,50 +92,22 @@ export const CanvasToolbar = () => {
           </TooltipTrigger>
           <TooltipContent>{t("canvas.agentPanel.toggle")}</TooltipContent>
         </Tooltip>
-
-        <Separator className="mx-1 h-7" orientation="vertical" />
-
-        {/* Delete */}
         <Tooltip>
           <TooltipTrigger
             render={
               <Button
-                aria-label={t("canvas.deleteNode")}
-                className="h-7 w-7 text-destructive hover:bg-destructive/10 disabled:text-muted-foreground/30"
-                disabled={!selectedNodeId}
+                aria-label={sidebarLabel}
+                aria-pressed={isSidebarOpen}
+                className="h-7 w-7 rounded-full"
                 size="icon"
-                title={t("canvas.deleteNode")}
                 variant="ghost"
-                onClick={handleDeleteSelected}
+                onClick={handleToggleSidebar}
               />
             }
           >
-            <Trash2 className="h-4 w-4" />
+            <SidebarIcon className="h-4 w-4" />
           </TooltipTrigger>
-          <TooltipContent>{t("canvas.deleteNode")}</TooltipContent>
-        </Tooltip>
-
-        <Separator className="mx-1 h-7" orientation="vertical" />
-
-        {/* Run Test */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.runTest")}
-                className="h-7 gap-1.5 px-2 text-xs text-green-600 hover:bg-green-50 hover:text-green-700 disabled:text-muted-foreground/30 max-[420px]:w-7 max-[420px]:gap-0 max-[420px]:px-0"
-                disabled={isRunning || !pipelineId}
-                size="sm"
-                title={t("canvas.runTest")}
-                variant="ghost"
-                onClick={handleRunTest}
-              />
-            }
-          >
-            <Play className="h-3.5 w-3.5" />
-            <span className="max-[420px]:hidden">{t("canvas.run")}</span>
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.runTest")}</TooltipContent>
+          <TooltipContent>{sidebarLabel}</TooltipContent>
         </Tooltip>
       </div>
     </div>

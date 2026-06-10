@@ -15,6 +15,7 @@ import { CanvasNodeCreationPalette } from "../CanvasNodeCreationPalette";
 import { CanvasStatusBar } from "../CanvasStatusBar";
 import { CanvasSettingsDrawer } from "../CanvasSettingsDrawer";
 import { CanvasTopChrome } from "../CanvasTopChrome";
+import { CanvasToolbar } from "../CanvasToolbar";
 import { CanvasMiniSidebar } from "../CanvasMiniSidebar";
 import { CanvasComponentPanel } from "../CanvasComponentPanel";
 import { CanvasNodePropertiesPanel } from "../CanvasNodePropertiesPanel";
@@ -178,6 +179,9 @@ export const CanvasInner = () => {
               )}
 
               <CanvasStatusBar />
+              <div className="pointer-events-none absolute bottom-4 left-4 z-10">
+                <CanvasToolbar />
+              </div>
 
               {contextMenu && <CanvasContextMenu />}
 
