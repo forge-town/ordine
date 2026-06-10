@@ -12,7 +12,9 @@ const meta: Meta<typeof CompoundNode> = {
     data: {
       label: "Review Group",
       nodeType: "compound",
+      compoundKind: "custom",
       childNodeIds: ["source-file", "review-op"],
+      childEdges: [],
     },
   },
   decorators: [

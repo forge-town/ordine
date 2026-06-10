@@ -63,7 +63,9 @@ export const makeDefaultNodeData = (
       return {
         label: options?.label ?? "Compound node",
         nodeType: "compound",
+        compoundKind: "custom",
         childNodeIds: [],
+        childEdges: [],
         description: "",
       };
     }
