@@ -15,6 +15,7 @@ import { createRefinementsService } from "./refinementsService";
 import { createRoutinesService } from "./routinesService";
 import { createSettingsService } from "./settingsService";
 import { createSkillsService } from "./skillsService";
+import { createUsageService } from "./usageService";
 
 export const serviceFactory = {
   createAgentsService: () => createAgentsService(db),
@@ -33,4 +34,5 @@ export const serviceFactory = {
   createRoutinesService: () => createRoutinesService(db),
   createSettingsService: () => createSettingsService(db),
   createSkillsService: () => createSkillsService(db),
+  createUsageService: () => createUsageService(db),
 };
