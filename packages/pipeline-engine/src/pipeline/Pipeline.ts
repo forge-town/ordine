@@ -18,7 +18,7 @@ import {
 } from "@repo/schemas";
 import type { PipelineEngineDeps } from "../deps";
 import { ScriptExecutionError, type PipelineRunError } from "../errors";
-import { buildExecutionLevels, getParentIds, type CycleDetectedError } from "../dagScheduler";
+import { buildExecutionLevels, type CycleDetectedError } from "../dagScheduler";
 import { safeReadInputFile } from "../infrastructure";
 import type { AgentInfo, OperationInfo, SkillInfo, OperationNodeContext } from "../nodes/types";
 import { processFileNode } from "../nodes/FileNode";

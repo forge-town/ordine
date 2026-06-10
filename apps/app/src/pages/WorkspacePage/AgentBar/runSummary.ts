@@ -41,13 +41,13 @@ export type AgentRunSummary = {
   title: string;
 };
 
-export const buildSelfHealSteps = (
-  traces: Pick<JobTrace, "message">[],
-): { label: string; tone?: "muted" | "success" }[] =>
+export type SelfHealRunStep = { label: string; tone?: "muted" | "success" };
+
+export const buildSelfHealSteps = (traces: Pick<JobTrace, "message">[]): SelfHealRunStep[] =>
   traces
     .slice()
     .reverse()
-    .flatMap((trace) => {
+    .flatMap<SelfHealRunStep>((trace) => {
       if (trace.message.startsWith("@@SELF_HEAL_DONE::")) {
         const [, nodeId, attempt] = trace.message.split("::");
 

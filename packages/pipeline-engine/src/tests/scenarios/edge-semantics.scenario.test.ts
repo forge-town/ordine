@@ -79,7 +79,9 @@ describe("pipeline scenario: edge semantics", () => {
         makeNode("target", "operation", { operationId: "target-op" }),
       ],
       edges: [edge],
-      onNodeStatusChange: ({ nodeId, status }) => statusEvents.push(`${nodeId}:${status}`),
+      onNodeStatusChange: ({ nodeId, status }) => {
+        statusEvents.push(`${nodeId}:${status}`);
+      },
     });
 
     expect(result.ok).toBe(true);
@@ -110,7 +112,9 @@ describe("pipeline scenario: edge semantics", () => {
         makeNode("target", "operation", { operationId: "target-op" }),
       ],
       edges: [edge],
-      onNodeStatusChange: ({ nodeId, status }) => statusEvents.push(`${nodeId}:${status}`),
+      onNodeStatusChange: ({ nodeId, status }) => {
+        statusEvents.push(`${nodeId}:${status}`);
+      },
     });
 
     expect(result.ok).toBe(true);

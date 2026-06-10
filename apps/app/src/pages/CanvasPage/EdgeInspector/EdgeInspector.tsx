@@ -27,6 +27,7 @@ export const EdgeInspector = () => {
     return null;
   }
 
+  const edgeData: PipelineEdgeData = { label: edge.data?.label ?? "", ...edge.data };
   const mappings = getEdgeMappings(edge);
 
   const handleClose = () => {
@@ -57,9 +58,9 @@ export const EdgeInspector = () => {
     );
 
     persistEdgeData({
-      ...edge.data,
+      ...edgeData,
       dataContract: {
-        ...edge.data?.dataContract,
+        ...edgeData.dataContract,
         mappings: nextMappings,
       },
     });
@@ -69,23 +70,23 @@ export const EdgeInspector = () => {
     const expression = event.target.value.trim();
 
     persistEdgeData({
-      ...edge.data,
-      condition: expression ? { ...edge.data?.condition, expression } : undefined,
+      ...edgeData,
+      condition: expression ? { ...edgeData.condition, expression } : undefined,
     });
   };
 
   const handleTransformAdd = (type: (typeof transformOptions)[number]) => {
     persistEdgeData({
-      ...edge.data,
+      ...edgeData,
       transform: {
-        steps: [...(edge.data?.transform?.steps ?? []), { type, config: {} }],
+        steps: [...(edgeData.transform?.steps ?? []), { type, config: {} }],
       },
     });
   };
 
   const handleTransformClear = () => {
     persistEdgeData({
-      ...edge.data,
+      ...edgeData,
       transform: undefined,
     });
   };
@@ -94,12 +95,12 @@ export const EdgeInspector = () => {
     const criteria = event.target.value.trim();
 
     persistEdgeData({
-      ...edge.data,
+      ...edgeData,
       qualityGate: criteria
         ? {
             criteria,
-            maxRetries: edge.data?.qualityGate?.maxRetries,
-            onFail: edge.data?.qualityGate?.onFail ?? "skip",
+            maxRetries: edgeData.qualityGate?.maxRetries,
+            onFail: edgeData.qualityGate?.onFail ?? "skip",
           }
         : undefined,
     });
@@ -107,24 +108,24 @@ export const EdgeInspector = () => {
 
   const handleQualityRetriesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.valueAsNumber;
-    if (!edge.data?.qualityGate || !Number.isFinite(value)) return;
+    if (!edgeData.qualityGate || !Number.isFinite(value)) return;
 
     persistEdgeData({
-      ...edge.data,
+      ...edgeData,
       qualityGate: {
-        ...edge.data.qualityGate,
+        ...edgeData.qualityGate,
         maxRetries: Math.max(0, Math.floor(value)),
       },
     });
   };
 
   const handleQualityOnFailChange = (value: "retry" | "skip" | "fail") => {
-    if (!edge.data?.qualityGate) return;
+    if (!edgeData.qualityGate) return;
 
     persistEdgeData({
-      ...edge.data,
+      ...edgeData,
       qualityGate: {
-        ...edge.data.qualityGate,
+        ...edgeData.qualityGate,
         onFail: value,
       },
     });
@@ -149,7 +150,7 @@ export const EdgeInspector = () => {
       <div className="space-y-2 p-3">
         <div className="rounded-lg bg-background px-2.5 py-2 ring-1 ring-border">
           <div className="text-[11px] font-medium text-muted-foreground">Label</div>
-          <div className="mt-1 truncate text-[12px]">{edge.data?.label || "data"}</div>
+          <div className="mt-1 truncate text-[12px]">{edgeData.label || "data"}</div>
         </div>
 
         <div className="space-y-2 rounded-lg bg-background px-2.5 py-2 ring-1 ring-border">
@@ -159,7 +160,7 @@ export const EdgeInspector = () => {
           <Input
             id="edge-condition"
             placeholder='content.includes("approved")'
-            value={edge.data?.condition?.expression ?? ""}
+            value={edgeData.condition?.expression ?? ""}
             onChange={handleConditionChange}
           />
         </div>
@@ -190,7 +191,7 @@ export const EdgeInspector = () => {
             </Button>
           </div>
           <div className="text-[11px] text-muted-foreground">
-            {(edge.data?.transform?.steps ?? []).map((step) => step.type).join(" -> ") ||
+            {(edgeData.transform?.steps ?? []).map((step) => step.type).join(" -> ") ||
               "No transform steps."}
           </div>
         </div>
@@ -202,7 +203,7 @@ export const EdgeInspector = () => {
           <Input
             id="edge-quality"
             placeholder="non-empty or required text"
-            value={edge.data?.qualityGate?.criteria ?? ""}
+            value={edgeData.qualityGate?.criteria ?? ""}
             onChange={handleQualityCriteriaChange}
           />
           <div className="grid grid-cols-[1fr_1.4fr] gap-2">
@@ -212,11 +213,11 @@ export const EdgeInspector = () => {
               min={0}
               step={1}
               type="number"
-              value={edge.data?.qualityGate?.maxRetries ?? 0}
+              value={edgeData.qualityGate?.maxRetries ?? 0}
               onChange={handleQualityRetriesChange}
             />
             <Select
-              value={edge.data?.qualityGate?.onFail ?? "skip"}
+              value={edgeData.qualityGate?.onFail ?? "skip"}
               onValueChange={(value) =>
                 handleQualityOnFailChange(value as "retry" | "skip" | "fail")
               }

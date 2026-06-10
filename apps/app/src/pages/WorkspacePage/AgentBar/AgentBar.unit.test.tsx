@@ -215,7 +215,7 @@ describe("AgentBar", () => {
   });
 
   it("renders self-heal steps from job traces", async () => {
-    vi.mocked(dataProvider.custom).mockResolvedValue({
+    vi.mocked(dataProvider.custom!).mockResolvedValue({
       data: {
         traces: [
           { message: "@@SELF_HEAL_DONE::quiz::1" },
