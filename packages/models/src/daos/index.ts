@@ -3,6 +3,7 @@ export * from "./agentRawExportsDao";
 export * from "./agentRuntimesDao";
 export * from "./agentSpansDao";
 export * from "./annotationsDao";
+export * from "./connectorsDao";
 export * from "./conversationMessagesDao";
 export * from "./distillationRunsDao";
 export * from "./distillationsDao";
