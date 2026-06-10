@@ -1,35 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Gauge } from "lucide-react";
-import { PageHeader } from "@/components/PageHeader";
-import { Icon } from "@/components/primitives";
-
-const UsageRoute = () => {
-  return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background">
-      <PageHeader
-        eyebrow="Monitor"
-        icon={<Icon className="text-muted-foreground" icon={Gauge} size={18} />}
-        sub="Tokens, cost, throughput, and run mix."
-        title="Usage"
-      />
-      <div className="flex flex-1 items-center justify-center p-8">
-        <div className="max-w-sm text-center">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-surface-2">
-            <Icon className="text-muted-foreground" icon={Gauge} size={18} />
-          </div>
-          <h2 className="mt-4 text-sm font-semibold">No usage window selected</h2>
-          <p className="mt-1 text-[12.5px] text-muted-foreground">
-            Usage metrics will appear here in the page buildout.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { UsagePage } from "@/pages/UsagePage";
 
 export const Route = createFileRoute("/_layout/usage")({
   head: () => ({
     meta: [{ title: "Usage | Ordine" }],
   }),
-  component: UsageRoute,
+  component: UsagePage,
 });

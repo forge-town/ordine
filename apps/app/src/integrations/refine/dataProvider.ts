@@ -729,6 +729,34 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+    if (url === "usage/summary") {
+      const data = await trpcClient.usage.getSummary.query(
+        payload as unknown as Parameters<typeof trpcClient.usage.getSummary.query>[0],
+      );
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "usage/dailyCost") {
+      const data = await trpcClient.usage.getDailyCostSeries.query(
+        payload as unknown as Parameters<typeof trpcClient.usage.getDailyCostSeries.query>[0],
+      );
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "usage/byPipeline") {
+      const data = await trpcClient.usage.getByPipeline.query(
+        payload as unknown as Parameters<typeof trpcClient.usage.getByPipeline.query>[0],
+      );
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "usage/byAgent") {
+      const data = await trpcClient.usage.getByAgent.query(
+        payload as unknown as Parameters<typeof trpcClient.usage.getByAgent.query>[0],
+      );
+
+      return { data: data as unknown as TData };
+    }
     if (url === "jobs/analysis") {
       const { jobId } = payload as { jobId: string };
       const [traces, agentRuns] = await Promise.all([
