@@ -15,6 +15,7 @@ export * from "./pipelinesDao";
 export * from "./projectsDao";
 export * from "./refinementRunsDao";
 export * from "./refinementsDao";
+export * from "./routinesDao";
 export * from "./settingsDao";
 export * from "./skillsDao";
 export * from "./operationOutputItemTemplatesDao";
