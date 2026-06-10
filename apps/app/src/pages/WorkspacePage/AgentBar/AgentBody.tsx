@@ -5,11 +5,8 @@ import {
   Bubble,
   CompletionCard,
   DistillCard,
-  ErrorCard,
   OptionGrid,
   ProposalCard,
-  RunStatusCard,
-  SelfHealCard,
   SuggestionList,
 } from "./messages";
 
@@ -31,11 +28,12 @@ const userGoal = (
 const handleOpenSkillClick = () => undefined;
 
 export type AgentBodyProps = {
+  runContent?: React.ReactNode;
   phase: WorkspacePhase;
   onPhaseChange?: (phase: WorkspacePhase) => void;
 };
 
-export const AgentBody = ({ onPhaseChange, phase }: AgentBodyProps) => {
+export const AgentBody = ({ onPhaseChange, phase, runContent }: AgentBodyProps) => {
   const handleClarifyClick = () => onPhaseChange?.("clarify");
   const handleProposalClick = () => onPhaseChange?.("proposal");
   const handleAppliedClick = () => onPhaseChange?.("applied");
@@ -133,26 +131,7 @@ export const AgentBody = ({ onPhaseChange, phase }: AgentBodyProps) => {
     return (
       <>
         {userGoal}
-        <RunStatusCard
-          costLabel="14.6s - $0.14"
-          subtitle="Step 3 of 5 - Generate Vocab Quiz"
-          title="Running - job_8f2a"
-        />
-        <SelfHealCard
-          steps={[
-            { label: "8k chunk caused context overflow on file 3." },
-            { label: "Switched to 4k chunk and retried the parser." },
-            { label: "Continuing with the working configuration.", tone: "success" },
-          ]}
-          subtitle="Parse step retried with a smaller chunk size"
-          title="Self-heal - round 2 - resolved"
-        />
-        <ErrorCard
-          title="Heads up - Notion connector needs a token"
-          tryLabel="Connectors -> Notion -> Connect"
-          what="The Export step cannot reach your Notion database yet."
-          why="The connector has not been authorized."
-        />
+        {runContent}
       </>
     );
   }

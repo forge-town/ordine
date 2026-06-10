@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { WorkspacePhase } from "@repo/schemas";
 import { ChevronsRight, Eraser, Sparkles } from "lucide-react";
+import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
+import { useCanvasPageStore } from "@/pages/CanvasPage/_store";
 import { Bubble, Assistant, ProposalCard } from "./messages";
 import { Icon, StatusPill, Tag } from "@/components/primitives";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
+import { AgentRunCards } from "./AgentRunCards";
 import { Composer } from "./Composer";
 import { useAgentBarStore } from "./_store";
 import { useAgentConversation } from "./useAgentConversation";
@@ -41,6 +44,8 @@ export type AgentBarProps = {
 
 export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentBarProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const canvasStore = useCanvasPageStore();
+  const activeJobId = useStore(canvasStore, (state) => state.activeJobId);
   const phase = useWorkspaceStore((state) => state.phase);
   const setPhase = useWorkspaceStore((state) => state.setPhase);
   const canvasRefs = useWorkspaceStore((state) => state.canvasRefs);
@@ -66,7 +71,9 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   const subtitle =
     activeRefs.length > 0
       ? `${activeRefs.length} reference${activeRefs.length > 1 ? "s" : ""} selected`
-      : phaseSubtitle[phase];
+      : phase === "running" && activeJobId
+        ? `Watching ${activeJobId} live`
+        : phaseSubtitle[phase];
   const handlePhaseChange = (targetPhase: WorkspacePhase) => setPhase(targetPhase);
   const handleClearClick = () => clearMessages();
   const handleCollapseClick = () => onCollapse();
@@ -141,7 +148,11 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
       ) : null}
 
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-4 py-3">
-        <AgentBody phase={phase} onPhaseChange={handlePhaseChange} />
+        <AgentBody
+          phase={phase}
+          runContent={phase === "running" ? <AgentRunCards /> : undefined}
+          onPhaseChange={handlePhaseChange}
+        />
         {messages.map((message) =>
           message.role === "user" ? (
             <Bubble
