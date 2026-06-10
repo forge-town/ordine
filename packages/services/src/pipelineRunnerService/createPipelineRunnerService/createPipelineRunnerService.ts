@@ -123,6 +123,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           jobsDao,
           pipelineRunsDao,
           skillsDao,
+          agentRawExportsDao,
           engineDeps: buildDepsForJob({
             jobId,
             apiKey: settings.defaultApiKey,

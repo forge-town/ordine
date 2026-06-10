@@ -39,6 +39,7 @@ describe("pipeline scenario: failure flow", () => {
         },
       ],
     ]);
+    const statusEvents: string[] = [];
 
     const result = await executeScenario({
       deps,
@@ -49,9 +50,22 @@ describe("pipeline scenario: failure flow", () => {
         makeNode("downstream-op", "operation", { operationId: "downstream-op" }),
       ],
       edges: [makeEdge("start", "failing-op"), makeEdge("failing-op", "downstream-op")],
+      onNodeStatusChange: ({ nodeId, status }) => {
+        statusEvents.push(`${nodeId}:${status}`);
+      },
     });
 
     expect(result.ok).toBe(false);
     expect(deps.runPrompt).toHaveBeenCalledTimes(1);
+    expect(statusEvents).toEqual([
+      "start:queued",
+      "failing-op:queued",
+      "downstream-op:queued",
+      "start:running",
+      "start:done",
+      "failing-op:running",
+      "failing-op:failed",
+      "downstream-op:skipped",
+    ]);
   });
 });

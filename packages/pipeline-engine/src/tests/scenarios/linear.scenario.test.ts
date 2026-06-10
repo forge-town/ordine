@@ -59,4 +59,46 @@ describe("pipeline scenario: linear flow", () => {
 
     await rm(folderPath, { recursive: true, force: true });
   });
+
+  it("emits waitingForUser for checkpoint operation nodes", async () => {
+    const deps = makeTestDeps();
+    const operationId = "review-step";
+    const statusEvents: string[] = [];
+    const result = await executeScenario({
+      deps,
+      nodes: [
+        makeNode("operation", "operation", {
+          operationId,
+          checkpoint: true,
+        }),
+      ],
+      operations: new Map<string, OperationInfo>([
+        [
+          operationId,
+          {
+            id: operationId,
+            name: "Review Step",
+            config: {
+              executor: {
+                type: "agent",
+                agentMode: "prompt",
+                prompt: "Review the input",
+              },
+            },
+          },
+        ],
+      ]),
+      onNodeStatusChange: ({ nodeId, status }) => {
+        statusEvents.push(`${nodeId}:${status}`);
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(statusEvents).toEqual([
+      "operation:queued",
+      "operation:running",
+      "operation:waitingForUser",
+      "operation:done",
+    ]);
+  });
 });

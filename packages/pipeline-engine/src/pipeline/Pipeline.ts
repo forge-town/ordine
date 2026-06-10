@@ -9,6 +9,7 @@ import {
   OBJECT_NODE_TYPE_ENUM,
   OPERATION_NODE_TYPE_ENUM,
   OUTPUT_NODE_TYPE_ENUM,
+  type NodeRunStatus,
   type PipelineEdge,
   type PipelineNode,
   type PipelineNodeData,
@@ -50,6 +51,12 @@ export interface PipelineDefinition {
   edges: PipelineEdge[];
 }
 
+export interface PipelineNodeStatusEvent {
+  jobId: string;
+  nodeId: string;
+  status: NodeRunStatus;
+}
+
 export interface PipelineOptions {
   pipeline: PipelineDefinition;
   jobId: string;
@@ -60,6 +67,7 @@ export interface PipelineOptions {
   deps: PipelineEngineDeps;
   lookupAgent: (id: string) => Promise<AgentInfo | null>;
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
+  onNodeStatusChange?: (event: PipelineNodeStatusEvent) => Promise<void> | void;
 }
 
 export class Pipeline {
@@ -88,6 +96,9 @@ export class Pipeline {
       jobId,
       `Pipeline "${pipeline.name}" loaded. ${nodes.length} nodes in ${levels.length} levels.`,
     );
+    for (const node of nodes) {
+      await this.emitNodeStatus(node.id, "queued");
+    }
 
     if (this.opts.inputPath && existsSync(this.opts.inputPath)) {
       const readResult = await safeReadInputFile(this.opts.inputPath);
@@ -111,6 +122,8 @@ export class Pipeline {
       for (const result of results) {
         if (!result.ok) {
           await trace(jobId, `Pipeline failed at level ${levelIndex}`);
+          const remainingLevels = levels.slice(levelIndex + 1).flat();
+          await Promise.all(remainingLevels.map((node) => this.emitNodeStatus(node.id, "skipped")));
           await this.cleanupTempDirs();
 
           return { ok: false, error: result.error };
@@ -167,6 +180,10 @@ export class Pipeline {
 
     await trace(jobId, `Processing node [${node.type}] ${data.label ?? node.id}`);
     await trace(jobId, `@@NODE_START::${node.id}`);
+    await this.emitNodeStatus(node.id, "running");
+    if (data.nodeType === BUILTIN_NODE_TYPE_ENUM.OPERATION && data.checkpoint) {
+      await this.emitNodeStatus(node.id, "waitingForUser");
+    }
 
     const baseCtx = {
       node,
@@ -182,7 +199,10 @@ export class Pipeline {
 
     // ── object metaType ──────────────────────────────────────────────────
     if (metaType === "object") {
-      return this.processObjectNode(node, baseCtx, data, input);
+      return this.finalizeNodeStatus(
+        node.id,
+        await this.processObjectNode(node, baseCtx, data, input),
+      );
     }
 
     // ── operation metaType ───────────────────────────────────────────────
@@ -197,7 +217,10 @@ export class Pipeline {
           outputDir: this.resolveOutputDirForNode(node.id),
         };
 
-        return this.wrapNodeResult(node.id, processOperationNode(node, input, opCtx));
+        return this.finalizeNodeStatus(
+          node.id,
+          await this.wrapNodeResult(node.id, processOperationNode(node, input, opCtx)),
+        );
       }
 
       // compound — passthrough for now
@@ -205,13 +228,16 @@ export class Pipeline {
       this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
       await trace(jobId, `@@NODE_DONE::${node.id}`);
 
-      return { ok: true };
+      return this.finalizeNodeStatus(node.id, { ok: true });
     }
 
     // ── output metaType ──────────────────────────────────────────────────
     if (metaType === "output") {
       if (node.type === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) {
-        return this.wrapNodeResult(node.id, processOutputLocalPathNode(baseCtx));
+        return this.finalizeNodeStatus(
+          node.id,
+          await this.wrapNodeResult(node.id, processOutputLocalPathNode(baseCtx)),
+        );
       }
 
       if (node.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_PROJECT_PATH) {
@@ -220,14 +246,14 @@ export class Pipeline {
         this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
         await trace(jobId, `@@NODE_DONE::${node.id}`);
 
-        return { ok: true };
+        return this.finalizeNodeStatus(node.id, { ok: true });
       }
 
       await trace(jobId, `Skipped output node type: ${node.type}`);
       this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
       await trace(jobId, `@@NODE_DONE::${node.id}`);
 
-      return { ok: true };
+      return this.finalizeNodeStatus(node.id, { ok: true });
     }
 
     // fallback — skip
@@ -235,7 +261,7 @@ export class Pipeline {
     this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
     await trace(jobId, `@@NODE_DONE::${node.id}`);
 
-    return { ok: true };
+    return this.finalizeNodeStatus(node.id, { ok: true });
   }
 
   private resolveOutputDirForNode(nodeId: string): string | undefined {
@@ -332,6 +358,19 @@ export class Pipeline {
     if (!result.ok) return { ok: false, error: new ScriptExecutionError(`Node ${nodeId} failed`) };
 
     return { ok: true };
+  }
+
+  private async finalizeNodeStatus(
+    nodeId: string,
+    result: { ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError },
+  ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
+    await this.emitNodeStatus(nodeId, result.ok ? "done" : "failed");
+
+    return result;
+  }
+
+  private async emitNodeStatus(nodeId: string, status: NodeRunStatus): Promise<void> {
+    await this.opts.onNodeStatusChange?.({ jobId: this.opts.jobId, nodeId, status });
   }
 
   private async cleanupTempDirs(): Promise<void> {
