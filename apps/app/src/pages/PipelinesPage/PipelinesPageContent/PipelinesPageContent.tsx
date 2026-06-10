@@ -63,6 +63,8 @@ export const PipelinesPageContent = () => {
     const now = new Date();
     const newPipeline: PipelineData = {
       id,
+      projectId: null,
+      status: "draft",
       name: t("pipelines.createNew"),
       description: t("pipelines.newPipelineDescription"),
       tags: [],

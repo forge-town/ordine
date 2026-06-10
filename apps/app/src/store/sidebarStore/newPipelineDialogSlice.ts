@@ -139,6 +139,8 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
 
     const newPipeline: PipelineData = {
       id,
+      projectId: null,
+      status: "draft",
       name: pipelineName,
       description: trimmedDescription,
       tags: [],

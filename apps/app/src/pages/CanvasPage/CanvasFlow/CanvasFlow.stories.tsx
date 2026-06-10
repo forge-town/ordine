@@ -8,6 +8,8 @@ import { CanvasFlow } from "./CanvasFlow";
 
 const portAlignmentPipeline: PipelineData = {
   id: "story-port-alignment",
+  projectId: null,
+  status: "draft",
   name: "Port Alignment Debug",
   description: "Debug fixture for React Flow handle alignment.",
   tags: ["storybook", "debug"],

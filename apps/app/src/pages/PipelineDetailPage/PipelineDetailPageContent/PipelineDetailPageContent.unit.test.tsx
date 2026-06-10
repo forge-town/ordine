@@ -62,6 +62,8 @@ const makePipeline = (overrides: Partial<PipelineData> = {}): PipelineData => {
 
   return {
     id: "pipe-1",
+    projectId: null,
+    status: "draft",
     name: "My Pipeline",
     description: "A test pipeline",
     tags: [],

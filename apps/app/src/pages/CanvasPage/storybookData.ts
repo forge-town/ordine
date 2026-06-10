@@ -133,6 +133,8 @@ export const canvasStoryJobTraces: JobTrace[] = [
 
 export const canvasStoryPipeline: PipelineData = {
   id: "story-pipeline",
+  projectId: null,
+  status: "draft",
   name: "Story Pipeline",
   description: "Canvas Storybook pipeline fixture.",
   tags: ["storybook"],
