@@ -4,7 +4,6 @@ import {
   Assistant,
   Bubble,
   CompletionCard,
-  DistillCard,
   OptionGrid,
   ProposalCard,
   SuggestionList,
@@ -25,15 +24,14 @@ const userGoal = (
   </Bubble>
 );
 
-const handleOpenSkillClick = () => undefined;
-
 export type AgentBodyProps = {
+  distillContent?: React.ReactNode;
   runContent?: React.ReactNode;
   phase: WorkspacePhase;
   onPhaseChange?: (phase: WorkspacePhase) => void;
 };
 
-export const AgentBody = ({ onPhaseChange, phase, runContent }: AgentBodyProps) => {
+export const AgentBody = ({ distillContent, onPhaseChange, phase, runContent }: AgentBodyProps) => {
   const handleClarifyClick = () => onPhaseChange?.("clarify");
   const handleProposalClick = () => onPhaseChange?.("proposal");
   const handleAppliedClick = () => onPhaseChange?.("applied");
@@ -146,11 +144,7 @@ export const AgentBody = ({ onPhaseChange, phase, runContent }: AgentBodyProps) 
         Exported 20 vocabulary and grammar questions to Notion. Verify caught 3 ambiguous
         distractors and rewrote them.
       </CompletionCard>
-      <DistillCard
-        subtitle="Textbook to Notion Quiz - saved to Components"
-        title="Distilled to a Pipeline Skill"
-        onOpen={handleOpenSkillClick}
-      />
+      {distillContent}
       <Assistant>
         Saved this as a reusable Pipeline Skill. Next time, drop a new folder of PDFs and I will run
         the whole thing.

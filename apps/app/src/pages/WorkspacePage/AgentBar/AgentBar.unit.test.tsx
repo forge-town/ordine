@@ -1,22 +1,33 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Job } from "@repo/schemas";
+import type { Job, PipelineAsset } from "@repo/schemas";
 import { CanvasPageStoreContext, createCanvasPageStore } from "@/pages/CanvasPage/_store";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { useAgentBarStore } from "./_store";
 import { AgentBar, WORKSPACE_PHASES } from "./AgentBar";
 
-const { mockUseOneData } = vi.hoisted(() => ({
+const { mockNavigate, mockUseListData, mockUseOneData } = vi.hoisted(() => ({
+  mockNavigate: vi.fn(),
+  mockUseListData: vi.fn<() => PipelineAsset[]>(() => []),
   mockUseOneData: vi.fn<() => Job | null>(() => null),
 }));
 
 vi.mock("@refinedev/core", () => ({
+  useList: () => ({
+    result: {
+      data: mockUseListData(),
+    },
+  }),
   useOne: () => ({
     query: {
       data: mockUseOneData() ? { data: mockUseOneData() } : undefined,
     },
   }),
+}));
+
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => mockNavigate,
 }));
 
 vi.mock("./useAgentConversation", () => ({
@@ -76,6 +87,8 @@ describe("AgentBar", () => {
   beforeEach(() => {
     useWorkspaceStore.getState().resetWorkspace();
     useAgentBarStore.getState().resetAgentBar();
+    mockNavigate.mockClear();
+    mockUseListData.mockReturnValue([]);
     mockUseOneData.mockReturnValue(null);
   });
 
@@ -100,7 +113,6 @@ describe("AgentBar", () => {
     }
 
     expect(screen.getByText("Run complete - asset saved")).toBeInTheDocument();
-    expect(screen.getByText("Distilled to a Pipeline Skill")).toBeInTheDocument();
   });
 
   it("renders conversation messages after the scripted phase body", () => {
@@ -194,6 +206,37 @@ describe("AgentBar", () => {
     expect(screen.getByText("Failed - job-failed")).toBeInTheDocument();
     expect(screen.getByText("Run failed - Generate Quiz")).toBeInTheDocument();
     expect(screen.getByText(/Connector token missing/)).toBeInTheDocument();
+  });
+
+  it("renders distilled asset and opens Components", async () => {
+    const user = userEvent.setup();
+    useWorkspaceStore.getState().setPhase("done");
+    mockUseListData.mockReturnValue([
+      {
+        id: "asset-1",
+        pipelineId: "pipe-test",
+        name: "Quiz Pipeline",
+        description: "",
+        snapshotNodes: [],
+        snapshotEdges: [],
+        inputSlots: [],
+        totalRuns: 1,
+        successRate: 1,
+        avgDurationMs: 1200,
+        tags: [],
+        createdAt: new Date("2026-06-10T10:00:00.000Z"),
+        updatedAt: new Date("2026-06-10T10:00:00.000Z"),
+      },
+    ]);
+
+    renderAgentBar();
+
+    expect(screen.getByText("Distilled to Components")).toBeInTheDocument();
+    expect(screen.getByText("Quiz Pipeline - saved to Components")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Open" }));
+
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/components" });
   });
 
   it("calls collapse handler from the header button", async () => {

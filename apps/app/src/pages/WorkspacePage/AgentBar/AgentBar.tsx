@@ -9,6 +9,7 @@ import { Bubble, Assistant, ProposalCard } from "./messages";
 import { Icon, StatusPill, Tag } from "@/components/primitives";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
+import { AgentDistillCard } from "./AgentDistillCard";
 import { AgentRunCards } from "./AgentRunCards";
 import { Composer } from "./Composer";
 import { useAgentBarStore } from "./_store";
@@ -149,6 +150,9 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
 
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-4 py-3">
         <AgentBody
+          distillContent={
+            phase === "done" ? <AgentDistillCard pipelineId={pipelineId} /> : undefined
+          }
           phase={phase}
           runContent={phase === "running" ? <AgentRunCards /> : undefined}
           onPhaseChange={handlePhaseChange}

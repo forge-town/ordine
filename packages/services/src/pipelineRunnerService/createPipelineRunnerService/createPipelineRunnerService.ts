@@ -6,6 +6,7 @@ import { loopEvaluator } from "../loopEvaluator";
 import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
+import { createPipelineAssetsService } from "../../pipelineAssetsService";
 import {
   createAgentsDao,
   createOperationsDao,
@@ -40,6 +41,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   const agentSpansDao = createAgentSpansDao(db);
   const settingsDao = createSettingsDao(db);
   const agentRuntimesDao = createAgentRuntimesDao(db);
+  const pipelineAssetsService = createPipelineAssetsService(db);
 
   initObs(jobTracesDao);
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
@@ -124,6 +126,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           pipelineRunsDao,
           skillsDao,
           agentRawExportsDao,
+          pipelineAssetsService,
           engineDeps: buildDepsForJob({
             jobId,
             apiKey: settings.defaultApiKey,

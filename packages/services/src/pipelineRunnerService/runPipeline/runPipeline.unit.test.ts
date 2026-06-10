@@ -58,6 +58,10 @@ const makeOpts = (overrides = {}) => ({
   agentRawExportsDao: {
     findByJobId: vi.fn().mockResolvedValue([]),
   } as unknown as AgentRawExportsDao,
+  pipelineAssetsService: {
+    distillFromPipeline: vi.fn().mockReturnValue(okAsync({ id: "asset-1" })),
+    incrementRunStats: vi.fn().mockReturnValue(okAsync({ id: "asset-1" })),
+  },
   engineDeps: {
     runPrompt: vi.fn().mockReturnValue(okAsync("")),
     runSkill: vi.fn().mockReturnValue(okAsync("")),
@@ -92,6 +96,14 @@ describe("runPipeline", () => {
         finishedAt: expect.any(Date),
         totalTokens: 0,
         totalCost: "0.0000",
+      }),
+    );
+    expect(opts.pipelineAssetsService.distillFromPipeline).toHaveBeenCalledWith("pipe-1");
+    expect(opts.pipelineAssetsService.incrementRunStats).toHaveBeenCalledWith(
+      "asset-1",
+      expect.objectContaining({
+        success: true,
+        durationMs: expect.any(Number),
       }),
     );
   });

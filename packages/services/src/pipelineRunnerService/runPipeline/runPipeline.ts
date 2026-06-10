@@ -19,6 +19,14 @@ import type {
   AgentRawExportsDao,
 } from "@repo/models";
 
+type PipelineAssetsServiceForRun = {
+  distillFromPipeline: (pipelineId: string) => ResultAsync<{ id: string }, unknown>;
+  incrementRunStats: (
+    id: string,
+    stats: { success: boolean; durationMs: number },
+  ) => ResultAsync<unknown, unknown>;
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
@@ -88,6 +96,39 @@ const createNodeStatusWriter = ({ jobsDao, jobId }: { jobsDao: JobsDao; jobId: s
   };
 };
 
+const distillAssetSafely = async ({
+  finishedAt,
+  pipelineAssetsService,
+  pipelineId,
+  startedAt,
+}: {
+  finishedAt: Date;
+  pipelineAssetsService: PipelineAssetsServiceForRun;
+  pipelineId: string;
+  startedAt: Date;
+}): Promise<void> => {
+  const distillResult = await pipelineAssetsService.distillFromPipeline(pipelineId);
+  if (distillResult.isErr()) {
+    logger.warn(
+      { err: distillResult.error, pipelineId },
+      "runPipeline: failed to distill pipeline asset",
+    );
+
+    return;
+  }
+
+  const statsResult = await pipelineAssetsService.incrementRunStats(distillResult.value.id, {
+    success: true,
+    durationMs: Math.max(0, finishedAt.getTime() - startedAt.getTime()),
+  });
+  if (statsResult.isErr()) {
+    logger.warn(
+      { err: statsResult.error, assetId: distillResult.value.id, pipelineId },
+      "runPipeline: failed to increment pipeline asset run stats",
+    );
+  }
+};
+
 /**
  * Mark a job as failed. Swallows any DAO/trace errors to guarantee the caller
  * never sees an unhandled rejection from this helper.
@@ -145,6 +186,7 @@ export const pipelineRunExecutor = {
     pipelineRunsDao: PipelineRunsDao;
     skillsDao: SkillsDao;
     agentRawExportsDao: AgentRawExportsDao;
+    pipelineAssetsService: PipelineAssetsServiceForRun;
     engineDeps: PipelineEngineDeps;
   }): Promise<void> => {
     const {
@@ -158,13 +200,15 @@ export const pipelineRunExecutor = {
       pipelineRunsDao,
       skillsDao,
       agentRawExportsDao,
+      pipelineAssetsService,
       engineDeps,
     } = opts;
     const updateNodeStatus = createNodeStatusWriter({ jobsDao, jobId });
 
     const runResult = await ResultAsync.fromPromise(
       (async () => {
-        await jobsDao.updateStatus(jobId, "running", { startedAt: new Date() });
+        const startedAt = new Date();
+        await jobsDao.updateStatus(jobId, "running", { startedAt });
         await trace(jobId, `Starting pipeline ${pipelineId}`);
 
         const pipeline = await pipelinesDao.findById(pipelineId);
@@ -236,10 +280,17 @@ export const pipelineRunExecutor = {
         const usageTotals = await aggregateUsageTotals({ agentRawExportsDao, jobId });
 
         if (outcome.ok) {
+          const finishedAt = new Date();
           await pipelineRunsDao.update(jobId, { result: { summary: outcome.summary } });
           await jobsDao.updateStatus(jobId, "done", {
-            finishedAt: new Date(),
+            finishedAt,
             ...usageTotals,
+          });
+          await distillAssetSafely({
+            finishedAt,
+            pipelineAssetsService,
+            pipelineId,
+            startedAt,
           });
         } else {
           await failJobSafely({
