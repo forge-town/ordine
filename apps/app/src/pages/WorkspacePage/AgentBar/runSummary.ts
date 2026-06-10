@@ -1,4 +1,4 @@
-import type { Job, NodeRunStatus, PipelineNode } from "@repo/schemas";
+import type { Job, JobTrace, NodeRunStatus, PipelineNode } from "@repo/schemas";
 
 const ACTIVE_NODE_STATUSES = new Set<NodeRunStatus>(["running", "waitingForUser", "retrying"]);
 
@@ -40,6 +40,36 @@ export type AgentRunSummary = {
   subtitle: string;
   title: string;
 };
+
+export const buildSelfHealSteps = (
+  traces: Pick<JobTrace, "message">[],
+): { label: string; tone?: "muted" | "success" }[] =>
+  traces
+    .slice()
+    .reverse()
+    .flatMap((trace) => {
+      if (trace.message.startsWith("@@SELF_HEAL_DONE::")) {
+        const [, nodeId, attempt] = trace.message.split("::");
+
+        return [
+          {
+            label: `Node ${nodeId ?? "unknown"} recovered on retry ${attempt ?? "1"}`,
+            tone: "success" as const,
+          },
+        ];
+      }
+
+      if (!trace.message.startsWith("@@SELF_HEAL::")) return [];
+
+      const [, nodeId, attempt, detail] = trace.message.split("::");
+
+      return [
+        {
+          label: `Retry ${attempt ?? "1"} for ${nodeId ?? "unknown"} - ${detail ?? "automatic recovery"}`,
+          tone: "muted" as const,
+        },
+      ];
+    });
 
 export const buildAgentRunSummary = ({
   job,

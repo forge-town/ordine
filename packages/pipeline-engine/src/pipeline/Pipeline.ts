@@ -30,6 +30,7 @@ import { processOperationNode } from "../nodes/OperationNode";
 const OBJECT_TYPES: ReadonlySet<string> = new Set(Object.values(OBJECT_NODE_TYPE_ENUM));
 const OPERATION_TYPES: ReadonlySet<string> = new Set(Object.values(OPERATION_NODE_TYPE_ENUM));
 const OUTPUT_TYPES: ReadonlySet<string> = new Set(Object.values(OUTPUT_NODE_TYPE_ENUM));
+const SELF_HEAL_MAX_RETRIES = 1;
 
 const resolveMetaType = (type: string): MetaNodeType =>
   OBJECT_TYPES.has(type)
@@ -204,7 +205,30 @@ export class Pipeline {
       await trace(this.opts.jobId, `@@RUN_RESUME::${node.id}`);
     }
 
-    return this.processNode(node);
+    const firstResult = await this.processNode(node);
+    if (firstResult.ok || !this.canSelfHeal(node)) {
+      return firstResult;
+    }
+
+    for (const attempt of Array.from({ length: SELF_HEAL_MAX_RETRIES }, (_, i) => i + 1)) {
+      await trace(
+        this.opts.jobId,
+        `@@SELF_HEAL::${node.id}::${attempt}::Retrying after failure: ${firstResult.error.message}`,
+      );
+      await this.emitNodeStatus(node.id, "retrying");
+      const retryResult = await this.processNode(node);
+      if (retryResult.ok) {
+        await trace(this.opts.jobId, `@@SELF_HEAL_DONE::${node.id}::${attempt}`);
+
+        return retryResult;
+      }
+    }
+
+    return firstResult;
+  }
+
+  private canSelfHeal(node: PipelineNode): boolean {
+    return node.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OPERATION;
   }
 
   private async processNode(

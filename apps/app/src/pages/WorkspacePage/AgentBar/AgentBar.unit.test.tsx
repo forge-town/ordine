@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Job, PipelineAsset } from "@repo/schemas";
@@ -212,6 +212,53 @@ describe("AgentBar", () => {
     expect(screen.getByText("Failed - job-failed")).toBeInTheDocument();
     expect(screen.getByText("Run failed - Generate Quiz")).toBeInTheDocument();
     expect(screen.getByText(/Connector token missing/)).toBeInTheDocument();
+  });
+
+  it("renders self-heal steps from job traces", async () => {
+    vi.mocked(dataProvider.custom).mockResolvedValue({
+      data: {
+        traces: [
+          { message: "@@SELF_HEAL_DONE::quiz::1" },
+          { message: "@@SELF_HEAL::quiz::1::Retrying after failure: timeout" },
+        ],
+      },
+    });
+    useWorkspaceStore.getState().setPhase("running");
+    mockUseOneData.mockReturnValue({
+      id: "job-healed",
+      title: "Pipeline run",
+      type: "pipeline_run",
+      status: "failed",
+      parentJobId: null,
+      error: "Still failed downstream",
+      startedAt: new Date("2026-06-10T10:00:00.000Z"),
+      finishedAt: new Date("2026-06-10T10:00:04.000Z"),
+      totalCost: "0.0000",
+      nodeStatuses: {
+        load: "done",
+        quiz: "failed",
+      },
+      meta: {
+        createdAt: new Date("2026-06-10T10:00:00.000Z"),
+        updatedAt: new Date("2026-06-10T10:00:04.000Z"),
+      },
+    } satisfies Job);
+
+    renderAgentBar(vi.fn(), (store) => {
+      store.setState({
+        activeJobId: "job-healed",
+        nodeRunStatuses: {
+          load: "done",
+          quiz: "failed",
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Self-heal")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Retry 1 for quiz/)).toBeInTheDocument();
+    expect(screen.getByText(/Node quiz recovered/)).toBeInTheDocument();
   });
 
   it("renders checkpoint controls and resumes a waiting job", async () => {
