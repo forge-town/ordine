@@ -7,6 +7,7 @@ import { Bubble, Assistant } from "./messages";
 import { Icon, StatusPill, Tag } from "@/components/primitives";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
+import { Composer } from "./Composer";
 import { useAgentBarStore } from "./_store";
 
 export const WORKSPACE_PHASES: WorkspacePhase[] = [
@@ -43,6 +44,7 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   const setPhase = useWorkspaceStore((state) => state.setPhase);
   const canvasRefs = useWorkspaceStore((state) => state.canvasRefs);
   const dismissed = useWorkspaceStore((state) => state.dismissed);
+  const dismissRef = useWorkspaceStore((state) => state.dismiss);
   const messages = useAgentBarStore((state) => state.messages);
   const clearMessages = useAgentBarStore((state) => state.clearMessages);
   const activeRefs = useMemo(
@@ -56,6 +58,7 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   const handlePhaseChange = (targetPhase: WorkspacePhase) => setPhase(targetPhase);
   const handleClearClick = () => clearMessages();
   const handleCollapseClick = () => onCollapse();
+  const handleRemoveRef = (id: string) => dismissRef(id);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -125,7 +128,12 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
         <AgentBody phase={phase} onPhaseChange={handlePhaseChange} />
         {messages.map((message) =>
           message.role === "user" ? (
-            <Bubble key={message.id}>{message.content}</Bubble>
+            <Bubble
+              key={message.id}
+              attachmentLabel={message.metadata?.attachments?.map((item) => item.name).join(", ")}
+            >
+              {message.content}
+            </Bubble>
           ) : (
             <Assistant key={message.id} isThinking={message.isThinking}>
               {message.content}
@@ -144,13 +152,7 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
             ))}
           </div>
         </div>
-        {composer ?? (
-          <div className="p-3">
-            <div className="rounded-2xl bg-background px-3 py-2 text-[12px] text-muted-foreground ring-1 ring-border">
-              Composer
-            </div>
-          </div>
-        )}
+        {composer ?? <Composer refs={activeRefs} onRemoveRef={handleRemoveRef} />}
       </div>
     </aside>
   );

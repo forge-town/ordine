@@ -6,6 +6,10 @@ export type AgentBarMessage = {
   content: string;
   id: string;
   isThinking?: boolean;
+  metadata?: {
+    attachments?: Array<{ name: string }>;
+    referencedNodeIds?: string[];
+  };
   role: AgentBarMessageRole;
 };
 
