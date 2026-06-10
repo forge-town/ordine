@@ -1,7 +1,6 @@
-import { useMemo, useState, type ChangeEvent, type MouseEvent } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
 import { useStore } from "zustand";
-import { Download, Plus, Search, Trash2, Wand2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { Download, Plus, Search, Wand2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
@@ -12,7 +11,9 @@ import { useCreate, useDataProvider, useDelete, useList } from "@refinedev/core"
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
-import { useSkillsPageStore, type SkillCategory } from "../_store";
+import { Icon } from "@/components/primitives";
+import { SKILL_SOURCE_FILTERS, useSkillsPageStore, type SkillSourceFilter } from "../_store";
+import { SkillCard, type SkillCardItem } from "../SkillCard";
 
 interface SkillImportCandidate {
   id: string;
@@ -27,12 +28,75 @@ interface SkillImportPreview {
   errors: string[];
 }
 
-const categoryColors: Record<string, string> = {
-  page: "bg-violet-100 text-violet-700",
-  data: "bg-blue-100 text-blue-700",
-  state: "bg-emerald-100 text-emerald-700",
-  form: "bg-amber-100 text-amber-700",
-  "code-quality": "bg-gray-100 text-gray-600",
+const IO_BY_CATEGORY: Record<string, string> = {
+  custom: "prompt -> custom operation",
+  data: "schema -> dao/service",
+  form: "fields -> validated form",
+  imported: "prompt -> artifact",
+  page: "brief -> page.tsx",
+  state: "state map -> zustand slice",
+  "code-quality": "repo -> review report",
+};
+
+const SOURCE_TONES: Record<string, SkillCardItem["sourceTone"]> = {
+  "Built-in": "neutral",
+  "Claude Code": "orange",
+  Codex: "blue",
+  Custom: "green",
+  Hermes: "purple",
+  Imported: "neutral",
+};
+
+const normalizeToken = (value: string) => value.trim().toLowerCase();
+
+const includesAny = (values: string[], needles: string[]) => {
+  return values.some((value) => needles.some((needle) => value.includes(needle)));
+};
+
+const getSkillTokens = (skill: Skill) => {
+  return [skill.name, skill.label, skill.category, ...skill.tags].map(normalizeToken);
+};
+
+const getSkillSource = (skill: Skill): SkillSourceFilter => {
+  const tokens = getSkillTokens(skill);
+  if (includesAny(tokens, ["claude-code", "claude code", "claude"])) return "Claude Code";
+  if (includesAny(tokens, ["codex"])) return "Codex";
+  if (includesAny(tokens, ["hermes"])) return "Hermes";
+  if (skill.category === "imported" || tokens.includes("imported")) return "Imported";
+  if (skill.category === "custom" || tokens.includes("custom")) return "Custom";
+
+  return "Built-in";
+};
+
+const getSourceCaption = (source: SkillSourceFilter) => {
+  if (source === "Built-in") return "seeded in Ordine";
+  if (source === "Custom") return "created locally";
+  if (source === "All") return "available everywhere";
+
+  return `imported from ${source}`;
+};
+
+const getOperationName = (skill: Skill) => {
+  const title = skill.label.trim() || skill.name;
+
+  return `${title} Operation`;
+};
+
+const toSkillCardItem = (skill: Skill): SkillCardItem => {
+  const source = getSkillSource(skill);
+
+  return {
+    id: skill.id,
+    description: skill.description.split("\n")[0] || "No description yet.",
+    io: IO_BY_CATEGORY[skill.category] ?? "input -> output",
+    name: skill.name,
+    operation: getOperationName(skill),
+    source,
+    sourceCaption: getSourceCaption(source),
+    sourceTone: SOURCE_TONES[source] ?? "neutral",
+    tags: skill.tags,
+    title: skill.label,
+  };
 };
 
 export const SkillsPageContent = () => {
@@ -42,7 +106,6 @@ export const SkillsPageContent = () => {
   const getDataProvider = useDataProvider();
   const dataProvider = getDataProvider();
   const skills = skillsResult.data;
-  const { t } = useTranslation();
   const [importPath, setImportPath] = useState("");
   const [importCandidates, setImportCandidates] = useState<SkillImportCandidate[]>([]);
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<Set<string>>(new Set());
@@ -54,36 +117,43 @@ export const SkillsPageContent = () => {
   const { mutateAsync: createSkill } = useCreate();
   const { mutateAsync: deleteSkill } = useDelete();
 
-  const categoryLabels: Record<SkillCategory, string> = {
-    all: t("skills.categories.all"),
-    page: t("skills.categories.page"),
-    data: t("skills.categories.data"),
-    state: t("skills.categories.state"),
-    form: t("skills.categories.form"),
-    "code-quality": t("skills.categories.code-quality"),
-  };
-
   const store = useSkillsPageStore();
   const search = useStore(store, (s) => s.search);
-  const category = useStore(store, (s) => s.category);
+  const source = useStore(store, (s) => s.source);
   const handleSetSearch = useStore(store, (s) => s.handleSetSearch);
-  const handleSetCategory = useStore(store, (s) => s.handleSetCategory);
+  const handleSetSource = useStore(store, (s) => s.handleSetSource);
+  const handleCreateOperationClick = useStore(store, (s) => s.handleCreateOperationClick);
 
   const searchLower = search.toLowerCase();
-  const filtered = useMemo(() => {
-    if (!skills) return [];
+  const skillCards = useMemo(() => {
+    return skills.map(toSkillCardItem);
+  }, [skills]);
 
-    return skills.filter((s: Skill) => {
+  const visibleSourceFilters = useMemo(() => {
+    const availableSources = new Set(skillCards.map((skill) => skill.source));
+
+    return SKILL_SOURCE_FILTERS.filter((filter) => {
+      if (filter === "All") return true;
+      if (filter === "Claude Code" || filter === "Codex" || filter === "Hermes") return true;
+
+      return availableSources.has(filter);
+    });
+  }, [skillCards]);
+
+  const filtered = useMemo(() => {
+    return skillCards.filter((s) => {
       const matchesSearch =
         !searchLower ||
-        s.label.toLowerCase().includes(searchLower) ||
         s.name.toLowerCase().includes(searchLower) ||
-        s.description.toLowerCase().includes(searchLower);
-      const matchesCategory = category === "all" || s.category === category;
+        s.title.toLowerCase().includes(searchLower) ||
+        s.description.toLowerCase().includes(searchLower) ||
+        s.operation.toLowerCase().includes(searchLower) ||
+        s.tags.some((tag) => tag.toLowerCase().includes(searchLower));
+      const matchesSource = source === "All" || s.source === source;
 
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesSource;
     });
-  }, [skills, searchLower, category]);
+  }, [skillCards, searchLower, source]);
 
   const handleImportPathInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     setImportPath(event.target.value);
@@ -126,7 +196,9 @@ export const SkillsPageContent = () => {
 
   const handleImportClick = async () => {
     setIsImporting(true);
-    const candidates = importCandidates.filter((candidate) => selectedCandidateIds.has(candidate.id));
+    const candidates = importCandidates.filter((candidate) =>
+      selectedCandidateIds.has(candidate.id),
+    );
     await dataProvider.custom!({
       url: "skills/importCandidates",
       method: "post",
@@ -178,10 +250,7 @@ export const SkillsPageContent = () => {
     await skillsQuery?.refetch?.();
   };
 
-  const handleDeleteSkillClick = async (event: MouseEvent<HTMLButtonElement>) => {
-    const skillId = event.currentTarget.dataset.skillId;
-    if (!skillId) return;
-
+  const handleDeleteSkillClick = async (skillId: string) => {
     await deleteSkill({ resource: ResourceName.skills, id: skillId });
     await skillsQuery?.refetch?.();
   };
@@ -189,7 +258,7 @@ export const SkillsPageContent = () => {
   if (skillsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("skills.title")} />
+        <PageHeader title="Skills" />
         <PageLoadingState variant="grid" />
       </div>
     );
@@ -199,38 +268,38 @@ export const SkillsPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         actions={
-        <Button size="sm" onClick={handleOpenCreateDialogClick}>
+          <Button size="sm" onClick={handleOpenCreateDialogClick}>
             <Plus className="h-4 w-4" />
             Create Skill
           </Button>
         }
         badge={<span className="text-xs text-muted-foreground">{skills.length}</span>}
-        icon={<Wand2 className="h-4 w-4 text-primary" />}
-        title={t("skills.title")}
+        icon={<Icon className="text-muted-foreground" icon={Wand2} size={18} />}
+        title="Skills"
       />
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border bg-background px-6 py-3">
         <div className="relative flex-1 max-w-xs">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="pl-8 h-8 text-sm"
-            placeholder={t("common.search")}
+            placeholder="Search skills..."
             type="text"
             value={search}
             onChange={(event) => handleSetSearch(event.target.value)}
           />
         </div>
-        <div className="flex items-center gap-1">
-          {(Object.keys(categoryLabels) as SkillCategory[]).map((cat) => (
+        <div className="flex flex-wrap items-center gap-1">
+          {visibleSourceFilters.map((filter) => (
             <Button
-              key={cat}
+              key={filter}
               className="text-xs h-7 px-2.5"
               size="sm"
-              variant={category === cat ? "default" : "ghost"}
-              onClick={() => handleSetCategory(cat)}
+              variant={source === filter ? "default" : "ghost"}
+              onClick={() => handleSetSource(filter)}
             >
-              {categoryLabels[cat]}
+              {filter}
             </Button>
           ))}
         </div>
@@ -366,59 +435,17 @@ export const SkillsPageContent = () => {
         {filtered.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center text-center text-muted-foreground">
             <Wand2 className="h-8 w-8 text-muted-foreground/30" />
-            <p className="mt-2 text-sm">{t("skills.noSkills")}</p>
+            <p className="mt-2 text-sm">No skills found</p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
             {filtered.map((skill) => (
-              <div
+              <SkillCard
                 key={skill.id}
-                className="group flex flex-col rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:shadow-sm transition-all"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                    <Wand2 className="h-4 w-4 text-primary" />
-                  </div>
-                  <Badge
-                    className={cn(
-                      "text-[10px]",
-                      categoryColors[skill.category] ?? "bg-gray-100 text-gray-600",
-                    )}
-                    variant="secondary"
-                  >
-                    {categoryLabels[skill.category as SkillCategory] ?? skill.category}
-                  </Badge>
-                </div>
-
-                <h3 className="mt-3 text-sm font-semibold text-foreground">{skill.label}</h3>
-                <p className="mt-1 flex-1 text-xs text-muted-foreground leading-relaxed line-clamp-3">
-                  {skill.description.split("\n")[0]}
-                </p>
-
-                <div className="mt-3 flex flex-wrap gap-1">
-                  {skill.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                  <code className="text-[10px] text-muted-foreground">{skill.name}</code>
-                  <Button
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    data-skill-id={skill.id}
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleDeleteSkillClick}
-                  >
-                    <Trash2 className="h-3 w-3 text-destructive" />
-                  </Button>
-                </div>
-              </div>
+                item={skill}
+                onCreateOperation={handleCreateOperationClick}
+                onDelete={handleDeleteSkillClick}
+              />
             ))}
           </div>
         )}
