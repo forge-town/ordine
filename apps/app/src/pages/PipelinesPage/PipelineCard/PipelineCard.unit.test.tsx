@@ -3,11 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { type PipelineData, PipelineSchema } from "@repo/schemas";
 import { PipelineCard } from "./PipelineCard";
 
-vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
-  useNavigate: () => vi.fn(),
-}));
-
 const mockPipelineInput = PipelineSchema.parse({
   id: "pipe-001",
   name: "测试 Pipeline",
@@ -26,14 +21,24 @@ const mockPipeline: PipelineData = {
   updatedAt: new Date(mockPipelineInput.updatedAt),
 };
 
-vi.mock("@refinedev/core", () => ({
-  useDelete: () => ({ mutate: vi.fn() }),
-  useOne: () => ({ result: mockPipeline, isLoading: false }),
-}));
-
 describe("PipelineCard", () => {
-  it("renders pipeline name", () => {
-    render(<PipelineCard pipelineId="pipe-001" />);
+  it("renders pipeline metadata", () => {
+    const handleOpen = vi.fn();
+
+    render(
+      <PipelineCard
+        isSavedSkill
+        isScheduled
+        pipeline={mockPipeline}
+        routineLabel="Daily"
+        stats={{ avgDurationMs: 5000, runs: 2, successRate: 100 }}
+        onOpen={handleOpen}
+      />,
+    );
+
     expect(screen.getByText("测试 Pipeline")).toBeInTheDocument();
+    expect(screen.getByText("Saved Skill")).toBeInTheDocument();
+    expect(screen.getByText("Routine")).toBeInTheDocument();
+    expect(screen.getByText("2 runs")).toBeInTheDocument();
   });
 });

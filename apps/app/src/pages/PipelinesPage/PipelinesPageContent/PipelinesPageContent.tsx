@@ -1,72 +1,124 @@
 import { useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { GitBranch, Plus, Layers, Search, X } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { Layers, Plus, Workflow } from "lucide-react";
 import { Button } from "@repo/ui/button";
-import { Input } from "@repo/ui/input";
-import { Badge } from "@repo/ui/badge";
-import { cn } from "@repo/ui/lib/utils";
 import { useCreate, useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import type { PipelineData } from "@repo/schemas";
+import type { Job, PipelineAsset, PipelineData, Routine } from "@repo/schemas";
 import { useStore } from "zustand";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
-import { usePipelinesPageStore } from "../_store";
+import { Chip, Icon, SearchInput } from "@/components/primitives";
+import { useSidebarStore } from "@/store/sidebarStore";
+import { useWorkspaceStore } from "@/pages/WorkspacePage/_store/workspaceStore";
+import { PIPELINE_FILTERS, usePipelinesPageStore, type PipelineFilter } from "../_store";
 import { PipelineCard } from "../PipelineCard";
 
+const getJobDurationMs = (job: Job): number | null => {
+  if (!job.startedAt || !job.finishedAt) return null;
+
+  return Math.max(0, job.finishedAt.getTime() - job.startedAt.getTime());
+};
+
+const getAverageDurationMs = (jobs: Job[]): number | null => {
+  const durations = jobs
+    .map(getJobDurationMs)
+    .filter((duration): duration is number => duration !== null);
+  if (durations.length === 0) return null;
+
+  return Math.round(durations.reduce((sum, duration) => sum + duration, 0) / durations.length);
+};
+
 export const PipelinesPageContent = () => {
-  const { t } = useTranslation();
   const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineData>({
     resource: ResourceName.pipelines,
   });
-  const pipelinesData = pipelinesResult?.data;
-  const pipelines = pipelinesData ?? [];
+  const { result: assetsResult } = useList<PipelineAsset>({
+    resource: ResourceName.pipelineAssets,
+  });
+  const { result: jobsResult } = useList<Job>({
+    resource: ResourceName.jobs,
+  });
+  const { result: routinesResult } = useList<Routine>({
+    resource: ResourceName.routines,
+  });
+  const pipelines = pipelinesResult.data;
+  const assets = assetsResult.data;
+  const jobs = jobsResult.data;
+  const routines = routinesResult.data;
   const store = usePipelinesPageStore();
+  const sidebarStore = useSidebarStore();
+  const activeFilter = useStore(store, (s) => s.activeFilter);
   const search = useStore(store, (s) => s.search);
-  const selectedTags = useStore(store, (s) => s.selectedTags);
+  const currentProjectId = useStore(sidebarStore, (s) => s.currentProjectId);
+  const handleFilterChipClick = useStore(store, (s) => s.handleFilterChipClick);
   const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
   const handleClearSearchButtonClick = useStore(store, (s) => s.handleClearSearchButtonClick);
-  const handleTagBadgeClick = useStore(store, (s) => s.handleTagBadgeClick);
-  const handleClearTagsButtonClick = useStore(store, (s) => s.handleClearTagsButtonClick);
   const navigate = useNavigate();
   const { mutateAsync: createPipelineMutate } = useCreate();
 
-  const allTags = useMemo(() => {
-    const items = pipelinesData ?? [];
-    const tagSet = new Set<string>();
-    for (const p of items) {
-      for (const tag of p.tags) tagSet.add(tag);
+  const savedPipelineIds = useMemo(
+    () => new Set(assets.map((asset) => asset.pipelineId)),
+    [assets],
+  );
+  const routinesByPipelineId = useMemo(() => {
+    const map = new Map<string, Routine[]>();
+    for (const routine of routines) {
+      map.set(routine.pipelineId, [...(map.get(routine.pipelineId) ?? []), routine]);
     }
 
-    return [...tagSet].sort();
-  }, [pipelinesData]);
+    return map;
+  }, [routines]);
+  const jobsByPipelineId = useMemo(() => {
+    const map = new Map<string, Job[]>();
+    for (const job of jobs) {
+      if (!job.pipelineId) continue;
+      map.set(job.pipelineId, [...(map.get(job.pipelineId) ?? []), job]);
+    }
+
+    return map;
+  }, [jobs]);
+  const filterCounts = useMemo<Record<PipelineFilter, number>>(
+    () => ({
+      All: pipelines.length,
+      Drafts: pipelines.filter((pipeline) => pipeline.status === "draft").length,
+      "Saved Skills": pipelines.filter((pipeline) => savedPipelineIds.has(pipeline.id)).length,
+      Scheduled: pipelines.filter(
+        (pipeline) => (routinesByPipelineId.get(pipeline.id) ?? []).length > 0,
+      ).length,
+    }),
+    [pipelines, routinesByPipelineId, savedPipelineIds],
+  );
 
   const filtered = useMemo(() => {
-    const items = pipelinesData ?? [];
     const q = search.toLowerCase();
 
-    return items.filter((p: PipelineData) => {
+    return pipelines.filter((pipeline: PipelineData) => {
+      const hasRoutine = (routinesByPipelineId.get(pipeline.id) ?? []).length > 0;
+      const matchesFilter =
+        activeFilter === "All" ||
+        (activeFilter === "Saved Skills" && savedPipelineIds.has(pipeline.id)) ||
+        (activeFilter === "Drafts" && pipeline.status === "draft") ||
+        (activeFilter === "Scheduled" && hasRoutine);
       const matchesSearch =
         !q ||
-        p.name.toLowerCase().includes(q) ||
-        (p.description ?? "").toLowerCase().includes(q) ||
-        p.id.toLowerCase().includes(q);
-      const matchesTags = selectedTags.every((tag) => p.tags.includes(tag));
+        pipeline.name.toLowerCase().includes(q) ||
+        (pipeline.description ?? "").toLowerCase().includes(q) ||
+        pipeline.id.toLowerCase().includes(q);
 
-      return matchesSearch && matchesTags;
+      return matchesFilter && matchesSearch;
     });
-  }, [pipelinesData, search, selectedTags]);
+  }, [activeFilter, pipelines, routinesByPipelineId, savedPipelineIds, search]);
 
   const handleCreate = async () => {
     const id = `pipeline-${Date.now()}`;
     const now = new Date();
     const newPipeline: PipelineData = {
       id,
-      projectId: null,
+      projectId: currentProjectId,
       status: "draft",
-      name: t("pipelines.createNew"),
-      description: t("pipelines.newPipelineDescription"),
+      name: "Untitled pipeline",
+      description: "Draft a new automation flow from this workspace.",
       tags: [],
       createdAt: now,
       updatedAt: now,
@@ -79,15 +131,19 @@ export const PipelinesPageContent = () => {
       values: newPipeline,
     });
     const saved = result.data as PipelineData;
-    void navigate({ to: "/canvas", search: { id: saved.id } });
+    useWorkspaceStore.getState().setPhase("empty");
+    void navigate({ to: "/workspace/$pipelineId", params: { pipelineId: saved.id } });
   };
 
   const handleCreateClick = () => void handleCreate();
+  const handleOpenPipeline = (pipelineId: string) => {
+    void navigate({ to: "/workspace/$pipelineId", params: { pipelineId } });
+  };
 
   if (pipelinesQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("pipelines.title")} />
+        <PageHeader title="Pipelines" />
         <PageLoadingState variant="grid" />
       </div>
     );
@@ -99,80 +155,76 @@ export const PipelinesPageContent = () => {
         actions={
           <Button className="flex items-center gap-1.5" size="sm" onClick={handleCreateClick}>
             <Plus className="h-3.5 w-3.5" />
-            {t("pipelines.createNew")}
+            New Pipeline
           </Button>
         }
-        icon={<GitBranch className="h-4 w-4 text-primary" />}
-        title={t("pipelines.title")}
+        eyebrow="Assembly"
+        icon={<Icon className="text-muted-foreground" icon={Workflow} size={18} />}
+        sub="Reusable production lines. Clean runs become Pipeline Skills you can re-run with new input."
+        title="Pipelines"
       />
 
-      {/* Toolbar */}
-      <div className="flex flex-col gap-2 border-b border-border bg-background px-6 py-3">
-        <div className="relative max-w-xs">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="h-8 pl-8 pr-8 text-sm"
-            placeholder={t("common.search")}
-            type="text"
-            value={search}
-            onChange={handleSearchInputChange}
-          />
-          {search && (
-            <Button
-              className="absolute right-1 top-1/2 size-6 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              size="icon"
-              variant="ghost"
-              onClick={handleClearSearchButtonClick}
+      <div className="flex items-center gap-2 px-7 pb-3.5">
+        <div className="flex items-center gap-0.5">
+          {PIPELINE_FILTERS.map((filter) => (
+            <Chip
+              key={filter}
+              active={activeFilter === filter}
+              count={filterCounts[filter]}
+              onClick={() => handleFilterChipClick(filter)}
             >
-              <X className="h-3 w-3" />
-            </Button>
-          )}
+              {filter}
+            </Chip>
+          ))}
         </div>
-        {allTags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1">
-            {selectedTags.length > 0 && (
-              <Button
-                className="mr-1 h-6 px-2 text-[11px]"
-                size="sm"
-                variant="ghost"
-                onClick={handleClearTagsButtonClick}
-              >
-                {t("common.clear")}
-              </Button>
-            )}
-            {allTags.map((tag) => (
-              <Badge
-                key={tag}
-                className={cn(
-                  "cursor-pointer select-none text-[11px] transition-colors",
-                  selectedTags.includes(tag)
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80",
-                )}
-                variant="secondary"
-                onClick={() => handleTagBadgeClick(tag)}
-              >
-                #{tag}
-              </Badge>
-            ))}
-          </div>
-        )}
+        <SearchInput
+          className="ml-auto w-60"
+          placeholder="Search pipelines..."
+          value={search}
+          onChange={handleSearchInputChange}
+          onClear={handleClearSearchButtonClick}
+        />
       </div>
 
-      {/* Grid */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-7 pb-8">
         {filtered.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center gap-3 text-center text-muted-foreground">
+          <div className="grid place-items-center rounded-2xl bg-surface-2/50 py-16 text-center text-muted-foreground">
             <Layers className="h-8 w-8 text-muted-foreground/30" />
-            <p className="text-sm">
-              {pipelines.length === 0 ? t("pipelines.noPipelines") : t("common.noResults")}
+            <p className="mt-2 text-[13px] font-medium text-foreground">
+              {pipelines.length === 0 ? "No pipelines yet" : "No matching pipelines"}
+            </p>
+            <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+              Create a draft or try a different search term.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-4">
-            {filtered.map((p) => (
-              <PipelineCard key={p.id} pipelineId={p.id} />
-            ))}
+          <div className="grid grid-cols-1 gap-3.5 xl:grid-cols-2 2xl:grid-cols-3">
+            {filtered.map((pipeline) => {
+              const pipelineJobs = jobsByPipelineId.get(pipeline.id) ?? [];
+              const successfulJobs = pipelineJobs.filter((job) => job.status === "done").length;
+              const successRate =
+                pipelineJobs.length > 0
+                  ? Math.round((successfulJobs / pipelineJobs.length) * 100)
+                  : null;
+              const pipelineRoutines = routinesByPipelineId.get(pipeline.id) ?? [];
+              const routineLabel = pipelineRoutines[0]?.name;
+
+              return (
+                <PipelineCard
+                  key={pipeline.id}
+                  isSavedSkill={savedPipelineIds.has(pipeline.id)}
+                  isScheduled={pipelineRoutines.length > 0}
+                  pipeline={pipeline}
+                  routineLabel={routineLabel}
+                  stats={{
+                    avgDurationMs: getAverageDurationMs(pipelineJobs),
+                    runs: pipelineJobs.length,
+                    successRate,
+                  }}
+                  onOpen={handleOpenPipeline}
+                />
+              );
+            })}
           </div>
         )}
       </div>
