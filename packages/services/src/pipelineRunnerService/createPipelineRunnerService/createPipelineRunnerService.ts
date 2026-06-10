@@ -5,6 +5,7 @@ import type { AgentRuntime, SshConnection } from "@repo/schemas";
 import { loopEvaluator } from "../loopEvaluator";
 import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
+import { pipelineRunControl } from "../runControl";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
 import { createPipelineAssetsService } from "../../pipelineAssetsService";
 import {
@@ -134,6 +135,8 @@ export const createPipelineRunnerService = (db: DbConnection) => {
             defaultAgent: settings.defaultAgentRuntime,
             ssh,
           }),
+          runControl: pipelineRunControl.buildForJob(jobId),
+          onRunSettled: () => pipelineRunControl.clear(jobId),
         }),
         (error) => error,
       ).match(
@@ -148,5 +151,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
 
       return ok({ jobId });
     },
+    pauseRun: (jobId: string) => ok(pipelineRunControl.pause(jobId)),
+    resumeRun: (jobId: string) => ok(pipelineRunControl.resume(jobId)),
   };
 };

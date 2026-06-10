@@ -60,6 +60,17 @@ export interface PipelineNodeStatusEvent {
   status: NodeRunStatus;
 }
 
+export interface PipelineRunControlEvent {
+  jobId: string;
+  nodeId: string;
+  reason: "checkpoint" | "pause";
+}
+
+export interface PipelineRunControl {
+  shouldPauseBeforeNode?: (event: PipelineRunControlEvent) => boolean | Promise<boolean>;
+  waitForResume?: (event: PipelineRunControlEvent) => Promise<void>;
+}
+
 export interface PipelineOptions {
   pipeline: PipelineDefinition;
   jobId: string;
@@ -71,6 +82,7 @@ export interface PipelineOptions {
   lookupAgent: (id: string) => Promise<AgentInfo | null>;
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
   onNodeStatusChange?: (event: PipelineNodeStatusEvent) => Promise<void> | void;
+  runControl?: PipelineRunControl;
 }
 
 export class Pipeline {
@@ -125,7 +137,7 @@ export class Pipeline {
         `── Level ${levelIndex} (${level.length} node${level.length > 1 ? "s" : ""}) ──`,
       );
 
-      const results = await Promise.all(level.map((node) => this.processNode(node)));
+      const results = await Promise.all(level.map((node) => this.processNodeWithPause(node)));
 
       for (const result of results) {
         if (!result.ok) {
@@ -179,6 +191,22 @@ export class Pipeline {
     return { inputPath, content };
   }
 
+  private async processNodeWithPause(
+    node: PipelineNode,
+  ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
+    const event = { jobId: this.opts.jobId, nodeId: node.id, reason: "pause" as const };
+    const shouldPause = await this.opts.runControl?.shouldPauseBeforeNode?.(event);
+
+    if (shouldPause) {
+      await trace(this.opts.jobId, `@@RUN_PAUSE::${node.id}`);
+      await this.emitNodeStatus(node.id, "waitingForUser");
+      await this.opts.runControl?.waitForResume?.(event);
+      await trace(this.opts.jobId, `@@RUN_RESUME::${node.id}`);
+    }
+
+    return this.processNode(node);
+  }
+
   private async processNode(
     node: PipelineNode,
   ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
@@ -191,6 +219,14 @@ export class Pipeline {
     await this.emitNodeStatus(node.id, "running");
     if (data.nodeType === BUILTIN_NODE_TYPE_ENUM.OPERATION && data.checkpoint) {
       await this.emitNodeStatus(node.id, "waitingForUser");
+      await trace(jobId, `@@CHECKPOINT_WAIT::${node.id}`);
+      await this.opts.runControl?.waitForResume?.({
+        jobId,
+        nodeId: node.id,
+        reason: "checkpoint",
+      });
+      await trace(jobId, `@@CHECKPOINT_RESUME::${node.id}`);
+      await this.emitNodeStatus(node.id, "running");
     }
 
     const baseCtx = {

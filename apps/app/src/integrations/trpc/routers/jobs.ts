@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { jobsService } from "../services";
+import { jobsService, pipelineRunnerService } from "../services";
 import { JobStatusSchema, JobTypeSchema } from "@repo/schemas";
 
 export const jobsRouter = router({
@@ -66,4 +66,16 @@ export const jobsRouter = router({
 
       return jobsService.updateStatus(id, status, extra);
     }),
+
+  pause: publicProcedure.input(z.object({ jobId: z.string() })).mutation(({ input }) => {
+    const result = pipelineRunnerService.pauseRun(input.jobId);
+
+    return result.value;
+  }),
+
+  resume: publicProcedure.input(z.object({ jobId: z.string() })).mutation(({ input }) => {
+    const result = pipelineRunnerService.resumeRun(input.jobId);
+
+    return result.value;
+  }),
 });

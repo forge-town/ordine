@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { executeScenario } from "../helpers/makePipelineScenario";
 import { makeNode } from "../helpers/makeNode";
 import { makeEdge } from "../helpers/makeEdge";
@@ -98,7 +98,60 @@ describe("pipeline scenario: linear flow", () => {
       "operation:queued",
       "operation:running",
       "operation:waitingForUser",
+      "operation:running",
       "operation:done",
     ]);
+  });
+
+  it("waits for resume before executing a checkpoint node", async () => {
+    const deps = makeTestDeps();
+    const operationId = "review-step";
+    const statusEvents: string[] = [];
+    let resume: (() => void) | undefined;
+    const resumePromise = new Promise<void>((resolve) => {
+      resume = resolve;
+    });
+    const runPromise = executeScenario({
+      deps,
+      nodes: [
+        makeNode("operation", "operation", {
+          operationId,
+          checkpoint: true,
+        }),
+      ],
+      operations: new Map<string, OperationInfo>([
+        [
+          operationId,
+          {
+            id: operationId,
+            name: "Review Step",
+            config: {
+              executor: {
+                type: "agent",
+                agentMode: "prompt",
+                prompt: "Review the input",
+              },
+            },
+          },
+        ],
+      ]),
+      onNodeStatusChange: ({ nodeId, status }) => {
+        statusEvents.push(`${nodeId}:${status}`);
+      },
+      runControl: {
+        waitForResume: () => resumePromise,
+      },
+    });
+
+    await vi.waitFor(() => {
+      expect(statusEvents).toContain("operation:waitingForUser");
+    });
+    expect(deps.runPrompt).not.toHaveBeenCalled();
+
+    resume?.();
+    const result = await runPromise;
+
+    expect(result.ok).toBe(true);
+    expect(deps.runPrompt).toHaveBeenCalledOnce();
   });
 });

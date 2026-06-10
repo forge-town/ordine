@@ -5,6 +5,7 @@ import {
   pipelineEngine,
   ScriptExecutionError,
   type PipelineEngineDeps,
+  type PipelineRunControl,
   type PipelineRunError,
   type OperationInfo,
 } from "@repo/pipeline-engine";
@@ -188,6 +189,8 @@ export const pipelineRunExecutor = {
     agentRawExportsDao: AgentRawExportsDao;
     pipelineAssetsService: PipelineAssetsServiceForRun;
     engineDeps: PipelineEngineDeps;
+    runControl?: PipelineRunControl;
+    onRunSettled?: () => void;
   }): Promise<void> => {
     const {
       pipelineId,
@@ -271,6 +274,7 @@ export const pipelineRunExecutor = {
             lookupAgent,
             lookupSkill,
             onNodeStatusChange: ({ nodeId, status }) => updateNodeStatus(nodeId, status),
+            runControl: opts.runControl,
           }),
           (cause): PipelineRunError =>
             new ScriptExecutionError(cause instanceof Error ? cause.message : String(cause), cause),
@@ -312,5 +316,7 @@ export const pipelineRunExecutor = {
         message: `Unhandled error: ${runResult.error.message}`,
       });
     }
+
+    opts.onRunSettled?.();
   },
 };

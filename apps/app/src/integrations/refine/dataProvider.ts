@@ -785,6 +785,20 @@ export const dataProvider: DataProvider = {
 
       return { data: { traces } as unknown as TData };
     }
+    if (url === "jobs/pause") {
+      const data = await trpcClient.jobs.pause.mutate(
+        payload as unknown as Parameters<typeof trpcClient.jobs.pause.mutate>[0],
+      );
+
+      return { data: data as unknown as TData };
+    }
+    if (url === "jobs/resume") {
+      const data = await trpcClient.jobs.resume.mutate(
+        payload as unknown as Parameters<typeof trpcClient.jobs.resume.mutate>[0],
+      );
+
+      return { data: data as unknown as TData };
+    }
     if (url === "jobs/agentRuns") {
       const { jobId } = payload as { jobId: string };
       const agentRuns = await trpcClient.jobs.getAgentRuns.query({ jobId });

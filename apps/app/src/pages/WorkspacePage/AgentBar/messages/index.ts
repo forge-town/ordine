@@ -2,6 +2,7 @@ export * from "./AppliedCard";
 export * from "./Assistant";
 export * from "./Bubble";
 export * from "./Card";
+export * from "./CheckpointCard";
 export * from "./CompletionCard";
 export * from "./DistillCard";
 export * from "./ErrorCard";

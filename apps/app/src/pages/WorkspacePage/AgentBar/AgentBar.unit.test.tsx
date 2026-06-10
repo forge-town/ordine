@@ -2,13 +2,15 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Job, PipelineAsset } from "@repo/schemas";
+import { dataProvider } from "@/integrations/refine/dataProvider";
 import { CanvasPageStoreContext, createCanvasPageStore } from "@/pages/CanvasPage/_store";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { useAgentBarStore } from "./_store";
 import { AgentBar, WORKSPACE_PHASES } from "./AgentBar";
 
-const { mockNavigate, mockUseListData, mockUseOneData } = vi.hoisted(() => ({
+const { mockNavigate, mockRefetchJob, mockUseListData, mockUseOneData } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
+  mockRefetchJob: vi.fn(),
   mockUseListData: vi.fn<() => PipelineAsset[]>(() => []),
   mockUseOneData: vi.fn<() => Job | null>(() => null),
 }));
@@ -22,6 +24,7 @@ vi.mock("@refinedev/core", () => ({
   useOne: () => ({
     query: {
       data: mockUseOneData() ? { data: mockUseOneData() } : undefined,
+      refetch: mockRefetchJob,
     },
   }),
 }));
@@ -88,8 +91,11 @@ describe("AgentBar", () => {
     useWorkspaceStore.getState().resetWorkspace();
     useAgentBarStore.getState().resetAgentBar();
     mockNavigate.mockClear();
+    mockRefetchJob.mockClear();
+    mockRefetchJob.mockResolvedValue({});
     mockUseListData.mockReturnValue([]);
     mockUseOneData.mockReturnValue(null);
+    vi.spyOn(dataProvider, "custom").mockResolvedValue({ data: {} });
   });
 
   it("renders the header, context tags, and empty phase body", () => {
@@ -206,6 +212,53 @@ describe("AgentBar", () => {
     expect(screen.getByText("Failed - job-failed")).toBeInTheDocument();
     expect(screen.getByText("Run failed - Generate Quiz")).toBeInTheDocument();
     expect(screen.getByText(/Connector token missing/)).toBeInTheDocument();
+  });
+
+  it("renders checkpoint controls and resumes a waiting job", async () => {
+    const user = userEvent.setup();
+    useWorkspaceStore.getState().setPhase("running");
+    mockUseOneData.mockReturnValue({
+      id: "job-waiting",
+      title: "Pipeline run",
+      type: "pipeline_run",
+      status: "running",
+      parentJobId: null,
+      error: null,
+      startedAt: new Date("2026-06-10T10:00:00.000Z"),
+      finishedAt: null,
+      totalCost: "0.0000",
+      nodeStatuses: {
+        load: "done",
+        quiz: "waitingForUser",
+      },
+      meta: {
+        createdAt: new Date("2026-06-10T10:00:00.000Z"),
+        updatedAt: new Date("2026-06-10T10:00:04.000Z"),
+      },
+    } satisfies Job);
+
+    renderAgentBar(vi.fn(), (store) => {
+      store.setState({
+        activeJobId: "job-waiting",
+        nodeRunStatuses: {
+          load: "done",
+          quiz: "waitingForUser",
+        },
+      });
+    });
+
+    expect(screen.getByText("Checkpoint waiting")).toBeInTheDocument();
+    expect(screen.getByText("Paused at Generate Quiz")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Resume" }));
+
+    expect(dataProvider.custom).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: { jobId: "job-waiting" },
+        url: "jobs/resume",
+      }),
+    );
+    expect(mockRefetchJob).toHaveBeenCalled();
   });
 
   it("renders distilled asset and opens Components", async () => {
