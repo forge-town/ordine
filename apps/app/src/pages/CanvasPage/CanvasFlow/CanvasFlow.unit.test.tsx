@@ -44,6 +44,7 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       onEdgeClick,
       onNodeClick,
       onNodeContextMenu,
+      onNodeDoubleClick,
       onNodeDrag,
       onNodeDragStop,
       onPaneClick,
@@ -68,6 +69,7 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       onEdgeClick?: unknown;
       onNodeClick?: unknown;
       onNodeContextMenu?: unknown;
+      onNodeDoubleClick?: unknown;
       onNodeDrag?: unknown;
       onNodeDragStop?: unknown;
       onPaneClick?: unknown;
@@ -89,6 +91,7 @@ vi.mock("@xyflow/react", async (importOriginal) => {
           data-has-on-edge-click={String(typeof onEdgeClick === "function")}
           data-has-on-node-click={String(typeof onNodeClick === "function")}
           data-has-on-node-context-menu={String(typeof onNodeContextMenu === "function")}
+          data-has-on-node-double-click={String(typeof onNodeDoubleClick === "function")}
           data-has-on-node-drag={String(typeof onNodeDrag === "function")}
           data-has-on-node-drag-stop={String(typeof onNodeDragStop === "function")}
           data-has-on-pane-click={String(typeof onPaneClick === "function")}

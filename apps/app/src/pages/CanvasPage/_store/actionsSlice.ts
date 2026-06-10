@@ -88,6 +88,7 @@ export interface ActionsSlice {
     connectionState: FinalConnectionState,
   ) => void;
   handleFlowNodeClick: (event: React.MouseEvent, node: PipelineNode) => void;
+  handleFlowNodeDoubleClick: (event: React.MouseEvent, node: PipelineNode) => void;
   handleFlowNodeContextMenu: (event: React.MouseEvent, node: PipelineNode) => void;
   handleFlowEdgeClick: (event: React.MouseEvent, edge: PipelineEdge) => void;
   handleFlowPaneClick: (event: React.MouseEvent) => void;
@@ -242,6 +243,7 @@ export const createActionsSlice = (
     set({
       selectedEdgeId: edgeId,
       selectedNodeId: null,
+      configNodeId: null,
       inspectEdgeId: edgeId,
       selectedIds: [edgeId],
       sidebarPanel: "components",
@@ -258,6 +260,7 @@ export const createActionsSlice = (
     set({
       selectedNodeId: null,
       selectedEdgeId: null,
+      configNodeId: null,
       inspectEdgeId: null,
       selectedIds: [],
       sidebarPanel: "components",
@@ -380,6 +383,11 @@ export const createActionsSlice = (
 
   handleFlowNodeClick: (_event, node) => {
     get().focusNode(node.id);
+  },
+
+  handleFlowNodeDoubleClick: (_event, node) => {
+    get().focusNode(node.id);
+    set({ configNodeId: node.id });
   },
 
   handleFlowNodeContextMenu: (event, node) => {

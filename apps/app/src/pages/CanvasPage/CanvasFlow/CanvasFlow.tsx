@@ -97,6 +97,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const handleFlowConnectEnd = useStore(store, (s) => s.handleFlowConnectEnd);
   const handleFlowNodeClick = useStore(store, (s) => s.handleFlowNodeClick);
   const handleFlowNodeContextMenu = useStore(store, (s) => s.handleFlowNodeContextMenu);
+  const handleFlowNodeDoubleClick = useStore(store, (s) => s.handleFlowNodeDoubleClick);
   const handleFlowEdgeClick = useStore(store, (s) => s.handleFlowEdgeClick);
   const handleFlowPaneClick = useStore(store, (s) => s.handleFlowPaneClick);
   const handleFlowPaneContextMenu = useStore(store, (s) => s.handleFlowPaneContextMenu);
@@ -193,6 +194,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         onEdgeClick: handleFlowEdgeClick,
         onNodeClick: handleFlowNodeClick,
         onNodeContextMenu: handleFlowNodeContextMenu,
+        onNodeDoubleClick: handleFlowNodeDoubleClick,
         onNodeDrag: handleFlowNodeDrag,
         onNodeDragStop: handleFlowNodeDragStop,
         onPaneClick: handleFlowPaneClick,

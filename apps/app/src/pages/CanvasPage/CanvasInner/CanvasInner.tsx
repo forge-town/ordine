@@ -20,6 +20,7 @@ import { CanvasComponentPanel } from "../CanvasComponentPanel";
 import { CanvasNodePropertiesPanel } from "../CanvasNodePropertiesPanel";
 import { CanvasWorkspaceSidebarOverlay } from "../CanvasWorkspaceSidebarOverlay";
 import { EdgeInspector } from "../EdgeInspector";
+import { NodeConfig } from "../NodeConfig";
 import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePosition";
 
 export const CanvasInner = () => {
@@ -40,6 +41,10 @@ export const CanvasInner = () => {
   const workspacePanelWidth = useStore(store, (state) => state.workspacePanelWidth);
   const setWorkspacePanelWidth = useStore(store, (state) => state.setWorkspacePanelWidth);
   const selectedNode = useStore(store, selectSelectedNode);
+  const configNodeId = useStore(store, (state) => state.configNodeId);
+  const configNode = nodes.find((node) => node.id === configNodeId);
+  const showNodeConfig =
+    configNode?.data.nodeType === "operation" || configNode?.data.nodeType === "prompt";
   const showPropertiesPanel = sidebarPanel === "properties" && !!selectedNode;
 
   const getFlowViewportScreenCenter = useCallback(() => {
@@ -114,7 +119,9 @@ export const CanvasInner = () => {
                 data-testid="canvas-work-panel"
                 style={{ width: `${workspacePanelWidth}px` }}
               >
-                {showPropertiesPanel ? (
+                {showNodeConfig ? (
+                  <NodeConfig />
+                ) : showPropertiesPanel ? (
                   <CanvasNodePropertiesPanel />
                 ) : (
                   <CanvasComponentPanel getCreateNodeScreenPosition={getFlowViewportScreenCenter} />
