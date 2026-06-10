@@ -6,6 +6,8 @@ import { CanvasAnnotationsContext, type UseAnnotationsResult } from "../annotati
 import { CompoundNode } from "./CompoundNode";
 import { FileNode } from "./FileNode";
 import { OperationNode } from "./OperationNode";
+import { OutputProjectPathNode } from "./OutputNode";
+import { PromptNode } from "./PromptNode";
 
 vi.mock("@xyflow/react", () => ({
   Handle: () => null,
@@ -102,6 +104,48 @@ describe("GNodeShell variants", () => {
     render(<OperationNode data={operationData} id="node-a" />, { wrapper: makeWrapper(store) });
 
     expect(screen.getByLabelText("Running")).toBeInTheDocument();
+  });
+
+  it("renders verify template roles with specialized labels", () => {
+    const store = makeExpandedStore();
+
+    render(
+      <>
+        <PromptNode
+          data={{
+            label: "Input Port",
+            nodeType: "prompt",
+            prompt: "{{input}}",
+          }}
+          id="node-input"
+        />
+        <OperationNode
+          data={{
+            label: "Quality Gate",
+            nodeType: "operation",
+            operationId: "",
+            operationName: "Quality Gate",
+            status: "idle",
+          }}
+          id="node-gate"
+        />
+        <OutputProjectPathNode
+          data={{
+            label: "Output Port",
+            nodeType: "output-project-path",
+            path: "",
+          }}
+          id="node-output"
+        />
+      </>,
+      { wrapper: makeWrapper(store) },
+    );
+
+    expect(screen.getAllByText("Port")).toHaveLength(2);
+    expect(screen.getByText("Gate")).toBeInTheDocument();
+    expect(screen.getByText("Compound input")).toBeInTheDocument();
+    expect(screen.getByText("Pass / revise")).toBeInTheDocument();
+    expect(screen.getByText("Compound output")).toBeInTheDocument();
   });
 
   it("reads annotation counts from context and opens the viewer target", () => {

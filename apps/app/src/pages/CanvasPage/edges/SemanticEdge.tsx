@@ -71,16 +71,17 @@ export const SemanticEdge = ({
     targetStatus,
   );
   const label = edgeData?.label || "data";
-  const Icon = edgeData?.qualityGate
-    ? ShieldCheck
-    : edgeData?.condition
-      ? RotateCcw
-      : ArrowRightLeft;
+  const isLoopEdge = Boolean(edgeData?.condition);
+  const Icon = edgeData?.qualityGate ? ShieldCheck : isLoopEdge ? RotateCcw : ArrowRightLeft;
 
   return (
     <>
       <BaseEdge
-        className={cn("stroke-[2px]", edgeStateClass[semanticState])}
+        className={cn(
+          "stroke-[2px]",
+          edgeStateClass[semanticState],
+          isLoopEdge && "stroke-warning [stroke-dasharray:6_4]",
+        )}
         id={id}
         path={edgePath}
       />
@@ -93,6 +94,7 @@ export const SemanticEdge = ({
             className={cn(
               "flex items-center gap-1 rounded-full px-2 py-0.5 text-[9.5px] shadow-soft ring-1 transition-all",
               edgeLabelClass[semanticState],
+              isLoopEdge && "bg-warning/10 text-foreground ring-warning/30",
             )}
           >
             <Icon className="h-2.5 w-2.5" />
