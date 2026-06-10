@@ -40,6 +40,9 @@ const resolveMetaType = (type: string): MetaNodeType =>
         ? "output"
         : "object";
 
+const isRootNode = (node: PipelineNode): boolean =>
+  typeof (node as PipelineNode & { parentId?: unknown }).parentId !== "string";
+
 export type PipelineRunResult =
   | { ok: true; summary: string }
   | { ok: false; error: PipelineRunError | CycleDetectedError };
@@ -85,8 +88,13 @@ export class Pipeline {
 
     const { pipeline, jobId } = this.opts;
     const { nodes, edges } = pipeline;
+    const rootNodeIds = new Set(nodes.filter(isRootNode).map((node) => node.id));
+    const rootNodes = nodes.filter((node) => rootNodeIds.has(node.id));
+    const rootEdges = edges.filter(
+      (edge) => rootNodeIds.has(edge.source) && rootNodeIds.has(edge.target),
+    );
 
-    const levelsResult = buildExecutionLevels(nodes, edges);
+    const levelsResult = buildExecutionLevels(rootNodes, rootEdges);
     if (levelsResult.isErr()) {
       return { ok: false, error: levelsResult.error };
     }
@@ -94,9 +102,9 @@ export class Pipeline {
 
     await trace(
       jobId,
-      `Pipeline "${pipeline.name}" loaded. ${nodes.length} nodes in ${levels.length} levels.`,
+      `Pipeline "${pipeline.name}" loaded. ${rootNodes.length} root nodes in ${levels.length} levels.`,
     );
-    for (const node of nodes) {
+    for (const node of rootNodes) {
       await this.emitNodeStatus(node.id, "queued");
     }
 
@@ -131,7 +139,7 @@ export class Pipeline {
       }
     }
 
-    const outputPaths = nodes.flatMap((n) => {
+    const outputPaths = rootNodes.flatMap((n) => {
       if (n.data.nodeType !== BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) return [];
       const configuredPath = n.data.localPath ?? "";
       const path = configuredPath || this.opts.defaultOutputPath || "";
@@ -266,10 +274,9 @@ export class Pipeline {
 
   private resolveOutputDirForNode(nodeId: string): string | undefined {
     const { edges, nodes } = this.opts.pipeline;
-    const childIds = edges.filter((e) => e.source === nodeId).map((e) => e.target);
+    const childIds = new Set(edges.filter((e) => e.source === nodeId).map((e) => e.target));
     const outputNode = nodes.find(
-      (n) =>
-        childIds.includes(n.id) && n.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH,
+      (n) => childIds.has(n.id) && n.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH,
     );
     const configuredPath =
       outputNode?.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH

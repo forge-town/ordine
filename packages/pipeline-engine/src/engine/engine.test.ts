@@ -361,6 +361,39 @@ describe("executePipeline", () => {
   });
 
   describe("multi-node pipeline", () => {
+    it("keeps compound child nodes out of the root execution schedule", async () => {
+      const deps = makeDeps();
+      const childOpId = "compound-child-op";
+      const operations = new Map([
+        [
+          childOpId,
+          makeOp(childOpId, "Internal Generator", {
+            executor: { type: "agent", agentMode: "prompt", prompt: "Draft internally" },
+          }),
+        ],
+      ]);
+      const nodes = [
+        makeNode("verify", "compound", {
+          compoundKind: "verify",
+          childNodeIds: ["generator"],
+          childEdges: [],
+          verifyConfig: { criteria: "must pass", maxRounds: 3 },
+        }),
+        {
+          ...makeNode("generator", "operation", {
+            operationId: childOpId,
+          }),
+          parentId: "verify",
+          extent: "parent" as const,
+        },
+      ];
+
+      const result = await pipelineEngine.execute(makeOpts(nodes, [], deps, { operations }));
+
+      expect(result.ok).toBe(true);
+      expect(deps.runPrompt).not.toHaveBeenCalled();
+    });
+
     it("executes a linear pipeline: folder → operation → output-project-path", async () => {
       const deps = makeDeps();
       const opId = "op1";
