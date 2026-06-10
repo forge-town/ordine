@@ -70,6 +70,7 @@ export const createSidebarSlice: StateCreator<SidebarSlice> = (set, get) => ({
     writeStoredValue(CAPABILITIES_OPEN_STORAGE_KEY, String(capabilitiesOpen));
     set({ capabilitiesOpen });
   },
-  handleSidebarSearchChange: (value) => set({ sidebarSearchQuery: value }),
-  handleSidebarSearchClear: () => set({ sidebarSearchQuery: "" }),
+  handleSidebarSearchChange: (value) =>
+    set({ searchOpen: value.trim().length > 0, sidebarSearchQuery: value }),
+  handleSidebarSearchClear: () => set({ searchOpen: false, sidebarSearchQuery: "" }),
 });
