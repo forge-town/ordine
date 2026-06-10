@@ -147,8 +147,8 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const handleAgentDropdownChange = (open: boolean) => {
     handleOperationAgentDropdownOpenChange(id, open);
   };
-  const handleAgentValueChange = (value: string | null) => {
-    handleOperationAgentChange(id, value);
+  const handleAgentValueChange = (value: string) => {
+    handleOperationAgentChange(id, value === "__default__" ? null : value);
   };
   const handleLoopButtonClick = (event: SyntheticEvent) => {
     stopCanvasInteraction(event);

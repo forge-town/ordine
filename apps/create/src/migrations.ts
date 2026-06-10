@@ -28,7 +28,7 @@ const readMigrationFile = (migrationsDir: string, fileName: string): Result<stri
   )();
 
 const execSql = (db: PGlite, sql: string, context: string): ResultAsync<void, Error> =>
-  ResultAsync.fromPromise(db.exec(sql), (error) => toError(error, context));
+  ResultAsync.fromPromise(db.exec(sql), (error) => toError(error, context)).map(() => undefined);
 
 const queryRows = <TRow>(
   db: PGlite,
