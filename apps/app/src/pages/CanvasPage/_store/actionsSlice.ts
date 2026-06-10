@@ -209,6 +209,7 @@ export const createActionsSlice = (
       edges,
       selectedNodeId: null,
       selectedEdgeId: null,
+      selectedIds: [],
       ...(pipelineName === undefined ? {} : { pipelineName }),
     });
   },
@@ -226,6 +227,7 @@ export const createActionsSlice = (
     set({
       selectedNodeId: nodeId,
       selectedEdgeId: null,
+      selectedIds: [nodeId],
       sidebarPanel: "properties",
       isPropertiesPanelOpen: true,
       contextMenu: null,
@@ -240,6 +242,7 @@ export const createActionsSlice = (
     set({
       selectedEdgeId: edgeId,
       selectedNodeId: null,
+      selectedIds: [edgeId],
       sidebarPanel: "components",
       isPropertiesPanelOpen: false,
       contextMenu: null,
@@ -254,6 +257,7 @@ export const createActionsSlice = (
     set({
       selectedNodeId: null,
       selectedEdgeId: null,
+      selectedIds: [],
       sidebarPanel: "components",
       isPropertiesPanelOpen: false,
       contextMenu: null,

@@ -96,14 +96,28 @@ export const createCanvasSlice = (
     hoveredCompoundId: null,
 
     handleNodesChange: (changes) =>
-      set((state) => ({
-        nodes: applyNodeChanges(changes, state.nodes),
-      })),
+      set((state) => {
+        const nodes = applyNodeChanges(changes, state.nodes);
+        const hasSelectionChange = changes.some((change) => change.type === "select");
+        const selectedIds = nodes.filter((node) => node.selected).map((node) => node.id);
+
+        return {
+          nodes,
+          ...(hasSelectionChange ? { selectedIds } : {}),
+        };
+      }),
 
     handleEdgesChange: (changes) =>
-      set((state) => ({
-        edges: applyEdgeChanges(changes, state.edges),
-      })),
+      set((state) => {
+        const edges = applyEdgeChanges(changes, state.edges);
+        const hasSelectionChange = changes.some((change) => change.type === "select");
+        const selectedIds = edges.filter((edge) => edge.selected).map((edge) => edge.id);
+
+        return {
+          edges,
+          ...(hasSelectionChange ? { selectedIds } : {}),
+        };
+      }),
 
     handleConnect: (connection) => {
       const { nodes, recordCommand } = get();
@@ -211,6 +225,7 @@ export const createCanvasSlice = (
       // Clear selection outside of history-tracked state
       set((s) => ({
         selectedNodeId: s.selectedNodeId === nodeId ? null : s.selectedNodeId,
+        selectedIds: s.selectedIds.filter((id) => id !== nodeId),
       }));
     },
 
@@ -243,9 +258,19 @@ export const createCanvasSlice = (
         ),
       })),
 
-    selectNode: (nodeId) => set({ selectedNodeId: nodeId, selectedEdgeId: null }),
+    selectNode: (nodeId) =>
+      set({
+        selectedNodeId: nodeId,
+        selectedEdgeId: null,
+        selectedIds: nodeId ? [nodeId] : [],
+      }),
 
-    selectEdge: (edgeId) => set({ selectedEdgeId: edgeId, selectedNodeId: null }),
+    selectEdge: (edgeId) =>
+      set({
+        selectedEdgeId: edgeId,
+        selectedNodeId: null,
+        selectedIds: edgeId ? [edgeId] : [],
+      }),
 
     duplicateNode: (nodeId) => {
       const { nodes, recordCommand } = get();
@@ -284,7 +309,7 @@ export const createCanvasSlice = (
           draft.edges = [];
         },
       );
-      set({ selectedNodeId: null, selectedEdgeId: null });
+      set({ selectedNodeId: null, selectedEdgeId: null, selectedIds: [] });
     },
 
     formatLayout: () => {

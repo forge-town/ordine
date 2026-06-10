@@ -9,8 +9,13 @@ import {
 import { createUISlice, type UISlice } from "./uiSlice";
 import { createHistorySlice, type HistorySlice } from "./historySlice";
 import { createActionsSlice, type ActionsSlice } from "./actionsSlice";
+import {
+  createWorkspaceInteractionSlice,
+  type WorkspaceInteractionSlice,
+} from "./workspaceInteractionSlice";
 
-export interface CanvasPageState extends CanvasSlice, UISlice, HistorySlice, ActionsSlice {}
+export interface CanvasPageState
+  extends CanvasSlice, UISlice, HistorySlice, ActionsSlice, WorkspaceInteractionSlice {}
 
 export type CanvasPageStoreSlice<T = CanvasPageState> = StateCreator<CanvasPageState, [], [], T>;
 
@@ -44,6 +49,7 @@ export const createCanvasPageStore = (
       set as Parameters<CanvasPageStoreSlice>[0],
       get as Parameters<CanvasPageStoreSlice>[1],
     ),
+    ...createWorkspaceInteractionSlice(set as Parameters<CanvasPageStoreSlice>[0]),
   }));
 };
 

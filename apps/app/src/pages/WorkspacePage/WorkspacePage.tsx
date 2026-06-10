@@ -1,7 +1,9 @@
+import { useEffect } from "react";
+import { useStore } from "zustand";
 import { Bot, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { CanvasPageContent } from "@/pages/CanvasPage/CanvasPageContent";
-import { CanvasPageStoreProvider } from "@/pages/CanvasPage/_store";
+import { CanvasPageStoreProvider, useCanvasPageStore } from "@/pages/CanvasPage/_store";
 import { Icon, StatusPill, Tag } from "@/components/primitives";
 import { useWorkspaceStore } from "./_store/workspaceStore";
 
@@ -16,6 +18,18 @@ const phaseLabel = {
   applied: "Applied",
   running: "Running",
   done: "Done",
+};
+
+const WorkspaceCanvasPhaseBridge = () => {
+  const store = useCanvasPageStore();
+  const phase = useWorkspaceStore((state) => state.phase);
+  const setWorkspacePhase = useStore(store, (state) => state.setWorkspacePhase);
+
+  useEffect(() => {
+    setWorkspacePhase(phase);
+  }, [phase, setWorkspacePhase]);
+
+  return null;
 };
 
 export const WorkspacePage = ({ pipelineId }: WorkspacePageProps) => {
@@ -33,6 +47,7 @@ export const WorkspacePage = ({ pipelineId }: WorkspacePageProps) => {
         <CanvasPageStoreProvider
           pipeline={{ edges: [], id: pipelineId, name: `Pipeline ${pipelineId}`, nodes: [] }}
         >
+          <WorkspaceCanvasPhaseBridge />
           <CanvasPageContent />
         </CanvasPageStoreProvider>
       </main>

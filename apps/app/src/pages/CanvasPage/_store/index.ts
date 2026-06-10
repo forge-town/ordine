@@ -4,4 +4,5 @@ export * from "./canvasSlice";
 export * from "./historySlice";
 export * from "./actionsSlice";
 export * from "./uiSlice";
+export * from "./workspaceInteractionSlice";
 export * from "./selectors";
