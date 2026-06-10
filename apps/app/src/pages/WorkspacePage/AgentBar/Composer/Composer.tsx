@@ -1,5 +1,6 @@
 import { useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { ArrowUp, Paperclip, X } from "lucide-react";
+import type { ConversationAttachment, ConversationMessageMetadata } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Textarea } from "@repo/ui/textarea";
 import type { WorkspaceCanvasRef } from "../../_store/workspaceStore";
@@ -7,25 +8,28 @@ import { Icon } from "@/components/primitives";
 import { useAgentBarStore } from "../_store";
 import { RefTagBar } from "./RefTagBar";
 
-type ComposerAttachment = {
-  name: string;
+export type ComposerSubmitInput = {
+  content: string;
+  metadata: ConversationMessageMetadata;
 };
 
 export type ComposerProps = {
+  isSending?: boolean;
   refs: WorkspaceCanvasRef[];
   onRemoveRef: (id: string) => void;
+  onSubmit?: (input: ComposerSubmitInput) => unknown | Promise<unknown>;
 };
 
 const createMessageId = () => `agent-message-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-export const Composer = ({ onRemoveRef, refs }: ComposerProps) => {
+export const Composer = ({ isSending = false, onRemoveRef, onSubmit, refs }: ComposerProps) => {
   const [text, setText] = useState("");
-  const [attachments, setAttachments] = useState<ComposerAttachment[]>([]);
+  const [attachments, setAttachments] = useState<ConversationAttachment[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addMessage = useAgentBarStore((state) => state.addMessage);
   const trimmedText = text.trim();
-  const canSend = trimmedText.length > 0;
+  const canSend = trimmedText.length > 0 && !isSending;
   const placeholder =
     refs.length > 0
       ? "Ask the Agent to change the referenced nodes..."
@@ -64,15 +68,25 @@ export const Composer = ({ onRemoveRef, refs }: ComposerProps) => {
       return;
     }
 
-    addMessage({
-      content: trimmedText,
-      id: createMessageId(),
-      metadata: {
-        attachments,
-        referencedNodeIds: refs.map((ref) => ref.id),
-      },
-      role: "user",
-    });
+    const metadata = {
+      attachments,
+      referencedNodeIds: refs.map((ref) => ref.id),
+    };
+
+    if (onSubmit) {
+      void onSubmit({
+        content: trimmedText,
+        metadata,
+      });
+    } else {
+      addMessage({
+        content: trimmedText,
+        id: createMessageId(),
+        metadata,
+        role: "user",
+      });
+    }
+
     setText("");
     setAttachments([]);
     resetTextareaHeight();

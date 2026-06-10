@@ -2,8 +2,8 @@ import { z } from "zod/v4";
 
 export const ConversationAttachmentSchema = z.object({
   name: z.string(),
-  path: z.string(),
-  type: z.string(),
+  path: z.string().optional(),
+  type: z.string().optional(),
 });
 export type ConversationAttachment = z.infer<typeof ConversationAttachmentSchema>;
 

@@ -9,6 +9,7 @@ import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
 import { Composer } from "./Composer";
 import { useAgentBarStore } from "./_store";
+import { useAgentConversationPersistence } from "./useAgentConversationPersistence";
 
 export const WORKSPACE_PHASES: WorkspacePhase[] = [
   "empty",
@@ -47,6 +48,7 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   const dismissRef = useWorkspaceStore((state) => state.dismiss);
   const messages = useAgentBarStore((state) => state.messages);
   const clearMessages = useAgentBarStore((state) => state.clearMessages);
+  const { isSending, sendMessage } = useAgentConversationPersistence({ phase, pipelineId });
   const activeRefs = useMemo(
     () => canvasRefs.filter((ref) => !dismissed.includes(ref.id)),
     [canvasRefs, dismissed],
@@ -59,6 +61,7 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   const handleClearClick = () => clearMessages();
   const handleCollapseClick = () => onCollapse();
   const handleRemoveRef = (id: string) => dismissRef(id);
+  const handleComposerSubmit = sendMessage;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -152,7 +155,14 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
             ))}
           </div>
         </div>
-        {composer ?? <Composer refs={activeRefs} onRemoveRef={handleRemoveRef} />}
+        {composer ?? (
+          <Composer
+            isSending={isSending}
+            refs={activeRefs}
+            onRemoveRef={handleRemoveRef}
+            onSubmit={handleComposerSubmit}
+          />
+        )}
       </div>
     </aside>
   );

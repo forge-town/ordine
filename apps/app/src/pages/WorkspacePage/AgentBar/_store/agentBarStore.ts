@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { ConversationMessageMetadata, WorkspacePhase } from "@repo/schemas";
 
 export type AgentBarMessageRole = "assistant" | "user";
 
@@ -6,10 +7,8 @@ export type AgentBarMessage = {
   content: string;
   id: string;
   isThinking?: boolean;
-  metadata?: {
-    attachments?: Array<{ name: string }>;
-    referencedNodeIds?: string[];
-  };
+  metadata?: ConversationMessageMetadata;
+  phase?: WorkspacePhase | string | null;
   role: AgentBarMessageRole;
 };
 
@@ -18,6 +17,7 @@ export type AgentBarState = {
   addMessage: (message: AgentBarMessage) => void;
   clearMessages: () => void;
   resetAgentBar: () => void;
+  setMessages: (messages: AgentBarMessage[]) => void;
 };
 
 const initialState = {
@@ -32,4 +32,5 @@ export const useAgentBarStore = create<AgentBarState>((set) => ({
     })),
   clearMessages: () => set({ messages: [] }),
   resetAgentBar: () => set(initialState),
+  setMessages: (messages) => set({ messages }),
 }));

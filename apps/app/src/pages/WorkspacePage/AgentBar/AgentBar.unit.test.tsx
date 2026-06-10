@@ -5,6 +5,13 @@ import { useWorkspaceStore } from "../_store/workspaceStore";
 import { useAgentBarStore } from "./_store";
 import { AgentBar, WORKSPACE_PHASES } from "./AgentBar";
 
+vi.mock("./useAgentConversationPersistence", () => ({
+  useAgentConversationPersistence: () => ({
+    isSending: false,
+    sendMessage: vi.fn(),
+  }),
+}));
+
 const renderAgentBar = (handleCollapse = vi.fn()) => {
   render(<AgentBar pipelineId="pipe-test" onCollapse={handleCollapse} />);
 
