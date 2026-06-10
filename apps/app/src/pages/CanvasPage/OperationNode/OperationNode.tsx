@@ -31,20 +31,45 @@ const statusConfig: Record<NodeRunStatus, { icon: ElementType; color: string; la
       color: "text-gray-400",
       labelKey: "nodes.operation.statusIdle",
     },
+    queued: {
+      icon: Circle,
+      color: "text-gray-400",
+      labelKey: "nodes.operation.statusQueued",
+    },
     running: {
       icon: Loader2,
       color: "text-blue-500 animate-spin",
       labelKey: "nodes.operation.statusRunning",
     },
-    pass: {
+    waitingForUser: {
+      icon: Circle,
+      color: "text-amber-500 animate-pulse",
+      labelKey: "nodes.operation.statusWaitingForUser",
+    },
+    retrying: {
+      icon: Loader2,
+      color: "text-amber-500 animate-spin",
+      labelKey: "nodes.operation.statusRetrying",
+    },
+    done: {
       icon: CheckCircle2,
       color: "text-green-500",
-      labelKey: "nodes.operation.statusPass",
+      labelKey: "nodes.operation.statusDone",
     },
-    fail: {
+    failed: {
       icon: XCircle,
       color: "text-red-500",
-      labelKey: "nodes.operation.statusFail",
+      labelKey: "nodes.operation.statusFailed",
+    },
+    skipped: {
+      icon: Circle,
+      color: "text-gray-300",
+      labelKey: "nodes.operation.statusSkipped",
+    },
+    cancelled: {
+      icon: XCircle,
+      color: "text-gray-400",
+      labelKey: "nodes.operation.statusCancelled",
     },
   };
 
@@ -171,8 +196,8 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
           <div
             className={cn(
               "flex min-w-fit shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1 shadow-sm",
-              data.status === "pass" && "bg-green-50 border-green-100",
-              data.status === "fail" && "bg-red-50 border-red-100",
+              data.status === "done" && "bg-green-50 border-green-100",
+              data.status === "failed" && "bg-red-50 border-red-100",
               data.status === "running" && "bg-blue-50 border-blue-100",
               (!data.status || data.status === "idle") && "bg-white border-slate-100",
             )}

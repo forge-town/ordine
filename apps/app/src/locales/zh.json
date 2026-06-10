@@ -935,8 +935,6 @@
       "customDescription": "自定义操作",
       "statusIdle": "待运行",
       "statusRunning": "运行中",
-      "statusPass": "成功",
-      "statusFail": "失败",
       "config": "配置",
       "acceptedObjectTypes": "接受的对象类型",
       "objectTypes": {
@@ -958,7 +956,14 @@
       "maxLoopCountAria": "最大循环次数",
       "acceptanceCondition": "验收条件",
       "loopConditionAria": "循环验收条件",
-      "loopConditionPlaceholder": "描述输出需要满足的条件..."
+      "loopConditionPlaceholder": "描述输出需要满足的条件...",
+      "statusQueued": "排队中",
+      "statusWaitingForUser": "等待确认",
+      "statusRetrying": "重试中",
+      "statusDone": "完成",
+      "statusFailed": "失败",
+      "statusSkipped": "已跳过",
+      "statusCancelled": "已取消"
     },
     "outputLocalPath": {
       "label": "路径",

@@ -935,8 +935,6 @@
       "customDescription": "Custom operation",
       "statusIdle": "Idle",
       "statusRunning": "Running",
-      "statusPass": "Success",
-      "statusFail": "Failed",
       "config": "Config",
       "acceptedObjectTypes": "Accepted object types",
       "objectTypes": {
@@ -958,7 +956,14 @@
       "maxLoopCountAria": "Maximum loop count",
       "acceptanceCondition": "Acceptance condition",
       "loopConditionAria": "Loop acceptance condition",
-      "loopConditionPlaceholder": "Describe what the output must satisfy..."
+      "loopConditionPlaceholder": "Describe what the output must satisfy...",
+      "statusQueued": "Queued",
+      "statusWaitingForUser": "Waiting for you",
+      "statusRetrying": "Retrying",
+      "statusDone": "Done",
+      "statusFailed": "Failed",
+      "statusSkipped": "Skipped",
+      "statusCancelled": "Cancelled"
     },
     "outputLocalPath": {
       "label": "Path",

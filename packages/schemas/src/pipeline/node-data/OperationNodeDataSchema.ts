@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { NodeRunStatusSchema } from "./NodeRunStatusSchema";
+import { LenientNodeRunStatusSchema } from "./NodeRunStatusSchema";
 import { AgentRuntimeSchema } from "../../agent-runtime/AgentRuntimeSchema";
 
 export const OperationNodeDataSchema = z.object({
@@ -7,7 +7,7 @@ export const OperationNodeDataSchema = z.object({
   nodeType: z.literal("operation"),
   operationId: z.string(),
   operationName: z.string(),
-  status: NodeRunStatusSchema,
+  status: LenientNodeRunStatusSchema,
   config: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
   notes: z.string().optional(),
   agentId: z.string().optional(),
