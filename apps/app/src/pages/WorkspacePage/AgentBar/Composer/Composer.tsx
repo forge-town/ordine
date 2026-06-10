@@ -29,7 +29,7 @@ export const Composer = ({ isSending = false, onRemoveRef, onSubmit, refs }: Com
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addMessage = useAgentBarStore((state) => state.addMessage);
   const trimmedText = text.trim();
-  const canSend = trimmedText.length > 0 && !isSending;
+  const canSend = (trimmedText.length > 0 || attachments.length > 0) && !isSending;
   const placeholder =
     refs.length > 0
       ? "Ask the Agent to change the referenced nodes..."
@@ -68,6 +68,13 @@ export const Composer = ({ isSending = false, onRemoveRef, onSubmit, refs }: Com
       return;
     }
 
+    const content =
+      trimmedText.length > 0
+        ? trimmedText
+        : `Reverse-engineer a pipeline from the attached sample: ${attachments
+            .map((attachment) => attachment.name)
+            .join(", ")}`;
+
     const metadata = {
       attachments,
       referencedNodeIds: refs.map((ref) => ref.id),
@@ -75,12 +82,12 @@ export const Composer = ({ isSending = false, onRemoveRef, onSubmit, refs }: Com
 
     if (onSubmit) {
       void onSubmit({
-        content: trimmedText,
+        content,
         metadata,
       });
     } else {
       addMessage({
-        content: trimmedText,
+        content,
         id: createMessageId(),
         metadata,
         role: "user",

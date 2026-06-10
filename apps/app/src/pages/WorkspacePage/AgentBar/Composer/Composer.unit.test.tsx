@@ -86,4 +86,24 @@ describe("Composer", () => {
       }),
     );
   });
+
+  it("submits an attachment-only reverse engineering request", async () => {
+    const user = userEvent.setup();
+    renderComposer();
+
+    const input = document.querySelector<HTMLInputElement>("input[type='file']");
+    expect(input).toBeTruthy();
+
+    await user.upload(input!, new File(["sample"], "finished.csv", { type: "text/csv" }));
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    expect(useAgentBarStore.getState().messages[0]).toEqual(
+      expect.objectContaining({
+        content: "Reverse-engineer a pipeline from the attached sample: finished.csv",
+        metadata: expect.objectContaining({
+          attachments: [{ name: "finished.csv" }],
+        }),
+      }),
+    );
+  });
 });

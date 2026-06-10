@@ -2,7 +2,11 @@ import { z } from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../init";
 import { pipelinesService, pipelineRunnerService } from "../services";
-import { PipelineGraphSnapshotSchema, PipelineSchema } from "@repo/schemas";
+import {
+  ConversationAttachmentSchema,
+  PipelineGraphSnapshotSchema,
+  PipelineSchema,
+} from "@repo/schemas";
 
 export const pipelinesRouter = router({
   getMany: publicProcedure.query(() => pipelinesService.getAll()),
@@ -118,6 +122,7 @@ export const pipelinesRouter = router({
     .input(
       z.object({
         id: z.string(),
+        attachments: z.array(ConversationAttachmentSchema).optional(),
         snapshot: PipelineGraphSnapshotSchema,
         message: z.string().trim().min(1),
         pipelineName: z.string().optional(),
@@ -127,6 +132,7 @@ export const pipelinesRouter = router({
     .mutation(({ input }) =>
       pipelinesService.proposeActions({
         pipelineId: input.id,
+        attachments: input.attachments,
         snapshot: input.snapshot,
         message: input.message,
         pipelineName: input.pipelineName,

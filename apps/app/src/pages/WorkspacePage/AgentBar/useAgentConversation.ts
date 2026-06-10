@@ -141,6 +141,7 @@ export const useAgentConversation = ({
           method: "post",
           payload: {
             id: pipelineId,
+            attachments: metadata.attachments ?? [],
             message: trimmedContent,
             pipelineName,
             snapshot: { edges, nodes },

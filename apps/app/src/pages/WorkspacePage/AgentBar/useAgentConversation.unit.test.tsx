@@ -61,6 +61,12 @@ const Harness = () => {
       metadata: { referencedNodeIds: ["node-1"] },
     });
   };
+  const handleReverseClick = () => {
+    void submitMessage({
+      content: "Reverse-engineer this sample",
+      metadata: { attachments: [{ name: "finished.csv" }] },
+    });
+  };
   const handleApplyClick = () => {
     void applyProposal();
   };
@@ -69,6 +75,9 @@ const Harness = () => {
     <div>
       <button type="button" onClick={handleSendClick}>
         Send
+      </button>
+      <button type="button" onClick={handleReverseClick}>
+        Reverse
       </button>
       <button type="button" onClick={handleApplyClick}>
         Apply
@@ -170,5 +179,30 @@ describe("useAgentConversation", () => {
       );
     });
     expect(useWorkspaceStore.getState().phase).toBe("applied");
+  });
+
+  it("passes uploaded sample metadata to proposal generation", async () => {
+    const user = userEvent.setup();
+    const store = createCanvasPageStore([], [], "pipe-1", "Pipeline 1");
+
+    render(
+      <CanvasPageStoreContext.Provider value={store}>
+        <Harness />
+      </CanvasPageStoreContext.Provider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Reverse" }));
+
+    await waitFor(() => {
+      expect(dataProvider.custom).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            attachments: [{ name: "finished.csv" }],
+            message: "Reverse-engineer this sample",
+          }),
+          url: "pipelines/proposeActions",
+        }),
+      );
+    });
   });
 });
