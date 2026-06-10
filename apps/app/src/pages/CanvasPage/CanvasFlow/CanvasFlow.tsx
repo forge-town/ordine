@@ -10,15 +10,17 @@ import {
   MiniMap,
   useUpdateNodeInternals,
 } from "@xyflow/react";
-import { CompoundNode } from "../CompoundNode";
-import { FileNode } from "../FileNode";
 import { ErrorNode } from "../ErrorNode";
-import { FolderNode } from "../FolderNode";
-import { GitHubProjectNode } from "../GitHubProjectNode";
-import { OperationNode } from "../OperationNode";
-import { PromptNode } from "../PromptNode";
-import { OutputProjectPathNode } from "../OutputProjectPathNode";
-import { OutputLocalPathNode } from "../OutputLocalPathNode";
+import {
+  CompoundNode,
+  FileNode,
+  FolderNode,
+  GithubProjectNode,
+  OperationNode,
+  OutputLocalPathNode,
+  OutputProjectPathNode,
+  PromptNode,
+} from "../nodes";
 import {
   CANVAS_COMPONENT_DRAG_MIME,
   decodeCanvasComponentDragPayload,
@@ -34,7 +36,7 @@ const nodeTypes = {
   compound: CompoundNode,
   file: FileNode,
   folder: FolderNode,
-  "github-project": GitHubProjectNode,
+  "github-project": GithubProjectNode,
   prompt: PromptNode,
   "output-project-path": OutputProjectPathNode,
   "output-local-path": OutputLocalPathNode,
