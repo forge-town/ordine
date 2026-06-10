@@ -2,11 +2,16 @@ import { X } from "lucide-react";
 import { useUpdate } from "@refinedev/core";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
+import { Input } from "@repo/ui/input";
+import { Label } from "@repo/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useCanvasPageStore } from "../_store";
 import type { PipelineEdge } from "../_store/canvasSlice";
+import type { PipelineEdgeData } from "@repo/schemas";
 
 const getEdgeMappings = (edge: PipelineEdge) => edge.data?.dataContract?.mappings ?? [];
+const transformOptions = ["trim", "uppercase", "lowercase"] as const;
 
 export const EdgeInspector = () => {
   const store = useCanvasPageStore();
@@ -28,17 +33,7 @@ export const EdgeInspector = () => {
     setInspectEdgeId(null);
   };
 
-  const handleMappingToggle = (mappingIndex: number, enabled: boolean) => {
-    const nextMappings = mappings.map((mapping, index) =>
-      index === mappingIndex ? { ...mapping, enabled } : mapping,
-    );
-    const nextData = {
-      ...edge.data,
-      dataContract: {
-        ...edge.data?.dataContract,
-        mappings: nextMappings,
-      },
-    };
+  const persistEdgeData = (nextData: PipelineEdgeData) => {
     const nextEdges = edges.map((item) =>
       item.id === edge.id ? { ...item, data: nextData } : item,
     );
@@ -54,6 +49,85 @@ export const EdgeInspector = () => {
         errorNotification: false,
       });
     }
+  };
+
+  const handleMappingToggle = (mappingIndex: number, enabled: boolean) => {
+    const nextMappings = mappings.map((mapping, index) =>
+      index === mappingIndex ? { ...mapping, enabled } : mapping,
+    );
+
+    persistEdgeData({
+      ...edge.data,
+      dataContract: {
+        ...edge.data?.dataContract,
+        mappings: nextMappings,
+      },
+    });
+  };
+
+  const handleConditionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const expression = event.target.value.trim();
+
+    persistEdgeData({
+      ...edge.data,
+      condition: expression ? { ...edge.data?.condition, expression } : undefined,
+    });
+  };
+
+  const handleTransformAdd = (type: (typeof transformOptions)[number]) => {
+    persistEdgeData({
+      ...edge.data,
+      transform: {
+        steps: [...(edge.data?.transform?.steps ?? []), { type, config: {} }],
+      },
+    });
+  };
+
+  const handleTransformClear = () => {
+    persistEdgeData({
+      ...edge.data,
+      transform: undefined,
+    });
+  };
+
+  const handleQualityCriteriaChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const criteria = event.target.value.trim();
+
+    persistEdgeData({
+      ...edge.data,
+      qualityGate: criteria
+        ? {
+            criteria,
+            maxRetries: edge.data?.qualityGate?.maxRetries,
+            onFail: edge.data?.qualityGate?.onFail ?? "skip",
+          }
+        : undefined,
+    });
+  };
+
+  const handleQualityRetriesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.valueAsNumber;
+    if (!edge.data?.qualityGate || !Number.isFinite(value)) return;
+
+    persistEdgeData({
+      ...edge.data,
+      qualityGate: {
+        ...edge.data.qualityGate,
+        maxRetries: Math.max(0, Math.floor(value)),
+      },
+    });
+  };
+
+  const handleQualityOnFailChange = (value: "retry" | "skip" | "fail") => {
+    if (!edge.data?.qualityGate) return;
+
+    persistEdgeData({
+      ...edge.data,
+      qualityGate: {
+        ...edge.data.qualityGate,
+        onFail: value,
+      },
+    });
   };
 
   return (
@@ -76,6 +150,87 @@ export const EdgeInspector = () => {
         <div className="rounded-lg bg-background px-2.5 py-2 ring-1 ring-border">
           <div className="text-[11px] font-medium text-muted-foreground">Label</div>
           <div className="mt-1 truncate text-[12px]">{edge.data?.label || "data"}</div>
+        </div>
+
+        <div className="space-y-2 rounded-lg bg-background px-2.5 py-2 ring-1 ring-border">
+          <Label className="text-[11px] font-medium text-muted-foreground" htmlFor="edge-condition">
+            Condition
+          </Label>
+          <Input
+            id="edge-condition"
+            placeholder='content.includes("approved")'
+            value={edge.data?.condition?.expression ?? ""}
+            onChange={handleConditionChange}
+          />
+        </div>
+
+        <div className="space-y-2 rounded-lg bg-background px-2.5 py-2 ring-1 ring-border">
+          <div className="text-[11px] font-medium text-muted-foreground">Transform</div>
+          <div className="flex flex-wrap gap-1.5">
+            {transformOptions.map((type) => (
+              <Button
+                key={type}
+                className="h-7 px-2 text-[11px]"
+                size="sm"
+                type="button"
+                variant="secondary"
+                onClick={() => handleTransformAdd(type)}
+              >
+                {type}
+              </Button>
+            ))}
+            <Button
+              className="h-7 px-2 text-[11px]"
+              size="sm"
+              type="button"
+              variant="ghost"
+              onClick={handleTransformClear}
+            >
+              Clear
+            </Button>
+          </div>
+          <div className="text-[11px] text-muted-foreground">
+            {(edge.data?.transform?.steps ?? []).map((step) => step.type).join(" -> ") ||
+              "No transform steps."}
+          </div>
+        </div>
+
+        <div className="space-y-2 rounded-lg bg-background px-2.5 py-2 ring-1 ring-border">
+          <Label className="text-[11px] font-medium text-muted-foreground" htmlFor="edge-quality">
+            Quality Gate
+          </Label>
+          <Input
+            id="edge-quality"
+            placeholder="non-empty or required text"
+            value={edge.data?.qualityGate?.criteria ?? ""}
+            onChange={handleQualityCriteriaChange}
+          />
+          <div className="grid grid-cols-[1fr_1.4fr] gap-2">
+            <Input
+              aria-label="Quality gate retries"
+              inputMode="numeric"
+              min={0}
+              step={1}
+              type="number"
+              value={edge.data?.qualityGate?.maxRetries ?? 0}
+              onChange={handleQualityRetriesChange}
+            />
+            <Select
+              value={edge.data?.qualityGate?.onFail ?? "skip"}
+              onValueChange={(value) =>
+                handleQualityOnFailChange(value as "retry" | "skip" | "fail")
+              }
+            >
+              <SelectTrigger aria-label="Quality gate failure action">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="retry">retry</SelectItem>
+                <SelectItem value="skip">skip</SelectItem>
+                <SelectItem value="fail">fail</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div>

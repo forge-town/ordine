@@ -70,4 +70,41 @@ describe("EdgeInspector", () => {
 
     expect(store.getState().inspectEdgeId).toBeNull();
   });
+
+  it("edits condition, transform, and quality gate semantics", () => {
+    updateMock.mockReset();
+    const store = createCanvasPageStore([], [edge], "pipe-1", "Pipeline");
+    store.setState({ inspectEdgeId: edge.id });
+
+    render(<EdgeInspector />, { wrapper: makeWrapper(store) });
+
+    fireEvent.change(screen.getByLabelText("Condition"), {
+      target: { value: 'content.includes("approved")' },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "uppercase" }));
+    fireEvent.change(screen.getByLabelText("Quality Gate"), {
+      target: { value: "approved" },
+    });
+
+    expect(store.getState().edges[0]?.data).toEqual(
+      expect.objectContaining({
+        condition: { expression: 'content.includes("approved")' },
+        transform: { steps: [{ type: "uppercase", config: {} }] },
+        qualityGate: { criteria: "approved", maxRetries: undefined, onFail: "skip" },
+      }),
+    );
+    expect(updateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        values: expect.objectContaining({
+          edges: expect.arrayContaining([
+            expect.objectContaining({
+              data: expect.objectContaining({
+                qualityGate: expect.objectContaining({ criteria: "approved" }),
+              }),
+            }),
+          ]),
+        }),
+      }),
+    );
+  });
 });

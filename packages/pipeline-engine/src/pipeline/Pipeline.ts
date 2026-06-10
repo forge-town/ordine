@@ -11,6 +11,7 @@ import {
   OUTPUT_NODE_TYPE_ENUM,
   type NodeRunStatus,
   type PipelineEdge,
+  type PipelineEdgeData,
   type PipelineNode,
   type PipelineNodeData,
   type MetaNodeType,
@@ -43,6 +44,71 @@ const resolveMetaType = (type: string): MetaNodeType =>
 
 const isRootNode = (node: PipelineNode): boolean =>
   typeof (node as PipelineNode & { parentId?: unknown }).parentId !== "string";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const stringConfig = (config: Record<string, unknown>, key: string): string | undefined =>
+  typeof config[key] === "string" ? config[key] : undefined;
+
+const evaluateConditionExpression = (expression: string, content: string): boolean => {
+  const trimmed = expression.trim();
+  if (!trimmed || trimmed === "true") return true;
+  if (trimmed === "false") return false;
+
+  const includesMatch = /^(?:content|output)\.includes\(["'](.+)["']\)$/.exec(trimmed);
+  if (includesMatch) {
+    return content.includes(includesMatch[1]!);
+  }
+
+  const notIncludesMatch = /^!(?:content|output)\.includes\(["'](.+)["']\)$/.exec(trimmed);
+  if (notIncludesMatch) {
+    return !content.includes(notIncludesMatch[1]!);
+  }
+
+  return content.includes(trimmed);
+};
+
+const passesQualityGate = (qualityGate: PipelineEdgeData["qualityGate"], content: string) => {
+  if (!qualityGate) return true;
+
+  const criteria = qualityGate.criteria.trim();
+  if (!criteria) return true;
+  if (criteria === "non-empty") return content.trim().length > 0;
+
+  return content.includes(criteria);
+};
+
+const applyTransformStep = (content: string, step: { type: string; config: unknown }): string => {
+  const config = isRecord(step.config) ? step.config : {};
+
+  switch (step.type) {
+    case "trim": {
+      return content.trim();
+    }
+    case "uppercase": {
+      return content.toUpperCase();
+    }
+    case "lowercase": {
+      return content.toLowerCase();
+    }
+    case "prefix": {
+      return `${stringConfig(config, "value") ?? ""}${content}`;
+    }
+    case "suffix": {
+      return `${content}${stringConfig(config, "value") ?? ""}`;
+    }
+    case "replace": {
+      const from = stringConfig(config, "from");
+      if (!from) return content;
+
+      return content.split(from).join(stringConfig(config, "to") ?? "");
+    }
+    default: {
+      return content;
+    }
+  }
+};
 
 export type PipelineRunResult =
   | { ok: true; summary: string }
@@ -90,6 +156,7 @@ export class Pipeline {
   private opts: PipelineOptions;
   private tempDirs: string[] = [];
   private nodeOutputs = new Map<string, NodeCtx>();
+  private edgeActiveCache = new Map<string, boolean>();
 
   constructor(opts: PipelineOptions) {
     this.opts = opts;
@@ -98,6 +165,7 @@ export class Pipeline {
   async run(): Promise<PipelineRunResult> {
     this.tempDirs = [];
     this.nodeOutputs = new Map();
+    this.edgeActiveCache = new Map();
 
     const { pipeline, jobId } = this.opts;
     const { nodes, edges } = pipeline;
@@ -171,17 +239,36 @@ export class Pipeline {
     return { ok: true, summary };
   }
 
-  private resolveNodeInput(nodeId: string): NodeCtx {
+  private async resolveNodeInput(nodeId: string): Promise<NodeCtx> {
     const edges = this.opts.pipeline.edges;
-    const parentIds = getParentIds(nodeId, edges);
-    if (parentIds.length === 0) {
+    const incomingEdges = edges.filter((edge) => edge.target === nodeId);
+    if (incomingEdges.length === 0) {
       return this.nodeOutputs.get("__initial__") ?? { inputPath: "", content: "" };
     }
-    if (parentIds.length === 1) {
-      return this.nodeOutputs.get(parentIds[0]!) ?? { inputPath: "", content: "" };
+    const activeEdges = [];
+    for (const edge of incomingEdges) {
+      if (await this.isEdgeActive(edge)) {
+        activeEdges.push(edge);
+      }
     }
-    const parentCtxs = parentIds
-      .map((id) => this.nodeOutputs.get(id))
+
+    if (activeEdges.length === 0) {
+      return { inputPath: "", content: "" };
+    }
+
+    if (activeEdges.length === 1) {
+      const edge = activeEdges[0]!;
+      const parentCtx = this.nodeOutputs.get(edge.source) ?? { inputPath: "", content: "" };
+
+      return this.applyEdgeTransform(edge, parentCtx);
+    }
+
+    const parentCtxs = activeEdges
+      .map((edge) => {
+        const parentCtx = this.nodeOutputs.get(edge.source);
+
+        return parentCtx ? this.applyEdgeTransform(edge, parentCtx) : undefined;
+      })
       .filter((c): c is NodeCtx => c !== undefined);
     const inputPath = parentCtxs.find((p) => p.inputPath)?.inputPath ?? "";
     const content = parentCtxs
@@ -195,6 +282,13 @@ export class Pipeline {
   private async processNodeWithPause(
     node: PipelineNode,
   ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
+    if (await this.shouldSkipNodeForInactiveEdges(node)) {
+      await trace(this.opts.jobId, `@@NODE_SKIPPED::${node.id}::incoming edge condition`);
+      await this.emitNodeStatus(node.id, "skipped");
+
+      return { ok: true };
+    }
+
     const event = { jobId: this.opts.jobId, nodeId: node.id, reason: "pause" as const };
     const shouldPause = await this.opts.runControl?.shouldPauseBeforeNode?.(event);
 
@@ -231,12 +325,73 @@ export class Pipeline {
     return node.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OPERATION;
   }
 
+  private async shouldSkipNodeForInactiveEdges(node: PipelineNode): Promise<boolean> {
+    const incomingEdges = this.opts.pipeline.edges.filter((edge) => edge.target === node.id);
+    if (incomingEdges.length === 0) return false;
+
+    for (const edge of incomingEdges) {
+      if (await this.isEdgeActive(edge)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private async isEdgeActive(edge: PipelineEdge): Promise<boolean> {
+    const cached = this.edgeActiveCache.get(edge.id);
+    if (cached !== undefined) return cached;
+
+    const sourceOutput = this.nodeOutputs.get(edge.source);
+    if (!sourceOutput) {
+      this.edgeActiveCache.set(edge.id, false);
+
+      return false;
+    }
+
+    const data = edge.data;
+    const conditionPassed = data?.condition
+      ? evaluateConditionExpression(data.condition.expression, sourceOutput.content)
+      : true;
+    const qualityPassed = passesQualityGate(data?.qualityGate, sourceOutput.content);
+    const active = conditionPassed && qualityPassed;
+
+    if (!conditionPassed) {
+      await trace(
+        this.opts.jobId,
+        `@@EDGE_CONDITION_SKIP::${edge.id}::${data?.condition?.expression ?? ""}`,
+      );
+    }
+    if (!qualityPassed) {
+      await trace(
+        this.opts.jobId,
+        `@@EDGE_QUALITY_SKIP::${edge.id}::${data?.qualityGate?.criteria ?? ""}`,
+      );
+    }
+
+    this.edgeActiveCache.set(edge.id, active);
+
+    return active;
+  }
+
+  private applyEdgeTransform(edge: PipelineEdge, input: NodeCtx): NodeCtx {
+    const transform = edge.data?.transform;
+    if (!transform || transform.steps.length === 0) return input;
+
+    const content = transform.steps.reduce(
+      (current, step) => applyTransformStep(current, step),
+      input.content,
+    );
+
+    return { ...input, content };
+  }
+
   private async processNode(
     node: PipelineNode,
   ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
     const { deps, jobId } = this.opts;
     const data = node.data;
-    const input = this.resolveNodeInput(node.id);
+    const input = await this.resolveNodeInput(node.id);
 
     await trace(jobId, `Processing node [${node.type}] ${data.label ?? node.id}`);
     await trace(jobId, `@@NODE_START::${node.id}`);
