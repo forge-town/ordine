@@ -50,7 +50,7 @@ export interface CanvasSlice {
   handleNodesChange: (changes: NodeChange<PipelineNode>[]) => void;
   handleEdgesChange: (changes: EdgeChange<PipelineEdge>[]) => void;
   handleConnect: (connection: Connection) => void;
-  addNode: (node: PipelineNode) => void;
+  addNode: (node: PipelineNode, childNodes?: PipelineNode[]) => void;
   addNodeWithEdge: (sourceId: string, targetType: BuiltinNodeType) => void;
   removeNode: (nodeId: string) => void;
   updateNodeData: (nodeId: string, data: Record<string, unknown>) => void;
@@ -153,7 +153,7 @@ export const createCanvasSlice = (
       );
     },
 
-    addNode: (node) => {
+    addNode: (node, childNodes = []) => {
       const { recordCommand } = get();
 
       recordCommand(
@@ -164,6 +164,10 @@ export const createCanvasSlice = (
         },
         (draft) => {
           draft.nodes.push(node);
+          draft.nodes.push(...childNodes);
+          if (childNodes.length > 0) {
+            sortParentBeforeChildren(draft.nodes);
+          }
         },
       );
     },

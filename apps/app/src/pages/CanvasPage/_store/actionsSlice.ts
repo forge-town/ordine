@@ -20,6 +20,7 @@ import {
 } from "../utils/nodePosition";
 import type { ConnectStartState } from "./uiSlice";
 import type { CanvasImportPayload } from "../utils/canvasImportJson";
+import { applyVerifyCompoundTemplate } from "./verifyCompoundTemplate";
 
 const getConnectStartHandleId = (
   connectionState: FinalConnectionState,
@@ -127,7 +128,7 @@ export interface ActionsSlice {
   handleDragOverCompound: (draggedNodeId: string, position: { x: number; y: number }) => void;
   handleDragEndOnCompound: (draggedNodeId: string, isCompound: boolean) => void;
   handleRunTest: () => Promise<void>;
-  addNodeAndAutoConnect: (node: PipelineNode) => void;
+  addNodeAndAutoConnect: (node: PipelineNode, childNodes?: PipelineNode[]) => void;
   createObjectNode: (type: BuiltinNodeType) => void;
   createOperationNode: (operation: Operation) => void;
   handleCreateObjectNode: (type: BuiltinNodeType, screenPosition: XYPosition) => void;
@@ -531,9 +532,9 @@ export const createActionsSlice = (
     set({ isRunning: false });
   },
 
-  addNodeAndAutoConnect: (node) => {
+  addNodeAndAutoConnect: (node, childNodes = []) => {
     const connectStart = get().connectStart;
-    get().addNode(node);
+    get().addNode(node, childNodes);
 
     if (connectStart) {
       const state = get();
@@ -596,13 +597,19 @@ export const createActionsSlice = (
 
   handleCreateCompoundNode: (kind, screenPosition) => {
     const position = get().screenToFlowPosition(screenPosition);
-    get().addNodeAndAutoConnect({
+    const compoundNode: PipelineNode = {
       id: `compound-${kind}-${Date.now()}`,
       type: "compound",
       origin: QUICK_ADD_NODE_ORIGIN,
       position,
       data: makeCompoundShellNodeData(kind),
-    });
+    };
+    const next =
+      kind === "verify"
+        ? applyVerifyCompoundTemplate(compoundNode)
+        : { compoundNode, childNodes: [] };
+
+    get().addNodeAndAutoConnect(next.compoundNode, next.childNodes);
     set({ isQuickAddOpen: false, quickAddQuery: "" });
   },
 

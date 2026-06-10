@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { FinalConnectionState } from "@xyflow/system";
 import { createCanvasPageStore } from "./canvasPageStore";
+import type { CompoundNodeData } from "@repo/schemas";
 import type { PipelineNode } from "./canvasSlice";
 
 const makeNode = (id: string, type: PipelineNode["type"]): PipelineNode =>
@@ -230,5 +231,48 @@ describe("semantic node field actions", () => {
         description: "store action takes plain values",
       }),
     );
+  });
+});
+
+describe("verify compound actions", () => {
+  it("creates a verify compound with a standard internal loop template", () => {
+    const store = createCanvasPageStore([], [], null, "");
+
+    store.getState().handleCreateCompoundNode("verify", { x: 120, y: 80 });
+
+    const state = store.getState();
+    const compound = state.nodes.find((node) => node.type === "compound");
+    expect(compound).toBeDefined();
+    if (!compound) {
+      throw new Error("verify compound was not created");
+    }
+
+    const data = compound.data as CompoundNodeData;
+    expect(data.compoundKind).toBe("verify");
+    expect(data.childNodeIds).toHaveLength(5);
+    expect(data.childEdges).toHaveLength(5);
+    expect(state.edges).toEqual([]);
+    expect(state.nodes).toHaveLength(6);
+    expect(state.nodes[0]?.id).toBe(compound.id);
+    expect(
+      data.childEdges.some(
+        (edge) =>
+          edge.source === `${compound.id}-quality-gate` &&
+          edge.target === `${compound.id}-generator` &&
+          edge.data?.condition?.expression === "verdict !== 'pass'",
+      ),
+    ).toBe(true);
+
+    const childNodes = state.nodes.filter((node) => data.childNodeIds.includes(node.id));
+    expect(childNodes).toHaveLength(5);
+    expect(childNodes.every((node) => node.parentId === compound.id)).toBe(true);
+    expect(childNodes.every((node) => node.extent === "parent")).toBe(true);
+    expect(childNodes.map((node) => node.data.label)).toEqual([
+      "Input Port",
+      "Generator",
+      "Verifier",
+      "Quality Gate",
+      "Output Port",
+    ]);
   });
 });
