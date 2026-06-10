@@ -11,6 +11,7 @@ export * from "./githubProjectsDao";
 export * from "./jobTracesDao";
 export * from "./jobsDao";
 export * from "./operationsDao";
+export * from "./pipelineAssetsDao";
 export * from "./pipelineRunsDao";
 export * from "./pipelinesDao";
 export * from "./projectsDao";
