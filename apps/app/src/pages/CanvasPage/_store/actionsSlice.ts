@@ -405,6 +405,14 @@ export const createActionsSlice = (
   },
 
   handleFlowNodeDoubleClick: (_event, node) => {
+    if (node.type === "compound") {
+      get().pushDrillStack(node.id);
+      get().focusNode(node.id);
+      set({ configNodeId: null });
+
+      return;
+    }
+
     get().focusNode(node.id);
     set({ configNodeId: node.id });
   },
@@ -755,8 +763,7 @@ export const createActionsSlice = (
   nodeContextGroupSelected: () => {
     const { nodes } = get();
     const selectedIds = nodes.filter((n) => n.selected && n.type !== "compound").map((n) => n.id);
-    get().groupSelectedNodes(selectedIds);
-    set({ nodeContextMenu: null });
+    set({ composingNodeIds: selectedIds, nodeContextMenu: null });
   },
 
   nodeContextAddObject: (type) => {

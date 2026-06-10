@@ -55,7 +55,7 @@ export const CanvasContextMenu = () => {
   const handleCreateObjectNode = useStore(store, (s) => s.createObjectNode);
   const createOperationNode = useStore(store, (s) => s.createOperationNode);
   const handleContextMenuOpenChange = useStore(store, (s) => s.handleContextMenuOpenChange);
-  const groupSelectedNodes = useStore(store, (s) => s.groupSelectedNodes);
+  const setComposingNodeIds = useStore(store, (s) => s.setComposingNodeIds);
 
   // Get allowed connections based on current operations
   const allowedConnections = getAllowedConnections(operations);
@@ -144,7 +144,7 @@ export const CanvasContextMenu = () => {
   const selectedIds = nodes.filter((n) => n.selected && n.type !== "compound").map((n) => n.id);
 
   const handleGroupSelected = () => {
-    groupSelectedNodes(selectedIds);
+    setComposingNodeIds(selectedIds);
     handleContextMenuOpenChange(false);
   };
 

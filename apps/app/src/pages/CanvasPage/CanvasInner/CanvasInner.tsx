@@ -22,6 +22,7 @@ import { CanvasWorkspaceSidebarOverlay } from "../CanvasWorkspaceSidebarOverlay"
 import { EdgeInspector } from "../EdgeInspector";
 import { NodeConfig } from "../NodeConfig";
 import { AnnComposer, AnnViewer, CanvasAnnotationsContext, useAnnotations } from "../annotations";
+import { ComposeDialog } from "../compose";
 import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePosition";
 
 export const CanvasInner = () => {
@@ -197,6 +198,7 @@ export const CanvasInner = () => {
 
         <CanvasSettingsDrawer />
         <CanvasWorkspaceSidebarOverlay />
+        <ComposeDialog />
         <AnnViewer
           targetId={viewingAnnId}
           targetLabel={String(viewingAnnNode?.data.label ?? viewingAnnId ?? "")}

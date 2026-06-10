@@ -62,7 +62,7 @@ export interface CanvasSlice {
   formatLayout: () => void;
   addNodeToCompound: (nodeId: string, compoundId: string) => void;
   removeNodeFromCompound: (nodeId: string, compoundId: string) => void;
-  groupSelectedNodes: (nodeIds: string[]) => void;
+  groupSelectedNodes: (nodeIds: string[], label?: string) => void;
   ungroupCompound: (compoundId: string) => void;
 }
 
@@ -413,10 +413,11 @@ export const createCanvasSlice = (
       );
     },
 
-    groupSelectedNodes: (nodeIds) => {
+    groupSelectedNodes: (nodeIds, label) => {
       const state = get();
       if (nodeIds.length < 2) return;
 
+      const selectedIdSet = new Set(nodeIds);
       const selectedNodes = state.nodes.filter((n) => nodeIds.includes(n.id));
       if (selectedNodes.length < 2) return;
 
@@ -426,7 +427,13 @@ export const createCanvasSlice = (
       const childH = 120;
       const compoundId = `compound-${Date.now()}`;
       const compoundData = makeLocalizedDefaultNodeData("compound") as CompoundNodeData;
+      if (label?.trim()) {
+        compoundData.label = label.trim();
+      }
       compoundData.childNodeIds = [...nodeIds];
+      compoundData.childEdges = state.edges.filter(
+        (edge) => selectedIdSet.has(edge.source) && selectedIdSet.has(edge.target),
+      );
 
       const minX = Math.min(...selectedNodes.map((n) => n.position.x));
       const minY = Math.min(...selectedNodes.map((n) => n.position.y));
@@ -453,6 +460,36 @@ export const createCanvasSlice = (
         },
         (draft) => {
           draft.nodes.push(newCompound);
+          const rewiredEdges: PipelineEdge[] = [];
+          const untouchedEdges: PipelineEdge[] = [];
+
+          for (const edge of draft.edges) {
+            const sourceSelected = selectedIdSet.has(edge.source);
+            const targetSelected = selectedIdSet.has(edge.target);
+
+            if (sourceSelected && targetSelected) {
+              continue;
+            }
+
+            if (sourceSelected !== targetSelected) {
+              const source = sourceSelected ? compoundId : edge.source;
+              const target = targetSelected ? compoundId : edge.target;
+              rewiredEdges.push({
+                ...edge,
+                id: `e-${source}-${target}-${edge.id}`,
+                source,
+                sourceHandle: sourceSelected ? null : edge.sourceHandle,
+                target,
+                targetHandle: targetSelected ? null : edge.targetHandle,
+              });
+
+              continue;
+            }
+
+            untouchedEdges.push(edge);
+          }
+
+          draft.edges = [...untouchedEdges, ...rewiredEdges];
           for (const nid of nodeIds) {
             const child = draft.nodes.find((n) => n.id === nid);
             if (child) {

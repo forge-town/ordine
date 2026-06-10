@@ -27,6 +27,7 @@ import {
   decodeCanvasComponentDragPayload,
   hasCanvasComponentDragPayload,
 } from "../utils/canvasComponentDragPayload";
+import { useDrillStack } from "../drill";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 import { decorateEdgesWithPortHandles } from "../NodeCard";
 import type { PipelineEdge } from "../_store/canvasSlice";
@@ -74,12 +75,12 @@ const handleComponentDragOver = (event: DragEvent<HTMLDivElement>) => {
 export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const store = useCanvasPageStore();
   const nodes = useStore(store, (s) => s.nodes);
-  const edges = useStore(store, (s) => s.edges);
+  const { activeCompoundId, visibleEdges, visibleNodes } = useDrillStack();
   const connectStart = useStore(store, (s) => s.connectStart);
   const isCanvasInteractive = useStore(store, (s) => s.isCanvasInteractive);
   const portRoutedEdges = useMemo(
-    () => decorateEdgesWithPortHandles(nodes, edges, connectStart),
-    [connectStart, edges, nodes],
+    () => decorateEdgesWithPortHandles(visibleNodes, visibleEdges, connectStart),
+    [connectStart, visibleEdges, visibleNodes],
   );
   const semanticEdges = useMemo<PipelineEdge[]>(
     () => portRoutedEdges.map((edge) => ({ ...edge, type: "semantic" })),
@@ -266,6 +267,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
       onDrop={handleDrop}
     >
       <ReactFlow
+        key={activeCompoundId ?? "root"}
         className="bg-slate-50/50"
         defaultEdgeOptions={defaultEdgeOptions}
         defaultViewport={DEFAULT_CANVAS_VIEWPORT}
@@ -273,7 +275,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         edges={semanticEdges}
         edgeTypes={edgeTypes}
         elementsSelectable={isCanvasInteractive}
-        nodes={nodes}
+        nodes={visibleNodes}
         nodesConnectable={isCanvasInteractive}
         nodesDraggable={isCanvasInteractive}
         nodeTypes={nodeTypes}
@@ -305,7 +307,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
             position="bottom-left"
           />
         )}
-        {canvasSettings.showMiniMap && nodes.length > 1 && !isConsoleOpen && (
+        {canvasSettings.showMiniMap && visibleNodes.length > 1 && !isConsoleOpen && (
           <MiniMap
             pannable
             zoomable

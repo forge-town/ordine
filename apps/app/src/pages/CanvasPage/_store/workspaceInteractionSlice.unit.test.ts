@@ -29,6 +29,7 @@ describe("workspaceInteractionSlice", () => {
     expect(state.inspectEdgeId).toBeNull();
     expect(state.annotatingId).toBeNull();
     expect(state.viewingAnnId).toBeNull();
+    expect(state.composingNodeIds).toBeNull();
     expect(state.compPanelOpen).toBe(true);
     expect(state.phase).toBe("empty");
   });
@@ -57,6 +58,7 @@ describe("workspaceInteractionSlice", () => {
     store.getState().setInspectEdgeId("edge-a");
     store.getState().setAnnotatingId("node-b");
     store.getState().setViewingAnnId("ann-a");
+    store.getState().setComposingNodeIds(["node-a", "node-b"]);
     store.getState().setCompPanelOpen(false);
     store.getState().toggleCompPanelOpen();
     store.getState().setWorkspacePhase("proposal");
@@ -67,6 +69,7 @@ describe("workspaceInteractionSlice", () => {
     expect(state.inspectEdgeId).toBe("edge-a");
     expect(state.annotatingId).toBe("node-b");
     expect(state.viewingAnnId).toBe("ann-a");
+    expect(state.composingNodeIds).toEqual(["node-a", "node-b"]);
     expect(state.compPanelOpen).toBe(true);
     expect(state.phase).toBe("proposal");
   });

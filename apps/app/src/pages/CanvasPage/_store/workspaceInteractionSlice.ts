@@ -4,6 +4,7 @@ import type { CanvasPageStoreSlice } from "./canvasPageStore";
 export interface WorkspaceInteractionSlice {
   annotatingId: string | null;
   compPanelOpen: boolean;
+  composingNodeIds: string[] | null;
   configNodeId: string | null;
   drillStack: string[];
   inspectEdgeId: string | null;
@@ -15,6 +16,7 @@ export interface WorkspaceInteractionSlice {
   pushDrillStack: (nodeId: string) => void;
   setAnnotatingId: (id: string | null) => void;
   setCompPanelOpen: (open: boolean) => void;
+  setComposingNodeIds: (ids: string[] | null) => void;
   setConfigNodeId: (id: string | null) => void;
   setDrillStack: (stack: string[]) => void;
   setInspectEdgeId: (id: string | null) => void;
@@ -29,6 +31,7 @@ export const createWorkspaceInteractionSlice = (
 ): WorkspaceInteractionSlice => ({
   annotatingId: null,
   compPanelOpen: true,
+  composingNodeIds: null,
   configNodeId: null,
   drillStack: [],
   inspectEdgeId: null,
@@ -46,6 +49,7 @@ export const createWorkspaceInteractionSlice = (
     })),
   setAnnotatingId: (id) => set({ annotatingId: id }),
   setCompPanelOpen: (open) => set({ compPanelOpen: open }),
+  setComposingNodeIds: (ids) => set({ composingNodeIds: ids ? [...ids] : null }),
   setConfigNodeId: (id) => set({ configNodeId: id }),
   setDrillStack: (stack) => set({ drillStack: [...stack] }),
   setInspectEdgeId: (id) => set({ inspectEdgeId: id }),
