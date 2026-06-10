@@ -514,7 +514,7 @@ export const AgentPanel = () => {
             <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-800">
               <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
               <span>{t("canvas.agentPanel.runtimeNotConfigured")}</span>
-              <a className="font-medium underline underline-offset-2" href="/runtimes">
+              <a className="font-medium underline underline-offset-2" href="/local-agents">
                 {t("canvas.agentPanel.goToRuntimeSettings")}
               </a>
             </div>

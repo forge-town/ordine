@@ -10,7 +10,6 @@ import {
   Puzzle,
   Redo2,
   Save,
-  Server,
   Settings2,
   Undo2,
   Workflow,
@@ -43,7 +42,6 @@ const workspaceLinks = [
   { icon: Activity, labelKey: "nav.jobs", to: "/pipelines/jobs" },
   { icon: Bot, labelKey: "nav.agents", to: "/agents" },
   { icon: Puzzle, labelKey: "nav.plugins", to: "/plugins" },
-  { icon: Server, labelKey: "nav.runtimes", to: "/runtimes" },
   { icon: Settings2, labelKey: "nav.settings", to: "/settings" },
 ] as const;
 

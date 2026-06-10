@@ -536,7 +536,7 @@ describe("AgentPanel", () => {
       ).toBeInTheDocument();
     });
     const link = screen.getByRole("link", { name: "canvas.agentPanel.goToRuntimeSettings" });
-    expect(link).toHaveAttribute("href", "/runtimes");
+    expect(link).toHaveAttribute("href", "/local-agents");
     expect(mockCustom).not.toHaveBeenCalled();
   });
 });

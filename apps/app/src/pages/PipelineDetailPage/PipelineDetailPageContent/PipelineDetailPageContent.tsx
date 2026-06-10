@@ -31,7 +31,9 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/pipelines.$pipelineId";
 import { PageHeader } from "@/components/PageHeader";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { useToastStore } from "@/store/toastStore";
 import { Stat } from "../Stat";
+import { useStore } from "zustand";
 
 // ─── Node type metadata ───────────────────────────────────────────────────────
 
@@ -100,6 +102,8 @@ export const PipelineDetailPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { pipelineId } = Route.useParams();
+  const toastStoreRef = useToastStore();
+  const addToast = useStore(toastStoreRef, (s) => s.addToast);
 
   const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
     resource: ResourceName.pipelines,
@@ -201,16 +205,13 @@ export const PipelineDetailPageContent = () => {
   }
 
   const handleCanvasClick = () => void navigate({ to: "/canvas", search: { id: pipeline.id } });
-  const handleOpenDistillationStudio = () =>
-    void navigate({
-      to: "/distillations/new",
-      search: {
-        sourceType: "pipeline",
-        sourceId: pipeline.id,
-        sourceLabel: pipeline.name,
-        mode: "pipeline",
-      },
+  const handleOpenDistillationStudio = () => {
+    addToast({
+      type: "success",
+      title: "Distillation archived",
+      description: "Use Pipeline Skills and Components for reusable assets after M7-09.",
     });
+  };
 
   const nodeTypeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     acc[n.type] = (acc[n.type] ?? 0) + 1;
