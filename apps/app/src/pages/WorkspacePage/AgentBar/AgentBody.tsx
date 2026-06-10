@@ -1,0 +1,181 @@
+import type { WorkspacePhase } from "@repo/schemas";
+import {
+  AppliedCard,
+  Assistant,
+  Bubble,
+  CompletionCard,
+  DistillCard,
+  ErrorCard,
+  OptionGrid,
+  ProposalCard,
+  RunStatusCard,
+  SelfHealCard,
+  SuggestionList,
+} from "./messages";
+
+const proposalItems = [
+  { title: "Source - Textbook PDFs", detail: "Input - Folder" },
+  { title: "Parse & Extract", detail: "Op - parser.skill on Claude Code" },
+  { title: "Generate Vocab Quiz", detail: "Op - Codex" },
+  { title: "Adversarial Verify", detail: "Compound - Generator/Critic" },
+  { title: "Export to Notion", detail: "Connector - notion-mcp" },
+];
+
+const userGoal = (
+  <Bubble>
+    I want to turn the textbook PDFs in this folder into a vocabulary quiz that lives in my Notion
+    study DB.
+  </Bubble>
+);
+
+const handleOpenSkillClick = () => undefined;
+
+export type AgentBodyProps = {
+  phase: WorkspacePhase;
+  onPhaseChange?: (phase: WorkspacePhase) => void;
+};
+
+export const AgentBody = ({ onPhaseChange, phase }: AgentBodyProps) => {
+  const handleClarifyClick = () => onPhaseChange?.("clarify");
+  const handleProposalClick = () => onPhaseChange?.("proposal");
+  const handleAppliedClick = () => onPhaseChange?.("applied");
+
+  if (phase === "empty") {
+    return (
+      <>
+        <Assistant>
+          New canvas. Tell me what you want to make, or drop a finished sample and I will infer the
+          pipeline that produces it.
+        </Assistant>
+        <SuggestionList
+          items={[
+            {
+              id: "textbook-quiz",
+              label: "Turn my textbook PDFs into a Notion quiz",
+              onSelect: handleClarifyClick,
+            },
+            {
+              id: "repo-changelog",
+              label: "Summarize a GitHub repo into a changelog",
+              onSelect: handleClarifyClick,
+            },
+            {
+              id: "reverse-sample",
+              label: "Upload a finished sample and infer the pipeline",
+              onSelect: handleProposalClick,
+              priorityLabel: "P1",
+              reverse: true,
+            },
+          ]}
+        />
+      </>
+    );
+  }
+
+  if (phase === "clarify") {
+    return (
+      <>
+        {userGoal}
+        <Assistant>
+          Got it. Before I draft the pipeline, should the quiz mix vocabulary and grammar or stay
+          vocab-only? Should I add a verify step before the Notion export?
+        </Assistant>
+        <OptionGrid
+          items={[
+            { id: "vocab", label: "Vocab only", onSelect: handleProposalClick },
+            {
+              active: true,
+              id: "grammar",
+              label: "Vocab + grammar",
+              onSelect: handleProposalClick,
+            },
+            { active: true, id: "verify", label: "+ Verify step", onSelect: handleProposalClick },
+            { id: "skip", label: "Skip verify", onSelect: handleProposalClick },
+          ]}
+        />
+      </>
+    );
+  }
+
+  if (phase === "proposal") {
+    return (
+      <>
+        {userGoal}
+        <Assistant>
+          Here is a pipeline that does it end to end. I reused your Parse PDF and Notion DB
+          components. Preview is on the canvas.
+        </Assistant>
+        <ProposalCard
+          items={proposalItems}
+          subtitle="Reuses 2 components from your library"
+          title="Proposal - 5 nodes, 4 edges"
+          onApply={handleAppliedClick}
+          onRevise={handleClarifyClick}
+        />
+      </>
+    );
+  }
+
+  if (phase === "applied") {
+    return (
+      <>
+        {userGoal}
+        <AppliedCard detail="Pipeline is on the canvas" title="Applied - 5 nodes" />
+        <Assistant>
+          Pipeline is ready to edit. Tune any node, inspect data contracts on edges, or run it when
+          you are set.
+        </Assistant>
+      </>
+    );
+  }
+
+  if (phase === "running") {
+    return (
+      <>
+        {userGoal}
+        <RunStatusCard
+          costLabel="14.6s - $0.14"
+          subtitle="Step 3 of 5 - Generate Vocab Quiz"
+          title="Running - job_8f2a"
+        />
+        <SelfHealCard
+          steps={[
+            { label: "8k chunk caused context overflow on file 3." },
+            { label: "Switched to 4k chunk and retried the parser." },
+            { label: "Continuing with the working configuration.", tone: "success" },
+          ]}
+          subtitle="Parse step retried with a smaller chunk size"
+          title="Self-heal - round 2 - resolved"
+        />
+        <ErrorCard
+          title="Heads up - Notion connector needs a token"
+          tryLabel="Connectors -> Notion -> Connect"
+          what="The Export step cannot reach your Notion database yet."
+          why="The connector has not been authorized."
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
+      {userGoal}
+      <CompletionCard
+        subtitle="20 questions - verified in 2 rounds"
+        title="Completed - 41.3s - $0.31"
+      >
+        Exported 20 vocabulary and grammar questions to Notion. Verify caught 3 ambiguous
+        distractors and rewrote them.
+      </CompletionCard>
+      <DistillCard
+        subtitle="Textbook to Notion Quiz - saved to Components"
+        title="Distilled to a Pipeline Skill"
+        onOpen={handleOpenSkillClick}
+      />
+      <Assistant>
+        Saved this as a reusable Pipeline Skill. Next time, drop a new folder of PDFs and I will run
+        the whole thing.
+      </Assistant>
+    </>
+  );
+};
