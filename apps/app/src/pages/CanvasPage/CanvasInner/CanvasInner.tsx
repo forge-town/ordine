@@ -21,6 +21,7 @@ import { CanvasNodePropertiesPanel } from "../CanvasNodePropertiesPanel";
 import { CanvasWorkspaceSidebarOverlay } from "../CanvasWorkspaceSidebarOverlay";
 import { EdgeInspector } from "../EdgeInspector";
 import { NodeConfig } from "../NodeConfig";
+import { AnnComposer, AnnViewer, CanvasAnnotationsContext, useAnnotations } from "../annotations";
 import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePosition";
 
 export const CanvasInner = () => {
@@ -36,13 +37,21 @@ export const CanvasInner = () => {
   const isQuickAddOpen = useStore(store, (state) => state.isQuickAddOpen);
   const agentPanelIsOpen = useStore(store, (state) => state.agentPanel.isOpen);
   const nodes = useStore(store, (state) => state.nodes);
+  const pipelineId = useStore(store, (state) => state.pipelineId);
   const sidebarPanel = useStore(store, (state) => state.sidebarPanel);
   const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
   const workspacePanelWidth = useStore(store, (state) => state.workspacePanelWidth);
   const setWorkspacePanelWidth = useStore(store, (state) => state.setWorkspacePanelWidth);
+  const annotatingId = useStore(store, (state) => state.annotatingId);
+  const viewingAnnId = useStore(store, (state) => state.viewingAnnId);
+  const setAnnotatingId = useStore(store, (state) => state.setAnnotatingId);
+  const setViewingAnnId = useStore(store, (state) => state.setViewingAnnId);
   const selectedNode = useStore(store, selectSelectedNode);
   const configNodeId = useStore(store, (state) => state.configNodeId);
   const configNode = nodes.find((node) => node.id === configNodeId);
+  const annotatingNode = nodes.find((node) => node.id === annotatingId);
+  const viewingAnnNode = nodes.find((node) => node.id === viewingAnnId);
+  const annotations = useAnnotations(pipelineId);
   const showNodeConfig =
     configNode?.data.nodeType === "operation" || configNode?.data.nodeType === "prompt";
   const showPropertiesPanel = sidebarPanel === "properties" && !!selectedNode;
@@ -101,79 +110,105 @@ export const CanvasInner = () => {
     [workspacePanelWidth],
   );
 
+  const handleAnnotationComposerClose = () => {
+    setAnnotatingId(null);
+  };
+  const handleAnnotationViewerClose = () => {
+    setViewingAnnId(null);
+  };
+  const handleViewerAddAnnotation = (targetId: string) => {
+    setViewingAnnId(null);
+    setAnnotatingId(targetId);
+  };
+
   return (
-    <div
-      className="flex h-full min-h-0 w-full overflow-hidden bg-background"
-      data-testid="canvas-langflow-shell"
-    >
-      <CanvasMiniSidebar />
+    <CanvasAnnotationsContext.Provider value={annotations}>
+      <div
+        className="flex h-full min-h-0 w-full overflow-hidden bg-background"
+        data-testid="canvas-langflow-shell"
+      >
+        <CanvasMiniSidebar />
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <CanvasTopChrome />
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <CanvasTopChrome />
 
-        <div className="flex min-h-0 flex-1 overflow-hidden">
-          {isSidebarOpen && (
-            <div className="relative shrink-0">
-              <aside
-                className="h-full shrink-0 border-r bg-background"
-                data-testid="canvas-work-panel"
-                style={{ width: `${workspacePanelWidth}px` }}
-              >
-                {showNodeConfig ? (
-                  <NodeConfig />
-                ) : showPropertiesPanel ? (
-                  <CanvasNodePropertiesPanel />
-                ) : (
-                  <CanvasComponentPanel getCreateNodeScreenPosition={getFlowViewportScreenCenter} />
-                )}
-              </aside>
-              <Button
-                aria-label={t("canvas.operationsPanel.resize", {
-                  defaultValue: "Resize operations panel",
-                })}
-                className="absolute inset-y-0 -right-2 z-10 h-full w-4 cursor-col-resize rounded-none px-0 touch-none"
-                data-testid="canvas-work-panel-resizer"
-                size="icon"
-                variant="ghost"
-                onMouseDown={handleWorkspacePanelResizeStart}
-              >
-                <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-border transition-colors hover:bg-primary" />
-              </Button>
-            </div>
-          )}
-
-          <main className="relative min-w-0 flex-1 overflow-hidden">
-            <CanvasFlow viewportRef={flowViewportRef} />
-
-            {nodes.length === 0 && <CanvasEmptyState />}
-
-            {isQuickAddOpen && (
-              <CanvasNodeCreationPalette
-                getCreateNodeScreenPosition={getFlowViewportScreenCenter}
-              />
+          <div className="flex min-h-0 flex-1 overflow-hidden">
+            {isSidebarOpen && (
+              <div className="relative shrink-0">
+                <aside
+                  className="h-full shrink-0 border-r bg-background"
+                  data-testid="canvas-work-panel"
+                  style={{ width: `${workspacePanelWidth}px` }}
+                >
+                  {showNodeConfig ? (
+                    <NodeConfig />
+                  ) : showPropertiesPanel ? (
+                    <CanvasNodePropertiesPanel />
+                  ) : (
+                    <CanvasComponentPanel
+                      getCreateNodeScreenPosition={getFlowViewportScreenCenter}
+                    />
+                  )}
+                </aside>
+                <Button
+                  aria-label={t("canvas.operationsPanel.resize", {
+                    defaultValue: "Resize operations panel",
+                  })}
+                  className="absolute inset-y-0 -right-2 z-10 h-full w-4 cursor-col-resize rounded-none px-0 touch-none"
+                  data-testid="canvas-work-panel-resizer"
+                  size="icon"
+                  variant="ghost"
+                  onMouseDown={handleWorkspacePanelResizeStart}
+                >
+                  <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-border transition-colors hover:bg-primary" />
+                </Button>
+              </div>
             )}
 
-            <CanvasStatusBar />
+            <main className="relative min-w-0 flex-1 overflow-hidden">
+              <CanvasFlow viewportRef={flowViewportRef} />
 
-            {contextMenu && <CanvasContextMenu />}
+              {nodes.length === 0 && <CanvasEmptyState />}
 
-            {connectionMenu && <ConnectionMenu />}
+              {isQuickAddOpen && (
+                <CanvasNodeCreationPalette
+                  getCreateNodeScreenPosition={getFlowViewportScreenCenter}
+                />
+              )}
 
-            {nodeContextMenu && <NodeContextMenu />}
+              <CanvasStatusBar />
 
-            <LlmContentCard />
+              {contextMenu && <CanvasContextMenu />}
 
-            <EdgeInspector />
+              {connectionMenu && <ConnectionMenu />}
 
-            {isConsoleOpen && <RunConsole />}
+              {nodeContextMenu && <NodeContextMenu />}
 
-            {agentPanelIsOpen && <AgentPanel />}
-          </main>
+              <LlmContentCard />
+
+              <EdgeInspector />
+
+              {isConsoleOpen && <RunConsole />}
+
+              {agentPanelIsOpen && <AgentPanel />}
+            </main>
+          </div>
         </div>
-      </div>
 
-      <CanvasSettingsDrawer />
-      <CanvasWorkspaceSidebarOverlay />
-    </div>
+        <CanvasSettingsDrawer />
+        <CanvasWorkspaceSidebarOverlay />
+        <AnnViewer
+          targetId={viewingAnnId}
+          targetLabel={String(viewingAnnNode?.data.label ?? viewingAnnId ?? "")}
+          onAdd={handleViewerAddAnnotation}
+          onClose={handleAnnotationViewerClose}
+        />
+        <AnnComposer
+          targetId={annotatingId}
+          targetLabel={String(annotatingNode?.data.label ?? annotatingId ?? "")}
+          onClose={handleAnnotationComposerClose}
+        />
+      </div>
+    </CanvasAnnotationsContext.Provider>
   );
 };

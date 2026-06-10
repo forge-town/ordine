@@ -18,6 +18,7 @@ import { normalizeNodeRunStatus, type NodeRunStatus } from "@repo/schemas";
 import { selectNodePortCounts, selectNodeRunState, useCanvasPageStore } from "../_store";
 import type { NodeTheme } from "../NodeCard/nodeCardTheme";
 import { NodeCardPorts } from "../NodeCard/NodeCardPorts";
+import { useNodeAnnotations } from "../annotations";
 
 export type GNodeShellStatus = NodeRunStatus | "preview";
 
@@ -110,7 +111,7 @@ const GNodeStatusDot = ({ status }: { status: NodeRunStatus }) => {
 };
 
 export const GNodeShell = ({
-  annotationCount = 0,
+  annotationCount,
   children,
   dataStatus,
   detail,
@@ -142,8 +143,11 @@ export const GNodeShell = ({
   const duplicateNode = useStore(store, (state) => state.duplicateNode);
   const removeNode = useStore(store, (state) => state.removeNode);
   const setAnnotatingId = useStore(store, (state) => state.setAnnotatingId);
+  const setViewingAnnId = useStore(store, (state) => state.setViewingAnnId);
   const setConfigNodeId = useStore(store, (state) => state.setConfigNodeId);
+  const nodeAnnotations = useNodeAnnotations(id);
   const normalizedStatus = normalizeNodeRunStatus(runStatus ?? dataStatus ?? "idle");
+  const visibleAnnotationCount = annotationCount ?? nodeAnnotations.length;
   const preview = phase === "proposal";
   const StatusIcon = statusIcon[normalizedStatus];
   const themeClass = themeClasses[theme] ?? themeClasses.indigo;
@@ -156,6 +160,10 @@ export const GNodeShell = ({
   const handleAnnotateClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     setAnnotatingId(id);
+  };
+  const handleViewAnnotationsClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setViewingAnnId(id);
   };
   const handleDuplicateClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -172,15 +180,15 @@ export const GNodeShell = ({
       data-card-mode={nodeCardMode}
       data-selected={selected ? "true" : "false"}
     >
-      {annotationCount > 0 && (
+      {visibleAnnotationCount > 0 && (
         <button
           aria-label="View annotations"
           className="absolute -left-2 -top-2 z-20 flex h-5 items-center gap-0.5 rounded-full bg-foreground px-1.5 text-[9.5px] font-semibold text-primary-foreground shadow-pill"
           type="button"
-          onClick={handleAnnotateClick}
+          onClick={handleViewAnnotationsClick}
         >
           <MessageSquare className="h-2.5 w-2.5" />
-          {annotationCount}
+          {visibleAnnotationCount}
         </button>
       )}
       {!preview && <GNodeStatusDot status={normalizedStatus} />}

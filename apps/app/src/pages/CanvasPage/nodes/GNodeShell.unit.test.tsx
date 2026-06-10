@@ -1,6 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import type { Annotation } from "@repo/schemas";
 import { describe, expect, it, vi } from "vitest";
 import { CanvasPageStoreContext, createCanvasPageStore, type CanvasPageStore } from "../_store";
+import { CanvasAnnotationsContext, type UseAnnotationsResult } from "../annotations";
 import { CompoundNode } from "./CompoundNode";
 import { FileNode } from "./FileNode";
 import { OperationNode } from "./OperationNode";
@@ -36,9 +38,17 @@ const compoundData = {
 };
 
 const makeWrapper =
-  (store: CanvasPageStore) =>
+  (store: CanvasPageStore, annotations?: UseAnnotationsResult) =>
   ({ children }: { children: React.ReactNode }) => (
-    <CanvasPageStoreContext.Provider value={store}>{children}</CanvasPageStoreContext.Provider>
+    <CanvasPageStoreContext.Provider value={store}>
+      {annotations ? (
+        <CanvasAnnotationsContext.Provider value={annotations}>
+          {children}
+        </CanvasAnnotationsContext.Provider>
+      ) : (
+        children
+      )}
+    </CanvasPageStoreContext.Provider>
   );
 
 const makeExpandedStore = () => {
@@ -92,5 +102,41 @@ describe("GNodeShell variants", () => {
     render(<OperationNode data={operationData} id="node-a" />, { wrapper: makeWrapper(store) });
 
     expect(screen.getByLabelText("Running")).toBeInTheDocument();
+  });
+
+  it("reads annotation counts from context and opens the viewer target", () => {
+    const store = makeExpandedStore();
+    const annotation = {
+      author: "user",
+      content: "Needs a source check",
+      createdAt: new Date("2026-06-08T03:43:27.439Z"),
+      id: "ann-1",
+      pipelineId: "pipe-1",
+      resolved: false,
+      targetId: "node-a",
+      targetType: "node",
+      updatedAt: new Date("2026-06-08T03:43:27.439Z"),
+    } satisfies Annotation;
+    const annotations = {
+      annotations: [annotation, { ...annotation, id: "ann-2", content: "Confirm output" }],
+      annotationsByTargetId: new Map([
+        ["node-a", [annotation, { ...annotation, id: "ann-2", content: "Confirm output" }]],
+      ]),
+      createAnnotation: vi.fn(),
+      isCreating: false,
+      isLoading: false,
+      pipelineId: "pipe-1",
+    } satisfies UseAnnotationsResult;
+
+    render(<OperationNode data={operationData} id="node-a" />, {
+      wrapper: makeWrapper(store, annotations),
+    });
+
+    const badge = screen.getByRole("button", { name: "View annotations" });
+    expect(badge).toHaveTextContent("2");
+
+    fireEvent.click(badge);
+
+    expect(store.getState().viewingAnnId).toBe("node-a");
   });
 });
