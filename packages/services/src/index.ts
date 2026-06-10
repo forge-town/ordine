@@ -15,6 +15,7 @@ export * from "./pipelineRunnerService";
 export * from "./projectsService";
 export * from "./refinementsService";
 export * from "./routinesService";
+export * from "./routineSchedulerService";
 export * from "./serviceFactory";
 export * from "./serviceErrors";
 export * from "./settingsService";

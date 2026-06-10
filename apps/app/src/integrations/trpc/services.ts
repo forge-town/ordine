@@ -16,6 +16,7 @@ import {
   createProjectsService,
   createRefinementsService,
   createRoutinesService,
+  createRoutineSchedulerService,
   createSettingsService,
   createSkillsService,
   createOperationOutputItemTemplatesService,
@@ -38,7 +39,14 @@ export const pipelineRunnerService = createPipelineRunnerService(db);
 export const projectsService = createProjectsService(db);
 export const refinementsService = createRefinementsService(db);
 export const routinesService = createRoutinesService(db);
+export const routineSchedulerService = createRoutineSchedulerService(db, {
+  startRun: pipelineRunnerService.startRun,
+});
 export const settingsService = createSettingsService(db);
 export const skillsService = createSkillsService(db);
 export const operationOutputItemTemplatesService = createOperationOutputItemTemplatesService(db);
 export const usageService = createUsageService(db);
+
+if (!import.meta.env.VITEST) {
+  routineSchedulerService.start();
+}

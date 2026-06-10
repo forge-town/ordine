@@ -1,7 +1,7 @@
 import { ok, err, ResultAsync, type Result } from "neverthrow";
 import { initObs, initSpanRecorder } from "@repo/obs";
 import { logger } from "@repo/logger";
-import type { AgentRuntime, SshConnection } from "@repo/schemas";
+import type { AgentRuntime, JobTriggeredBy, SshConnection } from "@repo/schemas";
 import { loopEvaluator } from "../loopEvaluator";
 import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
@@ -77,6 +77,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       inputPath?: string;
       githubToken?: string;
       inputs?: Record<string, string>;
+      triggeredBy?: JobTriggeredBy;
     }): Promise<Result<{ jobId: string }, PipelineNotFoundError>> => {
       const pipeline = await pipelinesDao.findById(opts.pipelineId);
       if (!pipeline) {
@@ -89,9 +90,12 @@ export const createPipelineRunnerService = (db: DbConnection) => {
         title: `Run: ${pipeline.name}`,
         type: "pipeline_run",
         error: null,
+        pipelineId: pipeline.id,
+        projectId: pipeline.projectId ?? null,
         status: "queued",
         startedAt: null,
         finishedAt: null,
+        triggeredBy: opts.triggeredBy ?? "manual",
       });
 
       await pipelineRunsDao.create({
