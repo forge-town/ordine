@@ -1,25 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
+import { Boxes } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Icon } from "@/components/primitives";
 
-const SkillsRoute = () => {
+const ComponentsRoute = () => {
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background">
       <PageHeader
-        eyebrow="Capabilities"
-        icon={<Icon className="text-muted-foreground" icon={Sparkles} size={18} />}
-        sub="Reusable instructions and tools for local agents."
-        title="Skills"
+        eyebrow="Assembly"
+        icon={<Icon className="text-muted-foreground" icon={Boxes} size={18} />}
+        sub="Reusable pipeline components and operation blocks."
+        title="Components"
       />
       <div className="flex flex-1 items-center justify-center p-8">
         <div className="max-w-sm text-center">
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-surface-2">
-            <Icon className="text-muted-foreground" icon={Sparkles} size={18} />
+            <Icon className="text-muted-foreground" icon={Boxes} size={18} />
           </div>
-          <h2 className="mt-4 text-sm font-semibold">No skills selected</h2>
+          <h2 className="mt-4 text-sm font-semibold">No components selected</h2>
           <p className="mt-1 text-[12.5px] text-muted-foreground">
-            Skill inventory will be wired into this route in the page buildout.
+            Component records will appear here in the page buildout.
           </p>
         </div>
       </div>
@@ -27,9 +27,9 @@ const SkillsRoute = () => {
   );
 };
 
-export const Route = createFileRoute("/_layout/skills")({
+export const Route = createFileRoute("/_layout/components")({
   head: () => ({
-    meta: [{ title: "Skills | Ordine" }],
+    meta: [{ title: "Components | Ordine" }],
   }),
-  component: SkillsRoute,
+  component: ComponentsRoute,
 });
