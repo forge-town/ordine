@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { text, timestamp, jsonb, pgTable, index } from "drizzle-orm/pg-core";
-import type { ConversationRole } from "@repo/schemas";
+import type { ConversationMessageMetadata, ConversationRole } from "@repo/schemas";
 import { pipelinesTable } from "./pipelines_table";
 
 export const conversationMessagesTable = pgTable(
@@ -12,7 +12,7 @@ export const conversationMessagesTable = pgTable(
       .references(() => pipelinesTable.id, { onDelete: "cascade" }),
     role: text("role").$type<ConversationRole>().notNull(),
     content: text("content").notNull(),
-    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    metadata: jsonb("metadata").$type<ConversationMessageMetadata>(),
     phase: text("phase"),
     createdAt: timestamp("created_at")
       .notNull()

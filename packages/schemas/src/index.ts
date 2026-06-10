@@ -13,6 +13,8 @@ export * from "./log";
 export * from "./meta";
 export * from "./object";
 export * from "./operation";
+export * from "./pipeline-asset";
+export * from "./project";
 export * from "./refinement";
 export * from "./routine";
 export * from "./settings";

@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { text, timestamp, jsonb, pgTable } from "drizzle-orm/pg-core";
-import type { ConnectorMethod, ConnectorStatus } from "@repo/schemas";
+import type { ConnectorConfig, ConnectorMethod, ConnectorStatus } from "@repo/schemas";
 
 export const connectorsTable = pgTable("connectors", {
   id: text("id").primaryKey(),
@@ -9,7 +9,7 @@ export const connectorsTable = pgTable("connectors", {
   status: text("status").$type<ConnectorStatus>().notNull().default("needs_setup"),
   scopes: text("scopes"),
   config: jsonb("config")
-    .$type<Record<string, unknown>>()
+    .$type<ConnectorConfig>()
     .notNull()
     .default(sql`'{}'::jsonb`),
   lastSyncAt: timestamp("last_sync_at"),

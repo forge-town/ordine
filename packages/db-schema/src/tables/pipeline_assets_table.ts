@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { text, timestamp, jsonb, integer, numeric, pgTable, index } from "drizzle-orm/pg-core";
-import type { PipelineEdge, PipelineNode } from "@repo/schemas";
+import type { PipelineAssetInputSlot, PipelineEdge, PipelineNode } from "@repo/schemas";
 import { pipelinesTable } from "./pipelines_table";
 
 export const pipelineAssetsTable = pgTable(
@@ -15,7 +15,7 @@ export const pipelineAssetsTable = pgTable(
     snapshotNodes: jsonb("snapshot_nodes").$type<PipelineNode[]>().notNull(),
     snapshotEdges: jsonb("snapshot_edges").$type<PipelineEdge[]>().notNull(),
     inputSlots: jsonb("input_slots")
-      .$type<Record<string, unknown>[]>()
+      .$type<PipelineAssetInputSlot[]>()
       .notNull()
       .default(sql`'[]'::jsonb`),
     totalRuns: integer("total_runs").notNull().default(0),
