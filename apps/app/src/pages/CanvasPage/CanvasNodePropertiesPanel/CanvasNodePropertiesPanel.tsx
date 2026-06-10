@@ -56,6 +56,7 @@ export const CanvasNodePropertiesPanel = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const selectedNode = useStore(store, selectSelectedNode);
+  const nodes = useStore(store, (state) => state.nodes);
   const updateNodeData = useStore(store, (state) => state.updateNodeData);
   const handleOperationLabelChange = useStore(store, (state) => state.handleOperationLabelChange);
   const handleOperationAgentChange = useStore(store, (state) => state.handleOperationAgentChange);
@@ -109,6 +110,33 @@ export const CanvasNodePropertiesPanel = () => {
     handleOperationLabelChange(selectedNode.id, operation.name);
   };
 
+  const handleVerifyConfigChange = (patch: { criteria?: string; maxRounds?: number }) => {
+    if (data.nodeType !== "compound" || data.compoundKind !== "verify") {
+      return;
+    }
+
+    const verifyConfig = {
+      criteria: data.verifyConfig?.criteria ?? "",
+      maxRounds: data.verifyConfig?.maxRounds ?? 3,
+      ...patch,
+    };
+    const gateNode = nodes.find(
+      (node) =>
+        data.childNodeIds.includes(node.id) &&
+        node.data.nodeType === "operation" &&
+        node.data.operationName === "Quality Gate",
+    );
+
+    handleUpdateNodeData({ verifyConfig });
+
+    if (gateNode) {
+      updateNodeData(gateNode.id, {
+        ...(patch.criteria === undefined ? {} : { loopConditionPrompt: patch.criteria }),
+        ...(patch.maxRounds === undefined ? {} : { maxLoopCount: patch.maxRounds }),
+      });
+    }
+  };
+
   const renderTextField = ({
     field,
     label,
@@ -152,13 +180,24 @@ export const CanvasNodePropertiesPanel = () => {
     label,
     placeholder,
     value,
+    onChangeValue,
   }: {
     field: string;
     label: string;
     placeholder?: string;
     value: string;
+    onChangeValue?: (value: string) => void;
   }) => {
     const id = fieldId(selectedNode.id, field);
+    const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      if (onChangeValue) {
+        onChangeValue(event.target.value);
+
+        return;
+      }
+
+      handleUpdateNodeData({ [field]: event.target.value });
+    };
 
     return (
       <div className="space-y-1.5">
@@ -169,7 +208,7 @@ export const CanvasNodePropertiesPanel = () => {
           placeholder={placeholder}
           rows={4}
           value={value}
-          onChange={(event) => handleUpdateNodeData({ [field]: event.target.value })}
+          onChange={handleTextareaChange}
         />
       </div>
     );
@@ -554,12 +593,33 @@ export const CanvasNodePropertiesPanel = () => {
           </>
         )}
 
-        {data.nodeType === "compound" &&
-          renderTextareaField({
-            field: "description",
-            label: t("canvas.propertiesPanel.fields.description"),
-            value: data.description ?? "",
-          })}
+        {data.nodeType === "compound" && (
+          <>
+            {renderTextareaField({
+              field: "description",
+              label: t("canvas.propertiesPanel.fields.description"),
+              value: data.description ?? "",
+            })}
+            {data.compoundKind === "verify" && (
+              <>
+                {renderTextareaField({
+                  field: "verifyCriteria",
+                  label: t("canvas.propertiesPanel.fields.verifyCriteria"),
+                  value: data.verifyConfig?.criteria ?? "",
+                  onChangeValue: (value) => handleVerifyConfigChange({ criteria: value }),
+                })}
+                {renderIntegerField({
+                  field: "verifyMaxRounds",
+                  label: t("canvas.propertiesPanel.fields.verifyMaxRounds"),
+                  max: 20,
+                  min: 1,
+                  value: data.verifyConfig?.maxRounds ?? 3,
+                  handleValueChange: (value) => handleVerifyConfigChange({ maxRounds: value }),
+                })}
+              </>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

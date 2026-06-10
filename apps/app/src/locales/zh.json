@@ -436,7 +436,9 @@
         "disclosureMode": "披露模式",
         "excludedPaths": "排除路径",
         "includedExtensions": "包含扩展名",
-        "sourceType": "来源类型"
+        "sourceType": "来源类型",
+        "verifyCriteria": "校验标准",
+        "verifyMaxRounds": "最大校验轮数"
       },
       "placeholders": {
         "filePath": "src/file.tsx",

@@ -436,7 +436,9 @@
         "disclosureMode": "Disclosure mode",
         "excludedPaths": "Excluded paths",
         "includedExtensions": "Included extensions",
-        "sourceType": "Source type"
+        "sourceType": "Source type",
+        "verifyCriteria": "Verify criteria",
+        "verifyMaxRounds": "Max verify rounds"
       },
       "placeholders": {
         "filePath": "src/file.tsx",

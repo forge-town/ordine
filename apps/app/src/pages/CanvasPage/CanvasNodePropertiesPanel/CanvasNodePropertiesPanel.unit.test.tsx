@@ -95,8 +95,43 @@ const folderNode = {
   },
 } as PipelineNode;
 
-const renderPanel = (node: PipelineNode = fileNode) => {
-  const store = createCanvasPageStore([node]);
+const verifyCompoundNode = {
+  id: "compound-verify",
+  type: "compound",
+  position: { x: 0, y: 0 },
+  data: {
+    label: "Verify",
+    nodeType: "compound",
+    compoundKind: "verify",
+    childNodeIds: ["quality-gate"],
+    childEdges: [],
+    description: "",
+    verifyConfig: {
+      criteria: "",
+      maxRounds: 3,
+    },
+  },
+} as PipelineNode;
+
+const verifyGateNode = {
+  id: "quality-gate",
+  type: "operation",
+  parentId: "compound-verify",
+  extent: "parent",
+  position: { x: 0, y: 0 },
+  data: {
+    label: "Quality Gate",
+    nodeType: "operation",
+    operationId: "",
+    operationName: "Quality Gate",
+    status: "idle",
+    loopConditionPrompt: "",
+    maxLoopCount: 3,
+  },
+} as PipelineNode;
+
+const renderPanel = (node: PipelineNode = fileNode, nodes: PipelineNode[] = [node]) => {
+  const store = createCanvasPageStore(nodes);
   store.setState({ selectedNodeId: node.id, sidebarPanel: "properties" });
 
   render(
@@ -254,6 +289,35 @@ describe("CanvasNodePropertiesPanel", () => {
     expect(store.getState().nodes[0]?.data).toEqual(
       expect.objectContaining({
         excludedPaths: ["build"],
+      }),
+    );
+  });
+
+  it("edits verify compound criteria and syncs the internal quality gate", () => {
+    const store = renderPanel(verifyCompoundNode, [verifyCompoundNode, verifyGateNode]);
+
+    fireEvent.change(screen.getByRole("textbox", { name: /Verify criteria/i }), {
+      target: { value: "Every answer must cite source lines." },
+    });
+    fireEvent.change(screen.getByRole("spinbutton", { name: /Max verify rounds/i }), {
+      target: { value: "5" },
+    });
+
+    const compound = store.getState().nodes.find((node) => node.id === verifyCompoundNode.id);
+    const gate = store.getState().nodes.find((node) => node.id === verifyGateNode.id);
+
+    expect(compound?.data).toEqual(
+      expect.objectContaining({
+        verifyConfig: {
+          criteria: "Every answer must cite source lines.",
+          maxRounds: 5,
+        },
+      }),
+    );
+    expect(gate?.data).toEqual(
+      expect.objectContaining({
+        loopConditionPrompt: "Every answer must cite source lines.",
+        maxLoopCount: 5,
       }),
     );
   });
