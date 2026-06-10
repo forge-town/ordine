@@ -13,6 +13,14 @@ const toInputSlots = (nodes: PipelineNode[]): PipelineAssetInputSlot[] =>
       acceptTypes: [node.data.nodeType],
     }));
 
+const nodeReferencesAsset = (node: PipelineNode, assetId: string): boolean => {
+  const data = node.data as Record<string, unknown>;
+
+  return (
+    data.assetId === assetId || data.pipelineAssetId === assetId || data.sourceAssetId === assetId
+  );
+};
+
 export const createPipelineAssetsService = (db: DbConnection) => {
   const assetsDao = createPipelineAssetsDao(db);
   const pipelinesDao = createPipelinesDao(db);
@@ -32,6 +40,25 @@ export const createPipelineAssetsService = (db: DbConnection) => {
       ResultAsync.fromPromise(assetsDao.getByPipelineId(pipelineId), (error) =>
         toServiceError(error, "Get pipeline assets by pipeline"),
       ),
+    getUsageCount: (id: string) =>
+      ResultAsync.fromPromise(assetsDao.getById(id), (error) =>
+        toServiceError(error, "Get pipeline asset usage target"),
+      )
+        .andThen((asset) =>
+          asset ? okAsync(asset) : errAsync(new NotFoundError("PipelineAsset", id)),
+        )
+        .andThen((asset) =>
+          ResultAsync.fromPromise(pipelinesDao.findMany(), (error) =>
+            toServiceError(error, "Get pipeline asset usage"),
+          ).map((pipelines) => ({
+            assetId: id,
+            count: pipelines.filter(
+              (pipeline) =>
+                pipeline.id === asset.pipelineId ||
+                pipeline.nodes.some((node) => nodeReferencesAsset(node, id)),
+            ).length,
+          })),
+        ),
     create: (data: Parameters<typeof assetsDao.create>[0]) =>
       ResultAsync.fromPromise(assetsDao.create(data), (error) =>
         toServiceError(error, "Create pipeline asset"),

@@ -289,6 +289,7 @@ describe("M2 services", () => {
     await expectOk(service.getAll());
     await expectOk(service.getById("asset-1"));
     await expectOk(service.getByPipelineId("pipeline-1"));
+    await expectOk(service.getUsageCount("asset-1"));
     await expectOk(
       service.create({
         id: "asset-1",

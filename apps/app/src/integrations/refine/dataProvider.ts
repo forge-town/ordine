@@ -723,6 +723,12 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+    if (url === "pipelineAssets/getUsageCount") {
+      const { id } = payload as { id: string };
+      const data = await trpcClient.pipelineAssets.getUsageCount.query({ id });
+
+      return { data: data as unknown as TData };
+    }
     if (url === "jobs/analysis") {
       const { jobId } = payload as { jobId: string };
       const [traces, agentRuns] = await Promise.all([

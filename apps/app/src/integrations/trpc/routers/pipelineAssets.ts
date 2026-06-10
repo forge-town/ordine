@@ -29,6 +29,10 @@ export const pipelineAssetsRouter = router({
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => unwrapResult(await pipelineAssetsService.getById(input.id))),
 
+  getUsageCount: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => unwrapResult(await pipelineAssetsService.getUsageCount(input.id))),
+
   create: publicProcedure
     .input(CreatePipelineAssetRouteSchema)
     .mutation(async ({ input }) => unwrapResult(await pipelineAssetsService.create(input))),
