@@ -39,7 +39,8 @@ export const ProjectSwitcher = ({ onCollapse }: ProjectSwitcherProps) => {
   const store = useSidebarStore();
   const currentProjectId = useStore(store, (s) => s.currentProjectId);
   const handleCurrentProjectChange = useStore(store, (s) => s.handleCurrentProjectChange);
-  const { result: projectsResult } = useList<Project>({
+  const handleCurrentProjectClear = useStore(store, (s) => s.handleCurrentProjectClear);
+  const { query: projectsQuery, result: projectsResult } = useList<Project>({
     queryOptions: { retry: false },
     resource: ResourceName.projects,
   });
@@ -48,12 +49,28 @@ export const ProjectSwitcher = ({ onCollapse }: ProjectSwitcherProps) => {
   const currentProject = projects.find((project) => project.id === currentProjectId) ?? projects[0];
   const ref = useOutsidePointerDown(() => setOpen(false));
 
+  // Keep the persisted project id honest: sync to the first real project, and
+  // drop ids that no longer exist in the database (e.g. after a data reset) —
+  // otherwise pipeline creation fails on the project foreign key.
   useEffect(() => {
-    if (!currentProject) return;
-    if (currentProjectId === currentProject.id) return;
+    if (!projectsQuery.isSuccess) return;
+    if (currentProject) {
+      if (currentProjectId !== currentProject.id) {
+        handleCurrentProjectChange(currentProject.id);
+      }
 
-    handleCurrentProjectChange(currentProject.id);
-  }, [currentProject, currentProjectId, handleCurrentProjectChange]);
+      return;
+    }
+    if (currentProjectId !== null) {
+      handleCurrentProjectClear();
+    }
+  }, [
+    currentProject,
+    currentProjectId,
+    handleCurrentProjectChange,
+    handleCurrentProjectClear,
+    projectsQuery.isSuccess,
+  ]);
 
   const handleOpenToggle = () => {
     setOpen((value) => !value);

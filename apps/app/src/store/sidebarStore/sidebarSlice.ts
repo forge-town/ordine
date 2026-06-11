@@ -26,6 +26,12 @@ const readStoredBoolean = (key: string, fallback: boolean) => {
   return value === "true";
 };
 
+const removeStoredValue = (key: string) => {
+  if (globalThis.localStorage === undefined) return;
+
+  globalThis.localStorage.removeItem(key);
+};
+
 export interface SidebarSlice {
   view: SidebarViewType;
   searchOpen: boolean;
@@ -41,6 +47,8 @@ export interface SidebarSlice {
   handleSearchButtonClick: () => void;
   handleNewPipelineButtonClick: () => void;
   handleCurrentProjectChange: (projectId: string) => void;
+  /** Drop a stale project id that no longer exists in the database. */
+  handleCurrentProjectClear: () => void;
   handleCapabilitiesToggle: () => void;
   handleSidebarSearchChange: (value: string) => void;
   handleSidebarSearchClear: () => void;
@@ -64,6 +72,10 @@ export const createSidebarSlice: StateCreator<SidebarSlice> = (set, get) => ({
   handleCurrentProjectChange: (projectId) => {
     writeStoredValue(CURRENT_PROJECT_STORAGE_KEY, projectId);
     set({ currentProjectId: projectId });
+  },
+  handleCurrentProjectClear: () => {
+    removeStoredValue(CURRENT_PROJECT_STORAGE_KEY);
+    set({ currentProjectId: null });
   },
   handleCapabilitiesToggle: () => {
     const capabilitiesOpen = !get().capabilitiesOpen;
