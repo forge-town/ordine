@@ -1303,6 +1303,10 @@
         "resumed": "检查点已通过 — 继续运行",
         "waiting": "等待第一个步骤…"
       }
+    },
+    "agentBar": {
+      "refChipTitle": "悬停高亮 · 点击在画布上定位",
+      "removeRef": "移除 {{label}}"
     }
   },
   "validation": {

@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/shallow";
 import { cn } from "@repo/ui/lib/utils";
 import { normalizeNodeRunStatus, type NodeRunStatus } from "@repo/schemas";
+import { useWorkspaceStore } from "../../_store/workspaceStore";
 import { selectNodePortCounts, selectNodeRunState } from "../_store/selectors";
 import { useCanvasStore } from "../_store/canvasStore";
 import type { NodeTheme } from "./support/nodeCardTheme";
@@ -126,6 +127,8 @@ export const GNodeShell = ({
     rightConnectedPortMask,
     rightPortCount,
   } = useCanvasStore(useShallow(selectNodePortCounts(id)));
+  const drillStack = useCanvasStore((state) => state.drillStack);
+  const hoverRefId = useWorkspaceStore((state) => state.hoverRefId);
   const duplicateNode = useCanvasStore((state) => state.duplicateNode);
   const deleteNode = useCanvasStore((state) => state.deleteNode);
   const setAnnotatingId = useCanvasStore((state) => state.setAnnotatingId);
@@ -137,6 +140,8 @@ export const GNodeShell = ({
   const StatusIcon = statusIcon[normalizedStatus];
   const themeClass = themeClasses[theme] ?? themeClasses.indigo;
   const statusLabel = t(getStatusKey(normalizedStatus));
+  const refIdForNode = drillStack.length > 0 ? [...drillStack, id].join("/") : id;
+  const hoverHighlight = hoverRefId === refIdForNode;
 
   const handleConfigClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -179,6 +184,12 @@ export const GNodeShell = ({
         </button>
       )}
       {!preview && <GNodeStatusDot label={statusLabel} status={normalizedStatus} />}
+      {hoverHighlight ? (
+        <span
+          className="pointer-events-none absolute -inset-1 z-10 rounded-2xl ring-2 ring-foreground/60"
+          data-testid="canvas-v2-node-hover-highlight"
+        />
+      ) : null}
       <div
         className={cn(
           "relative overflow-hidden rounded-xl bg-surface shadow-soft ring-1 ring-border transition-all duration-150",

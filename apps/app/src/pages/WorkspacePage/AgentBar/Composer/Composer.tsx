@@ -6,7 +6,7 @@ import { Textarea } from "@repo/ui/textarea";
 import type { WorkspaceCanvasRef } from "../../_store/workspaceStore";
 import { Icon } from "@/components/primitives";
 import { useAgentBarStore } from "../_store";
-import { RefTagBar } from "./RefTagBar";
+import { RefChips } from "./RefChips";
 
 export type ComposerSubmitInput = {
   content: string;
@@ -108,7 +108,7 @@ export const Composer = ({ isSending = false, onRemoveRef, onSubmit, refs }: Com
 
   return (
     <div className="p-3 pt-2">
-      <RefTagBar refs={refs} onRemoveRef={handleRemoveRef} />
+      <RefChips refs={refs} onRemoveRef={handleRemoveRef} />
 
       {attachments.length > 0 ? (
         <div className="flex flex-wrap gap-1.5 pb-1.5">

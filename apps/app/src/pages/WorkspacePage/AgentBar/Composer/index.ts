@@ -1,2 +1,2 @@
 export * from "./Composer";
-export * from "./RefTagBar";
+export * from "./RefChips";

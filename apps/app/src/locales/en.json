@@ -1308,6 +1308,10 @@
         "resumed": "Checkpoint approved — continuing",
         "waiting": "Waiting for the first step…"
       }
+    },
+    "agentBar": {
+      "refChipTitle": "Hover to highlight · click to focus on canvas",
+      "removeRef": "Remove {{label}}"
     }
   },
   "validation": {
