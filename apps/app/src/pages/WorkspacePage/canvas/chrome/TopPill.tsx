@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { useUpdate } from "@refinedev/core";
-import { ResultAsync } from "neverthrow";
 import { Bot, ChevronRight, CornerUpLeft, Layers, Play, Square, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
-import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
+import { ResourceName } from "@/integrations/refine/dataProvider";
+import { useJobControls, type RunStartResponse } from "@/hooks/useJobControls";
 import { toastStore } from "@/store/toastStore";
 import { useWorkspaceStore } from "../../_store/workspaceStore";
 import { toPipelineSnapshot, type CanvasEdge, type CanvasNode } from "../_store/canvasTypes";
@@ -20,10 +20,6 @@ export type TopPillPipeline = {
 
 export type TopPillProps = {
   pipeline: TopPillPipeline;
-};
-
-type RunStartResponse = {
-  jobId: string;
 };
 
 const stableGraphJson = (nodes: readonly CanvasNode[], edges: readonly CanvasEdge[]): string =>
@@ -62,8 +58,9 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
 
   const [renaming, setRenaming] = useState(false);
   const [version, setVersion] = useState(pipeline.version);
-  const [isStartingRun, setIsStartingRun] = useState(false);
-  const [isStopping, setIsStopping] = useState(false);
+  const { control, pendingKey } = useJobControls();
+  const isStartingRun = pendingKey === pipeline.id;
+  const isStopping = pendingKey !== null && pendingKey === activeJobId;
   const graphJson = useMemo(() => stableGraphJson(nodes, edges), [edges, nodes]);
   const [savedGraphJson, setSavedGraphJson] = useState(graphJson);
 
@@ -144,58 +141,33 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
     if (!activeJobId) {
       return;
     }
-    setIsStopping(true);
-    void ResultAsync.fromPromise(
-      dataProvider.custom!({
-        method: "post",
-        payload: { jobId: activeJobId },
-        url: "jobs/cancel",
-      }),
-      () => t("workspace.canvas.chrome.run.stopFailed"),
-    ).match(
-      () => {
-        setIsStopping(false);
-        toastStore.getState().addToast({
-          title: t("workspace.canvas.chrome.run.stopped"),
-          type: "success",
-        });
-      },
-      (error) => {
-        setIsStopping(false);
-        toastStore.getState().addToast({
-          title: error,
-          type: "error",
-        });
+    control(
+      { action: "cancel", jobId: activeJobId },
+      {
+        errorTitle: t("workspace.canvas.chrome.run.stopFailed"),
+        onSuccess: () => {
+          toastStore.getState().addToast({
+            title: t("workspace.canvas.chrome.run.stopped"),
+            type: "success",
+          });
+        },
       },
     );
   };
 
   const handleRun = () => {
-    setIsStartingRun(true);
-    void ResultAsync.fromPromise(
-      dataProvider.custom!({
-        method: "post",
-        payload: { id: pipeline.id },
-        url: "pipelines/run",
-      }),
-      () => t("workspace.canvas.chrome.run.startFailed"),
-    ).match(
-      (response) => {
-        const { jobId } = response.data as RunStartResponse;
-        beginRun(jobId);
-        setIsStartingRun(false);
-        toastStore.getState().addToast({
-          description: t("workspace.canvas.chrome.run.startedDescription", { jobId }),
-          title: t("workspace.canvas.chrome.run.started"),
-          type: "success",
-        });
-      },
-      (error) => {
-        setIsStartingRun(false);
-        toastStore.getState().addToast({
-          title: error,
-          type: "error",
-        });
+    control<RunStartResponse>(
+      { action: "run", pipelineId: pipeline.id },
+      {
+        errorTitle: t("workspace.canvas.chrome.run.startFailed"),
+        onSuccess: ({ jobId }) => {
+          beginRun(jobId);
+          toastStore.getState().addToast({
+            description: t("workspace.canvas.chrome.run.startedDescription", { jobId }),
+            title: t("workspace.canvas.chrome.run.started"),
+            type: "success",
+          });
+        },
       },
     );
   };

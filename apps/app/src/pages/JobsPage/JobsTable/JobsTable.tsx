@@ -1,10 +1,8 @@
-import { useState } from "react";
-import { ResultAsync } from "neverthrow";
 import { ArrowRight, Pause, Play, RefreshCw, Square, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Job, JobStatus } from "@repo/schemas";
-import { dataProvider } from "@/integrations/refine/dataProvider";
 import { StatusPill } from "@/components/primitives";
+import { useJobControls } from "@/hooks/useJobControls";
 import { formatCost, formatDurationBetween } from "@/lib/format";
 import { toastStore } from "@/store/toastStore";
 
@@ -51,36 +49,27 @@ const formatJobDuration = (job: Job): string =>
 
 export const JobsTable = ({ jobs, onChanged, onOpen, pipelineNameById }: JobsTableProps) => {
   const { t } = useTranslation();
-  const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+  const { control, pendingKey } = useJobControls();
   const columns = "grid-cols-[minmax(0,1fr)_110px_88px_72px_72px_96px]";
 
   const runAction = (job: Job, action: JobAction) => {
-    setPendingJobId(job.id);
-    const request =
+    if (action === "rerun" && !job.pipelineId) {
+      return;
+    }
+    control(
       action === "rerun"
-        ? dataProvider.custom!({
-            method: "post",
-            payload: { id: job.pipelineId },
-            url: "pipelines/run",
-          })
-        : dataProvider.custom!({
-            method: "post",
-            payload: { jobId: job.id },
-            url: `jobs/${action}`,
+        ? { action: "run", pipelineId: job.pipelineId! }
+        : { action, jobId: job.id },
+      {
+        errorTitle: t("jobs.table.actionFailed"),
+        pendingKey: job.id,
+        onSuccess: () => {
+          toastStore.getState().addToast({
+            title: t(`jobs.table.actions.${action}Done`, { jobId: job.id }),
+            type: "success",
           });
-
-    void ResultAsync.fromPromise(request, () => t("jobs.table.actionFailed")).match(
-      () => {
-        setPendingJobId(null);
-        toastStore.getState().addToast({
-          title: t(`jobs.table.actions.${action}Done`, { jobId: job.id }),
-          type: "success",
-        });
-        onChanged();
-      },
-      (error) => {
-        setPendingJobId(null);
-        toastStore.getState().addToast({ title: error, type: "error" });
+          onChanged();
+        },
       },
     );
   };
@@ -159,7 +148,7 @@ export const JobsTable = ({ jobs, onChanged, onOpen, pipelineNameById }: JobsTab
                     const ActionIcon =
                       action === "cancel" && job.status === "queued" ? X : ACTION_ICON[action];
                     const disabled =
-                      pendingJobId === job.id || (action === "rerun" && !job.pipelineId);
+                      pendingKey === job.id || (action === "rerun" && !job.pipelineId);
 
                     return (
                       <button

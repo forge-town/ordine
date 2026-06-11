@@ -1,9 +1,7 @@
-import { useState } from "react";
-import { ResultAsync } from "neverthrow";
 import { ArrowRight, Flag, Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import { dataProvider } from "@/integrations/refine/dataProvider";
+import { useJobControls } from "@/hooks/useJobControls";
 import { toastStore } from "@/store/toastStore";
 import { useCanvasStore } from "../_store/canvasStore";
 
@@ -15,7 +13,8 @@ export const CheckpointDialog = () => {
   const setNodeRunStatuses = useCanvasStore((state) => state.setNodeRunStatuses);
   const nodeRunStatuses = useCanvasStore((state) => state.nodeRunStatuses);
   const openNodeConfig = useCanvasStore((state) => state.openNodeConfig);
-  const [resuming, setResuming] = useState(false);
+  const { control, pendingKey } = useJobControls();
+  const resuming = pendingKey !== null;
 
   if (!checkpointWait || configNodeId === checkpointWait.nodeId) {
     return null;
@@ -25,26 +24,17 @@ export const CheckpointDialog = () => {
   const nodeLabel = (node?.data as { label?: string } | undefined)?.label ?? checkpointWait.nodeId;
 
   const handleApprove = () => {
-    setResuming(true);
-    void ResultAsync.fromPromise(
-      dataProvider.custom!({
-        method: "post",
-        payload: { jobId: checkpointWait.jobId },
-        url: "jobs/resume",
-      }),
-      () => t("workspace.canvas.run.resumeFailed"),
-    ).match(
-      () => {
-        setResuming(false);
-        setNodeRunStatuses({ ...nodeRunStatuses, [checkpointWait.nodeId]: "running" });
-        toastStore.getState().addToast({
-          title: t("workspace.canvas.run.resumed"),
-          type: "success",
-        });
-      },
-      (error) => {
-        setResuming(false);
-        toastStore.getState().addToast({ title: error, type: "error" });
+    control(
+      { action: "resume", jobId: checkpointWait.jobId },
+      {
+        errorTitle: t("workspace.canvas.run.resumeFailed"),
+        onSuccess: () => {
+          setNodeRunStatuses({ ...nodeRunStatuses, [checkpointWait.nodeId]: "running" });
+          toastStore.getState().addToast({
+            title: t("workspace.canvas.run.resumed"),
+            type: "success",
+          });
+        },
       },
     );
   };
