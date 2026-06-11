@@ -1,33 +1,29 @@
+import { useState } from "react";
 import { useStore } from "zustand";
 import { useNavigate } from "@tanstack/react-router";
-import { CalendarClock, Clock, ListChecks, Play } from "lucide-react";
+import { CalendarDays, Clock, ListChecks, Play, Rows3, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Job, PipelineData, Routine } from "@repo/schemas";
-import { useList, useUpdate } from "@refinedev/core";
+import { useList } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
-import { Chip, Icon, SearchInput, Stat } from "@/components/primitives";
+import { ScheduleEditor } from "@/components/ScheduleEditor";
+import { Chip, Icon, SearchInput } from "@/components/primitives";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { JOB_STATUS_FILTERS, useJobsPageStore, type JobStatusFilter } from "../_store";
-import { JobRow } from "../JobRow";
+import { JobsCalendar } from "../JobsCalendar";
+import { JobsTable } from "../JobsTable";
 
-const isSameDay = (date: Date | undefined, target: Date) => {
-  if (!date) return false;
-
-  return (
-    date.getFullYear() === target.getFullYear() &&
-    date.getMonth() === target.getMonth() &&
-    date.getDate() === target.getDate()
-  );
-};
+type JobsView = "calendar" | "list";
 
 const hasWaitingNode = (job: Job) =>
   Object.values(job.nodeStatuses ?? {}).some((status) => status === "waitingForUser");
 
 const getJobFilterValue = (job: Job): JobStatusFilter[] => {
   const values: JobStatusFilter[] = ["All"];
-  if (job.status === "running") values.push("Running");
+  if (job.status === "running" || job.status === "paused") values.push("Running");
   if (job.status === "queued" || hasWaitingNode(job)) values.push("Waiting");
   if (job.status === "done") values.push("Completed");
   if (job.status === "failed" || job.status === "expired") values.push("Failed");
@@ -35,26 +31,8 @@ const getJobFilterValue = (job: Job): JobStatusFilter[] => {
   return values;
 };
 
-const formatSchedule = (routine: Routine) => {
-  if (routine.triggerType === "cron") return routine.cronExpression ?? "cron";
-  if (routine.eventType) return `event · ${routine.eventType}`;
-
-  return "event";
-};
-
-const formatNextRun = (routine: Routine) => {
-  if (!routine.enabled) return "paused";
-  if (!routine.nextRunAt) return "not scheduled";
-
-  return routine.nextRunAt.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
 export const JobsPageContent = () => {
+  const { t } = useTranslation();
   const { result: jobsResult, query: jobsQuery } = useList<Job>({
     resource: ResourceName.jobs,
   });
@@ -67,7 +45,6 @@ export const JobsPageContent = () => {
   const jobs = jobsResult.data;
   const routines = routinesResult.data;
   const pipelines = pipelinesResult.data;
-  const { mutate: updateRoutine } = useUpdate();
   const navigate = useNavigate();
   const store = useJobsPageStore();
   const search = useStore(store, (s) => s.search);
@@ -75,59 +52,48 @@ export const JobsPageContent = () => {
   const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
   const handleSearchClearButtonClick = useStore(store, (s) => s.handleSearchClearButtonClick);
   const handleStatusFilterButtonClick = useStore(store, (s) => s.handleStatusFilterButtonClick);
+  const [view, setView] = useState<JobsView>("list");
+  const [scheduling, setScheduling] = useState<"pick" | PipelineData | null>(null);
 
   const pipelineNameById = new Map(pipelines.map((pipeline) => [pipeline.id, pipeline.name]));
-  const today = new Date();
-  const runningJobs = jobs.filter((job) => job.status === "running");
-  const waitingJobs = jobs.filter((job) => job.status === "queued" || hasWaitingNode(job));
-  const completedToday = jobs.filter(
-    (job) => job.status === "done" && isSameDay(job.finishedAt ?? job.meta?.updatedAt, today),
-  );
-  const failedToday = jobs.filter(
-    (job) =>
-      (job.status === "failed" || job.status === "expired") &&
-      isSameDay(job.finishedAt ?? job.meta?.updatedAt, today),
-  );
-  const terminalToday = completedToday.length + failedToday.length;
-  const successRate =
-    terminalToday > 0 ? Math.round((completedToday.length / terminalToday) * 100) : 0;
+  const counts = {
+    failed: jobs.filter((job) => job.status === "failed" || job.status === "expired").length,
+    queued: jobs.filter((job) => job.status === "queued").length,
+    running: jobs.filter((job) => job.status === "running" || job.status === "paused").length,
+    waiting: jobs.filter(hasWaitingNode).length,
+  };
   const filterCounts: Record<JobStatusFilter, number> = {
     All: jobs.length,
-    Running: runningJobs.length,
-    Waiting: waitingJobs.length,
     Completed: jobs.filter((job) => job.status === "done").length,
-    Failed: jobs.filter((job) => job.status === "failed" || job.status === "expired").length,
+    Failed: counts.failed,
+    Running: counts.running,
+    Waiting: jobs.filter((job) => job.status === "queued" || hasWaitingNode(job)).length,
   };
 
-  const filtered = jobs.filter((j: Job) => {
+  const filtered = jobs.filter((job) => {
     const q = search.toLowerCase();
-    const pipelineName = j.pipelineId ? pipelineNameById.get(j.pipelineId) : undefined;
-    const matchStatus = getJobFilterValue(j).includes(statusFilter);
+    const pipelineName = job.pipelineId ? pipelineNameById.get(job.pipelineId) : undefined;
+    const matchStatus = getJobFilterValue(job).includes(statusFilter);
     const matchSearch =
       !q ||
-      j.title.toLowerCase().includes(q) ||
-      j.id.toLowerCase().includes(q) ||
-      j.type.toLowerCase().includes(q) ||
+      job.title.toLowerCase().includes(q) ||
+      job.id.toLowerCase().includes(q) ||
       (pipelineName ?? "").toLowerCase().includes(q);
 
     return matchStatus && matchSearch;
   });
 
-  const handleRoutineToggle = (routine: Routine) => {
-    updateRoutine({
-      resource: ResourceName.routines,
-      id: routine.id,
-      values: { enabled: !routine.enabled },
-    });
+  const handleOpenJob = (job: Job) => {
+    void navigate({ params: { jobId: job.id }, to: "/pipelines/jobs/$jobId" });
   };
-
-  const handleRoutineToggleClick = (routine: Routine) => () => handleRoutineToggle(routine);
-  const handleNewRunClick = () => void navigate({ to: "/pipelines" });
+  const refetchAll = () => {
+    void jobsQuery?.refetch?.();
+  };
 
   if (jobsQuery?.isLoading || routinesQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title="Jobs" />
+        <PageHeader title={t("jobs.title")} />
         <PageLoadingState variant="list" />
       </div>
     );
@@ -137,149 +103,177 @@ export const JobsPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         actions={
-          <Button className="flex items-center gap-1.5" size="sm" onClick={handleNewRunClick}>
-            <Play className="h-3.5 w-3.5" />
-            New Run
-          </Button>
+          <>
+            <Button
+              className="flex items-center gap-1.5"
+              size="sm"
+              variant="outline"
+              onClick={() => setScheduling("pick")}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              {t("jobs.newRoutine")}
+            </Button>
+            <Button
+              className="flex items-center gap-1.5"
+              size="sm"
+              onClick={() => void navigate({ to: "/pipelines" })}
+            >
+              <Play className="h-3.5 w-3.5" />
+              {t("jobs.newRun")}
+            </Button>
+          </>
         }
         eyebrow="Monitor"
         icon={<Icon className="text-muted-foreground" icon={ListChecks} size={18} />}
-        sub="Work orders - every pipeline run, concurrent and live. Launch on demand or on a Routine."
-        title="Jobs"
+        sub={t("jobs.subtitle")}
+        title={t("jobs.title")}
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-7 pb-8">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <Stat
-            label="Running"
-            sub={
-              runningJobs
-                .slice(0, 2)
-                .map((job) => job.id)
-                .join(" · ") || "No active runs"
-            }
-            value={runningJobs.length}
-          />
-          <Stat
-            label="Queued / Waiting"
-            sub={`${waitingJobs.filter(hasWaitingNode).length} awaiting you`}
-            value={waitingJobs.length}
-          />
-          <Stat
-            label="Completed today"
-            sub={`${successRate}% success`}
-            tone="success"
-            value={completedToday.length}
-          />
-          <Stat
-            label="Failed today"
-            sub={failedToday[0]?.error ?? "No failures"}
-            tone={failedToday.length > 0 ? "error" : "default"}
-            value={failedToday.length}
-          />
+      <div className="flex flex-wrap items-center gap-3 px-7 pb-3.5">
+        <div className="flex gap-1 rounded-xl bg-surface-2 p-1" data-testid="jobs-view-toggle">
+          {(
+            [
+              ["list", Rows3],
+              ["calendar", CalendarDays],
+            ] as const
+          ).map(([candidate, IconComponent]) => (
+            <button
+              className={cn(
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                view === candidate
+                  ? "bg-surface text-foreground shadow-soft ring-1 ring-border"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+              data-testid={`jobs-view-${candidate}`}
+              key={candidate}
+              type="button"
+              onClick={() => setView(candidate)}
+            >
+              <IconComponent className="size-3.5" />
+              {t(`jobs.views.${candidate}`)}
+            </button>
+          ))}
         </div>
-
-        <section className="mt-5">
-          <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-            <Icon icon={Clock} size={13} />
-            Routines
-          </div>
-          {routines.length === 0 ? (
-            <div className="rounded-2xl bg-surface p-4 text-[12.5px] text-muted-foreground ring-1 ring-border shadow-soft">
-              No routines configured yet.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-              {routines.map((routine) => (
-                <div
-                  key={routine.id}
-                  className="flex items-center gap-3 rounded-2xl bg-surface p-3.5 ring-1 ring-border shadow-soft"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2">
-                    <Icon className="text-foreground/70" icon={CalendarClock} size={16} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[12.5px] font-semibold tracking-tightish">
-                      {routine.name}
-                    </div>
-                    <div className="truncate font-mono text-[10.5px] text-muted-foreground">
-                      {formatSchedule(routine)}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[11px] text-muted-foreground">next</div>
-                    <div className="text-[11.5px] font-medium">{formatNextRun(routine)}</div>
-                  </div>
-                  <button
-                    aria-label={`${routine.enabled ? "Pause" : "Resume"} ${routine.name}`}
-                    className={cn(
-                      "flex h-5 w-9 items-center rounded-full p-0.5 transition-colors",
-                      routine.enabled ? "bg-foreground" : "bg-surface-3",
-                    )}
-                    type="button"
-                    onClick={handleRoutineToggleClick(routine)}
+        {view === "list" ? (
+          <>
+            <span className="text-[11px] text-muted-foreground" data-testid="jobs-summary">
+              {t("jobs.summary", counts)}
+            </span>
+            <div className="ml-auto flex items-center gap-2">
+              <div className="flex items-center gap-0.5">
+                {JOB_STATUS_FILTERS.map((filter) => (
+                  <Chip
+                    active={statusFilter === filter}
+                    count={filterCounts[filter]}
+                    key={filter}
+                    onClick={() => handleStatusFilterButtonClick(filter)}
                   >
-                    <span
-                      className={cn(
-                        "h-4 w-4 rounded-full bg-primary-foreground transition-transform",
-                        routine.enabled && "translate-x-4",
-                      )}
-                    />
-                  </button>
-                </div>
-              ))}
+                    {filter}
+                  </Chip>
+                ))}
+              </div>
+              <SearchInput
+                className="w-52"
+                placeholder={t("jobs.searchPlaceholder")}
+                value={search}
+                onChange={handleSearchInputChange}
+                onClear={handleSearchClearButtonClick}
+              />
             </div>
-          )}
-        </section>
+          </>
+        ) : null}
+      </div>
 
-        <section className="mt-5">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-0.5">
-              {JOB_STATUS_FILTERS.map((filter) => (
-                <Chip
-                  key={filter}
-                  active={statusFilter === filter}
-                  count={filterCounts[filter]}
-                  onClick={() => handleStatusFilterButtonClick(filter)}
-                >
-                  {filter}
-                </Chip>
-              ))}
-            </div>
-            <SearchInput
-              className="w-56"
-              placeholder="Search jobs..."
-              value={search}
-              onChange={handleSearchInputChange}
-              onClear={handleSearchClearButtonClick}
-            />
-          </div>
-
-          {filtered.length === 0 ? (
+      <div className="min-h-0 flex-1 overflow-y-auto px-7 pb-8">
+        {view === "list" ? (
+          filtered.length === 0 ? (
             <div className="grid place-items-center rounded-2xl bg-surface-2/50 py-16 text-center text-muted-foreground">
               <ListChecks className="h-8 w-8 text-muted-foreground/30" />
               <p className="mt-2 text-[13px] font-medium text-foreground">
-                {jobs.length === 0 ? "No jobs yet" : "No matching jobs"}
+                {jobs.length === 0 ? t("jobs.emptyTitle") : t("jobs.noMatchTitle")}
               </p>
-              <p className="mt-0.5 text-[11.5px] text-muted-foreground">
-                Launch a run or adjust the current filters.
-              </p>
+              <p className="mt-0.5 text-[11.5px] text-muted-foreground">{t("jobs.emptyBody")}</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {filtered.map((job) => (
-                <JobRow
-                  key={job.id}
-                  job={job}
-                  pipelineName={
-                    job.pipelineId ? (pipelineNameById.get(job.pipelineId) ?? job.title) : job.title
-                  }
-                />
+            <JobsTable
+              jobs={filtered}
+              pipelineNameById={pipelineNameById}
+              onChanged={refetchAll}
+              onOpen={handleOpenJob}
+            />
+          )
+        ) : (
+          <JobsCalendar
+            jobs={jobs}
+            pipelineNameById={pipelineNameById}
+            routines={routines}
+            onEditRoutine={(routine) => {
+              const pipeline = pipelines.find((item) => item.id === routine.pipelineId);
+              setScheduling(
+                pipeline ?? {
+                  ...({} as PipelineData),
+                  id: routine.pipelineId,
+                  name: routine.name,
+                },
+              );
+            }}
+            onNewRoutine={() => setScheduling("pick")}
+            onOpenJob={handleOpenJob}
+          />
+        )}
+      </div>
+
+      {scheduling === "pick" ? (
+        <div
+          className="absolute inset-0 z-50 grid place-items-center p-6"
+          data-testid="jobs-pipeline-picker"
+          onClick={() => setScheduling(null)}
+        >
+          <div className="absolute inset-0 bg-foreground/10 backdrop-blur-[1px]" />
+          <div
+            className="relative w-[380px] overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 border-b border-border/70 px-4 py-3">
+              <Clock className="size-3.5 text-foreground/75" />
+              <span className="flex-1 text-sm font-semibold">{t("jobs.pickPipeline")}</span>
+              <Button size="icon" variant="ghost" onClick={() => setScheduling(null)}>
+                <X className="size-3.5" />
+              </Button>
+            </div>
+            <div className="max-h-72 overflow-y-auto p-2">
+              {pipelines.map((pipeline) => (
+                <button
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs hover:bg-accent/60"
+                  data-testid={`jobs-pick-${pipeline.id}`}
+                  key={pipeline.id}
+                  type="button"
+                  onClick={() => setScheduling(pipeline)}
+                >
+                  <span className="min-w-0 flex-1 truncate font-medium">{pipeline.name}</span>
+                  {(routines.some((routine) => routine.pipelineId === pipeline.id) && (
+                    <span className="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                      {t("jobs.hasRoutine")}
+                    </span>
+                  )) ||
+                    null}
+                </button>
               ))}
             </div>
-          )}
-        </section>
-      </div>
+          </div>
+        </div>
+      ) : null}
+      {scheduling && scheduling !== "pick" ? (
+        <ScheduleEditor
+          pipelineId={scheduling.id}
+          pipelineName={scheduling.name}
+          routine={routines.find((routine) => routine.pipelineId === scheduling.id) ?? null}
+          onClose={() => {
+            setScheduling(null);
+            void routinesQuery?.refetch?.();
+          }}
+        />
+      ) : null}
     </div>
   );
 };

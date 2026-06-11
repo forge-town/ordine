@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "@/test/test-wrapper";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { dataProvider } from "@/integrations/refine/dataProvider";
 import { JobsPageStoreProvider } from "../_store";
 import { JobsPageContent } from "./JobsPageContent";
 import type { Job, PipelineData, Routine } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
 
 const mockNavigate = vi.fn();
 const mockUpdate = vi.fn();
@@ -24,12 +24,14 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 vi.mock("@refinedev/core", () => ({
+  useCreate: () => ({ mutate: vi.fn() }),
+  useDelete: () => ({ mutate: vi.fn() }),
   useList: ({ resource }: { resource: string }) => {
     if (resource === "jobs") {
-      return { result: { data: mockData.jobs }, query: { isLoading: false } };
+      return { result: { data: mockData.jobs }, query: { isLoading: false, refetch: vi.fn() } };
     }
     if (resource === "routines") {
-      return { result: { data: mockData.routines }, query: { isLoading: false } };
+      return { result: { data: mockData.routines }, query: { isLoading: false, refetch: vi.fn() } };
     }
     if (resource === "pipelines") {
       return { result: { data: mockData.pipelines }, query: { isLoading: false } };
@@ -51,11 +53,12 @@ const renderContent = () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.spyOn(dataProvider, "custom").mockResolvedValue({ data: {} });
   mockData.pipelines = [
     {
       id: "pipeline-1",
       projectId: null,
-  version: 1,
+      version: 1,
       status: "ready",
       name: "Lead Research Brief",
       description: "",
@@ -76,27 +79,23 @@ beforeEach(() => {
       parentJobId: null,
       pipelineId: "pipeline-1",
       projectId: null,
-      totalTokens: 51_000,
-      totalCost: "0.18",
-      nodeStatuses: { input: "done", research: "running", output: "idle" },
       error: null,
-      startedAt: new Date(today.getTime() - 5000),
+      startedAt: today,
+      nodeStatuses: { input: "done", research: "running", output: "idle" },
       finishedAt: null,
       meta: { createdAt: today, updatedAt: today },
     },
     {
       id: "job-002",
-      title: "Queued review",
-      status: "queued",
+      title: "Pipeline run",
+      status: "running",
       type: "pipeline_run",
       parentJobId: null,
       pipelineId: "pipeline-1",
       projectId: null,
-      totalTokens: null,
-      totalCost: null,
-      nodeStatuses: { checkpoint: "waitingForUser" },
       error: null,
-      startedAt: null,
+      startedAt: today,
+      nodeStatuses: { checkpoint: "waitingForUser" },
       finishedAt: null,
       meta: { createdAt: today, updatedAt: today },
     },
@@ -107,7 +106,7 @@ beforeEach(() => {
       pipelineId: "pipeline-1",
       name: "Daily intake",
       triggerType: "cron",
-      cronExpression: "0 6 * * *",
+      cronExpression: "0 * * * *",
       eventType: null,
       eventConfig: null,
       inputConfig: null,
@@ -121,39 +120,56 @@ beforeEach(() => {
 });
 
 describe("JobsPageContent", () => {
-  it("renders monitor header, stats, routines, and job rows", () => {
+  it("renders the fleet console with summary and table rows", () => {
     renderContent();
 
     expect(screen.getByText("Jobs")).toBeInTheDocument();
-    expect(screen.getAllByText("Running").length).toBeGreaterThan(0);
-    expect(screen.getByText("Queued / Waiting")).toBeInTheDocument();
-    expect(screen.getByText("Daily intake")).toBeInTheDocument();
-    expect(screen.getAllByText("Lead Research Brief").length).toBeGreaterThan(0);
-    expect(screen.getByText("Step 2/3 · research · running")).toBeInTheDocument();
+    expect(screen.getByTestId("jobs-summary")).toBeInTheDocument();
+    expect(screen.getByTestId("jobs-table")).toBeInTheDocument();
+    expect(screen.getByTestId("jobs-table-row-job-001")).toBeInTheDocument();
+    expect(screen.getByTestId("jobs-action-review-job-002")).toBeInTheDocument();
   });
 
-  it("filters jobs by chip and search", async () => {
+  it("runs a row action through the jobs control endpoint", async () => {
     const user = userEvent.setup();
     renderContent();
 
-    await user.click(screen.getByRole("button", { name: /Waiting/ }));
-    expect(screen.queryByText("Step 2/3 · research · running")).not.toBeInTheDocument();
-    expect(screen.getByText("Step 1/1 · checkpoint · waitingForUser")).toBeInTheDocument();
+    await user.click(screen.getByTestId("jobs-action-pause-job-001"));
 
-    await user.type(screen.getByPlaceholderText("Search jobs..."), "missing");
+    await waitFor(() => {
+      expect(dataProvider.custom).toHaveBeenCalledWith(
+        expect.objectContaining({ payload: { jobId: "job-001" }, url: "jobs/pause" }),
+      );
+    });
+  });
+
+  it("filters jobs by search", async () => {
+    const user = userEvent.setup();
+    renderContent();
+
+    await user.type(screen.getByPlaceholderText("Search jobs…"), "missing");
+
     expect(screen.getByText("No matching jobs")).toBeInTheDocument();
   });
 
-  it("updates routine enabled state from toggle", async () => {
+  it("shows future routine occurrences on the calendar", async () => {
     const user = userEvent.setup();
     renderContent();
 
-    await user.click(screen.getByRole("button", { name: "Pause Daily intake" }));
+    await user.click(screen.getByTestId("jobs-view-calendar"));
 
-    expect(mockUpdate).toHaveBeenCalledWith({
-      resource: ResourceName.routines,
-      id: "routine-1",
-      values: { enabled: false },
-    });
+    expect(screen.getByTestId("jobs-calendar")).toBeInTheDocument();
+    expect(screen.getAllByText("Daily intake").length).toBeGreaterThan(0);
+  });
+
+  it("opens the pipeline picker for a new routine", async () => {
+    const user = userEvent.setup();
+    renderContent();
+
+    await user.click(screen.getByRole("button", { name: /New Routine/ }));
+    expect(screen.getByTestId("jobs-pipeline-picker")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("jobs-pick-pipeline-1"));
+    expect(screen.getByTestId("schedule-editor")).toBeInTheDocument();
   });
 });

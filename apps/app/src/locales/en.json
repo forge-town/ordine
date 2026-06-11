@@ -105,7 +105,7 @@
     "quickActionBestPracticesSub": "View coding standards"
   },
   "jobs": {
-    "title": "Jobs Monitor",
+    "title": "Jobs",
     "running": "Running",
     "queued": "Queued",
     "done": "Done",
@@ -188,6 +188,55 @@
         "event": "On event",
         "manual": "Manual"
       }
+    },
+    "calendar": {
+      "live": "live",
+      "nextWeek": "Next week",
+      "noEventRoutines": "no event-triggered routines",
+      "onEvent": "on {{event}}",
+      "previousWeek": "Previous week",
+      "ranLegend": "ran",
+      "schedule": "Schedule",
+      "scheduledLegend": "scheduled",
+      "thisWeek": "this week",
+      "today": "Today"
+    },
+    "emptyBody": "Launch a run or adjust the current filters.",
+    "emptyTitle": "No jobs yet",
+    "hasRoutine": "has routine",
+    "newRoutine": "New Routine",
+    "newRun": "New Run",
+    "noMatchTitle": "No matching jobs",
+    "pickPipeline": "Schedule which pipeline?",
+    "searchPlaceholder": "Search jobs…",
+    "subtitle": "Concurrent work orders. Operate the fleet — pause, rerun, step in. The how lives on the canvas.",
+    "summary": "{{running}} running · {{queued}} queued · {{waiting}} waiting on you · {{failed}} failed",
+    "table": {
+      "actionFailed": "Action failed",
+      "actions": {
+        "cancel": "Stop",
+        "cancelDone": "Stopped {{jobId}}",
+        "pause": "Pause",
+        "pauseDone": "Paused {{jobId}}",
+        "rerun": "Re-run",
+        "rerunDone": "Re-run started",
+        "resume": "Resume",
+        "resumeDone": "Resumed {{jobId}}",
+        "review": "Review"
+      },
+      "byRoutine": "routine",
+      "headers": {
+        "actions": "Actions",
+        "cost": "Cost",
+        "duration": "Duration",
+        "job": "Job",
+        "started": "Started",
+        "status": "Status"
+      }
+    },
+    "views": {
+      "calendar": "Calendar",
+      "list": "List"
     }
   },
   "distillations": {
