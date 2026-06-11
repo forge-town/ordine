@@ -9,6 +9,7 @@ export const PipelineSchema = z.object({
   name: z.string(),
   description: z.string().default(""),
   status: PipelineStatusSchema.default("draft"),
+  version: z.number().int().min(1).default(1),
   tags: z.array(z.string()),
   timeoutMs: z.number().nullable(),
   createdAt: z.coerce.date(),

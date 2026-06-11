@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { Refine, type DataProvider } from "@refinedev/core";
 import type { PipelineData } from "@repo/schemas";
 import { CanvasRoot } from "./CanvasRoot";
 
@@ -14,16 +15,28 @@ const emptyPipeline = {
   tags: [],
   timeoutMs: null,
   updatedAt: new Date("2026-06-11T00:00:00.000Z"),
+  version: 1,
 } satisfies PipelineData;
+
+const storyDataProvider = {
+  create: async () => ({ data: {} }),
+  deleteOne: async () => ({ data: {} }),
+  getApiUrl: () => "http://localhost",
+  getList: async () => ({ data: [], total: 0 }),
+  getOne: async () => ({ data: {} }),
+  update: async () => ({ data: {} }),
+} as unknown as DataProvider;
 
 const meta: Meta<typeof CanvasRoot> = {
   title: "WorkspacePage/CanvasV2/Root",
   component: CanvasRoot,
   decorators: [
     (Story) => (
-      <div className="h-[620px] w-full bg-background">
-        <Story />
-      </div>
+      <Refine dataProvider={storyDataProvider} options={{ disableTelemetry: true }}>
+        <div className="h-[620px] w-full bg-background">
+          <Story />
+        </div>
+      </Refine>
     ),
   ],
 };

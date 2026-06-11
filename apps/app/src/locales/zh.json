@@ -134,7 +134,6 @@
     "noLogs": "暂无日志",
     "status": "状态",
     "statusQueued": "排队中",
-    "statusRunning": "运行中",
     "statusDone": "完成",
     "statusFailed": "失败",
     "statusCancelled": "已取消",
@@ -785,37 +784,30 @@
     "codeSnippetTitlePlaceholder": "例如：正确示例 / 错误示例"
   },
   "skills": {
-    "title": "技能",
-    "noSkills": "暂无 Skills",
-    "createOperation": "创建 Operation",
-    "createOperation.dialogTitle": "从 Skill 创建 Operation",
-    "createOperation.namePlaceholder": "Operation 名称",
-    "createOperation.descriptionPlaceholder": "这个 Operation 应该完成什么任务？",
-    "createOperation.outputs": "预期输出",
-    "createOperation.addOutput": "添加输出",
-    "createOperation.confirm": "创建 Operation",
-    "createOperation.success": "Operation 创建成功",
-    "createOperation.error": "创建 Operation 失败",
-    "createOperation.step": "步骤",
-    "createOperation.stepNamePlaceholder": "步骤名称",
-    "createOperation.stepDescriptionPlaceholder": "这个步骤应该完成什么任务？",
-    "createOperation.addStep": "添加步骤",
-    "createOperation.saveAsOperations": "保存为独立 Operations",
-    "createOperation.saveAsOperationsSuccess": "Operations 创建成功",
-    "createOperation.saveAsOperationsPartialSuccess": "{{total}} 个步骤中 {{succeeded}} 个创建成功，部分步骤失败",
-    "createOperation.saveAsOperationsError": "创建 Operations 失败",
-    "createOperation.generatePipeline": "生成 Pipeline Draft",
-    "createOperation.generatePipelineSuccess": "Pipeline Draft 创建成功",
-    "createOperation.generatePipelineError": "创建 Pipeline Draft 失败",
-    "createOperation.outputNamePlaceholder": "输出名称",
-    "categories": {
-      "all": "全部",
-      "page": "页面结构",
-      "data": "数据层",
-      "state": "状态管理",
-      "form": "表单",
-      "code-quality": "代码质量"
-    }
+    "pageStructure": "页面结构",
+    "pageStructureDesc": "生成标准的页面 Anatomy：Wrapper + Content + 可选 Store，确保页面结构清晰分层。",
+    "stateManagement": "状态管理 Store",
+    "stateManagementDesc": "基于 Zustand slice 模式创建 Store，包含 Context Provider 和类型安全的 hook。",
+    "daoLayer": "DAO 层",
+    "daoLayerDesc": "使用 Drizzle ORM 规范创建数据访问对象，确保命名、类型安全和查询性能。",
+    "serviceLayer": "Service 层",
+    "serviceLayerDesc": "按照 tRPC + Service + DAO 架构创建 Service，分离业务逻辑与数据访问。",
+    "formComponent": "表单组件",
+    "formComponentDesc": "创建符合规范的表单组件，包含字段验证、状态管理和 UI 结构。",
+    "schemaValidation": "Schema 校验",
+    "schemaValidationDesc": "使用 Drizzle ORM schema 定义数据库表，确保命名、关系和索引配置规范。",
+    "barrelExport": "桶导出规范",
+    "barrelExportDesc": "生成和检查 index.ts 桶导出文件，确保所有 index 文件仅做 re-export。",
+    "errorHandling": "错误处理",
+    "errorHandlingDesc": "规范 neverthrow 式错误处理，保持错误显式传递，并在应用代码中消除 try-catch。",
+    "dbNaming": "数据库表命名",
+    "dbNamingDesc": "验证和修正数据库表定义的命名规范，包括表名、列名和索引。",
+    "svgIcon": "SVG 图标规范",
+    "svgIconDesc": "管理 React TypeScript 项目中的 SVG 图标，确保命名、封装和导出规范。",
+    "oneComponent": "单组件单文件",
+    "oneComponentDesc": "强制每个文件只包含一个 React/Vue 组件，不允许多组件共存。",
+    "refineTrpc": "Refine tRPC 规范",
+    "refineTrpcDesc": "在 React 组件中通过 Refine hooks 经由 DataProvider 访问数据，禁止直接调用 tRPC。"
   },
   "settings": {
     "title": "设置",
@@ -1061,32 +1053,6 @@
     "projectListEmpty": "项目库为空，请先在「项目」页面连接 GitHub 仓库",
     "projectListNoResults": "未找到匹配的项目"
   },
-  "skills": {
-    "pageStructure": "页面结构",
-    "pageStructureDesc": "生成标准的页面 Anatomy：Wrapper + Content + 可选 Store，确保页面结构清晰分层。",
-    "stateManagement": "状态管理 Store",
-    "stateManagementDesc": "基于 Zustand slice 模式创建 Store，包含 Context Provider 和类型安全的 hook。",
-    "daoLayer": "DAO 层",
-    "daoLayerDesc": "使用 Drizzle ORM 规范创建数据访问对象，确保命名、类型安全和查询性能。",
-    "serviceLayer": "Service 层",
-    "serviceLayerDesc": "按照 tRPC + Service + DAO 架构创建 Service，分离业务逻辑与数据访问。",
-    "formComponent": "表单组件",
-    "formComponentDesc": "创建符合规范的表单组件，包含字段验证、状态管理和 UI 结构。",
-    "schemaValidation": "Schema 校验",
-    "schemaValidationDesc": "使用 Drizzle ORM schema 定义数据库表，确保命名、关系和索引配置规范。",
-    "barrelExport": "桶导出规范",
-    "barrelExportDesc": "生成和检查 index.ts 桶导出文件，确保所有 index 文件仅做 re-export。",
-    "errorHandling": "错误处理",
-    "errorHandlingDesc": "规范 neverthrow 式错误处理，保持错误显式传递，并在应用代码中消除 try-catch。",
-    "dbNaming": "数据库表命名",
-    "dbNamingDesc": "验证和修正数据库表定义的命名规范，包括表名、列名和索引。",
-    "svgIcon": "SVG 图标规范",
-    "svgIconDesc": "管理 React TypeScript 项目中的 SVG 图标，确保命名、封装和导出规范。",
-    "oneComponent": "单组件单文件",
-    "oneComponentDesc": "强制每个文件只包含一个 React/Vue 组件，不允许多组件共存。",
-    "refineTrpc": "Refine tRPC 规范",
-    "refineTrpcDesc": "在 React 组件中通过 Refine hooks 经由 DataProvider 访问数据，禁止直接调用 tRPC。"
-  },
   "workspace": {
     "title": "工作区",
     "notFound": "项目不存在",
@@ -1177,6 +1143,54 @@
           "running": "执行中...",
           "skipped": "已跳过",
           "waitingForUser": "等待检查点确认"
+        }
+      },
+      "chrome": {
+        "breadcrumb": {
+          "agent": "Agent",
+          "compoundFallback": "复合节点",
+          "drillOut": "钻出",
+          "renameTitle": "点击重命名"
+        },
+        "run": {
+          "noRunnableNodes": "添加一个 Operation 节点后才能运行",
+          "rerun": "重新运行",
+          "run": "运行",
+          "startFailed": "运行启动失败",
+          "started": "已开始运行",
+          "startedDescription": "工单 {{jobId}} 运行中",
+          "stop": "停止",
+          "stopUnavailable": "停止运行即将支持"
+        },
+        "states": {
+          "cancelled": "已取消",
+          "done": "完成",
+          "failed": "失败",
+          "idle": "空闲",
+          "queued": "排队中",
+          "retrying": "重试中",
+          "running": "运行中",
+          "skipped": "已跳过",
+          "title": "节点运行状态",
+          "trigger": "状态",
+          "waitingForUser": "等待确认"
+        },
+        "version": {
+          "current": "当前",
+          "history": "历史版本",
+          "overwrite": "覆盖 v{{version}}",
+          "saveAsNew": "另存为新版本",
+          "saveAsNewSuccess": "已另存为 v{{version}}",
+          "saveChanges": "保存修改",
+          "saveFailed": "保存失败",
+          "saveSuccess": "已覆盖保存 v{{version}}",
+          "saved": "已保存",
+          "state": {
+            "done": "已完成",
+            "draft": "草稿",
+            "running": "运行中"
+          },
+          "unsaved": "未保存"
         }
       }
     }

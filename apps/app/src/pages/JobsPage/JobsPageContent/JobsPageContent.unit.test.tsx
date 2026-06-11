@@ -55,6 +55,7 @@ beforeEach(() => {
     {
       id: "pipeline-1",
       projectId: null,
+  version: 1,
       status: "ready",
       name: "Lead Research Brief",
       description: "",

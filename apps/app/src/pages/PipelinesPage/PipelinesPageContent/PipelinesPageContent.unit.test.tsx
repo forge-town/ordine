@@ -13,6 +13,7 @@ const now = new Date("2026-06-10T10:00:00.000Z");
 const makePipeline = (patch: Partial<PipelineData>): PipelineData => ({
   id: "pipe-1",
   projectId: null,
+  version: 1,
   name: "Textbook to Notion Quiz",
   description: "Parse PDFs into quiz questions.",
   status: "ready",

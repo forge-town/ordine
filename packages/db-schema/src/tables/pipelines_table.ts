@@ -9,6 +9,7 @@ export const pipelinesTable = pgTable("pipelines", {
   name: text("name").notNull(),
   description: text("description").notNull().default(""),
   status: text("status").$type<PipelineStatus>().notNull().default("draft"),
+  version: integer("version").notNull().default(1),
   tags: jsonb("tags")
     .$type<string[]>()
     .notNull()

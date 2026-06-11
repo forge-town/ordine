@@ -95,6 +95,7 @@ beforeEach(() => {
       id: "pipeline-1",
       projectId: null,
       status: "ready",
+      version: 1,
       name: "Lead Research Brief",
       description: "Summarize lead profile",
       tags: [],

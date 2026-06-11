@@ -117,6 +117,7 @@ export const PipelinesPageContent = () => {
       id,
       projectId: currentProjectId,
       status: "draft",
+      version: 1,
       name: "Untitled pipeline",
       description: "Draft a new automation flow from this workspace.",
       tags: [],

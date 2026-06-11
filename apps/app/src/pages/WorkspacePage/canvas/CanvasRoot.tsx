@@ -5,9 +5,10 @@ import { fromPipelineSnapshot } from "./_store/canvasTypes";
 import { CanvasStoreProvider } from "./_store/canvasStore";
 import { CanvasFlow } from "./flow";
 import { CanvasEmptyState } from "./CanvasEmptyState";
+import { TopPill } from "./chrome";
 
 export type CanvasRootProps = {
-  pipeline: Pick<PipelineData, "edges" | "nodes">;
+  pipeline: Pick<PipelineData, "edges" | "id" | "name" | "nodes" | "version">;
 };
 
 export const CanvasRoot = ({ pipeline }: CanvasRootProps) => {
@@ -26,6 +27,9 @@ export const CanvasRoot = ({ pipeline }: CanvasRootProps) => {
           lang={i18n.language}
         >
           <CanvasFlow />
+          <TopPill
+            pipeline={{ id: pipeline.id, name: pipeline.name, version: pipeline.version }}
+          />
           <CanvasEmptyState />
         </div>
       </CanvasStoreProvider>

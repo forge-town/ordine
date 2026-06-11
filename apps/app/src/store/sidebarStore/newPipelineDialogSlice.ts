@@ -141,6 +141,7 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
       id,
       projectId: null,
       status: "draft",
+      version: 1,
       name: pipelineName,
       description: trimmedDescription,
       tags: [],

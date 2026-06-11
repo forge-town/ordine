@@ -5,9 +5,9 @@ import { PanelRightOpen } from "lucide-react";
 import type { PipelineData } from "@repo/schemas";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { CanvasPageContent } from "@/pages/CanvasPage/CanvasPageContent";
 import { CanvasPageStoreProvider, useCanvasPageStore } from "@/pages/CanvasPage/_store";
 import { AgentBar } from "./AgentBar";
+import { CanvasRoot } from "./canvas";
 import { WorkspaceStoreProvider, useWorkspaceStore } from "./_store/workspaceStore";
 
 export type WorkspacePageProps = {
@@ -58,7 +58,7 @@ const WorkspacePageContent = ({ pipelineId }: WorkspacePageProps) => {
       <div className="flex h-full min-h-0 bg-background">
         <main className="min-w-0 flex-1 overflow-hidden">
           <WorkspaceCanvasPhaseBridge />
-          <CanvasPageContent />
+          <CanvasRoot pipeline={pipelineResult} />
         </main>
 
         {agentOpen ? (

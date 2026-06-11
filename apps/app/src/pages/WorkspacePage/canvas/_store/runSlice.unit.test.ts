@@ -101,6 +101,19 @@ describe("runSlice", () => {
     expect(store.getState().runningNodeId).toBeNull();
   });
 
+  it("begins a run by marking the job id and resetting stale state", () => {
+    const store = createRunStore();
+
+    store.getState().markNodeFailed("operation");
+    store.getState().setRunTraces([trace]);
+    store.getState().beginRun("job-9");
+
+    expect(store.getState().activeJobId).toBe("job-9");
+    expect(store.getState().nodeRunStatuses).toEqual({});
+    expect(store.getState().runTraces).toEqual([]);
+    expect(store.getState().checkpointWait).toBeNull();
+  });
+
   it("stores traces, node content, and clears run state", () => {
     const store = createRunStore();
 

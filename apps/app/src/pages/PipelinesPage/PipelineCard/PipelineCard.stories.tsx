@@ -5,6 +5,7 @@ import { PipelineCard } from "./PipelineCard";
 const samplePipeline: PipelineData = {
   id: "pipe-001",
   projectId: null,
+  version: 1,
   name: "Textbook to Notion Quiz",
   description: "Parse PDFs into vocabulary, grammar questions, verification, and Notion output.",
   status: "ready",

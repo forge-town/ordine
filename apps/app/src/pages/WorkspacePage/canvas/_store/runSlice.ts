@@ -19,6 +19,7 @@ export type RunSlice = {
   runningNodeId: string | null;
   applyJobSnapshot: (job: Job | null) => void;
   applyNodeLlmContent: (nodeId: string, content: string) => void;
+  beginRun: (jobId: string) => void;
   clearRunState: () => void;
   markNodeFailed: (nodeId: string) => void;
   markNodeRunning: (nodeId: string) => void;
@@ -82,6 +83,14 @@ export const createRunSlice =
         runningNodeId: getActiveRunNodeId(statuses),
       } as unknown as Partial<T>);
     },
+    beginRun: (jobId) =>
+      set({
+        activeJobId: jobId,
+        checkpointWait: null,
+        nodeRunStatuses: {},
+        runTraces: [],
+        runningNodeId: null,
+      } as unknown as Partial<T>),
     applyNodeLlmContent: (nodeId, content) =>
       set(
         (state) =>
