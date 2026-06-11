@@ -1336,7 +1336,17 @@
         "revise": "修改"
       },
       "reversing": {
-        "intro": "正在阅读样本 — 推断生成它的步骤。"
+        "intro": "正在阅读样本 — 推断生成它的步骤。",
+        "steps": {
+          "draft": "起草 Pipeline",
+          "draftDetail": "组装节点与连线",
+          "matched": "匹配组件",
+          "matchedDetail": "从你的组件库复用",
+          "steps": "推断步骤",
+          "stepsDetail": "解析 → 生成 → 校验 → 导出",
+          "structure": "读取结构",
+          "structureDetail": "格式、分节、引用"
+        }
       },
       "subtitle": {
         "applied": "阅读中 · 画布",

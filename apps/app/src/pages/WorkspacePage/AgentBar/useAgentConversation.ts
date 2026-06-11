@@ -109,6 +109,7 @@ export const useAgentConversation = ({
   const setPhase = useWorkspaceStore((state) => state.setPhase);
   const { mutateAsync: updatePipeline, mutation: updateMutation } = useUpdate();
   const [isProposing, setIsProposing] = useState(false);
+  const [isReversing, setIsReversing] = useState(false);
   const { isSending: isPersisting, sendMessage } = useAgentConversationPersistence({
     phase,
     pipelineId,
@@ -131,8 +132,10 @@ export const useAgentConversation = ({
         return;
       }
 
+      const reversing = (metadata.attachments?.length ?? 0) > 0;
       clearPendingProposal();
-      setPhase("clarify");
+      setPhase(reversing ? "reversing" : "clarify");
+      setIsReversing(reversing);
       await sendMessage({ content: trimmedContent, metadata, role: "user" });
       setIsProposing(true);
 
@@ -154,6 +157,7 @@ export const useAgentConversation = ({
 
       if (result.isErr()) {
         setIsProposing(false);
+        setIsReversing(false);
         await sendMessage({
           content: "I could not draft a pipeline proposal from that message.",
           role: "assistant",
@@ -169,6 +173,7 @@ export const useAgentConversation = ({
         (proposal ? "I drafted a pipeline proposal." : "I could not find a safe graph change.");
 
       setPendingProposal(proposal, nextDiagnostics);
+      setIsReversing(false);
       if (proposal) {
         setPhase("proposal");
       }
@@ -267,6 +272,7 @@ export const useAgentConversation = ({
     applyProposal,
     diagnostics,
     hasBlockingDiagnostics,
+    isReversing,
     isSending: isPersisting || isProposing || updateMutation.isPending,
     pendingProposal,
     proposalItems,

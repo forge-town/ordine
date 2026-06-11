@@ -43,10 +43,12 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   const dismissed = useWorkspaceStore((state) => state.dismissed);
   const dismissRef = useWorkspaceStore((state) => state.dismiss);
   const messages = useAgentBarStore((state) => state.messages);
+  const focusComposer = useWorkspaceStore((state) => state.focusComposer);
   const {
     applyProposal,
     diagnostics,
     hasBlockingDiagnostics,
+    isReversing,
     isSending,
     pendingProposal,
     proposalItems,
@@ -54,6 +56,16 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
     reviseProposal,
     submitMessage,
   } = useAgentConversation({ phase, pipelineId });
+  const reversingSteps = useMemo(
+    () =>
+      ["structure", "steps", "matched", "draft"].map((step, index, all) => ({
+        detail: t(`workspace.agentBar.reversing.steps.${step}Detail`),
+        done: !isReversing || index < all.length - 1,
+        id: step,
+        title: t(`workspace.agentBar.reversing.steps.${step}`),
+      })),
+    [isReversing, t],
+  );
   const activeRefs = useMemo(
     () => canvasRefs.filter((ref) => !dismissed.includes(ref.id)),
     [canvasRefs, dismissed],
@@ -121,7 +133,12 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
             phase === "done" ? <AgentDistillCard pipelineId={pipelineId} /> : undefined
           }
           phase={phase}
+          reversingSteps={phase === "reversing" ? reversingSteps : undefined}
           runContent={phase === "running" ? <AgentRunCards /> : undefined}
+          onSuggestGoal={(goal) =>
+            void submitMessage({ content: goal, metadata: { referencedNodeIds: [] } })
+          }
+          onSuggestReverse={focusComposer}
         />
         {messages.map((message) =>
           message.role === "user" ? (

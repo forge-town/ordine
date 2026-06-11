@@ -1341,7 +1341,17 @@
         "revise": "Revise"
       },
       "reversing": {
-        "intro": "Reading the sample — inferring the steps that produce it."
+        "intro": "Reading the sample — inferring the steps that produce it.",
+        "steps": {
+          "draft": "Drafting pipeline",
+          "draftDetail": "assembling nodes and edges",
+          "matched": "Matched components",
+          "matchedDetail": "reusable from your library",
+          "steps": "Inferred steps",
+          "stepsDetail": "parse → generate → verify → export",
+          "structure": "Read structure",
+          "structureDetail": "format, sections, citations"
+        }
       },
       "subtitle": {
         "applied": "Reading · canvas",
