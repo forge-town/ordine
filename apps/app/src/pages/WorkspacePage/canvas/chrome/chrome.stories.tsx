@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { ReactFlowProvider } from "@xyflow/react";
+import { CanvasToolbar } from "./CanvasToolbar";
 import { StateLegend } from "./StateLegend";
 import { VersionMenu } from "./VersionMenu";
 
@@ -17,6 +19,16 @@ export default meta;
 
 export const Legend: StoryObj = {
   render: () => <StateLegend />,
+};
+
+export const Toolbar: StoryObj = {
+  render: () => (
+    <ReactFlowProvider>
+      <div className="relative h-40 w-80">
+        <CanvasToolbar />
+      </div>
+    </ReactFlowProvider>
+  ),
 };
 
 export const VersionClean: StoryObj = {

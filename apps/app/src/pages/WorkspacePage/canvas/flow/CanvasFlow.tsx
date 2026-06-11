@@ -78,6 +78,7 @@ export const CanvasFlow = () => {
   const { i18n } = useTranslation();
   const nodes = useCanvasStore((state) => state.nodes);
   const edges = useCanvasStore((state) => state.edges);
+  const canvasTool = useCanvasStore((state) => state.canvasTool);
   const drillStack = useCanvasStore((state) => state.drillStack);
   const getVisibleGraph = useCanvasStore((state) => state.getVisibleGraph);
   const selectedIds = useCanvasStore((state) => state.selectedIds);
@@ -241,9 +242,9 @@ export const CanvasFlow = () => {
         fitView
         nodeTypes={nodeTypes}
         nodes={visibleGraph.nodes}
-        panOnDrag={[1, 2]}
+        panOnDrag={canvasTool === "hand" ? true : [1, 2]}
         proOptions={proOptions}
-        selectionOnDrag
+        selectionOnDrag={canvasTool === "select"}
         snapGrid={snapGrid}
         snapToGrid
         onConnect={handleFlowConnect}

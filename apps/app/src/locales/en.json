@@ -1196,6 +1196,13 @@
             "running": "running"
           },
           "unsaved": "unsaved"
+        },
+        "toolbar": {
+          "pan": "Pan",
+          "resetView": "Reset view",
+          "select": "Select / box-select",
+          "zoomIn": "Zoom in",
+          "zoomOut": "Zoom out"
         }
       }
     }

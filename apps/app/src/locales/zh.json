@@ -1191,6 +1191,13 @@
             "running": "运行中"
           },
           "unsaved": "未保存"
+        },
+        "toolbar": {
+          "pan": "平移",
+          "resetView": "复位视图",
+          "select": "选择 / 框选",
+          "zoomIn": "放大",
+          "zoomOut": "缩小"
         }
       }
     }
