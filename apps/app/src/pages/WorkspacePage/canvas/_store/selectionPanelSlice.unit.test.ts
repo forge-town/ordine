@@ -57,8 +57,41 @@ describe("selection and panel slices", () => {
     store.getState().setSelectedIds(["node-a", "edge-a"]);
 
     expect(store.getState().getSelectedRefs()).toEqual([
-      { id: "node-a", label: "Node node-a", type: "node" },
-      { id: "edge-a", label: "Edge A", type: "edge" },
+      {
+        baseId: "node-a",
+        id: "node-a",
+        kind: "file",
+        label: "Node node-a",
+        path: [],
+        type: "node",
+      },
+      {
+        baseId: "edge-a",
+        id: "edge-a",
+        kind: "semantic",
+        label: "Edge A",
+        path: [],
+        type: "edge",
+      },
+    ]);
+  });
+
+  it("prefixes refs with the drill path inside a compound", () => {
+    const store = createTestStore();
+
+    store.getState().composeNodes(["node-a", "node-b"], { id: "compound-1", label: "Review" });
+    store.getState().pushDrillStack("compound-1");
+    store.getState().setSelectedIds(["node-a"]);
+
+    expect(store.getState().getSelectedRefs()).toEqual([
+      {
+        baseId: "node-a",
+        id: "compound-1/node-a",
+        kind: "file",
+        label: "Review / Node node-a",
+        path: ["compound-1"],
+        type: "node",
+      },
     ]);
   });
 

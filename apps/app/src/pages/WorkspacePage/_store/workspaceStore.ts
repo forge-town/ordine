@@ -1,28 +1,43 @@
 import { createContext, createElement, useContext, useRef, type ReactNode } from "react";
 import { useStore } from "zustand";
 import { createStore, type StoreApi } from "zustand/vanilla";
-import type { WorkspacePhase } from "@repo/schemas";
+import type { WorkspaceCanvasRef, WorkspacePhase } from "@repo/schemas";
 
-export type WorkspaceCanvasRef = {
+export type { WorkspaceCanvasRef };
+
+export type WorkspaceSpotlight = {
+  nonce: number;
+  ref: WorkspaceCanvasRef;
+};
+
+export type WorkspaceThread = {
   id: string;
   label: string;
-  type: "node" | "edge" | "canvas";
 };
 
 export type WorkspaceState = {
   agentOpen: boolean;
   canvasRefs: WorkspaceCanvasRef[];
   compOpen: boolean;
+  composerFocusNonce: number;
   dismissed: string[];
+  hoverRefId: string | null;
   phase: WorkspacePhase;
   pipelineId: string | null;
+  spotlight: WorkspaceSpotlight | null;
+  thread: WorkspaceThread | null;
   addCanvasRef: (ref: WorkspaceCanvasRef) => void;
   dismiss: (id: string) => void;
+  focusComposer: () => void;
+  focusRef: (ref: WorkspaceCanvasRef) => void;
   removeCanvasRef: (id: string) => void;
   resetWorkspace: () => void;
   setAgentOpen: (open: boolean) => void;
+  setCanvasRefs: (refs: WorkspaceCanvasRef[]) => void;
   setCompOpen: (open: boolean) => void;
+  setHoverRef: (id: string | null) => void;
   setPhase: (phase: WorkspacePhase) => void;
+  setThread: (thread: WorkspaceThread | null) => void;
   toggleAgentOpen: () => void;
   toggleCompOpen: () => void;
 };
@@ -37,13 +52,20 @@ type UseWorkspaceStore = {
   subscribe: WorkspaceStore["subscribe"];
 };
 
+const sameRefIds = (a: readonly WorkspaceCanvasRef[], b: readonly WorkspaceCanvasRef[]) =>
+  a.length === b.length && a.every((ref, index) => ref.id === b[index]?.id);
+
 const createInitialState = (pipelineId: string | null) => ({
   agentOpen: true,
   canvasRefs: [],
   compOpen: true,
+  composerFocusNonce: 0,
   dismissed: [],
+  hoverRefId: null,
   phase: "empty" as WorkspacePhase,
   pipelineId,
+  spotlight: null,
+  thread: null,
 });
 
 export const createWorkspaceStore = (pipelineId: string | null = null): WorkspaceStore =>
@@ -57,14 +79,28 @@ export const createWorkspaceStore = (pipelineId: string | null = null): Workspac
       set((state) => ({
         dismissed: state.dismissed.includes(id) ? state.dismissed : [...state.dismissed, id],
       })),
+    focusComposer: () =>
+      set((state) => ({ agentOpen: true, composerFocusNonce: state.composerFocusNonce + 1 })),
+    focusRef: (ref) =>
+      set((state) => ({
+        spotlight: { nonce: (state.spotlight?.nonce ?? 0) + 1, ref },
+      })),
     removeCanvasRef: (id) =>
       set((state) => ({
         canvasRefs: state.canvasRefs.filter((item) => item.id !== id),
       })),
     resetWorkspace: () => set(createInitialState(pipelineId)),
     setAgentOpen: (open) => set({ agentOpen: open }),
+    setCanvasRefs: (refs) =>
+      set((state) =>
+        sameRefIds(state.canvasRefs, refs)
+          ? { canvasRefs: [...refs] }
+          : { canvasRefs: [...refs], dismissed: [] },
+      ),
     setCompOpen: (open) => set({ compOpen: open }),
+    setHoverRef: (id) => set({ hoverRefId: id }),
     setPhase: (phase) => set({ phase }),
+    setThread: (thread) => set({ thread }),
     toggleAgentOpen: () => set((state) => ({ agentOpen: !state.agentOpen })),
     toggleCompOpen: () => set((state) => ({ compOpen: !state.compOpen })),
   }));

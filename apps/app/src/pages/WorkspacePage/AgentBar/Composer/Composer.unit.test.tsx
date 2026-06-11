@@ -6,8 +6,8 @@ import { useAgentBarStore } from "../_store";
 import { Composer } from "./Composer";
 
 const refs: WorkspaceCanvasRef[] = [
-  { id: "node-1", label: "Source File", type: "node" },
-  { id: "edge-1", label: "Parse edge", type: "edge" },
+  { baseId: "node-1", id: "node-1", kind: "file", label: "Source File", path: [], type: "node" },
+  { baseId: "edge-1", id: "edge-1", kind: "semantic", label: "Parse edge", path: [], type: "edge" },
 ];
 
 const renderComposer = (handleRemoveRef = vi.fn()) => {
