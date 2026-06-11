@@ -1279,6 +1279,14 @@
         "title": "数据契约",
         "toggleHint": "点击字段切换是否向下游传递 · {{enabled}}/{{total}} 开启",
         "transform": "转换"
+      },
+      "compose": {
+        "askSelection": "就选区提问",
+        "compose": "合成复合节点",
+        "defaultLabel": "复合步骤",
+        "drillHint": "复合节点内部 · 修改会写回父 Pipeline。按 Esc 钻出。",
+        "selected_one": "已选 {{count}} 个",
+        "selected_other": "已选 {{count}} 个"
       }
     }
   },

@@ -90,6 +90,7 @@ export const CanvasFlow = () => {
   const openEdgeInspector = useCanvasStore((state) => state.openEdgeInspector);
   const openNodeConfig = useCanvasStore((state) => state.openNodeConfig);
   const pushDrillStack = useCanvasStore((state) => state.pushDrillStack);
+  const popDrillStack = useCanvasStore((state) => state.popDrillStack);
   const recordHistory = useCanvasStore((state) => state.recordHistory);
   const redo = useCanvasStore((state) => state.redo);
   const selectEdge = useCanvasStore((state) => state.selectEdge);
@@ -223,6 +224,20 @@ export const CanvasFlow = () => {
     enableOnFormTags: false,
     preventDefault: true,
   });
+  useHotkeys(
+    "escape",
+    () => {
+      if (drillStack.length > 0) {
+        popDrillStack();
+        return;
+      }
+      setSelectedIds([]);
+    },
+    {
+      enableOnContentEditable: false,
+      enableOnFormTags: false,
+    },
+  );
 
   return (
     <div

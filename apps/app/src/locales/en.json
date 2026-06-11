@@ -1284,6 +1284,14 @@
         "title": "Data Contract",
         "toggleHint": "Tap a field to toggle whether it flows downstream · {{enabled}}/{{total}} on",
         "transform": "Transform"
+      },
+      "compose": {
+        "askSelection": "Ask about selection",
+        "compose": "Compose into compound",
+        "defaultLabel": "Compound step",
+        "drillHint": "Inside compound · changes here write back to the parent pipeline. Esc to drill out.",
+        "selected_one": "{{count}} selected",
+        "selected_other": "{{count}} selected"
       }
     }
   },

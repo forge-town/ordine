@@ -6,6 +6,7 @@ import { CanvasStoreProvider } from "./_store/canvasStore";
 import { CanvasFlow } from "./flow";
 import { CanvasEmptyState } from "./CanvasEmptyState";
 import { CanvasToolbar, ComponentPanel, TopPill } from "./chrome";
+import { ComposeBar, DrillHint } from "./compose";
 import { EdgeInspector } from "./panels/EdgeInspector";
 import { NodeConfig } from "./panels/NodeConfig";
 
@@ -34,6 +35,8 @@ export const CanvasRoot = ({ pipeline }: CanvasRootProps) => {
           />
           <CanvasToolbar />
           <ComponentPanel />
+          <ComposeBar pipelineId={pipeline.id} />
+          <DrillHint />
           <EdgeInspector pipelineId={pipeline.id} />
           <NodeConfig pipelineId={pipeline.id} />
           <CanvasEmptyState />
