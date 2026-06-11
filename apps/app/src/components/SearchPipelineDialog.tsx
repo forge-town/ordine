@@ -1,9 +1,26 @@
 import { useMemo, type ChangeEvent } from "react";
 import { useList } from "@refinedev/core";
 import { useNavigate } from "@tanstack/react-router";
-import { Boxes, ListChecks, Search, Workflow, type LucideIcon } from "lucide-react";
+import {
+  Box,
+  Boxes,
+  Cpu,
+  ListChecks,
+  Plug,
+  Search,
+  Sparkles,
+  Workflow,
+  type LucideIcon,
+} from "lucide-react";
 import { useStore } from "zustand";
-import type { Job, PipelineAsset, PipelineData } from "@repo/schemas";
+import type {
+  AgentRuntimeConfig,
+  Connector,
+  Job,
+  PipelineAsset,
+  PipelineData,
+  Skill,
+} from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@repo/ui/dialog";
 import { Input } from "@repo/ui/input";
@@ -11,7 +28,14 @@ import { Icon, Tag } from "@/components/primitives";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useSidebarStore } from "@/store/sidebarStore";
 
-type GlobalSearchKind = "Component" | "Job" | "Pipeline";
+type GlobalSearchKind =
+  | "Agent"
+  | "Component"
+  | "Connector"
+  | "Job"
+  | "Node"
+  | "Pipeline"
+  | "Skill";
 
 type GlobalSearchResult = {
   description: string;
@@ -20,7 +44,10 @@ type GlobalSearchResult = {
   kind: GlobalSearchKind;
   label: string;
   meta: string;
+  pipelineId?: string;
 };
+
+export const PENDING_FOCUS_NODE_KEY = "ordine.pendingFocusNode";
 
 const MAX_RESULTS_PER_GROUP = 5;
 
@@ -72,6 +99,15 @@ export const SearchPipelineDialog = () => {
   const { result: jobsResult } = useList<Job>({
     resource: ResourceName.jobs,
   });
+  const { result: skillsResult } = useList<Skill>({
+    resource: ResourceName.skills,
+  });
+  const { result: connectorsResult } = useList<Connector>({
+    resource: ResourceName.connectors,
+  });
+  const { result: runtimesResult } = useList<AgentRuntimeConfig>({
+    resource: ResourceName.agentRuntimes,
+  });
   const normalizedQuery = query.trim().toLowerCase();
 
   const pipelineResults = useMemo(() => {
@@ -83,6 +119,32 @@ export const SearchPipelineDialog = () => {
       )
       .slice(0, MAX_RESULTS_PER_GROUP)
       .map(toPipelineResult);
+  }, [normalizedQuery, pipelinesResult.data]);
+
+  const nodeResults = useMemo(() => {
+    if (!normalizedQuery) return [];
+    const hits: GlobalSearchResult[] = [];
+    for (const pipeline of pipelinesResult.data) {
+      for (const node of pipeline.nodes) {
+        if (!includesQuery(normalizedQuery, [node.data.label])) {
+          continue;
+        }
+        hits.push({
+          description: `${node.type} · in ${pipeline.name}`,
+          icon: Box,
+          id: node.id,
+          kind: "Node",
+          label: node.data.label,
+          meta: node.type,
+          pipelineId: pipeline.id,
+        });
+        if (hits.length >= MAX_RESULTS_PER_GROUP) {
+          return hits;
+        }
+      }
+    }
+
+    return hits;
   }, [normalizedQuery, pipelinesResult.data]);
 
   const componentResults = useMemo(() => {
@@ -118,12 +180,74 @@ export const SearchPipelineDialog = () => {
       .map(toJobResult);
   }, [jobsResult.data, normalizedQuery]);
 
+  const skillResults = useMemo(() => {
+    if (!normalizedQuery) return [];
+
+    return skillsResult.data
+      .filter((skill) =>
+        includesQuery(normalizedQuery, [skill.name, skill.label ?? "", skill.description ?? ""]),
+      )
+      .slice(0, MAX_RESULTS_PER_GROUP)
+      .map(
+        (skill): GlobalSearchResult => ({
+          description: skill.description || "Imported worker skill",
+          icon: Sparkles,
+          id: skill.id,
+          kind: "Skill",
+          label: skill.label || skill.name,
+          meta: "skill",
+        }),
+      );
+  }, [normalizedQuery, skillsResult.data]);
+
+  const connectorResults = useMemo(() => {
+    if (!normalizedQuery) return [];
+
+    return connectorsResult.data
+      .filter((connector) =>
+        includesQuery(normalizedQuery, [connector.name, connector.method, connector.status]),
+      )
+      .slice(0, MAX_RESULTS_PER_GROUP)
+      .map(
+        (connector): GlobalSearchResult => ({
+          description: `${connector.method} connector`,
+          icon: Plug,
+          id: connector.id,
+          kind: "Connector",
+          label: connector.name,
+          meta: connector.status,
+        }),
+      );
+  }, [connectorsResult.data, normalizedQuery]);
+
+  const agentResults = useMemo(() => {
+    if (!normalizedQuery) return [];
+
+    return runtimesResult.data
+      .filter((runtime) => includesQuery(normalizedQuery, [runtime.name, runtime.type]))
+      .slice(0, MAX_RESULTS_PER_GROUP)
+      .map(
+        (runtime): GlobalSearchResult => ({
+          description: "Local agent runtime",
+          icon: Cpu,
+          id: runtime.id,
+          kind: "Agent",
+          label: runtime.name,
+          meta: runtime.type,
+        }),
+      );
+  }, [normalizedQuery, runtimesResult.data]);
+
   const resultGroups = [
     { label: "Pipelines", results: pipelineResults },
+    { label: "Nodes", results: nodeResults },
     { label: "Components", results: componentResults },
     { label: "Jobs", results: jobResults },
+    { label: "Skills", results: skillResults },
+    { label: "Connectors", results: connectorResults },
+    { label: "Agents", results: agentResults },
   ];
-  const totalResults = pipelineResults.length + componentResults.length + jobResults.length;
+  const totalResults = resultGroups.reduce((total, group) => total + group.results.length, 0);
 
   const handleOpenChange = (value: boolean) => {
     handleSearchDialogOpenChange(value);
@@ -142,8 +266,32 @@ export const SearchPipelineDialog = () => {
 
       return;
     }
+    if (result.kind === "Node" && result.pipelineId) {
+      globalThis.sessionStorage?.setItem(
+        PENDING_FOCUS_NODE_KEY,
+        JSON.stringify({ nodeId: result.id, pipelineId: result.pipelineId }),
+      );
+      void navigate({ to: "/workspace/$pipelineId", params: { pipelineId: result.pipelineId } });
+
+      return;
+    }
     if (result.kind === "Job") {
       void navigate({ to: "/pipelines/jobs/$jobId", params: { jobId: result.id } });
+
+      return;
+    }
+    if (result.kind === "Skill") {
+      void navigate({ to: "/skills" });
+
+      return;
+    }
+    if (result.kind === "Connector") {
+      void navigate({ to: "/connectors" });
+
+      return;
+    }
+    if (result.kind === "Agent") {
+      void navigate({ to: "/local-agents" });
 
       return;
     }
@@ -156,14 +304,14 @@ export const SearchPipelineDialog = () => {
       <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-2xl">
         <DialogTitle className="sr-only">Global search</DialogTitle>
         <DialogDescription className="sr-only">
-          Search pipelines, components, and jobs.
+          Search pipelines, nodes, components, jobs, skills, connectors, and agents.
         </DialogDescription>
         <div className="flex items-center border-b px-3">
           <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
           <Input
             autoFocus
             className="h-11 border-0 px-0 shadow-none focus-visible:ring-0"
-            placeholder="Search pipelines, components, jobs..."
+            placeholder="Search everything..."
             value={query}
             onChange={handleQueryChange}
           />
@@ -176,7 +324,7 @@ export const SearchPipelineDialog = () => {
           ) : null}
           {normalizedQuery ? null : (
             <div className="py-8 text-center text-sm text-muted-foreground">
-              Search across pipelines, components, and jobs.
+              Search across pipelines, nodes, components, jobs, skills, connectors, and agents.
             </div>
           )}
           {resultGroups.map((group) =>

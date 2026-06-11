@@ -60,6 +60,40 @@ const WorkspacePhaseSync = () => {
   return null;
 };
 
+const PENDING_FOCUS_NODE_KEY = "ordine.pendingFocusNode";
+
+/** Consumes a node focus handed off from global search (sessionStorage). */
+const PendingFocusConsumer = ({ pipelineId }: { pipelineId: string }) => {
+  const nodes = useCanvasStore((state) => state.nodes);
+  const focusRef = useWorkspaceStore((state) => state.focusRef);
+
+  useEffect(() => {
+    const raw = globalThis.sessionStorage?.getItem(PENDING_FOCUS_NODE_KEY);
+    if (!raw) {
+      return;
+    }
+    const parsed = JSON.parse(raw) as { nodeId?: string; pipelineId?: string };
+    if (parsed.pipelineId !== pipelineId) {
+      return;
+    }
+    const node = nodes.find((item) => item.id === parsed.nodeId);
+    if (!node) {
+      return;
+    }
+    globalThis.sessionStorage?.removeItem(PENDING_FOCUS_NODE_KEY);
+    focusRef({
+      baseId: node.id,
+      id: node.id,
+      kind: node.type ?? "node",
+      label: node.data.label,
+      path: [],
+      type: "node",
+    });
+  }, [focusRef, nodes, pipelineId]);
+
+  return null;
+};
+
 const WorkspacePageContent = ({ pipelineId }: WorkspacePageProps) => {
   const { t } = useTranslation();
   const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
@@ -109,6 +143,7 @@ const WorkspacePageContent = ({ pipelineId }: WorkspacePageProps) => {
     <ReactFlowProvider>
       <CanvasStoreProvider edges={snapshot.edges} nodes={snapshot.nodes}>
         <WorkspacePhaseSync />
+        <PendingFocusConsumer pipelineId={pipelineId} />
         <div className="flex h-full min-h-0 bg-background">
           <main className="min-w-0 flex-1 overflow-hidden">
             <CanvasRoot pipeline={pipelineResult} />
