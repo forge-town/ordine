@@ -1351,7 +1351,8 @@
           "started": "Run started",
           "startedDescription": "Job {{jobId}} is running",
           "stop": "Stop",
-          "stopUnavailable": "Stopping a run is coming soon"
+          "stopFailed": "Couldn't stop the run",
+          "stopped": "Run stopped"
         },
         "states": {
           "cancelled": "Cancelled",

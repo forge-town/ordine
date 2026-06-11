@@ -63,6 +63,7 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
   const [renaming, setRenaming] = useState(false);
   const [version, setVersion] = useState(pipeline.version);
   const [isStartingRun, setIsStartingRun] = useState(false);
+  const [isStopping, setIsStopping] = useState(false);
   const graphJson = useMemo(() => stableGraphJson(nodes, edges), [edges, nodes]);
   const [savedGraphJson, setSavedGraphJson] = useState(graphJson);
 
@@ -137,6 +138,36 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
       errorNotification: false,
       values: { name },
     });
+  };
+
+  const handleStop = () => {
+    if (!activeJobId) {
+      return;
+    }
+    setIsStopping(true);
+    void ResultAsync.fromPromise(
+      dataProvider.custom!({
+        method: "post",
+        payload: { jobId: activeJobId },
+        url: "jobs/cancel",
+      }),
+      () => t("workspace.canvas.chrome.run.stopFailed"),
+    ).match(
+      () => {
+        setIsStopping(false);
+        toastStore.getState().addToast({
+          title: t("workspace.canvas.chrome.run.stopped"),
+          type: "success",
+        });
+      },
+      (error) => {
+        setIsStopping(false);
+        toastStore.getState().addToast({
+          title: error,
+          type: "error",
+        });
+      },
+    );
   };
 
   const handleRun = () => {
@@ -275,11 +306,11 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
         {atRoot ? (
           running ? (
             <button
-              disabled
-              className="flex items-center gap-1.5 rounded-full bg-surface px-3.5 py-1.5 text-xs font-medium text-foreground shadow-pill ring-1 ring-border opacity-70"
+              className="flex items-center gap-1.5 rounded-full bg-surface px-3.5 py-1.5 text-xs font-medium text-foreground shadow-pill ring-1 ring-border transition-all hover:ring-border-strong disabled:opacity-70"
               data-testid="canvas-v2-stop"
-              title={t("workspace.canvas.chrome.run.stopUnavailable")}
+              disabled={isStopping}
               type="button"
+              onClick={handleStop}
             >
               <Square className="size-3.5" />
               {t("workspace.canvas.chrome.run.stop")}

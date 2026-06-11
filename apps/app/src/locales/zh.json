@@ -1346,7 +1346,8 @@
           "started": "已开始运行",
           "startedDescription": "工单 {{jobId}} 运行中",
           "stop": "停止",
-          "stopUnavailable": "停止运行即将支持"
+          "stopFailed": "停止运行失败",
+          "stopped": "已停止运行"
         },
         "states": {
           "cancelled": "已取消",

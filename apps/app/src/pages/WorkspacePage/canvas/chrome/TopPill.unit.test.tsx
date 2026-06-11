@@ -93,7 +93,27 @@ describe("TopPill", () => {
     expect(customMock).toHaveBeenCalledWith(
       expect.objectContaining({ method: "post", url: "pipelines/run" }),
     );
-    expect(screen.getByTestId("canvas-v2-stop")).toBeDisabled();
+    expect(screen.getByTestId("canvas-v2-stop")).not.toBeDisabled();
+  });
+
+  it("cancels the active run via the Stop button", async () => {
+    const user = userEvent.setup();
+    customMock.mockResolvedValue({ data: {} });
+    const store = createCanvasStore({ nodes: [operationNode] });
+    store.getState().beginRun("job-42");
+    render(<TopPill pipeline={pipeline} />, { wrapper: makeWrapper(store) });
+
+    await user.click(screen.getByTestId("canvas-v2-stop"));
+
+    await waitFor(() => {
+      expect(customMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: "post",
+          payload: { jobId: "job-42" },
+          url: "jobs/cancel",
+        }),
+      );
+    });
   });
 
   it("renames the pipeline from the breadcrumb", async () => {
