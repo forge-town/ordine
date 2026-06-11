@@ -8,7 +8,7 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CanvasPageContent } from "@/pages/CanvasPage/CanvasPageContent";
 import { CanvasPageStoreProvider, useCanvasPageStore } from "@/pages/CanvasPage/_store";
 import { AgentBar } from "./AgentBar";
-import { useWorkspaceStore } from "./_store/workspaceStore";
+import { WorkspaceStoreProvider, useWorkspaceStore } from "./_store/workspaceStore";
 
 export type WorkspacePageProps = {
   pipelineId: string;
@@ -26,7 +26,7 @@ const WorkspaceCanvasPhaseBridge = () => {
   return null;
 };
 
-export const WorkspacePage = ({ pipelineId }: WorkspacePageProps) => {
+const WorkspacePageContent = ({ pipelineId }: WorkspacePageProps) => {
   const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
     resource: ResourceName.pipelines,
     id: pipelineId,
@@ -79,3 +79,9 @@ export const WorkspacePage = ({ pipelineId }: WorkspacePageProps) => {
     </CanvasPageStoreProvider>
   );
 };
+
+export const WorkspacePage = ({ pipelineId }: WorkspacePageProps) => (
+  <WorkspaceStoreProvider pipelineId={pipelineId}>
+    <WorkspacePageContent pipelineId={pipelineId} />
+  </WorkspaceStoreProvider>
+);
