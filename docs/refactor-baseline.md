@@ -26,3 +26,34 @@ M1-10 收尾复核（2026-06-10）：
 ## 非阻塞 lint warning
 
 `bun run quality` 当前还会打印少量 oxlint warning，但不会导致命令失败。后续任务不得新增 warning。
+
+## Canvas V2 N0 基线（2026-06-11 11:15 CST）
+
+本轮从 `refactor/ordinctor-m1` 切出 `refactor/canvas-v2`，按 Canvas V2 施工手册进入新画布重写阶段。
+
+### 质量门现状
+
+运行 `bun run quality` 时质量门提前停在 `@repo/pipeline-engine#quality` 的 oxlint：
+
+| 包 | 文件 | 现象 |
+| --- | --- | --- |
+| `packages/pipeline-engine` | `src/tests/scenarios/linear.scenario.test.ts:110` | `ordine-vars(no-let)` 报错：`let resume: (() => void) | undefined;` |
+| `packages/pipeline-engine` | `src/tests/scenarios/output.scenario.test.ts:55` | `unicorn(no-await-expression-member)` warning：`(await readdir(dir)).filter(...)` |
+
+同时仍可见既有 warning：
+
+- `packages/agent/src/claude/runClaude.ts:17`：`eslint(no-control-regex)`
+- `packages/plugins/src/github-project-plugin/github-project-plugin.test.ts:43`：`unicorn(consistent-function-scoping)`
+
+因 lint 阶段已失败，下游质量任务未继续执行；后续 Canvas V2 任务不得新增失败。
+
+### Canvas 路由冻结
+
+确认 `apps/app/src/routes` 与 `apps/app/src/routeTree.gen.ts` 中无 `CanvasPageContent`、`@/pages/CanvasPage`、`pages/CanvasPage`、`/canvas` 活跃路由引用；当前 Canvas 入口冻结为 `workspace.$pipelineId.tsx`。
+
+仍存在的旧 Canvas 活跃引用记录为 N6 拆旧范围：
+
+- `apps/app/src/pages/WorkspacePage/WorkspacePage.tsx`
+- `apps/app/src/pages/WorkspacePage/AgentBar/*`
+- `apps/app/src/pages/ComponentsPage/ComponentEditor/ComponentEditor.tsx`
+- `apps/app/src/components/FolderBrowserDialog/*` 的 story/test 引用（这些文件当前已有无关未提交修改，本轮不触碰）
