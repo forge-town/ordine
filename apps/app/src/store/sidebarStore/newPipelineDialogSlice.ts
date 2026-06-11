@@ -83,7 +83,7 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
 
   const generate = async () => {
     const { name, description } = formControl.getValues();
-    const id = `pipeline-${Date.now()}`;
+    const id = `pipeline-${globalThis.crypto.randomUUID()}`;
     const now = new Date();
     const trimmedDescription = description.trim();
     const pipelineName = name.trim() || getDefaultPipelineName();

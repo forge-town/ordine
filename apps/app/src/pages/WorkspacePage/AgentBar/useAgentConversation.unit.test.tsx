@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ConversationMessage, PipelineActionProposal } from "@repo/schemas";
 import { ResourceName, dataProvider } from "@/integrations/refine/dataProvider";
-import { CanvasPageStoreContext, createCanvasPageStore } from "@/pages/CanvasPage/_store";
+import { CanvasStoreContext, createCanvasStore } from "../canvas/_store/canvasStore";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { useAgentBarStore } from "./_store";
 import { useAgentConversation } from "./useAgentConversation";
@@ -54,6 +54,7 @@ const Harness = () => {
     useAgentConversation({
       phase: "empty",
       pipelineId: "pipe-1",
+      pipelineName: "Pipeline 1",
     });
   const handleSendClick = () => {
     void submitMessage({
@@ -105,12 +106,12 @@ describe("useAgentConversation", () => {
 
   it("proposes actions, stores proposal metadata, and switches to proposal phase", async () => {
     const user = userEvent.setup();
-    const store = createCanvasPageStore([], [], "pipe-1", "Pipeline 1");
+    const store = createCanvasStore();
 
     render(
-      <CanvasPageStoreContext.Provider value={store}>
+      <CanvasStoreContext.Provider value={store}>
         <Harness />
-      </CanvasPageStoreContext.Provider>,
+      </CanvasStoreContext.Provider>,
     );
 
     await user.click(screen.getByRole("button", { name: "Send" }));
@@ -140,13 +141,13 @@ describe("useAgentConversation", () => {
 
   it("applies the pending proposal and persists the pipeline graph", async () => {
     const user = userEvent.setup();
-    const store = createCanvasPageStore([], [], "pipe-1", "Pipeline 1");
-    store.setState({ applyAgentProposal: vi.fn(() => true) });
+    const store = createCanvasStore();
+    store.setState({ applyProposal: vi.fn(() => true) });
 
     render(
-      <CanvasPageStoreContext.Provider value={store}>
+      <CanvasStoreContext.Provider value={store}>
         <Harness />
-      </CanvasPageStoreContext.Provider>,
+      </CanvasStoreContext.Provider>,
     );
 
     await user.click(screen.getByRole("button", { name: "Send" }));
@@ -183,12 +184,12 @@ describe("useAgentConversation", () => {
 
   it("passes uploaded sample metadata to proposal generation", async () => {
     const user = userEvent.setup();
-    const store = createCanvasPageStore([], [], "pipe-1", "Pipeline 1");
+    const store = createCanvasStore();
 
     render(
-      <CanvasPageStoreContext.Provider value={store}>
+      <CanvasStoreContext.Provider value={store}>
         <Harness />
-      </CanvasPageStoreContext.Provider>,
+      </CanvasStoreContext.Provider>,
     );
 
     await user.click(screen.getByRole("button", { name: "Reverse" }));

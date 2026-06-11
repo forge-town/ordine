@@ -1,10 +1,10 @@
 import { useOne } from "@refinedev/core";
+import { useNavigate } from "@tanstack/react-router";
 import { ResultAsync } from "neverthrow";
 import { useEffect, useState } from "react";
-import { useStore } from "zustand";
 import type { Job, JobTrace } from "@repo/schemas";
 import { ResourceName, dataProvider } from "@/integrations/refine/dataProvider";
-import { useCanvasPageStore } from "@/pages/CanvasPage/_store";
+import { useCanvasStore } from "../canvas/_store/canvasStore";
 import { CheckpointCard, ErrorCard, RunStatusCard, SelfHealCard } from "./messages";
 import { buildAgentRunSummary, buildSelfHealSteps } from "./runSummary";
 
@@ -14,10 +14,10 @@ const isTerminalStatus = (status: Job["status"]) =>
   status === "done" || status === "failed" || status === "cancelled" || status === "expired";
 
 export const AgentRunCards = () => {
-  const store = useCanvasPageStore();
-  const activeJobId = useStore(store, (state) => state.activeJobId);
-  const nodes = useStore(store, (state) => state.nodes);
-  const storeNodeStatuses = useStore(store, (state) => state.nodeRunStatuses);
+  const navigate = useNavigate();
+  const activeJobId = useCanvasStore((state) => state.activeJobId);
+  const nodes = useCanvasStore((state) => state.nodes);
+  const storeNodeStatuses = useCanvasStore((state) => state.nodeRunStatuses);
   const [isControlPending, setIsControlPending] = useState(false);
   const [selfHealSteps, setSelfHealSteps] = useState<
     { label: string; tone?: "muted" | "success" }[]
@@ -124,7 +124,16 @@ export const AgentRunCards = () => {
           title="Self-heal"
         />
       ) : null}
-      {summary.failedError ? <ErrorCard {...summary.failedError} /> : null}
+      {summary.failedError ? (
+        <ErrorCard
+          {...summary.failedError}
+          onAction={
+            /connector/i.test(summary.failedError.tryLabel)
+              ? () => void navigate({ to: "/connectors" })
+              : undefined
+          }
+        />
+      ) : null}
     </>
   );
 };

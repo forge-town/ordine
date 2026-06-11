@@ -1416,8 +1416,10 @@
         "resolve": "Resolve",
         "showAll": "Show all",
         "title": "Thread"
-      }
-    }
+      },
+      "reopen": "Open Agent Bar"
+    },
+    "notFoundPipeline": "Pipeline not found"
   },
   "validation": {
     "nameRequired": "Name is required",

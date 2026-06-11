@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Refine, type DataProvider } from "@refinedev/core";
+import { ReactFlowProvider } from "@xyflow/react";
 import type { PipelineData } from "@repo/schemas";
+import { CanvasStoreProvider } from "./_store/canvasStore";
+import { fromPipelineSnapshot } from "./_store/canvasTypes";
 import { CanvasRoot } from "./CanvasRoot";
 
 const emptyPipeline = {
@@ -18,6 +21,45 @@ const emptyPipeline = {
   version: 1,
 } satisfies PipelineData;
 
+const withNodesPipeline = {
+  ...emptyPipeline,
+  edges: [
+    {
+      data: { label: "document" },
+      id: "edge-file-op",
+      source: "node-file",
+      target: "node-op",
+    },
+  ],
+  id: "pipeline-story-nodes",
+  nodes: [
+    {
+      data: {
+        filePath: "src/source.ts",
+        label: "Source file",
+        language: "typescript",
+        nodeType: "file",
+      },
+      id: "node-file",
+      position: { x: 0, y: 0 },
+      type: "file",
+    },
+    {
+      data: {
+        config: {},
+        label: "Parse",
+        nodeType: "operation",
+        operationId: "op-parse",
+        operationName: "Parse",
+        status: "idle",
+      },
+      id: "node-op",
+      position: { x: 320, y: 0 },
+      type: "operation",
+    },
+  ],
+} satisfies PipelineData;
+
 const storyDataProvider = {
   create: async () => ({ data: {} }),
   deleteOne: async () => ({ data: {} }),
@@ -27,18 +69,25 @@ const storyDataProvider = {
   update: async () => ({ data: {} }),
 } as unknown as DataProvider;
 
+const renderStory = (pipeline: PipelineData) => {
+  const snapshot = fromPipelineSnapshot({ edges: pipeline.edges, nodes: pipeline.nodes });
+
+  return (
+    <Refine dataProvider={storyDataProvider} options={{ disableTelemetry: true }}>
+      <ReactFlowProvider>
+        <CanvasStoreProvider edges={snapshot.edges} nodes={snapshot.nodes}>
+          <div className="h-[620px] w-full bg-background">
+            <CanvasRoot pipeline={pipeline} />
+          </div>
+        </CanvasStoreProvider>
+      </ReactFlowProvider>
+    </Refine>
+  );
+};
+
 const meta: Meta<typeof CanvasRoot> = {
   title: "WorkspacePage/CanvasV2/Root",
   component: CanvasRoot,
-  decorators: [
-    (Story) => (
-      <Refine dataProvider={storyDataProvider} options={{ disableTelemetry: true }}>
-        <div className="h-[620px] w-full bg-background">
-          <Story />
-        </div>
-      </Refine>
-    ),
-  ],
 };
 
 export default meta;
@@ -46,49 +95,9 @@ export default meta;
 type Story = StoryObj<typeof CanvasRoot>;
 
 export const Empty: Story = {
-  args: {
-    pipeline: emptyPipeline,
-  },
+  render: () => renderStory(emptyPipeline),
 };
 
 export const WithNodes: Story = {
-  args: {
-    pipeline: {
-      ...emptyPipeline,
-      edges: [
-        {
-          data: { label: "document" },
-          id: "edge-file-op",
-          source: "node-file",
-          target: "node-op",
-        },
-      ],
-      nodes: [
-        {
-          data: {
-            filePath: "src/source.ts",
-            label: "Source file",
-            language: "typescript",
-            nodeType: "file",
-          },
-          id: "node-file",
-          position: { x: 0, y: 0 },
-          type: "file",
-        },
-        {
-          data: {
-            config: {},
-            label: "Parse",
-            nodeType: "operation",
-            operationId: "op-parse",
-            operationName: "Parse",
-            status: "idle",
-          },
-          id: "node-op",
-          position: { x: 320, y: 0 },
-          type: "operation",
-        },
-      ],
-    },
-  },
+  render: () => renderStory(withNodesPipeline),
 };

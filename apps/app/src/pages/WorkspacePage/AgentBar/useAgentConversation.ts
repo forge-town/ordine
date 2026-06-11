@@ -1,7 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { useUpdate } from "@refinedev/core";
 import { ResultAsync } from "neverthrow";
-import { useStore } from "zustand";
 import type {
   ConversationMessageMetadata,
   PipelineAction,
@@ -10,7 +9,8 @@ import type {
   WorkspacePhase,
 } from "@repo/schemas";
 import { ResourceName, dataProvider } from "@/integrations/refine/dataProvider";
-import { useCanvasPageStore } from "@/pages/CanvasPage/_store";
+import { CanvasStoreContext, useCanvasStore } from "../canvas/_store/canvasStore";
+import { toPipelineSnapshot } from "../canvas/_store/canvasTypes";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { useAgentConversationPersistence } from "./useAgentConversationPersistence";
 
@@ -93,19 +93,20 @@ const createProposalSnapshot = (proposal: PipelineActionProposal) => ({
 export const useAgentConversation = ({
   phase,
   pipelineId,
+  pipelineName = "",
 }: {
   phase: WorkspacePhase;
   pipelineId: string | null;
+  pipelineName?: string;
 }) => {
-  const canvasStore = useCanvasPageStore();
-  const nodes = useStore(canvasStore, (state) => state.nodes);
-  const edges = useStore(canvasStore, (state) => state.edges);
-  const pipelineName = useStore(canvasStore, (state) => state.pipelineName);
-  const setPendingProposal = useStore(canvasStore, (state) => state.setPendingProposal);
-  const clearPendingProposal = useStore(canvasStore, (state) => state.clearPendingProposal);
-  const applyAgentProposal = useStore(canvasStore, (state) => state.applyAgentProposal);
-  const pendingProposal = useStore(canvasStore, (state) => state.agentPanel.pendingProposal);
-  const diagnostics = useStore(canvasStore, (state) => state.agentPanel.diagnostics);
+  const canvasStore = useContext(CanvasStoreContext);
+  const nodes = useCanvasStore((state) => state.nodes);
+  const edges = useCanvasStore((state) => state.edges);
+  const setPendingProposal = useCanvasStore((state) => state.setPendingProposal);
+  const clearPendingProposal = useCanvasStore((state) => state.clearPendingProposal);
+  const applyAgentProposal = useCanvasStore((state) => state.applyProposal);
+  const pendingProposal = useCanvasStore((state) => state.pendingProposal);
+  const diagnostics = useCanvasStore((state) => state.proposalDiagnostics);
   const setPhase = useWorkspaceStore((state) => state.setPhase);
   const { mutateAsync: updatePipeline, mutation: updateMutation } = useUpdate();
   const [isProposing, setIsProposing] = useState(false);
@@ -148,7 +149,7 @@ export const useAgentConversation = ({
             message: trimmedContent,
             pipelineName,
             referencedNodeIds: metadata.referencedNodeIds ?? [],
-            snapshot: { edges, nodes },
+            snapshot: toPipelineSnapshot({ edges, nodes }),
           },
           url: "pipelines/proposeActions",
         }),
@@ -203,11 +204,15 @@ export const useAgentConversation = ({
     }
 
     const applied = applyAgentProposal(pendingProposal);
-    if (!applied) {
+    if (!applied || !canvasStore) {
       return;
     }
 
     const nextCanvas = canvasStore.getState();
+    const nextSnapshot = toPipelineSnapshot({
+      edges: nextCanvas.edges,
+      nodes: nextCanvas.nodes,
+    });
     const saved = await ResultAsync.fromPromise(
       updatePipeline({
         errorNotification: false,
@@ -215,9 +220,8 @@ export const useAgentConversation = ({
         resource: ResourceName.pipelines,
         successNotification: false,
         values: {
-          edges: nextCanvas.edges,
-          name: nextCanvas.pipelineName || pipelineName,
-          nodes: nextCanvas.nodes,
+          edges: nextSnapshot.edges,
+          nodes: nextSnapshot.nodes,
         },
       }),
       () => null,

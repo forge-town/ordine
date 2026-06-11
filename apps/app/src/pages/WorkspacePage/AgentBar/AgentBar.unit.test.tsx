@@ -3,10 +3,15 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Job, PipelineAsset } from "@repo/schemas";
 import { dataProvider } from "@/integrations/refine/dataProvider";
-import { CanvasPageStoreContext, createCanvasPageStore } from "@/pages/CanvasPage/_store";
+import {
+  CanvasStoreContext,
+  createCanvasStore,
+  type CanvasStore,
+} from "../canvas/_store/canvasStore";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { useAgentBarStore } from "./_store";
-import { AgentBar, WORKSPACE_PHASES } from "./AgentBar";
+import { AgentBar } from "./AgentBar";
+import { WORKSPACE_PHASES } from "./DebugPhaseBar";
 
 const { mockNavigate, mockRefetchJob, mockUseListData, mockUseOneData } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
@@ -27,6 +32,7 @@ vi.mock("@refinedev/core", () => ({
       refetch: mockRefetchJob,
     },
   }),
+  useUpdate: () => ({ mutate: vi.fn() }),
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -47,12 +53,9 @@ vi.mock("./useAgentConversation", () => ({
   }),
 }));
 
-const renderAgentBar = (
-  handleCollapse = vi.fn(),
-  setup?: (store: ReturnType<typeof createCanvasPageStore>) => void,
-) => {
-  const canvasStore = createCanvasPageStore(
-    [
+const renderAgentBar = (handleCollapse = vi.fn(), setup?: (store: CanvasStore) => void) => {
+  const canvasStore = createCanvasStore({
+    nodes: [
       {
         id: "load",
         type: "folder",
@@ -72,15 +75,12 @@ const renderAgentBar = (
         },
       },
     ],
-    [],
-    "pipe-test",
-    "Pipeline",
-  );
+  });
   setup?.(canvasStore);
   render(
-    <CanvasPageStoreContext.Provider value={canvasStore}>
-      <AgentBar pipelineId="pipe-test" onCollapse={handleCollapse} />
-    </CanvasPageStoreContext.Provider>,
+    <CanvasStoreContext.Provider value={canvasStore}>
+      <AgentBar pipelineId="pipe-test" pipelineName="Pipeline" onCollapse={handleCollapse} />
+    </CanvasStoreContext.Provider>,
   );
 
   return { handleCollapse };
@@ -104,19 +104,16 @@ describe("AgentBar", () => {
     expect(screen.getByTestId("workspace-agent-bar")).toBeInTheDocument();
     expect(screen.getByText("Agent")).toBeInTheDocument();
     expect(screen.getByText(/New canvas · no pipeline yet/)).toBeInTheDocument();
-    expect(screen.getByText("empty")).toBeInTheDocument();
     expect(screen.getByText("Turn my textbook PDFs into a Notion quiz")).toBeInTheDocument();
   });
 
-  it("switches all phases from the dev phase controls", async () => {
-    const user = userEvent.setup();
+  it("hides the phase debugger without ?debug=phases and renders every phase subtitle", () => {
     renderAgentBar();
 
-    for (const phase of WORKSPACE_PHASES) {
-      await user.click(screen.getByRole("button", { name: phase }));
-      expect(useWorkspaceStore.getState().phase).toBe(phase);
-    }
+    expect(screen.queryByTestId("agent-debug-phase-bar")).not.toBeInTheDocument();
+    expect(WORKSPACE_PHASES).toHaveLength(7);
 
+    useWorkspaceStore.getState().setPhase("done");
     expect(screen.getByText(/Run complete · asset saved/)).toBeInTheDocument();
   });
 

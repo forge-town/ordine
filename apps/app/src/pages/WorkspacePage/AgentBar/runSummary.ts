@@ -1,4 +1,9 @@
-import type { Job, JobTrace, NodeRunStatus, PipelineNode } from "@repo/schemas";
+import type { Job, JobTrace, NodeRunStatus } from "@repo/schemas";
+
+type SummaryNode = {
+  data: { label?: string };
+  id: string;
+};
 
 const ACTIVE_NODE_STATUSES = new Set<NodeRunStatus>(["running", "waitingForUser", "retrying"]);
 
@@ -25,7 +30,7 @@ const formatCost = (value: Job["totalCost"]): string | null => {
   return `$${cost.toFixed(2)}`;
 };
 
-const getNodeLabel = (node: PipelineNode | undefined, fallback: string) =>
+const getNodeLabel = (node: SummaryNode | undefined, fallback: string) =>
   node?.data.label ?? fallback;
 
 export type AgentRunSummary = {
@@ -79,7 +84,7 @@ export const buildAgentRunSummary = ({
 }: {
   job: Job | null;
   nodeStatuses: Record<string, NodeRunStatus>;
-  nodes: PipelineNode[];
+  nodes: SummaryNode[];
   now?: number;
 }): AgentRunSummary => {
   const statusCount = Object.keys(nodeStatuses).length;

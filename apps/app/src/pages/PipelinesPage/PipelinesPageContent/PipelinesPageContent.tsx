@@ -10,7 +10,6 @@ import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { Chip, Icon, SearchInput } from "@/components/primitives";
 import { useSidebarStore } from "@/store/sidebarStore";
-import { useWorkspaceStore } from "@/pages/WorkspacePage/_store/workspaceStore";
 import { PIPELINE_FILTERS, usePipelinesPageStore, type PipelineFilter } from "../_store";
 import { PipelineCard } from "../PipelineCard";
 
@@ -111,7 +110,7 @@ export const PipelinesPageContent = () => {
   }, [activeFilter, pipelines, routinesByPipelineId, savedPipelineIds, search]);
 
   const handleCreate = async () => {
-    const id = `pipeline-${Date.now()}`;
+    const id = `pipeline-${globalThis.crypto.randomUUID()}`;
     const now = new Date();
     const newPipeline: PipelineData = {
       id,
@@ -132,7 +131,6 @@ export const PipelinesPageContent = () => {
       values: newPipeline,
     });
     const saved = result.data as PipelineData;
-    useWorkspaceStore.getState().setPhase("empty");
     void navigate({ to: "/workspace/$pipelineId", params: { pipelineId: saved.id } });
   };
 

@@ -1411,8 +1411,10 @@
         "resolve": "标记已解决",
         "showAll": "查看全部",
         "title": "线程"
-      }
-    }
+      },
+      "reopen": "展开 Agent Bar"
+    },
+    "notFoundPipeline": "找不到该 Pipeline"
   },
   "validation": {
     "nameRequired": "名称不能为空",

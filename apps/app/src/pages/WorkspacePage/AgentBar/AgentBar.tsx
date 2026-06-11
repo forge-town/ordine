@@ -1,47 +1,42 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useUpdate } from "@refinedev/core";
-import type { WorkspaceCanvasRef, WorkspacePhase } from "@repo/schemas";
+import type { WorkspaceCanvasRef } from "@repo/schemas";
 import { Check, ChevronsRight, MessageSquare, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { useCanvasPageStore } from "@/pages/CanvasPage/_store";
+import { useCanvasStore } from "../canvas/_store/canvasStore";
 import { Assistant, Bubble, ProposalCard } from "./messages";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
 import { AgentDistillCard } from "./AgentDistillCard";
+import { DebugPhaseBar } from "./DebugPhaseBar";
 import { AgentRunCards } from "./AgentRunCards";
 import { Composer, RefChips } from "./Composer";
 import { countUnresolvedAnchors, useAgentBarStore, type AgentBarMessage } from "./_store";
 import { useAgentConversation } from "./useAgentConversation";
-
-export const WORKSPACE_PHASES: WorkspacePhase[] = [
-  "empty",
-  "reversing",
-  "clarify",
-  "proposal",
-  "applied",
-  "running",
-  "done",
-];
 
 export type AgentBarProps = {
   className?: string;
   composer?: React.ReactNode;
   onCollapse: () => void;
   pipelineId: string;
+  pipelineName?: string;
 };
 
-export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentBarProps) => {
+export const AgentBar = ({
+  className,
+  composer,
+  onCollapse,
+  pipelineId,
+  pipelineName,
+}: AgentBarProps) => {
   const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const canvasStore = useCanvasPageStore();
-  const activeJobId = useStore(canvasStore, (state) => state.activeJobId);
-  const canvasNodes = useStore(canvasStore, (state) => state.nodes);
+  const activeJobId = useCanvasStore((state) => state.activeJobId);
+  const canvasNodes = useCanvasStore((state) => state.nodes);
   const phase = useWorkspaceStore((state) => state.phase);
-  const setPhase = useWorkspaceStore((state) => state.setPhase);
   const canvasRefs = useWorkspaceStore((state) => state.canvasRefs);
   const dismissed = useWorkspaceStore((state) => state.dismissed);
   const dismissRef = useWorkspaceStore((state) => state.dismiss);
@@ -64,7 +59,7 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
     rejectProposal,
     reviseProposal,
     submitMessage,
-  } = useAgentConversation({ phase, pipelineId });
+  } = useAgentConversation({ phase, pipelineId, pipelineName });
   const reversingSteps = useMemo(
     () =>
       ["structure", "steps", "matched", "draft"].map((step, index, all) => ({
@@ -176,21 +171,7 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
         </Button>
       </header>
 
-      {import.meta.env.DEV ? (
-        <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-border/70 px-3 py-2">
-          {WORKSPACE_PHASES.map((targetPhase) => (
-            <Button
-              className="h-7 shrink-0 rounded-full px-2 text-[10.5px]"
-              key={targetPhase}
-              size="sm"
-              variant={targetPhase === phase ? "secondary" : "ghost"}
-              onClick={() => setPhase(targetPhase)}
-            >
-              {targetPhase}
-            </Button>
-          ))}
-        </div>
-      ) : null}
+      <DebugPhaseBar />
 
       {thread ? (
         <div
