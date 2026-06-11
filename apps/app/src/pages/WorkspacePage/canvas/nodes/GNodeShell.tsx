@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/shallow";
 import { cn } from "@repo/ui/lib/utils";
 import { normalizeNodeRunStatus, type NodeRunStatus } from "@repo/schemas";
+import { countUnresolvedAnchors, useAgentBarStore } from "../../AgentBar/_store";
 import { useWorkspaceStore } from "../../_store/workspaceStore";
 import { selectNodePortCounts, selectNodeRunState } from "../_store/selectors";
 import { useCanvasStore } from "../_store/canvasStore";
@@ -132,16 +133,20 @@ export const GNodeShell = ({
   const duplicateNode = useCanvasStore((state) => state.duplicateNode);
   const deleteNode = useCanvasStore((state) => state.deleteNode);
   const setAskNodeId = useCanvasStore((state) => state.setAskNodeId);
-  const setViewingAnnId = useCanvasStore((state) => state.setViewingAnnId);
   const setConfigNodeId = useCanvasStore((state) => state.setConfigNodeId);
   const normalizedStatus = normalizeNodeRunStatus(runStatus ?? dataStatus ?? "idle");
-  const visibleAnnotationCount = annotationCount ?? 0;
   const preview = Boolean(pendingProposal);
   const StatusIcon = statusIcon[normalizedStatus];
   const themeClass = themeClasses[theme] ?? themeClasses.indigo;
   const statusLabel = t(getStatusKey(normalizedStatus));
   const refIdForNode = drillStack.length > 0 ? [...drillStack, id].join("/") : id;
   const hoverHighlight = hoverRefId === refIdForNode;
+  const anchorCount = useAgentBarStore((state) =>
+    countUnresolvedAnchors(state.messages, refIdForNode),
+  );
+  const visibleAnnotationCount = annotationCount ?? anchorCount;
+  const setThread = useWorkspaceStore((state) => state.setThread);
+  const setAgentOpen = useWorkspaceStore((state) => state.setAgentOpen);
 
   const handleConfigClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -151,9 +156,10 @@ export const GNodeShell = ({
     event.stopPropagation();
     setAskNodeId(id);
   };
-  const handleViewAnnotationsClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleOpenThreadClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    setViewingAnnId(id);
+    setThread({ id: refIdForNode, label: title });
+    setAgentOpen(true);
   };
   const handleDuplicateClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -173,11 +179,12 @@ export const GNodeShell = ({
     >
       {visibleAnnotationCount > 0 && (
         <button
-          aria-label={t("workspace.canvas.nodes.actions.viewAnnotations")}
+          aria-label={t("workspace.canvas.nodes.actions.openThread")}
           className="absolute -left-2 -top-2 z-20 flex h-5 items-center gap-0.5 rounded-full bg-foreground px-1.5 text-[9.5px] font-semibold text-primary-foreground shadow-pill"
-          data-testid="canvas-v2-node-view-annotations"
+          data-testid="canvas-v2-node-thread-badge"
+          title={t("workspace.canvas.nodes.actions.openThread")}
           type="button"
-          onClick={handleViewAnnotationsClick}
+          onClick={handleOpenThreadClick}
         >
           <MessageSquare className="h-2.5 w-2.5" />
           {visibleAnnotationCount}

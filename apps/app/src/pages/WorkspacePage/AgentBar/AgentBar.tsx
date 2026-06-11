@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useRef } from "react";
-import type { WorkspacePhase } from "@repo/schemas";
-import { ChevronsRight } from "lucide-react";
+import { useUpdate } from "@refinedev/core";
+import type { WorkspaceCanvasRef, WorkspacePhase } from "@repo/schemas";
+import { Check, ChevronsRight, MessageSquare, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useCanvasPageStore } from "@/pages/CanvasPage/_store";
 import { Assistant, Bubble, ProposalCard } from "./messages";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
 import { AgentDistillCard } from "./AgentDistillCard";
 import { AgentRunCards } from "./AgentRunCards";
-import { Composer } from "./Composer";
-import { useAgentBarStore } from "./_store";
+import { Composer, RefChips } from "./Composer";
+import { countUnresolvedAnchors, useAgentBarStore, type AgentBarMessage } from "./_store";
 import { useAgentConversation } from "./useAgentConversation";
 
 export const WORKSPACE_PHASES: WorkspacePhase[] = [
@@ -37,12 +39,17 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   const scrollRef = useRef<HTMLDivElement>(null);
   const canvasStore = useCanvasPageStore();
   const activeJobId = useStore(canvasStore, (state) => state.activeJobId);
+  const canvasNodes = useStore(canvasStore, (state) => state.nodes);
   const phase = useWorkspaceStore((state) => state.phase);
   const setPhase = useWorkspaceStore((state) => state.setPhase);
   const canvasRefs = useWorkspaceStore((state) => state.canvasRefs);
   const dismissed = useWorkspaceStore((state) => state.dismissed);
   const dismissRef = useWorkspaceStore((state) => state.dismiss);
+  const thread = useWorkspaceStore((state) => state.thread);
+  const setThread = useWorkspaceStore((state) => state.setThread);
   const messages = useAgentBarStore((state) => state.messages);
+  const resolveMessage = useAgentBarStore((state) => state.resolveMessage);
+  const { mutate: updateMessage } = useUpdate();
   const focusComposer = useWorkspaceStore((state) => state.focusComposer);
   const pendingAsk = useWorkspaceStore((state) => state.pendingAsk);
   const clearPendingAsk = useWorkspaceStore((state) => state.clearPendingAsk);
@@ -72,6 +79,49 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
     () => canvasRefs.filter((ref) => !dismissed.includes(ref.id)),
     [canvasRefs, dismissed],
   );
+  const composerAnchorCount = useMemo(
+    () =>
+      activeRefs.reduce((total, ref) => total + countUnresolvedAnchors(messages, ref.id), 0),
+    [activeRefs, messages],
+  );
+  const visibleMessages = useMemo(
+    () =>
+      thread
+        ? messages.filter((message) =>
+            (message.metadata?.referencedNodeIds ?? []).includes(thread.id),
+          )
+        : messages,
+    [messages, thread],
+  );
+  const refsForMessage = (message: AgentBarMessage): WorkspaceCanvasRef[] => {
+    const nodeLabelById = new Map(
+      canvasNodes.map((node) => [node.id, node.data.label ?? node.id] as const),
+    );
+
+    return (message.metadata?.referencedNodeIds ?? []).map((refId) => {
+      const path = refId.split("/");
+      const baseId = path.at(-1) ?? refId;
+
+      return {
+        baseId,
+        id: refId,
+        kind: "node",
+        label: nodeLabelById.get(baseId) ?? baseId,
+        path: path.slice(0, -1),
+        type: "node",
+      };
+    });
+  };
+  const handleResolveMessage = (message: AgentBarMessage) => {
+    resolveMessage(message.id);
+    updateMessage({
+      errorNotification: false,
+      id: message.id,
+      resource: ResourceName.conversationMessages,
+      successNotification: false,
+      values: { metadata: { ...message.metadata, resolved: true } },
+    });
+  };
   const subtitle =
     activeRefs.length > 0
       ? t("workspace.agentBar.subtitle.refsSelected", { count: activeRefs.length })
@@ -142,8 +192,41 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
         </div>
       ) : null}
 
+      {thread ? (
+        <div
+          className="mx-3 mb-1 flex items-center gap-2 rounded-xl bg-surface-2 px-2.5 py-1.5 ring-1 ring-border-strong"
+          data-testid="agent-thread-banner"
+        >
+          <MessageSquare className="size-3 text-foreground/70" />
+          <span className="min-w-0 flex-1 truncate text-[11px]">
+            <span className="font-medium">{t("workspace.agentBar.thread.title")}</span> ·{" "}
+            {thread.label}
+          </span>
+          <button
+            className="flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-[10.5px] text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+            data-testid="agent-thread-show-all"
+            type="button"
+            onClick={() => setThread(null)}
+          >
+            <X className="size-3" />
+            {t("workspace.agentBar.thread.showAll")}
+          </button>
+        </div>
+      ) : null}
+
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-4 py-3">
-        <AgentBody
+        {thread && visibleMessages.length === 0 ? (
+          <div className="grid place-items-center py-10 text-center">
+            <MessageSquare className="size-5 text-muted-foreground/50" />
+            <div className="mt-2 text-[12px] font-medium">
+              {t("workspace.agentBar.thread.emptyTitle")}
+            </div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground">
+              {t("workspace.agentBar.thread.emptyBody")}
+            </div>
+          </div>
+        ) : null}
+        {!thread ? <AgentBody
           distillContent={
             phase === "done" ? <AgentDistillCard pipelineId={pipelineId} /> : undefined
           }
@@ -154,21 +237,46 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
             void submitMessage({ content: goal, metadata: { referencedNodeIds: [] } })
           }
           onSuggestReverse={focusComposer}
-        />
-        {messages.map((message) =>
-          message.role === "user" ? (
-            <Bubble
-              attachmentLabel={message.metadata?.attachments?.map((item) => item.name).join(", ")}
-              key={message.id}
-            >
-              {message.content}
-            </Bubble>
-          ) : (
-            <Assistant isThinking={message.isThinking} key={message.id}>
-              {message.content}
-            </Assistant>
-          ),
-        )}
+        /> : null}
+        {visibleMessages.map((message) => {
+          const messageRefs = refsForMessage(message);
+          const resolvable = thread && !message.metadata?.resolved && !message.isThinking;
+          const body =
+            message.role === "user" ? (
+              <Bubble
+                attachmentLabel={message.metadata?.attachments
+                  ?.map((item) => item.name)
+                  .join(", ")}
+              >
+                {message.content}
+              </Bubble>
+            ) : (
+              <Assistant isThinking={message.isThinking}>{message.content}</Assistant>
+            );
+
+          return (
+            <div className="group/turn relative space-y-1" key={message.id}>
+              {body}
+              {messageRefs.length > 0 ? (
+                <div className={cn(message.role === "user" && "flex justify-end")}>
+                  <RefChips refs={messageRefs} small />
+                </div>
+              ) : null}
+              {resolvable ? (
+                <button
+                  aria-label={t("workspace.agentBar.thread.resolve")}
+                  className="absolute -left-3 top-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-accent hover:text-foreground group-hover/turn:opacity-100"
+                  data-testid={`agent-resolve-${message.id}`}
+                  title={t("workspace.agentBar.thread.resolve")}
+                  type="button"
+                  onClick={() => handleResolveMessage(message)}
+                >
+                  <Check className="size-3" />
+                </button>
+              ) : null}
+            </div>
+          );
+        })}
         {diagnostics && diagnostics.length > 0 ? (
           <Assistant>{diagnostics.map((diagnostic) => diagnostic.message).join(" ")}</Assistant>
         ) : null}
@@ -193,6 +301,7 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
       <div className="shrink-0 border-t border-border/70">
         {composer ?? (
           <Composer
+            anchorCount={composerAnchorCount}
             isSending={isSending}
             refs={activeRefs}
             onRemoveRef={dismissRef}

@@ -1086,7 +1086,8 @@
           "delete": "Delete node",
           "duplicate": "Duplicate node",
           "viewAnnotations": "View annotations",
-          "ask": "Ask the Agent about this node"
+          "ask": "Ask the Agent about this node",
+          "openThread": "Open this node's thread"
         },
         "compound": {
           "childCount_one": "{{count}} child node",
@@ -1408,6 +1409,13 @@
           "selection": "+ selection"
         },
         "title": "Context"
+      },
+      "thread": {
+        "emptyBody": "All annotations on this node are resolved.",
+        "emptyTitle": "No open notes here",
+        "resolve": "Resolve",
+        "showAll": "Show all",
+        "title": "Thread"
       }
     }
   },

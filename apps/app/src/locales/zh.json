@@ -1081,7 +1081,8 @@
           "delete": "删除节点",
           "duplicate": "复制节点",
           "viewAnnotations": "查看批注",
-          "ask": "向 Agent 询问该节点"
+          "ask": "向 Agent 询问该节点",
+          "openThread": "打开该节点的线程"
         },
         "compound": {
           "childCount_one": "{{count}} 个子节点",
@@ -1403,6 +1404,13 @@
           "selection": "+ 选区"
         },
         "title": "上下文"
+      },
+      "thread": {
+        "emptyBody": "该节点上的批注都已处理完。",
+        "emptyTitle": "这里没有未处理的批注",
+        "resolve": "标记已解决",
+        "showAll": "查看全部",
+        "title": "线程"
       }
     }
   },

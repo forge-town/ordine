@@ -34,5 +34,6 @@ export const ConversationMessageMetadataSchema = z.object({
   proposalSnapshot: ConversationProposalSnapshotSchema.optional(),
   errorContext: ConversationErrorContextSchema.optional(),
   tokenUsage: ConversationTokenUsageSchema.optional(),
+  resolved: z.boolean().optional(),
 });
 export type ConversationMessageMetadata = z.infer<typeof ConversationMessageMetadataSchema>;
