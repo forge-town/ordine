@@ -26,7 +26,7 @@ M1-10 收尾复核（2026-06-10）：
 ## 非阻塞 lint warning
 
 `bun run quality` 当前还会打印少量 oxlint warning，但不会导致命令失败。后续任务不得新增 warning。
-
+ORDINE_LOCAL_MODE=true bun run dev
 ## Canvas V2 N0 基线（2026-06-11 11:15 CST）
 
 本轮从 `refactor/ordinctor-m1` 切出 `refactor/canvas-v2`，按 Canvas V2 施工手册进入新画布重写阶段。
