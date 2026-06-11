@@ -6,6 +6,8 @@ import { CanvasStoreProvider } from "./_store/canvasStore";
 import { CanvasFlow } from "./flow";
 import { CanvasEmptyState } from "./CanvasEmptyState";
 import { CanvasToolbar, ComponentPanel, TopPill } from "./chrome";
+import { EdgeInspector } from "./panels/EdgeInspector";
+import { NodeConfig } from "./panels/NodeConfig";
 
 export type CanvasRootProps = {
   pipeline: Pick<PipelineData, "edges" | "id" | "name" | "nodes" | "version">;
@@ -32,6 +34,8 @@ export const CanvasRoot = ({ pipeline }: CanvasRootProps) => {
           />
           <CanvasToolbar />
           <ComponentPanel />
+          <EdgeInspector pipelineId={pipeline.id} />
+          <NodeConfig pipelineId={pipeline.id} />
           <CanvasEmptyState />
         </div>
       </CanvasStoreProvider>

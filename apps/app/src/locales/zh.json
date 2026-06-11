@@ -1221,6 +1221,64 @@
           },
           "trigger": "组件"
         }
+      },
+      "nodeConfig": {
+        "checkpoint": {
+          "afterStep": "该步骤完成后暂停",
+          "pauseForReview": "暂停以供审核",
+          "title": "检查点"
+        },
+        "close": "关闭",
+        "done": "完成",
+        "editable": "可编辑",
+        "executor": {
+          "defaultRuntime": "默认运行时",
+          "hint": "运行时与技能选择保存为该节点的覆盖配置。",
+          "noSkill": "不覆盖技能",
+          "operationOnly": "执行器仅适用于 Operation 节点。",
+          "runtime": "运行时",
+          "skill": "技能",
+          "title": "执行器"
+        },
+        "io": {
+          "inputs": "输入",
+          "noInputs": "暂无上游数据。",
+          "noOutputs": "暂无下游数据。",
+          "outputs": "输出",
+          "title": "输入 / 输出"
+        },
+        "lastRun": {
+          "noOutput": "暂无运行输出。",
+          "output": "输出",
+          "status": "状态",
+          "title": "状态 · 上次运行"
+        },
+        "prompt": {
+          "loopCondition": "循环条件提示词",
+          "promptText": "提示词",
+          "title": "提示词 / 指令",
+          "unavailable": "该节点没有可编辑的提示词。"
+        },
+        "reset": "重置"
+      },
+      "edgeInspector": {
+        "clear": "清空",
+        "close": "关闭",
+        "condition": "条件",
+        "deleteEdge": "删除连线",
+        "dropped": "不传递",
+        "flow": "流向",
+        "maxRetries": "最大重试",
+        "noMappings": "新连接 · 字段将在运行时推断。",
+        "noTransform": "暂无转换步骤。",
+        "onFail": "失败时",
+        "qualityGate": "质量门",
+        "qualityPlaceholder": "非空或必须包含的文本",
+        "sourceField": "源字段",
+        "targetInput": "目标输入",
+        "title": "数据契约",
+        "toggleHint": "点击字段切换是否向下游传递 · {{enabled}}/{{total}} 开启",
+        "transform": "转换"
       }
     }
   },
