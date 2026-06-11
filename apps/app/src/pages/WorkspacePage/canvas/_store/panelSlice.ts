@@ -4,6 +4,7 @@ export type CanvasTool = "hand" | "select";
 
 export type PanelSlice = {
   annotatingId: string | null;
+  askNodeId: string | null;
   canvasTool: CanvasTool;
   compPanelOpen: boolean;
   composingNodeIds: string[] | null;
@@ -14,6 +15,7 @@ export type PanelSlice = {
   openEdgeInspector: (edgeId: string) => void;
   openNodeConfig: (nodeId: string) => void;
   setAnnotatingId: (id: string | null) => void;
+  setAskNodeId: (id: string | null) => void;
   setCanvasTool: (tool: CanvasTool) => void;
   setCompPanelOpen: (open: boolean) => void;
   setComposingNodeIds: (ids: string[] | null) => void;
@@ -27,6 +29,7 @@ export const createPanelSlice =
   <T extends PanelSlice>(): StateCreator<T, [], [], PanelSlice> =>
   (set) => ({
     annotatingId: null,
+    askNodeId: null,
     canvasTool: "select",
     compPanelOpen: false,
     composingNodeIds: null,
@@ -36,6 +39,7 @@ export const createPanelSlice =
     closePanels: () =>
       set({
         annotatingId: null,
+        askNodeId: null,
         composingNodeIds: null,
         configNodeId: null,
         inspectEdgeId: null,
@@ -52,6 +56,7 @@ export const createPanelSlice =
         inspectEdgeId: null,
       } as Partial<T>),
     setAnnotatingId: (id) => set({ annotatingId: id } as Partial<T>),
+    setAskNodeId: (id) => set({ askNodeId: id } as Partial<T>),
     setCanvasTool: (tool) => set({ canvasTool: tool } as Partial<T>),
     setCompPanelOpen: (open) => set({ compPanelOpen: open } as Partial<T>),
     setComposingNodeIds: (ids) => set({ composingNodeIds: ids ? [...ids] : null } as Partial<T>),

@@ -44,6 +44,8 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   const dismissRef = useWorkspaceStore((state) => state.dismiss);
   const messages = useAgentBarStore((state) => state.messages);
   const focusComposer = useWorkspaceStore((state) => state.focusComposer);
+  const pendingAsk = useWorkspaceStore((state) => state.pendingAsk);
+  const clearPendingAsk = useWorkspaceStore((state) => state.clearPendingAsk);
   const {
     applyProposal,
     diagnostics,
@@ -82,6 +84,19 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages.length, phase]);
+
+  useEffect(() => {
+    if (!pendingAsk) {
+      return;
+    }
+    void submitMessage({
+      content: pendingAsk.text,
+      metadata: { referencedNodeIds: [pendingAsk.ref.id] },
+    });
+    clearPendingAsk();
+    // Consume each ask request exactly once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAsk?.nonce]);
 
   return (
     <aside

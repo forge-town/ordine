@@ -1085,7 +1085,8 @@
           "configure": "Configure node",
           "delete": "Delete node",
           "duplicate": "Duplicate node",
-          "viewAnnotations": "View annotations"
+          "viewAnnotations": "View annotations",
+          "ask": "Ask the Agent about this node"
         },
         "compound": {
           "childCount_one": "{{count}} child node",
@@ -1307,6 +1308,13 @@
         "resumeFailed": "Couldn't resume the run",
         "resumed": "Checkpoint approved — continuing",
         "waiting": "Waiting for the first step…"
+      },
+      "ask": {
+        "cancel": "Cancel",
+        "hint": "Adds a node-anchored message to the Agent conversation.",
+        "placeholder": "Tell the Agent what to change here…",
+        "send": "Send to Agent",
+        "title": "Ask about {{node}}"
       }
     },
     "agentBar": {

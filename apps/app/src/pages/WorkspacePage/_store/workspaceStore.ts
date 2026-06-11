@@ -15,6 +15,12 @@ export type WorkspaceThread = {
   label: string;
 };
 
+export type WorkspacePendingAsk = {
+  nonce: number;
+  ref: WorkspaceCanvasRef;
+  text: string;
+};
+
 export type WorkspaceState = {
   agentOpen: boolean;
   canvasRefs: WorkspaceCanvasRef[];
@@ -22,15 +28,18 @@ export type WorkspaceState = {
   composerFocusNonce: number;
   dismissed: string[];
   hoverRefId: string | null;
+  pendingAsk: WorkspacePendingAsk | null;
   phase: WorkspacePhase;
   pipelineId: string | null;
   spotlight: WorkspaceSpotlight | null;
   thread: WorkspaceThread | null;
   addCanvasRef: (ref: WorkspaceCanvasRef) => void;
+  clearPendingAsk: () => void;
   dismiss: (id: string) => void;
   focusComposer: () => void;
   focusRef: (ref: WorkspaceCanvasRef) => void;
   removeCanvasRef: (id: string) => void;
+  requestAsk: (ref: WorkspaceCanvasRef, text: string) => void;
   resetWorkspace: () => void;
   setAgentOpen: (open: boolean) => void;
   setCanvasRefs: (refs: WorkspaceCanvasRef[]) => void;
@@ -62,6 +71,7 @@ const createInitialState = (pipelineId: string | null) => ({
   composerFocusNonce: 0,
   dismissed: [],
   hoverRefId: null,
+  pendingAsk: null,
   phase: "empty" as WorkspacePhase,
   pipelineId,
   spotlight: null,
@@ -75,6 +85,7 @@ export const createWorkspaceStore = (pipelineId: string | null = null): Workspac
       set((state) => ({
         canvasRefs: [...state.canvasRefs.filter((item) => item.id !== ref.id), ref],
       })),
+    clearPendingAsk: () => set({ pendingAsk: null }),
     dismiss: (id) =>
       set((state) => ({
         dismissed: state.dismissed.includes(id) ? state.dismissed : [...state.dismissed, id],
@@ -88,6 +99,11 @@ export const createWorkspaceStore = (pipelineId: string | null = null): Workspac
     removeCanvasRef: (id) =>
       set((state) => ({
         canvasRefs: state.canvasRefs.filter((item) => item.id !== id),
+      })),
+    requestAsk: (ref, text) =>
+      set((state) => ({
+        agentOpen: true,
+        pendingAsk: { nonce: (state.pendingAsk?.nonce ?? 0) + 1, ref, text },
       })),
     resetWorkspace: () => set(createInitialState(pipelineId)),
     setAgentOpen: (open) => set({ agentOpen: open }),

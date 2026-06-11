@@ -1080,7 +1080,8 @@
           "configure": "配置节点",
           "delete": "删除节点",
           "duplicate": "复制节点",
-          "viewAnnotations": "查看批注"
+          "viewAnnotations": "查看批注",
+          "ask": "向 Agent 询问该节点"
         },
         "compound": {
           "childCount_one": "{{count}} 个子节点",
@@ -1302,6 +1303,13 @@
         "resumeFailed": "恢复运行失败",
         "resumed": "检查点已通过 — 继续运行",
         "waiting": "等待第一个步骤…"
+      },
+      "ask": {
+        "cancel": "取消",
+        "hint": "会以节点锚定消息的形式进入 Agent 对话。",
+        "placeholder": "告诉 Agent 这里要改什么…",
+        "send": "发送给 Agent",
+        "title": "就 {{node}} 提问"
       }
     },
     "agentBar": {

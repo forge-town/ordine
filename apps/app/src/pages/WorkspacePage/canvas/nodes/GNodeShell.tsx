@@ -6,8 +6,8 @@ import {
   Copy,
   LoaderCircle,
   MessageSquare,
-  MessageSquarePlus,
   Settings2,
+  Sparkles,
   Trash2,
   type LucideIcon,
 } from "lucide-react";
@@ -131,7 +131,7 @@ export const GNodeShell = ({
   const hoverRefId = useWorkspaceStore((state) => state.hoverRefId);
   const duplicateNode = useCanvasStore((state) => state.duplicateNode);
   const deleteNode = useCanvasStore((state) => state.deleteNode);
-  const setAnnotatingId = useCanvasStore((state) => state.setAnnotatingId);
+  const setAskNodeId = useCanvasStore((state) => state.setAskNodeId);
   const setViewingAnnId = useCanvasStore((state) => state.setViewingAnnId);
   const setConfigNodeId = useCanvasStore((state) => state.setConfigNodeId);
   const normalizedStatus = normalizeNodeRunStatus(runStatus ?? dataStatus ?? "idle");
@@ -147,9 +147,9 @@ export const GNodeShell = ({
     event.stopPropagation();
     setConfigNodeId(id);
   };
-  const handleAnnotateClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleAskClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    setAnnotatingId(id);
+    setAskNodeId(id);
   };
   const handleViewAnnotationsClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -212,14 +212,14 @@ export const GNodeShell = ({
             <Settings2 className="h-3 w-3" />
           </button>
           <button
-            aria-label={t("workspace.canvas.nodes.actions.annotate")}
+            aria-label={t("workspace.canvas.nodes.actions.ask")}
             className="rounded-full p-1 text-foreground/70 hover:bg-accent/70"
-            data-testid="canvas-v2-node-annotate"
-            title={t("workspace.canvas.nodes.actions.annotate")}
+            data-testid="canvas-v2-node-ask"
+            title={t("workspace.canvas.nodes.actions.ask")}
             type="button"
-            onClick={handleAnnotateClick}
+            onClick={handleAskClick}
           >
-            <MessageSquarePlus className="h-3 w-3" />
+            <Sparkles className="h-3 w-3" />
           </button>
           <button
             aria-label={t("workspace.canvas.nodes.actions.duplicate")}

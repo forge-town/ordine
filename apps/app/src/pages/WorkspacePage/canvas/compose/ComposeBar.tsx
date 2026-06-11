@@ -21,7 +21,7 @@ export const ComposeBar = ({ pipelineId }: ComposeBarProps) => {
   const composeNodes = useCanvasStore((state) => state.composeNodes);
   const recordHistory = useCanvasStore((state) => state.recordHistory);
   const setSelectedIds = useCanvasStore((state) => state.setSelectedIds);
-  const setAgentOpen = useWorkspaceStore((state) => state.setAgentOpen);
+  const focusComposer = useWorkspaceStore((state) => state.focusComposer);
   const { mutate: updatePipeline } = useUpdate();
 
   const selectedNodeIds = selectedIds.filter((id) =>
@@ -79,7 +79,7 @@ export const ComposeBar = ({ pipelineId }: ComposeBarProps) => {
           className="flex items-center gap-1.5 rounded-full bg-background/15 px-2.5 py-1 text-xs font-medium transition-colors hover:bg-background/25"
           data-testid="canvas-v2-ask-selection"
           type="button"
-          onClick={() => setAgentOpen(true)}
+          onClick={focusComposer}
         >
           <Sparkles className="size-3" />
           {t("workspace.canvas.compose.askSelection")}
