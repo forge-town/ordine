@@ -59,3 +59,18 @@ describe("workspaceStore", () => {
     expect(screen.getByRole("button", { name: "pipeline-b:empty" })).toBeInTheDocument();
   });
 });
+
+describe("setAnchorCounts (G1-03)", () => {
+  it("stores counts and keeps the same reference when content is unchanged", () => {
+    const store = createWorkspaceStore("p1");
+    store.getState().setAnchorCounts({ "node-a": 2 });
+    const first = store.getState().anchorCounts;
+    expect(first).toEqual({ "node-a": 2 });
+
+    store.getState().setAnchorCounts({ "node-a": 2 });
+    expect(store.getState().anchorCounts).toBe(first);
+
+    store.getState().setAnchorCounts({ "node-a": 3 });
+    expect(store.getState().anchorCounts).toEqual({ "node-a": 3 });
+  });
+});
