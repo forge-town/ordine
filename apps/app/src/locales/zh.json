@@ -75,7 +75,8 @@
     "noObjects": "暂无已注册的对象类型"
   },
   "sidebar": {
-    "user": "Ordine 用户"
+    "user": "Ordine 用户",
+    "reopen": "展开侧栏"
   },
   "dashboard": {
     "title": "仪表盘",

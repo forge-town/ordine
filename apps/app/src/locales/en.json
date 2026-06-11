@@ -72,7 +72,8 @@
     "noObjects": "No object types registered"
   },
   "sidebar": {
-    "user": "Ordine User"
+    "user": "Ordine User",
+    "reopen": "Show sidebar"
   },
   "dashboard": {
     "title": "Dashboard",

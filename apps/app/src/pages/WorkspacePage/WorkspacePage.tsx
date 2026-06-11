@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useOne } from "@refinedev/core";
 import { ReactFlowProvider } from "@xyflow/react";
 import { PanelRightOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { PipelineData } from "@repo/schemas";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { ResizeHandle } from "@/components/ResizeHandle";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { AgentBar } from "./AgentBar";
 import { CanvasRoot } from "./canvas";
@@ -15,6 +16,21 @@ import { WorkspaceStoreProvider, useWorkspaceStore } from "./_store/workspaceSto
 
 export type WorkspacePageProps = {
   pipelineId: string;
+};
+
+const AGENT_BAR_WIDTH_KEY = "ordine.agentBarWidth";
+const AGENT_BAR_MIN = 300;
+const AGENT_BAR_MAX = 520;
+const AGENT_BAR_COLLAPSE_AT = 248;
+const AGENT_BAR_DEFAULT = 360;
+
+const loadAgentBarWidth = (): number => {
+  const raw = globalThis.localStorage?.getItem(AGENT_BAR_WIDTH_KEY);
+  const parsed = raw ? Number(raw) : Number.NaN;
+
+  return Number.isFinite(parsed)
+    ? Math.min(AGENT_BAR_MAX, Math.max(AGENT_BAR_MIN, parsed))
+    : AGENT_BAR_DEFAULT;
 };
 
 /**
@@ -51,7 +67,22 @@ const WorkspacePageContent = ({ pipelineId }: WorkspacePageProps) => {
     id: pipelineId,
   });
   const agentOpen = useWorkspaceStore((state) => state.agentOpen);
+  const setAgentOpen = useWorkspaceStore((state) => state.setAgentOpen);
   const toggleAgentOpen = useWorkspaceStore((state) => state.toggleAgentOpen);
+  const [agentBarWidth, setAgentBarWidth] = useState(loadAgentBarWidth);
+  const dragStartWidth = useRef(agentBarWidth);
+
+  const handleAgentBarDelta = (delta: number) => {
+    const next = dragStartWidth.current + delta;
+    if (next < AGENT_BAR_COLLAPSE_AT) {
+      setAgentOpen(false);
+
+      return;
+    }
+    const clamped = Math.min(AGENT_BAR_MAX, Math.max(AGENT_BAR_MIN, next));
+    setAgentBarWidth(clamped);
+    globalThis.localStorage?.setItem(AGENT_BAR_WIDTH_KEY, String(clamped));
+  };
 
   if (pipelineQuery?.isLoading) {
     return (
@@ -84,12 +115,29 @@ const WorkspacePageContent = ({ pipelineId }: WorkspacePageProps) => {
           </main>
 
           {agentOpen ? (
-            <div className="w-[360px] shrink-0 border-l border-border">
-              <AgentBar
-                pipelineId={pipelineId}
-                pipelineName={pipelineResult.name}
-                onCollapse={toggleAgentOpen}
-              />
+            <ResizeHandle
+              line={false}
+              side="right"
+              onCollapse={() => setAgentOpen(false)}
+              onDelta={handleAgentBarDelta}
+              onDragStart={() => {
+                dragStartWidth.current = agentBarWidth;
+              }}
+            />
+          ) : null}
+          {agentOpen ? (
+            <div
+              className="h-full shrink-0 overflow-hidden py-1.5 pr-1.5"
+              data-testid="agent-bar-panel"
+              style={{ width: agentBarWidth }}
+            >
+              <div className="h-full w-full overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong">
+                <AgentBar
+                  pipelineId={pipelineId}
+                  pipelineName={pipelineResult.name}
+                  onCollapse={toggleAgentOpen}
+                />
+              </div>
             </div>
           ) : (
             <button
