@@ -57,3 +57,10 @@ M1-10 收尾复核（2026-06-10）：
 - `apps/app/src/pages/WorkspacePage/AgentBar/*`
 - `apps/app/src/pages/ComponentsPage/ComponentEditor/ComponentEditor.tsx`
 - `apps/app/src/components/FolderBrowserDialog/*` 的 story/test 引用（这些文件当前已有无关未提交修改，本轮不触碰）
+
+## V2 手册基线（N3-00 · 2026-06-11）
+
+- 工作区此前的未提交改动（SkillToOperationDialog / skills 路由 / SkillsPage）已按指示丢弃（`git restore .`）。
+- 施工计划切换：`docs/canvas-v2-plan.md` 移除，由 `docs/ordine重构施工手册v2.md` 取代；视觉原型入库 `docs/prototype/ordien/`（顶层 lib/workspace/jobs 为最新迭代，覆盖嵌套同名文件的组装结果）。
+- 类型检查基线：`apps/app` 全量 tsc 现存 **1 个错误**——`src/pages/CanvasPage/OperationNode/OperationNode.tsx(269)` Select onValueChange 签名（位于冻结的旧 Canvas 目录，依赖升级后回归；该目录 N9 整体归档时消失，期间不修改）。后续任务不得新增 tsc 错误。
+- 本轮施工环境限制：lint(oxlint)/format(oxfmt)/test(vitest) 依赖 darwin 原生二进制，无法在施工沙箱执行；每任务以全量 tsc 为门禁，测试照常编写，由宿主机 `bun run quality` 统一验证。
