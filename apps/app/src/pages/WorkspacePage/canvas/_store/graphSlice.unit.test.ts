@@ -77,7 +77,7 @@ describe("graphSlice", () => {
       source: "file",
       target: "operation",
       type: "semantic",
-      animated: true,
+      animated: false,
     });
   });
 
@@ -165,7 +165,7 @@ describe("graphSlice", () => {
         source: "node-a",
         target: "node-b",
         type: "semantic",
-        animated: true,
+        animated: false,
       }),
     ]);
   });

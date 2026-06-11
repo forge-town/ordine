@@ -76,7 +76,7 @@ const makeEdge = (connection: Connection): CanvasEdge => ({
   ...connection,
   id: `e-${connection.source}-${connection.target}-${globalThis.crypto.randomUUID()}`,
   type: "semantic",
-  animated: true,
+  animated: false,
   data: { label: "" },
 });
 
@@ -292,7 +292,7 @@ export const createGraphSlice =
           edges: activeCompound.data.childEdges.map(
             (edge): CanvasEdge => ({
               ...edge,
-              animated: true,
+              animated: false,
               type: "semantic",
             }),
           ),

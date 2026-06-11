@@ -49,7 +49,6 @@ const edgeTypes = {
 };
 
 const defaultEdgeOptions = {
-  animated: true,
   type: "semantic",
 } satisfies Partial<CanvasEdge>;
 
@@ -106,7 +105,7 @@ export const CanvasFlow = () => {
     [visibleGraph.edges, visibleGraph.nodes],
   );
   const semanticEdges = useMemo(
-    () => routedEdges.map((edge) => ({ ...edge, animated: true, type: "semantic" })),
+    () => routedEdges.map((edge) => ({ ...edge, animated: false, type: "semantic" })),
     [routedEdges],
   );
 
