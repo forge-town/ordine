@@ -141,10 +141,7 @@ export const ClarifyPhase: StoryObj = {
   render: () => (
     <div className="space-y-2">
       <Assistant>你想处理哪种输入？</Assistant>
-      <ClarifyOptions
-        options={["本地文件夹", "GitHub 仓库", "纯文本指令"]}
-        onSelect={() => {}}
-      />
+      <ClarifyOptions options={["本地文件夹", "GitHub 仓库", "纯文本指令"]} onSelect={() => {}} />
     </div>
   ),
 };

@@ -557,7 +557,12 @@ describe("executePipeline", () => {
       const deps = makeDeps();
       const nodes = [makeNode("op", "operation", { operationId: opId })];
       const operations = new Map([
-        [opId, makeOp(opId, "Input Path Op", { executor: { type: "agent", agentMode: "prompt", prompt: "test" } })],
+        [
+          opId,
+          makeOp(opId, "Input Path Op", {
+            executor: { type: "agent", agentMode: "prompt", prompt: "test" },
+          }),
+        ],
       ]);
       const result = await pipelineEngine.execute(
         makeOpts(nodes, [], deps, { inputPath: inputFile, operations }),

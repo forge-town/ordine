@@ -58,10 +58,10 @@ const Harness = () => {
     requestProposalFix,
     submitMessage,
   } = useAgentConversation({
-      phase: "empty",
-      pipelineId: "pipe-1",
-      pipelineName: "Pipeline 1",
-    });
+    phase: "empty",
+    pipelineId: "pipe-1",
+    pipelineName: "Pipeline 1",
+  });
   const handleSendClick = () => {
     void submitMessage({
       content: "Add prompt",
