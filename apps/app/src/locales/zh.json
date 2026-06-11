@@ -151,7 +151,8 @@
     "typeCustom": "自定义",
     "typePipeline": "Pipeline",
     "inProgress": "进行中",
-    "result": "执行结果"
+    "result": "执行结果",
+    "statusPaused": "已暂停"
   },
   "distillations": {
     "title": "蒸馏",
@@ -638,7 +639,8 @@
       "statusDone": "完成",
       "statusFailed": "失败",
       "statusCancelled": "已取消",
-      "statusExpired": "已过期"
+      "statusExpired": "已过期",
+      "statusPaused": "已暂停"
     },
     "history": {
       "addEdge": "连接 {{source}} -> {{target}}",

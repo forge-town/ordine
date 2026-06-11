@@ -27,6 +27,7 @@ type RunTrace = {
 const statusLabelKeys: Record<JobStatus, string> = {
   queued: "canvas.runConsole.statusQueued",
   running: "canvas.runConsole.statusRunning",
+  paused: "canvas.runConsole.statusPaused",
   done: "canvas.runConsole.statusDone",
   failed: "canvas.runConsole.statusFailed",
   cancelled: "canvas.runConsole.statusCancelled",

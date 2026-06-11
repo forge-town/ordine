@@ -22,6 +22,7 @@ const TYPE_LABELS: Record<JobType, string> = {
 const STATUS_TONE: Record<JobStatus, "muted" | "success" | "error" | "warning"> = {
   queued: "muted",
   running: "muted",
+  paused: "warning",
   done: "success",
   failed: "error",
   cancelled: "warning",
@@ -31,6 +32,7 @@ const STATUS_TONE: Record<JobStatus, "muted" | "success" | "error" | "warning"> 
 const ROW_WASH: Record<JobStatus, string> = {
   queued: "ring-border",
   running: "ring-border",
+  paused: "ring-border-strong bg-surface-2/40",
   done: "ring-border",
   failed: "ring-destructive/25 bg-destructive/[0.03]",
   cancelled: "ring-warning/30 bg-warning/[0.04]",
@@ -40,6 +42,7 @@ const ROW_WASH: Record<JobStatus, string> = {
 const STATUS_LABEL: Record<JobStatus, string> = {
   queued: "Queued",
   running: "Running",
+  paused: "Paused",
   done: "Done",
   failed: "Failed",
   cancelled: "Cancelled",

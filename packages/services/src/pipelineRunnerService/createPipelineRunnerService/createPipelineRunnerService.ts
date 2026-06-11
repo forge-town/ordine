@@ -155,7 +155,23 @@ export const createPipelineRunnerService = (db: DbConnection) => {
 
       return ok({ jobId });
     },
-    pauseRun: (jobId: string) => ok(pipelineRunControl.pause(jobId)),
-    resumeRun: (jobId: string) => ok(pipelineRunControl.resume(jobId)),
+    pauseRun: (jobId: string) => {
+      const result = pipelineRunControl.pause(jobId);
+      void jobsDao.updateStatus(jobId, "paused");
+
+      return ok(result);
+    },
+    resumeRun: (jobId: string) => {
+      const result = pipelineRunControl.resume(jobId);
+      void jobsDao.updateStatus(jobId, "running");
+
+      return ok(result);
+    },
+    cancelRun: (jobId: string) => {
+      pipelineRunControl.clear(jobId);
+      void jobsDao.updateStatus(jobId, "cancelled", { finishedAt: new Date() });
+
+      return ok({ cancelled: true, jobId });
+    },
   };
 };

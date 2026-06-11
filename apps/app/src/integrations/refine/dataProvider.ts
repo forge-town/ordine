@@ -792,6 +792,14 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+
+    if (url === "jobs/cancel") {
+      const data = await trpcClient.jobs.cancel.mutate(
+        payload as unknown as Parameters<typeof trpcClient.jobs.cancel.mutate>[0],
+      );
+
+      return { data: data as unknown as TData };
+    }
     if (url === "jobs/resume") {
       const data = await trpcClient.jobs.resume.mutate(
         payload as unknown as Parameters<typeof trpcClient.jobs.resume.mutate>[0],

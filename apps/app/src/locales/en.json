@@ -148,7 +148,8 @@
     "typeCustom": "Custom",
     "typePipeline": "Pipeline",
     "inProgress": "In Progress",
-    "result": "Result"
+    "result": "Result",
+    "statusPaused": "Paused"
   },
   "distillations": {
     "title": "Distillations",
@@ -638,7 +639,8 @@
       "statusDone": "Done",
       "statusFailed": "Failed",
       "statusCancelled": "Cancelled",
-      "statusExpired": "Expired"
+      "statusExpired": "Expired",
+      "statusPaused": "Paused"
     },
     "history": {
       "addEdge": "Connect {{source}} -> {{target}}",

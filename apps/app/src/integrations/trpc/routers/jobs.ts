@@ -78,4 +78,10 @@ export const jobsRouter = router({
 
     return result.value;
   }),
+
+  cancel: publicProcedure.input(z.object({ jobId: z.string() })).mutation(({ input }) => {
+    const result = pipelineRunnerService.cancelRun(input.jobId);
+
+    return result.value;
+  }),
 });
