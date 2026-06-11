@@ -148,3 +148,19 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 5. **phase 推进仍禁止扩散**：clarify/proposal 的 setPhase 只在 `useAgentConversation` 内；DebugPhaseBar 除外。
 6. **附件全文不落库**：conversation_messages 的 metadata 只存 excerpt；全文只走请求体。违反 = DB 膨胀 + 隐私问题。
 7. 每完成一个 N 任务：真 LLM 手测 → 截图存 pr-assets/ → `bun run format` → `bun run quality` → 单独 commit（`<type>: <中文描述> (N11-01)`）。**prompt 改动必须附手测记录，单测绿不等于提案质量好。**
+
+---
+
+## 六、N11 期末真实验收记录（2026-06-12 · claude-code 真模型）
+
+**已通过**：
+- 模糊请求（"帮我处理一下文件"）→ Agent 中文追问 + 4 个 clarify 芯片（内容结合了真实 operations 目录）✅
+- 点芯片 → 选项原文发送 → 第二轮带对话历史正确推进 ✅（N11-02/03/04 闭环）
+- New Pipeline 创建 500 已修复并真机验证（`N11-fix-01`：localStorage 失效 projectId 自动清理）✅
+
+**新发现缺陷（进入下一期）**：
+1. **提案静默丢弃（高优）**：第二轮 Agent 回复"已搭建 10 节点流水线"，但其 proposal 未过 `PipelineActionProposalSchema` 校验被丢弃——无 ProposalCard、画布无预览，回复内容与实际行为矛盾。归 N13-01：校验失败时返回 error code + 把 zod 错误摘要作为 diagnostics 注入自动重试一轮（最多一次），仍失败则前端明示"提案生成失败已丢弃"。
+2. **默认 runtime 可为不存在的值**：settings 默认是 `mastra`（不在检测列表/下拉选项中），导致 Agent Bar 全部秒败且无任何提示。归 N13：runtime 不可用时返回 RUNTIME_NOT_FOUND code + 可点击跳 Settings；Defaults 下拉与检测结果联动校验。验收时已手动切到 claude-code 并清空 default model。
+3. **Settings 页与原型不符**：现为 Language&Region/Defaults/Project/Keyboard/Advanced/Developer 平铺，原型（settings.jsx）应为 General/Defaults/Project/Keyboard/Account/Advanced 六组 + 侧栏变形 Back 导航。
+4. **Canvas 卡片与连线样式与原型（canvas.jsx）有偏差**：节点卡片插槽样式、边的连接锚点观感不符，需逐项对照（用户截图为证）。
+5. 自动化误报说明:"Settings 点击无效"经 JS 验证为浏览器扩展坐标缩放问题,非应用缺陷;真实死交互需系统盘点后另列。
