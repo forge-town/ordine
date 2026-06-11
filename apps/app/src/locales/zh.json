@@ -1198,6 +1198,28 @@
           "select": "选择 / 框选",
           "zoomIn": "放大",
           "zoomOut": "缩小"
+        },
+        "components": {
+          "emptyGroup": "暂无可用项",
+          "groups": {
+            "compound": "复合节点",
+            "inputObjects": "输入对象",
+            "operations": "工序",
+            "output": "输出"
+          },
+          "hint": "点击放置到画布中心，或直接拖入。",
+          "items": {
+            "council": "Council",
+            "delegation": "Delegation",
+            "file": "文件",
+            "folder": "文件夹",
+            "github-project": "GitHub 项目",
+            "output-local-path": "本地路径",
+            "output-project-path": "项目路径",
+            "prompt": "Prompt",
+            "verify": "Verify"
+          },
+          "trigger": "组件"
         }
       }
     }

@@ -1203,6 +1203,28 @@
           "select": "Select / box-select",
           "zoomIn": "Zoom in",
           "zoomOut": "Zoom out"
+        },
+        "components": {
+          "emptyGroup": "Nothing here yet",
+          "groups": {
+            "compound": "Compound",
+            "inputObjects": "Input Objects",
+            "operations": "Operations",
+            "output": "Output"
+          },
+          "hint": "Click to drop on canvas, or drag one in.",
+          "items": {
+            "council": "Council",
+            "delegation": "Delegation",
+            "file": "File",
+            "folder": "Folder",
+            "github-project": "GitHub Project",
+            "output-local-path": "Local Path",
+            "output-project-path": "Project Path",
+            "prompt": "Prompt",
+            "verify": "Verify"
+          },
+          "trigger": "Components"
         }
       }
     }

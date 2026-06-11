@@ -28,7 +28,7 @@ export const createPanelSlice =
   (set) => ({
     annotatingId: null,
     canvasTool: "select",
-    compPanelOpen: true,
+    compPanelOpen: false,
     composingNodeIds: null,
     configNodeId: null,
     inspectEdgeId: null,
