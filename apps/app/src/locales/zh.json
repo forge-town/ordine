@@ -1102,6 +1102,12 @@
       "edges": {
         "defaultLabel": "数据"
       },
+      "empty": {
+        "description": "先放一个节点，再把输入、Operation 和输出连接成可运行的 Pipeline。",
+        "seed": "添加种子节点",
+        "seedLabel": "起始 Prompt",
+        "title": "从一个节点开始..."
+      },
       "nodes": {
         "actions": {
           "annotate": "批注节点",

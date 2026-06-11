@@ -1107,6 +1107,12 @@
       "edges": {
         "defaultLabel": "data"
       },
+      "empty": {
+        "description": "Start with a node, then connect inputs, operations, and outputs into a runnable pipeline.",
+        "seed": "Seed node",
+        "seedLabel": "Starter prompt",
+        "title": "Start with a node..."
+      },
       "nodes": {
         "actions": {
           "annotate": "Annotate node",
