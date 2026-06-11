@@ -237,6 +237,15 @@
     "views": {
       "calendar": "Calendar",
       "list": "List"
+    },
+    "drawer": {
+      "close": "Close",
+      "noSteps": "No pipeline snapshot for this job.",
+      "noTrace": "No trace yet.",
+      "openCanvas": "Open pipeline on canvas",
+      "runtime_one": "Runtime · {{count}} step",
+      "runtime_other": "Runtime · {{count}} steps",
+      "trace": "Trace"
     }
   },
   "distillations": {

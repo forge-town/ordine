@@ -13,6 +13,7 @@ import { Chip, Icon, SearchInput } from "@/components/primitives";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { JOB_STATUS_FILTERS, useJobsPageStore, type JobStatusFilter } from "../_store";
+import { JobDetailDrawer } from "../JobDetailDrawer";
 import { JobsCalendar } from "../JobsCalendar";
 import { JobsTable } from "../JobsTable";
 
@@ -53,6 +54,7 @@ export const JobsPageContent = () => {
   const handleSearchClearButtonClick = useStore(store, (s) => s.handleSearchClearButtonClick);
   const handleStatusFilterButtonClick = useStore(store, (s) => s.handleStatusFilterButtonClick);
   const [view, setView] = useState<JobsView>("list");
+  const [detailJob, setDetailJob] = useState<Job | null>(null);
   const [scheduling, setScheduling] = useState<"pick" | PipelineData | null>(null);
 
   const pipelineNameById = new Map(pipelines.map((pipeline) => [pipeline.id, pipeline.name]));
@@ -84,7 +86,7 @@ export const JobsPageContent = () => {
   });
 
   const handleOpenJob = (job: Job) => {
-    void navigate({ params: { jobId: job.id }, to: "/pipelines/jobs/$jobId" });
+    setDetailJob(job);
   };
   const refetchAll = () => {
     void jobsQuery?.refetch?.();
@@ -223,6 +225,13 @@ export const JobsPageContent = () => {
         )}
       </div>
 
+      {detailJob ? (
+        <JobDetailDrawer
+          job={detailJob}
+          onChanged={refetchAll}
+          onClose={() => setDetailJob(null)}
+        />
+      ) : null}
       {scheduling === "pick" ? (
         <div
           className="absolute inset-0 z-50 grid place-items-center p-6"

@@ -240,6 +240,15 @@
     "views": {
       "calendar": "日历",
       "list": "列表"
+    },
+    "drawer": {
+      "close": "关闭",
+      "noSteps": "该工单没有 Pipeline 快照。",
+      "noTrace": "暂无日志。",
+      "openCanvas": "在画布中打开 Pipeline",
+      "runtime_one": "运行时 · {{count}} 步",
+      "runtime_other": "运行时 · {{count}} 步",
+      "trace": "日志"
     }
   },
   "distillations": {
