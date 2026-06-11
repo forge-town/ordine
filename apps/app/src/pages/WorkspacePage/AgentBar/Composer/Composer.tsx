@@ -3,9 +3,8 @@ import { ArrowUp, Paperclip, X } from "lucide-react";
 import type { ConversationAttachment, ConversationMessageMetadata } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Textarea } from "@repo/ui/textarea";
-import type { WorkspaceCanvasRef } from "../../_store/workspaceStore";
+import { useWorkspaceStore, type WorkspaceCanvasRef } from "../../_store/workspaceStore";
 import { Icon } from "@/components/primitives";
-import { useWorkspaceStore } from "../../_store/workspaceStore";
 import { useAgentBarStore } from "../_store";
 import { ContextStrip } from "./ContextStrip";
 import { RefChips } from "./RefChips";
@@ -133,72 +132,72 @@ export const Composer = ({
         refs={refs}
       />
       <div className="p-3 pt-2">
-      <RefChips refs={refs} onRemoveRef={handleRemoveRef} />
+        <RefChips refs={refs} onRemoveRef={handleRemoveRef} />
 
-      {attachments.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5 pb-1.5">
-          {attachments.map((attachment) => {
-            const handleRemoveClick = () => handleAttachmentRemoveClick(attachment.name);
+        {attachments.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5 pb-1.5">
+            {attachments.map((attachment) => {
+              const handleRemoveClick = () => handleAttachmentRemoveClick(attachment.name);
 
-            return (
-              <span
-                key={attachment.name}
-                className="inline-flex max-w-full items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-border"
-              >
-                <span className="truncate">{attachment.name}</span>
-                <button
-                  aria-label={`Remove ${attachment.name}`}
-                  className="rounded-full p-0.5 hover:bg-foreground/10"
-                  type="button"
-                  onClick={handleRemoveClick}
+              return (
+                <span
+                  key={attachment.name}
+                  className="inline-flex max-w-full items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-border"
                 >
-                  <Icon icon={X} size={9} />
-                </button>
-              </span>
-            );
-          })}
-        </div>
-      ) : null}
+                  <span className="truncate">{attachment.name}</span>
+                  <button
+                    aria-label={`Remove ${attachment.name}`}
+                    className="rounded-full p-0.5 hover:bg-foreground/10"
+                    type="button"
+                    onClick={handleRemoveClick}
+                  >
+                    <Icon icon={X} size={9} />
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        ) : null}
 
-      <div className="flex items-end gap-1.5 rounded-2xl bg-background p-2 ring-1 ring-border focus-within:ring-border-strong">
-        <Button
-          aria-label="Attach file"
-          className="h-7 w-7 rounded-lg"
-          size="icon"
-          type="button"
-          variant="ghost"
-          onClick={handleAttachClick}
-        >
-          <Paperclip className="h-4 w-4" />
-        </Button>
-        <Textarea
-          ref={textareaRef}
-          aria-label="Message"
-          className="min-h-7 flex-1 resize-none border-none bg-transparent px-0 py-1 text-[12px] shadow-none focus-visible:ring-0"
-          placeholder={placeholder}
-          rows={1}
-          value={text}
-          onChange={handleTextChange}
-          onKeyDown={handleKeyDown}
+        <div className="flex items-end gap-1.5 rounded-2xl bg-background p-2 ring-1 ring-border focus-within:ring-border-strong">
+          <Button
+            aria-label="Attach file"
+            className="h-7 w-7 rounded-lg"
+            size="icon"
+            type="button"
+            variant="ghost"
+            onClick={handleAttachClick}
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
+          <Textarea
+            ref={textareaRef}
+            aria-label="Message"
+            className="min-h-7 flex-1 resize-none border-none bg-transparent px-0 py-1 text-[12px] shadow-none focus-visible:ring-0"
+            placeholder={placeholder}
+            rows={1}
+            value={text}
+            onChange={handleTextChange}
+            onKeyDown={handleKeyDown}
+          />
+          <Button
+            aria-label="Send message"
+            className="h-7 w-7 rounded-full"
+            disabled={!canSend}
+            size="icon"
+            type="button"
+            onClick={handleSubmit}
+          >
+            <ArrowUp className="h-4 w-4" />
+          </Button>
+        </div>
+        <input
+          ref={fileInputRef}
+          multiple
+          className="hidden"
+          type="file"
+          onChange={handleFileChange}
         />
-        <Button
-          aria-label="Send message"
-          className="h-7 w-7 rounded-full"
-          disabled={!canSend}
-          size="icon"
-          type="button"
-          onClick={handleSubmit}
-        >
-          <ArrowUp className="h-4 w-4" />
-        </Button>
-      </div>
-      <input
-        ref={fileInputRef}
-        multiple
-        className="hidden"
-        type="file"
-        onChange={handleFileChange}
-      />
       </div>
     </div>
   );

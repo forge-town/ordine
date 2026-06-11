@@ -16,9 +16,7 @@ const parseTimestamp = (message: string): string => {
   }
   const date = new Date(match[1]);
 
-  return Number.isNaN(date.getTime())
-    ? ""
-    : date.toLocaleTimeString("en-US", { hour12: false });
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString("en-US", { hour12: false });
 };
 
 const lineTone = (message: string): string => {
@@ -44,7 +42,11 @@ export const RunConsole = () => {
   const [dismissedJobId, setDismissedJobId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  const job = activeJobId ? latestJob : latestJob && !isTerminalJobStatus(latestJob.status) ? latestJob : latestJob;
+  const job = activeJobId
+    ? latestJob
+    : latestJob && !isTerminalJobStatus(latestJob.status)
+      ? latestJob
+      : latestJob;
   const visibleJobId = activeJobId ?? latestJob?.id ?? null;
 
   useEffect(() => {
@@ -58,7 +60,10 @@ export const RunConsole = () => {
   }
 
   return (
-    <div className="pointer-events-auto absolute inset-x-3 bottom-16 z-30" data-testid="canvas-v2-run-console">
+    <div
+      className="pointer-events-auto absolute inset-x-3 bottom-16 z-30"
+      data-testid="canvas-v2-run-console"
+    >
       <div className="overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong">
         <div className="flex w-full items-center gap-2 border-b border-border/70 px-3.5 py-2">
           <button
@@ -96,8 +101,8 @@ export const RunConsole = () => {
         </div>
         {open ? (
           <div
-            className="h-44 overflow-y-auto px-3.5 py-2.5 font-mono text-[10.5px] leading-relaxed"
             ref={scrollRef}
+            className="h-44 overflow-y-auto px-3.5 py-2.5 font-mono text-[10.5px] leading-relaxed"
           >
             {runTraces.length === 0 ? (
               <div className="text-muted-foreground/70">{t("workspace.canvas.run.waiting")}</div>
@@ -107,7 +112,10 @@ export const RunConsole = () => {
                 const structured = message.startsWith(STRUCTURED_PREFIX);
 
                 return (
-                  <div className={cn("flex gap-2", structured && "mt-1.5 first:mt-0")} key={trace.id ?? index}>
+                  <div
+                    key={trace.id ?? index}
+                    className={cn("flex gap-2", structured && "mt-1.5 first:mt-0")}
+                  >
                     <span className="shrink-0 tabular-nums text-muted-foreground/60">
                       {parseTimestamp(trace.message)}
                     </span>

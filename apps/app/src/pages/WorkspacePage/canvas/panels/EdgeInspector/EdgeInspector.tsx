@@ -123,9 +123,7 @@ export const EdgeInspector = ({ pipelineId }: EdgeInspectorProps) => {
           <ArrowRightLeft className="size-3.5 text-foreground/80" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-semibold">
-            {t("workspace.canvas.edgeInspector.title")}
-          </div>
+          <div className="text-xs font-semibold">{t("workspace.canvas.edgeInspector.title")}</div>
           <div className="truncate text-[10px] text-muted-foreground">
             {sourceLabel} <span className="px-1 text-foreground/40">→</span> {targetLabel}
           </div>
@@ -161,6 +159,7 @@ export const EdgeInspector = ({ pipelineId }: EdgeInspectorProps) => {
             <div className="space-y-1.5">
               {mappings.map((mapping, index) => (
                 <button
+                  key={`${mapping.fromField}-${mapping.toInput}-${index}`}
                   className={cn(
                     "grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl px-2.5 py-2 text-left ring-1 transition-all",
                     mapping.enabled
@@ -168,7 +167,6 @@ export const EdgeInspector = ({ pipelineId }: EdgeInspectorProps) => {
                       : "bg-surface opacity-55 ring-border/60 hover:opacity-80",
                   )}
                   data-testid={`edge-inspector-mapping-${index}`}
-                  key={`${mapping.fromField}-${mapping.toInput}-${index}`}
                   type="button"
                   onClick={() => handleMappingToggle(index)}
                 >
@@ -242,8 +240,8 @@ export const EdgeInspector = ({ pipelineId }: EdgeInspectorProps) => {
           <div className="flex flex-wrap gap-1.5">
             {TRANSFORM_OPTIONS.map((type) => (
               <Button
-                className="h-7 px-2 text-[11px]"
                 key={type}
+                className="h-7 px-2 text-[11px]"
                 size="sm"
                 type="button"
                 variant="secondary"

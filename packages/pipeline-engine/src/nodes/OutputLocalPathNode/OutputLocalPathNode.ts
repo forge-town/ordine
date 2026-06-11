@@ -28,7 +28,7 @@ export const processOutputLocalPathNode = async (
   }
 
   const data = node.data;
-  const configuredPath = data.localPath ?? '';
+  const configuredPath = data.localPath ?? "";
   const rawPath = resolveRawPath(configuredPath, defaultOutputPath);
   const baseOutputFileName = data.outputFileName?.trim() || "output.md";
   const outputMode = data.outputMode ?? "overwrite";
@@ -78,10 +78,7 @@ export const processOutputLocalPathNode = async (
     }
   }
 
-  await trace(
-    jobId,
-    `Output path set: ${resolvedPath} (mode: ${outputMode})`,
-  );
+  await trace(jobId, `Output path set: ${resolvedPath} (mode: ${outputMode})`);
   if (resolvedPath && input.content) {
     const outputContent =
       extname(resolvedPath) === ".md"

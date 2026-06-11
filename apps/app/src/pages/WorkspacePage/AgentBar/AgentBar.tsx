@@ -75,8 +75,7 @@ export const AgentBar = ({
     [canvasRefs, dismissed],
   );
   const composerAnchorCount = useMemo(
-    () =>
-      activeRefs.reduce((total, ref) => total + countUnresolvedAnchors(messages, ref.id), 0),
+    () => activeRefs.reduce((total, ref) => total + countUnresolvedAnchors(messages, ref.id), 0),
     [activeRefs, messages],
   );
   const visibleMessages = useMemo(
@@ -207,27 +206,27 @@ export const AgentBar = ({
             </div>
           </div>
         ) : null}
-        {!thread ? <AgentBody
-          distillContent={
-            phase === "done" ? <AgentDistillCard pipelineId={pipelineId} /> : undefined
-          }
-          phase={phase}
-          reversingSteps={phase === "reversing" ? reversingSteps : undefined}
-          runContent={phase === "running" ? <AgentRunCards /> : undefined}
-          onSuggestGoal={(goal) =>
-            void submitMessage({ content: goal, metadata: { referencedNodeIds: [] } })
-          }
-          onSuggestReverse={focusComposer}
-        /> : null}
+        {!thread ? (
+          <AgentBody
+            distillContent={
+              phase === "done" ? <AgentDistillCard pipelineId={pipelineId} /> : undefined
+            }
+            phase={phase}
+            reversingSteps={phase === "reversing" ? reversingSteps : undefined}
+            runContent={phase === "running" ? <AgentRunCards /> : undefined}
+            onSuggestGoal={(goal) =>
+              void submitMessage({ content: goal, metadata: { referencedNodeIds: [] } })
+            }
+            onSuggestReverse={focusComposer}
+          />
+        ) : null}
         {visibleMessages.map((message) => {
           const messageRefs = refsForMessage(message);
           const resolvable = thread && !message.metadata?.resolved && !message.isThinking;
           const body =
             message.role === "user" ? (
               <Bubble
-                attachmentLabel={message.metadata?.attachments
-                  ?.map((item) => item.name)
-                  .join(", ")}
+                attachmentLabel={message.metadata?.attachments?.map((item) => item.name).join(", ")}
               >
                 {message.content}
               </Bubble>
@@ -236,11 +235,11 @@ export const AgentBar = ({
             );
 
           return (
-            <div className="group/turn relative space-y-1" key={message.id}>
+            <div key={message.id} className="group/turn relative space-y-1">
               {body}
               {messageRefs.length > 0 ? (
                 <div className={cn(message.role === "user" && "flex justify-end")}>
-                  <RefChips refs={messageRefs} small />
+                  <RefChips small refs={messageRefs} />
                 </div>
               ) : null}
               {resolvable ? (

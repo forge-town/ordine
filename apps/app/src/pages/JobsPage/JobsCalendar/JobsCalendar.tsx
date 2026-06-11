@@ -193,15 +193,18 @@ export const JobsCalendar = ({
         </div>
       </div>
 
-      <div className="grid border-b border-border/70" style={{ gridTemplateColumns: "48px repeat(7, 1fr)" }}>
+      <div
+        className="grid border-b border-border/70"
+        style={{ gridTemplateColumns: "48px repeat(7, 1fr)" }}
+      >
         <div />
         {days.map((day) => {
           const isToday = sameDay(day, now);
 
           return (
             <div
-              className="flex items-center justify-center gap-1.5 border-l border-border/50 py-2"
               key={day.toISOString()}
+              className="flex items-center justify-center gap-1.5 border-l border-border/50 py-2"
             >
               <span
                 className={cn(
@@ -235,9 +238,9 @@ export const JobsCalendar = ({
         ) : (
           eventRoutines.map((routine) => (
             <button
+              key={routine.id}
               className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-surface px-2.5 py-1 text-[10.5px] font-medium ring-1 ring-border hover:ring-border-strong"
               data-testid={`jobs-calendar-event-${routine.id}`}
-              key={routine.id}
               type="button"
               onClick={() => onEditRoutine(routine)}
             >
@@ -258,8 +261,8 @@ export const JobsCalendar = ({
         <div className="relative">
           {Array.from({ length: CAL_END - CAL_START }, (_, index) => (
             <div
-              className="absolute right-2 -translate-y-1/2 font-mono text-[9px] text-muted-foreground/80"
               key={index}
+              className="absolute right-2 -translate-y-1/2 font-mono text-[9px] text-muted-foreground/80"
               style={{ top: index * HOUR_HEIGHT || 8 }}
             >
               {index === 0 ? "" : `${String(CAL_START + index).padStart(2, "0")}:00`}
@@ -286,13 +289,13 @@ export const JobsCalendar = ({
 
           return (
             <div
-              className={cn("relative border-l border-border/50", isToday && "bg-accent/25")}
               key={day.toISOString()}
+              className={cn("relative border-l border-border/50", isToday && "bg-accent/25")}
             >
               {Array.from({ length: CAL_END - CAL_START }, (_, index) => (
                 <div
-                  className="absolute inset-x-0 border-t border-border/40"
                   key={index}
+                  className="absolute inset-x-0 border-t border-border/40"
                   style={{ top: index * HOUR_HEIGHT }}
                 />
               ))}
@@ -301,12 +304,12 @@ export const JobsCalendar = ({
 
                 return (
                   <button
+                    key={event.id}
                     className={cn(
                       "absolute z-10 flex items-center gap-1 truncate rounded-md px-1.5 text-left text-[9.5px] font-medium leading-none transition-all hover:z-20 hover:shadow-float",
                       eventStyle(event.status),
                     )}
                     data-testid={`jobs-calendar-block-${event.id}`}
-                    key={event.id}
                     style={{
                       height: 20,
                       left: `calc(${col * width}% + 4px)`,

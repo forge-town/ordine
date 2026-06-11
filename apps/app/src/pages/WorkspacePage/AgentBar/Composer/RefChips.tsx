@@ -24,12 +24,12 @@ export const RefChips = ({ onRemoveRef, refs, small = false }: RefChipsProps) =>
     <div className={cn("flex flex-wrap items-center gap-1", !small && "pb-1.5")}>
       {refs.map((ref) => (
         <span
+          key={ref.id}
           className={cn(
             "group inline-flex max-w-45 cursor-pointer items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ring-transparent transition-all hover:ring-border-strong",
             small ? "bg-foreground/10" : "bg-accent",
           )}
           data-testid={`ref-chip-${ref.id}`}
-          key={ref.id}
           title={t("workspace.agentBar.refChipTitle")}
           onClick={() => focusRef(ref)}
           onMouseEnter={() => setHoverRef(ref.id)}

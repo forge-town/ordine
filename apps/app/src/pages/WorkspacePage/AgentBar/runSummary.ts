@@ -49,32 +49,29 @@ export type AgentRunSummary = {
 export type SelfHealRunStep = { label: string; tone?: "muted" | "success" };
 
 export const buildSelfHealSteps = (traces: Pick<JobTrace, "message">[]): SelfHealRunStep[] =>
-  traces
-    .slice()
-    .reverse()
-    .flatMap<SelfHealRunStep>((trace) => {
-      if (trace.message.startsWith("@@SELF_HEAL_DONE::")) {
-        const [, nodeId, attempt] = trace.message.split("::");
-
-        return [
-          {
-            label: `Node ${nodeId ?? "unknown"} recovered on retry ${attempt ?? "1"}`,
-            tone: "success" as const,
-          },
-        ];
-      }
-
-      if (!trace.message.startsWith("@@SELF_HEAL::")) return [];
-
-      const [, nodeId, attempt, detail] = trace.message.split("::");
+  [...traces].reverse().flatMap<SelfHealRunStep>((trace) => {
+    if (trace.message.startsWith("@@SELF_HEAL_DONE::")) {
+      const [, nodeId, attempt] = trace.message.split("::");
 
       return [
         {
-          label: `Retry ${attempt ?? "1"} for ${nodeId ?? "unknown"} - ${detail ?? "automatic recovery"}`,
-          tone: "muted" as const,
+          label: `Node ${nodeId ?? "unknown"} recovered on retry ${attempt ?? "1"}`,
+          tone: "success" as const,
         },
       ];
-    });
+    }
+
+    if (!trace.message.startsWith("@@SELF_HEAL::")) return [];
+
+    const [, nodeId, attempt, detail] = trace.message.split("::");
+
+    return [
+      {
+        label: `Retry ${attempt ?? "1"} for ${nodeId ?? "unknown"} - ${detail ?? "automatic recovery"}`,
+        tone: "muted" as const,
+      },
+    ];
+  });
 
 export const buildAgentRunSummary = ({
   job,

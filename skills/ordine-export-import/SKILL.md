@@ -42,7 +42,13 @@ curl -s http://localhost:9433/api/best-practices/export | python3 -m json.tool
       { "id": "cli_cn_1", "content": "所有动态 className 使用 cn()", "sortOrder": 0 }
     ],
     "codeSnippets": [
-      { "id": "cs_cn_good", "title": "✅ 正确用法", "code": "...", "language": "tsx", "sortOrder": 0 }
+      {
+        "id": "cs_cn_good",
+        "title": "✅ 正确用法",
+        "code": "...",
+        "language": "tsx",
+        "sortOrder": 0
+      }
     ]
   }
 ]

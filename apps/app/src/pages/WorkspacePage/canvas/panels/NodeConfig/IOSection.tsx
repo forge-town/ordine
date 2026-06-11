@@ -13,7 +13,10 @@ export const IOSection = ({ node, edges }: NodeConfigSectionProps) => {
     items.length > 0 ? (
       <div className="space-y-1">
         {items.map((edge) => (
-          <div className="rounded-md bg-surface px-2 py-1.5 text-xs ring-1 ring-border" key={edge.id}>
+          <div
+            key={edge.id}
+            className="rounded-md bg-surface px-2 py-1.5 text-xs ring-1 ring-border"
+          >
             <div className="truncate font-mono">{getEdgeLabel(edge)}</div>
             <div className="mt-0.5 text-[10.5px] text-muted-foreground">
               {direction === "in" ? `${edge.source} → ${node.id}` : `${node.id} → ${edge.target}`}

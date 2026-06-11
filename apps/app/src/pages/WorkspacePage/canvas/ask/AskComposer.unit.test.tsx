@@ -2,11 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useWorkspaceStore } from "../../_store/workspaceStore";
-import {
-  CanvasStoreContext,
-  createCanvasStore,
-  type CanvasStore,
-} from "../_store/canvasStore";
+import { CanvasStoreContext, createCanvasStore, type CanvasStore } from "../_store/canvasStore";
 import type { CanvasNode } from "../_store/canvasTypes";
 import { AskComposer } from "./AskComposer";
 

@@ -37,17 +37,17 @@ export const VersionMenu = ({
         data-testid="canvas-v2-version-menu-trigger"
       >
         <span className="font-mono">v{version}</span>
-          {dirty ? (
-            <span className="flex items-center gap-1 text-foreground/80">
-              <span className="size-1.5 rounded-full bg-warning" />
-              {t("workspace.canvas.chrome.version.unsaved")}
-            </span>
-          ) : (
-            <span>
-              · {t(`workspace.canvas.chrome.version.state.${runState}`)} ·{" "}
-              {t("workspace.canvas.chrome.version.saved")}
-            </span>
-          )}
+        {dirty ? (
+          <span className="flex items-center gap-1 text-foreground/80">
+            <span className="size-1.5 rounded-full bg-warning" />
+            {t("workspace.canvas.chrome.version.unsaved")}
+          </span>
+        ) : (
+          <span>
+            · {t(`workspace.canvas.chrome.version.state.${runState}`)} ·{" "}
+            {t("workspace.canvas.chrome.version.saved")}
+          </span>
+        )}
         <ChevronDown className="size-2.5" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56 rounded-2xl" sideOffset={6}>
@@ -75,7 +75,7 @@ export const VersionMenu = ({
         </DropdownMenuLabel>
         <ScrollArea className="max-h-32">
           {versions.map((entry) => (
-            <div className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs" key={entry}>
+            <div key={entry} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs">
               <GitCommitHorizontal className="size-3.5 text-muted-foreground" />
               <span className="flex-1 font-mono">v{entry}</span>
               {entry === version ? (

@@ -4,7 +4,7 @@ import { BuiltinNodeTypeSchema, type BuiltinNodeType } from "@repo/schemas";
 const nodeTypeArray = z.array(BuiltinNodeTypeSchema);
 
 export const NodeConnectionRulesSchema = z.object({
-  "file": nodeTypeArray,
+  file: nodeTypeArray,
   compound: nodeTypeArray,
   folder: nodeTypeArray,
   "github-project": nodeTypeArray,
@@ -16,7 +16,7 @@ export const NodeConnectionRulesSchema = z.object({
 export type NodeConnectionRules = z.infer<typeof NodeConnectionRulesSchema>;
 
 export const NODE_CONNECTION_RULES: NodeConnectionRules = NodeConnectionRulesSchema.parse({
-  "file": ["operation", "compound"],
+  file: ["operation", "compound"],
   compound: ["operation", "compound", "output-project-path", "output-local-path"],
   folder: ["operation", "compound"],
   "github-project": ["operation", "compound"],

@@ -15,6 +15,6 @@ vi.mock("@refinedev/core", () => ({
 describe("JobsPage", () => {
   it("renders Jobs header", () => {
     render(<JobsPage />);
-    expect(screen.getByText("Jobs")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "工单" })).toBeInTheDocument();
   });
 });

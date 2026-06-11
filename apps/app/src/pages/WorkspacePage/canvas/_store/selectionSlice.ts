@@ -44,10 +44,7 @@ const getNextSelectedIds = (
 const refId = (drillStack: readonly string[], baseId: string): string =>
   drillStack.length > 0 ? [...drillStack, baseId].join("/") : baseId;
 
-const drillLabelPrefix = (
-  drillStack: readonly string[],
-  nodes: readonly CanvasNode[],
-): string => {
+const drillLabelPrefix = (drillStack: readonly string[], nodes: readonly CanvasNode[]): string => {
   if (drillStack.length === 0) {
     return "";
   }
@@ -144,12 +141,22 @@ export const createSelectionSlice =
             }) as unknown as Partial<T>,
         ),
       setSelectedIds: (ids) =>
-        set(
-          castSelectionState({
+        set((state) => {
+          // xyflow's selection listener fires on every render with a fresh
+          // array — bail out when the content is unchanged, otherwise the
+          // store update re-renders the flow and loops forever.
+          if (
+            state.selectedIds.length === ids.length &&
+            state.selectedIds.every((id, index) => id === ids[index])
+          ) {
+            return castSelectionState({});
+          }
+
+          return castSelectionState({
             selectedEdgeId: null,
             selectedIds: [...ids],
             selectedNodeId: null,
-          }),
-        ),
+          });
+        }),
     };
   };

@@ -174,8 +174,8 @@ export const GNodeShell = ({
     <div
       className="canvas-node-pop group/node-card relative w-[214px]"
       data-card-mode="expanded"
-      data-testid="canvas-v2-node-shell-root"
       data-selected={selected ? "true" : "false"}
+      data-testid="canvas-v2-node-shell-root"
     >
       {visibleAnnotationCount > 0 && (
         <button

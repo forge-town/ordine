@@ -48,7 +48,10 @@ vi.mock("@repo/models", () => ({
   createPipelinesDao: () => mockDao,
   createDistillationsDao: () => ({}),
   createJobsDao: () => ({}),
-  createPipelineRunsDao: () => ({ findByJobId: vi.fn(), deleteByPipelineId: vi.fn().mockResolvedValue(undefined) }),
+  createPipelineRunsDao: () => ({
+    findByJobId: vi.fn(),
+    deleteByPipelineId: vi.fn().mockResolvedValue(undefined),
+  }),
   createJobTracesDao: () => ({}),
   createAgentRawExportsDao: () => ({}),
   createAgentSpansDao: () => ({}),
@@ -441,7 +444,8 @@ describe("createPipelinesService", () => {
   it("proposeActions normalizes claude flat node payloads with snake_case type", async () => {
     mockRunAgent.mockResolvedValue(
       JSON.stringify({
-        summary: "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
+        summary:
+          "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
         actions: [
           {
             type: "add_node",
@@ -463,7 +467,8 @@ describe("createPipelinesService", () => {
     });
 
     expect(result.proposal).toEqual({
-      summary: "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
+      summary:
+        "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
       actions: [
         {
           type: "addNode",
@@ -551,9 +556,7 @@ describe("createPipelinesService", () => {
       actions: [{ type: "removeNode", nodeId: "compound-1" }],
     });
     expect(result.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ code: "COMPOUND_NODE_NOT_SUPPORTED" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ code: "COMPOUND_NODE_NOT_SUPPORTED" })]),
     );
     expect(mockDao.create).not.toHaveBeenCalled();
     expect(mockDao.update).not.toHaveBeenCalled();

@@ -107,10 +107,11 @@ describe("pipeline scenario: linear flow", () => {
     const deps = makeTestDeps();
     const operationId = "review-step";
     const statusEvents: string[] = [];
-    let resume: (() => void) | undefined;
+    const resumeRef = { current: undefined as (() => void) | undefined };
     const resumePromise = new Promise<void>((resolve) => {
-      resume = resolve;
+      resumeRef.current = resolve;
     });
+    const resume = resumeRef.current;
     const runPromise = executeScenario({
       deps,
       nodes: [

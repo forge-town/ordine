@@ -172,7 +172,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const handleAgentDropdownChange = (open: boolean) => {
     handleOperationAgentDropdownOpenChange(id, open);
   };
-  const handleAgentValueChange = (value: string) => {
+  const handleAgentValueChange = (value: string | null) => {
     handleOperationAgentChange(id, value === "__default__" ? null : value);
   };
   const handleLoopButtonClick = (event: SyntheticEvent) => {

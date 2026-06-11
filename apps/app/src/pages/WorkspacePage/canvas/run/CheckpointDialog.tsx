@@ -22,8 +22,7 @@ export const CheckpointDialog = () => {
   }
 
   const node = nodes.find((item) => item.id === checkpointWait.nodeId);
-  const nodeLabel =
-    (node?.data as { label?: string } | undefined)?.label ?? checkpointWait.nodeId;
+  const nodeLabel = (node?.data as { label?: string } | undefined)?.label ?? checkpointWait.nodeId;
 
   const handleApprove = () => {
     setResuming(true);

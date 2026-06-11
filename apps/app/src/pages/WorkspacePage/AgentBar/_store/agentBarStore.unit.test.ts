@@ -14,7 +14,13 @@ describe("agentBarStore anchors", () => {
       anchored("m1", "node-a"),
       anchored("m2", "node-a", true),
       anchored("m3", "node-b"),
-      { content: "thinking", id: "m4", isThinking: true, metadata: { referencedNodeIds: ["node-a"] }, role: "assistant" as const },
+      {
+        content: "thinking",
+        id: "m4",
+        isThinking: true,
+        metadata: { referencedNodeIds: ["node-a"] },
+        role: "assistant" as const,
+      },
     ];
 
     expect(countUnresolvedAnchors(messages, "node-a")).toBe(1);

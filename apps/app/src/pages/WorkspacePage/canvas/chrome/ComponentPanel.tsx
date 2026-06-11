@@ -35,7 +35,10 @@ type PaletteEntry = {
   payload: CanvasComponentDragPayload;
 };
 
-const OBJECT_ENTRIES: ReadonlyArray<{ icon: LucideIcon; type: "file" | "folder" | "github-project" | "prompt" }> = [
+const OBJECT_ENTRIES: ReadonlyArray<{
+  icon: LucideIcon;
+  type: "file" | "folder" | "github-project" | "prompt";
+}> = [
   { icon: FolderOpen, type: "folder" },
   { icon: File, type: "file" },
   { icon: FolderGit2, type: "github-project" },
@@ -73,7 +76,7 @@ export const ComponentPanel = () => {
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const operations = operationsResult?.data ?? [];
+  const operations = operationsResult.data;
 
   if (drillStack.length > 0) {
     return null;
@@ -158,13 +161,19 @@ export const ComponentPanel = () => {
     recordHistory(previous);
   };
 
-  const handleDragStart = (event: DragEvent<HTMLButtonElement>, payload: CanvasComponentDragPayload) => {
-    event.dataTransfer.setData(CANVAS_COMPONENT_DRAG_MIME, encodeCanvasComponentDragPayload(payload));
+  const handleDragStart = (
+    event: DragEvent<HTMLButtonElement>,
+    payload: CanvasComponentDragPayload,
+  ) => {
+    event.dataTransfer.setData(
+      CANVAS_COMPONENT_DRAG_MIME,
+      encodeCanvasComponentDragPayload(payload),
+    );
     event.dataTransfer.effectAllowed = "copy";
   };
 
   return (
-    <div className="pointer-events-auto absolute left-3 top-16 z-10" ref={panelRef}>
+    <div ref={panelRef} className="pointer-events-auto absolute left-3 top-16 z-10">
       <button
         className={cn(
           "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs shadow-pill ring-1 transition-colors",
@@ -188,7 +197,7 @@ export const ComponentPanel = () => {
             {t("workspace.canvas.chrome.components.hint")}
           </div>
           {groups.map((group) => (
-            <div className="mb-2 last:mb-0" key={group.key}>
+            <div key={group.key} className="mb-2 last:mb-0">
               <div className="px-1 pb-1 text-[9.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
                 {t(`workspace.canvas.chrome.components.groups.${group.key}`)}
               </div>
@@ -200,10 +209,10 @@ export const ComponentPanel = () => {
                 ) : (
                   group.entries.map((entry) => (
                     <button
+                      key={entry.id}
+                      draggable
                       className="flex w-full cursor-grab items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs ring-1 ring-transparent transition-colors hover:bg-accent/60 hover:ring-border"
                       data-testid={`canvas-v2-component-${entry.id}`}
-                      draggable
-                      key={entry.id}
                       type="button"
                       onClick={() => addEntry(entry.payload)}
                       onDragStart={(event) => handleDragStart(event, entry.payload)}

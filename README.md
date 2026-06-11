@@ -78,6 +78,7 @@ cp apps/server/.env.example apps/server/.env
 **Database — pick one:**
 
 - **PGLite (embedded, no external DB required):**
+
   ```sh
   # In both .env files, set:
   PGLITE_DATA_DIR=./.pglite
@@ -90,18 +91,20 @@ cp apps/server/.env.example apps/server/.env
   ```
 
 Push the schema:
+
 ```sh
 cd apps/app && bun run db:push && cd ../..
 ```
 
 Start development:
+
 ```sh
 bun dev
 ```
 
-| Service | URL |
-|---------|-----|
-| Main app | http://localhost:9430 |
+| Service    | URL                   |
+| ---------- | --------------------- |
+| Main app   | http://localhost:9430 |
 | API server | http://localhost:9433 |
 
 > **💡 Local Mode (self-hosted, single-user):**

@@ -33,12 +33,12 @@ curl -X POST http://localhost:9433/api/skills \
 
 ## 技能分类
 
-| 分类 | 说明 |
-|------|------|
-| `review` | 代码审查和质量检查 |
-| `security` | 安全扫描和漏洞检测 |
-| `documentation` | 文档生成和检查 |
-| `refactor` | 代码重构建议 |
+| 分类            | 说明               |
+| --------------- | ------------------ |
+| `review`        | 代码审查和质量检查 |
+| `security`      | 安全扫描和漏洞检测 |
+| `documentation` | 文档生成和检查     |
+| `refactor`      | 代码重构建议       |
 
 ## 内置技能
 

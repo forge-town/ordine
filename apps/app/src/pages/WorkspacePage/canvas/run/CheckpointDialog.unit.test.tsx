@@ -2,11 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Job } from "@repo/schemas";
-import {
-  CanvasStoreContext,
-  createCanvasStore,
-  type CanvasStore,
-} from "../_store/canvasStore";
+import { CanvasStoreContext, createCanvasStore, type CanvasStore } from "../_store/canvasStore";
 import type { CanvasNode } from "../_store/canvasTypes";
 import { CheckpointDialog } from "./CheckpointDialog";
 

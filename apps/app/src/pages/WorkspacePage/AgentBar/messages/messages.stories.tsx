@@ -46,8 +46,7 @@ export const Conversation: Story = {
   render: () => (
     <>
       <Bubble>
-        I want to turn the textbook PDFs in this folder into a vocabulary quiz that lives in
-        Notion.
+        I want to turn the textbook PDFs in this folder into a vocabulary quiz that lives in Notion.
       </Bubble>
       <Assistant>
         Here’s a 5-node pipeline that does it end-to-end — it reuses your Parse PDF and Notion DB

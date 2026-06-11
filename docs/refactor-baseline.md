@@ -35,10 +35,10 @@ M1-10 收尾复核（2026-06-10）：
 
 运行 `bun run quality` 时质量门提前停在 `@repo/pipeline-engine#quality` 的 oxlint：
 
-| 包 | 文件 | 现象 |
-| --- | --- | --- |
-| `packages/pipeline-engine` | `src/tests/scenarios/linear.scenario.test.ts:110` | `ordine-vars(no-let)` 报错：`let resume: (() => void) | undefined;` |
-| `packages/pipeline-engine` | `src/tests/scenarios/output.scenario.test.ts:55` | `unicorn(no-await-expression-member)` warning：`(await readdir(dir)).filter(...)` |
+| 包                         | 文件                                              | 现象                                                                              |
+| -------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------- | ----------- |
+| `packages/pipeline-engine` | `src/tests/scenarios/linear.scenario.test.ts:110` | `ordine-vars(no-let)` 报错：`let resume: (() => void)                             | undefined;` |
+| `packages/pipeline-engine` | `src/tests/scenarios/output.scenario.test.ts:55`  | `unicorn(no-await-expression-member)` warning：`(await readdir(dir)).filter(...)` |
 
 同时仍可见既有 warning：
 

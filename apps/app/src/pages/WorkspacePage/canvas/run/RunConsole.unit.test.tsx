@@ -2,11 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Job, JobTrace } from "@repo/schemas";
-import {
-  CanvasStoreContext,
-  createCanvasStore,
-  type CanvasStore,
-} from "../_store/canvasStore";
+import { CanvasStoreContext, createCanvasStore, type CanvasStore } from "../_store/canvasStore";
 import { RunConsole } from "./RunConsole";
 
 const runningJob: Job = {

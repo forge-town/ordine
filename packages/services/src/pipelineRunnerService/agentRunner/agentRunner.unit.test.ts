@@ -62,11 +62,7 @@ describe("runAgent", () => {
     const onProgress = vi.fn();
     await runAgent({ ...baseOpts, onProgress });
 
-    expect(onProgress).toHaveBeenCalledWith(
-      expect.stringContaining("test: agent=claude-code"),
-    );
-    expect(onProgress).toHaveBeenCalledWith(
-      expect.stringContaining("test: claude-code complete"),
-    );
+    expect(onProgress).toHaveBeenCalledWith(expect.stringContaining("test: agent=claude-code"));
+    expect(onProgress).toHaveBeenCalledWith(expect.stringContaining("test: claude-code complete"));
   });
 });

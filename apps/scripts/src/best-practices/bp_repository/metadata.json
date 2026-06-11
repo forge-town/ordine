@@ -4,8 +4,5 @@
   "condition": "创建或重构 Repository 层",
   "category": "backend",
   "language": "typescript",
-  "tags": [
-    "repository",
-    "data-access"
-  ]
+  "tags": ["repository", "data-access"]
 }

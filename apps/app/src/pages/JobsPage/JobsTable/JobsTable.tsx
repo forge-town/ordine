@@ -121,9 +121,9 @@ export const JobsTable = ({ jobs, onChanged, onOpen, pipelineNameById }: JobsTab
 
           return (
             <div
+              key={job.id}
               className={`group grid ${columns} cursor-pointer items-center gap-3 px-3.5 py-2.5 transition-colors hover:bg-accent/30`}
               data-testid={`jobs-table-row-${job.id}`}
-              key={job.id}
               role="button"
               tabIndex={0}
               onClick={() => onOpen(job)}
@@ -168,16 +168,17 @@ export const JobsTable = ({ jobs, onChanged, onOpen, pipelineNameById }: JobsTab
                   </button>
                 ) : (
                   actionsForStatus(job.status).map((action) => {
-                    const ActionIcon = action === "cancel" && job.status === "queued" ? X : ACTION_ICON[action];
+                    const ActionIcon =
+                      action === "cancel" && job.status === "queued" ? X : ACTION_ICON[action];
                     const disabled =
                       pendingJobId === job.id || (action === "rerun" && !job.pipelineId);
 
                     return (
                       <button
+                        key={action}
                         className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-accent hover:text-foreground disabled:opacity-30 group-hover:opacity-100"
                         data-testid={`jobs-action-${action}-${job.id}`}
                         disabled={disabled}
-                        key={action}
                         title={t(`jobs.table.actions.${action}`)}
                         type="button"
                         onClick={(event) => {

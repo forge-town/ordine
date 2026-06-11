@@ -36,8 +36,8 @@ export const SelfHealCard = ({ open = false, steps, subtitle, title }: SelfHealC
         <ol className="mt-1.5 space-y-1 border-l border-border pl-3 text-[11px] text-muted-foreground">
           {steps.map((step, index) => (
             <li
-              className={step.tone === "success" ? "text-foreground" : undefined}
               key={`${index}-${step.label}`}
+              className={step.tone === "success" ? "text-foreground" : undefined}
             >
               {step.label}
             </li>

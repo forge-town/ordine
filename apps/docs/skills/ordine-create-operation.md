@@ -23,5 +23,4 @@ Operation 是 Ordine 中的原子操作单元，定义了「谁来执行」（ex
 1. 阅读 [operation-anatomy.md](references/operation-anatomy.md) 了解 Operation 结构
 2. 按照 [creation-guide.md](references/creation-guide.md) 创建
 3. 使用 [checklist.md](references/checklist.md) 验证
-
 ```

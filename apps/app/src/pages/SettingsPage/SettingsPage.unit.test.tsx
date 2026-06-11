@@ -6,6 +6,11 @@ vi.mock("./SettingsPageContent/SettingsPageContent", () => ({
   SettingsPageContent: () => <div>SettingsPageContent</div>,
 }));
 
+Object.defineProperty(globalThis, "localStorage", {
+  value: { getItem: vi.fn(() => null), setItem: vi.fn() },
+  writable: true,
+});
+
 describe("SettingsPage", () => {
   it("renders SettingsPageContent", () => {
     render(<SettingsPage />);

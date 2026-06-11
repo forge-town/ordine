@@ -21,8 +21,6 @@ export const RunStatusCard = ({
     <Dot ping={isLive} tone={isLive ? "muted" : "success"} />
     <span className="shrink-0 font-mono">{title}</span>
     <span className="truncate">· {subtitle}</span>
-    {costLabel ? (
-      <span className="shrink-0 font-mono tabular-nums">· {costLabel}</span>
-    ) : null}
+    {costLabel ? <span className="shrink-0 font-mono tabular-nums">· {costLabel}</span> : null}
   </div>
 );

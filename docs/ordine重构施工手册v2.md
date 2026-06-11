@@ -10,19 +10,19 @@
 
 设计稿分两层，**顶层文件覆盖嵌套同名文件**（这是最新一轮迭代的组装规则，对应 `index.html` 的加载顺序）：
 
-| 原型文件 | 取自 | 内容 |
-|----------|------|------|
-| `index.html` / `app.css` | **顶层（最新）** | Tailwind token、动画、画布网格——设计系统唯一来源（与已落地的 styles.css 基本一致，新增 `paused` 状态样式核对） |
-| `lib.jsx` | **顶层（最新）** | 共享小组件；相对旧版仅新增 `paused` StatusPill（lib.jsx:42） |
-| `workspace.jsx` | **顶层（最新）** | ★ 全新 Agent Bar（极简 Codex 风）+ Select→Prompt 批注统一 + ContextStrip + Workspace 编排 |
-| `jobs.jsx` | **顶层（最新）** | ★ 全新 Jobs 控制台：List + Calendar 双视图 + RoutineStore 全局共享 |
-| `canvas.jsx` | 嵌套 `ordine-fork (1)/` | Canvas 全部交互（手写实现仅作视觉/交互参照，工程上继续用 @xyflow/react） |
-| `panels.jsx` | 嵌套 | JobDetailDrawer、ScheduleEditor、UsageRunModal |
-| `pages.jsx` | 嵌套 | 7 个二级页面（其中 Jobs 段已被顶层 jobs.jsx **整体取代**） |
-| `wizards.jsx` | 嵌套 | Add/Manage Connector、Import Skill、Configure Agent、Find-for-me、Skill 详情 |
-| `settings.jsx` | 嵌套 | Settings 六分组全页 |
-| `shell.jsx` | 嵌套 | Sidebar（可拖拽/可收起）、通知中心、全局搜索、Settings 侧栏变形、SignOut；MacWindow/ScaledStage 为演示外壳**不实现** |
-| `runtime.jsx` | 嵌套 | RunConsole、CheckpointDialog、StateLegend、VersionMenu + 演示运行数据（行为参照，不抄实现） |
+| 原型文件                 | 取自                    | 内容                                                                                                                 |
+| ------------------------ | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `index.html` / `app.css` | **顶层（最新）**        | Tailwind token、动画、画布网格——设计系统唯一来源（与已落地的 styles.css 基本一致，新增 `paused` 状态样式核对）       |
+| `lib.jsx`                | **顶层（最新）**        | 共享小组件；相对旧版仅新增 `paused` StatusPill（lib.jsx:42）                                                         |
+| `workspace.jsx`          | **顶层（最新）**        | ★ 全新 Agent Bar（极简 Codex 风）+ Select→Prompt 批注统一 + ContextStrip + Workspace 编排                            |
+| `jobs.jsx`               | **顶层（最新）**        | ★ 全新 Jobs 控制台：List + Calendar 双视图 + RoutineStore 全局共享                                                   |
+| `canvas.jsx`             | 嵌套 `ordine-fork (1)/` | Canvas 全部交互（手写实现仅作视觉/交互参照，工程上继续用 @xyflow/react）                                             |
+| `panels.jsx`             | 嵌套                    | JobDetailDrawer、ScheduleEditor、UsageRunModal                                                                       |
+| `pages.jsx`              | 嵌套                    | 7 个二级页面（其中 Jobs 段已被顶层 jobs.jsx **整体取代**）                                                           |
+| `wizards.jsx`            | 嵌套                    | Add/Manage Connector、Import Skill、Configure Agent、Find-for-me、Skill 详情                                         |
+| `settings.jsx`           | 嵌套                    | Settings 六分组全页                                                                                                  |
+| `shell.jsx`              | 嵌套                    | Sidebar（可拖拽/可收起）、通知中心、全局搜索、Settings 侧栏变形、SignOut；MacWindow/ScaledStage 为演示外壳**不实现** |
+| `runtime.jsx`            | 嵌套                    | RunConsole、CheckpointDialog、StateLegend、VersionMenu + 演示运行数据（行为参照，不抄实现）                          |
 
 执行第一个任务前，先把组装后的原型放进仓库 `docs/prototype/ordien/`（N3-00）。
 
@@ -179,7 +179,7 @@ SettingsPage/                           ← 六分组重做
 ### N8 · 应用壳与二级页补全
 
 - **N8-01 可拖拽布局**：`components/ResizeHandle/`（shell.jsx 的 ResizeHandle：宽把手、hover 指示、双击收起）；侧栏 200–360/阈值 168 收起 + 左缘唤回把手；AgentBar 容器改浮动圆角面板（py-1.5 pr-1.5 + rounded-2xl ring shadow-float）300–520/阈值 248 收起。宽度持久化 localStorage。验收：拖拽、阈值收起、唤回、刷新记忆。
-- **N8-02 通知中心**：`components/NotificationCenter/`（shell.jsx NotifBell/NotifCenter）：全局 notifStore（zustand，append 上限 60）；现有 toast 调用点统一改走 `notify(msg, kind, route?)` 双写；标题栏（_layout 顶部右侧）铃铛+未读数；面板含 kind 图标/timeAgo/未读点/路由跳转/Mark read/Clear。运行完成、自愈、失败、连接器待授权、资产沉淀五类事件接入。验收：触发各类事件后历史可回看可跳转。
+- **N8-02 通知中心**：`components/NotificationCenter/`（shell.jsx NotifBell/NotifCenter）：全局 notifStore（zustand，append 上限 60）；现有 toast 调用点统一改走 `notify(msg, kind, route?)` 双写；标题栏（\_layout 顶部右侧）铃铛+未读数；面板含 kind 图标/timeAgo/未读点/路由跳转/Mark read/Clear。运行完成、自愈、失败、连接器待授权、资产沉淀五类事件接入。验收：触发各类事件后历史可回看可跳转。
 - **N8-03 全局搜索升级**：M7-08 的结果面板扩展到 7 组（Pipeline/Node/Component/Job/Skill/Connector/Agent，shell.jsx GlobalSearchResults 的分组样式）；Node 命中跳 workspace 并 spotlight 该节点（接 N5-02）。验收：各组检索命中且直达。
 - **N8-04 Settings 重做**：`SettingsPage/` 六分组（settings.jsx）：General（语言 en/zh 即时切换、外观 Light/Dark(preview)/System、启动页）、Defaults（settings 表 4 字段 + key 掩码/旋转）、Project（当前 project 名称/描述/归档）、Keyboard（快捷键速查静态表，对照 settings.jsx:71-75）、Account（本地身份 + Sign out）、Advanced（数据目录/迁移版本只读 + 清空对话 + 重置危险区二次确认）。侧栏进入 Settings 变形为 Back+分组导航（shell.jsx Sidebar inSettings 分支）；用户菜单四项接真实跳转。验收：每组读写落库/localStorage；Back 返回原页面。
 - **N8-05 Capabilities 向导对账**：对照 wizards.jsx 逐个核对 M7 成果，缺则补：AddConnectorWizard（三方法分步）、ManageConnectorDrawer（scopes 开关/同步日志/重授权/断开）、ImportSkillWizard（选源→扫描→勾选导入）、ConfigureAgentDrawer（systemPrompt/模型/工具开关）、SkillDetailDrawer（manifest 预览/assign）、FindForMeModal（按重用度 top5）、统一 ConfirmDialog 删除确认（含"被 N 条 pipeline 使用"文案）。**先 grep 现状再开工，已有的不重写**。验收：每个向导走通一轮并落库。

@@ -59,22 +59,18 @@ describe("graphSlice", () => {
       makeOutputNode("output"),
     ]);
 
-    store
-      .getState()
-      .handleConnect({
-        source: "file",
-        sourceHandle: null,
-        target: "operation",
-        targetHandle: null,
-      });
-    store
-      .getState()
-      .handleConnect({
-        source: "output",
-        sourceHandle: null,
-        target: "operation",
-        targetHandle: null,
-      });
+    store.getState().handleConnect({
+      source: "file",
+      sourceHandle: null,
+      target: "operation",
+      targetHandle: null,
+    });
+    store.getState().handleConnect({
+      source: "output",
+      sourceHandle: null,
+      target: "operation",
+      targetHandle: null,
+    });
 
     expect(store.getState().edges).toHaveLength(1);
     expect(store.getState().edges[0]).toMatchObject({

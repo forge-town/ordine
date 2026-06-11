@@ -58,7 +58,7 @@ export const AgentBody = ({
       <>
         <Assistant>{t("workspace.agentBar.reversing.intro")}</Assistant>
         {reversingSteps && reversingSteps.length > 0 ? (
-          <ProgressList items={reversingSteps} showStatus />
+          <ProgressList showStatus items={reversingSteps} />
         ) : null}
       </>
     );

@@ -6,7 +6,7 @@ Use when 需要在 Ordine 系统中查看、过滤或管理 Job（运行记录�
 
 Copy the content below and provide it to your AI agent:
 
-```markdown
+````markdown
 ---
 name: ordine-manage-job
 description: Use when 需要在 Ordine 系统中查看、过滤或管理 Job（运行记录），包括查看运行状态、日志和结果。触发词：查看job、job状态、运行记录、管理作业、查看运行历史。
@@ -29,6 +29,7 @@ ordine run pipe_check_dao -i ./src
 # 不等待完成
 ordine run pipe_check_dao --no-follow
 ```
+````
 
 CLI `run` 命令会自动轮询 Job 状态（每 3 秒），实时打印日志，直到 `done`/`failed`/`cancelled`。
 
@@ -68,17 +69,17 @@ curl -X DELETE http://localhost:9433/api/jobs/job_manual_001
 
 ## 数据结构
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `id` | `string` | 唯一标识 |
-| `pipelineId` | `string \| null` | 关联的 Pipeline ID |
-| `projectId` | `string \| null` | 关联的项目 ID |
-| `status` | `JobStatus` | 状态：`pending`, `running`, `completed`, `failed` |
-| `result` | `JSON \| null` | 运行结果（summary, output 等） |
-| `error` | `string \| null` | 错误信息 |
-| `startedAt` | `timestamp \| null` | 开始时间 |
-| `completedAt` | `timestamp \| null` | 完成时间 |
-| `createdAt` | `timestamp` | 创建时间 |
+| 字段          | 类型                | 说明                                              |
+| ------------- | ------------------- | ------------------------------------------------- |
+| `id`          | `string`            | 唯一标识                                          |
+| `pipelineId`  | `string \| null`    | 关联的 Pipeline ID                                |
+| `projectId`   | `string \| null`    | 关联的项目 ID                                     |
+| `status`      | `JobStatus`         | 状态：`pending`, `running`, `completed`, `failed` |
+| `result`      | `JSON \| null`      | 运行结果（summary, output 等）                    |
+| `error`       | `string \| null`    | 错误信息                                          |
+| `startedAt`   | `timestamp \| null` | 开始时间                                          |
+| `completedAt` | `timestamp \| null` | 完成时间                                          |
+| `createdAt`   | `timestamp`         | 创建时间                                          |
 
 ## Job 状态流转
 
@@ -111,6 +112,8 @@ for j in json.load(sys.stdin):
 " | while read id; do
   curl -X DELETE "http://localhost:9433/api/jobs/$id"
 done
+```
+
 ```
 
 ```

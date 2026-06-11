@@ -27,8 +27,6 @@ export const authedProcedure = t.procedure.use(({ ctx, next }) => {
   return next({ ctx });
 });
 
-export const createServerTrpcContext = (
-  headers: Headers,
-): ServerTrpcContext => ({
+export const createServerTrpcContext = (headers: Headers): ServerTrpcContext => ({
   agentApiAuth: getAgentApiAuthState(headers),
 });

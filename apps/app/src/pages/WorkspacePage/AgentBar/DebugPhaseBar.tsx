@@ -35,8 +35,8 @@ export const DebugPhaseBar = () => {
     >
       {WORKSPACE_PHASES.map((targetPhase) => (
         <Button
-          className="h-7 shrink-0 rounded-full px-2 text-[10.5px]"
           key={targetPhase}
+          className="h-7 shrink-0 rounded-full px-2 text-[10.5px]"
           size="sm"
           variant={targetPhase === phase ? "secondary" : "ghost"}
           onClick={() => setPhase(targetPhase)}

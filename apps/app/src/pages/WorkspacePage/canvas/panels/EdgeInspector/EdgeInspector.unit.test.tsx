@@ -1,11 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  CanvasStoreContext,
-  createCanvasStore,
-  type CanvasStore,
-} from "../../_store/canvasStore";
+import { CanvasStoreContext, createCanvasStore, type CanvasStore } from "../../_store/canvasStore";
 import type { CanvasEdge, CanvasNode } from "../../_store/canvasTypes";
 import { EdgeInspector } from "./EdgeInspector";
 
@@ -81,7 +77,10 @@ describe("EdgeInspector", () => {
     const mappings = store.getState().edges[0]?.data?.dataContract?.mappings;
     expect(mappings?.[0]?.enabled).toBe(false);
     expect(mutateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "pipeline-1", values: expect.objectContaining({ edges: expect.anything() }) }),
+      expect.objectContaining({
+        id: "pipeline-1",
+        values: expect.objectContaining({ edges: expect.anything() }),
+      }),
     );
   });
 

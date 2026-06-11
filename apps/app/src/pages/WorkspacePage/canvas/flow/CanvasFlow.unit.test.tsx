@@ -15,7 +15,7 @@ type ReactFlowProps = {
 };
 
 const hotkeyHandlers = new Map<string, () => void>();
-let latestReactFlowProps: ReactFlowProps | null = null;
+const latestReactFlowPropsRef = { current: null as ReactFlowProps | null };
 
 vi.mock("react-hotkeys-hook", () => ({
   useHotkeys: (keys: string, handler: () => void) => {
@@ -25,7 +25,7 @@ vi.mock("react-hotkeys-hook", () => ({
 
 vi.mock("@xyflow/react", () => ({
   ReactFlow: (props: ReactFlowProps & { children?: React.ReactNode }) => {
-    latestReactFlowProps = props;
+    latestReactFlowPropsRef.current = props;
 
     return <div data-testid="mock-react-flow">{props.children}</div>;
   },
@@ -88,7 +88,10 @@ describe("CanvasFlow", () => {
     render(<CanvasFlow />, { wrapper: makeWrapper(store) });
 
     act(() => {
-      latestReactFlowProps?.onSelectionChange?.({ edges: [], nodes: [{ id: "node-a" }] });
+      latestReactFlowPropsRef.current?.onSelectionChange?.({
+        edges: [],
+        nodes: [{ id: "node-a" }],
+      });
     });
     expect(store.getState().selectedIds).toEqual(["node-a"]);
 
@@ -108,7 +111,7 @@ describe("CanvasFlow", () => {
     render(<CanvasFlow />, { wrapper: makeWrapper(store) });
 
     act(() => {
-      latestReactFlowProps?.onSelectionChange?.({
+      latestReactFlowPropsRef.current?.onSelectionChange?.({
         edges: [{ id: "edge-a" }],
         nodes: [{ id: "node-a" }],
       });

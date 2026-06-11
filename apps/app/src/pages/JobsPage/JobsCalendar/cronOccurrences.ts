@@ -45,7 +45,7 @@ export const cronOccurrencesForDay = (cron: string, day: Date): Date[] => {
   }
 
   const occurrences: Date[] = [];
-  for (let hour = 0; hour < HOURS_IN_DAY; hour += 1) {
+  for (const hour of Array.from({ length: HOURS_IN_DAY }, (_, i) => i)) {
     if (!matchesField(hourPart, hour)) {
       continue;
     }

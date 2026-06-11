@@ -129,6 +129,7 @@ export const CanvasFlow = () => {
     if (payload.kind === "object") {
       addNodeFromCatalog({ position, type: payload.type });
       recordHistory(previous);
+
       return;
     }
 
@@ -139,6 +140,7 @@ export const CanvasFlow = () => {
         type: "operation",
       });
       recordHistory(previous);
+
       return;
     }
 
@@ -149,6 +151,7 @@ export const CanvasFlow = () => {
         type: "operation",
       });
       recordHistory(previous);
+
       return;
     }
 
@@ -174,6 +177,7 @@ export const CanvasFlow = () => {
     if (hasEdgeChangeMutation(changes)) {
       handleEdgesChange(changes);
       recordHistory(previous);
+
       return;
     }
     handleEdgesChange(changes);
@@ -184,6 +188,7 @@ export const CanvasFlow = () => {
     if (hasNodeChangeMutation(changes)) {
       handleNodesChange(changes);
       recordHistory(previous);
+
       return;
     }
     handleNodesChange(changes);
@@ -192,6 +197,7 @@ export const CanvasFlow = () => {
   const handleNodeDoubleClick: NodeMouseHandler<CanvasNode> = (_event, node) => {
     if (node.type === "compound") {
       pushDrillStack(node.id);
+
       return;
     }
 
@@ -229,6 +235,7 @@ export const CanvasFlow = () => {
     () => {
       if (drillStack.length > 0) {
         popDrillStack();
+
         return;
       }
       setSelectedIds([]);
@@ -248,29 +255,29 @@ export const CanvasFlow = () => {
       onDrop={handleDrop}
     >
       <ReactFlow<CanvasNode, CanvasEdge>
+        fitView
+        snapToGrid
         className="bg-transparent"
         defaultEdgeOptions={defaultEdgeOptions}
         defaultViewport={defaultViewport}
         deleteKeyCode={null}
         edges={semanticEdges}
         edgeTypes={edgeTypes}
-        fitView
-        nodeTypes={nodeTypes}
         nodes={visibleGraph.nodes}
+        nodeTypes={nodeTypes}
         panOnDrag={canvasTool === "hand" ? true : [1, 2]}
         proOptions={proOptions}
         selectionOnDrag={canvasTool === "select"}
         snapGrid={snapGrid}
-        snapToGrid
         onConnect={handleFlowConnect}
-        onEdgesChange={handleFlowEdgesChange}
         onEdgeClick={(_event, edge) => {
           selectEdge(edge.id);
           openEdgeInspector(edge.id);
         }}
-        onNodesChange={handleFlowNodesChange}
+        onEdgesChange={handleFlowEdgesChange}
         onNodeClick={(_event, node) => selectNode(node.id)}
         onNodeDoubleClick={handleNodeDoubleClick}
+        onNodesChange={handleFlowNodesChange}
         onPaneClick={() => setSelectedIds([])}
         onSelectionChange={({ edges: selectedEdges, nodes: selectedNodes }) => {
           setSelectedIds([

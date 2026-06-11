@@ -1,11 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  CanvasStoreContext,
-  createCanvasStore,
-  type CanvasStore,
-} from "../../_store/canvasStore";
+import { CanvasStoreContext, createCanvasStore, type CanvasStore } from "../../_store/canvasStore";
 import type { CanvasNode } from "../../_store/canvasTypes";
 import { NodeConfig } from "./NodeConfig";
 
@@ -60,7 +56,10 @@ describe("NodeConfig", () => {
     expect(data.label).toBe("Parse!");
     expect(data.operationName).toBe("Parse!");
     expect(mutateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "pipeline-1", values: expect.objectContaining({ nodes: expect.anything() }) }),
+      expect.objectContaining({
+        id: "pipeline-1",
+        values: expect.objectContaining({ nodes: expect.anything() }),
+      }),
     );
   });
 

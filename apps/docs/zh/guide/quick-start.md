@@ -50,6 +50,7 @@ cp apps/server/.env.example apps/server/.env
 **选择一种数据库：**
 
 - **PGLite（嵌入式，无需外部 PostgreSQL）：**
+
   ```sh
   # 在两个 .env 文件中设置：
   PGLITE_DATA_DIR=./.pglite
@@ -81,9 +82,9 @@ bun dev
 
 通过 Turborepo 并行启动所有应用：
 
-| 应用 | 地址 | 说明 |
-|------|------|------|
-| `apps/app` | `http://localhost:9430` | 主 Web 应用 |
+| 应用          | 地址                    | 说明              |
+| ------------- | ----------------------- | ----------------- |
+| `apps/app`    | `http://localhost:9430` | 主 Web 应用       |
 | `apps/server` | `http://localhost:9433` | API 服务器 (Hono) |
 
 ### Local Mode

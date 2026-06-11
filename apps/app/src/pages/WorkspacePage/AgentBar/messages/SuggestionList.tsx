@@ -17,8 +17,8 @@ export const SuggestionList = ({ items }: SuggestionListProps) => (
   <div className="space-y-0.5" data-testid="agent-suggestions">
     {items.map((item) => (
       <button
-        className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] text-foreground/75 transition-colors hover:bg-accent/50 hover:text-foreground"
         key={item.id}
+        className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] text-foreground/75 transition-colors hover:bg-accent/50 hover:text-foreground"
         type="button"
         onClick={() => item.onSelect?.()}
       >

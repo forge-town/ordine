@@ -35,7 +35,7 @@ describe("ContextStrip", () => {
   it("prioritizes run-time items while running", () => {
     render(<ContextStrip phase="running" refs={[]} />);
 
-    expect(screen.getByText(/prioritizing run \+ runtime/)).toBeInTheDocument();
+    expect(screen.getByText(/优先运行 \+ 节点状态/)).toBeInTheDocument();
   });
 
   it("counts annotations when anchors exist", async () => {
@@ -44,6 +44,6 @@ describe("ContextStrip", () => {
 
     await user.click(screen.getByTestId("agent-context-toggle"));
 
-    expect(screen.getByText(/Canvas annotations · 3/)).toBeInTheDocument();
+    expect(screen.getByText(/画布批注 · 3/)).toBeInTheDocument();
   });
 });

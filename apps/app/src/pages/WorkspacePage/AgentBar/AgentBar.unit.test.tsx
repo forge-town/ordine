@@ -103,18 +103,20 @@ describe("AgentBar", () => {
 
     expect(screen.getByTestId("workspace-agent-bar")).toBeInTheDocument();
     expect(screen.getByText("Agent")).toBeInTheDocument();
-    expect(screen.getByText(/New canvas · no pipeline yet/)).toBeInTheDocument();
-    expect(screen.getByText("Turn my textbook PDFs into a Notion quiz")).toBeInTheDocument();
+    expect(screen.getByText(/新画布 · 暂无 pipeline/)).toBeInTheDocument();
+    expect(screen.getByText("把我的教材 PDF 变成 Notion 测验")).toBeInTheDocument();
   });
 
-  it("hides the phase debugger without ?debug=phases and renders every phase subtitle", () => {
+  it("hides the phase debugger without ?debug=phases and renders every phase subtitle", async () => {
     renderAgentBar();
 
     expect(screen.queryByTestId("agent-debug-phase-bar")).not.toBeInTheDocument();
     expect(WORKSPACE_PHASES).toHaveLength(7);
 
     useWorkspaceStore.getState().setPhase("done");
-    expect(screen.getByText(/Run complete · asset saved/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/运行完成 · 资产已沉淀/)).toBeInTheDocument();
+    });
   });
 
   it("renders conversation messages after the scripted phase body", () => {
@@ -167,9 +169,11 @@ describe("AgentBar", () => {
       });
     });
 
-    expect(screen.getByText(/Watching · job-live · live/)).toBeInTheDocument();
+    expect(screen.getByText(/观察中 · job-live · 实时/)).toBeInTheDocument();
     expect(screen.getByText("Running - job-live")).toBeInTheDocument();
-    expect(screen.getByText("Step 2 of 2 - Generate Quiz")).toBeInTheDocument();
+    expect(screen.getByTestId("agent-run-status").textContent).toContain(
+      "Step 2 of 2 - Generate Quiz",
+    );
     expect(screen.getByText(/\$0\.42/)).toBeInTheDocument();
   });
 
@@ -253,8 +257,6 @@ describe("AgentBar", () => {
     await waitFor(() => {
       expect(screen.getByText(/Self-heal/)).toBeInTheDocument();
     });
-    const user = userEvent.setup();
-    await user.click(screen.getByTestId("agent-self-heal-toggle"));
     expect(screen.getByText(/Retry 1 for quiz/)).toBeInTheDocument();
     expect(screen.getByText(/Node quiz recovered/)).toBeInTheDocument();
   });
@@ -292,9 +294,9 @@ describe("AgentBar", () => {
       });
     });
 
-    expect(screen.getByText(/Checkpoint · paused at Generate Quiz/)).toBeInTheDocument();
+    expect(screen.getByText(/检查点 · 暂停于 Generate Quiz/)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Resume" }));
+    await user.click(screen.getByRole("button", { name: "继续" }));
 
     expect(dataProvider.custom).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -340,7 +342,7 @@ describe("AgentBar", () => {
     const handleCollapse = vi.fn();
     renderAgentBar(handleCollapse);
 
-    await user.click(screen.getByRole("button", { name: "Collapse Agent Bar" }));
+    await user.click(screen.getByRole("button", { name: "收起 Agent Bar" }));
 
     expect(handleCollapse).toHaveBeenCalledTimes(1);
   });

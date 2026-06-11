@@ -45,12 +45,6 @@ export const VersionClean: StoryObj = {
 
 export const VersionDirty: StoryObj = {
   render: () => (
-    <VersionMenu
-      dirty
-      runState="draft"
-      version={3}
-      onOverwrite={() => {}}
-      onSaveAsNew={() => {}}
-    />
+    <VersionMenu dirty runState="draft" version={3} onOverwrite={() => {}} onSaveAsNew={() => {}} />
   ),
 };

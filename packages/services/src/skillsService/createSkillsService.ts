@@ -37,19 +37,26 @@ const ANALYZE_SKILL_SYSTEM_PROMPT = [
   "You are an AI workflow analyst. Analyze the given skill description and determine whether it represents a single-step task or a multi-step long SOP (Standard Operating Procedure).",
   "",
   "=== OUTPUT SCHEMA ===",
-  JSON.stringify({
-    skillType: "single-step | multi-step",
-    steps: [
-      {
-        name: "Step name (concise, 2-5 words)",
-        description: "What this step does in 1-2 sentences",
-        suggestedOutputs: [
-          { name: "output name", contentType: "markdown | json | yaml | text | html | xml | csv" },
-        ],
-      },
-    ],
-    rationale: "Brief explanation of why you classified it this way",
-  }, null, 2),
+  JSON.stringify(
+    {
+      skillType: "single-step | multi-step",
+      steps: [
+        {
+          name: "Step name (concise, 2-5 words)",
+          description: "What this step does in 1-2 sentences",
+          suggestedOutputs: [
+            {
+              name: "output name",
+              contentType: "markdown | json | yaml | text | html | xml | csv",
+            },
+          ],
+        },
+      ],
+      rationale: "Brief explanation of why you classified it this way",
+    },
+    null,
+    2,
+  ),
   "",
   "Rules:",
   "- If the skill is a simple, atomic task (e.g. 'check code style', 'generate a component'), return skillType='single-step' with 1 step.",
@@ -153,7 +160,7 @@ const extractDescription = (body: string, frontmatterDescription?: string): stri
   const firstParagraph = body
     .split(/\n\s*\n/)
     .map((s) => s.trim())
-    .filter((s) => s.length > 0)[0];
+    .find((s) => s.length > 0);
 
   if (!firstParagraph) return "";
 
@@ -218,15 +225,15 @@ const scanSkillFiles = async ({
   return { paths, errors };
 };
 
+const buildFallback = (skill: Skill): SkillAnalysisResult => ({
+  skillType: "single-step",
+  steps: [{ name: skill.label, description: skill.description, suggestedOutputs: [] }],
+  rationale: "Analysis failed; falling back to single-step",
+});
+
 export const createSkillsService = (db: DbConnection) => {
   const dao = createSkillsDao(db);
   const settingsDao = createSettingsDao(db);
-
-  const buildFallback = (skill: Skill): SkillAnalysisResult => ({
-    skillType: "single-step",
-    steps: [{ name: skill.label, description: skill.description, suggestedOutputs: [] }],
-    rationale: "Analysis failed; falling back to single-step",
-  });
 
   const previewImport = async ({ rootPath }: { rootPath: string }): Promise<SkillImportPreview> => {
     const scanResult = await scanSkillFiles({ rootPath });
@@ -270,14 +277,16 @@ export const createSkillsService = (db: DbConnection) => {
           });
           if (updated) imported.push(updated);
         } else {
-          imported.push(await dao.create({
-            id: candidate.id,
-            name: candidate.name,
-            label: candidate.label,
-            description: candidate.description,
-            category: IMPORTED_CATEGORY,
-            tags: [IMPORTED_TAG],
-          }));
+          imported.push(
+            await dao.create({
+              id: candidate.id,
+              name: candidate.name,
+              label: candidate.label,
+              description: candidate.description,
+              category: IMPORTED_CATEGORY,
+              tags: [IMPORTED_TAG],
+            }),
+          );
         }
       }
 

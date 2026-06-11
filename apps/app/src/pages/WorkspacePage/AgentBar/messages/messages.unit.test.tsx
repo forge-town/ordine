@@ -92,11 +92,11 @@ describe("AgentBar message components", () => {
     render(
       <div>
         <ProgressList
+          showStatus
           items={[
             { detail: "20 MCQs", done: true, id: "structure", title: "Read structure" },
             { detail: "5 nodes", done: false, id: "draft", title: "Drafting pipeline" },
           ]}
-          showStatus
         />
         <SuggestionList
           items={[

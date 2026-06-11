@@ -37,32 +37,32 @@ ordine/
 
 ### apps/app 关键路径
 
-| 路径 | 说明 |
-|------|------|
-| `src/pages/` | 页面组件，每路由一目录 |
-| `src/pages/<Page>/_store/` | 页面级 Zustand slice |
-| `src/routes/` | TanStack Router 路由定义 |
-| `src/integrations/trpc/routers/` | tRPC 路由 |
-| `src/components/` | 共享 UI 组件 |
-| `e2e/` | Playwright E2E 测试 |
+| 路径                             | 说明                     |
+| -------------------------------- | ------------------------ |
+| `src/pages/`                     | 页面组件，每路由一目录   |
+| `src/pages/<Page>/_store/`       | 页面级 Zustand slice     |
+| `src/routes/`                    | TanStack Router 路由定义 |
+| `src/integrations/trpc/routers/` | tRPC 路由                |
+| `src/components/`                | 共享 UI 组件             |
+| `e2e/`                           | Playwright E2E 测试      |
 
 ---
 
 ## 二、技术栈
 
-| 层 | 技术 |
-|----|------|
-| 前端框架 | React 19 + TanStack Router |
-| 数据获取 | tRPC + Refine + TanStack Query |
-| 状态管理 | Zustand（slice 模式） |
-| UI 组件 | Tailwind CSS v4 + shadcn/ui |
-| 后端框架 | Hono（Bun runtime） |
-| ORM | Drizzle ORM + postgres |
-| 类型验证 | Zod（类型全部由 `z.infer` 派生） |
+| 层       | 技术                                             |
+| -------- | ------------------------------------------------ |
+| 前端框架 | React 19 + TanStack Router                       |
+| 数据获取 | tRPC + Refine + TanStack Query                   |
+| 状态管理 | Zustand（slice 模式）                            |
+| UI 组件  | Tailwind CSS v4 + shadcn/ui                      |
+| 后端框架 | Hono（Bun runtime）                              |
+| ORM      | Drizzle ORM + postgres                           |
+| 类型验证 | Zod（类型全部由 `z.infer` 派生）                 |
 | 错误处理 | neverthrow（`Result<T,E>` / `ResultAsync<T,E>`） |
-| 测试 | Vitest（单元）+ Playwright（E2E） |
-| 格式化 | oxfmt |
-| Lint | oxlint |
+| 测试     | Vitest（单元）+ Playwright（E2E）                |
+| 格式化   | oxfmt                                            |
+| Lint     | oxlint                                           |
 
 ---
 
@@ -143,12 +143,12 @@ git push origin issue-<N>-<slug>
 
 ## 六、已知本地环境问题
 
-| 问题 | 说明 |
-|------|------|
-| Nitro 构建失败 | 全量 `bun run build` 时 Nitro 无法解析 Node 内置 `https`（来自全局 `C:/Users/woodfish/node_modules/ws`），属本地 env 问题，不影响 app/server 构建 |
-| E2E fixture 超时 | Playwright E2E 在本地 `/login` networkidle 前超时，属已知本地问题 |
-| 全量 tsc 阻塞 | `apps/app/src/pages/CanvasPage/OperationNode/OperationNode.tsx` 存在 Select `onValueChange` 签名不匹配，阻塞全量 tsc |
-| 本地模式登录 | 绕过登录需 `ORDINE_LOCAL_MODE=true` 启动 Vite；路由按 `local@ordine.local` 是否存在判断 sign-up，而非 users 总数 |
+| 问题             | 说明                                                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nitro 构建失败   | 全量 `bun run build` 时 Nitro 无法解析 Node 内置 `https`（来自全局 `C:/Users/woodfish/node_modules/ws`），属本地 env 问题，不影响 app/server 构建 |
+| E2E fixture 超时 | Playwright E2E 在本地 `/login` networkidle 前超时，属已知本地问题                                                                                 |
+| 全量 tsc 阻塞    | `apps/app/src/pages/CanvasPage/OperationNode/OperationNode.tsx` 存在 Select `onValueChange` 签名不匹配，阻塞全量 tsc                              |
+| 本地模式登录     | 绕过登录需 `ORDINE_LOCAL_MODE=true` 启动 Vite；路由按 `local@ordine.local` 是否存在判断 sign-up，而非 users 总数                                  |
 
 ---
 

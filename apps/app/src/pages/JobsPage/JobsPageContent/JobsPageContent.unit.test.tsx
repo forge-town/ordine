@@ -123,7 +123,7 @@ describe("JobsPageContent", () => {
   it("renders the fleet console with summary and table rows", () => {
     renderContent();
 
-    expect(screen.getByText("Jobs")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "工单" })).toBeInTheDocument();
     expect(screen.getByTestId("jobs-summary")).toBeInTheDocument();
     expect(screen.getByTestId("jobs-table")).toBeInTheDocument();
     expect(screen.getByTestId("jobs-table-row-job-001")).toBeInTheDocument();
@@ -147,9 +147,9 @@ describe("JobsPageContent", () => {
     const user = userEvent.setup();
     renderContent();
 
-    await user.type(screen.getByPlaceholderText("Search jobs…"), "missing");
+    await user.type(screen.getByPlaceholderText("搜索工单…"), "missing");
 
-    expect(screen.getByText("No matching jobs")).toBeInTheDocument();
+    expect(screen.getByText("没有匹配的工单")).toBeInTheDocument();
   });
 
   it("shows future routine occurrences on the calendar", async () => {
@@ -166,7 +166,7 @@ describe("JobsPageContent", () => {
     const user = userEvent.setup();
     renderContent();
 
-    await user.click(screen.getByRole("button", { name: /New Routine/ }));
+    await user.click(screen.getByRole("button", { name: /新建 Routine/ }));
     expect(screen.getByTestId("jobs-pipeline-picker")).toBeInTheDocument();
 
     await user.click(screen.getByTestId("jobs-pick-pipeline-1"));

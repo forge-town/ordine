@@ -31,10 +31,13 @@ export const NodeConfig = ({ pipelineId }: NodeConfigProps) => {
   useEffect(() => {
     if (!configNodeId) {
       setSnapshotData(null);
+
       return;
     }
     const current = nodes.find((item) => item.id === configNodeId);
-    setSnapshotData(current ? (JSON.parse(JSON.stringify(current.data)) as Record<string, unknown>) : null);
+    setSnapshotData(
+      current ? (JSON.parse(JSON.stringify(current.data)) as Record<string, unknown>) : null,
+    );
     // Snapshot only when the edited node changes, not on every keystroke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configNodeId]);

@@ -2,11 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { Operation } from "@repo/schemas";
-import {
-  CanvasStoreContext,
-  createCanvasStore,
-  type CanvasStore,
-} from "../_store/canvasStore";
+import { CanvasStoreContext, createCanvasStore, type CanvasStore } from "../_store/canvasStore";
 import { ComponentPanel } from "./ComponentPanel";
 
 const operation: Operation = {

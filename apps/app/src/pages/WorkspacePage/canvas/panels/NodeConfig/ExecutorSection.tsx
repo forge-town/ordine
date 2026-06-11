@@ -17,8 +17,8 @@ export const ExecutorSection = ({ node, onPatch }: NodeConfigSectionProps) => {
   const { result: skillsResult } = useList<Skill>({
     resource: ResourceName.skills,
   });
-  const runtimes = runtimeResult?.data ?? [];
-  const skills = skillsResult?.data ?? [];
+  const runtimes = runtimeResult.data;
+  const skills = skillsResult.data;
   const handleRuntimeChange = (value: string | null) => {
     if (!value) {
       return;

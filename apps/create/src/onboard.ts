@@ -1,4 +1,10 @@
-import { err, ok, okAsync, errAsync, Result, ResultAsync, type Result as NeverthrowResult } from "neverthrow";
+import {
+  err,
+  ok,
+  Result,
+  ResultAsync,
+  type Result as NeverthrowResult,
+} from "neverthrow";
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
@@ -61,8 +67,7 @@ export const resolveEnvConfig = (
   };
 };
 
-export const isExistingInstall = (dataDir: string): boolean =>
-  existsSync(join(dataDir, ".env"));
+export const isExistingInstall = (dataDir: string): boolean => existsSync(join(dataDir, ".env"));
 
 export const readExistingEnv = (dataDir: string): Result<EnvConfig, Error> => {
   const envPath = join(dataDir, ".env");
@@ -135,8 +140,7 @@ export const formatOutput = (result: OnboardResult): string => {
   return lines.join("\n");
 };
 
-const getModuleDir = (): string =>
-  dirname(fileURLToPath(import.meta.url));
+const getModuleDir = (): string => dirname(fileURLToPath(import.meta.url));
 
 export const resolveAppServerEntry = (baseDir = getModuleDir()): Result<string, Error> => {
   const thisDir = baseDir;
@@ -207,7 +211,9 @@ export const startAppServer = (
   );
 
 const stopEmbeddedPostgres = (pg: EmbeddedPgInstance): ResultAsync<void, Error> =>
-  ResultAsync.fromPromise(pg.stop(), (error) => toError(error, "Failed to stop embedded PostgreSQL"));
+  ResultAsync.fromPromise(pg.stop(), (error) =>
+    toError(error, "Failed to stop embedded PostgreSQL"),
+  );
 
 const stopWithError = async (
   pg: EmbeddedPgInstance,
@@ -217,7 +223,9 @@ const stopWithError = async (
 
   if (stopResult.isErr()) {
     return err(
-      new Error(`${originalError.message}; additionally failed to stop embedded PostgreSQL: ${stopResult.error.message}`),
+      new Error(
+        `${originalError.message}; additionally failed to stop embedded PostgreSQL: ${stopResult.error.message}`,
+      ),
     );
   }
 
@@ -242,7 +250,9 @@ const runOnboard = async (options: OnboardOptions): Promise<NeverthrowResult<voi
 
   console.log("PostgreSQL ready (PGlite)");
 
-  const existingConfigResult = isExistingInstall(dataDir) ? readExistingEnv(dataDir) : ok<EnvConfig | null>(null);
+  const existingConfigResult = isExistingInstall(dataDir)
+    ? readExistingEnv(dataDir)
+    : ok<EnvConfig | null>(null);
   if (existingConfigResult.isErr()) {
     return stopWithError(pg, existingConfigResult.error);
   }
@@ -285,6 +295,7 @@ const runOnboard = async (options: OnboardOptions): Promise<NeverthrowResult<voi
   console.log(formatOutput(result));
 
   const startServerResult = await startAppServer(serverEntryResult.value, envConfig);
+
   return startServerResult.isOk() ? ok(undefined) : err(startServerResult.error);
 };
 

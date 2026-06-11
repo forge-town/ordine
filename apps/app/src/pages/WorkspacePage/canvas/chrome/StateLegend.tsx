@@ -45,7 +45,7 @@ export const StateLegend = () => {
         </div>
         <div className="space-y-0.5">
           {STATE_DEFS.map(([status, tone]) => (
-            <div className="flex items-center gap-2 rounded-lg px-1.5 py-1 text-xs" key={status}>
+            <div key={status} className="flex items-center gap-2 rounded-lg px-1.5 py-1 text-xs">
               <span className="relative inline-flex size-2 items-center justify-center">
                 {tone === "neutral" ? (
                   <span className="size-2 rounded-full bg-surface shadow-[inset_0_0_0_1.5px_var(--color-muted-foreground)]" />

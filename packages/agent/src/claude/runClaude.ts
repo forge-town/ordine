@@ -1,25 +1,20 @@
 import { spawn } from "node:child_process";
 import { Result } from "neverthrow";
 import { logger } from "@repo/logger";
-import {
-  ClaudeStreamEventSchema,
-  type ClaudeStreamEvent,
-} from "./schemas/ClaudeStreamEventSchema";
+import { ClaudeStreamEventSchema, type ClaudeStreamEvent } from "./schemas/ClaudeStreamEventSchema";
 import type { RunClaudeOptions } from "./schemas/RunClaudeOptionsSchema";
 import type { RunClaudeResult } from "./schemas/RunClaudeResultSchema";
 import type { ToolName } from "./schemas/ToolNameSchema";
 
 const shellEscape = (s: string) => `'${s.replaceAll("'", "'\\\\''")}'`;
 
-const CLAUDE_BIN = process.env.CLAUDE_BIN ?? (process.platform === "win32" ? "claude.cmd" : "claude");
+const CLAUDE_BIN =
+  process.env.CLAUDE_BIN ?? (process.platform === "win32" ? "claude.cmd" : "claude");
 const MAX_SYSTEM_PROMPT_CHARS = 10_000;
-const UNSAFE_SYSTEM_PROMPT_CONTROL_CHARS =
-  /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+const UNSAFE_SYSTEM_PROMPT_CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 
 const sanitizeSystemPrompt = (value: string) =>
-  value
-    .replace(UNSAFE_SYSTEM_PROMPT_CONTROL_CHARS, "")
-    .slice(0, MAX_SYSTEM_PROMPT_CHARS);
+  value.replace(UNSAFE_SYSTEM_PROMPT_CONTROL_CHARS, "").slice(0, MAX_SYSTEM_PROMPT_CHARS);
 
 const DEFAULT_READ_ONLY_TOOLS = [
   "Read",
@@ -97,8 +92,7 @@ const extractResultFromEvents = (events: ClaudeStreamEvent[]): string => {
   for (const ev of [...events].reverse()) {
     if (ev.type === "assistant" && ev.message?.content) {
       const textBlocks = ev.message.content.filter(
-        (c): c is { type: "text"; text: string } =>
-          c.type === "text" && "text" in c,
+        (c): c is { type: "text"; text: string } => c.type === "text" && "text" in c,
       );
       if (textBlocks.length > 0) {
         return textBlocks.map((b) => b.text).join("\n");
@@ -155,10 +149,7 @@ export const runClaude = async ({
   const isSsh = !!ssh;
   const label = isSsh ? `[Claude SSH ${ssh.user}@${ssh.host}]` : "[Claude]";
 
-  logger.info(
-    { cwd, ssh: isSsh ? `${ssh?.user}@${ssh?.host}` : "local" },
-    "runClaude: starting",
-  );
+  logger.info({ cwd, ssh: isSsh ? `${ssh?.user}@${ssh?.host}` : "local" }, "runClaude: starting");
   await onProgress?.(`${label} Starting claude -p (cwd=${cwd})...`);
 
   return new Promise<RunClaudeResult>((resolve, reject) => {
@@ -217,10 +208,7 @@ export const runClaude = async ({
           if (validated.success) {
             events.push(validated.data);
           } else {
-            logger.warn(
-              { line },
-              "runClaude: unrecognised stream event shape, skipping",
-            );
+            logger.warn({ line }, "runClaude: unrecognised stream event shape, skipping");
           }
         }
       }
@@ -257,16 +245,9 @@ export const runClaude = async ({
 
       // stream-json may exit with non-zero on budget exceeded but still has valid events
       if (code !== 0 && events.length === 0) {
-        logger.error(
-          { code, stderr: stderr.slice(0, 500) },
-          "runClaude: non-zero exit",
-        );
-        void onProgress?.(
-          `${label} Exit code ${code}: ${stderr.slice(0, 200)}`,
-        );
-        reject(
-          new Error(`claude exited with code ${code}: ${stderr.slice(0, 500)}`),
-        );
+        logger.error({ code, stderr: stderr.slice(0, 500) }, "runClaude: non-zero exit");
+        void onProgress?.(`${label} Exit code ${code}: ${stderr.slice(0, 200)}`);
+        reject(new Error(`claude exited with code ${code}: ${stderr.slice(0, 500)}`));
 
         return;
       }
@@ -278,13 +259,8 @@ export const runClaude = async ({
       // Extract result text from events
       const resultText = extractResultFromEvents(events);
 
-      logger.info(
-        { len: resultText.length, eventCount: events.length },
-        "runClaude: complete",
-      );
-      void onProgress?.(
-        `${label} Complete (${resultText.length} chars, ${events.length} events)`,
-      );
+      logger.info({ len: resultText.length, eventCount: events.length }, "runClaude: complete");
+      void onProgress?.(`${label} Complete (${resultText.length} chars, ${events.length} events)`);
       resolve({ text: resultText, events });
     });
   });

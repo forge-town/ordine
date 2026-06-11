@@ -24,5 +24,4 @@ Pipeline 是 Ordine 的核心概念——一个有向无环图 (DAG)，将输入
 2. 阅读 [node-types.md](references/node-types.md) 了解所有节点类型和配置
 3. 按照 [creation-guide.md](references/creation-guide.md) 创建 Pipeline
 4. 使用 [checklist.md](references/checklist.md) 验证
-
 ```

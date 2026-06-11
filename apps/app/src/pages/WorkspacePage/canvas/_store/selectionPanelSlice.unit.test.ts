@@ -95,6 +95,16 @@ describe("selection and panel slices", () => {
     ]);
   });
 
+  it("keeps state identity when the selection content is unchanged", () => {
+    const store = createTestStore();
+
+    store.getState().setSelectedIds(["node-a"]);
+    const first = store.getState().selectedIds;
+    store.getState().setSelectedIds(["node-a"]);
+
+    expect(store.getState().selectedIds).toBe(first);
+  });
+
   it("clears the selection", () => {
     const store = createTestStore();
 

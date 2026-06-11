@@ -50,7 +50,12 @@ describe("FolderBrowser", () => {
 
   it("shows files in file mode", async () => {
     render(
-      <FolderBrowserDialog open mode="file" onOpenChange={handleOpenChange} onSelect={handleSelect} />,
+      <FolderBrowserDialog
+        open
+        mode="file"
+        onOpenChange={handleOpenChange}
+        onSelect={handleSelect}
+      />,
     );
     expect(screen.getByText("Desktop")).toBeInTheDocument();
     expect(screen.getByText(".zshrc")).toBeInTheDocument();
@@ -96,7 +101,9 @@ describe("FolderBrowser", () => {
 
     await user.click(screen.getByText("Desktop"));
 
-    rerender(<FolderBrowserDialog open onOpenChange={handleOpenChangeSpy} onSelect={handleSelectSpy} />);
+    rerender(
+      <FolderBrowserDialog open onOpenChange={handleOpenChangeSpy} onSelect={handleSelectSpy} />,
+    );
 
     await user.click(screen.getByText("选择此文件夹"));
 
@@ -143,7 +150,12 @@ describe("FolderBrowser", () => {
     );
 
     render(
-      <FolderBrowserDialog open mode="file" onOpenChange={handleOpenChange} onSelect={handleSelect} />,
+      <FolderBrowserDialog
+        open
+        mode="file"
+        onOpenChange={handleOpenChange}
+        onSelect={handleSelect}
+      />,
     );
 
     await user.click(screen.getByText(longFileName));

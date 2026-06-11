@@ -3,6 +3,31 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { VersionMenu } from "./VersionMenu";
 
+vi.mock("@repo/ui/dropdown-menu", () => ({
+  DropdownMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuTrigger: ({
+    children,
+    ...props
+  }: React.ComponentProps<"button"> & { children: React.ReactNode }) => (
+    <button type="button" {...props}>
+      {children}
+    </button>
+  ),
+  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuItem: ({
+    children,
+    onClick,
+    disabled,
+    ...props
+  }: React.ComponentProps<"button"> & { children: React.ReactNode }) => (
+    <button type="button" disabled={disabled} onClick={onClick} {...props}>
+      {children}
+    </button>
+  ),
+  DropdownMenuLabel: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuSeparator: () => <hr />,
+}));
+
 describe("VersionMenu", () => {
   it("disables overwrite when the graph is clean", async () => {
     const user = userEvent.setup();

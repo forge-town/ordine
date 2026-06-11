@@ -1,11 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  CanvasStoreContext,
-  createCanvasStore,
-  type CanvasStore,
-} from "../_store/canvasStore";
+import { CanvasStoreContext, createCanvasStore, type CanvasStore } from "../_store/canvasStore";
 import { CanvasToolbar } from "./CanvasToolbar";
 
 const fitViewMock = vi.fn();

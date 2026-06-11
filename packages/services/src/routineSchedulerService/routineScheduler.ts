@@ -79,7 +79,7 @@ export const getNextCronRunAt = (expression: string | null, from: Date): Date | 
 
   const candidate = startOfNextMinute(from);
   const maxIterations = 366 * 24 * 60;
-  for (let index = 0; index < maxIterations; index += 1) {
+  for (const _ of Array.from({ length: maxIterations })) {
     if (
       isAllowed(minute, candidate.getMinutes()) &&
       isAllowed(hour, candidate.getHours()) &&

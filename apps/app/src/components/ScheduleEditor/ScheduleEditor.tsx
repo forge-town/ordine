@@ -151,7 +151,12 @@ export const ScheduleEditor = ({
               )}
             />
           </button>
-          <Button aria-label={t("jobs.scheduleEditor.close")} size="icon" variant="ghost" onClick={onClose}>
+          <Button
+            aria-label={t("jobs.scheduleEditor.close")}
+            size="icon"
+            variant="ghost"
+            onClick={onClose}
+          >
             <X className="size-4" />
           </Button>
         </div>
@@ -170,6 +175,7 @@ export const ScheduleEditor = ({
                 ] as const
               ).map(([choice, IconComponent]) => (
                 <button
+                  key={choice}
                   className={cn(
                     "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors",
                     trigger === choice
@@ -177,7 +183,6 @@ export const ScheduleEditor = ({
                       : "text-muted-foreground hover:text-foreground",
                   )}
                   data-testid={`schedule-trigger-${choice}`}
-                  key={choice}
                   type="button"
                   onClick={() => setTrigger(choice)}
                 >
@@ -197,6 +202,7 @@ export const ScheduleEditor = ({
                 <div className="flex flex-wrap gap-1.5">
                   {CRON_PRESETS.map((preset) => (
                     <button
+                      key={preset.cron}
                       className={cn(
                         "rounded-full px-2.5 py-1 text-[11.5px] ring-1 transition-colors",
                         cron === preset.cron
@@ -204,7 +210,6 @@ export const ScheduleEditor = ({
                           : "bg-surface ring-border hover:bg-accent/60",
                       )}
                       data-testid={`schedule-preset-${preset.key}`}
-                      key={preset.cron}
                       type="button"
                       onClick={() => setCron(preset.cron)}
                     >
@@ -219,7 +224,7 @@ export const ScheduleEditor = ({
                 </div>
                 <div className="flex items-start gap-1.5">
                   {CRON_PART_KEYS.map((part, index) => (
-                    <div className="flex-1" key={part}>
+                    <div key={part} className="flex-1">
                       <Input
                         className="text-center font-mono text-xs"
                         data-testid={`schedule-cron-${part}`}
@@ -244,6 +249,7 @@ export const ScheduleEditor = ({
               <div className="flex flex-wrap gap-1.5">
                 {EVENT_TYPES.map((candidate) => (
                   <button
+                    key={candidate}
                     className={cn(
                       "rounded-full px-2.5 py-1 font-mono text-[11px] ring-1 transition-colors",
                       eventType === candidate
@@ -251,7 +257,6 @@ export const ScheduleEditor = ({
                         : "bg-surface ring-border hover:bg-accent/60",
                     )}
                     data-testid={`schedule-event-${candidate}`}
-                    key={candidate}
                     type="button"
                     onClick={() => setEventType(candidate)}
                   >

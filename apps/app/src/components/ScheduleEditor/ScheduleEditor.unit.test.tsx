@@ -62,9 +62,7 @@ describe("ScheduleEditor", () => {
 
   it("creates an event routine", async () => {
     const user = userEvent.setup();
-    render(
-      <ScheduleEditor pipelineId="pipeline-1" pipelineName="Triage" onClose={vi.fn()} />,
-    );
+    render(<ScheduleEditor pipelineId="pipeline-1" pipelineName="Triage" onClose={vi.fn()} />);
 
     await user.click(screen.getByTestId("schedule-trigger-event"));
     await user.click(screen.getByTestId("schedule-event-pr.opened"));
@@ -89,14 +87,10 @@ describe("ScheduleEditor", () => {
     );
 
     await user.click(screen.getByTestId("schedule-save"));
-    expect(updateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "routine-1" }),
-    );
+    expect(updateMock).toHaveBeenCalledWith(expect.objectContaining({ id: "routine-1" }));
 
     await user.click(screen.getByTestId("schedule-delete"));
-    expect(deleteMock).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "routine-1" }),
-    );
+    expect(deleteMock).toHaveBeenCalledWith(expect.objectContaining({ id: "routine-1" }));
   });
 
   it("removes the standing routine when switched back to manual", async () => {

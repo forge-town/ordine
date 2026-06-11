@@ -125,11 +125,11 @@ export const ContextStrip = ({
         >
           {items.map((item) => (
             <div
+              key={item.id}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-1.5 py-1 text-[10.5px]",
                 !item.on && "opacity-40",
               )}
-              key={item.id}
             >
               <span className="flex size-3 items-center justify-center">
                 {item.on ? (

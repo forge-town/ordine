@@ -1,11 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  CanvasStoreContext,
-  createCanvasStore,
-  type CanvasStore,
-} from "../_store/canvasStore";
+import { CanvasStoreContext, createCanvasStore, type CanvasStore } from "../_store/canvasStore";
 import type { CanvasNode } from "../_store/canvasTypes";
 import { ComposeBar } from "./ComposeBar";
 
@@ -59,9 +55,7 @@ describe("ComposeBar", () => {
     const compound = store.getState().nodes.find((node) => node.type === "compound");
     expect(compound).toBeDefined();
     expect(store.getState().selectedIds).toEqual([compound?.id]);
-    expect(mutateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "pipeline-1" }),
-    );
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({ id: "pipeline-1" }));
   });
 
   it("clears the selection from the bar", async () => {

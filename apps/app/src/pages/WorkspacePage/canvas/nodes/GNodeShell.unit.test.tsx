@@ -183,11 +183,8 @@ describe("Canvas V2 node shell variants", () => {
     fireEvent.click(screen.getByTestId("canvas-v2-node-configure"));
     expect(store.getState().configNodeId).toBe("node-a");
 
-    fireEvent.click(screen.getByTestId("canvas-v2-node-annotate"));
-    expect(store.getState().annotatingId).toBe("node-a");
-
-    fireEvent.click(screen.getByTestId("canvas-v2-node-view-annotations"));
-    expect(store.getState().viewingAnnId).toBe("node-a");
+    fireEvent.click(screen.getByTestId("canvas-v2-node-ask"));
+    expect(store.getState().askNodeId).toBe("node-a");
   });
 
   it("duplicates and deletes nodes through node controls", () => {

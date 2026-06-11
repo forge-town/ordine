@@ -63,7 +63,7 @@ describe("Composer", () => {
     const handleRemoveRef = vi.fn();
     renderComposer(handleRemoveRef);
 
-    await user.click(screen.getByRole("button", { name: "Remove Source File" }));
+    await user.click(screen.getByRole("button", { name: "移除 Source File" }));
 
     expect(handleRemoveRef).toHaveBeenCalledWith("node-1");
   });

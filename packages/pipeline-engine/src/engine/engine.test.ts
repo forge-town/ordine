@@ -276,11 +276,11 @@ describe("executePipeline", () => {
       expect(callArgs.agent).toBeUndefined();
     });
 
-    it("skips operation when operationId is not found", async () => {
+    it("returns error when operationId is not found", async () => {
       const deps = makeDeps();
       const nodes = [makeNode("op", "operation", { operationId: "missing-op" })];
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
-      expect(result.ok).toBe(true);
+      expect(result.ok).toBe(false);
     });
 
     it("skips operation with empty prompt", async () => {
@@ -553,10 +553,14 @@ describe("executePipeline", () => {
       const inputFile = join(testDir, "input.txt");
       await writeFile(inputFile, "initial content", "utf8");
 
+      const opId = "op-input-path";
       const deps = makeDeps();
-      const nodes = [makeNode("op", "operation", { operationId: "missing" })];
+      const nodes = [makeNode("op", "operation", { operationId: opId })];
+      const operations = new Map([
+        [opId, makeOp(opId, "Input Path Op", { executor: { type: "agent", agentMode: "prompt", prompt: "test" } })],
+      ]);
       const result = await pipelineEngine.execute(
-        makeOpts(nodes, [], deps, { inputPath: inputFile }),
+        makeOpts(nodes, [], deps, { inputPath: inputFile, operations }),
       );
       expect(result.ok).toBe(true);
     });

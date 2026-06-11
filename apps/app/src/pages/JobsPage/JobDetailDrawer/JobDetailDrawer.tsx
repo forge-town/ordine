@@ -4,8 +4,13 @@ import { ResultAsync } from "neverthrow";
 import { ExternalLink, Pause, Play, RotateCcw, Square, Workflow, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import type { Job, JobTrace, NodeRunStatus, PipelineData } from "@repo/schemas";
-import { normalizeNodeRunStatus } from "@repo/schemas";
+import {
+  type Job,
+  type JobTrace,
+  type NodeRunStatus,
+  type PipelineData,
+  normalizeNodeRunStatus,
+} from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName, dataProvider } from "@/integrations/refine/dataProvider";
@@ -92,7 +97,11 @@ export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDeta
   };
 
   return (
-    <div className="absolute inset-0 z-50 flex justify-end" data-testid="job-detail-drawer" onClick={onClose}>
+    <div
+      className="absolute inset-0 z-50 flex justify-end"
+      data-testid="job-detail-drawer"
+      onClick={onClose}
+    >
       <div className="absolute inset-0 bg-foreground/15" />
       <aside
         className="relative flex h-full w-[460px] flex-col bg-background shadow-float ring-1 ring-border-strong"
@@ -188,9 +197,12 @@ export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDeta
             <div className="space-y-1.5">
               {steps.map((step, index) => (
                 <div
-                  className={cn("flex items-center gap-2.5 rounded-xl px-3 py-2.5 ring-1", stepTone(step.status))}
-                  data-testid={`job-drawer-step-${step.id}`}
                   key={step.id}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-xl px-3 py-2.5 ring-1",
+                    stepTone(step.status),
+                  )}
+                  data-testid={`job-drawer-step-${step.id}`}
                 >
                   <span className="flex size-5 items-center justify-center font-mono text-[10px] text-muted-foreground">
                     {String(index + 1).padStart(2, "0")}
@@ -210,7 +222,7 @@ export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDeta
               <div className="text-muted-foreground/60">{t("jobs.drawer.noTrace")}</div>
             ) : (
               traces.slice(-80).map((trace) => (
-                <div className="break-all text-muted-foreground" key={trace.id}>
+                <div key={trace.id} className="break-all text-muted-foreground">
                   {trace.message}
                 </div>
               ))
@@ -229,7 +241,10 @@ export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDeta
             variant="outline"
             onClick={() => {
               if (job.pipelineId) {
-                void navigate({ params: { pipelineId: job.pipelineId }, to: "/workspace/$pipelineId" });
+                void navigate({
+                  params: { pipelineId: job.pipelineId },
+                  to: "/workspace/$pipelineId",
+                });
               }
             }}
           >

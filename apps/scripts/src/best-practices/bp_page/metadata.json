@@ -4,9 +4,5 @@
   "condition": "创建或审查前端页面结构",
   "category": "frontend",
   "language": "tsx",
-  "tags": [
-    "page",
-    "architecture",
-    "anatomy"
-  ]
+  "tags": ["page", "architecture", "anatomy"]
 }

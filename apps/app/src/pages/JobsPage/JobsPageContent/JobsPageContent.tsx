@@ -140,6 +140,7 @@ export const JobsPageContent = () => {
             ] as const
           ).map(([candidate, IconComponent]) => (
             <button
+              key={candidate}
               className={cn(
                 "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                 view === candidate
@@ -147,7 +148,6 @@ export const JobsPageContent = () => {
                   : "text-muted-foreground hover:text-foreground",
               )}
               data-testid={`jobs-view-${candidate}`}
-              key={candidate}
               type="button"
               onClick={() => setView(candidate)}
             >
@@ -165,9 +165,9 @@ export const JobsPageContent = () => {
               <div className="flex items-center gap-0.5">
                 {JOB_STATUS_FILTERS.map((filter) => (
                   <Chip
+                    key={filter}
                     active={statusFilter === filter}
                     count={filterCounts[filter]}
-                    key={filter}
                     onClick={() => handleStatusFilterButtonClick(filter)}
                   >
                     {filter}
@@ -253,9 +253,9 @@ export const JobsPageContent = () => {
             <div className="max-h-72 overflow-y-auto p-2">
               {pipelines.map((pipeline) => (
                 <button
+                  key={pipeline.id}
                   className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs hover:bg-accent/60"
                   data-testid={`jobs-pick-${pipeline.id}`}
-                  key={pipeline.id}
                   type="button"
                   onClick={() => setScheduling(pipeline)}
                 >

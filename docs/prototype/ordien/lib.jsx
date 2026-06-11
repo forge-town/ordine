@@ -34,26 +34,28 @@ function Icon({ name, className = "", size = 16, stroke = 2, style }) {
 
 /* Status → wash class + lucide icon name + label */
 const STATUS = {
-  idle:           { cls: "status-wash-muted",   icon: "Circle",       label: "Idle" },
-  queued:         { cls: "status-wash-muted",   icon: "Clock",        label: "Queued" },
-  running:        { cls: "status-wash-muted",   icon: "LoaderCircle", label: "Running", spin: true },
-  retrying:       { cls: "status-wash-muted",   icon: "RotateCw",     label: "Retrying", spin: true },
-  waitingForUser: { cls: "status-wash-muted",   icon: "CircleDot",    label: "Awaiting you" },
-  paused:         { cls: "status-wash-muted",   icon: "Pause",        label: "Paused" },
-  done:           { cls: "status-wash-success", icon: "CircleCheck",  label: "Done" },
-  completed:      { cls: "status-wash-success", icon: "CircleCheck",  label: "Completed" },
-  connected:      { cls: "status-wash-success", icon: "CircleCheck",  label: "Connected" },
-  pass:           { cls: "status-wash-success", icon: "CircleCheck",  label: "Passed" },
-  failed:         { cls: "status-wash-error",   icon: "CircleAlert",  label: "Failed" },
-  error:          { cls: "status-wash-error",   icon: "CircleAlert",  label: "Error" },
-  skipped:        { cls: "status-wash-muted",   icon: "SkipForward",  label: "Skipped" },
-  cancelled:      { cls: "status-wash-muted",   icon: "Ban",          label: "Cancelled" },
+  idle: { cls: "status-wash-muted", icon: "Circle", label: "Idle" },
+  queued: { cls: "status-wash-muted", icon: "Clock", label: "Queued" },
+  running: { cls: "status-wash-muted", icon: "LoaderCircle", label: "Running", spin: true },
+  retrying: { cls: "status-wash-muted", icon: "RotateCw", label: "Retrying", spin: true },
+  waitingForUser: { cls: "status-wash-muted", icon: "CircleDot", label: "Awaiting you" },
+  paused: { cls: "status-wash-muted", icon: "Pause", label: "Paused" },
+  done: { cls: "status-wash-success", icon: "CircleCheck", label: "Done" },
+  completed: { cls: "status-wash-success", icon: "CircleCheck", label: "Completed" },
+  connected: { cls: "status-wash-success", icon: "CircleCheck", label: "Connected" },
+  pass: { cls: "status-wash-success", icon: "CircleCheck", label: "Passed" },
+  failed: { cls: "status-wash-error", icon: "CircleAlert", label: "Failed" },
+  error: { cls: "status-wash-error", icon: "CircleAlert", label: "Error" },
+  skipped: { cls: "status-wash-muted", icon: "SkipForward", label: "Skipped" },
+  cancelled: { cls: "status-wash-muted", icon: "Ban", label: "Cancelled" },
 };
 
 function StatusPill({ status, className = "" }) {
   const s = STATUS[status] || STATUS.idle;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${s.cls} ${className}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${s.cls} ${className}`}
+    >
       <Icon name={s.icon} size={10} className={s.spin ? "spin" : ""} />
       {s.label}
     </span>
@@ -62,10 +64,13 @@ function StatusPill({ status, className = "" }) {
 
 /* small colored dot (green/red/neutral) */
 function Dot({ tone = "muted", ping = false }) {
-  const bg = tone === "success" ? "bg-success" : tone === "error" ? "bg-destructive" : "bg-foreground/55";
+  const bg =
+    tone === "success" ? "bg-success" : tone === "error" ? "bg-destructive" : "bg-foreground/55";
   return (
     <span className="relative inline-flex h-2 w-2 shrink-0">
-      {ping && <span className={`absolute inline-flex h-full w-full rounded-full ${bg} opacity-40 ping`} />}
+      {ping && (
+        <span className={`absolute inline-flex h-full w-full rounded-full ${bg} opacity-40 ping`} />
+      )}
       <span className={`relative inline-flex h-2 w-2 rounded-full ${bg}`} />
     </span>
   );
@@ -82,7 +87,9 @@ function PageHeader({ eyebrow, title, sub, actions, children }) {
           </div>
         )}
         <h1 className="text-[21px] font-semibold leading-tight tracking-tightish">{title}</h1>
-        {sub && <p className="mt-1 max-w-xl text-[12.5px] leading-relaxed text-muted-foreground">{sub}</p>}
+        {sub && (
+          <p className="mt-1 max-w-xl text-[12.5px] leading-relaxed text-muted-foreground">{sub}</p>
+        )}
         {children}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
@@ -96,7 +103,8 @@ function Btn({ children, icon, variant = "ghost", size = "md", className = "", .
   const sz = size === "sm" ? "px-2.5 py-1 text-[11.5px]" : "px-3 py-1.5 text-[12.5px]";
   const variants = {
     solid: "bg-foreground text-primary-foreground hover:opacity-90 shadow-sm",
-    ghost: "bg-surface text-foreground ring-1 ring-border hover:ring-border-strong hover:bg-accent/40",
+    ghost:
+      "bg-surface text-foreground ring-1 ring-border hover:ring-border-strong hover:bg-accent/40",
     subtle: "bg-surface-2 text-foreground hover:bg-accent",
     quiet: "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
   };
@@ -112,7 +120,11 @@ function Btn({ children, icon, variant = "ghost", size = "md", className = "", .
 function SearchInput({ placeholder = "Search…", className = "" }) {
   return (
     <div className={`relative ${className}`}>
-      <Icon name="Search" size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+      <Icon
+        name="Search"
+        size={14}
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+      />
       <input
         placeholder={placeholder}
         className="w-full rounded-xl bg-surface-2 py-1.5 pl-8.5 pr-3 text-[12.5px] placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-border-strong"
@@ -128,12 +140,18 @@ function Chip({ children, active = false, onClick, count }) {
     <button
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] transition-colors ${
-        active ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+        active
+          ? "bg-accent text-foreground"
+          : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
       }`}
     >
       {children}
       {count != null && (
-        <span className={`rounded-full px-1.5 text-[10px] ${active ? "bg-surface text-foreground" : "bg-surface-2"}`}>{count}</span>
+        <span
+          className={`rounded-full px-1.5 text-[10px] ${active ? "bg-surface text-foreground" : "bg-surface-2"}`}
+        >
+          {count}
+        </span>
       )}
     </button>
   );
@@ -141,11 +159,16 @@ function Chip({ children, active = false, onClick, count }) {
 
 /* tiny labelled stat */
 function Stat({ label, value, sub, tone }) {
-  const valTone = tone === "success" ? "text-success" : tone === "error" ? "text-destructive" : "text-foreground";
+  const valTone =
+    tone === "success" ? "text-success" : tone === "error" ? "text-destructive" : "text-foreground";
   return (
     <div className="rounded-2xl bg-surface p-4 ring-1 ring-border shadow-soft">
-      <div className="text-[10.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{label}</div>
-      <div className={`mt-1.5 text-[24px] font-semibold leading-none tracking-tightish ${valTone}`}>{value}</div>
+      <div className="text-[10.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+        {label}
+      </div>
+      <div className={`mt-1.5 text-[24px] font-semibold leading-none tracking-tightish ${valTone}`}>
+        {value}
+      </div>
       {sub && <div className="mt-1.5 text-[11.5px] text-muted-foreground">{sub}</div>}
     </div>
   );
@@ -153,7 +176,22 @@ function Stat({ label, value, sub, tone }) {
 
 /* tag pill */
 function Tag({ children }) {
-  return <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-mono text-muted-foreground">{children}</span>;
+  return (
+    <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-mono text-muted-foreground">
+      {children}
+    </span>
+  );
 }
 
-Object.assign(window, { Icon, StatusPill, STATUS, Dot, PageHeader, Btn, SearchInput, Chip, Stat, Tag });
+Object.assign(window, {
+  Icon,
+  StatusPill,
+  STATUS,
+  Dot,
+  PageHeader,
+  Btn,
+  SearchInput,
+  Chip,
+  Stat,
+  Tag,
+});

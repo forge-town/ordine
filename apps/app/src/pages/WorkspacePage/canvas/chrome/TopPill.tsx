@@ -186,11 +186,11 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
             if (index === 0 && renaming) {
               return (
                 <input
+                  key="rename"
                   autoFocus
                   className="w-44 rounded-md bg-surface-2 px-1.5 py-0.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-border-strong"
                   data-testid="canvas-v2-rename-input"
                   defaultValue={crumb.label}
-                  key="rename"
                   onBlur={(event) => commitRename(event.target.value)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
@@ -205,7 +205,7 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
             }
 
             return (
-              <span className="flex min-w-0 items-center gap-1" key={crumb.id}>
+              <span key={crumb.id} className="flex min-w-0 items-center gap-1">
                 {index > 0 ? (
                   <ChevronRight className="size-3 shrink-0 text-muted-foreground/50" />
                 ) : null}
@@ -224,6 +224,7 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
                   onClick={() => {
                     if (index === 0 && isLast) {
                       setRenaming(true);
+
                       return;
                     }
                     setDrillStack(drillStack.slice(0, index));
@@ -274,9 +275,9 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
         {atRoot ? (
           running ? (
             <button
+              disabled
               className="flex items-center gap-1.5 rounded-full bg-surface px-3.5 py-1.5 text-xs font-medium text-foreground shadow-pill ring-1 ring-border opacity-70"
               data-testid="canvas-v2-stop"
-              disabled
               title={t("workspace.canvas.chrome.run.stopUnavailable")}
               type="button"
             >
@@ -293,12 +294,16 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
               )}
               data-testid="canvas-v2-run"
               disabled={!canRun}
-              title={hasOperationNode ? undefined : t("workspace.canvas.chrome.run.noRunnableNodes")}
+              title={
+                hasOperationNode ? undefined : t("workspace.canvas.chrome.run.noRunnableNodes")
+              }
               type="button"
               onClick={handleRun}
             >
               <Play className="size-3.5 fill-current" />
-              {latestJob ? t("workspace.canvas.chrome.run.rerun") : t("workspace.canvas.chrome.run.run")}
+              {latestJob
+                ? t("workspace.canvas.chrome.run.rerun")
+                : t("workspace.canvas.chrome.run.run")}
             </button>
           )
         ) : null}
