@@ -149,7 +149,46 @@
     "typePipeline": "Pipeline",
     "inProgress": "In Progress",
     "result": "Result",
-    "statusPaused": "Paused"
+    "statusPaused": "Paused",
+    "scheduleEditor": {
+      "cancel": "Cancel",
+      "close": "Close",
+      "cronExpression": "Cron expression",
+      "cronParts": {
+        "day": "day",
+        "hour": "hour",
+        "minute": "min",
+        "month": "month",
+        "weekday": "wday"
+      },
+      "delete": "Remove routine",
+      "enabledToggle": "Enabled",
+      "event": "Event",
+      "presets": {
+        "daily": "Daily 06:00",
+        "dailyHuman": "Runs every day at 06:00",
+        "hourly": "Every hour",
+        "hourlyHuman": "Runs at minute 0 of every hour",
+        "weekdays": "Weekdays 09:00",
+        "weekdaysHuman": "Runs Mon–Fri at 09:00",
+        "weekly": "Weekly Mon",
+        "weeklyHuman": "Runs every Monday at 09:00"
+      },
+      "presetsLabel": "Presets",
+      "save": "Save schedule",
+      "summary": {
+        "cron": "Runs on cron {{cron}}",
+        "event": "Runs on every {{event}}",
+        "manual": "Runs only when you press Run"
+      },
+      "title": "Schedule",
+      "trigger": "Trigger",
+      "triggers": {
+        "cron": "Schedule",
+        "event": "On event",
+        "manual": "Manual"
+      }
+    }
   },
   "distillations": {
     "title": "Distillations",

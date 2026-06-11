@@ -152,7 +152,46 @@
     "typePipeline": "Pipeline",
     "inProgress": "进行中",
     "result": "执行结果",
-    "statusPaused": "已暂停"
+    "statusPaused": "已暂停",
+    "scheduleEditor": {
+      "cancel": "取消",
+      "close": "关闭",
+      "cronExpression": "Cron 表达式",
+      "cronParts": {
+        "day": "日",
+        "hour": "时",
+        "minute": "分",
+        "month": "月",
+        "weekday": "周"
+      },
+      "delete": "移除 Routine",
+      "enabledToggle": "启用",
+      "event": "事件",
+      "presets": {
+        "daily": "每天 06:00",
+        "dailyHuman": "每天 06:00 运行",
+        "hourly": "每小时",
+        "hourlyHuman": "每小时的第 0 分钟运行",
+        "weekdays": "工作日 09:00",
+        "weekdaysHuman": "周一至周五 09:00 运行",
+        "weekly": "每周一",
+        "weeklyHuman": "每周一 09:00 运行"
+      },
+      "presetsLabel": "预设",
+      "save": "保存排程",
+      "summary": {
+        "cron": "按 cron {{cron}} 运行",
+        "event": "每次 {{event}} 时运行",
+        "manual": "仅在你点击 Run 时运行"
+      },
+      "title": "排程",
+      "trigger": "触发方式",
+      "triggers": {
+        "cron": "定时",
+        "event": "事件触发",
+        "manual": "手动"
+      }
+    }
   },
   "distillations": {
     "title": "蒸馏",
