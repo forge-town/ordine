@@ -138,7 +138,7 @@ export const SearchPipelineDialog = () => {
     handleSearchDialogOpenChange(false);
     handleSidebarSearchClear();
     if (result.kind === "Pipeline") {
-      void navigate({ to: "/canvas", search: { id: result.id } });
+      void navigate({ to: "/workspace/$pipelineId", params: { pipelineId: result.id } });
 
       return;
     }

@@ -1,6 +1,10 @@
 import { useEffect } from "react";
+import { useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { PanelRightOpen } from "lucide-react";
+import type { PipelineData } from "@repo/schemas";
+import { PageLoadingState } from "@/components/PageLoadingState";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { CanvasPageContent } from "@/pages/CanvasPage/CanvasPageContent";
 import { CanvasPageStoreProvider, useCanvasPageStore } from "@/pages/CanvasPage/_store";
 import { AgentBar } from "./AgentBar";
@@ -23,17 +27,35 @@ const WorkspaceCanvasPhaseBridge = () => {
 };
 
 export const WorkspacePage = ({ pipelineId }: WorkspacePageProps) => {
+  const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
+    resource: ResourceName.pipelines,
+    id: pipelineId,
+  });
   const agentOpen = useWorkspaceStore((state) => state.agentOpen);
   const toggleAgentOpen = useWorkspaceStore((state) => state.toggleAgentOpen);
   const handleAgentBarToggle = () => {
     toggleAgentOpen();
   };
 
+  if (pipelineQuery?.isLoading) {
+    return (
+      <div className="grid h-full place-items-center bg-background">
+        <PageLoadingState variant="detail" />
+      </div>
+    );
+  }
+
+  if (!pipelineResult) {
+    return (
+      <div className="grid h-full place-items-center bg-background text-sm text-muted-foreground">
+        Pipeline not found
+      </div>
+    );
+  }
+
   return (
-    <CanvasPageStoreProvider
-      pipeline={{ edges: [], id: pipelineId, name: `Pipeline ${pipelineId}`, nodes: [] }}
-    >
-      <div className="flex min-h-0 flex-1 bg-background">
+    <CanvasPageStoreProvider pipeline={pipelineResult}>
+      <div className="flex h-full min-h-0 bg-background">
         <main className="min-w-0 flex-1 overflow-hidden">
           <WorkspaceCanvasPhaseBridge />
           <CanvasPageContent />

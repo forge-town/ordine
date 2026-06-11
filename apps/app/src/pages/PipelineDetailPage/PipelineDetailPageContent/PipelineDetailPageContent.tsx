@@ -204,7 +204,8 @@ export const PipelineDetailPageContent = () => {
     );
   }
 
-  const handleCanvasClick = () => void navigate({ to: "/canvas", search: { id: pipeline.id } });
+  const handleCanvasClick = () =>
+    void navigate({ to: "/workspace/$pipelineId", params: { pipelineId: pipeline.id } });
   const handleOpenDistillationStudio = () => {
     addToast({
       type: "success",
@@ -244,8 +245,8 @@ export const PipelineDetailPageContent = () => {
           <>
             <Link
               className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              search={{ id: pipeline.id }}
-              to="/canvas"
+              params={{ pipelineId: pipeline.id }}
+              to="/workspace/$pipelineId"
             >
               <Pencil className="h-3.5 w-3.5" />
               {t("pipelines.editInCanvas")}
@@ -339,8 +340,8 @@ export const PipelineDetailPageContent = () => {
             </span>
             <Link
               className="text-xs text-violet-600 hover:underline"
-              search={{ id: pipeline.id }}
-              to="/canvas"
+              params={{ pipelineId: pipeline.id }}
+              to="/workspace/$pipelineId"
             >
               {t("pipelines.fullscreenEdit")}
             </Link>

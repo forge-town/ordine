@@ -185,7 +185,10 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
       if (phase.step !== "success") return;
       set({ newPipelineOpen: false });
       reset();
-      void router.navigate({ to: "/canvas", search: { id: phase.pipelineId } });
+      void router.navigate({
+        to: "/workspace/$pipelineId",
+        params: { pipelineId: phase.pipelineId },
+      });
     },
     handleNewPipelineRunNowButtonClick: () => {
       const phase = get().newPipelinePhase;
@@ -198,7 +201,7 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
         method: "post",
         payload: { id: pipelineId },
       });
-      void router.navigate({ to: "/canvas", search: { id: pipelineId } });
+      void router.navigate({ to: "/workspace/$pipelineId", params: { pipelineId } });
     },
     handleNewPipelineCreateAnotherButtonClick: () => {
       reset();

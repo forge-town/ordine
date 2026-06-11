@@ -6,6 +6,7 @@ import { useSession } from "@/integrations/better-auth-client";
 
 const CanvasRouteComponent = () => {
   const navigate = useNavigate();
+  const { id } = Route.useSearch();
   const { data: session, isPending } = useSession();
 
   useEffect(() => {
@@ -13,6 +14,12 @@ const CanvasRouteComponent = () => {
       navigate({ to: "/login" });
     }
   }, [isPending, session, navigate]);
+
+  useEffect(() => {
+    if (!isPending && session && id) {
+      navigate({ to: "/workspace/$pipelineId", params: { pipelineId: id }, replace: true });
+    }
+  }, [id, isPending, navigate, session]);
 
   if (isPending) {
     return (
@@ -23,6 +30,10 @@ const CanvasRouteComponent = () => {
   }
 
   if (!session) {
+    return null;
+  }
+
+  if (id) {
     return null;
   }
 

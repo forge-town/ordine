@@ -160,7 +160,10 @@ describe("SearchPipelineDialog", () => {
 
     await user.click(screen.getByRole("button", { name: /Lead Research Brief/ }));
 
-    expect(mockNavigate).toHaveBeenCalledWith({ to: "/canvas", search: { id: "pipeline-1" } });
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: "/workspace/$pipelineId",
+      params: { pipelineId: "pipeline-1" },
+    });
     expect(mockSidebarStore.getState().searchOpen).toBe(false);
     expect(mockSidebarStore.getState().sidebarSearchQuery).toBe("");
   });
