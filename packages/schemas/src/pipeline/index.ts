@@ -4,6 +4,7 @@ export * from "./PipelineGraphSnapshotSchema";
 export * from "./PipelineActionDiagnosticSchema";
 export * from "./PipelineActionSchema";
 export * from "./PipelineActionProposalSchema";
+export * from "./ProposeActionsResponseSchema";
 export * from "./WorkspaceCanvasRefSchema";
 export * from "./WorkspacePhaseSchema";
 export * from "./node";

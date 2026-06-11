@@ -13,8 +13,7 @@ import {
   PipelineActionProposalSchema,
   type ConversationAttachment,
   type PipelineGraphSnapshot,
-  type PipelineActionDiagnostic,
-  type PipelineActionProposal,
+  type ProposeActionsResponse,
 } from "@repo/schemas";
 import { runAgent } from "../../pipelineRunnerService/agentRunner/agentRunner";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
@@ -25,6 +24,7 @@ import {
 } from "./buildProposePrompt";
 import type { ProposeHistoryMessage } from "./conversationHistory";
 import { normalizeProposalPayload } from "./normalizeProposalPayload";
+import { parseProposeAgentOutput } from "./parseAgentOutput";
 import { validateProposalActionCatalog } from "./validateProposalCatalog";
 
 export type ProposeActionsDeps = {
@@ -74,11 +74,7 @@ export type ProposeActionsOptions = {
   runtimeId?: string;
 };
 
-export type ProposeActionsResult = {
-  proposal: PipelineActionProposal | null;
-  diagnostics: PipelineActionDiagnostic[];
-  reply?: string;
-};
+export type ProposeActionsResult = ProposeActionsResponse;
 
 export const proposeActions = async (
   deps: ProposeActionsDeps,
@@ -197,10 +193,28 @@ export const proposeActions = async (
     return { proposal: null, diagnostics: [] };
   }
 
-  const normalizedProposal = normalizeProposalPayload(parseJsonResult.value);
+  const agentOutput = parseProposeAgentOutput(parseJsonResult.value);
+  const clarifyOptions = agentOutput.clarifyOptions.length > 0 ? agentOutput.clarifyOptions : undefined;
+
+  if (agentOutput.proposalPayload === null) {
+    if (agentOutput.reply) {
+      return { clarifyOptions, diagnostics: [], proposal: null, reply: agentOutput.reply };
+    }
+
+    logger.error({ json: parseJsonResult.value }, "proposeActions: agent returned neither reply nor proposal");
+
+    return { proposal: null, diagnostics: [] };
+  }
+
+  const normalizedProposal = normalizeProposalPayload(agentOutput.proposalPayload);
   const parsed = PipelineActionProposalSchema.safeParse(normalizedProposal);
   if (!parsed.success) {
     logger.error({ error: parsed.error }, "proposeActions: invalid PipelineActionProposal from agent");
+
+    if (agentOutput.reply) {
+      // Keep the conversational reply even when the structured proposal is unusable.
+      return { clarifyOptions, diagnostics: [], proposal: null, reply: agentOutput.reply };
+    }
 
     return { proposal: null, diagnostics: [] };
   }
@@ -211,7 +225,9 @@ export const proposeActions = async (
   const operationDiagnostics = validateProposalActionCatalog(proposal.actions, operationById);
 
   return {
-    proposal,
+    clarifyOptions,
     diagnostics: [...graphDiagnostics, ...operationDiagnostics],
+    proposal,
+    reply: agentOutput.reply ?? proposal.summary,
   };
 };

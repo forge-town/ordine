@@ -183,6 +183,102 @@ describe("createPipelinesService", () => {
     expect(mockDao.delete).not.toHaveBeenCalled();
   });
 
+  it("proposeActions surfaces reply and proposal from the new agent output format", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "我移除了过期节点。",
+        proposal: {
+          summary: "remove stale node",
+          actions: [{ type: "removeNode", nodeId: "folder-1" }],
+        },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "删掉 folder-1",
+      pipelineId: "p1",
+    });
+
+    expect(result.reply).toBe("我移除了过期节点。");
+    expect(result.proposal).toEqual({
+      summary: "remove stale node",
+      actions: [{ type: "removeNode", nodeId: "folder-1" }],
+    });
+    expect(result.diagnostics).toEqual([]);
+  });
+
+  it("proposeActions returns clarify options without a proposal when the agent asks back", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "你想处理哪种输入？",
+        clarifyOptions: ["本地文件夹", "GitHub 仓库", "纯文本指令"],
+        proposal: null,
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "帮我处理一下文件",
+      pipelineId: "p1",
+    });
+
+    expect(result.proposal).toBeNull();
+    expect(result.reply).toBe("你想处理哪种输入？");
+    expect(result.clarifyOptions).toEqual(["本地文件夹", "GitHub 仓库", "纯文本指令"]);
+    expect(result.diagnostics).toEqual([]);
+  });
+
+  it("proposeActions keeps the reply when the structured proposal fails validation", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "尝试修改图结构。",
+        proposal: { summary: "broken", actions: [{ type: "unknownAction" }] },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "改一下",
+      pipelineId: "p1",
+    });
+
+    expect(result.proposal).toBeNull();
+    expect(result.reply).toBe("尝试修改图结构。");
+  });
+
+  it("proposeActions injects conversation history into the user prompt", async () => {
+    mockConversationMessagesDao.getByPipelineId.mockResolvedValue([
+      { content: "build a quiz pipeline", metadata: null, role: "user" },
+      { content: "Drafted it.", metadata: { proposalSnapshot: {} }, role: "agent" },
+      { content: "再加一个校验步骤", metadata: null, role: "user" },
+    ] as never);
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        summary: "remove stale node",
+        actions: [{ type: "removeNode", nodeId: "folder-1" }],
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    await svc.proposeActions({
+      snapshot,
+      message: "再加一个校验步骤",
+      pipelineId: "p1",
+    });
+
+    const callArgs = mockRunAgent.mock.calls[0]?.[0] as { userPrompt: string };
+    expect(mockConversationMessagesDao.getByPipelineId).toHaveBeenCalledWith("p1");
+    expect(callArgs.userPrompt).toContain("=== CONVERSATION HISTORY (oldest first) ===");
+    expect(callArgs.userPrompt).toContain("[user]: build a quiz pipeline");
+    expect(callArgs.userPrompt).toContain("[assistant] (included a graph proposal): Drafted it.");
+    // 当前这条消息已在 USER REQUEST 段，历史中不应重复
+    expect(callArgs.userPrompt).not.toContain("[user]: 再加一个校验步骤");
+  });
+
   it("proposeActions uses the selected runtime config when runtimeId is provided", async () => {
     mockRunAgent.mockResolvedValue(
       JSON.stringify({
