@@ -2,13 +2,19 @@ import { createContext, createElement, useContext, useRef, type ReactNode } from
 import { useStore } from "zustand";
 import { createStore, type StoreApi } from "zustand/vanilla";
 import { createGraphSlice, type GraphSlice } from "./graphSlice";
+import { createHistorySlice, type HistorySlice } from "./historySlice";
 import { createPanelSlice, type PanelSlice } from "./panelSlice";
 import { createProposalSlice, type ProposalSlice } from "./proposalSlice";
 import { createRunSlice, type RunSlice } from "./runSlice";
 import { createSelectionSlice, type SelectionSlice } from "./selectionSlice";
 import type { CanvasEdge, CanvasNode } from "./canvasTypes";
 
-export type CanvasStoreState = GraphSlice & PanelSlice & ProposalSlice & RunSlice & SelectionSlice;
+export type CanvasStoreState = GraphSlice &
+  HistorySlice &
+  PanelSlice &
+  ProposalSlice &
+  RunSlice &
+  SelectionSlice;
 
 export type CanvasStore = StoreApi<CanvasStoreState>;
 
@@ -28,6 +34,7 @@ type UseCanvasStore = {
 export const createCanvasStore = (initialState: CanvasStoreInitialState = {}): CanvasStore =>
   createStore<CanvasStoreState>()((set, get, store) => ({
     ...createGraphSlice<CanvasStoreState>(initialState)(set, get, store),
+    ...createHistorySlice<CanvasStoreState>()(set, get, store),
     ...createPanelSlice<CanvasStoreState>()(set, get, store),
     ...createRunSlice<CanvasStoreState>()(set, get, store),
     ...createSelectionSlice<CanvasStoreState>()(set, get, store),

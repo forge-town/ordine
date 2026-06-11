@@ -43,7 +43,9 @@ export type GraphSlice = {
   addNode: (node: CanvasNode, childNodes?: CanvasNode[]) => void;
   addNodeFromCatalog: (input: AddCatalogNodeInput) => CanvasNode;
   composeNodes: (nodeIds: string[], options?: ComposeNodesOptions) => CanvasNode | null;
+  deleteEdge: (edgeId: string) => void;
   deleteNode: (nodeId: string) => void;
+  deleteSelected: (ids: string[]) => void;
   duplicateNode: (nodeId: string, id?: string) => CanvasNode | null;
   getVisibleGraph: () => VisibleGraph;
   handleConnect: (connection: Connection) => void;
@@ -210,6 +212,12 @@ export const createGraphSlice =
 
         return compound;
       },
+      deleteEdge: (edgeId) =>
+        set((state) =>
+          castGraphState({
+            edges: state.edges.filter((edge) => edge.id !== edgeId),
+          }),
+        ),
       deleteNode: (nodeId) =>
         set((state) =>
           castGraphState({
@@ -224,6 +232,31 @@ export const createGraphSlice =
               ),
           }),
         ),
+      deleteSelected: (ids) => {
+        const selectedIdSet = new Set(ids);
+        if (selectedIdSet.size === 0) {
+          return;
+        }
+
+        set((state) =>
+          castGraphState({
+            drillStack: state.drillStack.filter((id) => !selectedIdSet.has(id)),
+            edges: state.edges.filter(
+              (edge) =>
+                !selectedIdSet.has(edge.id) &&
+                !selectedIdSet.has(edge.source) &&
+                !selectedIdSet.has(edge.target),
+            ),
+            nodes: state.nodes
+              .filter((node) => !selectedIdSet.has(node.id))
+              .map((node) =>
+                node.parentId && selectedIdSet.has(node.parentId)
+                  ? { ...node, extent: undefined, parentId: undefined }
+                  : node,
+              ),
+          }),
+        );
+      },
       duplicateNode: (nodeId, id) => {
         const source = get().nodes.find((node) => node.id === nodeId);
         if (!source) {
