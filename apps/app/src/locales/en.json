@@ -922,7 +922,11 @@
       "language": "Language & Region",
       "security": "Security",
       "agentRuntimes": "Agent Runtimes",
-      "developer": "Developer"
+      "developer": "Developer",
+      "advanced": "Advanced",
+      "defaults": "Defaults",
+      "keyboard": "Keyboard",
+      "project": "Project"
     },
     "saveChanges": "Save changes",
     "saved": "Saved ✓",
@@ -986,6 +990,86 @@
       "keyPathPlaceholder": "~/.ssh/id_rsa",
       "remove": "Remove",
       "empty": "No agent runtimes configured. Add one to enable remote execution."
+    },
+    "advanced": {
+      "description": "Storage, data version, and maintenance facts for this machine.",
+      "rows": {
+        "dataDirectory": {
+          "hint": "All local pipelines, runs, and conversations live here.",
+          "label": "Data directory"
+        },
+        "localMode": {
+          "hint": "Start flag that bypasses login for local development.",
+          "label": "Local mode"
+        },
+        "schemaVersion": {
+          "hint": "Latest applied local database migration.",
+          "label": "Schema version"
+        }
+      },
+      "title": "Advanced"
+    },
+    "defaults": {
+      "apiKey": "API key",
+      "apiKeyHint": "Stored locally and masked in the UI.",
+      "description": "What the Agent Bar reaches for first when assembling an executor.",
+      "model": "Default model",
+      "outputPath": "Default output path",
+      "runtime": "Default Local Agent",
+      "save": "Save defaults",
+      "saveFailed": "Couldn't save defaults",
+      "saved": "Defaults saved",
+      "title": "Defaults",
+      "toggleKey": "Toggle key visibility"
+    },
+    "keyboard": {
+      "description": "Canvas shortcuts. Read-only for now.",
+      "groups": {
+        "editing": "Editing",
+        "navigation": "Navigation"
+      },
+      "shortcuts": {
+        "boxSelect": {
+          "keys": "drag on canvas",
+          "label": "Box-select"
+        },
+        "delete": {
+          "keys": "⌫ / Del",
+          "label": "Delete selection"
+        },
+        "drillOut": {
+          "keys": "Esc",
+          "label": "Drill out / clear selection"
+        },
+        "pan": {
+          "keys": "middle-drag",
+          "label": "Pan"
+        },
+        "redo": {
+          "keys": "⌘ ⇧ Z",
+          "label": "Redo"
+        },
+        "undo": {
+          "keys": "⌘ Z",
+          "label": "Undo"
+        },
+        "zoom": {
+          "keys": "⌘ scroll",
+          "label": "Zoom"
+        }
+      },
+      "title": "Keyboard"
+    },
+    "project": {
+      "description": "Name and description for the workspace selected in the sidebar.",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "What this workspace is for…",
+      "empty": "No project selected yet — create one from the sidebar.",
+      "name": "Project name",
+      "save": "Save project",
+      "saveFailed": "Couldn't save the project",
+      "saved": "Project saved",
+      "title": "Project"
     }
   },
   "runtimes": {

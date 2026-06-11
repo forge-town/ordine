@@ -922,7 +922,11 @@
       "language": "语言与地区",
       "security": "安全",
       "agentRuntimes": "Agent Runtimes",
-      "developer": "开发者"
+      "developer": "开发者",
+      "advanced": "高级",
+      "defaults": "默认项",
+      "keyboard": "快捷键",
+      "project": "项目"
     },
     "saveChanges": "保存更改",
     "saved": "已保存 ✓",
@@ -986,6 +990,86 @@
       "keyPathPlaceholder": "~/.ssh/id_rsa",
       "remove": "删除",
       "empty": "尚未配置 Agent 运行时。添加一个以启用远程执行。"
+    },
+    "advanced": {
+      "description": "本机的存储、数据版本与维护信息。",
+      "rows": {
+        "dataDirectory": {
+          "hint": "本地的 Pipeline、运行与对话都存在这里。",
+          "label": "数据目录"
+        },
+        "localMode": {
+          "hint": "本地开发跳过登录的启动参数。",
+          "label": "本地模式"
+        },
+        "schemaVersion": {
+          "hint": "本地数据库已应用的最新迁移。",
+          "label": "数据版本"
+        }
+      },
+      "title": "高级"
+    },
+    "defaults": {
+      "apiKey": "API Key",
+      "apiKeyHint": "仅存储在本机，界面中默认隐藏。",
+      "description": "Agent Bar 组装执行器时优先使用的默认项。",
+      "model": "默认模型",
+      "outputPath": "默认输出路径",
+      "runtime": "默认 Local Agent",
+      "save": "保存默认项",
+      "saveFailed": "保存失败",
+      "saved": "默认项已保存",
+      "title": "默认项",
+      "toggleKey": "显示/隐藏 Key"
+    },
+    "keyboard": {
+      "description": "画布快捷键速查，当前为只读。",
+      "groups": {
+        "editing": "编辑",
+        "navigation": "导航"
+      },
+      "shortcuts": {
+        "boxSelect": {
+          "keys": "画布拖拽",
+          "label": "框选"
+        },
+        "delete": {
+          "keys": "⌫ / Del",
+          "label": "删除选中"
+        },
+        "drillOut": {
+          "keys": "Esc",
+          "label": "钻出 / 清除选择"
+        },
+        "pan": {
+          "keys": "中键拖拽",
+          "label": "平移"
+        },
+        "redo": {
+          "keys": "⌘ ⇧ Z",
+          "label": "重做"
+        },
+        "undo": {
+          "keys": "⌘ Z",
+          "label": "撤销"
+        },
+        "zoom": {
+          "keys": "⌘ 滚轮",
+          "label": "缩放"
+        }
+      },
+      "title": "快捷键"
+    },
+    "project": {
+      "description": "编辑侧栏当前选中项目的名称与描述。",
+      "descriptionLabel": "描述",
+      "descriptionPlaceholder": "这个工作区是做什么的…",
+      "empty": "还没有选中项目 — 先在侧栏创建一个。",
+      "name": "项目名称",
+      "save": "保存项目",
+      "saveFailed": "保存失败",
+      "saved": "项目已保存",
+      "title": "项目"
     }
   },
   "runtimes": {
