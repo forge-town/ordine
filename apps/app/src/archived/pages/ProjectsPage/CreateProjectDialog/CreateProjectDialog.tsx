@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { parseGitHubUrl, fetchRepoInfo, type GitHubRepoInfo } from "@/lib/githubApi";
 import { useGithubToken } from "@/hooks/useGithubToken";
-import { GitHubTokenDialog } from "@/pages/CanvasPage/GitHubProjectNode/GitHubTokenDialog";
+import { GitHubTokenDialog } from "@/archived/pages/CanvasPageLegacy/GitHubProjectNode/GitHubTokenDialog";
 import { useCreate } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { cn } from "@repo/ui/lib/utils";

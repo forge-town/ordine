@@ -15,8 +15,12 @@ import { Label } from "@repo/ui/label";
 import type { PipelineAsset } from "@repo/schemas";
 import { Icon } from "@/components/primitives";
 import { ResourceName } from "@/integrations/refine/dataProvider";
-import { CanvasPageStoreContext, createCanvasPageStore } from "@/pages/CanvasPage/_store";
-import { NodeConfig } from "@/pages/CanvasPage/NodeConfig";
+import {
+  CanvasStoreContext,
+  createCanvasStore,
+} from "@/pages/WorkspacePage/canvas/_store/canvasStore";
+import { fromPipelineSnapshot } from "@/pages/WorkspacePage/canvas/_store/canvasTypes";
+import { NodeConfig } from "@/pages/WorkspacePage/canvas/panels/NodeConfig";
 import type { ComponentCardItem } from "../ComponentCard";
 
 export type ComponentEditorProps = {
@@ -34,13 +38,12 @@ export const ComponentEditor = ({ asset, item, open, onOpenChange }: ComponentEd
   const canvasStore = useMemo(() => {
     if (!asset || !configNodeId) return null;
 
-    const store = createCanvasPageStore(
-      asset.snapshotNodes,
-      asset.snapshotEdges,
-      asset.pipelineId,
-      asset.name,
-    );
-    store.setState({ configNodeId });
+    const snapshot = fromPipelineSnapshot({
+      edges: asset.snapshotEdges,
+      nodes: asset.snapshotNodes,
+    });
+    const store = createCanvasStore({ edges: snapshot.edges, nodes: snapshot.nodes });
+    store.getState().openNodeConfig(configNodeId);
 
     return store;
   }, [asset, configNodeId]);
@@ -106,11 +109,11 @@ export const ComponentEditor = ({ asset, item, open, onOpenChange }: ComponentEd
             </div>
           </div>
 
-          <div className="min-h-[360px] overflow-hidden rounded-xl ring-1 ring-border">
-            {canvasStore ? (
-              <CanvasPageStoreContext.Provider value={canvasStore}>
-                <NodeConfig />
-              </CanvasPageStoreContext.Provider>
+          <div className="relative min-h-[360px] overflow-hidden rounded-xl ring-1 ring-border">
+            {canvasStore && asset ? (
+              <CanvasStoreContext.Provider value={canvasStore}>
+                <NodeConfig pipelineId={asset.pipelineId} />
+              </CanvasStoreContext.Provider>
             ) : (
               <div className="flex h-full items-center justify-center p-6 text-center text-[12px] text-muted-foreground">
                 No source node snapshot is available for this component yet.
