@@ -54,7 +54,6 @@ const defaultEdgeOptions = {
 } satisfies Partial<CanvasEdge>;
 
 const proOptions: ProOptions = { hideAttribution: true };
-const snapGrid: [number, number] = [24, 24];
 const defaultViewport = { x: 0, y: 0, zoom: 0.9 };
 
 const makeSnapshot = (nodes: CanvasNode[], edges: CanvasEdge[]) => ({ edges, nodes });
@@ -256,19 +255,23 @@ export const CanvasFlow = () => {
     >
       <ReactFlow<CanvasNode, CanvasEdge>
         fitView
-        snapToGrid
+        panOnScroll
+        zoomOnPinch
         className="bg-transparent"
         defaultEdgeOptions={defaultEdgeOptions}
         defaultViewport={defaultViewport}
         deleteKeyCode={null}
         edges={semanticEdges}
         edgeTypes={edgeTypes}
+        maxZoom={1.6}
+        minZoom={0.35}
+        nodeDragThreshold={2}
         nodes={visibleGraph.nodes}
         nodeTypes={nodeTypes}
         panOnDrag={canvasTool === "hand" ? true : [1, 2]}
         proOptions={proOptions}
         selectionOnDrag={canvasTool === "select"}
-        snapGrid={snapGrid}
+        zoomOnScroll={false}
         onConnect={handleFlowConnect}
         onEdgeClick={(_event, edge) => {
           selectEdge(edge.id);

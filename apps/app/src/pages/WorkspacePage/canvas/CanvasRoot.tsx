@@ -1,3 +1,4 @@
+import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import type { PipelineData } from "@repo/schemas";
 import { CanvasFlow } from "./flow";
