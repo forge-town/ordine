@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import {
   Assistant,
   Bubble,
+  ClarifyOptions,
   CompletionCard,
   DistillCard,
   ErrorCard,
@@ -132,5 +133,18 @@ export const EmptySuggestions: Story = {
         { id: "reverse", label: "Upload a finished sample → reverse-engineer it", reverse: true },
       ]}
     />
+  ),
+};
+
+export const ClarifyPhase: StoryObj = {
+  name: "Clarify options",
+  render: () => (
+    <div className="space-y-2">
+      <Assistant>你想处理哪种输入？</Assistant>
+      <ClarifyOptions
+        options={["本地文件夹", "GitHub 仓库", "纯文本指令"]}
+        onSelect={() => {}}
+      />
+    </div>
   ),
 };

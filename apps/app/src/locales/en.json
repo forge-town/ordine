@@ -1602,7 +1602,33 @@
         "showAll": "Show all",
         "title": "Thread"
       },
-      "reopen": "Open Agent Bar"
+      "reopen": "Open Agent Bar",
+      "replies": {
+        "appliedNotSaved": "I applied the proposal locally, but could not save it yet.",
+        "appliedSaved": "Applied the proposal and saved the pipeline.",
+        "drafted": "I drafted a pipeline proposal.",
+        "noSafeChange": "I could not find a safe graph change for that request.",
+        "rejected": "Rejected the current proposal.",
+        "requestFailed": "I could not reach the agent to draft a proposal. Please try again.",
+        "reviseHint": "Tell me what to revise and I will draft a new proposal."
+      },
+      "composer": {
+        "attach": "Attach file",
+        "messageLabel": "Message",
+        "placeholder": "Describe a goal, drop a sample, or revise...",
+        "placeholderWithRefs": "Ask the Agent to change the referenced nodes...",
+        "removeAttachment": "Remove {{name}}",
+        "reverseDefault": "Reverse-engineer a pipeline from the attached sample: {{names}}",
+        "send": "Send message"
+      },
+      "actionTitles": {
+        "addEdge": "Add edge",
+        "addNode": "Add {{nodeType}}",
+        "reconnectEdge": "Reconnect edge",
+        "removeEdge": "Remove edge",
+        "removeNode": "Remove node",
+        "replaceNodeData": "Update node"
+      }
     },
     "notFoundPipeline": "Pipeline not found"
   },

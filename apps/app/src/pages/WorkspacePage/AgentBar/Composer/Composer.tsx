@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { ArrowUp, Paperclip, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { ConversationAttachment, ConversationMessageMetadata } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Textarea } from "@repo/ui/textarea";
@@ -31,6 +32,7 @@ export const Composer = ({
   onSubmit,
   refs,
 }: ComposerProps) => {
+  const { t } = useTranslation();
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<ConversationAttachment[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -49,8 +51,8 @@ export const Composer = ({
   const canSend = (trimmedText.length > 0 || attachments.length > 0) && !isSending;
   const placeholder =
     refs.length > 0
-      ? "Ask the Agent to change the referenced nodes..."
-      : "Describe a goal, drop a sample, or revise...";
+      ? t("workspace.agentBar.composer.placeholderWithRefs")
+      : t("workspace.agentBar.composer.placeholder");
 
   const resetTextareaHeight = () => {
     if (textareaRef.current) {
@@ -88,9 +90,9 @@ export const Composer = ({
     const content =
       trimmedText.length > 0
         ? trimmedText
-        : `Reverse-engineer a pipeline from the attached sample: ${attachments
-            .map((attachment) => attachment.name)
-            .join(", ")}`;
+        : t("workspace.agentBar.composer.reverseDefault", {
+            names: attachments.map((attachment) => attachment.name).join(", "),
+          });
 
     const metadata = {
       attachments,
@@ -146,7 +148,9 @@ export const Composer = ({
                 >
                   <span className="truncate">{attachment.name}</span>
                   <button
-                    aria-label={`Remove ${attachment.name}`}
+                    aria-label={t("workspace.agentBar.composer.removeAttachment", {
+                      name: attachment.name,
+                    })}
                     className="rounded-full p-0.5 hover:bg-foreground/10"
                     type="button"
                     onClick={handleRemoveClick}
@@ -161,7 +165,7 @@ export const Composer = ({
 
         <div className="flex items-end gap-1.5 rounded-2xl bg-background p-2 ring-1 ring-border focus-within:ring-border-strong">
           <Button
-            aria-label="Attach file"
+            aria-label={t("workspace.agentBar.composer.attach")}
             className="h-7 w-7 rounded-lg"
             size="icon"
             type="button"
@@ -172,7 +176,7 @@ export const Composer = ({
           </Button>
           <Textarea
             ref={textareaRef}
-            aria-label="Message"
+            aria-label={t("workspace.agentBar.composer.messageLabel")}
             className="min-h-7 flex-1 resize-none border-none bg-transparent px-0 py-1 text-[12px] shadow-none focus-visible:ring-0"
             placeholder={placeholder}
             rows={1}
@@ -181,7 +185,7 @@ export const Composer = ({
             onKeyDown={handleKeyDown}
           />
           <Button
-            aria-label="Send message"
+            aria-label={t("workspace.agentBar.composer.send")}
             className="h-7 w-7 rounded-full"
             disabled={!canSend}
             size="icon"

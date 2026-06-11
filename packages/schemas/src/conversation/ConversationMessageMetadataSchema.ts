@@ -31,6 +31,7 @@ export type ConversationTokenUsage = z.infer<typeof ConversationTokenUsageSchema
 export const ConversationMessageMetadataSchema = z.object({
   referencedNodeIds: z.array(z.string()).optional(),
   attachments: z.array(ConversationAttachmentSchema).optional(),
+  clarifyOptions: z.array(z.string()).optional(),
   proposalSnapshot: ConversationProposalSnapshotSchema.optional(),
   errorContext: ConversationErrorContextSchema.optional(),
   tokenUsage: ConversationTokenUsageSchema.optional(),

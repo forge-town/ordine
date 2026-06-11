@@ -24,14 +24,14 @@ describe("Composer", () => {
   it("disables send for empty messages", () => {
     renderComposer();
 
-    expect(screen.getByRole("button", { name: "Send message" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "发送" })).toBeDisabled();
   });
 
   it("sends a message with referenced nodes on Enter", async () => {
     const user = userEvent.setup();
     renderComposer();
 
-    await user.type(screen.getByRole("textbox", { name: "Message" }), "Make it harder{Enter}");
+    await user.type(screen.getByRole("textbox", { name: "消息" }), "Make it harder{Enter}");
 
     expect(useAgentBarStore.getState().messages).toEqual([
       expect.objectContaining({
@@ -42,7 +42,7 @@ describe("Composer", () => {
         role: "user",
       }),
     ]);
-    expect(screen.getByRole("textbox", { name: "Message" })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "消息" })).toHaveValue("");
   });
 
   it("keeps Shift+Enter as a newline", async () => {
@@ -50,12 +50,12 @@ describe("Composer", () => {
     renderComposer();
 
     await user.type(
-      screen.getByRole("textbox", { name: "Message" }),
+      screen.getByRole("textbox", { name: "消息" }),
       "Line one{Shift>}{Enter}{/Shift}",
     );
 
     expect(useAgentBarStore.getState().messages).toEqual([]);
-    expect(screen.getByRole("textbox", { name: "Message" })).toHaveValue("Line one\n");
+    expect(screen.getByRole("textbox", { name: "消息" })).toHaveValue("Line one\n");
   });
 
   it("removes reference tags", async () => {
@@ -76,7 +76,7 @@ describe("Composer", () => {
     expect(input).toBeTruthy();
 
     await user.upload(input!, new File(["sample"], "sample.pdf", { type: "application/pdf" }));
-    await user.type(screen.getByRole("textbox", { name: "Message" }), "Use this sample{Enter}");
+    await user.type(screen.getByRole("textbox", { name: "消息" }), "Use this sample{Enter}");
 
     expect(useAgentBarStore.getState().messages[0]).toEqual(
       expect.objectContaining({
@@ -95,11 +95,11 @@ describe("Composer", () => {
     expect(input).toBeTruthy();
 
     await user.upload(input!, new File(["sample"], "finished.csv", { type: "text/csv" }));
-    await user.click(screen.getByRole("button", { name: "Send message" }));
+    await user.click(screen.getByRole("button", { name: "发送" }));
 
     expect(useAgentBarStore.getState().messages[0]).toEqual(
       expect.objectContaining({
-        content: "Reverse-engineer a pipeline from the attached sample: finished.csv",
+        content: "根据附件样本逆向生成 Pipeline：finished.csv",
         metadata: expect.objectContaining({
           attachments: [{ name: "finished.csv" }],
         }),

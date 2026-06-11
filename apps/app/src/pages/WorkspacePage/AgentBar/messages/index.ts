@@ -1,6 +1,7 @@
 export * from "./Assistant";
 export * from "./Bubble";
 export * from "./CheckpointCard";
+export * from "./ClarifyOptions";
 export * from "./CompletionCard";
 export * from "./DistillCard";
 export * from "./ErrorCard";

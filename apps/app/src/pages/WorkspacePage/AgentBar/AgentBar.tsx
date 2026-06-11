@@ -7,7 +7,7 @@ import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useCanvasStore } from "../canvas/_store/canvasStore";
-import { Assistant, Bubble, ProposalCard } from "./messages";
+import { Assistant, Bubble, ClarifyOptions, ProposalCard } from "./messages";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
 import { AgentDistillCard } from "./AgentDistillCard";
@@ -223,6 +223,12 @@ export const AgentBar = ({
         {visibleMessages.map((message) => {
           const messageRefs = refsForMessage(message);
           const resolvable = thread && !message.metadata?.resolved && !message.isThinking;
+          const clarifyOptions = message.metadata?.clarifyOptions ?? [];
+          const showClarifyOptions =
+            message.role === "assistant" &&
+            clarifyOptions.length > 0 &&
+            message.id === visibleMessages.at(-1)?.id &&
+            !pendingProposal;
           const body =
             message.role === "user" ? (
               <Bubble
@@ -241,6 +247,15 @@ export const AgentBar = ({
                 <div className={cn(message.role === "user" && "flex justify-end")}>
                   <RefChips small refs={messageRefs} />
                 </div>
+              ) : null}
+              {showClarifyOptions ? (
+                <ClarifyOptions
+                  disabled={isSending}
+                  options={clarifyOptions}
+                  onSelect={(option) =>
+                    void submitMessage({ content: option, metadata: { referencedNodeIds: [] } })
+                  }
+                />
               ) : null}
               {resolvable ? (
                 <button

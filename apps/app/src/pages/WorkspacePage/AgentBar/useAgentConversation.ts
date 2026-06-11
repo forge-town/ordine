@@ -1,11 +1,12 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { useUpdate } from "@refinedev/core";
 import { ResultAsync } from "neverthrow";
+import { useTranslation } from "react-i18next";
 import type {
   ConversationMessageMetadata,
   PipelineAction,
-  PipelineActionDiagnostic,
   PipelineActionProposal,
+  ProposeActionsResponse,
   WorkspacePhase,
 } from "@repo/schemas";
 import { ResourceName, dataProvider } from "@/integrations/refine/dataProvider";
@@ -19,36 +20,15 @@ export type AgentConversationSubmitInput = {
   metadata: ConversationMessageMetadata;
 };
 
-type ProposeActionsResult = {
-  diagnostics?: PipelineActionDiagnostic[] | null;
-  proposal?: PipelineActionProposal | null;
-  reply?: string | null;
-};
+type ProposeActionsResult = Partial<ProposeActionsResponse>;
 
-const actionTitle = (action: PipelineAction): string => {
-  switch (action.type) {
-    case "addNode": {
-      return `Add ${action.node.type}`;
-    }
-    case "removeNode": {
-      return "Remove node";
-    }
-    case "addEdge": {
-      return "Add edge";
-    }
-    case "removeEdge": {
-      return "Remove edge";
-    }
-    case "reconnectEdge": {
-      return "Reconnect edge";
-    }
-    case "replaceNodeData": {
-      return "Update node";
-    }
-    default: {
-      return (action as { type: string }).type;
-    }
-  }
+const ACTION_TITLE_KEYS: Record<PipelineAction["type"], string> = {
+  addNode: "workspace.agentBar.actionTitles.addNode",
+  removeNode: "workspace.agentBar.actionTitles.removeNode",
+  addEdge: "workspace.agentBar.actionTitles.addEdge",
+  removeEdge: "workspace.agentBar.actionTitles.removeEdge",
+  reconnectEdge: "workspace.agentBar.actionTitles.reconnectEdge",
+  replaceNodeData: "workspace.agentBar.actionTitles.replaceNodeData",
 };
 
 const actionDetail = (action: PipelineAction): string => {
@@ -99,6 +79,7 @@ export const useAgentConversation = ({
   pipelineId: string | null;
   pipelineName?: string;
 }) => {
+  const { t } = useTranslation();
   const canvasStore = useContext(CanvasStoreContext);
   const nodes = useCanvasStore((state) => state.nodes);
   const edges = useCanvasStore((state) => state.edges);
@@ -121,9 +102,11 @@ export const useAgentConversation = ({
     () =>
       pendingProposal?.actions.map((action) => ({
         detail: actionDetail(action),
-        title: actionTitle(action),
+        title: t(ACTION_TITLE_KEYS[action.type] ?? action.type, {
+          nodeType: action.type === "addNode" ? action.node.type : undefined,
+        }),
       })) ?? [],
-    [pendingProposal],
+    [pendingProposal, t],
   );
 
   const submitMessage = useCallback(
@@ -160,7 +143,7 @@ export const useAgentConversation = ({
         setIsProposing(false);
         setIsReversing(false);
         await sendMessage({
-          content: "I could not draft a pipeline proposal from that message.",
+          content: t("workspace.agentBar.replies.requestFailed"),
           role: "assistant",
         });
 
@@ -169,9 +152,12 @@ export const useAgentConversation = ({
 
       const proposal = result.value.data.proposal ?? null;
       const nextDiagnostics = result.value.data.diagnostics ?? null;
+      const clarifyOptions = result.value.data.clarifyOptions ?? [];
       const reply =
         result.value.data.reply ??
-        (proposal ? "I drafted a pipeline proposal." : "I could not find a safe graph change.");
+        (proposal
+          ? t("workspace.agentBar.replies.drafted")
+          : t("workspace.agentBar.replies.noSafeChange"));
 
       setPendingProposal(proposal, nextDiagnostics);
       setIsReversing(false);
@@ -181,7 +167,11 @@ export const useAgentConversation = ({
 
       await sendMessage({
         content: reply,
-        metadata: proposal ? { proposalSnapshot: createProposalSnapshot(proposal) } : undefined,
+        metadata: proposal
+          ? { proposalSnapshot: createProposalSnapshot(proposal) }
+          : clarifyOptions.length > 0
+            ? { clarifyOptions }
+            : undefined,
         role: "assistant",
       });
       setIsProposing(false);
@@ -195,6 +185,7 @@ export const useAgentConversation = ({
       sendMessage,
       setPendingProposal,
       setPhase,
+      t,
     ],
   );
 
@@ -229,7 +220,7 @@ export const useAgentConversation = ({
 
     if (saved.isErr()) {
       await sendMessage({
-        content: "I applied the proposal locally, but could not save it yet.",
+        content: t("workspace.agentBar.replies.appliedNotSaved"),
         role: "assistant",
       });
 
@@ -238,7 +229,7 @@ export const useAgentConversation = ({
 
     setPhase("applied");
     await sendMessage({
-      content: "Applied the proposal and saved the pipeline.",
+      content: t("workspace.agentBar.replies.appliedSaved"),
       metadata: { proposalSnapshot: createProposalSnapshot(pendingProposal) },
       role: "assistant",
     });
@@ -251,6 +242,7 @@ export const useAgentConversation = ({
     pipelineName,
     sendMessage,
     setPhase,
+    t,
     updatePipeline,
   ]);
 
@@ -258,19 +250,19 @@ export const useAgentConversation = ({
     clearPendingProposal();
     setPhase("clarify");
     await sendMessage({
-      content: "Rejected the current proposal.",
+      content: t("workspace.agentBar.replies.rejected"),
       role: "assistant",
     });
-  }, [clearPendingProposal, sendMessage, setPhase]);
+  }, [clearPendingProposal, sendMessage, setPhase, t]);
 
   const reviseProposal = useCallback(async () => {
     clearPendingProposal();
     setPhase("clarify");
     await sendMessage({
-      content: "Tell me what to revise and I will draft a new proposal.",
+      content: t("workspace.agentBar.replies.reviseHint"),
       role: "assistant",
     });
-  }, [clearPendingProposal, sendMessage, setPhase]);
+  }, [clearPendingProposal, sendMessage, setPhase, t]);
 
   return {
     applyProposal,

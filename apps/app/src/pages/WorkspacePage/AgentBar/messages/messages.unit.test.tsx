@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   Assistant,
   Bubble,
+  ClarifyOptions,
   CompletionCard,
   DistillCard,
   ErrorCard,
@@ -109,5 +110,22 @@ describe("AgentBar message components", () => {
 
     expect(screen.getByText("Read structure")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Turn PDFs into a quiz" })).toBeInTheDocument();
+  });
+
+  it("sends the clicked clarify option verbatim", async () => {
+    const user = userEvent.setup();
+    const handleSelect = vi.fn();
+    render(<ClarifyOptions options={["本地文件夹", "GitHub 仓库"]} onSelect={handleSelect} />);
+
+    expect(screen.getByTestId("agent-clarify-options")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "GitHub 仓库" }));
+
+    expect(handleSelect).toHaveBeenCalledWith("GitHub 仓库");
+  });
+
+  it("disables clarify options while a message is sending", () => {
+    render(<ClarifyOptions disabled options={["本地文件夹"]} onSelect={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: "本地文件夹" })).toBeDisabled();
   });
 });

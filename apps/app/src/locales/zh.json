@@ -1597,7 +1597,33 @@
         "showAll": "查看全部",
         "title": "线程"
       },
-      "reopen": "展开 Agent Bar"
+      "reopen": "展开 Agent Bar",
+      "replies": {
+        "appliedNotSaved": "提案已在本地应用，但保存失败。",
+        "appliedSaved": "提案已应用并保存到 Pipeline。",
+        "drafted": "我起草了一份 Pipeline 提案。",
+        "noSafeChange": "这个请求我找不到安全的图结构改动。",
+        "rejected": "已拒绝当前提案。",
+        "requestFailed": "我没能联系上 Agent 生成提案，请稍后重试。",
+        "reviseHint": "告诉我要修改什么，我会重新起草提案。"
+      },
+      "composer": {
+        "attach": "添加附件",
+        "messageLabel": "消息",
+        "placeholder": "描述目标、上传样本，或继续修改…",
+        "placeholderWithRefs": "让 Agent 修改引用的节点…",
+        "removeAttachment": "移除 {{name}}",
+        "reverseDefault": "根据附件样本逆向生成 Pipeline：{{names}}",
+        "send": "发送"
+      },
+      "actionTitles": {
+        "addEdge": "新增连线",
+        "addNode": "新增 {{nodeType}} 节点",
+        "reconnectEdge": "重连连线",
+        "removeEdge": "删除连线",
+        "removeNode": "删除节点",
+        "replaceNodeData": "更新节点"
+      }
     },
     "notFoundPipeline": "找不到该 Pipeline"
   },
