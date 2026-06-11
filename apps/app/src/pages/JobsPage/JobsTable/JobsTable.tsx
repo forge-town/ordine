@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { Job, JobStatus } from "@repo/schemas";
 import { dataProvider } from "@/integrations/refine/dataProvider";
 import { StatusPill } from "@/components/primitives";
+import { formatCost, formatDurationBetween } from "@/lib/format";
 import { toastStore } from "@/store/toastStore";
 
 export type JobsTableProps = {
@@ -45,21 +46,8 @@ const formatStarted = (job: Job): string =>
     ? new Date(job.startedAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
     : "—";
 
-const formatDuration = (job: Job): string => {
-  if (!job.startedAt) {
-    return "—";
-  }
-  const end = job.finishedAt ? new Date(job.finishedAt).getTime() : Date.now();
-  const seconds = Math.max(0, (end - new Date(job.startedAt).getTime()) / 1000);
-  if (seconds < 60) {
-    return `${seconds.toFixed(1)}s`;
-  }
-
-  return `${Math.floor(seconds / 60)}m${String(Math.round(seconds % 60)).padStart(2, "0")}s`;
-};
-
-const formatCost = (job: Job): string =>
-  job.totalCost ? `$${Number(job.totalCost).toFixed(2)}` : "—";
+const formatJobDuration = (job: Job): string =>
+  formatDurationBetween(job.startedAt, job.finishedAt ?? null);
 
 export const JobsTable = ({ jobs, onChanged, onOpen, pipelineNameById }: JobsTableProps) => {
   const { t } = useTranslation();
@@ -147,10 +135,10 @@ export const JobsTable = ({ jobs, onChanged, onOpen, pipelineNameById }: JobsTab
                 {formatStarted(job)}
               </span>
               <span className="text-right font-mono text-[11px] tabular-nums text-muted-foreground">
-                {formatDuration(job)}
+                {formatJobDuration(job)}
               </span>
               <span className="text-right font-mono text-[11px] tabular-nums text-muted-foreground">
-                {formatCost(job)}
+                {formatCost(job.totalCost) ?? "—"}
               </span>
               <div className="flex items-center justify-end gap-0.5">
                 {waiting ? (

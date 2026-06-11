@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
 import { PageHeader } from "@/components/PageHeader";
+import { formatCost as formatCostShared } from "@/lib/format";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { BarRow, Icon, Stat } from "@/components/primitives";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -85,7 +86,7 @@ const formatTokens = (value: number) => {
   return String(Math.round(value));
 };
 
-const formatCost = (value: number) => `$${value.toFixed(2)}`;
+const formatCost = (value: number) => formatCostShared(value) ?? "$0.00";
 
 const getPct = (value: number, max: number) => (max > 0 ? Math.round((value / max) * 100) : 0);
 
