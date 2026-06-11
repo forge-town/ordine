@@ -28,14 +28,7 @@ import { Icon, Tag } from "@/components/primitives";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useSidebarStore } from "@/store/sidebarStore";
 
-type GlobalSearchKind =
-  | "Agent"
-  | "Component"
-  | "Connector"
-  | "Job"
-  | "Node"
-  | "Pipeline"
-  | "Skill";
+type GlobalSearchKind = "Agent" | "Component" | "Connector" | "Job" | "Node" | "Pipeline" | "Skill";
 
 type GlobalSearchResult = {
   description: string;

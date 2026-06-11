@@ -80,7 +80,7 @@ export const DefaultsSection = () => {
             <SelectValue>{draft.defaultAgentRuntime ?? "-"}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {(runtimesResult?.data ?? []).map((runtime) => (
+            {runtimesResult.data.map((runtime) => (
               <SelectItem key={runtime.id} value={runtime.type}>
                 {runtime.name}
               </SelectItem>

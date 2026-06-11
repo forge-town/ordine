@@ -19,14 +19,14 @@ describe("notificationStore", () => {
     });
 
     expect(useNotificationStore.getState().notifications).toHaveLength(2);
-    expect(
-      useNotificationStore.getState().notifications.filter((item) => !item.read),
-    ).toHaveLength(2);
+    expect(useNotificationStore.getState().notifications.filter((item) => !item.read)).toHaveLength(
+      2,
+    );
 
     useNotificationStore.getState().markAllRead();
-    expect(
-      useNotificationStore.getState().notifications.filter((item) => !item.read),
-    ).toHaveLength(0);
+    expect(useNotificationStore.getState().notifications.filter((item) => !item.read)).toHaveLength(
+      0,
+    );
 
     useNotificationStore.getState().clearNotifications();
     expect(useNotificationStore.getState().notifications).toHaveLength(0);
@@ -41,7 +41,7 @@ describe("notificationStore", () => {
   });
 
   it("caps the history at 60 entries", () => {
-    for (let index = 0; index < 70; index += 1) {
+    for (const index of Array.from({ length: 70 }, (_, i) => i)) {
       useNotificationStore.getState().addNotification({
         kind: "info",
         message: `event ${index}`,

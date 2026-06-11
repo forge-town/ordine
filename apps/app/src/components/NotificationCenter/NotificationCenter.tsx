@@ -12,10 +12,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
-import {
-  useNotificationStore,
-  type NotificationKind,
-} from "@/store/notificationStore";
+import { useNotificationStore, type NotificationKind } from "@/store/notificationStore";
 
 const KIND_ICON: Record<NotificationKind, { className: string; icon: LucideIcon }> = {
   error: { className: "text-destructive", icon: CircleAlert },

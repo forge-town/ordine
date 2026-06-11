@@ -29,9 +29,7 @@ export const FindForMeModal = ({ onClose }: FindForMeModalProps) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const top = [...(assetsResult?.data ?? [])]
-    .sort((a, b) => b.totalRuns - a.totalRuns)
-    .slice(0, TOP_COUNT);
+  const top = [...assetsResult.data].sort((a, b) => b.totalRuns - a.totalRuns).slice(0, TOP_COUNT);
 
   return (
     <div
@@ -54,13 +52,21 @@ export const FindForMeModal = ({ onClose }: FindForMeModalProps) => {
               {t("components.findForMe.subtitle")}
             </div>
           </div>
-          <Button aria-label={t("components.findForMe.close")} size="icon" variant="ghost" onClick={onClose}>
+          <Button
+            aria-label={t("components.findForMe.close")}
+            size="icon"
+            variant="ghost"
+            onClick={onClose}
+          >
             <X className="size-4" />
           </Button>
         </div>
         <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 py-4">
           {searching ? (
-            <div className="grid place-items-center py-12 text-center" data-testid="find-for-me-searching">
+            <div
+              className="grid place-items-center py-12 text-center"
+              data-testid="find-for-me-searching"
+            >
               <LoaderCircle className="size-5 animate-spin text-foreground/70" />
               <div className="mt-3 text-xs font-medium">{t("components.findForMe.searching")}</div>
               <div className="mt-0.5 text-[11px] text-muted-foreground">
