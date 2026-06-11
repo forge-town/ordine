@@ -11,11 +11,17 @@ export type RunProposeAgentOptions = Pick<
   "agent" | "apiKey" | "model" | "ssh"
 > & { userPrompt: string };
 
+export type RunProposeAgentResult =
+  | { ok: true; json: unknown }
+  | { ok: false; code: "AGENT_FAILED" | "BAD_AGENT_OUTPUT"; detail: string };
+
 /**
  * Execute the propose prompt with process-level retries, then extract and
- * parse the JSON payload. Returns `undefined` on any failure (logged).
+ * parse the JSON payload. Failures carry a reason code (manual N13-01).
  */
-export const runProposeAgent = async (opts: RunProposeAgentOptions): Promise<unknown> => {
+export const runProposeAgent = async (
+  opts: RunProposeAgentOptions,
+): Promise<RunProposeAgentResult> => {
   const execution = await (async () => {
     for (const attempt of Array.from({ length: MAX_RETRIES }, (_, i) => i + 1)) {
       const result = await ResultAsync.fromPromise(
@@ -47,7 +53,11 @@ export const runProposeAgent = async (opts: RunProposeAgentOptions): Promise<unk
   if (!execution || execution.isErr()) {
     logger.error({ err: execution?.error }, "proposeActions: agent failed after retries");
 
-    return undefined;
+    return {
+      ok: false,
+      code: "AGENT_FAILED",
+      detail: execution?.isErr() ? execution.error.message : "agent did not run",
+    };
   }
 
   const raw = execution.value;
@@ -58,7 +68,7 @@ export const runProposeAgent = async (opts: RunProposeAgentOptions): Promise<unk
   if (extractJsonResult.isErr()) {
     logger.error({ raw }, "proposeActions: failed to extract JSON from agent response");
 
-    return undefined;
+    return { ok: false, code: "BAD_AGENT_OUTPUT", detail: "no JSON found in agent response" };
   }
 
   const parseJsonResult = Result.fromThrowable(
@@ -71,8 +81,8 @@ export const runProposeAgent = async (opts: RunProposeAgentOptions): Promise<unk
       "proposeActions: extracted text is not valid JSON",
     );
 
-    return undefined;
+    return { ok: false, code: "BAD_AGENT_OUTPUT", detail: "agent returned invalid JSON" };
   }
 
-  return parseJsonResult.value;
+  return { ok: true, json: parseJsonResult.value };
 };

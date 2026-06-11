@@ -84,7 +84,7 @@ export const proposeActions = async (
   if (!parsedSnapshot.success) {
     logger.warn({ error: parsedSnapshot.error }, "proposeActions: invalid pipeline graph snapshot");
 
-    return { proposal: null, diagnostics: [] };
+    return { proposal: null, diagnostics: [], error: { code: "INVALID_SNAPSHOT" } };
   }
 
   const snapshot = parsedSnapshot.data;
@@ -100,7 +100,7 @@ export const proposeActions = async (
     return {
       proposal: null,
       diagnostics: [],
-      reply: `Selected runtime "${opts.runtimeId}" is not available.`,
+      error: { code: "RUNTIME_NOT_FOUND", detail: opts.runtimeId },
     };
   }
 
@@ -135,18 +135,22 @@ export const proposeActions = async (
     snapshot,
   });
 
-  const parsedJson = await runProposeAgent({
+  const agentResult = await runProposeAgent({
     agent: effectiveRuntime?.type ?? settings.defaultAgentRuntime,
     apiKey: settings.defaultApiKey,
     model: settings.defaultModel,
     ssh: effectiveRuntime?.connection.mode === "ssh" ? effectiveRuntime.connection : undefined,
     userPrompt: userPromptText,
   });
-  if (parsedJson === undefined) {
-    return { proposal: null, diagnostics: [] };
+  if (!agentResult.ok) {
+    return {
+      proposal: null,
+      diagnostics: [],
+      error: { code: agentResult.code, detail: agentResult.detail },
+    };
   }
 
-  const agentOutput = parseProposeAgentOutput(parsedJson);
+  const agentOutput = parseProposeAgentOutput(agentResult.json);
   const clarifyOptions =
     agentOutput.clarifyOptions.length > 0 ? agentOutput.clarifyOptions : undefined;
 
@@ -155,9 +159,12 @@ export const proposeActions = async (
       return { clarifyOptions, diagnostics: [], proposal: null, reply: agentOutput.reply };
     }
 
-    logger.error({ json: parsedJson }, "proposeActions: agent returned neither reply nor proposal");
+    logger.error(
+      { json: agentResult.json },
+      "proposeActions: agent returned neither reply nor proposal",
+    );
 
-    return { proposal: null, diagnostics: [] };
+    return { proposal: null, diagnostics: [], error: { code: "BAD_AGENT_OUTPUT" } };
   }
 
   const normalizedProposal = normalizeProposalPayload(agentOutput.proposalPayload);
@@ -188,11 +195,22 @@ export const proposeActions = async (
     }
 
     if (agentOutput.reply) {
-      // Keep the conversational reply even when the structured proposal is unusable.
-      return { clarifyOptions, diagnostics: [], proposal: null, reply: agentOutput.reply };
+      // Keep the conversational reply even when the structured proposal is unusable,
+      // but surface that the proposal itself was dropped.
+      return {
+        clarifyOptions,
+        diagnostics: [],
+        error: { code: "BAD_AGENT_OUTPUT", detail: "proposal failed schema validation" },
+        proposal: null,
+        reply: agentOutput.reply,
+      };
     }
 
-    return { proposal: null, diagnostics: [] };
+    return {
+      proposal: null,
+      diagnostics: [],
+      error: { code: "BAD_AGENT_OUTPUT", detail: "proposal failed schema validation" },
+    };
   }
 
   const proposal = parsed.data;

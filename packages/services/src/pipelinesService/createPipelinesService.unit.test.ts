@@ -350,7 +350,7 @@ describe("createPipelinesService", () => {
     expect(result).toEqual({
       proposal: null,
       diagnostics: [],
-      reply: 'Selected runtime "missing-runtime" is not available.',
+      error: { code: "RUNTIME_NOT_FOUND", detail: "missing-runtime" },
     });
     expect(mockRunAgent).not.toHaveBeenCalled();
   });
@@ -634,7 +634,11 @@ describe("createPipelinesService", () => {
       message: "invalid snapshot",
     });
 
-    expect(result).toEqual({ proposal: null, diagnostics: [] });
+    expect(result).toEqual({
+      proposal: null,
+      diagnostics: [],
+      error: { code: "INVALID_SNAPSHOT" },
+    });
     expect(mockRunAgent).not.toHaveBeenCalled();
   });
 
@@ -648,7 +652,11 @@ describe("createPipelinesService", () => {
       message: "invalid",
     });
 
-    expect(result).toEqual({ proposal: null, diagnostics: [] });
+    expect(result).toEqual({
+      proposal: null,
+      diagnostics: [],
+      error: { code: "BAD_AGENT_OUTPUT", detail: "agent returned invalid JSON" },
+    });
     expect(mockDao.create).not.toHaveBeenCalled();
     expect(mockDao.update).not.toHaveBeenCalled();
     expect(mockDao.delete).not.toHaveBeenCalled();
@@ -669,7 +677,11 @@ describe("createPipelinesService", () => {
       message: "schema-invalid",
     });
 
-    expect(result).toEqual({ proposal: null, diagnostics: [] });
+    expect(result).toEqual({
+      proposal: null,
+      diagnostics: [],
+      error: { code: "BAD_AGENT_OUTPUT", detail: "proposal failed schema validation" },
+    });
     expect(mockDao.create).not.toHaveBeenCalled();
     expect(mockDao.update).not.toHaveBeenCalled();
     expect(mockDao.delete).not.toHaveBeenCalled();
