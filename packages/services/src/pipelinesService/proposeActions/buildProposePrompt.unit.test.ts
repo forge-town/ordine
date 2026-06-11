@@ -69,6 +69,31 @@ describe("resolveSelectedElements", () => {
   });
 });
 
+describe("buildProposeUserPrompt history block", () => {
+  it("injects conversation history before the user request", () => {
+    const prompt = buildProposeUserPrompt({
+      ...basePromptInput,
+      history: [
+        { content: "add a verify step", hasProposal: false, role: "user" },
+        { content: "Drafted it.", hasProposal: true, role: "agent" },
+      ],
+    });
+
+    expect(prompt).toContain("=== CONVERSATION HISTORY (oldest first) ===");
+    expect(prompt).toContain("[user]: add a verify step");
+    expect(prompt).toContain("[assistant] (included a graph proposal): Drafted it.");
+    expect(prompt.indexOf("=== CONVERSATION HISTORY")).toBeLessThan(
+      prompt.indexOf("=== USER REQUEST ==="),
+    );
+  });
+
+  it("omits the history block when the conversation is empty", () => {
+    const prompt = buildProposeUserPrompt(basePromptInput);
+
+    expect(prompt).not.toContain("=== CONVERSATION HISTORY");
+  });
+});
+
 describe("buildProposeUserPrompt selection block", () => {
   it("omits the selection block when nothing is referenced", () => {
     const prompt = buildProposeUserPrompt(basePromptInput);

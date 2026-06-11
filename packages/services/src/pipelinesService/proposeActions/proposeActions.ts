@@ -1,6 +1,7 @@
 import { Result, ResultAsync } from "neverthrow";
 import type {
   createAgentRuntimesDao,
+  createConversationMessagesDao,
   createOperationsDao,
   createSettingsDao,
 } from "@repo/models";
@@ -22,13 +23,45 @@ import {
   PROPOSE_SYSTEM_PROMPT,
   buildProposeUserPrompt,
 } from "./buildProposePrompt";
+import type { ProposeHistoryMessage } from "./conversationHistory";
 import { normalizeProposalPayload } from "./normalizeProposalPayload";
 import { validateProposalActionCatalog } from "./validateProposalCatalog";
 
 export type ProposeActionsDeps = {
   agentRuntimesDao: ReturnType<typeof createAgentRuntimesDao>;
+  conversationMessagesDao: ReturnType<typeof createConversationMessagesDao>;
   operationsDao: ReturnType<typeof createOperationsDao>;
   settingsDao: ReturnType<typeof createSettingsDao>;
+};
+
+/**
+ * Load the pipeline conversation as prompt history. The current user message
+ * is persisted before proposeActions is called, so a trailing duplicate of it
+ * is dropped to avoid repeating the USER REQUEST section.
+ */
+const loadConversationHistory = async (
+  conversationMessagesDao: ProposeActionsDeps["conversationMessagesDao"],
+  pipelineId: string | undefined,
+  currentMessage: string,
+): Promise<ProposeHistoryMessage[]> => {
+  if (!pipelineId) {
+    return [];
+  }
+
+  const rows = await conversationMessagesDao.getByPipelineId(pipelineId);
+  const trailing = rows.at(-1);
+  const withoutCurrent =
+    trailing && trailing.role === "user" && trailing.content.trim() === currentMessage.trim()
+      ? rows.slice(0, -1)
+      : rows;
+
+  return withoutCurrent.map((row) => ({
+    content: row.content,
+    hasProposal: Boolean(
+      (row.metadata as { proposalSnapshot?: unknown } | null)?.proposalSnapshot,
+    ),
+    role: row.role === "user" ? "user" : "agent",
+  }));
 };
 
 export type ProposeActionsOptions = {
@@ -51,7 +84,7 @@ export const proposeActions = async (
   deps: ProposeActionsDeps,
   opts: ProposeActionsOptions,
 ): Promise<ProposeActionsResult> => {
-  const { agentRuntimesDao, operationsDao, settingsDao } = deps;
+  const { agentRuntimesDao, conversationMessagesDao, operationsDao, settingsDao } = deps;
   const parsedSnapshot = PipelineGraphSnapshotSchema.safeParse(opts.snapshot);
   if (!parsedSnapshot.success) {
     logger.warn({ error: parsedSnapshot.error }, "proposeActions: invalid pipeline graph snapshot");
@@ -89,8 +122,14 @@ export const proposeActions = async (
   const operationById = new Map(
     operationCatalog.map((operation) => [operation.id, { name: operation.name }]),
   );
+  const history = await loadConversationHistory(
+    conversationMessagesDao,
+    opts.pipelineId,
+    opts.message,
+  );
   const userPromptText = buildProposeUserPrompt({
     attachments: opts.attachments ?? [],
+    history,
     message: opts.message,
     operationCatalog,
     pipelineId: opts.pipelineId,

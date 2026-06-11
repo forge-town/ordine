@@ -1,5 +1,6 @@
 import type { ConversationAttachment, PipelineGraphSnapshot } from "@repo/schemas";
 import { MAX_SNAPSHOT_CHARS, truncate } from "../promptText";
+import { buildHistoryBlock, type ProposeHistoryMessage } from "./conversationHistory";
 
 const MAX_SELECTION_CHARS = 6000;
 
@@ -59,6 +60,7 @@ export type ProposeOperationCatalogItem = {
 
 export type BuildProposeUserPromptInput = {
   attachments: ConversationAttachment[];
+  history?: ProposeHistoryMessage[];
   message: string;
   operationCatalog: ProposeOperationCatalogItem[];
   pipelineId?: string;
@@ -136,6 +138,7 @@ const buildSelectionBlock = (
 
 export const buildProposeUserPrompt = ({
   attachments,
+  history = [],
   message,
   operationCatalog,
   pipelineId,
@@ -165,6 +168,7 @@ export const buildProposeUserPrompt = ({
     `=== AVAILABLE OPERATIONS (${operationCatalog.length}) ===`,
     truncate(JSON.stringify(operationCatalog, null, 2), MAX_SNAPSHOT_CHARS),
     "",
+    ...buildHistoryBlock(history),
     ...buildSelectionBlock(referencedNodeIds, snapshot),
     ...sampleArtifactBlock,
     "=== USER REQUEST ===",

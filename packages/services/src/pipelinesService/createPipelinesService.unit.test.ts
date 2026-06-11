@@ -40,11 +40,15 @@ const mockAgentRuntimesDao = {
     },
   ]),
 };
+const mockConversationMessagesDao = {
+  getByPipelineId: vi.fn().mockResolvedValue([]),
+};
 const mockRunAgent = vi.fn();
 const mockExtractJsonFromText = vi.fn((raw: string) => raw);
 
 vi.mock("@repo/models", () => ({
   createAgentRuntimesDao: () => mockAgentRuntimesDao,
+  createConversationMessagesDao: () => mockConversationMessagesDao,
   createPipelinesDao: () => mockDao,
   createDistillationsDao: () => ({}),
   createJobsDao: () => ({}),
@@ -101,6 +105,8 @@ describe("createPipelinesService", () => {
     mockSettingsDao.get.mockClear();
     mockOperationsDao.findMany.mockClear();
     mockAgentRuntimesDao.findMany.mockClear();
+    mockConversationMessagesDao.getByPipelineId.mockClear();
+    mockConversationMessagesDao.getByPipelineId.mockResolvedValue([]);
     mockRunAgent.mockReset();
     mockExtractJsonFromText.mockReset();
     mockExtractJsonFromText.mockImplementation((raw: string) => raw);
