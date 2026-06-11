@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as ApiLocalSessionRouteImport } from './routes/api/local-session'
@@ -47,11 +46,6 @@ const SignUpRoute = SignUpRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CanvasRoute = CanvasRouteImport.update({
-  id: '/canvas',
-  path: '/canvas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutRoute = LayoutRouteImport.update({
@@ -195,7 +189,6 @@ const LayoutPipelinesOperationsOperationIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
-  '/canvas': typeof CanvasRoute
   '/login': typeof LoginRoute
   '/sign-up': typeof SignUpRoute
   '/components': typeof LayoutComponentsRoute
@@ -224,7 +217,6 @@ export interface FileRoutesByFullPath {
   '/pipelines/operations/$operationId/': typeof LayoutPipelinesOperationsOperationIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/canvas': typeof CanvasRoute
   '/login': typeof LoginRoute
   '/sign-up': typeof SignUpRoute
   '/components': typeof LayoutComponentsRoute
@@ -254,7 +246,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
-  '/canvas': typeof CanvasRoute
   '/login': typeof LoginRoute
   '/sign-up': typeof SignUpRoute
   '/_layout/components': typeof LayoutComponentsRoute
@@ -287,7 +278,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/canvas'
     | '/login'
     | '/sign-up'
     | '/components'
@@ -316,7 +306,6 @@ export interface FileRouteTypes {
     | '/pipelines/operations/$operationId/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/canvas'
     | '/login'
     | '/sign-up'
     | '/components'
@@ -345,7 +334,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_layout'
-    | '/canvas'
     | '/login'
     | '/sign-up'
     | '/_layout/components'
@@ -377,7 +365,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
-  CanvasRoute: typeof CanvasRoute
   LoginRoute: typeof LoginRoute
   SignUpRoute: typeof SignUpRoute
   ApiLocalSessionRoute: typeof ApiLocalSessionRoute
@@ -399,13 +386,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/canvas': {
-      id: '/canvas'
-      path: '/canvas'
-      fullPath: '/canvas'
-      preLoaderRoute: typeof CanvasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout': {
@@ -669,7 +649,6 @@ const LayoutRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
-  CanvasRoute: CanvasRoute,
   LoginRoute: LoginRoute,
   SignUpRoute: SignUpRoute,
   ApiLocalSessionRoute: ApiLocalSessionRoute,

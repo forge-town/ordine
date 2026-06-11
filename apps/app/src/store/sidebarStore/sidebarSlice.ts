@@ -2,7 +2,7 @@ import type { StateCreator } from "zustand";
 import { SidebarView, type SidebarViewType } from "./sidebarView";
 
 const isPipelinePathname = (pathname: string): boolean =>
-  pathname.startsWith("/canvas") || pathname.startsWith("/pipelines");
+  pathname.startsWith("/workspace") || pathname.startsWith("/pipelines");
 
 const CURRENT_PROJECT_STORAGE_KEY = "ordinctor.sidebar.currentProjectId";
 const CAPABILITIES_OPEN_STORAGE_KEY = "ordinctor.sidebar.capabilitiesOpen";

@@ -1,18 +1,8 @@
 import { render } from "@/test/test-wrapper";
 import { screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { createCanvasPageStore, CanvasPageStoreContext } from "../_store/canvasPageStore";
 import { CanvasContextMenu } from "./CanvasContextMenu";
-
-vi.mock("@/routes/canvas", () => ({
-  Route: {
-    useLoaderData: () => ({
-      pipeline: null,
-      operations: [],
-      bestPractices: [],
-    }),
-  },
-}));
 
 const createTestStore = () => {
   const store = createCanvasPageStore();

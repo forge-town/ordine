@@ -1,1 +1,2 @@
-export * from "./CanvasPage";
+export * from "./CanvasPageContent";
+export * from "./_store";
