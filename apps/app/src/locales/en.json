@@ -1355,7 +1355,42 @@
         "running": "Watching · live",
         "watching": "Watching · {{jobId}} · live"
       },
-      "title": "Agent"
+      "title": "Agent",
+      "context": {
+        "footer": {
+          "editing": "Window budget selects by state · editing prioritizes Canvas / selection.",
+          "running": "Window budget selects by state · run-time prioritizes Run / runtime."
+        },
+        "itemCount_one": "{{count}} item",
+        "itemCount_other": "{{count}} items",
+        "items": {
+          "annotations": "Canvas annotations",
+          "annotationsWith": "Canvas annotations · {{count}}",
+          "memory": "Memory summary",
+          "nodeRuntime": "Node runtime",
+          "project": "Project info",
+          "runState": "Run state",
+          "selection": "Selection",
+          "selectionWith": "Selection · {{refs}}",
+          "snapshot": "Pipeline snapshot",
+          "thread": "Conversation thread"
+        },
+        "rules": {
+          "always": "always",
+          "compressed": "always · compressed",
+          "runtime": "run-time priority",
+          "whenPresent": "when present",
+          "whenSelected": "when selected",
+          "windowed": "windowed"
+        },
+        "summary": {
+          "annotations": "+ annotations",
+          "default": "canvas + thread",
+          "running": "prioritizing run + runtime",
+          "selection": "+ selection"
+        },
+        "title": "Context"
+      }
     }
   },
   "validation": {

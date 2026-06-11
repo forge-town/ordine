@@ -144,6 +144,7 @@ export const useAgentConversation = ({
             attachments: metadata.attachments ?? [],
             message: trimmedContent,
             pipelineName,
+            referencedNodeIds: metadata.referencedNodeIds ?? [],
             snapshot: { edges, nodes },
           },
           url: "pipelines/proposeActions",

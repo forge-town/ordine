@@ -1,11 +1,13 @@
-import { useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { ArrowUp, Paperclip, X } from "lucide-react";
 import type { ConversationAttachment, ConversationMessageMetadata } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Textarea } from "@repo/ui/textarea";
 import type { WorkspaceCanvasRef } from "../../_store/workspaceStore";
 import { Icon } from "@/components/primitives";
+import { useWorkspaceStore } from "../../_store/workspaceStore";
 import { useAgentBarStore } from "../_store";
+import { ContextStrip } from "./ContextStrip";
 import { RefChips } from "./RefChips";
 
 export type ComposerSubmitInput = {
@@ -14,6 +16,7 @@ export type ComposerSubmitInput = {
 };
 
 export type ComposerProps = {
+  anchorCount?: number;
   isSending?: boolean;
   refs: WorkspaceCanvasRef[];
   onRemoveRef: (id: string) => void;
@@ -22,12 +25,27 @@ export type ComposerProps = {
 
 const createMessageId = () => `agent-message-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-export const Composer = ({ isSending = false, onRemoveRef, onSubmit, refs }: ComposerProps) => {
+export const Composer = ({
+  anchorCount = 0,
+  isSending = false,
+  onRemoveRef,
+  onSubmit,
+  refs,
+}: ComposerProps) => {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<ConversationAttachment[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addMessage = useAgentBarStore((state) => state.addMessage);
+  const hasConversation = useAgentBarStore((state) => state.messages.length > 0);
+  const phase = useWorkspaceStore((state) => state.phase);
+  const composerFocusNonce = useWorkspaceStore((state) => state.composerFocusNonce);
+
+  useEffect(() => {
+    if (composerFocusNonce > 0) {
+      textareaRef.current?.focus();
+    }
+  }, [composerFocusNonce]);
   const trimmedText = text.trim();
   const canSend = (trimmedText.length > 0 || attachments.length > 0) && !isSending;
   const placeholder =
@@ -107,7 +125,14 @@ export const Composer = ({ isSending = false, onRemoveRef, onSubmit, refs }: Com
   };
 
   return (
-    <div className="p-3 pt-2">
+    <div>
+      <ContextStrip
+        anchorCount={anchorCount}
+        hasConversation={hasConversation}
+        phase={phase}
+        refs={refs}
+      />
+      <div className="p-3 pt-2">
       <RefChips refs={refs} onRemoveRef={handleRemoveRef} />
 
       {attachments.length > 0 ? (
@@ -174,8 +199,6 @@ export const Composer = ({ isSending = false, onRemoveRef, onSubmit, refs }: Com
         type="file"
         onChange={handleFileChange}
       />
-      <div className="pt-1.5 text-center text-[10px] text-muted-foreground">
-        Claude Code / Codex / Hermes available - $0.14 this session
       </div>
     </div>
   );

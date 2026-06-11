@@ -1350,7 +1350,42 @@
         "running": "观察中 · 实时",
         "watching": "观察中 · {{jobId}} · 实时"
       },
-      "title": "Agent"
+      "title": "Agent",
+      "context": {
+        "footer": {
+          "editing": "上下文按状态选取 · 编辑时优先携带画布与选区。",
+          "running": "上下文按状态选取 · 运行时优先携带运行与节点状态。"
+        },
+        "itemCount_one": "{{count}} 项",
+        "itemCount_other": "{{count}} 项",
+        "items": {
+          "annotations": "画布批注",
+          "annotationsWith": "画布批注 · {{count}}",
+          "memory": "记忆摘要",
+          "nodeRuntime": "节点运行时",
+          "project": "项目信息",
+          "runState": "运行状态",
+          "selection": "选区",
+          "selectionWith": "选区 · {{refs}}",
+          "snapshot": "Pipeline 快照",
+          "thread": "对话线程"
+        },
+        "rules": {
+          "always": "始终",
+          "compressed": "始终 · 压缩",
+          "runtime": "运行时优先",
+          "whenPresent": "存在时",
+          "whenSelected": "选中时",
+          "windowed": "滑动窗口"
+        },
+        "summary": {
+          "annotations": "+ 批注",
+          "default": "画布 + 线程",
+          "running": "优先运行 + 节点状态",
+          "selection": "+ 选区"
+        },
+        "title": "上下文"
+      }
     }
   },
   "validation": {
