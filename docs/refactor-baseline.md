@@ -81,3 +81,19 @@ M1-10 收尾复核（2026-06-10）：
 - proposeActions 已零行为迁出至 `pipelinesService/proposeActions/`（buildProposePrompt / normalizeProposalPayload / validateProposalCatalog / proposeActions），`createPipelinesService.ts` 1236 → 757 行。
 - 沙箱内验证：packages/services、apps/app、apps/server 三处 `tsc --noEmit` 全绿。
 - vitest / oxlint / oxfmt 为 darwin 二进制，沙箱（linux-arm64 + registry 拦截）无法执行——按 CLAUDE.md §二例外规则，N11 期末由用户在宿主机集中跑 `bun run format && bun run quality`，问题以 fix commit 补齐。
+
+## 宿主机收尾执行（2026-06-11，承接上文 N10 四项遗留）
+
+1. **Task 3 已完成**（commit `feat: 画布运行控制条接通取消运行 (N11-stop)`）：实际禁用态的 Stop 按钮在 `canvas/chrome/TopPill.tsx`（非 CheckpointDialog），已接 `jobs/cancel`（payload `{ jobId: activeJobId }`）；运行中按钮可点，状态由 `useRunPolling` 1.5s 轮询收敛到 `cancelled`。i18n 删 `stopUnavailable`、加 `stopFailed`/`stopped`（en+zh）；新增单测 "cancels the active run via the Stop button"，TopPill 套件 5/5 通过，apps/app tsc 0 错误，无新增 oxlint warning（291/341 的 no-negated-condition 系 `!atRoot`/`!agentOpen` 既有代码，未触碰）。
+
+2. **Task 1 已出报告（未删，待确认删除范围）**：
+   - 高置信可删：i18n 顶层 `canvas.*`（264/265 键）——旧 CanvasPage 命名空间，N9 归档后零非归档引用、无动态键，新画布全迁至 `workspace.canvas.*`。
+   - 强候选需逐个手确认：`distillations / bestPractices / projects / rules / objects / dashboard` 命名空间仅被 `src/archived/` 引用，但子串扫描无法区分 i18n 键与同名 JS 标识符。
+   - 勿删：`runtimes / time / validation / skills / nav / settings / jobs` 等被 `t(\`ns.${x}\`)` 动态键污染，扫描误报为死。
+   - knip 的 unused exports/types 绝大多数是 `packages/ui` barrel 与各页 `*PageStoreSlice` 类型（有意保留）；prototype `.jsx` 按指示保留。
+
+3. **Task 2 暂缓（记遗留，不做假抽屉）**：原型 ConfigureAgentDrawer 的 prompt/model/tools 实际属于 `agents` 表（含 `systemPrompt`/`allowedTools`/`allowedSkillIds`，有 `AgentPatchSchema` 与完整 AgentsPage）；LocalAgentsPage 列的是 `agent_runtimes`（仅 `name/type/connection`）。原型把 runtime 与 agent 概念混为一谈；runtime 唯一可配置项是 `name`，Agents 配置已有专页，故不在 LocalAgents 上做重复/伪造抽屉，待产品决定方向后再做。`LocalAgentCard` 已预留 `onConfigure` prop（未传入即不渲染按钮），保持现状。
+
+4. **Task 4 目检截图（pr-assets 已 gitignore，截图仅存盘作证据）**：`ORDINE_LOCAL_MODE=true bun run dev`（9430，tanstackStart 同进程服务 `/api/trpc`）后用 Playwright（指向已装 chromium-1223）截了 `pr-assets/n11-{pipelines,jobs,local-agents,workspace-canvas}.png`。V2 布局均正常渲染：Pipelines console（含 Draft 卡）、Jobs console（stat 卡/Routines/状态 tab）、LocalAgents（"No local agents detected"，确认无 Configure 假按钮）、画布（侧栏/组件面板/空画布"Start with a node"/TopPill 面包屑）。
+   - **已知环境问题（非本轮改动）**：jobs/local-agents/workspace 三页出现全局错误 toast `Failed query: select … from "jobs" …`——本地 PGlite 缺 N7 新增列（`total_cost`/`node_statuses`/`triggered_by` 等），即 baseline §"已知本地环境问题" 的迁移漂移；migrations 随 server 启动自动跑仍失败，未在本轮修复。
+   - **Stop 运行态未截到**：上述 jobs 子系统查询挂导致无法创建真实运行 job 来展示启用态 Stop；按手册不注入假状态，该接线由新增单测 "cancels the active run via the Stop button" 覆盖。
