@@ -3,6 +3,7 @@ import { PanelLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { SidebarInset, SidebarProvider } from "@repo/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import { NotificationCenter } from "./NotificationCenter";
 import { ResizeHandle } from "./ResizeHandle";
 import { ToastContainer } from "./ToastContainer";
 import { ToastStoreProvider } from "@/store/toastStore";
@@ -74,6 +75,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
               <PanelLeft className="size-3.5 text-muted-foreground transition-colors group-hover:text-foreground" />
             </button>
           ) : null}
+          <NotificationCenter />
           <ToastContainer />
           <SearchPipelineDialog />
           <NewPipelineDialog />

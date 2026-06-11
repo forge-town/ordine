@@ -1555,5 +1555,13 @@
       "save": "Save",
       "create": "Create"
     }
+  },
+  "notifications": {
+    "clear": "Clear all",
+    "emptyBody": "Run, self-heal & connector events show here.",
+    "emptyTitle": "All clear",
+    "markRead": "Mark read",
+    "open": "open",
+    "title": "Notifications"
   }
 }

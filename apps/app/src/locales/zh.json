@@ -1550,5 +1550,13 @@
       "save": "保存",
       "create": "创建"
     }
+  },
+  "notifications": {
+    "clear": "全部清空",
+    "emptyBody": "运行、自愈与连接器事件会出现在这里。",
+    "emptyTitle": "暂无通知",
+    "markRead": "全部已读",
+    "open": "打开",
+    "title": "通知"
   }
 }
