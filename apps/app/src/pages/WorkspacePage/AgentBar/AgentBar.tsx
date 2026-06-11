@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useUpdate } from "@refinedev/core";
+import { useNavigate } from "@tanstack/react-router";
 import type { WorkspaceCanvasRef } from "@repo/schemas";
 import { Check, ChevronsRight, MessageSquare, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -7,7 +8,7 @@ import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useCanvasStore } from "../canvas/_store/canvasStore";
-import { Assistant, Bubble, ClarifyOptions, ProposalCard } from "./messages";
+import { Assistant, Bubble, ClarifyOptions, ErrorActions, ProposalCard } from "./messages";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
 import { AgentDistillCard } from "./AgentDistillCard";
@@ -33,6 +34,7 @@ export const AgentBar = ({
   pipelineName,
 }: AgentBarProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeJobId = useCanvasStore((state) => state.activeJobId);
   const canvasNodes = useCanvasStore((state) => state.nodes);
@@ -225,11 +227,30 @@ export const AgentBar = ({
           const messageRefs = refsForMessage(message);
           const resolvable = thread && !message.metadata?.resolved && !message.isThinking;
           const clarifyOptions = message.metadata?.clarifyOptions ?? [];
+          const isLastMessage = message.id === visibleMessages.at(-1)?.id;
           const showClarifyOptions =
             message.role === "assistant" &&
             clarifyOptions.length > 0 &&
-            message.id === visibleMessages.at(-1)?.id &&
+            isLastMessage &&
             !pendingProposal;
+          const errorCode = message.metadata?.proposeErrorCode;
+          const showErrorActions =
+            message.role === "assistant" && Boolean(errorCode) && isLastMessage;
+          const handleErrorRetry = () => {
+            const messageIndex = visibleMessages.indexOf(message);
+            const lastUserMessage = [...visibleMessages.slice(0, messageIndex)]
+              .reverse()
+              .find((candidate) => candidate.role === "user");
+            if (!lastUserMessage) {
+              return;
+            }
+            void submitMessage({
+              content: lastUserMessage.content,
+              metadata: {
+                referencedNodeIds: lastUserMessage.metadata?.referencedNodeIds ?? [],
+              },
+            });
+          };
           const body =
             message.role === "user" ? (
               <Bubble
@@ -256,6 +277,14 @@ export const AgentBar = ({
                   onSelect={(option) =>
                     void submitMessage({ content: option, metadata: { referencedNodeIds: [] } })
                   }
+                />
+              ) : null}
+              {showErrorActions && errorCode ? (
+                <ErrorActions
+                  code={errorCode}
+                  disabled={isSending}
+                  onOpenSettings={() => void navigate({ to: "/settings" })}
+                  onRetry={handleErrorRetry}
                 />
               ) : null}
               {resolvable ? (

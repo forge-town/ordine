@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { ProposeActionsErrorCodeSchema } from "../pipeline/ProposeActionsResponseSchema";
 
 export const ConversationAttachmentSchema = z.object({
   name: z.string(),
@@ -33,6 +34,7 @@ export const ConversationMessageMetadataSchema = z.object({
   attachments: z.array(ConversationAttachmentSchema).optional(),
   clarifyOptions: z.array(z.string()).optional(),
   diagnostics: z.array(z.string()).optional(),
+  proposeErrorCode: ProposeActionsErrorCodeSchema.optional(),
   proposalSnapshot: ConversationProposalSnapshotSchema.optional(),
   errorContext: ConversationErrorContextSchema.optional(),
   tokenUsage: ConversationTokenUsageSchema.optional(),

@@ -1295,6 +1295,17 @@
         "removeEdge": "Remove edge",
         "removeNode": "Remove node",
         "replaceNodeData": "Update node"
+      },
+      "errors": {
+        "AGENT_FAILED": "The local agent did not respond. It may not be running or is misconfigured — retry, or check the agent runtime.",
+        "BAD_AGENT_OUTPUT": "The agent responded, but I could not turn it into a valid proposal. This is usually transient — please retry.",
+        "INVALID_SNAPSHOT": "The canvas state could not be read. Reload the page and try again.",
+        "RUNTIME_NOT_FOUND": "The configured agent runtime is not available on this machine, so I cannot draft proposals. Pick a detected runtime in Settings → Defaults.",
+        "actions": {
+          "openSettings": "Open Settings",
+          "retry": "Retry"
+        },
+        "proposalDropped": "(The drafted proposal failed validation and was discarded — ask me to try again.)"
       }
     },
     "notFoundPipeline": "Pipeline not found"

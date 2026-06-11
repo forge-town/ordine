@@ -5,6 +5,7 @@ import {
   Assistant,
   Bubble,
   ClarifyOptions,
+  ErrorActions,
   CompletionCard,
   DistillCard,
   ErrorCard,
@@ -146,5 +147,27 @@ describe("AgentBar message components", () => {
     await user.click(screen.getByTestId("agent-proposal-ask-fix"));
 
     expect(handleAskFix).toHaveBeenCalled();
+  });
+
+  it("routes runtime errors to settings and transient errors to retry", async () => {
+    const user = userEvent.setup();
+    const handleOpenSettings = vi.fn();
+    const handleRetry = vi.fn();
+    const { rerender } = render(
+      <ErrorActions
+        code="RUNTIME_NOT_FOUND"
+        onOpenSettings={handleOpenSettings}
+        onRetry={handleRetry}
+      />,
+    );
+
+    await user.click(screen.getByTestId("agent-error-open-settings"));
+    expect(handleOpenSettings).toHaveBeenCalled();
+
+    rerender(
+      <ErrorActions code="AGENT_FAILED" onOpenSettings={handleOpenSettings} onRetry={handleRetry} />,
+    );
+    await user.click(screen.getByTestId("agent-error-retry"));
+    expect(handleRetry).toHaveBeenCalled();
   });
 });

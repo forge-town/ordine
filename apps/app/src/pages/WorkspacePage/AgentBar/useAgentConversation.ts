@@ -157,11 +157,16 @@ export const useAgentConversation = ({
       const proposal = result.value.data.proposal ?? null;
       const nextDiagnostics = result.value.data.diagnostics ?? null;
       const clarifyOptions = result.value.data.clarifyOptions ?? [];
-      const reply =
-        result.value.data.reply ??
-        (proposal
-          ? t("workspace.agentBar.replies.drafted")
-          : t("workspace.agentBar.replies.noSafeChange"));
+      const proposeError = result.value.data.error ?? null;
+      const baseReply = result.value.data.reply;
+      const reply = proposeError
+        ? baseReply
+          ? `${baseReply}\n${t("workspace.agentBar.errors.proposalDropped")}`
+          : t(`workspace.agentBar.errors.${proposeError.code}`)
+        : (baseReply ??
+          (proposal
+            ? t("workspace.agentBar.replies.drafted")
+            : t("workspace.agentBar.replies.noSafeChange")));
 
       setPendingProposal(proposal, nextDiagnostics);
       setIsReversing(false);
@@ -173,9 +178,11 @@ export const useAgentConversation = ({
         content: reply,
         metadata: proposal
           ? { proposalSnapshot: createProposalSnapshot(proposal) }
-          : clarifyOptions.length > 0
-            ? { clarifyOptions }
-            : undefined,
+          : proposeError
+            ? { proposeErrorCode: proposeError.code }
+            : clarifyOptions.length > 0
+              ? { clarifyOptions }
+              : undefined,
         role: "assistant",
       });
       setIsProposing(false);

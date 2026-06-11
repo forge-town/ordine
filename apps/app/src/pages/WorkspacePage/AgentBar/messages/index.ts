@@ -4,6 +4,7 @@ export * from "./CheckpointCard";
 export * from "./ClarifyOptions";
 export * from "./CompletionCard";
 export * from "./DistillCard";
+export * from "./ErrorActions";
 export * from "./ErrorCard";
 export * from "./ProgressList";
 export * from "./ProposalCard";

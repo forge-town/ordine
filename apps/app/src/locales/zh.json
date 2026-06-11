@@ -1290,6 +1290,17 @@
         "removeEdge": "删除连线",
         "removeNode": "删除节点",
         "replaceNodeData": "更新节点"
+      },
+      "errors": {
+        "AGENT_FAILED": "本地 Agent 没有响应。它可能没在运行或配置有误——可以重试，或检查 Agent runtime。",
+        "BAD_AGENT_OUTPUT": "Agent 有响应，但我没能把它转成有效提案。这通常是偶发问题——请重试。",
+        "INVALID_SNAPSHOT": "画布状态读取失败，请刷新页面后重试。",
+        "RUNTIME_NOT_FOUND": "配置的 Agent runtime 在本机不可用，无法生成提案。请到 Settings → Defaults 选择一个已检测到的 runtime。",
+        "actions": {
+          "openSettings": "打开 Settings",
+          "retry": "重试"
+        },
+        "proposalDropped": "（生成的提案未通过校验已被丢弃——可以让我再试一次。）"
       }
     },
     "notFoundPipeline": "找不到该 Pipeline"

@@ -4,6 +4,7 @@ import {
   Bubble,
   ClarifyOptions,
   CompletionCard,
+  ErrorActions,
   DistillCard,
   ErrorCard,
   ProgressList,
@@ -142,6 +143,18 @@ export const ClarifyPhase: StoryObj = {
     <div className="space-y-2">
       <Assistant>你想处理哪种输入？</Assistant>
       <ClarifyOptions options={["本地文件夹", "GitHub 仓库", "纯文本指令"]} onSelect={() => {}} />
+    </div>
+  ),
+};
+
+export const ErrorRecovery: StoryObj = {
+  name: "Error actions",
+  render: () => (
+    <div className="space-y-2">
+      <Assistant>配置的 Agent runtime 在本机不可用，无法生成提案。</Assistant>
+      <ErrorActions code="RUNTIME_NOT_FOUND" onOpenSettings={() => {}} onRetry={() => {}} />
+      <Assistant>Agent 没有响应。</Assistant>
+      <ErrorActions code="AGENT_FAILED" onOpenSettings={() => {}} onRetry={() => {}} />
     </div>
   ),
 };
