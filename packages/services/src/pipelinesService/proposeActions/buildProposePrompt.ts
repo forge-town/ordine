@@ -1,6 +1,8 @@
 import type { ConversationAttachment, PipelineGraphSnapshot } from "@repo/schemas";
 import { MAX_SNAPSHOT_CHARS, truncate } from "../promptText";
 
+const MAX_SELECTION_CHARS = 6000;
+
 export const PROPOSE_AGENT_ID = "pipeline-propose-actions";
 
 export const PROPOSE_SYSTEM_PROMPT = [
@@ -61,7 +63,75 @@ export type BuildProposeUserPromptInput = {
   operationCatalog: ProposeOperationCatalogItem[];
   pipelineId?: string;
   pipelineName?: string;
+  referencedNodeIds?: string[];
   snapshot: PipelineGraphSnapshot;
+};
+
+type ResolvedSelection = {
+  drillPath: string[];
+  element: PipelineGraphSnapshot["nodes"][number] | PipelineGraphSnapshot["edges"][number];
+  kind: "node" | "edge";
+  refId: string;
+};
+
+/**
+ * Resolve composer ref ids against the current graph. Drill-in refs are encoded
+ * as `parent/child` paths — the last segment is the element id on the canvas.
+ */
+export const resolveSelectedElements = (
+  referencedNodeIds: string[],
+  snapshot: PipelineGraphSnapshot,
+): { resolved: ResolvedSelection[]; missing: string[] } => {
+  const resolved: ResolvedSelection[] = [];
+  const missing: string[] = [];
+
+  for (const refId of referencedNodeIds) {
+    const path = refId.split("/");
+    const baseId = path.at(-1) ?? refId;
+    const node = snapshot.nodes.find((candidate) => candidate.id === baseId);
+    if (node) {
+      resolved.push({ drillPath: path.slice(0, -1), element: node, kind: "node", refId });
+      continue;
+    }
+
+    const edge = snapshot.edges.find((candidate) => candidate.id === baseId);
+    if (edge) {
+      resolved.push({ drillPath: path.slice(0, -1), element: edge, kind: "edge", refId });
+      continue;
+    }
+
+    missing.push(refId);
+  }
+
+  return { missing, resolved };
+};
+
+const buildSelectionBlock = (
+  referencedNodeIds: string[],
+  snapshot: PipelineGraphSnapshot,
+): string[] => {
+  if (referencedNodeIds.length === 0) {
+    return [];
+  }
+
+  const { missing, resolved } = resolveSelectedElements(referencedNodeIds, snapshot);
+  if (resolved.length === 0 && missing.length === 0) {
+    return [];
+  }
+
+  return [
+    "=== USER SELECTION ===",
+    "The user has explicitly selected the following graph elements before sending this message.",
+    "Treat the user's request as targeting these elements. Prefer proposing changes to them",
+    "(e.g. replaceNodeData / reconnectEdge on the selected element) unless the request clearly says otherwise.",
+    ...(resolved.length > 0
+      ? [truncate(JSON.stringify(resolved, null, 2), MAX_SELECTION_CHARS)]
+      : []),
+    ...(missing.length > 0
+      ? [`Referenced ids not found in the current graph (ignore them): ${missing.join(", ")}`]
+      : []),
+    "",
+  ];
 };
 
 export const buildProposeUserPrompt = ({
@@ -70,6 +140,7 @@ export const buildProposeUserPrompt = ({
   operationCatalog,
   pipelineId,
   pipelineName,
+  referencedNodeIds = [],
   snapshot,
 }: BuildProposeUserPromptInput): string => {
   const sampleArtifactBlock =
@@ -94,6 +165,7 @@ export const buildProposeUserPrompt = ({
     `=== AVAILABLE OPERATIONS (${operationCatalog.length}) ===`,
     truncate(JSON.stringify(operationCatalog, null, 2), MAX_SNAPSHOT_CHARS),
     "",
+    ...buildSelectionBlock(referencedNodeIds, snapshot),
     ...sampleArtifactBlock,
     "=== USER REQUEST ===",
     message,

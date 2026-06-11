@@ -37,6 +37,7 @@ export type ProposeActionsOptions = {
   message: string;
   pipelineId?: string;
   pipelineName?: string;
+  referencedNodeIds?: string[];
   runtimeId?: string;
 };
 
@@ -94,6 +95,7 @@ export const proposeActions = async (
     operationCatalog,
     pipelineId: opts.pipelineId,
     pipelineName: opts.pipelineName,
+    referencedNodeIds: opts.referencedNodeIds ?? [],
     snapshot,
   });
 

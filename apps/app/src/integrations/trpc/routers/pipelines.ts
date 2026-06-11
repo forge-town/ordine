@@ -126,6 +126,7 @@ export const pipelinesRouter = router({
         snapshot: PipelineGraphSnapshotSchema,
         message: z.string().trim().min(1),
         pipelineName: z.string().optional(),
+        referencedNodeIds: z.array(z.string()).optional(),
         runtimeId: z.string().optional(),
       }),
     )
@@ -136,6 +137,7 @@ export const pipelinesRouter = router({
         snapshot: input.snapshot,
         message: input.message,
         pipelineName: input.pipelineName,
+        referencedNodeIds: input.referencedNodeIds,
         runtimeId: input.runtimeId,
       }),
     ),
