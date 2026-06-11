@@ -8,6 +8,8 @@ export const pipelinesRoutes = new Hono();
 
 const proposeActionsBodySchema = z.object({
   attachments: z.array(ConversationAttachmentSchema).optional(),
+  diagnostics: z.array(z.string()).optional(),
+  failedProposal: z.unknown().optional(),
   snapshot: PipelineGraphSnapshotSchema,
   message: z.string().trim().min(1),
   pipelineName: z.string().optional(),
@@ -86,6 +88,8 @@ pipelinesRoutes.post("/:id/propose-actions", async (c) => {
   const result = await pipelinesService.proposeActions({
     pipelineId: id,
     attachments: parsed.data.attachments,
+    diagnostics: parsed.data.diagnostics,
+    failedProposal: parsed.data.failedProposal,
     snapshot: parsed.data.snapshot,
     message: parsed.data.message,
     pipelineName: parsed.data.pipelineName,

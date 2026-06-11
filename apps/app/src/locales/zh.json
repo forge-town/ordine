@@ -1527,7 +1527,8 @@
         "apply": "应用",
         "blocked": "先解决诊断问题再应用",
         "reject": "拒绝",
-        "revise": "修改"
+        "revise": "修改",
+        "askFix": "让 Agent 修复"
       },
       "reversing": {
         "intro": "正在阅读样本 — 推断生成它的步骤。",
@@ -1605,7 +1606,10 @@
         "noSafeChange": "这个请求我找不到安全的图结构改动。",
         "rejected": "已拒绝当前提案。",
         "requestFailed": "我没能联系上 Agent 生成提案，请稍后重试。",
-        "reviseHint": "告诉我要修改什么，我会重新起草提案。"
+        "reviseHint": "告诉我要修改什么，我会重新起草提案。",
+        "fixRequest": "请修复提案中的校验错误，并重新提交修正后的提案。",
+        "rejectedWithProposal": "已拒绝提案「{{summary}}」。",
+        "reviseHintWithProposal": "已撤回提案「{{summary}}」，告诉我要修改什么，我会重新起草。"
       },
       "composer": {
         "attach": "添加附件",

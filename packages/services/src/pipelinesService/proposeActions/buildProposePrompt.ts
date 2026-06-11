@@ -71,6 +71,8 @@ export type ProposeOperationCatalogItem = {
 
 export type BuildProposeUserPromptInput = {
   attachments: ConversationAttachment[];
+  diagnostics?: string[];
+  failedProposal?: unknown;
   history?: ProposeHistoryMessage[];
   message: string;
   operationCatalog: ProposeOperationCatalogItem[];
@@ -78,6 +80,25 @@ export type BuildProposeUserPromptInput = {
   pipelineName?: string;
   referencedNodeIds?: string[];
   snapshot: PipelineGraphSnapshot;
+};
+
+const buildDiagnosticsBlock = (diagnostics: string[], failedProposal: unknown): string[] => {
+  if (diagnostics.length === 0) {
+    return [];
+  }
+
+  return [
+    "=== PREVIOUS PROPOSAL DIAGNOSTICS ===",
+    "Your previous proposal failed validation. Fix ALL of the following problems and return a corrected proposal:",
+    ...diagnostics.map((diagnostic) => `- ${diagnostic}`),
+    ...(failedProposal
+      ? [
+          "Failed proposal for reference:",
+          truncate(JSON.stringify(failedProposal, null, 2), MAX_SELECTION_CHARS),
+        ]
+      : []),
+    "",
+  ];
 };
 
 type ResolvedSelection = {
@@ -149,6 +170,8 @@ const buildSelectionBlock = (
 
 export const buildProposeUserPrompt = ({
   attachments,
+  diagnostics = [],
+  failedProposal,
   history = [],
   message,
   operationCatalog,
@@ -181,6 +204,7 @@ export const buildProposeUserPrompt = ({
     "",
     ...buildHistoryBlock(history),
     ...buildSelectionBlock(referencedNodeIds, snapshot),
+    ...buildDiagnosticsBlock(diagnostics, failedProposal),
     ...sampleArtifactBlock,
     "=== USER REQUEST ===",
     message,

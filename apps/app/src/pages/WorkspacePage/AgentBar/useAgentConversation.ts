@@ -17,6 +17,8 @@ import { useAgentConversationPersistence } from "./useAgentConversationPersisten
 
 export type AgentConversationSubmitInput = {
   content: string;
+  /** Full proposal that failed validation — sent to the agent for a fix round. */
+  failedProposal?: PipelineActionProposal;
   metadata: ConversationMessageMetadata;
 };
 
@@ -110,7 +112,7 @@ export const useAgentConversation = ({
   );
 
   const submitMessage = useCallback(
-    async ({ content, metadata }: AgentConversationSubmitInput) => {
+    async ({ content, failedProposal, metadata }: AgentConversationSubmitInput) => {
       const trimmedContent = content.trim();
       if (!pipelineId || trimmedContent.length === 0) {
         return;
@@ -129,6 +131,8 @@ export const useAgentConversation = ({
           payload: {
             id: pipelineId,
             attachments: metadata.attachments ?? [],
+            diagnostics: metadata.diagnostics ?? [],
+            failedProposal,
             message: trimmedContent,
             pipelineName,
             referencedNodeIds: metadata.referencedNodeIds ?? [],
@@ -247,22 +251,42 @@ export const useAgentConversation = ({
   ]);
 
   const rejectProposal = useCallback(async () => {
+    const rejectedSummary = pendingProposal?.summary;
     clearPendingProposal();
     setPhase("clarify");
     await sendMessage({
-      content: t("workspace.agentBar.replies.rejected"),
+      content: rejectedSummary
+        ? t("workspace.agentBar.replies.rejectedWithProposal", { summary: rejectedSummary })
+        : t("workspace.agentBar.replies.rejected"),
       role: "assistant",
     });
-  }, [clearPendingProposal, sendMessage, setPhase, t]);
+  }, [clearPendingProposal, pendingProposal, sendMessage, setPhase, t]);
 
   const reviseProposal = useCallback(async () => {
+    const revisedSummary = pendingProposal?.summary;
     clearPendingProposal();
     setPhase("clarify");
     await sendMessage({
-      content: t("workspace.agentBar.replies.reviseHint"),
+      content: revisedSummary
+        ? t("workspace.agentBar.replies.reviseHintWithProposal", { summary: revisedSummary })
+        : t("workspace.agentBar.replies.reviseHint"),
       role: "assistant",
     });
-  }, [clearPendingProposal, sendMessage, setPhase, t]);
+  }, [clearPendingProposal, pendingProposal, sendMessage, setPhase, t]);
+
+  const requestProposalFix = useCallback(async () => {
+    if (!pendingProposal || !diagnostics || diagnostics.length === 0) {
+      return;
+    }
+
+    const failedProposal = pendingProposal;
+    const diagnosticMessages = diagnostics.map((diagnostic) => diagnostic.message);
+    await submitMessage({
+      content: t("workspace.agentBar.replies.fixRequest"),
+      failedProposal,
+      metadata: { diagnostics: diagnosticMessages, referencedNodeIds: [] },
+    });
+  }, [diagnostics, pendingProposal, submitMessage, t]);
 
   return {
     applyProposal,
@@ -273,6 +297,7 @@ export const useAgentConversation = ({
     pendingProposal,
     proposalItems,
     rejectProposal,
+    requestProposalFix,
     reviseProposal,
     submitMessage,
   };

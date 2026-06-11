@@ -128,4 +128,23 @@ describe("AgentBar message components", () => {
 
     expect(screen.getByRole("button", { name: "本地文件夹" })).toBeDisabled();
   });
+
+  it("shows Ask-agent-to-fix and disables Apply when diagnostics block the proposal", async () => {
+    const user = userEvent.setup();
+    const handleAskFix = vi.fn();
+    render(
+      <ProposalCard
+        items={proposalItems}
+        subtitle="Resolve diagnostics before applying"
+        title="Proposal - 2 nodes"
+        onApply={vi.fn()}
+        onAskFix={handleAskFix}
+      />,
+    );
+
+    expect(screen.getByTestId("agent-proposal-apply")).toBeDisabled();
+    await user.click(screen.getByTestId("agent-proposal-ask-fix"));
+
+    expect(handleAskFix).toHaveBeenCalled();
+  });
 });

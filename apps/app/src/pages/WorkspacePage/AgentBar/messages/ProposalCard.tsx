@@ -10,6 +10,8 @@ export type ProposalItem = {
 export type ProposalCardProps = {
   items: ProposalItem[];
   onApply?: () => void;
+  /** Shown only when blocking diagnostics exist — asks the agent to fix them. */
+  onAskFix?: () => void;
   onReject?: () => void;
   onRevise?: () => void;
   subtitle: string;
@@ -20,6 +22,7 @@ export type ProposalCardProps = {
 export const ProposalCard = ({
   items,
   onApply,
+  onAskFix,
   onReject,
   onRevise,
   subtitle,
@@ -41,9 +44,21 @@ export const ProposalCard = ({
         }))}
       />
       <div className="flex items-center gap-1.5 pt-0.5">
+        {onAskFix ? (
+          <Button
+            className="h-7 rounded-lg px-3 text-[11.5px]"
+            data-testid="agent-proposal-ask-fix"
+            size="sm"
+            variant="outline"
+            onClick={onAskFix}
+          >
+            {t("workspace.agentBar.proposal.askFix")}
+          </Button>
+        ) : null}
         <Button
           className="h-7 rounded-lg px-3 text-[11.5px]"
           data-testid="agent-proposal-apply"
+          disabled={Boolean(onAskFix)}
           size="sm"
           onClick={onApply}
         >

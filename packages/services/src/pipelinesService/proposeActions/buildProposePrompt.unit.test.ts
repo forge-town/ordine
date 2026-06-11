@@ -94,6 +94,30 @@ describe("buildProposeUserPrompt history block", () => {
   });
 });
 
+describe("buildProposeUserPrompt diagnostics block", () => {
+  it("injects diagnostics and the failed proposal for a fix round", () => {
+    const prompt = buildProposeUserPrompt({
+      ...basePromptInput,
+      diagnostics: ['Operation node "op-x" references unknown operationId "ghost".'],
+      failedProposal: { summary: "broken", actions: [{ type: "removeNode", nodeId: "nx" }] },
+    });
+
+    expect(prompt).toContain("=== PREVIOUS PROPOSAL DIAGNOSTICS ===");
+    expect(prompt).toContain('- Operation node "op-x" references unknown operationId "ghost".');
+    expect(prompt).toContain("Failed proposal for reference:");
+    expect(prompt).toContain('"summary": "broken"');
+    expect(prompt.indexOf("=== PREVIOUS PROPOSAL DIAGNOSTICS")).toBeLessThan(
+      prompt.indexOf("=== USER REQUEST ==="),
+    );
+  });
+
+  it("omits the diagnostics block when there are none", () => {
+    const prompt = buildProposeUserPrompt(basePromptInput);
+
+    expect(prompt).not.toContain("=== PREVIOUS PROPOSAL DIAGNOSTICS");
+  });
+});
+
 describe("buildProposeUserPrompt selection block", () => {
   it("omits the selection block when nothing is referenced", () => {
     const prompt = buildProposeUserPrompt(basePromptInput);

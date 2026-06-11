@@ -57,6 +57,7 @@ export const AgentBar = ({
     pendingProposal,
     proposalItems,
     rejectProposal,
+    requestProposalFix,
     reviseProposal,
     submitMessage,
   } = useAgentConversation({ phase, pipelineId, pipelineName });
@@ -287,6 +288,7 @@ export const AgentBar = ({
             }
             title={pendingProposal.summary}
             onApply={applyProposal}
+            onAskFix={hasBlockingDiagnostics ? () => void requestProposalFix() : undefined}
             onReject={rejectProposal}
             onRevise={reviseProposal}
           />

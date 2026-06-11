@@ -1532,7 +1532,8 @@
         "apply": "Apply",
         "blocked": "Resolve diagnostics before applying",
         "reject": "Reject",
-        "revise": "Revise"
+        "revise": "Revise",
+        "askFix": "Ask agent to fix"
       },
       "reversing": {
         "intro": "Reading the sample — inferring the steps that produce it.",
@@ -1610,7 +1611,10 @@
         "noSafeChange": "I could not find a safe graph change for that request.",
         "rejected": "Rejected the current proposal.",
         "requestFailed": "I could not reach the agent to draft a proposal. Please try again.",
-        "reviseHint": "Tell me what to revise and I will draft a new proposal."
+        "reviseHint": "Tell me what to revise and I will draft a new proposal.",
+        "fixRequest": "Please fix the validation errors in the proposal and submit a corrected version.",
+        "rejectedWithProposal": "Rejected the proposal “{{summary}}”.",
+        "reviseHintWithProposal": "Withdrew the proposal “{{summary}}”. Tell me what to revise and I will draft a new one."
       },
       "composer": {
         "attach": "Attach file",

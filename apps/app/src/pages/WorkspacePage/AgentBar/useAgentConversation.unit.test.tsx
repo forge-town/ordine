@@ -50,8 +50,14 @@ const makeProposal = (): PipelineActionProposal =>
   }) as PipelineActionProposal;
 
 const Harness = () => {
-  const { applyProposal, isSending, pendingProposal, proposalItems, submitMessage } =
-    useAgentConversation({
+  const {
+    applyProposal,
+    isSending,
+    pendingProposal,
+    proposalItems,
+    requestProposalFix,
+    submitMessage,
+  } = useAgentConversation({
       phase: "empty",
       pipelineId: "pipe-1",
       pipelineName: "Pipeline 1",
@@ -82,6 +88,9 @@ const Harness = () => {
       </button>
       <button type="button" onClick={handleApplyClick}>
         Apply
+      </button>
+      <button type="button" onClick={() => void requestProposalFix()}>
+        Fix
       </button>
       <span data-testid="sending">{String(isSending)}</span>
       <span data-testid="proposal">{pendingProposal?.summary ?? ""}</span>
@@ -200,6 +209,45 @@ describe("useAgentConversation", () => {
           payload: expect.objectContaining({
             attachments: [{ name: "finished.csv" }],
             message: "Reverse-engineer this sample",
+          }),
+          url: "pipelines/proposeActions",
+        }),
+      );
+    });
+  });
+
+  it("sends diagnostics and the failed proposal when asking the agent to fix", async () => {
+    const user = userEvent.setup();
+    const store = createCanvasStore();
+    vi.spyOn(dataProvider, "custom").mockResolvedValue({
+      data: {
+        diagnostics: [
+          { actionIndex: 0, code: "INVALID_NODE_DATA", message: "unknown op", severity: "error" },
+        ],
+        proposal: makeProposal(),
+        reply: "Drafted",
+      },
+    });
+
+    render(
+      <CanvasStoreContext.Provider value={store}>
+        <Harness />
+      </CanvasStoreContext.Provider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Send" }));
+    await waitFor(() => {
+      expect(screen.getByTestId("proposal")).toHaveTextContent("Add a prompt node");
+    });
+
+    await user.click(screen.getByRole("button", { name: "Fix" }));
+
+    await waitFor(() => {
+      expect(dataProvider.custom).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            diagnostics: ["unknown op"],
+            failedProposal: expect.objectContaining({ summary: "Add a prompt node" }),
           }),
           url: "pipelines/proposeActions",
         }),

@@ -66,6 +66,8 @@ const loadConversationHistory = async (
 
 export type ProposeActionsOptions = {
   attachments?: ConversationAttachment[];
+  diagnostics?: string[];
+  failedProposal?: unknown;
   snapshot: PipelineGraphSnapshot;
   message: string;
   pipelineId?: string;
@@ -125,6 +127,8 @@ export const proposeActions = async (
   );
   const userPromptText = buildProposeUserPrompt({
     attachments: opts.attachments ?? [],
+    diagnostics: opts.diagnostics ?? [],
+    failedProposal: opts.failedProposal,
     history,
     message: opts.message,
     operationCatalog,

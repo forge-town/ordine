@@ -123,6 +123,8 @@ export const pipelinesRouter = router({
       z.object({
         id: z.string(),
         attachments: z.array(ConversationAttachmentSchema).optional(),
+        diagnostics: z.array(z.string()).optional(),
+        failedProposal: z.unknown().optional(),
         snapshot: PipelineGraphSnapshotSchema,
         message: z.string().trim().min(1),
         pipelineName: z.string().optional(),
@@ -134,6 +136,8 @@ export const pipelinesRouter = router({
       pipelinesService.proposeActions({
         pipelineId: input.id,
         attachments: input.attachments,
+        diagnostics: input.diagnostics,
+        failedProposal: input.failedProposal,
         snapshot: input.snapshot,
         message: input.message,
         pipelineName: input.pipelineName,
