@@ -75,3 +75,9 @@ M1-10 收尾复核（2026-06-10）：
   2. LocalAgents 的 Configure 抽屉（原型 wizards.jsx ConfigureAgentDrawer）未实现——现有页面无假按钮，属增量功能；
   3. CheckpointDialog 的 Stop（取消运行）已有 `jobs/cancel` 端点，弹卡上仍为禁用态，可一行接通；
   4. N10 清单中"目检截图存 pr-assets/"建议在宿主机跑 dev 后补齐。
+
+## Agent Bar V3 N11-00 基线（2026-06-11）
+
+- proposeActions 已零行为迁出至 `pipelinesService/proposeActions/`（buildProposePrompt / normalizeProposalPayload / validateProposalCatalog / proposeActions），`createPipelinesService.ts` 1236 → 757 行。
+- 沙箱内验证：packages/services、apps/app、apps/server 三处 `tsc --noEmit` 全绿。
+- vitest / oxlint / oxfmt 为 darwin 二进制，沙箱（linux-arm64 + registry 拦截）无法执行——按 CLAUDE.md §二例外规则，N11 期末由用户在宿主机集中跑 `bun run format && bun run quality`，问题以 fix commit 补齐。
