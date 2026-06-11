@@ -24,14 +24,19 @@ export const windowConversationHistory = (
     content: truncateMessage(message.content),
   }));
 
-  let total = recent.reduce((sum, message) => sum + message.content.length, 0);
-  let start = 0;
-  while (total > MAX_HISTORY_CHARS && start < recent.length - 1) {
-    total -= recent[start]!.content.length;
-    start += 1;
-  }
+  const total = recent.reduce((sum, message) => sum + message.content.length, 0);
+  const dropped = recent.reduce(
+    (acc, message, index) => {
+      if (acc.total > MAX_HISTORY_CHARS && index < recent.length - 1) {
+        return { start: index + 1, total: acc.total - message.content.length };
+      }
 
-  return recent.slice(start);
+      return acc;
+    },
+    { start: 0, total },
+  );
+
+  return recent.slice(dropped.start);
 };
 
 export const buildHistoryBlock = (messages: ProposeHistoryMessage[]): string[] => {
@@ -43,7 +48,7 @@ export const buildHistoryBlock = (messages: ProposeHistoryMessage[]): string[] =
   return [
     "=== CONVERSATION HISTORY (oldest first) ===",
     "Earlier conversation between the user and you about this pipeline.",
-    "Use it to resolve references like \"that node\", \"the previous proposal\", or follow-up revisions.",
+    'Use it to resolve references like "that node", "the previous proposal", or follow-up revisions.',
     ...windowed.map(
       (message) =>
         `[${message.role === "agent" ? "assistant" : "user"}]${

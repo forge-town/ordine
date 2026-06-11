@@ -23,9 +23,7 @@ export const parseProposeAgentOutput = (value: unknown): ParsedProposeAgentOutpu
 
   const record = value as Record<string, unknown>;
   const reply =
-    typeof record.reply === "string" && record.reply.trim().length > 0
-      ? record.reply.trim()
-      : null;
+    typeof record.reply === "string" && record.reply.trim().length > 0 ? record.reply.trim() : null;
   const clarifyOptions = Array.isArray(record.clarifyOptions)
     ? record.clarifyOptions
         .filter(

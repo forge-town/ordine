@@ -296,7 +296,10 @@ export const createPipelinesService = (db: DbConnection) => {
     },
 
     proposeActions: (opts: ProposeActionsOptions) =>
-      proposeActions({ agentRuntimesDao, conversationMessagesDao, operationsDao, settingsDao }, opts),
+      proposeActions(
+        { agentRuntimesDao, conversationMessagesDao, operationsDao, settingsDao },
+        opts,
+      ),
 
     optimizeFromDistillation: async (opts: {
       distillationId: string;

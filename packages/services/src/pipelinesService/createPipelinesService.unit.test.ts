@@ -250,6 +250,42 @@ describe("createPipelinesService", () => {
     expect(result.reply).toBe("尝试修改图结构。");
   });
 
+  it("proposeActions retries once with schema diagnostics instead of dropping the proposal", async () => {
+    mockRunAgent
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          reply: "搭好了。",
+          proposal: { summary: "broken", actions: [{ type: "unknownAction" }] },
+        }),
+      )
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          reply: "修正后的提案。",
+          proposal: {
+            summary: "remove stale node",
+            actions: [{ type: "removeNode", nodeId: "folder-1" }],
+          },
+        }),
+      );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "搭一条流水线",
+      pipelineId: "p1",
+    });
+
+    expect(mockRunAgent).toHaveBeenCalledTimes(2);
+    const secondPrompt = (mockRunAgent.mock.calls[1]?.[0] as { userPrompt: string }).userPrompt;
+    expect(secondPrompt).toContain("=== PREVIOUS PROPOSAL DIAGNOSTICS ===");
+    expect(secondPrompt).toContain("Failed proposal for reference:");
+    expect(result.proposal).toEqual({
+      summary: "remove stale node",
+      actions: [{ type: "removeNode", nodeId: "folder-1" }],
+    });
+    expect(result.reply).toBe("修正后的提案。");
+  });
+
   it("proposeActions injects conversation history into the user prompt", async () => {
     mockConversationMessagesDao.getByPipelineId.mockResolvedValue([
       { content: "build a quiz pipeline", metadata: null, role: "user" },

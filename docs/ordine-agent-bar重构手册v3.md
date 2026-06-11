@@ -112,6 +112,8 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 
 ### N13 · 失败路径人话化
 
+- **N13-00 提案校验失败自动修复一轮（期末验收缺陷 1）**：schema 校验失败时不再静默丢弃——把 zod 错误摘要（≤5 条）作为 diagnostics、原始 payload 作为 failedProposal，服务端**自动重试一轮**（复用 N11-05 的 PREVIOUS PROPOSAL DIAGNOSTICS 注入；最多 1 次语义重试，内部 semanticRetry 标志防递归）。仍失败则保留 reply 返回。验收：单测——首轮坏提案/次轮好提案 → runAgent 调两次且第二轮 prompt 含诊断段、最终返回有效 proposal；两轮都坏 → reply-only。
+
 - **N13-01 服务端 reason code**：proposeActions 六个 early-return 全部改为返回 `error: {code, detail?}`，code 枚举 `INVALID_SNAPSHOT / RUNTIME_NOT_FOUND / AGENT_FAILED / BAD_AGENT_OUTPUT`（JSON 提取/解析/校验合并为最后一项，detail 区分）；进 `ProposeActionsResponseSchema`。验收：四种 code 的单测。
 - **N13-02 前端错误渲染**：code → i18n 人话（固定三段：哪里出了问题 → 为什么 → 怎么处理），"怎么处理"必须可点击——`RUNTIME_NOT_FOUND` → 跳 Settings Defaults；`AGENT_FAILED`/`BAD_AGENT_OUTPUT` → 行内 Retry（原 metadata 重发同一条消息）。复用 ErrorCard 极简样式，en+zh + story + testid。验收：停掉 runtime、断网各一例，出现可点击修复动作且动作有效。
 

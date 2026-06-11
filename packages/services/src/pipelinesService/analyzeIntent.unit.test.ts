@@ -49,6 +49,7 @@ const mockAgentRuntimesDao = {
 
 vi.mock("@repo/models", () => ({
   createAgentRuntimesDao: () => mockAgentRuntimesDao,
+  createConversationMessagesDao: () => ({}),
   createPipelinesDao: () => mockDao,
   createDistillationsDao: () => ({}),
   createJobsDao: () => ({}),

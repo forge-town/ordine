@@ -24,12 +24,7 @@ describe("parseProposeAgentOutput", () => {
     });
 
     expect(output.reply).toBe("Which input should I use?");
-    expect(output.clarifyOptions).toEqual([
-      "Folder",
-      "GitHub repo",
-      "Prompt text",
-      "Sample file",
-    ]);
+    expect(output.clarifyOptions).toEqual(["Folder", "GitHub repo", "Prompt text", "Sample file"]);
     expect(output.proposalPayload).toBeNull();
   });
 

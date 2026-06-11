@@ -14,9 +14,7 @@ const message = (overrides: Partial<ProposeHistoryMessage> = {}): ProposeHistory
 
 describe("windowConversationHistory", () => {
   it("keeps at most the 20 most recent messages", () => {
-    const messages = Array.from({ length: 30 }, (_, index) =>
-      message({ content: `msg-${index}` }),
-    );
+    const messages = Array.from({ length: 30 }, (_, index) => message({ content: `msg-${index}` }));
 
     const windowed = windowConversationHistory(messages);
 

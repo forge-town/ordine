@@ -1,11 +1,9 @@
-import { Result, ResultAsync } from "neverthrow";
 import type {
   createAgentRuntimesDao,
   createConversationMessagesDao,
   createOperationsDao,
   createSettingsDao,
 } from "@repo/models";
-import { extractJsonFromText } from "@repo/agent";
 import { logger } from "@repo/logger";
 import { validatePipelineActions } from "@repo/pipeline-engine";
 import {
@@ -15,16 +13,12 @@ import {
   type PipelineGraphSnapshot,
   type ProposeActionsResponse,
 } from "@repo/schemas";
-import { runAgent } from "../../pipelineRunnerService/agentRunner/agentRunner";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
-import {
-  PROPOSE_AGENT_ID,
-  PROPOSE_SYSTEM_PROMPT,
-  buildProposeUserPrompt,
-} from "./buildProposePrompt";
+import { buildProposeUserPrompt } from "./buildProposePrompt";
 import type { ProposeHistoryMessage } from "./conversationHistory";
 import { normalizeProposalPayload } from "./normalizeProposalPayload";
 import { parseProposeAgentOutput } from "./parseAgentOutput";
+import { runProposeAgent } from "./runProposeAgent";
 import { validateProposalActionCatalog } from "./validateProposalCatalog";
 
 export type ProposeActionsDeps = {
@@ -57,9 +51,7 @@ const loadConversationHistory = async (
 
   return withoutCurrent.map((row) => ({
     content: row.content,
-    hasProposal: Boolean(
-      (row.metadata as { proposalSnapshot?: unknown } | null)?.proposalSnapshot,
-    ),
+    hasProposal: Boolean((row.metadata as { proposalSnapshot?: unknown } | null)?.proposalSnapshot),
     role: row.role === "user" ? "user" : "agent",
   }));
 };
@@ -74,7 +66,12 @@ export type ProposeActionsOptions = {
   pipelineName?: string;
   referencedNodeIds?: string[];
   runtimeId?: string;
+  /** Internal: counts schema-failure auto-retry rounds. Not exposed via API. */
+  semanticRetry?: number;
 };
+
+const MAX_SEMANTIC_RETRIES = 1;
+const MAX_DIAGNOSTIC_ISSUES = 5;
 
 export type ProposeActionsResult = ProposeActionsResponse;
 
@@ -138,74 +135,27 @@ export const proposeActions = async (
     snapshot,
   });
 
-  const MAX_RETRIES = 3;
-  const execution = await (async () => {
-    for (const attempt of Array.from({ length: MAX_RETRIES }, (_, i) => i + 1)) {
-      const result = await ResultAsync.fromPromise(
-        runAgent({
-          agent: effectiveRuntime?.type ?? settings.defaultAgentRuntime,
-          systemPrompt: PROPOSE_SYSTEM_PROMPT,
-          userPrompt: userPromptText,
-          inputPath: process.cwd(),
-          agentId: PROPOSE_AGENT_ID,
-          allowedTools: [],
-          logPrefix: "proposeActions",
-          apiKey: settings.defaultApiKey,
-          model: settings.defaultModel,
-          ssh: effectiveRuntime?.connection.mode === "ssh" ? effectiveRuntime.connection : undefined,
-        }),
-        (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
-      );
-      if (result.isOk()) return result;
-      if (attempt === MAX_RETRIES) return result;
-      logger.warn(
-        { attempt, err: result.error.message },
-        "proposeActions: agent attempt failed, retrying",
-      );
-    }
-
-    return undefined;
-  })();
-
-  if (!execution || execution.isErr()) {
-    logger.error({ err: execution?.error }, "proposeActions: agent failed after retries");
-
+  const parsedJson = await runProposeAgent({
+    agent: effectiveRuntime?.type ?? settings.defaultAgentRuntime,
+    apiKey: settings.defaultApiKey,
+    model: settings.defaultModel,
+    ssh: effectiveRuntime?.connection.mode === "ssh" ? effectiveRuntime.connection : undefined,
+    userPrompt: userPromptText,
+  });
+  if (parsedJson === undefined) {
     return { proposal: null, diagnostics: [] };
   }
 
-  const raw = execution.value;
-  const extractJsonResult = Result.fromThrowable(
-    extractJsonFromText,
-    () => new Error("failed to extract JSON from agent response"),
-  )(raw);
-  if (extractJsonResult.isErr()) {
-    logger.error({ raw }, "proposeActions: failed to extract JSON from agent response");
-
-    return { proposal: null, diagnostics: [] };
-  }
-
-  const parseJsonResult = Result.fromThrowable(
-    JSON.parse,
-    () => new Error("extracted text is not valid JSON"),
-  )(extractJsonResult.value);
-  if (parseJsonResult.isErr()) {
-    logger.error(
-      { json: extractJsonResult.value },
-      "proposeActions: extracted text is not valid JSON",
-    );
-
-    return { proposal: null, diagnostics: [] };
-  }
-
-  const agentOutput = parseProposeAgentOutput(parseJsonResult.value);
-  const clarifyOptions = agentOutput.clarifyOptions.length > 0 ? agentOutput.clarifyOptions : undefined;
+  const agentOutput = parseProposeAgentOutput(parsedJson);
+  const clarifyOptions =
+    agentOutput.clarifyOptions.length > 0 ? agentOutput.clarifyOptions : undefined;
 
   if (agentOutput.proposalPayload === null) {
     if (agentOutput.reply) {
       return { clarifyOptions, diagnostics: [], proposal: null, reply: agentOutput.reply };
     }
 
-    logger.error({ json: parseJsonResult.value }, "proposeActions: agent returned neither reply nor proposal");
+    logger.error({ json: parsedJson }, "proposeActions: agent returned neither reply nor proposal");
 
     return { proposal: null, diagnostics: [] };
   }
@@ -213,7 +163,29 @@ export const proposeActions = async (
   const normalizedProposal = normalizeProposalPayload(agentOutput.proposalPayload);
   const parsed = PipelineActionProposalSchema.safeParse(normalizedProposal);
   if (!parsed.success) {
-    logger.error({ error: parsed.error }, "proposeActions: invalid PipelineActionProposal from agent");
+    logger.error(
+      { error: parsed.error },
+      "proposeActions: invalid PipelineActionProposal from agent",
+    );
+
+    // Do not silently drop the proposal: feed the validation issues back to the
+    // agent once so it can return a corrected version (manual N13-00).
+    if ((opts.semanticRetry ?? 0) < MAX_SEMANTIC_RETRIES) {
+      const issueSummaries = parsed.error.issues
+        .slice(0, MAX_DIAGNOSTIC_ISSUES)
+        .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`);
+      logger.warn(
+        { issues: issueSummaries },
+        "proposeActions: retrying once with schema diagnostics",
+      );
+
+      return proposeActions(deps, {
+        ...opts,
+        diagnostics: [...(opts.diagnostics ?? []), ...issueSummaries],
+        failedProposal: agentOutput.proposalPayload,
+        semanticRetry: (opts.semanticRetry ?? 0) + 1,
+      });
+    }
 
     if (agentOutput.reply) {
       // Keep the conversational reply even when the structured proposal is unusable.
