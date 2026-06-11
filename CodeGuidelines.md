@@ -327,6 +327,23 @@ export const createJobListPageStore = () =>
 - **禁止**可变全局变量；状态变更只通过 store actions
 - **禁止** Props 透传（Props Drilling）——跨组件状态从 Store 取
 
+### Store 形态判据（G1-06）
+
+仓库存在两种合法 store 形态，**按状态的生命周期选择，不得混用**：
+
+| 形态 | 判据 | 现有实例 |
+| --- | --- | --- |
+| **模块级单例**（`create()` 导出 hook） | 状态是**全应用真全局**，与任何路由/实体的生命周期无关，切换页面或 pipeline 时**不应该**被重置 | `toastStore`、`notificationStore` |
+| **Provider 工厂**（`createXxxStore(id)` + Context） | 状态**跟随某个实体或路由的生命周期**（pipeline、某页面），切换实体时必须重新实例化、互不串扰 | `workspaceStore`、`canvasStore`、各页面 `_store` |
+
+判定口诀：问"切换 pipeline / 离开页面后，这份状态还成立吗？"——成立 → 单例；不成立 → Provider 工厂。
+
+**例外清单（已知待整改）：**
+
+- `agentBarStore`：承载按 pipeline 隔离的对话消息，却是模块级单例，靠持久化层覆盖伪隔离——应改为 Provider 工厂（治理计划 G1-04，等 AgentBar 增强线合并后执行）。
+
+**跨 feature 依赖规则：** 同级 feature 目录（如 `canvas/` 与 `AgentBar/`）**禁止互相 import 对方的 `_store` 或内部模块**；需要共享的状态上提到共同父级 store（如 `workspaceStore`），由写方同步、读方只读（参照 `AnchorCountSync` 的做法）。
+
 ---
 
 ## 九、Barrel Export（桶导出）
