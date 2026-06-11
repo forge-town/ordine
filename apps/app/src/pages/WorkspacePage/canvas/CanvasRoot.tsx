@@ -6,6 +6,7 @@ import { CanvasStoreProvider } from "./_store/canvasStore";
 import { CanvasFlow } from "./flow";
 import { CanvasEmptyState } from "./CanvasEmptyState";
 import { CanvasToolbar, ComponentPanel, TopPill } from "./chrome";
+import { CheckpointDialog, RunConsole, RunPoller } from "./run";
 import { ComposeBar, DrillHint } from "./compose";
 import { EdgeInspector } from "./panels/EdgeInspector";
 import { NodeConfig } from "./panels/NodeConfig";
@@ -39,6 +40,9 @@ export const CanvasRoot = ({ pipeline }: CanvasRootProps) => {
           <DrillHint />
           <EdgeInspector pipelineId={pipeline.id} />
           <NodeConfig pipelineId={pipeline.id} />
+          <RunPoller />
+          <RunConsole />
+          <CheckpointDialog />
           <CanvasEmptyState />
         </div>
       </CanvasStoreProvider>

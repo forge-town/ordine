@@ -1287,6 +1287,21 @@
         "drillHint": "复合节点内部 · 修改会写回父 Pipeline。按 Esc 钻出。",
         "selected_one": "已选 {{count}} 个",
         "selected_other": "已选 {{count}} 个"
+      },
+      "run": {
+        "approveContinue": "通过并继续",
+        "checkpointBody": "该步骤被标记为检查点。通过后运行继续，也可以先编辑该步骤再恢复。",
+        "checkpointNext": "运行已挂起，等待你的决定。",
+        "checkpointSubtitle": "在 {{node}} 之后暂停 · 运行挂起中",
+        "checkpointTitle": "检查点 · 审核后继续",
+        "consoleTitle": "运行控制台",
+        "dismiss": "关闭",
+        "editStep": "编辑步骤",
+        "lines_one": "{{count}} 行",
+        "lines_other": "{{count}} 行",
+        "resumeFailed": "恢复运行失败",
+        "resumed": "检查点已通过 — 继续运行",
+        "waiting": "等待第一个步骤…"
       }
     }
   },

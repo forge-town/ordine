@@ -1292,6 +1292,21 @@
         "drillHint": "Inside compound · changes here write back to the parent pipeline. Esc to drill out.",
         "selected_one": "{{count}} selected",
         "selected_other": "{{count}} selected"
+      },
+      "run": {
+        "approveContinue": "Approve & continue",
+        "checkpointBody": "This step is marked as a checkpoint. Approve to let the run continue, or edit the step before resuming.",
+        "checkpointNext": "The run is holding until you decide.",
+        "checkpointSubtitle": "Paused after {{node}} · the run is holding",
+        "checkpointTitle": "Checkpoint · review before continuing",
+        "consoleTitle": "Run console",
+        "dismiss": "Dismiss",
+        "editStep": "Edit step",
+        "lines_one": "{{count}} line",
+        "lines_other": "{{count}} lines",
+        "resumeFailed": "Couldn't resume the run",
+        "resumed": "Checkpoint approved — continuing",
+        "waiting": "Waiting for the first step…"
       }
     }
   },
