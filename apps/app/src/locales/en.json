@@ -1102,7 +1102,83 @@
     "createPipeline": "Create one",
     "objectsCount": "{{count}} objects",
     "noPipelineSelected": "\u2014 No pipeline selected",
-    "entireProject": "Entire project"
+    "entireProject": "Entire project",
+    "canvas": {
+      "edges": {
+        "defaultLabel": "data"
+      },
+      "nodes": {
+        "actions": {
+          "annotate": "Annotate node",
+          "configure": "Configure node",
+          "delete": "Delete node",
+          "duplicate": "Duplicate node",
+          "viewAnnotations": "View annotations"
+        },
+        "compound": {
+          "childCount_one": "{{count}} child node",
+          "childCount_other": "{{count}} child nodes",
+          "openHint": "Double-click to open inside"
+        },
+        "file": {
+          "input": "File input",
+          "noFileSelected": "No file selected"
+        },
+        "folder": {
+          "input": "Folder input",
+          "noFolderSelected": "No folder selected"
+        },
+        "github": {
+          "detail": "GitHub"
+        },
+        "kind": {
+          "compound": "{{kind}} compound",
+          "custom": "custom",
+          "file": "File",
+          "folder": "Folder",
+          "github": "GitHub project",
+          "operation": "Operation",
+          "output": "Output",
+          "port": "Port",
+          "prompt": "Prompt"
+        },
+        "operation": {
+          "generatorDetail": "Draft candidate",
+          "generatorKind": "Generator",
+          "loopMax": "Loop · max {{count}}",
+          "qualityGateDetail": "Pass / revise",
+          "qualityGateKind": "Gate",
+          "verifierDetail": "Review criteria",
+          "verifierKind": "Verifier"
+        },
+        "output": {
+          "compoundOutput": "Compound output",
+          "localOutput": "Local output",
+          "projectOutput": "Project output"
+        },
+        "ports": {
+          "left": "Input port {{index}}",
+          "right": "Output port {{index}}"
+        },
+        "previewBadge": "new",
+        "prompt": {
+          "compoundInput": "Compound input",
+          "empty": "Empty prompt",
+          "input": "Prompt input"
+        },
+        "status": {
+          "cancelled": "Cancelled",
+          "done": "Completed",
+          "failed": "Needs attention",
+          "idle": "Ready",
+          "queued": "Queued",
+          "retrying": "Retrying",
+          "running": "Working...",
+          "skipped": "Skipped",
+          "waitingForUser": "Checkpoint · review"
+        }
+      }
+    }
   },
   "validation": {
     "nameRequired": "Name is required",

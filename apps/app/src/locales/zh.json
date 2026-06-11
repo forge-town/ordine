@@ -1097,7 +1097,83 @@
     "createPipeline": "去创建",
     "objectsCount": "{{count}} 个对象",
     "noPipelineSelected": "— 未选 Pipeline",
-    "entireProject": "整个项目"
+    "entireProject": "整个项目",
+    "canvas": {
+      "edges": {
+        "defaultLabel": "数据"
+      },
+      "nodes": {
+        "actions": {
+          "annotate": "批注节点",
+          "configure": "配置节点",
+          "delete": "删除节点",
+          "duplicate": "复制节点",
+          "viewAnnotations": "查看批注"
+        },
+        "compound": {
+          "childCount_one": "{{count}} 个子节点",
+          "childCount_other": "{{count}} 个子节点",
+          "openHint": "双击进入内部"
+        },
+        "file": {
+          "input": "文件输入",
+          "noFileSelected": "未选择文件"
+        },
+        "folder": {
+          "input": "文件夹输入",
+          "noFolderSelected": "未选择文件夹"
+        },
+        "github": {
+          "detail": "GitHub"
+        },
+        "kind": {
+          "compound": "{{kind}} 复合节点",
+          "custom": "自定义",
+          "file": "文件",
+          "folder": "文件夹",
+          "github": "GitHub 项目",
+          "operation": "Operation",
+          "output": "输出",
+          "port": "端口",
+          "prompt": "Prompt"
+        },
+        "operation": {
+          "generatorDetail": "生成候选稿",
+          "generatorKind": "生成器",
+          "loopMax": "循环 · 最多 {{count}} 次",
+          "qualityGateDetail": "通过 / 修订",
+          "qualityGateKind": "质检门",
+          "verifierDetail": "校验标准",
+          "verifierKind": "校验器"
+        },
+        "output": {
+          "compoundOutput": "复合节点输出",
+          "localOutput": "本地输出",
+          "projectOutput": "项目输出"
+        },
+        "ports": {
+          "left": "输入端口 {{index}}",
+          "right": "输出端口 {{index}}"
+        },
+        "previewBadge": "新",
+        "prompt": {
+          "compoundInput": "复合节点输入",
+          "empty": "空 Prompt",
+          "input": "Prompt 输入"
+        },
+        "status": {
+          "cancelled": "已取消",
+          "done": "已完成",
+          "failed": "需要处理",
+          "idle": "就绪",
+          "queued": "排队中",
+          "retrying": "重试中",
+          "running": "执行中...",
+          "skipped": "已跳过",
+          "waitingForUser": "等待检查点确认"
+        }
+      }
+    }
   },
   "validation": {
     "nameRequired": "名称不能为空",

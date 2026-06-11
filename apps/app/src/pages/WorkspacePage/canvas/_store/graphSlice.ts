@@ -118,226 +118,256 @@ const detachCompoundChild = (node: CanvasNode): CanvasNode => ({
 });
 
 export const createGraphSlice =
-  (initialState: GraphSliceInitialState = {}): StateCreator<GraphSlice, [], [], GraphSlice> =>
-  (set, get) => ({
-    drillStack: [],
-    edges: initialState.edges ?? [],
-    nodes: sortParentBeforeChildren(initialState.nodes ?? []),
-    addNode: (node, childNodes = []) =>
-      set((state) => ({
-        nodes: sortParentBeforeChildren([...state.nodes, node, ...childNodes]),
-      })),
-    addNodeFromCatalog: (input) => {
-      const node: CanvasNode = {
-        id: input.id ?? createId(input.type),
-        type: input.type,
-        position: input.position,
-        data: input.data ?? makeDefaultNodeData(input.type, { label: input.label }),
-      };
-      get().addNode(node);
+  <T extends GraphSlice = GraphSlice>(
+    initialState: GraphSliceInitialState = {},
+  ): StateCreator<T, [], [], GraphSlice> =>
+  (set, get) => {
+    const castGraphState = (state: Partial<GraphSlice>) => state as unknown as Partial<T>;
 
-      return node;
-    },
-    composeNodes: (nodeIds, options) => {
-      const state = get();
-      const selectedIdSet = new Set(nodeIds);
-      const selectedNodes = state.nodes.filter((node) => selectedIdSet.has(node.id));
-
-      if (selectedNodes.length < 2) {
-        return null;
-      }
-
-      const childEdges = state.edges.filter(
-        (edge) => selectedIdSet.has(edge.source) && selectedIdSet.has(edge.target),
-      );
-      const compound = makeCompoundNode(selectedNodes, childEdges, options);
-      const rewiredEdges: CanvasEdge[] = [];
-      const untouchedEdges: CanvasEdge[] = [];
-
-      for (const edge of state.edges) {
-        const sourceSelected = selectedIdSet.has(edge.source);
-        const targetSelected = selectedIdSet.has(edge.target);
-
-        if (sourceSelected && targetSelected) {
-          continue;
-        }
-
-        if (sourceSelected !== targetSelected) {
-          const source = sourceSelected ? compound.id : edge.source;
-          const target = targetSelected ? compound.id : edge.target;
-          rewiredEdges.push({
-            ...edge,
-            id: `e-${source}-${target}-${edge.id}`,
-            source,
-            sourceHandle: sourceSelected ? null : edge.sourceHandle,
-            target,
-            targetHandle: targetSelected ? null : edge.targetHandle,
-          });
-          continue;
-        }
-
-        untouchedEdges.push(edge);
-      }
-
-      set((current) => ({
-        edges: [...untouchedEdges, ...rewiredEdges],
-        nodes: sortParentBeforeChildren([
-          ...current.nodes.map((node) =>
-            selectedIdSet.has(node.id)
-              ? {
-                  ...node,
-                  extent: "parent" as const,
-                  parentId: compound.id,
-                  position: {
-                    x: node.position.x - compound.position.x,
-                    y: node.position.y - compound.position.y,
-                  },
-                }
-              : node,
-          ),
-          compound,
-        ]),
-      }));
-
-      return compound;
-    },
-    deleteNode: (nodeId) =>
-      set((state) => ({
-        drillStack: state.drillStack.filter((id) => id !== nodeId),
-        edges: state.edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
-        nodes: state.nodes
-          .filter((node) => node.id !== nodeId)
-          .map((node) =>
-            node.parentId === nodeId ? { ...node, extent: undefined, parentId: undefined } : node,
-          ),
-      })),
-    duplicateNode: (nodeId, id) => {
-      const source = get().nodes.find((node) => node.id === nodeId);
-      if (!source) {
-        return null;
-      }
-
-      const node: CanvasNode = {
-        ...source,
-        id: id ?? createId(source.type),
-        position: {
-          x: source.position.x + DUPLICATE_OFFSET.x,
-          y: source.position.y + DUPLICATE_OFFSET.y,
-        },
-        selected: false,
-        data: { ...source.data },
-      };
-      get().addNode(node);
-
-      return node;
-    },
-    getVisibleGraph: () => {
-      const state = get();
-      const activeCompoundId = state.drillStack.at(-1);
-      const activeCompound = state.nodes.find((node) => node.id === activeCompoundId);
-
-      if (!isCompoundNode(activeCompound)) {
-        return { edges: state.edges, nodes: state.nodes };
-      }
-
-      const childIdSet = new Set(activeCompound.data.childNodeIds);
-
-      return {
-        edges: activeCompound.data.childEdges.map(
-          (edge): CanvasEdge => ({
-            ...edge,
-            animated: true,
-            type: "semantic",
+    return {
+      drillStack: [],
+      edges: initialState.edges ?? [],
+      nodes: sortParentBeforeChildren(initialState.nodes ?? []),
+      addNode: (node, childNodes = []) =>
+        set((state) =>
+          castGraphState({
+            nodes: sortParentBeforeChildren([...state.nodes, node, ...childNodes]),
           }),
         ),
-        nodes: state.nodes.filter((node) => childIdSet.has(node.id)).map(detachCompoundChild),
-      };
-    },
-    handleConnect: (connection) => {
-      const source = get().nodes.find((node) => node.id === connection.source);
-      const target = get().nodes.find((node) => node.id === connection.target);
+      addNodeFromCatalog: (input) => {
+        const node: CanvasNode = {
+          id: input.id ?? createId(input.type),
+          type: input.type,
+          position: input.position,
+          data: input.data ?? makeDefaultNodeData(input.type, { label: input.label }),
+        };
+        get().addNode(node);
 
-      if (!source || !target || !hasValidConnectionRule(source, target)) {
-        return;
-      }
+        return node;
+      },
+      composeNodes: (nodeIds, options) => {
+        const state = get();
+        const selectedIdSet = new Set(nodeIds);
+        const selectedNodes = state.nodes.filter((node) => selectedIdSet.has(node.id));
 
-      set((state) => ({
-        edges: addEdge(makeEdge(connection), state.edges),
-      }));
-    },
-    handleEdgesChange: (changes) =>
-      set((state) => ({
-        edges: applyEdgeChanges(changes, state.edges),
-      })),
-    handleNodesChange: (changes) =>
-      set((state) => ({
-        nodes: sortParentBeforeChildren(applyNodeChanges(changes, state.nodes)),
-      })),
-    popDrillStack: () =>
-      set((state) => ({
-        drillStack: state.drillStack.slice(0, -1),
-      })),
-    pushDrillStack: (nodeId) =>
-      set((state) => ({
-        drillStack: [...state.drillStack, nodeId],
-      })),
-    setDrillStack: (stack) => set({ drillStack: [...stack] }),
-    ungroupCompound: (compoundId) => {
-      const state = get();
-      const compound = state.nodes.find((node) => node.id === compoundId);
+        if (selectedNodes.length < 2) {
+          return null;
+        }
 
-      if (!isCompoundNode(compound)) {
-        return;
-      }
+        const childEdges = state.edges.filter(
+          (edge) => selectedIdSet.has(edge.source) && selectedIdSet.has(edge.target),
+        );
+        const compound = makeCompoundNode(selectedNodes, childEdges, options);
+        const rewiredEdges: CanvasEdge[] = [];
+        const untouchedEdges: CanvasEdge[] = [];
 
-      const childIdSet = new Set(compound.data.childNodeIds);
-      const childEdges = compound.data.childEdges as CanvasEdge[];
+        for (const edge of state.edges) {
+          const sourceSelected = selectedIdSet.has(edge.source);
+          const targetSelected = selectedIdSet.has(edge.target);
 
-      set((current) => ({
-        drillStack: current.drillStack.filter((id) => id !== compoundId),
-        edges: [
-          ...current.edges.filter(
-            (edge) => edge.source !== compoundId && edge.target !== compoundId,
-          ),
-          ...childEdges,
-        ],
-        nodes: current.nodes
-          .filter((node) => node.id !== compoundId)
-          .map((node) =>
-            childIdSet.has(node.id)
-              ? {
-                  ...node,
-                  extent: undefined,
-                  parentId: undefined,
-                  position: {
-                    x: node.position.x + compound.position.x,
-                    y: node.position.y + compound.position.y,
-                  },
-                }
-              : node,
-          ),
-      }));
-    },
-    updateEdgeData: (edgeId, data) =>
-      set((state) => ({
-        edges: state.edges.map((edge) =>
-          edge.id === edgeId
-            ? {
-                ...edge,
-                data: { label: "", ...edge.data, ...data },
-              }
-            : edge,
+          if (sourceSelected && targetSelected) {
+            continue;
+          }
+
+          if (sourceSelected !== targetSelected) {
+            const source = sourceSelected ? compound.id : edge.source;
+            const target = targetSelected ? compound.id : edge.target;
+            rewiredEdges.push({
+              ...edge,
+              id: `e-${source}-${target}-${edge.id}`,
+              source,
+              sourceHandle: sourceSelected ? null : edge.sourceHandle,
+              target,
+              targetHandle: targetSelected ? null : edge.targetHandle,
+            });
+            continue;
+          }
+
+          untouchedEdges.push(edge);
+        }
+
+        set((current) =>
+          castGraphState({
+            edges: [...untouchedEdges, ...rewiredEdges],
+            nodes: sortParentBeforeChildren([
+              ...current.nodes.map((node) =>
+                selectedIdSet.has(node.id)
+                  ? {
+                      ...node,
+                      extent: "parent" as const,
+                      parentId: compound.id,
+                      position: {
+                        x: node.position.x - compound.position.x,
+                        y: node.position.y - compound.position.y,
+                      },
+                    }
+                  : node,
+              ),
+              compound,
+            ]),
+          }),
+        );
+
+        return compound;
+      },
+      deleteNode: (nodeId) =>
+        set((state) =>
+          castGraphState({
+            drillStack: state.drillStack.filter((id) => id !== nodeId),
+            edges: state.edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
+            nodes: state.nodes
+              .filter((node) => node.id !== nodeId)
+              .map((node) =>
+                node.parentId === nodeId
+                  ? { ...node, extent: undefined, parentId: undefined }
+                  : node,
+              ),
+          }),
         ),
-      })),
-    updateNodeData: (nodeId, data) =>
-      set((state) => ({
-        nodes: state.nodes.map((node) =>
-          node.id === nodeId
-            ? ({
-                ...node,
-                data: { ...node.data, ...data } as CanvasNode["data"],
-              } as CanvasNode)
-            : node,
+      duplicateNode: (nodeId, id) => {
+        const source = get().nodes.find((node) => node.id === nodeId);
+        if (!source) {
+          return null;
+        }
+
+        const node: CanvasNode = {
+          ...source,
+          id: id ?? createId(source.type),
+          position: {
+            x: source.position.x + DUPLICATE_OFFSET.x,
+            y: source.position.y + DUPLICATE_OFFSET.y,
+          },
+          selected: false,
+          data: { ...source.data },
+        };
+        get().addNode(node);
+
+        return node;
+      },
+      getVisibleGraph: () => {
+        const state = get();
+        const activeCompoundId = state.drillStack.at(-1);
+        const activeCompound = state.nodes.find((node) => node.id === activeCompoundId);
+
+        if (!isCompoundNode(activeCompound)) {
+          return { edges: state.edges, nodes: state.nodes };
+        }
+
+        const childIdSet = new Set(activeCompound.data.childNodeIds);
+
+        return {
+          edges: activeCompound.data.childEdges.map(
+            (edge): CanvasEdge => ({
+              ...edge,
+              animated: true,
+              type: "semantic",
+            }),
+          ),
+          nodes: state.nodes.filter((node) => childIdSet.has(node.id)).map(detachCompoundChild),
+        };
+      },
+      handleConnect: (connection) => {
+        const source = get().nodes.find((node) => node.id === connection.source);
+        const target = get().nodes.find((node) => node.id === connection.target);
+
+        if (!source || !target || !hasValidConnectionRule(source, target)) {
+          return;
+        }
+
+        set((state) =>
+          castGraphState({
+            edges: addEdge(makeEdge(connection), state.edges),
+          }),
+        );
+      },
+      handleEdgesChange: (changes) =>
+        set((state) =>
+          castGraphState({
+            edges: applyEdgeChanges(changes, state.edges),
+          }),
         ),
-      })),
-  });
+      handleNodesChange: (changes) =>
+        set((state) =>
+          castGraphState({
+            nodes: sortParentBeforeChildren(applyNodeChanges(changes, state.nodes)),
+          }),
+        ),
+      popDrillStack: () =>
+        set((state) =>
+          castGraphState({
+            drillStack: state.drillStack.slice(0, -1),
+          }),
+        ),
+      pushDrillStack: (nodeId) =>
+        set((state) =>
+          castGraphState({
+            drillStack: [...state.drillStack, nodeId],
+          }),
+        ),
+      setDrillStack: (stack) => set(castGraphState({ drillStack: [...stack] })),
+      ungroupCompound: (compoundId) => {
+        const state = get();
+        const compound = state.nodes.find((node) => node.id === compoundId);
+
+        if (!isCompoundNode(compound)) {
+          return;
+        }
+
+        const childIdSet = new Set(compound.data.childNodeIds);
+        const childEdges = compound.data.childEdges as CanvasEdge[];
+
+        set((current) =>
+          castGraphState({
+            drillStack: current.drillStack.filter((id) => id !== compoundId),
+            edges: [
+              ...current.edges.filter(
+                (edge) => edge.source !== compoundId && edge.target !== compoundId,
+              ),
+              ...childEdges,
+            ],
+            nodes: current.nodes
+              .filter((node) => node.id !== compoundId)
+              .map((node) =>
+                childIdSet.has(node.id)
+                  ? {
+                      ...node,
+                      extent: undefined,
+                      parentId: undefined,
+                      position: {
+                        x: node.position.x + compound.position.x,
+                        y: node.position.y + compound.position.y,
+                      },
+                    }
+                  : node,
+              ),
+          }),
+        );
+      },
+      updateEdgeData: (edgeId, data) =>
+        set((state) =>
+          castGraphState({
+            edges: state.edges.map((edge) =>
+              edge.id === edgeId
+                ? {
+                    ...edge,
+                    data: { label: "", ...edge.data, ...data },
+                  }
+                : edge,
+            ),
+          }),
+        ),
+      updateNodeData: (nodeId, data) =>
+        set((state) =>
+          castGraphState({
+            nodes: state.nodes.map((node) =>
+              node.id === nodeId
+                ? ({
+                    ...node,
+                    data: { ...node.data, ...data } as CanvasNode["data"],
+                  } as CanvasNode)
+                : node,
+            ),
+          }),
+        ),
+    };
+  };
