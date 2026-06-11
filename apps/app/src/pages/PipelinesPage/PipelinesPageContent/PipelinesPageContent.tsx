@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Layers, Plus, Workflow } from "lucide-react";
 import { Button } from "@repo/ui/button";
@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Chip, Icon, SearchInput } from "@/components/primitives";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { PIPELINE_FILTERS, usePipelinesPageStore, type PipelineFilter } from "../_store";
+import { ScheduleEditor } from "@/components/ScheduleEditor";
 import { PipelineCard } from "../PipelineCard";
 
 const getJobDurationMs = (job: Job): number | null => {
@@ -54,6 +55,7 @@ export const PipelinesPageContent = () => {
   const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
   const handleClearSearchButtonClick = useStore(store, (s) => s.handleClearSearchButtonClick);
   const navigate = useNavigate();
+  const [schedulingPipeline, setSchedulingPipeline] = useState<PipelineData | null>(null);
   const { mutateAsync: createPipelineMutate } = useCreate();
 
   const savedPipelineIds = useMemo(
@@ -221,12 +223,21 @@ export const PipelinesPageContent = () => {
                     successRate,
                   }}
                   onOpen={handleOpenPipeline}
+                  onSchedule={setSchedulingPipeline}
                 />
               );
             })}
           </div>
         )}
       </div>
+      {schedulingPipeline ? (
+        <ScheduleEditor
+          pipelineId={schedulingPipeline.id}
+          pipelineName={schedulingPipeline.name}
+          routine={(routinesByPipelineId.get(schedulingPipeline.id) ?? [])[0] ?? null}
+          onClose={() => setSchedulingPipeline(null)}
+        />
+      ) : null}
     </div>
   );
 };

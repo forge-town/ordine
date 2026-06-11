@@ -74,12 +74,14 @@ export type PipelineCardProps = {
   routineLabel?: string;
   stats: PipelineCardStats;
   onOpen: (pipelineId: string) => void;
+  onSchedule?: (pipeline: PipelineData) => void;
 };
 
 export const PipelineCard = ({
   isScheduled,
   isSavedSkill,
   onOpen,
+  onSchedule,
   pipeline,
   routineLabel,
   stats,
@@ -103,7 +105,33 @@ export const PipelineCard = ({
           <Icon icon={isDraft ? MessageSquare : Workflow} size={16} />
         </div>
         <div className="flex flex-wrap justify-end gap-1.5">
-          {isScheduled ? (
+          {!isDraft && onSchedule ? (
+            <span
+              className={cn(
+                "inline-flex cursor-pointer items-center gap-1 rounded-full px-2 py-0.5 text-[10px] transition-colors",
+                isScheduled
+                  ? "bg-foreground text-primary-foreground"
+                  : "bg-surface-2 text-muted-foreground hover:bg-accent",
+              )}
+              data-testid="pipeline-card-schedule"
+              role="button"
+              tabIndex={0}
+              onClick={(event) => {
+                event.stopPropagation();
+                onSchedule(pipeline);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onSchedule(pipeline);
+                }
+              }}
+            >
+              <Icon icon={Clock} size={10} />
+              {isScheduled ? "Routine" : "Schedule"}
+            </span>
+          ) : isScheduled ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-2 py-0.5 text-[10px] text-primary-foreground">
               <Icon icon={Clock} size={10} />
               Routine
