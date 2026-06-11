@@ -102,14 +102,13 @@ describe("AgentBar", () => {
     renderAgentBar();
 
     expect(screen.getByTestId("workspace-agent-bar")).toBeInTheDocument();
-    expect(screen.getByText("Agent Bar")).toBeInTheDocument();
-    expect(screen.getByText("New canvas - no pipeline yet")).toBeInTheDocument();
-    expect(screen.getByText("pipe-test")).toBeInTheDocument();
-    expect(screen.getAllByText("empty")).toHaveLength(2);
+    expect(screen.getByText("Agent")).toBeInTheDocument();
+    expect(screen.getByText(/New canvas · no pipeline yet/)).toBeInTheDocument();
+    expect(screen.getByText("empty")).toBeInTheDocument();
     expect(screen.getByText("Turn my textbook PDFs into a Notion quiz")).toBeInTheDocument();
   });
 
-  it("switches all six phases from the dev phase controls", async () => {
+  it("switches all phases from the dev phase controls", async () => {
     const user = userEvent.setup();
     renderAgentBar();
 
@@ -118,7 +117,7 @@ describe("AgentBar", () => {
       expect(useWorkspaceStore.getState().phase).toBe(phase);
     }
 
-    expect(screen.getByText("Run complete - asset saved")).toBeInTheDocument();
+    expect(screen.getByText(/Run complete · asset saved/)).toBeInTheDocument();
   });
 
   it("renders conversation messages after the scripted phase body", () => {
@@ -171,7 +170,7 @@ describe("AgentBar", () => {
       });
     });
 
-    expect(screen.getByText("Watching job-live live")).toBeInTheDocument();
+    expect(screen.getByText(/Watching · job-live · live/)).toBeInTheDocument();
     expect(screen.getByText("Running - job-live")).toBeInTheDocument();
     expect(screen.getByText("Step 2 of 2 - Generate Quiz")).toBeInTheDocument();
     expect(screen.getByText(/\$0\.42/)).toBeInTheDocument();
@@ -255,8 +254,10 @@ describe("AgentBar", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Self-heal")).toBeInTheDocument();
+      expect(screen.getByText(/Self-heal/)).toBeInTheDocument();
     });
+    const user = userEvent.setup();
+    await user.click(screen.getByTestId("agent-self-heal-toggle"));
     expect(screen.getByText(/Retry 1 for quiz/)).toBeInTheDocument();
     expect(screen.getByText(/Node quiz recovered/)).toBeInTheDocument();
   });
@@ -294,8 +295,7 @@ describe("AgentBar", () => {
       });
     });
 
-    expect(screen.getByText("Checkpoint waiting")).toBeInTheDocument();
-    expect(screen.getByText("Paused at Generate Quiz")).toBeInTheDocument();
+    expect(screen.getByText(/Checkpoint · paused at Generate Quiz/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Resume" }));
 
@@ -331,10 +331,9 @@ describe("AgentBar", () => {
 
     renderAgentBar();
 
-    expect(screen.getByText("Distilled to Components")).toBeInTheDocument();
-    expect(screen.getByText("Quiz Pipeline - saved to Components")).toBeInTheDocument();
+    expect(screen.getByText(/Distilled to Components/)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Open" }));
+    await user.click(screen.getByTestId("agent-distill"));
 
     expect(mockNavigate).toHaveBeenCalledWith({ to: "/components" });
   });

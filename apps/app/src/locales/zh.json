@@ -1306,7 +1306,51 @@
     },
     "agentBar": {
       "refChipTitle": "悬停高亮 · 点击在画布上定位",
-      "removeRef": "移除 {{label}}"
+      "removeRef": "移除 {{label}}",
+      "applied": {
+        "hint": "已应用 — 节点已在画布上，随时可编辑。点选任意节点即可在这里引用它，或直接点 Run。"
+      },
+      "checkpoint": {
+        "controls": "运行控制",
+        "nextNode": "下一节点",
+        "pause": "暂停",
+        "resume": "继续",
+        "waiting": "检查点 · 暂停于 {{node}}"
+      },
+      "collapse": "收起 Agent Bar",
+      "empty": {
+        "intro": "新画布 — 告诉我要做什么，或拖入一个成品样本，我会逆向推导出生成它的 Pipeline。",
+        "suggestChangelog": "把 GitHub 仓库总结成 changelog",
+        "suggestQuiz": "把我的教材 PDF 变成 Notion 测验",
+        "suggestReverse": "上传成品样本 → 逆向工程"
+      },
+      "error": {
+        "tryPrefix": "建议："
+      },
+      "proposal": {
+        "actionCount_one": "{{count}} 个图操作",
+        "actionCount_other": "{{count}} 个图操作",
+        "apply": "应用",
+        "blocked": "先解决诊断问题再应用",
+        "reject": "拒绝",
+        "revise": "修改"
+      },
+      "reversing": {
+        "intro": "正在阅读样本 — 推断生成它的步骤。"
+      },
+      "subtitle": {
+        "applied": "阅读中 · 画布",
+        "clarify": "阅读中 · 目标",
+        "done": "运行完成 · 资产已沉淀",
+        "empty": "新画布 · 暂无 pipeline",
+        "proposal": "起草中 · 方案就绪",
+        "refsSelected_one": "已选 {{count}} 个引用",
+        "refsSelected_other": "已选 {{count}} 个引用",
+        "reversing": "阅读中 · 样本",
+        "running": "观察中 · 实时",
+        "watching": "观察中 · {{jobId}} · 实时"
+      },
+      "title": "Agent"
     }
   },
   "validation": {

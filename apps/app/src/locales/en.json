@@ -1311,7 +1311,51 @@
     },
     "agentBar": {
       "refChipTitle": "Hover to highlight · click to focus on canvas",
-      "removeRef": "Remove {{label}}"
+      "removeRef": "Remove {{label}}",
+      "applied": {
+        "hint": "Applied — the nodes are on the canvas, yours to edit. Click any node to reference it here, or hit Run."
+      },
+      "checkpoint": {
+        "controls": "Run controls",
+        "nextNode": "next node",
+        "pause": "Pause",
+        "resume": "Resume",
+        "waiting": "Checkpoint · paused at {{node}}"
+      },
+      "collapse": "Collapse Agent Bar",
+      "empty": {
+        "intro": "New canvas — tell me what to make, or drop a finished sample and I'll reverse-engineer the pipeline behind it.",
+        "suggestChangelog": "Summarize a GitHub repo into a changelog",
+        "suggestQuiz": "Turn my textbook PDFs into a Notion quiz",
+        "suggestReverse": "Upload a finished sample → reverse-engineer it"
+      },
+      "error": {
+        "tryPrefix": "Try:"
+      },
+      "proposal": {
+        "actionCount_one": "{{count}} graph action",
+        "actionCount_other": "{{count}} graph actions",
+        "apply": "Apply",
+        "blocked": "Resolve diagnostics before applying",
+        "reject": "Reject",
+        "revise": "Revise"
+      },
+      "reversing": {
+        "intro": "Reading the sample — inferring the steps that produce it."
+      },
+      "subtitle": {
+        "applied": "Reading · canvas",
+        "clarify": "Reading · goal",
+        "done": "Run complete · asset saved",
+        "empty": "New canvas · no pipeline yet",
+        "proposal": "Drafting · proposal ready",
+        "refsSelected_one": "{{count}} reference selected",
+        "refsSelected_other": "{{count}} references selected",
+        "reversing": "Reading · sample",
+        "running": "Watching · live",
+        "watching": "Watching · {{jobId}} · live"
+      },
+      "title": "Agent"
     }
   },
   "validation": {

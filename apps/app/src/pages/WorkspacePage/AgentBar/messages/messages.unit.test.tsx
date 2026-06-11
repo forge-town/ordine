@@ -1,13 +1,13 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import {
-  AppliedCard,
   Assistant,
   Bubble,
   CompletionCard,
   DistillCard,
   ErrorCard,
-  OptionGrid,
+  ProgressList,
   ProposalCard,
   RunStatusCard,
   SelfHealCard,
@@ -20,20 +20,22 @@ const proposalItems = [
 ];
 
 describe("AgentBar message components", () => {
-  it("renders conversation primitives", () => {
+  it("renders conversation primitives without card chrome", () => {
     render(
       <div>
         <Bubble>Build a quiz pipeline.</Bubble>
         <Assistant>Reading the canvas context.</Assistant>
+        <Assistant isThinking>Thinking…</Assistant>
       </div>,
     );
 
     expect(screen.getByText("Build a quiz pipeline.")).toBeInTheDocument();
     expect(screen.getByText("Reading the canvas context.")).toBeInTheDocument();
-    expect(screen.getByText("Agent")).toBeInTheDocument();
+    expect(screen.getByText("Thinking…")).toBeInTheDocument();
   });
 
-  it("renders proposal cards with action buttons", () => {
+  it("renders the minimal proposal block with inline actions", async () => {
+    const user = userEvent.setup();
     const handleApply = vi.fn();
     render(
       <ProposalCard
@@ -44,68 +46,68 @@ describe("AgentBar message components", () => {
       />,
     );
 
-    expect(screen.getByText("Proposal - 5 nodes")).toBeInTheDocument();
+    expect(screen.getByText(/Proposal - 5 nodes/)).toBeInTheDocument();
+    expect(screen.getByTestId("agent-progress-list")).toBeInTheDocument();
     expect(screen.getByText("Source")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Apply" })).toBeInTheDocument();
+    await user.click(screen.getByTestId("agent-proposal-apply"));
+    expect(handleApply).toHaveBeenCalledTimes(1);
   });
 
-  it("renders status and result cards", () => {
+  it("renders run, self-heal, error, completion, and distill lines", async () => {
+    const user = userEvent.setup();
+    const handleAction = vi.fn();
     render(
       <div>
-        <AppliedCard detail="Pipeline is on canvas" title="Applied - 5 nodes" />
-        <RunStatusCard costLabel="14.6s - $0.14" subtitle="Step 3 of 5" title="Running - job" />
+        <RunStatusCard costLabel="14.6s - $0.14" subtitle="Step 3 of 5" title="job_8f2a" />
         <SelfHealCard
-          open
           steps={[{ label: "Retried with smaller chunks", tone: "success" }]}
-          subtitle="Parser recovered"
-          title="Self-heal - resolved"
+          subtitle="round 2"
+          title="Self-healed the Parse step"
         />
         <ErrorCard
           title="Connector needs a token"
-          tryLabel="Connectors -> Notion"
+          tryLabel="Connect Notion"
           what="Export cannot reach Notion."
           why="Connector is not authorized."
+          onAction={handleAction}
         />
-        <CompletionCard subtitle="Verified in 2 rounds" title="Completed - $0.31">
+        <CompletionCard subtitle="$0.31" title="Done in 41.3s">
           Exported quiz questions.
         </CompletionCard>
-        <DistillCard subtitle="Saved to Components" title="Distilled to a Pipeline Skill" />
+        <DistillCard subtitle="open in Components" title="Saved as a Pipeline Skill" />
       </div>,
     );
 
-    expect(screen.getByText("Applied - 5 nodes")).toBeInTheDocument();
-    expect(screen.getByText("Running - job")).toBeInTheDocument();
+    expect(screen.getByText("job_8f2a")).toBeInTheDocument();
+    expect(screen.queryByText(/Retried with smaller chunks/)).not.toBeInTheDocument();
+    await user.click(screen.getByTestId("agent-self-heal-toggle"));
     expect(screen.getByText(/Retried with smaller chunks/)).toBeInTheDocument();
-    expect(screen.getByText("Connector needs a token")).toBeInTheDocument();
-    expect(screen.getByText("Completed - $0.31")).toBeInTheDocument();
-    expect(screen.getByText("Distilled to a Pipeline Skill")).toBeInTheDocument();
+    await user.click(screen.getByTestId("agent-error-action"));
+    expect(handleAction).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(/Done in 41.3s/)).toBeInTheDocument();
+    expect(screen.getByText(/Saved as a Pipeline Skill/)).toBeInTheDocument();
   });
 
-  it("renders option and suggestion controls", () => {
+  it("renders progress lists and suggestion rows", () => {
     render(
       <div>
-        <OptionGrid
+        <ProgressList
           items={[
-            { active: true, id: "grammar", label: "Vocab + grammar" },
-            { id: "verify", label: "Skip verify" },
+            { detail: "20 MCQs", done: true, id: "structure", title: "Read structure" },
+            { detail: "5 nodes", done: false, id: "draft", title: "Drafting pipeline" },
           ]}
+          showStatus
         />
         <SuggestionList
           items={[
             { id: "quiz", label: "Turn PDFs into a quiz" },
-            {
-              id: "reverse",
-              label: "Upload a finished sample",
-              priorityLabel: "P1",
-              reverse: true,
-            },
+            { id: "reverse", label: "Upload a finished sample", reverse: true },
           ]}
         />
       </div>,
     );
 
-    expect(screen.getByRole("button", { name: "Vocab + grammar" })).toBeInTheDocument();
+    expect(screen.getByText("Read structure")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Turn PDFs into a quiz" })).toBeInTheDocument();
-    expect(screen.getByText("P1")).toBeInTheDocument();
   });
 });

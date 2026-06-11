@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { WorkspacePhase } from "@repo/schemas";
-import { ChevronsRight, Eraser, Sparkles } from "lucide-react";
+import { ChevronsRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { useCanvasPageStore } from "@/pages/CanvasPage/_store";
-import { Bubble, Assistant, ProposalCard } from "./messages";
-import { Icon, StatusPill, Tag } from "@/components/primitives";
+import { Assistant, Bubble, ProposalCard } from "./messages";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
 import { AgentDistillCard } from "./AgentDistillCard";
@@ -17,24 +17,13 @@ import { useAgentConversation } from "./useAgentConversation";
 
 export const WORKSPACE_PHASES: WorkspacePhase[] = [
   "empty",
+  "reversing",
   "clarify",
   "proposal",
   "applied",
   "running",
   "done",
 ];
-
-const phaseSubtitle: Record<WorkspacePhase, string> = {
-  empty: "New canvas - no pipeline yet",
-  clarify: "Reading goal and context",
-  proposal: "Drafting - 5 nodes proposed",
-  applied: "Reading canvas - 5 nodes",
-  running: "Watching job_8f2a live",
-  done: "Run complete - asset saved",
-};
-
-const phaseStatus = (phase: WorkspacePhase) =>
-  phase === "done" ? "done" : phase === "running" ? "running" : "idle";
 
 export type AgentBarProps = {
   className?: string;
@@ -44,6 +33,7 @@ export type AgentBarProps = {
 };
 
 export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentBarProps) => {
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const canvasStore = useCanvasPageStore();
   const activeJobId = useStore(canvasStore, (state) => state.activeJobId);
@@ -53,7 +43,6 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   const dismissed = useWorkspaceStore((state) => state.dismissed);
   const dismissRef = useWorkspaceStore((state) => state.dismiss);
   const messages = useAgentBarStore((state) => state.messages);
-  const clearMessages = useAgentBarStore((state) => state.clearMessages);
   const {
     applyProposal,
     diagnostics,
@@ -71,18 +60,10 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
   );
   const subtitle =
     activeRefs.length > 0
-      ? `${activeRefs.length} reference${activeRefs.length > 1 ? "s" : ""} selected`
+      ? t("workspace.agentBar.subtitle.refsSelected", { count: activeRefs.length })
       : phase === "running" && activeJobId
-        ? `Watching ${activeJobId} live`
-        : phaseSubtitle[phase];
-  const handlePhaseChange = (targetPhase: WorkspacePhase) => setPhase(targetPhase);
-  const handleClearClick = () => clearMessages();
-  const handleCollapseClick = () => onCollapse();
-  const handleRemoveRef = (id: string) => dismissRef(id);
-  const handleComposerSubmit = submitMessage;
-  const handleProposalApply = applyProposal;
-  const handleProposalReject = rejectProposal;
-  const handleProposalRevise = reviseProposal;
+        ? t("workspace.agentBar.subtitle.watching", { jobId: activeJobId })
+        : t(`workspace.agentBar.subtitle.${phase}`);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -95,56 +76,42 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
       className={cn("flex h-full w-full flex-col bg-surface", className)}
       data-testid="workspace-agent-bar"
     >
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-foreground text-primary-foreground">
-          <Icon icon={Sparkles} size={14} />
+      <header className="flex shrink-0 items-center justify-between px-3.5 pb-2 pt-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className={cn(
+              "size-1.5 shrink-0 rounded-full",
+              phase === "running" ? "animate-pulse bg-foreground" : "bg-success",
+            )}
+            data-testid="agent-bar-status-dot"
+          />
+          <span className="text-[12px] font-semibold">{t("workspace.agentBar.title")}</span>
+          <span className="truncate text-[10.5px] text-muted-foreground">· {subtitle}</span>
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-[13px] font-semibold leading-tight">Agent Bar</div>
-          <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
-            <StatusPill status={phaseStatus(phase)} />
-            <span className="truncate text-[10.5px] text-muted-foreground">{subtitle}</span>
-          </div>
-        </div>
-        {messages.length > 0 ? (
-          <Button
-            aria-label="Clear conversation"
-            className="h-8 w-8"
-            size="icon"
-            variant="ghost"
-            onClick={handleClearClick}
-          >
-            <Eraser className="h-4 w-4" />
-          </Button>
-        ) : null}
         <Button
-          aria-label="Collapse Agent Bar"
-          className="h-8 w-8"
+          aria-label={t("workspace.agentBar.collapse")}
+          className="h-7 w-7 shrink-0"
           size="icon"
           variant="ghost"
-          onClick={handleCollapseClick}
+          onClick={onCollapse}
         >
-          <ChevronsRight className="h-4 w-4" />
+          <ChevronsRight className="size-3.5" />
         </Button>
       </header>
 
       {import.meta.env.DEV ? (
         <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-border/70 px-3 py-2">
-          {WORKSPACE_PHASES.map((targetPhase) => {
-            const handlePhaseClick = () => setPhase(targetPhase);
-
-            return (
-              <Button
-                key={targetPhase}
-                className="h-7 shrink-0 rounded-full px-2 text-[10.5px]"
-                size="sm"
-                variant={targetPhase === phase ? "secondary" : "ghost"}
-                onClick={handlePhaseClick}
-              >
-                {targetPhase}
-              </Button>
-            );
-          })}
+          {WORKSPACE_PHASES.map((targetPhase) => (
+            <Button
+              className="h-7 shrink-0 rounded-full px-2 text-[10.5px]"
+              key={targetPhase}
+              size="sm"
+              variant={targetPhase === phase ? "secondary" : "ghost"}
+              onClick={() => setPhase(targetPhase)}
+            >
+              {targetPhase}
+            </Button>
+          ))}
         </div>
       ) : null}
 
@@ -155,59 +122,49 @@ export const AgentBar = ({ className, composer, onCollapse, pipelineId }: AgentB
           }
           phase={phase}
           runContent={phase === "running" ? <AgentRunCards /> : undefined}
-          onPhaseChange={handlePhaseChange}
         />
         {messages.map((message) =>
           message.role === "user" ? (
             <Bubble
-              key={message.id}
               attachmentLabel={message.metadata?.attachments?.map((item) => item.name).join(", ")}
+              key={message.id}
             >
               {message.content}
             </Bubble>
           ) : (
-            <Assistant key={message.id} isThinking={message.isThinking}>
+            <Assistant isThinking={message.isThinking} key={message.id}>
               {message.content}
             </Assistant>
           ),
         )}
         {diagnostics && diagnostics.length > 0 ? (
-          <Assistant label="Diagnostics">
-            {diagnostics.map((diagnostic) => diagnostic.message).join(" ")}
-          </Assistant>
+          <Assistant>{diagnostics.map((diagnostic) => diagnostic.message).join(" ")}</Assistant>
         ) : null}
         {pendingProposal ? (
           <ProposalCard
             items={proposalItems}
             subtitle={
               hasBlockingDiagnostics
-                ? "Resolve diagnostics before applying"
-                : `${pendingProposal.actions.length} graph action${pendingProposal.actions.length > 1 ? "s" : ""}`
+                ? t("workspace.agentBar.proposal.blocked")
+                : t("workspace.agentBar.proposal.actionCount", {
+                    count: pendingProposal.actions.length,
+                  })
             }
             title={pendingProposal.summary}
-            onApply={handleProposalApply}
-            onReject={handleProposalReject}
-            onRevise={handleProposalRevise}
+            onApply={applyProposal}
+            onReject={rejectProposal}
+            onRevise={reviseProposal}
           />
         ) : null}
       </div>
 
       <div className="shrink-0 border-t border-border/70">
-        <div className="px-3 pt-2">
-          <div className="flex flex-wrap gap-1.5">
-            <Tag>{pipelineId}</Tag>
-            <Tag>{phase}</Tag>
-            {activeRefs.map((ref) => (
-              <Tag key={ref.id}>{ref.label}</Tag>
-            ))}
-          </div>
-        </div>
         {composer ?? (
           <Composer
             isSending={isSending}
             refs={activeRefs}
-            onRemoveRef={handleRemoveRef}
-            onSubmit={handleComposerSubmit}
+            onRemoveRef={dismissRef}
+            onSubmit={submitMessage}
           />
         )}
       </div>
