@@ -1647,5 +1647,19 @@
     "markRead": "Mark read",
     "open": "open",
     "title": "Notifications"
+  },
+  "components": {
+    "findForMe": {
+      "assetFallback": "Reusable pipeline asset",
+      "close": "Close",
+      "empty": "Nothing distilled yet — run a pipeline to grow the library.",
+      "intro": "Most reusable assets, ranked by how often they ran:",
+      "ranking": "Ranking by reuse and relevance",
+      "searching": "Searching your library…",
+      "subtitle": "The Agent scans your component library",
+      "title": "Find for me",
+      "usedTimes_one": "ran {{count}}×",
+      "usedTimes_other": "ran {{count}}×"
+    }
   }
 }

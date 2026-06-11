@@ -1,13 +1,12 @@
 import { useMemo, useState } from "react";
 import { Boxes, Cpu, Download, Plus, Search, Upload, Workflow } from "lucide-react";
 import { useDelete, useList } from "@refinedev/core";
-import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import type { PipelineAsset } from "@repo/schemas";
 import { PageHeader } from "@/components/PageHeader";
+import { FindForMeModal } from "../FindForMeModal";
 import { Chip, Icon, SearchInput } from "@/components/primitives";
 import { ResourceName, dataProvider } from "@/integrations/refine/dataProvider";
-import { useToastStore } from "@/store/toastStore";
 import { ComponentCard, type ComponentCardItem, type ComponentCategory } from "../ComponentCard";
 import { ComponentEditor } from "../ComponentEditor";
 import { DeleteComponentDialog } from "../DeleteComponentDialog";
@@ -83,8 +82,6 @@ export const ComponentsPageContent = () => {
     resource: ResourceName.pipelineAssets,
   });
   const { mutate: deleteAsset } = useDelete();
-  const toastStore = useToastStore();
-  const addToast = useStore(toastStore, (state) => state.addToast);
   const assets = assetsResult.data;
   const assetItems = useMemo(() => assets.map(toAssetItem), [assets]);
   const items = useMemo(
@@ -128,12 +125,9 @@ export const ComponentsPageContent = () => {
       ? assets.find((asset) => asset.id === editingItem.id)
       : undefined;
 
+  const [findOpen, setFindOpen] = useState(false);
   const handleFindClick = () => {
-    addToast({
-      type: "success",
-      title: "Find for me",
-      description: "Agent is searching your component library.",
-    });
+    setFindOpen(true);
   };
   const handleNewMenuButtonClick = () => {
     setNewMenuOpen((open) => !open);
@@ -300,6 +294,7 @@ export const ComponentsPageContent = () => {
         onConfirm={handleConfirmDelete}
         onOpenChange={handleDeleteDialogOpenChange}
       />
+      {findOpen ? <FindForMeModal onClose={() => setFindOpen(false)} /> : null}
     </div>
   );
 };

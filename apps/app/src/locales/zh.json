@@ -1642,5 +1642,19 @@
     "markRead": "全部已读",
     "open": "打开",
     "title": "通知"
+  },
+  "components": {
+    "findForMe": {
+      "assetFallback": "可复用的 Pipeline 资产",
+      "close": "关闭",
+      "empty": "还没有沉淀的资产 — 跑通一条 Pipeline 后这里会增长。",
+      "intro": "按运行次数排序的最可复用资产：",
+      "ranking": "按复用度与相关性排序",
+      "searching": "正在扫描你的组件库…",
+      "subtitle": "Agent 扫描你的组件库",
+      "title": "帮我找",
+      "usedTimes_one": "运行 {{count}} 次",
+      "usedTimes_other": "运行 {{count}} 次"
+    }
   }
 }
