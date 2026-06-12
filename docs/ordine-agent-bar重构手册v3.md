@@ -172,6 +172,15 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 - **Limits 组：本期不做**——成本上限需要 runner 真实执行才不算假透明，列入下期（依赖 run cost 统计通道）。
 - 纪律：每任务单独 commit（`<type>: <中文描述> (N18-0x)`）；新组件 i18n en+zh + story + testid；期末真机走查全部组 + 截图记录。
 
+### N19 · 资产可辨识与数据收尾（2026-06-13 立项）
+
+> 动机：①列表/Schedule 选择器/Usage 满屏 "Untitled pipeline" 不可辨（G3-01 与多轮真机验收反复实证）；②N18-06 Data 组待续；③N14 遗留 Retry 不携带附件内容。
+
+- **N19-01 Apply 后自动命名 pipeline**：`ProposeActionsResponseSchema` 增 `pipelineName?: string`；PROPOSE_SYSTEM_PROMPT 输出段约定——当画布为空（CURRENT GRAPH 无节点）且给出 proposal 时，附 3-8 字的流水线名（用户语言，描述用途）；`parseAgentOutput` 解析；前端 Apply 成功后**仅当**当前名为空/默认 "Untitled pipeline" 时随保存一并 `update name`（用户已自定义的名字绝不覆盖）。零额外 LLM 调用。验收：空画布中文请求 → Apply 后 TopPill 与列表显示语义化名称；已命名 pipeline 再 Apply 不被改名。
+- **N19-02 Data 组清除对话历史（原 N18-06）**：`conversationMessagesDao` 增 `deleteByPipelineId` 与 `deleteAll`（按现有 DAO class 模式）→ conversationMessagesService → tRPC `conversationMessages.clearAll` → dataProvider custom；ProjectSection（Data 节）尾部"危险区"：清除按钮 + 二次确认 Dialog（说明 pipelines 保留）；清除后 agentBarStore 重置。验收：清除后通刷新对话区为空、pipelines 完好；确认框可取消。
+- **N19-03 Retry 附件 excerpt 降级**：`handleErrorRetry`（AgentBar）与 `handleRetryMessage`（MessageActions 路径）重发时把 `metadata.attachments` 映射为 proposeAttachments——excerpt（真实截断摘录，≤1k）作 content；名称即原名，内容天然截断、不伪造全文。验收：带附件消息失败后点 Retry，服务端 prompt 含 excerpt 级 artifact 内容（单测）。
+- 纪律照旧：一任务一 commit、新文案 i18n en+zh、期末真机验证记录存 pr-assets。
+
 ### N15 · 阶段事件与流式（可与 N13/N14 穿插，N15-02 可暂缓）
 
 - **N15-01 粗粒度阶段事件**：利用 `runAgent` 的 `onProgress` 钩子 + 服务端内存态（或 tRPC subscription，二选一以实现成本定）暴露 `thinking → drafting → validating` 阶段；前端 isThinking 行副标题实时更新（含 reversing 两段的阶段转发）。验收：发消息后副标题至少经历两次真实变化，非定时器伪造。
