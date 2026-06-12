@@ -49,9 +49,11 @@ export const AppSidebar = () => {
     queryOptions: { retry: false },
     resource: ResourceName.pipelines,
   });
-  const { result: operations } = useList({
+  // G3-07：Components 页展示的是组件库（pipelineAssets），徽标必须同源——
+  // 原先取 operations.total（15）与页面实际组件数（6）不一致。
+  const { result: pipelineAssets } = useList({
     queryOptions: { retry: false },
-    resource: ResourceName.operations,
+    resource: ResourceName.pipelineAssets,
   });
   const { result: jobs } = useList({
     queryOptions: { retry: false },
@@ -72,7 +74,7 @@ export const AppSidebar = () => {
           to: "/pipelines",
         },
         {
-          badge: getTotalLabel(operations?.total),
+          badge: getTotalLabel(pipelineAssets?.total),
           icon: Boxes,
           key: "components",
           label: t("nav.items.components"),
