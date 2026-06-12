@@ -11,4 +11,5 @@ export * from "./ProgressList";
 export * from "./ProposalCard";
 export * from "./RunStatusCard";
 export * from "./SelfHealCard";
+export * from "./UserActionCard";
 export * from "./SuggestionList";

@@ -8,6 +8,7 @@ import {
   DistillCard,
   ErrorCard,
   MessageActions,
+  UserActionCard,
   ProgressList,
   ProposalCard,
   RunStatusCard,
@@ -178,5 +179,25 @@ export const MessageHoverActions: StoryObj = {
         <MessageActions align="left" content="已为你搭好这条流水线，共 3 个节点。" />
       </div>
     </div>
+  ),
+};
+
+export const UserActionRequests: StoryObj = {
+  name: "User action requests (run-time)",
+  render: () => (
+    <UserActionCard
+      nodeLabelById={{ node_pdf: "PDF 教材转 Markdown" }}
+      requests={[
+        {
+          field: "folderPath",
+          kind: "configure-input",
+          message: "输入文件夹未配置，请在节点上设置教材 PDF 所在目录。",
+          nodeId: "node_pdf",
+        },
+        { kind: "provide-info", message: "需要 Notion API token 才能导出。" },
+      ]}
+      onAskAgent={() => {}}
+      onOpenConfig={() => {}}
+    />
   ),
 };

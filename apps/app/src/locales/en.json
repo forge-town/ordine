@@ -687,6 +687,7 @@
         "nextNode": "next node",
         "pause": "Pause",
         "resume": "Resume",
+        "review": "Review",
         "waiting": "Checkpoint · paused at {{node}}"
       },
       "collapse": "Collapse Agent Bar",
@@ -832,7 +833,13 @@
         "showAll": "Show all",
         "title": "Thread"
       },
-      "title": "Agent"
+      "title": "Agent",
+      "userAction": {
+        "askAgent": "Ask agent",
+        "askDraft": "The executor needs something on node {{node}}: {{message}} — please handle it or tell me what to do.",
+        "openConfig": "Open node config",
+        "title": "Action needed ({{count}})"
+      }
     },
     "notFoundPipeline": "Pipeline not found"
   },

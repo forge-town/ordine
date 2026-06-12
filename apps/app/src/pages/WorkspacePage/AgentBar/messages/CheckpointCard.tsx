@@ -1,4 +1,4 @@
-import { Flag, Pause, Play } from "lucide-react";
+import { Flag, Pause, Play, SquareArrowOutUpRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Icon } from "@/components/primitives";
@@ -8,6 +8,8 @@ export type CheckpointCardProps = {
   nodeLabel?: string;
   onPause: () => void;
   onResume: () => void;
+  /** N17-03c：等待审核时直达该节点的配置/审核面板。 */
+  onReview?: () => void;
 };
 
 /** Minimal run-control row — status line + two small inline buttons. */
@@ -16,6 +18,7 @@ export const CheckpointCard = ({
   nodeLabel,
   onPause,
   onResume,
+  onReview,
 }: CheckpointCardProps) => {
   const { t } = useTranslation();
 
@@ -55,6 +58,19 @@ export const CheckpointCard = ({
           <Play className="size-3 fill-current" />
           {t("workspace.agentBar.checkpoint.resume")}
         </Button>
+        {isWaiting && onReview ? (
+          <Button
+            className="h-6 rounded-lg px-2 text-[11px]"
+            data-testid="agent-checkpoint-review"
+            size="sm"
+            type="button"
+            variant="outline"
+            onClick={onReview}
+          >
+            <SquareArrowOutUpRight className="size-3" />
+            {t("workspace.agentBar.checkpoint.review")}
+          </Button>
+        ) : null}
       </div>
     </div>
   );

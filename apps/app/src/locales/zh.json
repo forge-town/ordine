@@ -687,6 +687,7 @@
         "nextNode": "下一节点",
         "pause": "暂停",
         "resume": "继续",
+        "review": "去审核",
         "waiting": "检查点 · 暂停于 {{node}}"
       },
       "collapse": "收起 Agent Bar",
@@ -832,7 +833,13 @@
         "showAll": "查看全部",
         "title": "线程"
       },
-      "title": "Agent"
+      "title": "Agent",
+      "userAction": {
+        "askAgent": "让 Agent 处理",
+        "askDraft": "执行器在节点 {{node}} 需要补充：{{message}}——请帮我处理或告诉我该怎么做。",
+        "openConfig": "打开节点配置",
+        "title": "需要你处理（{{count}}）"
+      }
     },
     "notFoundPipeline": "找不到该 Pipeline"
   },
