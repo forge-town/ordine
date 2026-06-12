@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { Calendar, Gauge, Info } from "lucide-react";
@@ -112,6 +113,7 @@ const getObjectData = <T extends object>(value: unknown, fallback: T): T => {
 };
 
 export const UsagePageContent = () => {
+  const { t } = useTranslation();
   const [range, setRange] = useState<UsageRange>("This month");
   const rangeDates = useMemo(() => getRangeDates(range), [range]);
   const { result: pipelinesResult } = useList<PipelineData>({
@@ -154,7 +156,7 @@ export const UsagePageContent = () => {
   if (isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title="Usage" />
+        <PageHeader title={t("nav.items.usage")} />
         <PageLoadingState variant="grid" />
       </div>
     );

@@ -1,6 +1,7 @@
 import { Boxes, Cpu, Gauge, ListChecks, Plug, Sparkles, Workflow } from "lucide-react";
 import { useList } from "@refinedev/core";
 import { useRouterState } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { SearchInput } from "@/components/primitives";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -36,6 +37,7 @@ const getTotalLabel = (total?: number) => {
 const handleSidebarCollapse = () => {};
 
 export const AppSidebar = () => {
+  const { t } = useTranslation();
   const { location } = useRouterState();
   const store = useSidebarStore();
   const capabilitiesOpen = useStore(store, (s) => s.capabilitiesOpen);
@@ -60,62 +62,62 @@ export const AppSidebar = () => {
 
   const groups: NavigationGroup[] = [
     {
-      title: "Assembly",
+      title: t("nav.groups.assembly"),
       items: [
         {
           badge: getTotalLabel(pipelines?.total),
           icon: Workflow,
           key: "pipelines",
-          label: "Pipelines",
+          label: t("nav.items.pipelines"),
           to: "/pipelines",
         },
         {
           badge: getTotalLabel(operations?.total),
           icon: Boxes,
           key: "components",
-          label: "Components",
+          label: t("nav.items.components"),
           to: "/components",
         },
       ],
     },
     {
-      title: "Monitor",
+      title: t("nav.groups.monitor"),
       items: [
         {
           badge: getTotalLabel(jobs?.total),
           icon: ListChecks,
           key: "jobs",
-          label: "Jobs",
+          label: t("nav.items.jobs"),
           to: "/jobs",
         },
         {
           icon: Gauge,
           key: "usage",
-          label: "Usage",
+          label: t("nav.items.usage"),
           to: "/usage",
         },
       ],
     },
     {
       collapsible: true,
-      title: "Capabilities",
+      title: t("nav.groups.capabilities"),
       items: [
         {
           icon: Cpu,
           key: "agents",
-          label: "Local Agents",
+          label: t("nav.items.localAgents"),
           to: "/local-agents",
         },
         {
           icon: Sparkles,
           key: "skills",
-          label: "Skills",
+          label: t("nav.items.skills"),
           to: "/skills",
         },
         {
           icon: Plug,
           key: "connectors",
-          label: "Connectors",
+          label: t("nav.items.connectors"),
           to: "/connectors",
         },
       ],

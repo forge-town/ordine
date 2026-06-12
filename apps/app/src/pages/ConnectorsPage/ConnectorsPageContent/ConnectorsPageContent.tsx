@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useMemo, useState, type ChangeEvent } from "react";
 import { Plus, Plug } from "lucide-react";
 import { useCreate, useList, useUpdate } from "@refinedev/core";
@@ -57,6 +58,7 @@ const matchesFilter = (connector: Connector, filter: ConnectorFilter) => {
 };
 
 export const ConnectorsPageContent = () => {
+  const { t } = useTranslation();
   const { result: connectorsResult, query: connectorsQuery } = useList<Connector>({
     resource: ResourceName.connectors,
   });
@@ -152,7 +154,7 @@ export const ConnectorsPageContent = () => {
   if (connectorsQuery.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title="Connectors" />
+        <PageHeader title={t("nav.items.connectors")} />
         <PageLoadingState variant="grid" />
       </div>
     );

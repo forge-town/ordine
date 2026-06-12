@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { Cpu, Radar, RefreshCw } from "lucide-react";
 import { useCustomMutation, useList } from "@refinedev/core";
@@ -12,6 +13,7 @@ import { LocalAgentCard } from "../LocalAgentCard";
 const SUPPORTED_RUNTIME_COUNT = 5;
 
 export const LocalAgentsPageContent = () => {
+  const { t } = useTranslation();
   const [isScanning, setIsScanning] = useState(false);
   const { result: runtimesResult, query: runtimesQuery } = useList<AgentRuntimeConfig>({
     resource: ResourceName.agentRuntimes,
@@ -34,7 +36,7 @@ export const LocalAgentsPageContent = () => {
   if (runtimesQuery.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title="Local Agents" />
+        <PageHeader title={t("nav.items.localAgents")} />
         <PageLoadingState variant="grid" />
       </div>
     );

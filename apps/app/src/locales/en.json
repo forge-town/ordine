@@ -22,6 +22,22 @@
     "updatedAt": "Updated"
   },
   "nav": {
+    "groups": {
+      "assembly": "Assembly",
+      "capabilities": "Capabilities",
+      "monitor": "Monitor"
+    },
+    "items": {
+      "agents": "Agents",
+      "components": "Components",
+      "connectors": "Connectors",
+      "jobs": "Jobs",
+      "localAgents": "Local Agents",
+      "nodes": "Nodes",
+      "pipelines": "Pipelines",
+      "skills": "Skills",
+      "usage": "Usage"
+    },
     "newPipeline": "New Pipeline"
   },
   "plugins": {
@@ -34,20 +50,42 @@
     "reopen": "Show sidebar"
   },
   "jobs": {
-    "title": "Jobs",
-    "statusRunning": "Running",
-    "duration": "Duration",
+    "agentRuns": {
+      "collapse": "Collapse",
+      "showAll": "Show all ({{count}} chars)"
+    },
+    "calendar": {
+      "live": "live",
+      "nextWeek": "Next week",
+      "noEventRoutines": "no event-triggered routines",
+      "onEvent": "on {{event}}",
+      "previousWeek": "Previous week",
+      "ranLegend": "ran",
+      "schedule": "Schedule",
+      "scheduledLegend": "scheduled",
+      "thisWeek": "this week",
+      "today": "Today"
+    },
     "createdAt": "Created at",
-    "type": "Type",
+    "drawer": {
+      "close": "Close",
+      "noSteps": "No pipeline snapshot for this job.",
+      "noTrace": "No trace yet.",
+      "openCanvas": "Open pipeline on canvas",
+      "runtime_one": "Runtime · {{count}} step",
+      "runtime_other": "Runtime · {{count}} steps",
+      "trace": "Trace"
+    },
+    "duration": "Duration",
+    "emptyBody": "Launch a run or adjust the current filters.",
+    "emptyTitle": "No jobs yet",
+    "hasRoutine": "has routine",
     "logs": "Logs",
+    "newRoutine": "New Routine",
+    "newRun": "New Run",
     "noLogs": "No logs",
-    "statusQueued": "Queued",
-    "statusDone": "Done",
-    "statusFailed": "Failed",
-    "statusCancelled": "Cancelled",
-    "statusExpired": "Expired",
-    "typePipeline": "Pipeline",
-    "statusPaused": "Paused",
+    "noMatchTitle": "No matching jobs",
+    "pickPipeline": "Schedule which pipeline?",
     "scheduleEditor": {
       "cancel": "Cancel",
       "close": "Close",
@@ -87,26 +125,14 @@
         "manual": "Manual"
       }
     },
-    "calendar": {
-      "live": "live",
-      "nextWeek": "Next week",
-      "noEventRoutines": "no event-triggered routines",
-      "onEvent": "on {{event}}",
-      "previousWeek": "Previous week",
-      "ranLegend": "ran",
-      "schedule": "Schedule",
-      "scheduledLegend": "scheduled",
-      "thisWeek": "this week",
-      "today": "Today"
-    },
-    "emptyBody": "Launch a run or adjust the current filters.",
-    "emptyTitle": "No jobs yet",
-    "hasRoutine": "has routine",
-    "newRoutine": "New Routine",
-    "newRun": "New Run",
-    "noMatchTitle": "No matching jobs",
-    "pickPipeline": "Schedule which pipeline?",
     "searchPlaceholder": "Search jobs…",
+    "statusCancelled": "Cancelled",
+    "statusDone": "Done",
+    "statusExpired": "Expired",
+    "statusFailed": "Failed",
+    "statusPaused": "Paused",
+    "statusQueued": "Queued",
+    "statusRunning": "Running",
     "subtitle": "Concurrent work orders. Operate the fleet — pause, rerun, step in. The how lives on the canvas.",
     "summary": "{{running}} running · {{queued}} queued · {{waiting}} waiting on you · {{failed}} failed",
     "table": {
@@ -132,18 +158,12 @@
         "status": "Status"
       }
     },
+    "title": "Jobs",
+    "type": "Type",
+    "typePipeline": "Pipeline",
     "views": {
       "calendar": "Calendar",
       "list": "List"
-    },
-    "drawer": {
-      "close": "Close",
-      "noSteps": "No pipeline snapshot for this job.",
-      "noTrace": "No trace yet.",
-      "openCanvas": "Open pipeline on canvas",
-      "runtime_one": "Runtime · {{count}} step",
-      "runtime_other": "Runtime · {{count}} steps",
-      "trace": "Trace"
     }
   },
   "distillations": {

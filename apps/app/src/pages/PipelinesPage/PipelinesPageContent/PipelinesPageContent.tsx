@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Layers, Plus, Workflow } from "lucide-react";
@@ -30,6 +31,7 @@ const getAverageDurationMs = (jobs: Job[]): number | null => {
 };
 
 export const PipelinesPageContent = () => {
+  const { t } = useTranslation();
   const { result: pipelinesResult, query: pipelinesQuery } = useList<PipelineData>({
     resource: ResourceName.pipelines,
   });
@@ -144,7 +146,7 @@ export const PipelinesPageContent = () => {
   if (pipelinesQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title="Pipelines" />
+        <PageHeader title={t("nav.items.pipelines")} />
         <PageLoadingState variant="grid" />
       </div>
     );

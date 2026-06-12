@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useMemo, useState, type ChangeEvent } from "react";
 import { useStore } from "zustand";
 import { Download, Plus, Search, Wand2 } from "lucide-react";
@@ -100,6 +101,7 @@ const toSkillCardItem = (skill: Skill): SkillCardItem => {
 };
 
 export const SkillsPageContent = () => {
+  const { t } = useTranslation();
   const { result: skillsResult, query: skillsQuery } = useList<Skill>({
     resource: ResourceName.skills,
   });
@@ -258,7 +260,7 @@ export const SkillsPageContent = () => {
   if (skillsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title="Skills" />
+        <PageHeader title={t("nav.items.skills")} />
         <PageLoadingState variant="grid" />
       </div>
     );

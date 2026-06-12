@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useMemo, type ChangeEvent } from "react";
 import { useList } from "@refinedev/core";
 import { useNavigate } from "@tanstack/react-router";
@@ -76,6 +77,7 @@ const toJobResult = (job: Job): GlobalSearchResult => ({
 });
 
 export const SearchPipelineDialog = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const store = useSidebarStore();
   const open = useStore(store, (s) => s.searchOpen);
@@ -232,13 +234,13 @@ export const SearchPipelineDialog = () => {
   }, [normalizedQuery, runtimesResult.data]);
 
   const resultGroups = [
-    { label: "Pipelines", results: pipelineResults },
-    { label: "Nodes", results: nodeResults },
-    { label: "Components", results: componentResults },
-    { label: "Jobs", results: jobResults },
-    { label: "Skills", results: skillResults },
-    { label: "Connectors", results: connectorResults },
-    { label: "Agents", results: agentResults },
+    { label: t("nav.items.pipelines"), results: pipelineResults },
+    { label: t("nav.items.nodes"), results: nodeResults },
+    { label: t("nav.items.components"), results: componentResults },
+    { label: t("nav.items.jobs"), results: jobResults },
+    { label: t("nav.items.skills"), results: skillResults },
+    { label: t("nav.items.connectors"), results: connectorResults },
+    { label: t("nav.items.agents"), results: agentResults },
   ];
   const totalResults = resultGroups.reduce((total, group) => total + group.results.length, 0);
 
