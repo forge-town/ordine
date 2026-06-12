@@ -1,6 +1,8 @@
 import type {
   createAgentRuntimesDao,
   createConversationMessagesDao,
+  createJobsDao,
+  createJobTracesDao,
   createOperationsDao,
   createSettingsDao,
 } from "@repo/models";
@@ -16,7 +18,7 @@ import {
   type ProposePendingOperation,
 } from "@repo/schemas";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
-import { buildProposeUserPrompt } from "./buildProposePrompt";
+import { buildProposeUserPrompt, type ProposeActiveRun } from "./buildProposePrompt";
 import type { ProposeHistoryMessage } from "./conversationHistory";
 import { normalizeProposalPayload } from "./normalizeProposalPayload";
 import { parseProposeAgentOutput, type ParsedNewOperation } from "./parseAgentOutput";
@@ -26,8 +28,45 @@ import { validateProposalActionCatalog } from "./validateProposalCatalog";
 export type ProposeActionsDeps = {
   agentRuntimesDao: ReturnType<typeof createAgentRuntimesDao>;
   conversationMessagesDao: ReturnType<typeof createConversationMessagesDao>;
+  jobsDao: ReturnType<typeof createJobsDao>;
+  jobTracesDao: ReturnType<typeof createJobTracesDao>;
   operationsDao: ReturnType<typeof createOperationsDao>;
   settingsDao: ReturnType<typeof createSettingsDao>;
+};
+
+const MAX_ACTIVE_RUN_TRACES = 30;
+
+/**
+ * N12-03：消息携带 runState 时取 job + 最近 traces。job 不存在或未携带
+ * runState 时返回 undefined——prompt 中不注入也不声称有运行上下文。
+ */
+const loadActiveRun = async (
+  deps: Pick<ProposeActionsDeps, "jobsDao" | "jobTracesDao">,
+  runState: NonNullable<ProposeActionsOptions["context"]>["runState"],
+): Promise<ProposeActiveRun | undefined> => {
+  if (!runState) {
+    return undefined;
+  }
+
+  const job = await deps.jobsDao.findById(runState.jobId);
+  if (!job) {
+    logger.warn({ jobId: runState.jobId }, "proposeActions: runState job not found");
+
+    return undefined;
+  }
+
+  const traces = await deps.jobTracesDao.findByJobId(runState.jobId);
+
+  return {
+    jobId: job.id,
+    jobStatus: job.status,
+    nodeStatuses: runState.nodeStatuses,
+    // findByJobId 返回最新在前；截取后翻转为 oldest-first 供 prompt 阅读。
+    traces: traces
+      .slice(0, MAX_ACTIVE_RUN_TRACES)
+      .reverse()
+      .map((trace) => ({ level: trace.level, message: trace.message })),
+  };
 };
 
 /**
@@ -163,7 +202,9 @@ export const proposeActions = async (
     opts.pipelineId,
     opts.message,
   );
+  const activeRun = await loadActiveRun(deps, opts.context?.runState);
   const userPromptText = buildProposeUserPrompt({
+    activeRun,
     attachments: opts.attachments ?? [],
     context: opts.context,
     diagnostics: opts.diagnostics ?? [],

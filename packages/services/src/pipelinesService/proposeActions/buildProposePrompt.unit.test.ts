@@ -180,3 +180,38 @@ describe("buildProposeUserPrompt annotations block (N12-02)", () => {
     expect(withoutAnchors).not.toContain("USER ANNOTATIONS");
   });
 });
+
+describe("buildProposeUserPrompt active run block (N12-03)", () => {
+  const activeRun = {
+    jobId: "job-1",
+    jobStatus: "running",
+    nodeStatuses: { vc: "running", n1: "done" },
+    traces: [
+      { level: "info", message: "Starting pipeline" },
+      { level: "error", message: "Connector not authorized" },
+    ],
+  };
+
+  it("injects job status, node statuses and traces oldest first", () => {
+    const prompt = buildProposeUserPrompt({ ...basePromptInput, activeRun });
+
+    expect(prompt).toContain("=== ACTIVE RUN ===");
+    expect(prompt).toContain("Job job-1 — status: running");
+    expect(prompt).toContain('"vc":"running"');
+    expect(prompt).toContain("- [info] Starting pipeline");
+    expect(prompt).toContain("- [error] Connector not authorized");
+  });
+
+  it("notes when the run has no traces yet", () => {
+    const prompt = buildProposeUserPrompt({
+      ...basePromptInput,
+      activeRun: { ...activeRun, traces: [] },
+    });
+
+    expect(prompt).toContain("No traces recorded yet.");
+  });
+
+  it("omits the block entirely when no run context is provided", () => {
+    expect(buildProposeUserPrompt(basePromptInput)).not.toContain("ACTIVE RUN");
+  });
+});

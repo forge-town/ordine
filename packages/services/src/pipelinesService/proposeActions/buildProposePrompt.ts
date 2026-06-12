@@ -66,6 +66,7 @@ export const PROPOSE_SYSTEM_PROMPT = [
   "- Do NOT propose actions that create compound nodes or child nodes.",
   "- If sample artifacts are provided, reverse-engineer the likely pipeline that would produce them.",
   "- For reverse engineering, infer inputs, transformations, verification, and output targets from artifact names/types plus the user request.",
+  "- If an ACTIVE RUN section is present and the user asks about the run (progress, failures, node behavior), ground your 'reply' in those traces — quote the relevant evidence. Only include a proposal if they explicitly ask for a graph change.",
   "- Return ONLY the JSON object. No markdown, no explanation, no code fences.",
 ].join("\n");
 
@@ -76,7 +77,40 @@ export type ProposeOperationCatalogItem = {
   acceptedObjectTypes: unknown;
 };
 
+/** 服务端解析好的运行上下文（N12-03）：job + 最近 traces，只有服务端能拿到。 */
+export type ProposeActiveRun = {
+  jobId: string;
+  jobStatus: string;
+  nodeStatuses: Record<string, string>;
+  traces: { level: string; message: string }[];
+};
+
+const MAX_TRACE_MESSAGE_CHARS = 400;
+
+const buildActiveRunBlock = (activeRun?: ProposeActiveRun): string[] => {
+  if (!activeRun) {
+    return [];
+  }
+
+  return [
+    "=== ACTIVE RUN ===",
+    `Job ${activeRun.jobId} — status: ${activeRun.jobStatus}`,
+    `Node statuses: ${JSON.stringify(activeRun.nodeStatuses)}`,
+    ...(activeRun.traces.length > 0
+      ? [
+          `Recent execution traces (oldest first, ${activeRun.traces.length} shown):`,
+          ...activeRun.traces.map(
+            (trace) => `- [${trace.level}] ${truncate(trace.message, MAX_TRACE_MESSAGE_CHARS)}`,
+          ),
+        ]
+      : ["No traces recorded yet."]),
+    "",
+  ];
+};
+
 export type BuildProposeUserPromptInput = {
+  /** 运行期上下文，仅当消息携带 runState 且 job 存在时由服务端填充（N12-03）。 */
+  activeRun?: ProposeActiveRun;
   attachments: ConversationAttachment[];
   /** 前端 buildAgentContext 输出（N12-02）。未提供的项不注入也不声称。 */
   context?: AgentContextPayload;
@@ -196,6 +230,7 @@ const buildSelectionBlock = (
 };
 
 export const buildProposeUserPrompt = ({
+  activeRun,
   attachments,
   context,
   diagnostics = [],
@@ -233,6 +268,7 @@ export const buildProposeUserPrompt = ({
     ...buildHistoryBlock(history),
     ...buildSelectionBlock(referencedNodeIds, snapshot),
     ...buildAnnotationsBlock(context),
+    ...buildActiveRunBlock(activeRun),
     ...buildDiagnosticsBlock(diagnostics, failedProposal),
     ...sampleArtifactBlock,
     "=== USER REQUEST ===",

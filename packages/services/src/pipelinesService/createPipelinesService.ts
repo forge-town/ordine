@@ -297,7 +297,14 @@ export const createPipelinesService = (db: DbConnection) => {
 
     proposeActions: (opts: ProposeActionsOptions) =>
       proposeActions(
-        { agentRuntimesDao, conversationMessagesDao, operationsDao, settingsDao },
+        {
+          agentRuntimesDao,
+          conversationMessagesDao,
+          jobsDao,
+          jobTracesDao,
+          operationsDao,
+          settingsDao,
+        },
         opts,
       ),
 
