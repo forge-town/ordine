@@ -150,6 +150,28 @@ apps/app/src/pages/WorkspacePage/AgentBar/
   - 验收：跑一条输入未配置的流水线 → 执行器发出 @@USER_ACTION → Agent Bar 出卡 → 点「打开节点配置」直达该节点配置面板；单测覆盖解析归属/去重/坏 JSON 容错。
 - 原则备注（用户原话）：**像产品设计师一样审视细节与交互逻辑，而不是能跑就行**——每期验收前过一遍：悬浮态、空态、加载态、失败态、引导文案。
 
+### G3 · 死交互系统盘点与修复（2026-06-13 立项，源自 N11 期末备注 5）
+
+- **G3-00 施工计划**（本节）。范围：Jobs / Usage / Local Agents / Skills / Connectors / Components / Operations 列表与详情页 + 全局搜索 + 通知中心；Settings 页除外（N18 重做覆盖）。方法：Chrome 真机逐页 `read_page interactive` 枚举交互元素 → 逐个触发 → 三类判定：正常 / 死（无任何反应）/ 假（有反应但行为错误，如跳错页、空菜单）；同步监控浏览器 console error。产出：`pr-assets/g3-死交互盘点.md` 清单（页面 / 元素 / 期望 / 实际 / 判定 / 修复建议），盘点本身一个 docs commit。
+- **G3-01 盘点执行**：见产出清单。
+- **G3-02+ 修复批次**：按清单逐项修复，一处（或一组同根因）一个 commit（`fix: <描述> (G3-0x)`）；改不动的（需后端能力）记遗留并在 UI 隐藏入口而非留死按钮（原则：宁可没有，不可点了没反应）。
+- 验收：清单上每项要么修复（真机复验）要么显式隐藏并记录；console 零未处理错误。
+
+### N18 · Settings 对照原型重做（2026-06-13 立项，源自 N11 期末缺陷 3）
+
+> 原型基准：`docs/prototype/ordien/settings.jsx`（v2）：六组三节——Workspace（General / Notifications）· Execution（Execution / Autonomy / Limits）· Data（Data）；组导航承载于 app Sidebar（settings 路由时侧栏变形 + Back）；Keyboard 移出为帮助 modal。现状：页内左导航 language / defaults / project / keyboard / advanced / developer（`SettingsPageContent.tsx:36-43`）。
+
+- **N18-01 六组三节结构重排**：SECTION_IDS 改为 general / notifications / execution / autonomy / data（+advanced/developer 归入 Data 节末尾"高级"），页内导航按三节分组渲染（节标题 Workspace/Execution/Data）；现有 LanguageSection→General、DefaultsSection→Execution、ProjectSection→Data 内容迁移（**纯迁移零行为变化，单独 commit**）。验收：六组可切换、原 section 功能不回归。
+- **N18-02 General 组**：界面语言 seg（现有）+ 外观 seg（light/dark/system；若主题系统未实现则只读展示当前并注明，**不放假开关**）+ 版本信息（真实版本号，无"last checked"假数据）。
+- **N18-03 Execution 组与 Defaults 联动校验**（N11 期末缺陷 2）：默认 runtime 下拉仅列**检测到的** runtime（agentRuntimesDao 检测结果），当前值不在列表时显式警告 + 一键修正；默认 model、默认输出路径接 settings 持久化。验收：手动把 settings 写成不存在的 runtime → 页面出警告并可一键修复；Agent Bar 不再因 runtime 失配秒败。
+- **N18-04 Notifications 组**：done/fail/wait/routine 四开关接 settings 持久化，通知中心（N8-02）派发时按偏好过滤。验收：关掉 done 后跑完一条 run 无通知，fail 仍有。
+- **N18-05 Autonomy 组（真实生效）**：self-heal 轮数 stepper（0-5）接 settings，`Pipeline.ts:34` SELF_HEAL_MAX_RETRIES 改为读运行时设置；三个 ask 开关字段持久化（执行面后续接，UI 注明当前仅存储——若注明成本高则整组只做 healRounds）。验收：healRounds=0 时失败节点不重试（trace 无 @@SELF_HEAL）。
+- **N18-06 Data 组**：数据目录展示（真实 PGLITE/输出路径）+ 清除对话历史（接 conversationMessages 删除，二次确认）；retention 自动清理无后端机制则**不放 UI**，记遗留。
+- **N18-07 Keyboard 帮助 modal**：KeyboardSection 改为 PageHeader 帮助按钮触发的 modal（原型 KeyboardHelpModal），导航中移除 keyboard 组。
+- **N18-08 侧栏变形（可选，最后）**：settings 路由时 AppSidebar 渲染设置组导航 + Back；若侵入面过大则保持页内导航并记遗留（页内三节分组已满足信息架构对齐）。
+- **Limits 组：本期不做**——成本上限需要 runner 真实执行才不算假透明，列入下期（依赖 run cost 统计通道）。
+- 纪律：每任务单独 commit（`<type>: <中文描述> (N18-0x)`）；新组件 i18n en+zh + story + testid；期末真机走查全部组 + 截图记录。
+
 ### N15 · 阶段事件与流式（可与 N13/N14 穿插，N15-02 可暂缓）
 
 - **N15-01 粗粒度阶段事件**：利用 `runAgent` 的 `onProgress` 钩子 + 服务端内存态（或 tRPC subscription，二选一以实现成本定）暴露 `thinking → drafting → validating` 阶段；前端 isThinking 行副标题实时更新（含 reversing 两段的阶段转发）。验收：发消息后副标题至少经历两次真实变化，非定时器伪造。
