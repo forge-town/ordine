@@ -37,6 +37,7 @@ export type ArtifactAnalysis = z.infer<typeof ArtifactAnalysisSchema>;
 
 export const ProposeActionsResponseSchema = z.object({
   artifactAnalysis: ArtifactAnalysisSchema.optional(),
+  pipelineName: z.string().optional(),
   clarifyOptions: z.array(z.string()).max(4).optional(),
   pendingOperations: z.array(ProposePendingOperationSchema).optional(),
   diagnostics: z.array(PipelineActionDiagnosticSchema),

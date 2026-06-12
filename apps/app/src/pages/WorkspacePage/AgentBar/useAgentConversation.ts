@@ -101,6 +101,8 @@ export const useAgentConversation = ({
   const [isProposing, setIsProposing] = useState(false);
   const [isReversing, setIsReversing] = useState(false);
   const [pendingOperations, setPendingOperations] = useState<ProposePendingOperation[]>([]);
+  // N19-01：空画布建图时 Agent 给出的流水线名，Apply 时仅在仍为默认名时采用。
+  const [suggestedPipelineName, setSuggestedPipelineName] = useState<string | null>(null);
   const [progressToken, setProgressToken] = useState<string | null>(null);
   const [progressStage, setProgressStage] = useState<string | null>(null);
 
@@ -227,6 +229,7 @@ export const useAgentConversation = ({
 
       setPendingProposal(proposal, nextDiagnostics);
       setPendingOperations(proposal ? (result.value.data.pendingOperations ?? []) : []);
+      setSuggestedPipelineName(proposal ? (result.value.data.pipelineName ?? null) : null);
       setIsReversing(false);
       if (proposal) {
         setPhase("proposal");
@@ -296,6 +299,10 @@ export const useAgentConversation = ({
       edges: nextCanvas.edges,
       nodes: nextCanvas.nodes,
     });
+    // N19-01：用户没改过名（空/默认）才采用 Agent 的建议名，绝不覆盖自定义名。
+    const shouldAdoptSuggestedName =
+      Boolean(suggestedPipelineName) &&
+      (!pipelineName || pipelineName.trim() === "" || pipelineName === "Untitled pipeline");
     const saved = await ResultAsync.fromPromise(
       updatePipeline({
         errorNotification: false,
@@ -305,6 +312,7 @@ export const useAgentConversation = ({
         values: {
           edges: nextSnapshot.edges,
           nodes: nextSnapshot.nodes,
+          ...(shouldAdoptSuggestedName ? { name: suggestedPipelineName } : {}),
         },
       }),
       () => null,
@@ -348,6 +356,7 @@ export const useAgentConversation = ({
     pipelineName,
     sendMessage,
     setPhase,
+    suggestedPipelineName,
     t,
     updatePipeline,
   ]);
@@ -355,6 +364,7 @@ export const useAgentConversation = ({
   const rejectProposal = useCallback(async () => {
     const rejectedSummary = pendingProposal?.summary;
     setPendingOperations([]);
+    setSuggestedPipelineName(null);
     clearPendingProposal();
     setPhase("clarify");
     await sendMessage({
@@ -368,6 +378,7 @@ export const useAgentConversation = ({
   const reviseProposal = useCallback(async () => {
     const revisedSummary = pendingProposal?.summary;
     setPendingOperations([]);
+    setSuggestedPipelineName(null);
     clearPendingProposal();
     setPhase("clarify");
     await sendMessage({

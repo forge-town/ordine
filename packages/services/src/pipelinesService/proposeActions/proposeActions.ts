@@ -351,6 +351,7 @@ export const proposeActions = async (
 
   return {
     ...(artifactAnalysis ? { artifactAnalysis } : {}),
+    ...(agentOutput.pipelineName ? { pipelineName: agentOutput.pipelineName } : {}),
     clarifyOptions,
     diagnostics: [...graphDiagnostics, ...operationDiagnostics],
     ...(pendingOperations.length > 0 ? { pendingOperations } : {}),

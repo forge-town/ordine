@@ -10,6 +10,8 @@ export type ParsedNewOperation = {
 export type ParsedProposeAgentOutput = {
   clarifyOptions: string[];
   newOperations: ParsedNewOperation[];
+  /** N19-01：空画布建图时 Agent 给出的流水线名（仅作建议，前端按规则采用）。 */
+  pipelineName: string | null;
   proposalPayload: unknown;
   reply: string | null;
 };
@@ -54,7 +56,13 @@ const parseNewOperations = (value: unknown): ParsedNewOperation[] => {
  */
 export const parseProposeAgentOutput = (value: unknown): ParsedProposeAgentOutput => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return { clarifyOptions: [], newOperations: [], proposalPayload: value ?? null, reply: null };
+    return {
+      clarifyOptions: [],
+      newOperations: [],
+      pipelineName: null,
+      proposalPayload: value ?? null,
+      reply: null,
+    };
   }
 
   const record = value as Record<string, unknown>;
@@ -70,10 +78,14 @@ export const parseProposeAgentOutput = (value: unknown): ParsedProposeAgentOutpu
     : [];
 
   const newOperations = parseNewOperations(record.newOperations);
+  const pipelineName =
+    typeof record.pipelineName === "string" && record.pipelineName.trim().length > 0
+      ? record.pipelineName.trim().slice(0, 60)
+      : null;
 
   if (reply === null) {
     // Legacy format — the whole payload is the proposal.
-    return { clarifyOptions, newOperations, proposalPayload: value, reply: null };
+    return { clarifyOptions, newOperations, pipelineName, proposalPayload: value, reply: null };
   }
 
   const proposalPayload =
@@ -86,5 +98,5 @@ export const parseProposeAgentOutput = (value: unknown): ParsedProposeAgentOutpu
           }
         : null;
 
-  return { clarifyOptions, newOperations, proposalPayload, reply };
+  return { clarifyOptions, newOperations, pipelineName, proposalPayload, reply };
 };
