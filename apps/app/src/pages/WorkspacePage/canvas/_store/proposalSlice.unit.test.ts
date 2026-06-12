@@ -95,5 +95,46 @@ describe("proposalSlice", () => {
 
     expect(store.getState().pendingProposal).toBeNull();
     expect(store.getState().proposalDiagnostics).toBeNull();
+    expect(store.getState().proposalPreview).toBeNull();
+  });
+
+  it("computes a canvas preview with diff badges when a proposal arrives", () => {
+    const store = createTestStore();
+    const proposal: PipelineActionProposal = {
+      summary: "Add node-c after node-b",
+      actions: [
+        { type: "addNode", node: makeNode("node-c") },
+        { type: "addEdge", edge: makeEdge("edge-b", "node-b", "node-c") },
+      ],
+    };
+
+    store.getState().setPendingProposal(proposal);
+
+    const preview = store.getState().proposalPreview;
+    expect(preview).not.toBeNull();
+    expect(preview?.nodes.map((node) => node.id)).toEqual(["node-a", "node-b", "node-c"]);
+    expect(preview?.diffById).toEqual({ "node-a": "reuse", "node-b": "reuse", "node-c": "new" });
+    expect(preview?.newEdgeIds).toEqual(["edge-b"]);
+    expect(store.getState().nodes.map((node) => node.id)).toEqual(["node-a", "node-b"]);
+  });
+
+  it("leaves the preview null when proposal actions cannot apply", () => {
+    const store = createTestStore();
+
+    store.getState().setPendingProposal(removeNodeProposal("missing-node"));
+
+    expect(store.getState().pendingProposal).not.toBeNull();
+    expect(store.getState().proposalPreview).toBeNull();
+  });
+
+  it("clears the preview after the proposal is applied", () => {
+    const store = createTestStore();
+
+    store.getState().setPendingProposal(removeNodeProposal("node-a"));
+    expect(store.getState().proposalPreview).not.toBeNull();
+
+    store.getState().applyPendingProposal();
+
+    expect(store.getState().proposalPreview).toBeNull();
   });
 });

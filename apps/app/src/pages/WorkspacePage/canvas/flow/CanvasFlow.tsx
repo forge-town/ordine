@@ -95,10 +95,15 @@ export const CanvasFlow = () => {
   const selectNode = useCanvasStore((state) => state.selectNode);
   const setSelectedIds = useCanvasStore((state) => state.setSelectedIds);
   const undo = useCanvasStore((state) => state.undo);
+  const proposalPreview = useCanvasStore((state) => state.proposalPreview);
   const { screenToFlowPosition } = useReactFlow<CanvasNode, CanvasEdge>();
+  const isPreviewing = proposalPreview !== null && drillStack.length === 0;
   const visibleGraph = useMemo(
-    () => getVisibleGraph(),
-    [drillStack, edges, getVisibleGraph, nodes],
+    () =>
+      proposalPreview && drillStack.length === 0
+        ? { edges: proposalPreview.edges, nodes: proposalPreview.nodes }
+        : getVisibleGraph(),
+    [drillStack, edges, getVisibleGraph, nodes, proposalPreview],
   );
   const routedEdges = useMemo(
     () => decorateEdgesWithPortHandles(visibleGraph.nodes, visibleGraph.edges),
@@ -112,6 +117,10 @@ export const CanvasFlow = () => {
   const getCurrentGraphSnapshot = () => makeSnapshot(nodes, edges);
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    if (isPreviewing) {
+      return;
+    }
+
     const payload = decodeCanvasComponentDragPayload(
       event.dataTransfer.getData(CANVAS_COMPONENT_DRAG_MIME),
     );
@@ -165,12 +174,20 @@ export const CanvasFlow = () => {
   };
 
   const handleFlowConnect = (connection: Connection) => {
+    if (isPreviewing) {
+      return;
+    }
+
     const previous = getCurrentGraphSnapshot();
     handleConnect(connection);
     recordHistory(previous);
   };
 
   const handleFlowEdgesChange = (changes: EdgeChange<CanvasEdge>[]) => {
+    if (isPreviewing && hasEdgeChangeMutation(changes)) {
+      return;
+    }
+
     const previous = getCurrentGraphSnapshot();
     if (hasEdgeChangeMutation(changes)) {
       handleEdgesChange(changes);
@@ -182,6 +199,10 @@ export const CanvasFlow = () => {
   };
 
   const handleFlowNodesChange = (changes: NodeChange<CanvasNode>[]) => {
+    if (isPreviewing && hasNodeChangeMutation(changes)) {
+      return;
+    }
+
     const previous = getCurrentGraphSnapshot();
     if (hasNodeChangeMutation(changes)) {
       handleNodesChange(changes);
@@ -203,7 +224,7 @@ export const CanvasFlow = () => {
   };
 
   const handleDeleteSelection = () => {
-    if (selectedIds.length === 0) {
+    if (isPreviewing || selectedIds.length === 0) {
       return;
     }
 
@@ -266,6 +287,8 @@ export const CanvasFlow = () => {
         minZoom={0.35}
         nodeDragThreshold={2}
         nodes={visibleGraph.nodes}
+        nodesConnectable={!isPreviewing}
+        nodesDraggable={!isPreviewing}
         nodeTypes={nodeTypes}
         panOnDrag={canvasTool === "hand" ? true : [1, 2]}
         proOptions={proOptions}

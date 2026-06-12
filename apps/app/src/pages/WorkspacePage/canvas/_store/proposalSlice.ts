@@ -15,9 +15,19 @@ type ProposalGraphState = {
   nodes: CanvasNode[];
 };
 
+export type ProposalPreviewDiff = "new" | "modified" | "reuse";
+
+export type ProposalPreview = {
+  diffById: Record<string, ProposalPreviewDiff>;
+  edges: CanvasEdge[];
+  newEdgeIds: string[];
+  nodes: CanvasNode[];
+};
+
 export type ProposalSlice = {
   pendingProposal: PipelineActionProposal | null;
   proposalDiagnostics: PipelineActionDiagnostic[] | null;
+  proposalPreview: ProposalPreview | null;
   applyPendingProposal: () => boolean;
   applyProposal: (proposal: PipelineActionProposal) => boolean;
   clearPendingProposal: () => void;
@@ -28,6 +38,44 @@ export type ProposalSlice = {
   ) => void;
 };
 
+/**
+ * Dry-runs the proposal against the current graph so the canvas can render a
+ * ghost preview (prototype canvas.jsx preview phase: new / edited / reused
+ * badges) before the user approves. Returns null when actions cannot apply.
+ */
+const computeProposalPreview = (
+  nodes: CanvasNode[],
+  edges: CanvasEdge[],
+  proposal: PipelineActionProposal,
+): ProposalPreview | null => {
+  const result = applyPipelineActions(toPipelineSnapshot({ edges, nodes }), proposal.actions);
+
+  if (result.isErr()) {
+    return null;
+  }
+
+  const next = fromPipelineSnapshot(result.value);
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const edgeIds = new Set(edges.map((edge) => edge.id));
+  const diffById: Record<string, ProposalPreviewDiff> = {};
+
+  for (const node of next.nodes) {
+    const current = nodeById.get(node.id);
+    diffById[node.id] = current
+      ? JSON.stringify(current.data) === JSON.stringify(node.data)
+        ? "reuse"
+        : "modified"
+      : "new";
+  }
+
+  return {
+    diffById,
+    edges: next.edges,
+    newEdgeIds: next.edges.filter((edge) => !edgeIds.has(edge.id)).map((edge) => edge.id),
+    nodes: next.nodes,
+  };
+};
+
 type ProposalStoreState = PanelSlice & ProposalGraphState & ProposalSlice & SelectionSlice;
 
 const clearProposalInteractionState = {
@@ -35,6 +83,7 @@ const clearProposalInteractionState = {
   inspectEdgeId: null,
   pendingProposal: null,
   proposalDiagnostics: null,
+  proposalPreview: null,
   selectedEdgeId: null,
   selectedIds: [],
   selectedNodeId: null,
@@ -45,6 +94,7 @@ export const createProposalSlice =
   (set, get) => ({
     pendingProposal: null,
     proposalDiagnostics: null,
+    proposalPreview: null,
     applyPendingProposal: () => {
       const proposal = get().pendingProposal;
 
@@ -80,11 +130,15 @@ export const createProposalSlice =
       set({
         pendingProposal: null,
         proposalDiagnostics: null,
+        proposalPreview: null,
       } as unknown as Partial<T>),
     rejectProposal: () => get().clearPendingProposal(),
     setPendingProposal: (proposal, diagnostics = null) =>
       set({
         pendingProposal: proposal,
         proposalDiagnostics: diagnostics,
+        proposalPreview: proposal
+          ? computeProposalPreview(get().nodes, get().edges, proposal)
+          : null,
       } as unknown as Partial<T>),
   });
