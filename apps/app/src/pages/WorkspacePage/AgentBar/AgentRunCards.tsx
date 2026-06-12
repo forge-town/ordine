@@ -1,15 +1,12 @@
 import { useOne } from "@refinedev/core";
 import { useNavigate } from "@tanstack/react-router";
 import { ResultAsync } from "neverthrow";
-import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
 import type { Job, JobTrace } from "@repo/schemas";
 import { ResourceName, dataProvider } from "@/integrations/refine/dataProvider";
 import { useCanvasStore } from "../canvas/_store/canvasStore";
-import { useWorkspaceStore } from "../_store/workspaceStore";
-import { CheckpointCard, ErrorCard, RunStatusCard, SelfHealCard, UserActionCard } from "./messages";
+import { CheckpointCard, ErrorCard, RunStatusCard, SelfHealCard } from "./messages";
 import { buildAgentRunSummary, buildSelfHealSteps } from "./runSummary";
-import { buildUserActionRequests, type UserActionRequest } from "./userActionRequests";
 
 const POLL_INTERVAL = 1500;
 
@@ -17,14 +14,11 @@ const isTerminalStatus = (status: Job["status"]) =>
   status === "done" || status === "failed" || status === "cancelled" || status === "expired";
 
 export const AgentRunCards = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const activeJobId = useCanvasStore((state) => state.activeJobId);
   const nodes = useCanvasStore((state) => state.nodes);
   const storeNodeStatuses = useCanvasStore((state) => state.nodeRunStatuses);
-  const runTraces = useCanvasStore((state) => state.runTraces);
   const setConfigNodeId = useCanvasStore((state) => state.setConfigNodeId);
-  const setComposerDraft = useWorkspaceStore((state) => state.setComposerDraft);
   const [isControlPending, setIsControlPending] = useState(false);
   const [selfHealSteps, setSelfHealSteps] = useState<
     { label: string; tone?: "muted" | "success" }[]
@@ -46,20 +40,6 @@ export const AgentRunCards = () => {
   const nodeStatuses = job?.nodeStatuses ?? storeNodeStatuses ?? {};
   const summary = buildAgentRunSummary({ job, nodeStatuses, nodes });
   const waitingNode = nodes.find((node) => nodeStatuses[node.id] === "waitingForUser");
-  // N17-03b：执行器发出的用户请求由运行期 traces 实时派生。
-  const userActionRequests = useMemo(() => buildUserActionRequests(runTraces), [runTraces]);
-  const nodeLabelById = useMemo(
-    () => Object.fromEntries(nodes.map((node) => [node.id, node.data.label ?? node.id])),
-    [nodes],
-  );
-  const handleUserActionOpenConfig = (nodeId: string) => setConfigNodeId(nodeId);
-  const handleUserActionAsk = (request: UserActionRequest) =>
-    setComposerDraft(
-      t("workspace.agentBar.userAction.askDraft", {
-        message: request.message,
-        node: request.nodeId ? (nodeLabelById[request.nodeId] ?? request.nodeId) : "-",
-      }),
-    );
   const handleCheckpointReview = () => waitingNode && setConfigNodeId(waitingNode.id);
   const canControl = Boolean(activeJobId && summary.isLive);
 
@@ -137,14 +117,6 @@ export const AgentRunCards = () => {
           onPause={handlePause}
           onResume={handleResume}
           onReview={handleCheckpointReview}
-        />
-      ) : null}
-      {summary.isLive || userActionRequests.length > 0 ? (
-        <UserActionCard
-          nodeLabelById={nodeLabelById}
-          requests={userActionRequests}
-          onAskAgent={handleUserActionAsk}
-          onOpenConfig={handleUserActionOpenConfig}
         />
       ) : null}
       {selfHealSteps.length > 0 ? (

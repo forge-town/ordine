@@ -15,6 +15,7 @@ import {
   ErrorActions,
   MessageActions,
   ProposalCard,
+  UserActionCard,
 } from "./messages";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
@@ -24,6 +25,8 @@ import { AgentRunCards } from "./AgentRunCards";
 import { Composer, RefChips } from "./Composer";
 import { useAgentBarStore, type AgentBarMessage } from "./_store";
 import { useAgentConversation } from "./useAgentConversation";
+import { useUserActionRequests } from "./useUserActionRequests";
+import type { UserActionRequest } from "./userActionRequests";
 
 /** N15-01：服务端阶段在真实调用边界推进；rank 用于映射逆向四步完成度。 */
 const STAGE_RANK: Record<string, number> = {
@@ -82,6 +85,23 @@ export const AgentBar = ({
     reviseProposal,
     submitMessage,
   } = useAgentConversation({ phase, pipelineId, pipelineName });
+  const setConfigNodeId = useCanvasStore((state) => state.setConfigNodeId);
+  // G3-03：执行器用户请求常驻可见（运行中实时，结束后回退最近 job traces）。
+  const userActionRequests = useUserActionRequests(pipelineId);
+  const userActionNodeLabelById = useMemo(
+    () => Object.fromEntries(canvasNodes.map((node) => [node.id, node.data.label ?? node.id])),
+    [canvasNodes],
+  );
+  const handleUserActionOpenConfig = (nodeId: string) => setConfigNodeId(nodeId);
+  const handleUserActionAsk = (request: UserActionRequest) =>
+    setComposerDraft(
+      t("workspace.agentBar.userAction.askDraft", {
+        message: request.message,
+        node: request.nodeId
+          ? (userActionNodeLabelById[request.nodeId] ?? request.nodeId)
+          : "-",
+      }),
+    );
   // N15-01：四步由服务端真实阶段驱动（analyzing=第一段进行中，drafting 起
   // 第一段三步完成，draft 在响应返回后完成）。无阶段信息时诚实显示进行中。
   const stageRank = progressStage ? (STAGE_RANK[progressStage] ?? 0) : 0;
@@ -337,6 +357,14 @@ export const AgentBar = ({
             </div>
           );
         })}
+        {userActionRequests.length > 0 ? (
+          <UserActionCard
+            nodeLabelById={userActionNodeLabelById}
+            requests={userActionRequests}
+            onAskAgent={handleUserActionAsk}
+            onOpenConfig={handleUserActionOpenConfig}
+          />
+        ) : null}
         {isSending ? (
           <Assistant isThinking>
             {progressStage
