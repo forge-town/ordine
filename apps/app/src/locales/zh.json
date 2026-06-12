@@ -461,7 +461,11 @@
           "left": "输入端口 {{index}}",
           "right": "输出端口 {{index}}"
         },
-        "previewBadge": "新",
+        "preview": {
+          "modified": "修改",
+          "new": "新增",
+          "reuse": "复用"
+        },
         "prompt": {
           "compoundInput": "复合节点输入",
           "empty": "空 Prompt",

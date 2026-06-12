@@ -461,7 +461,11 @@
           "left": "Input port {{index}}",
           "right": "Output port {{index}}"
         },
-        "previewBadge": "new",
+        "preview": {
+          "modified": "edited",
+          "new": "new",
+          "reuse": "reused"
+        },
         "prompt": {
           "compoundInput": "Compound input",
           "empty": "Empty prompt",

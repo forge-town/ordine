@@ -1,10 +1,5 @@
 import {
-  Ban,
-  Circle,
-  CircleCheck,
-  Clock,
   Copy,
-  LoaderCircle,
   MessageSquare,
   Settings2,
   Sparkles,
@@ -18,6 +13,7 @@ import { normalizeNodeRunStatus, type NodeRunStatus } from "@repo/schemas";
 import { useWorkspaceStore } from "../../_store/workspaceStore";
 import { selectNodePortCounts, selectNodeRunState } from "../_store/selectors";
 import { useCanvasStore } from "../_store/canvasStore";
+import type { ProposalPreviewDiff } from "../_store/proposalSlice";
 import type { NodeTheme } from "./support/nodeCardTheme";
 import { NodeCardPorts } from "./support/NodeCardPorts";
 
@@ -50,26 +46,11 @@ const statusDot: Record<NodeRunStatus, { className: string; pulse?: boolean; sof
   cancelled: { className: "bg-muted-foreground/45", soft: true },
 };
 
-const statusIcon: Record<NodeRunStatus, LucideIcon> = {
-  idle: Circle,
-  queued: Clock,
-  running: LoaderCircle,
-  waitingForUser: Clock,
-  retrying: LoaderCircle,
-  done: CircleCheck,
-  failed: Ban,
-  skipped: Circle,
-  cancelled: Ban,
-};
-
-const themeClasses: Record<NodeTheme, { icon: string; ring: string }> = {
-  amber: { icon: "bg-amber-100 text-amber-700", ring: "ring-amber-300/70" },
-  emerald: { icon: "bg-emerald-100 text-emerald-700", ring: "ring-emerald-300/70" },
-  orange: { icon: "bg-orange-100 text-orange-700", ring: "ring-orange-300/70" },
-  sky: { icon: "bg-sky-100 text-sky-700", ring: "ring-sky-300/70" },
-  indigo: { icon: "bg-indigo-100 text-indigo-700", ring: "ring-indigo-300/70" },
-  teal: { icon: "bg-teal-100 text-teal-700", ring: "ring-teal-300/70" },
-  violet: { icon: "bg-violet-100 text-violet-700", ring: "ring-violet-300/70" },
+/** Prototype canvas.jsx preview badges: new (success) / edited (warning) / reused (muted). */
+const previewBadgeClasses: Record<ProposalPreviewDiff, string> = {
+  modified: "bg-warning/15 text-warning",
+  new: "bg-success/15 text-success",
+  reuse: "bg-muted-foreground/15 text-muted-foreground",
 };
 
 const getStatusKey = (status: NodeRunStatus) => `workspace.canvas.nodes.status.${status}`;
@@ -113,7 +94,9 @@ export const GNodeShell = ({
   title,
 }: GNodeShellProps) => {
   const { t } = useTranslation();
-  const pendingProposal = useCanvasStore((state) => state.pendingProposal);
+  const previewDiff = useCanvasStore((state) =>
+    state.proposalPreview ? (state.proposalPreview.diffById[id] ?? "reuse") : null,
+  );
   const { runStatus, dimmed } = useCanvasStore(useShallow(selectNodeRunState(id)));
   const {
     leftActivePortCount,
@@ -134,9 +117,7 @@ export const GNodeShell = ({
   const setAskNodeId = useCanvasStore((state) => state.setAskNodeId);
   const setConfigNodeId = useCanvasStore((state) => state.setConfigNodeId);
   const normalizedStatus = normalizeNodeRunStatus(runStatus ?? dataStatus ?? "idle");
-  const preview = Boolean(pendingProposal);
-  const StatusIcon = statusIcon[normalizedStatus];
-  const themeClass = themeClasses[theme] ?? themeClasses.indigo;
+  const preview = previewDiff !== null;
   const statusLabel = t(getStatusKey(normalizedStatus));
   const refIdForNode = drillStack.length > 0 ? [...drillStack, id].join("/") : id;
   const hoverHighlight = hoverRefId === refIdForNode;
@@ -172,6 +153,7 @@ export const GNodeShell = ({
       className="canvas-node-pop group/node-card relative w-[214px]"
       data-card-mode="expanded"
       data-selected={selected ? "true" : "false"}
+      data-theme={theme}
       data-testid="canvas-v2-node-shell-root"
     >
       {visibleAnnotationCount > 0 && (
@@ -247,36 +229,43 @@ export const GNodeShell = ({
           </button>
         </div>
         <div className="flex items-center gap-2 border-b border-border/70 px-2.5 py-2">
-          <div
-            className={cn(
-              "flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
-              themeClass.icon,
-            )}
-          >
-            <Icon className="h-3.5 w-3.5" />
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-2">
+            <Icon className="h-3.5 w-3.5 text-foreground/80" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-[12px] font-semibold leading-tight">{title}</div>
             <div className="truncate text-[10px] text-muted-foreground">{kind}</div>
           </div>
-          {preview ? (
-            <span className="rounded-full bg-success/10 px-1.5 py-0.5 text-[9.5px] font-medium text-success">
-              {t("workspace.canvas.nodes.previewBadge")}
+          {previewDiff !== null ? (
+            <span
+              className={cn(
+                "shrink-0 rounded-full px-1.5 py-0.5 text-[9.5px] font-medium",
+                previewBadgeClasses[previewDiff],
+              )}
+              data-testid="canvas-v2-node-preview-badge"
+            >
+              {t(`workspace.canvas.nodes.preview.${previewDiff}`)}
             </span>
           ) : null}
         </div>
         <div className="space-y-1.5 px-2.5 py-2">
           <div className="flex min-w-0 items-center gap-1.5 text-[10.5px] text-muted-foreground">
-            <StatusIcon
-              className={cn(
-                "h-3 w-3 shrink-0",
-                normalizedStatus === "running" || normalizedStatus === "retrying"
-                  ? "animate-spin"
-                  : "",
-              )}
-            />
+            <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/55" />
             <span className="truncate">{detail ?? statusLabel}</span>
           </div>
+          {normalizedStatus === "running" || normalizedStatus === "retrying" ? (
+            <div className="space-y-1 pt-0.5">
+              <div className="h-1 overflow-hidden rounded-full bg-surface-2">
+                <div
+                  className={cn(
+                    "h-1 w-full animate-pulse rounded-full",
+                    normalizedStatus === "retrying" ? "bg-warning" : "bg-foreground",
+                  )}
+                />
+              </div>
+              <div className="truncate text-[10px] text-foreground/70">{statusLabel}</div>
+            </div>
+          ) : null}
           {children}
         </div>
       </div>
@@ -294,7 +283,6 @@ export const GNodeShell = ({
           rightConnectedPortMask={rightConnectedPortMask}
           rightHandle={rightHandle}
           rightHandleCount={rightPortCount}
-          theme={theme}
         />
       )}
     </div>

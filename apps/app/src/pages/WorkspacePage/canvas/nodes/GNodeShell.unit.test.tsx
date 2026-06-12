@@ -90,7 +90,7 @@ describe("Canvas V2 node shell variants", () => {
       wrapper: makeWrapper(store),
     });
 
-    expect(screen.getByText(i18n.t("workspace.canvas.nodes.previewBadge"))).toBeInTheDocument();
+    expect(screen.getByText(i18n.t("workspace.canvas.nodes.preview.reuse"))).toBeInTheDocument();
     expect(screen.getByTestId("canvas-v2-node-card")).toHaveClass("opacity-80");
   });
 
