@@ -7,6 +7,7 @@ import type {
   PipelineAction,
   PipelineActionProposal,
   ProposeActionsResponse,
+  ProposePendingOperation,
   WorkspacePhase,
 } from "@repo/schemas";
 import { ResourceName, dataProvider } from "@/integrations/refine/dataProvider";
@@ -94,6 +95,7 @@ export const useAgentConversation = ({
   const { mutateAsync: updatePipeline, mutation: updateMutation } = useUpdate();
   const [isProposing, setIsProposing] = useState(false);
   const [isReversing, setIsReversing] = useState(false);
+  const [pendingOperations, setPendingOperations] = useState<ProposePendingOperation[]>([]);
   const { isSending: isPersisting, sendMessage } = useAgentConversationPersistence({
     phase,
     pipelineId,
@@ -169,6 +171,7 @@ export const useAgentConversation = ({
             : t("workspace.agentBar.replies.noSafeChange")));
 
       setPendingProposal(proposal, nextDiagnostics);
+      setPendingOperations(proposal ? (result.value.data.pendingOperations ?? []) : []);
       setIsReversing(false);
       if (proposal) {
         setPhase("proposal");
@@ -203,6 +206,28 @@ export const useAgentConversation = ({
   const applyProposal = useCallback(async () => {
     if (!pendingProposal || !pipelineId || hasBlockingDiagnostics) {
       return;
+    }
+
+    // Agent-drafted operations must exist in the library before the graph
+    // references them (PRD §7.3 资产沉淀).
+    if (pendingOperations.length > 0) {
+      const created = await ResultAsync.fromPromise(
+        dataProvider.custom!({
+          method: "post",
+          payload: { operations: pendingOperations },
+          url: "pipelines/createPendingOperations",
+        }),
+        () => null,
+      );
+      if (created.isErr()) {
+        await sendMessage({
+          content: t("workspace.agentBar.replies.appliedNotSaved"),
+          role: "assistant",
+        });
+
+        return;
+      }
+      setPendingOperations([]);
     }
 
     const applied = applyAgentProposal(pendingProposal);
@@ -248,6 +273,7 @@ export const useAgentConversation = ({
     applyAgentProposal,
     canvasStore,
     hasBlockingDiagnostics,
+    pendingOperations,
     pendingProposal,
     pipelineId,
     pipelineName,
@@ -259,6 +285,7 @@ export const useAgentConversation = ({
 
   const rejectProposal = useCallback(async () => {
     const rejectedSummary = pendingProposal?.summary;
+    setPendingOperations([]);
     clearPendingProposal();
     setPhase("clarify");
     await sendMessage({
@@ -271,6 +298,7 @@ export const useAgentConversation = ({
 
   const reviseProposal = useCallback(async () => {
     const revisedSummary = pendingProposal?.summary;
+    setPendingOperations([]);
     clearPendingProposal();
     setPhase("clarify");
     await sendMessage({

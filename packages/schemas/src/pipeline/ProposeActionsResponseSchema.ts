@@ -18,8 +18,19 @@ export const ProposeActionsErrorCodeSchema = z.enum([
 ]);
 export type ProposeActionsErrorCode = z.infer<typeof ProposeActionsErrorCodeSchema>;
 
+/** Operation drafted by the agent because no existing one matched (PRD §7.3). */
+export const ProposePendingOperationSchema = z.object({
+  acceptedObjectTypes: z.array(z.string()),
+  config: z.record(z.string(), z.unknown()),
+  description: z.string(),
+  id: z.string(),
+  name: z.string(),
+});
+export type ProposePendingOperation = z.infer<typeof ProposePendingOperationSchema>;
+
 export const ProposeActionsResponseSchema = z.object({
   clarifyOptions: z.array(z.string()).max(4).optional(),
+  pendingOperations: z.array(ProposePendingOperationSchema).optional(),
   diagnostics: z.array(PipelineActionDiagnosticSchema),
   error: z
     .object({

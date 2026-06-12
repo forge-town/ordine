@@ -716,6 +716,15 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+    if (url === "pipelines/createPendingOperations") {
+      const data = await trpcClient.pipelines.createPendingOperations.mutate(
+        payload as unknown as Parameters<
+          typeof trpcClient.pipelines.createPendingOperations.mutate
+        >[0],
+      );
+
+      return { data: data as unknown as TData };
+    }
     if (url === "pipelines/proposeActions") {
       const data = await trpcClient.pipelines.proposeActions.mutate(
         payload as unknown as Parameters<typeof trpcClient.pipelines.proposeActions.mutate>[0],

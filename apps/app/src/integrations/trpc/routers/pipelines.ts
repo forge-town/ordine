@@ -6,6 +6,7 @@ import {
   ConversationAttachmentSchema,
   PipelineGraphSnapshotSchema,
   PipelineSchema,
+  ProposePendingOperationSchema,
 } from "@repo/schemas";
 
 export const pipelinesRouter = router({
@@ -116,6 +117,16 @@ export const pipelinesRouter = router({
       }
 
       return result;
+    }),
+
+  createPendingOperations: publicProcedure
+    .input(z.object({ operations: z.array(ProposePendingOperationSchema) }))
+    .mutation(async ({ input }) => {
+      await pipelinesService.createPendingOperations(
+        input.operations as Parameters<typeof pipelinesService.createPendingOperations>[0],
+      );
+
+      return { created: input.operations.length };
     }),
 
   proposeActions: publicProcedure

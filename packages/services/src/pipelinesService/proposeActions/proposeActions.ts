@@ -12,12 +12,13 @@ import {
   type ConversationAttachment,
   type PipelineGraphSnapshot,
   type ProposeActionsResponse,
+  type ProposePendingOperation,
 } from "@repo/schemas";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
 import { buildProposeUserPrompt } from "./buildProposePrompt";
 import type { ProposeHistoryMessage } from "./conversationHistory";
 import { normalizeProposalPayload } from "./normalizeProposalPayload";
-import { parseProposeAgentOutput } from "./parseAgentOutput";
+import { parseProposeAgentOutput, type ParsedNewOperation } from "./parseAgentOutput";
 import { runProposeAgent } from "./runProposeAgent";
 import { validateProposalActionCatalog } from "./validateProposalCatalog";
 
@@ -72,6 +73,43 @@ export type ProposeActionsOptions = {
 
 const MAX_SEMANTIC_RETRIES = 1;
 const MAX_DIAGNOSTIC_ISSUES = 5;
+
+/** Materialize agent-drafted operations as pending operation configs (PRD §7.3). */
+const toPendingOperations = (newOperations: ParsedNewOperation[]): ProposePendingOperation[] =>
+  newOperations.map((operation) => ({
+    acceptedObjectTypes: ["file", "folder", "github-project", "prompt"],
+    config: {
+      executor: {
+        type: "agent",
+        agentMode: "prompt",
+        prompt:
+          operation.prompt.trim().length > 0
+            ? operation.prompt
+            : [
+                `You are an automation agent executing the task: "${operation.name}".`,
+                operation.description ? `Context: ${operation.description}` : "",
+                "",
+                "You will receive input data from the previous pipeline step.",
+                "Analyze the input thoroughly and execute the task described above.",
+                "Output your results in well-structured markdown format.",
+              ]
+                .filter(Boolean)
+                .join("\n"),
+      },
+      inputs: [],
+      outputs: [
+        {
+          name: "result",
+          contentType: "markdown",
+          description: "Generated result",
+          templateIds: [],
+        },
+      ],
+    },
+    description: operation.description,
+    id: operation.id,
+    name: operation.name,
+  }));
 
 export type ProposeActionsResult = ProposeActionsResponse;
 
@@ -153,6 +191,10 @@ export const proposeActions = async (
   const agentOutput = parseProposeAgentOutput(agentResult.json);
   const clarifyOptions =
     agentOutput.clarifyOptions.length > 0 ? agentOutput.clarifyOptions : undefined;
+  const pendingOperations = toPendingOperations(agentOutput.newOperations);
+  for (const operation of pendingOperations) {
+    operationById.set(operation.id, { name: operation.name });
+  }
 
   if (agentOutput.proposalPayload === null) {
     if (agentOutput.reply) {
@@ -221,6 +263,7 @@ export const proposeActions = async (
   return {
     clarifyOptions,
     diagnostics: [...graphDiagnostics, ...operationDiagnostics],
+    ...(pendingOperations.length > 0 ? { pendingOperations } : {}),
     proposal,
     reply: agentOutput.reply ?? proposal.summary,
   };

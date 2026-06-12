@@ -1,9 +1,45 @@
 const MAX_CLARIFY_OPTIONS = 4;
 
+export type ParsedNewOperation = {
+  description: string;
+  id: string;
+  name: string;
+  prompt: string;
+};
+
 export type ParsedProposeAgentOutput = {
   clarifyOptions: string[];
+  newOperations: ParsedNewOperation[];
   proposalPayload: unknown;
   reply: string | null;
+};
+
+const parseNewOperations = (value: unknown): ParsedNewOperation[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      return [];
+    }
+    const record = entry as Record<string, unknown>;
+    if (typeof record.id !== "string" || record.id.trim().length === 0) {
+      return [];
+    }
+    if (typeof record.name !== "string" || record.name.trim().length === 0) {
+      return [];
+    }
+
+    return [
+      {
+        description: typeof record.description === "string" ? record.description : "",
+        id: record.id.trim(),
+        name: record.name.trim(),
+        prompt: typeof record.prompt === "string" ? record.prompt : "",
+      },
+    ];
+  });
 };
 
 /**
@@ -18,7 +54,7 @@ export type ParsedProposeAgentOutput = {
  */
 export const parseProposeAgentOutput = (value: unknown): ParsedProposeAgentOutput => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return { clarifyOptions: [], proposalPayload: value ?? null, reply: null };
+    return { clarifyOptions: [], newOperations: [], proposalPayload: value ?? null, reply: null };
   }
 
   const record = value as Record<string, unknown>;
@@ -33,9 +69,11 @@ export const parseProposeAgentOutput = (value: unknown): ParsedProposeAgentOutpu
         .slice(0, MAX_CLARIFY_OPTIONS)
     : [];
 
+  const newOperations = parseNewOperations(record.newOperations);
+
   if (reply === null) {
     // Legacy format — the whole payload is the proposal.
-    return { clarifyOptions, proposalPayload: value, reply: null };
+    return { clarifyOptions, newOperations, proposalPayload: value, reply: null };
   }
 
   const proposalPayload =
@@ -48,5 +86,5 @@ export const parseProposeAgentOutput = (value: unknown): ParsedProposeAgentOutpu
           }
         : null;
 
-  return { clarifyOptions, proposalPayload, reply };
+  return { clarifyOptions, newOperations, proposalPayload, reply };
 };
