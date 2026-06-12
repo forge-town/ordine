@@ -142,7 +142,12 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 - **N17-00 节点悬浮工具栏被裁切**：N16-04 重构时操作 pill（configure/ask/duplicate/delete，`-top-3`）留在了 `overflow-hidden` 卡片容器内，顶部被吞（用户截图为证）。修复：pill 移到外层 wrapper。✅ `cef0d41e`
 - **N17-01 消息悬浮操作**：对齐 Claude 体验——用户气泡 hover 出 Copy/Edit/Retry，assistant 消息出 Copy；Edit 经 workspaceStore `composerDraft` 回填输入框并聚焦；Retry 原 metadata 重发。新组件 `messages/MessageActions.tsx`（i18n en+zh、story、testid）。✅ `1091b2b4`
 - **N17-02 缺输入源主动引导**：用户实测“PDF→Markdown→HTML”两算子流水线 Apply 后直接 Run，执行器（claude-code）在控制台要求配置输入/输出文件夹，但 Agent Bar 全程沉默。Apply 成功后检测图中有 operation 节点但无输入类节点（file/folder/github-project/prompt）→ 立即追加 assistant 引导消息（点节点配置 or 让 Agent 加输入节点）。
-- **N17-03 运行期执行器消息上浮（遗留，未做）**：运行中执行器侧的"需要用户补充"类信息只出现在 Run console，Agent Bar 无感知。方向：job_traces 中的结构化用户请求（或 checkpoint/waitingForUser 状态）→ Agent Bar 渲染可交互卡片（含跳 NodeConfig 的动作）。依赖运行协议定义，列入下期。
+- **N17-03 运行期执行器消息上浮**（2026-06-13 立项细化）：
+  - **现状证据**：执行器缺用户侧配置时只能在 stdout 抱怨（进 Run console，`OperationNode.ts:101-103` 的 onProgress 原样落 trace），Agent Bar 全程沉默；trace 结构化标记已有先例（`Pipeline.ts:310` `@@SELF_HEAL::`，前端 `runSummary.ts:41` 纯函数解析）；运行期 traces 已实时同步 `canvasStore.runTraces`（`useRunPolling.ts:96`）；waitingForUser 已有 `CheckpointCard` 上浮但无"去审核"动作。
+  - **协议（N17-03a）**：执行器输出单行 `@@USER_ACTION::{"kind":"configure-input|configure-output|provide-info","message":"<给用户的一句话>","field"?:"<缺失字段>"}`；注入点 `promptExecutor.ts` 系统提示词追加 USER ACTION 规则段（与 buildOutputItemsSection 同模式）；nodeId 不要求执行器提供——解析器扫描 trace 流按 `@@NODE_START::<id>` 归属当前节点。解析器 `AgentBar/userActionRequests.ts` 纯函数 + 单测（去重：同节点同 kind 只保留最新）。
+  - **渲染（N17-03b）**：`messages/UserActionCard.tsx`（i18n en+zh、story、testid），数据源 `canvasStore.runTraces` 实时派生；动作两枚：「打开节点配置」→ `setConfigNodeId(nodeId)`；「让 Agent 处理」→ `setComposerDraft(预填该请求文本)`。挂在 AgentRunCards 内 CheckpointCard 之后。
+  - **checkpoint 增强（N17-03c，缩）**：CheckpointCard 在 isWaiting 时增加「去审核」按钮 → `setConfigNodeId(waitingNode.id)`（NodeConfig 含 Checkpoint 区）。
+  - 验收：跑一条输入未配置的流水线 → 执行器发出 @@USER_ACTION → Agent Bar 出卡 → 点「打开节点配置」直达该节点配置面板；单测覆盖解析归属/去重/坏 JSON 容错。
 - 原则备注（用户原话）：**像产品设计师一样审视细节与交互逻辑，而不是能跑就行**——每期验收前过一遍：悬浮态、空态、加载态、失败态、引导文案。
 
 ### N15 · 阶段事件与流式（可与 N13/N14 穿插，N15-02 可暂缓）
@@ -179,11 +184,13 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 ## 六、N11 期末真实验收记录（2026-06-12 · claude-code 真模型）
 
 **已通过**：
+
 - 模糊请求（"帮我处理一下文件"）→ Agent 中文追问 + 4 个 clarify 芯片（内容结合了真实 operations 目录）✅
 - 点芯片 → 选项原文发送 → 第二轮带对话历史正确推进 ✅（N11-02/03/04 闭环）
 - New Pipeline 创建 500 已修复并真机验证（`N11-fix-01`：localStorage 失效 projectId 自动清理）✅
 
 **新发现缺陷（进入下一期）**：
+
 1. **提案静默丢弃（高优）**：第二轮 Agent 回复"已搭建 10 节点流水线"，但其 proposal 未过 `PipelineActionProposalSchema` 校验被丢弃——无 ProposalCard、画布无预览，回复内容与实际行为矛盾。归 N13-01：校验失败时返回 error code + 把 zod 错误摘要作为 diagnostics 注入自动重试一轮（最多一次），仍失败则前端明示"提案生成失败已丢弃"。
 2. **默认 runtime 可为不存在的值**：settings 默认是 `mastra`（不在检测列表/下拉选项中），导致 Agent Bar 全部秒败且无任何提示。归 N13：runtime 不可用时返回 RUNTIME_NOT_FOUND code + 可点击跳 Settings；Defaults 下拉与检测结果联动校验。验收时已手动切到 claude-code 并清空 default model。
 3. **Settings 页与原型不符**：现为 Language&Region/Defaults/Project/Keyboard/Advanced/Developer 平铺，原型（settings.jsx）应为 General/Defaults/Project/Keyboard/Account/Advanced 六组 + 侧栏变形 Back 导航。
