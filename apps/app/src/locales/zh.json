@@ -371,6 +371,16 @@
       "title": "快捷键"
     },
     "language": "语言",
+    "notifications": {
+      "description": "哪些事件推送到通知中心，哪些保持安静。",
+      "done": "运行完成",
+      "doneHint": "你发起的任务顺利跑完。",
+      "failed": "运行失败",
+      "failedHint": "永远值得知道——包括 Routine 触发的运行。",
+      "title": "通知",
+      "waiting": "等待你处理",
+      "waitingHint": "运行暂停等待签核或回答问题。"
+    },
     "project": {
       "description": "编辑侧栏当前选中项目的名称与描述。",
       "descriptionLabel": "描述",
@@ -385,17 +395,17 @@
     "saveChanges": "保存更改",
     "saved": "已保存 ✓",
     "sections": {
-      "profile": "个人信息",
-      "notifications": "通知",
-      "appearance": "外观",
-      "language": "语言与地区",
-      "security": "安全",
-      "agentRuntimes": "Agent Runtimes",
-      "developer": "开发者",
       "advanced": "高级",
+      "agentRuntimes": "Agent Runtimes",
+      "appearance": "外观",
       "defaults": "默认项",
+      "developer": "开发者",
       "keyboard": "快捷键",
-      "project": "项目"
+      "language": "语言与地区",
+      "notifications": "通知",
+      "profile": "个人信息",
+      "project": "项目",
+      "security": "安全"
     },
     "selectLanguage": "选择语言",
     "timezone": "时区",

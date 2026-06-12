@@ -371,6 +371,16 @@
       "title": "Keyboard"
     },
     "language": "Language",
+    "notifications": {
+      "description": "What gets pushed to the notification center, what stays silent.",
+      "done": "Run completed",
+      "doneHint": "A job you started finishes clean.",
+      "failed": "Run failed",
+      "failedHint": "Always worth knowing — includes runs started by a routine.",
+      "title": "Notifications",
+      "waiting": "Waiting on you",
+      "waitingHint": "A run paused for sign-off or a question."
+    },
     "project": {
       "description": "Name and description for the workspace selected in the sidebar.",
       "descriptionLabel": "Description",
@@ -385,17 +395,17 @@
     "saveChanges": "Save changes",
     "saved": "Saved ✓",
     "sections": {
-      "profile": "Profile",
-      "notifications": "Notifications",
-      "appearance": "Appearance",
-      "language": "Language & Region",
-      "security": "Security",
-      "agentRuntimes": "Agent Runtimes",
-      "developer": "Developer",
       "advanced": "Advanced",
+      "agentRuntimes": "Agent Runtimes",
+      "appearance": "Appearance",
       "defaults": "Defaults",
+      "developer": "Developer",
       "keyboard": "Keyboard",
-      "project": "Project"
+      "language": "Language & Region",
+      "notifications": "Notifications",
+      "profile": "Profile",
+      "project": "Project",
+      "security": "Security"
     },
     "selectLanguage": "Select language",
     "timezone": "Timezone",

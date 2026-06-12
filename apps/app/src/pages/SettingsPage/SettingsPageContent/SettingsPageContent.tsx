@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Bell,
   ChevronRight,
   Code,
   FolderKanban,
@@ -19,13 +20,22 @@ import {
   DeveloperSection,
   KeyboardSection,
   LanguageSection,
+  NotificationsSection,
   ProjectSection,
 } from "../sections";
 
-type Section = "advanced" | "defaults" | "developer" | "keyboard" | "language" | "project";
+type Section =
+  | "advanced"
+  | "defaults"
+  | "developer"
+  | "keyboard"
+  | "language"
+  | "notifications"
+  | "project";
 
 const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
   advanced: Wrench,
+  notifications: Bell,
   defaults: Sliders,
   developer: Code,
   keyboard: Keyboard,
@@ -39,7 +49,7 @@ const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
  * 有真实内容后再加入导航（不放空组死界面）。
  */
 const SECTION_GROUPS: { ids: Section[]; titleKey: string }[] = [
-  { ids: ["language", "keyboard"], titleKey: "settings.groups.workspace" },
+  { ids: ["language", "notifications", "keyboard"], titleKey: "settings.groups.workspace" },
   { ids: ["defaults"], titleKey: "settings.groups.execution" },
   {
     ids: ["project", "advanced", ...(import.meta.env.DEV ? (["developer"] as Section[]) : [])],
@@ -96,6 +106,7 @@ export const SettingsPageContent = () => {
         <div className="flex-1 overflow-y-auto p-8">
           <div className="mx-auto max-w-lg space-y-6">
             {active === "language" && <LanguageSection />}
+            {active === "notifications" && <NotificationsSection />}
             {active === "defaults" && <DefaultsSection />}
             {active === "project" && <ProjectSection />}
             {active === "keyboard" && <KeyboardSection />}

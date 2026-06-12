@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { Job, JobStatus, JobTrace } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useNotificationPrefsStore } from "@/store/notificationStore/notificationPrefsStore";
 import { useCanvasStore } from "../_store/canvasStore";
 
 const POLL_INTERVAL = 1500;
@@ -41,6 +42,8 @@ export const useRunPolling = () => {
   const { t } = useTranslation();
   const addNotification = useNotificationStore((state) => state.addNotification);
   const notifiedJobIdRef = useRef<string | null>(null);
+  const notifiedWaitingRef = useRef<string | null>(null);
+  const notificationPrefs = useNotificationPrefsStore();
 
   const { query: jobQuery } = useOne<Job>({
     id: activeJobId ?? "",
@@ -63,12 +66,19 @@ export const useRunPolling = () => {
     }
   }, [applyJobSnapshot, job]);
 
-  // G3-06：run 终态派发通知中心事件（每个 job 只派发一次）。
+  // G3-06：run 终态派发通知中心事件（每个 job 只派发一次）；
+  // N18-04：done/failed 受通知偏好控制（cancelled/expired 始终提示）。
   useEffect(() => {
     if (!job || !isTerminalJobStatus(job.status) || notifiedJobIdRef.current === job.id) {
       return;
     }
     notifiedJobIdRef.current = job.id;
+    if (
+      (job.status === "done" && !notificationPrefs.done) ||
+      (job.status === "failed" && !notificationPrefs.failed)
+    ) {
+      return;
+    }
     const kind = job.status === "done" ? "success" : job.status === "failed" ? "error" : "info";
     addNotification({
       id: `job-${job.id}-${job.status}`,
@@ -76,7 +86,31 @@ export const useRunPolling = () => {
       message: t(`workspace.canvas.run.notifications.${job.status}`, { title: job.title }),
       route: `/pipelines/jobs/${job.id}`,
     });
-  }, [addNotification, job, t]);
+  }, [addNotification, job, notificationPrefs.done, notificationPrefs.failed, t]);
+
+  // N18-04：节点进入 waitingForUser 时派发提醒（每个 job+node 一次，受偏好控制）。
+  useEffect(() => {
+    if (!job || !notificationPrefs.waiting) {
+      return;
+    }
+    const waitingNodeId = Object.entries(job.nodeStatuses ?? {}).find(
+      ([, status]) => status === "waitingForUser",
+    )?.[0];
+    if (!waitingNodeId) {
+      return;
+    }
+    const dedupeKey = `${job.id}:${waitingNodeId}`;
+    if (notifiedWaitingRef.current === dedupeKey) {
+      return;
+    }
+    notifiedWaitingRef.current = dedupeKey;
+    addNotification({
+      id: `job-${dedupeKey}-waiting`,
+      kind: "warn",
+      message: t("workspace.canvas.run.notifications.waiting", { title: job.title }),
+      route: `/pipelines/jobs/${job.id}`,
+    });
+  }, [addNotification, job, notificationPrefs.waiting, t]);
 
   const { result: tracesResult } = useCustom<{ traces: RawTrace[] }>({
     config: { payload: { jobId: activeJobId ?? "" } },
