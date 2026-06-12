@@ -45,6 +45,15 @@ export type AgentBarProps = {
   pipelineName?: string;
 };
 
+/**
+ * N19-03：Retry 重发时附件全文已不可得（不落库），用已落库的 excerpt
+ * （真实截断摘录 ≤1k）作降级内容——不伪造全文，但比纯文件名强得多。
+ */
+const toRetryAttachments = (metadata: AgentBarMessage["metadata"]) =>
+  (metadata?.attachments ?? []).map((attachment) =>
+    attachment.excerpt ? { ...attachment, content: attachment.excerpt } : attachment,
+  );
+
 export const AgentBar = ({
   className,
   composer,
@@ -285,8 +294,10 @@ export const AgentBar = ({
             void submitMessage({
               content: lastUserMessage.content,
               metadata: {
+                attachments: lastUserMessage.metadata?.attachments ?? [],
                 referencedNodeIds: lastUserMessage.metadata?.referencedNodeIds ?? [],
               },
+              proposeAttachments: toRetryAttachments(lastUserMessage.metadata),
             });
           };
           const handleEditMessage = () => setComposerDraft(message.content);
@@ -294,8 +305,10 @@ export const AgentBar = ({
             void submitMessage({
               content: message.content,
               metadata: {
+                attachments: message.metadata?.attachments ?? [],
                 referencedNodeIds: message.metadata?.referencedNodeIds ?? [],
               },
+              proposeAttachments: toRetryAttachments(message.metadata),
             });
           const body =
             message.role === "user" ? (
