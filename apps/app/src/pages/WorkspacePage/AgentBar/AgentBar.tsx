@@ -72,11 +72,13 @@ export const AgentBar = ({
     reviseProposal,
     submitMessage,
   } = useAgentConversation({ phase, pipelineId, pipelineName });
+  // N14-02：done 不再由 isReversing 伪造——分析期间诚实显示进行中，
+  // 真实阶段推进由 N15-01 的 progressStage 驱动。
   const reversingSteps = useMemo(
     () =>
-      ["structure", "steps", "matched", "draft"].map((step, index, all) => ({
+      ["structure", "steps", "matched", "draft"].map((step) => ({
         detail: t(`workspace.agentBar.reversing.steps.${step}Detail`),
-        done: !isReversing || index < all.length - 1,
+        done: !isReversing,
         id: step,
         title: t(`workspace.agentBar.reversing.steps.${step}`),
       })),

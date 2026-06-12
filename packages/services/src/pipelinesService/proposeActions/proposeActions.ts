@@ -12,12 +12,14 @@ import {
   PipelineGraphSnapshotSchema,
   PipelineActionProposalSchema,
   type AgentContextPayload,
+  type ArtifactAnalysis,
   type ProposeAttachment,
   type PipelineGraphSnapshot,
   type ProposeActionsResponse,
   type ProposePendingOperation,
 } from "@repo/schemas";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
+import { analyzeArtifacts } from "./analyzeArtifacts";
 import { buildProposeUserPrompt, type ProposeActiveRun } from "./buildProposePrompt";
 import type { ProposeHistoryMessage } from "./conversationHistory";
 import { normalizeProposalPayload } from "./normalizeProposalPayload";
@@ -111,6 +113,8 @@ export type ProposeActionsOptions = {
   runtimeId?: string;
   /** Internal: counts schema-failure auto-retry rounds. Not exposed via API. */
   semanticRetry?: number;
+  /** Internal: stage-one analysis carried across the semantic retry round. */
+  precomputedAnalysis?: ArtifactAnalysis;
 };
 
 const MAX_SEMANTIC_RETRIES = 1;
@@ -203,8 +207,26 @@ export const proposeActions = async (
     opts.message,
   );
   const activeRun = await loadActiveRun(deps, opts.context?.runState);
+  // N14-02 第一段：有真实内容的附件先做结构分析；语义重试轮复用首轮产物。
+  const textAttachments = (opts.attachments ?? []).filter(
+    (attachment) => (attachment.content?.length ?? 0) > 0,
+  );
+  const artifactAnalysis =
+    opts.precomputedAnalysis ??
+    (textAttachments.length > 0
+      ? await analyzeArtifacts({
+          agent: effectiveRuntime?.type ?? settings.defaultAgentRuntime,
+          apiKey: settings.defaultApiKey,
+          attachments: opts.attachments ?? [],
+          message: opts.message,
+          model: settings.defaultModel,
+          operationCatalog,
+          ssh: effectiveRuntime?.connection.mode === "ssh" ? effectiveRuntime.connection : undefined,
+        })
+      : undefined);
   const userPromptText = buildProposeUserPrompt({
     activeRun,
+    artifactAnalysis,
     attachments: opts.attachments ?? [],
     context: opts.context,
     diagnostics: opts.diagnostics ?? [],
@@ -243,7 +265,13 @@ export const proposeActions = async (
 
   if (agentOutput.proposalPayload === null) {
     if (agentOutput.reply) {
-      return { clarifyOptions, diagnostics: [], proposal: null, reply: agentOutput.reply };
+      return {
+        ...(artifactAnalysis ? { artifactAnalysis } : {}),
+        clarifyOptions,
+        diagnostics: [],
+        proposal: null,
+        reply: agentOutput.reply,
+      };
     }
 
     logger.error(
@@ -277,6 +305,7 @@ export const proposeActions = async (
         ...opts,
         diagnostics: [...(opts.diagnostics ?? []), ...issueSummaries],
         failedProposal: agentOutput.proposalPayload,
+        precomputedAnalysis: artifactAnalysis,
         semanticRetry: (opts.semanticRetry ?? 0) + 1,
       });
     }
@@ -306,6 +335,7 @@ export const proposeActions = async (
   const operationDiagnostics = validateProposalActionCatalog(proposal.actions, operationById);
 
   return {
+    ...(artifactAnalysis ? { artifactAnalysis } : {}),
     clarifyOptions,
     diagnostics: [...graphDiagnostics, ...operationDiagnostics],
     ...(pendingOperations.length > 0 ? { pendingOperations } : {}),

@@ -9,7 +9,13 @@ const MAX_RETRIES = 3;
 export type RunProposeAgentOptions = Pick<
   Parameters<typeof runAgent>[0],
   "agent" | "apiKey" | "model" | "ssh"
-> & { userPrompt: string };
+> & {
+  userPrompt: string;
+  /** 覆盖默认 propose 提示词——analyzeArtifacts 等第二用途复用该执行器（N14-02）。 */
+  agentId?: string;
+  logPrefix?: string;
+  systemPrompt?: string;
+};
 
 export type RunProposeAgentResult =
   | { ok: true; json: unknown }
@@ -27,12 +33,12 @@ export const runProposeAgent = async (
       const result = await ResultAsync.fromPromise(
         runAgent({
           agent: opts.agent,
-          systemPrompt: PROPOSE_SYSTEM_PROMPT,
+          systemPrompt: opts.systemPrompt ?? PROPOSE_SYSTEM_PROMPT,
           userPrompt: opts.userPrompt,
           inputPath: process.cwd(),
-          agentId: PROPOSE_AGENT_ID,
+          agentId: opts.agentId ?? PROPOSE_AGENT_ID,
           allowedTools: [],
-          logPrefix: "proposeActions",
+          logPrefix: opts.logPrefix ?? "proposeActions",
           apiKey: opts.apiKey,
           model: opts.model,
           ssh: opts.ssh,

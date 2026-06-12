@@ -1,5 +1,6 @@
 import type {
   AgentContextPayload,
+  ArtifactAnalysis,
   PipelineGraphSnapshot,
   ProposeAttachment,
 } from "@repo/schemas";
@@ -111,6 +112,8 @@ const buildActiveRunBlock = (activeRun?: ProposeActiveRun): string[] => {
 export type BuildProposeUserPromptInput = {
   /** 运行期上下文，仅当消息携带 runState 且 job 存在时由服务端填充（N12-03）。 */
   activeRun?: ProposeActiveRun;
+  /** N14-02 第一段分析产物；缺省时不注入也不声称分析过。 */
+  artifactAnalysis?: ArtifactAnalysis;
   attachments: ProposeAttachment[];
   /** 前端 buildAgentContext 输出（N12-02）。未提供的项不注入也不声称。 */
   context?: AgentContextPayload;
@@ -236,6 +239,26 @@ const MAX_ARTIFACT_CONTENT_CHARS = 32_000;
  * N14-01：附件真实内容参与逆向分析。文本附件渲染全文（已由前端按
  * 32k/128k 限额截断，这里再兜底一次）；二进制只给文件名并明确说明。
  */
+
+const buildArtifactAnalysisBlock = (analysis?: ArtifactAnalysis): string[] => {
+  if (!analysis) {
+    return [];
+  }
+
+  return [
+    "=== ARTIFACT ANALYSIS (stage one) ===",
+    `Structure: ${analysis.structure}`,
+    ...(analysis.steps.length > 0
+      ? ["Inferred upstream steps (ordered):", ...analysis.steps.map((step, i) => `${i + 1}. ${step}`)]
+      : []),
+    ...(analysis.matchedComponentIds.length > 0
+      ? [`Existing operations matching these steps: ${analysis.matchedComponentIds.join(", ")}`]
+      : []),
+    "Base your proposal on this analysis: reuse matched operations, draft newOperations for unmatched steps.",
+    "",
+  ];
+};
+
 const buildArtifactsBlock = (attachments: ProposeAttachment[]): string[] => {
   if (attachments.length === 0) {
     return [];
@@ -271,6 +294,7 @@ const buildArtifactsBlock = (attachments: ProposeAttachment[]): string[] => {
 
 export const buildProposeUserPrompt = ({
   activeRun,
+  artifactAnalysis,
   attachments,
   context,
   diagnostics = [],
@@ -301,6 +325,7 @@ export const buildProposeUserPrompt = ({
     ...buildAnnotationsBlock(context),
     ...buildActiveRunBlock(activeRun),
     ...buildDiagnosticsBlock(diagnostics, failedProposal),
+    ...buildArtifactAnalysisBlock(artifactAnalysis),
     ...sampleArtifactBlock,
     "=== USER REQUEST ===",
     message,

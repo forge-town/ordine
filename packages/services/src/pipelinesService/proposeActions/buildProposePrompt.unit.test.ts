@@ -215,3 +215,25 @@ describe("buildProposeUserPrompt active run block (N12-03)", () => {
     expect(buildProposeUserPrompt(basePromptInput)).not.toContain("ACTIVE RUN");
   });
 });
+
+describe("buildProposeUserPrompt artifact analysis block (N14-02)", () => {
+  it("injects stage-one analysis when provided", () => {
+    const prompt = buildProposeUserPrompt({
+      ...basePromptInput,
+      artifactAnalysis: {
+        matchedComponentIds: ["op_1"],
+        steps: ["parse PDF", "generate quiz"],
+        structure: "20-question quiz with answers",
+      },
+    });
+
+    expect(prompt).toContain("=== ARTIFACT ANALYSIS (stage one) ===");
+    expect(prompt).toContain("Structure: 20-question quiz with answers");
+    expect(prompt).toContain("1. parse PDF");
+    expect(prompt).toContain("Existing operations matching these steps: op_1");
+  });
+
+  it("omits the block when no analysis is provided", () => {
+    expect(buildProposeUserPrompt(basePromptInput)).not.toContain("ARTIFACT ANALYSIS");
+  });
+});

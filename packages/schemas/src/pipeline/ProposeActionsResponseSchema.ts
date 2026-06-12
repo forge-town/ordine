@@ -28,7 +28,15 @@ export const ProposePendingOperationSchema = z.object({
 });
 export type ProposePendingOperation = z.infer<typeof ProposePendingOperationSchema>;
 
+export const ArtifactAnalysisSchema = z.object({
+  matchedComponentIds: z.array(z.string()),
+  steps: z.array(z.string()),
+  structure: z.string(),
+});
+export type ArtifactAnalysis = z.infer<typeof ArtifactAnalysisSchema>;
+
 export const ProposeActionsResponseSchema = z.object({
+  artifactAnalysis: ArtifactAnalysisSchema.optional(),
   clarifyOptions: z.array(z.string()).max(4).optional(),
   pendingOperations: z.array(ProposePendingOperationSchema).optional(),
   diagnostics: z.array(PipelineActionDiagnosticSchema),
