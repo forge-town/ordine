@@ -153,7 +153,7 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 ### G3 · 死交互系统盘点与修复（2026-06-13 立项，源自 N11 期末备注 5）
 
 - **G3-00 施工计划**（本节）。范围：Jobs / Usage / Local Agents / Skills / Connectors / Components / Operations 列表与详情页 + 全局搜索 + 通知中心；Settings 页除外（N18 重做覆盖）。方法：Chrome 真机逐页 `read_page interactive` 枚举交互元素 → 逐个触发 → 三类判定：正常 / 死（无任何反应）/ 假（有反应但行为错误，如跳错页、空菜单）；同步监控浏览器 console error。产出：`pr-assets/g3-死交互盘点.md` 清单（页面 / 元素 / 期望 / 实际 / 判定 / 修复建议），盘点本身一个 docs commit。
-- **G3-01 盘点执行** ✅ 2026-06-13 完成，清单见 `pr-assets/g3-死交互盘点.md`。6 个确认问题：①Jobs 列表行点击不进详情（死，JobDetailPage 完好未接线）②run 结束后 UserActionCard 消失（traces 仅 live 加载，实证 job 5c0650d8 的合法 @@USER_ACTION 跑完即不可见）③Usage 时间筛选只过滤 Runs 卡（Total/By pipeline/By agent 不动）④Usage 图表柱渲染为纯黑大矩形⑤通知中心声称展示 run 事件但从未派发（当天 12+ runs 零通知）⑥侧栏 Components 徽标取 operations 总数（15 vs 实际 6）。1 个误报澄清（"双语并排"系宿主机 Chrome 翻译插件）。顺带：N17-03 协议端真模型验证通过（执行器输出合法标记）。修复批次 G3-02~07 对应上述 ①~⑥。
+- **G3-01 盘点执行** ✅ 2026-06-13 完成，清单见 `pr-assets/g3-死交互盘点.md`。6 个确认问题：①~~Jobs 列表行点击~~（**误报撤销**：JS 原生 click 验证抽屉正常，系宿主机浏览器缩放/翻译插件干扰扩展坐标，复证 N11 期末备注 5）②run 结束后 UserActionCard 消失（traces 仅 live 加载，实证 job 5c0650d8 的合法 @@USER_ACTION 跑完即不可见）③Usage 时间筛选只过滤 Runs 卡（Total/By pipeline/By agent 不动）④Usage 图表柱渲染为纯黑大矩形⑤通知中心声称展示 run 事件但从未派发（当天 12+ runs 零通知）⑥侧栏 Components 徽标取 operations 总数（15 vs 实际 6）。1 个误报澄清（"双语并排"系宿主机 Chrome 翻译插件）。顺带：N17-03 协议端真模型验证通过（执行器输出合法标记）。修复批次 G3-02~07 对应上述 ①~⑥。
 - **G3-02+ 修复批次**：按清单逐项修复，一处（或一组同根因）一个 commit（`fix: <描述> (G3-0x)`）；改不动的（需后端能力）记遗留并在 UI 隐藏入口而非留死按钮（原则：宁可没有，不可点了没反应）。
 - 验收：清单上每项要么修复（真机复验）要么显式隐藏并记录；console 零未处理错误。
 
