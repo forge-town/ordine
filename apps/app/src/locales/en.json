@@ -280,31 +280,6 @@
     "backToEdit": "Back"
   },
   "settings": {
-    "title": "Settings",
-    "language": "Language",
-    "selectLanguage": "Select language",
-    "timezone": "Timezone",
-    "sections": {
-      "profile": "Profile",
-      "notifications": "Notifications",
-      "appearance": "Appearance",
-      "language": "Language & Region",
-      "security": "Security",
-      "agentRuntimes": "Agent Runtimes",
-      "developer": "Developer",
-      "advanced": "Advanced",
-      "defaults": "Defaults",
-      "keyboard": "Keyboard",
-      "project": "Project"
-    },
-    "saveChanges": "Save changes",
-    "saved": "Saved ✓",
-    "developerSection": {
-      "title": "Developer",
-      "description": "Developer mode settings for local development",
-      "defaultAgentRuntime": "Default agent runtime",
-      "defaultOutputPath": "Default output path prefix"
-    },
     "advanced": {
       "description": "Storage, data version, and maintenance facts for this machine.",
       "rows": {
@@ -335,6 +310,17 @@
       "saved": "Defaults saved",
       "title": "Defaults",
       "toggleKey": "Toggle key visibility"
+    },
+    "developerSection": {
+      "title": "Developer",
+      "description": "Developer mode settings for local development",
+      "defaultAgentRuntime": "Default agent runtime",
+      "defaultOutputPath": "Default output path prefix"
+    },
+    "groups": {
+      "data": "Data",
+      "execution": "Execution",
+      "workspace": "Workspace"
     },
     "keyboard": {
       "description": "Canvas shortcuts. Read-only for now.",
@@ -374,6 +360,7 @@
       },
       "title": "Keyboard"
     },
+    "language": "Language",
     "project": {
       "description": "Name and description for the workspace selected in the sidebar.",
       "descriptionLabel": "Description",
@@ -384,7 +371,25 @@
       "saveFailed": "Couldn't save the project",
       "saved": "Project saved",
       "title": "Project"
-    }
+    },
+    "saveChanges": "Save changes",
+    "saved": "Saved ✓",
+    "sections": {
+      "profile": "Profile",
+      "notifications": "Notifications",
+      "appearance": "Appearance",
+      "language": "Language & Region",
+      "security": "Security",
+      "agentRuntimes": "Agent Runtimes",
+      "developer": "Developer",
+      "advanced": "Advanced",
+      "defaults": "Defaults",
+      "keyboard": "Keyboard",
+      "project": "Project"
+    },
+    "selectLanguage": "Select language",
+    "timezone": "Timezone",
+    "title": "Settings"
   },
   "errors": {
     "networkError": "Network error, please try again"
