@@ -1,7 +1,7 @@
 import type {
   AgentContextPayload,
-  ConversationAttachment,
   PipelineGraphSnapshot,
+  ProposeAttachment,
 } from "@repo/schemas";
 import { MAX_SNAPSHOT_CHARS, truncate } from "../promptText";
 import { buildHistoryBlock, type ProposeHistoryMessage } from "./conversationHistory";
@@ -111,7 +111,7 @@ const buildActiveRunBlock = (activeRun?: ProposeActiveRun): string[] => {
 export type BuildProposeUserPromptInput = {
   /** 运行期上下文，仅当消息携带 runState 且 job 存在时由服务端填充（N12-03）。 */
   activeRun?: ProposeActiveRun;
-  attachments: ConversationAttachment[];
+  attachments: ProposeAttachment[];
   /** 前端 buildAgentContext 输出（N12-02）。未提供的项不注入也不声称。 */
   context?: AgentContextPayload;
   diagnostics?: string[];
@@ -229,6 +229,46 @@ const buildSelectionBlock = (
   ];
 };
 
+
+const MAX_ARTIFACT_CONTENT_CHARS = 32_000;
+
+/**
+ * N14-01：附件真实内容参与逆向分析。文本附件渲染全文（已由前端按
+ * 32k/128k 限额截断，这里再兜底一次）；二进制只给文件名并明确说明。
+ */
+const buildArtifactsBlock = (attachments: ProposeAttachment[]): string[] => {
+  if (attachments.length === 0) {
+    return [];
+  }
+
+  const sections = attachments.flatMap((attachment, index) => {
+    const header = `Artifact ${index + 1}: ${attachment.name}` +
+      `${attachment.type ? ` (${attachment.type}` : " ("}${
+        attachment.size !== undefined ? `${attachment.type ? ", " : ""}${attachment.size} bytes)` : ")"
+      }`;
+
+    if (attachment.content === undefined || attachment.content.length === 0) {
+      return [header, "(binary or unread file — only the filename is available)", ""];
+    }
+
+    return [
+      header,
+      "--- content start ---",
+      truncate(attachment.content, MAX_ARTIFACT_CONTENT_CHARS),
+      "--- content end ---",
+      "",
+    ];
+  });
+
+  return [
+    "=== SAMPLE ARTIFACTS FOR REVERSE ENGINEERING ===",
+    "These are FINISHED OUTPUT examples the user wants the pipeline to produce.",
+    ...sections,
+    "Reverse-engineer the upstream pipeline from the artifact CONTENT (structure, sections, data shapes) — not just the filenames.",
+    "",
+  ];
+};
+
 export const buildProposeUserPrompt = ({
   activeRun,
   attachments,
@@ -243,16 +283,7 @@ export const buildProposeUserPrompt = ({
   referencedNodeIds = [],
   snapshot,
 }: BuildProposeUserPromptInput): string => {
-  const sampleArtifactBlock =
-    attachments.length > 0
-      ? [
-          "=== SAMPLE ARTIFACTS FOR REVERSE ENGINEERING ===",
-          truncate(JSON.stringify(attachments, null, 2), MAX_SNAPSHOT_CHARS),
-          "",
-          "Use these artifacts as output examples. Infer the upstream pipeline that would create similar results.",
-          "",
-        ]
-      : [];
+  const sampleArtifactBlock = buildArtifactsBlock(attachments);
 
   return [
     "=== PIPELINE CONTEXT ===",

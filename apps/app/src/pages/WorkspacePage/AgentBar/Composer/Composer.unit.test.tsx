@@ -90,7 +90,9 @@ describe("Composer", () => {
     expect(useAgentBarStore.getState().messages[0]).toEqual(
       expect.objectContaining({
         metadata: expect.objectContaining({
-          attachments: [{ name: "sample.pdf", type: "application/pdf" }],
+          attachments: [
+            { name: "sample.pdf", size: 6, type: "application/pdf" },
+          ],
         }),
       }),
     );
@@ -119,8 +121,13 @@ describe("Composer", () => {
       expect.objectContaining({
         metadata: expect.objectContaining({
           attachments: [
-            { name: "sample.pdf", type: "application/pdf" },
-            { name: "docs/readme.md", type: "text/markdown" },
+            { name: "sample.pdf", size: 6, type: "application/pdf" },
+            {
+              excerpt: "readme",
+              name: "docs/readme.md",
+              size: 6,
+              type: "text/markdown",
+            },
           ],
         }),
       }),
@@ -141,9 +148,39 @@ describe("Composer", () => {
       expect.objectContaining({
         content: "根据附件样本逆向生成 Pipeline：finished.csv",
         metadata: expect.objectContaining({
-          attachments: [{ name: "finished.csv", type: "text/csv" }],
+          attachments: [
+            { excerpt: "sample", name: "finished.csv", size: 6, type: "text/csv" },
+          ],
         }),
       }),
+    );
+  });
+
+  it("keeps full text out of metadata but forwards it via proposeAttachments", async () => {
+    const user = userEvent.setup();
+    const handleSubmit = vi.fn();
+    render(
+      <Composer
+        agentContext={agentContext}
+        refs={[]}
+        onRemoveRef={vi.fn()}
+        onSubmit={handleSubmit}
+      />,
+    );
+
+    const input = document.querySelector<HTMLInputElement>(
+      "[data-testid='agent-composer-file-input']",
+    );
+    await user.upload(input!, new File(["# Sample notes"], "notes.md", { type: "text/markdown" }));
+    await user.type(screen.getByRole("textbox", { name: "消息" }), "逆向这个{Enter}");
+
+    const call = handleSubmit.mock.calls[0]![0];
+    expect(call.proposeAttachments).toEqual([
+      expect.objectContaining({ content: "# Sample notes", name: "notes.md" }),
+    ]);
+    expect(call.metadata.attachments[0]).not.toHaveProperty("content");
+    expect(call.metadata.attachments[0]).toEqual(
+      expect.objectContaining({ excerpt: "# Sample notes", name: "notes.md" }),
     );
   });
 });

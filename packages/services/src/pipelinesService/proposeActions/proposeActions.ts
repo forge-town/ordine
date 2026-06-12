@@ -12,7 +12,7 @@ import {
   PipelineGraphSnapshotSchema,
   PipelineActionProposalSchema,
   type AgentContextPayload,
-  type ConversationAttachment,
+  type ProposeAttachment,
   type PipelineGraphSnapshot,
   type ProposeActionsResponse,
   type ProposePendingOperation,
@@ -98,7 +98,7 @@ const loadConversationHistory = async (
 };
 
 export type ProposeActionsOptions = {
-  attachments?: ConversationAttachment[];
+  attachments?: ProposeAttachment[];
   /** 前端 buildAgentContext 输出——Strip 所见即 Agent 所得（N12-02）。 */
   context?: AgentContextPayload;
   diagnostics?: string[];

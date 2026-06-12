@@ -5,6 +5,10 @@ export const ConversationAttachmentSchema = z.object({
   name: z.string(),
   path: z.string().optional(),
   type: z.string().optional(),
+  /** 字节数（N14-01）。旧消息无此字段，保持 optional 兼容。 */
+  size: z.number().int().min(0).optional(),
+  /** 文本附件前 1k 摘录——DB 只存 excerpt，全文走请求 payload 不落库（手册警告 6）。 */
+  excerpt: z.string().optional(),
 });
 export type ConversationAttachment = z.infer<typeof ConversationAttachmentSchema>;
 

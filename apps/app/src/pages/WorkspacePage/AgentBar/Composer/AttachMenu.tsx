@@ -1,7 +1,6 @@
 import { useRef, type ChangeEvent } from "react";
 import { FileUp, FolderUp, Plus, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { ConversationAttachment } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +11,8 @@ import {
 
 export type AttachMenuProps = {
   disabled?: boolean;
-  onAttach: (attachments: ConversationAttachment[]) => void;
+  /** 原始 File 列表；内容读取与截断由 Composer 负责（N14-01）。 */
+  onAttach: (files: File[]) => void;
 };
 
 type AttachMenuEntry = {
@@ -20,16 +20,6 @@ type AttachMenuEntry = {
   id: string;
   labelKey: string;
   onSelect: () => void;
-};
-
-const toAttachment = (file: File): ConversationAttachment => {
-  // webkitRelativePath is only populated for directory uploads (and missing in older jsdom).
-  const relativePath: string = file.webkitRelativePath ?? "";
-
-  return {
-    name: relativePath.length > 0 ? relativePath : file.name,
-    type: file.type.length > 0 ? file.type : undefined,
-  };
 };
 
 /**
@@ -44,7 +34,7 @@ export const AttachMenu = ({ disabled = false, onAttach }: AttachMenuProps) => {
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = [...(event.target.files ?? [])];
     if (files.length > 0) {
-      onAttach(files.map(toAttachment));
+      onAttach(files);
     }
     event.target.value = "";
   };

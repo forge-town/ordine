@@ -7,6 +7,7 @@ import type {
   PipelineAction,
   PipelineActionProposal,
   ProposeActionsResponse,
+  ProposeAttachment,
   ProposePendingOperation,
   WorkspacePhase,
 } from "@repo/schemas";
@@ -22,6 +23,8 @@ export type AgentConversationSubmitInput = {
   /** Full proposal that failed validation — sent to the agent for a fix round. */
   failedProposal?: PipelineActionProposal;
   metadata: ConversationMessageMetadata;
+  /** 附件全文（N14-01）：只进请求体，持久化走 metadata.attachments（excerpt）。 */
+  proposeAttachments?: ProposeAttachment[];
 };
 
 type ProposeActionsResult = Partial<ProposeActionsResponse>;
@@ -125,7 +128,7 @@ export const useAgentConversation = ({
   }, [pendingOperations, pendingProposal, t]);
 
   const submitMessage = useCallback(
-    async ({ content, failedProposal, metadata }: AgentConversationSubmitInput) => {
+    async ({ content, failedProposal, metadata, proposeAttachments }: AgentConversationSubmitInput) => {
       const trimmedContent = content.trim();
       if (!pipelineId || trimmedContent.length === 0) {
         return;
@@ -143,7 +146,7 @@ export const useAgentConversation = ({
           method: "post",
           payload: {
             id: pipelineId,
-            attachments: metadata.attachments ?? [],
+            attachments: proposeAttachments ?? metadata.attachments ?? [],
             context: agentContext,
             diagnostics: metadata.diagnostics ?? [],
             failedProposal,

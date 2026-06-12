@@ -697,6 +697,8 @@
           "folder": "Attach folder"
         },
         "messageLabel": "Message",
+        "nameOnly": "name only",
+        "nameOnlyHint": "Binary file — only the filename is shared with the agent.",
         "placeholder": "Describe a goal, drop a sample, or revise...",
         "placeholderWithRefs": "Ask the Agent to change the referenced nodes...",
         "removeAttachment": "Remove {{name}}",

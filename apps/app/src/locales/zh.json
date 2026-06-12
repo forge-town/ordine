@@ -697,6 +697,8 @@
           "folder": "上传文件夹"
         },
         "messageLabel": "消息",
+        "nameOnly": "仅文件名",
+        "nameOnlyHint": "二进制文件——只有文件名会提供给 Agent 分析。",
         "placeholder": "描述目标、上传样本，或继续修改…",
         "placeholderWithRefs": "让 Agent 修改引用的节点…",
         "removeAttachment": "移除 {{name}}",

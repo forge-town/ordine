@@ -4,9 +4,9 @@ import { publicProcedure, router } from "../init";
 import { pipelinesService, pipelineRunnerService } from "../services";
 import {
   AgentContextPayloadSchema,
-  ConversationAttachmentSchema,
   PipelineGraphSnapshotSchema,
   PipelineSchema,
+  ProposeAttachmentSchema,
   ProposePendingOperationSchema,
 } from "@repo/schemas";
 
@@ -134,7 +134,7 @@ export const pipelinesRouter = router({
     .input(
       z.object({
         id: z.string(),
-        attachments: z.array(ConversationAttachmentSchema).optional(),
+        attachments: z.array(ProposeAttachmentSchema).optional(),
         context: AgentContextPayloadSchema.optional(),
         diagnostics: z.array(z.string()).optional(),
         failedProposal: z.unknown().optional(),

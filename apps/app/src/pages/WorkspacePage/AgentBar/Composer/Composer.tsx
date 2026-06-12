@@ -3,8 +3,8 @@ import { ArrowUp, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type {
   AgentContextPayload,
-  ConversationAttachment,
   ConversationMessageMetadata,
+  ProposeAttachment,
 } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Textarea } from "@repo/ui/textarea";
@@ -13,11 +13,15 @@ import { Icon } from "@/components/primitives";
 import { useAgentBarStore } from "../_store";
 import { AttachMenu } from "./AttachMenu";
 import { ContextStrip } from "./ContextStrip";
+import { readAttachments, toMetadataAttachment } from "./readAttachments";
 import { RefChips } from "./RefChips";
+import { formatBytes } from "@/lib/format";
 
 export type ComposerSubmitInput = {
   content: string;
   metadata: ConversationMessageMetadata;
+  /** 附件全文（仅走请求 payload，不落库）。metadata.attachments 只有元数据+excerpt。 */
+  proposeAttachments?: ProposeAttachment[];
 };
 
 export type ComposerProps = {
@@ -40,7 +44,7 @@ export const Composer = ({
 }: ComposerProps) => {
   const { t } = useTranslation();
   const [text, setText] = useState("");
-  const [attachments, setAttachments] = useState<ConversationAttachment[]>([]);
+  const [attachments, setAttachments] = useState<ProposeAttachment[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const addMessage = useAgentBarStore((state) => state.addMessage);
   const composerFocusNonce = useWorkspaceStore((state) => state.composerFocusNonce);
@@ -77,7 +81,12 @@ export const Composer = ({
     setAttachments((current) => current.filter((attachment) => attachment.name !== name));
   };
 
-  const handleAttach = (incoming: ConversationAttachment[]) => {
+  const handleAttach = async (files: File[]) => {
+    const usedChars = attachments.reduce(
+      (total, attachment) => total + (attachment.content?.length ?? 0),
+      0,
+    );
+    const incoming = await readAttachments(files, usedChars);
     setAttachments((current) => {
       const known = new Set(current.map((attachment) => attachment.name));
 
@@ -106,7 +115,8 @@ export const Composer = ({
           });
 
     const metadata = {
-      attachments,
+      // DB 只存元数据+excerpt；全文经 proposeAttachments 走请求体（手册警告 6）。
+      attachments: attachments.map(toMetadataAttachment),
       referencedNodeIds: refs.map((ref) => ref.id),
     };
 
@@ -114,6 +124,7 @@ export const Composer = ({
       void onSubmit({
         content,
         metadata,
+        proposeAttachments: attachments,
       });
     } else {
       addMessage({
@@ -151,8 +162,22 @@ export const Composer = ({
                 <span
                   key={attachment.name}
                   className="inline-flex max-w-full items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-border"
+                  data-testid="agent-composer-attachment-chip"
                 >
                   <span className="truncate">{attachment.name}</span>
+                  {attachment.size !== undefined ? (
+                    <span className="shrink-0 text-muted-foreground/70">
+                      {formatBytes(attachment.size)}
+                    </span>
+                  ) : null}
+                  {attachment.content === undefined ? (
+                    <span
+                      className="shrink-0 rounded-full bg-foreground/10 px-1 text-[9px]"
+                      title={t("workspace.agentBar.composer.nameOnlyHint")}
+                    >
+                      {t("workspace.agentBar.composer.nameOnly")}
+                    </span>
+                  ) : null}
                   <button
                     aria-label={t("workspace.agentBar.composer.removeAttachment", {
                       name: attachment.name,

@@ -5,6 +5,7 @@ export * from "./PipelineActionDiagnosticSchema";
 export * from "./PipelineActionSchema";
 export * from "./PipelineActionProposalSchema";
 export * from "./ProposeActionsResponseSchema";
+export * from "./ProposeAttachmentSchema";
 export * from "./WorkspaceCanvasRefSchema";
 export * from "./WorkspacePhaseSchema";
 export * from "./node";
