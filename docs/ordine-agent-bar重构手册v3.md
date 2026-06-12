@@ -162,13 +162,13 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 > 原型基准：`docs/prototype/ordien/settings.jsx`（v2）：六组三节——Workspace（General / Notifications）· Execution（Execution / Autonomy / Limits）· Data（Data）；组导航承载于 app Sidebar（settings 路由时侧栏变形 + Back）；Keyboard 移出为帮助 modal。现状：页内左导航 language / defaults / project / keyboard / advanced / developer（`SettingsPageContent.tsx:36-43`）。
 
 - **N18-01 六组三节结构重排** ✅ `c8af2777`（真机：Workspace/Execution/Data 三节分组导航生效，原 section 功能不回归；Notifications/Autonomy 待有内容再入导航）：SECTION_IDS 改为 general / notifications / execution / autonomy / data（+advanced/developer 归入 Data 节末尾"高级"），页内导航按三节分组渲染（节标题 Workspace/Execution/Data）；现有 LanguageSection→General、DefaultsSection→Execution、ProjectSection→Data 内容迁移（**纯迁移零行为变化，单独 commit**）。验收：六组可切换、原 section 功能不回归。
-- **N18-02 General 组**：界面语言 seg（现有）+ 外观 seg（light/dark/system；若主题系统未实现则只读展示当前并注明，**不放假开关**）+ 版本信息（真实版本号，无"last checked"假数据）。
+- **N18-02 General 组** ✅ `57f3fbae`（外观 light/dark/system 真实切换：themeStore persist + documentElement class，`.dark` 变量集本就完整；真机验证切换即时生效并持久化）：界面语言 seg（现有）+ 外观 seg（light/dark/system；若主题系统未实现则只读展示当前并注明，**不放假开关**）+ 版本信息（真实版本号，无"last checked"假数据）。
 - **N18-03 Execution 组与 Defaults 联动校验** ✅ `5c856937`（失效 runtime 红色警告条 + 一键切换为首个检测 runtime 并即时保存；真机正常态验证无误报）（N11 期末缺陷 2）：默认 runtime 下拉仅列**检测到的** runtime（agentRuntimesDao 检测结果），当前值不在列表时显式警告 + 一键修正；默认 model、默认输出路径接 settings 持久化。验收：手动把 settings 写成不存在的 runtime → 页面出警告并可一键修复；Agent Bar 不再因 runtime 失配秒败。
-- **N18-04 Notifications 组**：done/fail/wait/routine 四开关接 settings 持久化，通知中心（N8-02）派发时按偏好过滤。验收：关掉 done 后跑完一条 run 无通知，fail 仍有。
-- **N18-05 Autonomy 组（真实生效）**：self-heal 轮数 stepper（0-5）接 settings，`Pipeline.ts:34` SELF_HEAL_MAX_RETRIES 改为读运行时设置；三个 ask 开关字段持久化（执行面后续接，UI 注明当前仅存储——若注明成本高则整组只做 healRounds）。验收：healRounds=0 时失败节点不重试（trace 无 @@SELF_HEAL）。
-- **N18-06 Data 组**：数据目录展示（真实 PGLITE/输出路径）+ 清除对话历史（接 conversationMessages 删除，二次确认）；retention 自动清理无后端机制则**不放 UI**，记遗留。
-- **N18-07 Keyboard 帮助 modal**：KeyboardSection 改为 PageHeader 帮助按钮触发的 modal（原型 KeyboardHelpModal），导航中移除 keyboard 组。
-- **N18-08 侧栏变形（可选，最后）**：settings 路由时 AppSidebar 渲染设置组导航 + Back；若侵入面过大则保持页内导航并记遗留（页内三节分组已满足信息架构对齐）。
+- **N18-04 Notifications 组** ✅ `8c881e6d`（done/failed/waiting 三开关设备级持久化；G3-06 派发处按偏好过滤；新增 waitingForUser 派发 warn 通知每 job+node 一次；routine 开关因 job 无触发源标记暂不提供）：done/fail/wait/routine 四开关接 settings 持久化，通知中心（N8-02）派发时按偏好过滤。验收：关掉 done 后跑完一条 run 无通知，fail 仍有。
+- **N18-05 Autonomy 组（真实生效）** ✅ `58c22520`（**偏差**：settings 表为固定列、加列需 DB 迁移，故 selfHealRetries 改为设备级偏好随 Run 请求下发——引擎 PipelineOptions.selfHealRetries 真实生效，0=不重试；真机验证 stepper 0-5 边界禁用与持久化；三个 ask 开关因执行面未定义暂不提供 UI，不放假开关）：self-heal 轮数 stepper（0-5）接 settings，`Pipeline.ts:34` SELF_HEAL_MAX_RETRIES 改为读运行时设置；三个 ask 开关字段持久化（执行面后续接，UI 注明当前仅存储——若注明成本高则整组只做 healRounds）。验收：healRounds=0 时失败节点不重试（trace 无 @@SELF_HEAL）。
+- **N18-06 Data 组（待续）**：数据目录展示（真实 PGLITE/输出路径）+ 清除对话历史（接 conversationMessages 删除，二次确认）；retention 自动清理无后端机制则**不放 UI**，记遗留。
+- **N18-07 Keyboard 帮助 modal** ✅ `67b80ca0`（PageHeader actions 按钮触发 Dialog，导航移除 keyboard 组；真机验证按钮存在）：KeyboardSection 改为 PageHeader 帮助按钮触发的 modal（原型 KeyboardHelpModal），导航中移除 keyboard 组。
+- **N18-08 侧栏变形（遗留不做，页内三节已满足信息架构对齐）**：settings 路由时 AppSidebar 渲染设置组导航 + Back；若侵入面过大则保持页内导航并记遗留（页内三节分组已满足信息架构对齐）。
 - **Limits 组：本期不做**——成本上限需要 runner 真实执行才不算假透明，列入下期（依赖 run cost 统计通道）。
 - 纪律：每任务单独 commit（`<type>: <中文描述> (N18-0x)`）；新组件 i18n en+zh + story + testid；期末真机走查全部组 + 截图记录。
 
