@@ -651,8 +651,14 @@
       }
     },
     "agentBar": {
-      "refChipTitle": "悬停高亮 · 点击在画布上定位",
-      "removeRef": "移除 {{label}}",
+      "actionTitles": {
+        "addEdge": "新增连线",
+        "addNode": "新增 {{nodeType}} 节点",
+        "reconnectEdge": "重连连线",
+        "removeEdge": "删除连线",
+        "removeNode": "删除节点",
+        "replaceNodeData": "更新节点"
+      },
       "applied": {
         "hint": "已应用 — 节点已在画布上，随时可编辑。点选任意节点即可在这里引用它，或直接点 Run。"
       },
@@ -664,51 +670,19 @@
         "waiting": "检查点 · 暂停于 {{node}}"
       },
       "collapse": "收起 Agent Bar",
-      "empty": {
-        "intro": "新画布 — 告诉我要做什么，或拖入一个成品样本，我会逆向推导出生成它的 Pipeline。",
-        "suggestChangelog": "把 GitHub 仓库总结成 changelog",
-        "suggestQuiz": "把我的教材 PDF 变成 Notion 测验",
-        "suggestReverse": "上传成品样本 → 逆向工程"
+      "composer": {
+        "attach": "添加附件",
+        "attachMenu": {
+          "files": "上传文件",
+          "folder": "上传文件夹"
+        },
+        "messageLabel": "消息",
+        "placeholder": "描述目标、上传样本，或继续修改…",
+        "placeholderWithRefs": "让 Agent 修改引用的节点…",
+        "removeAttachment": "移除 {{name}}",
+        "reverseDefault": "根据附件样本逆向生成 Pipeline：{{names}}",
+        "send": "发送"
       },
-      "error": {
-        "tryPrefix": "建议："
-      },
-      "proposal": {
-        "actionCount_one": "{{count}} 个图操作",
-        "actionCount_other": "{{count}} 个图操作",
-        "apply": "应用",
-        "askFix": "让 Agent 修复",
-        "blocked": "先解决诊断问题再应用",
-        "newOperationBadge": "新算子",
-        "reject": "拒绝",
-        "revise": "修改"
-      },
-      "reversing": {
-        "intro": "正在阅读样本 — 推断生成它的步骤。",
-        "steps": {
-          "draft": "起草 Pipeline",
-          "draftDetail": "组装节点与连线",
-          "matched": "匹配组件",
-          "matchedDetail": "从你的组件库复用",
-          "steps": "推断步骤",
-          "stepsDetail": "解析 → 生成 → 校验 → 导出",
-          "structure": "读取结构",
-          "structureDetail": "格式、分节、引用"
-        }
-      },
-      "subtitle": {
-        "applied": "阅读中 · 画布",
-        "clarify": "阅读中 · 目标",
-        "done": "运行完成 · 资产已沉淀",
-        "empty": "新画布 · 暂无 pipeline",
-        "proposal": "起草中 · 方案就绪",
-        "refsSelected_one": "已选 {{count}} 个引用",
-        "refsSelected_other": "已选 {{count}} 个引用",
-        "reversing": "阅读中 · 样本",
-        "running": "观察中 · 实时",
-        "watching": "观察中 · {{jobId}} · 实时"
-      },
-      "title": "Agent",
       "context": {
         "footer": {
           "editing": "上下文按状态选取 · 编辑时优先携带画布与选区。",
@@ -744,13 +718,44 @@
         },
         "title": "上下文"
       },
-      "thread": {
-        "emptyBody": "该节点上的批注都已处理完。",
-        "emptyTitle": "这里没有未处理的批注",
-        "resolve": "标记已解决",
-        "showAll": "查看全部",
-        "title": "线程"
+      "empty": {
+        "intro": "新画布 — 告诉我要做什么，或拖入一个成品样本，我会逆向推导出生成它的 Pipeline。",
+        "suggestChangelog": "把 GitHub 仓库总结成 changelog",
+        "suggestQuiz": "把我的教材 PDF 变成 Notion 测验",
+        "suggestReverse": "上传成品样本 → 逆向工程"
       },
+      "error": {
+        "tryPrefix": "建议："
+      },
+      "errors": {
+        "AGENT_FAILED": "本地 Agent 没有响应。它可能没在运行或配置有误——可以重试，或检查 Agent runtime。",
+        "BAD_AGENT_OUTPUT": "Agent 有响应，但我没能把它转成有效提案。这通常是偶发问题——请重试。",
+        "INVALID_SNAPSHOT": "画布状态读取失败，请刷新页面后重试。",
+        "RUNTIME_NOT_FOUND": "配置的 Agent runtime 在本机不可用，无法生成提案。请到 Settings → Defaults 选择一个已检测到的 runtime。",
+        "actions": {
+          "openSettings": "打开 Settings",
+          "retry": "重试"
+        },
+        "proposalDropped": "（生成的提案未通过校验已被丢弃——可以让我再试一次。）"
+      },
+      "messageActions": {
+        "copied": "已复制",
+        "copy": "复制",
+        "edit": "编辑",
+        "retry": "重试"
+      },
+      "proposal": {
+        "actionCount_one": "{{count}} 个图操作",
+        "actionCount_other": "{{count}} 个图操作",
+        "apply": "应用",
+        "askFix": "让 Agent 修复",
+        "blocked": "先解决诊断问题再应用",
+        "newOperationBadge": "新算子",
+        "reject": "拒绝",
+        "revise": "修改"
+      },
+      "refChipTitle": "悬停高亮 · 点击在画布上定位",
+      "removeRef": "移除 {{label}}",
       "reopen": "展开 Agent Bar",
       "replies": {
         "appliedNotSaved": "提案已在本地应用，但保存失败。",
@@ -764,39 +769,40 @@
         "rejectedWithProposal": "已拒绝提案「{{summary}}」。",
         "reviseHintWithProposal": "已撤回提案「{{summary}}」，告诉我要修改什么，我会重新起草。"
       },
-      "composer": {
-        "attach": "添加附件",
-        "attachMenu": {
-          "files": "上传文件",
-          "folder": "上传文件夹"
-        },
-        "messageLabel": "消息",
-        "placeholder": "描述目标、上传样本，或继续修改…",
-        "placeholderWithRefs": "让 Agent 修改引用的节点…",
-        "removeAttachment": "移除 {{name}}",
-        "reverseDefault": "根据附件样本逆向生成 Pipeline：{{names}}",
-        "send": "发送"
+      "reversing": {
+        "intro": "正在阅读样本 — 推断生成它的步骤。",
+        "steps": {
+          "draft": "起草 Pipeline",
+          "draftDetail": "组装节点与连线",
+          "matched": "匹配组件",
+          "matchedDetail": "从你的组件库复用",
+          "steps": "推断步骤",
+          "stepsDetail": "解析 → 生成 → 校验 → 导出",
+          "structure": "读取结构",
+          "structureDetail": "格式、分节、引用"
+        }
       },
-      "actionTitles": {
-        "addEdge": "新增连线",
-        "addNode": "新增 {{nodeType}} 节点",
-        "reconnectEdge": "重连连线",
-        "removeEdge": "删除连线",
-        "removeNode": "删除节点",
-        "replaceNodeData": "更新节点"
+      "subtitle": {
+        "applied": "阅读中 · 画布",
+        "clarify": "阅读中 · 目标",
+        "done": "运行完成 · 资产已沉淀",
+        "empty": "新画布 · 暂无 pipeline",
+        "proposal": "起草中 · 方案就绪",
+        "refsSelected_one": "已选 {{count}} 个引用",
+        "refsSelected_other": "已选 {{count}} 个引用",
+        "reversing": "阅读中 · 样本",
+        "running": "观察中 · 实时",
+        "watching": "观察中 · {{jobId}} · 实时"
       },
-      "errors": {
-        "AGENT_FAILED": "本地 Agent 没有响应。它可能没在运行或配置有误——可以重试，或检查 Agent runtime。",
-        "BAD_AGENT_OUTPUT": "Agent 有响应，但我没能把它转成有效提案。这通常是偶发问题——请重试。",
-        "INVALID_SNAPSHOT": "画布状态读取失败，请刷新页面后重试。",
-        "RUNTIME_NOT_FOUND": "配置的 Agent runtime 在本机不可用，无法生成提案。请到 Settings → Defaults 选择一个已检测到的 runtime。",
-        "actions": {
-          "openSettings": "打开 Settings",
-          "retry": "重试"
-        },
-        "proposalDropped": "（生成的提案未通过校验已被丢弃——可以让我再试一次。）"
+      "thinking": "思考中…",
+      "thread": {
+        "emptyBody": "该节点上的批注都已处理完。",
+        "emptyTitle": "这里没有未处理的批注",
+        "resolve": "标记已解决",
+        "showAll": "查看全部",
+        "title": "线程"
       },
-      "thinking": "思考中…"
+      "title": "Agent"
     },
     "notFoundPipeline": "找不到该 Pipeline"
   },

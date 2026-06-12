@@ -41,12 +41,22 @@ export const Composer = ({
   const hasConversation = useAgentBarStore((state) => state.messages.length > 0);
   const phase = useWorkspaceStore((state) => state.phase);
   const composerFocusNonce = useWorkspaceStore((state) => state.composerFocusNonce);
+  const composerDraft = useWorkspaceStore((state) => state.composerDraft);
+  const setComposerDraft = useWorkspaceStore((state) => state.setComposerDraft);
 
   useEffect(() => {
     if (composerFocusNonce > 0) {
       textareaRef.current?.focus();
     }
   }, [composerFocusNonce]);
+
+  useEffect(() => {
+    if (composerDraft !== null) {
+      setText(composerDraft);
+      setComposerDraft(null);
+      textareaRef.current?.focus();
+    }
+  }, [composerDraft, setComposerDraft]);
   const trimmedText = text.trim();
   const canSend = (trimmedText.length > 0 || attachments.length > 0) && !isSending;
   const placeholder =

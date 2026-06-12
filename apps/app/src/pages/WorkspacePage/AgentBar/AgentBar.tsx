@@ -8,7 +8,14 @@ import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useCanvasStore } from "../canvas/_store/canvasStore";
-import { Assistant, Bubble, ClarifyOptions, ErrorActions, ProposalCard } from "./messages";
+import {
+  Assistant,
+  Bubble,
+  ClarifyOptions,
+  ErrorActions,
+  MessageActions,
+  ProposalCard,
+} from "./messages";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
 import { AgentDistillCard } from "./AgentDistillCard";
@@ -48,6 +55,7 @@ export const AgentBar = ({
   const resolveMessage = useAgentBarStore((state) => state.resolveMessage);
   const { mutate: updateMessage } = useUpdate();
   const focusComposer = useWorkspaceStore((state) => state.focusComposer);
+  const setComposerDraft = useWorkspaceStore((state) => state.setComposerDraft);
   const pendingAsk = useWorkspaceStore((state) => state.pendingAsk);
   const clearPendingAsk = useWorkspaceStore((state) => state.clearPendingAsk);
   const {
@@ -251,6 +259,14 @@ export const AgentBar = ({
               },
             });
           };
+          const handleEditMessage = () => setComposerDraft(message.content);
+          const handleRetryMessage = () =>
+            void submitMessage({
+              content: message.content,
+              metadata: {
+                referencedNodeIds: message.metadata?.referencedNodeIds ?? [],
+              },
+            });
           const body =
             message.role === "user" ? (
               <Bubble
@@ -265,6 +281,15 @@ export const AgentBar = ({
           return (
             <div key={message.id} className="group/turn relative space-y-1">
               {body}
+              {!message.isThinking && message.content.trim().length > 0 ? (
+                <MessageActions
+                  align={message.role === "user" ? "right" : "left"}
+                  content={message.content}
+                  disabled={isSending}
+                  onEdit={message.role === "user" ? handleEditMessage : undefined}
+                  onRetry={message.role === "user" ? handleRetryMessage : undefined}
+                />
+              ) : null}
               {messageRefs.length > 0 ? (
                 <div className={cn(message.role === "user" && "flex justify-end")}>
                   <RefChips small refs={messageRefs} />

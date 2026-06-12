@@ -7,6 +7,7 @@ import {
   ErrorActions,
   DistillCard,
   ErrorCard,
+  MessageActions,
   ProgressList,
   ProposalCard,
   RunStatusCard,
@@ -155,6 +156,27 @@ export const ErrorRecovery: StoryObj = {
       <ErrorActions code="RUNTIME_NOT_FOUND" onOpenSettings={() => {}} onRetry={() => {}} />
       <Assistant>Agent 没有响应。</Assistant>
       <ErrorActions code="AGENT_FAILED" onOpenSettings={() => {}} onRetry={() => {}} />
+    </div>
+  ),
+};
+
+export const MessageHoverActions: StoryObj = {
+  name: "Message hover actions (hover a turn)",
+  render: () => (
+    <div className="space-y-3">
+      <div className="group/turn relative space-y-1">
+        <Bubble>把一个 GitHub 仓库的代码总结成一份变更日志文档</Bubble>
+        <MessageActions
+          align="right"
+          content="把一个 GitHub 仓库的代码总结成一份变更日志文档"
+          onEdit={() => {}}
+          onRetry={() => {}}
+        />
+      </div>
+      <div className="group/turn relative space-y-1">
+        <Assistant>已为你搭好这条流水线，共 3 个节点。</Assistant>
+        <MessageActions align="left" content="已为你搭好这条流水线，共 3 个节点。" />
+      </div>
     </div>
   ),
 };

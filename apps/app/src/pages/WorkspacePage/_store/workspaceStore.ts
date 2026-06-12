@@ -27,6 +27,8 @@ export type WorkspaceState = {
   anchorCounts: Record<string, number>;
   canvasRefs: WorkspaceCanvasRef[];
   compOpen: boolean;
+  /** 待回填到 Composer 的草稿（消息 Edit 操作写入，Composer 消费后清空）。 */
+  composerDraft: string | null;
   composerFocusNonce: number;
   dismissed: string[];
   hoverRefId: string | null;
@@ -47,6 +49,7 @@ export type WorkspaceState = {
   setAnchorCounts: (counts: Record<string, number>) => void;
   setCanvasRefs: (refs: WorkspaceCanvasRef[]) => void;
   setCompOpen: (open: boolean) => void;
+  setComposerDraft: (draft: string | null) => void;
   setHoverRef: (id: string | null) => void;
   setPhase: (phase: WorkspacePhase) => void;
   setThread: (thread: WorkspaceThread | null) => void;
@@ -78,6 +81,7 @@ const createInitialState = (pipelineId: string | null) => ({
   anchorCounts: {},
   canvasRefs: [],
   compOpen: true,
+  composerDraft: null,
   composerFocusNonce: 0,
   dismissed: [],
   hoverRefId: null,
@@ -102,6 +106,16 @@ export const createWorkspaceStore = (pipelineId: string | null = null): Workspac
       })),
     focusComposer: () =>
       set((state) => ({ agentOpen: true, composerFocusNonce: state.composerFocusNonce + 1 })),
+    setComposerDraft: (draft) =>
+      set((state) =>
+        draft === null
+          ? { composerDraft: null }
+          : {
+              agentOpen: true,
+              composerDraft: draft,
+              composerFocusNonce: state.composerFocusNonce + 1,
+            },
+      ),
     focusRef: (ref) =>
       set((state) => ({
         spotlight: { nonce: (state.spotlight?.nonce ?? 0) + 1, ref },

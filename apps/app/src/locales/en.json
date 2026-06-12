@@ -651,8 +651,14 @@
       }
     },
     "agentBar": {
-      "refChipTitle": "Hover to highlight · click to focus on canvas",
-      "removeRef": "Remove {{label}}",
+      "actionTitles": {
+        "addEdge": "Add edge",
+        "addNode": "Add {{nodeType}}",
+        "reconnectEdge": "Reconnect edge",
+        "removeEdge": "Remove edge",
+        "removeNode": "Remove node",
+        "replaceNodeData": "Update node"
+      },
       "applied": {
         "hint": "Applied — the nodes are on the canvas, yours to edit. Click any node to reference it here, or hit Run."
       },
@@ -664,51 +670,19 @@
         "waiting": "Checkpoint · paused at {{node}}"
       },
       "collapse": "Collapse Agent Bar",
-      "empty": {
-        "intro": "New canvas — tell me what to make, or drop a finished sample and I'll reverse-engineer the pipeline behind it.",
-        "suggestChangelog": "Summarize a GitHub repo into a changelog",
-        "suggestQuiz": "Turn my textbook PDFs into a Notion quiz",
-        "suggestReverse": "Upload a finished sample → reverse-engineer it"
+      "composer": {
+        "attach": "Add attachments",
+        "attachMenu": {
+          "files": "Attach files",
+          "folder": "Attach folder"
+        },
+        "messageLabel": "Message",
+        "placeholder": "Describe a goal, drop a sample, or revise...",
+        "placeholderWithRefs": "Ask the Agent to change the referenced nodes...",
+        "removeAttachment": "Remove {{name}}",
+        "reverseDefault": "Reverse-engineer a pipeline from the attached sample: {{names}}",
+        "send": "Send message"
       },
-      "error": {
-        "tryPrefix": "Try:"
-      },
-      "proposal": {
-        "actionCount_one": "{{count}} graph action",
-        "actionCount_other": "{{count}} graph actions",
-        "apply": "Apply",
-        "askFix": "Ask agent to fix",
-        "blocked": "Resolve diagnostics before applying",
-        "newOperationBadge": "new op",
-        "reject": "Reject",
-        "revise": "Revise"
-      },
-      "reversing": {
-        "intro": "Reading the sample — inferring the steps that produce it.",
-        "steps": {
-          "draft": "Drafting pipeline",
-          "draftDetail": "assembling nodes and edges",
-          "matched": "Matched components",
-          "matchedDetail": "reusable from your library",
-          "steps": "Inferred steps",
-          "stepsDetail": "parse → generate → verify → export",
-          "structure": "Read structure",
-          "structureDetail": "format, sections, citations"
-        }
-      },
-      "subtitle": {
-        "applied": "Reading · canvas",
-        "clarify": "Reading · goal",
-        "done": "Run complete · asset saved",
-        "empty": "New canvas · no pipeline yet",
-        "proposal": "Drafting · proposal ready",
-        "refsSelected_one": "{{count}} reference selected",
-        "refsSelected_other": "{{count}} references selected",
-        "reversing": "Reading · sample",
-        "running": "Watching · live",
-        "watching": "Watching · {{jobId}} · live"
-      },
-      "title": "Agent",
       "context": {
         "footer": {
           "editing": "Window budget selects by state · editing prioritizes Canvas / selection.",
@@ -744,13 +718,44 @@
         },
         "title": "Context"
       },
-      "thread": {
-        "emptyBody": "All annotations on this node are resolved.",
-        "emptyTitle": "No open notes here",
-        "resolve": "Resolve",
-        "showAll": "Show all",
-        "title": "Thread"
+      "empty": {
+        "intro": "New canvas — tell me what to make, or drop a finished sample and I'll reverse-engineer the pipeline behind it.",
+        "suggestChangelog": "Summarize a GitHub repo into a changelog",
+        "suggestQuiz": "Turn my textbook PDFs into a Notion quiz",
+        "suggestReverse": "Upload a finished sample → reverse-engineer it"
       },
+      "error": {
+        "tryPrefix": "Try:"
+      },
+      "errors": {
+        "AGENT_FAILED": "The local agent did not respond. It may not be running or is misconfigured — retry, or check the agent runtime.",
+        "BAD_AGENT_OUTPUT": "The agent responded, but I could not turn it into a valid proposal. This is usually transient — please retry.",
+        "INVALID_SNAPSHOT": "The canvas state could not be read. Reload the page and try again.",
+        "RUNTIME_NOT_FOUND": "The configured agent runtime is not available on this machine, so I cannot draft proposals. Pick a detected runtime in Settings → Defaults.",
+        "actions": {
+          "openSettings": "Open Settings",
+          "retry": "Retry"
+        },
+        "proposalDropped": "(The drafted proposal failed validation and was discarded — ask me to try again.)"
+      },
+      "messageActions": {
+        "copied": "Copied",
+        "copy": "Copy",
+        "edit": "Edit",
+        "retry": "Retry"
+      },
+      "proposal": {
+        "actionCount_one": "{{count}} graph action",
+        "actionCount_other": "{{count}} graph actions",
+        "apply": "Apply",
+        "askFix": "Ask agent to fix",
+        "blocked": "Resolve diagnostics before applying",
+        "newOperationBadge": "new op",
+        "reject": "Reject",
+        "revise": "Revise"
+      },
+      "refChipTitle": "Hover to highlight · click to focus on canvas",
+      "removeRef": "Remove {{label}}",
       "reopen": "Open Agent Bar",
       "replies": {
         "appliedNotSaved": "I applied the proposal locally, but could not save it yet.",
@@ -764,39 +769,40 @@
         "rejectedWithProposal": "Rejected the proposal “{{summary}}”.",
         "reviseHintWithProposal": "Withdrew the proposal “{{summary}}”. Tell me what to revise and I will draft a new one."
       },
-      "composer": {
-        "attach": "Add attachments",
-        "attachMenu": {
-          "files": "Attach files",
-          "folder": "Attach folder"
-        },
-        "messageLabel": "Message",
-        "placeholder": "Describe a goal, drop a sample, or revise...",
-        "placeholderWithRefs": "Ask the Agent to change the referenced nodes...",
-        "removeAttachment": "Remove {{name}}",
-        "reverseDefault": "Reverse-engineer a pipeline from the attached sample: {{names}}",
-        "send": "Send message"
+      "reversing": {
+        "intro": "Reading the sample — inferring the steps that produce it.",
+        "steps": {
+          "draft": "Drafting pipeline",
+          "draftDetail": "assembling nodes and edges",
+          "matched": "Matched components",
+          "matchedDetail": "reusable from your library",
+          "steps": "Inferred steps",
+          "stepsDetail": "parse → generate → verify → export",
+          "structure": "Read structure",
+          "structureDetail": "format, sections, citations"
+        }
       },
-      "actionTitles": {
-        "addEdge": "Add edge",
-        "addNode": "Add {{nodeType}}",
-        "reconnectEdge": "Reconnect edge",
-        "removeEdge": "Remove edge",
-        "removeNode": "Remove node",
-        "replaceNodeData": "Update node"
+      "subtitle": {
+        "applied": "Reading · canvas",
+        "clarify": "Reading · goal",
+        "done": "Run complete · asset saved",
+        "empty": "New canvas · no pipeline yet",
+        "proposal": "Drafting · proposal ready",
+        "refsSelected_one": "{{count}} reference selected",
+        "refsSelected_other": "{{count}} references selected",
+        "reversing": "Reading · sample",
+        "running": "Watching · live",
+        "watching": "Watching · {{jobId}} · live"
       },
-      "errors": {
-        "AGENT_FAILED": "The local agent did not respond. It may not be running or is misconfigured — retry, or check the agent runtime.",
-        "BAD_AGENT_OUTPUT": "The agent responded, but I could not turn it into a valid proposal. This is usually transient — please retry.",
-        "INVALID_SNAPSHOT": "The canvas state could not be read. Reload the page and try again.",
-        "RUNTIME_NOT_FOUND": "The configured agent runtime is not available on this machine, so I cannot draft proposals. Pick a detected runtime in Settings → Defaults.",
-        "actions": {
-          "openSettings": "Open Settings",
-          "retry": "Retry"
-        },
-        "proposalDropped": "(The drafted proposal failed validation and was discarded — ask me to try again.)"
+      "thinking": "Thinking…",
+      "thread": {
+        "emptyBody": "All annotations on this node are resolved.",
+        "emptyTitle": "No open notes here",
+        "resolve": "Resolve",
+        "showAll": "Show all",
+        "title": "Thread"
       },
-      "thinking": "Thinking…"
+      "title": "Agent"
     },
     "notFoundPipeline": "Pipeline not found"
   },

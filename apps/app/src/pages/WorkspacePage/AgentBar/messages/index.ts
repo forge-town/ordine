@@ -1,5 +1,6 @@
 export * from "./Assistant";
 export * from "./Bubble";
+export * from "./MessageActions";
 export * from "./CheckpointCard";
 export * from "./ClarifyOptions";
 export * from "./CompletionCard";
