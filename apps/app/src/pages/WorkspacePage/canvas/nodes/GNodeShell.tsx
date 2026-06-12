@@ -176,17 +176,8 @@ export const GNodeShell = ({
           data-testid="canvas-v2-node-hover-highlight"
         />
       ) : null}
-      <div
-        className={cn(
-          "relative overflow-hidden rounded-xl bg-surface shadow-soft ring-1 ring-border transition-all duration-150",
-          selected && "shadow-float ring-2 ring-foreground/40",
-          !selected && "hover:shadow-float hover:ring-border-strong",
-          preview && "opacity-80 ring-dashed ring-border-strong",
-          dimmed && "opacity-45",
-        )}
-        data-testid="canvas-v2-node-card"
-      >
-        <div className="absolute -top-3 right-1.5 z-20 hidden items-center gap-0.5 rounded-full bg-surface px-1 py-0.5 shadow-pill ring-1 ring-border group-hover/node-card:flex">
+      {/* Hover toolbar lives on the wrapper (NOT inside the overflow-hidden card) so the -top-3 pill is never clipped. */}
+      <div className="absolute -top-3 right-1.5 z-20 hidden items-center gap-0.5 rounded-full bg-surface px-1 py-0.5 shadow-pill ring-1 ring-border group-hover/node-card:flex">
           <button
             aria-label={t("workspace.canvas.nodes.actions.configure")}
             className="rounded-full p-1 text-foreground/70 hover:bg-accent/70"
@@ -226,8 +217,18 @@ export const GNodeShell = ({
             onClick={handleDeleteClick}
           >
             <Trash2 className="h-3 w-3" />
-          </button>
-        </div>
+        </button>
+      </div>
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-xl bg-surface shadow-soft ring-1 ring-border transition-all duration-150",
+          selected && "shadow-float ring-2 ring-foreground/40",
+          !selected && "hover:shadow-float hover:ring-border-strong",
+          preview && "opacity-80 ring-dashed ring-border-strong",
+          dimmed && "opacity-45",
+        )}
+        data-testid="canvas-v2-node-card"
+      >
         <div className="flex items-center gap-2 border-b border-border/70 px-2.5 py-2">
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-2">
             <Icon className="h-3.5 w-3.5 text-foreground/80" />
