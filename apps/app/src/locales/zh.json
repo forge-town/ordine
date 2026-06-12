@@ -677,10 +677,11 @@
         "actionCount_one": "{{count}} 个图操作",
         "actionCount_other": "{{count}} 个图操作",
         "apply": "应用",
+        "askFix": "让 Agent 修复",
         "blocked": "先解决诊断问题再应用",
+        "newOperationBadge": "新算子",
         "reject": "拒绝",
-        "revise": "修改",
-        "askFix": "让 Agent 修复"
+        "revise": "修改"
       },
       "reversing": {
         "intro": "正在阅读样本 — 推断生成它的步骤。",

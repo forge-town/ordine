@@ -677,10 +677,11 @@
         "actionCount_one": "{{count}} graph action",
         "actionCount_other": "{{count}} graph actions",
         "apply": "Apply",
+        "askFix": "Ask agent to fix",
         "blocked": "Resolve diagnostics before applying",
+        "newOperationBadge": "new op",
         "reject": "Reject",
-        "revise": "Revise",
-        "askFix": "Ask agent to fix"
+        "revise": "Revise"
       },
       "reversing": {
         "intro": "Reading the sample — inferring the steps that produce it.",

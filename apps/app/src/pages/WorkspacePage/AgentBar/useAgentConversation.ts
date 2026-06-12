@@ -102,16 +102,25 @@ export const useAgentConversation = ({
   });
   const hasBlockingDiagnostics =
     diagnostics?.some((diagnostic) => diagnostic.severity === "error") ?? false;
-  const proposalItems = useMemo(
-    () =>
+  const proposalItems = useMemo(() => {
+    const draftedOperationIds = new Set(pendingOperations.map((operation) => operation.id));
+
+    return (
       pendingProposal?.actions.map((action) => ({
+        badge:
+          action.type === "addNode" &&
+          "operationId" in action.node.data &&
+          typeof action.node.data.operationId === "string" &&
+          draftedOperationIds.has(action.node.data.operationId)
+            ? t("workspace.agentBar.proposal.newOperationBadge")
+            : undefined,
         detail: actionDetail(action),
         title: t(ACTION_TITLE_KEYS[action.type] ?? action.type, {
           nodeType: action.type === "addNode" ? action.node.type : undefined,
         }),
-      })) ?? [],
-    [pendingProposal, t],
-  );
+      })) ?? []
+    );
+  }, [pendingOperations, pendingProposal, t]);
 
   const submitMessage = useCallback(
     async ({ content, failedProposal, metadata }: AgentConversationSubmitInput) => {

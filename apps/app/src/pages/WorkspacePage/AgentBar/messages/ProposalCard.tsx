@@ -3,6 +3,8 @@ import { Button } from "@repo/ui/button";
 import { ProgressList } from "./ProgressList";
 
 export type ProposalItem = {
+  /** e.g. "new op" for agent-drafted operations that will be created on Apply. */
+  badge?: string;
   detail: string;
   title: string;
 };
@@ -38,6 +40,7 @@ export const ProposalCard = ({
       </div>
       <ProgressList
         items={items.map((item, index) => ({
+          badge: item.badge,
           detail: item.detail,
           id: `${index}-${item.title}`,
           title: item.title,

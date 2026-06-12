@@ -2,6 +2,7 @@ import { Check, LoaderCircle } from "lucide-react";
 import { Icon } from "@/components/primitives";
 
 export type ProgressListItem = {
+  badge?: string;
   detail?: string;
   done?: boolean;
   id: string;
@@ -33,6 +34,14 @@ export const ProgressList = ({ items, showStatus = false }: ProgressListProps) =
           )
         ) : null}
         <span className="font-medium">{item.title}</span>
+        {item.badge ? (
+          <span
+            className="shrink-0 rounded-full bg-success/15 px-1.5 py-px text-[9.5px] font-medium text-success"
+            data-testid="agent-progress-badge"
+          >
+            {item.badge}
+          </span>
+        ) : null}
         {item.detail ? (
           <span className="truncate text-muted-foreground">— {item.detail}</span>
         ) : null}
