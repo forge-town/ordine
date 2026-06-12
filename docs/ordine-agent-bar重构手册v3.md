@@ -104,7 +104,9 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 - **N11-05 Revise / diagnostics 修复回路**：`reviseProposal` 把被拒 proposal 的 summary + 动作清单写成一条带 `metadata.proposalSnapshot` 的 assistant 消息（自然进入 N11-02 的历史窗口）；ProposalCard 在存在阻塞 diagnostics 时增加行内 "Ask agent to fix" 按钮 → `submitMessage` 携带 `metadata.diagnostics`（schema 扩展）→ `buildProposePrompt` 注入 `=== PREVIOUS PROPOSAL DIAGNOSTICS ===` 段。验收：人为构造 unknown operationId 提案 → 点 fix → 新提案通过校验链。
 - **N11 整体验收**：选中节点改它 / 两轮指代 / 模糊追问 / 拒绝后修订四条路径全部真实跑通（真 LLM），录屏或截图存 pr-assets/。
 
-### N12 · 上下文透明做实（ContextAssembler 单一事实源）
+### N12 · 上下文透明做实（ContextAssembler 单一事实源）✅ 2026-06-12 完成
+
+> 执行记录：N12-01 `79b3c622` / N12-02 `0484efe6` / N12-03 `b7845ddb`。真机验收全过（Strip 真数据三态、selection 联动、运行中提问引用真实 trace），详见 `pr-assets/n16-验收记录.md` N12 段。与计划的偏差：①运行期 runState 除 activeJob 外也接受 latestJob=failed（失败后追问场景）；②anchors 注入为"位置+计数索引"段（内容已在 history，不重复传）；③Strip 与发送共用 useAgentConversation 内的同一 useAgentContext 实例。memory 项按决策 5 保持不点亮。
 
 - **N12-01 `AgentContextPayloadSchema` + `buildAgentContext`**：schema 字段与 Strip 8 项一一对应：`{project?, snapshotIncluded, threadWindow, selection[], anchors[], runState?, memory?}`；前端 `context/buildAgentContext.ts` 从 workspace/canvas/agentBar store 组装；**ContextStrip 改为渲染该函数输出**（每项 on/off、计数、标签全部由真实数据驱动），删除硬编码 items 数组；memory 项在无实现时不点亮（决策 5）。验收：Strip 渲染 === payload 的快照单测；无选中时 selection off、有徽标时 annotations 计数正确。
 - **N12-02 payload 贯通 proposeActions**：`submitMessage` 发送 `context: buildAgentContext(...)`；tRPC input + service 接收；`buildProposePrompt` 按段注入（project info / anchors 等），**未提供的项不注入也不声称**；snapshot 与 history 保持现有通道不重复传。验收：prompt 组装快照单测——"Strip 所见即 Agent 所得"。
