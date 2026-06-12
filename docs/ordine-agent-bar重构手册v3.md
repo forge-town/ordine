@@ -119,7 +119,11 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 - **N13-01 服务端 reason code**：proposeActions 六个 early-return 全部改为返回 `error: {code, detail?}`，code 枚举 `INVALID_SNAPSHOT / RUNTIME_NOT_FOUND / AGENT_FAILED / BAD_AGENT_OUTPUT`（JSON 提取/解析/校验合并为最后一项，detail 区分）；进 `ProposeActionsResponseSchema`。验收：四种 code 的单测。
 - **N13-02 前端错误渲染**：code → i18n 人话（固定三段：哪里出了问题 → 为什么 → 怎么处理），"怎么处理"必须可点击——`RUNTIME_NOT_FOUND` → 跳 Settings Defaults；`AGENT_FAILED`/`BAD_AGENT_OUTPUT` → 行内 Retry（原 metadata 重发同一条消息）。复用 ErrorCard 极简样式，en+zh + story + testid。验收：停掉 runtime、断网各一例，出现可点击修复动作且动作有效。
 
-### N14 · 逆向工程做实
+### N14 · 逆向工程做实 ✅ 2026-06-13 完成（N15-01 一并完成）
+
+> 执行记录：N14-01 `66a94177` / N14-02 `c92eb372` / N14-03 `26935cdf`（新增任务：系统提示词补全 nodeType 必填 data 字段——真机发现凡带输入/输出节点的提案必然校验失败的根因）/ N15-01 `9de9d999` / G2-01 `1eef6274`（mock 清查产出：导航与标题 canned 文案 i18n 化）。
+> 真机验收：真实 md 样本 → 芯片显示 1.3KB → 两段分析四步真实推进 → 副标题 analyzing→drafting 真实切换 → N14-03 修复后提案一次过校验（含 folder 输入节点占位路径与输出节点）。详见 pr-assets 验收记录 N14/N15 段。
+> 遗留：Retry 不携带附件全文（excerpt 降级方案待做）；N15-02 流式可选。
 
 - **N14-01 附件读真实内容**：`ConversationAttachmentSchema` 增 `size?: number, excerpt?: string`；Composer 用 FileReader 读文本类附件（md/txt/json/csv/源码，单文件截断 32k，总量 ≤128k），二进制只传元数据并在 UI 标注"仅文件名参与分析"；**消息 metadata 只存 excerpt（前 1k）防 DB 膨胀，全文走请求 payload 不落库**；附件芯片显示大小。验收：schema 兼容测试（旧消息无新字段可读）；传 md 后 payload 含全文、DB 仅 excerpt。
 - **N14-02 reversing 真两段**：service 新增 `analyzeArtifacts`（第一段调用：读结构/推步骤/匹配组件，输出 `{structure, steps[], matchedComponentIds[]}` JSON）；有附件时 proposeActions 先跑第一段，其产物注入第二段 prompt 的 `=== ARTIFACT ANALYSIS ===` 段；第一段结果随响应返回，前端 `reversingSteps` 由真实阶段驱动（两段调用完成度映射四步，删除 `AgentBar.tsx:63-72` 假 done 逻辑）。验收：上传真实 md 样本 → 进度真实推进 → proposal 内容与样本**内容**相关而非文件名猜测；对照单附件/多附件/纯二进制三例。
