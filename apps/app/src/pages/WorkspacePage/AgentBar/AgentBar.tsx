@@ -130,7 +130,7 @@ export const AgentBar = ({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages.length, phase]);
+  }, [isSending, messages.length, phase]);
 
   useEffect(() => {
     if (!pendingAsk) {
@@ -302,6 +302,9 @@ export const AgentBar = ({
             </div>
           );
         })}
+        {isSending ? (
+          <Assistant isThinking>{t("workspace.agentBar.thinking")}</Assistant>
+        ) : null}
         {diagnostics && diagnostics.length > 0 ? (
           <Assistant>{diagnostics.map((diagnostic) => diagnostic.message).join(" ")}</Assistant>
         ) : null}

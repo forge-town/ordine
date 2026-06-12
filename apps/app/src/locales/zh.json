@@ -786,7 +786,8 @@
           "retry": "重试"
         },
         "proposalDropped": "（生成的提案未通过校验已被丢弃——可以让我再试一次。）"
-      }
+      },
+      "thinking": "思考中…"
     },
     "notFoundPipeline": "找不到该 Pipeline"
   },

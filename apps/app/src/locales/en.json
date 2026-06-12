@@ -786,7 +786,8 @@
           "retry": "Retry"
         },
         "proposalDropped": "(The drafted proposal failed validation and was discarded — ask me to try again.)"
-      }
+      },
+      "thinking": "Thinking…"
     },
     "notFoundPipeline": "Pipeline not found"
   },

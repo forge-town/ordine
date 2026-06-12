@@ -122,6 +122,14 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 - **N14-01 附件读真实内容**：`ConversationAttachmentSchema` 增 `size?: number, excerpt?: string`；Composer 用 FileReader 读文本类附件（md/txt/json/csv/源码，单文件截断 32k，总量 ≤128k），二进制只传元数据并在 UI 标注"仅文件名参与分析"；**消息 metadata 只存 excerpt（前 1k）防 DB 膨胀，全文走请求 payload 不落库**；附件芯片显示大小。验收：schema 兼容测试（旧消息无新字段可读）；传 md 后 payload 含全文、DB 仅 excerpt。
 - **N14-02 reversing 真两段**：service 新增 `analyzeArtifacts`（第一段调用：读结构/推步骤/匹配组件，输出 `{structure, steps[], matchedComponentIds[]}` JSON）；有附件时 proposeActions 先跑第一段，其产物注入第二段 prompt 的 `=== ARTIFACT ANALYSIS ===` 段；第一段结果随响应返回，前端 `reversingSteps` 由真实阶段驱动（两段调用完成度映射四步，删除 `AgentBar.tsx:63-72` 假 done 逻辑）。验收：上传真实 md 样本 → 进度真实推进 → proposal 内容与样本**内容**相关而非文件名猜测；对照单附件/多附件/纯二进制三例。
 
+### N16 · Agent 创建算子与 Composer 升级（用户验收反馈，2026-06-12）
+
+- **N16-01 proposal 支持新建 operation（最高优）**：现状 PROPOSE_SYSTEM_PROMPT 规定"ONLY use operations from the provided list"，无匹配算子时 Agent 只能拒绝（实测 PDF→Markdown 场景）。改法对齐 generateStructure 的 pendingOperations 机制：输出 schema 增 `newOperations?: [{name, description, systemPrompt}]`；服务端把它转为 pendingOperation config（executor=agent/prompt 模式，复用 generateStructure 的构造逻辑），proposal 的 addNode 可引用这些新算子 id；前端 Apply 时先 createPendingOperations 再应用图（tRPC pipelines.create 已有该参数，补 proposeActions 专用端点或复用）；ProposalCard 列表对新建算子标注 `new op`。验收：真模型说"PDF 转 Markdown"→ 得到含新算子的提案卡 → Apply 后 operation 入库、节点上画布。
+- **N16-02 Composer 升级 Codex 风**：附件按钮改加号（Plus）+ 弹出菜单：Attach files / Attach folder（webkitdirectory）/ 预留扩展位（菜单结构组件化，后续可加 connector、screenshot 等）；目录上传读取文件清单作为 attachments（路径保留相对结构）。验收：files/folder 两路均可挂载并出芯片；菜单 story。
+- **N16-03 发送后加载动效**：isSending 期间消息流末尾渲染 `Assistant isThinking` 行（spinner+文案，i18n），收到回复即移除；滚动跟随。验收：发消息立刻可见"思考中"，不再静默等待。
+- **N16-04 Canvas operation 节点样式对照原型**：用户指出节点卡片样式与 `docs/prototype/ordien/canvas.jsx` 不符（插槽/端口样式、连线锚点观感）。逐项对照 GNodeShell 与原型 GNode（canvas.jsx 节点渲染段），输出差异清单后修复；目检截图并排存 pr-assets/。验收：与原型并排目检一致。
+- 备注：Components 面板点击创建 operation 节点经真机验证**功能正常**（2026-06-12 冒烟）；用户感知的"创建不成功"实为 N16-01 的 Agent 路径缺失。
+
 ### N15 · 阶段事件与流式（可与 N13/N14 穿插，N15-02 可暂缓）
 
 - **N15-01 粗粒度阶段事件**：利用 `runAgent` 的 `onProgress` 钩子 + 服务端内存态（或 tRPC subscription，二选一以实现成本定）暴露 `thinking → drafting → validating` 阶段；前端 isThinking 行副标题实时更新（含 reversing 两段的阶段转发）。验收：发消息后副标题至少经历两次真实变化，非定时器伪造。
