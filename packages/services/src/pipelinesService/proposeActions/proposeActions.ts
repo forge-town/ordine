@@ -9,6 +9,7 @@ import { validatePipelineActions } from "@repo/pipeline-engine";
 import {
   PipelineGraphSnapshotSchema,
   PipelineActionProposalSchema,
+  type AgentContextPayload,
   type ConversationAttachment,
   type PipelineGraphSnapshot,
   type ProposeActionsResponse,
@@ -59,6 +60,8 @@ const loadConversationHistory = async (
 
 export type ProposeActionsOptions = {
   attachments?: ConversationAttachment[];
+  /** 前端 buildAgentContext 输出——Strip 所见即 Agent 所得（N12-02）。 */
+  context?: AgentContextPayload;
   diagnostics?: string[];
   failedProposal?: unknown;
   snapshot: PipelineGraphSnapshot;
@@ -162,6 +165,7 @@ export const proposeActions = async (
   );
   const userPromptText = buildProposeUserPrompt({
     attachments: opts.attachments ?? [],
+    context: opts.context,
     diagnostics: opts.diagnostics ?? [],
     failedProposal: opts.failedProposal,
     history,

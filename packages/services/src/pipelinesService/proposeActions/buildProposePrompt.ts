@@ -1,4 +1,8 @@
-import type { ConversationAttachment, PipelineGraphSnapshot } from "@repo/schemas";
+import type {
+  AgentContextPayload,
+  ConversationAttachment,
+  PipelineGraphSnapshot,
+} from "@repo/schemas";
 import { MAX_SNAPSHOT_CHARS, truncate } from "../promptText";
 import { buildHistoryBlock, type ProposeHistoryMessage } from "./conversationHistory";
 
@@ -74,6 +78,8 @@ export type ProposeOperationCatalogItem = {
 
 export type BuildProposeUserPromptInput = {
   attachments: ConversationAttachment[];
+  /** 前端 buildAgentContext 输出（N12-02）。未提供的项不注入也不声称。 */
+  context?: AgentContextPayload;
   diagnostics?: string[];
   failedProposal?: unknown;
   history?: ProposeHistoryMessage[];
@@ -83,6 +89,24 @@ export type BuildProposeUserPromptInput = {
   pipelineName?: string;
   referencedNodeIds?: string[];
   snapshot: PipelineGraphSnapshot;
+};
+
+/** 未解决的画布锚点批注：内容已在对话历史里，这里给出位置与计数索引。 */
+const buildAnnotationsBlock = (context?: AgentContextPayload): string[] => {
+  if (!context || context.anchors.length === 0) {
+    return [];
+  }
+
+  return [
+    "=== USER ANNOTATIONS (unresolved node-anchored notes) ===",
+    "The user left unresolved notes anchored to these graph elements.",
+    "Their content appears in the conversation history; treat them as open requests tied to the listed elements.",
+    ...context.anchors.map(
+      (anchor) =>
+        `- ${anchor.label ?? anchor.refId} (${anchor.refId}): ${anchor.count} unresolved note(s)`,
+    ),
+    "",
+  ];
 };
 
 const buildDiagnosticsBlock = (diagnostics: string[], failedProposal: unknown): string[] => {
@@ -173,6 +197,7 @@ const buildSelectionBlock = (
 
 export const buildProposeUserPrompt = ({
   attachments,
+  context,
   diagnostics = [],
   failedProposal,
   history = [],
@@ -207,6 +232,7 @@ export const buildProposeUserPrompt = ({
     "",
     ...buildHistoryBlock(history),
     ...buildSelectionBlock(referencedNodeIds, snapshot),
+    ...buildAnnotationsBlock(context),
     ...buildDiagnosticsBlock(diagnostics, failedProposal),
     ...sampleArtifactBlock,
     "=== USER REQUEST ===",

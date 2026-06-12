@@ -149,3 +149,34 @@ describe("buildProposeUserPrompt selection block", () => {
     expect(prompt).toContain("ghost");
   });
 });
+
+describe("buildProposeUserPrompt annotations block (N12-02)", () => {
+  const context = {
+    anchors: [
+      { count: 2, label: "Verify child", refId: "vc" },
+      { count: 1, refId: "n1" },
+    ],
+    selection: [],
+    snapshotIncluded: true,
+    threadWindow: { enabled: true, limit: 20 },
+  };
+
+  it("injects unresolved anchors with labels and counts", () => {
+    const prompt = buildProposeUserPrompt({ ...basePromptInput, context });
+
+    expect(prompt).toContain("=== USER ANNOTATIONS (unresolved node-anchored notes) ===");
+    expect(prompt).toContain("- Verify child (vc): 2 unresolved note(s)");
+    expect(prompt).toContain("- n1 (n1): 1 unresolved note(s)");
+  });
+
+  it("omits the block when context is missing or has no anchors", () => {
+    const withoutContext = buildProposeUserPrompt(basePromptInput);
+    const withoutAnchors = buildProposeUserPrompt({
+      ...basePromptInput,
+      context: { ...context, anchors: [] },
+    });
+
+    expect(withoutContext).not.toContain("USER ANNOTATIONS");
+    expect(withoutAnchors).not.toContain("USER ANNOTATIONS");
+  });
+});

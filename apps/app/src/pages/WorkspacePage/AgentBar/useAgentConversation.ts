@@ -144,6 +144,7 @@ export const useAgentConversation = ({
           payload: {
             id: pipelineId,
             attachments: metadata.attachments ?? [],
+            context: agentContext,
             diagnostics: metadata.diagnostics ?? [],
             failedProposal,
             message: trimmedContent,
@@ -202,6 +203,7 @@ export const useAgentConversation = ({
       setIsProposing(false);
     },
     [
+      agentContext,
       clearPendingProposal,
       edges,
       nodes,

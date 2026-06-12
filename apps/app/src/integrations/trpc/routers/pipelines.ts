@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../init";
 import { pipelinesService, pipelineRunnerService } from "../services";
 import {
+  AgentContextPayloadSchema,
   ConversationAttachmentSchema,
   PipelineGraphSnapshotSchema,
   PipelineSchema,
@@ -134,6 +135,7 @@ export const pipelinesRouter = router({
       z.object({
         id: z.string(),
         attachments: z.array(ConversationAttachmentSchema).optional(),
+        context: AgentContextPayloadSchema.optional(),
         diagnostics: z.array(z.string()).optional(),
         failedProposal: z.unknown().optional(),
         snapshot: PipelineGraphSnapshotSchema,
@@ -147,6 +149,7 @@ export const pipelinesRouter = router({
       pipelinesService.proposeActions({
         pipelineId: input.id,
         attachments: input.attachments,
+        context: input.context,
         diagnostics: input.diagnostics,
         failedProposal: input.failedProposal,
         snapshot: input.snapshot,
