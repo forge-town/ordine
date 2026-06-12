@@ -22,7 +22,7 @@ import { AgentDistillCard } from "./AgentDistillCard";
 import { DebugPhaseBar } from "./DebugPhaseBar";
 import { AgentRunCards } from "./AgentRunCards";
 import { Composer, RefChips } from "./Composer";
-import { countUnresolvedAnchors, useAgentBarStore, type AgentBarMessage } from "./_store";
+import { useAgentBarStore, type AgentBarMessage } from "./_store";
 import { useAgentConversation } from "./useAgentConversation";
 
 export type AgentBarProps = {
@@ -59,6 +59,7 @@ export const AgentBar = ({
   const pendingAsk = useWorkspaceStore((state) => state.pendingAsk);
   const clearPendingAsk = useWorkspaceStore((state) => state.clearPendingAsk);
   const {
+    agentContext,
     applyProposal,
     diagnostics,
     hasBlockingDiagnostics,
@@ -84,10 +85,6 @@ export const AgentBar = ({
   const activeRefs = useMemo(
     () => canvasRefs.filter((ref) => !dismissed.includes(ref.id)),
     [canvasRefs, dismissed],
-  );
-  const composerAnchorCount = useMemo(
-    () => activeRefs.reduce((total, ref) => total + countUnresolvedAnchors(messages, ref.id), 0),
-    [activeRefs, messages],
   );
   const visibleMessages = useMemo(
     () =>
@@ -355,7 +352,7 @@ export const AgentBar = ({
       <div className="shrink-0 border-t border-border/70">
         {composer ?? (
           <Composer
-            anchorCount={composerAnchorCount}
+            agentContext={agentContext}
             isSending={isSending}
             refs={activeRefs}
             onRemoveRef={dismissRef}

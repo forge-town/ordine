@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { ArrowUp, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { ConversationAttachment, ConversationMessageMetadata } from "@repo/schemas";
+import type {
+  AgentContextPayload,
+  ConversationAttachment,
+  ConversationMessageMetadata,
+} from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Textarea } from "@repo/ui/textarea";
 import { useWorkspaceStore, type WorkspaceCanvasRef } from "../../_store/workspaceStore";
@@ -17,7 +21,8 @@ export type ComposerSubmitInput = {
 };
 
 export type ComposerProps = {
-  anchorCount?: number;
+  /** buildAgentContext 输出，ContextStrip 渲染与发送共用（N12-01）。 */
+  agentContext: AgentContextPayload;
   isSending?: boolean;
   refs: WorkspaceCanvasRef[];
   onRemoveRef: (id: string) => void;
@@ -27,7 +32,7 @@ export type ComposerProps = {
 const createMessageId = () => `agent-message-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export const Composer = ({
-  anchorCount = 0,
+  agentContext,
   isSending = false,
   onRemoveRef,
   onSubmit,
@@ -38,8 +43,6 @@ export const Composer = ({
   const [attachments, setAttachments] = useState<ConversationAttachment[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const addMessage = useAgentBarStore((state) => state.addMessage);
-  const hasConversation = useAgentBarStore((state) => state.messages.length > 0);
-  const phase = useWorkspaceStore((state) => state.phase);
   const composerFocusNonce = useWorkspaceStore((state) => state.composerFocusNonce);
   const composerDraft = useWorkspaceStore((state) => state.composerDraft);
   const setComposerDraft = useWorkspaceStore((state) => state.setComposerDraft);
@@ -135,12 +138,7 @@ export const Composer = ({
 
   return (
     <div>
-      <ContextStrip
-        anchorCount={anchorCount}
-        hasConversation={hasConversation}
-        phase={phase}
-        refs={refs}
-      />
+      <ContextStrip context={agentContext} />
       <div className="p-3 pt-2">
         <RefChips refs={refs} onRemoveRef={handleRemoveRef} />
 

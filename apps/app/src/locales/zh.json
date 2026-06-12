@@ -704,7 +704,7 @@
         },
         "rules": {
           "always": "始终",
-          "compressed": "始终 · 压缩",
+          "notImplemented": "未实现",
           "runtime": "运行时优先",
           "whenPresent": "存在时",
           "whenSelected": "选中时",

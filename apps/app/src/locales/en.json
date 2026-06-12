@@ -704,7 +704,7 @@
         },
         "rules": {
           "always": "always",
-          "compressed": "always · compressed",
+          "notImplemented": "not yet",
           "runtime": "run-time priority",
           "whenPresent": "when present",
           "whenSelected": "when selected",

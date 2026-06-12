@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { AgentContextPayload } from "@repo/schemas";
 import type { WorkspaceCanvasRef } from "../../_store/workspaceStore";
 import { useAgentBarStore } from "../_store";
 import { Composer } from "./Composer";
@@ -10,8 +11,16 @@ const refs: WorkspaceCanvasRef[] = [
   { baseId: "edge-1", id: "edge-1", kind: "semantic", label: "Parse edge", path: [], type: "edge" },
 ];
 
+const agentContext: AgentContextPayload = {
+  anchors: [],
+  project: { pipelineId: "pipeline-1" },
+  selection: refs.map((ref) => ({ label: ref.label, refId: ref.id, type: ref.type })),
+  snapshotIncluded: true,
+  threadWindow: { enabled: false, limit: 20 },
+};
+
 const renderComposer = (handleRemoveRef = vi.fn()) => {
-  render(<Composer refs={refs} onRemoveRef={handleRemoveRef} />);
+  render(<Composer agentContext={agentContext} refs={refs} onRemoveRef={handleRemoveRef} />);
 
   return { handleRemoveRef };
 };

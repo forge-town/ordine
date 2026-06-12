@@ -14,6 +14,7 @@ import { ResourceName, dataProvider } from "@/integrations/refine/dataProvider";
 import { CanvasStoreContext, useCanvasStore } from "../canvas/_store/canvasStore";
 import { toPipelineSnapshot } from "../canvas/_store/canvasTypes";
 import { useWorkspaceStore } from "../_store/workspaceStore";
+import { useAgentContext } from "./context";
 import { useAgentConversationPersistence } from "./useAgentConversationPersistence";
 
 export type AgentConversationSubmitInput = {
@@ -92,6 +93,7 @@ export const useAgentConversation = ({
   const pendingProposal = useCanvasStore((state) => state.pendingProposal);
   const diagnostics = useCanvasStore((state) => state.proposalDiagnostics);
   const setPhase = useWorkspaceStore((state) => state.setPhase);
+  const agentContext = useAgentContext({ pipelineId, pipelineName });
   const { mutateAsync: updatePipeline, mutation: updateMutation } = useUpdate();
   const [isProposing, setIsProposing] = useState(false);
   const [isReversing, setIsReversing] = useState(false);
@@ -346,6 +348,7 @@ export const useAgentConversation = ({
   }, [diagnostics, pendingProposal, submitMessage, t]);
 
   return {
+    agentContext,
     applyProposal,
     diagnostics,
     hasBlockingDiagnostics,

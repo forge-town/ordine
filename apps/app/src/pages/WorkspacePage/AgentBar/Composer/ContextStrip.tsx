@@ -2,14 +2,12 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
-import type { WorkspaceCanvasRef, WorkspacePhase } from "@repo/schemas";
+import type { AgentContextPayload } from "@repo/schemas";
 import { Icon } from "@/components/primitives";
 
 export type ContextStripProps = {
-  anchorCount?: number;
-  hasConversation?: boolean;
-  phase: WorkspacePhase;
-  refs: WorkspaceCanvasRef[];
+  /** buildAgentContext 输出——与实际发送给 proposeActions 的是同一对象（N12-01）。 */
+  context: AgentContextPayload;
 };
 
 type ContextItem = {
@@ -21,45 +19,51 @@ type ContextItem = {
   rule: string;
 };
 
-/** Spec §3.3 context transparency — what the next message will carry, and why. */
-export const ContextStrip = ({
-  anchorCount = 0,
-  hasConversation = false,
-  phase,
-  refs,
-}: ContextStripProps) => {
+const LIVE_RUN_STATUSES = new Set(["queued", "running"]);
+
+/**
+ * Spec §3.3 context transparency。每一项的亮灭/计数完全由 payload 驱动，
+ * Strip 不再自行编一套"注入规则"（假透明，N12-01 修正）。
+ */
+export const ContextStrip = ({ context }: ContextStripProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const running = phase === "running";
-  const refLabel = refs.map((ref) => ref.label).join(", ");
+  const running = Boolean(context.runState && LIVE_RUN_STATUSES.has(context.runState.status));
+  const selectionLabel = context.selection
+    .map((item) => item.label ?? item.refId)
+    .join(", ");
+  const anchorCount = context.anchors.reduce((total, anchor) => total + anchor.count, 0);
+  const trackedNodeCount = context.runState
+    ? Object.values(context.runState.nodeStatuses).filter((status) => status !== "idle").length
+    : 0;
 
   const items: ContextItem[] = [
     {
       id: "project",
       label: t("workspace.agentBar.context.items.project"),
-      on: true,
+      on: Boolean(context.project),
       rule: t("workspace.agentBar.context.rules.always"),
     },
     {
       dim: running,
       id: "snapshot",
       label: t("workspace.agentBar.context.items.snapshot"),
-      on: true,
+      on: context.snapshotIncluded,
       rule: t("workspace.agentBar.context.rules.always"),
     },
     {
       id: "thread",
       label: t("workspace.agentBar.context.items.thread"),
-      on: true,
+      on: context.threadWindow.enabled,
       rule: t("workspace.agentBar.context.rules.windowed"),
     },
     {
       id: "selection",
       label:
-        refs.length > 0
-          ? t("workspace.agentBar.context.items.selectionWith", { refs: refLabel })
+        context.selection.length > 0
+          ? t("workspace.agentBar.context.items.selectionWith", { refs: selectionLabel })
           : t("workspace.agentBar.context.items.selection"),
-      on: refs.length > 0,
+      on: context.selection.length > 0,
       rule: t("workspace.agentBar.context.rules.whenSelected"),
     },
     {
@@ -75,28 +79,28 @@ export const ContextStrip = ({
       hot: running,
       id: "runState",
       label: t("workspace.agentBar.context.items.runState"),
-      on: running,
+      on: Boolean(context.runState),
       rule: t("workspace.agentBar.context.rules.runtime"),
     },
     {
       hot: running,
       id: "nodeRuntime",
       label: t("workspace.agentBar.context.items.nodeRuntime"),
-      on: running,
+      on: trackedNodeCount > 0,
       rule: t("workspace.agentBar.context.rules.runtime"),
     },
     {
       dim: true,
       id: "memory",
       label: t("workspace.agentBar.context.items.memory"),
-      on: hasConversation,
-      rule: t("workspace.agentBar.context.rules.compressed"),
+      on: Boolean(context.memory),
+      rule: t("workspace.agentBar.context.rules.notImplemented"),
     },
   ];
   const activeCount = items.filter((item) => item.on).length;
   const summary = running
     ? t("workspace.agentBar.context.summary.running")
-    : refs.length > 0
+    : context.selection.length > 0
       ? t("workspace.agentBar.context.summary.selection")
       : anchorCount > 0
         ? t("workspace.agentBar.context.summary.annotations")
@@ -130,6 +134,8 @@ export const ContextStrip = ({
                 "flex items-center gap-2 rounded-lg px-1.5 py-1 text-[10.5px]",
                 !item.on && "opacity-40",
               )}
+              data-context-on={item.on ? "true" : "false"}
+              data-testid={`agent-context-item-${item.id}`}
             >
               <span className="flex size-3 items-center justify-center">
                 {item.on ? (
