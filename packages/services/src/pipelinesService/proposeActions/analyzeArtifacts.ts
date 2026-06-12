@@ -49,7 +49,11 @@ export const buildAnalyzeUserPrompt = ({
     ...attachments.flatMap((attachment, index) => [
       `Artifact ${index + 1}: ${attachment.name}${attachment.type ? ` (${attachment.type})` : ""}`,
       ...(attachment.content
-        ? ["--- content start ---", truncate(attachment.content, MAX_ANALYZE_CONTENT_CHARS), "--- content end ---"]
+        ? [
+            "--- content start ---",
+            truncate(attachment.content, MAX_ANALYZE_CONTENT_CHARS),
+            "--- content end ---",
+          ]
         : ["(binary — filename only)"]),
       "",
     ]),

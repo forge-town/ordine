@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { formatCost, formatDurationBetween, formatDurationMs, formatTokens, timeAgo } from "./format";
+import {
+  formatCost,
+  formatDurationBetween,
+  formatDurationMs,
+  formatTokens,
+  timeAgo,
+} from "./format";
 
 describe("formatDurationMs", () => {
   it("formats the three magnitude bands consistently", () => {

@@ -11,12 +11,14 @@ type TestStoreState = GraphSlice & PanelSlice & ProposalSlice & SelectionSlice;
 
 const makeNode = (id: string): CanvasNode => ({
   id,
-  type: "folder",
+  type: "operation",
   position: { x: 0, y: 0 },
   data: {
     label: id,
-    nodeType: "folder",
-    folderPath: `/tmp/${id}`,
+    nodeType: "operation",
+    operationId: `op-${id}`,
+    operationName: id,
+    status: "idle",
   },
 });
 

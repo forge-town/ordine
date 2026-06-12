@@ -34,9 +34,7 @@ export const countUnresolvedAnchors = (
   ).length;
 
 /** 按 refId 汇总未解决锚点 — 由 AnchorCountSync 写入 workspaceStore，canvas 只从那里读（G1-03）。 */
-export const countAnchorsByRef = (
-  messages: readonly AgentBarMessage[],
-): Record<string, number> => {
+export const countAnchorsByRef = (messages: readonly AgentBarMessage[]): Record<string, number> => {
   const counts: Record<string, number> = {};
   for (const message of messages) {
     if (message.metadata?.resolved || message.isThinking) {

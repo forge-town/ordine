@@ -41,13 +41,23 @@ vi.mock("@tanstack/react-router", () => ({
 
 vi.mock("./useAgentConversation", () => ({
   useAgentConversation: () => ({
+    agentContext: {
+      anchors: [],
+      project: { pipelineId: "pipe-test", pipelineName: "Pipeline" },
+      selection: [],
+      snapshotIncluded: true,
+      threadWindow: { enabled: false, limit: 20 },
+    },
     applyProposal: vi.fn(),
     diagnostics: null,
     hasBlockingDiagnostics: false,
+    isReversing: false,
     isSending: false,
     pendingProposal: null,
+    progressStage: null,
     proposalItems: [],
     rejectProposal: vi.fn(),
+    requestProposalFix: vi.fn(),
     reviseProposal: vi.fn(),
     submitMessage: vi.fn(),
   }),

@@ -76,7 +76,8 @@ const PLURAL_SUFFIX_RE = /_(?:zero|one|two|few|many|other)$/;
 const isAlive = (key: string): boolean =>
   usedExact.has(key) || prefixes.some((prefix) => key.startsWith(prefix));
 const deadKeys = enKeys.filter(
-  (key) => !isAlive(key) && !(PLURAL_SUFFIX_RE.test(key) && isAlive(key.replace(PLURAL_SUFFIX_RE, ""))),
+  (key) =>
+    !isAlive(key) && !(PLURAL_SUFFIX_RE.test(key) && isAlive(key.replace(PLURAL_SUFFIX_RE, ""))),
 );
 
 const FIX = process.argv.includes("--fix");
@@ -110,8 +111,13 @@ if (FIX) {
 let failed = false;
 if (missingInZh.length > 0 || missingInEn.length > 0) {
   failed = true;
-  console.error(`✗ 双语 parity 失败：zh 缺 ${missingInZh.length} 键，en 缺 ${missingInEn.length} 键`);
-  for (const key of [...missingInZh.map((k) => `zh 缺: ${k}`), ...missingInEn.map((k) => `en 缺: ${k}`)]) {
+  console.error(
+    `✗ 双语 parity 失败：zh 缺 ${missingInZh.length} 键，en 缺 ${missingInEn.length} 键`,
+  );
+  for (const key of [
+    ...missingInZh.map((k) => `zh 缺: ${k}`),
+    ...missingInEn.map((k) => `en 缺: ${k}`),
+  ]) {
     console.error(`  - ${key}`);
   }
 }

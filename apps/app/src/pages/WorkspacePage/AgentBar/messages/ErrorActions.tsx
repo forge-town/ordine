@@ -14,7 +14,12 @@ export type ErrorActionsProps = {
  * Inline recovery actions for a failed propose round (PRD principle 5:
  * "how to fix" must be clickable, not plain text).
  */
-export const ErrorActions = ({ code, disabled = false, onOpenSettings, onRetry }: ErrorActionsProps) => {
+export const ErrorActions = ({
+  code,
+  disabled = false,
+  onOpenSettings,
+  onRetry,
+}: ErrorActionsProps) => {
   const { t } = useTranslation();
   const isRuntimeIssue = code === "RUNTIME_NOT_FOUND";
 

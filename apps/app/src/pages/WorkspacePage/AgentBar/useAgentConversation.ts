@@ -111,12 +111,11 @@ export const useAgentConversation = ({
     }
 
     const intervalId = globalThis.setInterval(() => {
-      void dataProvider
-        .custom!<{ stage: string | null }>({
-          method: "post",
-          payload: { token: progressToken },
-          url: "pipelines/proposeProgress",
-        })
+      void dataProvider.custom!<{ stage: string | null }>({
+        method: "post",
+        payload: { token: progressToken },
+        url: "pipelines/proposeProgress",
+      })
         .then((response) => {
           if (response.data.stage) {
             setProgressStage(response.data.stage);
@@ -154,7 +153,12 @@ export const useAgentConversation = ({
   }, [pendingOperations, pendingProposal, t]);
 
   const submitMessage = useCallback(
-    async ({ content, failedProposal, metadata, proposeAttachments }: AgentConversationSubmitInput) => {
+    async ({
+      content,
+      failedProposal,
+      metadata,
+      proposeAttachments,
+    }: AgentConversationSubmitInput) => {
       const trimmedContent = content.trim();
       if (!pipelineId || trimmedContent.length === 0) {
         return;

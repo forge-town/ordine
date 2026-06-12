@@ -165,7 +165,11 @@ describe("AgentBar message components", () => {
     expect(handleOpenSettings).toHaveBeenCalled();
 
     rerender(
-      <ErrorActions code="AGENT_FAILED" onOpenSettings={handleOpenSettings} onRetry={handleRetry} />,
+      <ErrorActions
+        code="AGENT_FAILED"
+        onOpenSettings={handleOpenSettings}
+        onRetry={handleRetry}
+      />,
     );
     await user.click(screen.getByTestId("agent-error-retry"));
     expect(handleRetry).toHaveBeenCalled();

@@ -147,11 +147,11 @@ describe("SearchPipelineDialog", () => {
   it("renders pipeline, component, and job result groups", () => {
     renderDialog();
 
-    expect(screen.getByText("Pipelines")).toBeInTheDocument();
+    expect(screen.getByText("流水线")).toBeInTheDocument();
     expect(screen.getByText("Lead Research Brief")).toBeInTheDocument();
-    expect(screen.getByText("Components")).toBeInTheDocument();
+    expect(screen.getByText("组件")).toBeInTheDocument();
     expect(screen.getByText("Lead Enrichment Component")).toBeInTheDocument();
-    expect(screen.getByText("Jobs")).toBeInTheDocument();
+    expect(screen.getByText("工单")).toBeInTheDocument();
     expect(screen.getByText("Lead sync job")).toBeInTheDocument();
   });
 

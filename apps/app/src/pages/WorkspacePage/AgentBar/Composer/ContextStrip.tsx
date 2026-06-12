@@ -29,9 +29,7 @@ export const ContextStrip = ({ context }: ContextStripProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const running = Boolean(context.runState && LIVE_RUN_STATUSES.has(context.runState.status));
-  const selectionLabel = context.selection
-    .map((item) => item.label ?? item.refId)
-    .join(", ");
+  const selectionLabel = context.selection.map((item) => item.label ?? item.refId).join(", ");
   const anchorCount = context.anchors.reduce((total, anchor) => total + anchor.count, 0);
   const trackedNodeCount = context.runState
     ? Object.values(context.runState.nodeStatuses).filter((status) => status !== "idle").length

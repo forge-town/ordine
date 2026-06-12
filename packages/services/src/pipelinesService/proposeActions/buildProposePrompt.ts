@@ -244,7 +244,6 @@ const buildSelectionBlock = (
   ];
 };
 
-
 const MAX_ARTIFACT_CONTENT_CHARS = 32_000;
 
 /**
@@ -261,7 +260,10 @@ const buildArtifactAnalysisBlock = (analysis?: ArtifactAnalysis): string[] => {
     "=== ARTIFACT ANALYSIS (stage one) ===",
     `Structure: ${analysis.structure}`,
     ...(analysis.steps.length > 0
-      ? ["Inferred upstream steps (ordered):", ...analysis.steps.map((step, i) => `${i + 1}. ${step}`)]
+      ? [
+          "Inferred upstream steps (ordered):",
+          ...analysis.steps.map((step, i) => `${i + 1}. ${step}`),
+        ]
       : []),
     ...(analysis.matchedComponentIds.length > 0
       ? [`Existing operations matching these steps: ${analysis.matchedComponentIds.join(", ")}`]
@@ -277,9 +279,12 @@ const buildArtifactsBlock = (attachments: ProposeAttachment[]): string[] => {
   }
 
   const sections = attachments.flatMap((attachment, index) => {
-    const header = `Artifact ${index + 1}: ${attachment.name}` +
+    const header =
+      `Artifact ${index + 1}: ${attachment.name}` +
       `${attachment.type ? ` (${attachment.type}` : " ("}${
-        attachment.size !== undefined ? `${attachment.type ? ", " : ""}${attachment.size} bytes)` : ")"
+        attachment.size !== undefined
+          ? `${attachment.type ? ", " : ""}${attachment.size} bytes)`
+          : ")"
       }`;
 
     if (attachment.content === undefined || attachment.content.length === 0) {

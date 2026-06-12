@@ -55,9 +55,11 @@ export const readAttachments = async (
   usedChars = 0,
 ): Promise<ProposeAttachment[]> => {
   const results: ProposeAttachment[] = [];
-  let budget = Math.max(0, MAX_TOTAL_CHARS - usedChars);
+  const totalBudget = Math.max(0, MAX_TOTAL_CHARS - usedChars);
 
   for (const file of files) {
+    const budget = totalBudget - results.reduce((sum, r) => sum + (r.content?.length ?? 0), 0);
+
     // webkitRelativePath 仅目录上传时存在（旧 jsdom 可能缺失）。
     const relativePath: string = file.webkitRelativePath ?? "";
     const name = relativePath.length > 0 ? relativePath : file.name;
@@ -74,7 +76,6 @@ export const readAttachments = async (
 
     const text = await file.text();
     const content = text.slice(0, Math.min(MAX_FILE_CHARS, budget));
-    budget -= content.length;
     results.push({ ...base, content, excerpt: content.slice(0, EXCERPT_CHARS) });
   }
 

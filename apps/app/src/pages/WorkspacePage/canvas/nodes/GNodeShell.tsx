@@ -1,11 +1,4 @@
-import {
-  Copy,
-  MessageSquare,
-  Settings2,
-  Sparkles,
-  Trash2,
-  type LucideIcon,
-} from "lucide-react";
+import { Copy, MessageSquare, Settings2, Sparkles, Trash2, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/shallow";
 import { cn } from "@repo/ui/lib/utils";
@@ -178,45 +171,45 @@ export const GNodeShell = ({
       ) : null}
       {/* Hover toolbar lives on the wrapper (NOT inside the overflow-hidden card) so the -top-3 pill is never clipped. */}
       <div className="absolute -top-3 right-1.5 z-20 hidden items-center gap-0.5 rounded-full bg-surface px-1 py-0.5 shadow-pill ring-1 ring-border group-hover/node-card:flex">
-          <button
-            aria-label={t("workspace.canvas.nodes.actions.configure")}
-            className="rounded-full p-1 text-foreground/70 hover:bg-accent/70"
-            data-testid="canvas-v2-node-configure"
-            title={t("workspace.canvas.nodes.actions.configure")}
-            type="button"
-            onClick={handleConfigClick}
-          >
-            <Settings2 className="h-3 w-3" />
-          </button>
-          <button
-            aria-label={t("workspace.canvas.nodes.actions.ask")}
-            className="rounded-full p-1 text-foreground/70 hover:bg-accent/70"
-            data-testid="canvas-v2-node-ask"
-            title={t("workspace.canvas.nodes.actions.ask")}
-            type="button"
-            onClick={handleAskClick}
-          >
-            <Sparkles className="h-3 w-3" />
-          </button>
-          <button
-            aria-label={t("workspace.canvas.nodes.actions.duplicate")}
-            className="rounded-full p-1 text-foreground/70 hover:bg-accent/70"
-            data-testid="canvas-v2-node-duplicate"
-            title={t("workspace.canvas.nodes.actions.duplicate")}
-            type="button"
-            onClick={handleDuplicateClick}
-          >
-            <Copy className="h-3 w-3" />
-          </button>
-          <button
-            aria-label={t("workspace.canvas.nodes.actions.delete")}
-            className="rounded-full p-1 text-foreground/70 hover:bg-destructive/10 hover:text-destructive"
-            data-testid="canvas-v2-node-delete"
-            title={t("workspace.canvas.nodes.actions.delete")}
-            type="button"
-            onClick={handleDeleteClick}
-          >
-            <Trash2 className="h-3 w-3" />
+        <button
+          aria-label={t("workspace.canvas.nodes.actions.configure")}
+          className="rounded-full p-1 text-foreground/70 hover:bg-accent/70"
+          data-testid="canvas-v2-node-configure"
+          title={t("workspace.canvas.nodes.actions.configure")}
+          type="button"
+          onClick={handleConfigClick}
+        >
+          <Settings2 className="h-3 w-3" />
+        </button>
+        <button
+          aria-label={t("workspace.canvas.nodes.actions.ask")}
+          className="rounded-full p-1 text-foreground/70 hover:bg-accent/70"
+          data-testid="canvas-v2-node-ask"
+          title={t("workspace.canvas.nodes.actions.ask")}
+          type="button"
+          onClick={handleAskClick}
+        >
+          <Sparkles className="h-3 w-3" />
+        </button>
+        <button
+          aria-label={t("workspace.canvas.nodes.actions.duplicate")}
+          className="rounded-full p-1 text-foreground/70 hover:bg-accent/70"
+          data-testid="canvas-v2-node-duplicate"
+          title={t("workspace.canvas.nodes.actions.duplicate")}
+          type="button"
+          onClick={handleDuplicateClick}
+        >
+          <Copy className="h-3 w-3" />
+        </button>
+        <button
+          aria-label={t("workspace.canvas.nodes.actions.delete")}
+          className="rounded-full p-1 text-foreground/70 hover:bg-destructive/10 hover:text-destructive"
+          data-testid="canvas-v2-node-delete"
+          title={t("workspace.canvas.nodes.actions.delete")}
+          type="button"
+          onClick={handleDeleteClick}
+        >
+          <Trash2 className="h-3 w-3" />
         </button>
       </div>
       <div

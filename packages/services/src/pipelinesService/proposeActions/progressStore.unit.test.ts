@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  clearProposeProgressStore,
-  getProposeProgress,
-  setProposeProgress,
-} from "./progressStore";
+import { clearProposeProgressStore, getProposeProgress, setProposeProgress } from "./progressStore";
 
 describe("proposeActions progressStore", () => {
   afterEach(() => clearProposeProgressStore());

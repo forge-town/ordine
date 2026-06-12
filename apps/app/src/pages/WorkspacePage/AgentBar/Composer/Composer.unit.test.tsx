@@ -90,9 +90,7 @@ describe("Composer", () => {
     expect(useAgentBarStore.getState().messages[0]).toEqual(
       expect.objectContaining({
         metadata: expect.objectContaining({
-          attachments: [
-            { name: "sample.pdf", size: 6, type: "application/pdf" },
-          ],
+          attachments: [{ name: "sample.pdf", size: 6, type: "application/pdf" }],
         }),
       }),
     );
@@ -148,9 +146,7 @@ describe("Composer", () => {
       expect.objectContaining({
         content: "根据附件样本逆向生成 Pipeline：finished.csv",
         metadata: expect.objectContaining({
-          attachments: [
-            { excerpt: "sample", name: "finished.csv", size: 6, type: "text/csv" },
-          ],
+          attachments: [{ excerpt: "sample", name: "finished.csv", size: 6, type: "text/csv" }],
         }),
       }),
     );

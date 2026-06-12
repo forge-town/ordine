@@ -233,7 +233,8 @@ export const proposeActions = async (
           message: opts.message,
           model: settings.defaultModel,
           operationCatalog,
-          ssh: effectiveRuntime?.connection.mode === "ssh" ? effectiveRuntime.connection : undefined,
+          ssh:
+            effectiveRuntime?.connection.mode === "ssh" ? effectiveRuntime.connection : undefined,
         })
       : undefined);
   const userPromptText = buildProposeUserPrompt({

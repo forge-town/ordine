@@ -331,10 +331,10 @@ export const createJobListPageStore = () =>
 
 仓库存在两种合法 store 形态，**按状态的生命周期选择，不得混用**：
 
-| 形态 | 判据 | 现有实例 |
-| --- | --- | --- |
-| **模块级单例**（`create()` 导出 hook） | 状态是**全应用真全局**，与任何路由/实体的生命周期无关，切换页面或 pipeline 时**不应该**被重置 | `toastStore`、`notificationStore` |
-| **Provider 工厂**（`createXxxStore(id)` + Context） | 状态**跟随某个实体或路由的生命周期**（pipeline、某页面），切换实体时必须重新实例化、互不串扰 | `workspaceStore`、`canvasStore`、各页面 `_store` |
+| 形态                                                | 判据                                                                                          | 现有实例                                         |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| **模块级单例**（`create()` 导出 hook）              | 状态是**全应用真全局**，与任何路由/实体的生命周期无关，切换页面或 pipeline 时**不应该**被重置 | `toastStore`、`notificationStore`                |
+| **Provider 工厂**（`createXxxStore(id)` + Context） | 状态**跟随某个实体或路由的生命周期**（pipeline、某页面），切换实体时必须重新实例化、互不串扰  | `workspaceStore`、`canvasStore`、各页面 `_store` |
 
 判定口诀：问"切换 pipeline / 离开页面后，这份状态还成立吗？"——成立 → 单例；不成立 → Provider 工厂。
 
