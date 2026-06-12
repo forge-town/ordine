@@ -30,6 +30,12 @@ export const createConversationMessagesService = (db: DbConnection) => {
       ).andThen((message) =>
         message ? okAsync(message) : errAsync(new NotFoundError("ConversationMessage", id)),
       ),
+    /** N19-02：清除全部对话历史（pipelines 不受影响）。 */
+    clearAll: () =>
+      ResultAsync.fromPromise(dao.deleteAll(), (error) =>
+        toServiceError(error, "Clear conversation history"),
+      ),
+
     delete: (id: string) =>
       ResultAsync.fromPromise(dao.delete(id), (error) =>
         toServiceError(error, "Delete conversation message"),

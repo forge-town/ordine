@@ -46,4 +46,10 @@ export const conversationsRouter = router({
     .mutation(async ({ input }) =>
       unwrapResult(await conversationMessagesService.delete(input.id)),
     ),
+  clearAll: publicProcedure.mutation(async () => {
+    unwrapResult(await conversationMessagesService.clearAll());
+
+    return { cleared: true };
+  }),
+
 });

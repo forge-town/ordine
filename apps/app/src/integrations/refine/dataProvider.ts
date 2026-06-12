@@ -725,6 +725,11 @@ export const dataProvider: DataProvider = {
 
       return { data: data as unknown as TData };
     }
+    if (url === "conversations/clearAll") {
+      const data = await trpcClient.conversations.clearAll.mutate();
+
+      return { data: data as unknown as TData };
+    }
     if (url === "pipelines/proposeProgress") {
       const data = await trpcClient.pipelines.proposeProgress.query(
         payload as unknown as Parameters<typeof trpcClient.pipelines.proposeProgress.query>[0],

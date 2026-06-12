@@ -391,6 +391,14 @@
       "waitingHint": "运行暂停等待签核或回答问题。"
     },
     "project": {
+      "clearCancel": "取消",
+      "clearConfirm": "确认清除",
+      "clearConfirmBody": "将删除所有流水线下保存的 Agent 对话线程。Pipelines、算子与运行记录均保留。",
+      "clearConfirmTitle": "清除对话历史？",
+      "clearDone": "对话历史已清除",
+      "clearFailed": "清除失败",
+      "clearHistory": "清除对话历史",
+      "clearHistoryHint": "删除已保存的 Agent 对话线程，Pipelines 保留。",
       "description": "编辑侧栏当前选中项目的名称与描述。",
       "descriptionLabel": "描述",
       "descriptionPlaceholder": "这个工作区是做什么的…",

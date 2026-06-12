@@ -391,6 +391,14 @@
       "waitingHint": "A run paused for sign-off or a question."
     },
     "project": {
+      "clearCancel": "Cancel",
+      "clearConfirm": "Clear history",
+      "clearConfirmBody": "All saved Agent threads across pipelines will be removed. Pipelines, operations and runs are kept.",
+      "clearConfirmTitle": "Clear conversation history?",
+      "clearDone": "Conversation history cleared",
+      "clearFailed": "Failed to clear history",
+      "clearHistory": "Clear conversation history",
+      "clearHistoryHint": "Removes saved Agent threads. Pipelines are kept.",
       "description": "Name and description for the workspace selected in the sidebar.",
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "What this workspace is for…",

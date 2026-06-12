@@ -10,6 +10,17 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { SectionHeader } from "../../SectionHeader";
+import { Trash2 } from "lucide-react";
+import { ResultAsync } from "neverthrow";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/ui/dialog";
+import { dataProvider } from "@/integrations/refine/dataProvider";
+import { useAgentBarStore } from "@/pages/WorkspacePage/AgentBar/_store";
 
 /** Name and description of the project currently selected in the sidebar. */
 export const ProjectSection = () => {
@@ -68,6 +79,34 @@ export const ProjectSection = () => {
     );
   };
 
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const resetAgentBar = useAgentBarStore((state) => state.resetAgentBar);
+  const handleClearHistory = () => {
+    setClearing(true);
+    void ResultAsync.fromPromise(
+      dataProvider.custom!({ method: "post", payload: {}, url: "conversations/clearAll" }),
+      () => null,
+    ).match(
+      () => {
+        setClearing(false);
+        setClearConfirmOpen(false);
+        resetAgentBar();
+        toastStore.getState().addToast({
+          title: t("settings.project.clearDone"),
+          type: "success",
+        });
+      },
+      () => {
+        setClearing(false);
+        toastStore.getState().addToast({
+          title: t("settings.project.clearFailed"),
+          type: "error",
+        });
+      },
+    );
+  };
+
   return (
     <div className="space-y-5" data-testid="settings-project">
       <SectionHeader
@@ -98,6 +137,56 @@ export const ProjectSection = () => {
       <Button data-testid="settings-project-save" disabled={!name.trim()} onClick={handleSave}>
         {t("settings.project.save")}
       </Button>
+
+      {/* N19-02：危险区——清除全部对话历史（pipelines 保留），二次确认。 */}
+      <div className="space-y-2 rounded-xl border border-destructive/25 bg-destructive/[0.03] p-4">
+        <div className="text-sm font-medium text-destructive">
+          {t("settings.project.clearHistory")}
+        </div>
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          {t("settings.project.clearHistoryHint")}
+        </p>
+        <Button
+          data-testid="settings-clear-history"
+          size="sm"
+          type="button"
+          variant="outline"
+          onClick={() => setClearConfirmOpen(true)}
+        >
+          <Trash2 className="mr-1.5 size-3.5" />
+          {t("settings.project.clearHistory")}
+        </Button>
+      </div>
+      <Dialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("settings.project.clearConfirmTitle")}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {t("settings.project.clearConfirmBody")}
+          </p>
+          <DialogFooter>
+            <Button
+              size="sm"
+              type="button"
+              variant="outline"
+              onClick={() => setClearConfirmOpen(false)}
+            >
+              {t("settings.project.clearCancel")}
+            </Button>
+            <Button
+              data-testid="settings-clear-history-confirm"
+              disabled={clearing}
+              size="sm"
+              type="button"
+              variant="destructive"
+              onClick={handleClearHistory}
+            >
+              {t("settings.project.clearConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

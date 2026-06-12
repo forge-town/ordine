@@ -58,6 +58,10 @@ export class ConversationMessagesDao {
     return updated;
   }
 
+  async deleteAll() {
+    await this.executor.delete(conversationMessagesTable);
+  }
+
   async delete(id: string) {
     await this.executor
       .delete(conversationMessagesTable)
