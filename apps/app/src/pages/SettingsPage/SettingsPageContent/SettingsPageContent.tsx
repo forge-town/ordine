@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import {
   AdvancedSection,
   DefaultsSection,
@@ -28,7 +29,6 @@ type Section =
   | "advanced"
   | "defaults"
   | "developer"
-  | "keyboard"
   | "language"
   | "notifications"
   | "project";
@@ -38,7 +38,6 @@ const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
   notifications: Bell,
   defaults: Sliders,
   developer: Code,
-  keyboard: Keyboard,
   language: Globe,
   project: FolderKanban,
 };
@@ -49,7 +48,7 @@ const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
  * 有真实内容后再加入导航（不放空组死界面）。
  */
 const SECTION_GROUPS: { ids: Section[]; titleKey: string }[] = [
-  { ids: ["language", "notifications", "keyboard"], titleKey: "settings.groups.workspace" },
+  { ids: ["language", "notifications"], titleKey: "settings.groups.workspace" },
   { ids: ["defaults"], titleKey: "settings.groups.execution" },
   {
     ids: ["project", "advanced", ...(import.meta.env.DEV ? (["developer"] as Section[]) : [])],
@@ -60,13 +59,35 @@ const SECTION_GROUPS: { ids: Section[]; titleKey: string }[] = [
 export const SettingsPageContent = () => {
   const { t } = useTranslation();
   const [active, setActive] = useState<Section>("language");
+  // N18-07：快捷键移出为帮助 modal（原型 KeyboardHelpModal）。
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
+        actions={
+          <Button
+            data-testid="settings-keyboard-help"
+            size="sm"
+            type="button"
+            variant="outline"
+            onClick={() => setKeyboardOpen(true)}
+          >
+            <Keyboard className="mr-1.5 h-3.5 w-3.5" />
+            {t("settings.sections.keyboard")}
+          </Button>
+        }
         icon={<Settings className="h-4 w-4 text-primary" />}
         title={t("settings.title")}
       />
+      <Dialog open={keyboardOpen} onOpenChange={setKeyboardOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="sr-only">{t("settings.sections.keyboard")}</DialogTitle>
+          </DialogHeader>
+          <KeyboardSection />
+        </DialogContent>
+      </Dialog>
 
       <div className="flex flex-1 overflow-hidden">
         <nav className="w-52 shrink-0 border-r border-border bg-background py-4">
@@ -109,7 +130,6 @@ export const SettingsPageContent = () => {
             {active === "notifications" && <NotificationsSection />}
             {active === "defaults" && <DefaultsSection />}
             {active === "project" && <ProjectSection />}
-            {active === "keyboard" && <KeyboardSection />}
             {active === "advanced" && <AdvancedSection />}
             {active === "developer" && <DeveloperSection />}
           </div>
