@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useCustom, useDataProvider, useOne } from "@refinedev/core";
+import { useTranslation } from "react-i18next";
 import type { Job, JobStatus, JobTrace } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
+import { useNotificationStore } from "@/store/notificationStore";
 import { useCanvasStore } from "../_store/canvasStore";
 
 const POLL_INTERVAL = 1500;
@@ -36,6 +38,9 @@ export const useRunPolling = () => {
   const getDataProvider = useDataProvider();
   const dataProvider = getDataProvider();
   const jobRef = useRef<Job | null>(null);
+  const { t } = useTranslation();
+  const addNotification = useNotificationStore((state) => state.addNotification);
+  const notifiedJobIdRef = useRef<string | null>(null);
 
   const { query: jobQuery } = useOne<Job>({
     id: activeJobId ?? "",
@@ -57,6 +62,21 @@ export const useRunPolling = () => {
       applyJobSnapshot(job);
     }
   }, [applyJobSnapshot, job]);
+
+  // G3-06：run 终态派发通知中心事件（每个 job 只派发一次）。
+  useEffect(() => {
+    if (!job || !isTerminalJobStatus(job.status) || notifiedJobIdRef.current === job.id) {
+      return;
+    }
+    notifiedJobIdRef.current = job.id;
+    const kind = job.status === "done" ? "success" : job.status === "failed" ? "error" : "info";
+    addNotification({
+      id: `job-${job.id}-${job.status}`,
+      kind,
+      message: t(`workspace.canvas.run.notifications.${job.status}`, { title: job.title }),
+      route: `/pipelines/jobs/${job.id}`,
+    });
+  }, [addNotification, job, t]);
 
   const { result: tracesResult } = useCustom<{ traces: RawTrace[] }>({
     config: { payload: { jobId: activeJobId ?? "" } },

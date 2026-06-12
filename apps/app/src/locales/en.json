@@ -658,6 +658,12 @@
         "editStep": "Edit step",
         "lines_one": "{{count}} line",
         "lines_other": "{{count}} lines",
+        "notifications": {
+          "cancelled": "Run cancelled — {{title}}",
+          "done": "Run completed — {{title}}",
+          "expired": "Run expired — {{title}}",
+          "failed": "Run failed — {{title}}"
+        },
         "resumeFailed": "Couldn't resume the run",
         "resumed": "Checkpoint approved — continuing",
         "waiting": "Waiting for the first step…"

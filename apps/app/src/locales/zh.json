@@ -658,6 +658,12 @@
         "editStep": "编辑步骤",
         "lines_one": "{{count}} 行",
         "lines_other": "{{count}} 行",
+        "notifications": {
+          "cancelled": "运行已取消——{{title}}",
+          "done": "运行完成——{{title}}",
+          "expired": "运行已过期——{{title}}",
+          "failed": "运行失败——{{title}}"
+        },
         "resumeFailed": "恢复运行失败",
         "resumed": "检查点已通过 — 继续运行",
         "waiting": "等待第一个步骤…"
