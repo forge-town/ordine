@@ -25,6 +25,15 @@ import { Composer, RefChips } from "./Composer";
 import { useAgentBarStore, type AgentBarMessage } from "./_store";
 import { useAgentConversation } from "./useAgentConversation";
 
+/** N15-01：服务端阶段在真实调用边界推进；rank 用于映射逆向四步完成度。 */
+const STAGE_RANK: Record<string, number> = {
+  thinking: 0,
+  analyzing: 1,
+  drafting: 2,
+  validating: 3,
+  done: 4,
+};
+
 export type AgentBarProps = {
   className?: string;
   composer?: React.ReactNode;
@@ -66,24 +75,26 @@ export const AgentBar = ({
     isReversing,
     isSending,
     pendingProposal,
+    progressStage,
     proposalItems,
     rejectProposal,
     requestProposalFix,
     reviseProposal,
     submitMessage,
   } = useAgentConversation({ phase, pipelineId, pipelineName });
-  // N14-02：done 不再由 isReversing 伪造——分析期间诚实显示进行中，
-  // 真实阶段推进由 N15-01 的 progressStage 驱动。
-  const reversingSteps = useMemo(
-    () =>
-      ["structure", "steps", "matched", "draft"].map((step) => ({
-        detail: t(`workspace.agentBar.reversing.steps.${step}Detail`),
-        done: !isReversing,
-        id: step,
-        title: t(`workspace.agentBar.reversing.steps.${step}`),
-      })),
-    [isReversing, t],
-  );
+  // N15-01：四步由服务端真实阶段驱动（analyzing=第一段进行中，drafting 起
+  // 第一段三步完成，draft 在响应返回后完成）。无阶段信息时诚实显示进行中。
+  const stageRank = progressStage ? (STAGE_RANK[progressStage] ?? 0) : 0;
+  const reversingSteps = useMemo(() => {
+    const stageOneDone = !isReversing || stageRank >= STAGE_RANK.drafting!;
+
+    return ["structure", "steps", "matched", "draft"].map((step) => ({
+      detail: t(`workspace.agentBar.reversing.steps.${step}Detail`),
+      done: step === "draft" ? !isReversing : stageOneDone,
+      id: step,
+      title: t(`workspace.agentBar.reversing.steps.${step}`),
+    }));
+  }, [isReversing, stageRank, t]);
   const activeRefs = useMemo(
     () => canvasRefs.filter((ref) => !dismissed.includes(ref.id)),
     [canvasRefs, dismissed],
@@ -327,7 +338,11 @@ export const AgentBar = ({
           );
         })}
         {isSending ? (
-          <Assistant isThinking>{t("workspace.agentBar.thinking")}</Assistant>
+          <Assistant isThinking>
+            {progressStage
+              ? t(`workspace.agentBar.stages.${progressStage}`)
+              : t("workspace.agentBar.thinking")}
+          </Assistant>
         ) : null}
         {diagnostics && diagnostics.length > 0 ? (
           <Assistant>{diagnostics.map((diagnostic) => diagnostic.message).join(" ")}</Assistant>

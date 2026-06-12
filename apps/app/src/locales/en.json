@@ -805,6 +805,13 @@
           "structureDetail": "format, sections, citations"
         }
       },
+      "stages": {
+        "analyzing": "Analyzing the sample…",
+        "done": "Wrapping up…",
+        "drafting": "Drafting the proposal…",
+        "thinking": "Reading your request…",
+        "validating": "Validating the proposal…"
+      },
       "subtitle": {
         "applied": "Reading · canvas",
         "clarify": "Reading · goal",

@@ -4,3 +4,4 @@ export type {
   ProposeActionsOptions,
   ProposeActionsResult,
 } from "./proposeActions";
+export * from "./progressStore";

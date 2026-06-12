@@ -20,6 +20,7 @@ import {
 } from "@repo/schemas";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
 import { analyzeArtifacts } from "./analyzeArtifacts";
+import { setProposeProgress } from "./progressStore";
 import { buildProposeUserPrompt, type ProposeActiveRun } from "./buildProposePrompt";
 import type { ProposeHistoryMessage } from "./conversationHistory";
 import { normalizeProposalPayload } from "./normalizeProposalPayload";
@@ -115,6 +116,8 @@ export type ProposeActionsOptions = {
   semanticRetry?: number;
   /** Internal: stage-one analysis carried across the semantic retry round. */
   precomputedAnalysis?: ArtifactAnalysis;
+  /** N15-01：前端轮询阶段事件用的令牌；阶段只在真实调用边界写入。 */
+  progressToken?: string;
 };
 
 const MAX_SEMANTIC_RETRIES = 1;
@@ -164,6 +167,12 @@ export const proposeActions = async (
   opts: ProposeActionsOptions,
 ): Promise<ProposeActionsResult> => {
   const { agentRuntimesDao, conversationMessagesDao, operationsDao, settingsDao } = deps;
+  const progress = (stage: Parameters<typeof setProposeProgress>[1]) => {
+    if (opts.progressToken) {
+      setProposeProgress(opts.progressToken, stage);
+    }
+  };
+  progress("thinking");
   const parsedSnapshot = PipelineGraphSnapshotSchema.safeParse(opts.snapshot);
   if (!parsedSnapshot.success) {
     logger.warn({ error: parsedSnapshot.error }, "proposeActions: invalid pipeline graph snapshot");
@@ -211,6 +220,9 @@ export const proposeActions = async (
   const textAttachments = (opts.attachments ?? []).filter(
     (attachment) => (attachment.content?.length ?? 0) > 0,
   );
+  if (!opts.precomputedAnalysis && textAttachments.length > 0) {
+    progress("analyzing");
+  }
   const artifactAnalysis =
     opts.precomputedAnalysis ??
     (textAttachments.length > 0
@@ -240,6 +252,7 @@ export const proposeActions = async (
     snapshot,
   });
 
+  progress("drafting");
   const agentResult = await runProposeAgent({
     agent: effectiveRuntime?.type ?? settings.defaultAgentRuntime,
     apiKey: settings.defaultApiKey,
@@ -255,6 +268,7 @@ export const proposeActions = async (
     };
   }
 
+  progress("validating");
   const agentOutput = parseProposeAgentOutput(agentResult.json);
   const clarifyOptions =
     agentOutput.clarifyOptions.length > 0 ? agentOutput.clarifyOptions : undefined;

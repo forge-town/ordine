@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../init";
 import { pipelinesService, pipelineRunnerService } from "../services";
+import { getProposeProgress, setProposeProgress } from "@repo/services";
 import {
   AgentContextPayloadSchema,
   PipelineGraphSnapshotSchema,
@@ -141,12 +142,13 @@ export const pipelinesRouter = router({
         snapshot: PipelineGraphSnapshotSchema,
         message: z.string().trim().min(1),
         pipelineName: z.string().optional(),
+        progressToken: z.string().optional(),
         referencedNodeIds: z.array(z.string()).optional(),
         runtimeId: z.string().optional(),
       }),
     )
-    .mutation(({ input }) =>
-      pipelinesService.proposeActions({
+    .mutation(async ({ input }) => {
+      const result = await pipelinesService.proposeActions({
         pipelineId: input.id,
         attachments: input.attachments,
         context: input.context,
@@ -155,10 +157,20 @@ export const pipelinesRouter = router({
         snapshot: input.snapshot,
         message: input.message,
         pipelineName: input.pipelineName,
+        progressToken: input.progressToken,
         referencedNodeIds: input.referencedNodeIds,
         runtimeId: input.runtimeId,
-      }),
-    ),
+      });
+      if (input.progressToken) {
+        setProposeProgress(input.progressToken, "done");
+      }
+
+      return result;
+    }),
+
+  proposeProgress: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(({ input }) => ({ stage: getProposeProgress(input.token) })),
 
   generateStructure: publicProcedure
     .input(

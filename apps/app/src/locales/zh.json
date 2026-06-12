@@ -805,6 +805,13 @@
           "structureDetail": "格式、分节、引用"
         }
       },
+      "stages": {
+        "analyzing": "正在分析样本…",
+        "done": "即将完成…",
+        "drafting": "正在起草提案…",
+        "thinking": "正在读取请求…",
+        "validating": "正在校验提案…"
+      },
       "subtitle": {
         "applied": "阅读中 · 画布",
         "clarify": "阅读中 · 目标",

@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useUpdate } from "@refinedev/core";
 import { ResultAsync } from "neverthrow";
 import { useTranslation } from "react-i18next";
@@ -101,6 +101,32 @@ export const useAgentConversation = ({
   const [isProposing, setIsProposing] = useState(false);
   const [isReversing, setIsReversing] = useState(false);
   const [pendingOperations, setPendingOperations] = useState<ProposePendingOperation[]>([]);
+  const [progressToken, setProgressToken] = useState<string | null>(null);
+  const [progressStage, setProgressStage] = useState<string | null>(null);
+
+  // N15-01：请求期间轮询服务端真实阶段（thinking → analyzing? → drafting → validating）。
+  useEffect(() => {
+    if (!progressToken) {
+      return;
+    }
+
+    const intervalId = globalThis.setInterval(() => {
+      void dataProvider
+        .custom!<{ stage: string | null }>({
+          method: "post",
+          payload: { token: progressToken },
+          url: "pipelines/proposeProgress",
+        })
+        .then((response) => {
+          if (response.data.stage) {
+            setProgressStage(response.data.stage);
+          }
+        })
+        .catch(() => undefined);
+    }, 700);
+
+    return () => globalThis.clearInterval(intervalId);
+  }, [progressToken]);
   const { isSending: isPersisting, sendMessage } = useAgentConversationPersistence({
     phase,
     pipelineId,
@@ -140,6 +166,12 @@ export const useAgentConversation = ({
       setIsReversing(reversing);
       await sendMessage({ content: trimmedContent, metadata, role: "user" });
       setIsProposing(true);
+      const requestProgressToken =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      setProgressStage(null);
+      setProgressToken(requestProgressToken);
 
       const result = await ResultAsync.fromPromise(
         dataProvider.custom!<ProposeActionsResult>({
@@ -152,6 +184,7 @@ export const useAgentConversation = ({
             failedProposal,
             message: trimmedContent,
             pipelineName,
+            progressToken: requestProgressToken,
             referencedNodeIds: metadata.referencedNodeIds ?? [],
             snapshot: toPipelineSnapshot({ edges, nodes }),
           },
@@ -159,6 +192,9 @@ export const useAgentConversation = ({
         }),
         () => null,
       );
+
+      setProgressToken(null);
+      setProgressStage(null);
 
       if (result.isErr()) {
         setIsProposing(false);
@@ -355,6 +391,7 @@ export const useAgentConversation = ({
   return {
     agentContext,
     applyProposal,
+    progressStage,
     diagnostics,
     hasBlockingDiagnostics,
     isReversing,
