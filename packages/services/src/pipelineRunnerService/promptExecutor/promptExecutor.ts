@@ -18,6 +18,22 @@ const PROMPT_AGENT_ID = "prompt-executor";
 
 type PromptExecutorOptions = RunPromptOptions & { ssh?: SshConnection };
 
+/**
+ * N17-03a：执行器缺用户侧配置时输出结构化用户请求标记。
+ * 该行会随 onProgress 落入 job_traces，Agent Bar 解析后渲染可交互卡片。
+ */
+const USER_ACTION_SECTION = [
+  "",
+  "## When user-side configuration is missing",
+  "If you cannot fully complete the task because something only the USER can provide is missing",
+  "(e.g. an input folder is not configured or empty, an output destination is unknown, credentials are required),",
+  "emit ONE line in this exact format on its own line, then still produce the best partial result you can:",
+  '@@USER_ACTION::{"kind":"configure-input","message":"<one short sentence telling the user what to configure>","field":"<optional missing field>"}',
+  'Allowed "kind" values: "configure-input", "configure-output", "provide-info".',
+  "Do NOT emit the marker when nothing is missing.",
+  "",
+].join("\n");
+
 const buildOutputItemsSection = (
   outputItems?: readonly OutputItem[],
   outputDir?: string,
@@ -66,7 +82,7 @@ const run = ({
     (async () => {
       const raw = await runAgent({
         agent,
-        systemPrompt: prompt,
+        systemPrompt: `${prompt}\n${USER_ACTION_SECTION}`,
         userPrompt: effectiveInput,
         inputPath,
         jobId,
