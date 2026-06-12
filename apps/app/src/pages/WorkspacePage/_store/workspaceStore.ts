@@ -23,6 +23,8 @@ export type WorkspacePendingAsk = {
 
 export type WorkspaceState = {
   agentOpen: boolean;
+  /** 未解决锚点计数（refId → count），由 AgentBar 侧同步写入，canvas 只读（G1-03）。 */
+  anchorCounts: Record<string, number>;
   canvasRefs: WorkspaceCanvasRef[];
   compOpen: boolean;
   composerFocusNonce: number;
@@ -42,6 +44,7 @@ export type WorkspaceState = {
   requestAsk: (ref: WorkspaceCanvasRef, text: string) => void;
   resetWorkspace: () => void;
   setAgentOpen: (open: boolean) => void;
+  setAnchorCounts: (counts: Record<string, number>) => void;
   setCanvasRefs: (refs: WorkspaceCanvasRef[]) => void;
   setCompOpen: (open: boolean) => void;
   setHoverRef: (id: string | null) => void;
@@ -64,8 +67,15 @@ type UseWorkspaceStore = {
 const sameRefIds = (a: readonly WorkspaceCanvasRef[], b: readonly WorkspaceCanvasRef[]) =>
   a.length === b.length && a.every((ref, index) => ref.id === b[index]?.id);
 
+const sameCounts = (a: Record<string, number>, b: Record<string, number>) => {
+  const aKeys = Object.keys(a);
+
+  return aKeys.length === Object.keys(b).length && aKeys.every((key) => a[key] === b[key]);
+};
+
 const createInitialState = (pipelineId: string | null) => ({
   agentOpen: true,
+  anchorCounts: {},
   canvasRefs: [],
   compOpen: true,
   composerFocusNonce: 0,
@@ -107,6 +117,9 @@ export const createWorkspaceStore = (pipelineId: string | null = null): Workspac
       })),
     resetWorkspace: () => set(createInitialState(pipelineId)),
     setAgentOpen: (open) => set({ agentOpen: open }),
+    // 幂等写入：内容一致时保持引用不变，避免订阅方进入渲染循环（参见 N6-fix）。
+    setAnchorCounts: (counts) =>
+      set((state) => (sameCounts(state.anchorCounts, counts) ? {} : { anchorCounts: counts })),
     setCanvasRefs: (refs) =>
       set((state) =>
         sameRefIds(state.canvasRefs, refs)

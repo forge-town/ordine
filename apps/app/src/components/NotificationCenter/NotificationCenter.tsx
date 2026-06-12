@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
+import { timeAgo } from "@/lib/format";
 import { useNotificationStore, type NotificationKind } from "@/store/notificationStore";
 
 const KIND_ICON: Record<NotificationKind, { className: string; icon: LucideIcon }> = {
@@ -19,20 +20,6 @@ const KIND_ICON: Record<NotificationKind, { className: string; icon: LucideIcon 
   info: { className: "text-muted-foreground", icon: Info },
   success: { className: "text-success", icon: CircleCheck },
   warn: { className: "text-warning", icon: TriangleAlert },
-};
-
-const timeAgo = (ts: number): string => {
-  const seconds = Math.max(1, Math.round((Date.now() - ts) / 1000));
-  if (seconds < 60) {
-    return `${seconds}s`;
-  }
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes}m`;
-  }
-  const hours = Math.round(minutes / 60);
-
-  return hours < 24 ? `${hours}h` : `${Math.round(hours / 24)}d`;
 };
 
 /** Reviewable history for run / self-heal / connector events (prototype shell.jsx). */

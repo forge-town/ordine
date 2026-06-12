@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { countUnresolvedAnchors, useAgentBarStore, type AgentBarMessage } from "./agentBarStore";
+import {
+  countAnchorsByRef,
+  countUnresolvedAnchors,
+  useAgentBarStore,
+  type AgentBarMessage,
+} from "./agentBarStore";
 
 const anchored = (id: string, refId: string, resolved = false): AgentBarMessage => ({
   content: `message ${id}`,
@@ -36,5 +41,19 @@ describe("agentBarStore anchors", () => {
 
     expect(useAgentBarStore.getState().messages[0]?.metadata?.resolved).toBe(true);
     expect(countUnresolvedAnchors(useAgentBarStore.getState().messages, "node-a")).toBe(0);
+  });
+});
+
+describe("countAnchorsByRef", () => {
+  it("groups unresolved anchors by refId and skips resolved/thinking messages", () => {
+    const messages: AgentBarMessage[] = [
+      anchored("m1", "node-a"),
+      anchored("m2", "node-a", true),
+      anchored("m3", "node-b"),
+      { ...anchored("m4", "node-b"), isThinking: true },
+    ];
+
+    expect(countAnchorsByRef(messages)).toEqual({ "node-a": 1, "node-b": 1 });
+    expect(countAnchorsByRef([])).toEqual({});
   });
 });

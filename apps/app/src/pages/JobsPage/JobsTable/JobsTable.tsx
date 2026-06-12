@@ -1,10 +1,9 @@
-import { useState } from "react";
-import { ResultAsync } from "neverthrow";
 import { ArrowRight, Pause, Play, RefreshCw, Square, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Job, JobStatus } from "@repo/schemas";
-import { dataProvider } from "@/integrations/refine/dataProvider";
 import { StatusPill } from "@/components/primitives";
+import { useJobControls } from "@/hooks/useJobControls";
+import { formatCost, formatDurationBetween } from "@/lib/format";
 import { toastStore } from "@/store/toastStore";
 
 export type JobsTableProps = {
@@ -45,54 +44,32 @@ const formatStarted = (job: Job): string =>
     ? new Date(job.startedAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
     : "—";
 
-const formatDuration = (job: Job): string => {
-  if (!job.startedAt) {
-    return "—";
-  }
-  const end = job.finishedAt ? new Date(job.finishedAt).getTime() : Date.now();
-  const seconds = Math.max(0, (end - new Date(job.startedAt).getTime()) / 1000);
-  if (seconds < 60) {
-    return `${seconds.toFixed(1)}s`;
-  }
-
-  return `${Math.floor(seconds / 60)}m${String(Math.round(seconds % 60)).padStart(2, "0")}s`;
-};
-
-const formatCost = (job: Job): string =>
-  job.totalCost ? `$${Number(job.totalCost).toFixed(2)}` : "—";
+const formatJobDuration = (job: Job): string =>
+  formatDurationBetween(job.startedAt, job.finishedAt ?? null);
 
 export const JobsTable = ({ jobs, onChanged, onOpen, pipelineNameById }: JobsTableProps) => {
   const { t } = useTranslation();
-  const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+  const { control, pendingKey } = useJobControls();
   const columns = "grid-cols-[minmax(0,1fr)_110px_88px_72px_72px_96px]";
 
   const runAction = (job: Job, action: JobAction) => {
-    setPendingJobId(job.id);
-    const request =
+    if (action === "rerun" && !job.pipelineId) {
+      return;
+    }
+    control(
       action === "rerun"
-        ? dataProvider.custom!({
-            method: "post",
-            payload: { id: job.pipelineId },
-            url: "pipelines/run",
-          })
-        : dataProvider.custom!({
-            method: "post",
-            payload: { jobId: job.id },
-            url: `jobs/${action}`,
+        ? { action: "run", pipelineId: job.pipelineId! }
+        : { action, jobId: job.id },
+      {
+        errorTitle: t("jobs.table.actionFailed"),
+        pendingKey: job.id,
+        onSuccess: () => {
+          toastStore.getState().addToast({
+            title: t(`jobs.table.actions.${action}Done`, { jobId: job.id }),
+            type: "success",
           });
-
-    void ResultAsync.fromPromise(request, () => t("jobs.table.actionFailed")).match(
-      () => {
-        setPendingJobId(null);
-        toastStore.getState().addToast({
-          title: t(`jobs.table.actions.${action}Done`, { jobId: job.id }),
-          type: "success",
-        });
-        onChanged();
-      },
-      (error) => {
-        setPendingJobId(null);
-        toastStore.getState().addToast({ title: error, type: "error" });
+          onChanged();
+        },
       },
     );
   };
@@ -147,10 +124,10 @@ export const JobsTable = ({ jobs, onChanged, onOpen, pipelineNameById }: JobsTab
                 {formatStarted(job)}
               </span>
               <span className="text-right font-mono text-[11px] tabular-nums text-muted-foreground">
-                {formatDuration(job)}
+                {formatJobDuration(job)}
               </span>
               <span className="text-right font-mono text-[11px] tabular-nums text-muted-foreground">
-                {formatCost(job)}
+                {formatCost(job.totalCost) ?? "—"}
               </span>
               <div className="flex items-center justify-end gap-0.5">
                 {waiting ? (
@@ -171,7 +148,7 @@ export const JobsTable = ({ jobs, onChanged, onOpen, pipelineNameById }: JobsTab
                     const ActionIcon =
                       action === "cancel" && job.status === "queued" ? X : ACTION_ICON[action];
                     const disabled =
-                      pendingJobId === job.id || (action === "rerun" && !job.pipelineId);
+                      pendingKey === job.id || (action === "rerun" && !job.pipelineId);
 
                     return (
                       <button

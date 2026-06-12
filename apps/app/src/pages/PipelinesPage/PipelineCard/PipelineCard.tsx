@@ -16,6 +16,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import type { PipelineData } from "@repo/schemas";
 import { Dot, Icon, MiniChain, StatusPill, Tag } from "@/components/primitives";
+import { formatDurationMs, timeAgo } from "@/lib/format";
 
 const NODE_TYPE_ICONS: Record<string, LucideIcon> = {
   compound: ShieldCheck,
@@ -30,23 +31,9 @@ const NODE_TYPE_ICONS: Record<string, LucideIcon> = {
 
 const formatRelativeTime = (ts: Date | string | null | undefined): string => {
   if (!ts) return "Never";
-  const date = ts instanceof Date ? ts : new Date(ts);
-  const diff = Date.now() - date.getTime();
-  const minutes = Math.max(0, Math.floor(diff / 60_000));
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
+  const compact = timeAgo(ts);
 
-  return `${days}d ago`;
-};
-
-const formatDuration = (durationMs: number | null): string => {
-  if (durationMs === null) return "-";
-  if (durationMs < 60_000) return `${Math.max(1, Math.round(durationMs / 1000))}s`;
-
-  return `${Math.round(durationMs / 60_000)}m`;
+  return compact === "now" ? "Just now" : `${compact} ago`;
 };
 
 const getPipelineSteps = (pipeline: PipelineData) => {
@@ -174,7 +161,7 @@ export const PipelineCard = ({
         </span>
         <span className="inline-flex items-center gap-1">
           <Icon icon={Timer} size={11} />
-          {formatDuration(stats.avgDurationMs)}
+          {formatDurationMs(stats.avgDurationMs, "-")}
         </span>
         <span className="inline-flex items-center gap-1">
           <Icon icon={GitBranch} size={11} />

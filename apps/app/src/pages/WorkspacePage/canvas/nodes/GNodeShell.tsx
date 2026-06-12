@@ -15,7 +15,6 @@ import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/shallow";
 import { cn } from "@repo/ui/lib/utils";
 import { normalizeNodeRunStatus, type NodeRunStatus } from "@repo/schemas";
-import { countUnresolvedAnchors, useAgentBarStore } from "../../AgentBar/_store";
 import { useWorkspaceStore } from "../../_store/workspaceStore";
 import { selectNodePortCounts, selectNodeRunState } from "../_store/selectors";
 import { useCanvasStore } from "../_store/canvasStore";
@@ -141,9 +140,7 @@ export const GNodeShell = ({
   const statusLabel = t(getStatusKey(normalizedStatus));
   const refIdForNode = drillStack.length > 0 ? [...drillStack, id].join("/") : id;
   const hoverHighlight = hoverRefId === refIdForNode;
-  const anchorCount = useAgentBarStore((state) =>
-    countUnresolvedAnchors(state.messages, refIdForNode),
-  );
+  const anchorCount = useWorkspaceStore((state) => state.anchorCounts[refIdForNode] ?? 0);
   const visibleAnnotationCount = annotationCount ?? anchorCount;
   const setThread = useWorkspaceStore((state) => state.setThread);
   const setAgentOpen = useWorkspaceStore((state) => state.setAgentOpen);

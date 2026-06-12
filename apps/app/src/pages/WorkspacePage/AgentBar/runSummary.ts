@@ -1,4 +1,5 @@
 import type { Job, JobTrace, NodeRunStatus } from "@repo/schemas";
+import { formatCost, formatDurationMs } from "@/lib/format";
 
 type SummaryNode = {
   data: { label?: string };
@@ -16,19 +17,8 @@ const toTime = (value: Date | string | number | null | undefined): number | null
   return Number.isNaN(time) ? null : time;
 };
 
-const formatDuration = (start: number | null, end: number | null): string | null => {
-  if (start === null) return null;
-  const seconds = Math.max(0, ((end ?? Date.now()) - start) / 1000);
-
-  return `${seconds.toFixed(1)}s`;
-};
-
-const formatCost = (value: Job["totalCost"]): string | null => {
-  const cost = typeof value === "string" ? Number(value) : value;
-  if (typeof cost !== "number" || !Number.isFinite(cost) || cost <= 0) return null;
-
-  return `$${cost.toFixed(2)}`;
-};
+const formatDuration = (start: number | null, end: number | null): string | null =>
+  start === null ? null : formatDurationMs((end ?? Date.now()) - start);
 
 const getNodeLabel = (node: SummaryNode | undefined, fallback: string) =>
   node?.data.label ?? fallback;

@@ -11,7 +11,7 @@
     "lint": "oxlint --config ./.oxlintrc.json src/ e2e/",
     "format": "oxfmt --config node_modules/@repo/oxc-formatter-config/oxfmt.json --write src/ e2e/",
     "format:check": "oxfmt --config node_modules/@repo/oxc-formatter-config/oxfmt.json src/ e2e/",
-    "quality": "bun run compile && bun run lint && bun run format:check && bun run test",
+    "quality": "bun run compile && bun run lint && bun run format:check && bun run check:i18n && bun run test",
     "test": "vitest run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
@@ -20,7 +20,8 @@
     "build-storybook": "storybook build",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "check:i18n": "node --experimental-strip-types ../../scripts/check-i18n-dead-keys.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { useCustom, useOne } from "@refinedev/core";
-import { ResultAsync } from "neverthrow";
 import { ExternalLink, Pause, Play, RotateCcw, Square, Workflow, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
@@ -13,9 +11,9 @@ import {
 } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
-import { ResourceName, dataProvider } from "@/integrations/refine/dataProvider";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 import { StatusPill } from "@/components/primitives";
-import { toastStore } from "@/store/toastStore";
+import { useJobControls } from "@/hooks/useJobControls";
 
 export type JobDetailDrawerProps = {
   job: Job;
@@ -40,7 +38,8 @@ const stepTone = (status: NodeRunStatus): string => {
 export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDetailDrawerProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [pending, setPending] = useState(false);
+  const { control, pendingKey } = useJobControls();
+  const pending = pendingKey !== null;
   const { result: jobResult, query: jobQuery } = useOne<Job>({
     id: initialJob.id,
     queryOptions: { refetchInterval: isLive(initialJob.status) ? 1500 : false },
@@ -70,28 +69,19 @@ export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDeta
   }));
 
   const runControl = (action: "cancel" | "pause" | "rerun" | "resume") => {
-    setPending(true);
-    const request =
+    if (action === "rerun" && !job.pipelineId) {
+      return;
+    }
+    control(
       action === "rerun"
-        ? dataProvider.custom!({
-            method: "post",
-            payload: { id: job.pipelineId },
-            url: "pipelines/run",
-          })
-        : dataProvider.custom!({
-            method: "post",
-            payload: { jobId: job.id },
-            url: `jobs/${action}`,
-          });
-    void ResultAsync.fromPromise(request, () => t("jobs.table.actionFailed")).match(
-      () => {
-        setPending(false);
-        void jobQuery?.refetch?.();
-        onChanged();
-      },
-      (error) => {
-        setPending(false);
-        toastStore.getState().addToast({ title: error, type: "error" });
+        ? { action: "run", pipelineId: job.pipelineId! }
+        : { action, jobId: job.id },
+      {
+        errorTitle: t("jobs.table.actionFailed"),
+        onSuccess: () => {
+          void jobQuery?.refetch?.();
+          onChanged();
+        },
       },
     );
   };

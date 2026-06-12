@@ -8,6 +8,7 @@ import { PageLoadingState } from "@/components/PageLoadingState";
 import { ResizeHandle } from "@/components/ResizeHandle";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { AgentBar } from "./AgentBar";
+import { AnchorCountSync } from "./AnchorCountSync";
 import { CanvasRoot } from "./canvas";
 import { CanvasStoreProvider, useCanvasStore } from "./canvas/_store/canvasStore";
 import { derivePhase } from "./canvas/_store/derivePhase";
@@ -143,6 +144,7 @@ const WorkspacePageContent = ({ pipelineId }: WorkspacePageProps) => {
     <ReactFlowProvider>
       <CanvasStoreProvider edges={snapshot.edges} nodes={snapshot.nodes}>
         <WorkspacePhaseSync />
+        <AnchorCountSync />
         <PendingFocusConsumer pipelineId={pipelineId} />
         <div className="flex h-full min-h-0 bg-background">
           <main className="min-w-0 flex-1 overflow-hidden">
