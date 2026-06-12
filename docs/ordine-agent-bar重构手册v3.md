@@ -131,6 +131,14 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 - **N16-05 提案画布 ghost 预览（用户二次反馈，2026-06-12）**：`pendingProposal` 存在时所有节点统一虚线化但**提案新增的节点/边并不出现在画布上**，用户"同意前看不到要建什么"。改法：`proposalSlice` 增 `proposalPreview`（setPendingProposal 时对当前图 dry-run `applyPipelineActions`，产出 preview nodes/edges + 每节点 diff：new/modified/reuse）；CanvasFlow 在预览期渲染 preview 图并冻结编辑（drop/connect/drag/delete 全禁，Apply/Reject 仍可用）；GNodeShell 徽标按 diff 三态展示。验收：单测覆盖 addNode/addEdge 预览、失败回退 null、apply/reject 清理；真机 proposal 出卡时画布同步出 ghost 节点。
 - 备注：Components 面板点击创建 operation 节点经真机验证**功能正常**（2026-06-12 冒烟）；用户感知的"创建不成功"实为 N16-01 的 Agent 路径缺失。
 
+### N17 · 交互打磨（用户三次反馈，2026-06-12 晚）
+
+- **N17-00 节点悬浮工具栏被裁切**：N16-04 重构时操作 pill（configure/ask/duplicate/delete，`-top-3`）留在了 `overflow-hidden` 卡片容器内，顶部被吞（用户截图为证）。修复：pill 移到外层 wrapper。✅ `cef0d41e`
+- **N17-01 消息悬浮操作**：对齐 Claude 体验——用户气泡 hover 出 Copy/Edit/Retry，assistant 消息出 Copy；Edit 经 workspaceStore `composerDraft` 回填输入框并聚焦；Retry 原 metadata 重发。新组件 `messages/MessageActions.tsx`（i18n en+zh、story、testid）。✅ `1091b2b4`
+- **N17-02 缺输入源主动引导**：用户实测“PDF→Markdown→HTML”两算子流水线 Apply 后直接 Run，执行器（claude-code）在控制台要求配置输入/输出文件夹，但 Agent Bar 全程沉默。Apply 成功后检测图中有 operation 节点但无输入类节点（file/folder/github-project/prompt）→ 立即追加 assistant 引导消息（点节点配置 or 让 Agent 加输入节点）。
+- **N17-03 运行期执行器消息上浮（遗留，未做）**：运行中执行器侧的"需要用户补充"类信息只出现在 Run console，Agent Bar 无感知。方向：job_traces 中的结构化用户请求（或 checkpoint/waitingForUser 状态）→ Agent Bar 渲染可交互卡片（含跳 NodeConfig 的动作）。依赖运行协议定义，列入下期。
+- 原则备注（用户原话）：**像产品设计师一样审视细节与交互逻辑，而不是能跑就行**——每期验收前过一遍：悬浮态、空态、加载态、失败态、引导文案。
+
 ### N15 · 阶段事件与流式（可与 N13/N14 穿插，N15-02 可暂缓）
 
 - **N15-01 粗粒度阶段事件**：利用 `runAgent` 的 `onProgress` 钩子 + 服务端内存态（或 tRPC subscription，二选一以实现成本定）暴露 `thinking → drafting → validating` 阶段；前端 isThinking 行副标题实时更新（含 reversing 两段的阶段转发）。验收：发消息后副标题至少经历两次真实变化，非定时器伪造。

@@ -278,6 +278,19 @@ export const useAgentConversation = ({
       metadata: { proposalSnapshot: createProposalSnapshot(pendingProposal) },
       role: "assistant",
     });
+
+    // Product guardrail: a pipeline of operations with no input source will
+    // fail at run time with a confusing executor-side message. Surface the
+    // gap proactively right after Apply instead (user feedback 2026-06-12).
+    const INPUT_NODE_TYPES = new Set(["file", "folder", "github-project", "prompt"]);
+    const hasOperationNodes = nextCanvas.nodes.some((node) => node.type === "operation");
+    const hasInputNodes = nextCanvas.nodes.some((node) => INPUT_NODE_TYPES.has(node.type ?? ""));
+    if (hasOperationNodes && !hasInputNodes) {
+      await sendMessage({
+        content: t("workspace.agentBar.replies.missingInputSource"),
+        role: "assistant",
+      });
+    }
   }, [
     applyAgentProposal,
     canvasStore,

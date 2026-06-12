@@ -761,12 +761,13 @@
         "appliedNotSaved": "I applied the proposal locally, but could not save it yet.",
         "appliedSaved": "Applied the proposal and saved the pipeline.",
         "drafted": "I drafted a pipeline proposal.",
+        "fixRequest": "Please fix the validation errors in the proposal and submit a corrected version.",
+        "missingInputSource": "Heads up — this pipeline has no input source yet. Click the first node to configure its input, or tell me e.g. \"add a folder input\" and I will wire one in before you run.",
         "noSafeChange": "I could not find a safe graph change for that request.",
         "rejected": "Rejected the current proposal.",
+        "rejectedWithProposal": "Rejected the proposal “{{summary}}”.",
         "requestFailed": "I could not reach the agent to draft a proposal. Please try again.",
         "reviseHint": "Tell me what to revise and I will draft a new proposal.",
-        "fixRequest": "Please fix the validation errors in the proposal and submit a corrected version.",
-        "rejectedWithProposal": "Rejected the proposal “{{summary}}”.",
         "reviseHintWithProposal": "Withdrew the proposal “{{summary}}”. Tell me what to revise and I will draft a new one."
       },
       "reversing": {
