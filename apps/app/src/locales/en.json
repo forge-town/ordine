@@ -298,6 +298,13 @@
       },
       "title": "Advanced"
     },
+    "appearance": {
+      "dark": "Dark",
+      "hint": "Applies immediately and is remembered on this device.",
+      "label": "Appearance",
+      "light": "Light",
+      "system": "System"
+    },
     "defaults": {
       "apiKey": "API key",
       "apiKeyHint": "Stored locally and masked in the UI.",

@@ -298,6 +298,13 @@
       },
       "title": "高级"
     },
+    "appearance": {
+      "dark": "深色",
+      "hint": "立即生效，并在本设备记住该选择。",
+      "label": "外观",
+      "light": "浅色",
+      "system": "跟随系统"
+    },
     "defaults": {
       "apiKey": "API Key",
       "apiKeyHint": "仅存储在本机，界面中默认隐藏。",
