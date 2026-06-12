@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
-import { ArrowUp, Paperclip, X } from "lucide-react";
+import { ArrowUp, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { ConversationAttachment, ConversationMessageMetadata } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
@@ -7,6 +7,7 @@ import { Textarea } from "@repo/ui/textarea";
 import { useWorkspaceStore, type WorkspaceCanvasRef } from "../../_store/workspaceStore";
 import { Icon } from "@/components/primitives";
 import { useAgentBarStore } from "../_store";
+import { AttachMenu } from "./AttachMenu";
 import { ContextStrip } from "./ContextStrip";
 import { RefChips } from "./RefChips";
 
@@ -36,7 +37,6 @@ export const Composer = ({
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<ConversationAttachment[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const addMessage = useAgentBarStore((state) => state.addMessage);
   const hasConversation = useAgentBarStore((state) => state.messages.length > 0);
   const phase = useWorkspaceStore((state) => state.phase);
@@ -60,18 +60,16 @@ export const Composer = ({
     }
   };
 
-  const handleAttachClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleAttachmentRemoveClick = (name: string) => {
     setAttachments((current) => current.filter((attachment) => attachment.name !== name));
   };
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const files = [...(event.target.files ?? [])];
-    setAttachments(files.map((file) => ({ name: file.name })));
-    event.target.value = "";
+  const handleAttach = (incoming: ConversationAttachment[]) => {
+    setAttachments((current) => {
+      const known = new Set(current.map((attachment) => attachment.name));
+
+      return [...current, ...incoming.filter((attachment) => !known.has(attachment.name))];
+    });
   };
 
   const handleRemoveRef = (id: string) => onRemoveRef(id);
@@ -164,16 +162,7 @@ export const Composer = ({
         ) : null}
 
         <div className="flex items-end gap-1.5 rounded-2xl bg-background p-2 ring-1 ring-border focus-within:ring-border-strong">
-          <Button
-            aria-label={t("workspace.agentBar.composer.attach")}
-            className="h-7 w-7 rounded-lg"
-            size="icon"
-            type="button"
-            variant="ghost"
-            onClick={handleAttachClick}
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
+          <AttachMenu onAttach={handleAttach} />
           <Textarea
             ref={textareaRef}
             aria-label={t("workspace.agentBar.composer.messageLabel")}
@@ -195,13 +184,6 @@ export const Composer = ({
             <ArrowUp className="h-4 w-4" />
           </Button>
         </div>
-        <input
-          ref={fileInputRef}
-          multiple
-          className="hidden"
-          type="file"
-          onChange={handleFileChange}
-        />
       </div>
     </div>
   );

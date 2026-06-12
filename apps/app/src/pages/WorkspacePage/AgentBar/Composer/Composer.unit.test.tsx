@@ -81,7 +81,38 @@ describe("Composer", () => {
     expect(useAgentBarStore.getState().messages[0]).toEqual(
       expect.objectContaining({
         metadata: expect.objectContaining({
-          attachments: [{ name: "sample.pdf" }],
+          attachments: [{ name: "sample.pdf", type: "application/pdf" }],
+        }),
+      }),
+    );
+  });
+
+  it("appends folder uploads with relative paths instead of replacing attachments", async () => {
+    const user = userEvent.setup();
+    renderComposer();
+
+    const fileInput = document.querySelector<HTMLInputElement>(
+      "[data-testid='agent-composer-file-input']",
+    );
+    const folderInput = document.querySelector<HTMLInputElement>(
+      "[data-testid='agent-composer-folder-input']",
+    );
+    expect(fileInput).toBeTruthy();
+    expect(folderInput).toBeTruthy();
+
+    await user.upload(fileInput!, new File(["sample"], "sample.pdf", { type: "application/pdf" }));
+    const folderFile = new File(["readme"], "readme.md", { type: "text/markdown" });
+    Object.defineProperty(folderFile, "webkitRelativePath", { value: "docs/readme.md" });
+    await user.upload(folderInput!, folderFile);
+    await user.type(screen.getByRole("textbox", { name: "消息" }), "Use these{Enter}");
+
+    expect(useAgentBarStore.getState().messages[0]).toEqual(
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          attachments: [
+            { name: "sample.pdf", type: "application/pdf" },
+            { name: "docs/readme.md", type: "text/markdown" },
+          ],
         }),
       }),
     );
@@ -101,7 +132,7 @@ describe("Composer", () => {
       expect.objectContaining({
         content: "根据附件样本逆向生成 Pipeline：finished.csv",
         metadata: expect.objectContaining({
-          attachments: [{ name: "finished.csv" }],
+          attachments: [{ name: "finished.csv", type: "text/csv" }],
         }),
       }),
     );

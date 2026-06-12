@@ -761,6 +761,10 @@
       },
       "composer": {
         "attach": "添加附件",
+        "attachMenu": {
+          "files": "上传文件",
+          "folder": "上传文件夹"
+        },
         "messageLabel": "消息",
         "placeholder": "描述目标、上传样本，或继续修改…",
         "placeholderWithRefs": "让 Agent 修改引用的节点…",

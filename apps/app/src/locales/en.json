@@ -760,7 +760,11 @@
         "reviseHintWithProposal": "Withdrew the proposal “{{summary}}”. Tell me what to revise and I will draft a new one."
       },
       "composer": {
-        "attach": "Attach file",
+        "attach": "Add attachments",
+        "attachMenu": {
+          "files": "Attach files",
+          "folder": "Attach folder"
+        },
         "messageLabel": "Message",
         "placeholder": "Describe a goal, drop a sample, or revise...",
         "placeholderWithRefs": "Ask the Agent to change the referenced nodes...",
