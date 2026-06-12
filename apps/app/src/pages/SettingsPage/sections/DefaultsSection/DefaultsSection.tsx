@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useList, useOne, useUpdate } from "@refinedev/core";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, TriangleAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { AgentRuntimeConfig, Settings } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
@@ -32,6 +32,38 @@ export const DefaultsSection = () => {
   }, [settings]);
 
   const patch = (values: Partial<Settings>) => setDraft((state) => ({ ...state, ...values }));
+
+  // N18-03（N11 期末缺陷 2 根治）：保存的默认 runtime 不在检测列表时显式警告，
+  // 否则 Agent Bar 会带着失效 runtime 全部秒败且无任何提示。
+  const detectedRuntimes = runtimesResult.data;
+  const savedRuntime = draft.defaultAgentRuntime;
+  const runtimeInvalid =
+    Boolean(savedRuntime) &&
+    detectedRuntimes.length > 0 &&
+    !detectedRuntimes.some((runtime) => runtime.type === savedRuntime);
+  const firstDetected = detectedRuntimes[0];
+  const handleFixRuntime = () => {
+    if (!firstDetected) {
+      return;
+    }
+    patch({ defaultAgentRuntime: firstDetected.type as Settings["defaultAgentRuntime"] });
+    updateSettings(
+      {
+        errorNotification: false,
+        id: "settings",
+        resource: ResourceName.settings,
+        successNotification: false,
+        values: { defaultAgentRuntime: firstDetected.type },
+      },
+      {
+        onSuccess: () =>
+          toastStore.getState().addToast({
+            title: t("settings.defaults.runtimeFixed", { name: firstDetected.name }),
+            type: "success",
+          }),
+      },
+    );
+  };
 
   const handleSave = () => {
     updateSettings(
@@ -87,6 +119,29 @@ export const DefaultsSection = () => {
             ))}
           </SelectContent>
         </Select>
+        {runtimeInvalid ? (
+          <div
+            className="flex items-center gap-2 rounded-lg bg-destructive/10 px-2.5 py-2 text-[11.5px] text-destructive"
+            data-testid="settings-runtime-invalid"
+          >
+            <TriangleAlert className="size-3.5 shrink-0" />
+            <span className="flex-1">
+              {t("settings.defaults.runtimeInvalid", { value: savedRuntime })}
+            </span>
+            {firstDetected ? (
+              <Button
+                className="h-6 shrink-0 rounded-lg px-2 text-[11px]"
+                data-testid="settings-runtime-fix"
+                size="sm"
+                type="button"
+                variant="outline"
+                onClick={handleFixRuntime}
+              >
+                {t("settings.defaults.runtimeFix", { name: firstDetected.name })}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="settings-default-model">{t("settings.defaults.model")}</Label>
