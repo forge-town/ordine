@@ -305,6 +305,15 @@
       "light": "浅色",
       "system": "跟随系统"
     },
+    "autonomy": {
+      "decrease": "减少重试",
+      "description": "自愈在停下来向你解释之前能走多远。",
+      "deviceScope": "保存在本设备，并随每次运行一起下发。",
+      "increase": "增加重试",
+      "selfHeal": "自愈重试轮数",
+      "selfHealHint": "失败步骤自动重试的轮数。0 = 首次失败即停止。",
+      "title": "自主性"
+    },
     "defaults": {
       "apiKey": "API Key",
       "apiKeyHint": "仅存储在本机，界面中默认隐藏。",
@@ -398,6 +407,7 @@
       "advanced": "高级",
       "agentRuntimes": "Agent Runtimes",
       "appearance": "外观",
+      "autonomy": "自主性",
       "defaults": "默认项",
       "developer": "开发者",
       "keyboard": "快捷键",

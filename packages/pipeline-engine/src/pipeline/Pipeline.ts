@@ -31,7 +31,7 @@ import { processOperationNode } from "../nodes/OperationNode";
 const OBJECT_TYPES: ReadonlySet<string> = new Set(Object.values(OBJECT_NODE_TYPE_ENUM));
 const OPERATION_TYPES: ReadonlySet<string> = new Set(Object.values(OPERATION_NODE_TYPE_ENUM));
 const OUTPUT_TYPES: ReadonlySet<string> = new Set(Object.values(OUTPUT_NODE_TYPE_ENUM));
-const SELF_HEAL_MAX_RETRIES = 1;
+const DEFAULT_SELF_HEAL_RETRIES = 1;
 
 const resolveMetaType = (type: string): MetaNodeType =>
   OBJECT_TYPES.has(type)
@@ -150,6 +150,8 @@ export interface PipelineOptions {
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
   onNodeStatusChange?: (event: PipelineNodeStatusEvent) => Promise<void> | void;
   runControl?: PipelineRunControl;
+  /** N18-05：self-heal 重试轮数（0=失败即停，不再自动重试）。 */
+  selfHealRetries?: number;
 }
 
 export class Pipeline {
@@ -304,7 +306,8 @@ export class Pipeline {
       return firstResult;
     }
 
-    for (const attempt of Array.from({ length: SELF_HEAL_MAX_RETRIES }, (_, i) => i + 1)) {
+    const selfHealRetries = this.opts.selfHealRetries ?? DEFAULT_SELF_HEAL_RETRIES;
+    for (const attempt of Array.from({ length: selfHealRetries }, (_, i) => i + 1)) {
       await trace(
         this.opts.jobId,
         `@@SELF_HEAL::${node.id}::${attempt}::Retrying after failure: ${firstResult.error.message}`,

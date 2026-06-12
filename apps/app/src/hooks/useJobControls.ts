@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAutonomyStore } from "@/store/autonomyStore";
 import { ResultAsync } from "neverthrow";
 import { dataProvider } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
@@ -37,7 +38,11 @@ export const useJobControls = () => {
       request.action === "run"
         ? dataProvider.custom!({
             method: "post",
-            payload: { id: request.pipelineId },
+            payload: {
+              id: request.pipelineId,
+              // N18-05：Autonomy 偏好随 Run 下发，引擎据此决定 self-heal 轮数。
+              selfHealRetries: useAutonomyStore.getState().selfHealRetries,
+            },
             url: "pipelines/run",
           })
         : dataProvider.custom!({

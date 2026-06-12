@@ -77,6 +77,8 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       inputPath?: string;
       githubToken?: string;
       inputs?: Record<string, string>;
+      /** N18-05：本设备 Autonomy 偏好随请求下发（0=不自愈重试）。 */
+      selfHealRetries?: number;
       triggeredBy?: JobTriggeredBy;
     }): Promise<Result<{ jobId: string }, PipelineNotFoundError>> => {
       const pipeline = await pipelinesDao.findById(opts.pipelineId);
@@ -123,6 +125,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           githubToken: opts.githubToken,
           inputs: opts.inputs,
           defaultOutputPath: settings.defaultOutputPath,
+          selfHealRetries: opts.selfHealRetries,
           jobId,
           pipelinesDao,
           operationsDao,

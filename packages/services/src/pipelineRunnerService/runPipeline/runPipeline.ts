@@ -180,6 +180,7 @@ export const pipelineRunExecutor = {
     jobId: string;
     githubToken?: string;
     defaultOutputPath?: string;
+    selfHealRetries?: number;
     pipelinesDao: PipelinesDao;
     operationsDao: OperationsDao;
     agentsDao: AgentsDao;
@@ -269,6 +270,7 @@ export const pipelineRunExecutor = {
             inputPath: opts.inputPath,
             githubToken,
             defaultOutputPath: opts.defaultOutputPath,
+            selfHealRetries: opts.selfHealRetries,
             operations: operationsMap,
             deps: engineDeps,
             lookupAgent,

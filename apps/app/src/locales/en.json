@@ -305,6 +305,15 @@
       "light": "Light",
       "system": "System"
     },
+    "autonomy": {
+      "decrease": "Fewer retries",
+      "description": "How far self-heal goes before stopping and explaining.",
+      "deviceScope": "Stored on this device and sent with each run.",
+      "increase": "More retries",
+      "selfHeal": "Self-heal retries",
+      "selfHealHint": "How many rounds the engine retries a failing step before it stops. 0 = stop on first failure.",
+      "title": "Autonomy"
+    },
     "defaults": {
       "apiKey": "API key",
       "apiKeyHint": "Stored locally and masked in the UI.",
@@ -398,6 +407,7 @@
       "advanced": "Advanced",
       "agentRuntimes": "Agent Runtimes",
       "appearance": "Appearance",
+      "autonomy": "Autonomy",
       "defaults": "Defaults",
       "developer": "Developer",
       "keyboard": "Keyboard",

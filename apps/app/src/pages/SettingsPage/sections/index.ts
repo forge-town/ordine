@@ -1,4 +1,5 @@
 export * from "./AdvancedSection";
+export * from "./AutonomySection";
 export * from "./DefaultsSection";
 export * from "./DeveloperSection";
 export * from "./KeyboardSection";

@@ -7,6 +7,7 @@ import {
   Globe,
   Keyboard,
   Settings,
+  ShieldCheck,
   Sliders,
   Wrench,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import {
   AdvancedSection,
+  AutonomySection,
   DefaultsSection,
   DeveloperSection,
   KeyboardSection,
@@ -27,6 +29,7 @@ import {
 
 type Section =
   | "advanced"
+  | "autonomy"
   | "defaults"
   | "developer"
   | "language"
@@ -35,6 +38,7 @@ type Section =
 
 const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
   advanced: Wrench,
+  autonomy: ShieldCheck,
   notifications: Bell,
   defaults: Sliders,
   developer: Code,
@@ -49,7 +53,7 @@ const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
  */
 const SECTION_GROUPS: { ids: Section[]; titleKey: string }[] = [
   { ids: ["language", "notifications"], titleKey: "settings.groups.workspace" },
-  { ids: ["defaults"], titleKey: "settings.groups.execution" },
+  { ids: ["defaults", "autonomy"], titleKey: "settings.groups.execution" },
   {
     ids: ["project", "advanced", ...(import.meta.env.DEV ? (["developer"] as Section[]) : [])],
     titleKey: "settings.groups.data",
@@ -129,6 +133,7 @@ export const SettingsPageContent = () => {
             {active === "language" && <LanguageSection />}
             {active === "notifications" && <NotificationsSection />}
             {active === "defaults" && <DefaultsSection />}
+            {active === "autonomy" && <AutonomySection />}
             {active === "project" && <ProjectSection />}
             {active === "advanced" && <AdvancedSection />}
             {active === "developer" && <DeveloperSection />}
