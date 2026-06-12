@@ -6,6 +6,7 @@ import { useCanvasStore } from "./_store/canvasStore";
 export const CanvasEmptyState = () => {
   const { t } = useTranslation();
   const nodeCount = useCanvasStore((state) => state.nodes.length);
+  const previewNodeCount = useCanvasStore((state) => state.proposalPreview?.nodes.length ?? 0);
   const addNodeFromCatalog = useCanvasStore((state) => state.addNodeFromCatalog);
   const handleSeed = () => {
     addNodeFromCatalog({
@@ -15,7 +16,8 @@ export const CanvasEmptyState = () => {
     });
   };
 
-  if (nodeCount > 0) {
+  // Ghost preview nodes count as content — keep the empty state out of their way.
+  if (nodeCount > 0 || previewNodeCount > 0) {
     return null;
   }
 
