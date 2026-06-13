@@ -90,12 +90,23 @@ export const executeOperationNode = async (
   const effectiveAgentMode =
     executor.agentMode ?? (executor.type === "agent" ? "prompt" : undefined);
 
-  const chunkState = { lastTime: 0 };
+  // lastContent：记录最近一次已 emit 的 LLM_CONTENT，供终态去重（RUN-03）。
+  // 流式最后一帧的 accumulated 往往等于最终全文，若终态再 emit 一次会重复落 trace。
+  const chunkState = { lastContent: "", lastTime: 0 };
   const handleChunk = async (accumulated: string) => {
     const now = Date.now();
     if (now - chunkState.lastTime >= CHUNK_THROTTLE_MS) {
       chunkState.lastTime = now;
+      chunkState.lastContent = accumulated;
       await trace(jobId, encodeLlmContent(node.id, accumulated));
+    }
+  };
+
+  // 终态 emit：仅当与最近一次流式 emit 的内容不同才发，避免 RUN-03 的相邻重复。
+  const traceFinalLlmContent = async (content: string) => {
+    if (content !== chunkState.lastContent) {
+      chunkState.lastContent = content;
+      await trace(jobId, encodeLlmContent(node.id, content));
     }
   };
 
@@ -146,7 +157,7 @@ export const executeOperationNode = async (
       return { ok: false, error: new ScriptExecutionError(promptResult.error.message) };
     }
     opResult.value = promptResult.value;
-    await trace(jobId, encodeLlmContent(node.id, opResult.value));
+    await traceFinalLlmContent(opResult.value);
     await trace(jobId, `Prompt output (${opResult.value.length} chars)`);
   } else if (executor.type === "agent" && effectiveAgentMode === "skill") {
     const skillId = executor.skillId ?? "";
@@ -195,7 +206,7 @@ export const executeOperationNode = async (
 
       return { ok: false, error: new ScriptExecutionError(skillResult.error.message) };
     }
-    await trace(jobId, encodeLlmContent(node.id, opResult.value));
+    await traceFinalLlmContent(opResult.value);
     await trace(jobId, `Skill output (${opResult.value.length} chars)`);
   }
 
