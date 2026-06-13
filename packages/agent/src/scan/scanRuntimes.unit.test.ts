@@ -20,7 +20,14 @@ vi.mock("node:child_process", () => ({
     execFileMock(bin, args, opts, cb),
 }));
 
-import { firstPath, locateBinaryCommand, scanRuntimes, type DetectedRuntime } from "./scanRuntimes";
+import {
+  firstPath,
+  getRuntimeBinaries,
+  locateBinaryCommand,
+  parseExtraRuntimes,
+  scanRuntimes,
+  type DetectedRuntime,
+} from "./scanRuntimes";
 
 const LOCATE_BIN = locateBinaryCommand();
 
@@ -138,6 +145,26 @@ describe("scanRuntimes", () => {
     const path = firstPath("C:\\bin\\hermes.cmd\r\nC:\\bin\\hermes.exe\r\n", "linux");
 
     expect(path).toBe("C:\\bin\\hermes.cmd");
+  });
+
+  it("parses ORDINE_EXTRA_RUNTIMES and merges into the catalog (LA-01)", () => {
+    expect(parseExtraRuntimes("foo:foo-bin,bar:bar-cli")).toEqual({
+      foo: "foo-bin",
+      bar: "bar-cli",
+    });
+    // 防御：空段 / 缺冒号 / 空 name|bin 全部忽略。
+    expect(parseExtraRuntimes(" , baz , qux: , :only-bin , ok:ok-bin ")).toEqual({
+      ok: "ok-bin",
+    });
+    expect(parseExtraRuntimes(undefined)).toEqual({});
+
+    const merged = getRuntimeBinaries({ ORDINE_EXTRA_RUNTIMES: "myagent:my-bin" });
+    expect(merged).toHaveProperty("myagent", "my-bin");
+    expect(merged).toHaveProperty("claude-code", "claude");
+  });
+
+  it("includes piagent in the builtin catalog (LA-01)", () => {
+    expect(getRuntimeBinaries({})).toHaveProperty("piagent", "piagent");
   });
 
   it("each detected runtime has correct shape", async () => {
