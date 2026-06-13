@@ -196,7 +196,7 @@ export class Pipeline {
 
     await trace(
       jobId,
-      `Pipeline "${pipeline.name}" loaded. ${rootNodes.length} root nodes in ${levels.length} levels.`,
+      `Pipeline "${pipeline.name}" loaded. ${rootNodes.length} top-level nodes in ${levels.length} levels.`,
     );
     for (const node of rootNodes) {
       await this.emitNodeStatus(node.id, "queued");
