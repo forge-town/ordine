@@ -7,7 +7,7 @@
 
 import { z } from "zod/v4";
 import { Result } from "neverthrow";
-import { OperationOutputSchema } from "@repo/agent";
+import { extractJsonFromText, OperationOutputSchema } from "@repo/agent";
 import { logger } from "@repo/logger";
 
 // ─── JSON extraction ──────────────────────────────────────────────────────────
@@ -19,8 +19,9 @@ const tryParseJson = ({ text }: { text: string }): unknown | undefined => {
 };
 
 const extract = ({ rawText }: { rawText: string }): string => {
-  const fenceMatch = rawText.match(/```json\s*\n?([\s\S]*?)\n?\s*```/);
-  const candidate = fenceMatch?.[1]?.trim() ?? rawText.trim();
+  // H1-02：通用提取（直接/围栏/首个大括号子串）走共享 extractJsonFromText；
+  // 仍保留针对 check/fix 负载的 "type" 兜底匹配与 OperationOutputSchema 校验。
+  const candidate = extractJsonFromText(rawText);
 
   const parsed =
     tryParseJson({ text: candidate }) ??
