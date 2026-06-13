@@ -6,6 +6,25 @@
 >
 > 判定记号：🔴 阻断级（功能不可用/崩溃） · 🟠 缺陷（行为/数据错误） · 🟡 体验/健壮性 · 🔵 观察/待确认 · ✅ 正常确认
 
+## N21 修复批次结果（2026-06-13，手册 `docs/eval-bug修复手册-N21.md`）
+
+每修一个一个 fix commit，沙盒 `tsc --noEmit`（受影响包）全绿 + node strip-types 冒烟；vitest/oxlint 期末由用户在宿主机集中跑。
+
+| 缺陷 | commit | 处置 | 验证 |
+|---|---|---|---|
+| CG-01 / N20-03 cwd | `21beb27` (N21-01) | resolveCwd 展开 `~`、不存在路径回退 `process.cwd()`、文件取父目录 | 冒烟 8/8 |
+| SCHED-01 cron 区间 | `f135667` (N21-02) | parseCronField 支持 `a-b`/`a,b`/`a-b/n` | 冒烟 7/7（含 Fri→Mon 跳周末）+ **真机**：Weekday 预设 `0 9 * * 1-5` 建出 routine，弹窗显示「Runs Mon–Fri at 09:00」、进 Scheduled 列表（旧实现此处静默失效）✅ |
+| RUN-03 trace 重复 | `08f7432` (N21-03) | 终态 LLM_CONTENT 与流式末帧去重 | tsc |
+| RUN-05 文案 | `785d556` (N21-04) | "root nodes"→"top-level nodes" | tsc |
+| LA-01 runtime 白名单 | `b72a288` (N21-05) | 加 piagent + `ORDINE_EXTRA_RUNTIMES` 扩展 | 冒烟 + tsc |
+| RUN-06 默认模型/报错 | `d84d267` (N21-06) | 缺 KIMI key 秒级清晰报错；出厂默认 runtime→claude-code（仅新装） | 守卫冒烟 4/4 + tsc |
+| SCHED-02 HMR 重复 interval | `f3d8ccb` (N21-07) | globalThis 标志保证 scheduler 只 start 一次 | tsc |
+
+**真机回归**：上述后端改动全部 HMR 进运行中的 app，`/pipelines`、`/jobs` 正常无 500——INFRA-01 在这批改动下仍稳。
+**未在本期（登记遗留，见手册）**：CONN-01（需实现 MCP client，体量≈一个 N 期）、RUN-01/02/04（算子输出契约/写盘越权/token 成本）、OBS-02/03 UX 小修。
+
+---
+
 ## 0. 环境与前置修复
 
 | 编号 | 现象 | 根因 | 处置 |
