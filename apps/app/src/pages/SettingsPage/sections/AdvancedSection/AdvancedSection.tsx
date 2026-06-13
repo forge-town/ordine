@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { ClearHistoryPanel } from "../ProjectSection";
 import { SectionHeader } from "../../SectionHeader";
 
 const ROWS = ["dataDirectory", "schemaVersion", "localMode"] as const;
@@ -34,6 +35,7 @@ export const AdvancedSection = () => {
           </div>
         ))}
       </div>
+      <ClearHistoryPanel />
     </div>
   );
 };
