@@ -1,10 +1,11 @@
 name: CI
 
+# H3-02：PR 目标分支是 develop（AGENTS.md §五），原先只盯 main 导致所有 PR 都不触发 CI。
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   check:
@@ -21,6 +22,15 @@ jobs:
 
       - name: Type check
         run: bun run check-types
+
+      - name: Lint
+        run: bun run lint
+
+      - name: i18n dead-key & parity check
+        run: cd apps/app && bun run check:i18n
+
+      - name: Architecture boundaries & file-size guards
+        run: bun run check:arch
 
       - name: Test
         run: bun run test
