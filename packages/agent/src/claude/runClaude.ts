@@ -96,6 +96,8 @@ export const runClaude = async ({
   onProgress,
   extraEnv,
   ssh,
+  mcpConfigPath,
+  mcpToolNames,
 }: RunClaudeOptions): Promise<RunClaudeResult> => {
   const MAX_INPUT_CHARS = 50_000;
   const sanitizedSystemPrompt = sanitizeSystemPrompt(systemPrompt);
@@ -103,6 +105,9 @@ export const runClaude = async ({
     userPrompt.length > MAX_INPUT_CHARS
       ? `${userPrompt.slice(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${userPrompt.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
       : userPrompt;
+
+  // N22-05：connector 工具名（mcp__server__tool）与内置 allowedTools 合并下发。
+  const effectiveAllowedTools = [...allowedTools, ...(mcpToolNames ?? [])].join(",");
 
   const claudeArgs = [
     "-p",
@@ -112,7 +117,8 @@ export const runClaude = async ({
     "--system-prompt",
     sanitizedSystemPrompt,
     "--allowedTools",
-    allowedTools.join(","),
+    effectiveAllowedTools,
+    ...(mcpConfigPath ? ["--mcp-config", mcpConfigPath] : []),
     "--dangerously-skip-permissions",
     "--no-session-persistence",
     "--max-budget-usd",
