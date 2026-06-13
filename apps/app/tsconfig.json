@@ -25,7 +25,6 @@
     "dist",
     ".output",
     "src/routeTree.gen.ts",
-    "vitest.config.ts",
-    "src/archived"
+    "vitest.config.ts"
   ]
 }
