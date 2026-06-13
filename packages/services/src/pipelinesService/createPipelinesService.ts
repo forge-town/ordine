@@ -1,6 +1,6 @@
 import "../text-imports.d.ts";
 
-import { Result, ResultAsync } from "neverthrow";
+import { Result } from "neverthrow";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import nodeTypesRef from "../../../../skills/ordine-create-pipeline/references/node-types.md" with { type: "text" };
@@ -17,10 +17,9 @@ import {
   createSettingsDao,
   type DbConnection,
 } from "@repo/models";
-import { extractJsonFromText } from "@repo/agent";
 import { logger } from "@repo/logger";
 import { PipelineSchema, type ObjectNodeType, type PipelineData } from "@repo/schemas";
-import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
+import { runStructuredAgent } from "../pipelineRunnerService/agentRunner/runStructuredAgent";
 import { normalizeSettingsRecord } from "../settingsService/normalizeSettingsRecord";
 import { MAX_SNAPSHOT_CHARS, truncate } from "./promptText";
 import { proposeActions, type ProposeActionsOptions } from "./proposeActions";
@@ -407,43 +406,26 @@ export const createPipelinesService = (db: DbConnection) => {
 
       const optimizePrompt = buildOptimizeSystemPrompt(SKILL_REFERENCES);
 
-      const MAX_RETRIES = 3;
-      const execution = await (async () => {
-        for (const attempt of Array.from({ length: MAX_RETRIES }, (_, i) => i + 1)) {
-          const result = await ResultAsync.fromPromise(
-            runAgent({
-              agent: settings.defaultAgentRuntime,
-              systemPrompt: optimizePrompt,
-              userPrompt: userPromptText,
-              inputPath: process.cwd(),
-              agentId: OPTIMIZE_AGENT_ID,
-              allowedTools: [],
-              logPrefix: "optimizePipeline",
-              apiKey: settings.defaultApiKey,
-              model: settings.defaultModel,
-            }),
-            (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
-          );
-          if (result.isOk()) return result;
-          if (attempt === MAX_RETRIES) return result;
-          logger.warn(
-            { attempt, err: result.error.message },
-            "optimizePipeline: agent attempt failed, retrying",
-          );
-        }
+      const structured = await runStructuredAgent({
+        agent: settings.defaultAgentRuntime,
+        systemPrompt: optimizePrompt,
+        userPrompt: userPromptText,
+        agentId: OPTIMIZE_AGENT_ID,
+        logPrefix: "optimizePipeline",
+        apiKey: settings.defaultApiKey,
+        model: settings.defaultModel,
+      });
 
-        return undefined;
-      })();
-
-      if (!execution || execution.isErr()) {
-        logger.error({ err: execution?.error }, "optimizePipeline: agent failed after retries");
+      if (!structured.ok) {
+        logger.error({ code: structured.code }, "optimizePipeline: agent failed");
 
         return undefined;
       }
 
-      const raw = execution.value;
-      const json = extractJsonFromText(raw);
-      const rawParsed = JSON.parse(json);
+      const rawParsed = structured.json as {
+        id: string;
+        nodes?: Array<{ data: { nodeType?: string; sourceType?: string } }>;
+      };
 
       // Sanitize known LLM output issues before Zod validation
       if (Array.isArray(rawParsed.nodes)) {
@@ -520,40 +502,25 @@ export const createPipelinesService = (db: DbConnection) => {
         "Analyze the pipeline goal and match against available operations. Return ONLY the JSON.",
       ].join("\n");
 
-      const result = await ResultAsync.fromPromise(
-        runAgent({
-          agent: settings.defaultAgentRuntime,
-          systemPrompt: ANALYZE_SYSTEM_PROMPT,
-          userPrompt: userPromptText,
-          inputPath: process.cwd(),
-          agentId: ANALYZE_AGENT_ID,
-          allowedTools: [],
-          logPrefix: "analyzeIntent",
-          apiKey: settings.defaultApiKey,
-          model: settings.defaultModel,
-        }),
-        (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
-      );
+      const structured = await runStructuredAgent({
+        agent: settings.defaultAgentRuntime,
+        systemPrompt: ANALYZE_SYSTEM_PROMPT,
+        userPrompt: userPromptText,
+        agentId: ANALYZE_AGENT_ID,
+        logPrefix: "analyzeIntent",
+        apiKey: settings.defaultApiKey,
+        model: settings.defaultModel,
+        // analyzeIntent 历史为单次调用，不做进程级重试。
+        maxRetries: 1,
+      });
 
-      if (result.isErr()) {
-        logger.error({ err: result.error }, "analyzeIntent: agent failed");
+      if (!structured.ok) {
+        logger.error({ code: structured.code }, "analyzeIntent: agent failed");
 
         return EMPTY;
       }
 
-      const json = extractJsonFromText(result.value);
-      const parseResult = Result.fromThrowable(
-        () => JSON.parse(json) as Record<string, unknown>,
-        () => new Error("Invalid JSON"),
-      )();
-
-      if (parseResult.isErr()) {
-        logger.error("analyzeIntent: failed to parse agent output as JSON");
-
-        return EMPTY;
-      }
-
-      const parsed = parseResult.value;
+      const parsed = structured.json as Record<string, unknown>;
       const matchedOperations = Array.isArray(parsed.matchedOperations)
         ? (parsed.matchedOperations as Array<{
             operationId: string;
@@ -702,56 +669,29 @@ export const createPipelinesService = (db: DbConnection) => {
 
       const systemPrompt = buildGenerateSystemPrompt(SKILL_REFERENCES);
 
-      const MAX_RETRIES = 3;
-      const execution = await (async () => {
-        for (const attempt of Array.from({ length: MAX_RETRIES }, (_, i) => i + 1)) {
-          const result = await ResultAsync.fromPromise(
-            runAgent({
-              agent: settings.defaultAgentRuntime,
-              systemPrompt,
-              userPrompt: userPromptText,
-              inputPath: process.cwd(),
-              agentId: GENERATE_AGENT_ID,
-              allowedTools: [],
-              logPrefix: "generateStructure",
-              apiKey: settings.defaultApiKey,
-              model: settings.defaultModel,
-            }),
-            (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
-          );
-          if (result.isOk()) return result;
-          if (attempt === MAX_RETRIES) return result;
-          logger.warn(
-            { attempt, err: result.error.message },
-            "generateStructure: agent attempt failed, retrying",
-          );
+      const structured = await runStructuredAgent({
+        agent: settings.defaultAgentRuntime,
+        systemPrompt,
+        userPrompt: userPromptText,
+        agentId: GENERATE_AGENT_ID,
+        logPrefix: "generateStructure",
+        apiKey: settings.defaultApiKey,
+        model: settings.defaultModel,
+      });
+
+      if (!structured.ok) {
+        if (structured.code === "AGENT_FAILED") {
+          logger.error("generateStructure: agent failed after retries");
+
+          return { error: "Agent failed to generate pipeline structure after retries" };
         }
-
-        return undefined;
-      })();
-
-      if (!execution || execution.isErr()) {
-        logger.error({ err: execution?.error }, "generateStructure: agent failed after retries");
-
-        return { error: "Agent failed to generate pipeline structure after retries" };
-      }
-
-      const raw = execution.value;
-      const json = extractJsonFromText(raw);
-
-      const parseResult = Result.fromThrowable(
-        () => JSON.parse(json) as Record<string, unknown>,
-        () => new Error("Invalid JSON"),
-      )();
-
-      if (parseResult.isErr()) {
         logger.error("generateStructure: failed to parse agent output as JSON");
 
         return { error: "Agent returned invalid JSON" };
       }
 
       const NodesEdgesSchema = PipelineSchema.pick({ nodes: true, edges: true });
-      const validated = NodesEdgesSchema.safeParse(parseResult.value);
+      const validated = NodesEdgesSchema.safeParse(structured.json);
 
       if (!validated.success) {
         logger.error({ error: validated.error }, "generateStructure: invalid structure from agent");
