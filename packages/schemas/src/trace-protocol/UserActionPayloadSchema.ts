@@ -13,7 +13,8 @@ export const UserActionKindSchema = z.enum([
 export type UserActionKind = z.infer<typeof UserActionKindSchema>;
 
 export const UserActionPayloadSchema = z.object({
-  field: z.string().optional(),
+  // 非字符串 field 容错为 undefined（忽略坏字段但仍保留请求），与历史解析语义一致（H 评审 #2）。
+  field: z.string().optional().catch(undefined),
   kind: UserActionKindSchema,
   // 非空校验基于 trim 结果，但保留原始 message（不做 trim 变换），与历史解析行为一致。
   message: z.string().refine((value) => value.trim().length > 0),

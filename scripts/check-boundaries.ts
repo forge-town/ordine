@@ -6,7 +6,7 @@
  *   2. 分层方向：models 不得 import services / agent-engine / pipeline-engine / agent。
  *   3. Service 不碰 db：packages/services/src 不得 import "@repo/db"。
  *   4. feature 边界：canvas 不得 import AgentBar（G1-03，方向单向）。
- *   5. 无人可 import 应用层：任何包不得 import apps/* 或 "@/..."（仅 apps/app 内部可用 @/）。
+ *   5. 包不得反向依赖应用层：packages/** 不得 import "@/..." 或 apps/*（仅 apps/app 内部可用 @/）。
  *
  * Usage: node --experimental-strip-types scripts/check-boundaries.ts
  */
@@ -49,6 +49,12 @@ const RULES: Rule[] = [
     dir: "apps/app/src/pages/WorkspacePage/canvas",
     forbid: (s) => s.includes("AgentBar"),
     message: "canvas 不得 import AgentBar（feature 单向边界，G1-03）",
+  },
+  {
+    dir: "packages",
+    // 包不得反向依赖应用层：app 别名 @/ 或直指 apps/。
+    forbid: (s) => s.startsWith("@/") || s.includes("/apps/") || s.startsWith("apps/"),
+    message: "包不得依赖应用层（@/ 别名或 apps/*）",
   },
 ];
 
