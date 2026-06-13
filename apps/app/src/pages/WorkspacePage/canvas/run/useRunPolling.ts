@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useCustom, useDataProvider, useOne } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
-import type { Job, JobStatus, JobTrace } from "@repo/schemas";
+import { TRACE_MARKER, type Job, type JobStatus, type JobTrace } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useNotificationPrefsStore } from "@/store/notificationStore/notificationPrefsStore";
@@ -17,7 +17,7 @@ type RawTrace = {
   message: string;
 };
 
-const LLM_CONTENT_PREFIX = "@@LLM_CONTENT::";
+const LLM_CONTENT_PREFIX = TRACE_MARKER.llmContent;
 
 const stripTimestamp = (message: string): string => message.replace(/^\[[^\]]+\]\s*/, "");
 

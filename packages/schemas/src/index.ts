@@ -19,4 +19,5 @@ export * from "./refinement";
 export * from "./routine";
 export * from "./settings";
 export * from "./skill";
+export * from "./trace-protocol";
 export * from "./pipeline";

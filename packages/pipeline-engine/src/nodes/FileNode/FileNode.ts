@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { trace } from "@repo/obs";
+import { encodeNodeDone, encodeNodeFail } from "@repo/schemas";
 import type { NodeContext, NodeResult } from "../types";
 
 export const processFileNode = async (ctx: NodeContext): Promise<NodeResult> => {
@@ -8,7 +9,7 @@ export const processFileNode = async (ctx: NodeContext): Promise<NodeResult> => 
 
   if (node.data.nodeType !== "file") {
     await trace(jobId, `WARNING: Expected file node, got ${node.data.nodeType ?? "unknown"}`);
-    await trace(jobId, `@@NODE_FAIL::${node.id}`);
+    await trace(jobId, encodeNodeFail(node.id));
 
     return { ok: false, error: null };
   }
@@ -23,7 +24,7 @@ export const processFileNode = async (ctx: NodeContext): Promise<NodeResult> => 
     nodeOutputs.set(node.id, { inputPath: p ?? "", content: "" });
   }
 
-  await trace(jobId, `@@NODE_DONE::${node.id}`);
+  await trace(jobId, encodeNodeDone(node.id));
 
   return { ok: true };
 };

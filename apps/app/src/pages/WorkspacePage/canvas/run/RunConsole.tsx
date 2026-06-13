@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, SquareTerminal } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { TRACE_MARKER, TRACE_MARKER_PREFIX } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
 import { useCanvasStore } from "../_store/canvasStore";
 import { isTerminalJobStatus } from "./useRunPolling";
-
-const STRUCTURED_PREFIX = "@@";
 
 const stripTimestamp = (message: string): string => message.replace(/^\[[^\]]+\]\s*/, "");
 
@@ -20,13 +19,13 @@ const parseTimestamp = (message: string): string => {
 };
 
 const lineTone = (message: string): string => {
-  if (message.includes("ERROR") || message.startsWith("@@NODE_FAIL")) {
+  if (message.includes("ERROR") || message.startsWith(TRACE_MARKER.nodeFail)) {
     return "text-destructive";
   }
-  if (message.includes("Pipeline complete") || message.startsWith("@@NODE_DONE")) {
+  if (message.includes("Pipeline complete") || message.startsWith(TRACE_MARKER.nodeDone)) {
     return "text-success";
   }
-  if (message.startsWith("@@NODE_START")) {
+  if (message.startsWith(TRACE_MARKER.nodeStart)) {
     return "font-semibold text-foreground/90";
   }
 
@@ -109,7 +108,7 @@ export const RunConsole = () => {
             ) : (
               runTraces.map((trace, index) => {
                 const message = stripTimestamp(trace.message);
-                const structured = message.startsWith(STRUCTURED_PREFIX);
+                const structured = message.startsWith(TRACE_MARKER_PREFIX);
 
                 return (
                   <div

@@ -6,6 +6,17 @@ import { pluginRegistry } from "@repo/plugin";
 import { type NodeCtx } from "../schemas";
 import {
   BUILTIN_NODE_TYPE_ENUM,
+  encodeCheckpointResume,
+  encodeCheckpointWait,
+  encodeEdgeConditionSkip,
+  encodeEdgeQualitySkip,
+  encodeNodeDone,
+  encodeNodeSkipped,
+  encodeNodeStart,
+  encodeRunPause,
+  encodeRunResume,
+  encodeSelfHeal,
+  encodeSelfHealDone,
   OBJECT_NODE_TYPE_ENUM,
   OPERATION_NODE_TYPE_ENUM,
   OUTPUT_NODE_TYPE_ENUM,
@@ -285,7 +296,7 @@ export class Pipeline {
     node: PipelineNode,
   ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
     if (await this.shouldSkipNodeForInactiveEdges(node)) {
-      await trace(this.opts.jobId, `@@NODE_SKIPPED::${node.id}::incoming edge condition`);
+      await trace(this.opts.jobId, encodeNodeSkipped(node.id, "incoming edge condition"));
       await this.emitNodeStatus(node.id, "skipped");
 
       return { ok: true };
@@ -295,10 +306,10 @@ export class Pipeline {
     const shouldPause = await this.opts.runControl?.shouldPauseBeforeNode?.(event);
 
     if (shouldPause) {
-      await trace(this.opts.jobId, `@@RUN_PAUSE::${node.id}`);
+      await trace(this.opts.jobId, encodeRunPause(node.id));
       await this.emitNodeStatus(node.id, "waitingForUser");
       await this.opts.runControl?.waitForResume?.(event);
-      await trace(this.opts.jobId, `@@RUN_RESUME::${node.id}`);
+      await trace(this.opts.jobId, encodeRunResume(node.id));
     }
 
     const firstResult = await this.processNode(node);
@@ -310,12 +321,12 @@ export class Pipeline {
     for (const attempt of Array.from({ length: selfHealRetries }, (_, i) => i + 1)) {
       await trace(
         this.opts.jobId,
-        `@@SELF_HEAL::${node.id}::${attempt}::Retrying after failure: ${firstResult.error.message}`,
+        encodeSelfHeal(node.id, attempt, `Retrying after failure: ${firstResult.error.message}`),
       );
       await this.emitNodeStatus(node.id, "retrying");
       const retryResult = await this.processNode(node);
       if (retryResult.ok) {
-        await trace(this.opts.jobId, `@@SELF_HEAL_DONE::${node.id}::${attempt}`);
+        await trace(this.opts.jobId, encodeSelfHealDone(node.id, attempt));
 
         return retryResult;
       }
@@ -362,13 +373,13 @@ export class Pipeline {
     if (!conditionPassed) {
       await trace(
         this.opts.jobId,
-        `@@EDGE_CONDITION_SKIP::${edge.id}::${data?.condition?.expression ?? ""}`,
+        encodeEdgeConditionSkip(edge.id, data?.condition?.expression ?? ""),
       );
     }
     if (!qualityPassed) {
       await trace(
         this.opts.jobId,
-        `@@EDGE_QUALITY_SKIP::${edge.id}::${data?.qualityGate?.criteria ?? ""}`,
+        encodeEdgeQualitySkip(edge.id, data?.qualityGate?.criteria ?? ""),
       );
     }
 
@@ -397,17 +408,17 @@ export class Pipeline {
     const input = await this.resolveNodeInput(node.id);
 
     await trace(jobId, `Processing node [${node.type}] ${data.label ?? node.id}`);
-    await trace(jobId, `@@NODE_START::${node.id}`);
+    await trace(jobId, encodeNodeStart(node.id));
     await this.emitNodeStatus(node.id, "running");
     if (data.nodeType === BUILTIN_NODE_TYPE_ENUM.OPERATION && data.checkpoint) {
       await this.emitNodeStatus(node.id, "waitingForUser");
-      await trace(jobId, `@@CHECKPOINT_WAIT::${node.id}`);
+      await trace(jobId, encodeCheckpointWait(node.id));
       await this.opts.runControl?.waitForResume?.({
         jobId,
         nodeId: node.id,
         reason: "checkpoint",
       });
-      await trace(jobId, `@@CHECKPOINT_RESUME::${node.id}`);
+      await trace(jobId, encodeCheckpointResume(node.id));
       await this.emitNodeStatus(node.id, "running");
     }
 
@@ -452,7 +463,7 @@ export class Pipeline {
       // compound — passthrough for now
       await trace(jobId, `Skipped ${node.type} node (metaType: operation)`);
       this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
-      await trace(jobId, `@@NODE_DONE::${node.id}`);
+      await trace(jobId, encodeNodeDone(node.id));
 
       return this.finalizeNodeStatus(node.id, { ok: true });
     }
@@ -470,14 +481,14 @@ export class Pipeline {
         const projPath = node.data.path ?? input.inputPath;
         await trace(jobId, `Output-to-project: changes written directly to ${projPath}`);
         this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
-        await trace(jobId, `@@NODE_DONE::${node.id}`);
+        await trace(jobId, encodeNodeDone(node.id));
 
         return this.finalizeNodeStatus(node.id, { ok: true });
       }
 
       await trace(jobId, `Skipped output node type: ${node.type}`);
       this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
-      await trace(jobId, `@@NODE_DONE::${node.id}`);
+      await trace(jobId, encodeNodeDone(node.id));
 
       return this.finalizeNodeStatus(node.id, { ok: true });
     }
@@ -485,7 +496,7 @@ export class Pipeline {
     // fallback — skip
     await trace(jobId, `Skipped node type: ${node.type}`);
     this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
-    await trace(jobId, `@@NODE_DONE::${node.id}`);
+    await trace(jobId, encodeNodeDone(node.id));
 
     return this.finalizeNodeStatus(node.id, { ok: true });
   }
@@ -540,7 +551,7 @@ export class Pipeline {
       if (!result.ok) {
         return { ok: false, error: new ScriptExecutionError(`Plugin node ${node.id} failed`) };
       }
-      await trace(jobId, `@@NODE_DONE::${node.id}`);
+      await trace(jobId, encodeNodeDone(node.id));
 
       return { ok: true };
     }
@@ -568,7 +579,7 @@ export class Pipeline {
     // Unknown object type — passthrough
     await trace(jobId, `Skipped unknown object type: ${node.type}`);
     this.nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
-    await trace(jobId, `@@NODE_DONE::${node.id}`);
+    await trace(jobId, encodeNodeDone(node.id));
 
     return { ok: true };
   }
