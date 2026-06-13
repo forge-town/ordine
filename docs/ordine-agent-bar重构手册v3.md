@@ -181,6 +181,17 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 - **N19-03 Retry 附件 excerpt 降级** ✅ `bc74d7c2`（两处 Retry 注入 excerpt 作 content；端到端待真实失败附件场景顺带核验）：`handleErrorRetry`（AgentBar）与 `handleRetryMessage`（MessageActions 路径）重发时把 `metadata.attachments` 映射为 proposeAttachments——excerpt（真实截断摘录，≤1k）作 content；名称即原名，内容天然截断、不伪造全文。验收：带附件消息失败后点 Retry，服务端 prompt 含 excerpt 级 artifact 内容（单测）。
 - 纪律照旧：一任务一 commit、新文案 i18n en+zh、期末真机验证记录存 pr-assets。
 
+### N20 · 提案支持验证/迭代环（PRD 核心卖点落地，2026-06-13 立项）
+
+> **审查结论（决定整期方向）**：`compound` 节点 schema 完整（verify/council/delegation 三型 + 配置），但**引擎层是空壳**——`Pipeline.ts:452` `// compound — passthrough for now`，只把输入原样透传、打 `Skipped` trace。**绝不能放开提案让 Agent 产出引擎跳过的 compound 节点**（违反手册警告 4"不伪造"——画布上画了对抗验证环，运行时却被跳过）。
+> **关键发现**：operation 节点已有**真实可执行**的迭代机制——`OperationNode.ts:217-250` 的 `loopEnabled` + `maxLoopCount` + `loopConditionPrompt` + `deps.evaluateLoopCondition`，每轮把上轮输出回灌、按条件 prompt 判定是否再迭代，前端 `OperationNode.tsx:80` 也渲染 `loopMax` 标记。这正是"Generator ↔ Critic 对抗验证"的可执行落地：一个带自我批判 loop 的 operation = 生成→自评→改进直到达标。
+> **决策**：N20 用真实可执行的 loop operation 实现验证/迭代环语义，**不碰 compound 引擎**（compound 引擎实现是独立大工程，依赖 verify/council/delegation 三套执行协议，列入远期）。
+
+- **N20-01 提案放开 loop operation**：①PROPOSE_SYSTEM_PROMPT 新增 LOOP 段——当用户要"验证/审校/迭代改进/确保质量/对抗校验"时，operation 节点 data 可带 `loopEnabled: true, maxLoopCount: <2-5>, loopConditionPrompt: "<判定是否达标、返回 PASS/FAIL 的指令>"`；说明这是"生成后自我批判并改进直到 loopConditionPrompt 判定通过"的真实迭代，画布会标 loop。**保留** compound/child 禁令不动（引擎不支持）。②OperationNodeDataSchema 字段已存在，无 schema 改动；确认 normalizeProposalPayload 不会剥离这三个字段（若剥离则补别名）。验收：单测——含 loopEnabled 的 addNode 提案通过校验链且字段保留；真模型"PDF 转测验，要对抗验证确保题目无误"→ 提案含一个 loopEnabled operation。
+- **N20-02 ProposalCard 标注迭代环**：proposalItems 对带 loopEnabled 的 addNode 标 `loop ×N` 徽标（复用 N16-01 badge 机制）；ghost 预览节点上 loop 标记（OperationNode 已渲染，确认预览态也显示）。验收：提案卡与画布预览均可见迭代标记。
+- **N20-03 真机端到端**：真模型造一条带 loop operation 的流水线 → Apply → Run，**核验 trace 里有 `[Loop] Iteration k/N` 与条件 PASS/FAIL**（证明引擎真迭代，非画布装饰）。这是本期"不伪造"的铁证。
+- 远期遗留（不在 N20）：compound 引擎三型执行协议（verify 的 Generator/Critic 子图调度、council 多角色收敛、delegation 拆分合并）——需先定义子图执行模型，体量等同一个 N 期，单独立项。
+
 ### N15 · 阶段事件与流式（可与 N13/N14 穿插，N15-02 可暂缓）
 
 - **N15-01 粗粒度阶段事件**：利用 `runAgent` 的 `onProgress` 钩子 + 服务端内存态（或 tRPC subscription，二选一以实现成本定）暴露 `thinking → drafting → validating` 阶段；前端 isThinking 行副标题实时更新（含 reversing 两段的阶段转发）。验收：发消息后副标题至少经历两次真实变化，非定时器伪造。
