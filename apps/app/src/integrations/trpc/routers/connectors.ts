@@ -26,6 +26,10 @@ export const connectorsRouter = router({
       unwrapResult(await connectorsService.update(input.id, input.patch)),
     ),
 
+  connect: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => unwrapResult(await connectorsService.connect(input.id))),
+
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => unwrapResult(await connectorsService.delete(input.id))),
