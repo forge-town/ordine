@@ -47,6 +47,11 @@ export const skillsService = createSkillsService(db);
 export const operationOutputItemTemplatesService = createOperationOutputItemTemplatesService(db);
 export const usageService = createUsageService(db);
 
-if (!import.meta.env.VITEST) {
+// SCHED-02：start() 在模块作用域调用，vite/SSR 热重载会重新求值本模块 → 每次
+// 都 new 一个 setInterval，旧 interval 不被清理 → 定时器叠加、routine 重复触发。
+// 仿 INFRA-01，用 globalThis 标志保证整个进程生命周期内只 start 一次。
+const globalForScheduler = globalThis as unknown as { __ordineSchedulerStarted?: boolean };
+if (!import.meta.env.VITEST && !globalForScheduler.__ordineSchedulerStarted) {
+  globalForScheduler.__ordineSchedulerStarted = true;
   routineSchedulerService.start();
 }
