@@ -1,6 +1,5 @@
 import "../text-imports.d.ts";
 
-import { Result } from "neverthrow";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import nodeTypesRef from "../../../../skills/ordine-create-pipeline/references/node-types.md" with { type: "text" };
