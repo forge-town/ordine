@@ -4,7 +4,7 @@ import { runAgent } from "./agentRunner";
 
 vi.mock("@repo/agent-engine", () => ({
   agentEngine: {
-    run: vi.fn().mockResolvedValue({ text: "output", events: [] }),
+    run: vi.fn().mockResolvedValue({ text: "output", usage: null }),
   },
 }));
 

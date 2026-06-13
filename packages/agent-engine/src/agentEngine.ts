@@ -13,7 +13,24 @@ import { logger } from "@repo/logger";
 import { AgentRuntime } from "@repo/schemas";
 import { ResultAsync } from "neverthrow";
 
-export interface AgentRunResult {
+/** Runtime 无关的用量。无法采集（非 claude runtime）时为 null，诚实表达"不可用"而非伪造 0。 */
+export interface AgentUsage {
+  input: number;
+  output: number;
+}
+
+/**
+ * agentEngine.run 的公开返回契约（H1-03）。
+ * 仅暴露 runtime 无关字段；claude 专属的事件流（ClaudeStreamEvent）保留为 driver 内部细节，
+ * 不再穿透到包公开类型。
+ */
+export interface AgentRunOutcome {
+  text: string;
+  usage: AgentUsage | null;
+}
+
+/** Driver 内部返回：claude 会带回事件流用于观测，其余 runtime 为空数组。不导出。 */
+interface DriverResult {
   text: string;
   events: ClaudeStreamEvent[];
 }
@@ -46,7 +63,7 @@ const toAsyncProgress = (
   };
 };
 
-const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
+const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
   const extraEnv = opts.githubToken ? { GITHUB_TOKEN: opts.githubToken } : undefined;
   const effectiveTools =
     opts.allowedTools && opts.allowedTools.length > 0
@@ -64,7 +81,7 @@ const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<AgentRunResu
   return { text: result.text, events: result.events };
 };
 
-const runCodexDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
+const runCodexDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
   const text = await runCodex({
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
@@ -74,7 +91,7 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> =>
   return { text, events: [] };
 };
 
-const runMastraDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
+const runMastraDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
   const result = await runMastra({
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
@@ -86,9 +103,9 @@ const runMastraDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> =
   return result;
 };
 
-type DriverFn = (opts: AgentRunOptions) => Promise<AgentRunResult>;
+type DriverFn = (opts: AgentRunOptions) => Promise<DriverResult>;
 
-const runHermesDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
+const runHermesDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
   const result = await runHermes({
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
@@ -99,13 +116,14 @@ const runHermesDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> =
   });
 
   if (result.isErr()) {
-    return Promise.reject(result.error);
+    // 统一错误通道：与其余 driver 一致以 throw 上抛（消除 reject/throw 双标，H1-03）。
+    throw result.error;
   }
 
   return { text: result.value, events: [] };
 };
 
-const runOpenclawDirect = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
+const runOpenclawDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
   const result = await runOpenclaw({
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
@@ -293,7 +311,7 @@ const recordObservability = async ({
   agent: AgentRuntime;
   systemPrompt: string;
   userPrompt: string;
-  result: AgentRunResult;
+  result: DriverResult;
   startTime: number;
 }) => {
   const durationMs = Date.now() - startTime;
@@ -340,7 +358,7 @@ const recordObservability = async ({
   }
 };
 
-const run = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
+const run = async (opts: AgentRunOptions): Promise<AgentRunOutcome> => {
   const driver = DRIVERS[opts.agent];
   if (!driver) {
     throw new Error(`Unsupported agent backend: "${opts.agent}"`);
@@ -361,7 +379,11 @@ const run = async (opts: AgentRunOptions): Promise<AgentRunResult> => {
     });
   }
 
-  return result;
+  // 仅 claude 带回事件流可折算用量；其余 runtime 诚实返回 null（"用量不可用"）。
+  const usage: AgentUsage | null =
+    result.events.length > 0 ? extractTokenTotals(result.events) : null;
+
+  return { text: result.text, usage };
 };
 
 export const agentEngine = { run };
