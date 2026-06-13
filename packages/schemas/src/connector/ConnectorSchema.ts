@@ -1,9 +1,7 @@
 import { z } from "zod/v4";
+import { ConnectorConfigSchema } from "./ConnectorConfigSchema";
 import { ConnectorMethodSchema } from "./ConnectorMethodSchema";
 import { ConnectorStatusSchema } from "./ConnectorStatusSchema";
-
-export const ConnectorConfigSchema = z.record(z.string(), z.unknown());
-export type ConnectorConfig = z.infer<typeof ConnectorConfigSchema>;
 
 export const ConnectorSchema = z.object({
   id: z.string(),
