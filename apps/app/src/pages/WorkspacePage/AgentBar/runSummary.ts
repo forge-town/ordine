@@ -1,4 +1,4 @@
-import type { Job, JobTrace, NodeRunStatus } from "@repo/schemas";
+import { TRACE_MARKER, type Job, type JobTrace, type NodeRunStatus } from "@repo/schemas";
 import { formatCost, formatDurationMs } from "@/lib/format";
 
 type SummaryNode = {
@@ -40,7 +40,7 @@ export type SelfHealRunStep = { label: string; tone?: "muted" | "success" };
 
 export const buildSelfHealSteps = (traces: Pick<JobTrace, "message">[]): SelfHealRunStep[] =>
   [...traces].reverse().flatMap<SelfHealRunStep>((trace) => {
-    if (trace.message.startsWith("@@SELF_HEAL_DONE::")) {
+    if (trace.message.startsWith(TRACE_MARKER.selfHealDone)) {
       const [, nodeId, attempt] = trace.message.split("::");
 
       return [
@@ -51,7 +51,7 @@ export const buildSelfHealSteps = (traces: Pick<JobTrace, "message">[]): SelfHea
       ];
     }
 
-    if (!trace.message.startsWith("@@SELF_HEAL::")) return [];
+    if (!trace.message.startsWith(TRACE_MARKER.selfHeal)) return [];
 
     const [, nodeId, attempt, detail] = trace.message.split("::");
 

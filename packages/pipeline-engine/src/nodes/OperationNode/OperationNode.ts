@@ -1,4 +1,5 @@
 import type { OperationExecutorConfig, PipelineNode } from "@repo/schemas";
+import { encodeLlmContent, encodeNodeDone, encodeNodeFail } from "@repo/schemas";
 import type { NodeCtx } from "../../schemas";
 import { trace } from "@repo/obs";
 import { ScriptExecutionError } from "../../errors";
@@ -30,7 +31,7 @@ export const executeOperationNode = async (
 
   if (node.data.nodeType !== "operation") {
     await trace(jobId, `WARNING: Expected operation node, got ${node.data.nodeType ?? "unknown"}`);
-    await trace(jobId, `@@NODE_FAIL::${node.id}`);
+    await trace(jobId, encodeNodeFail(node.id));
 
     return { ok: false, error: null };
   }
@@ -41,7 +42,7 @@ export const executeOperationNode = async (
 
   if (!operation) {
     await trace(jobId, `ERROR: Operation ${operationId} not found`);
-    await trace(jobId, `@@NODE_FAIL::${node.id}`);
+    await trace(jobId, encodeNodeFail(node.id));
 
     return { ok: false, error: new ScriptExecutionError(`Operation "${operationId}" not found`) };
   }
@@ -66,7 +67,7 @@ export const executeOperationNode = async (
   const configResult = await safeParseConfig(operation.config, operation.name);
   if (configResult.isErr()) {
     await trace(jobId, `WARNING: ${configResult.error.message}, skipping`);
-    await trace(jobId, `@@NODE_FAIL::${node.id}`);
+    await trace(jobId, encodeNodeFail(node.id));
 
     return { ok: false, error: null };
   }
@@ -79,7 +80,7 @@ export const executeOperationNode = async (
       jobId,
       `WARNING: No executor configured for operation "${operation.name}", skipping`,
     );
-    await trace(jobId, `@@NODE_FAIL::${node.id}`);
+    await trace(jobId, encodeNodeFail(node.id));
 
     return { ok: false, error: null };
   }
@@ -94,7 +95,7 @@ export const executeOperationNode = async (
     const now = Date.now();
     if (now - chunkState.lastTime >= CHUNK_THROTTLE_MS) {
       chunkState.lastTime = now;
-      await trace(jobId, `@@LLM_CONTENT::${node.id}::${accumulated}`);
+      await trace(jobId, encodeLlmContent(node.id, accumulated));
     }
   };
 
@@ -109,7 +110,7 @@ export const executeOperationNode = async (
   if (executor.type === "script") {
     const scriptResult = await runScript(executor, input.inputPath, input.content);
     if (scriptResult.isErr()) {
-      await trace(jobId, `@@NODE_FAIL::${node.id}`);
+      await trace(jobId, encodeNodeFail(node.id));
 
       return { ok: false, error: scriptResult.error };
     }
@@ -122,7 +123,7 @@ export const executeOperationNode = async (
         jobId,
         `WARNING: Prompt text is empty for operation "${operation.name}", skipping`,
       );
-      await trace(jobId, `@@NODE_FAIL::${node.id}`);
+      await trace(jobId, encodeNodeFail(node.id));
 
       return { ok: false, error: null };
     }
@@ -140,12 +141,12 @@ export const executeOperationNode = async (
       outputDir: ctx.outputDir,
     });
     if (promptResult.isErr()) {
-      await trace(jobId, `@@NODE_FAIL::${node.id}`);
+      await trace(jobId, encodeNodeFail(node.id));
 
       return { ok: false, error: new ScriptExecutionError(promptResult.error.message) };
     }
     opResult.value = promptResult.value;
-    await trace(jobId, `@@LLM_CONTENT::${node.id}::${opResult.value}`);
+    await trace(jobId, encodeLlmContent(node.id, opResult.value));
     await trace(jobId, `Prompt output (${opResult.value.length} chars)`);
   } else if (executor.type === "agent" && effectiveAgentMode === "skill") {
     const skillId = executor.skillId ?? "";
@@ -154,7 +155,7 @@ export const executeOperationNode = async (
         jobId,
         `WARNING: No skillId configured for operation "${operation.name}", skipping`,
       );
-      await trace(jobId, `@@NODE_FAIL::${node.id}`);
+      await trace(jobId, encodeNodeFail(node.id));
 
       return { ok: false, error: null };
     }
@@ -168,7 +169,7 @@ export const executeOperationNode = async (
     if (agent === "hermes") {
       const message = `Hermes is not available for skill operation "${operation.name}" because skills require local tool permissions`;
       await trace(jobId, `WARNING: ${message}`);
-      await trace(jobId, `@@NODE_FAIL::${node.id}`);
+      await trace(jobId, encodeNodeFail(node.id));
 
       return { ok: false, error: new ScriptExecutionError(message) };
     }
@@ -190,11 +191,11 @@ export const executeOperationNode = async (
     opResult.value = skillResult.isOk() ? skillResult.value : "";
     if (skillResult.isErr()) {
       await trace(jobId, `Skill "${skillId}" failed: ${skillResult.error.message}`);
-      await trace(jobId, `@@NODE_FAIL::${node.id}`);
+      await trace(jobId, encodeNodeFail(node.id));
 
       return { ok: false, error: new ScriptExecutionError(skillResult.error.message) };
     }
-    await trace(jobId, `@@LLM_CONTENT::${node.id}::${opResult.value}`);
+    await trace(jobId, encodeLlmContent(node.id, opResult.value));
     await trace(jobId, `Skill output (${opResult.value.length} chars)`);
   }
 
@@ -261,7 +262,7 @@ export const processOperationNode = async (
   }
 
   nodeOutputs.set(node.id, { inputPath: input.inputPath, content: resultState.content });
-  await trace(jobId, `@@NODE_DONE::${node.id}`);
+  await trace(jobId, encodeNodeDone(node.id));
 
   return { ok: true };
 };

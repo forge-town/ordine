@@ -1,12 +1,18 @@
-import type { JobTrace } from "@repo/schemas";
+import { Result } from "neverthrow";
+import {
+  TRACE_MARKER,
+  UserActionPayloadSchema,
+  type JobTrace,
+  type UserActionKind,
+} from "@repo/schemas";
 
 /**
  * N17-03a：解析执行器发出的用户请求标记。
- * 协议：`@@USER_ACTION::{"kind":"…","message":"…","field"?:"…"}`（promptExecutor 注入规则）。
- * nodeId 不要求执行器提供——按 trace 流中的 `@@NODE_START::<id>` 归属当前节点。
+ * 标记常量与负载 schema 的唯一真相在 `@repo/schemas` 的 trace-protocol（H1-01）；
+ * nodeId 不要求执行器提供——按 trace 流中的 NODE_START 标记归属当前节点。
  */
 
-export type UserActionKind = "configure-input" | "configure-output" | "provide-info";
+export type { UserActionKind };
 
 export type UserActionRequest = {
   field?: string;
@@ -15,9 +21,8 @@ export type UserActionRequest = {
   nodeId?: string;
 };
 
-const USER_ACTION_MARKER = "@@USER_ACTION::";
-const NODE_START_MARKER = "@@NODE_START::";
-const KINDS = new Set<UserActionKind>(["configure-input", "configure-output", "provide-info"]);
+const USER_ACTION_MARKER = TRACE_MARKER.userAction;
+const NODE_START_MARKER = TRACE_MARKER.nodeStart;
 
 type TraceLike = Pick<JobTrace, "message"> & { createdAt?: Date };
 
@@ -33,27 +38,25 @@ const toChronological = (traces: TraceLike[]): TraceLike[] => {
 };
 
 const parseUserAction = (jsonText: string, nodeId?: string): UserActionRequest | undefined => {
-  try {
-    const parsed = JSON.parse(jsonText) as Record<string, unknown>;
-    const kind = parsed.kind;
-    const message = parsed.message;
-    if (typeof message !== "string" || message.trim().length === 0) {
-      return undefined;
-    }
-    if (typeof kind !== "string" || !KINDS.has(kind as UserActionKind)) {
-      return undefined;
-    }
-
-    return {
-      ...(typeof parsed.field === "string" ? { field: parsed.field } : {}),
-      kind: kind as UserActionKind,
-      message,
-      ...(nodeId ? { nodeId } : {}),
-    };
-  } catch {
-    // 坏 JSON 容错：忽略该标记，绝不让一条坏 trace 弄崩 Agent Bar。
+  // 坏 JSON 容错：JSON.parse 用 neverthrow 包裹，失败即忽略该标记，绝不弄崩 Agent Bar。
+  const jsonResult = Result.fromThrowable(
+    () => JSON.parse(jsonText) as unknown,
+    () => undefined,
+  )();
+  if (jsonResult.isErr()) {
     return undefined;
   }
+  const parsed = UserActionPayloadSchema.safeParse(jsonResult.value);
+  if (!parsed.success) {
+    return undefined;
+  }
+
+  return {
+    ...(parsed.data.field !== undefined ? { field: parsed.data.field } : {}),
+    kind: parsed.data.kind,
+    message: parsed.data.message,
+    ...(nodeId ? { nodeId } : {}),
+  };
 };
 
 export const buildUserActionRequests = (traces: TraceLike[]): UserActionRequest[] => {

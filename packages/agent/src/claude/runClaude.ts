@@ -51,37 +51,10 @@ export const GH_TOOLS = [
   "Bash(gh:*)",
 ] as const satisfies readonly ToolName[];
 
-/**
- * Extract JSON from text that may contain markdown fences or surrounding prose.
- * Tries: direct parse → fenced code block → first `{...}` substring.
- */
 const safeJsonParse = Result.fromThrowable(
   (text: string) => JSON.parse(text) as unknown,
   () => "invalid JSON",
 );
-
-export const extractJsonFromText = (text: string): string => {
-  const trimmed = text.trim();
-
-  const direct = safeJsonParse(trimmed);
-  if (direct.isOk()) return JSON.stringify(direct.value, null, 2);
-
-  const fenceMatch = /```(?:json)?\s*\n?([\s\S]*?)```/.exec(trimmed);
-  if (fenceMatch?.[1]) {
-    const fenced = safeJsonParse(fenceMatch[1].trim());
-    if (fenced.isOk()) return JSON.stringify(fenced.value, null, 2);
-  }
-
-  const braceStart = trimmed.indexOf("{");
-  const braceEnd = trimmed.lastIndexOf("}");
-  if (braceStart !== -1 && braceEnd > braceStart) {
-    const candidate = trimmed.slice(braceStart, braceEnd + 1);
-    const braced = safeJsonParse(candidate);
-    if (braced.isOk()) return JSON.stringify(braced.value, null, 2);
-  }
-
-  return trimmed;
-};
 
 /**
  * Extract the final text result from stream-json events.

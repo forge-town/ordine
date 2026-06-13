@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   countAnchorsByRef,
   countUnresolvedAnchors,
+  createAgentBarStore,
   useAgentBarStore,
   type AgentBarMessage,
 } from "./agentBarStore";
@@ -55,5 +56,27 @@ describe("countAnchorsByRef", () => {
 
     expect(countAnchorsByRef(messages)).toEqual({ "node-a": 1, "node-b": 1 });
     expect(countAnchorsByRef([])).toEqual({});
+  });
+});
+
+describe("createAgentBarStore — per-pipeline 隔离 (H2-03)", () => {
+  it("两个 pipeline 的 store 互不串扰", () => {
+    const storeA = createAgentBarStore("pipeline-a");
+    const storeB = createAgentBarStore("pipeline-b");
+
+    storeA.getState().addMessage(anchored("a1", "node-a"));
+    expect(storeA.getState().messages).toHaveLength(1);
+    // B 是独立实例，A 写入不影响 B。
+    expect(storeB.getState().messages).toHaveLength(0);
+
+    storeB.getState().addMessage(anchored("b1", "node-b"));
+    // 切回 A：A 的消息仍在，未被 B 覆盖。
+    expect(storeA.getState().messages.map((m) => m.id)).toEqual(["a1"]);
+    expect(storeB.getState().messages.map((m) => m.id)).toEqual(["b1"]);
+  });
+
+  it("记录所属 pipelineId 供 Provider 检测切换重建", () => {
+    expect(createAgentBarStore("p1").getState().pipelineId).toBe("p1");
+    expect(createAgentBarStore().getState().pipelineId).toBeNull();
   });
 });

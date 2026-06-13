@@ -14,6 +14,7 @@ import { CanvasStoreProvider, useCanvasStore } from "./canvas/_store/canvasStore
 import { derivePhase } from "./canvas/_store/derivePhase";
 import { fromPipelineSnapshot } from "./canvas/_store/canvasTypes";
 import { WorkspaceStoreProvider, useWorkspaceStore } from "./_store/workspaceStore";
+import { AgentBarStoreProvider } from "./AgentBar/_store";
 
 export type WorkspacePageProps = {
   pipelineId: string;
@@ -194,6 +195,8 @@ const WorkspacePageContent = ({ pipelineId }: WorkspacePageProps) => {
 
 export const WorkspacePage = ({ pipelineId }: WorkspacePageProps) => (
   <WorkspaceStoreProvider pipelineId={pipelineId}>
-    <WorkspacePageContent pipelineId={pipelineId} />
+    <AgentBarStoreProvider pipelineId={pipelineId}>
+      <WorkspacePageContent pipelineId={pipelineId} />
+    </AgentBarStoreProvider>
   </WorkspaceStoreProvider>
 );

@@ -1,10 +1,9 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { useUpdate } from "@refinedev/core";
 import { ResultAsync } from "neverthrow";
 import { useTranslation } from "react-i18next";
 import type {
   ConversationMessageMetadata,
-  PipelineAction,
   PipelineActionProposal,
   ProposeActionsResponse,
   ProposeAttachment,
@@ -17,6 +16,8 @@ import { toPipelineSnapshot } from "../canvas/_store/canvasTypes";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { useAgentContext } from "./context";
 import { useAgentConversationPersistence } from "./useAgentConversationPersistence";
+import { useProposeProgress } from "./useProposeProgress";
+import { buildProposalItems, buildProposeReply, createProposalSnapshot } from "./proposalView";
 
 export type AgentConversationSubmitInput = {
   content: string;
@@ -28,54 +29,6 @@ export type AgentConversationSubmitInput = {
 };
 
 type ProposeActionsResult = Partial<ProposeActionsResponse>;
-
-const ACTION_TITLE_KEYS: Record<PipelineAction["type"], string> = {
-  addNode: "workspace.agentBar.actionTitles.addNode",
-  removeNode: "workspace.agentBar.actionTitles.removeNode",
-  addEdge: "workspace.agentBar.actionTitles.addEdge",
-  removeEdge: "workspace.agentBar.actionTitles.removeEdge",
-  reconnectEdge: "workspace.agentBar.actionTitles.reconnectEdge",
-  replaceNodeData: "workspace.agentBar.actionTitles.replaceNodeData",
-};
-
-const actionDetail = (action: PipelineAction): string => {
-  switch (action.type) {
-    case "addNode": {
-      return action.node.data.label ?? action.node.id;
-    }
-    case "removeNode": {
-      return action.nodeId;
-    }
-    case "addEdge": {
-      return `${action.edge.source} -> ${action.edge.target}`;
-    }
-    case "removeEdge": {
-      return action.edgeId;
-    }
-    case "reconnectEdge": {
-      return `${action.edgeId} -> ${action.source} / ${action.target}`;
-    }
-    case "replaceNodeData": {
-      return action.nodeId;
-    }
-    default: {
-      return "";
-    }
-  }
-};
-
-const createProposalSnapshot = (proposal: PipelineActionProposal) => ({
-  addedEdges: proposal.actions
-    .filter(
-      (action): action is Extract<PipelineAction, { type: "addEdge" }> => action.type === "addEdge",
-    )
-    .map((action) => action.edge.id),
-  addedNodes: proposal.actions
-    .filter(
-      (action): action is Extract<PipelineAction, { type: "addNode" }> => action.type === "addNode",
-    )
-    .map((action) => action.node.id),
-});
 
 export const useAgentConversation = ({
   phase,
@@ -104,71 +57,18 @@ export const useAgentConversation = ({
   // N19-01：空画布建图时 Agent 给出的流水线名，Apply 时仅在仍为默认名时采用。
   const [suggestedPipelineName, setSuggestedPipelineName] = useState<string | null>(null);
   const [progressToken, setProgressToken] = useState<string | null>(null);
-  const [progressStage, setProgressStage] = useState<string | null>(null);
-
   // N15-01：请求期间轮询服务端真实阶段（thinking → analyzing? → drafting → validating）。
-  useEffect(() => {
-    if (!progressToken) {
-      return;
-    }
-
-    const intervalId = globalThis.setInterval(() => {
-      void dataProvider.custom!<{ stage: string | null }>({
-        method: "post",
-        payload: { token: progressToken },
-        url: "pipelines/proposeProgress",
-      })
-        .then((response) => {
-          if (response.data.stage) {
-            setProgressStage(response.data.stage);
-          }
-        })
-        .catch(() => undefined);
-    }, 700);
-
-    return () => globalThis.clearInterval(intervalId);
-  }, [progressToken]);
+  const progressStage = useProposeProgress(progressToken);
   const { isSending: isPersisting, sendMessage } = useAgentConversationPersistence({
     phase,
     pipelineId,
   });
   const hasBlockingDiagnostics =
     diagnostics?.some((diagnostic) => diagnostic.severity === "error") ?? false;
-  const proposalItems = useMemo(() => {
-    const draftedOperationIds = new Set(pendingOperations.map((operation) => operation.id));
-
-    return (
-      pendingProposal?.actions.map((action) => {
-        const badges: { label: string; tone?: "success" | "accent" }[] = [];
-        if (action.type === "addNode") {
-          const data = action.node.data;
-          if (
-            "operationId" in data &&
-            typeof data.operationId === "string" &&
-            draftedOperationIds.has(data.operationId)
-          ) {
-            badges.push({ label: t("workspace.agentBar.proposal.newOperationBadge") });
-          }
-          // N20-02：带迭代环的 operation 标 loop ×N（真实可执行的验证/改进循环）。
-          if ("loopEnabled" in data && data.loopEnabled) {
-            const count = "maxLoopCount" in data ? (data.maxLoopCount ?? 3) : 3;
-            badges.push({
-              label: t("workspace.agentBar.proposal.loopBadge", { count }),
-              tone: "accent",
-            });
-          }
-        }
-
-        return {
-          badges,
-          detail: actionDetail(action),
-          title: t(ACTION_TITLE_KEYS[action.type] ?? action.type, {
-            nodeType: action.type === "addNode" ? action.node.type : undefined,
-          }),
-        };
-      }) ?? []
-    );
-  }, [pendingOperations, pendingProposal, t]);
+  const proposalItems = useMemo(
+    () => buildProposalItems(pendingProposal, pendingOperations, t),
+    [pendingOperations, pendingProposal, t],
+  );
 
   const submitMessage = useCallback(
     async ({
@@ -192,7 +92,6 @@ export const useAgentConversation = ({
         typeof crypto !== "undefined" && "randomUUID" in crypto
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      setProgressStage(null);
       setProgressToken(requestProgressToken);
 
       const result = await ResultAsync.fromPromise(
@@ -216,7 +115,6 @@ export const useAgentConversation = ({
       );
 
       setProgressToken(null);
-      setProgressStage(null);
 
       if (result.isErr()) {
         setIsProposing(false);
@@ -234,14 +132,7 @@ export const useAgentConversation = ({
       const clarifyOptions = result.value.data.clarifyOptions ?? [];
       const proposeError = result.value.data.error ?? null;
       const baseReply = result.value.data.reply;
-      const reply = proposeError
-        ? baseReply
-          ? `${baseReply}\n${t("workspace.agentBar.errors.proposalDropped")}`
-          : t(`workspace.agentBar.errors.${proposeError.code}`)
-        : (baseReply ??
-          (proposal
-            ? t("workspace.agentBar.replies.drafted")
-            : t("workspace.agentBar.replies.noSafeChange")));
+      const reply = buildProposeReply({ baseReply, proposal, proposeError, t });
 
       setPendingProposal(proposal, nextDiagnostics);
       setPendingOperations(proposal ? (result.value.data.pendingOperations ?? []) : []);

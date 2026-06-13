@@ -1,41 +1,24 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useUpdate } from "@refinedev/core";
 import { useNavigate } from "@tanstack/react-router";
-import type { WorkspaceCanvasRef } from "@repo/schemas";
-import { Check, ChevronsRight, MessageSquare, X } from "lucide-react";
+import { ChevronsRight, MessageSquare, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useCanvasStore } from "../canvas/_store/canvasStore";
-import {
-  Assistant,
-  Bubble,
-  ClarifyOptions,
-  ErrorActions,
-  MessageActions,
-  ProposalCard,
-  UserActionCard,
-} from "./messages";
+import { Assistant, MessageTurn, ProposalCard, UserActionCard } from "./messages";
 import { useWorkspaceStore } from "../_store/workspaceStore";
 import { AgentBody } from "./AgentBody";
 import { AgentDistillCard } from "./AgentDistillCard";
 import { DebugPhaseBar } from "./DebugPhaseBar";
 import { AgentRunCards } from "./AgentRunCards";
-import { Composer, RefChips } from "./Composer";
+import { Composer } from "./Composer";
 import { useAgentBarStore, type AgentBarMessage } from "./_store";
 import { useAgentConversation } from "./useAgentConversation";
 import { useUserActionRequests } from "./useUserActionRequests";
 import type { UserActionRequest } from "./userActionRequests";
-
-/** N15-01：服务端阶段在真实调用边界推进；rank 用于映射逆向四步完成度。 */
-const STAGE_RANK: Record<string, number> = {
-  thinking: 0,
-  analyzing: 1,
-  drafting: 2,
-  validating: 3,
-  done: 4,
-};
+import { buildReversingSteps, STAGE_RANK } from "./messageView";
 
 export type AgentBarProps = {
   className?: string;
@@ -44,15 +27,6 @@ export type AgentBarProps = {
   pipelineId: string;
   pipelineName?: string;
 };
-
-/**
- * N19-03：Retry 重发时附件全文已不可得（不落库），用已落库的 excerpt
- * （真实截断摘录 ≤1k）作降级内容——不伪造全文，但比纯文件名强得多。
- */
-const toRetryAttachments = (metadata: AgentBarMessage["metadata"]) =>
-  (metadata?.attachments ?? []).map((attachment) =>
-    attachment.excerpt ? { ...attachment, content: attachment.excerpt } : attachment,
-  );
 
 export const AgentBar = ({
   className,
@@ -114,16 +88,10 @@ export const AgentBar = ({
   // N15-01：四步由服务端真实阶段驱动（analyzing=第一段进行中，drafting 起
   // 第一段三步完成，draft 在响应返回后完成）。无阶段信息时诚实显示进行中。
   const stageRank = progressStage ? (STAGE_RANK[progressStage] ?? 0) : 0;
-  const reversingSteps = useMemo(() => {
-    const stageOneDone = !isReversing || stageRank >= STAGE_RANK.drafting!;
-
-    return ["structure", "steps", "matched", "draft"].map((step) => ({
-      detail: t(`workspace.agentBar.reversing.steps.${step}Detail`),
-      done: step === "draft" ? !isReversing : stageOneDone,
-      id: step,
-      title: t(`workspace.agentBar.reversing.steps.${step}`),
-    }));
-  }, [isReversing, stageRank, t]);
+  const reversingSteps = useMemo(
+    () => buildReversingSteps(isReversing, stageRank, t),
+    [isReversing, stageRank, t],
+  );
   const activeRefs = useMemo(
     () => canvasRefs.filter((ref) => !dismissed.includes(ref.id)),
     [canvasRefs, dismissed],
@@ -137,25 +105,6 @@ export const AgentBar = ({
         : messages,
     [messages, thread],
   );
-  const refsForMessage = (message: AgentBarMessage): WorkspaceCanvasRef[] => {
-    const nodeLabelById = new Map(
-      canvasNodes.map((node) => [node.id, node.data.label ?? node.id] as const),
-    );
-
-    return (message.metadata?.referencedNodeIds ?? []).map((refId) => {
-      const path = refId.split("/");
-      const baseId = path.at(-1) ?? refId;
-
-      return {
-        baseId,
-        id: refId,
-        kind: "node",
-        label: nodeLabelById.get(baseId) ?? baseId,
-        path: path.slice(0, -1),
-        type: "node",
-      };
-    });
-  };
   const handleResolveMessage = (message: AgentBarMessage) => {
     resolveMessage(message.id);
     updateMessage({
@@ -270,106 +219,22 @@ export const AgentBar = ({
             onSuggestReverse={focusComposer}
           />
         ) : null}
-        {visibleMessages.map((message) => {
-          const messageRefs = refsForMessage(message);
-          const resolvable = thread && !message.metadata?.resolved && !message.isThinking;
-          const clarifyOptions = message.metadata?.clarifyOptions ?? [];
-          const isLastMessage = message.id === visibleMessages.at(-1)?.id;
-          const showClarifyOptions =
-            message.role === "assistant" &&
-            clarifyOptions.length > 0 &&
-            isLastMessage &&
-            !pendingProposal;
-          const errorCode = message.metadata?.proposeErrorCode;
-          const showErrorActions =
-            message.role === "assistant" && Boolean(errorCode) && isLastMessage;
-          const handleErrorRetry = () => {
-            const messageIndex = visibleMessages.indexOf(message);
-            const lastUserMessage = [...visibleMessages.slice(0, messageIndex)]
-              .reverse()
-              .find((candidate) => candidate.role === "user");
-            if (!lastUserMessage) {
-              return;
-            }
-            void submitMessage({
-              content: lastUserMessage.content,
-              metadata: {
-                attachments: lastUserMessage.metadata?.attachments ?? [],
-                referencedNodeIds: lastUserMessage.metadata?.referencedNodeIds ?? [],
-              },
-              proposeAttachments: toRetryAttachments(lastUserMessage.metadata),
-            });
-          };
-          const handleEditMessage = () => setComposerDraft(message.content);
-          const handleRetryMessage = () =>
-            void submitMessage({
-              content: message.content,
-              metadata: {
-                attachments: message.metadata?.attachments ?? [],
-                referencedNodeIds: message.metadata?.referencedNodeIds ?? [],
-              },
-              proposeAttachments: toRetryAttachments(message.metadata),
-            });
-          const body =
-            message.role === "user" ? (
-              <Bubble
-                attachmentLabel={message.metadata?.attachments?.map((item) => item.name).join(", ")}
-              >
-                {message.content}
-              </Bubble>
-            ) : (
-              <Assistant isThinking={message.isThinking}>{message.content}</Assistant>
-            );
-
-          return (
-            <div key={message.id} className="group/turn relative space-y-1">
-              {body}
-              {!message.isThinking && message.content.trim().length > 0 ? (
-                <MessageActions
-                  align={message.role === "user" ? "right" : "left"}
-                  content={message.content}
-                  disabled={isSending}
-                  onEdit={message.role === "user" ? handleEditMessage : undefined}
-                  onRetry={message.role === "user" ? handleRetryMessage : undefined}
-                />
-              ) : null}
-              {messageRefs.length > 0 ? (
-                <div className={cn(message.role === "user" && "flex justify-end")}>
-                  <RefChips small refs={messageRefs} />
-                </div>
-              ) : null}
-              {showClarifyOptions ? (
-                <ClarifyOptions
-                  disabled={isSending}
-                  options={clarifyOptions}
-                  onSelect={(option) =>
-                    void submitMessage({ content: option, metadata: { referencedNodeIds: [] } })
-                  }
-                />
-              ) : null}
-              {showErrorActions && errorCode ? (
-                <ErrorActions
-                  code={errorCode}
-                  disabled={isSending}
-                  onOpenSettings={() => void navigate({ to: "/settings" })}
-                  onRetry={handleErrorRetry}
-                />
-              ) : null}
-              {resolvable ? (
-                <button
-                  aria-label={t("workspace.agentBar.thread.resolve")}
-                  className="absolute -left-3 top-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-accent hover:text-foreground group-hover/turn:opacity-100"
-                  data-testid={`agent-resolve-${message.id}`}
-                  title={t("workspace.agentBar.thread.resolve")}
-                  type="button"
-                  onClick={() => handleResolveMessage(message)}
-                >
-                  <Check className="size-3" />
-                </button>
-              ) : null}
-            </div>
-          );
-        })}
+        {visibleMessages.map((message) => (
+          <MessageTurn
+            key={message.id}
+            canvasNodes={canvasNodes}
+            hasPendingProposal={Boolean(pendingProposal)}
+            isLast={message.id === visibleMessages.at(-1)?.id}
+            isSending={isSending}
+            isThreadView={Boolean(thread)}
+            message={message}
+            visibleMessages={visibleMessages}
+            onEditDraft={setComposerDraft}
+            onOpenSettings={() => void navigate({ to: "/settings" })}
+            onResolveMessage={handleResolveMessage}
+            onSubmit={(input) => void submitMessage(input)}
+          />
+        ))}
         {userActionRequests.length > 0 ? (
           <UserActionCard
             nodeLabelById={userActionNodeLabelById}

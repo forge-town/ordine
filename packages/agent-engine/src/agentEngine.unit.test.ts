@@ -65,7 +65,8 @@ describe("agentEngine", () => {
     });
 
     expect(result.text).toBe("fake claude output");
-    expect(result.events).toEqual(fakeClaudeEvents);
+    // claude 事件流折算用量（本 fake 无 modelUsage，故为 0/0，但非 null = 用量可用）。
+    expect(result.usage).toEqual({ input: 0, output: 0 });
   });
 
   it("dispatches to runCodex for codex", async () => {
@@ -78,7 +79,8 @@ describe("agentEngine", () => {
     });
 
     expect(result.text).toBe("fake codex output");
-    expect(result.events).toEqual([]);
+    // 非 claude runtime 无事件流 → 用量不可用（null），不伪造 0。
+    expect(result.usage).toBeNull();
   });
 
   it("dispatches to runHermes for hermes", async () => {
@@ -93,7 +95,7 @@ describe("agentEngine", () => {
     });
 
     expect(result.text).toBe("fake hermes output");
-    expect(result.events).toEqual([]);
+    expect(result.usage).toBeNull();
     expect(runHermes).toHaveBeenCalledWith(
       expect.objectContaining({
         cwd: "/tmp/test",

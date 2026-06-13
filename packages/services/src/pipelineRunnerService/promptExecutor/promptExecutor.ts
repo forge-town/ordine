@@ -1,7 +1,7 @@
 import { ResultAsync, errAsync } from "neverthrow";
 import { logger } from "@repo/logger";
 import type { RunPromptOptions } from "@repo/pipeline-engine";
-import type { OutputItem, SshConnection } from "@repo/schemas";
+import { TRACE_MARKER, type OutputItem, type SshConnection } from "@repo/schemas";
 import { runAgent } from "../agentRunner/agentRunner";
 
 export class PromptExecutionError extends Error {
@@ -28,7 +28,7 @@ const USER_ACTION_SECTION = [
   "If you cannot fully complete the task because something only the USER can provide is missing",
   "(e.g. an input folder is not configured or empty, an output destination is unknown, credentials are required),",
   "emit ONE line in this exact format on its own line, then still produce the best partial result you can:",
-  '@@USER_ACTION::{"kind":"configure-input","message":"<one short sentence telling the user what to configure>","field":"<optional missing field>"}',
+  `${TRACE_MARKER.userAction}{"kind":"configure-input","message":"<one short sentence telling the user what to configure>","field":"<optional missing field>"}`,
   'Allowed "kind" values: "configure-input", "configure-output", "provide-info".',
   "Do NOT emit the marker when nothing is missing.",
   "",
