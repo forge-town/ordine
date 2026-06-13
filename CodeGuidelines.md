@@ -338,9 +338,9 @@ export const createJobListPageStore = () =>
 
 判定口诀：问"切换 pipeline / 离开页面后，这份状态还成立吗？"——成立 → 单例；不成立 → Provider 工厂。
 
-**例外清单（已知待整改）：**
+**例外清单：**
 
-- `agentBarStore`：承载按 pipeline 隔离的对话消息，却是模块级单例，靠持久化层覆盖伪隔离——应改为 Provider 工厂（治理计划 G1-04，等 AgentBar 增强线合并后执行）。
+- ~~`agentBarStore`：模块级单例承载按 pipeline 隔离的消息，靠持久化层覆盖伪隔离~~ → 已于 H2-03 改为 `createAgentBarStore(pipelineId)` + `AgentBarStoreProvider`（挂在 WorkspacePage，随 pipelineId 重建），消息按 pipeline 实例隔离；保留 `useAgentBarStore` 静态访问器供无 Provider 的单测回退。
 
 **跨 feature 依赖规则：** 同级 feature 目录（如 `canvas/` 与 `AgentBar/`）**禁止互相 import 对方的 `_store` 或内部模块**；需要共享的状态上提到共同父级 store（如 `workspaceStore`），由写方同步、读方只读（参照 `AnchorCountSync` 的做法）。
 
