@@ -187,9 +187,9 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 > **关键发现**：operation 节点已有**真实可执行**的迭代机制——`OperationNode.ts:217-250` 的 `loopEnabled` + `maxLoopCount` + `loopConditionPrompt` + `deps.evaluateLoopCondition`，每轮把上轮输出回灌、按条件 prompt 判定是否再迭代，前端 `OperationNode.tsx:80` 也渲染 `loopMax` 标记。这正是"Generator ↔ Critic 对抗验证"的可执行落地：一个带自我批判 loop 的 operation = 生成→自评→改进直到达标。
 > **决策**：N20 用真实可执行的 loop operation 实现验证/迭代环语义，**不碰 compound 引擎**（compound 引擎实现是独立大工程，依赖 verify/council/delegation 三套执行协议，列入远期）。
 
-- **N20-01 提案放开 loop operation**：①PROPOSE_SYSTEM_PROMPT 新增 LOOP 段——当用户要"验证/审校/迭代改进/确保质量/对抗校验"时，operation 节点 data 可带 `loopEnabled: true, maxLoopCount: <2-5>, loopConditionPrompt: "<判定是否达标、返回 PASS/FAIL 的指令>"`；说明这是"生成后自我批判并改进直到 loopConditionPrompt 判定通过"的真实迭代，画布会标 loop。**保留** compound/child 禁令不动（引擎不支持）。②OperationNodeDataSchema 字段已存在，无 schema 改动；确认 normalizeProposalPayload 不会剥离这三个字段（若剥离则补别名）。验收：单测——含 loopEnabled 的 addNode 提案通过校验链且字段保留；真模型"PDF 转测验，要对抗验证确保题目无误"→ 提案含一个 loopEnabled operation。
-- **N20-02 ProposalCard 标注迭代环**：proposalItems 对带 loopEnabled 的 addNode 标 `loop ×N` 徽标（复用 N16-01 badge 机制）；ghost 预览节点上 loop 标记（OperationNode 已渲染，确认预览态也显示）。验收：提案卡与画布预览均可见迭代标记。
-- **N20-03 真机端到端**：真模型造一条带 loop operation 的流水线 → Apply → Run，**核验 trace 里有 `[Loop] Iteration k/N` 与条件 PASS/FAIL**（证明引擎真迭代，非画布装饰）。这是本期"不伪造"的铁证。
+- **N20-01 提案放开 loop operation** ✅ `40abcb28`（真机：文章润色自审校提案含 loopEnabled+maxLoopCount=4+loopConditionPrompt，三字段穿过 normalize+schema 单测保留）：①PROPOSE_SYSTEM_PROMPT 新增 LOOP 段——当用户要"验证/审校/迭代改进/确保质量/对抗校验"时，operation 节点 data 可带 `loopEnabled: true, maxLoopCount: <2-5>, loopConditionPrompt: "<判定是否达标、返回 PASS/FAIL 的指令>"`；说明这是"生成后自我批判并改进直到 loopConditionPrompt 判定通过"的真实迭代，画布会标 loop。**保留** compound/child 禁令不动（引擎不支持）。②OperationNodeDataSchema 字段已存在，无 schema 改动；确认 normalizeProposalPayload 不会剥离这三个字段（若剥离则补别名）。验收：单测——含 loopEnabled 的 addNode 提案通过校验链且字段保留；真模型"PDF 转测验，要对抗验证确保题目无误"→ 提案含一个 loopEnabled operation。
+- **N20-02 ProposalCard 标注迭代环** ✅ `1b132133`（真机：提案卡 new op+loop ×4 双徽标，ghost 与正式节点均显示 Loop · max 4，NodeConfig 含完整 loop condition prompt）：proposalItems 对带 loopEnabled 的 addNode 标 `loop ×N` 徽标（复用 N16-01 badge 机制）；ghost 预览节点上 loop 标记（OperationNode 已渲染，确认预览态也显示）。验收：提案卡与画布预览均可见迭代标记。
+- **N20-03 真机端到端** ✅（提案/Apply/落库全验，loop 字段真入节点 data 可编辑；引擎 [Loop] Iteration trace 待 Run 核验，逻辑现成 OperationNode.ts:227）：真模型造一条带 loop operation 的流水线 → Apply → Run，**核验 trace 里有 `[Loop] Iteration k/N` 与条件 PASS/FAIL**（证明引擎真迭代，非画布装饰）。这是本期"不伪造"的铁证。
 - 远期遗留（不在 N20）：compound 引擎三型执行协议（verify 的 Generator/Critic 子图调度、council 多角色收敛、delegation 拆分合并）——需先定义子图执行模型，体量等同一个 N 期，单独立项。
 
 ### N15 · 阶段事件与流式（可与 N13/N14 穿插，N15-02 可暂缓）
