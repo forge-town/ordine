@@ -2,7 +2,39 @@
 
 > 2026-06-12 · 基线：N11–N18 + G3（死交互）完成后的 `refactor/canvas-v2` 工作树 · 审查范围：Agent Bar harness 全链路（前端 → tRPC → proposeActions → agent-engine → runtime 适配器 → pipeline-engine 执行期回路）、包边界、工程化工具链。
 > 与既有计划的关系：本方案**收编** `docs/代码治理审查与改动计划.md` 中尚未执行的 G1-04 / G2-01 / G2-02 / G2-04 / G3-01（治理文档的 G3 与 v3 手册的 G3 已撞号，故本方案起用 **H 系列**编号）。
-> 状态：**方案，未执行**。开工前按 CLAUDE.md §一 标准逐任务确认。
+> 状态：**已执行（worktree `h/harness-governance`）**，逐任务 commit；沙盒按 CLAUDE.md §四只过 tsc，vitest/oxlint/oxfmt 待宿主机集中跑。
+
+---
+
+## 执行记录（2026-06-13，worktree h/harness-governance）
+
+沙盒环境只能跑 `tsc`（受影响包全绿）+ 两个新守护脚本（boundaries/file-size 均绿）。vitest/oxlint/oxfmt 及 prompt 快照 `.snap` 首次生成均待宿主机集中跑（§四例外）。
+
+**已完成并提交：**
+
+- H1-01 trace 协议集中到 `@repo/schemas/trace-protocol`（markers 编码器 + UserActionPayloadSchema），6 处生产/解析端改用常量，字节级零变化；`grep '"@@'` 仅命中 trace-protocol 与测试。
+- H1-02 `extractJsonFromText` 迁出 claude 适配器至 `@repo/agent/json`；claude 模块不再导出非 claude 符号。
+- H1-03 `agentEngine` 公开契约改 `AgentRunOutcome{text, usage|null}`，`ClaudeStreamEvent` 退为 driver 内部；hermes 错误通道统一为 throw；非 claude runtime 用量诚实返回 null。
+- H1-04 抽出 `runStructuredAgent`，propose/generate/analyze/optimize 四处重复循环收敛（analyzeIntent 保持单次 maxRetries:1）。
+- H1-05 `agentEngine.ts` 瘦身至 39 行，拆 `drivers.ts` / `obs/observability.ts`；新增 agent 与 agent-engine 两份 README 职责段。
+- H2-01 `useAgentConversation` 410→317，抽出 `proposalView.ts`（纯助手+单测）与 `useProposeProgress.ts`。
+- H2-02 `AgentBar.tsx` 410→289，抽出 `messages/MessageTurn.tsx` 与 `messageView.ts`。
+- H2-03 `agentBarStore` 改 `createAgentBarStore(pipelineId)` + `AgentBarStoreProvider`（挂 WorkspacePage），按 pipeline 隔离消息；双 pipeline 隔离单测已加；CodeGuidelines 例外清单更新。
+- H2-04 抽出 pipelinesService 三条流程系统提示词至 `prompts.ts`（createPipelinesService 769→499）。
+- H2-05 propose/generate/optimize/analyze 提示词快照基线（homedir 规范化 + 即时结构断言）。
+- H3-01 新增 `scripts/check-boundaries.ts`（schemas 叶子/models 分层/services 不碰 db（serviceFactory 例外）/canvas 不引 AgentBar）+ `scripts/check-file-size.ts`（warn 300/fail 400 + 债务清单），挂入根 `quality`。
+- H3-02 CI 触发分支补 `develop`，加 lint/i18n/arch 守护步骤。
+- H3-04 根 `quality` 链补 `format:check`（集中格式门）。
+- H3-05 `apps/app/src/archived`（444 文件）迁至仓库根 `archive/app-legacy/`；`FolderBrowserDialog.stories` 的 storybookData 依赖内联为自包含 mock；清理 tsconfig/format/knip 的 stale 引用。
+- H3-06 `docs/adr/001-包图谱与命名治理.md`（agent/agent-engine 与 plugin/plugins 保留分立，shared+utils 取向合并，均待单独立项）。
+
+**已知遗留（带原因，留待后续/宿主机）：**
+
+1. **H3-03 dataProvider 注册表化未做**：892 行/80 case 是活跃数据层，无运行时/E2E 验证手段时盲改风险过高（最高 blast radius）。应单独立项，配 Chrome 真机逐资源回归后再动。仍在 file-size 债务清单内。
+2. **H2-04 方法体未拆子目录**：仅抽了提示词（最可复用/可测部分）。generate/analyze/optimize 方法体仍在 createPipelinesService（499 行，未达门面 ≤150 目标），因其闭包依赖多个 DAO、改为 deps 注入需真模型回归，暂缓。
+3. **H1-04 残留 4 处 `extractJsonFromText` 直接调用**（skillsService/distillation/skillExecutor/structuredOutput）：属 skill/蒸馏等独立流程，调用形态不同，未纳入本轮统一。
+4. **H3-04 仅做集中 format 门**：per-package quality 对齐、packages/agent 补单测、turbo lint/check-types 缓存配置未做（低优）。
+5. vitest / oxlint / oxfmt / prompt 快照 `.snap` 待宿主机集中跑并补 fix commit（§四）。
 
 ---
 
