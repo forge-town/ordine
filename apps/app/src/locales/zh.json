@@ -822,6 +822,7 @@
         "apply": "应用",
         "askFix": "让 Agent 修复",
         "blocked": "先解决诊断问题再应用",
+        "loopBadge": "迭代 ×{{count}}",
         "newOperationBadge": "新算子",
         "reject": "拒绝",
         "revise": "修改"

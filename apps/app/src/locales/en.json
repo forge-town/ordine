@@ -822,6 +822,7 @@
         "apply": "Apply",
         "askFix": "Ask agent to fix",
         "blocked": "Resolve diagnostics before applying",
+        "loopBadge": "loop ×{{count}}",
         "newOperationBadge": "new op",
         "reject": "Reject",
         "revise": "Revise"

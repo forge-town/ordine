@@ -138,19 +138,35 @@ export const useAgentConversation = ({
     const draftedOperationIds = new Set(pendingOperations.map((operation) => operation.id));
 
     return (
-      pendingProposal?.actions.map((action) => ({
-        badge:
-          action.type === "addNode" &&
-          "operationId" in action.node.data &&
-          typeof action.node.data.operationId === "string" &&
-          draftedOperationIds.has(action.node.data.operationId)
-            ? t("workspace.agentBar.proposal.newOperationBadge")
-            : undefined,
-        detail: actionDetail(action),
-        title: t(ACTION_TITLE_KEYS[action.type] ?? action.type, {
-          nodeType: action.type === "addNode" ? action.node.type : undefined,
-        }),
-      })) ?? []
+      pendingProposal?.actions.map((action) => {
+        const badges: { label: string; tone?: "success" | "accent" }[] = [];
+        if (action.type === "addNode") {
+          const data = action.node.data;
+          if (
+            "operationId" in data &&
+            typeof data.operationId === "string" &&
+            draftedOperationIds.has(data.operationId)
+          ) {
+            badges.push({ label: t("workspace.agentBar.proposal.newOperationBadge") });
+          }
+          // N20-02：带迭代环的 operation 标 loop ×N（真实可执行的验证/改进循环）。
+          if ("loopEnabled" in data && data.loopEnabled) {
+            const count = "maxLoopCount" in data ? (data.maxLoopCount ?? 3) : 3;
+            badges.push({
+              label: t("workspace.agentBar.proposal.loopBadge", { count }),
+              tone: "accent",
+            });
+          }
+        }
+
+        return {
+          badges,
+          detail: actionDetail(action),
+          title: t(ACTION_TITLE_KEYS[action.type] ?? action.type, {
+            nodeType: action.type === "addNode" ? action.node.type : undefined,
+          }),
+        };
+      }) ?? []
     );
   }, [pendingOperations, pendingProposal, t]);
 

@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import { ProgressList } from "./ProgressList";
+import { ProgressList, type ProgressListBadge } from "./ProgressList";
 
 export type ProposalItem = {
-  /** e.g. "new op" for agent-drafted operations that will be created on Apply. */
-  badge?: string;
+  /** e.g. "new op" (success) + "loop ×N" (accent) badges shown next to the node title. */
+  badges?: ProgressListBadge[];
   detail: string;
   title: string;
 };
@@ -40,7 +40,7 @@ export const ProposalCard = ({
       </div>
       <ProgressList
         items={items.map((item, index) => ({
-          badge: item.badge,
+          badges: item.badges,
           detail: item.detail,
           id: `${index}-${item.title}`,
           title: item.title,
