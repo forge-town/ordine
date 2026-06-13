@@ -4,6 +4,7 @@ export * from "./json";
 export * from "./codex";
 export * from "./hermes";
 export * from "./mastra";
+export * from "./mcp";
 export * from "./openclaw";
 export * from "./providers";
 export * from "./scan";
