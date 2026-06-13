@@ -30,21 +30,65 @@ export type RoutineSchedulerDeps = {
 
 type CronField = ReadonlySet<number>;
 
+const fullRange = (min: number, max: number): number[] =>
+  Array.from({ length: max - min + 1 }, (_, index) => min + index);
+
+const withStep = (values: number[], base: number, step: number): number[] =>
+  values.filter((value) => (value - base) % step === 0);
+
+/**
+ * 解析单个 cron 字段。支持：
+ *   `*` / `*​/n` / 单值 `5` / 区间 `1-5` / 区间步进 `1-5/2` / `*​/n`，
+ *   以及逗号列表 `1,3,5`、`0-2,4`（各段递归解析后取并集）。
+ * 非法语法/越界 → null（上层据此判定"不调度"）。
+ * （内置「Weekday 09:00」预设生成 `0 9 * * 1-5`，旧实现 Number("1-5")=NaN 静默失效——N21-02 修。）
+ */
 const parseCronField = (field: string, min: number, max: number): CronField | null => {
-  if (field === "*") {
-    return new Set(Array.from({ length: max - min + 1 }, (_, index) => min + index));
+  // 逗号列表：逐段解析并求并集，任一段非法即整体非法。
+  if (field.includes(",")) {
+    const parts = field.split(",");
+    const merged = new Set<number>();
+    for (const part of parts) {
+      const sub = parseCronField(part, min, max);
+      if (!sub) return null;
+      for (const value of sub) merged.add(value);
+    }
+
+    return merged;
   }
 
-  const stepMatch = /^\*\/(\d+)$/.exec(field);
-  if (stepMatch) {
-    const step = Number(stepMatch[1]);
+  if (field === "*") {
+    return new Set(fullRange(min, max));
+  }
+
+  // `*​/n`：整段范围按步进。
+  const stepAllMatch = /^\*\/(\d+)$/.exec(field);
+  if (stepAllMatch) {
+    const step = Number(stepAllMatch[1]);
     if (!Number.isInteger(step) || step <= 0) return null;
 
-    return new Set(
-      Array.from({ length: max - min + 1 }, (_, index) => min + index).filter(
-        (value) => (value - min) % step === 0,
-      ),
-    );
+    return new Set(withStep(fullRange(min, max), min, step));
+  }
+
+  // 区间 `a-b` 及区间步进 `a-b/n`。
+  const rangeMatch = /^(\d+)-(\d+)(?:\/(\d+))?$/.exec(field);
+  if (rangeMatch) {
+    const start = Number(rangeMatch[1]);
+    const end = Number(rangeMatch[2]);
+    const step = rangeMatch[3] === undefined ? 1 : Number(rangeMatch[3]);
+    if (
+      !Number.isInteger(start) ||
+      !Number.isInteger(end) ||
+      !Number.isInteger(step) ||
+      step <= 0 ||
+      start < min ||
+      end > max ||
+      start > end
+    ) {
+      return null;
+    }
+
+    return new Set(withStep(fullRange(start, end), start, step));
   }
 
   const value = Number(field);
