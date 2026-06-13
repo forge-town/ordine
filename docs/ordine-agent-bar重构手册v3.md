@@ -176,9 +176,9 @@ apps/app/src/pages/WorkspacePage/AgentBar/
 
 > 动机：①列表/Schedule 选择器/Usage 满屏 "Untitled pipeline" 不可辨（G3-01 与多轮真机验收反复实证）；②N18-06 Data 组待续；③N14 遗留 Retry 不携带附件内容。
 
-- **N19-01 Apply 后自动命名 pipeline**：`ProposeActionsResponseSchema` 增 `pipelineName?: string`；PROPOSE_SYSTEM_PROMPT 输出段约定——当画布为空（CURRENT GRAPH 无节点）且给出 proposal 时，附 3-8 字的流水线名（用户语言，描述用途）；`parseAgentOutput` 解析；前端 Apply 成功后**仅当**当前名为空/默认 "Untitled pipeline" 时随保存一并 `update name`（用户已自定义的名字绝不覆盖）。零额外 LLM 调用。验收：空画布中文请求 → Apply 后 TopPill 与列表显示语义化名称；已命名 pipeline 再 Apply 不被改名。
-- **N19-02 Data 组清除对话历史（原 N18-06）**：`conversationMessagesDao` 增 `deleteByPipelineId` 与 `deleteAll`（按现有 DAO class 模式）→ conversationMessagesService → tRPC `conversationMessages.clearAll` → dataProvider custom；ProjectSection（Data 节）尾部"危险区"：清除按钮 + 二次确认 Dialog（说明 pipelines 保留）；清除后 agentBarStore 重置。验收：清除后通刷新对话区为空、pipelines 完好；确认框可取消。
-- **N19-03 Retry 附件 excerpt 降级**：`handleErrorRetry`（AgentBar）与 `handleRetryMessage`（MessageActions 路径）重发时把 `metadata.attachments` 映射为 proposeAttachments——excerpt（真实截断摘录，≤1k）作 content；名称即原名，内容天然截断、不伪造全文。验收：带附件消息失败后点 Retry，服务端 prompt 含 excerpt 级 artifact 内容（单测）。
+- **N19-01 Apply 后自动命名 pipeline** ✅ `73982838`（真机：会议录音流水线 Apply 后名变「会议录音转文字稿与纪要」）：`ProposeActionsResponseSchema` 增 `pipelineName?: string`；PROPOSE_SYSTEM_PROMPT 输出段约定——当画布为空（CURRENT GRAPH 无节点）且给出 proposal 时，附 3-8 字的流水线名（用户语言，描述用途）；`parseAgentOutput` 解析；前端 Apply 成功后**仅当**当前名为空/默认 "Untitled pipeline" 时随保存一并 `update name`（用户已自定义的名字绝不覆盖）。零额外 LLM 调用。验收：空画布中文请求 → Apply 后 TopPill 与列表显示语义化名称；已命名 pipeline 再 Apply 不被改名。
+- **N19-02 Data 组清除对话历史** ✅ `0029d7d8`+`d4b59c76`（真机修复：危险区被 ProjectSection 未选项目早返回遮挡，拆 ClearHistoryPanel 挂 Advanced 节）：`conversationMessagesDao` 增 `deleteByPipelineId` 与 `deleteAll`（按现有 DAO class 模式）→ conversationMessagesService → tRPC `conversationMessages.clearAll` → dataProvider custom；ProjectSection（Data 节）尾部"危险区"：清除按钮 + 二次确认 Dialog（说明 pipelines 保留）；清除后 agentBarStore 重置。验收：清除后通刷新对话区为空、pipelines 完好；确认框可取消。
+- **N19-03 Retry 附件 excerpt 降级** ✅ `bc74d7c2`（两处 Retry 注入 excerpt 作 content；端到端待真实失败附件场景顺带核验）：`handleErrorRetry`（AgentBar）与 `handleRetryMessage`（MessageActions 路径）重发时把 `metadata.attachments` 映射为 proposeAttachments——excerpt（真实截断摘录，≤1k）作 content；名称即原名，内容天然截断、不伪造全文。验收：带附件消息失败后点 Retry，服务端 prompt 含 excerpt 级 artifact 内容（单测）。
 - 纪律照旧：一任务一 commit、新文案 i18n en+zh、期末真机验证记录存 pr-assets。
 
 ### N15 · 阶段事件与流式（可与 N13/N14 穿插，N15-02 可暂缓）
