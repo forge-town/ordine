@@ -25,7 +25,7 @@
     "check:boundaries": "node --experimental-strip-types scripts/check-boundaries.ts",
     "check:file-size": "node --experimental-strip-types scripts/check-file-size.ts",
     "check:arch": "bun run check:boundaries && bun run check:file-size",
-    "quality": "turbo quality && bun run check:arch",
+    "quality": "turbo quality && bun run format:check && bun run check:arch",
     "knip": "knip",
     "storybook": "turbo run storybook",
     "build-storybook": "turbo run build-storybook",
