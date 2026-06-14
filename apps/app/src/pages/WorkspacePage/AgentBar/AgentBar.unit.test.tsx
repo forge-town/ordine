@@ -21,6 +21,7 @@ const { mockNavigate, mockRefetchJob, mockUseListData, mockUseOneData } = vi.hoi
 }));
 
 vi.mock("@refinedev/core", () => ({
+  useCustom: () => ({ result: { data: { traces: [] } } }),
   useList: () => ({
     result: {
       data: mockUseListData(),

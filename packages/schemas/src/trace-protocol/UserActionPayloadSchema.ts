@@ -5,11 +5,7 @@ import { z } from "zod";
  * 执行器在缺少用户侧配置时输出，前端解析后渲染可交互卡片。
  * 解析（含坏 JSON 容错）在消费端用 neverthrow 实现，本文件只持有真相 schema。
  */
-export const UserActionKindSchema = z.enum([
-  "configure-input",
-  "configure-output",
-  "provide-info",
-]);
+export const UserActionKindSchema = z.enum(["configure-input", "configure-output", "provide-info"]);
 export type UserActionKind = z.infer<typeof UserActionKindSchema>;
 
 export const UserActionPayloadSchema = z.object({

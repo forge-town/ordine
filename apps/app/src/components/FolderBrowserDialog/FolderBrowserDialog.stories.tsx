@@ -17,9 +17,7 @@ const STORY_FILESYSTEM = [
 ];
 
 const getFilterPath = (params: GetListParams): string | undefined => {
-  const filter = (params.filters ?? []).find(
-    (item) => "field" in item && item.field === "path",
-  );
+  const filter = (params.filters ?? []).find((item) => "field" in item && item.field === "path");
 
   return filter && "value" in filter ? (filter.value as string | undefined) : undefined;
 };

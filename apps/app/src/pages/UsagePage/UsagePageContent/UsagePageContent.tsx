@@ -239,7 +239,12 @@ export const UsagePageContent = () => {
                     cursor={{ fill: "var(--accent)" }}
                     formatter={(value) => [formatCost(Number(value)), "cost"]}
                   />
-                  <Bar dataKey="cost" fill="var(--foreground)" maxBarSize={40} radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="cost"
+                    fill="var(--foreground)"
+                    maxBarSize={40}
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>

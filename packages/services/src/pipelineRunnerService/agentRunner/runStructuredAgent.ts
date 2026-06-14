@@ -48,7 +48,10 @@ export const runStructuredAgent = async (
       );
       if (result.isOk()) return result;
       if (attempt === maxRetries) return result;
-      logger.warn({ attempt, err: result.error.message }, `${logPrefix}: agent attempt failed, retrying`);
+      logger.warn(
+        { attempt, err: result.error.message },
+        `${logPrefix}: agent attempt failed, retrying`,
+      );
     }
 
     return undefined;
@@ -80,7 +83,10 @@ export const runStructuredAgent = async (
     () => new Error("extracted text is not valid JSON"),
   )(extractJsonResult.value);
   if (parseJsonResult.isErr()) {
-    logger.error({ json: extractJsonResult.value }, `${logPrefix}: extracted text is not valid JSON`);
+    logger.error(
+      { json: extractJsonResult.value },
+      `${logPrefix}: extracted text is not valid JSON`,
+    );
 
     return { ok: false, code: "BAD_AGENT_OUTPUT", detail: "agent returned invalid JSON" };
   }

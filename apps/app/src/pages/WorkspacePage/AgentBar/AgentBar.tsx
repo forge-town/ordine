@@ -80,9 +80,7 @@ export const AgentBar = ({
     setComposerDraft(
       t("workspace.agentBar.userAction.askDraft", {
         message: request.message,
-        node: request.nodeId
-          ? (userActionNodeLabelById[request.nodeId] ?? request.nodeId)
-          : "-",
+        node: request.nodeId ? (userActionNodeLabelById[request.nodeId] ?? request.nodeId) : "-",
       }),
     );
   // N15-01：四步由服务端真实阶段驱动（analyzing=第一段进行中，drafting 起

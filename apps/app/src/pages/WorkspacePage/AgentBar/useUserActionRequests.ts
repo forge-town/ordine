@@ -23,12 +23,12 @@ export const useUserActionRequests = (pipelineId: string | null): UserActionRequ
     if (!pipelineId) {
       return null;
     }
-    const candidates = (jobsResult?.data ?? []).filter((job) => job.pipelineId === pipelineId);
+    const candidates = jobsResult.data.filter((job) => job.pipelineId === pipelineId);
 
     const startedTime = (job: Job) => (job.startedAt ? new Date(job.startedAt).getTime() : 0);
 
     return [...candidates].sort((a, b) => startedTime(b) - startedTime(a))[0] ?? null;
-  }, [jobsResult?.data, pipelineId]);
+  }, [jobsResult.data, pipelineId]);
 
   const { result: tracesResult } = useCustom<{ traces: JobTrace[] }>({
     config: { payload: { jobId: settledJob?.id ?? "" } },

@@ -5,7 +5,9 @@ import type { ClaudeStreamEvent } from "@repo/agent";
 import { ResultAsync } from "neverthrow";
 import type { DriverResult } from "../types";
 
-export const extractTokenTotals = (events: ClaudeStreamEvent[]): { input: number; output: number } => {
+export const extractTokenTotals = (
+  events: ClaudeStreamEvent[],
+): { input: number; output: number } => {
   const resultEvent = events.find((e) => e.type === "result");
   const modelUsage = resultEvent?.modelUsage;
 

@@ -98,7 +98,6 @@ export const ProjectSection = () => {
       <Button data-testid="settings-project-save" disabled={!name.trim()} onClick={handleSave}>
         {t("settings.project.save")}
       </Button>
-
     </div>
   );
 };

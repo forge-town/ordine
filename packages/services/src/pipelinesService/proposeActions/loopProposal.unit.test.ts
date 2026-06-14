@@ -25,7 +25,8 @@ describe("loop operation proposal survives normalize + schema", () => {
             status: "idle",
             loopEnabled: true,
             maxLoopCount: 3,
-            loopConditionPrompt: "Inspect the quiz; return PASS if every answer is correct, else FAIL.",
+            loopConditionPrompt:
+              "Inspect the quiz; return PASS if every answer is correct, else FAIL.",
           },
         },
       },

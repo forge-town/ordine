@@ -92,7 +92,10 @@ export const LanguageSection = () => {
         {/* N18-02：外观切换（原型 General 组）——立即生效并持久化，无需保存。 */}
         <div className="space-y-2">
           <FormLabel>{t("settings.appearance.label")}</FormLabel>
-          <div className="flex w-fit gap-1 rounded-xl bg-surface-2 p-1" data-testid="settings-appearance">
+          <div
+            className="flex w-fit gap-1 rounded-xl bg-surface-2 p-1"
+            data-testid="settings-appearance"
+          >
             {THEME_OPTIONS.map((option) => (
               <button
                 key={option}

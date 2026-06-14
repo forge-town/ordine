@@ -7,7 +7,9 @@ describe("buildUserActionRequests", () => {
   it("attributes requests to the node from the preceding NODE_START marker", () => {
     const requests = buildUserActionRequests([
       t("@@NODE_START::node_pdf"),
-      t('@@USER_ACTION::{"kind":"configure-input","message":"请配置输入文件夹","field":"folderPath"}'),
+      t(
+        '@@USER_ACTION::{"kind":"configure-input","message":"请配置输入文件夹","field":"folderPath"}',
+      ),
       t("@@NODE_START::node_export"),
       t('@@USER_ACTION::{"kind":"configure-output","message":"请设置导出路径"}'),
     ]);
@@ -52,7 +54,9 @@ describe("buildUserActionRequests", () => {
       ),
     ]);
 
-    expect(requests).toEqual([{ kind: "provide-info", message: "缺少 GitHub token", nodeId: "n2" }]);
+    expect(requests).toEqual([
+      { kind: "provide-info", message: "缺少 GitHub token", nodeId: "n2" },
+    ]);
   });
 
   it("normalizes newest-first trace order using createdAt", () => {

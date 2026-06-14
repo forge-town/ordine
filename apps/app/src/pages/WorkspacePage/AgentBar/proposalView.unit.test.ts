@@ -50,8 +50,8 @@ describe("buildProposeReply", () => {
   });
 
   it("prefers the agent's own reply when present", () => {
-    expect(
-      buildProposeReply({ baseReply: "custom answer", proposal, proposeError: null, t }),
-    ).toBe("custom answer");
+    expect(buildProposeReply({ baseReply: "custom answer", proposal, proposeError: null, t })).toBe(
+      "custom answer",
+    );
   });
 });

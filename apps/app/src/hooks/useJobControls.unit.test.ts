@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { dataProvider } from "@/integrations/refine/dataProvider";
+import { SELF_HEAL_RETRIES_DEFAULT } from "@/store/autonomyStore/autonomyStore";
 import { toastStore } from "@/store/toastStore";
 import { useJobControls } from "./useJobControls";
 
@@ -46,7 +47,7 @@ describe("useJobControls", () => {
     await waitFor(() => expect(result.current.pendingKey).toBeNull());
     expect(customMock).toHaveBeenCalledWith({
       method: "post",
-      payload: { id: "p_1" },
+      payload: { id: "p_1", selfHealRetries: SELF_HEAL_RETRIES_DEFAULT },
       url: "pipelines/run",
     });
   });

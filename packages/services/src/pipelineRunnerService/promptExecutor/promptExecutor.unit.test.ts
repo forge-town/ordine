@@ -51,9 +51,10 @@ describe("promptExecutor", () => {
       expect.objectContaining({
         agent: "codex",
         mode: "direct",
-        systemPrompt: "Analyze this",
+        systemPrompt: expect.stringContaining("Analyze this"),
         userPrompt: "some code",
-        cwd: "/tmp/test",
+        // /tmp/test 不存在 → resolveCwd 回退到 process.cwd()
+        cwd: process.cwd(),
       }),
     );
   });

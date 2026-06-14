@@ -3,8 +3,14 @@ import { render, screen } from "@testing-library/react";
 import { SettingsPageContent } from "./SettingsPageContent";
 
 vi.mock("../sections", () => ({
+  AdvancedSection: () => <div>AdvancedSection</div>,
+  AutonomySection: () => <div>AutonomySection</div>,
+  DefaultsSection: () => <div>DefaultsSection</div>,
   DeveloperSection: () => <div>DeveloperSection</div>,
+  KeyboardSection: () => <div>KeyboardSection</div>,
   LanguageSection: () => <div>LanguageSection</div>,
+  NotificationsSection: () => <div>NotificationsSection</div>,
+  ProjectSection: () => <div>ProjectSection</div>,
 }));
 
 describe("SettingsPageContent", () => {

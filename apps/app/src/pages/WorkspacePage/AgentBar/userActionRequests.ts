@@ -60,33 +60,42 @@ const parseUserAction = (jsonText: string, nodeId?: string): UserActionRequest |
 };
 
 export const buildUserActionRequests = (traces: TraceLike[]): UserActionRequest[] => {
-  let currentNodeId: string | undefined;
-  const byKey = new Map<string, UserActionRequest>();
+  // @@LLM_CONTENT 大块里也可能内嵌标记，逐行扫描；currentNodeId 跨 trace 顺延。
+  const lines = toChronological(traces).flatMap((trace) => trace.message.split("\n"));
 
-  for (const trace of toChronological(traces)) {
-    // @@LLM_CONTENT 大块里也可能内嵌标记，逐行扫描。
-    for (const line of trace.message.split("\n")) {
+  const { byKey } = lines.reduce<{
+    byKey: Map<string, UserActionRequest>;
+    currentNodeId: string | undefined;
+  }>(
+    (acc, line) => {
       const nodeStartIndex = line.indexOf(NODE_START_MARKER);
       if (nodeStartIndex >= 0) {
-        currentNodeId = line.slice(nodeStartIndex + NODE_START_MARKER.length).split("::")[0]?.trim();
-        continue;
+        const currentNodeId = line
+          .slice(nodeStartIndex + NODE_START_MARKER.length)
+          .split("::")[0]
+          ?.trim();
+
+        return { ...acc, currentNodeId };
       }
 
       const markerIndex = line.indexOf(USER_ACTION_MARKER);
       if (markerIndex < 0) {
-        continue;
+        return acc;
       }
 
       const request = parseUserAction(
         line.slice(markerIndex + USER_ACTION_MARKER.length).trim(),
-        currentNodeId,
+        acc.currentNodeId,
       );
       if (request) {
         // 同节点同 kind 去重，时间序后者覆盖前者（保留最新表述）。
-        byKey.set(`${request.nodeId ?? ""}:${request.kind}`, request);
+        acc.byKey.set(`${request.nodeId ?? ""}:${request.kind}`, request);
       }
-    }
-  }
+
+      return acc;
+    },
+    { byKey: new Map(), currentNodeId: undefined },
+  );
 
   return [...byKey.values()];
 };
