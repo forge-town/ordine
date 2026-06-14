@@ -27,7 +27,6 @@ const EXEMPT_RE = /packages\/ui\/src\/sidebar\.tsx$|apps\/scripts\/src\/seeds\//
 /** 既有 >400 行债务，只减不增（H3-01）。拆分后从此删除对应行。 */
 const DEBT_ALLOWLIST = new Set<string>([
   "apps/app/src/pages/OperationEditPage/OperationEditPageContent/OperationEditForm.tsx",
-  "apps/app/src/integrations/refine/dataProvider.ts",
   "packages/pipeline-engine/src/pipeline/Pipeline.ts",
   "apps/app/src/pages/OperationCreatePage/OperationCreatePageContent/OperationCreatePageContent.tsx",
   "apps/app/src/pages/PipelineDetailPage/PipelineDetailPageContent/PipelineDetailPageContent.tsx",
