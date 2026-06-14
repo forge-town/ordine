@@ -7,10 +7,12 @@
 **症状**：Job 创建后状态一直是 `pending`，不变为 `running`。
 
 **可能原因**：
+
 - Pipeline Runner 服务未启动
 - Job 队列阻塞
 
 **排查步骤**：
+
 ```bash
 # 检查 server 是否正常运行
 curl -s http://localhost:9433/health
@@ -24,6 +26,7 @@ curl -s http://localhost:9433/api/jobs/<job-id> | python3 -m json.tool
 **症状**：Job 的 `status` 为 `failed`。
 
 **排查步骤**：
+
 ```bash
 # 查看 Job 详情，关注 result 字段
 curl -s http://localhost:9433/api/jobs/<job-id> | python3 -m json.tool
@@ -32,6 +35,7 @@ curl -s http://localhost:9433/api/jobs/<job-id> | python3 -m json.tool
 ```
 
 **常见原因**：
+
 - Pipeline 中引用的 Operation 不存在
 - Operation 的 executor skill 不存在
 - Operation 使用 prompt 模式但 prompt 内容为空

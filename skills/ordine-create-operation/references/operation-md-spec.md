@@ -33,11 +33,11 @@ acceptedObjectTypes: [file, folder]
 
 ### Frontmatter 字段
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| `name` | `string` | **是** | 人类可读名称 |
-| `description` | `string` | **是** | 一句话描述 |
-| `input` | `string` | 否 | 接受的对象类型，默认 `any`。可选值：`file`, `folder`, `github-project`, `prompt`, `any` |
+| 字段          | 类型     | 必填   | 说明                                                                                    |
+| ------------- | -------- | ------ | --------------------------------------------------------------------------------------- |
+| `name`        | `string` | **是** | 人类可读名称                                                                            |
+| `description` | `string` | **是** | 一句话描述                                                                              |
+| `input`       | `string` | 否     | 接受的对象类型，默认 `any`。可选值：`file`, `folder`, `github-project`, `prompt`, `any` |
 
 - `any` 表示 operation 什么输入都接受，自己判断如何处理
 
@@ -65,15 +65,15 @@ Body **必须**包含 `## Outputs` section 来声明产出文件。其余部分�
 
 扩展名决定了文件的类型和格式约束：
 
-| 扩展名 | 语义 |
-|---|---|
-| `.md` | Markdown 文档 |
+| 扩展名  | 语义            |
+| ------- | --------------- |
+| `.md`   | Markdown 文档   |
 | `.json` | JSON 结构化数据 |
-| `.txt` | 纯文本 |
-| `.svg` | SVG 矢量图 |
-| `.html` | HTML 页面 |
-| `.csv` | CSV 表格数据 |
-| `.yaml` | YAML 配置/数据 |
+| `.txt`  | 纯文本          |
+| `.svg`  | SVG 矢量图      |
+| `.html` | HTML 页面       |
+| `.csv`  | CSV 表格数据    |
+| `.yaml` | YAML 配置/数据  |
 
 #### 其他 Section
 
@@ -146,12 +146,12 @@ input: folder
 
 ## 与现有 JSON Config 的映射关系
 
-| OPERATION.md | 现有 JSON Config | 说明 |
-|---|---|---|
-| frontmatter `name` | `operation.name` | 直接映射 |
-| frontmatter `description` | `operation.description` | 直接映射 |
-| frontmatter `input` | `operation.acceptedObjectTypes` | `any` → 全部类型，其他 → 单类型数组 |
-| `## Outputs` section | `config.outputs[]` | 文件名+扩展名 → `{ name, kind }` |
-| 整个 body | `config.executor.systemPrompt` | Body 即 agent 的 system prompt |
-| (不在 OPERATION.md 中) | `config.executor.type/agent` | 运行时由 runner 决定 |
-| (不在 OPERATION.md 中) | `config.inputs[]` | 由 `input` 字段 + 运行时上下文推断 |
+| OPERATION.md              | 现有 JSON Config                | 说明                                |
+| ------------------------- | ------------------------------- | ----------------------------------- |
+| frontmatter `name`        | `operation.name`                | 直接映射                            |
+| frontmatter `description` | `operation.description`         | 直接映射                            |
+| frontmatter `input`       | `operation.acceptedObjectTypes` | `any` → 全部类型，其他 → 单类型数组 |
+| `## Outputs` section      | `config.outputs[]`              | 文件名+扩展名 → `{ name, kind }`    |
+| 整个 body                 | `config.executor.systemPrompt`  | Body 即 agent 的 system prompt      |
+| (不在 OPERATION.md 中)    | `config.executor.type/agent`    | 运行时由 runner 决定                |
+| (不在 OPERATION.md 中)    | `config.inputs[]`               | 由 `input` 字段 + 运行时上下文推断  |

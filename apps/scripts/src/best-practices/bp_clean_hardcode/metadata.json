@@ -4,9 +4,5 @@
   "condition": "检查代码是否存在垃圾代码",
   "category": "lint",
   "language": "typescript",
-  "tags": [
-    "clean-code",
-    "hardcode",
-    "lint"
-  ]
+  "tags": ["clean-code", "hardcode", "lint"]
 }

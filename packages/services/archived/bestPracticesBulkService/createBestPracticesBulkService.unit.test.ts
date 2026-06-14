@@ -76,9 +76,7 @@ vi.mock("@repo/models", () => ({
   },
 }));
 
-import {
-  createBestPracticesBulkService,
-} from "./createBestPracticesBulkService";
+import { createBestPracticesBulkService } from "./createBestPracticesBulkService";
 
 const mockDb = {
   transaction: vi.fn().mockImplementation(async (fn: (tx: string) => Promise<unknown>) => fn("tx")),

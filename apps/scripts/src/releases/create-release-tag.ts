@@ -19,10 +19,12 @@ type PackageJson = {
 const execFileAsync = promisify(execFile);
 const tagPattern = /^v(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*))?$/;
 
-const toError = (message: string) => (cause: unknown): ReleaseTagError => ({
-  message,
-  cause,
-});
+const toError =
+  (message: string) =>
+  (cause: unknown): ReleaseTagError => ({
+    message,
+    cause,
+  });
 
 const parseJson = Result.fromThrowable(
   (content: string): unknown => JSON.parse(content),
@@ -49,14 +51,13 @@ const readPackageJson = (path: string): ResultAsync<PackageJson, ReleaseTagError
 const prompt = (question: string): ResultAsync<string, ReleaseTagError> => {
   const readline = createInterface({ input, output });
 
-  return ResultAsync.fromPromise(
-    readline.question(question),
-    toError("failed to read input"),
-  ).map((answer: string) => {
-    readline.close();
+  return ResultAsync.fromPromise(readline.question(question), toError("failed to read input")).map(
+    (answer: string) => {
+      readline.close();
 
-    return answer.trim();
-  });
+      return answer.trim();
+    },
+  );
 };
 
 const validateTag = (tag: string): Result<string, ReleaseTagError> => {
@@ -83,14 +84,8 @@ const getRootVersion = async (): Promise<Result<string, ReleaseTagError>> => {
   return ok(packageJsonResult.value.version);
 };
 
-const getWorkspacePackageJsonPaths = async (): Promise<
-  Result<string[], ReleaseTagError>
-> => {
-  const pathsResult = await runGit([
-    "ls-files",
-    "apps/*/package.json",
-    "packages/*/package.json",
-  ]);
+const getWorkspacePackageJsonPaths = async (): Promise<Result<string[], ReleaseTagError>> => {
+  const pathsResult = await runGit(["ls-files", "apps/*/package.json", "packages/*/package.json"]);
 
   if (pathsResult.isErr()) {
     return err(pathsResult.error);
@@ -130,9 +125,7 @@ const validateWorkspaceVersions = async (
 
   if (mismatches.length > 0) {
     return err({
-      message: `workspace versions must match root package.json version:\n${mismatches.join(
-        "\n",
-      )}`,
+      message: `workspace versions must match root package.json version:\n${mismatches.join("\n")}`,
     });
   }
 
@@ -169,9 +162,7 @@ const createReleaseTag = async (): Promise<Result<void, ReleaseTagError>> => {
     return err(rootVersionResult.error);
   }
 
-  const versionValidationResult = await validateWorkspaceVersions(
-    rootVersionResult.value,
-  );
+  const versionValidationResult = await validateWorkspaceVersions(rootVersionResult.value);
 
   if (versionValidationResult.isErr()) {
     return err(versionValidationResult.error);

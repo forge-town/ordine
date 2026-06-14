@@ -14,10 +14,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, basename, relative } from "node:path";
 
-const ROOT = join(
-  import.meta.dirname ?? new URL(".", import.meta.url).pathname,
-  "..",
-);
+const ROOT = join(import.meta.dirname ?? new URL(".", import.meta.url).pathname, "..");
 
 const IGNORE_DIRS = new Set(["node_modules", ".agents", "dist", ".turbo", ".git"]);
 const SCHEMA_EXPORT_RE = /export\s+const\s+(\w+Schema)\s*=/g;
@@ -114,10 +111,7 @@ for (const filePath of sortedFiles) {
     violations.push({
       file: relPath,
       reason: "schema name does not match filename",
-      details: [
-        `Expected: ${fileName}`,
-        `Found: ${schemaExports.join(", ")}`,
-      ],
+      details: [`Expected: ${fileName}`, `Found: ${schemaExports.join(", ")}`],
     });
   }
 

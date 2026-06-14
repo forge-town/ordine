@@ -114,12 +114,8 @@
           "name": "agent_raw_exports_job_id_jobs_id_fk",
           "tableFrom": "agent_raw_exports",
           "tableTo": "jobs",
-          "columnsFrom": [
-            "job_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["job_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -345,12 +341,8 @@
           "name": "agent_spans_job_id_jobs_id_fk",
           "tableFrom": "agent_spans",
           "tableTo": "jobs",
-          "columnsFrom": [
-            "job_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["job_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -358,12 +350,8 @@
           "name": "agent_spans_raw_export_id_agent_raw_exports_id_fk",
           "tableFrom": "agent_spans",
           "tableTo": "agent_raw_exports",
-          "columnsFrom": [
-            "raw_export_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["raw_export_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -524,12 +512,8 @@
           "name": "checklist_items_best_practice_id_best_practices_id_fk",
           "tableFrom": "checklist_items",
           "tableTo": "best_practices",
-          "columnsFrom": [
-            "best_practice_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["best_practice_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -621,12 +605,8 @@
           "name": "checklist_results_job_id_jobs_id_fk",
           "tableFrom": "checklist_results",
           "tableTo": "jobs",
-          "columnsFrom": [
-            "job_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["job_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -634,12 +614,8 @@
           "name": "checklist_results_checklist_item_id_checklist_items_id_fk",
           "tableFrom": "checklist_results",
           "tableTo": "checklist_items",
-          "columnsFrom": [
-            "checklist_item_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["checklist_item_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -715,12 +691,8 @@
           "name": "code_snippets_best_practice_id_best_practices_id_fk",
           "tableFrom": "code_snippets",
           "tableTo": "best_practices",
-          "columnsFrom": [
-            "best_practice_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["best_practice_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -796,12 +768,8 @@
           "name": "distillation_runs_id_jobs_id_fk",
           "tableFrom": "distillation_runs",
           "tableTo": "jobs",
-          "columnsFrom": [
-            "id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -809,12 +777,8 @@
           "name": "distillation_runs_distillation_id_distillations_id_fk",
           "tableFrom": "distillation_runs",
           "tableTo": "distillations",
-          "columnsFrom": [
-            "distillation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["distillation_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1047,11 +1011,7 @@
         "github_projects_owner_repo_branch_unique": {
           "name": "github_projects_owner_repo_branch_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "owner",
-            "repo",
-            "branch"
-          ]
+          "columns": ["owner", "repo", "branch"]
         }
       },
       "policies": {},
@@ -1132,12 +1092,8 @@
           "name": "job_traces_job_id_jobs_id_fk",
           "tableFrom": "job_traces",
           "tableTo": "jobs",
-          "columnsFrom": [
-            "job_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["job_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1428,12 +1384,8 @@
           "name": "pipeline_runs_id_jobs_id_fk",
           "tableFrom": "pipeline_runs",
           "tableTo": "jobs",
-          "columnsFrom": [
-            "id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1441,12 +1393,8 @@
           "name": "pipeline_runs_pipeline_id_pipelines_id_fk",
           "tableFrom": "pipeline_runs",
           "tableTo": "pipelines",
-          "columnsFrom": [
-            "pipeline_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pipeline_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1454,12 +1402,8 @@
           "name": "pipeline_runs_project_id_github_projects_id_fk",
           "tableFrom": "pipeline_runs",
           "tableTo": "github_projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1599,12 +1543,8 @@
           "name": "recipes_operation_id_operations_id_fk",
           "tableFrom": "recipes",
           "tableTo": "operations",
-          "columnsFrom": [
-            "operation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["operation_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1612,12 +1552,8 @@
           "name": "recipes_best_practice_id_best_practices_id_fk",
           "tableFrom": "recipes",
           "tableTo": "best_practices",
-          "columnsFrom": [
-            "best_practice_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["best_practice_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1702,12 +1638,8 @@
           "name": "refinement_runs_id_jobs_id_fk",
           "tableFrom": "refinement_runs",
           "tableTo": "jobs",
-          "columnsFrom": [
-            "id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1715,12 +1647,8 @@
           "name": "refinement_runs_refinement_id_refinements_id_fk",
           "tableFrom": "refinement_runs",
           "tableTo": "refinements",
-          "columnsFrom": [
-            "refinement_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["refinement_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2054,9 +1982,7 @@
         "skills_name_unique": {
           "name": "skills_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},

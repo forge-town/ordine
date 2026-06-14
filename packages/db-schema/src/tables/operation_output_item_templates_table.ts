@@ -10,4 +10,5 @@ export const operationOutputItemTemplatesTable = pgTable("operation_output_item_
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-export type OperationOutputItemTemplateRecord = typeof operationOutputItemTemplatesTable.$inferSelect;
+export type OperationOutputItemTemplateRecord =
+  typeof operationOutputItemTemplatesTable.$inferSelect;

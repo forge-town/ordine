@@ -40,15 +40,22 @@ const mockAgentRuntimesDao = {
     },
   ]),
 };
+const mockConversationMessagesDao = {
+  getByPipelineId: vi.fn().mockResolvedValue([]),
+};
 const mockRunAgent = vi.fn();
 const mockExtractJsonFromText = vi.fn((raw: string) => raw);
 
 vi.mock("@repo/models", () => ({
   createAgentRuntimesDao: () => mockAgentRuntimesDao,
+  createConversationMessagesDao: () => mockConversationMessagesDao,
   createPipelinesDao: () => mockDao,
   createDistillationsDao: () => ({}),
   createJobsDao: () => ({}),
-  createPipelineRunsDao: () => ({ findByJobId: vi.fn(), deleteByPipelineId: vi.fn().mockResolvedValue(undefined) }),
+  createPipelineRunsDao: () => ({
+    findByJobId: vi.fn(),
+    deleteByPipelineId: vi.fn().mockResolvedValue(undefined),
+  }),
   createJobTracesDao: () => ({}),
   createAgentRawExportsDao: () => ({}),
   createAgentSpansDao: () => ({}),
@@ -98,6 +105,8 @@ describe("createPipelinesService", () => {
     mockSettingsDao.get.mockClear();
     mockOperationsDao.findMany.mockClear();
     mockAgentRuntimesDao.findMany.mockClear();
+    mockConversationMessagesDao.getByPipelineId.mockClear();
+    mockConversationMessagesDao.getByPipelineId.mockResolvedValue([]);
     mockRunAgent.mockReset();
     mockExtractJsonFromText.mockReset();
     mockExtractJsonFromText.mockImplementation((raw: string) => raw);
@@ -174,6 +183,138 @@ describe("createPipelinesService", () => {
     expect(mockDao.delete).not.toHaveBeenCalled();
   });
 
+  it("proposeActions surfaces reply and proposal from the new agent output format", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "我移除了过期节点。",
+        proposal: {
+          summary: "remove stale node",
+          actions: [{ type: "removeNode", nodeId: "folder-1" }],
+        },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "删掉 folder-1",
+      pipelineId: "p1",
+    });
+
+    expect(result.reply).toBe("我移除了过期节点。");
+    expect(result.proposal).toEqual({
+      summary: "remove stale node",
+      actions: [{ type: "removeNode", nodeId: "folder-1" }],
+    });
+    expect(result.diagnostics).toEqual([]);
+  });
+
+  it("proposeActions returns clarify options without a proposal when the agent asks back", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "你想处理哪种输入？",
+        clarifyOptions: ["本地文件夹", "GitHub 仓库", "纯文本指令"],
+        proposal: null,
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "帮我处理一下文件",
+      pipelineId: "p1",
+    });
+
+    expect(result.proposal).toBeNull();
+    expect(result.reply).toBe("你想处理哪种输入？");
+    expect(result.clarifyOptions).toEqual(["本地文件夹", "GitHub 仓库", "纯文本指令"]);
+    expect(result.diagnostics).toEqual([]);
+  });
+
+  it("proposeActions keeps the reply when the structured proposal fails validation", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "尝试修改图结构。",
+        proposal: { summary: "broken", actions: [{ type: "unknownAction" }] },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "改一下",
+      pipelineId: "p1",
+    });
+
+    expect(result.proposal).toBeNull();
+    expect(result.reply).toBe("尝试修改图结构。");
+  });
+
+  it("proposeActions retries once with schema diagnostics instead of dropping the proposal", async () => {
+    mockRunAgent
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          reply: "搭好了。",
+          proposal: { summary: "broken", actions: [{ type: "unknownAction" }] },
+        }),
+      )
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          reply: "修正后的提案。",
+          proposal: {
+            summary: "remove stale node",
+            actions: [{ type: "removeNode", nodeId: "folder-1" }],
+          },
+        }),
+      );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "搭一条流水线",
+      pipelineId: "p1",
+    });
+
+    expect(mockRunAgent).toHaveBeenCalledTimes(2);
+    const secondPrompt = (mockRunAgent.mock.calls[1]?.[0] as { userPrompt: string }).userPrompt;
+    expect(secondPrompt).toContain("=== PREVIOUS PROPOSAL DIAGNOSTICS ===");
+    expect(secondPrompt).toContain("Failed proposal for reference:");
+    expect(result.proposal).toEqual({
+      summary: "remove stale node",
+      actions: [{ type: "removeNode", nodeId: "folder-1" }],
+    });
+    expect(result.reply).toBe("修正后的提案。");
+  });
+
+  it("proposeActions injects conversation history into the user prompt", async () => {
+    mockConversationMessagesDao.getByPipelineId.mockResolvedValue([
+      { content: "build a quiz pipeline", metadata: null, role: "user" },
+      { content: "Drafted it.", metadata: { proposalSnapshot: {} }, role: "agent" },
+      { content: "再加一个校验步骤", metadata: null, role: "user" },
+    ] as never);
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        summary: "remove stale node",
+        actions: [{ type: "removeNode", nodeId: "folder-1" }],
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    await svc.proposeActions({
+      snapshot,
+      message: "再加一个校验步骤",
+      pipelineId: "p1",
+    });
+
+    const callArgs = mockRunAgent.mock.calls[0]?.[0] as { userPrompt: string };
+    expect(mockConversationMessagesDao.getByPipelineId).toHaveBeenCalledWith("p1");
+    expect(callArgs.userPrompt).toContain("=== CONVERSATION HISTORY (oldest first) ===");
+    expect(callArgs.userPrompt).toContain("[user]: build a quiz pipeline");
+    expect(callArgs.userPrompt).toContain("[assistant] (included a graph proposal): Drafted it.");
+    // 当前这条消息已在 USER REQUEST 段，历史中不应重复
+    expect(callArgs.userPrompt).not.toContain("[user]: 再加一个校验步骤");
+  });
+
   it("proposeActions uses the selected runtime config when runtimeId is provided", async () => {
     mockRunAgent.mockResolvedValue(
       JSON.stringify({
@@ -209,7 +350,7 @@ describe("createPipelinesService", () => {
     expect(result).toEqual({
       proposal: null,
       diagnostics: [],
-      reply: 'Selected runtime "missing-runtime" is not available.',
+      error: { code: "RUNTIME_NOT_FOUND", detail: "missing-runtime" },
     });
     expect(mockRunAgent).not.toHaveBeenCalled();
   });
@@ -441,7 +582,8 @@ describe("createPipelinesService", () => {
   it("proposeActions normalizes claude flat node payloads with snake_case type", async () => {
     mockRunAgent.mockResolvedValue(
       JSON.stringify({
-        summary: "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
+        summary:
+          "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
         actions: [
           {
             type: "add_node",
@@ -463,7 +605,8 @@ describe("createPipelinesService", () => {
     });
 
     expect(result.proposal).toEqual({
-      summary: "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
+      summary:
+        "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
       actions: [
         {
           type: "addNode",
@@ -491,7 +634,11 @@ describe("createPipelinesService", () => {
       message: "invalid snapshot",
     });
 
-    expect(result).toEqual({ proposal: null, diagnostics: [] });
+    expect(result).toEqual({
+      proposal: null,
+      diagnostics: [],
+      error: { code: "INVALID_SNAPSHOT" },
+    });
     expect(mockRunAgent).not.toHaveBeenCalled();
   });
 
@@ -505,7 +652,11 @@ describe("createPipelinesService", () => {
       message: "invalid",
     });
 
-    expect(result).toEqual({ proposal: null, diagnostics: [] });
+    expect(result).toEqual({
+      proposal: null,
+      diagnostics: [],
+      error: { code: "BAD_AGENT_OUTPUT", detail: "agent returned invalid JSON" },
+    });
     expect(mockDao.create).not.toHaveBeenCalled();
     expect(mockDao.update).not.toHaveBeenCalled();
     expect(mockDao.delete).not.toHaveBeenCalled();
@@ -526,7 +677,11 @@ describe("createPipelinesService", () => {
       message: "schema-invalid",
     });
 
-    expect(result).toEqual({ proposal: null, diagnostics: [] });
+    expect(result).toEqual({
+      proposal: null,
+      diagnostics: [],
+      error: { code: "BAD_AGENT_OUTPUT", detail: "proposal failed schema validation" },
+    });
     expect(mockDao.create).not.toHaveBeenCalled();
     expect(mockDao.update).not.toHaveBeenCalled();
     expect(mockDao.delete).not.toHaveBeenCalled();
@@ -551,9 +706,7 @@ describe("createPipelinesService", () => {
       actions: [{ type: "removeNode", nodeId: "compound-1" }],
     });
     expect(result.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ code: "COMPOUND_NODE_NOT_SUPPORTED" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ code: "COMPOUND_NODE_NOT_SUPPORTED" })]),
     );
     expect(mockDao.create).not.toHaveBeenCalled();
     expect(mockDao.update).not.toHaveBeenCalled();

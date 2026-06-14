@@ -1,5 +1,10 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createSettingsPageStore } from "./settingsPageStore";
+
+Object.defineProperty(globalThis, "localStorage", {
+  value: { getItem: vi.fn(() => null), setItem: vi.fn() },
+  writable: true,
+});
 
 describe("settingsPageStore", () => {
   const ctx = { store: null as ReturnType<typeof createSettingsPageStore> | null };

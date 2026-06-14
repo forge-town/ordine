@@ -50,6 +50,7 @@ cp apps/server/.env.example apps/server/.env
 **Pick one database option:**
 
 - **PGLite (embedded, no external PostgreSQL required):**
+
   ```sh
   # In both .env files, set:
   PGLITE_DATA_DIR=./.pglite
@@ -81,10 +82,10 @@ bun dev
 
 This starts all apps in parallel via Turborepo:
 
-| App | URL | Description |
-|-----|-----|-------------|
-| `apps/app` | `http://localhost:9430` | Main web application |
-| `apps/server` | `http://localhost:9433` | API server (Hono) |
+| App           | URL                     | Description          |
+| ------------- | ----------------------- | -------------------- |
+| `apps/app`    | `http://localhost:9430` | Main web application |
+| `apps/server` | `http://localhost:9433` | API server (Hono)    |
 
 ### Local Mode
 

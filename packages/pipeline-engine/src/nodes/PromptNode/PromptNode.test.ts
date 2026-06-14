@@ -26,7 +26,12 @@ const makeNode = (data: Record<string, unknown> = {}): PipelineNode => ({
   id: "prompt-1",
   type: "prompt",
   position: { x: 0, y: 0 },
-  data: { label: "test prompt", nodeType: "prompt", prompt: "Hello world", ...data } as PipelineNode["data"],
+  data: {
+    label: "test prompt",
+    nodeType: "prompt",
+    prompt: "Hello world",
+    ...data,
+  } as PipelineNode["data"],
 });
 
 const makeCtx = (node: PipelineNode): NodeContext => ({

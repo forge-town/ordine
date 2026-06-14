@@ -1,27 +1,37 @@
 import type { StateCreator } from "zustand";
 
-export type SkillCategory = "all" | "page" | "data" | "state" | "form" | "code-quality";
+export const SKILL_SOURCE_FILTERS = [
+  "All",
+  "Claude Code",
+  "Codex",
+  "Hermes",
+  "Imported",
+  "Custom",
+  "Built-in",
+] as const;
+
+export type SkillSourceFilter = (typeof SKILL_SOURCE_FILTERS)[number];
 
 export interface SkillsPageSlice {
   search: string;
-  category: SkillCategory;
+  source: SkillSourceFilter;
   createOperationDialogOpen: boolean;
   selectedSkillId: string | null;
 
   handleSetSearch: (search: string) => void;
-  handleSetCategory: (category: SkillCategory) => void;
+  handleSetSource: (source: SkillSourceFilter) => void;
   handleCreateOperationClick: (skillId: string) => void;
   handleCreateOperationDialogClose: () => void;
 }
 
 export const createSkillsPageSlice: StateCreator<SkillsPageSlice> = (set) => ({
   search: "",
-  category: "all",
+  source: "All",
   createOperationDialogOpen: false,
   selectedSkillId: null,
 
   handleSetSearch: (search) => set({ search }),
-  handleSetCategory: (category) => set({ category }),
+  handleSetSource: (source) => set({ source }),
   handleCreateOperationClick: (skillId) =>
     set({ createOperationDialogOpen: true, selectedSkillId: skillId }),
   handleCreateOperationDialogClose: () =>

@@ -4,10 +4,7 @@ import { getEnv } from "../env";
 const parseBearerToken = (value: string | undefined) =>
   value?.startsWith("Bearer ") ? value.slice("Bearer ".length) : "";
 
-export const isValidAgentApiToken = (
-  value: string | undefined,
-  expectedToken: string,
-) => {
+export const isValidAgentApiToken = (value: string | undefined, expectedToken: string) => {
   const expected = Buffer.from(expectedToken);
   const actual = Buffer.from(parseBearerToken(value));
 
@@ -20,10 +17,7 @@ export const getAgentApiAuthState = (headers: Headers) => {
   return {
     configured: Boolean(ORDINE_AGENT_API_TOKEN),
     authenticated: ORDINE_AGENT_API_TOKEN
-      ? isValidAgentApiToken(
-          headers.get("authorization") ?? undefined,
-          ORDINE_AGENT_API_TOKEN,
-        )
+      ? isValidAgentApiToken(headers.get("authorization") ?? undefined, ORDINE_AGENT_API_TOKEN)
       : false,
   };
 };

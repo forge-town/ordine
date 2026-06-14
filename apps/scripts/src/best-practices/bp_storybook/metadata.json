@@ -4,9 +4,5 @@
   "condition": "创建或维护 Storybook Stories",
   "category": "frontend",
   "language": "tsx",
-  "tags": [
-    "storybook",
-    "documentation",
-    "component"
-  ]
+  "tags": ["storybook", "documentation", "component"]
 }

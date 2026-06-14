@@ -57,12 +57,12 @@ done
 
 ## 数据结构
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `id` | `string` | 唯一标识 |
-| `bestPracticeId` | `string` | 所属 Best Practice ID（必填） |
-| `content` | `string` | 检查项描述（必须 yes/no 可判定） |
-| `sortOrder` | `number` | 排序序号（0 开始） |
+| 字段             | 类型     | 说明                             |
+| ---------------- | -------- | -------------------------------- |
+| `id`             | `string` | 唯一标识                         |
+| `bestPracticeId` | `string` | 所属 Best Practice ID（必填）    |
+| `content`        | `string` | 检查项描述（必须 yes/no 可判定） |
+| `sortOrder`      | `number` | 排序序号（0 开始）               |
 
 ## 编写原则
 

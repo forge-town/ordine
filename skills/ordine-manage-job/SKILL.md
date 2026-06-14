@@ -59,17 +59,17 @@ curl -X DELETE http://localhost:9433/api/jobs/job_manual_001
 
 ## 数据结构
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `id` | `string` | 唯一标识 |
-| `pipelineId` | `string \| null` | 关联的 Pipeline ID |
-| `projectId` | `string \| null` | 关联的项目 ID |
-| `status` | `JobStatus` | 状态：`pending`, `running`, `completed`, `failed` |
-| `result` | `JSON \| null` | 运行结果（summary, output 等） |
-| `error` | `string \| null` | 错误信息 |
-| `startedAt` | `timestamp \| null` | 开始时间 |
-| `completedAt` | `timestamp \| null` | 完成时间 |
-| `createdAt` | `timestamp` | 创建时间 |
+| 字段          | 类型                | 说明                                              |
+| ------------- | ------------------- | ------------------------------------------------- |
+| `id`          | `string`            | 唯一标识                                          |
+| `pipelineId`  | `string \| null`    | 关联的 Pipeline ID                                |
+| `projectId`   | `string \| null`    | 关联的项目 ID                                     |
+| `status`      | `JobStatus`         | 状态：`pending`, `running`, `completed`, `failed` |
+| `result`      | `JSON \| null`      | 运行结果（summary, output 等）                    |
+| `error`       | `string \| null`    | 错误信息                                          |
+| `startedAt`   | `timestamp \| null` | 开始时间                                          |
+| `completedAt` | `timestamp \| null` | 完成时间                                          |
+| `createdAt`   | `timestamp`         | 创建时间                                          |
 
 ## Job 状态流转
 

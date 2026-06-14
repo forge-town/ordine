@@ -4,14 +4,14 @@ Pipelines chain operations into multi-step DAG workflows with typed nodes and ed
 
 ## Structure
 
-| Field | Description |
-|-------|-------------|
-| `id` | Unique identifier |
-| `name` | Human-readable name |
-| `description` | What this pipeline does |
-| `nodes` | Array of pipeline nodes |
-| `edges` | Array of edges connecting nodes |
-| `tags` | Categorization labels |
+| Field         | Description                     |
+| ------------- | ------------------------------- |
+| `id`          | Unique identifier               |
+| `name`        | Human-readable name             |
+| `description` | What this pipeline does         |
+| `nodes`       | Array of pipeline nodes         |
+| `edges`       | Array of edges connecting nodes |
+| `tags`        | Categorization labels           |
 
 ## Node Types
 

@@ -31,7 +31,9 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/pipelines.$pipelineId";
 import { PageHeader } from "@/components/PageHeader";
 import { PageLoadingState } from "@/components/PageLoadingState";
+import { useToastStore } from "@/store/toastStore";
 import { Stat } from "../Stat";
+import { useStore } from "zustand";
 
 // ─── Node type metadata ───────────────────────────────────────────────────────
 
@@ -100,6 +102,8 @@ export const PipelineDetailPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { pipelineId } = Route.useParams();
+  const toastStoreRef = useToastStore();
+  const addToast = useStore(toastStoreRef, (s) => s.addToast);
 
   const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
     resource: ResourceName.pipelines,
@@ -200,17 +204,15 @@ export const PipelineDetailPageContent = () => {
     );
   }
 
-  const handleCanvasClick = () => void navigate({ to: "/canvas", search: { id: pipeline.id } });
-  const handleOpenDistillationStudio = () =>
-    void navigate({
-      to: "/distillations/new",
-      search: {
-        sourceType: "pipeline",
-        sourceId: pipeline.id,
-        sourceLabel: pipeline.name,
-        mode: "pipeline",
-      },
+  const handleCanvasClick = () =>
+    void navigate({ to: "/workspace/$pipelineId", params: { pipelineId: pipeline.id } });
+  const handleOpenDistillationStudio = () => {
+    addToast({
+      type: "success",
+      title: "Distillation archived",
+      description: "Use Pipeline Skills and Components for reusable assets after M7-09.",
     });
+  };
 
   const nodeTypeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     acc[n.type] = (acc[n.type] ?? 0) + 1;
@@ -243,8 +245,8 @@ export const PipelineDetailPageContent = () => {
           <>
             <Link
               className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              search={{ id: pipeline.id }}
-              to="/canvas"
+              params={{ pipelineId: pipeline.id }}
+              to="/workspace/$pipelineId"
             >
               <Pencil className="h-3.5 w-3.5" />
               {t("pipelines.editInCanvas")}
@@ -338,8 +340,8 @@ export const PipelineDetailPageContent = () => {
             </span>
             <Link
               className="text-xs text-violet-600 hover:underline"
-              search={{ id: pipeline.id }}
-              to="/canvas"
+              params={{ pipelineId: pipeline.id }}
+              to="/workspace/$pipelineId"
             >
               {t("pipelines.fullscreenEdit")}
             </Link>

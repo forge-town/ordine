@@ -62,18 +62,18 @@ curl -X DELETE http://localhost:9433/api/rules/rule_no_template_classname
 
 ## 数据结构
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `id` | `string` | 唯一标识，格式：`rule_<描述>` |
-| `name` | `string` | 规则名称 |
-| `description` | `string \| null` | 规则描述 |
-| `category` | `RuleCategory` | 分类：`naming`, `structure`, `testing`, `style`, `performance`, `security` |
-| `severity` | `string \| null` | 严重级别：`error`, `warning`, `info` |
-| `checkScript` | `string \| null` | 检查脚本内容 |
-| `scriptLanguage` | `string \| null` | 脚本语言：`bash`, `javascript`, `python` |
-| `acceptedObjectTypes` | `string[] \| null` | 接受的对象类型 |
-| `enabled` | `boolean` | 是否启用 |
-| `tags` | `string[] \| null` | 标签 |
+| 字段                  | 类型               | 说明                                                                       |
+| --------------------- | ------------------ | -------------------------------------------------------------------------- |
+| `id`                  | `string`           | 唯一标识，格式：`rule_<描述>`                                              |
+| `name`                | `string`           | 规则名称                                                                   |
+| `description`         | `string \| null`   | 规则描述                                                                   |
+| `category`            | `RuleCategory`     | 分类：`naming`, `structure`, `testing`, `style`, `performance`, `security` |
+| `severity`            | `string \| null`   | 严重级别：`error`, `warning`, `info`                                       |
+| `checkScript`         | `string \| null`   | 检查脚本内容                                                               |
+| `scriptLanguage`      | `string \| null`   | 脚本语言：`bash`, `javascript`, `python`                                   |
+| `acceptedObjectTypes` | `string[] \| null` | 接受的对象类型                                                             |
+| `enabled`             | `boolean`          | 是否启用                                                                   |
+| `tags`                | `string[] \| null` | 标签                                                                       |
 
 ## 命名规范
 
