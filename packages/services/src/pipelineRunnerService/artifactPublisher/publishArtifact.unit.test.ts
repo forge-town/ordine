@@ -96,4 +96,19 @@ describe("publishArtifact · git", () => {
     expect(result.isErr()).toBe(true);
     if (result.isErr()) expect(result.error.message).toMatch(/credential/i);
   });
+
+  it("redacts inline credentials from a failed-clone error (token never persists)", async () => {
+    // 不可达地址 → clone 立即失败；error.message 含带凭证的 URL，必须脱敏后才落库。
+    const result = await publishArtifact({
+      sourceDir: ctx.src,
+      target: "git",
+      repo: "https://x-access-token:SUPERSECRET123@127.0.0.1:1/x/y.git",
+    });
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error.message).not.toContain("SUPERSECRET123");
+      expect(result.error.message).toContain("***@");
+    }
+  });
 });

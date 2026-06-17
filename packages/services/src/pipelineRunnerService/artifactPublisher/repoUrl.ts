@@ -6,6 +6,14 @@ export const isOwnerRepo = (repo: string): boolean => OWNER_REPO_RE.test(repo);
 export const isGitHubRepo = (repo: string): boolean =>
   isOwnerRepo(repo) || repo.includes("github.com");
 
+/** SSH 远端（git@host:… 或 ssh://…）自带密钥凭证，不需要 token，且不能改写成 https。 */
+export const isSshRepo = (repo: string): boolean =>
+  repo.startsWith("git@") || repo.startsWith("ssh://");
+
+/** 抹掉 URL 里的内嵌凭证（x-access-token / user:pass@），用于错误信息/日志，防 token 落库。 */
+export const redactSecrets = (text: string): string =>
+  text.replaceAll(/(\bhttps?:\/\/)[^/@\s]+@/gi, "$1***@");
+
 /** owner/repo → {owner, repo}；完整 github URL 亦解析。null 表示非 github。 */
 export const parseGitHubSlug = (repo: string): { owner: string; repo: string } | null => {
   if (isOwnerRepo(repo)) {
@@ -20,9 +28,10 @@ export const parseGitHubSlug = (repo: string): { owner: string; repo: string } |
 
 /**
  * 解析 clone URL，必要时注入 x-access-token（仅 github https/owner-repo）。
- * file://、git@、非 github https 原样返回（本地/SSH 自带凭证）。
+ * file://、git@/ssh://、非 github https 原样返回（本地/SSH 自带凭证，不改写传输方式）。
  */
 export const resolveCloneUrl = (repo: string, token?: string): string => {
+  if (isSshRepo(repo)) return repo;
   const slug = parseGitHubSlug(repo);
   if (slug) {
     const auth = token ? `x-access-token:${token}@` : "";

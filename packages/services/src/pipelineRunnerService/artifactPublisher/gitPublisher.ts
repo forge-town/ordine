@@ -8,7 +8,9 @@ import {
   buildCompareUrl,
   featureBranchName,
   isGitHubRepo,
+  isSshRepo,
   parseGitHubSlug,
+  redactSecrets,
   resolveCloneUrl,
 } from "./repoUrl";
 
@@ -29,8 +31,14 @@ const git = (args: string[], cwd?: string): string =>
     .toString()
     .trim();
 
-/** github 上开 PR（base=branch||main，head=feature 分支）；失败/非 github 返回 null。 */
-const createPr = async (opts: PublishArtifactOptions, head: string): Promise<string | null> => {
+/**
+ * github 上开 PR（base=branch||main，head=feature 分支）。
+ * - { url } 成功；{ error } API 失败（区分于"未开 PR"，避免误报成功）；
+ * - null 表示无法开 PR（非 github / 无 token）。
+ */
+type PrResult = { url: string } | { error: string } | null;
+
+const createPr = async (opts: PublishArtifactOptions, head: string): Promise<PrResult> => {
   const slug = parseGitHubSlug(opts.repo);
   if (!slug || !opts.githubToken) return null;
   const res = await fetch(`https://api.github.com/repos/${slug.owner}/${slug.repo}/pulls`, {
@@ -46,10 +54,10 @@ const createPr = async (opts: PublishArtifactOptions, head: string): Promise<str
       base: opts.branch ?? "main",
     }),
   });
-  if (!res.ok) return null;
+  if (!res.ok) return { error: `GitHub PR API ${res.status}` };
   const data = (await res.json()) as { html_url?: string };
 
-  return data.html_url ?? null;
+  return data.html_url ? { url: data.html_url } : { error: "GitHub PR API returned no url" };
 };
 
 const publishIntoCheckout = async (
@@ -77,18 +85,29 @@ const publishIntoCheckout = async (
   await opts.onProgress?.(`Committed to ${branch}`);
   git(["push", "origin", branch], checkout);
 
-  if (opts.openPr !== false) {
-    const prUrl = await createPr(opts, branch);
-    if (prUrl) return `PR opened: ${prUrl}`;
-  }
   const compare = buildCompareUrl(opts.repo, branch);
+  const pushedHint = compare
+    ? `Pushed ${branch} — open PR: ${compare}`
+    : `Pushed ${branch} to ${opts.repo}`;
 
-  return compare ? `Pushed ${branch} — open PR: ${compare}` : `Pushed ${branch} to ${opts.repo}`;
+  if (opts.openPr !== false) {
+    const pr = await createPr(opts, branch);
+    if (pr && "url" in pr) return `PR opened: ${pr.url}`;
+    if (pr && "error" in pr) {
+      // PR 开失败（分支已推成功）：不静默——告警并明确告知手动开。
+      await opts.onProgress?.(`WARNING: PR not opened (${pr.error}) — push succeeded`);
+
+      return `${pushedHint} (PR auto-open failed: ${pr.error})`;
+    }
+  }
+
+  return pushedHint;
 };
 
 const runGitPublish = async (opts: PublishArtifactOptions): Promise<string> => {
   // 凭证缺失对外不可逆操作不能静默：直接失败（waiting+修复链接流为遗留）。
-  if (isGitHubRepo(opts.repo) && !opts.githubToken) {
+  // SSH 远端自带密钥凭证，不需要 token。
+  if (isGitHubRepo(opts.repo) && !isSshRepo(opts.repo) && !opts.githubToken) {
     throw new GitPublishError("missing GitHub credential — connect GitHub before publishing");
   }
   const checkout = await mkdtemp(join(tmpdir(), "ordine-publish-"));
@@ -107,5 +126,6 @@ export const gitPublish = (opts: PublishArtifactOptions): ResultAsync<string, Gi
   ResultAsync.fromPromise(runGitPublish(opts), (error) =>
     error instanceof GitPublishError
       ? error
-      : new GitPublishError(`git publish failed: ${(error as Error).message}`, error),
+      : // 关键：git 命令失败时 error.message 含带 token 的 clone URL，落库前必须脱敏。
+        new GitPublishError(`git publish failed: ${redactSecrets((error as Error).message)}`),
   );

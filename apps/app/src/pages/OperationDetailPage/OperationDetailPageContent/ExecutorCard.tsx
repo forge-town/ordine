@@ -1,16 +1,18 @@
 import { useTranslation } from "react-i18next";
-import { Terminal, Wand2 } from "lucide-react";
+import { Terminal, Upload, Wand2 } from "lucide-react";
 import { SectionHeader } from "../SectionHeader";
 import type { OperationExecutorConfig } from "@repo/schemas";
 
 const EXECUTOR_ICON: Record<string, React.ElementType> = {
   agent: Wand2,
   script: Terminal,
+  publish: Upload,
 };
 
 const EXECUTOR_LABEL: Record<string, string> = {
   agent: "Agent",
   script: "Script",
+  publish: "Publish",
 };
 
 const AGENT_MODE_LABEL: Record<string, string> = {
@@ -61,6 +63,26 @@ export const ExecutorCard = ({ executor: raw }: ExecutorCardProps) => {
               <code className="font-mono text-xs text-foreground">{executor.command}</code>
             )}
           </div>
+        )}
+        {executor.type === "publish" && (
+          <dl className="grid grid-cols-[64px_1fr] gap-x-2 gap-y-1 text-xs">
+            {(
+              [
+                ["target", executor.publishTarget],
+                ["repo", executor.repo],
+                ["branch", executor.branch],
+                ["subPath", executor.subPath],
+                ["PR", executor.openPr === false ? "no" : "yes"],
+              ] as const
+            )
+              .filter(([, value]) => Boolean(value))
+              .map(([key, value]) => (
+                <div key={key} className="contents">
+                  <dt className="text-muted-foreground">{key}</dt>
+                  <dd className="truncate font-mono text-foreground">{value}</dd>
+                </div>
+              ))}
+          </dl>
         )}
       </div>
     </div>

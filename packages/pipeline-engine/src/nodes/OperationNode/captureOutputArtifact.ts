@@ -28,7 +28,7 @@ const EXT_CONTENT_TYPE: Record<string, TemplateContentType> = {
 const extToContentType = (path: string): TemplateContentType =>
   EXT_CONTENT_TYPE[extname(path).toLowerCase()] ?? "text";
 
-const scanDir = async (root: string): Promise<ArtifactFile[]> => {
+const scanDir = async (root: string, sinceMs: number): Promise<ArtifactFile[]> => {
   const files: ArtifactFile[] = [];
 
   const walk = async (abs: string, depth: number): Promise<void> => {
@@ -42,6 +42,8 @@ const scanDir = async (root: string): Promise<ArtifactFile[]> => {
       } else if (entry.isFile()) {
         const absFile = join(abs, entry.name);
         const info = await stat(absFile);
+        // 只收本次执行窗口内写出/改动的文件，跳过共享 outputDir 里的旧残留。
+        if (info.mtimeMs < sinceMs) continue;
         files.push({
           path: relative(root, absFile),
           contentType: extToContentType(absFile),
@@ -59,15 +61,18 @@ const scanDir = async (root: string): Promise<ArtifactFile[]> => {
 
 /**
  * 把 agent 写出的 outputDir 捕获为 dir 工件（仅前端预览用，不动 NodeCtx 主通道）。
- * 目录不存在或为空 → 返回 null（不发空工件，节点回落 inline llmContent）。
- * 诚实代价：仅记目录 + 文件清单（path 捷径），逐文件数据契约延后（一等文件集模型）。
+ * 只收 mtime ≥ sinceMs 的文件（本次执行窗口写出的），避免共享 outputDir 里他节点/上轮残留
+ * 被误算成本节点产物。目录不存在或本次无新文件 → 返回 null（不发空/误属工件）。
+ * 诚实代价：仅记目录 + 文件清单（path 捷径），逐文件数据契约延后（一等文件集模型）；
+ * 仅经 symlink 可达的文件不在清单内（见手册遗留）。
  */
 export const captureOutputArtifact = async (
   outputDir: string | undefined,
   label?: string,
+  sinceMs = 0,
 ): Promise<NodeArtifact | null> => {
   if (!outputDir || !existsSync(outputDir)) return null;
-  const files = await scanDir(outputDir);
+  const files = await scanDir(outputDir, sinceMs);
   if (files.length === 0) return null;
 
   return {

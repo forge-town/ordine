@@ -275,6 +275,9 @@ export const processOperationNode = async (
   const conditionPrompt = node.data.loopConditionPrompt ?? "";
 
   const resultState = { content: "" };
+  // N23-07 修正：记录执行起点 + 成功标记。捕获只在真正成功时进行，且只收本次执行窗口内
+  // 写出的文件（mtime ≥ startedAt），避免共享 outputDir 里他节点/上轮残留被误算成本节点产物。
+  const exec = { startedAt: Date.now(), succeeded: false };
 
   if (loopEnabled && conditionPrompt) {
     const loopState = { currentInput: input };
@@ -287,6 +290,7 @@ export const processOperationNode = async (
         break;
       }
       resultState.content = loopResult.content;
+      exec.succeeded = true;
       loopState.currentInput = { inputPath: input.inputPath, content: resultState.content };
 
       const passed = await deps.evaluateLoopCondition(conditionPrompt, resultState.content);
@@ -307,6 +311,7 @@ export const processOperationNode = async (
     const nodeResult = await executeOperationNode(node, input, ctx);
     if (nodeResult.ok) {
       resultState.content = nodeResult.content;
+      exec.succeeded = true;
       if (!resultState.content) {
         await trace(jobId, `WARNING: Operation returned empty output — using parent input`);
         resultState.content = input.content;
@@ -318,9 +323,11 @@ export const processOperationNode = async (
 
   nodeOutputs.set(node.id, { inputPath: input.inputPath, content: resultState.content });
 
-  // N23-07：agent 若写出文件到 outputDir，捕获为 dir 工件供前端预览（按目录是否有文件判定，
-  // 不依赖 resultState.content——空输出回落父输入时仍要捕获 file-only 运行）。
-  const artifact = await captureOutputArtifact(ctx.outputDir, node.data.label);
+  // 仅在真正成功时捕获本次执行窗口写出的文件（exec.succeeded 排除软跳过的 fall-through；
+  // startedAt 排除共享 outputDir 里的他节点/上轮残留）。空输出回落父输入仍捕获 file-only 运行。
+  const artifact = exec.succeeded
+    ? await captureOutputArtifact(ctx.outputDir, node.data.label, exec.startedAt)
+    : null;
   if (artifact) {
     await trace(jobId, encodeNodeArtifact(node.id, artifact));
   }

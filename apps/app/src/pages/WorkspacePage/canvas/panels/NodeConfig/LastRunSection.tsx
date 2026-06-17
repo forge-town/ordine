@@ -37,15 +37,13 @@ export const LastRunSection = ({ node }: NodeConfigSectionProps) => {
           <span className="truncate">{t("workspace.canvas.nodeConfig.lastRun.noOutput")}</span>
         )}
       </div>
-      {artifact ? (
-        <ArtifactPreview artifact={artifact} loadFile={loadArtifactFile} />
-      ) : (
-        llmContent && (
-          <ArtifactPreview
-            artifact={{ kind: "inline", contentType: "markdown", content: llmContent }}
-          />
-        )
+      {/* 文本答复与文件工件是两条独立通道：节点可能既答文本又写文件，二者都要展示，不互斥。 */}
+      {llmContent && (
+        <ArtifactPreview
+          artifact={{ kind: "inline", contentType: "markdown", content: llmContent }}
+        />
       )}
+      {artifact && <ArtifactPreview artifact={artifact} loadFile={loadArtifactFile} />}
     </section>
   );
 };
