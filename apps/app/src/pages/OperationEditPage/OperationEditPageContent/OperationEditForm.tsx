@@ -1,7 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod/v4";
 import {
   Bot,
   CheckCircle2,
@@ -19,6 +18,7 @@ import {
   Settings2,
   Terminal,
   Trash2,
+  Upload,
   Wand2,
   X,
 } from "lucide-react";
@@ -36,25 +36,25 @@ import { ResourceName } from "@/integrations/refine/dataProvider";
 import {
   type Operation,
   type Skill,
-  ObjectNodeTypeSchema,
   type ObjectType,
-  OperationExecutorTypeSchema,
-  AgentModeSchema,
-  ScriptLanguageSchema,
-  OutputItemSchema,
   TemplateContentTypeSchema,
   type TemplateContentType,
-  type OperationExecutorType,
-  type AgentMode,
-  type OperationConfigInput,
 } from "@repo/schemas";
 import { useStore } from "zustand";
 import { useOperationEditPageStore } from "../_store";
 import { PageHeader } from "@/components/PageHeader";
+import {
+  buildConfig,
+  editFormSchema,
+  parseExecutorDefaults,
+  type EditFormValues,
+} from "./editFormSchema";
+import { PublishConfigFields } from "./PublishConfigFields";
 
 const EXECUTOR_ICONS = {
   agent: Wand2,
   script: Terminal,
+  publish: Upload,
 } as const satisfies Record<string, React.ElementType>;
 
 const AGENT_MODE_ICONS = {
@@ -69,10 +69,6 @@ const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   prompt: MessageSquareText,
 };
 
-const editableOutputItemSchema = OutputItemSchema.extend({
-  templateIds: z.array(z.string()),
-});
-
 const OUTPUT_CONTENT_TYPE_OPTIONS: {
   value: TemplateContentType;
   label: string;
@@ -80,98 +76,6 @@ const OUTPUT_CONTENT_TYPE_OPTIONS: {
   value,
   label: value.toUpperCase(),
 }));
-
-const editFormSchema = z.object({
-  name: z.string().min(1, "名称不能为空"),
-  description: z.string(),
-  acceptedObjectTypes: z.array(ObjectNodeTypeSchema).min(1),
-  executorType: OperationExecutorTypeSchema,
-  agentMode: AgentModeSchema,
-  skillId: z.string(),
-  promptText: z.string(),
-  scriptCommand: z.string(),
-  scriptLanguage: ScriptLanguageSchema,
-  outputs: z.array(editableOutputItemSchema),
-});
-
-type EditFormValues = z.infer<typeof editFormSchema>;
-
-const buildConfig = (values: EditFormValues): OperationConfigInput => {
-  if (values.executorType === "agent") {
-    if (values.agentMode === "skill") {
-      return {
-        executor: {
-          type: "agent",
-          agentMode: "skill",
-          skillId: values.skillId,
-        },
-      };
-    }
-
-    return {
-      executor: {
-        type: "agent",
-        agentMode: "prompt",
-        prompt: values.promptText,
-      },
-    };
-  }
-
-  return {
-    executor: {
-      type: "script",
-      command: values.scriptCommand,
-      language: values.scriptLanguage,
-    },
-  };
-};
-
-const parseExecutorDefaults = (
-  config: OperationConfigInput,
-): {
-  executorType: OperationExecutorType;
-  agentMode: AgentMode;
-  skillId: string;
-  promptText: string;
-  scriptCommand: string;
-  scriptLanguage: "bash" | "python" | "javascript";
-} => {
-  const defaults = {
-    executorType: "script" as OperationExecutorType,
-    agentMode: "skill" as AgentMode,
-    skillId: "",
-    promptText: "",
-    scriptCommand: "",
-    scriptLanguage: "bash" as "bash" | "python" | "javascript",
-  };
-
-  const ex = config.executor;
-  if (!ex) return defaults;
-
-  const { executorType, agentMode } = (() => {
-    if (ex.type === "agent") {
-      return {
-        executorType: "agent" as OperationExecutorType,
-        agentMode: (["skill", "prompt"].includes(ex.agentMode ?? "")
-          ? ex.agentMode
-          : "skill") as AgentMode,
-      };
-    }
-
-    return { executorType: "script" as OperationExecutorType, agentMode: "skill" as AgentMode };
-  })();
-
-  return {
-    executorType,
-    agentMode,
-    skillId: ex.skillId ?? "",
-    promptText: ex.prompt ?? "",
-    scriptCommand: ex.command ?? "",
-    scriptLanguage: (["bash", "python", "javascript"].includes(ex.language ?? "")
-      ? ex.language
-      : "bash") as "bash" | "python" | "javascript",
-  };
-};
 
 const toggleObjectType = (current: ObjectType[], type: ObjectType): ObjectType[] => {
   if (current.includes(type)) {
@@ -205,6 +109,12 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
       label: "Script",
       icon: EXECUTOR_ICONS.script,
       description: t("operations.executorScriptDesc"),
+    },
+    {
+      value: "publish" as const,
+      label: "Publish",
+      icon: EXECUTOR_ICONS.publish,
+      description: t("operations.executorPublishDesc"),
     },
   ];
 
@@ -282,6 +192,7 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
   const acceptedObjectTypes = form.watch("acceptedObjectTypes");
   const selectedSkillId = form.watch("skillId");
   const scriptLanguage = form.watch("scriptLanguage");
+  const publishTarget = form.watch("publishTarget");
   const editableOutputs = form.watch("outputs");
   const selectedSkill = skills.find((skill) => skill.id === selectedSkillId);
   const inputs = operation.config.inputs ?? [];
@@ -715,6 +626,8 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
                         />
                       </div>
                     )}
+
+                    {executorType === "publish" && <PublishConfigFields control={form.control} />}
                   </div>
                 </section>
 
@@ -940,12 +853,16 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
                       <Badge variant="outline">
                         {executorType === "agent" ? (
                           <Bot className="h-3 w-3" />
+                        ) : executorType === "publish" ? (
+                          <Upload className="h-3 w-3" />
                         ) : (
                           <Code2 className="h-3 w-3" />
                         )}
                         {executorType === "agent"
                           ? `Agent / ${agentMode}`
-                          : `Script / ${scriptLanguage}`}
+                          : executorType === "publish"
+                            ? `Publish / ${publishTarget}`
+                            : `Script / ${scriptLanguage}`}
                       </Badge>
                     </div>
 
