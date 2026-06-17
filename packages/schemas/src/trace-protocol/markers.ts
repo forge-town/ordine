@@ -16,6 +16,8 @@ export const TRACE_MARKER_PREFIX = "@@";
 export const TRACE_MARKER = {
   checkpointResume: "@@CHECKPOINT_RESUME::",
   checkpointWait: "@@CHECKPOINT_WAIT::",
+  decisionResolved: "@@DECISION_RESOLVED::",
+  decisionWait: "@@DECISION_WAIT::",
   edgeConditionSkip: "@@EDGE_CONDITION_SKIP::",
   edgeQualitySkip: "@@EDGE_QUALITY_SKIP::",
   llmContent: "@@LLM_CONTENT::",
@@ -56,6 +58,12 @@ export const encodeCheckpointWait = (nodeId: string): string =>
   `${TRACE_MARKER.checkpointWait}${nodeId}`;
 export const encodeCheckpointResume = (nodeId: string): string =>
   `${TRACE_MARKER.checkpointResume}${nodeId}`;
+
+/** 决策节点标记。decisionWait payload=nodeId::候选数；decisionResolved payload=nodeId::选中源节点id（逗号分隔）。 */
+export const encodeDecisionWait = (nodeId: string, candidateCount: number): string =>
+  `${TRACE_MARKER.decisionWait}${nodeId}::${candidateCount}`;
+export const encodeDecisionResolved = (nodeId: string, selectedNodeIds: string[]): string =>
+  `${TRACE_MARKER.decisionResolved}${nodeId}::${selectedNodeIds.join(",")}`;
 
 /** 边跳过标记。 */
 export const encodeEdgeConditionSkip = (edgeId: string, expression: string): string =>

@@ -6,6 +6,7 @@ import { pluginRegistry } from "@repo/plugin";
 import { type NodeCtx } from "../schemas";
 import {
   BUILTIN_NODE_TYPE_ENUM,
+  DECISION_NODE_TYPE_ENUM,
   encodeCheckpointResume,
   encodeCheckpointWait,
   encodeEdgeConditionSkip,
@@ -38,10 +39,16 @@ import { processGitHubProjectNode } from "../nodes/GitHubProjectNode";
 import { processPromptNode } from "../nodes/PromptNode";
 import { processOutputLocalPathNode } from "../nodes/OutputLocalPathNode";
 import { processOperationNode } from "../nodes/OperationNode";
+import {
+  processDecisionNode,
+  type PipelineDecisionEvent,
+  type DecisionResult,
+} from "../nodes/DecisionNode";
 
 const OBJECT_TYPES: ReadonlySet<string> = new Set(Object.values(OBJECT_NODE_TYPE_ENUM));
 const OPERATION_TYPES: ReadonlySet<string> = new Set(Object.values(OPERATION_NODE_TYPE_ENUM));
 const OUTPUT_TYPES: ReadonlySet<string> = new Set(Object.values(OUTPUT_NODE_TYPE_ENUM));
+const DECISION_TYPES: ReadonlySet<string> = new Set(Object.values(DECISION_NODE_TYPE_ENUM));
 const DEFAULT_SELF_HEAL_RETRIES = 1;
 
 const resolveMetaType = (type: string): MetaNodeType =>
@@ -51,7 +58,9 @@ const resolveMetaType = (type: string): MetaNodeType =>
       ? "operation"
       : OUTPUT_TYPES.has(type)
         ? "output"
-        : "object";
+        : DECISION_TYPES.has(type)
+          ? "decision"
+          : "object";
 
 const isRootNode = (node: PipelineNode): boolean =>
   typeof (node as PipelineNode & { parentId?: unknown }).parentId !== "string";
@@ -147,6 +156,8 @@ export interface PipelineRunControlEvent {
 export interface PipelineRunControl {
   shouldPauseBeforeNode?: (event: PipelineRunControlEvent) => boolean | Promise<boolean>;
   waitForResume?: (event: PipelineRunControlEvent) => Promise<void>;
+  /** 决策节点挂起：返回用户选中的候选源节点 id。未提供则决策节点失败（不伪造选择）。 */
+  waitForDecision?: (event: PipelineDecisionEvent) => Promise<DecisionResult>;
 }
 
 export interface PipelineOptions {
@@ -491,6 +502,28 @@ export class Pipeline {
       await trace(jobId, encodeNodeDone(node.id));
 
       return this.finalizeNodeStatus(node.id, { ok: true });
+    }
+
+    // ── decision metaType ────────────────────────────────────────────────
+    if (metaType === "decision") {
+      return this.finalizeNodeStatus(
+        node.id,
+        await this.wrapNodeResult(
+          node.id,
+          processDecisionNode({
+            node,
+            jobId,
+            edges: this.opts.pipeline.edges,
+            nodeOutputs: this.nodeOutputs,
+            isEdgeActive: (edge) => this.isEdgeActive(edge),
+            applyEdgeTransform: (edge, ctx) => this.applyEdgeTransform(edge, ctx),
+            nodeLabel: (id) => this.opts.pipeline.nodes.find((n) => n.id === id)?.data.label,
+            selectMode: data.nodeType === "decision" ? data.selectMode : "single",
+            waitForDecision: this.opts.runControl?.waitForDecision,
+            emitStatus: (status) => this.emitNodeStatus(node.id, status),
+          }),
+        ),
+      );
     }
 
     // fallback — skip
