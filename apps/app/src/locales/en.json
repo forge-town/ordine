@@ -257,6 +257,13 @@
     "createNew": "New Pipeline",
     "nodeCount": "Node Count",
     "newPipelineDescription": "Configure this pipeline's nodes and connections in Canvas.",
+    "sharedContext": {
+      "label": "Pipeline shared context",
+      "description": "Injected into every operation run in this pipeline, so each agent understands the overall goal — no need to repeat it in each step.",
+      "placeholder": "Add pipeline-level goals, constraints, or context shared across all operations…",
+      "savedTitle": "Shared context saved",
+      "savedDescription": "It will be applied to the next pipeline run."
+    },
     "editInCanvas": "Edit in Canvas",
     "preview": "Pipeline Preview",
     "fullscreenEdit": "Fullscreen Edit →",

@@ -99,6 +99,7 @@ vi.mock("@refinedev/core", () => ({
   useOne: (...args: unknown[]) => mockUseOne(...args),
   useList: (...args: unknown[]) => mockUseList(...args),
   useCustomMutation: () => mockUseCustomMutation(),
+  useUpdate: () => ({ mutate: vi.fn(), mutation: { isPending: false } }),
 }));
 
 describe("PipelineDetailPageContent", () => {

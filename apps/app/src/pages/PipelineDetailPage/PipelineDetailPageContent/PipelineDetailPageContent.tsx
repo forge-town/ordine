@@ -24,7 +24,7 @@ import "@xyflow/react/dist/style.css";
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { useOne, useCustomMutation, useList } from "@refinedev/core";
+import { useOne, useCustomMutation, useList, useUpdate } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
 import type { Operation, PipelineData, PipelineNode } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -33,6 +33,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { useToastStore } from "@/store/toastStore";
 import { Stat } from "../Stat";
+import { PipelineSharedContextCard } from "./PipelineSharedContextCard";
 import { useStore } from "zustand";
 
 // ─── Node type metadata ───────────────────────────────────────────────────────
@@ -122,6 +123,7 @@ export const PipelineDetailPageContent = () => {
   const [runError, setRunError] = useState<string | null>(null);
 
   const { mutate: runMutate } = useCustomMutation();
+  const { mutate: updatePipeline, mutation: sharedContextMutation } = useUpdate();
 
   interface JobPollingData {
     status: string;
@@ -213,6 +215,25 @@ export const PipelineDetailPageContent = () => {
       description: "Use Pipeline Skills and Components for reusable assets after M7-09.",
     });
   };
+
+  const handleSaveSharedContext = (sharedContext: string) =>
+    updatePipeline(
+      {
+        id: pipeline.id,
+        resource: ResourceName.pipelines,
+        values: { sharedContext },
+        successNotification: false,
+        errorNotification: false,
+      },
+      {
+        onSuccess: () =>
+          addToast({
+            type: "success",
+            title: t("pipelines.sharedContext.savedTitle"),
+            description: t("pipelines.sharedContext.savedDescription"),
+          }),
+      },
+    );
 
   const nodeTypeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
     acc[n.type] = (acc[n.type] ?? 0) + 1;
@@ -331,6 +352,13 @@ export const PipelineDetailPageContent = () => {
             </div>
           )}
         </div>
+
+        {/* Shared context (COD-40) ────────────────────────────────────── */}
+        <PipelineSharedContextCard
+          value={pipeline.sharedContext ?? ""}
+          isSaving={sharedContextMutation.isPending}
+          onSave={handleSaveSharedContext}
+        />
 
         {/* Canvas preview ─────────────────────────────────────────────── */}
         <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">

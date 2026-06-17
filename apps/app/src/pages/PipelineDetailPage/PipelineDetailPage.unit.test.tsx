@@ -24,6 +24,7 @@ vi.mock("@refinedev/core", () => ({
     query: { isLoading: false },
   }),
   useCustomMutation: () => ({ mutate: vi.fn() }),
+  useUpdate: () => ({ mutate: vi.fn(), mutation: { isPending: false } }),
 }));
 
 describe("PipelineDetailPage", () => {
