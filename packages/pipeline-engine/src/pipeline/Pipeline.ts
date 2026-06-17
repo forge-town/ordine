@@ -3,7 +3,7 @@ import { rm } from "node:fs/promises";
 import { ResultAsync } from "neverthrow";
 import { trace } from "@repo/obs";
 import { pluginRegistry } from "@repo/plugin";
-import { type NodeCtx } from "../schemas";
+import { type NodeCtx, type PipelineGlobalContext } from "../schemas";
 import {
   BUILTIN_NODE_TYPE_ENUM,
   DECISION_NODE_TYPE_ENUM,
@@ -137,6 +137,8 @@ export type PipelineRunResult =
 export interface PipelineDefinition {
   id: string;
   name: string;
+  description?: string;
+  sharedContext?: string;
   nodes: PipelineNode[];
   edges: PipelineEdge[];
 }
@@ -461,6 +463,7 @@ export class Pipeline {
           operations: this.opts.operations,
           lookupAgent: this.opts.lookupAgent,
           lookupSkill: this.opts.lookupSkill,
+          pipelineContext: this.buildPipelineContext(),
           githubToken: this.opts.githubToken,
           outputDir: this.resolveOutputDirForNode(node.id),
         };
@@ -532,6 +535,18 @@ export class Pipeline {
     await trace(jobId, encodeNodeDone(node.id));
 
     return this.finalizeNodeStatus(node.id, { ok: true });
+  }
+
+  // COD-40：把父 Pipeline 的全局上下文（name/description/sharedContext）打包，
+  // 供 Operation 执行时与"局部职责"区分后一并注入 agent prompt。
+  private buildPipelineContext(): PipelineGlobalContext {
+    const { pipeline } = this.opts;
+
+    return {
+      name: pipeline.name,
+      description: pipeline.description ?? "",
+      sharedContext: pipeline.sharedContext ?? "",
+    };
   }
 
   private resolveOutputDirForNode(nodeId: string): string | undefined {

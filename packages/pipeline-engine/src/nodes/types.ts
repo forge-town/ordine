@@ -1,6 +1,6 @@
 import type { PipelineEngineDeps } from "../deps";
 import type { OperationConfigInput, PipelineNode } from "@repo/schemas";
-import type { NodeCtx } from "../schemas";
+import type { NodeCtx, PipelineGlobalContext } from "../schemas";
 import type { PipelineRunError } from "../errors";
 
 export type NodeResult = { ok: true } | { ok: false; error: PipelineRunError | null };
@@ -23,6 +23,7 @@ export interface OperationNodeContext extends NodeContext {
   operations: Map<string, OperationInfo>;
   lookupAgent: (id: string) => Promise<AgentInfo | null>;
   lookupSkill: (id: string) => Promise<SkillInfo | null>;
+  pipelineContext?: PipelineGlobalContext;
   githubToken?: string;
   outputDir?: string;
 }
@@ -36,6 +37,7 @@ export interface AgentInfo {
 export interface OperationInfo {
   id: string;
   name: string;
+  description?: string;
   config: OperationConfigInput;
 }
 
