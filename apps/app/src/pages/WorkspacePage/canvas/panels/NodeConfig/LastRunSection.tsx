@@ -1,6 +1,7 @@
 import { Activity } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCanvasStore } from "../../_store/canvasStore";
+import { ArtifactPreview } from "../ArtifactPreview";
 import type { NodeConfigSectionProps } from "./types";
 
 export const LastRunSection = ({ node }: NodeConfigSectionProps) => {
@@ -25,10 +26,15 @@ export const LastRunSection = ({ node }: NodeConfigSectionProps) => {
         <span className="text-muted-foreground">
           {t("workspace.canvas.nodeConfig.lastRun.output")}
         </span>
-        <span className="truncate">
-          {llmContent || t("workspace.canvas.nodeConfig.lastRun.noOutput")}
-        </span>
+        {!llmContent && (
+          <span className="truncate">{t("workspace.canvas.nodeConfig.lastRun.noOutput")}</span>
+        )}
       </div>
+      {llmContent && (
+        <ArtifactPreview
+          artifact={{ kind: "inline", contentType: "markdown", content: llmContent }}
+        />
+      )}
     </section>
   );
 };

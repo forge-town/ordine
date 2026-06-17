@@ -624,6 +624,19 @@
           "trigger": "组件"
         }
       },
+      "preview": {
+        "binary": "二进制文件 — 暂不支持预览",
+        "copied": "已复制",
+        "copy": "复制",
+        "empty": "暂无可预览内容。",
+        "error": "文件加载失败。",
+        "fileTree": "文件",
+        "loading": "加载中…",
+        "openExternal": "打开",
+        "selectFile": "选择文件以预览。",
+        "title": "预览",
+        "truncated": "预览已截断（文件超出上限）。"
+      },
       "nodeConfig": {
         "checkpoint": {
           "afterStep": "该步骤完成后暂停",

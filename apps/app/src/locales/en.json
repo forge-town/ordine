@@ -624,6 +624,19 @@
           "trigger": "Components"
         }
       },
+      "preview": {
+        "binary": "Binary file — preview unavailable",
+        "copied": "Copied",
+        "copy": "Copy",
+        "empty": "Nothing to preview yet.",
+        "error": "Failed to load file.",
+        "fileTree": "Files",
+        "loading": "Loading…",
+        "openExternal": "Open",
+        "selectFile": "Select a file to preview.",
+        "title": "Preview",
+        "truncated": "Preview truncated (file exceeds limit)."
+      },
       "nodeConfig": {
         "checkpoint": {
           "afterStep": "after this step finishes",
