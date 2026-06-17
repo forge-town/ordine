@@ -215,6 +215,43 @@ export const executeOperationNode = async (
     }
     await traceFinalLlmContent(opResult.value);
     await trace(jobId, `Skill output (${opResult.value.length} chars)`);
+  } else if (executor.type === "publish") {
+    if (!executor.publishTarget || !executor.repo) {
+      await trace(jobId, encodeNodeFail(node.id));
+
+      return {
+        ok: false,
+        error: new ScriptExecutionError("Publish executor requires publishTarget + repo"),
+      };
+    }
+    if (!ctx.outputDir) {
+      await trace(jobId, encodeNodeFail(node.id));
+
+      return {
+        ok: false,
+        error: new ScriptExecutionError("Publish has no source directory (no outputDir resolved)"),
+      };
+    }
+    await trace(jobId, `Publishing ${ctx.outputDir} → ${executor.publishTarget}:${executor.repo}`);
+    const publishResult = await deps.publishArtifact({
+      sourceDir: ctx.outputDir,
+      target: executor.publishTarget,
+      repo: executor.repo,
+      branch: executor.branch,
+      subPath: executor.subPath,
+      commitMessage: executor.commitMessage,
+      openPr: executor.openPr,
+      githubToken: ctx.githubToken,
+      jobId,
+      onProgress,
+    });
+    if (publishResult.isErr()) {
+      await trace(jobId, encodeNodeFail(node.id));
+
+      return { ok: false, error: new ScriptExecutionError(publishResult.error.message) };
+    }
+    opResult.value = publishResult.value;
+    await trace(jobId, `Publish done: ${opResult.value}`);
   }
 
   return { ok: true, content: opResult.value };

@@ -20,6 +20,7 @@ beforeEach(() => {
 const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDeps => ({
   runPrompt: vi.fn().mockReturnValue(okAsync("prompt-output")),
   runSkill: vi.fn().mockReturnValue(okAsync("skill-output")),
+  publishArtifact: vi.fn().mockReturnValue(okAsync("published")),
   structuredJsonToMarkdown: vi.fn((c: string) => c),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,
@@ -99,6 +100,58 @@ describe("executeOperationNode", () => {
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.content).toBe("skill-output");
     expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ skillId: "sk-1" }));
+  });
+
+  it("executes a publish-type operation via deps.publishArtifact", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({
+      type: "publish",
+      publishTarget: "git",
+      repo: "forge-town/ui-kit",
+      subPath: "components",
+      commitMessage: "publish",
+    });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id" });
+    const ctx = makeCtx(deps, ops, { outputDir: "/out/showcase", githubToken: "tok" });
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.content).toBe("published");
+    expect(deps.publishArtifact).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceDir: "/out/showcase",
+        target: "git",
+        repo: "forge-town/ui-kit",
+        subPath: "components",
+        githubToken: "tok",
+      }),
+    );
+  });
+
+  it("fails a publish operation missing publishTarget/repo (no publish call)", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({ type: "publish" });
+    const ops = new Map([["op-id", op]]);
+    const ctx = makeCtx(deps, ops, { outputDir: "/out" });
+
+    const result = await executeOperationNode(makeNode({ operationId: "op-id" }), makeInput(), ctx);
+
+    expect(result.ok).toBe(false);
+    expect(deps.publishArtifact).not.toHaveBeenCalled();
+  });
+
+  it("fails a publish operation with no resolved outputDir", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({ type: "publish", publishTarget: "localDir", repo: "/tmp/dest" });
+    const ops = new Map([["op-id", op]]);
+    const ctx = makeCtx(deps, ops, { outputDir: undefined });
+
+    const result = await executeOperationNode(makeNode({ operationId: "op-id" }), makeInput(), ctx);
+
+    expect(result.ok).toBe(false);
+    expect(deps.publishArtifact).not.toHaveBeenCalled();
   });
 
   it("passes skill systemPrompt override to runSkill", async () => {

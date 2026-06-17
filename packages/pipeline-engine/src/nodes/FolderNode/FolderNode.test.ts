@@ -39,6 +39,7 @@ beforeEach(() => {
 const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDeps => ({
   runPrompt: vi.fn().mockReturnValue(okAsync("")),
   runSkill: vi.fn().mockReturnValue(okAsync("")),
+  publishArtifact: vi.fn().mockReturnValue(okAsync("published")),
   structuredJsonToMarkdown: vi.fn((c: string) => c),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,

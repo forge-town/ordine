@@ -1,6 +1,7 @@
 import { promptExecutor } from "../promptExecutor";
 import { skillExecutor } from "../skillExecutor";
 import { structuredOutput } from "../structuredOutput";
+import { publishArtifact } from "../artifactPublisher";
 import type { PipelineEngineDeps } from "@repo/pipeline-engine";
 import type { AgentRuntime, SshConnection } from "@repo/schemas";
 import type { LoopEvaluatorFn } from "../loopEvaluator";
@@ -39,6 +40,7 @@ export const pipelineRunnerEngineDeps = {
         model,
         ssh,
       }),
+    publishArtifact: (o) => publishArtifact({ ...o, jobId: o.jobId ?? jobId }),
     structuredJsonToMarkdown: (content) => structuredOutput.toMarkdown({ content }),
     evaluateLoopCondition,
   }),
