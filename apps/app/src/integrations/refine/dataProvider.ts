@@ -75,13 +75,15 @@ export const dataProvider: DataProvider = {
 
   getApiUrl: () => "",
 
-  custom: async <TData extends BaseRecord = BaseRecord, _TQuery = unknown, TPayload = unknown>(
-    params: {
-      url: string;
-      method: string;
-      payload?: TPayload;
-    },
-  ): Promise<{ data: TData }> => {
+  custom: async <
+    TData extends BaseRecord = BaseRecord,
+    _TQuery = unknown,
+    TPayload = unknown,
+  >(params: {
+    url: string;
+    method: string;
+    payload?: TPayload;
+  }): Promise<{ data: TData }> => {
     const handler = customEndpoints[params.url];
     if (!handler) {
       throw new Error(`custom: unknown url "${params.url}"`);

@@ -81,11 +81,14 @@ describe("resourceHandlers — 标准 CRUD 路由 (agents 为代表)", () => {
 describe("resourceHandlers — 例外项（迁移最易出错处）", () => {
   it("conversationMessages 路由到 conversations router", async () => {
     const h = resourceHandlers.conversationMessages!;
-    await h.getList!({ resource: "conversationMessages" }, {
-      ...noFilters,
-      string: (f) => (f === "pipelineId" ? "p1" : undefined),
-      number: (f) => (f === "limit" ? 20 : undefined),
-    });
+    await h.getList!(
+      { resource: "conversationMessages" },
+      {
+        ...noFilters,
+        string: (f) => (f === "pipelineId" ? "p1" : undefined),
+        number: (f) => (f === "limit" ? 20 : undefined),
+      },
+    );
     expect(last()).toMatchObject({
       path: "conversations.getMany",
       args: { pipelineId: "p1", limit: 20 },
@@ -144,19 +147,25 @@ describe("resourceHandlers — 例外项（迁移最易出错处）", () => {
   });
 
   it("filesystem 仅 getList → filesystem.browse({path})", async () => {
-    await resourceHandlers.filesystem!.getList!({ resource: "filesystem" }, {
-      ...noFilters,
-      string: (f) => (f === "path" ? "/tmp" : undefined),
-    });
+    await resourceHandlers.filesystem!.getList!(
+      { resource: "filesystem" },
+      {
+        ...noFilters,
+        string: (f) => (f === "path" ? "/tmp" : undefined),
+      },
+    );
     expect(last()).toMatchObject({ path: "filesystem.browse", args: { path: "/tmp" } });
   });
 
   it("routines.getList 传 pipelineId + enabled(boolean)", async () => {
-    await resourceHandlers.routines!.getList!({ resource: "routines" }, {
-      ...noFilters,
-      string: (f) => (f === "pipelineId" ? "p1" : undefined),
-      boolean: (f) => (f === "enabled" ? true : undefined),
-    });
+    await resourceHandlers.routines!.getList!(
+      { resource: "routines" },
+      {
+        ...noFilters,
+        string: (f) => (f === "pipelineId" ? "p1" : undefined),
+        boolean: (f) => (f === "enabled" ? true : undefined),
+      },
+    );
     expect(last()).toMatchObject({
       path: "routines.getMany",
       args: { pipelineId: "p1", enabled: true },

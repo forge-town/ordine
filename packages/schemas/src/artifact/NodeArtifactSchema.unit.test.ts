@@ -27,14 +27,10 @@ describe("NodeArtifactSchema", () => {
   });
 
   it("rejects an unknown kind", () => {
-    expect(() =>
-      NodeArtifactSchema.parse({ kind: "binary", contentType: "html" }),
-    ).toThrow();
+    expect(() => NodeArtifactSchema.parse({ kind: "binary", contentType: "html" })).toThrow();
   });
 
   it("rejects an unknown contentType", () => {
-    expect(() =>
-      NodeArtifactSchema.parse({ kind: "inline", contentType: "pdf" }),
-    ).toThrow();
+    expect(() => NodeArtifactSchema.parse({ kind: "inline", contentType: "pdf" })).toThrow();
   });
 });

@@ -86,8 +86,8 @@ describe("dataProvider.custom", () => {
   });
 
   it("throws on unknown url", async () => {
-    await expect(
-      dataProvider.custom!({ url: "bogus/endpoint", method: "post" }),
-    ).rejects.toThrow('custom: unknown url "bogus/endpoint"');
+    await expect(dataProvider.custom!({ url: "bogus/endpoint", method: "post" })).rejects.toThrow(
+      'custom: unknown url "bogus/endpoint"',
+    );
   });
 });

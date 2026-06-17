@@ -15,7 +15,9 @@ describe("buildClaudeMcpInjection", () => {
   it("returns null when there are no connected mcp connectors", () => {
     expect(buildClaudeMcpInjection([])).toBeNull();
     expect(
-      buildClaudeMcpInjection([connected("fs", { transport: "stdio", command: "x" }, "needs_setup")]),
+      buildClaudeMcpInjection([
+        connected("fs", { transport: "stdio", command: "x" }, "needs_setup"),
+      ]),
     ).toBeNull();
     expect(buildClaudeMcpInjection([connected("legacy", {})])).toBeNull();
   });
@@ -31,7 +33,11 @@ describe("buildClaudeMcpInjection", () => {
       }),
     ]);
     expect(out).not.toBeNull();
-    expect(out!.mcpServers.fs).toEqual({ command: "npx", args: ["-y", "server-fs"], env: { TOKEN: "x" } });
+    expect(out!.mcpServers.fs).toEqual({
+      command: "npx",
+      args: ["-y", "server-fs"],
+      env: { TOKEN: "x" },
+    });
     expect(out!.toolNames).toEqual(["mcp__fs__read_file", "mcp__fs__write_file"]);
   });
 

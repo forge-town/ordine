@@ -64,15 +64,15 @@
 
 ## 落地进度（2026-06-13）
 
-| 任务 | commit | 状态 | 验证 |
-|---|---|---|---|
-| N22-00 手册 | `(N22-00)` | ✅ | — |
-| N22-01 config 结构化 | `73ff029` | ✅ | schema 单测 6/6 + 沙盒冒烟 6/6，tsc |
-| N22-02 MCP stdio 客户端 | `(N22-02)` | ✅ | fixture 真握手冒烟 5/5（含崩溃/超时/缺bin），tsc |
-| N22-03 connect 服务 + tRPC | `(N22-03)` | ✅ | service 单测 6 例（host vitest）+ 禁手设 connected，tsc |
-| N22-05a runClaude --mcp-config + 注入装配器 | `(N22-05a)` | ✅ | builder 冒烟 8/8，tsc |
-| N22-04 UI 真连接字段 | — | ⏳ 待续（浏览器） | 需真机：数据通道是 tRPC router 还是 apps/server REST 待现场确认；Connect 改调 `connectors.connect` |
-| N22-05b 运行链路透传 + 真机 | — | ⏳ 待续（真机） | 加载 connected→写临时 --mcp-config→透传 runClaude；filesystem MCP 端到端 |
+| 任务                                        | commit      | 状态              | 验证                                                                                               |
+| ------------------------------------------- | ----------- | ----------------- | -------------------------------------------------------------------------------------------------- |
+| N22-00 手册                                 | `(N22-00)`  | ✅                | —                                                                                                  |
+| N22-01 config 结构化                        | `73ff029`   | ✅                | schema 单测 6/6 + 沙盒冒烟 6/6，tsc                                                                |
+| N22-02 MCP stdio 客户端                     | `(N22-02)`  | ✅                | fixture 真握手冒烟 5/5（含崩溃/超时/缺bin），tsc                                                   |
+| N22-03 connect 服务 + tRPC                  | `(N22-03)`  | ✅                | service 单测 6 例（host vitest）+ 禁手设 connected，tsc                                            |
+| N22-05a runClaude --mcp-config + 注入装配器 | `(N22-05a)` | ✅                | builder 冒烟 8/8，tsc                                                                              |
+| N22-04 UI 真连接字段                        | —           | ⏳ 待续（浏览器） | 需真机：数据通道是 tRPC router 还是 apps/server REST 待现场确认；Connect 改调 `connectors.connect` |
+| N22-05b 运行链路透传 + 真机                 | —           | ⏳ 待续（真机）   | 加载 connected→写临时 --mcp-config→透传 runClaude；filesystem MCP 端到端                           |
 
 **已完成=CONN-01 的整个后端半场**（结构化 config、真 MCP 握手客户端、真 connect 落库、执行注入装配器与 runClaude 旗标），均沙盒 tsc+冒烟/单测验证。
 **待续两项需现场**：N22-04 UI 表单与 Connect 接线（依赖 app 数据通道，需浏览器目检+截图）；N22-05b 运行透传与 filesystem MCP 真机端到端。两者宜在 dev server/真机上迭代完成。

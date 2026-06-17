@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  ConnectorConfigSchema,
-  isMcpConnectorConfig,
-} from "./ConnectorConfigSchema";
+import { ConnectorConfigSchema, isMcpConnectorConfig } from "./ConnectorConfigSchema";
 
 describe("ConnectorConfigSchema", () => {
   it("parses a valid stdio config", () => {
@@ -35,9 +32,7 @@ describe("ConnectorConfigSchema", () => {
   });
 
   it("rejects http config with a non-http url", () => {
-    expect(() =>
-      ConnectorConfigSchema.parse({ transport: "http", url: "ftp://nope" }),
-    ).toThrow();
+    expect(() => ConnectorConfigSchema.parse({ transport: "http", url: "ftp://nope" })).toThrow();
   });
 
   it("rejects an unknown transport", () => {
