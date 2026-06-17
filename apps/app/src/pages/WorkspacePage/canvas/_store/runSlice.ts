@@ -1,5 +1,11 @@
 import type { StateCreator } from "zustand";
-import { normalizeNodeRunStatus, type Job, type JobTrace, type NodeRunStatus } from "@repo/schemas";
+import {
+  normalizeNodeRunStatus,
+  type Job,
+  type JobTrace,
+  type NodeArtifact,
+  type NodeRunStatus,
+} from "@repo/schemas";
 
 type RawNodeRunStatuses = Record<string, NodeRunStatus | string>;
 
@@ -13,11 +19,13 @@ export type RunSlice = {
   activeJobId: string | null;
   checkpointWait: CheckpointWaitState | null;
   latestJob: Job | null;
+  nodeArtifacts: Record<string, NodeArtifact>;
   nodeLlmContent: Record<string, string>;
   nodeRunStatuses: Record<string, NodeRunStatus>;
   runTraces: JobTrace[];
   runningNodeId: string | null;
   applyJobSnapshot: (job: Job | null) => void;
+  applyNodeArtifact: (nodeId: string, artifact: NodeArtifact) => void;
   applyNodeLlmContent: (nodeId: string, content: string) => void;
   beginRun: (jobId: string) => void;
   clearRunState: () => void;
@@ -62,6 +70,7 @@ export const createRunSlice =
     activeJobId: null,
     checkpointWait: null,
     latestJob: null,
+    nodeArtifacts: {},
     nodeLlmContent: {},
     nodeRunStatuses: {},
     runTraces: [],
@@ -87,10 +96,18 @@ export const createRunSlice =
       set({
         activeJobId: jobId,
         checkpointWait: null,
+        nodeArtifacts: {},
         nodeRunStatuses: {},
         runTraces: [],
         runningNodeId: null,
       } as unknown as Partial<T>),
+    applyNodeArtifact: (nodeId, artifact) =>
+      set(
+        (state) =>
+          ({
+            nodeArtifacts: { ...state.nodeArtifacts, [nodeId]: artifact },
+          }) as unknown as Partial<T>,
+      ),
     applyNodeLlmContent: (nodeId, content) =>
       set(
         (state) =>
@@ -103,6 +120,7 @@ export const createRunSlice =
         activeJob: null,
         activeJobId: null,
         checkpointWait: null,
+        nodeArtifacts: {},
         nodeLlmContent: {},
         nodeRunStatuses: {},
         runTraces: [],

@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import type { NodeArtifact } from "../artifact";
 import {
   encodeCheckpointResume,
   encodeCheckpointWait,
   encodeEdgeConditionSkip,
   encodeEdgeQualitySkip,
   encodeLlmContent,
+  encodeNodeArtifact,
   encodeNodeDone,
   encodeNodeFail,
   encodeNodeSkipped,
@@ -42,6 +44,25 @@ describe("trace marker encoders (byte-level parity with历史字面量)", () => 
   it("encodes edge skip markers", () => {
     expect(encodeEdgeConditionSkip("e1", "x > 1")).toBe("@@EDGE_CONDITION_SKIP::e1::x > 1");
     expect(encodeEdgeQualitySkip("e1", "must pass")).toBe("@@EDGE_QUALITY_SKIP::e1::must pass");
+  });
+
+  it("encodes a node artifact as single-line JSON after the first '::'", () => {
+    const artifact: NodeArtifact = {
+      kind: "dir",
+      contentType: "text",
+      content: "/tmp/out",
+      files: [{ path: "a.vue", contentType: "text" }],
+      label: "a::b",
+    };
+    const encoded = encodeNodeArtifact("n1", artifact);
+    expect(encoded).toBe(`@@NODE_ARTIFACT::n1::${JSON.stringify(artifact)}`);
+    // 单行：JSON.stringify 无缩进，不含裸换行
+    expect(encoded.includes("\n")).toBe(false);
+    // 按首个 '::' 切分可还原（payload 内含 '::' 不破坏解析）
+    const rest = encoded.slice(TRACE_MARKER.nodeArtifact.length);
+    const sep = rest.indexOf("::");
+    expect(rest.slice(0, sep)).toBe("n1");
+    expect(JSON.parse(rest.slice(sep + 2))).toEqual(artifact);
   });
 
   it("self-heal prefix does not collide with self-heal-done", () => {

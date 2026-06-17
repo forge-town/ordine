@@ -1,7 +1,14 @@
 import { useEffect, useRef } from "react";
+import { Result } from "neverthrow";
 import { useCustom, useDataProvider, useOne } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
-import { TRACE_MARKER, type Job, type JobStatus, type JobTrace } from "@repo/schemas";
+import {
+  NodeArtifactSchema,
+  TRACE_MARKER,
+  type Job,
+  type JobStatus,
+  type JobTrace,
+} from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useNotificationPrefsStore } from "@/store/notificationStore/notificationPrefsStore";
@@ -18,8 +25,22 @@ type RawTrace = {
 };
 
 const LLM_CONTENT_PREFIX = TRACE_MARKER.llmContent;
+const NODE_ARTIFACT_PREFIX = TRACE_MARKER.nodeArtifact;
 
 const stripTimestamp = (message: string): string => message.replace(/^\[[^\]]+\]\s*/, "");
+
+/** 按首个 `::` 切出 (nodeId, payload)；payload 内可能含 `::`，故不能 split。 */
+const splitNodeIdPayload = (rest: string): { nodeId: string; payload: string } | null => {
+  const separatorIndex = rest.indexOf("::");
+  if (separatorIndex === -1) return null;
+
+  return { nodeId: rest.slice(0, separatorIndex), payload: rest.slice(separatorIndex + 2) };
+};
+
+const safeJsonParse = Result.fromThrowable(
+  (raw: string): unknown => JSON.parse(raw),
+  () => null,
+);
 
 export const isTerminalJobStatus = (status: JobStatus): boolean => TERMINAL_STATUSES.has(status);
 
@@ -35,6 +56,7 @@ export const useRunPolling = () => {
   const activeJobId = useCanvasStore((state) => state.activeJobId);
   const applyJobSnapshot = useCanvasStore((state) => state.applyJobSnapshot);
   const applyNodeLlmContent = useCanvasStore((state) => state.applyNodeLlmContent);
+  const applyNodeArtifact = useCanvasStore((state) => state.applyNodeArtifact);
   const setRunTraces = useCanvasStore((state) => state.setRunTraces);
   const getDataProvider = useDataProvider();
   const dataProvider = getDataProvider();
@@ -126,13 +148,17 @@ export const useRunPolling = () => {
 
         for (const trace of response.data.traces) {
           const message = stripTimestamp(trace.message);
-          if (!message.startsWith(LLM_CONTENT_PREFIX)) {
-            continue;
-          }
-          const rest = message.slice(LLM_CONTENT_PREFIX.length);
-          const separatorIndex = rest.indexOf("::");
-          if (separatorIndex !== -1) {
-            applyNodeLlmContent(rest.slice(0, separatorIndex), rest.slice(separatorIndex + 2));
+          if (message.startsWith(LLM_CONTENT_PREFIX)) {
+            const parts = splitNodeIdPayload(message.slice(LLM_CONTENT_PREFIX.length));
+            if (parts) applyNodeLlmContent(parts.nodeId, parts.payload);
+          } else if (message.startsWith(NODE_ARTIFACT_PREFIX)) {
+            const parts = splitNodeIdPayload(message.slice(NODE_ARTIFACT_PREFIX.length));
+            if (parts) {
+              const parsed = NodeArtifactSchema.safeParse(
+                safeJsonParse(parts.payload).unwrapOr(null),
+              );
+              if (parsed.success) applyNodeArtifact(parts.nodeId, parsed.data);
+            }
           }
         }
 

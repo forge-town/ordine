@@ -1,5 +1,6 @@
 import {
   encodeLlmContent,
+  encodeNodeArtifact,
   encodeNodeDone,
   encodeNodeFail,
   type OperationExecutorConfig,
@@ -10,6 +11,7 @@ import { trace } from "@repo/obs";
 import { ScriptExecutionError } from "../../errors";
 import { runScript, safeParseConfig } from "../../infrastructure";
 import type { OperationNodeContext, OperationExecResult, NodeResult } from "../types";
+import { captureOutputArtifact } from "./captureOutputArtifact";
 
 const GH_REMOTE_TOOLS = [
   "Read",
@@ -278,6 +280,14 @@ export const processOperationNode = async (
   }
 
   nodeOutputs.set(node.id, { inputPath: input.inputPath, content: resultState.content });
+
+  // N23-07：agent 若写出文件到 outputDir，捕获为 dir 工件供前端预览（按目录是否有文件判定，
+  // 不依赖 resultState.content——空输出回落父输入时仍要捕获 file-only 运行）。
+  const artifact = await captureOutputArtifact(ctx.outputDir, node.data.label);
+  if (artifact) {
+    await trace(jobId, encodeNodeArtifact(node.id, artifact));
+  }
+
   await trace(jobId, encodeNodeDone(node.id));
 
   return { ok: true };

@@ -6,6 +6,8 @@
  * 生产端与解析端**必须**只引用本文件的常量与编码函数，禁止再写裸字面量。
  */
 
+import type { NodeArtifact } from "../artifact";
+
 /** 所有结构化标记共享的前缀。 */
 export const TRACE_MARKER_PREFIX = "@@";
 
@@ -21,6 +23,7 @@ export const TRACE_MARKER = {
   edgeConditionSkip: "@@EDGE_CONDITION_SKIP::",
   edgeQualitySkip: "@@EDGE_QUALITY_SKIP::",
   llmContent: "@@LLM_CONTENT::",
+  nodeArtifact: "@@NODE_ARTIFACT::",
   nodeDone: "@@NODE_DONE::",
   nodeFail: "@@NODE_FAIL::",
   nodeSkipped: "@@NODE_SKIPPED::",
@@ -44,6 +47,14 @@ export const encodeNodeSkipped = (nodeId: string, reason: string): string =>
 /** LLM 流式内容标记（payload 为 nodeId + 文本）。 */
 export const encodeLlmContent = (nodeId: string, content: string): string =>
   `${TRACE_MARKER.llmContent}${nodeId}::${content}`;
+
+/**
+ * 节点工件标记（payload 为 nodeId + 单行 JSON）。
+ * 解析端必须按 **首个 `::`** 切分（`indexOf("::")` + `slice`），因 JSON 内可能含 `::`；
+ * JSON.stringify 无缩进 → 单行，过得了按行扫描的消费端。
+ */
+export const encodeNodeArtifact = (nodeId: string, artifact: NodeArtifact): string =>
+  `${TRACE_MARKER.nodeArtifact}${nodeId}::${JSON.stringify(artifact)}`;
 
 /** 自愈标记。 */
 export const encodeSelfHeal = (nodeId: string, attempt: number, detail: string): string =>
