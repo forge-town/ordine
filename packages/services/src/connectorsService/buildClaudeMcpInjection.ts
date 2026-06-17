@@ -17,6 +17,10 @@ type ConnectorLike = { name: string; status: string; config: ConnectorConfig };
 export const sanitizeServerKey = (name: string): string =>
   name.replace(/[^A-Za-z0-9_-]/g, "_").replace(/^_+|_+$/g, "") || "server";
 
+/** 同名去重：已占用则追加 `_` 直到唯一。 */
+const uniqueServerKey = (base: string, taken: Record<string, unknown>): string =>
+  base in taken ? uniqueServerKey(`${base}_`, taken) : base;
+
 /**
  * 把 status=connected 的 mcp connector 装配成 claude CLI 的注入物。
  * 无可用 connector → 返回 null（调用方据此不加 --mcp-config）。
@@ -31,8 +35,7 @@ export const buildClaudeMcpInjection = (connectors: ConnectorLike[]): ClaudeMcpI
     const config = connector.config;
     if (!isMcpConnectorConfig(config)) continue;
 
-    let key = sanitizeServerKey(connector.name);
-    while (key in mcpServers) key = `${key}_`; // 去重，避免同名覆盖
+    const key = uniqueServerKey(sanitizeServerKey(connector.name), mcpServers);
 
     if (config.transport === "stdio") {
       mcpServers[key] = {
