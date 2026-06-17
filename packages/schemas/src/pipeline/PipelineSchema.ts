@@ -8,6 +8,7 @@ export const PipelineSchema = z.object({
   projectId: z.string().nullable().default(null),
   name: z.string(),
   description: z.string().default(""),
+  sharedContext: z.string().default(""),
   status: PipelineStatusSchema.default("draft"),
   version: z.number().int().min(1).default(1),
   tags: z.array(z.string()),
