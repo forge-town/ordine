@@ -176,5 +176,8 @@ export const createPipelineRunnerService = (db: DbConnection) => {
 
       return ok({ cancelled: true, jobId });
     },
+    /** 落地人类决策：唤醒挂起的决策节点继续执行（job 仍处 running，无需改状态）。 */
+    resolveDecision: (jobId: string, nodeId: string, selectedNodeIds: string[]) =>
+      ok(pipelineRunControl.resolveDecision(jobId, nodeId, selectedNodeIds)),
   };
 };

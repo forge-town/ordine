@@ -21,6 +21,10 @@ export const CheckpointDialog = () => {
   }
 
   const node = nodes.find((item) => item.id === checkpointWait.nodeId);
+  // 决策节点的 waitingForUser 由 DecisionBoard 接管，避免两个挂起 UI 同时弹出。
+  if (node?.type === "decision") {
+    return null;
+  }
   const nodeLabel = (node?.data as { label?: string } | undefined)?.label ?? checkpointWait.nodeId;
 
   const handleApprove = () => {

@@ -624,6 +624,18 @@
           "trigger": "Components"
         }
       },
+      "decision": {
+        "candidate": "Candidate {{index}}",
+        "confirm": "Confirm selection",
+        "empty": "No candidates available yet.",
+        "hintMulti": "Select one or more options to keep.",
+        "hintSingle": "Select one option to continue.",
+        "noContent": "This candidate has no output yet.",
+        "resolveFailed": "Failed to submit decision",
+        "resolved": "Decision submitted",
+        "selected": "{{count}} selected",
+        "title": "Choose an option · {{node}}"
+      },
       "preview": {
         "binary": "Binary file — preview unavailable",
         "copied": "Copied",

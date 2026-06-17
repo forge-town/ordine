@@ -84,4 +84,22 @@ export const jobsRouter = router({
 
     return result.value;
   }),
+
+  resolveDecision: publicProcedure
+    .input(
+      z.object({
+        jobId: z.string(),
+        nodeId: z.string(),
+        selectedNodeIds: z.array(z.string()),
+      }),
+    )
+    .mutation(({ input }) => {
+      const result = pipelineRunnerService.resolveDecision(
+        input.jobId,
+        input.nodeId,
+        input.selectedNodeIds,
+      );
+
+      return result.value;
+    }),
 });

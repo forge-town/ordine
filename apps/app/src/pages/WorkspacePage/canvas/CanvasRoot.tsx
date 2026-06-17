@@ -6,7 +6,7 @@ import { CanvasEmptyState } from "./CanvasEmptyState";
 import { CanvasToolbar, ComponentPanel, TopPill } from "./chrome";
 import { AskComposer } from "./ask";
 import { CanvasRefSync } from "./refs";
-import { CheckpointDialog, RunConsole, RunPoller } from "./run";
+import { CheckpointDialog, DecisionBoard, RunConsole, RunPoller } from "./run";
 import { ComposeBar, DrillHint } from "./compose";
 import { EdgeInspector } from "./panels/EdgeInspector";
 import { NodeConfig } from "./panels/NodeConfig";
@@ -41,6 +41,7 @@ export const CanvasRoot = ({ pipeline }: CanvasRootProps) => {
       <RunPoller />
       <RunConsole />
       <CheckpointDialog />
+      <DecisionBoard />
       <CanvasEmptyState />
     </div>
   );

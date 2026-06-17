@@ -1,6 +1,7 @@
 import { createContext, createElement, useContext, useRef, type ReactNode } from "react";
 import { useStore } from "zustand";
 import { createStore, type StoreApi } from "zustand/vanilla";
+import { createDecisionSlice, type DecisionSlice } from "./decisionSlice";
 import { createGraphSlice, type GraphSlice } from "./graphSlice";
 import { createHistorySlice, type HistorySlice } from "./historySlice";
 import { createPanelSlice, type PanelSlice } from "./panelSlice";
@@ -9,7 +10,8 @@ import { createRunSlice, type RunSlice } from "./runSlice";
 import { createSelectionSlice, type SelectionSlice } from "./selectionSlice";
 import type { CanvasEdge, CanvasNode } from "./canvasTypes";
 
-export type CanvasStoreState = GraphSlice &
+export type CanvasStoreState = DecisionSlice &
+  GraphSlice &
   HistorySlice &
   PanelSlice &
   ProposalSlice &
@@ -39,6 +41,7 @@ export const createCanvasStore = (initialState: CanvasStoreInitialState = {}): C
     ...createRunSlice<CanvasStoreState>()(set, get, store),
     ...createSelectionSlice<CanvasStoreState>()(set, get, store),
     ...createProposalSlice<CanvasStoreState>()(set, get, store),
+    ...createDecisionSlice<CanvasStoreState>()(set, get, store),
   }));
 
 export const CanvasStoreContext = createContext<CanvasStore | null>(null);

@@ -624,6 +624,18 @@
           "trigger": "组件"
         }
       },
+      "decision": {
+        "candidate": "候选 {{index}}",
+        "confirm": "确认选择",
+        "empty": "暂无候选。",
+        "hintMulti": "选择一个或多个方案保留。",
+        "hintSingle": "选择一个方案以继续。",
+        "noContent": "该候选暂无产物。",
+        "resolveFailed": "提交决策失败",
+        "resolved": "决策已提交",
+        "selected": "已选 {{count}} 项",
+        "title": "选择一个方案 · {{node}}"
+      },
       "preview": {
         "binary": "二进制文件 — 暂不支持预览",
         "copied": "已复制",
