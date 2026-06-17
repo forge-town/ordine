@@ -2,6 +2,7 @@ import { db } from "@repo/db";
 import {
   createAgentsService,
   createAgentRuntimesService,
+  createArtifactsService,
   createAnnotationsService,
   createConnectorsService,
   createConversationMessagesService,
@@ -25,6 +26,7 @@ import {
 
 export const agentsService = createAgentsService(db);
 export const agentRuntimesService = createAgentRuntimesService(db);
+export const artifactsService = createArtifactsService();
 export const annotationsService = createAnnotationsService(db);
 export const connectorsService = createConnectorsService(db);
 export const conversationMessagesService = createConversationMessagesService(db);

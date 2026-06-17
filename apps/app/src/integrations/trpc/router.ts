@@ -1,6 +1,7 @@
 import { router } from "./init";
 import { agentsRouter } from "./routers/agents";
 import { agentRuntimesRouter } from "./routers/agentRuntimes";
+import { artifactsRouter } from "./routers/artifacts";
 import { annotationsRouter } from "./routers/annotations";
 import { connectorsRouter } from "./routers/connectors";
 import { conversationsRouter } from "./routers/conversations";
@@ -22,6 +23,7 @@ import { usageRouter } from "./routers/usage";
 export const appRouter = router({
   agents: agentsRouter,
   agentRuntimes: agentRuntimesRouter,
+  artifacts: artifactsRouter,
   annotations: annotationsRouter,
   connectors: connectorsRouter,
   conversations: conversationsRouter,

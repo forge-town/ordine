@@ -1,5 +1,6 @@
 export * from "./agentsService";
 export * from "./agentRuntimesService";
+export * from "./artifactsService";
 export * from "./annotationsService";
 export * from "./connectorsService";
 export * from "./conversationMessagesService";
