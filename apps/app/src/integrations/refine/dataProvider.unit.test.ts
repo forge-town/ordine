@@ -11,8 +11,10 @@ vi.mock("@/integrations/trpc/client", () => {
   const makeProc = (path: string) => ({
     query: async (args?: unknown) => {
       calls.push({ args, kind: "query", path });
-
-      return path.endsWith("getMany") ? [{ id: "1" }, { id: "2" }] : { id: "one" };
+      // 返回数组的方法：getMany（list 资源）与 getAgentRuns（jobs/analysis 对其 .map）。
+      return path.endsWith("getMany") || path.endsWith("getAgentRuns")
+        ? [{ id: "1" }, { id: "2" }]
+        : { id: "one" };
     },
     mutate: async (args?: unknown) => {
       calls.push({ args, kind: "mutate", path });
