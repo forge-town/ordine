@@ -158,6 +158,7 @@ CREATE TABLE "pipelines" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"description" text DEFAULT '' NOT NULL,
+	"shared_context" text DEFAULT '' NOT NULL,
 	"tags" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"nodes" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"edges" jsonb DEFAULT '[]'::jsonb NOT NULL,

@@ -8,6 +8,7 @@ export const pipelinesTable = pgTable("pipelines", {
   projectId: text("project_id").references(() => projectsTable.id),
   name: text("name").notNull(),
   description: text("description").notNull().default(""),
+  sharedContext: text("shared_context").notNull().default(""),
   status: text("status").$type<PipelineStatus>().notNull().default("draft"),
   version: integer("version").notNull().default(1),
   tags: jsonb("tags")
