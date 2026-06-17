@@ -229,7 +229,13 @@ export const pipelineRunExecutor = {
         const operationsMap = new Map<string, OperationInfo>();
         for (const id of operationIds) {
           const op = await operationsDao.findById(id);
-          if (op) operationsMap.set(id, { id: op.id, name: op.name, config: op.config });
+          if (op)
+            operationsMap.set(id, {
+              id: op.id,
+              name: op.name,
+              description: op.description ?? "",
+              config: op.config,
+            });
         }
 
         const lookupSkill = async (skillId: string) => {
@@ -263,6 +269,8 @@ export const pipelineRunExecutor = {
             pipeline: {
               id: pipeline.id,
               name: pipeline.name,
+              description: pipeline.description,
+              sharedContext: pipeline.sharedContext,
               nodes,
               edges: pipeline.edges,
             },

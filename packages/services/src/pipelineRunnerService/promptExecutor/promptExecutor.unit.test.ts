@@ -81,4 +81,35 @@ describe("promptExecutor", () => {
     const result = await promptExecutor.run({ ...baseOpts, prompt: "  " });
     expect(result.isErr()).toBe(true);
   });
+
+  it("injects pipeline-global and operation-local context into the system prompt (COD-40)", async () => {
+    const result = await promptExecutor.run({
+      ...baseOpts,
+      agent: "claude-code",
+      runtimeContext: {
+        pipeline: { name: "Release Notes", description: "ship notes", sharedContext: "keep tone" },
+        operation: { name: "Draft", description: "write draft", instruction: "Analyze this" },
+      },
+    });
+
+    expect(result.isOk()).toBe(true);
+    const sys = vi.mocked(agentEngine.run).mock.calls[0]![0].systemPrompt as string;
+    expect(sys).toContain("## Runtime Context");
+    expect(sys).toContain("### Pipeline-global context");
+    expect(sys).toContain("Pipeline name: Release Notes");
+    expect(sys).toContain("Pipeline shared context: keep tone");
+    expect(sys).toContain("### Operation-local context");
+    expect(sys).toContain("Operation name: Draft");
+    expect(sys).toContain("## Execution Priority");
+    expect(sys).toContain("## Operation Prompt");
+  });
+
+  it("omits the runtime context section when no runtimeContext is provided", async () => {
+    const result = await promptExecutor.run({ ...baseOpts, agent: "claude-code" });
+
+    expect(result.isOk()).toBe(true);
+    const sys = vi.mocked(agentEngine.run).mock.calls[0]![0].systemPrompt as string;
+    expect(sys).not.toContain("## Runtime Context");
+    expect(sys).toContain("Analyze this");
+  });
 });

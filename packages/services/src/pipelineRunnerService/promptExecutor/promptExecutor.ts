@@ -1,6 +1,6 @@
 import { ResultAsync, errAsync } from "neverthrow";
 import { logger } from "@repo/logger";
-import type { RunPromptOptions } from "@repo/pipeline-engine";
+import type { OperationRuntimeContext, RunPromptOptions } from "@repo/pipeline-engine";
 import { TRACE_MARKER, type OutputItem, type SshConnection } from "@repo/schemas";
 import { runAgent } from "../agentRunner/agentRunner";
 
@@ -33,6 +33,53 @@ const USER_ACTION_SECTION = [
   "Do NOT emit the marker when nothing is missing.",
   "",
 ].join("\n");
+
+// COD-40：把运行时上下文渲染成 system prompt 片段，显式区分"全局 Pipeline 目标"
+// 与"当前 Operation 局部职责"，让执行 agent 既不丢整体意图又聚焦当前步骤。
+const buildRuntimeContextSection = (runtimeContext?: OperationRuntimeContext): string => {
+  if (!runtimeContext) return "";
+
+  const pipelineLines = runtimeContext.pipeline
+    ? [
+        "### Pipeline-global context",
+        `Pipeline name: ${runtimeContext.pipeline.name}`,
+        `Pipeline description: ${runtimeContext.pipeline.description || "(none)"}`,
+        `Pipeline shared context: ${runtimeContext.pipeline.sharedContext || "(none)"}`,
+        "",
+      ]
+    : [];
+
+  const operation = runtimeContext.operation;
+  const operationLines = [
+    "### Operation-local context",
+    `Operation name: ${operation.name}`,
+    `Operation description: ${operation.description || "(none)"}`,
+    ...(operation.instruction ? [`Step-specific instruction: ${operation.instruction}`] : []),
+  ];
+
+  return ["## Runtime Context", ...pipelineLines, ...operationLines].join("\n");
+};
+
+const buildSystemPrompt = ({
+  prompt,
+  runtimeContext,
+}: {
+  prompt: string;
+  runtimeContext?: OperationRuntimeContext;
+}): string => {
+  const contextSection = buildRuntimeContextSection(runtimeContext);
+  if (!contextSection) return prompt;
+
+  return [
+    contextSection,
+    "",
+    "## Execution Priority",
+    "Use the pipeline-global context to preserve workflow intent, but execute the current Operation-local instruction as the immediate task.",
+    "",
+    "## Operation Prompt",
+    prompt,
+  ].join("\n");
+};
 
 const buildOutputItemsSection = (
   outputItems?: readonly OutputItem[],
@@ -70,6 +117,7 @@ const run = ({
   ssh,
   outputItems,
   outputDir,
+  runtimeContext,
 }: PromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
@@ -82,7 +130,7 @@ const run = ({
     (async () => {
       const raw = await runAgent({
         agent,
-        systemPrompt: `${prompt}\n${USER_ACTION_SECTION}`,
+        systemPrompt: `${buildSystemPrompt({ prompt, runtimeContext })}\n${USER_ACTION_SECTION}`,
         userPrompt: effectiveInput,
         inputPath,
         jobId,

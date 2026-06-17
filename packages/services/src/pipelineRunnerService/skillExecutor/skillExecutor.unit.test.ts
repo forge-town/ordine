@@ -149,4 +149,33 @@ describe("skillExecutor", () => {
       expect(result.error.message).toContain("unknown-agent");
     }
   });
+
+  it("injects pipeline-global and operation-local context into the user prompt (COD-40)", async () => {
+    const result = await skillExecutor.run({
+      ...baseOpts,
+      agent: "claude-code",
+      runtimeContext: {
+        pipeline: { name: "Audit Flow", description: "find bugs", sharedContext: "be strict" },
+        operation: { name: "Scan", description: "scan files", instruction: "run the linter" },
+      },
+    });
+
+    expect(result.isOk()).toBe(true);
+    const user = vi.mocked(agentEngine.run).mock.calls[0]![0].userPrompt as string;
+    expect(user).toContain("## Runtime Context");
+    expect(user).toContain("### Pipeline-global context");
+    expect(user).toContain("Pipeline name: Audit Flow");
+    expect(user).toContain("Pipeline shared context: be strict");
+    expect(user).toContain("### Operation-local context");
+    expect(user).toContain("Operation name: Scan");
+    expect(user).toContain("Step-specific instruction: run the linter");
+  });
+
+  it("omits the runtime context block from the user prompt when no runtimeContext is provided", async () => {
+    const result = await skillExecutor.run({ ...baseOpts, agent: "claude-code" });
+
+    expect(result.isOk()).toBe(true);
+    const user = vi.mocked(agentEngine.run).mock.calls[0]![0].userPrompt as string;
+    expect(user).not.toContain("## Runtime Context");
+  });
 });
