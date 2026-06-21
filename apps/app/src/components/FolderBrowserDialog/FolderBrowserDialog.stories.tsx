@@ -13,7 +13,12 @@ const FolderBrowserStory = (args: React.ComponentProps<typeof FolderBrowserDialo
   };
 
   return (
-    <FolderBrowserDialog {...args} open={open} onOpenChange={handleOpenChange} onSelect={handleSelect} />
+    <FolderBrowserDialog
+      {...args}
+      open={open}
+      onOpenChange={handleOpenChange}
+      onSelect={handleSelect}
+    />
   );
 };
 
