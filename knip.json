@@ -47,5 +47,5 @@
     "@tanstack/router-plugin"
   ],
   "ignoreBinaries": ["tsx"],
-  "ignore": ["**/*.stories.tsx", "**/archived/**", "scripts/check-schema-exports.ts"]
+  "ignore": ["**/*.stories.tsx", "**/archived/**", "archive/**", "scripts/check-schema-exports.ts"]
 }

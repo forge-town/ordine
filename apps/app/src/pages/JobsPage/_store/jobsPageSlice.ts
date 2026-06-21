@@ -1,19 +1,22 @@
-import type { ChangeEvent } from "react";
 import type { StateCreator } from "zustand";
-import type { JobStatus } from "@repo/schemas";
+
+export const JOB_STATUS_FILTERS = ["All", "Running", "Waiting", "Completed", "Failed"] as const;
+export type JobStatusFilter = (typeof JOB_STATUS_FILTERS)[number];
 
 export interface JobsPageSlice {
   search: string;
-  statusFilter: JobStatus | "all";
+  statusFilter: JobStatusFilter;
 
-  handleSearchInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  handleStatusFilterButtonClick: (status: JobStatus | "all") => void;
+  handleSearchInputChange: (value: string) => void;
+  handleSearchClearButtonClick: () => void;
+  handleStatusFilterButtonClick: (status: JobStatusFilter) => void;
 }
 
 export const createJobsPageSlice: StateCreator<JobsPageSlice> = (set) => ({
   search: "",
-  statusFilter: "all",
+  statusFilter: "All",
 
-  handleSearchInputChange: (event) => set({ search: event.target.value }),
+  handleSearchInputChange: (value) => set({ search: value }),
+  handleSearchClearButtonClick: () => set({ search: "" }),
   handleStatusFilterButtonClick: (status) => set({ statusFilter: status }),
 });

@@ -27,5 +27,8 @@ export const startEmbeddedPostgres = (dataDir: string): ResultAsync<EmbeddedPgIn
         stop: () => db.close(),
       };
     })(),
-    (e) => new Error(`Failed to start embedded PostgreSQL: ${e instanceof Error ? e.message : String(e)}`),
+    (e) =>
+      new Error(
+        `Failed to start embedded PostgreSQL: ${e instanceof Error ? e.message : String(e)}`,
+      ),
   );

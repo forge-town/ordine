@@ -4,9 +4,5 @@
   "condition": "设计组件数据流",
   "category": "frontend",
   "language": "tsx",
-  "tags": [
-    "zustand",
-    "props",
-    "data-flow"
-  ]
+  "tags": ["zustand", "props", "data-flow"]
 }

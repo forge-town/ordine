@@ -83,7 +83,7 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
 
   const generate = async () => {
     const { name, description } = formControl.getValues();
-    const id = `pipeline-${Date.now()}`;
+    const id = `pipeline-${globalThis.crypto.randomUUID()}`;
     const now = new Date();
     const trimmedDescription = description.trim();
     const pipelineName = name.trim() || getDefaultPipelineName();
@@ -139,6 +139,9 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
 
     const newPipeline: PipelineData = {
       id,
+      projectId: null,
+      status: "draft",
+      version: 1,
       name: pipelineName,
       description: trimmedDescription,
       tags: [],
@@ -183,7 +186,10 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
       if (phase.step !== "success") return;
       set({ newPipelineOpen: false });
       reset();
-      void router.navigate({ to: "/canvas", search: { id: phase.pipelineId } });
+      void router.navigate({
+        to: "/workspace/$pipelineId",
+        params: { pipelineId: phase.pipelineId },
+      });
     },
     handleNewPipelineRunNowButtonClick: () => {
       const phase = get().newPipelinePhase;
@@ -196,7 +202,7 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
         method: "post",
         payload: { id: pipelineId },
       });
-      void router.navigate({ to: "/canvas", search: { id: pipelineId } });
+      void router.navigate({ to: "/workspace/$pipelineId", params: { pipelineId } });
     },
     handleNewPipelineCreateAnotherButtonClick: () => {
       reset();

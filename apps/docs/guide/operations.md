@@ -4,13 +4,13 @@ Operations are atomic coding tasks with configurable executor backends.
 
 ## Structure
 
-| Field | Description |
-|-------|-------------|
-| `id` | Unique identifier |
-| `name` | Human-readable name |
+| Field         | Description              |
+| ------------- | ------------------------ |
+| `id`          | Unique identifier        |
+| `name`        | Human-readable name      |
 | `description` | What this operation does |
-| `executor` | Executor configuration |
-| `tags` | Categorization labels |
+| `executor`    | Executor configuration   |
+| `tags`        | Categorization labels    |
 
 ## Executor Configuration
 
@@ -30,14 +30,14 @@ Uses an AI agent (Claude or Codex) to execute the operation.
 }
 ```
 
-| Field | Description |
-|-------|-------------|
-| `type` | `"agent"` |
-| `agentMode` | `"skill"` (uses a skill) or `"prompt"` (direct prompt) |
-| `agent` | `"local-claude"` or `"codex"` |
-| `skillId` | Skill ID to use (when `agentMode: "skill"`) |
-| `prompt` | Direct prompt text (when `agentMode: "prompt"`) |
-| `allowedTools` | Tools the agent can use |
+| Field          | Description                                            |
+| -------------- | ------------------------------------------------------ |
+| `type`         | `"agent"`                                              |
+| `agentMode`    | `"skill"` (uses a skill) or `"prompt"` (direct prompt) |
+| `agent`        | `"local-claude"` or `"codex"`                          |
+| `skillId`      | Skill ID to use (when `agentMode: "skill"`)            |
+| `prompt`       | Direct prompt text (when `agentMode: "prompt"`)        |
+| `allowedTools` | Tools the agent can use                                |
 
 ### Script Executor
 
@@ -76,12 +76,12 @@ curl -X PUT http://localhost:9433/api/operations/lint-check \
 
 When using agent executors, you can restrict which tools the agent has access to:
 
-| Tool | Description |
-|------|-------------|
-| `Read` | Read file contents |
-| `Write` | Write/create files |
-| `Edit` | Edit existing files |
-| `Glob` | List files by pattern |
-| `Grep` | Search file contents |
-| `Bash` | Execute shell commands |
-| `MultiEdit` | Edit multiple files |
+| Tool        | Description            |
+| ----------- | ---------------------- |
+| `Read`      | Read file contents     |
+| `Write`     | Write/create files     |
+| `Edit`      | Edit existing files    |
+| `Glob`      | List files by pattern  |
+| `Grep`      | Search file contents   |
+| `Bash`      | Execute shell commands |
+| `MultiEdit` | Edit multiple files    |

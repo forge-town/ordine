@@ -4,9 +4,5 @@
   "condition": "创建或审查 UI 组件代码",
   "category": "frontend",
   "language": "tsx",
-  "tags": [
-    "ui",
-    "shadcn",
-    "component-library"
-  ]
+  "tags": ["ui", "shadcn", "component-library"]
 }

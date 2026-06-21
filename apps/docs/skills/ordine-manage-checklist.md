@@ -6,7 +6,7 @@ Use when 需要为 Best Practice 添加、更新或删除 Checklist Items（检�
 
 Copy the content below and provide it to your AI agent:
 
-```markdown
+````markdown
 ---
 name: ordine-manage-checklist
 description: Use when 需要为 Best Practice 添加、更新或删除 Checklist Items（检查清单条目），逐条定义可验证的检查项。触发词：管理检查清单、添加checklist、创建检查项、编辑清单条目。
@@ -29,6 +29,7 @@ Checklist Item 是 Best Practice 的子资源，每条代表一个 yes/no 可判
 ```bash
 curl -s "http://localhost:9433/api/checklist-items?bestPracticeId=bp_classname_convention" | python3 -m json.tool
 ```
+````
 
 ### 添加/更新检查项（PUT = upsert）
 
@@ -66,12 +67,12 @@ done
 
 ## 数据结构
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `id` | `string` | 唯一标识 |
-| `bestPracticeId` | `string` | 所属 Best Practice ID（必填） |
-| `content` | `string` | 检查项描述（必须 yes/no 可判定） |
-| `sortOrder` | `number` | 排序序号（0 开始） |
+| 字段             | 类型     | 说明                             |
+| ---------------- | -------- | -------------------------------- |
+| `id`             | `string` | 唯一标识                         |
+| `bestPracticeId` | `string` | 所属 Best Practice ID（必填）    |
+| `content`        | `string` | 检查项描述（必须 yes/no 可判定） |
+| `sortOrder`      | `number` | 排序序号（0 开始）               |
 
 ## 编写原则
 
@@ -80,5 +81,7 @@ done
 - ❌ "代码风格良好" — 不可判定
 - 排序从 0 开始，连续递增
 - 建议每个 Best Practice 至少 2-3 个检查项
+
+```
 
 ```

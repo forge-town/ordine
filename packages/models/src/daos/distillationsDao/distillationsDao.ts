@@ -6,7 +6,10 @@ export class DistillationsDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findMany() {
-    return this.executor.select().from(distillationsTable).orderBy(desc(distillationsTable.updatedAt));
+    return this.executor
+      .select()
+      .from(distillationsTable)
+      .orderBy(desc(distillationsTable.updatedAt));
   }
 
   async findById(id: string) {

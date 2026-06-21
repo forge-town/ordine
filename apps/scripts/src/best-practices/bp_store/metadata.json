@@ -4,9 +4,5 @@
   "condition": "使用 Zustand 创建或重构状态管理 Store",
   "category": "frontend",
   "language": "typescript",
-  "tags": [
-    "zustand",
-    "store",
-    "state-management"
-  ]
+  "tags": ["zustand", "store", "state-management"]
 }

@@ -6,7 +6,10 @@ export class OperationOutputItemTemplatesDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findMany() {
-    return this.executor.select().from(operationOutputItemTemplatesTable).orderBy(desc(operationOutputItemTemplatesTable.createdAt));
+    return this.executor
+      .select()
+      .from(operationOutputItemTemplatesTable)
+      .orderBy(desc(operationOutputItemTemplatesTable.createdAt));
   }
 
   async findById(id: string) {
@@ -20,12 +23,18 @@ export class OperationOutputItemTemplatesDao {
   }
 
   async create(data: typeof operationOutputItemTemplatesTable.$inferInsert) {
-    const [inserted] = await this.executor.insert(operationOutputItemTemplatesTable).values(data).returning();
+    const [inserted] = await this.executor
+      .insert(operationOutputItemTemplatesTable)
+      .values(data)
+      .returning();
 
     return inserted!;
   }
 
-  async update(id: string, data: Partial<Omit<typeof operationOutputItemTemplatesTable.$inferInsert, "id">>) {
+  async update(
+    id: string,
+    data: Partial<Omit<typeof operationOutputItemTemplatesTable.$inferInsert, "id">>,
+  ) {
     const [updated] = await this.executor
       .update(operationOutputItemTemplatesTable)
       .set({ ...data, updatedAt: new Date() })
@@ -36,7 +45,9 @@ export class OperationOutputItemTemplatesDao {
   }
 
   async delete(id: string) {
-    await this.executor.delete(operationOutputItemTemplatesTable).where(eq(operationOutputItemTemplatesTable.id, id));
+    await this.executor
+      .delete(operationOutputItemTemplatesTable)
+      .where(eq(operationOutputItemTemplatesTable.id, id));
   }
 }
 

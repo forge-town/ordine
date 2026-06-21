@@ -37,19 +37,26 @@ const ANALYZE_SKILL_SYSTEM_PROMPT = [
   "You are an AI workflow analyst. Analyze the given skill description and determine whether it represents a single-step task or a multi-step long SOP (Standard Operating Procedure).",
   "",
   "=== OUTPUT SCHEMA ===",
-  JSON.stringify({
-    skillType: "single-step | multi-step",
-    steps: [
-      {
-        name: "Step name (concise, 2-5 words)",
-        description: "What this step does in 1-2 sentences",
-        suggestedOutputs: [
-          { name: "output name", contentType: "markdown | json | yaml | text | html | xml | csv" },
-        ],
-      },
-    ],
-    rationale: "Brief explanation of why you classified it this way",
-  }, null, 2),
+  JSON.stringify(
+    {
+      skillType: "single-step | multi-step",
+      steps: [
+        {
+          name: "Step name (concise, 2-5 words)",
+          description: "What this step does in 1-2 sentences",
+          suggestedOutputs: [
+            {
+              name: "output name",
+              contentType: "markdown | json | yaml | text | html | xml | csv",
+            },
+          ],
+        },
+      ],
+      rationale: "Brief explanation of why you classified it this way",
+    },
+    null,
+    2,
+  ),
   "",
   "Rules:",
   "- If the skill is a simple, atomic task (e.g. 'check code style', 'generate a component'), return skillType='single-step' with 1 step.",
@@ -88,49 +95,49 @@ const parseFrontmatter = (content: string) => {
   const fields = new Map<string, string>();
 
   const lines = frontmatterRaw.split(/\r?\n/);
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i];
+  const state = { index: 0 };
+  while (state.index < lines.length) {
+    const line = lines[state.index];
     if (!line) {
-      i++;
+      state.index++;
       continue;
     }
     const separatorIndex = line.indexOf(":");
     if (separatorIndex < 0) {
-      i++;
+      state.index++;
       continue;
     }
 
     const key = line.slice(0, separatorIndex).trim();
-    let rawValue = line.slice(separatorIndex + 1).trim();
+    const rawValue = line.slice(separatorIndex + 1).trim();
 
     if (!key) {
-      i++;
+      state.index++;
       continue;
     }
 
     if (rawValue === "|" || rawValue === ">") {
       const blockLines: string[] = [];
-      const nextLine = lines[i + 1];
+      const nextLine = lines[state.index + 1];
       const indentMatch = nextLine ? nextLine.match(/^(\s+)/) : null;
       const blockIndent = indentMatch && indentMatch[1] ? indentMatch[1].length : 2;
-      i++;
-      while (i < lines.length) {
-        const blockLine = lines[i];
+      state.index++;
+      while (state.index < lines.length) {
+        const blockLine = lines[state.index];
         if (!blockLine) {
-          i++;
+          state.index++;
           continue;
         }
         if (blockLine.trim().length === 0) {
           blockLines.push("");
-          i++;
+          state.index++;
           continue;
         }
         const spaceMatch = blockLine.match(/^(\s*)/);
         const leadingSpaces = spaceMatch && spaceMatch[1] ? spaceMatch[1].length : 0;
         if (leadingSpaces < blockIndent) break;
         blockLines.push(blockLine.slice(blockIndent));
-        i++;
+        state.index++;
       }
       const value = blockLines.join("\n").trim();
       if (value) fields.set(key, value);
@@ -139,7 +146,7 @@ const parseFrontmatter = (content: string) => {
 
     const value = rawValue.replaceAll(/^["']|["']$/g, "");
     if (value) fields.set(key, value);
-    i++;
+    state.index++;
   }
 
   return { fields, body };
@@ -153,7 +160,7 @@ const extractDescription = (body: string, frontmatterDescription?: string): stri
   const firstParagraph = body
     .split(/\n\s*\n/)
     .map((s) => s.trim())
-    .filter((s) => s.length > 0)[0];
+    .find((s) => s.length > 0);
 
   if (!firstParagraph) return "";
 
@@ -218,15 +225,15 @@ const scanSkillFiles = async ({
   return { paths, errors };
 };
 
+const buildFallback = (skill: Skill): SkillAnalysisResult => ({
+  skillType: "single-step",
+  steps: [{ name: skill.label, description: skill.description, suggestedOutputs: [] }],
+  rationale: "Analysis failed; falling back to single-step",
+});
+
 export const createSkillsService = (db: DbConnection) => {
   const dao = createSkillsDao(db);
   const settingsDao = createSettingsDao(db);
-
-  const buildFallback = (skill: Skill): SkillAnalysisResult => ({
-    skillType: "single-step",
-    steps: [{ name: skill.label, description: skill.description, suggestedOutputs: [] }],
-    rationale: "Analysis failed; falling back to single-step",
-  });
 
   const previewImport = async ({ rootPath }: { rootPath: string }): Promise<SkillImportPreview> => {
     const scanResult = await scanSkillFiles({ rootPath });
@@ -270,14 +277,16 @@ export const createSkillsService = (db: DbConnection) => {
           });
           if (updated) imported.push(updated);
         } else {
-          imported.push(await dao.create({
-            id: candidate.id,
-            name: candidate.name,
-            label: candidate.label,
-            description: candidate.description,
-            category: IMPORTED_CATEGORY,
-            tags: [IMPORTED_TAG],
-          }));
+          imported.push(
+            await dao.create({
+              id: candidate.id,
+              name: candidate.name,
+              label: candidate.label,
+              description: candidate.description,
+              category: IMPORTED_CATEGORY,
+              tags: [IMPORTED_TAG],
+            }),
+          );
         }
       }
 

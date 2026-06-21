@@ -4,9 +4,5 @@
   "condition": "创建或重构 i18n 国际化代码",
   "category": "frontend",
   "language": "typescript",
-  "tags": [
-    "i18n",
-    "react-i18next",
-    "localization"
-  ]
+  "tags": ["i18n", "react-i18next", "localization"]
 }

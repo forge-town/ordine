@@ -45,6 +45,17 @@ export const runMastra = async ({
 
   const resolvedModel = model ?? "kimi-for-coding/k2p6";
 
+  // RUN-06：Kimi 模型需 KIMI_API_KEY。缺 key 时旧路径会进 SDK 后抛
+  // "Could not find API key"，被 UI 误标成 "Network error, please try again"，
+  // 且常常烧掉十几分钟上游算力才暴露。这里**秒级快速失败 + 可执行报错**。
+  const needsKimiKey = typeof resolvedModel === "string" && resolvedModel.startsWith("kimi");
+  if (needsKimiKey && !apiKey && !env.KIMI_API_KEY && !process.env["KIMI_API_KEY"]) {
+    throw new Error(
+      `KIMI_API_KEY 未配置：模型 "${resolvedModel}" 需要 Kimi API Key。` +
+        `请在 Settings 配置 Kimi API Key，或把该算子/默认运行时改为 claude-code（本地 CLI，无需外部 key）。`,
+    );
+  }
+
   logger.info(
     { cwd, model: typeof resolvedModel === "string" ? resolvedModel : "custom" },
     "runMastra: starting",

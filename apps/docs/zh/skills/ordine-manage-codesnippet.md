@@ -6,7 +6,7 @@ Use when 需要为 Best Practice 添加、更新或删除 Code Snippets（代码
 
 复制以下内容并提供给你的 AI agent：
 
-```markdown
+````markdown
 ---
 name: ordine-manage-codesnippet
 description: Use when 需要为 Best Practice 添加、更新或删除 Code Snippets（代码片段），提供正确/错误用法的具体代码示例。触发词：管理代码片段、添加code snippet、创建示例代码、编辑代码示例。
@@ -29,6 +29,7 @@ Code Snippet 是 Best Practice 的子资源，提供详细的代码示例（正�
 ```bash
 curl -s "http://localhost:9433/api/code-snippets?bestPracticeId=bp_classname_convention" | python3 -m json.tool
 ```
+````
 
 ### 添加/更新代码片段（PUT = upsert）
 
@@ -53,14 +54,14 @@ curl -X DELETE "http://localhost:9433/api/code-snippets?id=cs_cn_good"
 
 ## 数据结构
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `id` | `string` | 唯一标识 |
-| `bestPracticeId` | `string` | 所属 Best Practice ID（必填） |
-| `title` | `string \| null` | 片段标题（如 "✅ 正确用法"） |
-| `code` | `string` | 代码内容 |
-| `language` | `string \| null` | 代码语言：`typescript`, `tsx`, `bash`, `json` 等 |
-| `sortOrder` | `number` | 排序序号（0 开始） |
+| 字段             | 类型             | 说明                                             |
+| ---------------- | ---------------- | ------------------------------------------------ |
+| `id`             | `string`         | 唯一标识                                         |
+| `bestPracticeId` | `string`         | 所属 Best Practice ID（必填）                    |
+| `title`          | `string \| null` | 片段标题（如 "✅ 正确用法"）                     |
+| `code`           | `string`         | 代码内容                                         |
+| `language`       | `string \| null` | 代码语言：`typescript`, `tsx`, `bash`, `json` 等 |
+| `sortOrder`      | `number`         | 排序序号（0 开始）                               |
 
 ## 编写原则
 
@@ -69,5 +70,7 @@ curl -X DELETE "http://localhost:9433/api/code-snippets?id=cs_cn_good"
 - 代码必须语法正确、可直接使用
 - 按 sortOrder 排序：Good 在前，Bad 在后
 - `language` 字段便于前端语法高亮
+
+```
 
 ```

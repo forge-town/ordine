@@ -6,14 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@repo/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import {
   Select,
   SelectContent,
@@ -117,10 +110,7 @@ export const SkillStepListEditor = ({
       >
         <div className="flex-1 space-y-6 overflow-y-auto">
           {fields.map((field, stepIndex) => (
-            <div
-              key={field.id}
-              className="rounded-lg border border-border bg-card p-4 space-y-3"
-            >
+            <div key={field.id} className="rounded-lg border border-border bg-card p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-muted-foreground">
                   {t("skills.createOperation.step")} {stepIndex + 1}
@@ -244,25 +234,26 @@ export const SkillStepListEditor = ({
                         };
 
                         return (
-                        <FormItem className="w-28">
-                          <FormControl>
-                            <Select value={f.value} onValueChange={handleSelectValueChange}>
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectGroup>
-                                  {templateContentTypes.map((type) => (
-                                    <SelectItem key={type} className="text-xs" value={type}>
-                                      {type}
-                                    </SelectItem>
-                                  ))}
-                                </SelectGroup>
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                        </FormItem>
-                      );}}
+                          <FormItem className="w-28">
+                            <FormControl>
+                              <Select value={f.value} onValueChange={handleSelectValueChange}>
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectGroup>
+                                    {templateContentTypes.map((type) => (
+                                      <SelectItem key={type} className="text-xs" value={type}>
+                                        {type}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectGroup>
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                          </FormItem>
+                        );
+                      }}
                     />
                     <Button
                       className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"

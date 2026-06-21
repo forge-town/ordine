@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 
 const mockJobsDao = {
-  findMany: vi.fn().mockResolvedValue([{ id: "j1", createdAt: new Date(0), updatedAt: new Date(0) }]),
+  findMany: vi
+    .fn()
+    .mockResolvedValue([{ id: "j1", createdAt: new Date(0), updatedAt: new Date(0) }]),
   findById: vi.fn().mockResolvedValue({ id: "j1", createdAt: new Date(0), updatedAt: new Date(0) }),
   create: vi.fn().mockResolvedValue({ id: "j1", createdAt: new Date(0), updatedAt: new Date(0) }),
   updateStatus: vi.fn().mockResolvedValue({ id: "j1" }),

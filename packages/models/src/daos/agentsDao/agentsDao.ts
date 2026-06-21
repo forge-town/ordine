@@ -6,10 +6,7 @@ export class AgentsDao {
   constructor(readonly executor: DbExecutor) {}
 
   async findMany() {
-    return this.executor
-      .select()
-      .from(agentsTable)
-      .orderBy(desc(agentsTable.updatedAt));
+    return this.executor.select().from(agentsTable).orderBy(desc(agentsTable.updatedAt));
   }
 
   async findById(id: string) {

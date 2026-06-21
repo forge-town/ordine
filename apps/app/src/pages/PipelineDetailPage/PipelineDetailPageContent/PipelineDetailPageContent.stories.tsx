@@ -5,6 +5,9 @@ import { PipelineDetailPageContent } from "./PipelineDetailPageContent";
 
 const mockPipeline: PipelineData = {
   id: "pipeline-1",
+  projectId: null,
+  version: 1,
+  status: "draft",
   name: "Example Pipeline",
   description: "A sample pipeline for Storybook preview",
   tags: ["example", "storybook"],

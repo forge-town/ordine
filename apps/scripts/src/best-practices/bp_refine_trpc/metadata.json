@@ -4,9 +4,5 @@
   "condition": "在 React 组件中进行数据获取",
   "category": "frontend",
   "language": "tsx",
-  "tags": [
-    "refine",
-    "trpc",
-    "data-provider"
-  ]
+  "tags": ["refine", "trpc", "data-provider"]
 }

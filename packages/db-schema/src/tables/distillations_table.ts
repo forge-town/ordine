@@ -18,7 +18,10 @@ export const distillationsTable = pgTable(
     sourceLabel: text("source_label").notNull().default(""),
     mode: text("mode").$type<DistillationMode>().notNull().default("pipeline"),
     status: text("status").$type<DistillationStatus>().notNull().default("draft"),
-    config: jsonb("config").$type<DistillationConfig>().notNull().default(sql`'{}'::jsonb`),
+    config: jsonb("config")
+      .$type<DistillationConfig>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     inputSnapshot: jsonb("input_snapshot").$type<unknown>(),
     result: jsonb("result").$type<unknown>(),
     createdAt: timestamp("created_at").notNull().defaultNow(),

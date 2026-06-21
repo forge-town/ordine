@@ -1,0 +1,80 @@
+import type { BuiltinNodeType, PipelineNodeData } from "@repo/schemas";
+
+export const makeDefaultNodeData = (
+  type: BuiltinNodeType,
+  options?: { label?: string },
+): PipelineNodeData => {
+  switch (type) {
+    case "operation": {
+      return {
+        label: options?.label ?? "Operation",
+        nodeType: "operation",
+        operationId: "",
+        operationName: "",
+        status: "idle",
+        config: {},
+      };
+    }
+    case "file": {
+      return {
+        label: options?.label ?? "Code file",
+        nodeType: "file",
+        filePath: "",
+        language: "typescript",
+        description: "",
+      };
+    }
+    case "folder": {
+      return {
+        label: options?.label ?? "Folder",
+        nodeType: "folder",
+        folderPath: "",
+        description: "",
+      };
+    }
+    case "github-project": {
+      return {
+        label: options?.label ?? "GitHub project",
+        nodeType: "github-project",
+        owner: "",
+        repo: "",
+        branch: "main",
+        description: "",
+      };
+    }
+    case "output-project-path": {
+      return {
+        label: options?.label ?? "Project output",
+        nodeType: "output-project-path",
+        projectId: "",
+        path: "",
+        description: "",
+      };
+    }
+    case "output-local-path": {
+      return {
+        label: options?.label ?? "Local output",
+        nodeType: "output-local-path",
+        localPath: "",
+        description: "",
+      };
+    }
+    case "compound": {
+      return {
+        label: options?.label ?? "Compound node",
+        nodeType: "compound",
+        compoundKind: "custom",
+        childNodeIds: [],
+        childEdges: [],
+        description: "",
+      };
+    }
+    case "prompt": {
+      return {
+        label: options?.label ?? "Prompt",
+        nodeType: "prompt",
+        prompt: "",
+      };
+    }
+  }
+};

@@ -1,100 +1,175 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "@/test/test-wrapper";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { dataProvider } from "@/integrations/refine/dataProvider";
+import { JobsPageStoreProvider } from "../_store";
 import { JobsPageContent } from "./JobsPageContent";
-import type { Job } from "@repo/schemas";
+import type { Job, PipelineData, Routine } from "@repo/schemas";
 
-const mockUseLoaderData = vi.fn(() => [] as Job[]);
-
-vi.mock("@/routes/_layout/pipelines.jobs.index", () => ({
-  Route: { useLoaderData: () => mockUseLoaderData() },
-}));
+const mockNavigate = vi.fn();
+const mockUpdate = vi.fn();
+const mockData: {
+  jobs: Job[];
+  pipelines: PipelineData[];
+  routines: Routine[];
+} = {
+  jobs: [],
+  pipelines: [],
+  routines: [],
+};
 
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
-  useNavigate: () => vi.fn(),
-}));
-
-vi.mock("@/services/jobsService", () => ({
-  deleteJob: vi.fn().mockResolvedValue(undefined),
-}));
-
-import { createStore } from "zustand";
-vi.mock("../_store", () => ({
-  useJobsPageStore: () =>
-    createStore(() => ({
-      search: "",
-      statusFilter: "all",
-      handleSetSearch: vi.fn(),
-      handleSetStatusFilter: vi.fn(),
-    })),
+  useNavigate: () => mockNavigate,
 }));
 
 vi.mock("@refinedev/core", () => ({
-  useList: () => ({
-    result: { data: mockUseLoaderData(), total: mockUseLoaderData().length },
-    data: { data: mockUseLoaderData(), total: mockUseLoaderData().length },
-    isLoading: false,
-    isError: false,
-  }),
-  useDelete: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
-  useCreate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
-  useUpdate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
-  useCustomMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
-  useInvalidate: () => vi.fn(),
-  useOne: () => ({ result: null, isLoading: false }),
+  useCreate: () => ({ mutate: vi.fn() }),
+  useDelete: () => ({ mutate: vi.fn() }),
+  useList: ({ resource }: { resource: string }) => {
+    if (resource === "jobs") {
+      return { result: { data: mockData.jobs }, query: { isLoading: false, refetch: vi.fn() } };
+    }
+    if (resource === "routines") {
+      return { result: { data: mockData.routines }, query: { isLoading: false, refetch: vi.fn() } };
+    }
+    if (resource === "pipelines") {
+      return { result: { data: mockData.pipelines }, query: { isLoading: false } };
+    }
+
+    return { result: { data: [] }, query: { isLoading: false } };
+  },
+  useUpdate: () => ({ mutate: mockUpdate }),
 }));
 
-const mockJobs: Job[] = [
-  {
-    id: "job-001",
-    title: "Pipeline 运行",
-    status: "running",
-    type: "pipeline_run",
-    parentJobId: null,
-    error: null,
-    startedAt: new Date(Date.now() - 3000),
-    finishedAt: null,
-    meta: { createdAt: new Date(Date.now() - 5000), updatedAt: new Date() },
-  },
-  {
-    id: "job-002",
-    title: "蒸馏运行",
-    status: "done",
-    type: "distillation_run",
-    parentJobId: null,
-    error: null,
-    startedAt: new Date(Date.now() - 10_000),
-    finishedAt: new Date(Date.now() - 2000),
-    meta: { createdAt: new Date(Date.now() - 12_000), updatedAt: new Date() },
-  },
-];
+const today = new Date();
+
+const renderContent = () =>
+  render(
+    <JobsPageStoreProvider>
+      <JobsPageContent />
+    </JobsPageStoreProvider>,
+  );
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockUseLoaderData.mockReturnValue(mockJobs);
+  vi.spyOn(dataProvider, "custom").mockResolvedValue({ data: {} });
+  mockData.pipelines = [
+    {
+      id: "pipeline-1",
+      projectId: null,
+      version: 1,
+      status: "ready",
+      name: "Lead Research Brief",
+      description: "",
+      tags: [],
+      nodes: [],
+      edges: [],
+      timeoutMs: null,
+      createdAt: today,
+      updatedAt: today,
+    },
+  ];
+  mockData.jobs = [
+    {
+      id: "job-001",
+      title: "Pipeline run",
+      status: "running",
+      type: "pipeline_run",
+      parentJobId: null,
+      pipelineId: "pipeline-1",
+      projectId: null,
+      error: null,
+      startedAt: today,
+      nodeStatuses: { input: "done", research: "running", output: "idle" },
+      finishedAt: null,
+      meta: { createdAt: today, updatedAt: today },
+    },
+    {
+      id: "job-002",
+      title: "Pipeline run",
+      status: "running",
+      type: "pipeline_run",
+      parentJobId: null,
+      pipelineId: "pipeline-1",
+      projectId: null,
+      error: null,
+      startedAt: today,
+      nodeStatuses: { checkpoint: "waitingForUser" },
+      finishedAt: null,
+      meta: { createdAt: today, updatedAt: today },
+    },
+  ];
+  mockData.routines = [
+    {
+      id: "routine-1",
+      pipelineId: "pipeline-1",
+      name: "Daily intake",
+      triggerType: "cron",
+      cronExpression: "0 * * * *",
+      eventType: null,
+      eventConfig: null,
+      inputConfig: null,
+      enabled: true,
+      lastRunAt: null,
+      nextRunAt: today,
+      createdAt: today,
+      updatedAt: today,
+    },
+  ];
 });
 
 describe("JobsPageContent", () => {
-  it("renders jobs header", () => {
-    render(<JobsPageContent />);
-    expect(screen.getByText("Jobs 监控")).toBeInTheDocument();
+  it("renders the fleet console with summary and table rows", () => {
+    renderContent();
+
+    expect(screen.getByRole("heading", { name: "工单" })).toBeInTheDocument();
+    expect(screen.getByTestId("jobs-summary")).toBeInTheDocument();
+    expect(screen.getByTestId("jobs-table")).toBeInTheDocument();
+    expect(screen.getByTestId("jobs-table-row-job-001")).toBeInTheDocument();
+    expect(screen.getByTestId("jobs-action-review-job-002")).toBeInTheDocument();
   });
 
-  it("renders job rows", () => {
-    render(<JobsPageContent />);
-    expect(screen.getByText("Pipeline 运行")).toBeInTheDocument();
-    expect(screen.getAllByText("蒸馏运行").length).toBeGreaterThan(0);
+  it("runs a row action through the jobs control endpoint", async () => {
+    const user = userEvent.setup();
+    renderContent();
+
+    await user.click(screen.getByTestId("jobs-action-pause-job-001"));
+
+    await waitFor(() => {
+      expect(dataProvider.custom).toHaveBeenCalledWith(
+        expect.objectContaining({ payload: { jobId: "job-001" }, url: "jobs/pause" }),
+      );
+    });
   });
 
-  it("renders empty state when no jobs", () => {
-    mockUseLoaderData.mockReturnValue([]);
-    render(<JobsPageContent />);
-    expect(screen.getByText("当前没有 Job")).toBeInTheDocument();
+  it("filters jobs by search", async () => {
+    const user = userEvent.setup();
+    renderContent();
+
+    await user.type(screen.getByPlaceholderText("搜索工单…"), "missing");
+
+    expect(screen.getByText("没有匹配的工单")).toBeInTheDocument();
   });
 
-  it("shows running count badge", () => {
-    render(<JobsPageContent />);
-    expect(screen.getByText("1 运行中")).toBeInTheDocument();
+  it("shows future routine occurrences on the calendar", async () => {
+    const user = userEvent.setup();
+    renderContent();
+
+    await user.click(screen.getByTestId("jobs-view-calendar"));
+
+    expect(screen.getByTestId("jobs-calendar")).toBeInTheDocument();
+    expect(screen.getAllByText("Daily intake").length).toBeGreaterThan(0);
+  });
+
+  it("opens the pipeline picker for a new routine", async () => {
+    const user = userEvent.setup();
+    renderContent();
+
+    await user.click(screen.getByRole("button", { name: /新建 Routine/ }));
+    expect(screen.getByTestId("jobs-pipeline-picker")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("jobs-pick-pipeline-1"));
+    expect(screen.getByTestId("schedule-editor")).toBeInTheDocument();
   });
 });

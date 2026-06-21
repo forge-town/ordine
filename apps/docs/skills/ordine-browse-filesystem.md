@@ -6,7 +6,7 @@ Use when 需要通过 Ordine 浏览项目文件系统，列出目录内容或获
 
 Copy the content below and provide it to your AI agent:
 
-```markdown
+````markdown
 ---
 name: ordine-browse-filesystem
 description: Use when 需要通过 Ordine 浏览项目文件系统，列出目录内容或获取递归目录树。触发词：浏览文件、查看目录、文件系统浏览、目录树、browse filesystem。
@@ -34,6 +34,7 @@ curl -s http://localhost:9433/api/filesystem/browse | python3 -m json.tool
 curl -s "http://localhost:9433/api/filesystem/browse?path=./src" | python3 -m json.tool
 curl -s "http://localhost:9433/api/filesystem/browse?path=./packages/models/src/daos" | python3 -m json.tool
 ```
+````
 
 ### 获取递归目录树
 
@@ -65,6 +66,8 @@ ordine run pipe_check_dao -i ./packages/models/src/daos
 
 ```bash
 curl -s "http://localhost:9433/api/filesystem/browse?path=./.ordine/results" | python3 -m json.tool
+```
+
 ```
 
 ```
