@@ -26,6 +26,7 @@ export const useCanvasWorkspacePersistence = ({
   const store = useCanvasPageStore();
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const pipelineName = useStore(store, (state) => state.pipelineName);
+  const pipelineSharedContext = useStore(store, (state) => state.pipelineSharedContext);
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
   const importCanvas = useStore(store, (state) => state.importCanvas);
@@ -56,7 +57,7 @@ export const useCanvasWorkspacePersistence = ({
       updateCanvas({
         resource: ResourceName.pipelines,
         id: pipelineId,
-        values: { nodes, edges },
+        values: { sharedContext: pipelineSharedContext, nodes, edges },
         successNotification: {
           type: "success",
           message: t("canvas.saveSuccess"),
@@ -83,6 +84,7 @@ export const useCanvasWorkspacePersistence = ({
           id: newId,
           name: displayPipelineName,
           description: "",
+          sharedContext: pipelineSharedContext,
           tags: [],
           timeoutMs: null,
           createdAt: Date.now(),

@@ -65,6 +65,7 @@ export const PipelinesPageContent = () => {
       id,
       name: t("pipelines.createNew"),
       description: t("pipelines.newPipelineDescription"),
+      sharedContext: "",
       tags: [],
       createdAt: now,
       updatedAt: now,

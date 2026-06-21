@@ -55,6 +55,18 @@ describe("importCanvas store action", () => {
     expect(ctx.store!.getState().pipelineName).toBe("Imported Pipeline");
   });
 
+  it("updates pipeline shared context from imported data", () => {
+    const importedNodes = [makeNode("n1")];
+
+    ctx.store!.getState().importCanvas({
+      sharedContext: "Apply repository review standards",
+      nodes: importedNodes,
+      edges: [],
+    });
+
+    expect(ctx.store!.getState().pipelineSharedContext).toBe("Apply repository review standards");
+  });
+
   it("uses imported title when name is absent", () => {
     const importedNodes = [makeNode("n1")];
 

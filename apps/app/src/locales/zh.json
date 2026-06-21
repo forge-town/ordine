@@ -372,6 +372,11 @@
       "description": "不离开当前 Pipeline，调整此画布视图。",
       "close": "关闭 Canvas 设置",
       "globalSettings": "打开全局设置",
+      "pipelineSharedContext": {
+        "label": "Pipeline 共享上下文",
+        "description": "注入到此 Pipeline 每次 Operation 运行中的上下文。",
+        "placeholder": "添加 Pipeline 级指令、约束或上下文..."
+      },
       "showMiniMap": {
         "label": "显示 MiniMap",
         "description": "画布中有多个节点时显示缩略地图。"

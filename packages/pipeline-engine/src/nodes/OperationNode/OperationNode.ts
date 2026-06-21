@@ -1,5 +1,5 @@
 import type { OperationExecutorConfig, PipelineNode } from "@repo/schemas";
-import type { NodeCtx } from "../../schemas";
+import type { NodeCtx, OperationRuntimeContext } from "../../schemas";
 import { trace } from "@repo/obs";
 import { ScriptExecutionError } from "../../errors";
 import { runScript, safeParseConfig } from "../../infrastructure";
@@ -20,6 +20,25 @@ const GH_REMOTE_TOOLS = [
 ] as const;
 
 const CHUNK_THROTTLE_MS = 2000;
+
+const buildRuntimeContext = ({
+  ctx,
+  operationName,
+  operationDescription,
+  instruction,
+}: {
+  ctx: OperationNodeContext;
+  operationName: string;
+  operationDescription: string;
+  instruction?: string;
+}): OperationRuntimeContext => ({
+  ...(ctx.pipelineContext ? { pipeline: ctx.pipelineContext } : {}),
+  operation: {
+    name: operationName,
+    description: operationDescription,
+    ...(instruction ? { instruction } : {}),
+  },
+});
 
 export const executeOperationNode = async (
   node: PipelineNode,
@@ -131,6 +150,12 @@ export const executeOperationNode = async (
       prompt,
       inputContent: effectiveInput,
       inputPath: input.inputPath,
+      runtimeContext: buildRuntimeContext({
+        ctx,
+        operationName: operation.name,
+        operationDescription: operation.description ?? "",
+        instruction: prompt,
+      }),
       agent: agentOverride ?? executor.agent,
       onChunk: handleChunk,
       onProgress,
@@ -180,6 +205,12 @@ export const executeOperationNode = async (
       systemPrompt: executor.systemPrompt,
       inputContent: effectiveInput,
       inputPath: input.inputPath,
+      runtimeContext: buildRuntimeContext({
+        ctx,
+        operationName: operation.name,
+        operationDescription: operation.description ?? "",
+        instruction: skillDescription,
+      }),
       agent,
       allowedTools: executor.allowedTools,
       onChunk: handleChunk,

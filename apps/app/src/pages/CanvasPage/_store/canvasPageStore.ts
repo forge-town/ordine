@@ -21,6 +21,7 @@ export const createCanvasPageStore = (
   initialEdges?: PipelineEdge[],
   pipelineId?: string | null,
   pipelineName?: string,
+  pipelineSharedContext?: string,
 ) => {
   return createStore<CanvasPageState>()((set, get) => ({
     ...createCanvasSlice(
@@ -35,6 +36,7 @@ export const createCanvasPageStore = (
 
       pipelineId ?? null,
       pipelineName ?? "",
+      pipelineSharedContext ?? "",
     ),
     ...createHistorySlice(
       set as Parameters<CanvasPageStoreSlice>[0],

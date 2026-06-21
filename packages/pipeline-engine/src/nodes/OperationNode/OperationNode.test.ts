@@ -40,6 +40,7 @@ const makeInput = (content = "input text", inputPath = "/src"): NodeCtx => ({
 const makeOperation = (executor: OperationExecutorConfig): OperationInfo => ({
   id: "op-id",
   name: "Test Op",
+  description: "Test operation description",
   config: { executor },
 });
 
@@ -87,6 +88,65 @@ describe("executeOperationNode", () => {
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ prompt: "Do analysis" }));
   });
 
+  it("passes structured pipeline and operation runtime context to prompt operations", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Do analysis" });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id" });
+    const ctx = makeCtx(deps, ops, {
+      pipelineContext: {
+        name: "Quality Pipeline",
+        description: "Review a project end to end",
+        sharedContext: "Review a project end to end",
+      },
+    });
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    expect(deps.runPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runtimeContext: {
+          pipeline: {
+            name: "Quality Pipeline",
+            description: "Review a project end to end",
+            sharedContext: "Review a project end to end",
+          },
+          operation: {
+            name: "Test Op",
+            description: "Test operation description",
+            instruction: "Do analysis",
+          },
+        },
+      }),
+    );
+  });
+
+  it("keeps standalone operation runtime context free of pipeline context", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Do analysis" });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id" });
+    const ctx = makeCtx(deps, ops);
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    expect(deps.runPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runtimeContext: {
+          operation: {
+            name: "Test Op",
+            description: "Test operation description",
+            instruction: "Do analysis",
+          },
+        },
+      }),
+    );
+    const callArgs = (deps.runPrompt as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+    expect(callArgs.runtimeContext.pipeline).toBeUndefined();
+  });
+
   it("executes a skill-type operation", async () => {
     const deps = makeDeps();
     const op = makeOperation({ type: "agent", agentMode: "skill", skillId: "sk-1" });
@@ -99,6 +159,44 @@ describe("executeOperationNode", () => {
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.content).toBe("skill-output");
     expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ skillId: "sk-1" }));
+  });
+
+  it("passes structured runtime context to skill operations", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({ type: "agent", agentMode: "skill", skillId: "sk-1" });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id" });
+    const lookupSkill = vi
+      .fn()
+      .mockResolvedValue({ id: "sk-1", label: "Review Skill", description: "Review files" });
+    const ctx = makeCtx(deps, ops, {
+      lookupSkill,
+      pipelineContext: {
+        name: "Review Pipeline",
+        description: "Review and summarize a repository",
+        sharedContext: "Review and summarize a repository",
+      },
+    });
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.ok).toBe(true);
+    expect(deps.runSkill).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runtimeContext: {
+          pipeline: {
+            name: "Review Pipeline",
+            description: "Review and summarize a repository",
+            sharedContext: "Review and summarize a repository",
+          },
+          operation: {
+            name: "Test Op",
+            description: "Test operation description",
+            instruction: "Review Skill: Review files",
+          },
+        },
+      }),
+    );
   });
 
   it("passes skill systemPrompt override to runSkill", async () => {
@@ -152,7 +250,7 @@ describe("executeOperationNode", () => {
 
   it("fails when no executor is configured", async () => {
     const deps = makeDeps();
-    const op: OperationInfo = { id: "op-id", name: "No Exec", config: {} };
+    const op: OperationInfo = { id: "op-id", name: "No Exec", description: "", config: {} };
     const ops = new Map([["op-id", op]]);
     const node = makeNode({ operationId: "op-id" });
     const ctx = makeCtx(deps, ops);

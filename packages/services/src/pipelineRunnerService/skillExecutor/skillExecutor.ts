@@ -9,7 +9,10 @@ import {
   type FixOutput,
 } from "@repo/agent";
 import { logger } from "@repo/logger";
-import type { RunSkillOptions as EngineRunSkillOptions } from "@repo/pipeline-engine";
+import type {
+  OperationRuntimeContext,
+  RunSkillOptions as EngineRunSkillOptions,
+} from "@repo/pipeline-engine";
 import type { OutputItem, SshConnection } from "@repo/schemas";
 import { runAgent } from "../agentRunner/agentRunner";
 
@@ -95,6 +98,7 @@ const buildSkillUserPrompt = ({
   inputPath,
   outputItems,
   outputDir,
+  runtimeContext,
 }: {
   skillId: string;
   skillDescription: string;
@@ -102,7 +106,30 @@ const buildSkillUserPrompt = ({
   inputPath: string;
   outputItems?: readonly OutputItem[];
   outputDir?: string;
+  runtimeContext?: OperationRuntimeContext;
 }): string => {
+  const pipelineContextLines = runtimeContext?.pipeline
+    ? [
+        "### Pipeline-global context",
+        `Pipeline name: ${runtimeContext.pipeline.name}`,
+        `Pipeline description: ${runtimeContext.pipeline.description || "(none)"}`,
+        `Pipeline shared context: ${runtimeContext.pipeline.sharedContext || "(none)"}`,
+        "",
+      ]
+    : [];
+  const operationContextLines = runtimeContext
+    ? [
+        "### Operation-local context",
+        `Operation name: ${runtimeContext.operation.name}`,
+        `Operation description: ${runtimeContext.operation.description || "(none)"}`,
+        ...(runtimeContext.operation.instruction
+          ? [`Step-specific instruction: ${runtimeContext.operation.instruction}`]
+          : []),
+        "",
+        "Use the pipeline-global context to preserve workflow intent, but execute the current Operation-local instruction as the immediate task.",
+        "",
+      ]
+    : [];
   const outputItemsSection =
     outputItems && outputItems.length > 0
       ? [
@@ -120,6 +147,9 @@ const buildSkillUserPrompt = ({
       : [];
 
   return [
+    ...(runtimeContext
+      ? ["## Runtime Context", ...pipelineContextLines, ...operationContextLines]
+      : []),
     `Skill ID: ${skillId}`,
     `Skill description: ${skillDescription}`,
     "",
@@ -182,6 +212,7 @@ const run = ({
   ssh,
   outputItems,
   outputDir,
+  runtimeContext,
 }: RunSkillExecutorOptions): ResultAsync<string, SkillExecutionError> => {
   const effectiveSystemPrompt = systemPrompt ?? DEFAULT_SKILL_SYSTEM_PROMPT;
   const userPrompt = buildSkillUserPrompt({
@@ -191,6 +222,7 @@ const run = ({
     inputPath,
     outputItems,
     outputDir,
+    runtimeContext,
   });
 
   const parsedCustomTools = customAllowedTools

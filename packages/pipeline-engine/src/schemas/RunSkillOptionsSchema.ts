@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 
 import { AgentRuntimeSchema, OutputItemSchema } from "@repo/schemas";
+import { OperationRuntimeContextSchema } from "./OperationRuntimeContextSchema";
 
 export const RunSkillOptionsSchema = z.object({
   skillId: z.string(),
@@ -8,6 +9,7 @@ export const RunSkillOptionsSchema = z.object({
   systemPrompt: z.string().optional(),
   inputContent: z.string(),
   inputPath: z.string(),
+  runtimeContext: OperationRuntimeContextSchema.optional(),
   allowedTools: z.array(z.string()).optional(),
   agent: AgentRuntimeSchema.optional(),
   apiKey: z.string().optional(),

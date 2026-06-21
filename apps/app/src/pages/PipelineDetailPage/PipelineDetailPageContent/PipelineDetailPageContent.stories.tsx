@@ -7,6 +7,7 @@ const mockPipeline: PipelineData = {
   id: "pipeline-1",
   name: "Example Pipeline",
   description: "A sample pipeline for Storybook preview",
+  sharedContext: "",
   tags: ["example", "storybook"],
   timeoutMs: null,
   createdAt: new Date("2025-01-01"),

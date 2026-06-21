@@ -60,6 +60,7 @@ const CanvasImportEdgeSchema = PipelineEdgeSchema.extend({
 const CanvasImportJsonSchema = z.object({
   name: z.string().max(200).optional(),
   title: z.string().max(200).optional(),
+  sharedContext: z.string().max(20_000).optional(),
   nodes: z.array(CanvasImportNodeSchema).max(MAX_CANVAS_IMPORT_NODES),
   edges: z.array(CanvasImportEdgeSchema).max(MAX_CANVAS_IMPORT_EDGES),
 });
@@ -84,6 +85,7 @@ export const isCanvasImportFileTooLarge = (file: Pick<File, "size">): boolean =>
 const toCanvasImportPayload = (payload: CanvasImportJson): CanvasImportPayload => ({
   name: payload.name,
   title: payload.title,
+  sharedContext: payload.sharedContext,
   nodes: payload.nodes as PipelineNode[],
   edges: payload.edges as PipelineEdge[],
 });

@@ -34,6 +34,7 @@ const makeRow = (id: string) => ({
   id,
   name: "Test Pipeline",
   description: "desc",
+  sharedContext: "shared context",
   tags: [] as string[],
   nodes: [],
   edges: [],

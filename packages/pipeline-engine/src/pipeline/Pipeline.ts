@@ -3,7 +3,7 @@ import { rm } from "node:fs/promises";
 import { ResultAsync } from "neverthrow";
 import { trace } from "@repo/obs";
 import { pluginRegistry } from "@repo/plugin";
-import { type NodeCtx } from "../schemas";
+import type { NodeCtx, PipelineGlobalContext } from "../schemas";
 import {
   BUILTIN_NODE_TYPE_ENUM,
   OBJECT_NODE_TYPE_ENUM,
@@ -46,6 +46,8 @@ export type PipelineRunResult =
 export interface PipelineDefinition {
   id: string;
   name: string;
+  description?: string;
+  sharedContext?: string;
   nodes: PipelineNode[];
   edges: PipelineEdge[];
 }
@@ -158,6 +160,16 @@ export class Pipeline {
     return { inputPath, content };
   }
 
+  private buildPipelineContext(): PipelineGlobalContext {
+    const { pipeline } = this.opts;
+
+    return {
+      name: pipeline.name,
+      description: pipeline.description ?? "",
+      sharedContext: pipeline.sharedContext ?? "",
+    };
+  }
+
   private async processNode(
     node: PipelineNode,
   ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
@@ -193,6 +205,7 @@ export class Pipeline {
           operations: this.opts.operations,
           lookupAgent: this.opts.lookupAgent,
           lookupSkill: this.opts.lookupSkill,
+          pipelineContext: this.buildPipelineContext(),
           githubToken: this.opts.githubToken,
           outputDir: this.resolveOutputDirForNode(node.id),
         };
@@ -240,10 +253,10 @@ export class Pipeline {
 
   private resolveOutputDirForNode(nodeId: string): string | undefined {
     const { edges, nodes } = this.opts.pipeline;
-    const childIds = edges.filter((e) => e.source === nodeId).map((e) => e.target);
+    const childIds = new Set(edges.filter((e) => e.source === nodeId).map((e) => e.target));
     const outputNode = nodes.find(
       (n) =>
-        childIds.includes(n.id) && n.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH,
+        childIds.has(n.id) && n.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH,
     );
     const configuredPath =
       outputNode?.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH

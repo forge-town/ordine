@@ -115,6 +115,7 @@ export const createOperationRunnerService = (db: DbConnection) => {
           const operationInfo: OperationInfo = {
             id: operation.id,
             name: operation.name,
+            description: operation.description ?? "",
             config: operation.config,
           };
           const operationsMap = new Map<string, OperationInfo>();

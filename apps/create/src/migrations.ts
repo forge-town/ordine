@@ -28,7 +28,9 @@ const readMigrationFile = (migrationsDir: string, fileName: string): Result<stri
   )();
 
 const execSql = (db: PGlite, sql: string, context: string): ResultAsync<void, Error> =>
-  ResultAsync.fromPromise(db.exec(sql), (error) => toError(error, context));
+  ResultAsync.fromPromise(db.exec(sql), (error) => toError(error, context)).map(
+    () => undefined,
+  );
 
 const queryRows = <TRow>(
   db: PGlite,
@@ -44,41 +46,45 @@ const insertMigrationRecord = (db: PGlite, fileName: string): ResultAsync<void, 
     `Failed to record migration "${fileName}"`,
   );
 
+const okVoidAsync = (): ResultAsync<void, Error> =>
+  ResultAsync.fromSafePromise(
+    Promise.resolve(ok(undefined as void)) as Promise<NeverthrowResult<void, Error>>,
+  ).andThen((result) => result);
+
 const applyPendingMigrations = (
   db: PGlite,
   migrationsDir: string,
   pendingFiles: string[],
-): ResultAsync<number, Error> => {
-  let chain = ResultAsync.fromSafePromise(Promise.resolve(ok(undefined as void)) as Promise<NeverthrowResult<void, Error>>).andThen((result) => result);
+): ResultAsync<number, Error> =>
+  pendingFiles
+    .reduce<ResultAsync<void, Error>>(
+      (chain, fileName) =>
+        chain.andThen(() => {
+          const contentResult = readMigrationFile(migrationsDir, fileName);
+          if (contentResult.isErr()) {
+            return ResultAsync.fromSafePromise(
+              Promise.resolve(err(contentResult.error)) as Promise<NeverthrowResult<void, Error>>,
+            ).andThen((result) => result);
+          }
 
-  for (const fileName of pendingFiles) {
-    chain = chain.andThen(() => {
-      const contentResult = readMigrationFile(migrationsDir, fileName);
-      if (contentResult.isErr()) {
-        return ResultAsync.fromSafePromise(
-          Promise.resolve(err(contentResult.error)) as Promise<NeverthrowResult<void, Error>>,
-        ).andThen((result) => result);
-      }
+          const statements = contentResult.value
+            .split("--> statement-breakpoint")
+            .map((statement) => statement.trim())
+            .filter((statement) => statement.length > 0);
 
-      const statements = contentResult.value
-        .split("--> statement-breakpoint")
-        .map((statement) => statement.trim())
-        .filter((statement) => statement.length > 0);
+          const statementChain = statements.reduce<ResultAsync<void, Error>>(
+            (currentChain, statement) =>
+              currentChain.andThen(() =>
+                execSql(db, statement, `Failed to execute migration statement in "${fileName}"`),
+              ),
+            okVoidAsync(),
+          );
 
-      let statementChain = ResultAsync.fromSafePromise(Promise.resolve(ok(undefined as void)) as Promise<NeverthrowResult<void, Error>>).andThen((result) => result);
-
-      for (const statement of statements) {
-        statementChain = statementChain.andThen(() =>
-          execSql(db, statement, `Failed to execute migration statement in "${fileName}"`),
-        );
-      }
-
-      return statementChain.andThen(() => insertMigrationRecord(db, fileName));
-    });
-  }
-
-  return chain.map(() => pendingFiles.length);
-};
+          return statementChain.andThen(() => insertMigrationRecord(db, fileName));
+        }),
+      okVoidAsync(),
+    )
+    .map(() => pendingFiles.length);
 
 export const extractCreatedTableNames = (sql: string): string[] =>
   Array.from(sql.matchAll(/^\s*CREATE TABLE "([^"]+)"/gm), (match) => match[1]).filter(

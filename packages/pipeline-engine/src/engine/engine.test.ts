@@ -55,7 +55,14 @@ const makeOpts = (
   deps: PipelineEngineDeps,
   extra: Partial<PipelineOptions> = {},
 ): PipelineOptions => ({
-  pipeline: { id: "p1", name: "Test Pipeline", nodes, edges },
+  pipeline: {
+    id: "p1",
+    name: "Test Pipeline",
+    description: "Test pipeline description",
+    sharedContext: "Test pipeline shared context",
+    nodes,
+    edges,
+  },
   jobId: "job-12345678",
   operations: new Map(),
   deps,
@@ -67,6 +74,7 @@ const makeOpts = (
 const makeOp = (id: string, name: string, config: OperationInfo["config"]): OperationInfo => ({
   id,
   name,
+  description: `${name} description`,
   config,
 });
 
@@ -178,6 +186,52 @@ describe("executePipeline", () => {
       expect(deps.runPrompt).toHaveBeenCalled();
     });
 
+    it("injects pipeline-global runtime context into prompt operations", async () => {
+      const deps = makeDeps();
+      const opId = "op-prompt";
+      const operations = new Map([
+        [
+          opId,
+          makeOp(opId, "Prompt Op", {
+            executor: { type: "agent", agentMode: "prompt", prompt: "Analyze this code" },
+          }),
+        ],
+      ]);
+
+      const nodes = [makeNode("op", "operation", { operationId: opId, label: "Prompt Op" })];
+      const result = await pipelineEngine.execute(
+        makeOpts(nodes, [], deps, {
+          pipeline: {
+            id: "p1",
+            name: "Repository Review",
+            description: "Review the whole repository for quality",
+            sharedContext: "Follow repository review standards",
+            nodes,
+            edges: [],
+          },
+          operations,
+        }),
+      );
+
+      expect(result.ok).toBe(true);
+      expect(deps.runPrompt).toHaveBeenCalledWith(
+        expect.objectContaining({
+          runtimeContext: {
+            pipeline: {
+              name: "Repository Review",
+              description: "Review the whole repository for quality",
+              sharedContext: "Follow repository review standards",
+            },
+            operation: {
+              name: "Prompt Op",
+              description: "Prompt Op description",
+              instruction: "Analyze this code",
+            },
+          },
+        }),
+      );
+    });
+
     it("executes a skill operation", async () => {
       const deps = makeDeps();
       const opId = "op-skill";
@@ -276,11 +330,11 @@ describe("executePipeline", () => {
       expect(callArgs.agent).toBeUndefined();
     });
 
-    it("skips operation when operationId is not found", async () => {
+    it("fails when operationId is not found", async () => {
       const deps = makeDeps();
       const nodes = [makeNode("op", "operation", { operationId: "missing-op" })];
       const result = await pipelineEngine.execute(makeOpts(nodes, [], deps));
-      expect(result.ok).toBe(true);
+      expect(result.ok).toBe(false);
     });
 
     it("skips operation with empty prompt", async () => {
@@ -413,6 +467,13 @@ describe("executePipeline", () => {
       const result = await pipelineEngine.execute(makeOpts(nodes, edges, deps, { operations }));
       expect(result.ok).toBe(true);
       expect(deps.runPrompt).toHaveBeenCalledTimes(2);
+      for (const call of (deps.runPrompt as ReturnType<typeof vi.fn>).mock.calls) {
+        expect(call[0].runtimeContext.pipeline).toMatchObject({
+          name: "Test Pipeline",
+          description: "Test pipeline description",
+          sharedContext: "Test pipeline shared context",
+        });
+      }
     });
 
     it("merges parent outputs for fan-in node", async () => {
@@ -521,11 +582,26 @@ describe("executePipeline", () => {
       await writeFile(inputFile, "initial content", "utf8");
 
       const deps = makeDeps();
-      const nodes = [makeNode("op", "operation", { operationId: "missing" })];
+      const opId = "op-input";
+      const operations = new Map([
+        [
+          opId,
+          makeOp(opId, "Read Initial Input", {
+            executor: { type: "agent", agentMode: "prompt", prompt: "Read input" },
+          }),
+        ],
+      ]);
+      const nodes = [makeNode("op", "operation", { operationId: opId })];
       const result = await pipelineEngine.execute(
-        makeOpts(nodes, [], deps, { inputPath: inputFile }),
+        makeOpts(nodes, [], deps, { inputPath: inputFile, operations }),
       );
       expect(result.ok).toBe(true);
+      expect(deps.runPrompt).toHaveBeenCalledWith(
+        expect.objectContaining({
+          inputContent: "initial content",
+          inputPath: inputFile,
+        }),
+      );
     });
   });
 });

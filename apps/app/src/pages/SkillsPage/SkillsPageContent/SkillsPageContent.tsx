@@ -126,7 +126,9 @@ export const SkillsPageContent = () => {
 
   const handleImportClick = async () => {
     setIsImporting(true);
-    const candidates = importCandidates.filter((candidate) => selectedCandidateIds.has(candidate.id));
+    const candidates = importCandidates.filter((candidate) =>
+      selectedCandidateIds.has(candidate.id),
+    );
     await dataProvider.custom!({
       url: "skills/importCandidates",
       method: "post",
@@ -199,7 +201,7 @@ export const SkillsPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         actions={
-        <Button size="sm" onClick={handleOpenCreateDialogClick}>
+          <Button size="sm" onClick={handleOpenCreateDialogClick}>
             <Plus className="h-4 w-4" />
             Create Skill
           </Button>

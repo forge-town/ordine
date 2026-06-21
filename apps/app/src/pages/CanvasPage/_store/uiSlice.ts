@@ -64,6 +64,7 @@ export interface AgentPanelState {
 export interface UISlice {
   pipelineId: string | null;
   pipelineName: string;
+  pipelineSharedContext: string;
   viewportZoom: number;
   canvasSettings: CanvasSettingsState;
   sidebarPanel: SidebarPanel;
@@ -133,6 +134,7 @@ export interface UISlice {
   handleQuickAddKeyDown: (event: React.KeyboardEvent) => void;
   handleConnectStart: (state: ConnectStartState | null) => void;
   handlePipelineNameChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  handlePipelineSharedContextChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
   handleFlowMove: (zoom: number) => void;
 
   // Pipeline run actions
@@ -166,9 +168,11 @@ export const createUISlice = (
 
   pipelineId: string | null = null,
   pipelineName = "",
+  pipelineSharedContext = "",
 ): UISlice => ({
   pipelineId,
   pipelineName,
+  pipelineSharedContext,
   viewportZoom: DEFAULT_CANVAS_VIEWPORT.zoom,
   canvasSettings: { ...DEFAULT_CANVAS_SETTINGS },
   sidebarPanel: "components",
@@ -365,6 +369,10 @@ export const createUISlice = (
 
   handlePipelineNameChange: (event) => {
     set({ pipelineName: event.target.value });
+  },
+
+  handlePipelineSharedContextChange: (event) => {
+    set({ pipelineSharedContext: event.target.value });
   },
 
   handleFlowMove: (zoom) => {

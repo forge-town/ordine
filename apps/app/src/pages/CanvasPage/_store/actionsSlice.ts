@@ -180,6 +180,7 @@ export const createActionsSlice = (
     const state = get();
     const exportData = {
       name: state.pipelineName || "untitled",
+      sharedContext: state.pipelineSharedContext,
       nodes: state.nodes,
       edges: state.edges,
       exportedAt: new Date().toISOString(),
@@ -197,9 +198,10 @@ export const createActionsSlice = (
     a.remove();
     URL.revokeObjectURL(url);
   },
-  importCanvas: ({ name, title, nodes, edges }) => {
+  importCanvas: ({ name, title, sharedContext, nodes, edges }) => {
     const pipelineName =
       typeof name === "string" ? name : typeof title === "string" ? title : undefined;
+    const pipelineSharedContext = typeof sharedContext === "string" ? sharedContext : undefined;
     const sortedNodes = [...nodes];
     sortParentBeforeChildren(sortedNodes);
     get().clearHistory();
@@ -210,6 +212,7 @@ export const createActionsSlice = (
       selectedNodeId: null,
       selectedEdgeId: null,
       ...(pipelineName === undefined ? {} : { pipelineName }),
+      ...(pipelineSharedContext === undefined ? {} : { pipelineSharedContext }),
     });
   },
   fitView: () => {},
@@ -416,8 +419,16 @@ export const createActionsSlice = (
   },
 
   handleRunTest: async () => {
-    const { isRunning, isTestRunning, pipelineId, pipelineName, nodes, edges, startTestRun } =
-      get();
+    const {
+      isRunning,
+      isTestRunning,
+      pipelineId,
+      pipelineName,
+      pipelineSharedContext,
+      nodes,
+      edges,
+      startTestRun,
+    } = get();
     const t = i18n.t.bind(i18n);
 
     if (isRunning || isTestRunning) return;
@@ -441,6 +452,7 @@ export const createActionsSlice = (
         id: pipelineId,
         variables: {
           name: pipelineName || t("canvas.unsavedPipeline"),
+          sharedContext: pipelineSharedContext,
           nodes,
           edges,
         },

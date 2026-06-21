@@ -64,6 +64,7 @@ const makePipeline = (overrides: Partial<PipelineData> = {}): PipelineData => {
     id: "pipe-1",
     name: "My Pipeline",
     description: "A test pipeline",
+    sharedContext: "",
     tags: [],
     nodes: [],
     edges: [],

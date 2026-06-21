@@ -135,6 +135,7 @@ export const canvasStoryPipeline: PipelineData = {
   id: "story-pipeline",
   name: "Story Pipeline",
   description: "Canvas Storybook pipeline fixture.",
+  sharedContext: "",
   tags: ["storybook"],
   timeoutMs: null,
   createdAt: new Date("2026-04-08T16:00:00.000Z"),

@@ -10,6 +10,7 @@ const portAlignmentPipeline: PipelineData = {
   id: "story-port-alignment",
   name: "Port Alignment Debug",
   description: "Debug fixture for React Flow handle alignment.",
+  sharedContext: "",
   tags: ["storybook", "debug"],
   timeoutMs: null,
   createdAt: new Date("2026-04-08T16:00:00.000Z"),

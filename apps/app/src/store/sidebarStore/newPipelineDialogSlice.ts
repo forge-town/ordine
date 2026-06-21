@@ -141,6 +141,7 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
       id,
       name: pipelineName,
       description: trimmedDescription,
+      sharedContext: "",
       tags: [],
       createdAt: now,
       updatedAt: now,

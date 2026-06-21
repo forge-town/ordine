@@ -1,11 +1,13 @@
 import { z } from "zod/v4";
 
 import { AgentRuntimeSchema, OutputItemSchema } from "@repo/schemas";
+import { OperationRuntimeContextSchema } from "./OperationRuntimeContextSchema";
 
 export const RunPromptOptionsSchema = z.object({
   prompt: z.string(),
   inputContent: z.string(),
   inputPath: z.string(),
+  runtimeContext: OperationRuntimeContextSchema.optional(),
   jobId: z.string().optional(),
   agent: AgentRuntimeSchema.optional(),
   apiKey: z.string().optional(),

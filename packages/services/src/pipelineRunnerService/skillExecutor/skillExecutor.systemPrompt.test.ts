@@ -97,6 +97,40 @@ describe("skillExecutor systemPrompt", () => {
     expect(callArgs.userPrompt).toContain("2. **htmlReport** (html): HTML report");
   });
 
+  it("includes structured runtime context in the user prompt when provided", async () => {
+    const result = await skillExecutor.run({
+      skillId: "s1",
+      skillDescription: "desc",
+      inputContent: "foo",
+      inputPath: "/tmp/foo",
+      agent: "claude-code",
+      jobId: "j1",
+      runtimeContext: {
+        pipeline: {
+          name: "Repository Review",
+          description: "Review the whole repository",
+          sharedContext: "Follow repository review standards",
+        },
+        operation: {
+          name: "Run Skill",
+          description: "Apply a review skill",
+          instruction: "desc",
+        },
+      },
+    });
+
+    expect(result.isOk()).toBe(true);
+    const callArgs = runAgent.mock.calls[0]![0];
+    expect(callArgs.userPrompt).toContain("## Runtime Context");
+    expect(callArgs.userPrompt).toContain("### Pipeline-global context");
+    expect(callArgs.userPrompt).toContain(
+      "Pipeline shared context: Follow repository review standards",
+    );
+    expect(callArgs.userPrompt).toContain("Pipeline name: Repository Review");
+    expect(callArgs.userPrompt).toContain("### Operation-local context");
+    expect(callArgs.userPrompt).toContain("Operation name: Run Skill");
+  });
+
   it("does not include output items section when no items provided", async () => {
     const result = await skillExecutor.run({
       skillId: "s1",
