@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { logger } from "@repo/logger";
-import { err, ok, type Result } from "neverthrow";
+import { err, ok, Result } from "neverthrow";
 
 /**
  * 与 `@repo/schemas` 的 McpToolSummary 结构一致，但本包不依赖 schemas——
@@ -25,6 +25,11 @@ type JsonRpcMessage = {
 };
 
 const encodeLine = (msg: unknown): string => `${JSON.stringify(msg)}\n`;
+
+// neverthrow 包裹 JSON.parse，替代 try-catch（满足 ordine-error/no-try）。
+const parseJsonRpc = Result.fromThrowable(
+  (line: string): JsonRpcMessage => JSON.parse(line) as JsonRpcMessage,
+);
 
 const toToolSummaries = (raw: unknown): McpToolSummary[] => {
   if (!Array.isArray(raw)) return [];
@@ -51,15 +56,16 @@ export const listMcpToolsStdio = (
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
   return new Promise((resolve) => {
-    let settled = false;
+    // 用 const 持有可变状态（满足 ordine-vars/no-let）。
+    const state = { settled: false, initialized: false, buffer: "" };
     const child = spawn(opts.command, opts.args ?? [], {
       stdio: ["pipe", "pipe", "pipe"],
-      env: { ...process.env, ...(opts.env ?? {}) },
+      env: { ...process.env, ...opts.env },
     });
 
     const finish = (result: Result<McpToolSummary[], string>) => {
-      if (settled) return;
-      settled = true;
+      if (state.settled) return;
+      state.settled = true;
       clearTimeout(timer);
       child.kill("SIGKILL");
       resolve(result);
@@ -72,49 +78,41 @@ export const listMcpToolsStdio = (
 
     child.on("error", (error) => finish(err(`spawn failed: ${error.message}`)));
     child.on("exit", (code) => {
-      if (!settled) finish(err(`MCP server exited (code=${code ?? "null"}) before tools/list`));
+      if (!state.settled)
+        finish(err(`MCP server exited (code=${code ?? "null"}) before tools/list`));
     });
 
-    let buffer = "";
-    let initialized = false;
-    child.stdout.setEncoding("utf8");
-    child.stdout.on("data", (chunk: string) => {
-      buffer += chunk;
-      let nl = buffer.indexOf("\n");
-      while (nl !== -1) {
-        const line = buffer.slice(0, nl).trim();
-        buffer = buffer.slice(nl + 1);
-        nl = buffer.indexOf("\n");
-        if (!line) continue;
-
-        let msg: JsonRpcMessage;
-        try {
-          msg = JSON.parse(line) as JsonRpcMessage;
-        } catch {
-          continue; // 忽略非 JSON 行（部分 server 会往 stdout 打日志）
-        }
-
-        if (msg.id === 1 && !initialized) {
-          if (msg.error) {
-            finish(err(`initialize error: ${msg.error.message ?? "unknown"}`));
-
-            return;
-          }
-          initialized = true;
-          child.stdin.write(encodeLine({ jsonrpc: "2.0", method: "notifications/initialized" }));
-          child.stdin.write(
-            encodeLine({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }),
-          );
-        } else if (msg.id === 2) {
-          if (msg.error) {
-            finish(err(`tools/list error: ${msg.error.message ?? "unknown"}`));
-
-            return;
-          }
-          finish(ok(toToolSummaries(msg.result?.tools)));
+    const handleMessage = (msg: JsonRpcMessage) => {
+      if (msg.id === 1 && !state.initialized) {
+        if (msg.error) {
+          finish(err(`initialize error: ${msg.error.message ?? "unknown"}`));
 
           return;
         }
+        state.initialized = true;
+        child.stdin.write(encodeLine({ jsonrpc: "2.0", method: "notifications/initialized" }));
+        child.stdin.write(encodeLine({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }));
+      } else if (msg.id === 2) {
+        if (msg.error) {
+          finish(err(`tools/list error: ${msg.error.message ?? "unknown"}`));
+
+          return;
+        }
+        finish(ok(toToolSummaries(msg.result?.tools)));
+      }
+    };
+
+    child.stdout.setEncoding("utf8");
+    child.stdout.on("data", (chunk: string) => {
+      state.buffer += chunk;
+      const segments = state.buffer.split("\n");
+      state.buffer = segments.pop() ?? "";
+      for (const segment of segments) {
+        if (state.settled) break;
+        const line = segment.trim();
+        if (!line) continue;
+        // 忽略非 JSON 行（部分 server 会往 stdout 打日志）：解析失败则跳过。
+        parseJsonRpc(line).map(handleMessage);
       }
     });
 
