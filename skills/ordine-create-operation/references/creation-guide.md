@@ -60,21 +60,18 @@ curl -X DELETE http://localhost:9433/api/operations/op_check_naming
 ### Step 2: 确定执行器
 
 选择执行方式：
-
 - **Skill 执行**：指定一个已有的 Skill ID，由 AI Agent 通过该 Skill 执行
 - **Script 执行**：指定一个脚本路径，直接运行
 
 ### Step 3: 定义输入
 
 思考这个操作需要什么输入数据：
-
 - 需要扫描哪种类型的资源？（folder / file / github-project）
 - 输入是否必填？
 
 ### Step 4: 定义输出
 
 思考这个操作产出什么：
-
 - 输出是报告文件？JSON 数据？还是 diff 补丁？
 - 输出保存到哪里？
 
@@ -120,9 +117,9 @@ op_check_classname  →  输出报告  →  op_fix_classname 读取报告并修�
 
 ## 命名规范
 
-| 前缀          | 用途       | 示例                                       |
-| ------------- | ---------- | ------------------------------------------ |
-| `op_check_`   | 检查型操作 | `op_check_dao`, `op_check_barrel_export`   |
-| `op_fix_`     | 修复型操作 | `op_fix_classname`, `op_fix_import`        |
-| `op_gen_`     | 生成型操作 | `op_gen_test`, `op_gen_storybook`          |
+| 前缀 | 用途 | 示例 |
+|---|---|---|
+| `op_check_` | 检查型操作 | `op_check_dao`, `op_check_barrel_export` |
+| `op_fix_` | 修复型操作 | `op_fix_classname`, `op_fix_import` |
+| `op_gen_` | 生成型操作 | `op_gen_test`, `op_gen_storybook` |
 | `op_analyze_` | 分析型操作 | `op_analyze_complexity`, `op_analyze_deps` |

@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { Bot, User, Cpu, AlertTriangle } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
@@ -28,7 +27,6 @@ const ROLE_CONFIG: Record<Role, { icon: React.ElementType; bg: string; iconCls: 
 };
 
 export const MessageBubble = ({ role, content, label }: MessageBubbleProps) => {
-  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(content.length > COLLAPSE_THRESHOLD);
   const isLong = content.length > COLLAPSE_THRESHOLD;
   const handleToggleCollapseButtonClick = () => setCollapsed((p) => !p);
@@ -57,9 +55,7 @@ export const MessageBubble = ({ role, content, label }: MessageBubbleProps) => {
           variant="ghost"
           onClick={handleToggleCollapseButtonClick}
         >
-          {collapsed
-            ? t("jobs.agentRuns.showAll", { count: content.length })
-            : t("jobs.agentRuns.collapse")}
+          {collapsed ? `Show all (${content.length} chars)` : "Collapse"}
         </Button>
       )}
     </div>

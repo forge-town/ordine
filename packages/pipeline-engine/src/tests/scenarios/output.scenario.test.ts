@@ -52,8 +52,7 @@ describe("pipeline scenario: output flow", () => {
       expect(result.summary).toContain(dir);
     }
 
-    const dirFiles = await readdir(dir);
-    const resultFiles = dirFiles.filter((f) => f.startsWith("report_"));
+    const resultFiles = (await readdir(dir)).filter((f) => f.startsWith("report_"));
     expect(resultFiles.length).toBe(1);
 
     const written = await readFile(join(dir, resultFiles[0]!), "utf8");

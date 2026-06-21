@@ -1,28 +1,20 @@
 import { describe, it, expect, vi } from "vitest";
 import { render } from "@/test/test-wrapper";
-import type * as ZustandModule from "zustand";
 import { PipelinesPage } from "./PipelinesPage";
+
+vi.mock("@/routes/_layout/pipelines.index", () => ({
+  Route: { useLoaderData: () => [] },
+}));
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
+  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
 
-vi.mock("@refinedev/core", () => ({
-  useCreate: () => ({ mutateAsync: vi.fn() }),
-  useList: () => ({
-    query: { isLoading: false },
-    result: { data: [] },
-  }),
+vi.mock("@/services/pipelinesService", () => ({
+  createPipeline: vi.fn().mockResolvedValue({ id: "new-pipe" }),
+  deletePipeline: vi.fn().mockResolvedValue({}),
 }));
-
-vi.mock("@/store/sidebarStore", async () => {
-  const { createStore } = await vi.importActual<typeof ZustandModule>("zustand");
-  const mockSidebarStore = createStore(() => ({ currentProjectId: null }));
-
-  return {
-    useSidebarStore: () => mockSidebarStore,
-  };
-});
 
 describe("PipelinesPage", () => {
   it("renders without crashing", () => {

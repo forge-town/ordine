@@ -1,19 +1,15 @@
 import { Hono } from "hono";
 import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
-import { ConversationAttachmentSchema, PipelineGraphSnapshotSchema } from "@repo/schemas";
+import { PipelineGraphSnapshotSchema } from "@repo/schemas";
 import { pipelinesService, pipelineRunnerService } from "../services.js";
 
 export const pipelinesRoutes = new Hono();
 
 const proposeActionsBodySchema = z.object({
-  attachments: z.array(ConversationAttachmentSchema).optional(),
-  diagnostics: z.array(z.string()).optional(),
-  failedProposal: z.unknown().optional(),
   snapshot: PipelineGraphSnapshotSchema,
   message: z.string().trim().min(1),
   pipelineName: z.string().optional(),
-  referencedNodeIds: z.array(z.string()).optional(),
   runtimeId: z.string().optional(),
 });
 
@@ -87,13 +83,9 @@ pipelinesRoutes.post("/:id/propose-actions", async (c) => {
 
   const result = await pipelinesService.proposeActions({
     pipelineId: id,
-    attachments: parsed.data.attachments,
-    diagnostics: parsed.data.diagnostics,
-    failedProposal: parsed.data.failedProposal,
     snapshot: parsed.data.snapshot,
     message: parsed.data.message,
     pipelineName: parsed.data.pipelineName,
-    referencedNodeIds: parsed.data.referencedNodeIds,
     runtimeId: parsed.data.runtimeId,
   });
 

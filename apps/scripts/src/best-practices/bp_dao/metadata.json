@@ -4,5 +4,9 @@
   "condition": "创建或重构 DAO 文件",
   "category": "backend",
   "language": "typescript",
-  "tags": ["dao", "drizzle", "database"]
+  "tags": [
+    "dao",
+    "drizzle",
+    "database"
+  ]
 }

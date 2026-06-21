@@ -3,7 +3,6 @@ import { existsSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { homedir } from "node:os";
 import { trace } from "@repo/obs";
-import { encodeNodeDone, encodeNodeFail } from "@repo/schemas";
 import type { NodeContext, NodeResult } from "../types";
 import { ScriptExecutionError, type PipelineRunError } from "../../errors";
 
@@ -23,13 +22,13 @@ export const processOutputLocalPathNode = async (
       jobId,
       `WARNING: Expected output-local-path node, got ${node.data.nodeType ?? "unknown"}`,
     );
-    await trace(jobId, encodeNodeFail(node.id));
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
 
     return { ok: false, error: new ScriptExecutionError(`Expected output-local-path node`) };
   }
 
   const data = node.data;
-  const configuredPath = data.localPath ?? "";
+  const configuredPath = data.localPath ?? '';
   const rawPath = resolveRawPath(configuredPath, defaultOutputPath);
   const baseOutputFileName = data.outputFileName?.trim() || "output.md";
   const outputMode = data.outputMode ?? "overwrite";
@@ -65,7 +64,7 @@ export const processOutputLocalPathNode = async (
         jobId,
         `ERROR: Output file already exists: ${resolvedPath} (mode: error_if_exists)`,
       );
-      await trace(jobId, encodeNodeFail(node.id));
+      await trace(jobId, `@@NODE_FAIL::${node.id}`);
 
       return {
         ok: false,
@@ -79,7 +78,10 @@ export const processOutputLocalPathNode = async (
     }
   }
 
-  await trace(jobId, `Output path set: ${resolvedPath} (mode: ${outputMode})`);
+  await trace(
+    jobId,
+    `Output path set: ${resolvedPath} (mode: ${outputMode})`,
+  );
   if (resolvedPath && input.content) {
     const outputContent =
       extname(resolvedPath) === ".md"
@@ -90,7 +92,7 @@ export const processOutputLocalPathNode = async (
     await trace(jobId, `Wrote output to: ${resolvedPath} (${outputContent.length} chars)`);
   }
   nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
-  await trace(jobId, encodeNodeDone(node.id));
+  await trace(jobId, `@@NODE_DONE::${node.id}`);
 
   return { ok: true };
 };

@@ -10,15 +10,13 @@
   "scripts": {
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
-    "quality": "bun run check-types && bun run lint && bun run test",
-    "test": "vitest run"
+    "quality": "bun run check-types && bun run lint"
   },
   "dependencies": {
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "typescript": "5.9.2",
-    "vitest": "^4.1.4"
+    "typescript": "5.9.2"
   }
 }

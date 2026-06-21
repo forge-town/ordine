@@ -4,5 +4,9 @@
   "condition": "管理或新增 React TypeScript 项目中的 SVG 图标组件",
   "category": "frontend",
   "language": "tsx",
-  "tags": ["svg", "icon", "component"]
+  "tags": [
+    "svg",
+    "icon",
+    "component"
+  ]
 }

@@ -40,27 +40,6 @@ Trailing text`;
       expect(result).toBe(input);
     });
 
-    // H1-02/H 评审 #1：改用共享 extractJsonFromText 后，散文中夹裸 {...} 也能提取
-    // （原仅认 ```json 围栏）。此用例钉住这一（预期内）拓宽后的行为。
-    it("extracts an embedded bare JSON object surrounded by prose (widened behavior)", () => {
-      const payload = {
-        type: "check",
-        summary: "ok",
-        findings: [],
-        stats: {
-          totalFiles: 1,
-          totalFindings: 0,
-          errors: 0,
-          warnings: 0,
-          infos: 0,
-          skipped: 0,
-        },
-      };
-      const input = `Sure, here is the result: ${JSON.stringify(payload)} — done.`;
-      const result = structuredOutput.extract({ rawText: input });
-      expect(JSON.parse(result).type).toBe("check");
-    });
-
     it("extracts valid fix JSON", () => {
       const input = JSON.stringify({
         type: "fix",

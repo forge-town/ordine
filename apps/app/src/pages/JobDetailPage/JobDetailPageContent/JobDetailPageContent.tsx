@@ -17,12 +17,14 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import type { Job, JobStatus, JobType, JobTrace, LogLevel } from "@repo/schemas";
-import { useCustom, useOne } from "@refinedev/core";
+import type { Distillation, Job, JobStatus, JobType, JobTrace, LogLevel } from "@repo/schemas";
+import { useCreate, useCustom, useCustomMutation, useOne } from "@refinedev/core";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { Route } from "@/routes/_layout/pipelines.jobs.$jobId";
+import { useState } from "react";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
+import { ResultAsync } from "neverthrow";
 import { useToastStore } from "@/store/toastStore";
 import { useStore } from "zustand";
 
@@ -36,11 +38,6 @@ const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; b
     icon: Loader2,
     cls: "bg-blue-50 text-blue-700",
     bar: "bg-blue-500",
-  },
-  paused: {
-    icon: Clock,
-    cls: "bg-amber-50 text-amber-700",
-    bar: "bg-amber-400",
   },
   done: {
     icon: CheckCircle2,
@@ -75,7 +72,6 @@ const getStatusLabel = (status: JobStatus, t: (key: string) => string): string =
   const statusMap: Record<JobStatus, string> = {
     queued: t("jobs.statusQueued"),
     running: t("jobs.statusRunning"),
-    paused: t("jobs.statusPaused"),
     done: t("jobs.statusDone"),
     failed: t("jobs.statusFailed"),
     cancelled: t("jobs.statusCancelled"),
@@ -112,6 +108,9 @@ export const JobDetailPageContent = () => {
   const job = jobResult ?? null;
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [isDistilling, setIsDistilling] = useState(false);
+  const { mutateAsync: createDistillation } = useCreate();
+  const { mutateAsync: runDistillation } = useCustomMutation();
   const { result: tracesResult } = useCustom<{ traces: JobTrace[] }>({
     url: "jobs/traces",
     method: "get",
@@ -123,18 +122,72 @@ export const JobDetailPageContent = () => {
 
   const handleNavigateJobs = () => void navigate({ to: "/pipelines/jobs" });
   const handleNavigateDistillationStudio = () => {
-    addToast({
-      type: "success",
-      title: "Distillation archived",
-      description: "Legacy distillation pages were archived in M7-09.",
+    if (!job) return;
+    void navigate({
+      to: "/distillations/new",
+      search: {
+        sourceType: "job",
+        sourceId: job.id,
+        sourceLabel: job.title,
+        mode: job.status === "failed" ? "failure" : "pipeline",
+      },
     });
   };
   const handleDistillJob = () => {
-    addToast({
-      type: "success",
-      title: "Distillation archived",
-      description: "Use Pipeline Skills and Components for reusable assets after M7-09.",
-    });
+    if (!job || isDistilling) return;
+
+    setIsDistilling(true);
+
+    const mode = job.status === "failed" ? "failure" : "pipeline";
+    const distillationId = crypto.randomUUID();
+    const execution = ResultAsync.fromPromise(
+      createDistillation({
+        resource: ResourceName.distillations,
+        values: {
+          id: distillationId,
+          title: `${t("distillations.defaultTitlePrefix")} ${job.title}`,
+          summary: "",
+          sourceType: "job",
+          sourceId: job.id,
+          sourceLabel: job.title,
+          mode,
+          status: "draft",
+          config: { objective: "" },
+          inputSnapshot: null,
+          result: null,
+        },
+      }),
+      (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+    )
+      .map((created) => created.data as Distillation)
+      .andThen((created) =>
+        ResultAsync.fromPromise(
+          runDistillation({
+            url: "distillations/run",
+            method: "post",
+            values: { id: created.id },
+          }),
+          (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+        ).map((executed) => (executed.data ?? created) as Distillation),
+      );
+
+    void execution.match(
+      (distillation) => {
+        setIsDistilling(false);
+        void navigate({
+          to: "/distillations/$distillationId",
+          params: { distillationId: distillation.id },
+        });
+      },
+      (error) => {
+        setIsDistilling(false);
+        addToast({
+          type: "error",
+          title: t("distillations.runFailed"),
+          description: error.message,
+        });
+      },
+    );
   };
 
   if (jobQuery?.isLoading) {
@@ -176,8 +229,15 @@ export const JobDetailPageContent = () => {
             <Button size="sm" variant="outline" onClick={handleNavigateDistillationStudio}>
               {t("distillations.openStudio")}
             </Button>
-            <Button size="sm" onClick={handleDistillJob}>
-              {t("distillations.distillJob")}
+            <Button disabled={isDistilling} size="sm" onClick={handleDistillJob}>
+              {isDistilling ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {t("distillations.running")}
+                </>
+              ) : (
+                t("distillations.distillJob")
+              )}
             </Button>
           </>
         }

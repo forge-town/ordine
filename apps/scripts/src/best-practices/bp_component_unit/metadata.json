@@ -4,5 +4,10 @@
   "condition": "创建或审查 React 组件文件夹单元",
   "category": "frontend",
   "language": "tsx",
-  "tags": ["react", "component", "test", "storybook"]
+  "tags": [
+    "react",
+    "component",
+    "test",
+    "storybook"
+  ]
 }

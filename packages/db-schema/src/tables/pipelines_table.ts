@@ -1,15 +1,11 @@
 import { sql } from "drizzle-orm";
 import { text, timestamp, jsonb, integer, pgTable } from "drizzle-orm/pg-core";
-import type { PipelineNode, PipelineEdge, PipelineStatus } from "@repo/schemas";
-import { projectsTable } from "./projects_table";
+import type { PipelineNode, PipelineEdge } from "@repo/schemas";
 
 export const pipelinesTable = pgTable("pipelines", {
   id: text("id").primaryKey(),
-  projectId: text("project_id").references(() => projectsTable.id),
   name: text("name").notNull(),
   description: text("description").notNull().default(""),
-  status: text("status").$type<PipelineStatus>().notNull().default("draft"),
-  version: integer("version").notNull().default(1),
   tags: jsonb("tags")
     .$type<string[]>()
     .notNull()

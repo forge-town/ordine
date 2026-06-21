@@ -9,7 +9,6 @@ import type {
   JobsDao,
   PipelineRunsDao,
   SkillsDao,
-  AgentRawExportsDao,
 } from "@repo/models";
 
 vi.mock("@repo/obs", () => ({
@@ -49,19 +48,11 @@ const makeOpts = (overrides = {}) => ({
   jobsDao: {
     create: vi.fn().mockResolvedValue(undefined),
     updateStatus: vi.fn().mockResolvedValue(undefined),
-    updateNodeStatuses: vi.fn().mockResolvedValue(undefined),
   } as unknown as JobsDao,
   pipelineRunsDao: {
     update: vi.fn().mockResolvedValue(undefined),
   } as unknown as PipelineRunsDao,
   skillsDao: { findById: vi.fn(), findByName: vi.fn() } as unknown as SkillsDao,
-  agentRawExportsDao: {
-    findByJobId: vi.fn().mockResolvedValue([]),
-  } as unknown as AgentRawExportsDao,
-  pipelineAssetsService: {
-    distillFromPipeline: vi.fn().mockReturnValue(okAsync({ id: "asset-1" })),
-    incrementRunStats: vi.fn().mockReturnValue(okAsync({ id: "asset-1" })),
-  },
   engineDeps: {
     runPrompt: vi.fn().mockReturnValue(okAsync("")),
     runSkill: vi.fn().mockReturnValue(okAsync("")),
@@ -92,89 +83,7 @@ describe("runPipeline", () => {
     expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
       "job-1",
       "done",
-      expect.objectContaining({
-        finishedAt: expect.any(Date),
-        totalTokens: 0,
-        totalCost: "0.0000",
-      }),
-    );
-    expect(opts.pipelineAssetsService.distillFromPipeline).toHaveBeenCalledWith("pipe-1");
-    expect(opts.pipelineAssetsService.incrementRunStats).toHaveBeenCalledWith(
-      "asset-1",
-      expect.objectContaining({
-        success: true,
-        durationMs: expect.any(Number),
-      }),
-    );
-  });
-
-  it("persists node status events from the engine", async () => {
-    vi.mocked(pipelineEngine.execute).mockImplementation(async (engineOpts) => {
-      await engineOpts.onNodeStatusChange?.({
-        jobId: "job-1",
-        nodeId: "node-a",
-        status: "queued",
-      });
-      await engineOpts.onNodeStatusChange?.({
-        jobId: "job-1",
-        nodeId: "node-a",
-        status: "running",
-      });
-      await engineOpts.onNodeStatusChange?.({
-        jobId: "job-1",
-        nodeId: "node-a",
-        status: "done",
-      });
-
-      return {
-        ok: true as const,
-        summary: "All good",
-      };
-    });
-    const opts = makeOpts();
-    await pipelineRunExecutor.run(opts);
-
-    expect(opts.jobsDao.updateNodeStatuses).toHaveBeenNthCalledWith(1, "job-1", {
-      "node-a": "queued",
-    });
-    expect(opts.jobsDao.updateNodeStatuses).toHaveBeenNthCalledWith(2, "job-1", {
-      "node-a": "running",
-    });
-    expect(opts.jobsDao.updateNodeStatuses).toHaveBeenNthCalledWith(3, "job-1", {
-      "node-a": "done",
-    });
-  });
-
-  it("aggregates agent raw export usage into the completed job", async () => {
-    vi.mocked(pipelineEngine.execute).mockResolvedValue({
-      ok: true as const,
-      summary: "All good",
-    });
-    const opts = makeOpts({
-      agentRawExportsDao: {
-        findByJobId: vi.fn().mockResolvedValue([
-          {
-            tokenInput: 10,
-            tokenOutput: 15,
-            rawPayload: { events: [{ type: "result", total_cost_usd: 0.125 }] },
-          },
-          {
-            tokenInput: 5,
-            tokenOutput: null,
-            rawPayload: { totalCost: 0.25 },
-          },
-        ]),
-      } as unknown as AgentRawExportsDao,
-    });
-    await pipelineRunExecutor.run(opts);
-
-    expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
-      "job-1",
-      "done",
-      expect.objectContaining({
-        totalTokens: 30,
-        totalCost: "0.3750",
-      }),
+      expect.objectContaining({ finishedAt: expect.any(Date) }),
     );
   });
 
@@ -213,7 +122,6 @@ describe("runPipeline", () => {
           .fn()
           .mockRejectedValueOnce(new Error("DB down"))
           .mockResolvedValue(undefined),
-        updateNodeStatuses: vi.fn().mockResolvedValue(undefined),
       } as unknown as JobsDao,
       pipelineRunsDao: {
         update: vi.fn().mockResolvedValue(undefined),

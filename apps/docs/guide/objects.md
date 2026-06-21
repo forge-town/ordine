@@ -16,7 +16,6 @@ A directory tree. The pipeline reads all files under the specified path and pass
 ```
 
 Use cases:
-
 - Scan an entire project directory
 - Process all files matching a pattern
 - Feed a codebase to an AI agent for review
@@ -33,7 +32,6 @@ A single source file. Use when you want to target a specific file for processing
 ```
 
 Use cases:
-
 - Analyze a single configuration file
 - Process a specific module
 - Target a known problem file
@@ -50,7 +48,6 @@ A GitHub repository. The pipeline clones or references the repository and passes
 ```
 
 Use cases:
-
 - Review external repositories
 - Cross-project analysis
 - Dependency auditing

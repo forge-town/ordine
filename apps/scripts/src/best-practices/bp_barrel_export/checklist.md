@@ -1,6 +1,6 @@
 # 桶导出最佳实践 检查清单
 
-- [ ] 1. index.ts 仅包含 export \* from 语句
+- [ ] 1. index.ts 仅包含 export * from 语句
 - [ ] 2. 无业务逻辑、函数、变量、类定义
 - [ ] 3. 禁止 export default
 - [ ] 4. 使用相对路径，禁止别名路径（@/）

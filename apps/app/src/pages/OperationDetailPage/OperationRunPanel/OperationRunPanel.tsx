@@ -7,7 +7,6 @@ import { Textarea } from "@repo/ui/textarea";
 import { Card } from "@repo/ui/card";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@repo/ui/sheet";
-import { TRACE_MARKER_PREFIX } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
 import { useCustom, useCustomMutation, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
@@ -46,7 +45,7 @@ const parseMessage = (log: string): string => log.replace(/^\[[^\]]+\]\s*/, "");
 const isStructuredLog = (log: string): boolean => {
   const msg = log.replace(/^\[[^\]]+\]\s*/, "");
 
-  return msg.startsWith(TRACE_MARKER_PREFIX);
+  return msg.startsWith("@@");
 };
 
 const STATUS_STYLES: Partial<Record<JobStatus, string>> = {

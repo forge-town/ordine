@@ -43,13 +43,8 @@ const mockSettingsDao = {
     defaultModel: "gpt-4o",
   }),
 };
-const mockAgentRuntimesDao = {
-  findMany: vi.fn().mockResolvedValue([]),
-};
 
 vi.mock("@repo/models", () => ({
-  createAgentRuntimesDao: () => mockAgentRuntimesDao,
-  createConversationMessagesDao: () => ({}),
   createPipelinesDao: () => mockDao,
   createDistillationsDao: () => ({}),
   createJobsDao: () => ({}),

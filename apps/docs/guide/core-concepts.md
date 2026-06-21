@@ -14,11 +14,11 @@ Object ──► Operation ──► Pipeline ──► Rule
 
 **Objects** are the things that pipelines operate on — the inputs that flow through the graph. Ordine supports several object types out of the box:
 
-| Object Type      | Description                               |
-| ---------------- | ----------------------------------------- |
-| `folder`         | A directory tree — all files under a path |
-| `file`           | A single source file                      |
-| `github-project` | A GitHub repository                       |
+| Object Type | Description |
+|-------------|-------------|
+| `folder` | A directory tree — all files under a path |
+| `file` | A single source file |
+| `github-project` | A GitHub repository |
 
 Objects are the entry points of a pipeline. They appear as source nodes in the DAG and their content flows downstream to operations for processing.
 
@@ -31,12 +31,10 @@ Operation = Executor Config + Input Schema + Output Schema
 ```
 
 Executor types:
-
 - **`agent`** — AI agent (Claude or Codex) with configurable system prompt and tools
 - **`script`** — Custom script execution
 
 Agent modes:
-
 - **`skill`** — Uses a registered skill for structured AI execution
 - **`prompt`** — Direct prompt-based AI execution
 
@@ -46,15 +44,15 @@ A **Pipeline** composes operations into a multi-step workflow, represented as a 
 
 ### Node Types
 
-| Type                | Description                           |
-| ------------------- | ------------------------------------- |
-| `folder`            | Directory input — reads a folder tree |
-| `file`              | Single file input                     |
-| `operation`         | Executes an operation                 |
-| `output-local-path` | Writes output to a local directory    |
-| `compound`          | Groups multiple nodes                 |
-| `condition`         | Conditional branching                 |
-| `github-project`    | GitHub repository input               |
+| Type | Description |
+|------|-------------|
+| `folder` | Directory input — reads a folder tree |
+| `file` | Single file input |
+| `operation` | Executes an operation |
+| `output-local-path` | Writes output to a local directory |
+| `compound` | Groups multiple nodes |
+| `condition` | Conditional branching |
+| `github-project` | GitHub repository input |
 
 ### Execution Model
 

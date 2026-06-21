@@ -11,18 +11,18 @@ Project（项目）是 Ordine 中代码仓库的映射。将 GitHub 仓库注册
 
 ## 数据结构
 
-| 字段          | 类型        | 说明                           |
-| ------------- | ----------- | ------------------------------ |
-| `id`          | `string`    | 唯一标识（如 `proj_my_app`）   |
-| `name`        | `string`    | 项目名称                       |
-| `description` | `string`    | 项目描述                       |
-| `owner`       | `string`    | GitHub Owner（用户名或组织名） |
-| `repo`        | `string`    | GitHub 仓库名                  |
-| `branch`      | `string`    | 默认分支（默认 `main`）        |
-| `githubUrl`   | `string`    | GitHub 仓库 URL                |
-| `isPrivate`   | `boolean`   | 是否为私有仓库                 |
-| `createdAt`   | `timestamp` | 创建时间                       |
-| `updatedAt`   | `timestamp` | 更新时间                       |
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `id` | `string` | 唯一标识（如 `proj_my_app`） |
+| `name` | `string` | 项目名称 |
+| `description` | `string` | 项目描述 |
+| `owner` | `string` | GitHub Owner（用户名或组织名） |
+| `repo` | `string` | GitHub 仓库名 |
+| `branch` | `string` | 默认分支（默认 `main`） |
+| `githubUrl` | `string` | GitHub 仓库 URL |
+| `isPrivate` | `boolean` | 是否为私有仓库 |
+| `createdAt` | `timestamp` | 创建时间 |
+| `updatedAt` | `timestamp` | 更新时间 |
 
 ## 典型工作流
 
@@ -63,7 +63,6 @@ curl -s "http://localhost:9433/api/jobs?projectId=proj_my_app&status=failed" | p
 ### 4. 项目工作区
 
 在 Web UI 中，项目详情页提供工作区视图，可以：
-
 - 浏览项目文件结构
 - 查看项目关联的 Job 运行历史
 - 直接触发 Pipeline 运行

@@ -6,7 +6,7 @@ Use when 需要在 Ordine 系统中注册 Skill（技能），技能是 Operatio
 
 复制以下内容并提供给你的 AI agent：
 
-````markdown
+```markdown
 ---
 name: ordine-create-skill
 description: Use when 需要在 Ordine 系统中注册 Skill（技能），技能是 Operation 的执行器，代表 AI Agent 的具体能力。触发词：创建技能、新建skill、注册能力、添加agent skill。
@@ -50,17 +50,16 @@ curl -X PATCH http://localhost:9433/api/skills/skill_check_naming \
 # 删除
 curl -X DELETE http://localhost:9433/api/skills/skill_check_naming
 ```
-````
 
 ## 数据结构
 
-| 字段          | 类型             | 说明                                  |
-| ------------- | ---------------- | ------------------------------------- |
-| `id`          | `string`         | 唯一标识，格式：`skill_<动词>_<名词>` |
-| `name`        | `string`         | 技能名称                              |
-| `description` | `string \| null` | 技能描述                              |
-| `createdAt`   | `timestamp`      | 创建时间                              |
-| `updatedAt`   | `timestamp`      | 更新时间                              |
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `id` | `string` | 唯一标识，格式：`skill_<动词>_<名词>` |
+| `name` | `string` | 技能名称 |
+| `description` | `string \| null` | 技能描述 |
+| `createdAt` | `timestamp` | 创建时间 |
+| `updatedAt` | `timestamp` | 更新时间 |
 
 ## Skill 与 Operation 的关系
 
@@ -73,17 +72,15 @@ Skill 定义 Agent 的能力，Operation 引用 Skill 来完成具体操作。
 
 ## 命名规范
 
-| 前缀             | 用途     | 示例                                       |
-| ---------------- | -------- | ------------------------------------------ |
-| `skill_check_`   | 检查能力 | `skill_check_dao`, `skill_check_classname` |
-| `skill_fix_`     | 修复能力 | `skill_fix_classname`, `skill_fix_import`  |
-| `skill_gen_`     | 生成能力 | `skill_gen_test`, `skill_gen_storybook`    |
-| `skill_analyze_` | 分析能力 | `skill_analyze_complexity`                 |
+| 前缀 | 用途 | 示例 |
+|---|---|---|
+| `skill_check_` | 检查能力 | `skill_check_dao`, `skill_check_classname` |
+| `skill_fix_` | 修复能力 | `skill_fix_classname`, `skill_fix_import` |
+| `skill_gen_` | 生成能力 | `skill_gen_test`, `skill_gen_storybook` |
+| `skill_analyze_` | 分析能力 | `skill_analyze_complexity` |
 
 ## 自动 Seed
 
 首次访问 `GET /api/skills` 时，如果数据库中没有 Skill 数据，会自动调用 `skillsDao.seedIfEmpty()` 填充默认 Skill。
-
-```
 
 ```

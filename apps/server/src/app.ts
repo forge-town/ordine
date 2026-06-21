@@ -2,19 +2,12 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { agentsRoutes } from "./routes/agents";
-import { annotationsRoutes } from "./routes/annotations";
-import { connectorsRoutes } from "./routes/connectors";
-import { conversationsRoutes } from "./routes/conversations";
 import { distillationsRoutes } from "./routes/distillations";
 import { filesystemRoutes } from "./routes/filesystem";
 import { jobsRoutes } from "./routes/jobs";
 import { operationsRoutes } from "./routes/operations";
-import { pipelineAssetsRoutes } from "./routes/pipeline-assets";
 import { pipelinesRoutes } from "./routes/pipelines";
-import { projectsRoutes } from "./routes/projects";
-import { routinesRoutes } from "./routes/routines";
 import { skillsRoutes } from "./routes/skills";
-import { usageRoutes } from "./routes/usage";
 import { getEnv } from "./integrations/env";
 
 const env = getEnv();
@@ -42,18 +35,11 @@ if (env.DESKTOP_MODE) {
 }
 
 app.route("/api/agents", agentsRoutes);
-app.route("/api/annotations", annotationsRoutes);
-app.route("/api/connectors", connectorsRoutes);
-app.route("/api/conversations", conversationsRoutes);
 app.route("/api/distillations", distillationsRoutes);
 app.route("/api/filesystem", filesystemRoutes);
 app.route("/api/jobs", jobsRoutes);
 app.route("/api/operations", operationsRoutes);
-app.route("/api/pipeline-assets", pipelineAssetsRoutes);
 app.route("/api/pipelines", pipelinesRoutes);
-app.route("/api/projects", projectsRoutes);
-app.route("/api/routines", routinesRoutes);
 app.route("/api/skills", skillsRoutes);
-app.route("/api/usage", usageRoutes);
 
 app.get("/health", (c) => c.json({ status: "ok" }));

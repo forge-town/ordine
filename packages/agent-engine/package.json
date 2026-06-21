@@ -17,11 +17,11 @@
     "quality": "bun run check-types && bun run test"
   },
   "dependencies": {
+    "neverthrow": "^8.2.0",
     "@repo/agent": "workspace:*",
     "@repo/logger": "workspace:*",
     "@repo/obs": "workspace:*",
-    "@repo/schemas": "workspace:*",
-    "neverthrow": "^8.2.0"
+    "@repo/schemas": "workspace:*"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

@@ -22,26 +22,26 @@
 ### 同步操作 → `Result<T, E>`
 
 ```typescript
-import { Result, ok, err } from "neverthrow";
+import { Result, ok, err } from "neverthrow"
 
 function parseConfig(raw: string): Result<Config, ParseError> {
   return Result.fromThrowable(
     () => JSON.parse(raw),
-    (e) => new ParseError("Invalid JSON", String(e)),
-  )();
+    (e) => new ParseError("Invalid JSON", String(e))
+  )()
 }
 ```
 
 ### 异步操作 → `ResultAsync<T, E>`
 
 ```typescript
-import { ResultAsync } from "neverthrow";
+import { ResultAsync } from "neverthrow"
 
 function fetchUser(id: string): ResultAsync<User, NetworkError> {
   return ResultAsync.fromPromise(
     fetch(`/api/users/${id}`).then((r) => r.json()),
-    (e) => new NetworkError("fetch failed", e),
-  );
+    (e) => new NetworkError("fetch failed", e)
+  )
 }
 ```
 
@@ -49,15 +49,15 @@ function fetchUser(id: string): ResultAsync<User, NetworkError> {
 
 ```typescript
 // ✅ 正确
-const result = await fetchUser(id);
-if (result.isErr()) return result.mapErr(toAppError);
-const user = result.value;
+const result = await fetchUser(id)
+if (result.isErr()) return result.mapErr(toAppError)
+const user = result.value
 
 // ❌ 禁止
 try {
-  await fetchUser(id);
+  await fetchUser(id)
 } catch (e) {
-  console.error(e);
+  console.error(e)
 }
 ```
 
@@ -66,19 +66,16 @@ try {
 ```typescript
 // ✅ 具名错误类，含可选 cause
 class NotFoundError extends Error {
-  constructor(
-    public readonly resource: string,
-    public readonly id: string,
-  ) {
-    super(`${resource}:${id} not found`);
-    this.name = "NotFoundError";
+  constructor(public readonly resource: string, public readonly id: string) {
+    super(`${resource}:${id} not found`)
+    this.name = "NotFoundError"
   }
 }
 
 class ConflictError extends Error {
   constructor(message: string) {
-    super(message);
-    this.name = "ConflictError";
+    super(message)
+    this.name = "ConflictError"
   }
 }
 ```
@@ -91,18 +88,18 @@ class ConflictError extends Error {
 
 ```typescript
 // ✅ 正确
-import { z } from "zod";
+import { z } from "zod"
 
 export const CreateJobSchema = z.object({
   name: z.string().min(1),
   priority: z.number().int().min(0).max(10),
-});
-export type CreateJobInput = z.infer<typeof CreateJobSchema>;
+})
+export type CreateJobInput = z.infer<typeof CreateJobSchema>
 
 // ❌ 禁止：与 schema 重复，失去同步
 interface CreateJobInput {
-  name: string;
-  priority: number;
+  name: string
+  priority: number
 }
 ```
 
@@ -110,8 +107,8 @@ interface CreateJobInput {
 
 ```typescript
 // ✅
-type JobRow = typeof jobsTable.$inferSelect;
-type NewJobRow = typeof jobsTable.$inferInsert;
+type JobRow    = typeof jobsTable.$inferSelect
+type NewJobRow = typeof jobsTable.$inferInsert
 
 // ❌ 禁止手写 interface JobRow { id: string; ... }
 ```
@@ -126,57 +123,57 @@ type NewJobRow = typeof jobsTable.$inferInsert;
 
 ```typescript
 // ✅ 文件名：jobsDao.ts
-import { eq } from "drizzle-orm";
-import { db } from "@repo/db";
-import { jobsTable } from "@repo/db-schema";
+import { eq } from "drizzle-orm"
+import { db } from "@repo/db"
+import { jobsTable } from "@repo/db-schema"
 
 // 从表定义派生类型，不手写 interface
-type JobRow = typeof jobsTable.$inferSelect;
-type NewJobRow = typeof jobsTable.$inferInsert;
+type JobRow    = typeof jobsTable.$inferSelect
+type NewJobRow = typeof jobsTable.$inferInsert
 // 正确的事务类型（不用 NodePgDatabase，避免类型不匹配）
-type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 export const jobsDao = {
   // 查询单条：找不到返回 null，不抛出
   async findById(id: string): Promise<JobRow | null> {
-    const rows = await db.select().from(jobsTable).where(eq(jobsTable.id, id)).limit(1);
-    return rows[0] ?? null;
+    const rows = await db.select().from(jobsTable).where(eq(jobsTable.id, id)).limit(1)
+    return rows[0] ?? null
   },
 
   // 查询多条：找不到返回 []
   async findManyByStatus(status: string): Promise<JobRow[]> {
-    return db.select().from(jobsTable).where(eq(jobsTable.status, status));
+    return db.select().from(jobsTable).where(eq(jobsTable.status, status))
   },
 
   // 写操作：接受可选 tx 参数，支持事务
   async create(data: NewJobRow, tx?: Tx): Promise<JobRow> {
-    const client = tx ?? db;
-    const rows = await client.insert(jobsTable).values(data).returning();
-    return rows[0]!;
+    const client = tx ?? db
+    const rows = await client.insert(jobsTable).values(data).returning()
+    return rows[0]!
   },
 
   async update(id: string, data: Partial<NewJobRow>, tx?: Tx): Promise<JobRow | null> {
-    const client = tx ?? db;
-    const rows = await client.update(jobsTable).set(data).where(eq(jobsTable.id, id)).returning();
-    return rows[0] ?? null;
+    const client = tx ?? db
+    const rows = await client.update(jobsTable).set(data).where(eq(jobsTable.id, id)).returning()
+    return rows[0] ?? null
   },
 
   async delete(id: string, tx?: Tx): Promise<void> {
-    const client = tx ?? db;
-    await client.delete(jobsTable).where(eq(jobsTable.id, id));
+    const client = tx ?? db
+    await client.delete(jobsTable).where(eq(jobsTable.id, id))
   },
-};
+}
 ```
 
 ### 方法命名规范
 
-| 操作         | 方法名                           | 返回类型               |
-| ------------ | -------------------------------- | ---------------------- |
-| 按字段查单条 | `findBy{Field}`                  | `Promise<Row \| null>` |
-| 查多条       | `findMany` / `findManyBy{Field}` | `Promise<Row[]>`       |
-| 创建         | `create`                         | `Promise<Row>`         |
-| 更新         | `update`                         | `Promise<Row \| null>` |
-| 删除         | `delete`                         | `Promise<void>`        |
+| 操作 | 方法名 | 返回类型 |
+|------|--------|----------|
+| 按字段查单条 | `findBy{Field}` | `Promise<Row \| null>` |
+| 查多条 | `findMany` / `findManyBy{Field}` | `Promise<Row[]>` |
+| 创建 | `create` | `Promise<Row>` |
+| 更新 | `update` | `Promise<Row \| null>` |
+| 删除 | `delete` | `Promise<void>` |
 
 > **跨表写操作** → 必须触发 `repository-best-practice` skill，创建 Repository 封装事务。
 
@@ -188,34 +185,37 @@ Service 负责业务逻辑，**禁止直接导入 `db`**，必须通过 DAO 依�
 
 ```typescript
 // ✅ services/jobService.ts
-import { ok, errAsync, ResultAsync } from "neverthrow";
-import { jobsDao } from "@repo/models";
-import { NotFoundError, ConflictError } from "@repo/shared";
+import { ok, errAsync, ResultAsync } from "neverthrow"
+import { jobsDao } from "@repo/models"
+import { NotFoundError, ConflictError } from "@repo/shared"
 
 export const createJobService = (deps: { dao: typeof jobsDao }) => {
-  const { dao } = deps;
+  const { dao } = deps
 
   return {
     getById(id: string): ResultAsync<JobRow, NotFoundError> {
-      return ResultAsync.fromPromise(dao.findById(id), () => new NotFoundError("Job", id)).andThen(
-        (row) => (row ? ok(row) : errAsync(new NotFoundError("Job", id))),
-      );
+      return ResultAsync.fromPromise(
+        dao.findById(id),
+        () => new NotFoundError("Job", id)
+      ).andThen((row) =>
+        row ? ok(row) : errAsync(new NotFoundError("Job", id))
+      )
     },
 
     create(input: CreateJobInput): ResultAsync<JobRow, ConflictError> {
       return ResultAsync.fromPromise(
         dao.findByName(input.name),
-        (e) => new ConflictError(String(e)),
+        (e) => new ConflictError(String(e))
       ).andThen((existing) => {
-        if (existing) return errAsync(new ConflictError(`Job "${input.name}" exists`));
-        return ResultAsync.fromPromise(dao.create(input), (e) => new ConflictError(String(e)));
-      });
+        if (existing) return errAsync(new ConflictError(`Job "${input.name}" exists`))
+        return ResultAsync.fromPromise(dao.create(input), (e) => new ConflictError(String(e)))
+      })
     },
-  };
-};
+  }
+}
 
 // ❌ 禁止
-import { db } from "@repo/db"; // Service 不得直接使用 db
+import { db } from "@repo/db"  // Service 不得直接使用 db
 ```
 
 **tRPC 路由职责边界**：仅做输入校验 + Service 调用，不含业务逻辑：
@@ -223,12 +223,14 @@ import { db } from "@repo/db"; // Service 不得直接使用 db
 ```typescript
 // ✅ src/integrations/trpc/routers/jobs.ts
 export const jobsRouter = router({
-  getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    const result = await ctx.services.jobService.getById(input.id);
-    if (result.isErr()) throw new TRPCError({ code: "NOT_FOUND" });
-    return result.value;
-  }),
-});
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const result = await ctx.services.jobService.getById(input.id)
+      if (result.isErr()) throw new TRPCError({ code: "NOT_FOUND" })
+      return result.value
+    }),
+})
 ```
 
 ---
@@ -276,14 +278,14 @@ export const JobListPage = () => (
   <JobListPageStoreProvider>
     <JobListPageContent />
   </JobListPageStoreProvider>
-);
+)
 
 // ✅ Content：从 Store 获取状态，不接收业务 Props
 export const JobListPageContent = () => {
-  const jobs = useJobListPageStore((s) => s.jobs);
-  const loadJobs = useJobListPageStore((s) => s.loadJobs);
+  const jobs = useJobListPageStore((s) => s.jobs)
+  const loadJobs = useJobListPageStore((s) => s.loadJobs)
   // ...
-};
+}
 ```
 
 ---
@@ -292,57 +294,39 @@ export const JobListPageContent = () => {
 
 ```typescript
 // ✅ jobListPageSlice.ts
-import { StateCreator } from "zustand";
+import { StateCreator } from "zustand"
 
 export interface JobListPageSlice {
-  jobs: Job[];
-  isLoading: boolean;
-  loadJobs: () => Promise<void>;
+  jobs: Job[]
+  isLoading: boolean
+  loadJobs: () => Promise<void>
 }
 
 export const createJobListPageSlice: StateCreator<JobListPageSlice> = (set) => ({
   jobs: [],
   isLoading: false,
   loadJobs: async () => {
-    set({ isLoading: true });
+    set({ isLoading: true })
     // 调用 service，结果写入 store
-    set({ jobs: result.value, isLoading: false });
+    set({ jobs: result.value, isLoading: false })
   },
-});
+})
 
 // ✅ jobListPageStore.ts
-import { createStore } from "zustand";
+import { createStore } from "zustand"
 
-export type JobListPageStore = JobListPageSlice; // 可组合多 slice
+export type JobListPageStore = JobListPageSlice  // 可组合多 slice
 
 export const createJobListPageStore = () =>
   createStore<JobListPageStore>((...a) => ({
     ...createJobListPageSlice(...a),
-  }));
+  }))
 ```
 
 **Store 规则：**
-
 - Store 只保存**跨组件共享**状态；组件私有状态用 `useState`
 - **禁止**可变全局变量；状态变更只通过 store actions
 - **禁止** Props 透传（Props Drilling）——跨组件状态从 Store 取
-
-### Store 形态判据（G1-06）
-
-仓库存在两种合法 store 形态，**按状态的生命周期选择，不得混用**：
-
-| 形态                                                | 判据                                                                                          | 现有实例                                         |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| **模块级单例**（`create()` 导出 hook）              | 状态是**全应用真全局**，与任何路由/实体的生命周期无关，切换页面或 pipeline 时**不应该**被重置 | `toastStore`、`notificationStore`                |
-| **Provider 工厂**（`createXxxStore(id)` + Context） | 状态**跟随某个实体或路由的生命周期**（pipeline、某页面），切换实体时必须重新实例化、互不串扰  | `workspaceStore`、`canvasStore`、各页面 `_store` |
-
-判定口诀：问"切换 pipeline / 离开页面后，这份状态还成立吗？"——成立 → 单例；不成立 → Provider 工厂。
-
-**例外清单：**
-
-- ~~`agentBarStore`：模块级单例承载按 pipeline 隔离的消息，靠持久化层覆盖伪隔离~~ → 已于 H2-03 改为 `createAgentBarStore(pipelineId)` + `AgentBarStoreProvider`（挂在 WorkspacePage，随 pipelineId 重建），消息按 pipeline 实例隔离；保留 `useAgentBarStore` 静态访问器供无 Provider 的单测回退。
-
-**跨 feature 依赖规则：** 同级 feature 目录（如 `canvas/` 与 `AgentBar/`）**禁止互相 import 对方的 `_store` 或内部模块**；需要共享的状态上提到共同父级 store（如 `workspaceStore`），由写方同步、读方只读（参照 `AnchorCountSync` 的做法）。
 
 ---
 
@@ -352,27 +336,27 @@ export const createJobListPageStore = () =>
 
 ```typescript
 // ✅
-export * from "./Button";
-export * from "./Input";
+export * from "./Button"
+export * from "./Input"
 
 // ❌ 显式命名导出（用 export *）
-export { Button } from "./Button";
+export { Button } from "./Button"
 
 // ❌ default export
-export default Button;
+export default Button
 
 // ❌ 别名路径
-export * from "@/components/Button";
+export * from "@/components/Button"
 
 // ❌ 业务逻辑混入
-export const API_BASE = "/api/v1";
+export const API_BASE = "/api/v1"
 ```
 
 非 `index` 文件**不得 re-export 外部模块**（消费文件应直接从来源 import）：
 
 ```typescript
 // ❌ someFeature.ts 中禁止中转导出
-export { Button } from "../ui/Button";
+export { Button } from "../ui/Button"
 ```
 
 ---
@@ -407,31 +391,31 @@ import { Button } from "@/components/ui/button"
 ```tsx
 // ✅ 允许：DOM 原生监听（无法用其他方式替代）
 useEffect(() => {
-  window.addEventListener("resize", handler);
-  return () => window.removeEventListener("resize", handler); // 必须清理
-}, []);
+  window.addEventListener("resize", handler)
+  return () => window.removeEventListener("resize", handler)  // 必须清理
+}, [])
 
 // ❌ 禁止：数据获取 → 改用 Refine hooks
 useEffect(() => {
-  fetchJobs().then(setJobs);
-}, []);
+  fetchJobs().then(setJobs)
+}, [])
 
 // ❌ 禁止：事件响应 → 改用 handler 函数
 useEffect(() => {
-  if (isOpen) loadData();
-}, [isOpen]);
+  if (isOpen) loadData()
+}, [isOpen])
 ```
 
 ---
 
 ## 十一、单文件单一职责
 
-| 文件类型   | 规则                   |
-| ---------- | ---------------------- |
-| `.tsx`     | 仅一个 React 组件      |
-| DAO        | 一张表对应一个文件     |
-| Service    | 一个业务域对应一个文件 |
-| `index.ts` | 仅 re-export，无逻辑   |
+| 文件类型 | 规则 |
+|----------|------|
+| `.tsx` | 仅一个 React 组件 |
+| DAO | 一张表对应一个文件 |
+| Service | 一个业务域对应一个文件 |
+| `index.ts` | 仅 re-export，无逻辑 |
 
 ---
 

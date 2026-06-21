@@ -327,7 +327,9 @@ export const deleteBestPractice = async (id: string): Promise<void> => {
 };
 
 export const exportBestPractices = async (outPath: string): Promise<void> => {
-  const res = await fetch(`${getEnv().ORDINE_API_URL}/api/best-practices/export`);
+  const res = await fetch(
+    `${getEnv().ORDINE_API_URL}/api/best-practices/export`,
+  );
   if (!res.ok) throw new CliError(`Failed to export: ${res.statusText}`);
   const buffer = Buffer.from(await res.arrayBuffer());
   writeFileSync(outPath, buffer);

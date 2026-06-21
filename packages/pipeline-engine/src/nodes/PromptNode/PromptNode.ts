@@ -1,5 +1,4 @@
 import { trace } from "@repo/obs";
-import { encodeNodeDone, encodeNodeFail } from "@repo/schemas";
 import type { NodeContext, NodeResult } from "../types";
 
 export const processPromptNode = async (ctx: NodeContext): Promise<NodeResult> => {
@@ -7,7 +6,7 @@ export const processPromptNode = async (ctx: NodeContext): Promise<NodeResult> =
 
   if (node.data.nodeType !== "prompt") {
     await trace(jobId, `WARNING: Expected prompt node, got ${node.data.nodeType ?? "unknown"}`);
-    await trace(jobId, encodeNodeFail(node.id));
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
 
     return { ok: false, error: null };
   }
@@ -15,7 +14,7 @@ export const processPromptNode = async (ctx: NodeContext): Promise<NodeResult> =
   const prompt = node.data.prompt ?? "";
   nodeOutputs.set(node.id, { inputPath: "", content: prompt });
   await trace(jobId, `Prompt node: "${node.data.label}" (${prompt.length} chars)`);
-  await trace(jobId, encodeNodeDone(node.id));
+  await trace(jobId, `@@NODE_DONE::${node.id}`);
 
   return { ok: true };
 };

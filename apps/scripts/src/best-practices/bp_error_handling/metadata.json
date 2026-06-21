@@ -4,5 +4,9 @@
   "condition": "编写错误处理代码",
   "category": "backend",
   "language": "typescript",
-  "tags": ["error-handling", "neverthrow", "result"]
+  "tags": [
+    "error-handling",
+    "neverthrow",
+    "result"
+  ]
 }

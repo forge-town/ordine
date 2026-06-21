@@ -68,17 +68,4 @@ const createDb = async (): Promise<PostgresJsDatabase<Record<string, unknown>>> 
   return drizzlePg(client, { schema: { ...schema } });
 };
 
-/**
- * PGlite 对同一数据目录是独占的（持有文件锁）。vite/SSR 热重载会重新求值本
- * 模块，若每次都 `new PGlite(PGLITE_DATA_DIR)` 就会与存活的旧实例抢锁，导致整
- * 个 SSR 模块失效、全路由 500（实测改 packages/services 必崩的根因）。
- * 把首个连接 promise 缓存到 globalThis，HMR 重新求值时复用同一实例。
- */
-const globalForDb = globalThis as unknown as {
-  __ordineDbPromise?: Promise<PostgresJsDatabase<Record<string, unknown>>>;
-};
-
-const dbPromise = globalForDb.__ordineDbPromise ?? createDb();
-globalForDb.__ordineDbPromise = dbPromise;
-
-export const db = await dbPromise;
+export const db = await createDb();

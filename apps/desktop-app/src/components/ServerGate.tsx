@@ -53,4 +53,4 @@ export const ServerGate = ({ children }: { children: ReactNode }) => {
   }
 
   return <>{children}</>;
-};
+}

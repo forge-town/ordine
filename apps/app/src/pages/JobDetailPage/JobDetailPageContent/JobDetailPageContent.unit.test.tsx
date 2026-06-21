@@ -105,7 +105,7 @@ describe("JobDetailPageContent", () => {
     expect(screen.getByText(mockJob.title)).toBeInTheDocument();
   });
 
-  it("does not route into archived distillation pages from the header action", async () => {
+  it("creates and runs a job distillation from the header action", async () => {
     mockUseLoaderData.mockReturnValue(mockJob);
 
     render(<JobDetailPageContent />);
@@ -113,11 +113,28 @@ describe("JobDetailPageContent", () => {
     await userEvent.click(screen.getByRole("button", { name: "蒸馏 Job" }));
 
     await waitFor(() => {
-      expect(mockCreateMutateAsync).not.toHaveBeenCalled();
-      expect(mockCustomMutationMutateAsync).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        expect.objectContaining({ to: "/distillations/$distillationId" }),
+      expect(mockCreateMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          resource: "distillations",
+          values: expect.objectContaining({
+            id: mockDistillationId,
+            sourceType: "job",
+            sourceId: mockJob.id,
+            mode: "pipeline",
+          }),
+        }),
       );
+      expect(mockCustomMutationMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: "distillations/run",
+          method: "post",
+          values: { id: mockDistillationId },
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith({
+        to: "/distillations/$distillationId",
+        params: { distillationId: mockDistillationId },
+      });
     });
   });
 

@@ -4,10 +4,10 @@
 
 ## 执行器类型
 
-| 类型     | 说明                     |
-| -------- | ------------------------ |
-| `agent`  | AI agent（Claude/Codex） |
-| `script` | 自定义脚本               |
+| 类型 | 说明 |
+|------|------|
+| `agent` | AI agent（Claude/Codex） |
+| `script` | 自定义脚本 |
 
 ## Agent 模式
 
@@ -36,10 +36,10 @@ curl -X POST http://localhost:9433/api/operations \
 
 操作可以访问以下工具：
 
-| 工具           | 说明            |
-| -------------- | --------------- |
-| `read_file`    | 读取文件内容    |
-| `write_file`   | 写入或创建文件  |
-| `list_dir`     | 列出目录内容    |
-| `search_files` | 搜索文件        |
-| `run_command`  | 执行 shell 命令 |
+| 工具 | 说明 |
+|------|------|
+| `read_file` | 读取文件内容 |
+| `write_file` | 写入或创建文件 |
+| `list_dir` | 列出目录内容 |
+| `search_files` | 搜索文件 |
+| `run_command` | 执行 shell 命令 |

@@ -9,43 +9,13 @@ export interface DetectedRuntime {
   version?: string;
 }
 
-const BUILTIN_RUNTIME_BINARIES: Record<string, string> = {
+const RUNTIME_BINARIES: Record<string, string> = {
   "claude-code": "claude",
   codex: "codex",
   hermes: "hermes",
   mastra: "mastra",
   openclaw: "openclaw",
-  piagent: "piagent",
 };
-
-/**
- * 解析 `ORDINE_EXTRA_RUNTIMES`（形如 `name:bin,name2:bin2`）合并进扫描表，
- * 让任意自定义/新出的 runtime 也能被探测——避免"自动检测"沦为写死白名单（LA-01）。
- * 防御：忽略空段、缺冒号、空 name/bin。
- */
-export const parseExtraRuntimes = (raw: string | undefined): Record<string, string> => {
-  if (!raw) return {};
-  const result: Record<string, string> = {};
-  for (const segment of raw.split(",")) {
-    const trimmed = segment.trim();
-    if (!trimmed) continue;
-    const colon = trimmed.indexOf(":");
-    if (colon <= 0) continue;
-    const name = trimmed.slice(0, colon).trim();
-    const bin = trimmed.slice(colon + 1).trim();
-    if (!name || !bin) continue;
-    result[name] = bin;
-  }
-
-  return result;
-};
-
-export const getRuntimeBinaries = (
-  env: NodeJS.ProcessEnv = process.env,
-): Record<string, string> => ({
-  ...BUILTIN_RUNTIME_BINARIES,
-  ...parseExtraRuntimes(env["ORDINE_EXTRA_RUNTIMES"]),
-});
 
 type RuntimeScanPlatform = typeof process.platform;
 
@@ -110,7 +80,7 @@ const detectBinary = async (
 };
 
 export const scanRuntimes = async (): Promise<DetectedRuntime[]> => {
-  const entries = Object.entries(getRuntimeBinaries());
+  const entries = Object.entries(RUNTIME_BINARIES);
   const results = await Promise.all(
     entries.map(([type, binaryName]) => detectBinary(type, binaryName)),
   );

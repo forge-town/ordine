@@ -3,7 +3,7 @@
   "version": "0.0.2-preview.10",
   "private": true,
   "description": "Shared OXC formatter configuration for Ordine projects",
-  "license": "MIT",
+  "main": "oxfmt.json",
   "type": "module",
-  "main": "oxfmt.json"
+  "license": "MIT"
 }

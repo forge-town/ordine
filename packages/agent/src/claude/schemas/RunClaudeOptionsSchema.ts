@@ -22,10 +22,6 @@ export const RunClaudeOptionsSchema = z.object({
   onProgress: z.custom<(line: string) => Promise<void>>().optional(),
   extraEnv: z.record(z.string(), z.string()).optional(),
   ssh: SshConnectionOptionsSchema.optional(),
-  // N22-05：connector 注入。mcpConfigPath 指向生成的 MCP 配置文件（--mcp-config）；
-  // mcpToolNames 是 `mcp__<server>__<tool>` 形式的额外工具名（不受 ToolNameSchema 枚举约束）。
-  mcpConfigPath: z.string().optional(),
-  mcpToolNames: z.array(z.string()).optional(),
 });
 
 export type RunClaudeOptions = z.infer<typeof RunClaudeOptionsSchema>;

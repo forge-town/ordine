@@ -6,7 +6,7 @@ Use when 需要列出 Ordine 中所有 Pipeline，查看可用的流水线及其
 
 复制以下内容并提供给你的 AI agent：
 
-````markdown
+```markdown
 ---
 name: ordine-list-pipelines
 description: Use when 需要列出 Ordine 中所有 Pipeline，查看可用的流水线及其概要信息。触发词：列出pipeline、查看所有流水线、显示pipeline列表、有哪些pipeline。
@@ -26,7 +26,6 @@ ordine pipelines
 # 或使用别名
 ordine ls
 ```
-````
 
 输出格式：
 
@@ -55,8 +54,6 @@ for p in json.load(sys.stdin):
 
 # 查看单个 Pipeline 的详细结构（含 nodes 和 edges）
 curl -s http://localhost:9433/api/pipelines/pipe_multi_quality_check | python3 -m json.tool
-```
-
 ```
 
 ```

@@ -1,10 +1,7 @@
 {
   "extends": ["../../packages/oxlint-config/.oxlintrc.json"],
   "rules": {
-    "unicorn/no-abusive-eslint-disable": "off",
-    "react/jsx-handler-names": "off",
-    "ordine/jsx-sort-props": "off",
-    "ordine-return/newline-before-return": "off"
+    "unicorn/no-abusive-eslint-disable": "off"
   },
   "ignorePatterns": [
     "src/routeTree.gen.ts",
@@ -15,7 +12,12 @@
   ],
   "overrides": [
     {
-      "files": ["**/*.test.tsx", "**/*.test.ts", "**/*.spec.tsx", "**/*.spec.ts"]
+      "files": [
+        "**/*.test.tsx",
+        "**/*.test.ts",
+        "**/*.spec.tsx",
+        "**/*.spec.ts"
+      ]
     }
   ]
 }

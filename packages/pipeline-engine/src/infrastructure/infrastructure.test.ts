@@ -19,11 +19,7 @@ describe("safeParseConfig", () => {
   it("parses valid config object", async () => {
     const result = await safeParseConfig({ executor: { type: "script" } }, "test-op");
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toEqual({
-      executor: { type: "script" },
-      inputs: [],
-      outputs: [],
-    });
+    expect(result._unsafeUnwrap()).toEqual({ executor: { type: "script" }, inputs: [], outputs: [] });
   });
 });
 

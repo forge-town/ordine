@@ -44,14 +44,14 @@ curl -X DELETE "http://localhost:9433/api/code-snippets?id=cs_cn_good"
 
 ## 数据结构
 
-| 字段             | 类型             | 说明                                             |
-| ---------------- | ---------------- | ------------------------------------------------ |
-| `id`             | `string`         | 唯一标识                                         |
-| `bestPracticeId` | `string`         | 所属 Best Practice ID（必填）                    |
-| `title`          | `string \| null` | 片段标题（如 "✅ 正确用法"）                     |
-| `code`           | `string`         | 代码内容                                         |
-| `language`       | `string \| null` | 代码语言：`typescript`, `tsx`, `bash`, `json` 等 |
-| `sortOrder`      | `number`         | 排序序号（0 开始）                               |
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `id` | `string` | 唯一标识 |
+| `bestPracticeId` | `string` | 所属 Best Practice ID（必填） |
+| `title` | `string \| null` | 片段标题（如 "✅ 正确用法"） |
+| `code` | `string` | 代码内容 |
+| `language` | `string \| null` | 代码语言：`typescript`, `tsx`, `bash`, `json` 等 |
+| `sortOrder` | `number` | 排序序号（0 开始） |
 
 ## 编写原则
 

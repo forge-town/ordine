@@ -4,5 +4,9 @@
   "condition": "创建或重构前端表单组件",
   "category": "frontend",
   "language": "tsx",
-  "tags": ["form", "validation", "react"]
+  "tags": [
+    "form",
+    "validation",
+    "react"
+  ]
 }
