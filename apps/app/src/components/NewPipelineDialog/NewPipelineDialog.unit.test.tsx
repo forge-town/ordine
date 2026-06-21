@@ -278,10 +278,7 @@ describe("NewPipelineDialog", () => {
 
     await userEvent.click(screen.getByText("newPipelineDialog.openInCanvas"));
 
-    expect(mockNavigate).toHaveBeenCalledWith({
-      to: "/workspace/$pipelineId",
-      params: { pipelineId: "pipe-nav" },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/canvas", search: { id: "pipe-nav" } });
   });
 
   it("runs pipeline and navigates when Run Now is clicked", async () => {
@@ -299,10 +296,7 @@ describe("NewPipelineDialog", () => {
     await userEvent.click(screen.getByText("newPipelineDialog.runNow"));
 
     expect(mockRunMutate).toHaveBeenCalledWith({ id: "pipe-run" });
-    expect(mockNavigate).toHaveBeenCalledWith({
-      to: "/workspace/$pipelineId",
-      params: { pipelineId: "pipe-run" },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/canvas", search: { id: "pipe-run" } });
   });
 
   it("resets to form when Create Another is clicked", async () => {

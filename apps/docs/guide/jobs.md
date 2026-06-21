@@ -13,28 +13,28 @@ queued → running → done
 
 ## Structure
 
-| Field        | Description               |
-| ------------ | ------------------------- |
-| `id`         | Unique identifier (UUID)  |
-| `title`      | Job title                 |
-| `type`       | Job type                  |
-| `status`     | Current status            |
-| `pipelineId` | Associated pipeline       |
-| `logs`       | Array of log lines        |
-| `result`     | Structured output (JSON)  |
-| `error`      | Error message (if failed) |
-| `startedAt`  | Execution start time      |
-| `finishedAt` | Execution end time        |
+| Field | Description |
+|-------|-------------|
+| `id` | Unique identifier (UUID) |
+| `title` | Job title |
+| `type` | Job type |
+| `status` | Current status |
+| `pipelineId` | Associated pipeline |
+| `logs` | Array of log lines |
+| `result` | Structured output (JSON) |
+| `error` | Error message (if failed) |
+| `startedAt` | Execution start time |
+| `finishedAt` | Execution end time |
 
 ## Job Types
 
-| Type              | Description              |
-| ----------------- | ------------------------ |
-| `pipeline_run`    | Pipeline execution       |
-| `code_analysis`   | Standalone code analysis |
-| `skill_execution` | Direct skill execution   |
-| `file_scan`       | File scanning task       |
-| `custom`          | Custom job type          |
+| Type | Description |
+|------|-------------|
+| `pipeline_run` | Pipeline execution |
+| `code_analysis` | Standalone code analysis |
+| `skill_execution` | Direct skill execution |
+| `file_scan` | File scanning task |
+| `custom` | Custom job type |
 
 ## Monitoring Jobs
 

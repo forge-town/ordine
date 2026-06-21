@@ -4,12 +4,12 @@ Skills are pluggable AI agent capabilities that power operation execution.
 
 ## Structure
 
-| Field         | Description                     |
-| ------------- | ------------------------------- |
-| `id`          | Unique identifier (slug format) |
-| `label`       | Human-readable name             |
-| `description` | What this skill does            |
-| `category`    | Organization category           |
+| Field | Description |
+|-------|-------------|
+| `id` | Unique identifier (slug format) |
+| `label` | Human-readable name |
+| `description` | What this skill does |
+| `category` | Organization category |
 
 ## How Skills Work
 
@@ -36,12 +36,12 @@ curl -X PUT http://localhost:9433/api/skills/code-review \
 
 ## Skill Categories
 
-| Category         | Description                         |
-| ---------------- | ----------------------------------- |
-| `analysis`       | Code analysis and review            |
-| `generation`     | Code generation                     |
+| Category | Description |
+|----------|-------------|
+| `analysis` | Code analysis and review |
+| `generation` | Code generation |
 | `transformation` | Code transformation and refactoring |
-| `documentation`  | Documentation generation            |
+| `documentation` | Documentation generation |
 
 ## Built-in Skills
 

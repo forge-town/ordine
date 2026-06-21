@@ -4,5 +4,9 @@
   "condition": "检查 className 是否使用模板字符串",
   "category": "frontend",
   "language": "tsx",
-  "tags": ["classname", "cn", "tailwind"]
+  "tags": [
+    "classname",
+    "cn",
+    "tailwind"
+  ]
 }

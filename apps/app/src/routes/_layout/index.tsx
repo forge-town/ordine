@@ -1,7 +1,9 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { DashboardPage } from "@/pages/DashboardPage";
 
 export const Route = createFileRoute("/_layout/")({
-  beforeLoad: () => {
-    throw redirect({ to: "/pipelines" });
-  },
+  head: () => ({
+    meta: [{ title: "Dashboard | Ordine" }],
+  }),
+  component: DashboardPage,
 });

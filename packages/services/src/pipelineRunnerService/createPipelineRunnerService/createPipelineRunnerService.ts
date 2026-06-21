@@ -1,13 +1,11 @@
 import { ok, err, ResultAsync, type Result } from "neverthrow";
 import { initObs, initSpanRecorder } from "@repo/obs";
 import { logger } from "@repo/logger";
-import type { AgentRuntime, JobTriggeredBy, SshConnection } from "@repo/schemas";
+import type { AgentRuntime, SshConnection } from "@repo/schemas";
 import { loopEvaluator } from "../loopEvaluator";
 import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
-import { pipelineRunControl } from "../runControl";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
-import { createPipelineAssetsService } from "../../pipelineAssetsService";
 import {
   createAgentsDao,
   createOperationsDao,
@@ -42,7 +40,6 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   const agentSpansDao = createAgentSpansDao(db);
   const settingsDao = createSettingsDao(db);
   const agentRuntimesDao = createAgentRuntimesDao(db);
-  const pipelineAssetsService = createPipelineAssetsService(db);
 
   initObs(jobTracesDao);
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
@@ -77,9 +74,6 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       inputPath?: string;
       githubToken?: string;
       inputs?: Record<string, string>;
-      /** N18-05：本设备 Autonomy 偏好随请求下发（0=不自愈重试）。 */
-      selfHealRetries?: number;
-      triggeredBy?: JobTriggeredBy;
     }): Promise<Result<{ jobId: string }, PipelineNotFoundError>> => {
       const pipeline = await pipelinesDao.findById(opts.pipelineId);
       if (!pipeline) {
@@ -92,12 +86,9 @@ export const createPipelineRunnerService = (db: DbConnection) => {
         title: `Run: ${pipeline.name}`,
         type: "pipeline_run",
         error: null,
-        pipelineId: pipeline.id,
-        projectId: pipeline.projectId ?? null,
         status: "queued",
         startedAt: null,
         finishedAt: null,
-        triggeredBy: opts.triggeredBy ?? "manual",
       });
 
       await pipelineRunsDao.create({
@@ -125,7 +116,6 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           githubToken: opts.githubToken,
           inputs: opts.inputs,
           defaultOutputPath: settings.defaultOutputPath,
-          selfHealRetries: opts.selfHealRetries,
           jobId,
           pipelinesDao,
           operationsDao,
@@ -133,8 +123,6 @@ export const createPipelineRunnerService = (db: DbConnection) => {
           jobsDao,
           pipelineRunsDao,
           skillsDao,
-          agentRawExportsDao,
-          pipelineAssetsService,
           engineDeps: buildDepsForJob({
             jobId,
             apiKey: settings.defaultApiKey,
@@ -142,8 +130,6 @@ export const createPipelineRunnerService = (db: DbConnection) => {
             defaultAgent: settings.defaultAgentRuntime,
             ssh,
           }),
-          runControl: pipelineRunControl.buildForJob(jobId),
-          onRunSettled: () => pipelineRunControl.clear(jobId),
         }),
         (error) => error,
       ).match(
@@ -157,24 +143,6 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       );
 
       return ok({ jobId });
-    },
-    pauseRun: (jobId: string) => {
-      const result = pipelineRunControl.pause(jobId);
-      void jobsDao.updateStatus(jobId, "paused");
-
-      return ok(result);
-    },
-    resumeRun: (jobId: string) => {
-      const result = pipelineRunControl.resume(jobId);
-      void jobsDao.updateStatus(jobId, "running");
-
-      return ok(result);
-    },
-    cancelRun: (jobId: string) => {
-      pipelineRunControl.clear(jobId);
-      void jobsDao.updateStatus(jobId, "cancelled", { finishedAt: new Date() });
-
-      return ok({ cancelled: true, jobId });
     },
   };
 };

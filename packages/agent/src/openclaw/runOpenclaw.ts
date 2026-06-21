@@ -131,7 +131,10 @@ export const runOpenclaw = async ({
         const text = response.result?.payloads?.map((p) => p.text).join("\n") ?? "";
         const meta = response.result?.meta ?? {};
 
-        logger.info({ cwd, textLen: text.length, runId: response.runId }, "runOpenclaw: finished");
+        logger.info(
+          { cwd, textLen: text.length, runId: response.runId },
+          "runOpenclaw: finished",
+        );
         void onProgress?.(`[OpenClaw] ${text.slice(0, 200)}`);
         resolve({ text, meta, runId: response.runId });
       },

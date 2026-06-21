@@ -4,14 +4,14 @@ Rules are policies that trigger pipeline enforcement automatically.
 
 ## Structure
 
-| Field         | Description             |
-| ------------- | ----------------------- |
-| `id`          | Unique identifier       |
-| `name`        | Human-readable name     |
+| Field | Description |
+|-------|-------------|
+| `id` | Unique identifier |
+| `name` | Human-readable name |
 | `description` | What this rule enforces |
-| `pipelineId`  | Pipeline to trigger     |
-| `trigger`     | When to trigger         |
-| `tags`        | Categorization labels   |
+| `pipelineId` | Pipeline to trigger |
+| `trigger` | When to trigger |
+| `tags` | Categorization labels |
 
 ## Creating a Rule
 

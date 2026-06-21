@@ -1,5 +1,8 @@
 import { z } from "zod/v4";
-import { MAX_AGENT_DESCRIPTION_LENGTH, MAX_AGENT_NAME_LENGTH } from "./AgentConstraints";
+import {
+  MAX_AGENT_DESCRIPTION_LENGTH,
+  MAX_AGENT_NAME_LENGTH,
+} from "./AgentConstraints";
 import { AgentTextSchema } from "./AgentTextSchema";
 
 export const AgentCapabilitySchema = z.object({

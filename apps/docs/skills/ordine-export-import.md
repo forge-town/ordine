@@ -6,7 +6,7 @@ Use when 需要导出或导入 Ordine 的 Best Practice 数据（含 checklistIt
 
 Copy the content below and provide it to your AI agent:
 
-````markdown
+```markdown
 ---
 name: ordine-export-import
 description: Use when 需要导出或导入 Ordine 的 Best Practice 数据（含 checklistItems 和 codeSnippets），用于备份、迁移或共享。触发词：导出最佳实践、导入规范、迁移数据、备份bestpractice、export import。
@@ -33,7 +33,6 @@ curl -s http://localhost:9433/api/best-practices/export > best-practices-export.
 # 预览导出内容
 curl -s http://localhost:9433/api/best-practices/export | python3 -m json.tool
 ```
-````
 
 导出格式：
 
@@ -52,13 +51,7 @@ curl -s http://localhost:9433/api/best-practices/export | python3 -m json.tool
       { "id": "cli_cn_1", "content": "所有动态 className 使用 cn()", "sortOrder": 0 }
     ],
     "codeSnippets": [
-      {
-        "id": "cs_cn_good",
-        "title": "✅ 正确用法",
-        "code": "...",
-        "language": "tsx",
-        "sortOrder": 0
-      }
+      { "id": "cs_cn_good", "title": "✅ 正确用法", "code": "...", "language": "tsx", "sortOrder": 0 }
     ]
   }
 ]
@@ -117,8 +110,6 @@ curl -X POST http://production-server:9433/api/best-practices/import \
 curl -X POST http://localhost:9433/api/best-practices/import \
   -H "Content-Type: application/json" \
   -d @shared/best-practices.json
-```
-
 ```
 
 ```

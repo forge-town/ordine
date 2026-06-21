@@ -10,10 +10,7 @@ export const refinementsTable = pgTable(
     maxRounds: integer("max_rounds").notNull().default(3),
     currentRound: integer("current_round").notNull().default(0),
     status: text("status").$type<RefinementStatus>().notNull().default("pending"),
-    rounds: jsonb("rounds")
-      .$type<RefinementRound[]>()
-      .notNull()
-      .default(sql`'[]'::jsonb`),
+    rounds: jsonb("rounds").$type<RefinementRound[]>().notNull().default(sql`'[]'::jsonb`),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

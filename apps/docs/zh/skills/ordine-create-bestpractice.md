@@ -23,4 +23,5 @@ Best Practice 是 Ordine 中的编码规范单元，描述了「什么情况下�
 1. 阅读 [bestpractice-anatomy.md](references/bestpractice-anatomy.md) 了解数据结构
 2. 按照 [creation-guide.md](references/creation-guide.md) 创建
 3. 使用 [checklist.md](references/checklist.md) 验证
+
 ```

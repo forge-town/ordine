@@ -18,7 +18,9 @@ const waitForHealth = (remaining: number = MAX_RETRIES): ResultAsync<void, Error
   if (remaining <= 0) {
     return ResultAsync.fromPromise(
       Promise.reject(
-        new Error(`Server failed to start within ${(MAX_RETRIES * RETRY_INTERVAL_MS) / 1000}s`),
+        new Error(
+          `Server failed to start within ${(MAX_RETRIES * RETRY_INTERVAL_MS) / 1000}s`,
+        ),
       ),
       (e) => (e instanceof Error ? e : new Error(String(e))),
     );
@@ -57,7 +59,9 @@ export const startServer = (): ResultAsync<void, Error> => {
 
     const tokenBytes = new Uint8Array(32);
     crypto.getRandomValues(tokenBytes);
-    serverState.authToken = Array.from(tokenBytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    serverState.authToken = Array.from(tokenBytes, (b) =>
+      b.toString(16).padStart(2, "0"),
+    ).join("");
 
     return ResultAsync.fromPromise(
       resolveResource("resources/server/server-bundle.mjs"),

@@ -42,7 +42,6 @@ ordine run pipe_check_dao --no-follow
 ```
 
 CLI 会自动：
-
 1. 触发 Pipeline → 获取 Job ID
 2. 每 3 秒轮询 Job 状态
 3. 实时打印 Job 日志
@@ -123,12 +122,12 @@ pending → running → completed
                   → failed
 ```
 
-| 状态        | 含义             |
-| ----------- | ---------------- |
-| `pending`   | 已创建，等待执行 |
-| `running`   | 正在执行         |
-| `completed` | 执行成功         |
-| `failed`    | 执行失败         |
+| 状态 | 含义 |
+|---|---|
+| `pending` | 已创建，等待执行 |
+| `running` | 正在执行 |
+| `completed` | 执行成功 |
+| `failed` | 执行失败 |
 
 ## 查看 Job 列表
 
@@ -152,13 +151,11 @@ curl -X DELETE http://localhost:9433/api/jobs/<job-id>
 在运行 Pipeline 之前，确认：
 
 1. **Pipeline 存在且配置正确**
-
    ```bash
    curl -s http://localhost:9433/api/pipelines/<pipeline-id> | python3 -m json.tool
    ```
 
 2. **Pipeline 中引用的 Operation 都存在**
-
    ```bash
    # 检查 pipeline 的 nodes，找到 type=operation 的节点
    # 确认其 data.operationId 对应的 Operation 存在

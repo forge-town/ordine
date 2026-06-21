@@ -14,9 +14,18 @@ export const agentsTable = pgTable(
     description: text("description"),
     defaultRuntime: text("default_runtime").$type<AgentRuntime | null>(),
     systemPrompt: text("system_prompt"),
-    capabilities: jsonb("capabilities").$type<AgentCapability[]>().notNull().default([]),
-    allowedTools: jsonb("allowed_tools").$type<string[]>().notNull().default([]),
-    allowedSkillIds: jsonb("allowed_skill_ids").$type<string[]>().notNull().default([]),
+    capabilities: jsonb("capabilities")
+      .$type<AgentCapability[]>()
+      .notNull()
+      .default([]),
+    allowedTools: jsonb("allowed_tools")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
+    allowedSkillIds: jsonb("allowed_skill_ids")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
     tags: jsonb("tags").$type<string[]>().notNull().default([]),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

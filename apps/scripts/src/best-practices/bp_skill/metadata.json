@@ -4,5 +4,9 @@
   "condition": "创建或修改 Skill 后执行质量验证",
   "category": "process",
   "language": "yaml",
-  "tags": ["skill", "quality", "validation"]
+  "tags": [
+    "skill",
+    "quality",
+    "validation"
+  ]
 }

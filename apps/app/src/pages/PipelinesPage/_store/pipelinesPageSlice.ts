@@ -1,22 +1,27 @@
+import type { ChangeEvent } from "react";
 import type { StateCreator } from "zustand";
 
-export const PIPELINE_FILTERS = ["All", "Saved Skills", "Drafts", "Scheduled"] as const;
-export type PipelineFilter = (typeof PIPELINE_FILTERS)[number];
-
 export interface PipelinesPageSlice {
-  activeFilter: PipelineFilter;
   search: string;
+  selectedTags: string[];
 
-  handleFilterChipClick: (filter: PipelineFilter) => void;
-  handleSearchInputChange: (value: string) => void;
+  handleSearchInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
   handleClearSearchButtonClick: () => void;
+  handleTagBadgeClick: (tag: string) => void;
+  handleClearTagsButtonClick: () => void;
 }
 
 export const createPipelinesPageSlice: StateCreator<PipelinesPageSlice> = (set) => ({
-  activeFilter: "All",
   search: "",
+  selectedTags: [],
 
-  handleFilterChipClick: (activeFilter) => set({ activeFilter }),
-  handleSearchInputChange: (search) => set({ search }),
+  handleSearchInputChange: (event) => set({ search: event.target.value }),
   handleClearSearchButtonClick: () => set({ search: "" }),
+  handleTagBadgeClick: (tag) =>
+    set((state) => ({
+      selectedTags: state.selectedTags.includes(tag)
+        ? state.selectedTags.filter((t) => t !== tag)
+        : [...state.selectedTags, tag],
+    })),
+  handleClearTagsButtonClick: () => set({ selectedTags: [] }),
 });

@@ -63,9 +63,16 @@ export const Toast = ({
 
       <div className="flex-1 min-w-0">
         <div className="font-medium text-sm">{title}</div>
-        {description && <div className="text-sm opacity-90 mt-1">{description}</div>}
+        {description && (
+          <div className="text-sm opacity-90 mt-1">{description}</div>
+        )}
         {action && (
-          <Button variant="outline" size="sm" className="mt-2 h-7 text-xs" onClick={action.onClick}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-2 h-7 text-xs"
+            onClick={action.onClick}
+          >
             {action.label}
           </Button>
         )}

@@ -1,184 +1,164 @@
-import {
-  ArrowRight,
-  Boxes,
-  Clock,
-  FileText,
-  FolderOpen,
-  GitBranch,
-  MessageSquare,
-  Play,
-  ShieldCheck,
-  Sparkles,
-  Timer,
-  Workflow,
-  type LucideIcon,
-} from "lucide-react";
+import { GitBranch, Clock, ArrowRight, Trash2, ExternalLink } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useDelete, useOne } from "@refinedev/core";
+import { Card } from "@repo/ui/card";
+import { Badge } from "@repo/ui/badge";
+import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import type { PipelineData } from "@repo/schemas";
-import { Dot, Icon, MiniChain, StatusPill, Tag } from "@/components/primitives";
-import { formatDurationMs, timeAgo } from "@/lib/format";
+import { ResourceName } from "@/integrations/refine/dataProvider";
 
-const NODE_TYPE_ICONS: Record<string, LucideIcon> = {
-  compound: ShieldCheck,
-  file: FileText,
-  folder: FolderOpen,
-  "github-project": GitBranch,
-  operation: Sparkles,
-  "output-local-path": Boxes,
-  "output-project-path": Boxes,
-  prompt: MessageSquare,
+const NODE_TYPE_COLORS: Record<string, string> = {
+  input: "bg-emerald-100 text-emerald-700",
+  skill: "bg-violet-100 text-violet-700",
+  condition: "bg-amber-100 text-amber-700",
+  output: "bg-blue-100 text-blue-700",
 };
 
-const formatRelativeTime = (ts: Date | string | null | undefined): string => {
-  if (!ts) return "Never";
-  const compact = timeAgo(ts);
-
-  return compact === "now" ? "Just now" : `${compact} ago`;
+const NODE_TYPE_LABELS: Record<string, string> = {
+  input: "输入",
+  skill: "Skill",
+  condition: "条件",
+  output: "输出",
 };
 
-const getPipelineSteps = (pipeline: PipelineData) => {
-  if (pipeline.nodes.length === 0) {
-    return [{ icon: MessageSquare, label: "Draft conversation" }];
-  }
+const formatRelativeTime = (ts: Date | string): string => {
+  const date = ts instanceof Date ? ts : new Date(ts);
+  const diff = Date.now() - date.getTime();
+  const minutes = Math.floor(diff / 60_000);
+  if (minutes < 60) return `${minutes} 分钟前`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} 小时前`;
+  const days = Math.floor(hours / 24);
 
-  return pipeline.nodes.slice(0, 5).map((node) => ({
-    compound: node.data.nodeType === "compound",
-    icon: NODE_TYPE_ICONS[node.data.nodeType] ?? Workflow,
-    label: node.data.label,
-  }));
+  return `${days} 天前`;
 };
 
-export type PipelineCardStats = {
-  avgDurationMs: number | null;
-  runs: number;
-  successRate: number | null;
+interface PipelineCardProps {
+  pipelineId: string;
+}
+
+const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  e.stopPropagation();
 };
 
-export type PipelineCardProps = {
-  isScheduled: boolean;
-  isSavedSkill: boolean;
-  pipeline: PipelineData;
-  routineLabel?: string;
-  stats: PipelineCardStats;
-  onOpen: (pipelineId: string) => void;
-  onSchedule?: (pipeline: PipelineData) => void;
-};
+export const PipelineCard = ({ pipelineId }: PipelineCardProps) => {
+  const navigate = useNavigate();
+  const { mutate: deletePipeline } = useDelete();
+  const { result: pipeline } = useOne<PipelineData>({
+    resource: ResourceName.pipelines,
+    id: pipelineId,
+  });
 
-export const PipelineCard = ({
-  isScheduled,
-  isSavedSkill,
-  onOpen,
-  onSchedule,
-  pipeline,
-  routineLabel,
-  stats,
-}: PipelineCardProps) => {
-  const isDraft = pipeline.status === "draft";
-  const inputSlots = pipeline.nodes.filter((node) =>
-    ["file", "folder", "github-project", "prompt"].includes(node.data.nodeType),
-  ).length;
+  if (!pipeline) return null;
+
+  const typeCounts = pipeline.nodes.reduce<Record<string, number>>((acc, n) => {
+    const t = n.type ?? "unknown";
+    acc[t] = (acc[t] ?? 0) + 1;
+
+    return acc;
+  }, {});
+
   const handleClick = () => {
-    onOpen(pipeline.id);
+    void navigate({ to: "/canvas", search: { id: pipeline.id } });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter") handleClick();
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    deletePipeline({ resource: ResourceName.pipelines, id: pipeline.id });
   };
 
   return (
-    <button
-      className="group flex min-h-[230px] flex-col rounded-2xl bg-surface p-4 text-left ring-1 ring-border shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-float hover:ring-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      type="button"
+    <Card
+      className="group relative cursor-pointer p-5 hover:border-primary/50 hover:shadow-sm transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      role="button"
+      tabIndex={0}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-primary-foreground">
-          <Icon icon={isDraft ? MessageSquare : Workflow} size={16} />
+      {/* Delete button */}
+      <Button
+        aria-label="删除"
+        className="absolute right-9 top-3 hidden size-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-hover:flex"
+        size="icon"
+        variant="ghost"
+        onClick={handleDeleteClick}
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
+
+      {/* View detail button */}
+      <Link
+        className="absolute right-3 top-3 hidden rounded p-1 text-muted-foreground hover:bg-accent group-hover:flex"
+        params={{ pipelineId: pipeline.id }}
+        title="查看详情"
+        to="/pipelines/$pipelineId"
+        onClick={handleLinkClick}
+      >
+        <ExternalLink className="h-3.5 w-3.5" />
+      </Link>
+
+      {/* Top row */}
+      <div className="flex items-start justify-between">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+          <GitBranch className="h-4 w-4" />
         </div>
-        <div className="flex flex-wrap justify-end gap-1.5">
-          {!isDraft && onSchedule ? (
-            <span
-              className={cn(
-                "inline-flex cursor-pointer items-center gap-1 rounded-full px-2 py-0.5 text-[10px] transition-colors",
-                isScheduled
-                  ? "bg-foreground text-primary-foreground"
-                  : "bg-surface-2 text-muted-foreground hover:bg-accent",
-              )}
-              data-testid="pipeline-card-schedule"
-              role="button"
-              tabIndex={0}
-              onClick={(event) => {
-                event.stopPropagation();
-                onSchedule(pipeline);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  onSchedule(pipeline);
-                }
-              }}
-            >
-              <Icon icon={Clock} size={10} />
-              {isScheduled ? "Routine" : "Schedule"}
-            </span>
-          ) : isScheduled ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-2 py-0.5 text-[10px] text-primary-foreground">
-              <Icon icon={Clock} size={10} />
-              Routine
-            </span>
-          ) : null}
-          <StatusPill
-            label={isSavedSkill ? "Saved Skill" : isDraft ? "Draft" : "Ready"}
-            status={isDraft ? "idle" : "completed"}
-          />
-        </div>
+        <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          {formatRelativeTime(pipeline.updatedAt)}
+        </span>
       </div>
 
-      <div className="mt-3 text-[14px] font-semibold tracking-tightish text-foreground">
+      {/* Name + desc */}
+      <h3 className="mt-3 text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
         {pipeline.name}
-      </div>
-      <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-muted-foreground">
-        {pipeline.description || "Draft a new automation flow from this workspace."}
+      </h3>
+      <p className="mt-1 text-xs text-muted-foreground leading-relaxed line-clamp-2">
+        {pipeline.description}
       </p>
 
-      <div className="mt-3.5">
-        <MiniChain steps={getPipelineSteps(pipeline)} />
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-1">
-        {routineLabel ? <Tag>{routineLabel}</Tag> : null}
-        {inputSlots > 0 ? <Tag>{inputSlots} input slots</Tag> : null}
-        {pipeline.tags.slice(0, 3).map((tag) => (
-          <Tag key={tag}>{tag}</Tag>
+      {/* Node type badges */}
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {Object.entries(typeCounts).map(([type, count]) => (
+          <Badge
+            key={type}
+            className={cn(
+              "rounded-full text-[11px]",
+              NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground",
+            )}
+            variant="secondary"
+          >
+            {count} {NODE_TYPE_LABELS[type] ?? type}
+          </Badge>
         ))}
       </div>
 
-      <div className="mt-auto flex items-center gap-4 border-t border-border/70 pt-3 text-[11px] text-muted-foreground">
-        <span className="inline-flex items-center gap-1">
-          <Icon icon={Play} size={11} />
-          {stats.runs} runs
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Dot tone={stats.successRate === null ? "muted" : "success"} />
-          {stats.successRate === null ? "new" : `${stats.successRate}%`}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Icon icon={Timer} size={11} />
-          {formatDurationMs(stats.avgDurationMs, "-")}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Icon icon={GitBranch} size={11} />
-          {pipeline.nodes.length}
-        </span>
-        <span
-          className={cn(
-            "ml-auto inline-flex items-center gap-1 text-foreground opacity-0 transition-opacity group-hover:opacity-100",
-          )}
-        >
-          Open
-          <Icon icon={ArrowRight} size={14} />
+      {/* Tags */}
+      {pipeline.tags.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {pipeline.tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
+            >
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+        <span className="text-xs text-muted-foreground">{pipeline.nodes.length} 个节点</span>
+        <span className="flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+          在 Canvas 中打开
+          <ArrowRight className="h-3 w-3" />
         </span>
       </div>
-      <span className="mt-2 text-[10.5px] text-muted-foreground/70">
-        Updated {formatRelativeTime(pipeline.updatedAt)}
-      </span>
-    </button>
+    </Card>
   );
 };

@@ -11,26 +11,18 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
   Link: ({
     children,
-    params,
     to,
     search,
     ...props
   }: React.PropsWithChildren<
     {
-      params?: Record<string, unknown>;
       to?: string;
       search?: Record<string, unknown>;
     } & Record<string, unknown>
   >) => {
-    const target = params
-      ? Object.entries(params).reduce(
-          (path, [key, value]) => path.replace(`$${key}`, String(value)),
-          to ?? "#",
-        )
-      : (to ?? "#");
     const href = search
-      ? `${target}?${new URLSearchParams(Object.entries(search).map(([k, v]) => [k, String(v)])).toString()}`
-      : target;
+      ? `${to ?? "#"}?${new URLSearchParams(Object.entries(search).map(([k, v]) => [k, String(v)])).toString()}`
+      : (to ?? "#");
 
     return (
       <a href={href} {...props}>
@@ -70,9 +62,6 @@ const makePipeline = (overrides: Partial<PipelineData> = {}): PipelineData => {
 
   return {
     id: "pipe-1",
-    projectId: null,
-    status: "draft",
-    version: 1,
     name: "My Pipeline",
     description: "A test pipeline",
     tags: [],
@@ -189,8 +178,8 @@ describe("PipelineDetailPageContent", () => {
     render(<PipelineDetailPageContent />);
     await user.click(screen.getByTestId("canvas-preview"));
     expect(mockNavigate).toHaveBeenCalledWith({
-      to: "/workspace/$pipelineId",
-      params: { pipelineId: "pipe-1" },
+      to: "/canvas",
+      search: { id: "pipe-1" },
     });
   });
 

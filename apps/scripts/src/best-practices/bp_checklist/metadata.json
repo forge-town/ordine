@@ -4,5 +4,8 @@
   "condition": "为 Skill 或项目模块编写检查清单（checklist.md）",
   "category": "process",
   "language": "markdown",
-  "tags": ["checklist", "quality"]
+  "tags": [
+    "checklist",
+    "quality"
+  ]
 }

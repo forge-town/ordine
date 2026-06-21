@@ -5,7 +5,10 @@ import { SkillToOperationDialog } from "@/components/SkillToOperationDialog";
 
 const SkillsPageInner = () => {
   const store = useSkillsPageStore();
-  const createOperationDialogOpen = useStore(store, (s) => s.createOperationDialogOpen);
+  const createOperationDialogOpen = useStore(
+    store,
+    (s) => s.createOperationDialogOpen,
+  );
   const selectedSkillId = useStore(store, (s) => s.selectedSkillId);
   const handleCreateOperationDialogClose = useStore(
     store,

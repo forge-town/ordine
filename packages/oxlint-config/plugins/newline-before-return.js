@@ -10,11 +10,14 @@ const newlineBeforeReturnRule = {
   meta: {
     type: "layout",
     docs: {
-      description: "Enforce exactly one blank line before `return` statements",
+      description:
+        "Enforce exactly one blank line before `return` statements",
     },
     messages: {
-      expected: "Expected exactly one blank line before `return` statement.",
-      unexpected: "Unexpected extra blank lines before `return` statement.",
+      expected:
+        "Expected exactly one blank line before `return` statement.",
+      unexpected:
+        "Unexpected extra blank lines before `return` statement.",
     },
     schema: [],
     fixable: "whitespace",
@@ -90,8 +93,9 @@ const newlineBeforeReturnRule = {
               const range = [prevToken.range[1], node.range[0]];
               const textBetween = sourceCode.getText().slice(range[0], range[1]);
               // Insert one extra newline while preserving trailing indentation
-              const newText = textBetween.replace(/(\r?\n)?([ \t]*)$/, (m, newline, indent) =>
-                newline ? newline + newline + indent : "\n" + m,
+              const newText = textBetween.replace(
+                /(\r?\n)?([ \t]*)$/,
+                (m, newline, indent) => newline ? newline + newline + indent : "\n" + m,
               );
 
               return fixer.replaceTextRange(range, newText);
@@ -105,7 +109,10 @@ const newlineBeforeReturnRule = {
               const range = [prevToken.range[1], node.range[0]];
               const textBetween = sourceCode.getText().slice(range[0], range[1]);
               // Collapse multiple blank lines to exactly one while preserving trailing indentation
-              const newText = textBetween.replace(/(\r?\n)(\r?\n)+([ \t]*)$/, "$1$1$3");
+              const newText = textBetween.replace(
+                /(\r?\n)(\r?\n)+([ \t]*)$/,
+                "$1$1$3",
+              );
 
               return fixer.replaceTextRange(range, newText);
             },

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { PipelineGraphSnapshot, PipelineAction } from "@repo/schemas";
+import type {
+  PipelineGraphSnapshot,
+  PipelineAction,
+} from "@repo/schemas";
 import { applyPipelineActions, validatePipelineActions } from "./applyPipelineActions";
 import { makeEdge } from "../tests/helpers/makeEdge";
 import { makeNode } from "../tests/helpers/makeNode";
@@ -33,9 +36,7 @@ describe("validatePipelineActions", () => {
   it("rejects actions that involve child nodes", () => {
     const childNode = { ...makeNode("child-1", "operation"), parentId: "compound-1" };
     const snapshot = makeSnapshot([childNode]);
-    const actions: PipelineAction[] = [
-      { type: "replaceNodeData", nodeId: "child-1", data: childNode.data },
-    ];
+    const actions: PipelineAction[] = [{ type: "replaceNodeData", nodeId: "child-1", data: childNode.data }];
 
     const result = validatePipelineActions(snapshot, actions);
 
@@ -103,7 +104,9 @@ describe("applyPipelineActions", () => {
       makeNode("output-1", "output-local-path"),
       makeNode("action-1", "operation", { operationId: "op-1", operationName: "operation 1" }),
     ]);
-    const actions: PipelineAction[] = [{ type: "addEdge", edge: makeEdge("output-1", "action-1") }];
+    const actions: PipelineAction[] = [
+      { type: "addEdge", edge: makeEdge("output-1", "action-1") },
+    ];
 
     const result = applyPipelineActions(snapshot, actions);
 

@@ -61,17 +61,24 @@ const messages = {
   noUnreservedProps:
     "A customized reserved first list must only contain a subset of React reserved props. Remove: {{unreservedWords}}",
   listIsEmpty: "A customized reserved first list must not be empty",
-  listReservedPropsFirst: "Reserved props must be listed before all other props",
+  listReservedPropsFirst:
+    "Reserved props must be listed before all other props",
   listCallbacksLast: "Callbacks must be listed after all other props",
   listShorthandFirst: "Shorthand props must be listed before all other props",
   listShorthandLast: "Shorthand props must be listed after all other props",
   listMultilineFirst: "Multiline props must be listed before all other props",
   listMultilineLast: "Multiline props must be listed after all other props",
-  listSortFirstPropsFirst: "Props in sortFirst must be listed before all other props",
+  listSortFirstPropsFirst:
+    "Props in sortFirst must be listed before all other props",
   sortPropsByAlpha: "Props should be sorted alphabetically",
 };
 
-const RESERVED_PROPS_LIST = ["children", "dangerouslySetInnerHTML", "key", "ref"];
+const RESERVED_PROPS_LIST = [
+  "children",
+  "dangerouslySetInnerHTML",
+  "key",
+  "ref",
+];
 
 function isReservedPropName(name, list) {
   return list.indexOf(name) >= 0;
@@ -80,7 +87,9 @@ function isReservedPropName(name, list) {
 function getSortFirstIndex(name, sortFirstList, ignoreCase) {
   const normalizedPropName = ignoreCase ? name.toLowerCase() : name;
   for (let i = 0; i < sortFirstList.length; i++) {
-    const normalizedListName = ignoreCase ? sortFirstList[i].toLowerCase() : sortFirstList[i];
+    const normalizedListName = ignoreCase
+      ? sortFirstList[i].toLowerCase()
+      : sortFirstList[i];
     if (normalizedPropName === normalizedListName) {
       return i;
     }
@@ -112,8 +121,16 @@ function contextCompare(a, b, options) {
   }
 
   if (options.sortFirst && options.sortFirst.length > 0) {
-    const aSortFirstIndex = getSortFirstIndex(aProp, options.sortFirst, options.ignoreCase);
-    const bSortFirstIndex = getSortFirstIndex(bProp, options.sortFirst, options.ignoreCase);
+    const aSortFirstIndex = getSortFirstIndex(
+      aProp,
+      options.sortFirst,
+      options.ignoreCase,
+    );
+    const bSortFirstIndex = getSortFirstIndex(
+      bProp,
+      options.sortFirst,
+      options.ignoreCase,
+    );
     if (aSortFirstIndex >= 0 && bSortFirstIndex >= 0) {
       if (aSortFirstIndex !== bSortFirstIndex) {
         return aSortFirstIndex - bSortFirstIndex;
@@ -217,7 +234,10 @@ function getGroupsOfSortableAttributes(attributes, context) {
     const lastAttr = attributes[i - 1];
     const attrIsSpread = attribute.type === "JSXSpreadAttribute";
 
-    if (!lastAttr || (lastAttr.type === "JSXSpreadAttribute" && !attrIsSpread)) {
+    if (
+      !lastAttr ||
+      (lastAttr.type === "JSXSpreadAttribute" && !attrIsSpread)
+    ) {
       groupCount += 1;
       sortableAttributeGroups[groupCount - 1] = [];
     }
@@ -264,14 +284,16 @@ function getGroupsOfSortableAttributes(attributes, context) {
           attributeline + 1 === comment[1].loc.start.line &&
           nextAttribute
         ) {
-          const commentNextAttribute = sourceCode.getCommentsAfter(nextAttribute);
+          const commentNextAttribute =
+            sourceCode.getCommentsAfter(nextAttribute);
           attributeMap.set(attribute, {
             end: nextAttribute.range[1],
             hasComment: true,
           });
           if (
             commentNextAttribute.length === 1 &&
-            nextAttribute.loc.start.line === commentNextAttribute[0].loc.start.line
+            nextAttribute.loc.start.line ===
+              commentNextAttribute[0].loc.start.line
           ) {
             attributeMap.set(attribute, {
               end: commentNextAttribute[0].range[1],
@@ -314,10 +336,12 @@ function generateFixerFunction(node, context, reservedList) {
     locale,
   };
 
-  const sortableAttributeGroups = getGroupsOfSortableAttributes(attributes, context);
-  const sortedAttributeGroups = [...sortableAttributeGroups].map((group) =>
-    [...group].sort((a, b) => contextCompare(a, b, options)),
+  const sortableAttributeGroups = getGroupsOfSortableAttributes(
+    attributes,
+    context,
   );
+  const sortedAttributeGroups = [...sortableAttributeGroups]
+    .map((group) => [...group].sort((a, b) => contextCompare(a, b, options)));
 
   return function fixFunction(fixer) {
     const fixers = [];
@@ -327,7 +351,10 @@ function generateFixerFunction(node, context, reservedList) {
     sortableAttributeGroups.forEach((sortableGroup, ii) => {
       sortableGroup.forEach((attr, jj) => {
         const sortedAttr = sortedAttributeGroups[ii][jj];
-        const sortedAttrText = source.slice(sortedAttr.range[0], attributeMap.get(sortedAttr).end);
+        const sortedAttrText = source.slice(
+          sortedAttr.range[0],
+          attributeMap.get(sortedAttr).end,
+        );
         fixers.push({
           range: [attr.range[0], attributeMap.get(attr).end],
           text: sortedAttrText,
@@ -346,7 +373,10 @@ function generateFixerFunction(node, context, reservedList) {
       source = `${source.slice(0, fix.range[0])}${fix.text}${source.slice(fix.range[1])}`;
     });
 
-    return fixer.replaceTextRange([rangeStart, rangeEnd], source.slice(rangeStart, rangeEnd));
+    return fixer.replaceTextRange(
+      [rangeStart, rangeEnd],
+      source.slice(rangeStart, rangeEnd),
+    );
   };
 }
 
@@ -376,7 +406,13 @@ function validateReservedFirstConfig(context, reservedFirst) {
 
 const reportedNodeAttributes = new WeakMap();
 
-function reportNodeAttribute(nodeAttribute, errorType, node, context, reservedList) {
+function reportNodeAttribute(
+  nodeAttribute,
+  errorType,
+  node,
+  context,
+  reservedList,
+) {
   const errors = reportedNodeAttributes.get(nodeAttribute) || [];
   if (errors.includes(errorType)) {
     return;
@@ -432,8 +468,13 @@ const jsxSortPropsRule = {
     const multiline = configuration.multiline || "ignore";
     const noSortAlphabetically = configuration.noSortAlphabetically || false;
     const reservedFirst = configuration.reservedFirst || false;
-    const reservedFirstError = validateReservedFirstConfig(context, reservedFirst);
-    const reservedList = Array.isArray(reservedFirst) ? reservedFirst : RESERVED_PROPS_LIST;
+    const reservedFirstError = validateReservedFirstConfig(
+      context,
+      reservedFirst,
+    );
+    const reservedList = Array.isArray(reservedFirst)
+      ? reservedFirst
+      : RESERVED_PROPS_LIST;
     const sortFirst = configuration.sortFirst || [];
     const locale = configuration.locale || "auto";
 
@@ -472,7 +513,11 @@ const jsxSortPropsRule = {
               sortFirst,
               ignoreCase,
             );
-            const currentSortFirstIndex = getSortFirstIndex(currentPropName, sortFirst, ignoreCase);
+            const currentSortFirstIndex = getSortFirstIndex(
+              currentPropName,
+              sortFirst,
+              ignoreCase,
+            );
 
             if (previousSortFirstIndex >= 0 && currentSortFirstIndex >= 0) {
               if (previousSortFirstIndex > currentSortFirstIndex) {
@@ -495,7 +540,13 @@ const jsxSortPropsRule = {
             }
 
             if (previousSortFirstIndex < 0 && currentSortFirstIndex >= 0) {
-              reportNodeAttribute(decl, "listSortFirstPropsFirst", node, context, nodeReservedList);
+              reportNodeAttribute(
+                decl,
+                "listSortFirstPropsFirst",
+                node,
+                context,
+                nodeReservedList,
+              );
 
               return memo;
             }
@@ -513,14 +564,26 @@ const jsxSortPropsRule = {
               return memo;
             }
 
-            const previousIsReserved = isReservedPropName(previousPropName, nodeReservedList);
-            const currentIsReserved = isReservedPropName(currentPropName, nodeReservedList);
+            const previousIsReserved = isReservedPropName(
+              previousPropName,
+              nodeReservedList,
+            );
+            const currentIsReserved = isReservedPropName(
+              currentPropName,
+              nodeReservedList,
+            );
 
             if (previousIsReserved && !currentIsReserved) {
               return decl;
             }
             if (!previousIsReserved && currentIsReserved) {
-              reportNodeAttribute(decl, "listReservedPropsFirst", node, context, nodeReservedList);
+              reportNodeAttribute(
+                decl,
+                "listReservedPropsFirst",
+                node,
+                context,
+                nodeReservedList,
+              );
 
               return memo;
             }
@@ -531,7 +594,13 @@ const jsxSortPropsRule = {
               return decl;
             }
             if (previousIsCallback && !currentIsCallback) {
-              reportNodeAttribute(memo, "listCallbacksLast", node, context, nodeReservedList);
+              reportNodeAttribute(
+                memo,
+                "listCallbacksLast",
+                node,
+                context,
+                nodeReservedList,
+              );
 
               return memo;
             }
@@ -542,7 +611,13 @@ const jsxSortPropsRule = {
               return decl;
             }
             if (!currentValue && previousValue) {
-              reportNodeAttribute(decl, "listShorthandFirst", node, context, nodeReservedList);
+              reportNodeAttribute(
+                decl,
+                "listShorthandFirst",
+                node,
+                context,
+                nodeReservedList,
+              );
 
               return memo;
             }
@@ -553,7 +628,13 @@ const jsxSortPropsRule = {
               return decl;
             }
             if (currentValue && !previousValue) {
-              reportNodeAttribute(memo, "listShorthandLast", node, context, nodeReservedList);
+              reportNodeAttribute(
+                memo,
+                "listShorthandLast",
+                node,
+                context,
+                nodeReservedList,
+              );
 
               return memo;
             }
@@ -567,7 +648,13 @@ const jsxSortPropsRule = {
               return decl;
             }
             if (!previousIsMultiline && currentIsMultiline) {
-              reportNodeAttribute(decl, "listMultilineFirst", node, context, nodeReservedList);
+              reportNodeAttribute(
+                decl,
+                "listMultilineFirst",
+                node,
+                context,
+                nodeReservedList,
+              );
 
               return memo;
             }
@@ -576,7 +663,13 @@ const jsxSortPropsRule = {
               return decl;
             }
             if (previousIsMultiline && !currentIsMultiline) {
-              reportNodeAttribute(memo, "listMultilineLast", node, context, nodeReservedList);
+              reportNodeAttribute(
+                memo,
+                "listMultilineLast",
+                node,
+                context,
+                nodeReservedList,
+              );
 
               return memo;
             }
@@ -591,7 +684,13 @@ const jsxSortPropsRule = {
                 ) > 0
               : previousPropName > currentPropName)
           ) {
-            reportNodeAttribute(decl, "sortPropsByAlpha", node, context, nodeReservedList);
+            reportNodeAttribute(
+              decl,
+              "sortPropsByAlpha",
+              node,
+              context,
+              nodeReservedList,
+            );
 
             return memo;
           }

@@ -23,7 +23,7 @@ describe("loopEvaluator", () => {
   });
 
   it("returns true when agent responds with PASS", async () => {
-    mockRun.mockResolvedValue({ text: "PASS", usage: null });
+    mockRun.mockResolvedValue({ text: "PASS", events: [] });
     const evaluator = factory({ jobId: "job-1" });
     const result = await evaluator("check quality", "some output");
 
@@ -38,7 +38,7 @@ describe("loopEvaluator", () => {
   });
 
   it("returns false when agent responds with FAIL", async () => {
-    mockRun.mockResolvedValue({ text: "FAIL", usage: null });
+    mockRun.mockResolvedValue({ text: "FAIL", events: [] });
     const evaluator = factory({ jobId: "job-2" });
     const result = await evaluator("check quality", "bad output");
 
@@ -46,7 +46,7 @@ describe("loopEvaluator", () => {
   });
 
   it("handles PASS with extra whitespace", async () => {
-    mockRun.mockResolvedValue({ text: "  PASS  \n", usage: null });
+    mockRun.mockResolvedValue({ text: "  PASS  \n", events: [] });
     const evaluator = factory({ jobId: "job-3" });
     const result = await evaluator("criteria", "output");
 

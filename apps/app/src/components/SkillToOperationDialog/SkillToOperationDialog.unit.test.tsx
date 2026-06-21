@@ -85,19 +85,25 @@ describe("SkillToOperationDialog", () => {
   });
 
   it("does not render content when open=false", () => {
-    render(<SkillToOperationDialog open={false} skillId={null} onClose={handleClose} />);
+    render(
+      <SkillToOperationDialog open={false} skillId={null} onClose={handleClose} />,
+    );
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("renders dialog with prefilled form when open=true and skillId is set", async () => {
-    render(<SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />);
+    render(
+      <SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />,
+    );
     await waitFor(() => {
       expect(screen.getByDisplayValue("Service Layer")).toBeInTheDocument();
     });
   });
 
   it("calls onClose when cancel button is clicked", async () => {
-    render(<SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />);
+    render(
+      <SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />,
+    );
     await waitFor(() => {
       expect(screen.getByDisplayValue("Service Layer")).toBeInTheDocument();
     });
@@ -113,12 +119,16 @@ describe("SkillToOperationDialog", () => {
 
       return { result: undefined, query: { isLoading: true } };
     });
-    render(<SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />);
+    render(
+      <SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />,
+    );
     expect(screen.queryAllByRole("textbox")).toHaveLength(0);
   });
 
   it("calls createOperation on successful submit", async () => {
-    render(<SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />);
+    render(
+      <SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />,
+    );
     await waitFor(() => {
       expect(screen.getByDisplayValue("Service Layer")).toBeInTheDocument();
     });
@@ -143,7 +153,9 @@ describe("SkillToOperationDialog", () => {
     });
 
     it("renders step list editor for multi-step analysis", async () => {
-      render(<SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />);
+      render(
+        <SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />,
+      );
       await waitFor(() => {
         expect(screen.getByText(/step\s*1/i)).toBeInTheDocument();
       });
@@ -153,7 +165,9 @@ describe("SkillToOperationDialog", () => {
     });
 
     it("calls createOperation multiple times on save as operations", async () => {
-      render(<SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />);
+      render(
+        <SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />,
+      );
       await waitFor(() => {
         expect(screen.getByText(/step\s*1/i)).toBeInTheDocument();
       });
@@ -174,7 +188,9 @@ describe("SkillToOperationDialog", () => {
     });
 
     it("calls createPipeline on generate pipeline draft", async () => {
-      render(<SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />);
+      render(
+        <SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />,
+      );
       await waitFor(() => {
         expect(screen.getByText(/step\s*1/i)).toBeInTheDocument();
       });
@@ -188,7 +204,9 @@ describe("SkillToOperationDialog", () => {
 
       // createPipeline uses the same useCreate hook
       const calls = mockCreateMutateAsync.mock.calls;
-      const pipelineCall = calls.find((call) => call[0].resource === "pipelines");
+      const pipelineCall = calls.find(
+        (call) => call[0].resource === "pipelines",
+      );
       expect(pipelineCall).toBeTruthy();
       expect(pipelineCall![0].values.nodes).toHaveLength(2);
       expect(pipelineCall![0].values.edges).toHaveLength(1);
@@ -208,7 +226,9 @@ describe("SkillToOperationDialog", () => {
     });
 
     it("falls back to single-step form when analysis returns no result", async () => {
-      render(<SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />);
+      render(
+        <SkillToOperationDialog open skillId="skill-003" onClose={handleClose} />,
+      );
       await waitFor(() => {
         expect(screen.getByDisplayValue("Service Layer")).toBeInTheDocument();
       });

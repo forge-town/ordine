@@ -5,7 +5,8 @@ import type { PGlite } from "@electric-sql/pglite";
 
 type SchemaCoverage = "complete" | "empty" | "partial";
 
-const quoteSqlLiteral = (value: string): string => `'${value.replaceAll("'", "''")}'`;
+const quoteSqlLiteral = (value: string): string =>
+  `'${value.replaceAll("'", "''")}'`;
 
 const flattenAsyncResult = <T>(
   promise: Promise<NeverthrowResult<T, Error>>,
@@ -16,10 +17,7 @@ const toError = (error: unknown, prefix: string): Error =>
 
 const readMigrationFiles = (migrationsDir: string): Result<string[], Error> =>
   Result.fromThrowable(
-    () =>
-      readdirSync(migrationsDir)
-        .filter((file) => file.endsWith(".sql"))
-        .sort(),
+    () => readdirSync(migrationsDir).filter((file) => file.endsWith(".sql")).sort(),
     (error) => toError(error, "Failed to read migration directory"),
   )();
 
@@ -30,7 +28,7 @@ const readMigrationFile = (migrationsDir: string, fileName: string): Result<stri
   )();
 
 const execSql = (db: PGlite, sql: string, context: string): ResultAsync<void, Error> =>
-  ResultAsync.fromPromise(db.exec(sql), (error) => toError(error, context)).map(() => undefined);
+  ResultAsync.fromPromise(db.exec(sql), (error) => toError(error, context));
 
 const queryRows = <TRow>(
   db: PGlite,
@@ -51,37 +49,33 @@ const applyPendingMigrations = (
   migrationsDir: string,
   pendingFiles: string[],
 ): ResultAsync<number, Error> => {
-  const chain = pendingFiles.reduce(
-    (acc, fileName) =>
-      acc.andThen(() => {
-        const contentResult = readMigrationFile(migrationsDir, fileName);
-        if (contentResult.isErr()) {
-          return ResultAsync.fromSafePromise(
-            Promise.resolve(err(contentResult.error)) as Promise<NeverthrowResult<void, Error>>,
-          ).andThen((result) => result);
-        }
+  let chain = ResultAsync.fromSafePromise(Promise.resolve(ok(undefined as void)) as Promise<NeverthrowResult<void, Error>>).andThen((result) => result);
 
-        const statements = contentResult.value
-          .split("--> statement-breakpoint")
-          .map((statement) => statement.trim())
-          .filter((statement) => statement.length > 0);
+  for (const fileName of pendingFiles) {
+    chain = chain.andThen(() => {
+      const contentResult = readMigrationFile(migrationsDir, fileName);
+      if (contentResult.isErr()) {
+        return ResultAsync.fromSafePromise(
+          Promise.resolve(err(contentResult.error)) as Promise<NeverthrowResult<void, Error>>,
+        ).andThen((result) => result);
+      }
 
-        const statementChain = statements.reduce(
-          (acc2, statement) =>
-            acc2.andThen(() =>
-              execSql(db, statement, `Failed to execute migration statement in "${fileName}"`),
-            ),
-          ResultAsync.fromSafePromise(
-            Promise.resolve(ok(undefined as void)) as Promise<NeverthrowResult<void, Error>>,
-          ).andThen((result) => result),
+      const statements = contentResult.value
+        .split("--> statement-breakpoint")
+        .map((statement) => statement.trim())
+        .filter((statement) => statement.length > 0);
+
+      let statementChain = ResultAsync.fromSafePromise(Promise.resolve(ok(undefined as void)) as Promise<NeverthrowResult<void, Error>>).andThen((result) => result);
+
+      for (const statement of statements) {
+        statementChain = statementChain.andThen(() =>
+          execSql(db, statement, `Failed to execute migration statement in "${fileName}"`),
         );
+      }
 
-        return statementChain.andThen(() => insertMigrationRecord(db, fileName));
-      }),
-    ResultAsync.fromSafePromise(
-      Promise.resolve(ok(undefined as void)) as Promise<NeverthrowResult<void, Error>>,
-    ).andThen((result) => result),
-  );
+      return statementChain.andThen(() => insertMigrationRecord(db, fileName));
+    });
+  }
 
   return chain.map(() => pendingFiles.length);
 };
@@ -95,9 +89,7 @@ export const classifySchemaCoverage = (
   existingTables: string[],
   expectedTables: string[],
 ): SchemaCoverage => {
-  const existingSet = new Set(
-    existingTables.filter((tableName) => tableName !== "_ordine_migrations"),
-  );
+  const existingSet = new Set(existingTables.filter((tableName) => tableName !== "_ordine_migrations"));
 
   if (existingSet.size === 0) {
     return "empty";
@@ -168,7 +160,9 @@ export const runMigrations = (db: PGlite, migrationsDir: string): ResultAsync<nu
           const initialMigration = files[0];
           if (!initialMigration) {
             return err(
-              new Error("A bootstrap migration file is required to infer existing schema state."),
+              new Error(
+                "A bootstrap migration file is required to infer existing schema state.",
+              ),
             );
           }
 

@@ -3,7 +3,6 @@ import { z } from "zod/v4";
 export const JOB_STATUS_ENUM = {
   QUEUED: "queued",
   RUNNING: "running",
-  PAUSED: "paused",
   DONE: "done",
   FAILED: "failed",
   CANCELLED: "cancelled",

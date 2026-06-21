@@ -4,5 +4,9 @@
   "condition": "检查或重构 React/Vue 组件文件",
   "category": "frontend",
   "language": "tsx",
-  "tags": ["react", "component", "file-structure"]
+  "tags": [
+    "react",
+    "component",
+    "file-structure"
+  ]
 }

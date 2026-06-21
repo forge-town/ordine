@@ -78,7 +78,6 @@ cp apps/server/.env.example apps/server/.env
 **数据库 — 二选一：**
 
 - **PGLite（嵌入式，无需外部数据库）：**
-
   ```sh
   # 在两个 .env 文件中设置：
   PGLITE_DATA_DIR=./.pglite
@@ -91,20 +90,18 @@ cp apps/server/.env.example apps/server/.env
   ```
 
 推送 schema：
-
 ```sh
 cd apps/app && bun run db:push && cd ../..
 ```
 
 启动开发环境：
-
 ```sh
 bun dev
 ```
 
-| 服务     | 地址                  |
-| -------- | --------------------- |
-| 主应用   | http://localhost:9430 |
+| 服务 | 地址 |
+|------|------|
+| 主应用 | http://localhost:9430 |
 | API 服务 | http://localhost:9433 |
 
 > **💡 Local Mode（自托管、单用户）：**

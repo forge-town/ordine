@@ -4,5 +4,9 @@
   "condition": "创建或编辑最佳实践条目（best_practices 表）",
   "category": "process",
   "language": "typescript",
-  "tags": ["best-practice", "meta", "self-reference"]
+  "tags": [
+    "best-practice",
+    "meta",
+    "self-reference"
+  ]
 }

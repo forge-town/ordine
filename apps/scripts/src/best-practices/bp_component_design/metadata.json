@@ -4,5 +4,9 @@
   "condition": "设计或审查 React 组件",
   "category": "frontend",
   "language": "tsx",
-  "tags": ["react", "component", "shadcn"]
+  "tags": [
+    "react",
+    "component",
+    "shadcn"
+  ]
 }

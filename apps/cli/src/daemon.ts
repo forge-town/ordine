@@ -106,10 +106,7 @@ const syncRuntimes = async (runtimes: DetectedRuntime[]): Promise<boolean> => {
   return result.ok;
 };
 
-export const startDaemon = async (options: {
-  interval?: number;
-  once?: boolean;
-}): Promise<void> => {
+export const startDaemon = async (options: { interval?: number; once?: boolean }): Promise<void> => {
   const interval = options.interval ?? HEARTBEAT_INTERVAL_MS;
 
   console.log("🔍 Scanning local runtimes...");

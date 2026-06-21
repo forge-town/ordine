@@ -1,5 +1,4 @@
 import { trace } from "@repo/obs";
-import { encodeNodeDone, encodeNodeFail } from "@repo/schemas";
 import { listDirTree, readProjectFiles } from "@repo/utils";
 import type { NodeContext, NodeResult } from "../types";
 import type { PipelineRunError } from "../../errors";
@@ -15,7 +14,7 @@ export const processGitHubProjectNode = async (
       jobId,
       `WARNING: Expected github-project node, got ${node.data.nodeType ?? "unknown"}`,
     );
-    await trace(jobId, encodeNodeFail(node.id));
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
     nodeOutputs.set(node.id, { inputPath: "", content: "" });
 
     return { ok: true };
@@ -59,7 +58,7 @@ export const processGitHubProjectNode = async (
     const localPath = ghData.localPath ?? "";
     if (!localPath) {
       await trace(jobId, `WARNING: GitHub project node (local) missing localPath, skipping`);
-      await trace(jobId, encodeNodeFail(node.id));
+      await trace(jobId, `@@NODE_FAIL::${node.id}`);
       nodeOutputs.set(node.id, { inputPath: "", content: "" });
 
       return { ok: true };
@@ -67,7 +66,7 @@ export const processGitHubProjectNode = async (
     await trace(jobId, `Using local folder: ${localPath}`);
     const content = await buildProjectContent(localPath, `Local Folder: ${localPath}`);
     nodeOutputs.set(node.id, { inputPath: localPath, content });
-    await trace(jobId, encodeNodeDone(node.id));
+    await trace(jobId, `@@NODE_DONE::${node.id}`);
 
     return { ok: true };
   }
@@ -78,7 +77,7 @@ export const processGitHubProjectNode = async (
 
   if (!owner || !repo) {
     await trace(jobId, `WARNING: GitHub project node missing owner/repo, skipping`);
-    await trace(jobId, encodeNodeFail(node.id));
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
     nodeOutputs.set(node.id, { inputPath: "", content: "" });
 
     return { ok: true };
@@ -97,7 +96,7 @@ export const processGitHubProjectNode = async (
       content,
       githubRemote: { owner, repo, branch },
     });
-    await trace(jobId, encodeNodeDone(node.id));
+    await trace(jobId, `@@NODE_DONE::${node.id}`);
 
     return { ok: true };
   }
@@ -106,7 +105,7 @@ export const processGitHubProjectNode = async (
   const cloneResult = await cloneGitHubRepo(owner, repo, branch, githubToken);
   if (cloneResult.isErr()) {
     await trace(jobId, `ERROR: ${cloneResult.error.message}`);
-    await trace(jobId, encodeNodeFail(node.id));
+    await trace(jobId, `@@NODE_FAIL::${node.id}`);
 
     return { ok: false, error: cloneResult.error };
   }
@@ -118,7 +117,7 @@ export const processGitHubProjectNode = async (
     `Repository: ${owner}/${repo} (branch: ${branch})\nPath: ${clonedDir}`,
   );
   nodeOutputs.set(node.id, { inputPath: clonedDir, content });
-  await trace(jobId, encodeNodeDone(node.id));
+  await trace(jobId, `@@NODE_DONE::${node.id}`);
 
   return { ok: true };
 };

@@ -154,8 +154,12 @@
           "name": "checklist_items_best_practice_id_best_practices_id_fk",
           "tableFrom": "checklist_items",
           "tableTo": "best_practices",
-          "columnsFrom": ["best_practice_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "best_practice_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -247,8 +251,12 @@
           "name": "checklist_results_job_id_jobs_id_fk",
           "tableFrom": "checklist_results",
           "tableTo": "jobs",
-          "columnsFrom": ["job_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "job_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -256,8 +264,12 @@
           "name": "checklist_results_checklist_item_id_checklist_items_id_fk",
           "tableFrom": "checklist_results",
           "tableTo": "checklist_items",
-          "columnsFrom": ["checklist_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "checklist_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -333,8 +345,12 @@
           "name": "code_snippets_best_practice_id_best_practices_id_fk",
           "tableFrom": "code_snippets",
           "tableTo": "best_practices",
-          "columnsFrom": ["best_practice_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "best_practice_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -422,7 +438,11 @@
         "github_projects_owner_repo_branch_unique": {
           "name": "github_projects_owner_repo_branch_unique",
           "nullsNotDistinct": false,
-          "columns": ["owner", "repo", "branch"]
+          "columns": [
+            "owner",
+            "repo",
+            "branch"
+          ]
         }
       },
       "policies": {},
@@ -503,8 +523,12 @@
           "name": "job_logs_job_id_jobs_id_fk",
           "tableFrom": "job_logs",
           "tableTo": "jobs",
-          "columnsFrom": ["job_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "job_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -670,8 +694,12 @@
           "name": "jobs_project_id_github_projects_id_fk",
           "tableFrom": "jobs",
           "tableTo": "github_projects",
-          "columnsFrom": ["project_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -679,8 +707,12 @@
           "name": "jobs_pipeline_id_pipelines_id_fk",
           "tableFrom": "jobs",
           "tableTo": "pipelines",
-          "columnsFrom": ["pipeline_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "pipeline_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -873,8 +905,12 @@
           "name": "recipes_operation_id_operations_id_fk",
           "tableFrom": "recipes",
           "tableTo": "operations",
-          "columnsFrom": ["operation_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "operation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -882,8 +918,12 @@
           "name": "recipes_best_practice_id_best_practices_id_fk",
           "tableFrom": "recipes",
           "tableTo": "best_practices",
-          "columnsFrom": ["best_practice_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "best_practice_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1105,7 +1145,9 @@
         "skills_name_unique": {
           "name": "skills_name_unique",
           "nullsNotDistinct": false,
-          "columns": ["name"]
+          "columns": [
+            "name"
+          ]
         }
       },
       "policies": {},

@@ -11,8 +11,21 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
 import { Skeleton } from "@repo/ui/skeleton";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@repo/ui/dialog";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/ui/dialog";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@repo/ui/form";
 import {
   Select,
   SelectContent,
@@ -25,7 +38,10 @@ import { TemplateContentTypeSchema, type DraftOperation } from "@repo/schemas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
 import { useAnalyzeSkill } from "./useAnalyzeSkill";
-import { SkillStepListEditor, type StepFormValues } from "./SkillStepListEditor";
+import {
+  SkillStepListEditor,
+  type StepFormValues,
+} from "./SkillStepListEditor";
 
 const templateContentTypes = TemplateContentTypeSchema.options;
 
@@ -52,14 +68,21 @@ export interface SkillToOperationDialogProps {
   onClose: () => void;
 }
 
-export const SkillToOperationDialog = ({ open, skillId, onClose }: SkillToOperationDialogProps) => {
+export const SkillToOperationDialog = ({
+  open,
+  skillId,
+  onClose,
+}: SkillToOperationDialogProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { mutateAsync: createOperation } = useCreate();
   const { mutateAsync: createPipeline } = useCreate();
   const [isBusy, setIsBusy] = useState(false);
 
-  const { result: analysisResult, query: analysisQuery } = useAnalyzeSkill(skillId, open);
+  const { result: analysisResult, query: analysisQuery } = useAnalyzeSkill(
+    skillId,
+    open,
+  );
 
   const { result: draftResult, query: draftQuery } = useOne<DraftOperation>({
     resource: ResourceName.skillDraftOperations,
@@ -360,8 +383,7 @@ export const SkillToOperationDialog = ({ open, skillId, onClose }: SkillToOperat
       <Form {...form}>
         <form
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
-          onSubmit={form.handleSubmit(handleSubmit)}
-        >
+          onSubmit={form.handleSubmit(handleSubmit)}>
           <div className="flex-1 space-y-4 overflow-y-auto">
             <FormField
               control={form.control}
@@ -372,7 +394,10 @@ export const SkillToOperationDialog = ({ open, skillId, onClose }: SkillToOperat
                     {t("common.name")}
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder={t("skills.createOperation.namePlaceholder")} {...field} />
+                    <Input
+                      placeholder={t("skills.createOperation.namePlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -390,7 +415,9 @@ export const SkillToOperationDialog = ({ open, skillId, onClose }: SkillToOperat
                   <FormControl>
                     <Textarea
                       className="resize-none"
-                      placeholder={t("skills.createOperation.descriptionPlaceholder")}
+                      placeholder={t(
+                        "skills.createOperation.descriptionPlaceholder",
+                      )}
                       rows={3}
                       {...field}
                     />
@@ -410,8 +437,7 @@ export const SkillToOperationDialog = ({ open, skillId, onClose }: SkillToOperat
                   size="sm"
                   type="button"
                   variant="ghost"
-                  onClick={handleAddOutput}
-                >
+                  onClick={handleAddOutput}>
                   <Plus className="mr-1 h-3 w-3" />
                   {t("skills.createOperation.addOutput")}
                 </Button>
@@ -428,7 +454,9 @@ export const SkillToOperationDialog = ({ open, skillId, onClose }: SkillToOperat
                           <Input
                             {...f}
                             className="h-8 text-xs"
-                            placeholder={t("skills.createOperation.outputNamePlaceholder")}
+                            placeholder={t(
+                              "skills.createOperation.outputNamePlaceholder",
+                            )}
                           />
                         </FormControl>
                         <FormMessage className="text-xs" />
@@ -444,14 +472,19 @@ export const SkillToOperationDialog = ({ open, skillId, onClose }: SkillToOperat
                       return (
                         <FormItem className="w-28">
                           <FormControl>
-                            <Select value={f.value} onValueChange={handleValueChange}>
+                            <Select
+                              value={f.value}
+                              onValueChange={handleValueChange}>
                               <SelectTrigger className="h-8 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectGroup>
                                   {templateContentTypes.map((type) => (
-                                    <SelectItem key={type} className="text-xs" value={type}>
+                                    <SelectItem
+                                      key={type}
+                                      className="text-xs"
+                                      value={type}>
                                       {type}
                                     </SelectItem>
                                   ))}
@@ -468,8 +501,7 @@ export const SkillToOperationDialog = ({ open, skillId, onClose }: SkillToOperat
                     size="sm"
                     type="button"
                     variant="ghost"
-                    onClick={() => handleRemoveOutput(index)}
-                  >
+                    onClick={() => handleRemoveOutput(index)}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -478,7 +510,11 @@ export const SkillToOperationDialog = ({ open, skillId, onClose }: SkillToOperat
           </div>
 
           <DialogFooter className="mt-4">
-            <Button disabled={isBusy} type="button" variant="outline" onClick={handleClose}>
+            <Button
+              disabled={isBusy}
+              type="button"
+              variant="outline"
+              onClick={handleClose}>
               {t("common.cancel")}
             </Button>
             <Button disabled={isBusy} type="submit">
@@ -502,3 +538,4 @@ export const SkillToOperationDialog = ({ open, skillId, onClose }: SkillToOperat
     </Dialog>
   );
 };
+

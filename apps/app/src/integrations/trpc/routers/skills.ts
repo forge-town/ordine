@@ -46,17 +46,21 @@ export const skillsRouter = router({
     .input(z.object({ id: z.string() }))
     .mutation(({ input }) => skillsService.delete(input.id)),
 
-  draftOperation: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-    const skill = await skillsService.getById(input.id);
-    if (!skill) throw new TRPCError({ code: "NOT_FOUND", message: "Skill not found" });
+  draftOperation: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const skill = await skillsService.getById(input.id);
+      if (!skill) throw new TRPCError({ code: "NOT_FOUND", message: "Skill not found" });
 
-    return skillsService.buildDraftOperation(skill);
-  }),
+      return skillsService.buildDraftOperation(skill);
+    }),
 
-  analyze: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-    const skill = await skillsService.getById(input.id);
-    if (!skill) throw new TRPCError({ code: "NOT_FOUND", message: "Skill not found" });
+  analyze: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const skill = await skillsService.getById(input.id);
+      if (!skill) throw new TRPCError({ code: "NOT_FOUND", message: "Skill not found" });
 
-    return skillsService.analyzeSkill(skill);
-  }),
+      return skillsService.analyzeSkill(skill);
+    }),
 });

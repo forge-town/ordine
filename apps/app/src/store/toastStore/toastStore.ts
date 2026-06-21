@@ -1,6 +1,5 @@
 import { createStore, type StoreApi, type StateCreator } from "zustand";
 import { createContext, useContext } from "react";
-import { useNotificationStore } from "../notificationStore";
 
 export interface ToastMessage {
   id: string;
@@ -27,12 +26,6 @@ export const createToastSlice = (set: Parameters<ToastStoreSlice>[0]): ToastSlic
     set((state) => ({
       toasts: [...state.toasts.filter((t) => t.id !== id), { ...toast, id }],
     }));
-    // Toasts vanish after a few seconds — mirror them into the notification
-    // history so run / self-heal / connector events stay reviewable.
-    useNotificationStore.getState().addNotification({
-      kind: toast.type,
-      message: toast.description ? `${toast.title} · ${toast.description}` : toast.title,
-    });
   },
   removeToast: (id) => {
     set((state) => ({

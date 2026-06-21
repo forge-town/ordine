@@ -2,14 +2,7 @@ import { z } from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../init";
 import { pipelinesService, pipelineRunnerService } from "../services";
-import { getProposeProgress, setProposeProgress } from "@repo/services";
-import {
-  AgentContextPayloadSchema,
-  PipelineGraphSnapshotSchema,
-  PipelineSchema,
-  ProposeAttachmentSchema,
-  ProposePendingOperationSchema,
-} from "@repo/schemas";
+import { PipelineGraphSnapshotSchema, PipelineSchema } from "@repo/schemas";
 
 export const pipelinesRouter = router({
   getMany: publicProcedure.query(() => pipelinesService.getAll()),
@@ -75,7 +68,6 @@ export const pipelinesRouter = router({
         id: z.string(),
         inputPath: z.string().optional(),
         githubToken: z.string().optional(),
-        selfHealRetries: z.number().int().min(0).max(5).optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -88,7 +80,6 @@ export const pipelinesRouter = router({
         pipelineId: input.id,
         inputPath: input.inputPath,
         githubToken: input.githubToken,
-        selfHealRetries: input.selfHealRetries,
       });
 
       if (result.isErr()) {
@@ -123,56 +114,25 @@ export const pipelinesRouter = router({
       return result;
     }),
 
-  createPendingOperations: publicProcedure
-    .input(z.object({ operations: z.array(ProposePendingOperationSchema) }))
-    .mutation(async ({ input }) => {
-      await pipelinesService.createPendingOperations(
-        input.operations as Parameters<typeof pipelinesService.createPendingOperations>[0],
-      );
-
-      return { created: input.operations.length };
-    }),
-
   proposeActions: publicProcedure
     .input(
       z.object({
         id: z.string(),
-        attachments: z.array(ProposeAttachmentSchema).optional(),
-        context: AgentContextPayloadSchema.optional(),
-        diagnostics: z.array(z.string()).optional(),
-        failedProposal: z.unknown().optional(),
         snapshot: PipelineGraphSnapshotSchema,
         message: z.string().trim().min(1),
         pipelineName: z.string().optional(),
-        progressToken: z.string().optional(),
-        referencedNodeIds: z.array(z.string()).optional(),
         runtimeId: z.string().optional(),
       }),
     )
-    .mutation(async ({ input }) => {
-      const result = await pipelinesService.proposeActions({
+    .mutation(({ input }) =>
+      pipelinesService.proposeActions({
         pipelineId: input.id,
-        attachments: input.attachments,
-        context: input.context,
-        diagnostics: input.diagnostics,
-        failedProposal: input.failedProposal,
         snapshot: input.snapshot,
         message: input.message,
         pipelineName: input.pipelineName,
-        progressToken: input.progressToken,
-        referencedNodeIds: input.referencedNodeIds,
         runtimeId: input.runtimeId,
-      });
-      if (input.progressToken) {
-        setProposeProgress(input.progressToken, "done");
-      }
-
-      return result;
-    }),
-
-  proposeProgress: publicProcedure
-    .input(z.object({ token: z.string() }))
-    .query(({ input }) => ({ stage: getProposeProgress(input.token) })),
+      }),
+    ),
 
   generateStructure: publicProcedure
     .input(
