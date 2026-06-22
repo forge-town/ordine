@@ -162,6 +162,23 @@ describe("pipelineAgentSessionsRoutes", () => {
     expect(mocks.approveProposal).toHaveBeenCalledWith("session-1", "proposal-1");
   });
 
+  it("returns 409 when proposal approval is rejected by business rules", async () => {
+    mocks.approveProposal.mockRejectedValue(
+      new Error("Pipeline agent proposal proposal-1 cannot be approved from status approved"),
+    );
+
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/approve", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ proposalId: "proposal-1" }),
+    });
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      error: "Pipeline agent proposal proposal-1 cannot be approved from status approved",
+    });
+  });
+
   it("supersedes a proposal for a session", async () => {
     mocks.supersedeProposal.mockResolvedValue(undefined);
 
@@ -214,6 +231,22 @@ describe("pipelineAgentSessionsRoutes", () => {
     );
   });
 
+  it("rejects oversized uploads before reading them into service memory", async () => {
+    const formData = new FormData();
+    formData.append(
+      "file",
+      new File([new Uint8Array(10 * 1024 * 1024 + 1)], "large.txt", { type: "text/plain" }),
+    );
+
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/attachments", {
+      method: "POST",
+      body: formData,
+    });
+
+    expect(response.status).toBe(413);
+    expect(mocks.ingestAttachment).not.toHaveBeenCalled();
+  });
+
   it("streams planning events for a session", async () => {
     mocks.planSession.mockImplementation(async (_sessionId, input) => {
       await input.onProgress?.("planner: started");
@@ -246,6 +279,18 @@ describe("pipelineAgentSessionsRoutes", () => {
     );
   });
 
+  it("returns 400 for malformed planning JSON without invoking the planner", async () => {
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/plan", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{",
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "Invalid request body" });
+    expect(mocks.planSession).not.toHaveBeenCalled();
+  });
+
   it("generates a pipeline draft from an approved session", async () => {
     mocks.generatePipelineFromApprovedProposal.mockResolvedValue({
       pipeline: { id: "pipeline-1" },
@@ -258,6 +303,36 @@ describe("pipelineAgentSessionsRoutes", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ pipelineId: "pipeline-1" });
     expect(mocks.generatePipelineFromApprovedProposal).toHaveBeenCalledWith("session-1");
+  });
+
+  it("returns 404 when generation targets a missing session", async () => {
+    mocks.generatePipelineFromApprovedProposal.mockRejectedValue(
+      new Error("Pipeline agent session not found: missing"),
+    );
+
+    const response = await makeApp().request("/pipeline-agent-sessions/missing/generate", {
+      method: "POST",
+    });
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: "Pipeline agent session not found: missing",
+    });
+  });
+
+  it("returns 409 when generation is rejected by session state", async () => {
+    mocks.generatePipelineFromApprovedProposal.mockRejectedValue(
+      new Error("Pipeline agent session session-1 does not have an approved proposal"),
+    );
+
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/generate", {
+      method: "POST",
+    });
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      error: "Pipeline agent session session-1 does not have an approved proposal",
+    });
   });
 
   it("returns an error when pipeline generation fails", async () => {

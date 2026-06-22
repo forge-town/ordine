@@ -557,6 +557,33 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
+  it("marks the session failed when planning returns invalid JSON", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "draft",
+      pipelineId: null,
+      snapshot: null,
+      latestProposalId: null,
+      approvedProposalId: null,
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    mockRunAgent.mockResolvedValueOnce("not json");
+
+    const service = createPipelineAgentSessionsService({} as never);
+    await expect(service.planSession("session-1")).rejects.toThrow();
+
+    expect(mockSessionsDao.update).toHaveBeenLastCalledWith(
+      "session-1",
+      expect.objectContaining({
+        status: "failed",
+      }),
+    );
+  });
+
   it("bridges edit planning into executable canvas actions", async () => {
     mockSessionsDao.findById.mockResolvedValueOnce({
       id: "session-edit",
@@ -719,6 +746,46 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
+  it("restores approved proposal state when generation fails so retry can approve again", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "approved",
+      pipelineId: null,
+      snapshot: null,
+      latestProposalId: "proposal-1",
+      approvedProposalId: "proposal-1",
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    mockPipelinesService.generateStructure.mockResolvedValueOnce({
+      error: "Agent returned invalid pipeline structure",
+    });
+
+    const service = createPipelineAgentSessionsService({} as never);
+    await expect(service.generatePipelineFromApprovedProposal("session-1")).rejects.toThrow(
+      "Agent returned invalid pipeline structure",
+    );
+
+    expect(mockProposalsDao.update).toHaveBeenCalledWith(
+      "proposal-1",
+      expect.objectContaining({
+        status: "proposal_ready",
+        approvedAt: null,
+      }),
+    );
+    expect(mockSessionsDao.update).toHaveBeenCalledWith(
+      "session-1",
+      expect.objectContaining({
+        status: "proposal_ready",
+        approvedProposalId: null,
+        latestProposalId: "proposal-1",
+      }),
+    );
+  });
+
   it("marks a proposal superseded and clears it from the active session", async () => {
     const service = createPipelineAgentSessionsService({} as never);
     await service.supersedeProposal("session-1", "proposal-1");
@@ -754,6 +821,22 @@ describe("createPipelineAgentSessionsService", () => {
         }),
       }),
     );
+  });
+
+  it("stores attachments under a generated safe path without trusting the uploaded filename", async () => {
+    const service = createPipelineAgentSessionsService({} as never);
+
+    const result = await service.ingestAttachment("session-1", {
+      bytes: new TextEncoder().encode("hello world"),
+      filename: "..\\..\\evil.txt",
+      mimeType: "text/plain",
+      sizeBytes: 11,
+    });
+
+    expect(result.attachment.filename).toBe("..\\..\\evil.txt");
+    expect(result.attachment.storageKey).not.toContain("evil.txt");
+    expect(result.attachment.storageKey).not.toContain("..");
+    expect(result.attachment.storageKey).toMatch(/[\\/][a-f0-9-]+\.txt$/i);
   });
 
   it("extracts basic text content from docx attachments", async () => {

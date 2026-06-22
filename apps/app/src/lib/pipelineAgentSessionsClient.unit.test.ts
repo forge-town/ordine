@@ -84,6 +84,23 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
       question: "Need one more answer?",
     });
   });
+
+  it("ignores proposal_ready SSE events with invalid proposal payloads", async () => {
+    const onEvent = vi.fn();
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(
+        createStreamResponse([
+          'event: proposal_ready\ndata: {"proposal":{"mode":"generate","purpose":"Missing required fields"},"proposalId":"proposal-1"}\n\n',
+        ]),
+      ) as typeof fetch;
+
+    await pipelineAgentSessionsClient.planSessionStream("session-1", {
+      onEvent,
+    });
+
+    expect(onEvent).not.toHaveBeenCalled();
+  });
 });
 
 describe("pipelineAgentSessionsClient.waitForCreatedPipeline", () => {

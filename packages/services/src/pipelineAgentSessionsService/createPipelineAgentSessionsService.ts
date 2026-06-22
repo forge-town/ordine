@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { extname, join } from "node:path";
+import { extname, resolve, sep } from "node:path";
 import { inflateSync } from "node:zlib";
 import JSZip from "jszip";
 import { Result, ResultAsync } from "neverthrow";
@@ -56,6 +56,27 @@ const RelaxedCanvasEditPlanningResultSchema = z.discriminatedUnion("type", [
   }),
 ]);
 type RelaxedCanvasEditPlanningResult = z.infer<typeof RelaxedCanvasEditPlanningResultSchema>;
+
+export const PIPELINE_AGENT_MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+
+const toSafeStoragePath = (sessionId: string, attachmentId: string, filename: string) => {
+  const storageDir = resolve(
+    tmpdir(),
+    "ordine",
+    "pipeline-agent-sessions",
+    sessionId.replaceAll(/[^a-zA-Z0-9_-]/g, "_"),
+  );
+  const extension = extname(filename)
+    .replaceAll(/[^a-zA-Z0-9.]/g, "")
+    .slice(0, 16);
+  const storageKey = resolve(storageDir, `${attachmentId}${extension}`);
+
+  if (!storageKey.startsWith(`${storageDir}${sep}`) && storageKey !== storageDir) {
+    throw new Error("Attachment storage path escaped the session directory");
+  }
+
+  return { storageDir, storageKey };
+};
 
 export const createPipelineAgentSessionsService = (db: DbConnection) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
@@ -583,9 +604,17 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       },
     ) => {
       const attachmentId = crypto.randomUUID();
-      const storageDir = join(tmpdir(), "ordine", "pipeline-agent-sessions", sessionId);
+      if (
+        input.sizeBytes > PIPELINE_AGENT_MAX_ATTACHMENT_BYTES ||
+        input.bytes.byteLength > PIPELINE_AGENT_MAX_ATTACHMENT_BYTES
+      ) {
+        throw new Error(
+          `Attachment exceeds the ${PIPELINE_AGENT_MAX_ATTACHMENT_BYTES} byte size limit`,
+        );
+      }
+
+      const { storageDir, storageKey } = toSafeStoragePath(sessionId, attachmentId, input.filename);
       await mkdir(storageDir, { recursive: true });
-      const storageKey = join(storageDir, `${attachmentId}-${input.filename}`);
       await writeFile(storageKey, input.bytes);
 
       const artifactShapeResult = await ResultAsync.fromPromise(
@@ -770,143 +799,154 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
 
       await sessionsDao.update(sessionId, { status: "analyzing" });
 
-      const [messages, artifacts, settings, operations, runtimes] = await Promise.all([
-        messagesDao.findManyBySessionId(sessionId),
-        contextArtifactsDao.findManyBySessionId(sessionId),
-        settingsDao.get(),
-        operationsDao.findMany(),
-        agentRuntimesDao.findMany(),
-      ]);
-      const effectiveRuntime = resolveEffectiveRuntime({
-        requestedRuntimeId: input?.runtimeId,
-        runtimes,
-        defaultRuntime: settings.defaultAgentRuntime ?? null,
-      });
+      const planningResult = await ResultAsync.fromPromise(
+        (async () => {
+          const [messages, artifacts, settings, operations, runtimes] = await Promise.all([
+            messagesDao.findManyBySessionId(sessionId),
+            contextArtifactsDao.findManyBySessionId(sessionId),
+            settingsDao.get(),
+            operationsDao.findMany(),
+            agentRuntimesDao.findMany(),
+          ]);
+          const effectiveRuntime = resolveEffectiveRuntime({
+            requestedRuntimeId: input?.runtimeId,
+            runtimes,
+            defaultRuntime: settings.defaultAgentRuntime ?? null,
+          });
 
-      const raw = await runAgent({
-        agent: effectiveRuntime,
-        systemPrompt: "You are a fast planning assistant. Return only valid JSON.",
-        userPrompt: buildPlanningPrompt({
-          artifacts,
-          messages,
-          mode: session.mode,
-          operations,
-          pipelineId: session.pipelineId,
-          snapshot: session.snapshot,
-        }),
-        inputPath: process.cwd(),
-        agentId: "pipeline-agent-planner",
-        allowedTools: [],
-        logPrefix: "pipelineAgentPlan",
-        apiKey: settings.defaultApiKey,
-        model: settings.defaultModel,
-        onProgress: input?.onProgress,
-      });
+          const raw = await runAgent({
+            agent: effectiveRuntime,
+            systemPrompt: "You are a fast planning assistant. Return only valid JSON.",
+            userPrompt: buildPlanningPrompt({
+              artifacts,
+              messages,
+              mode: session.mode,
+              operations,
+              pipelineId: session.pipelineId,
+              snapshot: session.snapshot,
+            }),
+            inputPath: process.cwd(),
+            agentId: "pipeline-agent-planner",
+            allowedTools: [],
+            logPrefix: "pipelineAgentPlan",
+            apiKey: settings.defaultApiKey,
+            model: settings.defaultModel,
+            onProgress: input?.onProgress,
+          });
 
-      const parsed = (
-        session.mode === "edit"
-          ? RelaxedCanvasEditPlanningResultSchema
-          : PipelineAgentPlanningResultSchema
-      ).parse(JSON.parse(extractJsonFromText(raw)));
+          const parsed = (
+            session.mode === "edit"
+              ? RelaxedCanvasEditPlanningResultSchema
+              : PipelineAgentPlanningResultSchema
+          ).parse(JSON.parse(extractJsonFromText(raw)));
 
-      if (parsed.type === "question") {
-        await messagesDao.create({
-          id: crypto.randomUUID(),
-          sessionId,
-          role: "assistant",
-          kind: "question",
-          content: parsed.question,
-        });
-        await sessionsDao.update(sessionId, { status: "awaiting_user" });
+          if (parsed.type === "question") {
+            await messagesDao.create({
+              id: crypto.randomUUID(),
+              sessionId,
+              role: "assistant",
+              kind: "question",
+              content: parsed.question,
+            });
+            await sessionsDao.update(sessionId, { status: "awaiting_user" });
 
-        return parsed;
+            return parsed;
+          }
+
+          if (session.mode === "edit") {
+            const editProposal = (
+              parsed as Extract<RelaxedCanvasEditPlanningResult, { type: "proposal" }>
+            ).proposal;
+            if (!session.snapshot) {
+              throw new Error(`Edit session ${sessionId} is missing a graph snapshot`);
+            }
+
+            const actionRequest = [
+              editProposal.summary,
+              editProposal.targetGraphIntent
+                ? `Target intent: ${editProposal.targetGraphIntent}`
+                : null,
+              editProposal.majorChanges.length > 0
+                ? `Requested changes: ${editProposal.majorChanges.join("; ")}`
+                : null,
+              editProposal.assumptions.length > 0
+                ? `Assumptions: ${editProposal.assumptions.join("; ")}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join("\n");
+            const actionProposalResult = await pipelinesService.proposeActions({
+              snapshot: session.snapshot,
+              message: actionRequest,
+              pipelineId: session.pipelineId ?? undefined,
+              runtimeId: input?.runtimeId,
+            });
+            if (!actionProposalResult.proposal) {
+              throw new Error("Failed to generate executable canvas edit actions");
+            }
+
+            const finalEditProposal: PipelineAgentProposal = {
+              mode: "edit",
+              summary: editProposal.summary,
+              targetGraphIntent: editProposal.targetGraphIntent ?? editProposal.summary,
+              majorChanges: editProposal.majorChanges,
+              assumptions: editProposal.assumptions,
+              openQuestions: editProposal.openQuestions,
+              actions: actionProposalResult.proposal.actions,
+              diagnosticsPreview: actionProposalResult.diagnostics,
+              readiness: editProposal.readiness,
+            };
+            const saved = await proposalsDao.create({
+              id: crypto.randomUUID(),
+              sessionId,
+              mode: session.mode,
+              status: "proposal_ready",
+              proposal: finalEditProposal,
+              approvedAt: null,
+            });
+            await sessionsDao.update(sessionId, {
+              latestProposalId: saved.id,
+              status: "proposal_ready",
+            });
+
+            return {
+              type: "proposal" as const,
+              proposal: finalEditProposal,
+              proposalId: saved.id,
+            };
+          }
+
+          const generateProposal = parsed.proposal as Extract<
+            PipelineAgentProposal,
+            { mode: "generate" }
+          >;
+          const saved = await proposalsDao.create({
+            id: crypto.randomUUID(),
+            sessionId,
+            mode: session.mode,
+            status: "proposal_ready",
+            proposal: generateProposal,
+            approvedAt: null,
+          });
+          await sessionsDao.update(sessionId, {
+            latestProposalId: saved.id,
+            status: "proposal_ready",
+          });
+
+          return {
+            type: "proposal" as const,
+            proposal: generateProposal,
+            proposalId: saved.id,
+          };
+        })(),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      );
+      if (planningResult.isErr()) {
+        await sessionsDao.update(sessionId, { status: "failed" });
+        throw planningResult.error;
       }
 
-      if (session.mode === "edit") {
-        const editProposal = (
-          parsed as Extract<RelaxedCanvasEditPlanningResult, { type: "proposal" }>
-        ).proposal;
-        if (!session.snapshot) {
-          throw new Error(`Edit session ${sessionId} is missing a graph snapshot`);
-        }
-
-        const actionRequest = [
-          editProposal.summary,
-          editProposal.targetGraphIntent
-            ? `Target intent: ${editProposal.targetGraphIntent}`
-            : null,
-          editProposal.majorChanges.length > 0
-            ? `Requested changes: ${editProposal.majorChanges.join("; ")}`
-            : null,
-          editProposal.assumptions.length > 0
-            ? `Assumptions: ${editProposal.assumptions.join("; ")}`
-            : null,
-        ]
-          .filter(Boolean)
-          .join("\n");
-        const actionProposalResult = await pipelinesService.proposeActions({
-          snapshot: session.snapshot,
-          message: actionRequest,
-          pipelineId: session.pipelineId ?? undefined,
-          runtimeId: input?.runtimeId,
-        });
-        if (!actionProposalResult.proposal) {
-          throw new Error("Failed to generate executable canvas edit actions");
-        }
-
-        const finalEditProposal: PipelineAgentProposal = {
-          mode: "edit",
-          summary: editProposal.summary,
-          targetGraphIntent: editProposal.targetGraphIntent ?? editProposal.summary,
-          majorChanges: editProposal.majorChanges,
-          assumptions: editProposal.assumptions,
-          openQuestions: editProposal.openQuestions,
-          actions: actionProposalResult.proposal.actions,
-          diagnosticsPreview: actionProposalResult.diagnostics,
-          readiness: editProposal.readiness,
-        };
-        const saved = await proposalsDao.create({
-          id: crypto.randomUUID(),
-          sessionId,
-          mode: session.mode,
-          status: "proposal_ready",
-          proposal: finalEditProposal,
-          approvedAt: null,
-        });
-        await sessionsDao.update(sessionId, {
-          latestProposalId: saved.id,
-          status: "proposal_ready",
-        });
-
-        return {
-          type: "proposal",
-          proposal: finalEditProposal,
-          proposalId: saved.id,
-        };
-      }
-
-      const generateProposal = parsed.proposal as Extract<
-        PipelineAgentProposal,
-        { mode: "generate" }
-      >;
-      const saved = await proposalsDao.create({
-        id: crypto.randomUUID(),
-        sessionId,
-        mode: session.mode,
-        status: "proposal_ready",
-        proposal: generateProposal,
-        approvedAt: null,
-      });
-      await sessionsDao.update(sessionId, {
-        latestProposalId: saved.id,
-        status: "proposal_ready",
-      });
-
-      return {
-        type: "proposal",
-        proposal: generateProposal,
-        proposalId: saved.id,
-      };
+      return planningResult.value;
     },
 
     generatePipelineFromApprovedProposal: async (sessionId: string) => {
@@ -990,7 +1030,15 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         (error) => (error instanceof Error ? error : new Error(String(error))),
       );
       if (generationResult.isErr()) {
-        await sessionsDao.update(sessionId, { status: "proposal_ready" });
+        await proposalsDao.update(proposalRecord.id, {
+          status: "proposal_ready",
+          approvedAt: null,
+        });
+        await sessionsDao.update(sessionId, {
+          status: "proposal_ready",
+          latestProposalId: proposalRecord.id,
+          approvedProposalId: null,
+        });
         throw generationResult.error;
       }
 

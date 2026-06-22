@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import {
@@ -36,9 +36,58 @@ const planSessionBodySchema = z.object({
 const encodeEvent = (event: string, data: unknown) =>
   `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 
+const PIPELINE_AGENT_MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+
+const parseJsonBody = (c: Context) =>
+  ResultAsync.fromPromise(c.req.json(), (error) =>
+    error instanceof Error ? error : new Error(String(error)),
+  );
+
+const parseFormData = (c: Context) =>
+  ResultAsync.fromPromise(c.req.formData(), (error) =>
+    error instanceof Error ? error : new Error(String(error)),
+  );
+
+const parseOptionalJsonBody = (c: Context) =>
+  ResultAsync.fromPromise(
+    (async () => {
+      const body = await c.req.text();
+      if (body.trim().length === 0) {
+        return {};
+      }
+
+      return JSON.parse(body) as unknown;
+    })(),
+    (error) => (error instanceof Error ? error : new Error(String(error))),
+  );
+
+const serviceErrorStatus = (error: Error) => {
+  const message = error.message.toLowerCase();
+  if (message.includes("not found")) {
+    return 404;
+  }
+  if (
+    message.includes("cannot be approved") ||
+    message.includes("does not belong") ||
+    message.includes("does not match") ||
+    message.includes("does not have an approved proposal") ||
+    message.includes("not a generate session") ||
+    message.includes("not ready") ||
+    message.includes("approved proposal")
+  ) {
+    return 409;
+  }
+
+  return 500;
+};
+
 pipelineAgentSessionsRoutes.post("/", async (c) => {
-  const body = await c.req.json().catch(() => undefined);
-  const parsed = createSessionBodySchema.safeParse(body);
+  const bodyResult = await parseJsonBody(c);
+  if (bodyResult.isErr()) {
+    return c.json({ error: "Invalid request body" }, 400);
+  }
+
+  const parsed = createSessionBodySchema.safeParse(bodyResult.value);
   if (!parsed.success) {
     return c.json({ error: "Invalid request body" }, 400);
   }
@@ -63,8 +112,12 @@ pipelineAgentSessionsRoutes.get("/:id", async (c) => {
 });
 
 pipelineAgentSessionsRoutes.post("/:id/messages", async (c) => {
-  const body = await c.req.json().catch(() => undefined);
-  const parsed = appendMessageBodySchema.safeParse(body);
+  const bodyResult = await parseJsonBody(c);
+  if (bodyResult.isErr()) {
+    return c.json({ error: "Invalid request body" }, 400);
+  }
+
+  const parsed = appendMessageBodySchema.safeParse(bodyResult.value);
   if (!parsed.success) {
     return c.json({ error: "Invalid request body" }, 400);
   }
@@ -75,14 +128,21 @@ pipelineAgentSessionsRoutes.post("/:id/messages", async (c) => {
 });
 
 pipelineAgentSessionsRoutes.post("/:id/attachments", async (c) => {
-  const formData = await c.req.formData().catch(() => null);
-  const file = formData?.get("file");
-  if (!(file instanceof File)) {
+  const formDataResult = await parseFormData(c);
+  if (formDataResult.isErr()) {
     return c.json({ error: "Invalid attachment upload" }, 400);
   }
 
+  const file = formDataResult.value.get("file");
+  if (!(file instanceof File)) {
+    return c.json({ error: "Invalid attachment upload" }, 400);
+  }
+  if (file.size > PIPELINE_AGENT_MAX_ATTACHMENT_BYTES) {
+    return c.json({ error: "Attachment is too large" }, 413);
+  }
+
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const runtimeId = formData?.get("runtimeId");
+  const runtimeId = formDataResult.value.get("runtimeId");
   const result = await pipelineAgentSessionsService.ingestAttachment(c.req.param("id"), {
     bytes,
     filename: file.name,
@@ -97,14 +157,18 @@ pipelineAgentSessionsRoutes.post("/:id/attachments", async (c) => {
 });
 
 pipelineAgentSessionsRoutes.post("/:id/plan", async (c) => {
-  const body = await c.req.json().catch(() => ({}));
-  const parsed = planSessionBodySchema.safeParse(body);
+  const bodyResult = await parseOptionalJsonBody(c);
+  if (bodyResult.isErr()) {
+    return c.json({ error: "Invalid request body" }, 400);
+  }
+
+  const parsed = planSessionBodySchema.safeParse(bodyResult.value);
   if (!parsed.success) {
     return c.json({ error: "Invalid request body" }, 400);
   }
 
   const stream = new ReadableStream({
-    start: (controller) => {
+    start: async (controller) => {
       const encoder = new TextEncoder();
       const send = (event: string, data: unknown) => {
         controller.enqueue(encoder.encode(encodeEvent(event, data)));
@@ -112,30 +176,32 @@ pipelineAgentSessionsRoutes.post("/:id/plan", async (c) => {
 
       send("phase", { phase: "planning" });
 
-      void pipelineAgentSessionsService
-        .planSession(c.req.param("id"), {
+      const planResult = await ResultAsync.fromPromise(
+        pipelineAgentSessionsService.planSession(c.req.param("id"), {
           runtimeId: parsed.data.runtimeId,
           onProgress: (message) => {
             send("progress", { message });
             send("assistant_chunk", { text: message });
           },
-        })
-        .then((result) => {
-          if (result.type === "question") {
-            send("question", result);
-          } else {
-            send("proposal_ready", result);
-          }
+        }),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      );
 
-          send("done", { status: "ok" });
-          controller.close();
-        })
-        .catch((error) => {
-          send("error", {
-            message: error instanceof Error ? error.message : String(error),
-          });
-          controller.close();
-        });
+      if (planResult.isErr()) {
+        send("error", { message: planResult.error.message });
+        controller.close();
+
+        return;
+      }
+
+      if (planResult.value.type === "question") {
+        send("question", planResult.value);
+      } else {
+        send("proposal_ready", planResult.value);
+      }
+
+      send("done", { status: "ok" });
+      controller.close();
     },
   });
 
@@ -149,25 +215,48 @@ pipelineAgentSessionsRoutes.post("/:id/plan", async (c) => {
 });
 
 pipelineAgentSessionsRoutes.post("/:id/approve", async (c) => {
-  const body = await c.req.json().catch(() => undefined);
-  const parsed = approveProposalBodySchema.safeParse(body);
+  const bodyResult = await parseJsonBody(c);
+  if (bodyResult.isErr()) {
+    return c.json({ error: "Invalid request body" }, 400);
+  }
+
+  const parsed = approveProposalBodySchema.safeParse(bodyResult.value);
   if (!parsed.success) {
     return c.json({ error: "Invalid request body" }, 400);
   }
 
-  await pipelineAgentSessionsService.approveProposal(c.req.param("id"), parsed.data.proposalId);
+  const approveResult = await ResultAsync.fromPromise(
+    pipelineAgentSessionsService.approveProposal(c.req.param("id"), parsed.data.proposalId),
+    (error) => (error instanceof Error ? error : new Error(String(error))),
+  );
+  if (approveResult.isErr()) {
+    return c.json({ error: approveResult.error.message }, serviceErrorStatus(approveResult.error));
+  }
 
   return c.body(null, 204);
 });
 
 pipelineAgentSessionsRoutes.post("/:id/supersede", async (c) => {
-  const body = await c.req.json().catch(() => undefined);
-  const parsed = approveProposalBodySchema.safeParse(body);
+  const bodyResult = await parseJsonBody(c);
+  if (bodyResult.isErr()) {
+    return c.json({ error: "Invalid request body" }, 400);
+  }
+
+  const parsed = approveProposalBodySchema.safeParse(bodyResult.value);
   if (!parsed.success) {
     return c.json({ error: "Invalid request body" }, 400);
   }
 
-  await pipelineAgentSessionsService.supersedeProposal(c.req.param("id"), parsed.data.proposalId);
+  const supersedeResult = await ResultAsync.fromPromise(
+    pipelineAgentSessionsService.supersedeProposal(c.req.param("id"), parsed.data.proposalId),
+    (error) => (error instanceof Error ? error : new Error(String(error))),
+  );
+  if (supersedeResult.isErr()) {
+    return c.json(
+      { error: supersedeResult.error.message },
+      serviceErrorStatus(supersedeResult.error),
+    );
+  }
 
   return c.body(null, 204);
 });
@@ -178,7 +267,7 @@ pipelineAgentSessionsRoutes.post("/:id/generate", async (c) => {
     (error) => (error instanceof Error ? error : new Error(String(error))),
   );
   if (result.isErr()) {
-    return c.json({ error: result.error.message }, 500);
+    return c.json({ error: result.error.message }, serviceErrorStatus(result.error));
   }
 
   return c.json({ pipelineId: result.value.pipeline.id });

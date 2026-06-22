@@ -563,17 +563,31 @@ export const AgentPanel = () => {
     }
 
     const run = async () => {
-      const applied = applyAgentProposal(activeProposal);
-      if (!applied) {
-        return;
-      }
-
       const approvalResult = await ResultAsync.fromPromise(
         sessionIdRef.current && proposalIdRef.current
           ? pipelineAgentSessionsClient.approveProposal(sessionIdRef.current, proposalIdRef.current)
           : Promise.resolve(),
         (error) => (error instanceof Error ? error : new Error(String(error))),
       );
+      if (approvalResult.isErr()) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `assistant-error-${Date.now()}`,
+            role: "assistant",
+            content: approvalResult.error.message,
+          },
+        ]);
+        scrollToBottom();
+
+        return;
+      }
+
+      const applied = applyAgentProposal(activeProposal);
+      if (!applied) {
+        return;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
@@ -586,16 +600,6 @@ export const AgentPanel = () => {
       sessionIdRef.current = null;
       sessionGraphSignatureRef.current = null;
       proposalIdRef.current = null;
-      if (approvalResult.isErr()) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `assistant-error-${Date.now()}`,
-            role: "assistant",
-            content: approvalResult.error.message,
-          },
-        ]);
-      }
       scrollToBottom();
     };
 

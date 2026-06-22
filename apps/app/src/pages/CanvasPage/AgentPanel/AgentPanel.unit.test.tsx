@@ -459,6 +459,55 @@ describe("AgentPanel", () => {
     });
   });
 
+  it("does not apply a session proposal locally when server approval fails", async () => {
+    mockApproveProposal.mockRejectedValueOnce(new Error("proposal was superseded"));
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({
+        type: "proposal_ready",
+        proposalId: "proposal-1",
+        proposal: {
+          mode: "edit",
+          summary: "Remove stale node",
+          targetGraphIntent: "Clean up the graph",
+          majorChanges: ["Remove stale node"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+          diagnosticsPreview: [],
+          actions: [
+            {
+              type: "removeNode",
+              nodeId: "node-1",
+            },
+          ],
+        },
+      });
+    });
+
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+    await waitFor(() => {
+      expect(mockGetList).toHaveBeenCalled();
+    });
+    await userEvent.type(
+      screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder"),
+      "Suggest an edit",
+    );
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => {
+      expect(screen.getByText("canvas.agentPanel.apply")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("canvas.agentPanel.apply"));
+
+    await waitFor(() => {
+      expect(screen.getByText("proposal was superseded")).toBeInTheDocument();
+    });
+    expect(mockApproveProposal).toHaveBeenCalledWith("session-1", "proposal-1");
+    expect(mockApplyPipelineActions).not.toHaveBeenCalled();
+    expect(screen.queryByText("canvas.agentPanel.applied")).not.toBeInTheDocument();
+    expect(screen.getByText("canvas.agentPanel.apply")).toBeInTheDocument();
+  });
+
   it("renders a follow-up question from session fallback when the stream misses question", async () => {
     mockPlanSessionStream.mockResolvedValue(undefined);
     mockGetLatestAssistantQuestion.mockResolvedValueOnce({

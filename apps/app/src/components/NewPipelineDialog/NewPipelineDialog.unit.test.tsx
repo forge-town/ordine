@@ -577,6 +577,57 @@ describe("NewPipelineDialog", () => {
     expect(screen.queryByText("newPipelineDialog.pipelineReady")).not.toBeInTheDocument();
   });
 
+  it("can approve the same proposal again after a terminal generation error", async () => {
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({
+        type: "proposal_ready",
+        proposal: {
+          mode: "generate",
+          purpose: "Review repository code",
+          inputs: ["folder"],
+          outputs: ["markdown report"],
+          majorOperations: ["review-code"],
+          executionFlow: ["folder -> review-code -> output"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+        proposalId: "proposal-1",
+      });
+    });
+    mockGeneratePipeline
+      .mockRejectedValueOnce(
+        Object.assign(new Error("Agent returned invalid pipeline structure"), { status: 500 }),
+      )
+      .mockResolvedValueOnce({ pipelineId: "pipe-2" });
+
+    const store = createSidebarStore();
+    store.setState({ newPipelineOpen: true });
+    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Build me a review pipeline",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
+    await waitFor(() => {
+      expect(screen.getByText("newPipelineDialog.approve")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("newPipelineDialog.approve"));
+    await waitFor(() => {
+      expect(screen.getByText("Agent returned invalid pipeline structure")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("newPipelineDialog.approve"));
+
+    await waitFor(() => {
+      expect(mockApproveProposal).toHaveBeenCalledTimes(2);
+      expect(mockGeneratePipeline).toHaveBeenCalledTimes(2);
+      expect(screen.getByText("newPipelineDialog.pipelineReady")).toBeInTheDocument();
+    });
+  });
+
   it("uploads a file into the session context", async () => {
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });

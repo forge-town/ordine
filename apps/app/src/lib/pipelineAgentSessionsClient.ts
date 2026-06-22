@@ -1,5 +1,20 @@
 import { Result } from "neverthrow";
-import type { PipelineAgentProposal } from "@repo/schemas";
+import { z } from "zod/v4";
+import {
+  PipelineAgentAttachmentParseStatusSchema,
+  PipelineAgentEntrypointSchema,
+  PipelineAgentMessageKindSchema,
+  PipelineAgentMessageRoleSchema,
+  PipelineAgentModeSchema,
+  PipelineAgentProposalSchema,
+  PipelineAgentProposalStatusSchema,
+  PipelineAgentSessionStatusSchema,
+  type PipelineAgentEntrypoint,
+  type PipelineAgentMessageKind,
+  type PipelineAgentMessageRole,
+  type PipelineAgentMode,
+  type PipelineAgentProposal,
+} from "@repo/schemas";
 
 const pipelineAgentSessionsBaseUrl =
   globalThis.window === undefined
@@ -8,52 +23,86 @@ const pipelineAgentSessionsBaseUrl =
       ? "http://localhost:9433/api/pipeline-agent-sessions"
       : `${globalThis.window.location.origin}/api/pipeline-agent-sessions`;
 
-export interface PipelineAgentSessionClientRecord {
-  id: string;
-  entrypoint: "new-pipeline-dialog" | "canvas-agent-panel";
-  mode: "generate" | "edit";
-  status: string;
-  latestProposalId?: string | null;
-}
+const PipelineAgentSessionClientRecordSchema = z.object({
+  id: z.string().min(1),
+  entrypoint: PipelineAgentEntrypointSchema,
+  mode: PipelineAgentModeSchema,
+  status: PipelineAgentSessionStatusSchema,
+  latestProposalId: z.string().nullable().optional(),
+});
+export type PipelineAgentSessionClientRecord = z.infer<
+  typeof PipelineAgentSessionClientRecordSchema
+>;
 
-export interface PipelineAgentAttachmentClientRecord {
-  id: string;
-  filename: string;
-  parseStatus?: string | null;
-}
+const PipelineAgentAttachmentClientRecordSchema = z.object({
+  id: z.string().min(1),
+  filename: z.string().min(1),
+  parseStatus: PipelineAgentAttachmentParseStatusSchema.nullable().optional(),
+});
+export type PipelineAgentAttachmentClientRecord = z.infer<
+  typeof PipelineAgentAttachmentClientRecordSchema
+>;
 
-export interface PipelineAgentAttachmentUploadResult {
-  attachment?: PipelineAgentAttachmentClientRecord;
-}
+const PipelineAgentAttachmentUploadResultSchema = z.object({
+  attachment: PipelineAgentAttachmentClientRecordSchema.optional(),
+});
+export type PipelineAgentAttachmentUploadResult = z.infer<
+  typeof PipelineAgentAttachmentUploadResultSchema
+>;
 
-export interface PipelineAgentSessionClientDetail extends PipelineAgentSessionClientRecord {
-  createdPipelineId?: string | null;
-  messages?: PipelineAgentMessageClientRecord[];
-  proposals?: PipelineAgentStoredProposalClientRecord[];
-}
+const PipelineAgentMessageClientRecordSchema = z.object({
+  id: z.string().min(1),
+  role: PipelineAgentMessageRoleSchema,
+  kind: PipelineAgentMessageKindSchema,
+  content: z.string(),
+});
+export type PipelineAgentMessageClientRecord = z.infer<
+  typeof PipelineAgentMessageClientRecordSchema
+>;
 
-export interface PipelineAgentMessageClientRecord {
-  id: string;
-  role: "user" | "assistant" | "system";
-  kind: string;
-  content: string;
-}
+const PipelineAgentStoredProposalClientRecordSchema = z.object({
+  id: z.string().min(1),
+  mode: PipelineAgentModeSchema,
+  status: PipelineAgentProposalStatusSchema,
+  proposal: PipelineAgentProposalSchema,
+});
+export type PipelineAgentStoredProposalClientRecord = z.infer<
+  typeof PipelineAgentStoredProposalClientRecordSchema
+>;
 
-export interface PipelineAgentStoredProposalClientRecord {
-  id: string;
-  mode: "generate" | "edit";
-  status: string;
-  proposal: PipelineAgentProposal;
-}
+const PipelineAgentSessionClientDetailSchema = PipelineAgentSessionClientRecordSchema.extend({
+  createdPipelineId: z.string().nullable().optional(),
+  messages: z.array(PipelineAgentMessageClientRecordSchema).optional(),
+  proposals: z.array(PipelineAgentStoredProposalClientRecordSchema).optional(),
+});
+export type PipelineAgentSessionClientDetail = z.infer<
+  typeof PipelineAgentSessionClientDetailSchema
+>;
 
-export type PipelineAgentPlanEvent =
-  | { type: "phase"; phase: string }
-  | { type: "progress"; message: string }
-  | { type: "assistant_chunk"; text: string }
-  | { type: "question"; question: string }
-  | { type: "proposal_ready"; proposal: PipelineAgentProposal; proposalId: string }
-  | { type: "done"; status: string }
-  | { type: "error"; message: string };
+const PipelineAgentPlanEventSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("phase"), phase: z.string().min(1) }),
+  z.object({ type: z.literal("progress"), message: z.string() }),
+  z.object({ type: z.literal("assistant_chunk"), text: z.string() }),
+  z.object({ type: z.literal("question"), question: z.string().min(1) }),
+  z.object({
+    type: z.literal("proposal_ready"),
+    proposal: PipelineAgentProposalSchema,
+    proposalId: z.string().min(1),
+  }),
+  z.object({ type: z.literal("done"), status: z.string().min(1) }),
+  z.object({ type: z.literal("error"), message: z.string() }),
+]);
+export type PipelineAgentPlanEvent = z.infer<typeof PipelineAgentPlanEventSchema>;
+
+const PipelineAgentCreatedPipelineResponseSchema = z.object({
+  pipelineId: z.string().min(1),
+});
+
+const parsePlanEvent = (value: unknown): PipelineAgentPlanEvent | null => {
+  const result = PipelineAgentPlanEventSchema.safeParse(value);
+
+  return result.success ? result.data : null;
+};
 
 const parseEventPayload = (raw: string): Record<string, unknown> | null =>
   Result.fromThrowable(
@@ -64,21 +113,27 @@ const parseEventPayload = (raw: string): Record<string, unknown> | null =>
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-const readResponseJson = async <T>(response: Response): Promise<T> => {
+const readResponseError = async (response: Response) => {
+  const body = await response.text();
+  const parsed = parseEventPayload(body);
+  const message =
+    isRecord(parsed) && typeof parsed.error === "string"
+      ? parsed.error
+      : body || `Request failed with status ${response.status}`;
+
+  const error = new Error(message) as Error & { status: number };
+  error.status = response.status;
+
+  return error;
+};
+
+const readResponseJson = async <T>(response: Response, schema: z.ZodType<T>): Promise<T> => {
   const body = await response.text();
   if (!response.ok) {
-    const parsed = parseEventPayload(body);
-    const message =
-      isRecord(parsed) && typeof parsed.error === "string"
-        ? parsed.error
-        : body || `Request failed with status ${response.status}`;
-
-    const error = new Error(message) as Error & { status: number };
-    error.status = response.status;
-    throw error;
+    throw await readResponseError(new Response(body, { status: response.status }));
   }
 
-  return JSON.parse(body) as T;
+  return schema.parse(JSON.parse(body));
 };
 
 const parseSseMessage = (message: string): PipelineAgentPlanEvent | null => {
@@ -101,48 +156,58 @@ const parseSseMessage = (message: string): PipelineAgentPlanEvent | null => {
 
   switch (eventName) {
     case "phase": {
-      return typeof parsed.phase === "string" ? { type: "phase", phase: parsed.phase } : null;
+      return parsePlanEvent({
+        type: "phase",
+        phase: parsed.phase,
+      });
     }
     case "progress": {
-      return typeof parsed.message === "string"
-        ? { type: "progress", message: parsed.message }
-        : null;
+      return parsePlanEvent({
+        type: "progress",
+        message: parsed.message,
+      });
     }
     case "assistant_chunk": {
-      return typeof parsed.text === "string"
-        ? { type: "assistant_chunk", text: parsed.text }
-        : null;
+      return parsePlanEvent({
+        type: "assistant_chunk",
+        text: parsed.text,
+      });
     }
     case "question": {
-      return typeof parsed.question === "string"
-        ? { type: "question", question: parsed.question }
-        : null;
+      return parsePlanEvent({
+        type: "question",
+        question: parsed.question,
+      });
     }
     case "proposal_ready": {
-      return isRecord(parsed.proposal) && typeof parsed.proposalId === "string"
-        ? {
-            type: "proposal_ready",
-            proposal: parsed.proposal as PipelineAgentProposal,
-            proposalId: parsed.proposalId,
-          }
-        : null;
+      return parsePlanEvent({
+        type: "proposal_ready",
+        proposal: parsed.proposal,
+        proposalId: parsed.proposalId,
+      });
     }
     case "done": {
-      return typeof parsed.status === "string" ? { type: "done", status: parsed.status } : null;
+      return parsePlanEvent({
+        type: "done",
+        status: parsed.status,
+      });
     }
     case "error": {
-      return typeof parsed.message === "string" ? { type: "error", message: parsed.message } : null;
+      return parsePlanEvent({
+        type: "error",
+        message: parsed.message,
+      });
     }
     default: {
-      return typeof parsed.type === "string" ? (parsed as PipelineAgentPlanEvent) : null;
+      return parsePlanEvent(parsed);
     }
   }
 };
 
 export const pipelineAgentSessionsClient = {
   async createSession(input: {
-    entrypoint: "new-pipeline-dialog" | "canvas-agent-panel";
-    mode: "generate" | "edit";
+    entrypoint: PipelineAgentEntrypoint;
+    mode: PipelineAgentMode;
     pipelineId?: string;
     snapshot?: unknown;
   }): Promise<PipelineAgentSessionClientRecord> {
@@ -152,20 +217,20 @@ export const pipelineAgentSessionsClient = {
       body: JSON.stringify(input),
     });
 
-    return readResponseJson<PipelineAgentSessionClientRecord>(response);
+    return readResponseJson(response, PipelineAgentSessionClientRecordSchema);
   },
 
   async appendMessage(
     sessionId: string,
-    input: { role: "user" | "assistant" | "system"; kind: string; content: string },
-  ): Promise<Record<string, unknown>> {
+    input: { role: PipelineAgentMessageRole; kind: PipelineAgentMessageKind; content: string },
+  ): Promise<PipelineAgentMessageClientRecord> {
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/messages`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(input),
     });
 
-    return readResponseJson(response);
+    return readResponseJson(response, PipelineAgentMessageClientRecordSchema);
   },
 
   async uploadAttachment(
@@ -184,18 +249,18 @@ export const pipelineAgentSessionsClient = {
       body: formData,
     });
 
-    return readResponseJson<PipelineAgentAttachmentUploadResult>(response);
+    return readResponseJson(response, PipelineAgentAttachmentUploadResultSchema);
   },
 
   async getSessionById(sessionId: string): Promise<PipelineAgentSessionClientDetail> {
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}`);
 
-    return readResponseJson<PipelineAgentSessionClientDetail>(response);
+    return readResponseJson(response, PipelineAgentSessionClientDetailSchema);
   },
 
   async getLatestReadyProposal(
     sessionId: string,
-    mode: "generate" | "edit",
+    mode: PipelineAgentMode,
     input?: { excludeProposalId?: string | null },
   ): Promise<{ proposal: PipelineAgentProposal; proposalId: string } | null> {
     const session = await this.getSessionById(sessionId);
@@ -237,7 +302,7 @@ export const pipelineAgentSessionsClient = {
       body: JSON.stringify({ proposalId }),
     });
     if (!response.ok) {
-      throw new Error(await response.text());
+      throw await readResponseError(response);
     }
   },
 
@@ -248,7 +313,7 @@ export const pipelineAgentSessionsClient = {
       body: JSON.stringify({ proposalId }),
     });
     if (!response.ok) {
-      throw new Error(await response.text());
+      throw await readResponseError(response);
     }
   },
 
@@ -257,7 +322,7 @@ export const pipelineAgentSessionsClient = {
       method: "POST",
     });
 
-    return readResponseJson<{ pipelineId: string }>(response);
+    return readResponseJson(response, PipelineAgentCreatedPipelineResponseSchema);
   },
 
   async waitForCreatedPipeline(
@@ -315,7 +380,7 @@ export const pipelineAgentSessionsClient = {
       body: JSON.stringify(input.runtimeId ? { runtimeId: input.runtimeId } : {}),
     });
     if (!response.ok) {
-      throw new Error(await response.text());
+      throw await readResponseError(response);
     }
     const reader = response.body?.getReader();
     if (!reader) {
