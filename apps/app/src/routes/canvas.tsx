@@ -1,35 +1,41 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import ky from "ky";
+import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
-import { CanvasPage } from "@/pages/CanvasPage";
-import { useSession } from "@/integrations/better-auth-client";
-
-const CanvasRouteComponent = () => {
-  const navigate = useNavigate();
-  const { data: session, isPending } = useSession();
-
-  useEffect(() => {
-    if (!isPending && !session) {
-      navigate({ to: "/login" });
-    }
-  }, [isPending, session, navigate]);
-
-  if (isPending) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null;
-  }
-
-  return <CanvasPage />;
-};
+import { CanvasPage } from "@repo/views/CanvasPage";
 
 export const Route = createFileRoute("/canvas")({
+  // Mirror /_layout auth: use the server-loaded session and support local-mode
+  // auto-login. (Canvas is a top-level full-screen route, so it can't inherit
+  // the _layout guard and must replicate it — otherwise local mode bounces to
+  // /login on navigation.)
+  beforeLoad: async ({ context }) => {
+    if (context.session) {
+      return;
+    }
+
+    // Server-side: local mode allows access without a session.
+    if (globalThis.document === undefined) {
+      if (context.isLocalMode) {
+        return;
+      }
+
+      throw redirect({ to: "/login" });
+    }
+
+    // Client-side: attempt local auto-login (404s when ORDINE_LOCAL_MODE is off).
+    const result = await ResultAsync.fromPromise(
+      ky.get("/api/local-session", { credentials: "include" }),
+      () => new Error("local-session-failed"),
+    );
+
+    if (result.isErr()) {
+      throw redirect({ to: "/login" });
+    }
+
+    globalThis.location.reload();
+    await new Promise(() => {}); // suspend until reload completes
+  },
   head: () => ({
     meta: [{ title: "Canvas | Ordine" }],
   }),
@@ -38,3 +44,9 @@ export const Route = createFileRoute("/canvas")({
   }),
   component: CanvasRouteComponent,
 });
+
+function CanvasRouteComponent() {
+  const { id } = Route.useSearch();
+
+  return <CanvasPage id={id} />;
+}
