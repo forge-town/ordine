@@ -7,11 +7,11 @@ import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import { useCreate, useList } from "@refinedev/core";
-import { ResourceName } from "@/integrations/refine/dataProvider";
 import type { PipelineData } from "@repo/schemas";
 import { useStore } from "zustand";
-import { PageLoadingState } from "@/components/PageLoadingState";
-import { PageHeader } from "@/components/PageHeader";
+import { ResourceName } from "../../../constants";
+import { PageLoadingState } from "../../../components/PageLoadingState";
+import { PageHeader } from "../../../components/PageHeader";
 import { usePipelinesPageStore } from "../_store";
 import { PipelineCard } from "../PipelineCard";
 

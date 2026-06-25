@@ -7,8 +7,12 @@
     "./AppLayout": "./src/components/AppLayout.tsx",
     "./AppSidebar": "./src/components/AppSidebar.tsx",
     "./DashboardPage": "./src/pages/DashboardPage/index.ts",
+    "./PipelinesPage": "./src/pages/PipelinesPage/index.ts",
+    "./PipelineDetailPage": "./src/pages/PipelineDetailPage/index.ts",
     "./PageHeader": "./src/components/PageHeader/index.ts",
+    "./PageLoadingState": "./src/components/PageLoadingState/index.ts",
     "./ToastContainer": "./src/components/ToastContainer.tsx",
+    "./constants": "./src/constants.ts",
     "./store/sidebarStore": "./src/store/sidebarStore/index.ts",
     "./store/toastStore": "./src/store/toastStore/index.ts"
   },
@@ -17,15 +21,17 @@
     "@repo/schemas": "workspace:*",
     "@repo/ui": "workspace:*",
     "@tanstack/react-router": "^1.168.7",
-    "date-fns": "^4.1.0",
+    "@xyflow/react": "^12.10.2",
     "lucide-react": "^0.510.0",
     "react": "^19.1.0",
-    "react-hook-form": "^7.56.4",
     "react-i18next": "^15.5.3",
     "recharts": "^2.15.3",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "typescript": "^5.8.3"
   }
 }

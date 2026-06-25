@@ -6,14 +6,14 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          "This page uses Route.useParams() and Refine data hooks. View it in the running app at /pipelines/:pipelineId.",
+          "This page reads pipelineId via props and uses Refine data hooks. View it in the running app at /pipelines/:pipelineId.",
       },
     },
   },
   render: () => (
     <div className="p-8 text-sm text-muted-foreground">
-      This page component uses Route.useParams() and requires a live TanStack Router context to
-      render. Please view it in the running app.
+      This page component requires a live TanStack Router + Refine context to render. Please view it
+      in the running app.
     </div>
   ),
 };
