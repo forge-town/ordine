@@ -5,6 +5,7 @@ import {
   createJobsService,
   createOperationsService,
   createOperationRunnerService,
+  createPipelineAgentSessionsService,
   createPipelineRunnerService,
   createPipelinesService,
   createSkillsService,
@@ -16,6 +17,7 @@ export const distillationsService = createDistillationsService(db);
 export const jobsService = createJobsService(db);
 export const operationsService = createOperationsService(db);
 export const operationRunnerService = createOperationRunnerService(db);
+export const pipelineAgentSessionsService = createPipelineAgentSessionsService(db);
 export const pipelinesService = createPipelinesService(db);
 export const pipelineRunnerService = createPipelineRunnerService(db);
 export const skillsService = createSkillsService(db);

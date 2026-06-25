@@ -52,6 +52,33 @@ describe("runAgent", () => {
     );
   });
 
+  it("forwards image attachments to agentEngine", async () => {
+    await runAgent({
+      ...baseOpts,
+      agent: "mastra",
+      attachments: [
+        {
+          kind: "image",
+          filename: "diagram.png",
+          mediaType: "image/png",
+          dataBase64: "ZmFrZQ==",
+        },
+      ],
+    });
+
+    expect(agentEngine.run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "mastra",
+        attachments: [
+          expect.objectContaining({
+            kind: "image",
+            filename: "diagram.png",
+          }),
+        ],
+      }),
+    );
+  });
+
   it("throws on agent failure", async () => {
     vi.mocked(agentEngine.run).mockRejectedValueOnce(new Error("boom"));
 
@@ -62,11 +89,7 @@ describe("runAgent", () => {
     const onProgress = vi.fn();
     await runAgent({ ...baseOpts, onProgress });
 
-    expect(onProgress).toHaveBeenCalledWith(
-      expect.stringContaining("test: agent=claude-code"),
-    );
-    expect(onProgress).toHaveBeenCalledWith(
-      expect.stringContaining("test: claude-code complete"),
-    );
+    expect(onProgress).toHaveBeenCalledWith(expect.stringContaining("test: agent=claude-code"));
+    expect(onProgress).toHaveBeenCalledWith(expect.stringContaining("test: claude-code complete"));
   });
 });

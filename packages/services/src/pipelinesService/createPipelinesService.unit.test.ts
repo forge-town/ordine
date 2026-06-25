@@ -483,6 +483,67 @@ describe("createPipelinesService", () => {
     });
   });
 
+  it("proposeActions rewrites operationName back to the catalog name for replaceNodeData actions", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        summary: "Rename the test review node label only.",
+        actions: [
+          {
+            type: "replaceNodeData",
+            nodeId: "action-1",
+            data: {
+              nodeType: "operation",
+              label: "测试检查",
+              operationId: "op-known",
+              operationName: "测试审查",
+              status: "idle",
+            },
+          },
+        ],
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot: {
+        nodes: [
+          {
+            id: "action-1",
+            type: "operation",
+            position: { x: 0, y: 0 },
+            data: {
+              nodeType: "operation",
+              label: "测试审查",
+              operationId: "op-known",
+              operationName: "测试审查",
+              status: "idle",
+            },
+          },
+        ],
+        edges: [],
+      } as never,
+      message: "rename label",
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.proposal).toEqual({
+      summary: "Rename the test review node label only.",
+      actions: [
+        {
+          type: "replaceNodeData",
+          nodeId: "action-1",
+          data: {
+            nodeType: "operation",
+            label: "测试检查",
+            operationId: "op-known",
+            operationName: "Known Operation",
+            status: "idle",
+          },
+        },
+      ],
+    });
+  });
+
   it("proposeActions returns null proposal when snapshot is invalid at runtime", async () => {
     const svc = createPipelinesService({} as never);
 

@@ -830,7 +830,7 @@ export const createActionsSlice = (
   },
 
   handleOperationLabelChange: (nodeId, label) => {
-    get().updateNodeData(nodeId, { label, operationName: label });
+    get().updateNodeData(nodeId, { label });
   },
 
   handleOperationAgentChange: (nodeId, agentId) => {
