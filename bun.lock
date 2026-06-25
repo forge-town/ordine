@@ -38,6 +38,7 @@
         "@repo/schemas": "workspace:*",
         "@repo/services": "workspace:*",
         "@repo/ui": "workspace:*",
+        "@repo/views": "workspace:*",
         "@tailwindcss/vite": "^4.2.2",
         "@tanstack/react-query": "^5.95.2",
         "@tanstack/react-router": "^1.168.7",
