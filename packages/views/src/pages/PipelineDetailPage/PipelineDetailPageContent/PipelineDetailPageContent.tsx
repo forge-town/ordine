@@ -27,10 +27,9 @@ import { Input } from "@repo/ui/input";
 import { useOne, useCustomMutation, useList } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
 import type { Operation, PipelineData, PipelineNode } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Route } from "@/routes/_layout/pipelines.$pipelineId";
-import { PageHeader } from "@/components/PageHeader";
-import { PageLoadingState } from "@/components/PageLoadingState";
+import { ResourceName } from "../../../constants";
+import { PageHeader } from "../../../components/PageHeader";
+import { PageLoadingState } from "../../../components/PageLoadingState";
 import { Stat } from "../Stat";
 
 // ─── Node type metadata ───────────────────────────────────────────────────────
@@ -96,10 +95,13 @@ const getNodeLabel = (node: PipelineNode, operations: Operation[]): string => {
 
 type RunState = "idle" | "running" | "done" | "failed";
 
-export const PipelineDetailPageContent = () => {
+interface PipelineDetailPageContentProps {
+  pipelineId: string;
+}
+
+export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageContentProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { pipelineId } = Route.useParams();
 
   const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
     resource: ResourceName.pipelines,

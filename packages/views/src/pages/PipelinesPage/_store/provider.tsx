@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { PipelinesPageStoreContext, createPipelinesPageStore } from "./pipelinesPageStore";
-import { useInit } from "@/hooks/useInit";
+import { useInit } from "../../../hooks/useInit";
 
 interface Props {
   children: ReactNode;

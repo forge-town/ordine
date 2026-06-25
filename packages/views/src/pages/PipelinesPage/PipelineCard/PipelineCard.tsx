@@ -6,7 +6,7 @@ import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import type { PipelineData } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
+import { ResourceName } from "../../../constants";
 
 const NODE_TYPE_COLORS: Record<string, string> = {
   input: "bg-emerald-100 text-emerald-700",
