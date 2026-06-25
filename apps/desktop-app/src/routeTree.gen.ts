@@ -20,11 +20,14 @@ import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PipelinesIndexRouteImport } from './routes/pipelines/index'
 import { Route as DistillationsIndexRouteImport } from './routes/distillations/index'
-import { Route as PipelinesOperationsRouteImport } from './routes/pipelines/operations'
 import { Route as PipelinesObjectsRouteImport } from './routes/pipelines/objects'
 import { Route as PipelinesJobsRouteImport } from './routes/pipelines/jobs'
 import { Route as DistillationsDistillationIdRouteImport } from './routes/distillations/$distillationId'
+import { Route as PipelinesOperationsIndexRouteImport } from './routes/pipelines/operations.index'
+import { Route as PipelinesOperationsNewRouteImport } from './routes/pipelines/operations.new'
 import { Route as PipelinesJobsJobIdRouteImport } from './routes/pipelines/jobs.$jobId'
+import { Route as PipelinesOperationsOperationIdIndexRouteImport } from './routes/pipelines/operations.$operationId.index'
+import { Route as PipelinesOperationsOperationIdEditRouteImport } from './routes/pipelines/operations.$operationId.edit'
 
 const SkillsRoute = SkillsRouteImport.update({
   id: '/skills',
@@ -81,11 +84,6 @@ const DistillationsIndexRoute = DistillationsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DistillationsRoute,
 } as any)
-const PipelinesOperationsRoute = PipelinesOperationsRouteImport.update({
-  id: '/operations',
-  path: '/operations',
-  getParentRoute: () => PipelinesRoute,
-} as any)
 const PipelinesObjectsRoute = PipelinesObjectsRouteImport.update({
   id: '/objects',
   path: '/objects',
@@ -102,11 +100,34 @@ const DistillationsDistillationIdRoute =
     path: '/$distillationId',
     getParentRoute: () => DistillationsRoute,
   } as any)
+const PipelinesOperationsIndexRoute =
+  PipelinesOperationsIndexRouteImport.update({
+    id: '/operations/',
+    path: '/operations/',
+    getParentRoute: () => PipelinesRoute,
+  } as any)
+const PipelinesOperationsNewRoute = PipelinesOperationsNewRouteImport.update({
+  id: '/operations/new',
+  path: '/operations/new',
+  getParentRoute: () => PipelinesRoute,
+} as any)
 const PipelinesJobsJobIdRoute = PipelinesJobsJobIdRouteImport.update({
   id: '/$jobId',
   path: '/$jobId',
   getParentRoute: () => PipelinesJobsRoute,
 } as any)
+const PipelinesOperationsOperationIdIndexRoute =
+  PipelinesOperationsOperationIdIndexRouteImport.update({
+    id: '/operations/$operationId/',
+    path: '/operations/$operationId/',
+    getParentRoute: () => PipelinesRoute,
+  } as any)
+const PipelinesOperationsOperationIdEditRoute =
+  PipelinesOperationsOperationIdEditRouteImport.update({
+    id: '/operations/$operationId/edit',
+    path: '/operations/$operationId/edit',
+    getParentRoute: () => PipelinesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -121,10 +142,13 @@ export interface FileRoutesByFullPath {
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
   '/pipelines/jobs': typeof PipelinesJobsRouteWithChildren
   '/pipelines/objects': typeof PipelinesObjectsRoute
-  '/pipelines/operations': typeof PipelinesOperationsRoute
   '/distillations/': typeof DistillationsIndexRoute
   '/pipelines/': typeof PipelinesIndexRoute
   '/pipelines/jobs/$jobId': typeof PipelinesJobsJobIdRoute
+  '/pipelines/operations/new': typeof PipelinesOperationsNewRoute
+  '/pipelines/operations/': typeof PipelinesOperationsIndexRoute
+  '/pipelines/operations/$operationId/edit': typeof PipelinesOperationsOperationIdEditRoute
+  '/pipelines/operations/$operationId/': typeof PipelinesOperationsOperationIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -137,10 +161,13 @@ export interface FileRoutesByTo {
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
   '/pipelines/jobs': typeof PipelinesJobsRouteWithChildren
   '/pipelines/objects': typeof PipelinesObjectsRoute
-  '/pipelines/operations': typeof PipelinesOperationsRoute
   '/distillations': typeof DistillationsIndexRoute
   '/pipelines': typeof PipelinesIndexRoute
   '/pipelines/jobs/$jobId': typeof PipelinesJobsJobIdRoute
+  '/pipelines/operations/new': typeof PipelinesOperationsNewRoute
+  '/pipelines/operations': typeof PipelinesOperationsIndexRoute
+  '/pipelines/operations/$operationId/edit': typeof PipelinesOperationsOperationIdEditRoute
+  '/pipelines/operations/$operationId': typeof PipelinesOperationsOperationIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -156,10 +183,13 @@ export interface FileRoutesById {
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
   '/pipelines/jobs': typeof PipelinesJobsRouteWithChildren
   '/pipelines/objects': typeof PipelinesObjectsRoute
-  '/pipelines/operations': typeof PipelinesOperationsRoute
   '/distillations/': typeof DistillationsIndexRoute
   '/pipelines/': typeof PipelinesIndexRoute
   '/pipelines/jobs/$jobId': typeof PipelinesJobsJobIdRoute
+  '/pipelines/operations/new': typeof PipelinesOperationsNewRoute
+  '/pipelines/operations/': typeof PipelinesOperationsIndexRoute
+  '/pipelines/operations/$operationId/edit': typeof PipelinesOperationsOperationIdEditRoute
+  '/pipelines/operations/$operationId/': typeof PipelinesOperationsOperationIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -176,10 +206,13 @@ export interface FileRouteTypes {
     | '/distillations/$distillationId'
     | '/pipelines/jobs'
     | '/pipelines/objects'
-    | '/pipelines/operations'
     | '/distillations/'
     | '/pipelines/'
     | '/pipelines/jobs/$jobId'
+    | '/pipelines/operations/new'
+    | '/pipelines/operations/'
+    | '/pipelines/operations/$operationId/edit'
+    | '/pipelines/operations/$operationId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -192,10 +225,13 @@ export interface FileRouteTypes {
     | '/distillations/$distillationId'
     | '/pipelines/jobs'
     | '/pipelines/objects'
-    | '/pipelines/operations'
     | '/distillations'
     | '/pipelines'
     | '/pipelines/jobs/$jobId'
+    | '/pipelines/operations/new'
+    | '/pipelines/operations'
+    | '/pipelines/operations/$operationId/edit'
+    | '/pipelines/operations/$operationId'
   id:
     | '__root__'
     | '/'
@@ -210,10 +246,13 @@ export interface FileRouteTypes {
     | '/distillations/$distillationId'
     | '/pipelines/jobs'
     | '/pipelines/objects'
-    | '/pipelines/operations'
     | '/distillations/'
     | '/pipelines/'
     | '/pipelines/jobs/$jobId'
+    | '/pipelines/operations/new'
+    | '/pipelines/operations/'
+    | '/pipelines/operations/$operationId/edit'
+    | '/pipelines/operations/$operationId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -307,13 +346,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DistillationsIndexRouteImport
       parentRoute: typeof DistillationsRoute
     }
-    '/pipelines/operations': {
-      id: '/pipelines/operations'
-      path: '/operations'
-      fullPath: '/pipelines/operations'
-      preLoaderRoute: typeof PipelinesOperationsRouteImport
-      parentRoute: typeof PipelinesRoute
-    }
     '/pipelines/objects': {
       id: '/pipelines/objects'
       path: '/objects'
@@ -335,12 +367,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DistillationsDistillationIdRouteImport
       parentRoute: typeof DistillationsRoute
     }
+    '/pipelines/operations/': {
+      id: '/pipelines/operations/'
+      path: '/operations'
+      fullPath: '/pipelines/operations/'
+      preLoaderRoute: typeof PipelinesOperationsIndexRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/pipelines/operations/new': {
+      id: '/pipelines/operations/new'
+      path: '/operations/new'
+      fullPath: '/pipelines/operations/new'
+      preLoaderRoute: typeof PipelinesOperationsNewRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
     '/pipelines/jobs/$jobId': {
       id: '/pipelines/jobs/$jobId'
       path: '/$jobId'
       fullPath: '/pipelines/jobs/$jobId'
       preLoaderRoute: typeof PipelinesJobsJobIdRouteImport
       parentRoute: typeof PipelinesJobsRoute
+    }
+    '/pipelines/operations/$operationId/': {
+      id: '/pipelines/operations/$operationId/'
+      path: '/operations/$operationId'
+      fullPath: '/pipelines/operations/$operationId/'
+      preLoaderRoute: typeof PipelinesOperationsOperationIdIndexRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/pipelines/operations/$operationId/edit': {
+      id: '/pipelines/operations/$operationId/edit'
+      path: '/operations/$operationId/edit'
+      fullPath: '/pipelines/operations/$operationId/edit'
+      preLoaderRoute: typeof PipelinesOperationsOperationIdEditRouteImport
+      parentRoute: typeof PipelinesRoute
     }
   }
 }
@@ -374,15 +434,23 @@ const PipelinesJobsRouteWithChildren = PipelinesJobsRoute._addFileChildren(
 interface PipelinesRouteChildren {
   PipelinesJobsRoute: typeof PipelinesJobsRouteWithChildren
   PipelinesObjectsRoute: typeof PipelinesObjectsRoute
-  PipelinesOperationsRoute: typeof PipelinesOperationsRoute
   PipelinesIndexRoute: typeof PipelinesIndexRoute
+  PipelinesOperationsNewRoute: typeof PipelinesOperationsNewRoute
+  PipelinesOperationsIndexRoute: typeof PipelinesOperationsIndexRoute
+  PipelinesOperationsOperationIdEditRoute: typeof PipelinesOperationsOperationIdEditRoute
+  PipelinesOperationsOperationIdIndexRoute: typeof PipelinesOperationsOperationIdIndexRoute
 }
 
 const PipelinesRouteChildren: PipelinesRouteChildren = {
   PipelinesJobsRoute: PipelinesJobsRouteWithChildren,
   PipelinesObjectsRoute: PipelinesObjectsRoute,
-  PipelinesOperationsRoute: PipelinesOperationsRoute,
   PipelinesIndexRoute: PipelinesIndexRoute,
+  PipelinesOperationsNewRoute: PipelinesOperationsNewRoute,
+  PipelinesOperationsIndexRoute: PipelinesOperationsIndexRoute,
+  PipelinesOperationsOperationIdEditRoute:
+    PipelinesOperationsOperationIdEditRoute,
+  PipelinesOperationsOperationIdIndexRoute:
+    PipelinesOperationsOperationIdIndexRoute,
 }
 
 const PipelinesRouteWithChildren = PipelinesRoute._addFileChildren(

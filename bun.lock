@@ -38,6 +38,7 @@
         "@repo/schemas": "workspace:*",
         "@repo/services": "workspace:*",
         "@repo/ui": "workspace:*",
+        "@repo/views": "workspace:*",
         "@tailwindcss/vite": "^4.2.2",
         "@tanstack/react-query": "^5.95.2",
         "@tanstack/react-router": "^1.168.7",
@@ -168,7 +169,7 @@
         "@tauri-apps/plugin-fs": "^2.5.1",
         "@tauri-apps/plugin-opener": "^2",
         "@tauri-apps/plugin-shell": "^2.3.5",
-        "i18next": "^25.2.1",
+        "i18next": "^26.0.3",
         "neverthrow": "^8.2.0",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
@@ -475,16 +476,23 @@
       "name": "@repo/views",
       "version": "0.0.1",
       "dependencies": {
+        "@hookform/resolvers": "^5.2.2",
         "@refinedev/core": "^5.0.12",
         "@repo/schemas": "workspace:*",
         "@repo/ui": "workspace:*",
+        "@tanstack/react-query": "^5.95.2",
         "@tanstack/react-router": "^1.168.7",
         "date-fns": "^4.1.0",
+        "i18next": "^26.0.3",
+        "jszip": "^3.10.1",
         "lucide-react": "^0.510.0",
+        "neverthrow": "^8.2.0",
         "react": "^19.1.0",
         "react-hook-form": "^7.56.4",
         "react-i18next": "^15.5.3",
+        "react-markdown": "^10.1.0",
         "recharts": "^2.15.3",
+        "zod": "^4.3.6",
         "zustand": "^5.0.5",
       },
       "devDependencies": {
@@ -3118,8 +3126,6 @@
     "@ordine/create/@types/node": ["@types/node@25.9.0", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-AOQwYUNolgy3VosiRqXrACUXTN8nJUtPl7FJXMqZVyxiiCLhQuG3jXKvCS1ALr+Y2OmZhzzLVlYPEqJaiqkaJQ=="],
 
     "@ordine/desktop-app/@vitejs/plugin-react": ["@vitejs/plugin-react@4.7.0", "", { "dependencies": { "@babel/core": "^7.28.0", "@babel/plugin-transform-react-jsx-self": "^7.27.1", "@babel/plugin-transform-react-jsx-source": "^7.27.1", "@rolldown/pluginutils": "1.0.0-beta.27", "@types/babel__core": "^7.20.5", "react-refresh": "^0.17.0" }, "peerDependencies": { "vite": "^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0" } }, "sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA=="],
-
-    "@ordine/desktop-app/i18next": ["i18next@25.10.10", "", { "dependencies": { "@babel/runtime": "^7.29.2" }, "peerDependencies": { "typescript": "^5 || ^6" }, "optionalPeers": ["typescript"] }, "sha512-cqUW2Z3EkRx7NqSyywjkgCLK7KLCL6IFVFcONG7nVYIJ3ekZ1/N5jUsihHV6Bq37NfhgtczxJcxduELtjTwkuQ=="],
 
     "@ordine/desktop-app/react-i18next": ["react-i18next@15.7.4", "", { "dependencies": { "@babel/runtime": "^7.27.6", "html-parse-stringify": "^3.0.1" }, "peerDependencies": { "i18next": ">= 23.4.0", "react": ">= 16.8.0", "typescript": "^5" }, "optionalPeers": ["typescript"] }, "sha512-nyU8iKNrI5uDJch0z9+Y5XEr34b0wkyYj3Rp+tfbahxtlswxSCjcUL9H0nqXo9IR3/t5Y5PKIA3fx3MfUyR9Xw=="],
 
