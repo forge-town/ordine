@@ -7,6 +7,8 @@ export const ResourceName = {
   jobs: "jobs",
   githubProjects: "githubProjects",
   skills: "skills",
+  skillDraftOperations: "skillDraftOperations",
+  skillAnalyses: "skillAnalyses",
   distillations: "distillations",
   refinements: "refinements",
   settings: "settings",

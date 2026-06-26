@@ -22,8 +22,8 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { TemplateContentTypeSchema, type DraftOperation } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { toastStore } from "@/store/toastStore";
+import { ResourceName } from "../../constants";
+import { toastStore } from "../../store/toastStore";
 import { useAnalyzeSkill } from "./useAnalyzeSkill";
 import { SkillStepListEditor, type StepFormValues } from "./SkillStepListEditor";
 

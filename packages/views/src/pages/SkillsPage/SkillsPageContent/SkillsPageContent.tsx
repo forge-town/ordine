@@ -9,9 +9,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { cn } from "@repo/ui/lib/utils";
 import type { Skill } from "@repo/schemas";
 import { useCreate, useDataProvider, useDelete, useList } from "@refinedev/core";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { PageLoadingState } from "@/components/PageLoadingState";
-import { PageHeader } from "@/components/PageHeader";
+import { ResourceName } from "../../../constants";
+import { PageLoadingState } from "../../../components/PageLoadingState";
+import { PageHeader } from "../../../components/PageHeader";
 import { useSkillsPageStore, type SkillCategory } from "../_store";
 
 interface SkillImportCandidate {

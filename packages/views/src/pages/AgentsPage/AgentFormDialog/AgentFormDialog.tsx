@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import { AGENT_RUNTIME_ENUM } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
-import { ResourceName } from "@/integrations/refine/dataProvider";
+import { ResourceName } from "../../../constants";
 import { type AgentFormValues, toAgentFormMutationValues, useAgentsPageStore } from "../_store";
 
 const RUNTIME_META: Record<string, { label: string; icon: React.ReactNode; description: string }> =

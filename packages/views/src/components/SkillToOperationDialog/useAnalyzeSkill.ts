@@ -1,5 +1,5 @@
 import { useOne } from "@refinedev/core";
-import { ResourceName } from "@/integrations/refine/dataProvider";
+import { ResourceName } from "../../constants";
 import type { SkillAnalysisResult } from "@repo/schemas";
 
 export const useAnalyzeSkill = (skillId: string | null, enabled: boolean) => {
