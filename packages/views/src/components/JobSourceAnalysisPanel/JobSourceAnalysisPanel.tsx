@@ -11,9 +11,9 @@ import type {
 } from "@repo/schemas";
 import { Badge } from "@repo/ui/badge";
 import { Card } from "@repo/ui/card";
-import { PageLoadingState } from "@/components/PageLoadingState";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { AgentRunsPanel } from "@repo/views/JobDetailPage/AgentRunsPanel";
+import { PageLoadingState } from "../../components/PageLoadingState";
+import { ResourceName } from "../../constants";
+import { AgentRunsPanel } from "../../pages/JobDetailPage/AgentRunsPanel";
 
 const EMPTY_TRACES: JobTrace[] = [];
 const EMPTY_AGENT_RUNS: AgentRawExport[] = [];

@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import { buttonVariants, Button } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import type { Distillation, DistillationStatus } from "@repo/schemas";
-import { PageLoadingState } from "@/components/PageLoadingState";
-import { PageHeader } from "@/components/PageHeader";
-import { ResourceName } from "@/integrations/refine/dataProvider";
+import { PageLoadingState } from "../../../components/PageLoadingState";
+import { PageHeader } from "../../../components/PageHeader";
+import { ResourceName } from "../../../constants";
 import { cn } from "@repo/ui/lib/utils";
 
 const statusVariant: Record<

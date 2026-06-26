@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { Refinement, RefinementRoundStatus } from "@repo/schemas";
 import { Badge } from "@repo/ui/badge";
 import { Card } from "@repo/ui/card";
-import { ResourceName } from "@/integrations/refine/dataProvider";
+import { ResourceName } from "../../constants";
 import { CheckCircle2, Circle, Loader2, XCircle } from "lucide-react";
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {

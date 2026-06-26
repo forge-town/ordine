@@ -3,7 +3,7 @@ import {
   DistillationStudioPageStoreContext,
   createDistillationStudioPageStore,
 } from "./distillationStudioPageStore";
-import { useInit } from "@/hooks/useInit";
+import { useInit } from "../../../hooks/useInit";
 
 interface Props {
   children: ReactNode;

@@ -22,8 +22,9 @@ import {
 } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 import { AgentRuntimeSchema, type Distillation } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Route } from "@/routes/_layout/distillation-studio";
+import { ResourceName } from "../../constants";
+import { useSearch } from "@tanstack/react-router";
+import type { DistillationStudioSearch } from "./searchParams";
 import {
   buildDistillationPayload,
   type DistillationFormValues,
@@ -37,7 +38,7 @@ interface DistillationFormProps {
 
 export const DistillationForm = ({ existingDistillation }: DistillationFormProps) => {
   const { t } = useTranslation();
-  const search = Route.useSearch();
+  const search = useSearch({ strict: false }) as DistillationStudioSearch;
   const existingDistillationId = search.distillationId ?? "";
 
   const store = useDistillationStudioPageStore();
