@@ -1,19 +1,18 @@
 import { Box, Puzzle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import { useList } from "@refinedev/core";
 import { pluginRegistry } from "@repo/plugin";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { PageHeader } from "@/components/PageHeader";
-import { PageLoadingState } from "@/components/PageLoadingState";
-import { Route } from "@/routes/_layout/pipelines.objects.$objectTypeId";
+import { ResourceName } from "../../constants";
+import { PageHeader } from "../../components/PageHeader";
+import { PageLoadingState } from "../../components/PageLoadingState";
 
 const objectTypeResourceMap: Record<string, string> = {
   "github-project": ResourceName.githubProjects,
 };
 
 export const ObjectTypeDetailPageContent = () => {
-  const { objectTypeId } = Route.useParams();
+  const { objectTypeId } = useParams({ strict: false }) as { objectTypeId: string };
   const { t } = useTranslation();
   const objectType = pluginRegistry.getObjectType(objectTypeId);
   const resourceName = objectTypeResourceMap[objectTypeId];

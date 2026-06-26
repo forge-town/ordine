@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { JobsPageStoreContext, createJobsPageStore } from "./jobsPageStore";
-import { useInit } from "@/hooks/useInit";
+import { useInit } from "../../../hooks/useInit";
 
 interface Props {
   children: ReactNode;

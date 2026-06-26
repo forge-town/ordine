@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { useDelete } from "@refinedev/core";
 import type { Job, JobStatus, JobType } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
+import { ResourceName } from "../../../constants";
 
 const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot: string }> = {
   queued: { icon: Clock, cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400" },

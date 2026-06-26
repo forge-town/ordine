@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { JobDetailPage } from "@repo/views/JobDetailPage";
 
 export const Route = createFileRoute("/pipelines/jobs/$jobId")({
-  component: () => <div>Job Detail</div>,
+  component: JobDetailPage,
 });

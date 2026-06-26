@@ -8,7 +8,7 @@ import { Card } from "@repo/ui/card";
 import { Database, Sparkles, Loader2 } from "lucide-react";
 import { DistillationResultPanel } from "@/components/DistillationResultPanel";
 import { InputSnapshotPanel } from "@/components/InputSnapshotPanel";
-import { AgentRunsPanel } from "@/pages/JobDetailPage/AgentRunsPanel";
+import { AgentRunsPanel } from "@repo/views/JobDetailPage/AgentRunsPanel";
 import { PageLoadingState } from "@/components/PageLoadingState";
 import { PageHeader } from "@/components/PageHeader";
 import { ResourceName } from "@/integrations/refine/dataProvider";
