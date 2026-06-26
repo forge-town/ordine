@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { ElementType } from "react";
 import { Link } from "@tanstack/react-router";
 import { pluginRegistry, type ObjectTypeDefinition } from "@repo/plugin";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "../../../components/PageHeader";
 
 const iconMap: Record<string, ElementType> = {
   globe: Globe,

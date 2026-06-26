@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { MetaRow } from "../MetaRow";
 import { AgentRunsPanel } from "../AgentRunsPanel";
 import {
@@ -19,13 +19,12 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import type { Distillation, Job, JobStatus, JobType, JobTrace, LogLevel } from "@repo/schemas";
 import { useCreate, useCustom, useCustomMutation, useOne } from "@refinedev/core";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Route } from "@/routes/_layout/pipelines.jobs.$jobId";
+import { ResourceName } from "../../../constants";
 import { useState } from "react";
-import { PageLoadingState } from "@/components/PageLoadingState";
-import { PageHeader } from "@/components/PageHeader";
+import { PageLoadingState } from "../../../components/PageLoadingState";
+import { PageHeader } from "../../../components/PageHeader";
 import { ResultAsync } from "neverthrow";
-import { useToastStore } from "@/store/toastStore";
+import { useToastStore } from "../../../store/toastStore";
 import { useStore } from "zustand";
 
 const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; bar: string }> = {
@@ -100,7 +99,7 @@ const LEVEL_COLOR: Record<LogLevel, string> = {
 };
 
 export const JobDetailPageContent = () => {
-  const { jobId } = Route.useParams();
+  const { jobId } = useParams({ strict: false }) as { jobId: string };
   const { result: jobResult, query: jobQuery } = useOne<Job>({
     resource: ResourceName.jobs,
     id: jobId,
