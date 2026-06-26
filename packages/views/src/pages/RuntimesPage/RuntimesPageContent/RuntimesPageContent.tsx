@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { AgentRuntimeConfig } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Skeleton } from "@repo/ui/skeleton";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "../../../components/PageHeader";
 import { RuntimesDataTable } from "../RuntimesDataTable";
 import { ScanDiffModal } from "../ScanDiffModal";
 import { type DetectedRuntime, useRuntimesPageStore } from "../_store";

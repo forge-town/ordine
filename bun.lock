@@ -483,6 +483,7 @@
         "@repo/ui": "workspace:*",
         "@tanstack/react-query": "^5.95.2",
         "@tanstack/react-router": "^1.168.7",
+        "@tanstack/react-table": "^8.21.3",
         "@xyflow/react": "^12.10.2",
         "date-fns": "^4.1.0",
         "i18next": "^26.0.3",

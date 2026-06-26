@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod/v4";
@@ -24,9 +24,8 @@ import {
   AgentRuntimeConfigSchema,
   type AgentRuntimeConfig,
 } from "@repo/schemas";
-import { PageHeader } from "@/components/PageHeader";
-import { RuntimeIcon } from "@/pages/RuntimesPage/RuntimeIcon";
-import { Route } from "@/routes/_layout/runtimes.$runtimeId.edit";
+import { PageHeader } from "../../../components/PageHeader";
+import { RuntimeIcon } from "../../../pages/RuntimesPage/RuntimeIcon";
 
 const AGENT_TYPE_OPTIONS = AgentRuntimeSchema.options;
 const CONNECTION_MODES = ["local", "ssh"] as const;
@@ -39,7 +38,7 @@ type EditFormValues = z.infer<typeof editFormSchema>;
 export const RuntimeEditPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { runtimeId } = Route.useParams();
+  const { runtimeId } = useParams({ strict: false }) as { runtimeId: string };
   const { result, query: runtimeQuery } = useOne<AgentRuntimeConfig>({
     resource: "agentRuntimes",
     id: runtimeId,
