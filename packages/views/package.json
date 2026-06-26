@@ -11,9 +11,13 @@
     "./OperationCreatePage": "./src/pages/OperationCreatePage/index.ts",
     "./OperationDetailPage": "./src/pages/OperationDetailPage/index.ts",
     "./OperationEditPage": "./src/pages/OperationEditPage/index.ts",
+    "./PipelinesPage": "./src/pages/PipelinesPage/index.ts",
+    "./PipelineDetailPage": "./src/pages/PipelineDetailPage/index.ts",
     "./PageHeader": "./src/components/PageHeader/index.ts",
+    "./PageLoadingState": "./src/components/PageLoadingState/index.ts",
     "./ToastContainer": "./src/components/ToastContainer.tsx",
     "./platform": "./src/platform/index.ts",
+    "./constants": "./src/constants.ts",
     "./store/sidebarStore": "./src/store/sidebarStore/index.ts",
     "./store/toastStore": "./src/store/toastStore/index.ts"
   },
@@ -24,6 +28,7 @@
     "@repo/ui": "workspace:*",
     "@tanstack/react-query": "^5.95.2",
     "@tanstack/react-router": "^1.168.7",
+    "@xyflow/react": "^12.10.2",
     "date-fns": "^4.1.0",
     "i18next": "^26.0.3",
     "jszip": "^3.10.1",
@@ -38,6 +43,9 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "typescript": "^5.8.3"
   }
 }

@@ -1,28 +1,44 @@
 import { render } from "@/test/test-wrapper";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NewPipelineDialog } from "./NewPipelineDialog";
 import { SidebarStoreContext, createSidebarStore, type SidebarStore } from "@/store/sidebarStore";
 
-const mockGenerateStructure = vi.fn();
-const mockAnalyzeIntent = vi.fn();
+const mockCreateSession = vi.fn();
+const mockAppendMessage = vi.fn();
+const mockUploadAttachment = vi.fn();
+const mockPlanSessionStream = vi.fn();
+const mockGetLatestReadyProposal = vi.fn();
+const mockGetLatestAssistantQuestion = vi.fn();
+const mockApproveProposal = vi.fn();
+const mockSupersedeProposal = vi.fn();
+const mockGeneratePipeline = vi.fn();
+const mockWaitForCreatedPipeline = vi.fn();
 const mockRunMutate = vi.fn();
-const mockCreatePipelineMutate = vi.fn();
 const mockNavigate = vi.fn();
 
-vi.mock("@/integrations/trpc/client", () => ({
-  trpcClient: {},
+vi.mock("@/lib/pipelineAgentSessionsClient", () => ({
+  pipelineAgentSessionsClient: {
+    appendMessage: (...args: unknown[]) => mockAppendMessage(...args),
+    approveProposal: (...args: unknown[]) => mockApproveProposal(...args),
+    createSession: (...args: unknown[]) => mockCreateSession(...args),
+    getLatestAssistantQuestion: (...args: unknown[]) => mockGetLatestAssistantQuestion(...args),
+    generatePipelineFromApprovedProposal: (...args: unknown[]) => mockGeneratePipeline(...args),
+    getLatestReadyProposal: (...args: unknown[]) => mockGetLatestReadyProposal(...args),
+    supersedeProposal: (...args: unknown[]) => mockSupersedeProposal(...args),
+    waitForCreatedPipeline: (...args: unknown[]) => mockWaitForCreatedPipeline(...args),
+    planSessionStream: (...args: unknown[]) => mockPlanSessionStream(...args),
+    uploadAttachment: (...args: unknown[]) => mockUploadAttachment(...args),
+  },
 }));
 
 vi.mock("@/integrations/refine/dataProvider", () => ({
   dataProvider: {
-    create: (...args: unknown[]) => mockCreatePipelineMutate(...args),
     custom: (params: { url: string; payload: unknown }) => {
-      if (params.url === "pipelines/analyzeIntent") return mockAnalyzeIntent(params.payload);
-      if (params.url === "pipelines/generateStructure")
-        return mockGenerateStructure(params.payload);
-      if (params.url === "pipelines/run") return mockRunMutate(params.payload);
+      if (params.url === "pipelines/run") {
+        return mockRunMutate(params.payload);
+      }
 
       return Promise.resolve({ data: {} });
     },
@@ -31,8 +47,6 @@ vi.mock("@/integrations/refine/dataProvider", () => ({
     pipelines: "pipelines",
   },
 }));
-
-vi.mock("@tanstack/react-router", () => ({}));
 
 vi.mock("@/router", () => ({
   router: { navigate: (...args: unknown[]) => mockNavigate(...args) },
@@ -62,8 +76,8 @@ vi.mock("@repo/ui/dialog", () => ({
 }));
 
 vi.mock("@repo/ui/button", () => ({
-  Button: ({ children, onClick: handleClick, disabled }: React.ComponentProps<"button">) => (
-    <button disabled={disabled} onClick={handleClick}>
+  Button: ({ children, onClick: handleClick, disabled, type }: React.ComponentProps<"button">) => (
+    <button disabled={disabled} type={type} onClick={handleClick}>
       {children}
     </button>
   ),
@@ -81,28 +95,30 @@ vi.mock("@repo/ui/badge", () => ({
   Badge: ({ children }: React.PropsWithChildren) => <span data-testid="badge">{children}</span>,
 }));
 
-vi.mock("@repo/ui/tooltip", () => ({
-  Tooltip: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-  TooltipContent: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-  TooltipProvider: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-  TooltipTrigger: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-}));
-
-vi.mock("@repo/ui/scroll-area", () => ({
-  ScrollArea: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-  ScrollBar: () => null,
+vi.mock("@repo/ui/form", () => ({
+  Form: ({ children }: React.PropsWithChildren) => <form>{children}</form>,
+  FormField: ({
+    render: renderField,
+    name,
+  }: {
+    name: string;
+    render: (props: {
+      field: { name: string; value: string; onChange: () => void };
+    }) => React.ReactNode;
+  }) => renderField({ field: { name, value: "", onChange: () => undefined } }),
+  FormItem: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
+  FormControl: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
 }));
 
 vi.mock("lucide-react", () => ({
   AlertCircle: () => <span data-testid="alert-circle-icon" />,
-  AlertTriangle: () => <span data-testid="alert-icon" />,
   ArrowLeft: () => <span data-testid="arrow-left-icon" />,
-  ArrowRight: () => <span data-testid="arrow-right-icon" />,
   CheckCircle2: () => <span data-testid="check-icon" />,
   ExternalLink: () => <span data-testid="external-link-icon" />,
   Loader2: () => <span data-testid="loader" />,
   Play: () => <span data-testid="play-icon" />,
   Plus: () => <span data-testid="plus-icon" />,
+  Upload: () => <span data-testid="upload-icon" />,
 }));
 
 const createWrapper = (store: SidebarStore) => {
@@ -114,11 +130,32 @@ const createWrapper = (store: SidebarStore) => {
 describe("NewPipelineDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCreatePipelineMutate.mockResolvedValue({ data: { id: "pipe-1" } });
-    mockGenerateStructure.mockResolvedValue({ data: { nodes: [], edges: [] } });
-    mockAnalyzeIntent.mockResolvedValue({
-      data: { matchedOperations: [], unmatchedSteps: [] },
+    mockCreateSession.mockResolvedValue({
+      id: "session-1",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "draft",
     });
+    mockAppendMessage.mockResolvedValue({
+      id: "message-1",
+      sessionId: "session-1",
+      role: "user",
+      kind: "text",
+      content: "Build me a review pipeline",
+    });
+    mockUploadAttachment.mockResolvedValue({
+      attachment: {
+        id: "attachment-1",
+        filename: "brief.txt",
+        parseStatus: "parsed",
+      },
+    });
+    mockApproveProposal.mockResolvedValue(undefined);
+    mockSupersedeProposal.mockResolvedValue(undefined);
+    mockGeneratePipeline.mockResolvedValue({ pipelineId: "pipe-1" });
+    mockGetLatestAssistantQuestion.mockResolvedValue(null);
+    mockGetLatestReadyProposal.mockResolvedValue(null);
+    mockWaitForCreatedPipeline.mockResolvedValue({ pipelineId: "pipe-1" });
     mockRunMutate.mockResolvedValue({ data: {} });
   });
 
@@ -128,190 +165,484 @@ describe("NewPipelineDialog", () => {
     expect(screen.queryByTestId("dialog")).not.toBeInTheDocument();
   });
 
-  it("renders form when dialog is open", () => {
+  it("renders conversation composer when dialog is open", () => {
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
     render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+
     expect(screen.getByTestId("dialog")).toBeInTheDocument();
-    expect(screen.getByText("common.create")).toBeInTheDocument();
+    expect(screen.getByText("nav.newPipeline")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder")).toBeInTheDocument();
+    expect(screen.getByText("newPipelineDialog.send")).toBeInTheDocument();
   });
 
-  it("skips analysis and creates directly when description is empty", async () => {
+  it("creates a session, sends a message, and displays a streamed follow-up question", async () => {
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({ type: "phase", phase: "planning" });
+      onEvent({ type: "question", question: "What output format do you want?" });
+    });
+
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
     render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
 
-    const createButton = screen.getByText("common.create");
-    await userEvent.click(createButton);
+    const textarea = screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder");
+    await userEvent.type(textarea, "Build me a review pipeline");
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
 
     await waitFor(() => {
-      expect(mockCreatePipelineMutate).toHaveBeenCalled();
-    });
-    expect(mockAnalyzeIntent).not.toHaveBeenCalled();
-    expect(mockGenerateStructure).not.toHaveBeenCalled();
-  });
-
-  it("calls analyzeIntent when description is provided", async () => {
-    const store = createSidebarStore();
-    store.setState({ newPipelineOpen: true });
-    mockAnalyzeIntent.mockResolvedValue({
-      data: {
-        matchedOperations: [{ operationId: "op-1", operationName: "lint-code", reason: "Matches" }],
-        unmatchedSteps: [],
-      },
-    });
-
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
-
-    const textarea = screen.getByPlaceholderText("newPipelineDialog.descriptionPlaceholder");
-    await userEvent.type(textarea, "Build a CI pipeline");
-
-    const createButton = screen.getByText("common.create");
-    await userEvent.click(createButton);
-
-    await waitFor(() => {
-      expect(mockAnalyzeIntent).toHaveBeenCalledWith({
-        name: "pipelines.createNew",
-        description: "Build a CI pipeline",
+      expect(mockCreateSession).toHaveBeenCalledWith({
+        entrypoint: "new-pipeline-dialog",
+        mode: "generate",
       });
     });
+    expect(mockAppendMessage).toHaveBeenCalledWith("session-1", {
+      role: "user",
+      kind: "text",
+      content: "Build me a review pipeline",
+    });
+    expect(mockPlanSessionStream).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByText("What output format do you want?")).toBeInTheDocument();
+    });
   });
 
-  it("shows success state after creation", async () => {
+  it("renders a proposal review after streamed proposal_ready", async () => {
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({
+        type: "proposal_ready",
+        proposal: {
+          mode: "generate",
+          purpose: "Review repository code",
+          inputs: ["folder"],
+          outputs: ["markdown report"],
+          majorOperations: ["review-code"],
+          executionFlow: ["folder -> review-code -> output"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+        proposalId: "proposal-1",
+      });
+    });
+
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    mockCreatePipelineMutate.mockResolvedValue({ data: { id: "pipe-new" } });
-
     render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
 
-    const createButton = screen.getByText("common.create");
-    await userEvent.click(createButton);
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Build me a review pipeline",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
 
+    await waitFor(() => {
+      expect(screen.getByText("Review repository code")).toBeInTheDocument();
+    });
+    expect(screen.getByText("newPipelineDialog.approve")).toBeInTheDocument();
+    expect(screen.getByText("newPipelineDialog.revise")).toBeInTheDocument();
+    expect(screen.getByText("newPipelineDialog.reject")).toBeInTheDocument();
+  });
+
+  it("renders a proposal review from session fallback when the stream misses proposal_ready", async () => {
+    mockPlanSessionStream.mockResolvedValue(undefined);
+    mockGetLatestReadyProposal.mockResolvedValueOnce({
+      proposal: {
+        mode: "generate",
+        purpose: "Review repository code",
+        inputs: ["folder"],
+        outputs: ["markdown report"],
+        majorOperations: ["review-code"],
+        executionFlow: ["folder -> review-code -> output"],
+        assumptions: [],
+        openQuestions: [],
+        readiness: "ready_for_generation",
+      },
+      proposalId: "proposal-1",
+    });
+
+    const store = createSidebarStore();
+    store.setState({ newPipelineOpen: true });
+    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Build me a review pipeline",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
+
+    await waitFor(() => {
+      expect(mockGetLatestReadyProposal).toHaveBeenCalledWith("session-1", "generate", {
+        excludeProposalId: null,
+      });
+      expect(screen.getByText("Review repository code")).toBeInTheDocument();
+    });
+    expect(screen.getByText("newPipelineDialog.approve")).toBeInTheDocument();
+  });
+
+  it("supersedes the active proposal when rejecting it", async () => {
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({
+        type: "proposal_ready",
+        proposal: {
+          mode: "generate",
+          purpose: "Review repository code",
+          inputs: ["folder"],
+          outputs: ["markdown report"],
+          majorOperations: ["review-code"],
+          executionFlow: ["folder -> review-code -> output"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+        proposalId: "proposal-1",
+      });
+    });
+
+    const store = createSidebarStore();
+    store.setState({ newPipelineOpen: true });
+    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Build me a review pipeline",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
+    await waitFor(() => {
+      expect(screen.getByText("newPipelineDialog.reject")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("newPipelineDialog.reject"));
+
+    await waitFor(() => {
+      expect(mockSupersedeProposal).toHaveBeenCalledWith("session-1", "proposal-1");
+    });
+    expect(screen.queryByText("Review repository code")).not.toBeInTheDocument();
+  });
+
+  it("supersedes the active proposal when revising it", async () => {
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({
+        type: "proposal_ready",
+        proposal: {
+          mode: "generate",
+          purpose: "Review repository code",
+          inputs: ["folder"],
+          outputs: ["markdown report"],
+          majorOperations: ["review-code"],
+          executionFlow: ["folder -> review-code -> output"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+        proposalId: "proposal-1",
+      });
+    });
+
+    const store = createSidebarStore();
+    store.setState({ newPipelineOpen: true });
+    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Build me a review pipeline",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
+    await waitFor(() => {
+      expect(screen.getByText("newPipelineDialog.revise")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("newPipelineDialog.revise"));
+
+    await waitFor(() => {
+      expect(mockSupersedeProposal).toHaveBeenCalledWith("session-1", "proposal-1");
+    });
+    expect(screen.queryByText("Review repository code")).not.toBeInTheDocument();
+  });
+
+  it("does not resurrect a rejected proposal in session fallback", async () => {
+    const superseded = { current: false };
+    const proposalResult = {
+      proposal: {
+        mode: "generate" as const,
+        purpose: "Review repository code",
+        inputs: ["folder"],
+        outputs: ["markdown report"],
+        majorOperations: ["review-code"],
+        executionFlow: ["folder -> review-code -> output"],
+        assumptions: [],
+        openQuestions: [],
+        readiness: "ready_for_generation" as const,
+      },
+      proposalId: "proposal-1",
+    };
+    mockSupersedeProposal.mockImplementation(async () => {
+      superseded.current = true;
+    });
+    mockPlanSessionStream
+      .mockImplementationOnce(async (_sessionId, { onEvent }) => {
+        onEvent({ type: "proposal_ready", ...proposalResult });
+      })
+      .mockResolvedValueOnce(undefined);
+    mockGetLatestReadyProposal.mockImplementation(async () =>
+      superseded.current ? null : proposalResult,
+    );
+
+    const store = createSidebarStore();
+    store.setState({ newPipelineOpen: true });
+    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Build me a review pipeline",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
+    await waitFor(() => {
+      expect(screen.getByText("newPipelineDialog.reject")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("newPipelineDialog.reject"));
+    await waitFor(() => {
+      expect(mockSupersedeProposal).toHaveBeenCalledWith("session-1", "proposal-1");
+    });
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Try a different flow",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
+
+    await waitFor(() => {
+      expect(mockGetLatestReadyProposal).toHaveBeenCalled();
+    });
+    expect(screen.queryByText("Review repository code")).not.toBeInTheDocument();
+  });
+
+  it("renders a follow-up question from session fallback when the stream misses question", async () => {
+    mockPlanSessionStream.mockResolvedValue(undefined);
+    mockGetLatestAssistantQuestion.mockResolvedValueOnce({
+      question: "Should I create placeholder operations for unavailable capabilities?",
+    });
+
+    const store = createSidebarStore();
+    store.setState({ newPipelineOpen: true });
+    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Build me a review pipeline",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
+
+    await waitFor(() => {
+      expect(mockGetLatestAssistantQuestion).toHaveBeenCalledWith("session-1");
+      expect(
+        screen.getByText("Should I create placeholder operations for unavailable capabilities?"),
+      ).toBeInTheDocument();
+    });
+    expect(screen.getByText("newPipelineDialog.send")).toBeInTheDocument();
+  });
+
+  it("approves a proposal, generates a pipeline draft, and shows success actions", async () => {
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({
+        type: "proposal_ready",
+        proposal: {
+          mode: "generate",
+          purpose: "Review repository code",
+          inputs: ["folder"],
+          outputs: ["markdown report"],
+          majorOperations: ["review-code"],
+          executionFlow: ["folder -> review-code -> output"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+        proposalId: "proposal-1",
+      });
+    });
+
+    const store = createSidebarStore();
+    store.setState({ newPipelineOpen: true });
+    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Build me a review pipeline",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
+
+    await waitFor(() => {
+      expect(screen.getByText("newPipelineDialog.approve")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("newPipelineDialog.approve"));
+
+    await waitFor(() => {
+      expect(mockApproveProposal).toHaveBeenCalledWith("session-1", "proposal-1");
+    });
+    expect(mockGeneratePipeline).toHaveBeenCalledWith("session-1");
     await waitFor(() => {
       expect(screen.getByText("newPipelineDialog.pipelineReady")).toBeInTheDocument();
     });
-    expect(screen.getByTestId("check-icon")).toBeInTheDocument();
-    expect(screen.getByText("pipe-new")).toBeInTheDocument();
     expect(screen.getByText("newPipelineDialog.openInCanvas")).toBeInTheDocument();
     expect(screen.getByText("newPipelineDialog.runNow")).toBeInTheDocument();
-    expect(screen.getByText("newPipelineDialog.createAnother")).toBeInTheDocument();
   });
 
-  it("shows analysis results with matched operations", async () => {
+  it("falls back to polling the session when generate request fails but session completion is observable", async () => {
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({
+        type: "proposal_ready",
+        proposal: {
+          mode: "generate",
+          purpose: "Review repository code",
+          inputs: ["folder"],
+          outputs: ["markdown report"],
+          majorOperations: ["review-code"],
+          executionFlow: ["folder -> review-code -> output"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+        proposalId: "proposal-1",
+      });
+    });
+    mockGeneratePipeline.mockRejectedValueOnce(new Error("pending"));
+    mockWaitForCreatedPipeline.mockResolvedValueOnce({ pipelineId: "pipe-polled" });
+
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    mockAnalyzeIntent.mockResolvedValue({
-      data: {
-        matchedOperations: [
-          { operationId: "op-1", operationName: "lint-code", reason: "Linting match" },
-        ],
-        unmatchedSteps: [{ step: "Generate report", reason: "No operation" }],
-      },
-    });
-
     render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
 
-    const textarea = screen.getByPlaceholderText("newPipelineDialog.descriptionPlaceholder");
-    await userEvent.type(textarea, "Lint and report");
-    await userEvent.click(screen.getByText("common.create"));
-
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Build me a review pipeline",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
     await waitFor(() => {
-      expect(screen.getByText("newPipelineDialog.analysisTitle")).toBeInTheDocument();
-    });
-    expect(screen.getByText("lint-code")).toBeInTheDocument();
-    expect(screen.getByText("Linting match")).toBeInTheDocument();
-    expect(screen.getByText("Generate report")).toBeInTheDocument();
-    expect(screen.getByText("No operation")).toBeInTheDocument();
-  });
-
-  it("allows going back to form from analysis", async () => {
-    const store = createSidebarStore();
-    store.setState({ newPipelineOpen: true });
-
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
-
-    const textarea = screen.getByPlaceholderText("newPipelineDialog.descriptionPlaceholder");
-    await userEvent.type(textarea, "Something");
-    await userEvent.click(screen.getByText("common.create"));
-
-    await waitFor(() => {
-      expect(screen.getByText("newPipelineDialog.backToEdit")).toBeInTheDocument();
+      expect(screen.getByText("newPipelineDialog.approve")).toBeInTheDocument();
     });
 
-    await userEvent.click(screen.getByText("newPipelineDialog.backToEdit"));
-
-    expect(screen.getByText("common.create")).toBeInTheDocument();
-  });
-
-  it("proceeds to generation from analysis", async () => {
-    const store = createSidebarStore();
-    store.setState({ newPipelineOpen: true });
-
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
-
-    const textarea = screen.getByPlaceholderText("newPipelineDialog.descriptionPlaceholder");
-    await userEvent.type(textarea, "Build pipeline");
-    await userEvent.click(screen.getByText("common.create"));
+    await userEvent.click(screen.getByText("newPipelineDialog.approve"));
 
     await waitFor(() => {
-      expect(screen.getByText("newPipelineDialog.proceedWithGeneration")).toBeInTheDocument();
-    });
-
-    await userEvent.click(screen.getByText("newPipelineDialog.proceedWithGeneration"));
-
-    await waitFor(() => {
-      expect(mockGenerateStructure).toHaveBeenCalled();
+      expect(mockWaitForCreatedPipeline).toHaveBeenCalledWith("session-1", {
+        signal: expect.any(AbortSignal),
+      });
+      expect(screen.getByText("newPipelineDialog.pipelineReady")).toBeInTheDocument();
     });
   });
 
-  it("navigates to canvas when Open in Canvas is clicked", async () => {
+  it("keeps proposal review visible when generation returns a terminal server error", async () => {
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({
+        type: "proposal_ready",
+        proposal: {
+          mode: "generate",
+          purpose: "Review repository code",
+          inputs: ["folder"],
+          outputs: ["markdown report"],
+          majorOperations: ["review-code"],
+          executionFlow: ["folder -> review-code -> output"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+        proposalId: "proposal-1",
+      });
+    });
+    mockGeneratePipeline.mockRejectedValueOnce(
+      Object.assign(new Error("Agent returned invalid pipeline structure"), { status: 500 }),
+    );
+
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    mockCreatePipelineMutate.mockResolvedValue({ data: { id: "pipe-nav" } });
-
     render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
 
-    await userEvent.click(screen.getByText("common.create"));
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Build me a review pipeline",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
     await waitFor(() => {
-      expect(screen.getByText("newPipelineDialog.openInCanvas")).toBeInTheDocument();
+      expect(screen.getByText("newPipelineDialog.approve")).toBeInTheDocument();
     });
 
-    await userEvent.click(screen.getByText("newPipelineDialog.openInCanvas"));
+    await userEvent.click(screen.getByText("newPipelineDialog.approve"));
 
-    expect(mockNavigate).toHaveBeenCalledWith({ to: "/canvas", search: { id: "pipe-nav" } });
+    await waitFor(() => {
+      expect(screen.getByText("Agent returned invalid pipeline structure")).toBeInTheDocument();
+      expect(screen.getByText("newPipelineDialog.approve")).toBeInTheDocument();
+    });
+    expect(mockWaitForCreatedPipeline).not.toHaveBeenCalled();
+    expect(screen.queryByText("newPipelineDialog.pipelineReady")).not.toBeInTheDocument();
   });
 
-  it("runs pipeline and navigates when Run Now is clicked", async () => {
+  it("can approve the same proposal again after a terminal generation error", async () => {
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({
+        type: "proposal_ready",
+        proposal: {
+          mode: "generate",
+          purpose: "Review repository code",
+          inputs: ["folder"],
+          outputs: ["markdown report"],
+          majorOperations: ["review-code"],
+          executionFlow: ["folder -> review-code -> output"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+        proposalId: "proposal-1",
+      });
+    });
+    mockGeneratePipeline
+      .mockRejectedValueOnce(
+        Object.assign(new Error("Agent returned invalid pipeline structure"), { status: 500 }),
+      )
+      .mockResolvedValueOnce({ pipelineId: "pipe-2" });
+
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    mockCreatePipelineMutate.mockResolvedValue({ data: { id: "pipe-run" } });
-
     render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
 
-    await userEvent.click(screen.getByText("common.create"));
+    await userEvent.type(
+      screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
+      "Build me a review pipeline",
+    );
+    await userEvent.click(screen.getByText("newPipelineDialog.send"));
     await waitFor(() => {
-      expect(screen.getByText("newPipelineDialog.runNow")).toBeInTheDocument();
+      expect(screen.getByText("newPipelineDialog.approve")).toBeInTheDocument();
     });
 
-    await userEvent.click(screen.getByText("newPipelineDialog.runNow"));
+    await userEvent.click(screen.getByText("newPipelineDialog.approve"));
+    await waitFor(() => {
+      expect(screen.getByText("Agent returned invalid pipeline structure")).toBeInTheDocument();
+    });
 
-    expect(mockRunMutate).toHaveBeenCalledWith({ id: "pipe-run" });
-    expect(mockNavigate).toHaveBeenCalledWith({ to: "/canvas", search: { id: "pipe-run" } });
+    await userEvent.click(screen.getByText("newPipelineDialog.approve"));
+
+    await waitFor(() => {
+      expect(mockApproveProposal).toHaveBeenCalledTimes(2);
+      expect(mockGeneratePipeline).toHaveBeenCalledTimes(2);
+      expect(screen.getByText("newPipelineDialog.pipelineReady")).toBeInTheDocument();
+    });
   });
 
-  it("resets to form when Create Another is clicked", async () => {
+  it("uploads a file into the session context", async () => {
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-
     render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
 
-    await userEvent.click(screen.getByText("common.create"));
+    const file = new File(["hello"], "brief.txt", { type: "text/plain" });
+    const input = screen.getByLabelText("newPipelineDialog.upload") as HTMLInputElement;
+    await userEvent.upload(input, file);
+
     await waitFor(() => {
-      expect(screen.getByText("newPipelineDialog.createAnother")).toBeInTheDocument();
+      expect(mockCreateSession).toHaveBeenCalled();
     });
-
-    await userEvent.click(screen.getByText("newPipelineDialog.createAnother"));
-
-    expect(screen.getByText("common.create")).toBeInTheDocument();
+    expect(mockUploadAttachment).toHaveBeenCalledWith("session-1", file);
+    await waitFor(() => {
+      expect(screen.getByText("brief.txt")).toBeInTheDocument();
+    });
   });
 });

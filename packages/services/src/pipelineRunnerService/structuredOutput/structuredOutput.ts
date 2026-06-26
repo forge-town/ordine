@@ -65,6 +65,15 @@ const toMarkdown = ({ content }: { content: string }): string => {
   const parsed = tryParseJson({ text: content });
   if (parsed === undefined) return content;
 
+  if (
+    parsed !== null &&
+    typeof parsed === "object" &&
+    "result" in parsed &&
+    typeof parsed.result === "string"
+  ) {
+    return parsed.result;
+  }
+
   const result = OperationOutputSchema.safeParse(parsed);
   if (!result.success) return content;
 

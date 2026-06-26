@@ -22,6 +22,8 @@ import { Route as PipelinesIndexRouteImport } from './routes/pipelines/index'
 import { Route as DistillationsIndexRouteImport } from './routes/distillations/index'
 import { Route as PipelinesObjectsRouteImport } from './routes/pipelines/objects'
 import { Route as PipelinesJobsRouteImport } from './routes/pipelines/jobs'
+import { Route as PipelinesPipelineIdRouteImport } from './routes/pipelines/$pipelineId'
+import { Route as DistillationsNewRouteImport } from './routes/distillations/new'
 import { Route as DistillationsDistillationIdRouteImport } from './routes/distillations/$distillationId'
 import { Route as PipelinesOperationsIndexRouteImport } from './routes/pipelines/operations.index'
 import { Route as PipelinesOperationsNewRouteImport } from './routes/pipelines/operations.new'
@@ -94,6 +96,16 @@ const PipelinesJobsRoute = PipelinesJobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => PipelinesRoute,
 } as any)
+const PipelinesPipelineIdRoute = PipelinesPipelineIdRouteImport.update({
+  id: '/$pipelineId',
+  path: '/$pipelineId',
+  getParentRoute: () => PipelinesRoute,
+} as any)
+const DistillationsNewRoute = DistillationsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => DistillationsRoute,
+} as any)
 const DistillationsDistillationIdRoute =
   DistillationsDistillationIdRouteImport.update({
     id: '/$distillationId',
@@ -140,6 +152,8 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
+  '/distillations/new': typeof DistillationsNewRoute
+  '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
   '/pipelines/jobs': typeof PipelinesJobsRouteWithChildren
   '/pipelines/objects': typeof PipelinesObjectsRoute
   '/distillations/': typeof DistillationsIndexRoute
@@ -159,6 +173,8 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
+  '/distillations/new': typeof DistillationsNewRoute
+  '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
   '/pipelines/jobs': typeof PipelinesJobsRouteWithChildren
   '/pipelines/objects': typeof PipelinesObjectsRoute
   '/distillations': typeof DistillationsIndexRoute
@@ -181,6 +197,8 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
+  '/distillations/new': typeof DistillationsNewRoute
+  '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
   '/pipelines/jobs': typeof PipelinesJobsRouteWithChildren
   '/pipelines/objects': typeof PipelinesObjectsRoute
   '/distillations/': typeof DistillationsIndexRoute
@@ -204,6 +222,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skills'
     | '/distillations/$distillationId'
+    | '/distillations/new'
+    | '/pipelines/$pipelineId'
     | '/pipelines/jobs'
     | '/pipelines/objects'
     | '/distillations/'
@@ -223,6 +243,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skills'
     | '/distillations/$distillationId'
+    | '/distillations/new'
+    | '/pipelines/$pipelineId'
     | '/pipelines/jobs'
     | '/pipelines/objects'
     | '/distillations'
@@ -244,6 +266,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/skills'
     | '/distillations/$distillationId'
+    | '/distillations/new'
+    | '/pipelines/$pipelineId'
     | '/pipelines/jobs'
     | '/pipelines/objects'
     | '/distillations/'
@@ -360,6 +384,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PipelinesJobsRouteImport
       parentRoute: typeof PipelinesRoute
     }
+    '/pipelines/$pipelineId': {
+      id: '/pipelines/$pipelineId'
+      path: '/$pipelineId'
+      fullPath: '/pipelines/$pipelineId'
+      preLoaderRoute: typeof PipelinesPipelineIdRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/distillations/new': {
+      id: '/distillations/new'
+      path: '/new'
+      fullPath: '/distillations/new'
+      preLoaderRoute: typeof DistillationsNewRouteImport
+      parentRoute: typeof DistillationsRoute
+    }
     '/distillations/$distillationId': {
       id: '/distillations/$distillationId'
       path: '/$distillationId'
@@ -407,11 +445,13 @@ declare module '@tanstack/react-router' {
 
 interface DistillationsRouteChildren {
   DistillationsDistillationIdRoute: typeof DistillationsDistillationIdRoute
+  DistillationsNewRoute: typeof DistillationsNewRoute
   DistillationsIndexRoute: typeof DistillationsIndexRoute
 }
 
 const DistillationsRouteChildren: DistillationsRouteChildren = {
   DistillationsDistillationIdRoute: DistillationsDistillationIdRoute,
+  DistillationsNewRoute: DistillationsNewRoute,
   DistillationsIndexRoute: DistillationsIndexRoute,
 }
 
@@ -432,6 +472,7 @@ const PipelinesJobsRouteWithChildren = PipelinesJobsRoute._addFileChildren(
 )
 
 interface PipelinesRouteChildren {
+  PipelinesPipelineIdRoute: typeof PipelinesPipelineIdRoute
   PipelinesJobsRoute: typeof PipelinesJobsRouteWithChildren
   PipelinesObjectsRoute: typeof PipelinesObjectsRoute
   PipelinesIndexRoute: typeof PipelinesIndexRoute
@@ -442,6 +483,7 @@ interface PipelinesRouteChildren {
 }
 
 const PipelinesRouteChildren: PipelinesRouteChildren = {
+  PipelinesPipelineIdRoute: PipelinesPipelineIdRoute,
   PipelinesJobsRoute: PipelinesJobsRouteWithChildren,
   PipelinesObjectsRoute: PipelinesObjectsRoute,
   PipelinesIndexRoute: PipelinesIndexRoute,
