@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useOne, useCustomMutation } from "@refinedev/core";
 import { Trash2, Server, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -7,9 +7,8 @@ import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { Skeleton } from "@repo/ui/skeleton";
 import type { AgentRuntimeConfig } from "@repo/schemas";
-import { PageHeader } from "@/components/PageHeader";
-import { RuntimeIcon } from "@/pages/RuntimesPage/RuntimeIcon";
-import { Route } from "@/routes/_layout/runtimes.$runtimeId.index";
+import { PageHeader } from "../../../components/PageHeader";
+import { RuntimeIcon } from "../../../pages/RuntimesPage/RuntimeIcon";
 
 const s = "runtimes";
 
@@ -23,7 +22,7 @@ const InfoField = ({ label, value, mono }: { label: string; value: string; mono?
 export const RuntimeDetailPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { runtimeId } = Route.useParams();
+  const { runtimeId } = useParams({ strict: false }) as { runtimeId: string };
   const { result, query: runtimeQuery } = useOne<AgentRuntimeConfig>({
     resource: "agentRuntimes",
     id: runtimeId,

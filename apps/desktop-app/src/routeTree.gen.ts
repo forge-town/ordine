@@ -11,13 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as RuntimesRouteImport } from './routes/runtimes'
 import { Route as PluginsRouteImport } from './routes/plugins'
 import { Route as PipelinesRouteImport } from './routes/pipelines'
 import { Route as DistillationsRouteImport } from './routes/distillations'
 import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RuntimesIndexRouteImport } from './routes/runtimes.index'
 import { Route as PipelinesIndexRouteImport } from './routes/pipelines/index'
 import { Route as DistillationsIndexRouteImport } from './routes/distillations/index'
 import { Route as PipelinesObjectsRouteImport } from './routes/pipelines/objects'
@@ -25,7 +25,9 @@ import { Route as PipelinesJobsRouteImport } from './routes/pipelines/jobs'
 import { Route as PipelinesPipelineIdRouteImport } from './routes/pipelines/$pipelineId'
 import { Route as DistillationsNewRouteImport } from './routes/distillations/new'
 import { Route as DistillationsDistillationIdRouteImport } from './routes/distillations/$distillationId'
+import { Route as RuntimesRuntimeIdIndexRouteImport } from './routes/runtimes.$runtimeId.index'
 import { Route as PipelinesOperationsIndexRouteImport } from './routes/pipelines/operations.index'
+import { Route as RuntimesRuntimeIdEditRouteImport } from './routes/runtimes.$runtimeId.edit'
 import { Route as PipelinesOperationsNewRouteImport } from './routes/pipelines/operations.new'
 import { Route as PipelinesObjectsObjectTypeIdRouteImport } from './routes/pipelines/objects.$objectTypeId'
 import { Route as PipelinesJobsJobIdRouteImport } from './routes/pipelines/jobs.$jobId'
@@ -40,11 +42,6 @@ const SkillsRoute = SkillsRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RuntimesRoute = RuntimesRouteImport.update({
-  id: '/runtimes',
-  path: '/runtimes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PluginsRoute = PluginsRouteImport.update({
@@ -75,6 +72,11 @@ const AgentsRoute = AgentsRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RuntimesIndexRoute = RuntimesIndexRouteImport.update({
+  id: '/runtimes/',
+  path: '/runtimes/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PipelinesIndexRoute = PipelinesIndexRouteImport.update({
@@ -113,12 +115,22 @@ const DistillationsDistillationIdRoute =
     path: '/$distillationId',
     getParentRoute: () => DistillationsRoute,
   } as any)
+const RuntimesRuntimeIdIndexRoute = RuntimesRuntimeIdIndexRouteImport.update({
+  id: '/runtimes/$runtimeId/',
+  path: '/runtimes/$runtimeId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PipelinesOperationsIndexRoute =
   PipelinesOperationsIndexRouteImport.update({
     id: '/operations/',
     path: '/operations/',
     getParentRoute: () => PipelinesRoute,
   } as any)
+const RuntimesRuntimeIdEditRoute = RuntimesRuntimeIdEditRouteImport.update({
+  id: '/runtimes/$runtimeId/edit',
+  path: '/runtimes/$runtimeId/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PipelinesOperationsNewRoute = PipelinesOperationsNewRouteImport.update({
   id: '/operations/new',
   path: '/operations/new',
@@ -155,7 +167,6 @@ export interface FileRoutesByFullPath {
   '/distillations': typeof DistillationsRouteWithChildren
   '/pipelines': typeof PipelinesRouteWithChildren
   '/plugins': typeof PluginsRoute
-  '/runtimes': typeof RuntimesRoute
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
@@ -165,10 +176,13 @@ export interface FileRoutesByFullPath {
   '/pipelines/objects': typeof PipelinesObjectsRouteWithChildren
   '/distillations/': typeof DistillationsIndexRoute
   '/pipelines/': typeof PipelinesIndexRoute
+  '/runtimes/': typeof RuntimesIndexRoute
   '/pipelines/jobs/$jobId': typeof PipelinesJobsJobIdRoute
   '/pipelines/objects/$objectTypeId': typeof PipelinesObjectsObjectTypeIdRoute
   '/pipelines/operations/new': typeof PipelinesOperationsNewRoute
+  '/runtimes/$runtimeId/edit': typeof RuntimesRuntimeIdEditRoute
   '/pipelines/operations/': typeof PipelinesOperationsIndexRoute
+  '/runtimes/$runtimeId/': typeof RuntimesRuntimeIdIndexRoute
   '/pipelines/operations/$operationId/edit': typeof PipelinesOperationsOperationIdEditRoute
   '/pipelines/operations/$operationId/': typeof PipelinesOperationsOperationIdIndexRoute
 }
@@ -177,7 +191,6 @@ export interface FileRoutesByTo {
   '/agents': typeof AgentsRoute
   '/canvas': typeof CanvasRoute
   '/plugins': typeof PluginsRoute
-  '/runtimes': typeof RuntimesRoute
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
@@ -187,10 +200,13 @@ export interface FileRoutesByTo {
   '/pipelines/objects': typeof PipelinesObjectsRouteWithChildren
   '/distillations': typeof DistillationsIndexRoute
   '/pipelines': typeof PipelinesIndexRoute
+  '/runtimes': typeof RuntimesIndexRoute
   '/pipelines/jobs/$jobId': typeof PipelinesJobsJobIdRoute
   '/pipelines/objects/$objectTypeId': typeof PipelinesObjectsObjectTypeIdRoute
   '/pipelines/operations/new': typeof PipelinesOperationsNewRoute
+  '/runtimes/$runtimeId/edit': typeof RuntimesRuntimeIdEditRoute
   '/pipelines/operations': typeof PipelinesOperationsIndexRoute
+  '/runtimes/$runtimeId': typeof RuntimesRuntimeIdIndexRoute
   '/pipelines/operations/$operationId/edit': typeof PipelinesOperationsOperationIdEditRoute
   '/pipelines/operations/$operationId': typeof PipelinesOperationsOperationIdIndexRoute
 }
@@ -202,7 +218,6 @@ export interface FileRoutesById {
   '/distillations': typeof DistillationsRouteWithChildren
   '/pipelines': typeof PipelinesRouteWithChildren
   '/plugins': typeof PluginsRoute
-  '/runtimes': typeof RuntimesRoute
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
@@ -212,10 +227,13 @@ export interface FileRoutesById {
   '/pipelines/objects': typeof PipelinesObjectsRouteWithChildren
   '/distillations/': typeof DistillationsIndexRoute
   '/pipelines/': typeof PipelinesIndexRoute
+  '/runtimes/': typeof RuntimesIndexRoute
   '/pipelines/jobs/$jobId': typeof PipelinesJobsJobIdRoute
   '/pipelines/objects/$objectTypeId': typeof PipelinesObjectsObjectTypeIdRoute
   '/pipelines/operations/new': typeof PipelinesOperationsNewRoute
+  '/runtimes/$runtimeId/edit': typeof RuntimesRuntimeIdEditRoute
   '/pipelines/operations/': typeof PipelinesOperationsIndexRoute
+  '/runtimes/$runtimeId/': typeof RuntimesRuntimeIdIndexRoute
   '/pipelines/operations/$operationId/edit': typeof PipelinesOperationsOperationIdEditRoute
   '/pipelines/operations/$operationId/': typeof PipelinesOperationsOperationIdIndexRoute
 }
@@ -228,7 +246,6 @@ export interface FileRouteTypes {
     | '/distillations'
     | '/pipelines'
     | '/plugins'
-    | '/runtimes'
     | '/settings'
     | '/skills'
     | '/distillations/$distillationId'
@@ -238,10 +255,13 @@ export interface FileRouteTypes {
     | '/pipelines/objects'
     | '/distillations/'
     | '/pipelines/'
+    | '/runtimes/'
     | '/pipelines/jobs/$jobId'
     | '/pipelines/objects/$objectTypeId'
     | '/pipelines/operations/new'
+    | '/runtimes/$runtimeId/edit'
     | '/pipelines/operations/'
+    | '/runtimes/$runtimeId/'
     | '/pipelines/operations/$operationId/edit'
     | '/pipelines/operations/$operationId/'
   fileRoutesByTo: FileRoutesByTo
@@ -250,7 +270,6 @@ export interface FileRouteTypes {
     | '/agents'
     | '/canvas'
     | '/plugins'
-    | '/runtimes'
     | '/settings'
     | '/skills'
     | '/distillations/$distillationId'
@@ -260,10 +279,13 @@ export interface FileRouteTypes {
     | '/pipelines/objects'
     | '/distillations'
     | '/pipelines'
+    | '/runtimes'
     | '/pipelines/jobs/$jobId'
     | '/pipelines/objects/$objectTypeId'
     | '/pipelines/operations/new'
+    | '/runtimes/$runtimeId/edit'
     | '/pipelines/operations'
+    | '/runtimes/$runtimeId'
     | '/pipelines/operations/$operationId/edit'
     | '/pipelines/operations/$operationId'
   id:
@@ -274,7 +296,6 @@ export interface FileRouteTypes {
     | '/distillations'
     | '/pipelines'
     | '/plugins'
-    | '/runtimes'
     | '/settings'
     | '/skills'
     | '/distillations/$distillationId'
@@ -284,10 +305,13 @@ export interface FileRouteTypes {
     | '/pipelines/objects'
     | '/distillations/'
     | '/pipelines/'
+    | '/runtimes/'
     | '/pipelines/jobs/$jobId'
     | '/pipelines/objects/$objectTypeId'
     | '/pipelines/operations/new'
+    | '/runtimes/$runtimeId/edit'
     | '/pipelines/operations/'
+    | '/runtimes/$runtimeId/'
     | '/pipelines/operations/$operationId/edit'
     | '/pipelines/operations/$operationId/'
   fileRoutesById: FileRoutesById
@@ -299,9 +323,11 @@ export interface RootRouteChildren {
   DistillationsRoute: typeof DistillationsRouteWithChildren
   PipelinesRoute: typeof PipelinesRouteWithChildren
   PluginsRoute: typeof PluginsRoute
-  RuntimesRoute: typeof RuntimesRoute
   SettingsRoute: typeof SettingsRoute
   SkillsRoute: typeof SkillsRoute
+  RuntimesIndexRoute: typeof RuntimesIndexRoute
+  RuntimesRuntimeIdEditRoute: typeof RuntimesRuntimeIdEditRoute
+  RuntimesRuntimeIdIndexRoute: typeof RuntimesRuntimeIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -318,13 +344,6 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/runtimes': {
-      id: '/runtimes'
-      path: '/runtimes'
-      fullPath: '/runtimes'
-      preLoaderRoute: typeof RuntimesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plugins': {
@@ -367,6 +386,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runtimes/': {
+      id: '/runtimes/'
+      path: '/runtimes'
+      fullPath: '/runtimes/'
+      preLoaderRoute: typeof RuntimesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pipelines/': {
@@ -418,12 +444,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DistillationsDistillationIdRouteImport
       parentRoute: typeof DistillationsRoute
     }
+    '/runtimes/$runtimeId/': {
+      id: '/runtimes/$runtimeId/'
+      path: '/runtimes/$runtimeId'
+      fullPath: '/runtimes/$runtimeId/'
+      preLoaderRoute: typeof RuntimesRuntimeIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pipelines/operations/': {
       id: '/pipelines/operations/'
       path: '/operations'
       fullPath: '/pipelines/operations/'
       preLoaderRoute: typeof PipelinesOperationsIndexRouteImport
       parentRoute: typeof PipelinesRoute
+    }
+    '/runtimes/$runtimeId/edit': {
+      id: '/runtimes/$runtimeId/edit'
+      path: '/runtimes/$runtimeId/edit'
+      fullPath: '/runtimes/$runtimeId/edit'
+      preLoaderRoute: typeof RuntimesRuntimeIdEditRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/pipelines/operations/new': {
       id: '/pipelines/operations/new'
@@ -537,9 +577,11 @@ const rootRouteChildren: RootRouteChildren = {
   DistillationsRoute: DistillationsRouteWithChildren,
   PipelinesRoute: PipelinesRouteWithChildren,
   PluginsRoute: PluginsRoute,
-  RuntimesRoute: RuntimesRoute,
   SettingsRoute: SettingsRoute,
   SkillsRoute: SkillsRoute,
+  RuntimesIndexRoute: RuntimesIndexRoute,
+  RuntimesRuntimeIdEditRoute: RuntimesRuntimeIdEditRoute,
+  RuntimesRuntimeIdIndexRoute: RuntimesRuntimeIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
