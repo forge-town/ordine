@@ -1,10 +1,11 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useSession } from "@/integrations/better-auth-client";
-import { SignUpPageContent } from "./SignUpPageContent";
+import { useAuth } from "../../auth";
+import { LoginPageContent } from "./LoginPageContent";
 
-export const SignUpPage = () => {
+export const LoginPage = () => {
   const navigate = useNavigate();
+  const { useSession } = useAuth();
   const { data: session, isPending } = useSession();
 
   // If the user is already authenticated, redirect them to the home page
@@ -26,5 +27,5 @@ export const SignUpPage = () => {
     return null;
   }
 
-  return <SignUpPageContent />;
+  return <LoginPageContent />;
 };

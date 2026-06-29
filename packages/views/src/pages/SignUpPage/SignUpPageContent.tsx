@@ -7,35 +7,30 @@ import { Button } from "@repo/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
 import { Input } from "@repo/ui/input";
-import {
-  signInWithEmail,
-  signInWithGitHub,
-  signInWithGoogle,
-} from "@/integrations/better-auth-client";
+import { useAuth } from "../../auth";
 
-const loginSchema = z.object({
+const signUpSchema = z.object({
+  name: z.string().min(1, "Name is required"),
   email: z.email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type SignUpFormValues = z.infer<typeof signUpSchema>;
 
-const handleGitHubClick = () => signInWithGitHub("/");
-const handleGoogleClick = () => signInWithGoogle("/");
-
-export const LoginPageContent = () => {
+export const SignUpPageContent = () => {
   const navigate = useNavigate();
+  const { signUpWithEmail } = useAuth();
   const [error, setError] = useState("");
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+  const form = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: { name: "", email: "", password: "" },
   });
   const loading = form.formState.isSubmitting;
 
-  const handleSubmit = async (values: LoginFormValues) => {
+  const handleSubmit = async (values: SignUpFormValues) => {
     setError("");
-    const result = await signInWithEmail({ ...values, callbackURL: "/" });
+    const result = await signUpWithEmail({ ...values, callbackURL: "/" });
     result.match(
       () => navigate({ to: "/" }),
       (error) => setError(error.message),
@@ -46,8 +41,8 @@ export const LoginPageContent = () => {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Sign In</CardTitle>
-          <CardDescription>Sign in to your Ordine account</CardDescription>
+          <CardTitle className="text-2xl">Create Account</CardTitle>
+          <CardDescription>Sign up for Ordine</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -57,6 +52,19 @@ export const LoginPageContent = () => {
                   {error}
                 </div>
               )}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your name" type="text" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -77,41 +85,22 @@ export const LoginPageContent = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <Input placeholder="At least 8 characters" type="password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button className="w-full" disabled={loading} type="submit">
-                {loading ? "Signing in..." : "Sign In"}
+                {loading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
           </Form>
 
-          <div className="mt-4 space-y-2">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Button type="button" variant="outline" onClick={handleGitHubClick}>
-                GitHub
-              </Button>
-              <Button type="button" variant="outline" onClick={handleGoogleClick}>
-                Google
-              </Button>
-            </div>
-          </div>
-
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <a className="text-primary underline-offset-4 hover:underline" href="/sign-up">
-              Sign up
+            Already have an account?{" "}
+            <a className="text-primary underline-offset-4 hover:underline" href="/login">
+              Sign in
             </a>
           </p>
         </CardContent>
