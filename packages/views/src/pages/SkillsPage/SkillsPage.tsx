@@ -1,7 +1,7 @@
 import { useStore } from "zustand";
 import { SkillsPageStoreProvider, useSkillsPageStore } from "./_store";
 import { SkillsPageContent } from "./SkillsPageContent";
-import { SkillToOperationDialog } from "@/components/SkillToOperationDialog";
+import { SkillToOperationDialog } from "../../components/SkillToOperationDialog";
 
 const SkillsPageInner = () => {
   const store = useSkillsPageStore();

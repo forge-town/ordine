@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { AgentsPageStoreContext, createAgentsPageStore } from "./agentsPageStore";
-import { useInit } from "@/hooks/useInit";
+import { useInit } from "../../../hooks/useInit";
 
 interface Props {
   children: ReactNode;

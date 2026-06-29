@@ -1,6 +1,6 @@
 import { ResultAsync } from "neverthrow";
 import { useDelete, useOne } from "@refinedev/core";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useStore } from "zustand";
 import {
   Bot,
@@ -20,9 +20,8 @@ import { Badge } from "@repo/ui/badge";
 import { Separator } from "@repo/ui/separator";
 import { Skeleton } from "@repo/ui/skeleton";
 import type { Agent } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { PageHeader } from "@/components/PageHeader";
-import { Route } from "@/routes/_layout/agents.$agentId.index";
+import { ResourceName } from "../../../constants";
+import { PageHeader } from "../../../components/PageHeader";
 import { useAgentDetailPageStore } from "../_store";
 import { PropRow } from "./PropRow";
 
@@ -30,7 +29,7 @@ const s = "agents";
 
 export const AgentDetailPageContent = () => {
   const { t } = useTranslation();
-  const { agentId } = Route.useParams();
+  const { agentId } = useParams({ strict: false }) as { agentId: string };
   const navigate = useNavigate();
   const { mutateAsync: deleteAgent } = useDelete();
   const { result, query: agentQuery } = useOne<Agent>({
