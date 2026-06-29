@@ -1,4 +1,4 @@
-import { safeJsonParse } from "@/lib/safeJson";
+import { safeJsonParse } from "../../lib/safeJson";
 import { SettingsPageStoreProvider, type AppSettings } from "./_store";
 import { SettingsPageContent } from "./SettingsPageContent";
 

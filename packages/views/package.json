@@ -25,6 +25,8 @@
     "./AgentsPage": "./src/pages/AgentsPage/index.ts",
     "./AgentDetailPage": "./src/pages/AgentDetailPage/index.ts",
     "./SkillsPage": "./src/pages/SkillsPage/index.ts",
+    "./SettingsPage": "./src/pages/SettingsPage/index.ts",
+    "./PluginsPage": "./src/pages/PluginsPage/index.ts",
     "./PipelinesPage": "./src/pages/PipelinesPage/index.ts",
     "./PipelineDetailPage": "./src/pages/PipelineDetailPage/index.ts",
     "./PageHeader": "./src/components/PageHeader/index.ts",
