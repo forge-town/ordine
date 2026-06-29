@@ -3,20 +3,21 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import type { Distillation } from "@repo/schemas";
 import { Badge } from "@repo/ui/badge";
-import { PageHeader } from "@/components/PageHeader";
-import { DistillationResultPanel } from "@/components/DistillationResultPanel";
-import { JobSourceAnalysisPanel } from "@/components/JobSourceAnalysisPanel";
-import { PageLoadingState } from "@/components/PageLoadingState";
-import { RefinementPanel } from "@/components/RefinementPanel";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Route } from "@/routes/_layout/distillation-studio";
+import { PageHeader } from "../../components/PageHeader";
+import { DistillationResultPanel } from "../../components/DistillationResultPanel";
+import { JobSourceAnalysisPanel } from "../../components/JobSourceAnalysisPanel";
+import { PageLoadingState } from "../../components/PageLoadingState";
+import { RefinementPanel } from "../../components/RefinementPanel";
+import { ResourceName } from "../../constants";
+import { useSearch } from "@tanstack/react-router";
+import type { DistillationStudioSearch } from "./searchParams";
 import { useDistillationStudioPageStore } from "./_store";
 import { DistillationActionBar } from "./DistillationActionBar";
 import { DistillationForm } from "./DistillationForm";
 
 export const DistillationStudioPageContent = () => {
   const { t } = useTranslation();
-  const search = Route.useSearch();
+  const search = useSearch({ strict: false }) as DistillationStudioSearch;
   const existingDistillationId = search.distillationId ?? "";
 
   const store = useDistillationStudioPageStore();

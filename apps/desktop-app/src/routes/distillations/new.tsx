@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { DistillationStudioPage } from "@repo/views/DistillationStudioPage";
 
 type StudioSearch = {
   distillationId?: string;
@@ -8,9 +9,6 @@ type StudioSearch = {
   mode?: string;
 };
 
-// Placeholder route so shared views (e.g. PipelineDetailPage) can navigate to
-// the distillation studio on desktop. The full DistillationStudioPage migration
-// is a separate follow-up.
 export const Route = createFileRoute("/distillations/new")({
   validateSearch: (search: Record<string, unknown>): StudioSearch => ({
     distillationId: search.distillationId as string | undefined,
@@ -19,5 +17,5 @@ export const Route = createFileRoute("/distillations/new")({
     sourceLabel: search.sourceLabel as string | undefined,
     mode: search.mode as string | undefined,
   }),
-  component: () => <div>Distillation Studio</div>,
+  component: DistillationStudioPage,
 });

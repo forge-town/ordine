@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useOne, useCustomMutation } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
 import type { Distillation } from "@repo/schemas";
@@ -6,18 +6,17 @@ import { Button, buttonVariants } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import { Card } from "@repo/ui/card";
 import { Database, Sparkles, Loader2 } from "lucide-react";
-import { DistillationResultPanel } from "@/components/DistillationResultPanel";
-import { InputSnapshotPanel } from "@/components/InputSnapshotPanel";
-import { AgentRunsPanel } from "@repo/views/JobDetailPage/AgentRunsPanel";
-import { PageLoadingState } from "@/components/PageLoadingState";
-import { PageHeader } from "@/components/PageHeader";
-import { ResourceName } from "@/integrations/refine/dataProvider";
-import { Route } from "@/routes/_layout/distillations.$distillationId";
+import { DistillationResultPanel } from "../../../components/DistillationResultPanel";
+import { InputSnapshotPanel } from "../../../components/InputSnapshotPanel";
+import { AgentRunsPanel } from "../../../pages/JobDetailPage/AgentRunsPanel";
+import { PageLoadingState } from "../../../components/PageLoadingState";
+import { PageHeader } from "../../../components/PageHeader";
+import { ResourceName } from "../../../constants";
 
 export const DistillationDetailPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { distillationId } = Route.useParams();
+  const { distillationId } = useParams({ strict: false }) as { distillationId: string };
   const { mutate: optimizePipeline, mutation: optimizeMutation } = useCustomMutation();
   const isOptimizing = optimizeMutation.isPending;
   const { result: distillationResult, query: distillationQuery } = useOne<Distillation>({
