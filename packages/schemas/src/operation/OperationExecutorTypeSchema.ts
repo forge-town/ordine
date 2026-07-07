@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 export const OPERATION_EXECUTOR_TYPE_ENUM = {
   AGENT: "agent",
   SCRIPT: "script",
+  PUBLISH: "publish",
 } as const;
 
 export const OperationExecutorTypeSchema = z.enum(OPERATION_EXECUTOR_TYPE_ENUM);
