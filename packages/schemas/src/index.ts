@@ -1,7 +1,6 @@
 export * from "./agent";
 export * from "./agent-runtime";
 export * from "./agent-trace";
-export * from "./annotation";
 export * from "./artifact";
 export * from "./connector";
 export * from "./conversation";
