@@ -106,6 +106,7 @@ describe("COD-116 domain DAOs with PGlite", () => {
       name: "Asset",
       snapshotNodes: [],
       snapshotEdges: [],
+      tags: [],
     });
     await assets.update("asset-1", { name: "Updated Asset" });
     await assets.incrementRunStats("asset-1", { success: true, durationMs: 1200 });

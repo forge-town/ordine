@@ -46,6 +46,7 @@ describe("PipelineAssetsDao", () => {
         name: asset.name,
         snapshotNodes: [],
         snapshotEdges: [],
+        tags: [],
       }),
     ).resolves.toEqual(asset);
     await expect(dao.update(asset.id, { name: "Updated" })).resolves.toEqual(asset);
