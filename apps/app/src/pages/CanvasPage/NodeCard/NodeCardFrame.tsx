@@ -59,8 +59,8 @@ export const NodeCardFrame = memo(
           selected ? cn("ring-2 shadow-lg", t.ringSelected) : cn("ring-1 hover:ring-2", t.ring),
           runStatus === "running" &&
             "ring-2 ring-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.4)] animate-pulse",
-          runStatus === "pass" && "ring-2 ring-green-500",
-          runStatus === "fail" && "ring-2 ring-red-500",
+          runStatus === "done" && "ring-2 ring-green-500",
+          runStatus === "failed" && "ring-2 ring-red-500",
           dimmed && "opacity-40 pointer-events-none",
         )}
         size="sm"

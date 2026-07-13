@@ -455,7 +455,7 @@ export const createUISlice = (
       runningNodeId: null,
       nodeRunStatuses: {
         ...state.nodeRunStatuses,
-        [nodeId]: "pass" as NodeRunStatus,
+        [nodeId]: "done" as NodeRunStatus,
       },
     }));
   },
@@ -465,7 +465,7 @@ export const createUISlice = (
       runningNodeId: null,
       nodeRunStatuses: {
         ...state.nodeRunStatuses,
-        [nodeId]: "fail" as NodeRunStatus,
+        [nodeId]: "failed" as NodeRunStatus,
       },
     }));
   },
