@@ -14,14 +14,17 @@
   "scripts": {
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
-    "quality": "bun run check-types && bun run lint"
+    "quality": "bun run check-types && bun run lint && bun run test",
+    "test": "vitest run"
   },
   "dependencies": {
     "@repo/schemas": "workspace:*",
     "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.4.5",
     "@repo/typescript-config": "workspace:*",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "^4.1.4"
   }
 }
