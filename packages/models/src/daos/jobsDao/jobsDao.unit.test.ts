@@ -103,6 +103,23 @@ describe("jobsDao", () => {
     expect(result?.status).toBe("running");
   });
 
+  it("persists token totals and per-node statuses", async () => {
+    const row = makeRow("job-5", "done");
+    mockReturning.mockResolvedValue([row]);
+
+    await dao.updateStatus("job-5", "done", { totalTokens: 1200 });
+    await dao.updateNodeStatuses("job-5", { "node-1": "done" });
+
+    expect(mockSet).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ status: "done", totalTokens: 1200 }),
+    );
+    expect(mockSet).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ nodeStatuses: { "node-1": "done" } }),
+    );
+  });
+
   it("delete calls db.delete", async () => {
     await dao.delete("job-6");
     expect(mockWhere).toHaveBeenCalled();
