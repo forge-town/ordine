@@ -1,4 +1,4 @@
-import { and, desc, gte, lte, sql } from "drizzle-orm";
+import { and, desc, gte, isNotNull, lte, sql } from "drizzle-orm";
 import { agentRawExportsTable, jobsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
@@ -17,7 +17,13 @@ export class UsageDao {
         runCount: sql<number>`count(*)::int`,
       })
       .from(jobsTable)
-      .where(and(gte(jobsTable.createdAt, from), lte(jobsTable.createdAt, to)));
+      .where(
+        and(
+          gte(jobsTable.createdAt, from),
+          lte(jobsTable.createdAt, to),
+          isNotNull(jobsTable.totalTokens),
+        ),
+      );
 
     return rows[0]!;
   }
@@ -31,7 +37,13 @@ export class UsageDao {
         tokens: sql<number>`coalesce(sum(coalesce(${jobsTable.totalTokens}, 0)), 0)::double precision`,
       })
       .from(jobsTable)
-      .where(and(gte(jobsTable.createdAt, from), lte(jobsTable.createdAt, to)))
+      .where(
+        and(
+          gte(jobsTable.createdAt, from),
+          lte(jobsTable.createdAt, to),
+          isNotNull(jobsTable.totalTokens),
+        ),
+      )
       .groupBy(day)
       .orderBy(day);
   }
@@ -46,7 +58,13 @@ export class UsageDao {
         runCount: sql<number>`count(*)::int`,
       })
       .from(jobsTable)
-      .where(and(gte(jobsTable.createdAt, from), lte(jobsTable.createdAt, to)))
+      .where(
+        and(
+          gte(jobsTable.createdAt, from),
+          lte(jobsTable.createdAt, to),
+          isNotNull(jobsTable.totalTokens),
+        ),
+      )
       .groupBy(jobsTable.pipelineId)
       .orderBy(desc(totalTokens));
   }

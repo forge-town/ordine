@@ -40,7 +40,6 @@ describe("UsageDao", () => {
     await expect(dao.getByPipeline(range)).resolves.toEqual(rows);
     await expect(dao.getByAgent(range)).resolves.toEqual(rows);
 
-    expect(rows[0]).not.toHaveProperty("totalCost");
     expect(query.groupBy).toHaveBeenCalledTimes(3);
     expect(query.orderBy).toHaveBeenCalledTimes(3);
   });

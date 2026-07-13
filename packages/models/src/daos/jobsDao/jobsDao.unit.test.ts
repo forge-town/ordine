@@ -108,7 +108,7 @@ describe("jobsDao", () => {
     mockReturning.mockResolvedValue([row]);
 
     await dao.updateStatus("job-5", "done", { totalTokens: 1200 });
-    await dao.updateNodeStatuses("job-5", { "node-1": "done" });
+    await dao.setNodeStatuses("job-5", { "node-1": "done" });
 
     expect(mockSet).toHaveBeenNthCalledWith(
       1,

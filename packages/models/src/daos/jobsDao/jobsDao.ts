@@ -62,7 +62,7 @@ export class JobsDao {
     return updated;
   }
 
-  async updateNodeStatuses(id: string, nodeStatuses: Record<string, NodeRunStatus>) {
+  async setNodeStatuses(id: string, nodeStatuses: Record<string, NodeRunStatus>) {
     const [updated] = await this.executor
       .update(jobsTable)
       .set({ nodeStatuses, updatedAt: new Date() })
