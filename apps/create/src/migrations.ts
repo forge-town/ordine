@@ -155,14 +155,6 @@ export const runMigrations = (db: PGlite, migrationsDir: string): ResultAsync<nu
         const existingTableNames = tablesResult.value.rows.map((table) => table.tablename);
 
         if (existingTableNames.length > 0) {
-          if (files.length !== 1) {
-            return err(
-              new Error(
-                "Existing databases without migration tracking are only supported when a single initial migration file is present.",
-              ),
-            );
-          }
-
           const initialMigration = files[0];
           if (!initialMigration) {
             return err(
@@ -193,8 +185,7 @@ export const runMigrations = (db: PGlite, migrationsDir: string): ResultAsync<nu
             if (recordResult.isErr()) {
               return err(recordResult.error);
             }
-
-            return ok(0);
+            appliedSet.add(initialMigration);
           }
         }
       }
