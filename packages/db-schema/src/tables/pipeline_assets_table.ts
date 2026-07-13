@@ -21,10 +21,7 @@ export const pipelineAssetsTable = pgTable(
     totalRuns: integer("total_runs").notNull().default(0),
     successRate: numeric("success_rate", { precision: 5, scale: 4 }),
     avgDurationMs: integer("avg_duration_ms"),
-    tags: jsonb("tags")
-      .$type<string[]>()
-      .notNull()
-      .default(sql`'[]'::jsonb`),
+    tags: jsonb("tags").$type<string[]>().notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

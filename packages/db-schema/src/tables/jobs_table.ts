@@ -11,7 +11,7 @@ export const jobsTable = pgTable(
     type: text("type").$type<JobType>().notNull(),
     status: text("status").$type<JobStatus>().notNull().default("queued"),
     parentJobId: text("parent_job_id"),
-    pipelineId: text("pipeline_id").references(() => pipelinesTable.id),
+    pipelineId: text("pipeline_id").references(() => pipelinesTable.id, { onDelete: "set null" }),
     projectId: text("project_id").references(() => projectsTable.id),
     totalTokens: integer("total_tokens"),
     triggeredBy: text("triggered_by").$type<JobTriggeredBy>().notNull().default("manual"),

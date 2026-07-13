@@ -72,15 +72,18 @@ const applyPendingMigrations = (
             .map((statement) => statement.trim())
             .filter((statement) => statement.length > 0);
 
-          const statementChain = statements.reduce<ResultAsync<void, Error>>(
-            (currentChain, statement) =>
-              currentChain.andThen(() =>
-                execSql(db, statement, `Failed to execute migration statement in "${fileName}"`),
-              ),
-            okVoidAsync(),
-          );
+          const transactionSql = [
+            "BEGIN;",
+            ...statements,
+            `INSERT INTO _ordine_migrations (name) VALUES (${quoteSqlLiteral(fileName)});`,
+            "COMMIT;",
+          ].join("\n");
 
-          return statementChain.andThen(() => insertMigrationRecord(db, fileName));
+          return execSql(
+            db,
+            transactionSql,
+            `Failed to execute migration transaction in "${fileName}"`,
+          );
         }),
       okVoidAsync(),
     )

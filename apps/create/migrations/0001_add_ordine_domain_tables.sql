@@ -1,3 +1,7 @@
+ALTER TABLE "operations" ADD COLUMN IF NOT EXISTS "source_skill_id" text;
+--> statement-breakpoint
+ALTER TABLE "pipelines" ADD COLUMN IF NOT EXISTS "shared_context" text DEFAULT '' NOT NULL;
+--> statement-breakpoint
 CREATE TABLE "projects" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
@@ -75,7 +79,7 @@ CREATE TABLE "pipeline_assets" (
 	"total_runs" integer DEFAULT 0 NOT NULL,
 	"success_rate" numeric(5, 4),
 	"avg_duration_ms" integer,
-	"tags" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"tags" jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -94,7 +98,7 @@ ALTER TABLE "jobs" ADD COLUMN "triggered_by" text DEFAULT 'manual' NOT NULL;
 --> statement-breakpoint
 ALTER TABLE "jobs" ADD COLUMN "node_statuses" jsonb;
 --> statement-breakpoint
-ALTER TABLE "jobs" ADD CONSTRAINT "jobs_pipeline_id_pipelines_id_fk" FOREIGN KEY ("pipeline_id") REFERENCES "public"."pipelines"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "jobs" ADD CONSTRAINT "jobs_pipeline_id_pipelines_id_fk" FOREIGN KEY ("pipeline_id") REFERENCES "public"."pipelines"("id") ON DELETE set null ON UPDATE no action;
 --> statement-breakpoint
 ALTER TABLE "jobs" ADD CONSTRAINT "jobs_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE no action ON UPDATE no action;
 --> statement-breakpoint
