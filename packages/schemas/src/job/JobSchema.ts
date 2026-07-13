@@ -14,7 +14,6 @@ export const JobSchema = z.object({
   pipelineId: z.string().nullable().optional(),
   projectId: z.string().nullable().optional(),
   totalTokens: z.number().nullable().optional(),
-  totalCost: z.union([z.string(), z.number()]).nullable().optional(),
   nodeStatuses: z.record(z.string(), NodeRunStatusSchema).nullable().optional(),
   triggeredBy: JobTriggeredBySchema.optional(),
   error: z.string().nullable(),

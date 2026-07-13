@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
 import { CompoundNodeDataSchema } from "./CompoundNodeDataSchema";
-import { DecisionNodeDataSchema } from "./DecisionNodeDataSchema";
 import { FileObjectNodeDataSchema } from "./FileObjectNodeDataSchema";
 import { FolderObjectNodeDataSchema } from "./FolderObjectNodeDataSchema";
 import { GithubProjectObjectNodeDataSchema } from "./GithubProjectObjectNodeDataSchema";
@@ -11,7 +10,6 @@ import { PromptObjectNodeDataSchema } from "./PromptObjectNodeDataSchema";
 
 export const PipelineNodeDataSchema = z.discriminatedUnion("nodeType", [
   CompoundNodeDataSchema,
-  DecisionNodeDataSchema,
   FileObjectNodeDataSchema,
   FolderObjectNodeDataSchema,
   GithubProjectObjectNodeDataSchema,

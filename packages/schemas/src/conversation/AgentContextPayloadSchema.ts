@@ -31,7 +31,7 @@ export const AgentContextRunStateSchema = z.object({
 export type AgentContextRunState = z.infer<typeof AgentContextRunStateSchema>;
 
 export const AgentContextPayloadSchema = z.object({
-  anchors: z.array(AgentContextAnchorSchema),
+  anchors: z.array(AgentContextAnchorSchema).default([]),
   /** 跨会话记忆尚未实现——字段先行保留，当前永远缺省、ContextStrip 中不点亮。 */
   memory: z.object({ summary: z.string() }).optional(),
   project: z
@@ -41,7 +41,7 @@ export const AgentContextPayloadSchema = z.object({
     })
     .optional(),
   runState: AgentContextRunStateSchema.optional(),
-  selection: z.array(AgentContextSelectionSchema),
+  selection: z.array(AgentContextSelectionSchema).default([]),
   /** 图快照走既有 snapshot 字段；此处仅声明它随消息发送。 */
   snapshotIncluded: z.boolean(),
   /** 对话历史由服务端按窗口从 DB 注入；enabled=false 表示当前无历史。 */

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { DecisionNodeDataSchema } from "./DecisionNodeDataSchema";
-import { PipelineNodeDataSchema } from "./PipelineNodeDataSchema";
 
 const baseDecisionNodeData = {
   label: "Pick a design",
@@ -31,15 +30,5 @@ describe("DecisionNodeDataSchema", () => {
     expect(() =>
       DecisionNodeDataSchema.parse({ ...baseDecisionNodeData, selectMode: "auto" }),
     ).toThrow();
-  });
-
-  it("is routed by the nodeType discriminator inside PipelineNodeDataSchema", () => {
-    const parsed = PipelineNodeDataSchema.parse(baseDecisionNodeData);
-
-    expect(parsed.nodeType).toBe("decision");
-    // 判别联合收窄到 decision 分支后，selectMode 可见
-    if (parsed.nodeType === "decision") {
-      expect(parsed.selectMode).toBe("single");
-    }
   });
 });

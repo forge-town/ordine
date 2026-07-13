@@ -35,15 +35,17 @@ export const DelegationConfigSchema = z.object({
 export type DelegationConfig = z.infer<typeof DelegationConfigSchema>;
 
 /**
- * `compoundKind` / `childEdges` carry defaults so legacy data persisted as
- * `{ label, nodeType, childNodeIds, description? }` keeps deserializing.
+ * `compoundKind` / `childEdges` are optional until downstream consumers are
+ * migrated to produce the new shape. Keeping them optional avoids breaking
+ * existing compound constructors and stories that still emit the legacy
+ * `{ label, nodeType, childNodeIds }` shape.
  */
 export const CompoundNodeDataSchema = z.object({
   label: z.string(),
   nodeType: z.literal("compound"),
-  compoundKind: CompoundKindSchema.default("custom"),
+  compoundKind: CompoundKindSchema.optional(),
   childNodeIds: z.array(z.string()),
-  childEdges: z.array(PipelineEdgeSchema).default([]),
+  childEdges: z.array(PipelineEdgeSchema).optional(),
   description: z.string().optional(),
   verifyConfig: VerifyConfigSchema.optional(),
   councilConfig: CouncilConfigSchema.optional(),

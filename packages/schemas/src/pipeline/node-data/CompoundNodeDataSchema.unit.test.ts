@@ -9,8 +9,8 @@ describe("CompoundNodeDataSchema backward compatibility", () => {
       childNodeIds: ["a", "b"],
       description: "legacy compound",
     });
-    expect(parsed.compoundKind).toBe("custom");
-    expect(parsed.childEdges).toEqual([]);
+    expect(parsed.compoundKind).toBeUndefined();
+    expect(parsed.childEdges).toBeUndefined();
   });
 
   it("parses a verify compound with config and child edges", () => {

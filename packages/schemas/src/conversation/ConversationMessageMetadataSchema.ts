@@ -27,9 +27,9 @@ export const ConversationErrorContextSchema = z.object({
 export type ConversationErrorContext = z.infer<typeof ConversationErrorContextSchema>;
 
 export const ConversationTokenUsageSchema = z.object({
-  input: z.number(),
-  output: z.number(),
-  cost: z.number(),
+  input: z.number().int().nonnegative(),
+  output: z.number().int().nonnegative(),
+  cost: z.number().nonnegative(),
 });
 export type ConversationTokenUsage = z.infer<typeof ConversationTokenUsageSchema>;
 
