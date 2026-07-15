@@ -102,6 +102,7 @@ describe("pipeline_assets round-trip", () => {
 
     const row = result.rows[0];
     expect(row).toBeDefined();
+    if (!row) throw new Error("pipeline_assets row not found");
 
     const parsed = PipelineAssetSchema.parse({
       id: row.id,
