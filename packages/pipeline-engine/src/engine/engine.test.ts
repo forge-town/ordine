@@ -27,7 +27,6 @@ afterAll(async () => {
 const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDeps => ({
   runPrompt: vi.fn().mockReturnValue(okAsync("prompt-output")),
   runSkill: vi.fn().mockReturnValue(okAsync("skill-output")),
-  publishArtifact: vi.fn().mockReturnValue(okAsync("published")),
   structuredJsonToMarkdown: vi.fn((c: string) => `# Markdown\n${c}`),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,

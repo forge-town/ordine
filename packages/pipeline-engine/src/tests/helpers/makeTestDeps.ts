@@ -5,7 +5,6 @@ import type { PipelineEngineDeps } from "../../deps";
 export const makeTestDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDeps => ({
   runPrompt: vi.fn().mockReturnValue(okAsync("prompt-output")),
   runSkill: vi.fn().mockReturnValue(okAsync("skill-output")),
-  publishArtifact: vi.fn().mockReturnValue(okAsync("published")),
   structuredJsonToMarkdown: vi.fn((content: string) => `# Markdown\n${content}`),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,

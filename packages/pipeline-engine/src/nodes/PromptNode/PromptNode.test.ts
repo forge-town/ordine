@@ -18,7 +18,6 @@ beforeEach(() => {
 const makeDeps = (): PipelineEngineDeps => ({
   runPrompt: vi.fn(),
   runSkill: vi.fn(),
-  publishArtifact: vi.fn(),
   structuredJsonToMarkdown: vi.fn((c: string) => c),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
 });

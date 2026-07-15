@@ -252,59 +252,6 @@ export const executeOperationNode = async (
     }
     await traceFinalLlmContent(opResult.value);
     await trace(jobId, `Skill output (${opResult.value.length} chars)`);
-  } else if (executor.type === "publish") {
-    const publish = executor.publish;
-    if (!publish) {
-      await trace(jobId, encodeNodeFail(node.id));
-
-      return {
-        outcome: "failed",
-        error: new ScriptExecutionError("Publish executor requires a publish config"),
-      };
-    }
-    if (!ctx.outputDir) {
-      await trace(jobId, encodeNodeFail(node.id));
-
-      return {
-        outcome: "failed",
-        error: new ScriptExecutionError("Publish has no source directory (no outputDir resolved)"),
-      };
-    }
-    if (!deps.publishArtifact) {
-      await trace(jobId, encodeNodeFail(node.id));
-
-      return {
-        outcome: "failed",
-        error: new ScriptExecutionError(
-          "Publish is not supported by this runtime (missing publishArtifact dependency)",
-        ),
-      };
-    }
-    const repo = publish.target === "git" ? publish.repo : publish.outputDir;
-    await trace(jobId, `Publishing ${ctx.outputDir} → ${publish.target}:${repo}`);
-    const publishResult = await deps.publishArtifact({
-      sourceDir: ctx.outputDir,
-      target: publish.target,
-      repo,
-      ...(publish.target === "git"
-        ? {
-            branch: publish.branch,
-            subPath: publish.subPath,
-            commitMessage: publish.commitMessage,
-            openPr: publish.openPr,
-          }
-        : {}),
-      githubToken: ctx.githubToken,
-      jobId,
-      onProgress,
-    });
-    if (publishResult.isErr()) {
-      await trace(jobId, encodeNodeFail(node.id));
-
-      return { outcome: "failed", error: new ScriptExecutionError(publishResult.error.message) };
-    }
-    opResult.value = publishResult.value;
-    await trace(jobId, `Publish done: ${opResult.value}`);
   }
 
   return { outcome: "completed", content: opResult.value };

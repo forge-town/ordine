@@ -4,26 +4,6 @@ import { AgentModeSchema } from "../agent/AgentModeSchema";
 import { AgentRuntimeSchema } from "../agent-runtime/AgentRuntimeSchema";
 import { ScriptLanguageSchema } from "../common/ScriptLanguageSchema";
 
-const GitPublishConfigSchema = z.object({
-  target: z.literal("git"),
-  repo: z.string().min(1),
-  branch: z.string().min(1),
-  subPath: z.string().optional(),
-  commitMessage: z.string().optional(),
-  openPr: z.boolean().optional().default(true),
-});
-
-const LocalDirPublishConfigSchema = z.object({
-  target: z.literal("localDir"),
-  outputDir: z.string().min(1),
-});
-
-export const PublishConfigSchema = z.discriminatedUnion("target", [
-  GitPublishConfigSchema,
-  LocalDirPublishConfigSchema,
-]);
-export type PublishConfig = z.infer<typeof PublishConfigSchema>;
-
 export const OperationExecutorConfigSchema = z.object({
   type: OperationExecutorTypeSchema,
   agentMode: AgentModeSchema.optional(),
@@ -34,7 +14,5 @@ export const OperationExecutorConfigSchema = z.object({
   command: z.string().optional(),
   language: ScriptLanguageSchema.optional(),
   allowedTools: z.array(z.string()).optional(),
-  /** Publish settings; required by the engine when the executor type is "publish". */
-  publish: PublishConfigSchema.optional(),
 });
 export type OperationExecutorConfig = z.infer<typeof OperationExecutorConfigSchema>;
