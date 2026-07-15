@@ -2,8 +2,9 @@ import { z } from "zod/v4";
 import { DecisionSelectModeSchema } from "./DecisionSelectModeSchema";
 
 /**
- * 人类决策节点数据。候选来自上游边（每条入边一个候选工件），
- * 用户按 selectMode 单选/多选后，选中候选成为本节点产物流向下游。
+ * Human decision node data. Candidates come from the incoming edges (one candidate
+ * artifact per edge); the user picks per selectMode (single/multi), and the chosen
+ * candidates become this node's output flowing downstream.
  */
 export const DecisionNodeDataSchema = z.object({
   label: z.string(),

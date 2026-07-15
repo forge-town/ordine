@@ -1,5 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import { okAsync, errAsync } from "neverthrow";
+import { writeFileSync } from "node:fs";
+import { mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { executeOperationNode, processOperationNode } from "./OperationNode";
 import type { PipelineEngineDeps } from "../../deps";
 import type { OperationExecutorConfig, PipelineNode } from "@repo/schemas";
@@ -69,8 +73,8 @@ describe("executeOperationNode", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error?.message).toContain("missing");
+    expect(result.outcome).toBe("failed");
+    if (result.outcome === "failed") expect(result.error.message).toContain("missing");
     expect(trace).toHaveBeenCalledWith("job-1", expect.stringContaining("not found"));
   });
 
@@ -83,8 +87,8 @@ describe("executeOperationNode", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.content).toBe("prompt-output");
+    expect(result.outcome).toBe("completed");
+    if (result.outcome === "completed") expect(result.content).toBe("prompt-output");
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ prompt: "Do analysis" }));
   });
 
@@ -103,7 +107,7 @@ describe("executeOperationNode", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runPrompt).toHaveBeenCalledWith(
       expect.objectContaining({
         runtimeContext: {
@@ -131,7 +135,7 @@ describe("executeOperationNode", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runPrompt).toHaveBeenCalledWith(
       expect.objectContaining({
         runtimeContext: {
@@ -156,8 +160,8 @@ describe("executeOperationNode", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.content).toBe("skill-output");
+    expect(result.outcome).toBe("completed");
+    if (result.outcome === "completed") expect(result.content).toBe("skill-output");
     expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ skillId: "sk-1" }));
   });
 
@@ -180,7 +184,7 @@ describe("executeOperationNode", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runSkill).toHaveBeenCalledWith(
       expect.objectContaining({
         runtimeContext: {
@@ -213,7 +217,7 @@ describe("executeOperationNode", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runSkill).toHaveBeenCalledWith(
       expect.objectContaining({
         skillId: "sk-1",
@@ -231,7 +235,7 @@ describe("executeOperationNode", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(false);
+    expect(result.outcome).toBe("soft-failed");
     expect(trace).toHaveBeenCalledWith("job-1", expect.stringContaining("Prompt text is empty"));
   });
 
@@ -244,7 +248,7 @@ describe("executeOperationNode", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(false);
+    expect(result.outcome).toBe("soft-failed");
     expect(trace).toHaveBeenCalledWith("job-1", expect.stringContaining("No skillId"));
   });
 
@@ -257,7 +261,7 @@ describe("executeOperationNode", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(false);
+    expect(result.outcome).toBe("soft-failed");
     expect(trace).toHaveBeenCalledWith("job-1", expect.stringContaining("No executor configured"));
   });
 
@@ -272,8 +276,8 @@ describe("executeOperationNode", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error?.message).toContain("LLM timeout");
+    expect(result.outcome).toBe("failed");
+    if (result.outcome === "failed") expect(result.error.message).toContain("LLM timeout");
   });
 });
 
@@ -287,7 +291,7 @@ describe("processOperationNode", () => {
 
     const result = await processOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("op-1");
     expect(output).toBeDefined();
     expect(output!.content).toBe("prompt-output");
@@ -324,7 +328,7 @@ describe("processOperationNode", () => {
 
     const result = await processOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runPrompt).toHaveBeenCalledTimes(2);
     expect(deps.evaluateLoopCondition).toHaveBeenCalledTimes(2);
     expect(trace).toHaveBeenCalledWith(
@@ -349,7 +353,7 @@ describe("processOperationNode", () => {
 
     const result = await processOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runPrompt).toHaveBeenCalledTimes(3);
     expect(trace).toHaveBeenCalledWith("job-1", expect.stringContaining("Max iterations (3)"));
   });
@@ -382,7 +386,7 @@ describe("executeOperationNode — agent override", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
   });
 
@@ -400,7 +404,7 @@ describe("executeOperationNode — agent override", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ agent: "claude-code" }));
   });
 
@@ -418,8 +422,9 @@ describe("executeOperationNode — agent override", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error?.message).toContain("Hermes is not available");
+    expect(result.outcome).toBe("failed");
+    if (result.outcome === "failed")
+      expect(result.error.message).toContain("Hermes is not available");
     expect(deps.runSkill).not.toHaveBeenCalled();
     expect(trace).toHaveBeenCalledWith(
       "job-1",
@@ -441,10 +446,9 @@ describe("executeOperationNode — agent override", () => {
 
     const result = await processOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error).not.toBeNull();
-      expect(result.error?.message).toContain("Hermes is not available");
+    expect(result.outcome).toBe("failed");
+    if (result.outcome === "failed") {
+      expect(result.error.message).toContain("Hermes is not available");
     }
     expect(ctx.nodeOutputs.has("op-1")).toBe(false);
     expect(trace).not.toHaveBeenCalledWith("job-1", "@@NODE_DONE::op-1");
@@ -464,7 +468,7 @@ describe("executeOperationNode — agent override", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
   });
 
@@ -487,7 +491,7 @@ describe("executeOperationNode — agent override", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(lookupAgent).toHaveBeenCalledWith("agent-1");
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
   });
@@ -511,7 +515,7 @@ describe("executeOperationNode — agent override", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(lookupAgent).toHaveBeenCalledWith("agent-2");
     expect(deps.runSkill).toHaveBeenCalledWith(expect.objectContaining({ agent: "claude-code" }));
   });
@@ -534,7 +538,7 @@ describe("executeOperationNode — agent override", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
   });
 
@@ -556,7 +560,7 @@ describe("executeOperationNode — agent override", () => {
 
     const result = await executeOperationNode(node, makeInput(), ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "mastra" }));
   });
 });
@@ -576,7 +580,7 @@ describe("executeOperationNode — GitHub remote mode", () => {
 
     const result = await executeOperationNode(node, input, ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(deps.runPrompt).toHaveBeenCalledWith(
       expect.objectContaining({
         extraTools: expect.arrayContaining(["Bash(gh:*)"]),
@@ -600,5 +604,72 @@ describe("executeOperationNode — GitHub remote mode", () => {
         githubToken: undefined,
       }),
     );
+  });
+});
+
+describe("processOperationNode · dir-artifact capture", () => {
+  const dirs = { out: "" };
+
+  beforeEach(async () => {
+    dirs.out = await mkdtemp(join(tmpdir(), "op-out-"));
+    vi.mocked(trace).mockClear();
+  });
+
+  afterEach(async () => {
+    await rm(dirs.out, { recursive: true, force: true });
+  });
+
+  const emittedArtifact = (): boolean =>
+    vi
+      .mocked(trace)
+      .mock.calls.some((c) => typeof c[1] === "string" && c[1].startsWith("@@NODE_ARTIFACT::op-1"));
+
+  it("emits a dir artifact for files the agent writes during the run", async () => {
+    const deps = makeDeps({
+      runPrompt: vi.fn().mockImplementation(() => {
+        writeFileSync(join(dirs.out, "fresh.html"), "<h1>x</h1>");
+
+        return okAsync("text answer");
+      }),
+    });
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Go" });
+    const node = makeNode({ operationId: "op-id" });
+    const ctx = makeCtx(deps, new Map([["op-id", op]]), { node, outputDir: dirs.out });
+
+    const result = await processOperationNode(node, makeInput(), ctx);
+
+    expect(result.outcome).toBe("completed");
+    expect(emittedArtifact()).toBe(true);
+  });
+
+  it("does NOT attribute pre-existing stale files in a shared outputDir", async () => {
+    await writeFile(join(dirs.out, "stale.html"), "old");
+    const longAgo = new Date(Date.now() - 60_000);
+    await utimes(join(dirs.out, "stale.html"), longAgo, longAgo);
+
+    const deps = makeDeps(); // runPrompt writes nothing
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Go" });
+    const node = makeNode({ operationId: "op-id" });
+    const ctx = makeCtx(deps, new Map([["op-id", op]]), { node, outputDir: dirs.out });
+
+    await processOperationNode(node, makeInput(), ctx);
+
+    expect(emittedArtifact()).toBe(false);
+  });
+
+  it("does NOT emit an artifact on a soft-skip (empty prompt) even with a fresh file present", async () => {
+    // A future-mtime file would pass the mtime filter, but the soft-skip (exec.succeeded=false) must block capture
+    await writeFile(join(dirs.out, "future.html"), "x");
+    const future = new Date(Date.now() + 60_000);
+    await utimes(join(dirs.out, "future.html"), future, future);
+
+    const deps = makeDeps();
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "   " }); // empty → soft-skip
+    const node = makeNode({ operationId: "op-id" });
+    const ctx = makeCtx(deps, new Map([["op-id", op]]), { node, outputDir: dirs.out });
+
+    await processOperationNode(node, makeInput(), ctx);
+
+    expect(emittedArtifact()).toBe(false);
   });
 });

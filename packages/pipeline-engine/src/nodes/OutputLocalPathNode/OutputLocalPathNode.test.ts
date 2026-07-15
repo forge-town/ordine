@@ -67,7 +67,7 @@ describe("processOutputLocalPathNode", () => {
 
     const result = await processOutputLocalPathNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(existsSync(outputDir)).toBe(true);
     expect(trace).toHaveBeenCalledWith(
       "abcdef12-3456-7890",
@@ -109,7 +109,7 @@ describe("processOutputLocalPathNode", () => {
 
     const result = await processOutputLocalPathNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(trace).not.toHaveBeenCalledWith(
       "abcdef12-3456-7890",
       expect.stringContaining("Wrote output"),
@@ -148,7 +148,7 @@ describe("processOutputLocalPathNode", () => {
 
     const result = await processOutputLocalPathNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const expectedDir = join(homedir(), subDir);
     expect(existsSync(expectedDir)).toBe(true);
 

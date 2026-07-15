@@ -620,6 +620,10 @@
       "prompt": {
         "label": "Prompt",
         "shortLabel": "Prompt"
+      },
+      "decision": {
+        "label": "Decision",
+        "shortLabel": "Decide"
       }
     },
     "compoundNode": {

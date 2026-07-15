@@ -6,5 +6,4 @@ export * from "./OperationExecutorTypeSchema";
 export * from "./OperationOutputItemTemplateSchema";
 export * from "./OperationSchema";
 export * from "./OutputItemSchema";
-export * from "./PublishTargetSchema";
 export * from "./TemplateContentTypeSchema";

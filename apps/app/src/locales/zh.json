@@ -620,6 +620,10 @@
       "prompt": {
         "label": "提示词",
         "shortLabel": "提示"
+      },
+      "decision": {
+        "label": "决策节点",
+        "shortLabel": "决策"
       }
     },
     "compoundNode": {
