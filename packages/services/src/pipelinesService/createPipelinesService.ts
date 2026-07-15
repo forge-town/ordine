@@ -200,7 +200,12 @@ export const createPipelinesService = (db: DbConnection) => {
       });
 
       if (!structured.ok) {
-        logger.error({ code: structured.code }, "optimizePipeline: agent failed");
+        logger.error(
+          { code: structured.code, detail: structured.detail },
+          structured.code === "AGENT_FAILED"
+            ? "optimizePipeline: agent failed after retries"
+            : "optimizePipeline: agent returned invalid JSON",
+        );
 
         return undefined;
       }
@@ -299,7 +304,12 @@ export const createPipelinesService = (db: DbConnection) => {
       });
 
       if (!structured.ok) {
-        logger.error({ code: structured.code }, "analyzeIntent: agent failed");
+        logger.error(
+          { code: structured.code, detail: structured.detail },
+          structured.code === "AGENT_FAILED"
+            ? "analyzeIntent: agent failed"
+            : "analyzeIntent: failed to parse agent output as JSON",
+        );
 
         return EMPTY;
       }
@@ -466,11 +476,17 @@ export const createPipelinesService = (db: DbConnection) => {
 
       if (!structured.ok) {
         if (structured.code === "AGENT_FAILED") {
-          logger.error("generateStructure: agent failed after retries");
+          logger.error(
+            { detail: structured.detail },
+            "generateStructure: agent failed after retries",
+          );
 
           return { error: "Agent failed to generate pipeline structure after retries" };
         }
-        logger.error("generateStructure: failed to parse agent output as JSON");
+        logger.error(
+          { detail: structured.detail },
+          "generateStructure: failed to parse agent output as JSON",
+        );
 
         return { error: "Agent returned invalid JSON" };
       }

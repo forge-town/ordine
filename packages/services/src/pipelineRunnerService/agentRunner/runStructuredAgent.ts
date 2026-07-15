@@ -8,7 +8,9 @@ import { runAgent, type AgentRunnerOptions } from "./agentRunner";
  * extraction and parsing, with a reason code on failure. The propose / generate /
  * analyze / optimize flows all share this function, so each caller only handles
  * schema validation and business error mapping instead of repeating its own
- * "run agent → extract JSON → retry" loop.
+ * "run agent → extract JSON → retry" loop. Terminal failures are reported via
+ * the returned code/detail — the caller owns the one error log per failure;
+ * the harness only warn-logs transient retry attempts.
  */
 export type StructuredAgentResult =
   | { ok: true; json: unknown }
@@ -25,10 +27,12 @@ export type RunStructuredAgentOptions = Pick<
   allowedTools?: readonly string[];
 };
 
+const snippet = (text: string): string => (text.length <= 300 ? text : `${text.slice(0, 300)}…`);
+
 export const runStructuredAgent = async (
   opts: RunStructuredAgentOptions,
 ): Promise<StructuredAgentResult> => {
-  const maxRetries = opts.maxRetries ?? 3;
+  const maxRetries = Math.max(1, opts.maxRetries ?? 3);
   const logPrefix = opts.logPrefix;
 
   const execution = await (async () => {
@@ -60,8 +64,6 @@ export const runStructuredAgent = async (
   })();
 
   if (!execution || execution.isErr()) {
-    logger.error({ err: execution?.error }, `${logPrefix}: agent failed after retries`);
-
     return {
       ok: false,
       code: "AGENT_FAILED",
@@ -75,9 +77,11 @@ export const runStructuredAgent = async (
     () => new Error("failed to extract JSON from agent response"),
   )(raw);
   if (extractJsonResult.isErr()) {
-    logger.error({ raw }, `${logPrefix}: failed to extract JSON from agent response`);
-
-    return { ok: false, code: "BAD_AGENT_OUTPUT", detail: "no JSON found in agent response" };
+    return {
+      ok: false,
+      code: "BAD_AGENT_OUTPUT",
+      detail: `no JSON found in agent response: ${snippet(raw)}`,
+    };
   }
 
   const parseJsonResult = Result.fromThrowable(
@@ -85,12 +89,11 @@ export const runStructuredAgent = async (
     () => new Error("extracted text is not valid JSON"),
   )(extractJsonResult.value);
   if (parseJsonResult.isErr()) {
-    logger.error(
-      { json: extractJsonResult.value },
-      `${logPrefix}: extracted text is not valid JSON`,
-    );
-
-    return { ok: false, code: "BAD_AGENT_OUTPUT", detail: "agent returned invalid JSON" };
+    return {
+      ok: false,
+      code: "BAD_AGENT_OUTPUT",
+      detail: `agent returned invalid JSON: ${snippet(extractJsonResult.value)}`,
+    };
   }
 
   return { ok: true, json: parseJsonResult.value };

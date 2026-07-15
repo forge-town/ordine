@@ -42,13 +42,19 @@ const mockAgentRuntimesDao = {
 };
 const mockRunAgent = vi.fn();
 const mockExtractJsonFromText = vi.fn((raw: string) => raw);
+const mockDistillationsDao = {
+  findById: vi.fn(),
+};
 
 vi.mock("@repo/models", () => ({
   createAgentRuntimesDao: () => mockAgentRuntimesDao,
   createPipelinesDao: () => mockDao,
-  createDistillationsDao: () => ({}),
+  createDistillationsDao: () => mockDistillationsDao,
   createJobsDao: () => ({}),
-  createPipelineRunsDao: () => ({ findByJobId: vi.fn(), deleteByPipelineId: vi.fn().mockResolvedValue(undefined) }),
+  createPipelineRunsDao: () => ({
+    findByJobId: vi.fn(),
+    deleteByPipelineId: vi.fn().mockResolvedValue(undefined),
+  }),
   createJobTracesDao: () => ({}),
   createAgentRawExportsDao: () => ({}),
   createAgentSpansDao: () => ({}),
@@ -101,10 +107,27 @@ describe("createPipelinesService", () => {
     mockRunAgent.mockReset();
     mockExtractJsonFromText.mockReset();
     mockExtractJsonFromText.mockImplementation((raw: string) => raw);
+    mockDistillationsDao.findById.mockReset();
   };
 
   beforeEach(() => {
     resetCommonMocks();
+  });
+
+  it("optimizeFromDistillation returns undefined (never throws) on malformed agent JSON", async () => {
+    mockDistillationsDao.findById.mockResolvedValue({
+      id: "dist-1",
+      sourceType: "manual",
+      sourceId: null,
+      result: { summary: "distilled summary" },
+    });
+    mockRunAgent.mockResolvedValue("this is not json {{{");
+
+    const svc = createPipelinesService({} as never);
+
+    await expect(
+      svc.optimizeFromDistillation({ distillationId: "dist-1", userPrompt: "optimize it" }),
+    ).resolves.toBeUndefined();
   });
 
   it("getAll delegates to dao.findMany", async () => {
@@ -441,7 +464,8 @@ describe("createPipelinesService", () => {
   it("proposeActions normalizes claude flat node payloads with snake_case type", async () => {
     mockRunAgent.mockResolvedValue(
       JSON.stringify({
-        summary: "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
+        summary:
+          "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
         actions: [
           {
             type: "add_node",
@@ -463,7 +487,8 @@ describe("createPipelinesService", () => {
     });
 
     expect(result.proposal).toEqual({
-      summary: "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
+      summary:
+        "Added a Prompt input node (type: prompt) to the empty graph at default position (100, 100).",
       actions: [
         {
           type: "addNode",
@@ -612,9 +637,7 @@ describe("createPipelinesService", () => {
       actions: [{ type: "removeNode", nodeId: "compound-1" }],
     });
     expect(result.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ code: "COMPOUND_NODE_NOT_SUPPORTED" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ code: "COMPOUND_NODE_NOT_SUPPORTED" })]),
     );
     expect(mockDao.create).not.toHaveBeenCalled();
     expect(mockDao.update).not.toHaveBeenCalled();

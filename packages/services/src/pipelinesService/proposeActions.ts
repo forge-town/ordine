@@ -21,13 +21,12 @@ import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
 import { normalizeSettingsRecord } from "../settingsService/normalizeSettingsRecord";
 import { MAX_SNAPSHOT_CHARS, truncate } from "./promptText";
 
-// Moved verbatim out of createPipelinesService with zero behavior change; the
-// propose-engine expansion (multi-stage flow, conversation history, semantic
-// retry) arrives separately with the Propose Engine issue.
+// Moved verbatim out of createPipelinesService with zero behavior change, so the
+// propose flow evolves on its own isolated surface.
 
 const PROPOSE_AGENT_ID = "pipeline-propose-actions";
 
-const PROPOSE_SYSTEM_PROMPT = [
+export const PROPOSE_SYSTEM_PROMPT = [
   "You are an AI pipeline editing assistant for Ordine, a pipeline orchestration platform.",
   "Your job is to propose a sequence of graph edit actions that modify a pipeline graph based on the user's request.",
   "",

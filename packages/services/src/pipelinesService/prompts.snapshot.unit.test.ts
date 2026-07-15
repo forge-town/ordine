@@ -5,6 +5,7 @@ import {
   buildGenerateSystemPrompt,
   buildOptimizeSystemPrompt,
 } from "./prompts";
+import { PROPOSE_SYSTEM_PROMPT } from "./proposeActions";
 
 /**
  * Snapshot baselines for the three pipelinesService system prompts. The prompts
@@ -34,6 +35,10 @@ describe("pipelines prompt snapshots", () => {
     expect(ANALYZE_SYSTEM_PROMPT).toMatchSnapshot();
   });
 
+  it("propose prompt is stable", () => {
+    expect(PROPOSE_SYSTEM_PROMPT).toMatchSnapshot();
+  });
+
   // Direct assertions (independent of whether .snap files exist yet): key sections must be present.
   it("prompts carry their key section markers", () => {
     expect(buildGenerateSystemPrompt("x")).toContain("=== STRUCTURAL RULES ===");
@@ -41,5 +46,6 @@ describe("pipelines prompt snapshots", () => {
     expect(buildGenerateSystemPrompt("")).toContain("=== NODE TYPES ===");
     expect(buildOptimizeSystemPrompt("x")).toContain("=== OPTIMIZATION PRINCIPLES ===");
     expect(ANALYZE_SYSTEM_PROMPT).toContain('"matchedOperations"');
+    expect(PROPOSE_SYSTEM_PROMPT).toContain('"actions"');
   });
 });
