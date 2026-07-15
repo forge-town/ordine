@@ -33,6 +33,7 @@ beforeEach(() => {
 const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDeps => ({
   runPrompt: vi.fn().mockReturnValue(okAsync("")),
   runSkill: vi.fn().mockReturnValue(okAsync("")),
+  publishArtifact: vi.fn().mockReturnValue(okAsync("published")),
   structuredJsonToMarkdown: vi.fn((c: string) => `# MD\n${c}`),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,
@@ -67,7 +68,7 @@ describe("processOutputLocalPathNode", () => {
 
     const result = await processOutputLocalPathNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(existsSync(outputDir)).toBe(true);
     expect(trace).toHaveBeenCalledWith(
       "abcdef12-3456-7890",
@@ -109,7 +110,7 @@ describe("processOutputLocalPathNode", () => {
 
     const result = await processOutputLocalPathNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     expect(trace).not.toHaveBeenCalledWith(
       "abcdef12-3456-7890",
       expect.stringContaining("Wrote output"),
@@ -148,7 +149,7 @@ describe("processOutputLocalPathNode", () => {
 
     const result = await processOutputLocalPathNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const expectedDir = join(homedir(), subDir);
     expect(existsSync(expectedDir)).toBe(true);
 

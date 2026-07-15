@@ -34,7 +34,7 @@ export const OperationExecutorConfigSchema = z.object({
   command: z.string().optional(),
   language: ScriptLanguageSchema.optional(),
   allowedTools: z.array(z.string()).optional(),
-  /** Publish 配置。当前执行器枚举未激活 PUBLISH，此字段处于待命状态。 */
+  /** Publish settings; required by the engine when the executor type is "publish". */
   publish: PublishConfigSchema.optional(),
 });
 export type OperationExecutorConfig = z.infer<typeof OperationExecutorConfigSchema>;

@@ -18,6 +18,7 @@ beforeEach(() => {
 const makeDeps = (): PipelineEngineDeps => ({
   runPrompt: vi.fn(),
   runSkill: vi.fn(),
+  publishArtifact: vi.fn(),
   structuredJsonToMarkdown: vi.fn((c: string) => c),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
 });
@@ -26,7 +27,12 @@ const makeNode = (data: Record<string, unknown> = {}): PipelineNode => ({
   id: "prompt-1",
   type: "prompt",
   position: { x: 0, y: 0 },
-  data: { label: "test prompt", nodeType: "prompt", prompt: "Hello world", ...data } as PipelineNode["data"],
+  data: {
+    label: "test prompt",
+    nodeType: "prompt",
+    prompt: "Hello world",
+    ...data,
+  } as PipelineNode["data"],
 });
 
 const makeCtx = (node: PipelineNode): NodeContext => ({
@@ -45,7 +51,7 @@ describe("processPromptNode", () => {
 
     const result = await processPromptNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("prompt-1");
     expect(output).toBeDefined();
     expect(output!.inputPath).toBe("");
@@ -58,7 +64,7 @@ describe("processPromptNode", () => {
 
     const result = await processPromptNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("prompt-1");
     expect(output).toBeDefined();
     expect(output!.content).toBe("");
@@ -70,7 +76,7 @@ describe("processPromptNode", () => {
 
     const result = await processPromptNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("prompt-1");
     expect(output!.content).toBe("");
   });
@@ -92,7 +98,7 @@ describe("processPromptNode", () => {
 
     const result = await processPromptNode(ctx);
 
-    expect(result.ok).toBe(false);
+    expect(result.outcome).toBe("soft-failed");
     expect(trace).toHaveBeenCalledWith("job-1", "@@NODE_FAIL::prompt-1");
   });
 });

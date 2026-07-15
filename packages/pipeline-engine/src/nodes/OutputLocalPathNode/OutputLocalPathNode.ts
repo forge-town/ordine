@@ -3,8 +3,9 @@ import { existsSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { homedir } from "node:os";
 import { trace } from "@repo/obs";
+import { encodeNodeDone, encodeNodeFail } from "@repo/schemas";
 import type { NodeContext, NodeResult } from "../types";
-import { ScriptExecutionError, type PipelineRunError } from "../../errors";
+import { ScriptExecutionError } from "../../errors";
 
 const expandTilde = (p: string): string =>
   p.startsWith("~/") ? join(homedir(), p.slice(2)) : p === "~" ? homedir() : p;
@@ -12,9 +13,7 @@ const expandTilde = (p: string): string =>
 const resolveRawPath = (configuredPath: string, defaultOutputPath?: string): string =>
   expandTilde(configuredPath) || expandTilde(defaultOutputPath ?? "") || "";
 
-export const processOutputLocalPathNode = async (
-  ctx: NodeContext,
-): Promise<NodeResult | { ok: false; error: PipelineRunError }> => {
+export const processOutputLocalPathNode = async (ctx: NodeContext): Promise<NodeResult> => {
   const { node, input, deps, nodeOutputs, jobId, defaultOutputPath } = ctx;
 
   if (node.data.nodeType !== "output-local-path") {
@@ -22,13 +21,16 @@ export const processOutputLocalPathNode = async (
       jobId,
       `WARNING: Expected output-local-path node, got ${node.data.nodeType ?? "unknown"}`,
     );
-    await trace(jobId, `@@NODE_FAIL::${node.id}`);
+    await trace(jobId, encodeNodeFail(node.id));
 
-    return { ok: false, error: new ScriptExecutionError(`Expected output-local-path node`) };
+    return {
+      outcome: "failed",
+      error: new ScriptExecutionError(`Expected output-local-path node`),
+    };
   }
 
   const data = node.data;
-  const configuredPath = data.localPath ?? '';
+  const configuredPath = data.localPath ?? "";
   const rawPath = resolveRawPath(configuredPath, defaultOutputPath);
   const baseOutputFileName = data.outputFileName?.trim() || "output.md";
   const outputMode = data.outputMode ?? "overwrite";
@@ -64,10 +66,10 @@ export const processOutputLocalPathNode = async (
         jobId,
         `ERROR: Output file already exists: ${resolvedPath} (mode: error_if_exists)`,
       );
-      await trace(jobId, `@@NODE_FAIL::${node.id}`);
+      await trace(jobId, encodeNodeFail(node.id));
 
       return {
-        ok: false,
+        outcome: "failed",
         error: new ScriptExecutionError(
           `Output file already exists: ${resolvedPath}. Pipeline aborted (output mode: error_if_exists).`,
         ),
@@ -78,10 +80,7 @@ export const processOutputLocalPathNode = async (
     }
   }
 
-  await trace(
-    jobId,
-    `Output path set: ${resolvedPath} (mode: ${outputMode})`,
-  );
+  await trace(jobId, `Output path set: ${resolvedPath} (mode: ${outputMode})`);
   if (resolvedPath && input.content) {
     const outputContent =
       extname(resolvedPath) === ".md"
@@ -92,7 +91,7 @@ export const processOutputLocalPathNode = async (
     await trace(jobId, `Wrote output to: ${resolvedPath} (${outputContent.length} chars)`);
   }
   nodeOutputs.set(node.id, { inputPath: input.inputPath, content: input.content });
-  await trace(jobId, `@@NODE_DONE::${node.id}`);
+  await trace(jobId, encodeNodeDone(node.id));
 
-  return { ok: true };
+  return { outcome: "completed" };
 };

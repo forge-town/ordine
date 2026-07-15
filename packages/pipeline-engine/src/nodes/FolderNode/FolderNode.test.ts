@@ -39,6 +39,7 @@ beforeEach(() => {
 const makeDeps = (overrides: Partial<PipelineEngineDeps> = {}): PipelineEngineDeps => ({
   runPrompt: vi.fn().mockReturnValue(okAsync("")),
   runSkill: vi.fn().mockReturnValue(okAsync("")),
+  publishArtifact: vi.fn().mockReturnValue(okAsync("published")),
   structuredJsonToMarkdown: vi.fn((c: string) => c),
   evaluateLoopCondition: vi.fn().mockResolvedValue(true),
   ...overrides,
@@ -68,7 +69,7 @@ describe("processFolderNode", () => {
 
     const result = await processFolderNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("folder-1");
     expect(output).toBeDefined();
     expect(output!.inputPath).toBe(testDir);
@@ -84,7 +85,7 @@ describe("processFolderNode", () => {
 
     const result = await processFolderNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("folder-1")!;
     expect(output.content).toContain("File tree:");
     expect(output.content).toContain("File contents:");
@@ -98,7 +99,7 @@ describe("processFolderNode", () => {
 
     const result = await processFolderNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("folder-1")!;
     expect(output.content).toContain("File contents:");
     expect(output.content).not.toContain("File tree:");
@@ -130,7 +131,7 @@ describe("processFolderNode", () => {
 
     const result = await processFolderNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("folder-1")!;
     expect(output.content).toBe("");
   });

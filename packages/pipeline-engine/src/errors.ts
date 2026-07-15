@@ -35,8 +35,19 @@ export class GitCloneError extends Error {
   }
 }
 
+export class GitPublishError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: unknown,
+  ) {
+    super(message);
+    this.name = "GitPublishError";
+  }
+}
+
 export type PipelineRunError =
   | PipelineNotFoundError
   | ScriptExecutionError
   | ConfigParseError
-  | GitCloneError;
+  | GitCloneError
+  | GitPublishError;
