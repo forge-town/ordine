@@ -65,7 +65,9 @@ describe("agentEngine", () => {
     });
 
     expect(result.text).toBe("fake claude output");
-    expect(result.events).toEqual(fakeClaudeEvents);
+    // Usage is derived from the claude event stream (this fake has no modelUsage,
+    // hence 0/0 — but non-null means "usage available").
+    expect(result.usage).toEqual({ input: 0, output: 0 });
   });
 
   it("dispatches to runCodex for codex", async () => {
@@ -78,7 +80,8 @@ describe("agentEngine", () => {
     });
 
     expect(result.text).toBe("fake codex output");
-    expect(result.events).toEqual([]);
+    // Non-claude runtimes have no event stream → usage is unavailable (null), not a fake 0.
+    expect(result.usage).toBeNull();
   });
 
   it("dispatches to runHermes for hermes", async () => {
@@ -93,7 +96,7 @@ describe("agentEngine", () => {
     });
 
     expect(result.text).toBe("fake hermes output");
-    expect(result.events).toEqual([]);
+    expect(result.usage).toBeNull();
     expect(runHermes).toHaveBeenCalledWith(
       expect.objectContaining({
         cwd: "/tmp/test",

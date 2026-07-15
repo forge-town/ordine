@@ -5,7 +5,7 @@ vi.mock("@repo/agent", () => ({}));
 
 vi.mock("@repo/agent-engine", () => ({
   agentEngine: {
-    run: vi.fn().mockResolvedValue({ text: "claude-output", events: [] }),
+    run: vi.fn().mockResolvedValue({ text: "claude-output", usage: null }),
   },
 }));
 
@@ -28,7 +28,7 @@ describe("promptExecutor", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(agentEngine.run).mockResolvedValue({ text: "claude-output", events: [] });
+    vi.mocked(agentEngine.run).mockResolvedValue({ text: "claude-output", usage: null });
   });
 
   it("dispatches to agentEngine when agent is claude-code", async () => {
@@ -42,7 +42,7 @@ describe("promptExecutor", () => {
   });
 
   it("dispatches to agentEngine when agent is codex", async () => {
-    vi.mocked(agentEngine.run).mockResolvedValueOnce({ text: "codex-output", events: [] });
+    vi.mocked(agentEngine.run).mockResolvedValueOnce({ text: "codex-output", usage: null });
     const result = await promptExecutor.run({ ...baseOpts, agent: "codex" });
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toBe("codex-output");
@@ -59,7 +59,7 @@ describe("promptExecutor", () => {
   });
 
   it("forwards jobId and agentId to agentEngine", async () => {
-    vi.mocked(agentEngine.run).mockResolvedValueOnce({ text: "codex-output", events: [] });
+    vi.mocked(agentEngine.run).mockResolvedValueOnce({ text: "codex-output", usage: null });
 
     const result = await promptExecutor.run({
       ...baseOpts,

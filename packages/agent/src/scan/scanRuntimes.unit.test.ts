@@ -20,7 +20,14 @@ vi.mock("node:child_process", () => ({
     execFileMock(bin, args, opts, cb),
 }));
 
-import { firstPath, locateBinaryCommand, scanRuntimes, type DetectedRuntime } from "./scanRuntimes";
+import {
+  firstPath,
+  getRuntimeBinaries,
+  locateBinaryCommand,
+  parseExtraRuntimes,
+  scanRuntimes,
+  type DetectedRuntime,
+} from "./scanRuntimes";
 
 const LOCATE_BIN = locateBinaryCommand();
 
@@ -138,6 +145,22 @@ describe("scanRuntimes", () => {
     const path = firstPath("C:\\bin\\hermes.cmd\r\nC:\\bin\\hermes.exe\r\n", "linux");
 
     expect(path).toBe("C:\\bin\\hermes.cmd");
+  });
+
+  it("parses ORDINE_EXTRA_RUNTIMES and merges into the catalog", () => {
+    expect(parseExtraRuntimes("foo:foo-bin,bar:bar-cli")).toEqual({
+      foo: "foo-bin",
+      bar: "bar-cli",
+    });
+    // Defensive: empty segments, missing colons, and empty name|bin are all ignored.
+    expect(parseExtraRuntimes(" , baz , qux: , :only-bin , ok:ok-bin ")).toEqual({
+      ok: "ok-bin",
+    });
+    expect(parseExtraRuntimes(undefined)).toEqual({});
+
+    const merged = getRuntimeBinaries({ ORDINE_EXTRA_RUNTIMES: "myagent:my-bin" });
+    expect(merged).toHaveProperty("myagent", "my-bin");
+    expect(merged).toHaveProperty("claude-code", "claude");
   });
 
   it("each detected runtime has correct shape", async () => {
