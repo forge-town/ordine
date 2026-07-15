@@ -12,8 +12,8 @@ const decisionNode: PipelineNode = {
   data: { label: "Pick", nodeType: "decision", selectMode: "single" },
 };
 
-const edge = (source: string): PipelineEdge => ({
-  id: `${source}-decision`,
+const edge = (source: string, id = `${source}-decision`): PipelineEdge => ({
+  id,
   source,
   target: "decision",
 });
@@ -30,7 +30,7 @@ const makeArgs = (
   applyEdgeTransform: (_edge, input) => input,
   nodeLabel: (id) => `label-${id}`,
   selectMode: "single",
-  waitForDecision: async () => ({ selectedNodeIds: ["b"] }),
+  waitForDecision: async () => ({ selectedCandidateIds: ["b-decision"] }),
   emitStatus: vi.fn().mockResolvedValue(undefined),
   ...overrides,
 });
@@ -56,7 +56,7 @@ describe("processDecisionNode", () => {
     const result = await processDecisionNode(
       makeArgs(outputs, {
         selectMode: "multi",
-        waitForDecision: async () => ({ selectedNodeIds: ["a", "b"] }),
+        waitForDecision: async () => ({ selectedCandidateIds: ["a-decision", "b-decision"] }),
       }),
     );
 
@@ -64,21 +64,46 @@ describe("processDecisionNode", () => {
     expect(outputs.get("decision")?.content).toBe("variant A\n\n---\n\nvariant B");
   });
 
-  it("passes all active candidates (with labels) to the decision handler", async () => {
+  it("passes all active candidates (with labels and unique candidate ids) to the handler", async () => {
     const outputs = seedTwoCandidates();
-    const waitForDecision = vi.fn().mockResolvedValue({ selectedNodeIds: ["a"] });
+    const waitForDecision = vi.fn().mockResolvedValue({ selectedCandidateIds: ["a-decision"] });
     await processDecisionNode(makeArgs(outputs, { waitForDecision }));
 
     expect(waitForDecision).toHaveBeenCalledTimes(1);
     const event = waitForDecision.mock.calls[0]![0];
     expect(event.candidates).toHaveLength(2);
+    expect(event.candidates.map((c: { candidateId: string }) => c.candidateId)).toEqual([
+      "a-decision",
+      "b-decision",
+    ]);
     expect(event.candidates.map((c: { nodeId: string }) => c.nodeId)).toEqual(["a", "b"]);
     expect(event.candidates[0].label).toBe("label-a");
   });
 
+  it("keeps parallel edges from the same source as distinct candidates", async () => {
+    const outputs = seedTwoCandidates();
+    const waitForDecision = vi.fn().mockResolvedValue({ selectedCandidateIds: ["a-alt"] });
+    const result = await processDecisionNode(
+      makeArgs(outputs, {
+        edges: [edge("a"), edge("a", "a-alt")],
+        applyEdgeTransform: (e, input) =>
+          e.id === "a-alt" ? { ...input, content: `${input.content} (transformed)` } : input,
+        waitForDecision,
+      }),
+    );
+
+    const event = waitForDecision.mock.calls[0]![0];
+    expect(event.candidates.map((c: { candidateId: string }) => c.candidateId)).toEqual([
+      "a-decision",
+      "a-alt",
+    ]);
+    expect(result.outcome).toBe("completed");
+    expect(outputs.get("decision")?.content).toBe("variant A (transformed)");
+  });
+
   it("excludes inactive edges from candidates", async () => {
     const outputs = seedTwoCandidates();
-    const waitForDecision = vi.fn().mockResolvedValue({ selectedNodeIds: ["a"] });
+    const waitForDecision = vi.fn().mockResolvedValue({ selectedCandidateIds: ["a-decision"] });
     await processDecisionNode(
       makeArgs(outputs, {
         isEdgeActive: async (e) => e.source === "a",
@@ -101,10 +126,62 @@ describe("processDecisionNode", () => {
   it("fails when the user resolves with no selection (no silent fallback)", async () => {
     const outputs = seedTwoCandidates();
     const result = await processDecisionNode(
-      makeArgs(outputs, { waitForDecision: async () => ({ selectedNodeIds: [] }) }),
+      makeArgs(outputs, { waitForDecision: async () => ({ selectedCandidateIds: [] }) }),
     );
 
     expect(result.outcome).toBe("failed");
+    expect(outputs.has("decision")).toBe(false);
+  });
+
+  it("fails on unknown candidate ids instead of ignoring them", async () => {
+    const outputs = seedTwoCandidates();
+    const result = await processDecisionNode(
+      makeArgs(outputs, { waitForDecision: async () => ({ selectedCandidateIds: ["ghost"] }) }),
+    );
+
+    expect(result.outcome).toBe("failed");
+    if (result.outcome === "failed") expect(result.error.message).toContain("unknown candidate");
+    expect(outputs.has("decision")).toBe(false);
+  });
+
+  it("fails on duplicate candidate ids", async () => {
+    const outputs = seedTwoCandidates();
+    const result = await processDecisionNode(
+      makeArgs(outputs, {
+        selectMode: "multi",
+        waitForDecision: async () => ({ selectedCandidateIds: ["a-decision", "a-decision"] }),
+      }),
+    );
+
+    expect(result.outcome).toBe("failed");
+    if (result.outcome === "failed") expect(result.error.message).toContain("duplicate");
+  });
+
+  it("fails when single-select resolves with more than one selection", async () => {
+    const outputs = seedTwoCandidates();
+    const result = await processDecisionNode(
+      makeArgs(outputs, {
+        waitForDecision: async () => ({ selectedCandidateIds: ["a-decision", "b-decision"] }),
+      }),
+    );
+
+    expect(result.outcome).toBe("failed");
+    if (result.outcome === "failed") expect(result.error.message).toContain("single-select");
+    expect(outputs.has("decision")).toBe(false);
+  });
+
+  it("maps a rejecting decision handler to a failed outcome instead of throwing", async () => {
+    const outputs = seedTwoCandidates();
+    const result = await processDecisionNode(
+      makeArgs(outputs, {
+        waitForDecision: async () => {
+          throw new Error("socket closed");
+        },
+      }),
+    );
+
+    expect(result.outcome).toBe("failed");
+    if (result.outcome === "failed") expect(result.error.message).toContain("socket closed");
     expect(outputs.has("decision")).toBe(false);
   });
 });

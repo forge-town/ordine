@@ -13,6 +13,8 @@ import type { NodeResult } from "../types";
 
 /** One candidate = the output of one incoming edge's source node. */
 export interface DecisionCandidate {
+  /** Unique per incoming edge (the edge id), so parallel edges from the same source stay distinct. */
+  candidateId: string;
   nodeId: string;
   label?: string;
   content: string;
@@ -27,7 +29,7 @@ export interface PipelineDecisionEvent {
 }
 
 export interface DecisionResult {
-  selectedNodeIds: string[];
+  selectedCandidateIds: string[];
 }
 
 export interface ProcessDecisionNodeArgs {
@@ -54,6 +56,7 @@ const collectCandidates = async (args: ProcessDecisionNodeArgs): Promise<Decisio
     if (!src) continue;
     const ctx = args.applyEdgeTransform(edge, src);
     candidates.push({
+      candidateId: edge.id,
       nodeId: edge.source,
       label: args.nodeLabel(edge.source),
       content: ctx.content,
@@ -87,20 +90,67 @@ export const processDecisionNode = async (args: ProcessDecisionNodeArgs): Promis
   await args.emitStatus("waitingForUser");
   await trace(args.jobId, encodeDecisionWait(args.node.id, candidates.length));
 
-  const { selectedNodeIds } = await args.waitForDecision({
-    jobId: args.jobId,
-    nodeId: args.node.id,
-    selectMode: args.selectMode,
-    candidates,
-  });
+  // A rejecting handler must not escape the NodeResult contract — it would crash the
+  // whole run past node finalization and temp-dir cleanup.
+  const decision = await args
+    .waitForDecision({
+      jobId: args.jobId,
+      nodeId: args.node.id,
+      selectMode: args.selectMode,
+      candidates,
+    })
+    .then(
+      (value) => ({ ok: true as const, value }),
+      (cause: unknown) => ({
+        ok: false as const,
+        message: cause instanceof Error ? cause.message : String(cause),
+      }),
+    );
+  if (!decision.ok) {
+    return {
+      outcome: "failed",
+      error: new ScriptExecutionError(
+        `Decision handler for node ${args.node.id} failed: ${decision.message}`,
+      ),
+    };
+  }
 
-  const selected = candidates.filter((candidate) => selectedNodeIds.includes(candidate.nodeId));
-  if (selected.length === 0) {
+  const { selectedCandidateIds } = decision.value;
+  const candidatesById = new Map(candidates.map((candidate) => [candidate.candidateId, candidate]));
+
+  const unknownIds = selectedCandidateIds.filter((id) => !candidatesById.has(id));
+  if (unknownIds.length > 0) {
+    return {
+      outcome: "failed",
+      error: new ScriptExecutionError(
+        `Decision node ${args.node.id} resolved with unknown candidate id(s): ${unknownIds.join(", ")}`,
+      ),
+    };
+  }
+  if (new Set(selectedCandidateIds).size !== selectedCandidateIds.length) {
+    return {
+      outcome: "failed",
+      error: new ScriptExecutionError(
+        `Decision node ${args.node.id} resolved with duplicate candidate ids`,
+      ),
+    };
+  }
+  if (selectedCandidateIds.length === 0) {
     return {
       outcome: "failed",
       error: new ScriptExecutionError(`Decision node ${args.node.id} resolved with no selection`),
     };
   }
+  if (args.selectMode === "single" && selectedCandidateIds.length !== 1) {
+    return {
+      outcome: "failed",
+      error: new ScriptExecutionError(
+        `Decision node ${args.node.id} is single-select but resolved with ${selectedCandidateIds.length} selections`,
+      ),
+    };
+  }
+
+  const selected = selectedCandidateIds.map((id) => candidatesById.get(id)!);
 
   args.nodeOutputs.set(args.node.id, {
     inputPath: selected.find((candidate) => candidate.inputPath)?.inputPath ?? "",
@@ -113,7 +163,7 @@ export const processDecisionNode = async (args: ProcessDecisionNodeArgs): Promis
     args.jobId,
     encodeDecisionResolved(
       args.node.id,
-      selected.map((candidate) => candidate.nodeId),
+      selected.map((candidate) => candidate.candidateId),
     ),
   );
 

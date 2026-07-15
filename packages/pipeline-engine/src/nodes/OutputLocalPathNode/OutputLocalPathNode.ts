@@ -1,14 +1,11 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
-import { homedir } from "node:os";
 import { trace } from "@repo/obs";
 import { encodeNodeDone, encodeNodeFail } from "@repo/schemas";
 import type { NodeContext, NodeResult } from "../types";
 import { ScriptExecutionError } from "../../errors";
-
-const expandTilde = (p: string): string =>
-  p.startsWith("~/") ? join(homedir(), p.slice(2)) : p === "~" ? homedir() : p;
+import { expandTilde } from "../../infrastructure";
 
 const resolveRawPath = (configuredPath: string, defaultOutputPath?: string): string =>
   expandTilde(configuredPath) || expandTilde(defaultOutputPath ?? "") || "";

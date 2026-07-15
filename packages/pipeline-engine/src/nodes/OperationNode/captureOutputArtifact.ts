@@ -33,7 +33,10 @@ const scanDir = async (root: string, sinceMs: number): Promise<ArtifactFile[]> =
 
   const walk = async (abs: string, depth: number): Promise<void> => {
     if (files.length >= MAX_FILES || depth > MAX_DEPTH) return;
-    const entries = await readdir(abs, { withFileTypes: true });
+    // Capture is best-effort preview: an unreadable directory yields no entries
+    // rather than an exception that could sink an already-successful operation.
+    const entries = await readdir(abs, { withFileTypes: true }).catch(() => null);
+    if (!entries) return;
     for (const entry of entries) {
       if (files.length >= MAX_FILES) break;
       if (entry.isDirectory()) {
@@ -41,7 +44,9 @@ const scanDir = async (root: string, sinceMs: number): Promise<ArtifactFile[]> =
         await walk(join(abs, entry.name), depth + 1);
       } else if (entry.isFile()) {
         const absFile = join(abs, entry.name);
-        const info = await stat(absFile);
+        // Tolerate races: a file removed between readdir and stat is simply not listed.
+        const info = await stat(absFile).catch(() => null);
+        if (!info) continue;
         // Only pick up files written/modified during this execution window; skip stale leftovers in the shared outputDir.
         if (info.mtimeMs < sinceMs) continue;
         files.push({
@@ -66,8 +71,12 @@ const scanDir = async (root: string, sinceMs: number): Promise<ArtifactFile[]> =
  * in the shared outputDir aren't misattributed to this node. If the directory is missing or
  * nothing new was written, returns null rather than emitting an empty/misattributed artifact.
  *
- * Known limitations: the artifact records only the directory plus a file list (paths, not
- * per-file data contracts), and files reachable only through symlinks are not listed.
+ * Known limitations (capture is best-effort preview, never a correctness channel):
+ * the artifact records only the directory plus a file list (paths, not per-file data
+ * contracts); files reachable only through symlinks are not listed; when several
+ * concurrently running nodes share one outputDir their files can be over-attributed
+ * to each other; and tools that preserve old mtimes (cp -p, tar) can make fresh files
+ * fall outside the window. Precise attribution needs executor-reported file lists.
  */
 export const captureOutputArtifact = async (
   outputDir: string | undefined,

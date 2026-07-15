@@ -31,7 +31,7 @@ import {
 import type { PipelineEngineDeps } from "../deps";
 import { ScriptExecutionError, type PipelineRunError } from "../errors";
 import { buildExecutionLevels, type CycleDetectedError } from "../dagScheduler";
-import { safeReadInputFile } from "../infrastructure";
+import { expandTilde, safeReadInputFile } from "../infrastructure";
 import type {
   AgentInfo,
   NodeResult,
@@ -194,7 +194,10 @@ export class Pipeline {
   private opts: PipelineOptions;
   private tempDirs: string[] = [];
   private nodeOutputs = new Map<string, NodeCtx>();
-  private edgeActiveCache = new Map<string, boolean>();
+  private edgeEvaluationCache = new Map<
+    string,
+    { active: boolean; gateFailure?: ScriptExecutionError }
+  >();
 
   constructor(opts: PipelineOptions) {
     this.opts = opts;
@@ -203,7 +206,7 @@ export class Pipeline {
   async run(): Promise<PipelineRunResult> {
     this.tempDirs = [];
     this.nodeOutputs = new Map();
-    this.edgeActiveCache = new Map();
+    this.edgeEvaluationCache = new Map();
 
     const { pipeline, jobId } = this.opts;
     const { nodes, edges } = pipeline;
@@ -212,6 +215,18 @@ export class Pipeline {
     const rootEdges = edges.filter(
       (edge) => rootNodeIds.has(edge.source) && rootNodeIds.has(edge.target),
     );
+
+    // Quality gates only implement "skip" and "fail" so far; reject "retry" up front
+    // instead of silently running it with the wrong semantics.
+    const retryGateEdge = edges.find((edge) => edge.data?.qualityGate?.onFail === "retry");
+    if (retryGateEdge) {
+      return {
+        ok: false,
+        error: new ScriptExecutionError(
+          `Quality gate onFail "retry" is not supported yet (edge ${retryGateEdge.id}); use "skip" or "fail"`,
+        ),
+      };
+    }
 
     const levelsResult = buildExecutionLevels(rootNodes, rootEdges);
     if (levelsResult.isErr()) {
@@ -260,8 +275,11 @@ export class Pipeline {
 
     const outputPaths = rootNodes.flatMap((n) => {
       if (n.data.nodeType !== BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH) return [];
+      // Only report outputs that actually completed — skipped/failed output nodes
+      // record no output and must not show up in the success summary.
+      if (!this.nodeOutputs.has(n.id)) return [];
       const configuredPath = n.data.localPath ?? "";
-      const path = configuredPath || this.opts.defaultOutputPath || "";
+      const path = expandTilde(configuredPath || this.opts.defaultOutputPath || "");
 
       return path ? [path] : [];
     });
@@ -320,7 +338,13 @@ export class Pipeline {
   private async processNodeWithPause(
     node: PipelineNode,
   ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
-    if (await this.shouldSkipNodeForInactiveEdges(node)) {
+    const edgeCheck = await this.evaluateIncomingEdges(node);
+    if (edgeCheck.outcome === "abort") {
+      await this.emitNodeStatus(node.id, "failed");
+
+      return { ok: false, error: edgeCheck.error };
+    }
+    if (edgeCheck.outcome === "skip") {
       await trace(this.opts.jobId, encodeNodeSkipped(node.id, "incoming edge condition"));
       await this.emitNodeStatus(node.id, "skipped");
 
@@ -331,9 +355,22 @@ export class Pipeline {
     const shouldPause = await this.opts.runControl?.shouldPauseBeforeNode?.(event);
 
     if (shouldPause) {
+      // Fail closed: a requested pause without a resume handler must never fall through,
+      // or the human approval it represents would be silently bypassed.
+      const waitForResume = this.opts.runControl?.waitForResume;
+      if (!waitForResume) {
+        await this.emitNodeStatus(node.id, "failed");
+
+        return {
+          ok: false,
+          error: new ScriptExecutionError(
+            `Node ${node.id} requested a pause but no resume handler is wired — refusing to continue without approval`,
+          ),
+        };
+      }
       await trace(this.opts.jobId, encodeRunPause(node.id));
       await this.emitNodeStatus(node.id, "waitingForUser");
-      await this.opts.runControl?.waitForResume?.(event);
+      await waitForResume(event);
       await trace(this.opts.jobId, encodeRunResume(node.id));
     }
 
@@ -342,11 +379,16 @@ export class Pipeline {
       return firstResult;
     }
 
+    const retryState = { lastFailure: firstResult };
     const selfHealRetries = this.opts.selfHealRetries ?? DEFAULT_SELF_HEAL_RETRIES;
     for (const attempt of Array.from({ length: selfHealRetries }, (_, i) => i + 1)) {
       await trace(
         this.opts.jobId,
-        encodeSelfHeal(node.id, attempt, `Retrying after failure: ${firstResult.error.message}`),
+        encodeSelfHeal(
+          node.id,
+          attempt,
+          `Retrying after failure: ${retryState.lastFailure.error.message}`,
+        ),
       );
       await this.emitNodeStatus(node.id, "retrying");
       const retryResult = await this.processNode(node);
@@ -355,37 +397,57 @@ export class Pipeline {
 
         return retryResult;
       }
+      retryState.lastFailure = retryResult;
     }
 
-    return firstResult;
+    return retryState.lastFailure;
   }
 
   private canSelfHeal(node: PipelineNode): boolean {
     return node.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OPERATION;
   }
 
-  private async shouldSkipNodeForInactiveEdges(node: PipelineNode): Promise<boolean> {
+  /**
+   * Evaluate all incoming edges of a node: "proceed" if at least one edge is active
+   * (or the node has no incoming edges), "skip" if every edge is inactive, and
+   * "abort" as soon as any failed quality gate is configured with onFail "fail".
+   */
+  private async evaluateIncomingEdges(
+    node: PipelineNode,
+  ): Promise<{ outcome: "proceed" | "skip" } | { outcome: "abort"; error: PipelineRunError }> {
     const incomingEdges = this.opts.pipeline.edges.filter((edge) => edge.target === node.id);
-    if (incomingEdges.length === 0) return false;
+    if (incomingEdges.length === 0) return { outcome: "proceed" };
 
+    const evaluations = [];
     for (const edge of incomingEdges) {
-      if (await this.isEdgeActive(edge)) {
-        return false;
-      }
+      const evaluation = await this.evaluateEdge(edge);
+      if (evaluation.gateFailure) return { outcome: "abort", error: evaluation.gateFailure };
+      evaluations.push(evaluation);
     }
 
-    return true;
+    return evaluations.some((evaluation) => evaluation.active)
+      ? { outcome: "proceed" }
+      : { outcome: "skip" };
   }
 
   private async isEdgeActive(edge: PipelineEdge): Promise<boolean> {
-    const cached = this.edgeActiveCache.get(edge.id);
+    const evaluation = await this.evaluateEdge(edge);
+
+    return evaluation.active;
+  }
+
+  private async evaluateEdge(
+    edge: PipelineEdge,
+  ): Promise<{ active: boolean; gateFailure?: ScriptExecutionError }> {
+    const cached = this.edgeEvaluationCache.get(edge.id);
     if (cached !== undefined) return cached;
 
     const sourceOutput = this.nodeOutputs.get(edge.source);
     if (!sourceOutput) {
-      this.edgeActiveCache.set(edge.id, false);
+      const result = { active: false };
+      this.edgeEvaluationCache.set(edge.id, result);
 
-      return false;
+      return result;
     }
 
     const data = edge.data;
@@ -393,7 +455,6 @@ export class Pipeline {
       ? matchEdgeCondition(data.condition.expression, sourceOutput.content)
       : true;
     const qualityPassed = passesQualityGate(data?.qualityGate, sourceOutput.content);
-    const active = conditionPassed && qualityPassed;
 
     if (!conditionPassed) {
       await trace(
@@ -408,9 +469,19 @@ export class Pipeline {
       );
     }
 
-    this.edgeActiveCache.set(edge.id, active);
+    const result =
+      !qualityPassed && data?.qualityGate?.onFail === "fail"
+        ? {
+            active: false,
+            gateFailure: new ScriptExecutionError(
+              `Quality gate failed on edge ${edge.id} (criteria: "${data.qualityGate.criteria}") — onFail is "fail", aborting the run`,
+            ),
+          }
+        : { active: conditionPassed && qualityPassed };
 
-    return active;
+    this.edgeEvaluationCache.set(edge.id, result);
+
+    return result;
   }
 
   private applyEdgeTransform(edge: PipelineEdge, input: NodeCtx): NodeCtx {
@@ -436,9 +507,20 @@ export class Pipeline {
     await trace(jobId, encodeNodeStart(node.id));
     await this.emitNodeStatus(node.id, "running");
     if (data.nodeType === BUILTIN_NODE_TYPE_ENUM.OPERATION && data.checkpoint) {
+      // Fail closed: a checkpoint without a resume handler must never fall through,
+      // or the human approval it represents would be silently bypassed.
+      const waitForResume = this.opts.runControl?.waitForResume;
+      if (!waitForResume) {
+        return this.finalizeNodeStatus(node.id, {
+          outcome: "failed",
+          error: new ScriptExecutionError(
+            `Node ${node.id} is a checkpoint but no resume handler is wired — refusing to proceed without approval`,
+          ),
+        });
+      }
       await this.emitNodeStatus(node.id, "waitingForUser");
       await trace(jobId, encodeCheckpointWait(node.id));
-      await this.opts.runControl?.waitForResume?.({
+      await waitForResume({
         jobId,
         nodeId: node.id,
         reason: "checkpoint",
@@ -563,7 +645,7 @@ export class Pipeline {
       outputNode?.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OUTPUT_LOCAL_PATH
         ? (outputNode.data.localPath ?? "")
         : "";
-    const resolved = configuredPath || this.opts.defaultOutputPath || "";
+    const resolved = expandTilde(configuredPath || this.opts.defaultOutputPath || "");
 
     return resolved || undefined;
   }

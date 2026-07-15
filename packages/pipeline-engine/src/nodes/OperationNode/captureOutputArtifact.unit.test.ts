@@ -66,3 +66,15 @@ describe("captureOutputArtifact", () => {
     expect(await captureOutputArtifact(ctx.dir, "node", Date.now())).toBeNull();
   });
 });
+
+describe("captureOutputArtifact best-effort", () => {
+  it("returns null instead of throwing when outputDir is a regular file (ENOTDIR)", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "capture-enotdir-"));
+    const filePath = join(dir, "not-a-dir.txt");
+    await writeFile(filePath, "content");
+
+    await expect(captureOutputArtifact(filePath, "label", 0)).resolves.toBeNull();
+
+    await rm(dir, { recursive: true, force: true });
+  });
+});

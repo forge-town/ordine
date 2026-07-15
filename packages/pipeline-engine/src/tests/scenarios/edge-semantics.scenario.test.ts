@@ -122,3 +122,63 @@ describe("pipeline scenario: edge semantics", () => {
     expect(statusEvents).toContain("target:skipped");
   });
 });
+
+describe("pipeline scenario: quality gate onFail", () => {
+  it("aborts the run when a failed gate is configured with onFail 'fail'", async () => {
+    const runPrompt = vi.fn().mockReturnValue(okAsync("draft output"));
+    const deps = makeTestDeps({ runPrompt });
+    const edge = {
+      ...makeEdge("source", "target"),
+      data: {
+        label: "gated",
+        qualityGate: { criteria: "approved", onFail: "fail" },
+      },
+    } as PipelineEdge;
+
+    const result = await executeScenario({
+      deps,
+      operations: new Map([
+        ["source-op", makePromptOperation("source-op")],
+        ["target-op", makePromptOperation("target-op")],
+      ]),
+      nodes: [
+        makeNode("source", "operation", { operationId: "source-op" }),
+        makeNode("target", "operation", { operationId: "target-op" }),
+      ],
+      edges: [edge],
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.message).toContain('onFail is "fail"');
+    expect(runPrompt).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects onFail 'retry' up front instead of running it with wrong semantics", async () => {
+    const runPrompt = vi.fn().mockReturnValue(okAsync("anything"));
+    const deps = makeTestDeps({ runPrompt });
+    const edge = {
+      ...makeEdge("source", "target"),
+      data: {
+        label: "gated",
+        qualityGate: { criteria: "approved", onFail: "retry", maxRetries: 2 },
+      },
+    } as PipelineEdge;
+
+    const result = await executeScenario({
+      deps,
+      operations: new Map([
+        ["source-op", makePromptOperation("source-op")],
+        ["target-op", makePromptOperation("target-op")],
+      ]),
+      nodes: [
+        makeNode("source", "operation", { operationId: "source-op" }),
+        makeNode("target", "operation", { operationId: "target-op" }),
+      ],
+      edges: [edge],
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.message).toContain("not supported");
+    expect(runPrompt).not.toHaveBeenCalled();
+  });
+});

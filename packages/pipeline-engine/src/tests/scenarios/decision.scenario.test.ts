@@ -24,8 +24,8 @@ describe("pipeline scenario: human decision flow", () => {
     await writeFile(fileB, "const b = 2;", "utf8");
 
     const waitForDecision = vi
-      .fn<(event: PipelineDecisionEvent) => Promise<{ selectedNodeIds: string[] }>>()
-      .mockResolvedValue({ selectedNodeIds: ["file-b"] });
+      .fn<(event: PipelineDecisionEvent) => Promise<{ selectedCandidateIds: string[] }>>()
+      .mockResolvedValue({ selectedCandidateIds: ["file-b-decide"] });
 
     const result = await executeScenario({
       deps: makeTestDeps(),

@@ -66,6 +66,7 @@ describe("pipeline scenario: linear flow", () => {
     const statusEvents: string[] = [];
     const result = await executeScenario({
       deps,
+      runControl: { waitForResume: async () => undefined },
       nodes: [
         makeNode("operation", "operation", {
           operationId,

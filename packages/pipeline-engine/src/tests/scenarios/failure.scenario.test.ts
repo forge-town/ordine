@@ -115,3 +115,63 @@ describe("pipeline scenario: failure flow", () => {
     ]);
   });
 });
+
+describe("pipeline scenario: fail-closed run control", () => {
+  const makeOperations = () =>
+    new Map<string, OperationInfo>([
+      [
+        "guarded-op",
+        {
+          id: "guarded-op",
+          name: "Guarded Operation",
+          config: { executor: { type: "agent", agentMode: "prompt", prompt: "Go" } },
+        },
+      ],
+    ]);
+
+  it("fails when a pause is requested but no resume handler is wired", async () => {
+    const deps = makeTestDeps();
+    const result = await executeScenario({
+      deps,
+      operations: makeOperations(),
+      nodes: [makeNode("guarded-op", "operation", { operationId: "guarded-op" })],
+      runControl: { shouldPauseBeforeNode: () => true },
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.message).toContain("no resume handler");
+    expect(deps.runPrompt).not.toHaveBeenCalled();
+  });
+
+  it("fails when a checkpoint node has no resume handler (approval never bypassed)", async () => {
+    const deps = makeTestDeps();
+    const result = await executeScenario({
+      deps,
+      operations: makeOperations(),
+      nodes: [makeNode("guarded-op", "operation", { operationId: "guarded-op", checkpoint: true })],
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.message).toContain("checkpoint");
+    expect(deps.runPrompt).not.toHaveBeenCalled();
+  });
+
+  it("reports the last error once self-heal retries are exhausted", async () => {
+    const deps = makeTestDeps({
+      runPrompt: vi
+        .fn()
+        .mockReturnValueOnce(errAsync(new Error("timeout")))
+        .mockReturnValueOnce(errAsync(new Error("auth failed"))),
+    });
+
+    const result = await executeScenario({
+      deps,
+      operations: makeOperations(),
+      nodes: [makeNode("guarded-op", "operation", { operationId: "guarded-op" })],
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.message).toContain("auth failed");
+    expect(deps.runPrompt).toHaveBeenCalledTimes(2);
+  });
+});
