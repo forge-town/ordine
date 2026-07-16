@@ -22,6 +22,11 @@ export const RunClaudeOptionsSchema = z.object({
   onProgress: z.custom<(line: string) => Promise<void>>().optional(),
   extraEnv: z.record(z.string(), z.string()).optional(),
   ssh: SshConnectionOptionsSchema.optional(),
+  // Connector injection: mcpConfigPath points at a generated MCP config file
+  // (passed via --mcp-config); mcpToolNames are extra tool names of the form
+  // `mcp__<server>__<tool>` (not constrained by the ToolNameSchema enum).
+  mcpConfigPath: z.string().optional(),
+  mcpToolNames: z.array(z.string()).optional(),
 });
 
 export type RunClaudeOptions = z.infer<typeof RunClaudeOptionsSchema>;

@@ -20,7 +20,14 @@ vi.mock("node:child_process", () => ({
     execFileMock(bin, args, opts, cb),
 }));
 
-import { firstPath, locateBinaryCommand, scanRuntimes, type DetectedRuntime } from "./scanRuntimes";
+import {
+  firstPath,
+  getRuntimeBinaries,
+  locateBinaryCommand,
+  parseExtraRuntimes,
+  scanRuntimes,
+  type DetectedRuntime,
+} from "./scanRuntimes";
 
 const LOCATE_BIN = locateBinaryCommand();
 
@@ -138,6 +145,30 @@ describe("scanRuntimes", () => {
     const path = firstPath("C:\\bin\\hermes.cmd\r\nC:\\bin\\hermes.exe\r\n", "linux");
 
     expect(path).toBe("C:\\bin\\hermes.cmd");
+  });
+
+  it("parses ORDINE_EXTRA_RUNTIMES and merges into the catalog", () => {
+    expect(parseExtraRuntimes("foo:foo-bin,bar:bar-cli")).toEqual({
+      foo: "foo-bin",
+      bar: "bar-cli",
+    });
+    // Defensive: empty segments, missing colons, and empty name|bin are all ignored.
+    expect(parseExtraRuntimes(" , baz , qux: , :only-bin , ok:ok-bin ")).toEqual({
+      ok: "ok-bin",
+    });
+    expect(parseExtraRuntimes(undefined)).toEqual({});
+  });
+
+  it("only lets ORDINE_EXTRA_RUNTIMES override binaries for known runtimes", () => {
+    // Unknown runtime names are ignored — the rest of the stack (AgentRuntimeSchema,
+    // DRIVERS) is closed, so a new type here would only be rejected downstream.
+    const withUnknown = getRuntimeBinaries({ ORDINE_EXTRA_RUNTIMES: "myagent:my-bin" });
+    expect(withUnknown).not.toHaveProperty("myagent");
+    expect(withUnknown).toHaveProperty("claude-code", "claude");
+
+    // A known runtime's binary can be overridden (e.g. a renamed CLI).
+    const withOverride = getRuntimeBinaries({ ORDINE_EXTRA_RUNTIMES: "codex:custom-codex" });
+    expect(withOverride).toHaveProperty("codex", "custom-codex");
   });
 
   it("each detected runtime has correct shape", async () => {

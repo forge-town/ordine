@@ -9,12 +9,61 @@ export interface DetectedRuntime {
   version?: string;
 }
 
-const RUNTIME_BINARIES: Record<string, string> = {
+const BUILTIN_RUNTIME_BINARIES: Record<string, string> = {
   "claude-code": "claude",
   codex: "codex",
   hermes: "hermes",
   mastra: "mastra",
   openclaw: "openclaw",
+};
+
+/**
+ * Parse `ORDINE_EXTRA_RUNTIMES` (shaped like `name:bin,name2:bin2`) into a
+ * name→binary map. Pure parser — shape only, no policy; the caller decides which
+ * names are allowed. Defensive: ignores empty segments, missing colons, and
+ * empty name/bin.
+ */
+export const parseExtraRuntimes = (raw: string | undefined): Record<string, string> => {
+  if (!raw) return {};
+  const result: Record<string, string> = {};
+  for (const segment of raw.split(",")) {
+    const trimmed = segment.trim();
+    if (!trimmed) continue;
+    const colon = trimmed.indexOf(":");
+    if (colon <= 0) continue;
+    const name = trimmed.slice(0, colon).trim();
+    const bin = trimmed.slice(colon + 1).trim();
+    if (!name || !bin) continue;
+    result[name] = bin;
+  }
+
+  return result;
+};
+
+/**
+ * Scan catalog = builtin runtimes, with `ORDINE_EXTRA_RUNTIMES` allowed only to
+ * OVERRIDE the binary name of an already-known runtime (e.g. a renamed CLI).
+ * Unknown names are ignored: introducing a brand-new runtime type would also
+ * require `AgentRuntimeSchema`, persistence, and driver dispatch to support it,
+ * so accepting one here would only produce a runtime the rest of the stack
+ * rejects as unsupported (and `scanAndSync` could persist).
+ */
+export const getRuntimeBinaries = (
+  env: NodeJS.ProcessEnv = process.env,
+): Record<string, string> => {
+  const binaries: Record<string, string> = { ...BUILTIN_RUNTIME_BINARIES };
+  for (const [name, bin] of Object.entries(parseExtraRuntimes(env["ORDINE_EXTRA_RUNTIMES"]))) {
+    if (name in BUILTIN_RUNTIME_BINARIES) {
+      binaries[name] = bin;
+    } else {
+      logger.warn(
+        { runtime: name },
+        "ORDINE_EXTRA_RUNTIMES: ignoring unknown runtime; only binary overrides for known runtimes are supported",
+      );
+    }
+  }
+
+  return binaries;
 };
 
 type RuntimeScanPlatform = typeof process.platform;
@@ -80,7 +129,7 @@ const detectBinary = async (
 };
 
 export const scanRuntimes = async (): Promise<DetectedRuntime[]> => {
-  const entries = Object.entries(RUNTIME_BINARIES);
+  const entries = Object.entries(getRuntimeBinaries());
   const results = await Promise.all(
     entries.map(([type, binaryName]) => detectBinary(type, binaryName)),
   );
