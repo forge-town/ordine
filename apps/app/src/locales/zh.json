@@ -792,6 +792,7 @@
       "nodeStatusFailed": "失败",
       "statusQueued": "排队中",
       "statusRunning": "运行中",
+      "statusPaused": "已暂停",
       "statusDone": "完成",
       "statusFailed": "失败",
       "statusCancelled": "已取消",

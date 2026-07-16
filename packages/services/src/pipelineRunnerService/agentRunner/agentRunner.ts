@@ -46,7 +46,13 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
     `${logPrefix}: agent=${agent}, system length=${systemPrompt.length}, input length=${userPrompt.length}`,
   );
 
-  const cwd = resolveCwd({ inputPath });
+  const cwdResult = resolveCwd({ inputPath });
+  if (cwdResult.isErr()) {
+    await onProgress?.(`${logPrefix}: Error — ${cwdResult.error.message}`);
+
+    throw cwdResult.error;
+  }
+  const cwd = cwdResult.value;
 
   const engineResult = await ResultAsync.fromPromise(
     agentEngine.run({

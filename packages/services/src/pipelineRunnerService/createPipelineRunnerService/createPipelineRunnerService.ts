@@ -1,7 +1,7 @@
 import { ok, err, ResultAsync, type Result } from "neverthrow";
 import { initObs, initSpanRecorder } from "@repo/obs";
 import { logger } from "@repo/logger";
-import type { AgentRuntime, JobTriggeredBy, SshConnection } from "@repo/schemas";
+import type { AgentRuntime, JobStatus, JobTriggeredBy, SshConnection } from "@repo/schemas";
 import { loopEvaluator } from "../loopEvaluator";
 import { pipelineRunnerEngineDeps } from "../engineDeps";
 import { pipelineRunExecutor } from "../runPipeline";
@@ -29,6 +29,22 @@ export class PipelineNotFoundError extends Error {
   }
 }
 
+export class JobNotFoundError extends Error {
+  constructor(jobId: string) {
+    super(`Job ${jobId} not found`);
+    this.name = "JobNotFoundError";
+  }
+}
+
+export class InvalidJobStatusError extends Error {
+  constructor(action: string, jobId: string, status: string, allowed: readonly string[]) {
+    super(
+      `Cannot ${action} job ${jobId}: status is "${status}" but must be one of ${allowed.join(", ")}`,
+    );
+    this.name = "InvalidJobStatusError";
+  }
+}
+
 export const createPipelineRunnerService = (db: DbConnection) => {
   const agentsDao = createAgentsDao(db);
   const operationsDao = createOperationsDao(db);
@@ -46,6 +62,34 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
 
   const loopEvaluatorFactory = loopEvaluator.create();
+
+  /** Run-control actions only apply to live jobs in an eligible status. */
+  const guardJobStatus = async (
+    action: string,
+    jobId: string,
+    allowed: readonly JobStatus[],
+  ): Promise<Result<void, JobNotFoundError | InvalidJobStatusError>> => {
+    const job = await jobsDao.findById(jobId);
+    if (!job) return err(new JobNotFoundError(jobId));
+    if (!allowed.includes(job.status)) {
+      return err(new InvalidJobStatusError(action, jobId, job.status, allowed));
+    }
+
+    return ok(undefined);
+  };
+
+  const persistStatus = (
+    jobId: string,
+    status: JobStatus,
+    extra?: { finishedAt?: Date },
+  ): ResultAsync<unknown, Error> =>
+    ResultAsync.fromPromise(
+      jobsDao.updateStatus(jobId, status, extra),
+      (cause) =>
+        new Error(
+          `Failed to persist status "${status}" for job ${jobId}: ${cause instanceof Error ? cause.message : String(cause)}`,
+        ),
+    );
 
   const buildDepsForJob = ({
     jobId,
@@ -155,25 +199,45 @@ export const createPipelineRunnerService = (db: DbConnection) => {
 
       return ok({ jobId });
     },
-    pauseRun: (jobId: string) => {
-      const result = pipelineRunControl.pause(jobId);
-      void jobsDao.updateStatus(jobId, "paused");
+    pauseRun: async (jobId: string): Promise<Result<{ jobId: string; paused: boolean }, Error>> => {
+      const guard = await guardJobStatus("pause", jobId, ["running"]);
+      if (guard.isErr()) return err(guard.error);
 
-      return ok(result);
-    },
-    resumeRun: (jobId: string) => {
-      const result = pipelineRunControl.resume(jobId);
-      void jobsDao.updateStatus(jobId, "running");
+      const write = await persistStatus(jobId, "paused");
+      if (write.isErr()) return err(write.error);
 
-      return ok(result);
+      return ok(pipelineRunControl.pause(jobId));
     },
-    cancelRun: (jobId: string) => {
-      pipelineRunControl.clear(jobId);
-      void jobsDao.updateStatus(jobId, "cancelled", { finishedAt: new Date() });
+    resumeRun: async (
+      jobId: string,
+    ): Promise<Result<{ jobId: string; resumed: boolean }, Error>> => {
+      const guard = await guardJobStatus("resume", jobId, ["paused"]);
+      if (guard.isErr()) return err(guard.error);
 
-      return ok({ cancelled: true, jobId });
+      const write = await persistStatus(jobId, "running");
+      if (write.isErr()) return err(write.error);
+
+      return ok(pipelineRunControl.resume(jobId));
     },
-    /** Apply a human decision: wake the suspended decision node (the job stays "running", no status change needed). */
+    cancelRun: async (
+      jobId: string,
+    ): Promise<Result<{ jobId: string; cancelled: boolean }, Error>> => {
+      const guard = await guardJobStatus("cancel", jobId, ["running", "paused"]);
+      if (guard.isErr()) return err(guard.error);
+
+      // Persist the cancelled status before releasing any waiter, so the
+      // executor's terminal-status guard reliably sees "cancelled".
+      const write = await persistStatus(jobId, "cancelled", { finishedAt: new Date() });
+      if (write.isErr()) return err(write.error);
+
+      return ok(pipelineRunControl.cancel(jobId));
+    },
+    /**
+     * Apply a human decision: wake the suspended decision node (the job stays
+     * "running", no status change needed). `selectedCandidateIds` are the
+     * candidateId values from PipelineDecisionEvent.candidates (incoming edge
+     * ids), not node ids.
+     */
     resolveDecision: (jobId: string, nodeId: string, selectedCandidateIds: string[]) =>
       ok(pipelineRunControl.resolveDecision(jobId, nodeId, selectedCandidateIds)),
   };

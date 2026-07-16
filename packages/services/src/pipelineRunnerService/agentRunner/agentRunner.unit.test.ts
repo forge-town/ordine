@@ -1,4 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { describe, expect, it, vi, beforeEach, afterAll } from "vitest";
 import { agentEngine } from "@repo/agent-engine";
 import { runAgent } from "./agentRunner";
 
@@ -12,6 +15,13 @@ vi.mock("@repo/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
+// A real directory: resolveCwd rejects explicitly configured paths that do not exist.
+const inputDir = mkdtempSync(join(tmpdir(), "agent-runner-test-"));
+
+afterAll(() => {
+  rmSync(inputDir, { recursive: true, force: true });
+});
+
 describe("runAgent", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -21,7 +31,7 @@ describe("runAgent", () => {
     agent: "claude-code" as const,
     systemPrompt: "sys",
     userPrompt: "user",
-    inputPath: "/tmp/test",
+    inputPath: inputDir,
     agentId: "test-agent",
     logPrefix: "test",
   };

@@ -11,11 +11,11 @@ import { cn } from "@repo/ui/lib/utils";
 import { useCustom, useCustomMutation, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
+import type { JobStatus } from "@repo/schemas";
 import { ResourceName } from "../../../constants";
 import { FolderBrowserDialog } from "../../../components/FolderBrowserDialog/FolderBrowserDialog";
 import { useOperationDetailPageStore } from "../_store";
 
-type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled" | "expired";
 interface JobData {
   id: string;
   status: JobStatus;

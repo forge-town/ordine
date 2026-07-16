@@ -1,4 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { describe, expect, it, vi, beforeEach, afterAll } from "vitest";
 import { agentEngine } from "@repo/agent-engine";
 
 vi.mock("@repo/agent", () => ({
@@ -37,12 +40,19 @@ vi.mock("../structuredOutput", () => ({
 
 import { skillExecutor, SkillExecutionError, DEFAULT_SKILL_SYSTEM_PROMPT } from ".";
 
+// A real directory: resolveCwd rejects explicitly configured paths that do not exist.
+const inputDir = mkdtempSync(join(tmpdir(), "skill-executor-test-"));
+
+afterAll(() => {
+  rmSync(inputDir, { recursive: true, force: true });
+});
+
 describe("skillExecutor", () => {
   const baseOpts = {
     skillId: "test-skill",
     skillDescription: "A test skill",
     inputContent: "some code",
-    inputPath: "/tmp/test",
+    inputPath: inputDir,
   };
 
   beforeEach(() => {

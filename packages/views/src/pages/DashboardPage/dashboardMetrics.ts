@@ -138,7 +138,7 @@ export const buildActivity = (jobs: Job[]): DashboardActivityDatum[] => {
       bucket.failed += 1;
     }
 
-    if (job.status === "running" || job.status === "queued") {
+    if (job.status === "running" || job.status === "paused" || job.status === "queued") {
       bucket.running += 1;
     }
   }

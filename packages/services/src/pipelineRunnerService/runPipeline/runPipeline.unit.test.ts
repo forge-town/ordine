@@ -1,6 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { okAsync } from "neverthrow";
-import { pipelineEngine, type PipelineEngineDeps } from "@repo/pipeline-engine";
+import {
+  pipelineEngine,
+  PipelineCancelledError,
+  ScriptExecutionError,
+  type PipelineEngineDeps,
+} from "@repo/pipeline-engine";
 import type * as PipelineEngineModule from "@repo/pipeline-engine";
 import type {
   AgentsDao,
@@ -49,6 +54,7 @@ const makeOpts = (overrides = {}) => ({
   agentsDao: { findById: vi.fn() } as unknown as AgentsDao,
   jobsDao: {
     create: vi.fn().mockResolvedValue(undefined),
+    findById: vi.fn().mockResolvedValue({ id: "job-1", status: "running" }),
     updateStatus: vi.fn().mockResolvedValue(undefined),
     setNodeStatuses: vi.fn().mockResolvedValue(undefined),
   } as unknown as JobsDao,
@@ -152,6 +158,110 @@ describe("runPipeline", () => {
     );
   });
 
+  it("does not overwrite a cancelled job with done", async () => {
+    vi.mocked(pipelineEngine.execute).mockResolvedValue({
+      ok: true as const,
+      summary: "All good",
+    });
+    const opts = makeOpts({
+      jobsDao: {
+        create: vi.fn().mockResolvedValue(undefined),
+        // cancelRun already flipped the job to cancelled while the last node was executing.
+        findById: vi.fn().mockResolvedValue({ id: "job-1", status: "cancelled" }),
+        updateStatus: vi.fn().mockResolvedValue(undefined),
+        setNodeStatuses: vi.fn().mockResolvedValue(undefined),
+      } as unknown as JobsDao,
+    });
+    await pipelineRunExecutor.run(opts);
+
+    expect(opts.jobsDao.updateStatus).not.toHaveBeenCalledWith("job-1", "done", expect.anything());
+    expect(opts.jobsDao.updateStatus).not.toHaveBeenCalledWith(
+      "job-1",
+      "failed",
+      expect.anything(),
+    );
+  });
+
+  it("does not overwrite a cancelled job with failed", async () => {
+    vi.mocked(pipelineEngine.execute).mockResolvedValue({
+      ok: false as const,
+      error: new ScriptExecutionError("node blew up"),
+    });
+    const opts = makeOpts({
+      jobsDao: {
+        create: vi.fn().mockResolvedValue(undefined),
+        findById: vi.fn().mockResolvedValue({ id: "job-1", status: "cancelled" }),
+        updateStatus: vi.fn().mockResolvedValue(undefined),
+        setNodeStatuses: vi.fn().mockResolvedValue(undefined),
+      } as unknown as JobsDao,
+    });
+    await pipelineRunExecutor.run(opts);
+
+    expect(opts.jobsDao.updateStatus).not.toHaveBeenCalledWith(
+      "job-1",
+      "failed",
+      expect.anything(),
+    );
+  });
+
+  it("settles a cancelled engine outcome without marking the job failed", async () => {
+    vi.mocked(pipelineEngine.execute).mockResolvedValue({
+      ok: false as const,
+      error: new PipelineCancelledError("node-2"),
+    });
+    const onRunSettled = vi.fn();
+    const opts = makeOpts({
+      onRunSettled,
+      jobsDao: {
+        create: vi.fn().mockResolvedValue(undefined),
+        findById: vi.fn().mockResolvedValue({ id: "job-1", status: "cancelled" }),
+        updateStatus: vi.fn().mockResolvedValue(undefined),
+        setNodeStatuses: vi.fn().mockResolvedValue(undefined),
+      } as unknown as JobsDao,
+      agentRawExportsDao: {
+        findByJobId: vi.fn().mockResolvedValue([{ tokenInput: 7, tokenOutput: 3 }]),
+      } as unknown as AgentRawExportsDao,
+    });
+    await pipelineRunExecutor.run(opts);
+
+    expect(opts.jobsDao.updateStatus).not.toHaveBeenCalledWith(
+      "job-1",
+      "failed",
+      expect.anything(),
+    );
+    // Usage gathered before the cancellation still lands on the cancelled job.
+    expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
+      "job-1",
+      "cancelled",
+      expect.objectContaining({ totalTokens: 10 }),
+    );
+    expect(onRunSettled).toHaveBeenCalledOnce();
+  });
+
+  it("still marks the job done when usage aggregation fails", async () => {
+    vi.mocked(pipelineEngine.execute).mockResolvedValue({
+      ok: true as const,
+      summary: "All good",
+    });
+    const opts = makeOpts({
+      agentRawExportsDao: {
+        findByJobId: vi.fn().mockRejectedValue(new Error("exports table unavailable")),
+      } as unknown as AgentRawExportsDao,
+    });
+    await pipelineRunExecutor.run(opts);
+
+    expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
+      "job-1",
+      "done",
+      expect.objectContaining({ finishedAt: expect.any(Date) }),
+    );
+    expect(opts.jobsDao.updateStatus).not.toHaveBeenCalledWith(
+      "job-1",
+      "failed",
+      expect.anything(),
+    );
+  });
+
   it("invokes onRunSettled after the run settles", async () => {
     vi.mocked(pipelineEngine.execute).mockResolvedValue({
       ok: true as const,
@@ -247,6 +357,7 @@ describe("runPipeline", () => {
     const opts = makeOpts({
       jobsDao: {
         create: vi.fn().mockResolvedValue(undefined),
+        findById: vi.fn().mockResolvedValue({ id: "job-1", status: "running" }),
         updateStatus: vi
           .fn()
           .mockRejectedValueOnce(new Error("DB down"))

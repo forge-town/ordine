@@ -1,0 +1,29 @@
+{
+  // Type-check config that mirrors how this package is actually consumed
+  // (bundled by vite in apps/app), instead of the NodeNext library baseline
+  // which the extensionless relative imports in src/ predate.
+  // - stories are excluded until storybook types are wired up
+  // - "paths" unifies @types/react to this package's version while
+  //   packages/ui still pins 19.2.2 (two copies otherwise clash in JSX types)
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "react": ["./node_modules/@types/react"],
+      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"],
+      "react/jsx-dev-runtime": ["./node_modules/@types/react/jsx-dev-runtime"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.stories.tsx"]
+}

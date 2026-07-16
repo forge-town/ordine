@@ -35,8 +35,21 @@ export class GitCloneError extends Error {
   }
 }
 
+/**
+ * The run was stopped by a cancellation request at a node boundary. This is a
+ * deliberate stop, not a failure — callers should finalize the run as
+ * cancelled instead of failed.
+ */
+export class PipelineCancelledError extends Error {
+  constructor(public readonly nodeId: string) {
+    super(`Pipeline run cancelled before node ${nodeId}`);
+    this.name = "PipelineCancelledError";
+  }
+}
+
 export type PipelineRunError =
   | PipelineNotFoundError
   | ScriptExecutionError
   | ConfigParseError
-  | GitCloneError;
+  | GitCloneError
+  | PipelineCancelledError;
