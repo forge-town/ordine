@@ -18,10 +18,10 @@ const BUILTIN_RUNTIME_BINARIES: Record<string, string> = {
 };
 
 /**
- * Parse `ORDINE_EXTRA_RUNTIMES` (shaped like `name:bin,name2:bin2`) and merge it
- * into the scan catalog, so any custom or newly released runtime is detectable —
- * keeps "auto-detection" from degrading into a hard-coded allowlist.
- * Defensive: ignores empty segments, missing colons, and empty name/bin.
+ * Parse `ORDINE_EXTRA_RUNTIMES` (shaped like `name:bin,name2:bin2`) into a
+ * name→binary map. Pure parser — shape only, no policy; the caller decides which
+ * names are allowed. Defensive: ignores empty segments, missing colons, and
+ * empty name/bin.
  */
 export const parseExtraRuntimes = (raw: string | undefined): Record<string, string> => {
   if (!raw) return {};
@@ -40,12 +40,31 @@ export const parseExtraRuntimes = (raw: string | undefined): Record<string, stri
   return result;
 };
 
+/**
+ * Scan catalog = builtin runtimes, with `ORDINE_EXTRA_RUNTIMES` allowed only to
+ * OVERRIDE the binary name of an already-known runtime (e.g. a renamed CLI).
+ * Unknown names are ignored: introducing a brand-new runtime type would also
+ * require `AgentRuntimeSchema`, persistence, and driver dispatch to support it,
+ * so accepting one here would only produce a runtime the rest of the stack
+ * rejects as unsupported (and `scanAndSync` could persist).
+ */
 export const getRuntimeBinaries = (
   env: NodeJS.ProcessEnv = process.env,
-): Record<string, string> => ({
-  ...BUILTIN_RUNTIME_BINARIES,
-  ...parseExtraRuntimes(env["ORDINE_EXTRA_RUNTIMES"]),
-});
+): Record<string, string> => {
+  const binaries: Record<string, string> = { ...BUILTIN_RUNTIME_BINARIES };
+  for (const [name, bin] of Object.entries(parseExtraRuntimes(env["ORDINE_EXTRA_RUNTIMES"]))) {
+    if (name in BUILTIN_RUNTIME_BINARIES) {
+      binaries[name] = bin;
+    } else {
+      logger.warn(
+        { runtime: name },
+        "ORDINE_EXTRA_RUNTIMES: ignoring unknown runtime; only binary overrides for known runtimes are supported",
+      );
+    }
+  }
+
+  return binaries;
+};
 
 type RuntimeScanPlatform = typeof process.platform;
 

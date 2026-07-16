@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { Result } from "neverthrow";
 import { logger } from "@repo/logger";
+import { spawnCommand } from "../spawn/spawnCommand";
 import { ClaudeStreamEventSchema, type ClaudeStreamEvent } from "./schemas/ClaudeStreamEventSchema";
 import type { RunClaudeOptions } from "./schemas/RunClaudeOptionsSchema";
 import type { RunClaudeResult } from "./schemas/RunClaudeResultSchema";
@@ -149,15 +150,7 @@ export const runClaude = async ({
         });
       }
 
-      if (process.platform === "win32") {
-        return spawn("cmd.exe", ["/d", "/s", "/c", CLAUDE_BIN, ...claudeArgs], {
-          cwd,
-          stdio: ["pipe", "pipe", "pipe"],
-          env: extraEnv ? { ...process.env, ...extraEnv } : undefined,
-        });
-      }
-
-      return spawn(CLAUDE_BIN, claudeArgs, {
+      return spawnCommand(CLAUDE_BIN, claudeArgs, {
         cwd,
         stdio: ["pipe", "pipe", "pipe"],
         env: extraEnv ? { ...process.env, ...extraEnv } : undefined,

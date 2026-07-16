@@ -40,10 +40,10 @@ const run = async (opts: AgentRunOptions): Promise<AgentRunOutcome> => {
     });
   }
 
-  // Only claude returns an event stream usage can be derived from; every other
-  // runtime honestly reports null ("usage unavailable") instead of a fake 0.
-  const usage: AgentUsage | null =
-    result.events.length > 0 ? extractTokenTotals(result.events) : null;
+  // Usage is derived only from a claude result event that actually carries
+  // modelUsage; when it is absent (non-claude runtimes, or claude without usage)
+  // extractTokenTotals returns null — an honest "unavailable", never a fake 0.
+  const usage: AgentUsage | null = extractTokenTotals(result.events);
 
   return { text: result.text, usage };
 };

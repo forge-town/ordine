@@ -5,13 +5,22 @@ import type { ClaudeStreamEvent } from "@repo/agent";
 import { ResultAsync } from "neverthrow";
 import type { DriverResult } from "../types";
 
+/**
+ * Sum reported token usage from the claude result event. Returns `null` when no
+ * usage was reported — no result event, a result event without `modelUsage`, or
+ * an empty `modelUsage` map (no model reported anything). That "unavailable" is
+ * honoured distinctly from an explicitly reported zero (a model present with
+ * `inputTokens/outputTokens: 0`), which sums to `{ input: 0, output: 0 }` —
+ * never a fabricated 0.
+ */
 export const extractTokenTotals = (
   events: ClaudeStreamEvent[],
-): { input: number; output: number } => {
+): { input: number; output: number } | null => {
   const resultEvent = events.find((e) => e.type === "result");
   const modelUsage = resultEvent?.modelUsage;
+  if (!modelUsage || Object.keys(modelUsage).length === 0) return null;
 
-  return Object.values(modelUsage ?? {}).reduce(
+  return Object.values(modelUsage).reduce(
     (totals, usageEntry) => ({
       input: totals.input + (usageEntry.inputTokens ?? 0),
       output: totals.output + (usageEntry.outputTokens ?? 0),
@@ -195,8 +204,8 @@ export const recordObservability = async ({
           output: result.text,
           ...(result.events.length > 0 ? { events: result.events } : {}),
         },
-        tokenInput: tokenTotals.input || null,
-        tokenOutput: tokenTotals.output || null,
+        tokenInput: tokenTotals?.input ?? null,
+        tokenOutput: tokenTotals?.output ?? null,
         durationMs,
         status: "completed",
       },

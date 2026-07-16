@@ -157,10 +157,18 @@ describe("scanRuntimes", () => {
       ok: "ok-bin",
     });
     expect(parseExtraRuntimes(undefined)).toEqual({});
+  });
 
-    const merged = getRuntimeBinaries({ ORDINE_EXTRA_RUNTIMES: "myagent:my-bin" });
-    expect(merged).toHaveProperty("myagent", "my-bin");
-    expect(merged).toHaveProperty("claude-code", "claude");
+  it("only lets ORDINE_EXTRA_RUNTIMES override binaries for known runtimes", () => {
+    // Unknown runtime names are ignored — the rest of the stack (AgentRuntimeSchema,
+    // DRIVERS) is closed, so a new type here would only be rejected downstream.
+    const withUnknown = getRuntimeBinaries({ ORDINE_EXTRA_RUNTIMES: "myagent:my-bin" });
+    expect(withUnknown).not.toHaveProperty("myagent");
+    expect(withUnknown).toHaveProperty("claude-code", "claude");
+
+    // A known runtime's binary can be overridden (e.g. a renamed CLI).
+    const withOverride = getRuntimeBinaries({ ORDINE_EXTRA_RUNTIMES: "codex:custom-codex" });
+    expect(withOverride).toHaveProperty("codex", "custom-codex");
   });
 
   it("each detected runtime has correct shape", async () => {

@@ -1,6 +1,6 @@
-import { spawn } from "node:child_process";
 import { logger } from "@repo/logger";
 import { err, ok, Result } from "neverthrow";
+import { spawnCommand } from "../spawn/spawnCommand";
 
 /**
  * Structurally identical to `@repo/schemas`' McpToolSummary, but this package
@@ -21,7 +21,7 @@ const PROTOCOL_VERSION = "2024-11-05";
 
 type JsonRpcMessage = {
   id?: number | string;
-  result?: { tools?: { name?: unknown; description?: unknown }[] };
+  result?: { tools?: unknown; nextCursor?: unknown };
   error?: { message?: string };
 };
 
@@ -48,11 +48,14 @@ const toToolSummaries = (raw: unknown): McpToolSummary[] => {
 };
 
 /**
- * Minimal MCP stdio client: spawns the server, speaks JSON-RPC over stdio
+ * Minimal MCP stdio client: spawns the server (platform-aware, via spawnCommand
+ * so `command: "npx"` works on Windows), speaks JSON-RPC over stdio
  * (newline-delimited framing) through initialize → notifications/initialized →
- * tools/list, treats receiving the tool list as success, and kills the process
- * when done. Dependency-free (no @modelcontextprotocol/sdk). **Success requires
- * actually receiving tools** — a live process alone is not "connected".
+ * tools/list, follows pagination cursors, validates the result, and kills the
+ * process when done. Dependency-free (no @modelcontextprotocol/sdk). **Success
+ * requires a well-formed tool list** — a live process, or a result with no
+ * `tools` array, is not "connected". An explicit `tools: []` is a valid empty
+ * list; a missing/malformed `tools` is an error.
  */
 export const listMcpToolsStdio = (
   opts: ListMcpToolsOptions,
@@ -61,7 +64,7 @@ export const listMcpToolsStdio = (
 
   return new Promise((resolve) => {
     const state = { settled: false };
-    const child = spawn(opts.command, opts.args ?? [], {
+    const child = spawnCommand(opts.command, opts.args ?? [], {
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env, ...opts.env },
     });
@@ -85,7 +88,13 @@ export const listMcpToolsStdio = (
         finish(err(`MCP server exited (code=${code ?? "null"}) before tools/list`));
     });
 
-    const stream = { buffer: "", initialized: false };
+    const stream = {
+      buffer: "",
+      initialized: false,
+      toolListId: 2,
+      tools: [] as McpToolSummary[],
+      seenCursors: new Set<string>(),
+    };
     child.stdout.setEncoding("utf8");
     child.stdout.on("data", (chunk: string) => {
       stream.buffer += chunk;
@@ -108,15 +117,51 @@ export const listMcpToolsStdio = (
           stream.initialized = true;
           child.stdin.write(encodeLine({ jsonrpc: "2.0", method: "notifications/initialized" }));
           child.stdin.write(
-            encodeLine({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }),
+            encodeLine({ jsonrpc: "2.0", id: stream.toolListId, method: "tools/list", params: {} }),
           );
-        } else if (msg.id === 2) {
+        } else if (msg.id === stream.toolListId) {
           if (msg.error) {
             finish(err(`tools/list error: ${msg.error.message ?? "unknown"}`));
 
             return;
           }
-          finish(ok(toToolSummaries(msg.result?.tools)));
+
+          const toolsRaw = msg.result?.tools;
+          // A missing/non-array `tools` is a malformed result, not an empty tool
+          // set — only an explicit `tools: []` counts as a valid empty list.
+          if (!Array.isArray(toolsRaw)) {
+            finish(err("tools/list result missing a 'tools' array"));
+
+            return;
+          }
+          stream.tools.push(...toToolSummaries(toolsRaw));
+
+          // Pagination: the tool list may be split across pages. Keep requesting
+          // tools/list with the returned cursor and accumulate until it is gone.
+          const nextCursor = msg.result?.nextCursor;
+          if (typeof nextCursor === "string" && nextCursor.length > 0) {
+            // Guard a misbehaving server that echoes the same cursor forever:
+            // fail fast instead of looping until the timeout.
+            if (stream.seenCursors.has(nextCursor)) {
+              finish(err(`tools/list pagination cursor repeated: ${nextCursor}`));
+
+              return;
+            }
+            stream.seenCursors.add(nextCursor);
+            stream.toolListId += 1;
+            child.stdin.write(
+              encodeLine({
+                jsonrpc: "2.0",
+                id: stream.toolListId,
+                method: "tools/list",
+                params: { cursor: nextCursor },
+              }),
+            );
+
+            return;
+          }
+
+          finish(ok(stream.tools));
 
           return;
         }

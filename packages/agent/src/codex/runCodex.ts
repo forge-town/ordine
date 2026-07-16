@@ -1,8 +1,8 @@
 import { readFile, unlink } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { spawn } from "node:child_process";
 import { logger } from "@repo/logger";
+import { spawnCommand } from "../spawn/spawnCommand";
 
 export interface RunCodexOptions {
   systemPrompt: string;
@@ -69,18 +69,11 @@ export const runCodex = async ({
       });
     };
 
-    const child =
-      process.platform === "win32"
-        ? spawn("cmd.exe", ["/d", "/s", "/c", CODEX_BIN, ...args], {
-            cwd,
-            stdio: ["pipe", "pipe", "pipe"],
-            env: { ...process.env },
-          })
-        : spawn(CODEX_BIN, args, {
-            cwd,
-            stdio: ["pipe", "pipe", "pipe"],
-            env: { ...process.env },
-          });
+    const child = spawnCommand(CODEX_BIN, args, {
+      cwd,
+      stdio: ["pipe", "pipe", "pipe"],
+      env: { ...process.env },
+    });
 
     const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];

@@ -46,7 +46,7 @@ vi.mock("@repo/logger", () => ({
 }));
 
 import { agentEngine } from "./agentEngine";
-import { runHermes, runMastra } from "@repo/agent";
+import { runClaude, runHermes, runMastra } from "@repo/agent";
 import { recordAgentRunWithSpans } from "@repo/obs";
 
 describe("agentEngine", () => {
@@ -65,9 +65,67 @@ describe("agentEngine", () => {
     });
 
     expect(result.text).toBe("fake claude output");
-    // Usage is derived from the claude event stream (this fake has no modelUsage,
-    // hence 0/0 — but non-null means "usage available").
+    // The fake result event carries no modelUsage → usage is unavailable (null),
+    // never a fabricated 0. (See the modelUsage tests below for reported totals.)
+    expect(result.usage).toBeNull();
+  });
+
+  it("derives usage totals when the claude result event reports modelUsage", async () => {
+    vi.mocked(runClaude).mockResolvedValueOnce({
+      text: "with usage",
+      events: [
+        {
+          type: "result",
+          subtype: "success",
+          duration_ms: 1000,
+          total_cost_usd: 0.02,
+          num_turns: 1,
+          modelUsage: { "claude-sonnet": { inputTokens: 120, outputTokens: 45 } },
+        },
+      ],
+    });
+
+    const result = await agentEngine.run({
+      agent: "claude-code",
+      mode: "direct",
+      systemPrompt: "s",
+      userPrompt: "u",
+      cwd: "/tmp",
+    });
+
+    expect(result.usage).toEqual({ input: 120, output: 45 });
+  });
+
+  it("preserves an explicitly reported zero usage into observability (not null)", async () => {
+    vi.mocked(runClaude).mockResolvedValueOnce({
+      text: "zero usage",
+      events: [
+        {
+          type: "result",
+          subtype: "success",
+          duration_ms: 1000,
+          total_cost_usd: 0,
+          num_turns: 1,
+          modelUsage: { "claude-sonnet": { inputTokens: 0, outputTokens: 0 } },
+        },
+      ],
+    });
+
+    const result = await agentEngine.run({
+      agent: "claude-code",
+      mode: "direct",
+      systemPrompt: "s",
+      userPrompt: "u",
+      cwd: "/tmp",
+      jobId: "job-zero",
+      agentId: "agent-zero",
+    });
+
     expect(result.usage).toEqual({ input: 0, output: 0 });
+    expect(recordAgentRunWithSpans).toHaveBeenCalledWith(
+      expect.objectContaining({ tokenInput: 0, tokenOutput: 0 }),
+      expect.any(Function),
+    );
   });
 
   it("dispatches to runCodex for codex", async () => {
@@ -206,6 +264,10 @@ describe("agentEngine", () => {
           prompt: "user",
           output: "fake claude output",
         }),
+        // Default fake has no modelUsage → tokens recorded as null (unavailable),
+        // not 0.
+        tokenInput: null,
+        tokenOutput: null,
         status: "completed",
       }),
       expect.any(Function),
