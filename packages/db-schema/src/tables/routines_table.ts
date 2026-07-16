@@ -1,5 +1,4 @@
 import { boolean, index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import type { RoutineTriggerType } from "@repo/schemas";
 import { pipelinesTable } from "./pipelines_table";
 
 export const routinesTable = pgTable(
@@ -10,10 +9,8 @@ export const routinesTable = pgTable(
       .notNull()
       .references(() => pipelinesTable.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
-    triggerType: text("trigger_type").$type<RoutineTriggerType>().notNull(),
+    description: text("description"),
     cronExpression: text("cron_expression"),
-    eventType: text("event_type"),
-    eventConfig: jsonb("event_config").$type<Record<string, unknown>>(),
     inputConfig: jsonb("input_config").$type<Record<string, unknown>>(),
     enabled: boolean("enabled").notNull().default(true),
     lastRunAt: timestamp("last_run_at"),

@@ -7,6 +7,7 @@ import { createOperationsService } from "./operationsService";
 import { createPipelinesService } from "./pipelinesService";
 import { createPipelineRunnerService } from "./pipelineRunnerService";
 import { createRefinementsService } from "./refinementsService";
+import { createRoutinesService } from "./routinesService";
 import { createSettingsService } from "./settingsService";
 import { createSkillsService } from "./skillsService";
 
@@ -19,6 +20,10 @@ export const serviceFactory = {
   createPipelinesService: () => createPipelinesService(db),
   createPipelineRunnerService: () => createPipelineRunnerService(db),
   createRefinementsService: () => createRefinementsService(db),
+  createRoutinesService: () =>
+    createRoutinesService(db, {
+      startRun: (opts) => createPipelineRunnerService(db).startRun(opts),
+    }),
   createSettingsService: () => createSettingsService(db),
   createSkillsService: () => createSkillsService(db),
 };

@@ -91,11 +91,11 @@ describe("COD-116 domain DAOs with PGlite", () => {
       id: "routine-1",
       pipelineId: "pipeline-1",
       name: "Nightly",
-      triggerType: "cron",
+      description: "Runs the nightly pipeline",
       cronExpression: "0 0 * * *",
     });
     expect(await routines.findManyEnabled()).toEqual([
-      expect.objectContaining({ id: "routine-1" }),
+      expect.objectContaining({ id: "routine-1", description: "Runs the nightly pipeline" }),
     ]);
     await routines.update("routine-1", { enabled: false });
     expect(await routines.findManyEnabled()).toEqual([]);

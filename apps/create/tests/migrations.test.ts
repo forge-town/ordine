@@ -59,13 +59,14 @@ describe("runMigrations", () => {
     const result = await runMigrations(db, migrationsDir);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(1);
+    expect(result._unsafeUnwrap()).toBe(2);
     const migrations = await db.query<{ name: string }>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
     );
     expect(migrations.rows.map(({ name }) => name)).toEqual([
       "0000_init.sql",
       "0001_add_ordine_domain_tables.sql",
+      "0002_routines_claude_spec.sql",
     ]);
     const projects = await db.query<{ table_name: string }>(
       `SELECT table_name FROM information_schema.tables WHERE table_name = 'projects'`,
@@ -82,7 +83,7 @@ describe("runMigrations", () => {
     const result = await runMigrations(db, migrationsDir);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(1);
+    expect(result._unsafeUnwrap()).toBe(2);
 
     const migrations = await db.query<{ name: string }>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
@@ -90,6 +91,7 @@ describe("runMigrations", () => {
     expect(migrations.rows.map(({ name }) => name)).toEqual([
       "0000_init.sql",
       "0001_add_ordine_domain_tables.sql",
+      "0002_routines_claude_spec.sql",
     ]);
 
     const columns = await db.query<{ column_name: string; table_name: string }>(

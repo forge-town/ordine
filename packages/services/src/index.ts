@@ -10,6 +10,8 @@ export * from "./pipelinesService";
 export * from "./pipelineRunnerService";
 export * from "./pipelineAgentSessionsService";
 export * from "./refinementsService";
+export * from "./routinesService";
+export * from "./routineSchedulerService";
 export * from "./serviceFactory";
 export * from "./settingsService";
 export * from "./skillsService";
