@@ -153,6 +153,26 @@ describe("M2 services", () => {
     expect(conflict._unsafeUnwrapErr()).toBeInstanceOf(ConflictError);
   });
 
+  it("projectsService normalizes a foreign-key violation on delete to ConflictError", async () => {
+    projectsDao.delete.mockRejectedValueOnce(
+      Object.assign(new Error("violates foreign key constraint"), { code: "23503" }),
+    );
+    const service = createProjectsService({} as never);
+    const result = await service.delete("project-1");
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ConflictError);
+  });
+
+  it("projectsService keeps non-FK delete failures as ServiceError", async () => {
+    projectsDao.delete.mockRejectedValueOnce(new Error("connection reset"));
+    const service = createProjectsService({} as never);
+    const result = await service.delete("project-1");
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr().name).toBe("ServiceError");
+  });
+
   it("projectsService returns NotFoundError when updating a missing project", async () => {
     projectsDao.update.mockResolvedValueOnce(undefined);
     const service = createProjectsService({} as never);
@@ -207,7 +227,6 @@ describe("M2 services", () => {
     await expectOk(service.getAll());
     await expectOk(service.getById("asset-1"));
     await expectOk(service.getByPipelineId("pipeline-1"));
-    await expectOk(service.getUsageCount("asset-1"));
     await expectOk(
       service.create({
         id: "asset-1",
@@ -223,19 +242,32 @@ describe("M2 services", () => {
     await expectOk(service.delete("asset-1"));
   });
 
-  it("pipelineAssetsService distills from pipeline by updating existing asset", async () => {
+  it("pipelineAssetsService getUsageCount reports source-pipeline liveness", async () => {
+    const service = createPipelineAssetsService({} as never);
+    const alive = await expectOk(service.getUsageCount("asset-1"));
+    expect(alive).toEqual({ assetId: "asset-1", count: 1 });
+
+    pipelinesDao.findById.mockResolvedValueOnce(undefined);
+    const orphaned = await expectOk(service.getUsageCount("asset-1"));
+    expect(orphaned).toEqual({ assetId: "asset-1", count: 0 });
+  });
+
+  it("pipelineAssetsService re-distillation refreshes the snapshot but preserves manual edits", async () => {
+    pipelineAssetsDao.findManyByPipelineId.mockResolvedValueOnce([
+      { ...asset, name: "Manually renamed", tags: ["manual"] },
+    ]);
     const service = createPipelineAssetsService({} as never);
     await expectOk(service.distillFromPipeline("pipeline-1"));
 
-    expect(pipelineAssetsDao.update).toHaveBeenCalledWith(
-      "asset-1",
-      expect.objectContaining({
-        name: "Pipeline",
-        snapshotNodes: pipeline.nodes,
-        snapshotEdges: [],
-        inputSlots: [{ nodeId: "node-1", label: "Prompt", acceptTypes: ["prompt"] }],
-      }),
-    );
+    const patch = pipelineAssetsDao.update.mock.calls[0]![1];
+    expect(patch).toEqual({
+      snapshotNodes: pipeline.nodes,
+      snapshotEdges: [],
+      inputSlots: [{ nodeId: "node-1", label: "Prompt", acceptTypes: ["prompt"] }],
+    });
+    expect(patch).not.toHaveProperty("name");
+    expect(patch).not.toHaveProperty("description");
+    expect(patch).not.toHaveProperty("tags");
   });
 
   it("pipelineAssetsService distills by creating an asset when none exists", async () => {
@@ -247,8 +279,31 @@ describe("M2 services", () => {
       expect.objectContaining({
         pipelineId: "pipeline-1",
         name: "Pipeline",
+        tags: ["tag"],
         inputSlots: [{ nodeId: "node-1", label: "Prompt", acceptTypes: ["prompt"] }],
       }),
     );
+  });
+
+  it("pipelineAssetsService defaults tags to the pipeline name when the pipeline has none", async () => {
+    pipelinesDao.findById.mockResolvedValueOnce({ ...pipeline, tags: [] });
+    pipelineAssetsDao.findManyByPipelineId.mockResolvedValueOnce([]);
+    const service = createPipelineAssetsService({} as never);
+    await expectOk(service.distillFromPipeline("pipeline-1"));
+
+    expect(pipelineAssetsDao.create).toHaveBeenCalledWith(
+      expect.objectContaining({ tags: ["Pipeline"] }),
+    );
+  });
+
+  it("pipelineAssetsService refuses to distill an empty pipeline", async () => {
+    pipelinesDao.findById.mockResolvedValueOnce({ ...pipeline, nodes: [] });
+    const service = createPipelineAssetsService({} as never);
+    const result = await service.distillFromPipeline("pipeline-1");
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ConflictError);
+    expect(pipelineAssetsDao.update).not.toHaveBeenCalled();
+    expect(pipelineAssetsDao.create).not.toHaveBeenCalled();
   });
 });

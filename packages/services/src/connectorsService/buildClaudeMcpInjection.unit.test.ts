@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { buildClaudeMcpInjection, sanitizeServerKey } from "./buildClaudeMcpInjection";
 
-const connected = (name: string, config: unknown, status = "connected") =>
-  ({ name, status, config }) as never;
+const connected = (name: string, config: unknown, status = "connected", method = "mcp") =>
+  ({ name, method, status, config }) as never;
 
 describe("sanitizeServerKey", () => {
   it("keeps word chars, replaces the rest", () => {
@@ -20,6 +20,15 @@ describe("buildClaudeMcpInjection", () => {
       ]),
     ).toBeNull();
     expect(buildClaudeMcpInjection([connected("legacy", {})])).toBeNull();
+  });
+
+  it("skips non-mcp connectors even when they look connected", () => {
+    expect(
+      buildClaudeMcpInjection([
+        connected("api", { transport: "stdio", command: "x" }, "connected", "direct-api"),
+        connected("builtin", { transport: "stdio", command: "y" }, "connected", "built-in"),
+      ]),
+    ).toBeNull();
   });
 
   it("builds stdio server entry + per-tool allow names", () => {

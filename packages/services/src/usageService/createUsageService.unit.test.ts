@@ -31,6 +31,10 @@ const usageDao = {
 vi.mock("@repo/models", () => ({
   createUsageDao: () => usageDao,
 }));
+const loggerWarn = vi.fn();
+vi.mock("@repo/logger", () => ({
+  logger: { warn: (...a: unknown[]) => loggerWarn(...a) },
+}));
 
 import { createUsageService } from "./createUsageService";
 
@@ -72,6 +76,18 @@ describe("createUsageService", () => {
     const result = await expectOk(service.getByPipeline(range));
 
     expect(result).toEqual([{ pipelineId: "pipeline-1", totalTokens: 250, runCount: 2 }]);
+  });
+
+  it("coerces non-finite usage values to 0 and warns instead of leaking NaN", async () => {
+    usageDao.getSummary.mockResolvedValueOnce({
+      totalTokens: "not-a-number",
+      runCount: Number.POSITIVE_INFINITY,
+    });
+    const service = createUsageService({} as never);
+    const result = await expectOk(service.getSummary(range));
+
+    expect(result).toEqual({ totalTokens: 0, runCount: 0 });
+    expect(loggerWarn).toHaveBeenCalledTimes(2);
   });
 
   it("getByAgent returns agent token ranking", async () => {

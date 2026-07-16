@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { ResultAsync, errAsync, okAsync } from "neverthrow";
 import { createPipelineAssetsDao, createPipelinesDao, type DbConnection } from "@repo/models";
 import type { PipelineAssetInputSlot, PipelineNode } from "@repo/schemas";
-import { NotFoundError, toServiceError } from "../serviceErrors";
+import { ConflictError, NotFoundError, toServiceError } from "../serviceErrors";
 
 const toInputSlots = (nodes: PipelineNode[]): PipelineAssetInputSlot[] =>
   nodes
@@ -12,14 +12,6 @@ const toInputSlots = (nodes: PipelineNode[]): PipelineAssetInputSlot[] =>
       label: node.data.label,
       acceptTypes: [node.data.nodeType],
     }));
-
-const nodeReferencesAsset = (node: PipelineNode, assetId: string): boolean => {
-  const data = node.data as Record<string, unknown>;
-
-  return (
-    data.assetId === assetId || data.pipelineAssetId === assetId || data.sourceAssetId === assetId
-  );
-};
 
 export const createPipelineAssetsService = (db: DbConnection) => {
   const assetsDao = createPipelineAssetsDao(db);
@@ -40,6 +32,12 @@ export const createPipelineAssetsService = (db: DbConnection) => {
       ResultAsync.fromPromise(assetsDao.findManyByPipelineId(pipelineId), (error) =>
         toServiceError(error, "Get pipeline assets by pipeline"),
       ),
+    /**
+     * Usage counting is currently limited to source-pipeline liveness: 1 when
+     * the source pipeline still exists, 0 otherwise. Counting references from
+     * other pipelines requires an asset-reference field in the node schema —
+     * implement real reference counting once that field lands.
+     */
     getUsageCount: (id: string) =>
       ResultAsync.fromPromise(assetsDao.findById(id), (error) =>
         toServiceError(error, "Get pipeline asset usage target"),
@@ -48,15 +46,11 @@ export const createPipelineAssetsService = (db: DbConnection) => {
           asset ? okAsync(asset) : errAsync(new NotFoundError("PipelineAsset", id)),
         )
         .andThen((asset) =>
-          ResultAsync.fromPromise(pipelinesDao.findMany(), (error) =>
+          ResultAsync.fromPromise(pipelinesDao.findById(asset.pipelineId), (error) =>
             toServiceError(error, "Get pipeline asset usage"),
-          ).map((pipelines) => ({
+          ).map((pipeline) => ({
             assetId: id,
-            count: pipelines.filter(
-              (pipeline) =>
-                pipeline.id === asset.pipelineId ||
-                pipeline.nodes.some((node) => nodeReferencesAsset(node, id)),
-            ).length,
+            count: pipeline ? 1 : 0,
           })),
         ),
     create: (data: Parameters<typeof assetsDao.create>[0]) =>
@@ -82,24 +76,33 @@ export const createPipelineAssetsService = (db: DbConnection) => {
         .andThen((pipeline) =>
           pipeline ? okAsync(pipeline) : errAsync(new NotFoundError("Pipeline", pipelineId)),
         )
-        .andThen((pipeline) =>
-          ResultAsync.fromPromise(assetsDao.findManyByPipelineId(pipelineId), (error) =>
+        .andThen((pipeline) => {
+          // An empty pipeline cannot be distilled: PipelineAssetSchema requires
+          // at least one snapshot node, and an empty snapshot would be useless.
+          if (pipeline.nodes.length === 0) {
+            return errAsync(new ConflictError(`Pipeline "${pipelineId}" has no nodes to distill`));
+          }
+
+          return ResultAsync.fromPromise(assetsDao.findManyByPipelineId(pipelineId), (error) =>
             toServiceError(error, "Get existing pipeline asset"),
           ).andThen((existingAssets) => {
             const inputSlots = toInputSlots(pipeline.nodes);
-            const snapshot = {
-              name: pipeline.name,
-              description: pipeline.description,
-              snapshotNodes: pipeline.nodes,
-              snapshotEdges: pipeline.edges,
-              inputSlots,
-              tags: pipeline.tags,
-            };
+            // findManyByPipelineId orders by updatedAt desc, so [0] is
+            // deterministic: the most recently updated asset gets refreshed.
             const existing = existingAssets[0];
 
             if (existing) {
-              return ResultAsync.fromPromise(assetsDao.update(existing.id, snapshot), (error) =>
-                toServiceError(error, "Update distilled pipeline asset"),
+              // Conservative re-distillation: only the snapshot (nodes/edges/
+              // input slots) is refreshed. name/description/tags may have been
+              // edited by the user and run statistics keep accumulating — none
+              // of those are overwritten here.
+              return ResultAsync.fromPromise(
+                assetsDao.update(existing.id, {
+                  snapshotNodes: pipeline.nodes,
+                  snapshotEdges: pipeline.edges,
+                  inputSlots,
+                }),
+                (error) => toServiceError(error, "Update distilled pipeline asset"),
               ).andThen((asset) =>
                 asset ? okAsync(asset) : errAsync(new NotFoundError("PipelineAsset", existing.id)),
               );
@@ -109,12 +112,20 @@ export const createPipelineAssetsService = (db: DbConnection) => {
               assetsDao.create({
                 id: randomUUID(),
                 pipelineId,
-                ...snapshot,
+                name: pipeline.name,
+                description: pipeline.description,
+                snapshotNodes: pipeline.nodes,
+                snapshotEdges: pipeline.edges,
+                inputSlots,
+                // PipelineAssetSchema requires a non-empty tags list; fall back
+                // to the pipeline name when the pipeline has no tags. Default
+                // policy to satisfy the schema — product may adjust it later.
+                tags: pipeline.tags.length > 0 ? pipeline.tags : [pipeline.name],
               }),
               (error) => toServiceError(error, "Create distilled pipeline asset"),
             );
-          }),
-        ),
+          });
+        }),
     delete: (id: string) =>
       ResultAsync.fromPromise(assetsDao.delete(id), (error) =>
         toServiceError(error, "Delete pipeline asset"),

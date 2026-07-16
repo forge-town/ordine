@@ -2,6 +2,14 @@ import { ResultAsync, errAsync, okAsync } from "neverthrow";
 import { createPipelinesDao, createProjectsDao, type DbConnection } from "@repo/models";
 import { ConflictError, NotFoundError, toServiceError, type ServiceError } from "../serviceErrors";
 
+/**
+ * Postgres foreign-key violations (SQLSTATE 23503) on delete mean the project
+ * is still referenced (e.g. a pipeline was attached between our check and the
+ * delete); they keep 409 semantics instead of degrading to a 500.
+ */
+const isForeignKeyViolation = (error: unknown): boolean =>
+  typeof error === "object" && error !== null && (error as { code?: unknown }).code === "23503";
+
 export const createProjectsService = (db: DbConnection) => {
   const projectsDao = createProjectsDao(db);
   const pipelinesDao = createPipelinesDao(db);
@@ -48,7 +56,9 @@ export const createProjectsService = (db: DbConnection) => {
           }
 
           return ResultAsync.fromPromise(projectsDao.delete(id), (error) =>
-            toServiceError(error, "Delete project"),
+            isForeignKeyViolation(error)
+              ? new ConflictError(`Project "${id}" still has pipelines`)
+              : toServiceError(error, "Delete project"),
           );
         });
     },

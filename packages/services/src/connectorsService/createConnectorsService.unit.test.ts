@@ -33,8 +33,9 @@ describe("connectorsService.connect", () => {
     vi.clearAllMocks();
   });
 
-  it("on successful handshake: sets connected + tools + lastSyncAt", async () => {
-    findById.mockResolvedValue(stdioRow());
+  it("on successful handshake: sets connected + tools + lastSyncAt, preserving other config fields", async () => {
+    const config = { transport: "stdio", command: "npx", args: ["x"], custom: "keep-me" };
+    findById.mockResolvedValue(stdioRow({ config }));
     listMcpToolsStdio.mockResolvedValue(ok([{ name: "read_file", description: "d" }]));
     update.mockImplementation((_id, patch) => Promise.resolve({ ...stdioRow(), ...patch }));
 
@@ -44,10 +45,12 @@ describe("connectorsService.connect", () => {
     const patch = update.mock.calls[0]![1];
     expect(patch.status).toBe("connected");
     expect(patch.config.tools).toEqual([{ name: "read_file", description: "d" }]);
+    expect(patch.config.custom).toBe("keep-me");
+    expect(patch.config.lastError).toBeUndefined();
     expect(patch.lastSyncAt).toBeInstanceOf(Date);
   });
 
-  it("on handshake failure: sets error + lastError, never connected", async () => {
+  it("on handshake failure with valid config: sets error + lastError, never connected", async () => {
     findById.mockResolvedValue(stdioRow());
     listMcpToolsStdio.mockResolvedValue(err("boom"));
     update.mockResolvedValue(stdioRow({ status: "error" }));
@@ -60,21 +63,73 @@ describe("connectorsService.connect", () => {
     expect(patch.config.lastError).toBe("boom");
   });
 
-  it("on unconfigured (legacy {}) config: errors without claiming connected", async () => {
+  it("on unconfigured (legacy {}) config: falls back to needs_setup + lastError without handshaking", async () => {
     findById.mockResolvedValue(stdioRow({ config: {} }));
-    update.mockResolvedValue(stdioRow({ status: "error" }));
+    update.mockResolvedValue(stdioRow());
 
     const result = await svc().connect("c1");
 
     expect(result.isErr()).toBe(true);
     expect(listMcpToolsStdio).not.toHaveBeenCalled();
-    expect(update.mock.calls[0]![1].status).toBe("error");
+    const patch = update.mock.calls[0]![1];
+    expect(patch.status).toBe("needs_setup");
+    expect(patch.config.lastError).toContain("not configured");
+  });
+
+  it("on http transport: falls back to needs_setup + lastError (not error) without handshaking", async () => {
+    findById.mockResolvedValue(stdioRow({ config: { transport: "http", url: "https://x/sse" } }));
+    update.mockResolvedValue(stdioRow());
+
+    const result = await svc().connect("c1");
+
+    expect(result.isErr()).toBe(true);
+    expect(listMcpToolsStdio).not.toHaveBeenCalled();
+    const patch = update.mock.calls[0]![1];
+    expect(patch.status).toBe("needs_setup");
+    expect(patch.config.lastError).toBe("http transport is not supported yet");
+  });
+
+  it("on non-mcp method: falls back to needs_setup + lastError without handshaking", async () => {
+    findById.mockResolvedValue(stdioRow({ method: "direct-api" }));
+    update.mockResolvedValue(stdioRow());
+
+    const result = await svc().connect("c1");
+
+    expect(result.isErr()).toBe(true);
+    expect(listMcpToolsStdio).not.toHaveBeenCalled();
+    const patch = update.mock.calls[0]![1];
+    expect(patch.status).toBe("needs_setup");
+    expect(patch.config.lastError).toContain("does not support MCP handshake");
+  });
+
+  it("discards a stale handshake when the config changed mid-flight", async () => {
+    findById
+      .mockResolvedValueOnce(stdioRow())
+      .mockResolvedValueOnce(
+        stdioRow({ config: { transport: "stdio", command: "changed-command" } }),
+      );
+    listMcpToolsStdio.mockResolvedValue(ok([{ name: "read_file" }]));
+
+    const result = await svc().connect("c1");
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr().message).toContain("changed during handshake");
+    expect(update).not.toHaveBeenCalled();
   });
 
   it("returns NotFound when connector missing", async () => {
     findById.mockResolvedValue(undefined);
     const result = await svc().connect("nope");
     expect(result.isErr()).toBe(true);
+  });
+
+  it("normalizes DAO rejections into an err Result instead of a rejected promise", async () => {
+    findById.mockRejectedValue(new Error("db down"));
+
+    const result = await svc().connect("c1");
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr().name).toBe("ServiceError");
   });
 });
 
@@ -90,6 +145,32 @@ describe("connectorsService manual-status guard", () => {
   it("update coerces a manual connected status to needs_setup", async () => {
     update.mockResolvedValue(stdioRow());
     await svc().update("c1", { status: "connected" } as never);
+    expect(update.mock.calls[0]![1].status).toBe("needs_setup");
+  });
+
+  it("update with config drops connected status and strips forged tools", async () => {
+    update.mockResolvedValue(stdioRow());
+    await svc().update("c1", {
+      status: "connected",
+      config: {
+        transport: "stdio",
+        command: "npx",
+        tools: [{ name: "forged_tool" }],
+      },
+    } as never);
+
+    const patch = update.mock.calls[0]![1];
+    expect(patch.status).toBe("needs_setup");
+    expect(patch.config.tools).toBeUndefined();
+    expect(patch.config.command).toBe("npx");
+  });
+
+  it("update with config resets status to needs_setup even when no status is given", async () => {
+    update.mockResolvedValue(stdioRow());
+    await svc().update("c1", {
+      config: { transport: "stdio", command: "other" },
+    } as never);
+
     expect(update.mock.calls[0]![1].status).toBe("needs_setup");
   });
 });

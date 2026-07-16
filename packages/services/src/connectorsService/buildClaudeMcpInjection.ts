@@ -14,7 +14,7 @@ export type ClaudeMcpInjection = {
   toolNames: string[];
 };
 
-type ConnectorLike = { name: string; status: string; config: ConnectorConfig };
+type ConnectorLike = { name: string; method: string; status: string; config: ConnectorConfig };
 
 /**
  * Server keys keep only [A-Za-z0-9_-]; everything else becomes _
@@ -28,17 +28,19 @@ const uniqueServerKey = (base: string, taken: Record<string, unknown>): string =
   base in taken ? uniqueServerKey(`${base}_`, taken) : base;
 
 /**
- * Assembles status=connected mcp connectors into the claude CLI injection payload.
- * No usable connector -> returns null (callers then skip --mcp-config entirely).
- * Only connectors that completed a real handshake (connected) are consumed;
- * half-configured or disconnected ones never reach a run (keeps fake state out
- * of the execution chain).
+ * Assembles method=mcp, status=connected connectors into the claude CLI
+ * injection payload. No usable connector -> returns null (callers then skip
+ * --mcp-config entirely). Only mcp connectors that completed a real handshake
+ * (connected) are consumed; direct-api/built-in, half-configured, or
+ * disconnected ones never reach a run (keeps fake state out of the execution
+ * chain).
  */
 export const buildClaudeMcpInjection = (connectors: ConnectorLike[]): ClaudeMcpInjection | null => {
   const mcpServers: Record<string, McpServerEntry> = {};
   const toolNames: string[] = [];
 
   for (const connector of connectors) {
+    if (connector.method !== "mcp") continue;
     if (connector.status !== "connected") continue;
     const config = connector.config;
     if (!isMcpConnectorConfig(config)) continue;
