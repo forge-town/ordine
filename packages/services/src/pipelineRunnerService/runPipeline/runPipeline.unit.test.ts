@@ -9,6 +9,7 @@ import type {
   JobsDao,
   PipelineRunsDao,
   SkillsDao,
+  AgentRawExportsDao,
 } from "@repo/models";
 
 vi.mock("@repo/obs", () => ({
@@ -49,11 +50,15 @@ const makeOpts = (overrides = {}) => ({
   jobsDao: {
     create: vi.fn().mockResolvedValue(undefined),
     updateStatus: vi.fn().mockResolvedValue(undefined),
+    setNodeStatuses: vi.fn().mockResolvedValue(undefined),
   } as unknown as JobsDao,
   pipelineRunsDao: {
     update: vi.fn().mockResolvedValue(undefined),
   } as unknown as PipelineRunsDao,
   skillsDao: { findById: vi.fn(), findByName: vi.fn() } as unknown as SkillsDao,
+  agentRawExportsDao: {
+    findByJobId: vi.fn().mockResolvedValue([]),
+  } as unknown as AgentRawExportsDao,
   engineDeps: {
     runPrompt: vi.fn().mockReturnValue(okAsync("")),
     runSkill: vi.fn().mockReturnValue(okAsync("")),
@@ -84,8 +89,79 @@ describe("runPipeline", () => {
     expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
       "job-1",
       "done",
-      expect.objectContaining({ finishedAt: expect.any(Date) }),
+      expect.objectContaining({ finishedAt: expect.any(Date), totalTokens: 0 }),
     );
+  });
+
+  it("persists node status events from the engine", async () => {
+    vi.mocked(pipelineEngine.execute).mockImplementation(async (engineOpts) => {
+      await engineOpts.onNodeStatusChange?.({
+        jobId: "job-1",
+        nodeId: "node-a",
+        status: "queued",
+      });
+      await engineOpts.onNodeStatusChange?.({
+        jobId: "job-1",
+        nodeId: "node-a",
+        status: "running",
+      });
+      await engineOpts.onNodeStatusChange?.({
+        jobId: "job-1",
+        nodeId: "node-a",
+        status: "done",
+      });
+
+      return {
+        ok: true as const,
+        summary: "All good",
+      };
+    });
+    const opts = makeOpts();
+    await pipelineRunExecutor.run(opts);
+
+    expect(opts.jobsDao.setNodeStatuses).toHaveBeenNthCalledWith(1, "job-1", {
+      "node-a": "queued",
+    });
+    expect(opts.jobsDao.setNodeStatuses).toHaveBeenNthCalledWith(2, "job-1", {
+      "node-a": "running",
+    });
+    expect(opts.jobsDao.setNodeStatuses).toHaveBeenNthCalledWith(3, "job-1", {
+      "node-a": "done",
+    });
+  });
+
+  it("aggregates persisted token usage into the completed job", async () => {
+    vi.mocked(pipelineEngine.execute).mockResolvedValue({
+      ok: true as const,
+      summary: "All good",
+    });
+    const opts = makeOpts({
+      agentRawExportsDao: {
+        findByJobId: vi.fn().mockResolvedValue([
+          { tokenInput: 10, tokenOutput: 15 },
+          { tokenInput: 5, tokenOutput: null },
+        ]),
+      } as unknown as AgentRawExportsDao,
+    });
+    await pipelineRunExecutor.run(opts);
+
+    expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
+      "job-1",
+      "done",
+      expect.objectContaining({ totalTokens: 30 }),
+    );
+  });
+
+  it("invokes onRunSettled after the run settles", async () => {
+    vi.mocked(pipelineEngine.execute).mockResolvedValue({
+      ok: true as const,
+      summary: "All good",
+    });
+    const onRunSettled = vi.fn();
+    const opts = makeOpts({ onRunSettled });
+    await pipelineRunExecutor.run(opts);
+
+    expect(onRunSettled).toHaveBeenCalledOnce();
   });
 
   it("passes pipeline context and operation descriptions into engine execution", async () => {
@@ -175,6 +251,7 @@ describe("runPipeline", () => {
           .fn()
           .mockRejectedValueOnce(new Error("DB down"))
           .mockResolvedValue(undefined),
+        setNodeStatuses: vi.fn().mockResolvedValue(undefined),
       } as unknown as JobsDao,
       pipelineRunsDao: {
         update: vi.fn().mockResolvedValue(undefined),

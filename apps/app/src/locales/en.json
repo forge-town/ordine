@@ -152,6 +152,8 @@
     "noLogs": "No logs",
     "status": "Status",
     "statusQueued": "Queued",
+    "statusRunning": "Running",
+    "statusPaused": "Paused",
     "statusDone": "Done",
     "statusFailed": "Failed",
     "statusCancelled": "Cancelled",

@@ -16,7 +16,7 @@ vi.mock("@repo/agent-engine", () => ({
   agentEngine: {
     run: vi.fn().mockResolvedValue({
       text: '{"type":"check","summary":"ok","findings":[],"stats":{"totalFiles":1,"totalFindings":0,"errors":0,"warnings":0,"infos":0,"skipped":0}}',
-      events: [],
+      usage: null,
     }),
   },
 }));

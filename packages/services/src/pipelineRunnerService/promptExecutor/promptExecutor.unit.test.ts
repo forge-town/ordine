@@ -51,9 +51,10 @@ describe("promptExecutor", () => {
       expect.objectContaining({
         agent: "codex",
         mode: "direct",
-        systemPrompt: "Analyze this",
+        systemPrompt: expect.stringContaining("Analyze this"),
         userPrompt: "some code",
-        cwd: "/tmp/test",
+        // "/tmp/test" does not exist, so resolveCwd falls back to process.cwd()
+        cwd: process.cwd(),
       }),
     );
   });
@@ -112,12 +113,22 @@ describe("promptExecutor", () => {
     expect(callArgs.systemPrompt).toContain("Analyze this");
   });
 
-  it("leaves standalone operation prompt unchanged without runtime context", async () => {
+  it("keeps the bare operation prompt without runtime context", async () => {
     const result = await promptExecutor.run({ ...baseOpts, agent: "codex" });
 
     expect(result.isOk()).toBe(true);
     const callArgs = vi.mocked(agentEngine.run).mock.calls[0]![0];
-    expect(callArgs.systemPrompt).toBe("Analyze this");
+    expect(callArgs.systemPrompt).toContain("Analyze this");
+    expect(callArgs.systemPrompt).not.toContain("## Runtime Context");
+  });
+
+  it("always appends the missing-configuration user-action instructions", async () => {
+    const result = await promptExecutor.run({ ...baseOpts, agent: "codex" });
+
+    expect(result.isOk()).toBe(true);
+    const callArgs = vi.mocked(agentEngine.run).mock.calls[0]![0];
+    expect(callArgs.systemPrompt).toContain("## When user-side configuration is missing");
+    expect(callArgs.systemPrompt).toContain("@@USER_ACTION::");
   });
 
   it("returns error for empty prompt", async () => {

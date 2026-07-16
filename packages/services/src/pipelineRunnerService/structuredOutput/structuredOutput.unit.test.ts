@@ -40,6 +40,28 @@ Trailing text`;
       expect(result).toBe(input);
     });
 
+    // Since extraction goes through the shared extractJsonFromText, a bare {...}
+    // embedded in prose is also extracted (previously only ```json fences were).
+    // This case pins down that intentionally widened behavior.
+    it("extracts an embedded bare JSON object surrounded by prose (widened behavior)", () => {
+      const payload = {
+        type: "check",
+        summary: "ok",
+        findings: [],
+        stats: {
+          totalFiles: 1,
+          totalFindings: 0,
+          errors: 0,
+          warnings: 0,
+          infos: 0,
+          skipped: 0,
+        },
+      };
+      const input = `Sure, here is the result: ${JSON.stringify(payload)} — done.`;
+      const result = structuredOutput.extract({ rawText: input });
+      expect(JSON.parse(result).type).toBe("check");
+    });
+
     it("extracts valid fix JSON", () => {
       const input = JSON.stringify({
         type: "fix",
