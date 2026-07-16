@@ -6,6 +6,7 @@ import nodeTypesRef from "../../../../skills/ordine-create-pipeline/references/n
 import pipelineAnatomyRef from "../../../../skills/ordine-create-pipeline/references/pipeline-anatomy.md" with { type: "text" };
 import {
   createAgentRuntimesDao,
+  createConversationMessagesDao,
   createDistillationsDao,
   createJobsDao,
   createJobTracesDao,
@@ -55,6 +56,7 @@ const SKILL_REFERENCES = [nodeTypesRef, pipelineAnatomyRef].filter(Boolean).join
 
 export const createPipelinesService = (db: DbConnection) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
+  const conversationMessagesDao = createConversationMessagesDao(db);
   const dao = createPipelinesDao(db);
   const distillationsDao = createDistillationsDao(db);
   const jobsDao = createJobsDao(db);
@@ -88,7 +90,17 @@ export const createPipelinesService = (db: DbConnection) => {
     },
 
     proposeActions: (opts: ProposeActionsOptions) =>
-      proposeActions({ agentRuntimesDao, operationsDao, settingsDao }, opts),
+      proposeActions(
+        {
+          agentRuntimesDao,
+          conversationMessagesDao,
+          jobsDao,
+          jobTracesDao,
+          operationsDao,
+          settingsDao,
+        },
+        opts,
+      ),
 
     optimizeFromDistillation: async (opts: {
       distillationId: string;
