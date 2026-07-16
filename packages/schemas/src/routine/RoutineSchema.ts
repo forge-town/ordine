@@ -1,17 +1,15 @@
 import { z } from "zod/v4";
-
-const CRON_EXPR_REGEX =
-  /^[-,*/0-9L?#W\s]+\s+[-,*/0-9L?#W\s]+\s+[-,*/0-9L?#W\s]+\s+[-,*/0-9L?#W\s]+\s+[-,*/0-9L?#W\s]+$/;
-
-const isValidCronExpression = (value: string): boolean => CRON_EXPR_REGEX.test(value.trim());
+import { isValidCronExpression } from "@repo/utils";
 
 interface RoutineScheduleShape {
   cronExpression?: string | null | undefined;
   enabled: boolean;
 }
 
-// Cron is the only trigger mechanism: an enabled routine must carry a valid
-// 5-field cron expression, and any provided expression must be well-formed.
+// Cron is the only trigger mechanism. Validity is defined by the shared cron
+// parser (@repo/utils): an expression is valid if and only if a next
+// occurrence can be computed, so schema validation and the scheduler can
+// never disagree. An enabled routine must carry a valid expression.
 const validateRoutineSchedule = (data: RoutineScheduleShape, ctx: z.RefinementCtx) => {
   const cronExpression = data.cronExpression ?? null;
 
@@ -63,8 +61,10 @@ export const CreateRoutineSchema = routineBaseSchema
   .superRefine(validateRoutineSchedule);
 export type CreateRoutineInput = z.infer<typeof CreateRoutineSchema>;
 
-// Explicit optional shape (not routineBaseSchema.partial()): the enabled
-// default must not fire on patches that do not touch the schedule.
+// Patch-level validation only guarantees that a provided cronExpression is
+// well-formed. The enabled/cron cross-check needs the stored routine and
+// lives in routinesService.update, so patches like { enabled: true } stay
+// expressible when the stored routine already has a valid expression.
 export const UpdateRoutineSchema = z
   .object({
     pipelineId: z.string().optional(),
@@ -75,14 +75,12 @@ export const UpdateRoutineSchema = z
     enabled: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.cronExpression !== undefined || data.enabled !== undefined) {
-      validateRoutineSchedule(
-        {
-          cronExpression: data.cronExpression ?? null,
-          enabled: data.enabled ?? true,
-        },
-        ctx,
-      );
+    if (typeof data.cronExpression === "string" && !isValidCronExpression(data.cronExpression)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "cronExpression is not a valid 5-field cron expression",
+        path: ["cronExpression"],
+      });
     }
   });
 export type UpdateRoutineInput = z.infer<typeof UpdateRoutineSchema>;

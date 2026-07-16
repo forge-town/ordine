@@ -78,10 +78,39 @@ describe("CreateRoutineSchema", () => {
 });
 
 describe("UpdateRoutineSchema", () => {
-  it("validates cron when the schedule is touched", () => {
+  it("only checks the format of a provided cronExpression", () => {
     expect(UpdateRoutineSchema.safeParse({ cronExpression: "bogus" }).success).toBe(false);
-    expect(UpdateRoutineSchema.safeParse({ enabled: false }).success).toBe(true);
+    expect(UpdateRoutineSchema.safeParse({ cronExpression: "0 9 * * 1-5" }).success).toBe(true);
     expect(UpdateRoutineSchema.safeParse({ description: "New description" }).success).toBe(true);
+    expect(UpdateRoutineSchema.safeParse({ enabled: false }).success).toBe(true);
+    // The enabled/cron cross-check lives in routinesService.update, so a pure
+    // enable toggle and clearing the expression are valid patches here.
+    expect(UpdateRoutineSchema.safeParse({ enabled: true }).success).toBe(true);
+    expect(UpdateRoutineSchema.safeParse({ cronExpression: null }).success).toBe(true);
+  });
+});
+
+describe("cron validity matrix (parser-backed)", () => {
+  const withCron = (cronExpression: string) => ({ ...baseRoutine, cronExpression });
+
+  it("accepts Sunday expressed as 7", () => {
+    expect(RoutineSchema.safeParse(withCron("0 9 * * 7")).success).toBe(true);
+  });
+
+  it("rejects a zero step", () => {
+    expect(RoutineSchema.safeParse(withCron("*/0 * * * *")).success).toBe(false);
+  });
+
+  it("rejects six fields", () => {
+    expect(RoutineSchema.safeParse(withCron("0 9 * * 1 extra")).success).toBe(false);
+  });
+
+  it("rejects well-formed but unsatisfiable dates", () => {
+    expect(RoutineSchema.safeParse(withCron("0 0 30 2 *")).success).toBe(false);
+  });
+
+  it("rejects inverted ranges", () => {
+    expect(RoutineSchema.safeParse(withCron("0 9 * * 5-2")).success).toBe(false);
   });
 });
 

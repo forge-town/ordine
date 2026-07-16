@@ -123,6 +123,7 @@
     "filterFailed": "失败",
     "filterCancelled": "已取消",
     "filterExpired": "已过期",
+    "filterSkipped": "已跳过",
     "noJobs": "当前没有 Job",
     "deleteConfirm": "确认删除此 Job？",
     "duration": "耗时",
@@ -139,6 +140,7 @@
     "statusFailed": "失败",
     "statusCancelled": "已取消",
     "statusExpired": "已过期",
+    "statusSkipped": "已跳过",
     "id": "ID",
     "basicInfo": "基本信息",
     "viewProject": "查看项目",
@@ -654,7 +656,8 @@
       "statusDone": "完成",
       "statusFailed": "失败",
       "statusCancelled": "已取消",
-      "statusExpired": "已过期"
+      "statusExpired": "已过期",
+      "statusSkipped": "已跳过"
     },
     "history": {
       "addEdge": "连接 {{source}} -> {{target}}",

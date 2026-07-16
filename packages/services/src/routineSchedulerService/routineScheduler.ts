@@ -1,4 +1,5 @@
 import { ResultAsync, type Result } from "neverthrow";
+import { getNextCronRunAt } from "@repo/utils";
 import type { JobTriggeredBy } from "@repo/schemas";
 
 /** Default polling interval for the in-process scheduler. */
@@ -49,120 +50,8 @@ export type RoutineSchedulerDeps = {
   startRun: RoutineStartRun;
   updateRoutine: (id: string, patch: RoutinePatch) => Promise<unknown>;
   recordSkippedJob: (input: SkippedJobInput) => Promise<unknown>;
-};
-
-type CronField = ReadonlySet<number>;
-
-const fullRange = (min: number, max: number): number[] =>
-  Array.from({ length: max - min + 1 }, (_, index) => min + index);
-
-const withStep = (values: number[], base: number, step: number): number[] =>
-  values.filter((value) => (value - base) % step === 0);
-
-/**
- * Parses a single cron field. Supported syntax: `*`, `*​/n`, a single value
- * `5`, a range `1-5`, a stepped range `1-5/2`, and comma lists (`1,3,5`,
- * `0-2,4`) whose segments are parsed recursively and merged. Malformed or
- * out-of-range input returns null, which callers treat as "do not schedule".
- */
-const parseCronField = (field: string, min: number, max: number): CronField | null => {
-  // Comma list: parse each segment and merge; any invalid segment invalidates the whole field.
-  if (field.includes(",")) {
-    const parts = field.split(",");
-    const merged = new Set<number>();
-    for (const part of parts) {
-      const sub = parseCronField(part, min, max);
-      if (!sub) return null;
-      for (const value of sub) merged.add(value);
-    }
-
-    return merged;
-  }
-
-  if (field === "*") {
-    return new Set(fullRange(min, max));
-  }
-
-  // `*/n`: the full range with a step.
-  const stepAllMatch = /^\*\/(\d+)$/.exec(field);
-  if (stepAllMatch) {
-    const step = Number(stepAllMatch[1]);
-    if (!Number.isInteger(step) || step <= 0) return null;
-
-    return new Set(withStep(fullRange(min, max), min, step));
-  }
-
-  // Range `a-b` and stepped range `a-b/n`.
-  const rangeMatch = /^(\d+)-(\d+)(?:\/(\d+))?$/.exec(field);
-  if (rangeMatch) {
-    const start = Number(rangeMatch[1]);
-    const end = Number(rangeMatch[2]);
-    const step = rangeMatch[3] === undefined ? 1 : Number(rangeMatch[3]);
-    if (
-      !Number.isInteger(start) ||
-      !Number.isInteger(end) ||
-      !Number.isInteger(step) ||
-      step <= 0 ||
-      start < min ||
-      end > max ||
-      start > end
-    ) {
-      return null;
-    }
-
-    return new Set(withStep(fullRange(start, end), start, step));
-  }
-
-  const value = Number(field);
-  if (!Number.isInteger(value) || value < min || value > max) return null;
-
-  return new Set([value]);
-};
-
-const isAllowed = (field: CronField, value: number) => field.has(value);
-
-const startOfNextMinute = (from: Date) => {
-  const next = new Date(from);
-  next.setSeconds(0, 0);
-  next.setMinutes(next.getMinutes() + 1);
-
-  return next;
-};
-
-/**
- * Computes the next occurrence of a 5-field cron expression strictly after
- * `from`, in local time. Returns null for missing or invalid expressions.
- */
-export const getNextCronRunAt = (expression: string | null, from: Date): Date | null => {
-  if (!expression) return null;
-
-  const parts = expression.trim().split(/\s+/);
-  if (parts.length !== 5) return null;
-
-  const [minuteExpr, hourExpr, dayExpr, monthExpr, weekdayExpr] = parts;
-  const minute = parseCronField(minuteExpr!, 0, 59);
-  const hour = parseCronField(hourExpr!, 0, 23);
-  const day = parseCronField(dayExpr!, 1, 31);
-  const month = parseCronField(monthExpr!, 1, 12);
-  const weekday = parseCronField(weekdayExpr!, 0, 6);
-  if (!minute || !hour || !day || !month || !weekday) return null;
-
-  const candidate = startOfNextMinute(from);
-  const maxIterations = 366 * 24 * 60;
-  for (const _ of Array.from({ length: maxIterations })) {
-    if (
-      isAllowed(minute, candidate.getMinutes()) &&
-      isAllowed(hour, candidate.getHours()) &&
-      isAllowed(day, candidate.getDate()) &&
-      isAllowed(month, candidate.getMonth() + 1) &&
-      isAllowed(weekday, candidate.getDay())
-    ) {
-      return new Date(candidate);
-    }
-    candidate.setMinutes(candidate.getMinutes() + 1);
-  }
-
-  return null;
+  /** Invoked when processing a single routine throws; the tick continues. */
+  onError?: (error: unknown, routineId: string) => void;
 };
 
 const toStringInputs = (inputConfig: Record<string, unknown> | null): Record<string, string> => {
@@ -188,8 +77,21 @@ const describeError = (error: unknown): string =>
  *   or rejection) is recorded as a skipped job with the failure reason; there
  *   is no retry and the schedule advances to the next occurrence.
  * - due but past the grace window (the process was offline across the
- *   scheduled time): record a skipped job with a "missed while offline"
- *   reason and advance the schedule. Missed runs are never backfilled.
+ *   scheduled time): record a single skipped job covering the oldest missed
+ *   window and everything missed after it, then advance the schedule. Missed
+ *   runs are never backfilled.
+ *
+ * On every failure path the schedule is advanced BEFORE the skipped record is
+ * written: if persisting the skipped job fails, the next tick must not retry
+ * the same window.
+ *
+ * Errors thrown while processing one routine are reported via deps.onError
+ * and do not abort the tick for the remaining routines.
+ *
+ * Time semantics: cron expressions are interpreted in the server's local
+ * timezone (see the cron module in @repo/utils). A DST fall-back transition
+ * does not double-run a routine; a spring-forward gap rolls the occurrence
+ * forward to the next valid local time without recording a skipped entry.
  *
  * Single-instance assumption: nothing prevents two processes polling the same
  * database from double-triggering a routine. Multi-instance coordination is
@@ -201,62 +103,71 @@ export const createRoutineScheduler = (
 ) => {
   const graceWindowMs = options?.graceWindowMs ?? DEFAULT_GRACE_WINDOW_MS;
 
+  const processRoutine = async (routine: SchedulerRoutine, now: Date) => {
+    if (!routine.enabled) return;
+
+    const scheduledAt = routine.nextRunAt;
+    if (!scheduledAt) {
+      const upcoming = getNextCronRunAt(routine.cronExpression, now);
+      if (upcoming) {
+        await deps.updateRoutine(routine.id, { nextRunAt: upcoming });
+      }
+
+      return;
+    }
+
+    if (scheduledAt.getTime() > now.getTime()) return;
+
+    const upcoming = getNextCronRunAt(routine.cronExpression, now);
+    const lateByMs = now.getTime() - scheduledAt.getTime();
+
+    if (lateByMs > graceWindowMs) {
+      // Advance first so a failing skipped-write cannot re-trigger this window.
+      await deps.updateRoutine(routine.id, { nextRunAt: upcoming });
+      await deps.recordSkippedJob({
+        pipelineId: routine.pipelineId,
+        routineId: routine.id,
+        routineName: routine.name,
+        reason: `Missed scheduled run at ${scheduledAt.toISOString()} and all subsequently missed windows while the scheduler was offline; missed runs are not backfilled`,
+      });
+
+      return;
+    }
+
+    // The startRun Result must be checked: a failed trigger (error Result
+    // or rejected promise) becomes a skipped history entry instead of being
+    // silently swallowed.
+    const startResult = await ResultAsync.fromPromise(
+      deps.startRun({
+        inputs: toStringInputs(routine.inputConfig),
+        pipelineId: routine.pipelineId,
+        triggeredBy: "routine",
+      }),
+      (error) => error,
+    ).andThen((result) => result);
+
+    if (startResult.isOk()) {
+      await deps.updateRoutine(routine.id, { lastRunAt: now, nextRunAt: upcoming });
+    } else {
+      // Advance first so a failing skipped-write cannot re-trigger this window.
+      await deps.updateRoutine(routine.id, { nextRunAt: upcoming });
+      await deps.recordSkippedJob({
+        pipelineId: routine.pipelineId,
+        routineId: routine.id,
+        routineName: routine.name,
+        reason: `Failed to start scheduled run: ${describeError(startResult.error)}`,
+      });
+    }
+  };
+
   const tick = async (now = new Date()) => {
     const routines = await deps.getEnabledRoutines();
 
     for (const routine of routines) {
-      if (!routine.enabled) continue;
-
-      const scheduledAt = routine.nextRunAt;
-      if (!scheduledAt) {
-        const upcoming = getNextCronRunAt(routine.cronExpression, now);
-        if (upcoming) {
-          await deps.updateRoutine(routine.id, { nextRunAt: upcoming });
-        }
-
-        continue;
-      }
-
-      if (scheduledAt.getTime() > now.getTime()) continue;
-
-      const upcoming = getNextCronRunAt(routine.cronExpression, now);
-      const lateByMs = now.getTime() - scheduledAt.getTime();
-
-      if (lateByMs > graceWindowMs) {
-        await deps.recordSkippedJob({
-          pipelineId: routine.pipelineId,
-          routineId: routine.id,
-          routineName: routine.name,
-          reason: `Missed scheduled run at ${scheduledAt.toISOString()} while the scheduler was offline; missed runs are not backfilled`,
-        });
-        await deps.updateRoutine(routine.id, { nextRunAt: upcoming });
-
-        continue;
-      }
-
-      // The startRun Result must be checked: a failed trigger (error Result
-      // or rejected promise) becomes a skipped history entry instead of being
-      // silently swallowed.
-      const startResult = await ResultAsync.fromPromise(
-        deps.startRun({
-          inputs: toStringInputs(routine.inputConfig),
-          pipelineId: routine.pipelineId,
-          triggeredBy: "routine",
-        }),
-        (error) => error,
-      ).andThen((result) => result);
-
-      if (startResult.isOk()) {
-        await deps.updateRoutine(routine.id, { lastRunAt: now, nextRunAt: upcoming });
-      } else {
-        await deps.recordSkippedJob({
-          pipelineId: routine.pipelineId,
-          routineId: routine.id,
-          routineName: routine.name,
-          reason: `Failed to start scheduled run: ${describeError(startResult.error)}`,
-        });
-        await deps.updateRoutine(routine.id, { nextRunAt: upcoming });
-      }
+      // Per-routine isolation: one failing routine must not abort the tick.
+      await processRoutine(routine, now).catch((error: unknown) => {
+        deps.onError?.(error, routine.id);
+      });
     }
   };
 

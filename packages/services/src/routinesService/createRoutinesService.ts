@@ -1,10 +1,8 @@
-import { err, type Result } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 import { createRoutinesDao, type DbConnection } from "@repo/models";
 import { mapWithMeta, withMeta } from "@repo/schemas";
-import {
-  getNextCronRunAt,
-  type RoutineStartRun,
-} from "../routineSchedulerService/routineScheduler";
+import { getNextCronRunAt } from "@repo/utils";
+import type { RoutineStartRun } from "../routineSchedulerService/routineScheduler";
 
 // Disabled routines never have a pending occurrence; enabled routines get the
 // next occurrence of their cron expression (null when the expression is
@@ -42,22 +40,28 @@ export const createRoutinesService = (
       ),
     update: async (id: string, patch: Parameters<typeof dao.update>[1]) => {
       const existing = await dao.findById(id);
-      if (!existing) return undefined;
+      if (!existing) return err(new Error(`Routine not found: ${id}`));
+
+      // The enabled/cron cross-check lives here (not in UpdateRoutineSchema)
+      // because it needs the stored routine: a pure { enabled: true } patch is
+      // legal when the stored cron expression is already valid.
+      const enabled = patch.enabled ?? existing.enabled;
+      const cronExpression =
+        patch.cronExpression === undefined ? existing.cronExpression : patch.cronExpression;
+      const nextRunAt = resolveNextRunAt(enabled, cronExpression);
+      if (enabled && !nextRunAt) {
+        return err(new Error("An enabled routine requires a valid cronExpression"));
+      }
 
       // Recompute the schedule only when the patch touches it; disabling a
       // routine clears nextRunAt.
       const scheduleTouched = patch.enabled !== undefined || patch.cronExpression !== undefined;
-      const effectivePatch = scheduleTouched
-        ? {
-            ...patch,
-            nextRunAt: resolveNextRunAt(
-              patch.enabled ?? existing.enabled,
-              patch.cronExpression === undefined ? existing.cronExpression : patch.cronExpression,
-            ),
-          }
-        : patch;
+      const effectivePatch = scheduleTouched ? { ...patch, nextRunAt } : patch;
 
-      return withMeta(await dao.update(id, effectivePatch));
+      const updated = await dao.update(id, effectivePatch);
+      if (!updated) return err(new Error(`Routine not found: ${id}`));
+
+      return ok(withMeta(updated));
     },
     delete: (id: string) => dao.delete(id),
     runNow: async (id: string): Promise<Result<{ jobId: string }, Error>> => {

@@ -4,6 +4,7 @@ import {
   Clock,
   Loader2,
   Ban,
+  SkipForward,
   Trash2,
   ChevronRight,
   Layers,
@@ -41,6 +42,11 @@ const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot
     icon: Clock,
     cls: "bg-slate-100 text-slate-700",
     dot: "bg-slate-400",
+  },
+  skipped: {
+    icon: SkipForward,
+    cls: "bg-zinc-100 text-zinc-500",
+    dot: "bg-zinc-400",
   },
 };
 

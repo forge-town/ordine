@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createRoutineScheduler,
   DEFAULT_GRACE_WINDOW_MS,
-  getNextCronRunAt,
   type SchedulerRoutine,
 } from "./routineScheduler";
 
@@ -24,61 +23,7 @@ const makeDeps = (routines: SchedulerRoutine[]) => ({
   startRun: vi.fn().mockResolvedValue(ok({ jobId: "job-1" })),
   updateRoutine: vi.fn().mockResolvedValue(undefined),
   recordSkippedJob: vi.fn().mockResolvedValue(undefined),
-});
-
-describe("getNextCronRunAt", () => {
-  it("computes the next run time for step expressions", () => {
-    expect(
-      getNextCronRunAt("*/15 * * * *", new Date("2026-06-10T09:07:20.000Z"))?.toISOString(),
-    ).toBe("2026-06-10T09:15:00.000Z");
-  });
-
-  it("returns a strictly future minute even when called on an exact match", () => {
-    expect(
-      getNextCronRunAt("*/15 * * * *", new Date("2026-06-10T09:15:00.000Z"))?.toISOString(),
-    ).toBe("2026-06-10T09:30:00.000Z");
-  });
-
-  // Weekday ranges must parse; the "Weekday 09:00" preset emits `0 9 * * 1-5`.
-  // Assertions are timezone-independent: membership is checked via the same
-  // local getters the parser uses.
-  it("parses weekday ranges (0 9 * * 1-5)", () => {
-    const next = getNextCronRunAt("0 9 * * 1-5", new Date("2026-06-12T10:00:00.000Z"));
-    expect(next).not.toBeNull();
-    expect(next!.getHours()).toBe(9);
-    expect(next!.getMinutes()).toBe(0);
-    expect([1, 2, 3, 4, 5]).toContain(next!.getDay());
-  });
-
-  it("parses weekday lists (0 9 * * 1,3,5)", () => {
-    const next = getNextCronRunAt("0 9 * * 1,3,5", new Date("2026-06-10T10:00:00.000Z"));
-    expect(next).not.toBeNull();
-    expect([1, 3, 5]).toContain(next!.getDay());
-  });
-
-  it("parses range-with-step (0 0-10/2 * * *)", () => {
-    const next = getNextCronRunAt("0 0-10/2 * * *", new Date("2026-06-10T03:30:00.000Z"));
-    expect(next).not.toBeNull();
-    expect(next!.getHours()).toBeLessThanOrEqual(10);
-    expect(next!.getHours() % 2).toBe(0);
-  });
-
-  it("parses mixed comma segments (0-2,4 9 * * *)", () => {
-    const next = getNextCronRunAt("0-2,4 9 * * *", new Date("2026-06-10T10:00:00.000Z"));
-    expect(next).not.toBeNull();
-    expect([0, 1, 2, 4]).toContain(next!.getMinutes());
-    expect(next!.getHours()).toBe(9);
-  });
-
-  it("returns null for out-of-range or malformed fields", () => {
-    expect(getNextCronRunAt("0 9 * * 6-7", new Date("2026-06-10T10:00:00.000Z"))).toBeNull();
-    expect(getNextCronRunAt("0 9 * * 1-", new Date("2026-06-10T10:00:00.000Z"))).toBeNull();
-    expect(getNextCronRunAt("0 99 * * *", new Date("2026-06-10T10:00:00.000Z"))).toBeNull();
-    expect(getNextCronRunAt("*/0 * * * *", new Date("2026-06-10T10:00:00.000Z"))).toBeNull();
-    expect(getNextCronRunAt("1,x * * * *", new Date("2026-06-10T10:00:00.000Z"))).toBeNull();
-    expect(getNextCronRunAt("* * * *", new Date("2026-06-10T10:00:00.000Z"))).toBeNull();
-    expect(getNextCronRunAt(null, new Date("2026-06-10T10:00:00.000Z"))).toBeNull();
-  });
+  onError: vi.fn(),
 });
 
 describe("routine scheduler tick", () => {
@@ -138,6 +83,48 @@ describe("routine scheduler tick", () => {
     });
   });
 
+  it("advances the schedule before writing the skipped record", async () => {
+    const deps = makeDeps([makeRoutine()]);
+    deps.startRun.mockResolvedValue(err(new Error("boom")));
+    const scheduler = createRoutineScheduler(deps);
+
+    await scheduler.tick(new Date("2026-06-10T09:00:30.000Z"));
+
+    const updateOrder = deps.updateRoutine.mock.invocationCallOrder[0]!;
+    const skipOrder = deps.recordSkippedJob.mock.invocationCallOrder[0]!;
+    expect(updateOrder).toBeLessThan(skipOrder);
+  });
+
+  it("still advances the schedule when the skipped write itself fails", async () => {
+    const deps = makeDeps([makeRoutine()]);
+    deps.startRun.mockResolvedValue(err(new Error("boom")));
+    deps.recordSkippedJob.mockRejectedValue(new Error("insert failed"));
+    const scheduler = createRoutineScheduler(deps);
+
+    await scheduler.tick(new Date("2026-06-10T09:00:30.000Z"));
+
+    expect(deps.updateRoutine).toHaveBeenCalledWith("routine-1", {
+      nextRunAt: new Date("2026-06-10T09:05:00.000Z"),
+    });
+    expect(deps.onError).toHaveBeenCalledWith(expect.any(Error), "routine-1");
+  });
+
+  it("isolates a failing routine so the rest of the tick continues", async () => {
+    const failing = makeRoutine({ id: "routine-a", pipelineId: "pipe-a" });
+    const healthy = makeRoutine({ id: "routine-b", pipelineId: "pipe-b" });
+    const deps = makeDeps([failing, healthy]);
+    deps.updateRoutine.mockImplementation((id: string) =>
+      id === "routine-a" ? Promise.reject(new Error("db down")) : Promise.resolve(undefined),
+    );
+    const scheduler = createRoutineScheduler(deps);
+
+    await scheduler.tick(new Date("2026-06-10T09:00:30.000Z"));
+
+    expect(deps.onError).toHaveBeenCalledWith(expect.any(Error), "routine-a");
+    expect(deps.startRun).toHaveBeenCalledWith(expect.objectContaining({ pipelineId: "pipe-b" }));
+    expect(deps.updateRoutine).toHaveBeenCalledWith("routine-b", expect.anything());
+  });
+
   it("records runs missed beyond the grace window as skipped without backfilling", async () => {
     const deps = makeDeps([makeRoutine()]);
     const scheduler = createRoutineScheduler(deps);
@@ -154,12 +141,15 @@ describe("routine scheduler tick", () => {
       routineId: "routine-1",
       routineName: "Morning run",
       reason:
-        "Missed scheduled run at 2026-06-10T09:00:00.000Z while the scheduler was offline; missed runs are not backfilled",
+        "Missed scheduled run at 2026-06-10T09:00:00.000Z and all subsequently missed windows while the scheduler was offline; missed runs are not backfilled",
     });
     expect(deps.updateRoutine).toHaveBeenCalledWith(
       "routine-1",
       expect.objectContaining({ nextRunAt: expect.any(Date) }),
     );
+    const updateOrder = deps.updateRoutine.mock.invocationCallOrder[0]!;
+    const skipOrder = deps.recordSkippedJob.mock.invocationCallOrder[0]!;
+    expect(updateOrder).toBeLessThan(skipOrder);
   });
 
   it("respects a custom grace window derived from the poll interval", async () => {

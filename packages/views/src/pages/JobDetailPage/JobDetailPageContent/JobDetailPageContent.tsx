@@ -7,6 +7,7 @@ import {
   Clock,
   Loader2,
   Ban,
+  SkipForward,
   Terminal,
   Info,
   Layers,
@@ -58,6 +59,11 @@ const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; b
     cls: "bg-slate-100 text-slate-700",
     bar: "bg-slate-400",
   },
+  skipped: {
+    icon: SkipForward,
+    cls: "bg-zinc-100 text-zinc-500",
+    bar: "bg-zinc-400",
+  },
 };
 
 const TYPE_CONFIG: Record<JobType, { icon: React.ElementType }> = {
@@ -75,6 +81,7 @@ const getStatusLabel = (status: JobStatus, t: (key: string) => string): string =
     failed: t("jobs.statusFailed"),
     cancelled: t("jobs.statusCancelled"),
     expired: t("jobs.statusExpired"),
+    skipped: t("jobs.statusSkipped"),
   };
 
   return statusMap[status];

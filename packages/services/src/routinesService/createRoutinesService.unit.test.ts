@@ -84,27 +84,61 @@ describe("createRoutinesService", () => {
 
   it("update recomputes nextRunAt when the schedule changes", async () => {
     const svc = makeService();
-    await svc.update("routine-1", { cronExpression: "0 9 * * *" });
+    const result = await svc.update("routine-1", { cronExpression: "0 9 * * *" });
+    expect(result.isOk()).toBe(true);
     const patch = mockDao.update.mock.calls[0]![1]!;
     expect(patch.nextRunAt).toBeInstanceOf(Date);
   });
 
   it("update clears nextRunAt when disabling", async () => {
     const svc = makeService();
-    await svc.update("routine-1", { enabled: false });
+    const result = await svc.update("routine-1", { enabled: false });
+    expect(result.isOk()).toBe(true);
     expect(mockDao.update.mock.calls[0]![1]!.nextRunAt).toBeNull();
   });
 
   it("update leaves the schedule alone for unrelated patches", async () => {
     const svc = makeService();
-    await svc.update("routine-1", { description: "Updated" });
+    const result = await svc.update("routine-1", { description: "Updated" });
+    expect(result.isOk()).toBe(true);
     expect(mockDao.update).toHaveBeenCalledWith("routine-1", { description: "Updated" });
   });
 
-  it("update returns undefined for unknown routines", async () => {
+  it("update fails for unknown routines", async () => {
     mockDao.findById.mockResolvedValue(undefined);
     const svc = makeService();
-    expect(await svc.update("missing", { description: "x" })).toBeUndefined();
+    const result = await svc.update("missing", { description: "x" });
+    expect(result.isErr()).toBe(true);
+    expect(mockDao.update).not.toHaveBeenCalled();
+  });
+
+  it("update accepts a pure enable toggle when the stored cron is valid", async () => {
+    const svc = makeService();
+    const result = await svc.update("routine-1", { enabled: true });
+    expect(result.isOk()).toBe(true);
+    expect(mockDao.update.mock.calls[0]![1]!.nextRunAt).toBeInstanceOf(Date);
+  });
+
+  it("update accepts clearing the cron on a disabled routine", async () => {
+    mockDao.findById.mockResolvedValue({ ...storedRoutine, enabled: false });
+    const svc = makeService();
+    const result = await svc.update("routine-1", { cronExpression: null });
+    expect(result.isOk()).toBe(true);
+    expect(mockDao.update.mock.calls[0]![1]!.nextRunAt).toBeNull();
+  });
+
+  it("update rejects enabling a routine that has no stored cron", async () => {
+    mockDao.findById.mockResolvedValue({
+      ...storedRoutine,
+      enabled: false,
+      cronExpression: null,
+    });
+    const svc = makeService();
+    const result = await svc.update("routine-1", { enabled: true });
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr().message).toBe(
+      "An enabled routine requires a valid cronExpression",
+    );
     expect(mockDao.update).not.toHaveBeenCalled();
   });
 

@@ -50,18 +50,35 @@ export const createRoutineSchedulerService = (
       startRun: deps.startRun,
       updateRoutine: (id, patch) => routinesDao.update(id, patch),
       recordSkippedJob,
+      onError: (error, routineId) => {
+        logger.error({ err: error, routineId }, "routineScheduler: routine processing failed");
+      },
     },
     { graceWindowMs: GRACE_WINDOW_FACTOR * pollIntervalMs },
   );
 
-  const state: { intervalId: ReturnType<typeof globalThis.setInterval> | null } = {
+  const state: {
+    intervalId: ReturnType<typeof globalThis.setInterval> | null;
+    ticking: boolean;
+  } = {
     intervalId: null,
+    ticking: false,
   };
 
+  // In-flight guard: if the previous tick is still running (slow DB, many due
+  // routines), skip this interval instead of re-entering and double-triggering.
   const runTick = () => {
-    void scheduler.tick().catch((error: unknown) => {
-      logger.error({ err: error }, "routineScheduler: tick failed");
-    });
+    if (state.ticking) return;
+
+    state.ticking = true;
+    void scheduler
+      .tick()
+      .catch((error: unknown) => {
+        logger.error({ err: error }, "routineScheduler: tick failed");
+      })
+      .finally(() => {
+        state.ticking = false;
+      });
   };
 
   const start = () => {

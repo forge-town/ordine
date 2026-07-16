@@ -32,6 +32,7 @@ export const JobsPageContent = () => {
     { value: "failed", label: t("jobs.filterFailed") },
     { value: "cancelled", label: t("jobs.filterCancelled") },
     { value: "expired", label: t("jobs.filterExpired") },
+    { value: "skipped", label: t("jobs.filterSkipped") },
   ];
 
   const filtered = jobs.filter((j: Job) => {
@@ -53,6 +54,7 @@ export const JobsPageContent = () => {
     failed: jobs.filter((j: Job) => j.status === "failed").length,
     cancelled: jobs.filter((j: Job) => j.status === "cancelled").length,
     expired: jobs.filter((j: Job) => j.status === "expired").length,
+    skipped: jobs.filter((j: Job) => j.status === "skipped").length,
   };
 
   if (jobsQuery?.isLoading) {

@@ -31,6 +31,7 @@ const statusLabelKeys: Record<JobStatus, string> = {
   failed: "canvas.runConsole.statusFailed",
   cancelled: "canvas.runConsole.statusCancelled",
   expired: "canvas.runConsole.statusExpired",
+  skipped: "canvas.runConsole.statusSkipped",
 };
 
 const parseTimestamp = (log: string): string => {

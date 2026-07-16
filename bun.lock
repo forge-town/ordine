@@ -395,6 +395,7 @@
       "name": "@repo/schemas",
       "version": "0.0.2-preview.10",
       "dependencies": {
+        "@repo/utils": "workspace:*",
         "zod": "^4.3.6",
       },
       "devDependencies": {
