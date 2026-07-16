@@ -664,7 +664,7 @@ describe("createPipelinesService", () => {
     });
   });
 
-  it("proposeActions flags operationName mismatches as diagnostics for replaceNodeData actions", async () => {
+  it("proposeActions rewrites operationName back to the catalog name for replaceNodeData actions", async () => {
     mockRunAgent.mockResolvedValue(
       JSON.stringify({
         summary: "Rename the test review node label only.",
@@ -706,18 +706,173 @@ describe("createPipelinesService", () => {
       message: "rename label",
     });
 
-    // The engine no longer rewrites operationName silently; a mismatch with
-    // the catalog surfaces as an INVALID_NODE_DATA diagnostic instead.
-    expect(result.proposal?.actions).toHaveLength(1);
-    expect(result.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: "INVALID_NODE_DATA",
-          actionIndex: 0,
-          message: expect.stringContaining("Known Operation"),
-        }),
-      ]),
+    expect(result.diagnostics).toEqual([]);
+    expect(result.proposal).toEqual({
+      summary: "Rename the test review node label only.",
+      actions: [
+        {
+          type: "replaceNodeData",
+          nodeId: "action-1",
+          data: {
+            nodeType: "operation",
+            label: "测试检查",
+            operationId: "op-known",
+            operationName: "Known Operation",
+            status: "idle",
+          },
+        },
+      ],
+    });
+  });
+
+  it("proposeActions drops drafted operations whose id lacks the op_new_ prefix", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "Drafted a new step.",
+        newOperations: [
+          { id: "make_quiz", name: "Make Quiz", description: "quiz step", prompt: "do it" },
+        ],
+        proposal: {
+          summary: "remove stale node",
+          actions: [{ type: "removeNode", nodeId: "folder-1" }],
+        },
+      }),
     );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "draft a quiz step",
+    });
+
+    expect(result.pendingOperations).toBeUndefined();
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "INVALID_NODE_DATA",
+        severity: "warning",
+        message: expect.stringContaining('"make_quiz"'),
+      }),
+    ]);
+  });
+
+  it("proposeActions drops drafted operations whose id collides with the catalog", async () => {
+    mockOperationsDao.findMany.mockResolvedValueOnce([
+      {
+        id: "op_new_existing",
+        name: "Existing Materialized Operation",
+        description: "already in the catalog",
+        acceptedObjectTypes: ["folder"],
+      },
+    ]);
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "Drafted a replacement.",
+        newOperations: [
+          {
+            id: "op_new_existing",
+            name: "Shadowing Operation",
+            description: "tries to override",
+            prompt: "evil",
+          },
+        ],
+        proposal: {
+          summary: "add the step",
+          actions: [
+            {
+              type: "addNode",
+              node: {
+                id: "operation-1",
+                type: "operation",
+                position: { x: 0, y: 0 },
+                data: {
+                  nodeType: "operation",
+                  label: "Step",
+                  operationId: "op_new_existing",
+                  operationName: "Shadowing Operation",
+                  status: "idle",
+                },
+              },
+            },
+          ],
+        },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "add the step",
+    });
+
+    // The drafted operation never enters the catalog map, so the node's
+    // operationName is corrected back to the real catalog entry.
+    expect(result.pendingOperations).toBeUndefined();
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "INVALID_NODE_DATA",
+        severity: "warning",
+        message: expect.stringContaining("collides with an existing operation"),
+      }),
+    ]);
+    const action = result.proposal?.actions[0];
+    expect(action).toMatchObject({
+      type: "addNode",
+      node: { data: { operationName: "Existing Materialized Operation" } },
+    });
+  });
+
+  it("proposeActions materializes valid op_new_ operations as pendingOperations", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "Drafted a summarize step.",
+        newOperations: [
+          {
+            id: "op_new_summarize",
+            name: "Summarize Notes",
+            description: "summarize input notes",
+            prompt: "Summarize the incoming notes.",
+          },
+        ],
+        proposal: {
+          summary: "add summarize step",
+          actions: [
+            {
+              type: "addNode",
+              node: {
+                id: "operation-1",
+                type: "operation",
+                position: { x: 0, y: 0 },
+                data: {
+                  nodeType: "operation",
+                  label: "Summarize",
+                  operationId: "op_new_summarize",
+                  operationName: "Summarize Notes",
+                  status: "idle",
+                },
+              },
+            },
+          ],
+        },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "add summarize step",
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.pendingOperations).toEqual([
+      expect.objectContaining({
+        id: "op_new_summarize",
+        name: "Summarize Notes",
+        description: "summarize input notes",
+      }),
+    ]);
+    expect(result.proposal?.actions[0]).toMatchObject({
+      node: { data: { operationId: "op_new_summarize", operationName: "Summarize Notes" } },
+    });
   });
 
   it("proposeActions returns null proposal when snapshot is invalid at runtime", async () => {
@@ -746,12 +901,12 @@ describe("createPipelinesService", () => {
       message: "invalid",
     });
 
-    // develop's runStructuredAgent appends a snippet of the offending text to
-    // the BAD_AGENT_OUTPUT detail.
+    // The response detail stays generic; the raw model snippet only goes to
+    // the error log.
     expect(result).toEqual({
       proposal: null,
       diagnostics: [],
-      error: { code: "BAD_AGENT_OUTPUT", detail: "agent returned invalid JSON: not-json" },
+      error: { code: "BAD_AGENT_OUTPUT", detail: "agent returned invalid JSON" },
     });
     expect(mockDao.create).not.toHaveBeenCalled();
     expect(mockDao.update).not.toHaveBeenCalled();

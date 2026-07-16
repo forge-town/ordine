@@ -13,6 +13,7 @@ import {
   PipelineActionProposalSchema,
   type AgentContextPayload,
   type ArtifactAnalysis,
+  type PipelineActionDiagnostic,
   type ProposeAttachment,
   type PipelineGraphSnapshot,
   type ProposeActionsResponse,
@@ -23,6 +24,7 @@ import { analyzeArtifacts } from "./analyzeArtifacts";
 import { setProposeProgress } from "./progressStore";
 import { buildProposeUserPrompt, type ProposeActiveRun } from "./buildProposePrompt";
 import type { ProposeHistoryMessage } from "./conversationHistory";
+import { normalizeProposalActionCatalogNames } from "./normalizeProposalActionCatalogNames";
 import { normalizeProposalPayload } from "./normalizeProposalPayload";
 import { parseProposeAgentOutput, type ParsedNewOperation } from "./parseAgentOutput";
 import { runProposeAgent } from "./runProposeAgent";
@@ -131,6 +133,52 @@ export type ProposeActionsOptions = {
 
 const MAX_SEMANTIC_RETRIES = 1;
 const MAX_DIAGNOSTIC_ISSUES = 5;
+
+const NEW_OPERATION_ID_PREFIX = "op_new_";
+
+/**
+ * Enforce the agent-drafted operation contract: ids must start with
+ * `op_new_` and must not collide with the operation catalog (which includes
+ * previously materialized op_new_ ids). Non-conforming entries are dropped —
+ * they never enter the catalog map or pendingOperations — so the agent
+ * cannot shadow a real operation; each drop surfaces as a warning
+ * diagnostic.
+ */
+const screenNewOperations = (
+  newOperations: ParsedNewOperation[],
+  catalogById: Map<string, { name: string }>,
+): { accepted: ParsedNewOperation[]; diagnostics: PipelineActionDiagnostic[] } => {
+  const accepted: ParsedNewOperation[] = [];
+  const acceptedIds = new Set<string>();
+  const diagnostics: PipelineActionDiagnostic[] = [];
+
+  for (const operation of newOperations) {
+    if (!operation.id.startsWith(NEW_OPERATION_ID_PREFIX)) {
+      diagnostics.push({
+        actionIndex: null,
+        code: "INVALID_NODE_DATA",
+        message: `Dropped drafted operation "${operation.name}": id "${operation.id}" must start with "${NEW_OPERATION_ID_PREFIX}".`,
+        severity: "warning",
+      });
+      continue;
+    }
+
+    if (catalogById.has(operation.id) || acceptedIds.has(operation.id)) {
+      diagnostics.push({
+        actionIndex: null,
+        code: "INVALID_NODE_DATA",
+        message: `Dropped drafted operation "${operation.name}": id "${operation.id}" collides with an existing operation.`,
+        severity: "warning",
+      });
+      continue;
+    }
+
+    accepted.push(operation);
+    acceptedIds.add(operation.id);
+  }
+
+  return { accepted, diagnostics };
+};
 
 /** Materialize agent-drafted operations as pending operation configs. */
 const toPendingOperations = (newOperations: ParsedNewOperation[]): ProposePendingOperation[] =>
@@ -273,7 +321,9 @@ export const proposeActions = async (
   });
   if (!agentResult.ok) {
     // runStructuredAgent reports terminal failures via code/detail; the caller
-    // owns the single error log per failure.
+    // owns the single error log per failure. The full detail may embed raw
+    // model output, so it goes to the log only — the response carries a
+    // stable, generic detail.
     logger.error(
       { code: agentResult.code, detail: agentResult.detail },
       agentResult.code === "AGENT_FAILED"
@@ -284,7 +334,13 @@ export const proposeActions = async (
     return {
       proposal: null,
       diagnostics: [],
-      error: { code: agentResult.code, detail: agentResult.detail },
+      error: {
+        code: agentResult.code,
+        detail:
+          agentResult.code === "BAD_AGENT_OUTPUT"
+            ? "agent returned invalid JSON"
+            : agentResult.detail,
+      },
     };
   }
 
@@ -292,7 +348,9 @@ export const proposeActions = async (
   const agentOutput = parseProposeAgentOutput(agentResult.json);
   const clarifyOptions =
     agentOutput.clarifyOptions.length > 0 ? agentOutput.clarifyOptions : undefined;
-  const pendingOperations = toPendingOperations(agentOutput.newOperations);
+  const { accepted: acceptedNewOperations, diagnostics: newOperationDiagnostics } =
+    screenNewOperations(agentOutput.newOperations, operationById);
+  const pendingOperations = toPendingOperations(acceptedNewOperations);
   for (const operation of pendingOperations) {
     operationById.set(operation.id, { name: operation.name });
   }
@@ -302,7 +360,7 @@ export const proposeActions = async (
       return {
         ...(artifactAnalysis ? { artifactAnalysis } : {}),
         clarifyOptions,
-        diagnostics: [],
+        diagnostics: newOperationDiagnostics,
         proposal: null,
         reply: agentOutput.reply,
       };
@@ -363,7 +421,13 @@ export const proposeActions = async (
     };
   }
 
-  const proposal = parsed.data;
+  // Auto-correct operationName against the catalog (including accepted
+  // pending operations) before validating; only ids the catalog does not
+  // know survive to become diagnostics.
+  const proposal = {
+    ...parsed.data,
+    actions: normalizeProposalActionCatalogNames(parsed.data.actions, operationById),
+  };
   const validationResult = validatePipelineActions(snapshot, proposal.actions);
   const graphDiagnostics = validationResult.isErr() ? validationResult.error : [];
   const operationDiagnostics = validateProposalActionCatalog(proposal.actions, operationById);
@@ -372,7 +436,7 @@ export const proposeActions = async (
     ...(artifactAnalysis ? { artifactAnalysis } : {}),
     ...(agentOutput.pipelineName ? { pipelineName: agentOutput.pipelineName } : {}),
     clarifyOptions,
-    diagnostics: [...graphDiagnostics, ...operationDiagnostics],
+    diagnostics: [...graphDiagnostics, ...operationDiagnostics, ...newOperationDiagnostics],
     ...(pendingOperations.length > 0 ? { pendingOperations } : {}),
     proposal,
     reply: agentOutput.reply ?? proposal.summary,
