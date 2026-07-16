@@ -182,6 +182,33 @@ describe("runPipeline", () => {
     );
   });
 
+  it("records usage totals on a job cancelled during its final node", async () => {
+    vi.mocked(pipelineEngine.execute).mockResolvedValue({
+      ok: true as const,
+      summary: "All good",
+    });
+    const opts = makeOpts({
+      jobsDao: {
+        create: vi.fn().mockResolvedValue(undefined),
+        findById: vi.fn().mockResolvedValue({ id: "job-1", status: "cancelled" }),
+        updateStatus: vi.fn().mockResolvedValue(undefined),
+        setNodeStatuses: vi.fn().mockResolvedValue(undefined),
+      } as unknown as JobsDao,
+      agentRawExportsDao: {
+        findByJobId: vi.fn().mockResolvedValue([{ tokenInput: 4, tokenOutput: 6 }]),
+      } as unknown as AgentRawExportsDao,
+    });
+    await pipelineRunExecutor.run(opts);
+
+    // The cancelled status is preserved and the gathered totals still land.
+    expect(opts.jobsDao.updateStatus).not.toHaveBeenCalledWith("job-1", "done", expect.anything());
+    expect(opts.jobsDao.updateStatus).toHaveBeenCalledWith(
+      "job-1",
+      "cancelled",
+      expect.objectContaining({ totalTokens: 10 }),
+    );
+  });
+
   it("does not overwrite a cancelled job with failed", async () => {
     vi.mocked(pipelineEngine.execute).mockResolvedValue({
       ok: false as const,

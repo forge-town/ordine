@@ -114,6 +114,45 @@ const createNodeStatusWriter = ({ jobsDao, jobId }: { jobsDao: JobsDao; jobId: s
 };
 
 /**
+ * Top up usage totals on a job that was finalized out-of-band (e.g. cancelled
+ * while its last node was executing), preserving whatever terminal status it
+ * already has. Never throws.
+ */
+const recordUsageOnFinalizedJobSafely = async ({
+  jobsDao,
+  jobId,
+  usageTotals,
+}: {
+  jobsDao: JobsDao;
+  jobId: string;
+  usageTotals?: { totalTokens: number };
+}): Promise<void> => {
+  if (!usageTotals) return;
+
+  const current = await ResultAsync.fromPromise(
+    (async () => jobsDao.findById(jobId))(),
+    (cause) => cause,
+  );
+  const status = current.isOk() ? current.value?.status : undefined;
+  if (!status) {
+    logger.warn({ jobId }, "runPipeline: could not record usage totals on finalized job");
+
+    return;
+  }
+
+  const safeUpdate = await ResultAsync.fromPromise(
+    jobsDao.updateStatus(jobId, status, { ...usageTotals }),
+    (e) => e,
+  );
+  if (safeUpdate.isErr()) {
+    logger.warn(
+      { err: safeUpdate.error, jobId },
+      "runPipeline: failed to record usage totals on finalized job",
+    );
+  }
+};
+
+/**
  * Mark a job as failed. Swallows any DAO/trace errors to guarantee the caller
  * never sees an unhandled rejection from this helper. Skips the write when the
  * job already left the running/paused states (e.g. it was cancelled).
@@ -296,22 +335,25 @@ export const pipelineRunExecutor = {
               { jobId },
               "runPipeline: job already finalized elsewhere — not overwriting with done",
             );
+            // The job was cancelled while its last node was executing; the
+            // usage gathered so far must still land on the record.
+            await recordUsageOnFinalizedJobSafely({ jobsDao, jobId, usageTotals });
           }
         } else if (outcome.error instanceof PipelineCancelledError) {
-          // cancelRun already persisted the cancelled status and finishedAt;
-          // only top up the usage totals gathered so far.
+          // cancelRun already persisted the cancelled status and finishedAt.
+          // Re-assert "cancelled" here (a cancel racing the initial "running"
+          // write would otherwise leave the job stuck as running) and record
+          // the usage totals gathered so far.
           await trace(jobId, `Run cancelled: ${outcome.error.message}`);
-          if (usageTotals) {
-            const safeUpdate = await ResultAsync.fromPromise(
-              jobsDao.updateStatus(jobId, "cancelled", { ...usageTotals }),
-              (e) => e,
+          const safeUpdate = await ResultAsync.fromPromise(
+            jobsDao.updateStatus(jobId, "cancelled", { ...usageTotals }),
+            (e) => e,
+          );
+          if (safeUpdate.isErr()) {
+            logger.warn(
+              { err: safeUpdate.error, jobId },
+              "runPipeline: failed to record usage totals on cancelled job",
             );
-            if (safeUpdate.isErr()) {
-              logger.warn(
-                { err: safeUpdate.error, jobId },
-                "runPipeline: failed to record usage totals on cancelled job",
-              );
-            }
           }
         } else {
           await failJobSafely({

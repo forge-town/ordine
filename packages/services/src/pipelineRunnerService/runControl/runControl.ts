@@ -64,40 +64,46 @@ const rejectDecisionWaiters = (state: RunControlState, jobId: string) => {
  * - Decision nodes suspend the engine until the user resolves the decision.
  */
 export const pipelineRunControl = {
-  buildForJob: (jobId: string): PipelineRunControl => ({
-    shouldPauseBeforeNode: () => getState(jobId).pauseRequested,
-    shouldCancelBeforeNode: () => getState(jobId).cancelRequested,
-    waitForResume: (event: PipelineRunControlEvent) => {
-      const state = getState(event.jobId);
-      // A cancelled run must never park on a resume waiter.
-      if (state.cancelRequested) return Promise.resolve();
+  buildForJob: (jobId: string): PipelineRunControl => {
+    // Register the state eagerly so a cancel that lands right after startRun
+    // (before the engine's first boundary check) is not lost.
+    getState(jobId);
 
-      if (event.reason === "pause") {
-        // Lost-resume race: resume may have landed between the pause check and
-        // this wait. If the pause request is already cleared, proceed at once
-        // instead of re-arming it and waiting forever.
-        if (!state.pauseRequested) return Promise.resolve();
-      } else {
-        // Checkpoint waits always require an explicit resume; surface the
-        // suspension to shouldPauseBeforeNode for any parallel branches.
-        state.pauseRequested = true;
-      }
-
-      return new Promise<void>((resolve) => {
-        state.waiters.push(resolve);
-      });
-    },
-    waitForDecision: (event: PipelineDecisionEvent) =>
-      new Promise<DecisionResult>((resolve, reject) => {
+    return {
+      shouldPauseBeforeNode: () => getState(jobId).pauseRequested,
+      shouldCancelBeforeNode: () => getState(jobId).cancelRequested,
+      waitForResume: (event: PipelineRunControlEvent) => {
         const state = getState(event.jobId);
-        if (state.cancelRequested) {
-          reject(new Error(`Run ${event.jobId} was cancelled while waiting for a decision`));
+        // A cancelled run must never park on a resume waiter.
+        if (state.cancelRequested) return Promise.resolve();
 
-          return;
+        if (event.reason === "pause") {
+          // Lost-resume race: resume may have landed between the pause check and
+          // this wait. If the pause request is already cleared, proceed at once
+          // instead of re-arming it and waiting forever.
+          if (!state.pauseRequested) return Promise.resolve();
+        } else {
+          // Checkpoint waits always require an explicit resume; surface the
+          // suspension to shouldPauseBeforeNode for any parallel branches.
+          state.pauseRequested = true;
         }
-        state.decisionWaiters.set(event.nodeId, { resolve, reject });
-      }),
-  }),
+
+        return new Promise<void>((resolve) => {
+          state.waiters.push(resolve);
+        });
+      },
+      waitForDecision: (event: PipelineDecisionEvent) =>
+        new Promise<DecisionResult>((resolve, reject) => {
+          const state = getState(event.jobId);
+          if (state.cancelRequested) {
+            reject(new Error(`Run ${event.jobId} was cancelled while waiting for a decision`));
+
+            return;
+          }
+          state.decisionWaiters.set(event.nodeId, { resolve, reject });
+        }),
+    };
+  },
 
   /** Final cleanup once the run has settled; releases anything still parked, defensively. */
   clear: (jobId: string) => {
@@ -132,11 +138,16 @@ export const pipelineRunControl = {
    * settle, so boundary checks keep seeing the cancel flag.
    */
   cancel: (jobId: string) => {
-    const state = getState(jobId);
-    state.cancelRequested = true;
-    state.pauseRequested = false;
-    releaseWaiters(state);
-    rejectDecisionWaiters(state, jobId);
+    // Only flag runs that are live in this process (registered by buildForJob).
+    // Cancelling a job with no live run (stuck queued, process restart) is a
+    // DB-only action — creating a ghost entry here would never be cleaned up.
+    const state = states.get(jobId);
+    if (state) {
+      state.cancelRequested = true;
+      state.pauseRequested = false;
+      releaseWaiters(state);
+      rejectDecisionWaiters(state, jobId);
+    }
 
     return { jobId, cancelled: true };
   },

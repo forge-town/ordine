@@ -211,7 +211,10 @@ export const createPipelineRunnerService = (db: DbConnection) => {
     resumeRun: async (
       jobId: string,
     ): Promise<Result<{ jobId: string; resumed: boolean }, Error>> => {
-      const guard = await guardJobStatus("resume", jobId, ["paused"]);
+      // "running" is also eligible: a checkpoint node suspends the run while
+      // the job status stays "running". Resuming a non-suspended running job
+      // is harmless — the status write is idempotent and no waiter is parked.
+      const guard = await guardJobStatus("resume", jobId, ["paused", "running"]);
       if (guard.isErr()) return err(guard.error);
 
       const write = await persistStatus(jobId, "running");
@@ -222,7 +225,9 @@ export const createPipelineRunnerService = (db: DbConnection) => {
     cancelRun: async (
       jobId: string,
     ): Promise<Result<{ jobId: string; cancelled: boolean }, Error>> => {
-      const guard = await guardJobStatus("cancel", jobId, ["running", "paused"]);
+      // "queued" is eligible too: it allows cancelling a run right after start
+      // and is the only way to clean up a job stuck in queued.
+      const guard = await guardJobStatus("cancel", jobId, ["queued", "running", "paused"]);
       if (guard.isErr()) return err(guard.error);
 
       // Persist the cancelled status before releasing any waiter, so the

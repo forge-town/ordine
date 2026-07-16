@@ -146,6 +146,33 @@ describe("pipelineRunControl", () => {
     pipelineRunControl.clear(jobId);
   });
 
+  it("does not create a ghost entry when cancelling a job with no live run", () => {
+    const result = pipelineRunControl.cancel("job-ghost");
+
+    expect(result).toEqual({ jobId: "job-ghost", cancelled: true });
+    // A later live run for the same id must start with a clean state — the
+    // DB-only cancel above must not have left a dangling cancel flag.
+    const control = pipelineRunControl.buildForJob("job-ghost");
+    expect(
+      control.shouldCancelBeforeNode?.({ jobId: "job-ghost", nodeId: "n1", reason: "pause" }),
+    ).toBe(false);
+
+    pipelineRunControl.clear("job-ghost");
+  });
+
+  it("flags a run registered by buildForJob even before its first boundary check", () => {
+    // startRun registers the state eagerly via buildForJob...
+    const control = pipelineRunControl.buildForJob("job-early");
+    // ...so a cancel landing before the engine's first boundary check sticks.
+    pipelineRunControl.cancel("job-early");
+
+    expect(
+      control.shouldCancelBeforeNode?.({ jobId: "job-early", nodeId: "n1", reason: "pause" }),
+    ).toBe(true);
+
+    pipelineRunControl.clear("job-early");
+  });
+
   it("resolveDecision reports resolved=false when no decision is pending", () => {
     const result = pipelineRunControl.resolveDecision("job-none", "node-x", ["edge-a"]);
 
