@@ -237,6 +237,19 @@ describe("createPipelinesService", () => {
     expect(mockRunAgent).not.toHaveBeenCalled();
   });
 
+  it("proposeActions retries the agent three times, then returns an empty proposal", async () => {
+    mockRunAgent.mockRejectedValue(new Error("Agent unavailable"));
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "remove folder-1",
+    });
+
+    expect(mockRunAgent).toHaveBeenCalledTimes(3);
+    expect(result).toStrictEqual({ proposal: null, diagnostics: [] });
+  });
+
   it("proposeActions returns diagnostics for operation nodes with unknown operation IDs", async () => {
     mockRunAgent.mockResolvedValue(
       JSON.stringify({

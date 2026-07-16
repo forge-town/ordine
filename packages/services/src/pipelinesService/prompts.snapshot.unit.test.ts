@@ -8,11 +8,13 @@ import {
 import { PROPOSE_SYSTEM_PROMPT } from "./proposeActions";
 
 /**
- * Snapshot baselines for the three pipelinesService system prompts. The prompts
- * embed the host home directory, normalized to <HOME> so snapshots stay
- * deterministic across machines. Any wording change shows up in the snapshot diff.
+ * Snapshot baselines for the pipelinesService system prompts. The prompts embed
+ * host paths built with path.join, so both the home directory (→ <HOME>) and the
+ * platform path separator (\ → /) are normalized to keep snapshots deterministic
+ * across machines and platforms. Any wording change shows up in the snapshot diff.
  */
-const normalize = (prompt: string): string => prompt.split(homedir()).join("<HOME>");
+const normalize = (prompt: string): string =>
+  prompt.split(homedir()).join("<HOME>").replaceAll("\\", "/");
 
 describe("pipelines prompt snapshots", () => {
   it("generate prompt — with skill references", () => {

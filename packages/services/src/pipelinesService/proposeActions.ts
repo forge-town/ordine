@@ -1,10 +1,8 @@
-import { Result, ResultAsync } from "neverthrow";
 import {
   type createAgentRuntimesDao,
   type createOperationsDao,
   type createSettingsDao,
 } from "@repo/models";
-import { extractJsonFromText } from "@repo/agent";
 import { logger } from "@repo/logger";
 import { validatePipelineActions } from "@repo/pipeline-engine";
 import {
@@ -17,12 +15,13 @@ import {
   type PipelineActionDiagnostic,
   type PipelineActionProposal,
 } from "@repo/schemas";
-import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
+import { runStructuredAgent } from "../pipelineRunnerService/agentRunner/runStructuredAgent";
 import { normalizeSettingsRecord } from "../settingsService/normalizeSettingsRecord";
 import { MAX_SNAPSHOT_CHARS, truncate } from "./promptText";
 
-// Moved verbatim out of createPipelinesService with zero behavior change, so the
-// propose flow evolves on its own isolated surface.
+// Moved out of createPipelinesService so the propose flow evolves on its own
+// isolated surface. The agent call goes through the shared runStructuredAgent
+// harness, same as the generate / analyze / optimize flows.
 
 const PROPOSE_AGENT_ID = "pipeline-propose-actions";
 
@@ -442,67 +441,29 @@ export const proposeActions = async (
     "Propose the operations now. Return ONLY the JSON object.",
   ].join("\n");
 
-  const MAX_RETRIES = 3;
-  const execution = await (async () => {
-    for (const attempt of Array.from({ length: MAX_RETRIES }, (_, i) => i + 1)) {
-      const result = await ResultAsync.fromPromise(
-        runAgent({
-          agent: effectiveRuntime?.type ?? settings.defaultAgentRuntime,
-          systemPrompt: PROPOSE_SYSTEM_PROMPT,
-          userPrompt: userPromptText,
-          inputPath: process.cwd(),
-          agentId: PROPOSE_AGENT_ID,
-          allowedTools: [],
-          logPrefix: "proposeActions",
-          apiKey: settings.defaultApiKey,
-          model: settings.defaultModel,
-          ssh:
-            effectiveRuntime?.connection.mode === "ssh" ? effectiveRuntime.connection : undefined,
-        }),
-        (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
-      );
-      if (result.isOk()) return result;
-      if (attempt === MAX_RETRIES) return result;
-      logger.warn(
-        { attempt, err: result.error.message },
-        "proposeActions: agent attempt failed, retrying",
-      );
-    }
+  const structured = await runStructuredAgent({
+    agent: effectiveRuntime?.type ?? settings.defaultAgentRuntime,
+    systemPrompt: PROPOSE_SYSTEM_PROMPT,
+    userPrompt: userPromptText,
+    agentId: PROPOSE_AGENT_ID,
+    logPrefix: "proposeActions",
+    apiKey: settings.defaultApiKey,
+    model: settings.defaultModel,
+    ssh: effectiveRuntime?.connection.mode === "ssh" ? effectiveRuntime.connection : undefined,
+  });
 
-    return undefined;
-  })();
-
-  if (!execution || execution.isErr()) {
-    logger.error({ err: execution?.error }, "proposeActions: agent failed after retries");
-
-    return { proposal: null, diagnostics: [] };
-  }
-
-  const raw = execution.value;
-  const extractJsonResult = Result.fromThrowable(
-    extractJsonFromText,
-    () => new Error("failed to extract JSON from agent response"),
-  )(raw);
-  if (extractJsonResult.isErr()) {
-    logger.error({ raw }, "proposeActions: failed to extract JSON from agent response");
-
-    return { proposal: null, diagnostics: [] };
-  }
-
-  const parseJsonResult = Result.fromThrowable(
-    JSON.parse,
-    () => new Error("extracted text is not valid JSON"),
-  )(extractJsonResult.value);
-  if (parseJsonResult.isErr()) {
+  if (!structured.ok) {
     logger.error(
-      { json: extractJsonResult.value },
-      "proposeActions: extracted text is not valid JSON",
+      { code: structured.code, detail: structured.detail },
+      structured.code === "AGENT_FAILED"
+        ? "proposeActions: agent failed after retries"
+        : "proposeActions: agent returned invalid JSON",
     );
 
     return { proposal: null, diagnostics: [] };
   }
 
-  const normalizedProposal = normalizeProposalPayload(parseJsonResult.value);
+  const normalizedProposal = normalizeProposalPayload(structured.json);
   const parsed = PipelineActionProposalSchema.safeParse(normalizedProposal);
   if (!parsed.success) {
     logger.error(
