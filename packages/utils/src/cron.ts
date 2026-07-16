@@ -100,10 +100,20 @@ const startOfNextMinute = (from: Date) => {
 };
 
 /**
+ * Search window for the next occurrence. 1500 days covers a full 4-year leap
+ * cycle, so leap-day expressions such as `0 0 29 2 *` always have an
+ * occurrence inside the window (they stay valid, and the scheduler's advance
+ * can never write back a null nextRunAt for them). Expressions with no
+ * occurrence inside the window (impossible dates like `0 0 30 2 *`) are
+ * treated as invalid.
+ */
+const SEARCH_WINDOW_DAYS = 1500;
+
+/**
  * Computes the next occurrence of a 5-field cron expression strictly after
  * `from`, in local time. Returns null when the expression is missing, is
- * malformed, or has no occurrence within the 366-day search window (e.g.
- * `0 0 30 2 *`).
+ * malformed, or has no occurrence within the search window (see
+ * SEARCH_WINDOW_DAYS).
  */
 export const getNextCronRunAt = (expression: string | null, from: Date): Date | null => {
   if (!expression) return null;
@@ -120,15 +130,22 @@ export const getNextCronRunAt = (expression: string | null, from: Date): Date | 
   if (!minute || !hour || !day || !month || !weekday) return null;
 
   const candidate = startOfNextMinute(from);
-  const maxIterations = 366 * 24 * 60;
-  for (const _ of Array.from({ length: maxIterations })) {
-    if (
-      isAllowed(minute, candidate.getMinutes()) &&
-      isAllowed(hour, candidate.getHours()) &&
+  const windowEndMs = candidate.getTime() + SEARCH_WINDOW_DAYS * 24 * 60 * 60_000;
+  while (candidate.getTime() <= windowEndMs) {
+    const dayMatches =
       isAllowed(day, candidate.getDate()) &&
       isAllowed(month, candidate.getMonth() + 1) &&
-      isAllowed(weekday, candidate.getDay())
-    ) {
+      isAllowed(weekday, candidate.getDay());
+    if (!dayMatches) {
+      // The date predicates cannot change within a local day: fast-forward to
+      // the next local midnight instead of stepping through 1440 minutes.
+      candidate.setDate(candidate.getDate() + 1);
+      candidate.setHours(0, 0, 0, 0);
+
+      continue;
+    }
+
+    if (isAllowed(minute, candidate.getMinutes()) && isAllowed(hour, candidate.getHours())) {
       return new Date(candidate);
     }
     candidate.setMinutes(candidate.getMinutes() + 1);
@@ -140,8 +157,9 @@ export const getNextCronRunAt = (expression: string | null, from: Date): Date | 
 /**
  * An expression is valid if and only if the parser can compute a next
  * occurrence from now. This intentionally rejects well-formed but
- * unsatisfiable expressions (impossible dates, or dates outside the 366-day
- * window such as a leap day more than a year away).
+ * unsatisfiable expressions (impossible dates such as `0 0 30 2 *`); leap-day
+ * expressions remain valid because the search window covers a full leap
+ * cycle.
  */
 export const isValidCronExpression = (expression: string): boolean =>
   getNextCronRunAt(expression, new Date()) !== null;

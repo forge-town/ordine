@@ -58,13 +58,14 @@ describe("createRoutinesService", () => {
 
   it("create computes nextRunAt from the cron expression", async () => {
     const svc = makeService();
-    await svc.create({
+    const result = await svc.create({
       id: "routine-1",
       pipelineId: "pipe-1",
       name: "Morning run",
       description: "Daily briefing",
       cronExpression: "*/5 * * * *",
     });
+    expect(result.isOk()).toBe(true);
     const payload = mockDao.create.mock.calls[0]![0]!;
     expect(payload.nextRunAt).toBeInstanceOf(Date);
     expect(payload.nextRunAt!.getMinutes() % 5).toBe(0);
@@ -72,14 +73,36 @@ describe("createRoutinesService", () => {
 
   it("create clears nextRunAt for disabled routines", async () => {
     const svc = makeService();
-    await svc.create({
+    const result = await svc.create({
       id: "routine-1",
       pipelineId: "pipe-1",
       name: "Morning run",
       cronExpression: "*/5 * * * *",
       enabled: false,
     });
+    expect(result.isOk()).toBe(true);
     expect(mockDao.create.mock.calls[0]![0]!.nextRunAt).toBeNull();
+  });
+
+  it("create rejects an enabled routine without a computable schedule", async () => {
+    const svc = makeService();
+    const missingCron = await svc.create({
+      id: "routine-1",
+      pipelineId: "pipe-1",
+      name: "Morning run",
+    });
+    expect(missingCron.isErr()).toBe(true);
+    const bogusCron = await svc.create({
+      id: "routine-1",
+      pipelineId: "pipe-1",
+      name: "Morning run",
+      cronExpression: "bogus",
+    });
+    expect(bogusCron.isErr()).toBe(true);
+    expect(bogusCron._unsafeUnwrapErr().message).toBe(
+      "An enabled routine requires a valid cronExpression",
+    );
+    expect(mockDao.create).not.toHaveBeenCalled();
   });
 
   it("update recomputes nextRunAt when the schedule changes", async () => {

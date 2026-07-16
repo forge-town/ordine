@@ -72,6 +72,15 @@ describe("getNextCronRunAt", () => {
   it("returns null for well-formed but unsatisfiable dates (0 0 30 2 *)", () => {
     expect(getNextCronRunAt("0 0 30 2 *", new Date("2026-06-10T10:00:00.000Z"))).toBeNull();
   });
+
+  // The 1500-day search window covers a full 4-year leap cycle, so a leap-day
+  // expression always resolves even when the next Feb 29 is years away.
+  it("resolves leap-day expressions (0 0 29 2 *) across the leap cycle", () => {
+    const next = getNextCronRunAt("0 0 29 2 *", new Date("2026-06-10T10:00:00.000Z"));
+    expect(next).not.toBeNull();
+    expect(next!.getDate()).toBe(29);
+    expect(next!.getMonth() + 1).toBe(2);
+  });
 });
 
 describe("isValidCronExpression", () => {
@@ -79,6 +88,7 @@ describe("isValidCronExpression", () => {
     expect(isValidCronExpression("0 9 * * 1-5")).toBe(true);
     expect(isValidCronExpression("0 9 * * 7")).toBe(true);
     expect(isValidCronExpression("*/5 * * * *")).toBe(true);
+    expect(isValidCronExpression("0 0 29 2 *")).toBe(true);
   });
 
   it("rejects malformed and unsatisfiable expressions", () => {

@@ -10,6 +10,20 @@ import type { RoutineStartRun } from "../routineSchedulerService/routineSchedule
 const resolveNextRunAt = (enabled: boolean, cronExpression: string | null): Date | null =>
   enabled ? getNextCronRunAt(cronExpression, new Date()) : null;
 
+// Shared invariant for create and update: an enabled routine must have a
+// computable next occurrence; a disabled routine never has one.
+const resolveSchedule = (
+  enabled: boolean,
+  cronExpression: string | null,
+): Result<Date | null, Error> => {
+  const nextRunAt = resolveNextRunAt(enabled, cronExpression);
+  if (enabled && !nextRunAt) {
+    return err(new Error("An enabled routine requires a valid cronExpression"));
+  }
+
+  return ok(nextRunAt);
+};
+
 const toStringInputs = (inputConfig: Record<string, unknown> | null): Record<string, string> =>
   Object.fromEntries(
     Object.entries(inputConfig ?? {}).flatMap(([key, value]) =>
@@ -31,13 +45,12 @@ export const createRoutinesService = (
     getByPipelineId: async (pipelineId: string) =>
       mapWithMeta(await dao.findManyByPipelineId(pipelineId)),
     getEnabled: async () => mapWithMeta(await dao.findManyEnabled()),
-    create: async (data: Parameters<typeof dao.create>[0]) =>
-      withMeta(
-        await dao.create({
-          ...data,
-          nextRunAt: resolveNextRunAt(data.enabled ?? true, data.cronExpression ?? null),
-        }),
-      ),
+    create: async (data: Parameters<typeof dao.create>[0]) => {
+      const schedule = resolveSchedule(data.enabled ?? true, data.cronExpression ?? null);
+      if (schedule.isErr()) return err(schedule.error);
+
+      return ok(withMeta(await dao.create({ ...data, nextRunAt: schedule.value })));
+    },
     update: async (id: string, patch: Parameters<typeof dao.update>[1]) => {
       const existing = await dao.findById(id);
       if (!existing) return err(new Error(`Routine not found: ${id}`));
@@ -48,15 +61,13 @@ export const createRoutinesService = (
       const enabled = patch.enabled ?? existing.enabled;
       const cronExpression =
         patch.cronExpression === undefined ? existing.cronExpression : patch.cronExpression;
-      const nextRunAt = resolveNextRunAt(enabled, cronExpression);
-      if (enabled && !nextRunAt) {
-        return err(new Error("An enabled routine requires a valid cronExpression"));
-      }
+      const schedule = resolveSchedule(enabled, cronExpression);
+      if (schedule.isErr()) return err(schedule.error);
 
       // Recompute the schedule only when the patch touches it; disabling a
       // routine clears nextRunAt.
       const scheduleTouched = patch.enabled !== undefined || patch.cronExpression !== undefined;
-      const effectivePatch = scheduleTouched ? { ...patch, nextRunAt } : patch;
+      const effectivePatch = scheduleTouched ? { ...patch, nextRunAt: schedule.value } : patch;
 
       const updated = await dao.update(id, effectivePatch);
       if (!updated) return err(new Error(`Routine not found: ${id}`));

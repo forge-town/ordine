@@ -75,6 +75,16 @@ describe("CreateRoutineSchema", () => {
     expect(withCron.enabled).toBe(true);
     expect(withCron.description).toBeUndefined();
   });
+
+  it("rejects a malformed cron expression even on a disabled routine", () => {
+    const result = CreateRoutineSchema.safeParse({
+      pipelineId: "pipeline-1",
+      name: "Nightly",
+      enabled: false,
+      cronExpression: "bogus",
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("UpdateRoutineSchema", () => {
@@ -107,6 +117,10 @@ describe("cron validity matrix (parser-backed)", () => {
 
   it("rejects well-formed but unsatisfiable dates", () => {
     expect(RoutineSchema.safeParse(withCron("0 0 30 2 *")).success).toBe(false);
+  });
+
+  it("accepts leap-day expressions (search window covers the leap cycle)", () => {
+    expect(RoutineSchema.safeParse(withCron("0 0 29 2 *")).success).toBe(true);
   });
 
   it("rejects inverted ranges", () => {
