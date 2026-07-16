@@ -47,4 +47,11 @@ describe("ConversationMessagesDao", () => {
     expect(limit).toHaveBeenCalledWith(1);
     expect(orderBy).toHaveBeenCalledTimes(2);
   });
+
+  it("deleteAll issues an unscoped delete", async () => {
+    await expect(dao.deleteAll()).resolves.toBeUndefined();
+
+    expect(executor.delete).toHaveBeenCalledTimes(1);
+    expect(where).not.toHaveBeenCalled();
+  });
 });

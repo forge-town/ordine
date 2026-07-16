@@ -166,6 +166,15 @@ describe("COD-116 domain DAOs with PGlite", () => {
       expect.objectContaining({ agentId: "agent-1", tokens: 1200, runCount: 1 }),
     ]);
 
+    await messages.create({
+      id: "message-2",
+      pipelineId: "pipeline-1",
+      role: "agent",
+      content: "Done",
+    });
+    await messages.deleteAll();
+    expect(await messages.findMany()).toEqual([]);
+
     await messages.delete("message-1");
     await routines.delete("routine-1");
     await assets.delete("asset-1");
