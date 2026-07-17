@@ -3,7 +3,7 @@ import { Globe, Code, ChevronRight, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "../../../components/PageHeader";
 import { DeveloperSection, LanguageSection } from "../sections";
 
 type Section = "language" | "developer";

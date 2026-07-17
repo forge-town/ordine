@@ -1,5 +1,4 @@
-import { render } from "@/test/test-wrapper";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DeveloperSection } from "./DeveloperSection";
 
@@ -17,7 +16,8 @@ vi.mock("@repo/ui/select", () => ({
     onValueChange: (value: string) => void;
     value: string;
   }) => {
-    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => onValueChange(e.target.value);
+    const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) =>
+      onValueChange(event.target.value);
 
     return (
       <select aria-label="runtime-select" value={value} onChange={handleChange}>

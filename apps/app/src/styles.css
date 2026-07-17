@@ -6,6 +6,7 @@
 @plugin "@tailwindcss/typography";
 
 @source "../../../packages/ui/src";
+@source "../../../packages/views/src";
 
 @custom-variant dark (&:is(.dark *));
 
