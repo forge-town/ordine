@@ -161,6 +161,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@refinedev/core": "^5.0.12",
+        "@repo/plugins": "workspace:*",
         "@repo/ui": "workspace:*",
         "@repo/views": "workspace:*",
         "@tanstack/react-query": "^5.80.7",
@@ -400,6 +401,7 @@
       "devDependencies": {
         "@repo/typescript-config": "workspace:*",
         "typescript": "5.9.2",
+        "vitest": "^4.1.4",
       },
     },
     "packages/services": {
@@ -503,9 +505,16 @@
       },
       "devDependencies": {
         "@repo/typescript-config": "workspace:*",
+        "@testing-library/dom": "^10.4.0",
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.2.0",
+        "@types/jsdom": "^28.0.1",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
+        "jsdom": "^29.0.1",
+        "react-dom": "^19.1.0",
         "typescript": "^5.8.3",
+        "vitest": "^4.1.6",
       },
     },
   },
