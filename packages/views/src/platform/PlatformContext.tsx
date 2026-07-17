@@ -10,6 +10,10 @@ import { createContext, useContext, type ReactNode } from "react";
 export interface PlatformCapabilities {
   /** 将二进制内容保存到本地。Web 端走浏览器下载，Desktop 端可走原生保存对话框。 */
   downloadBlob: (blob: Blob, filename: string) => void;
+  /** 当前客户端的 Ordine REST API 根地址（不含末尾斜杠）。 */
+  apiBaseUrl: string;
+  /** 发起平台感知的请求。Desktop 实现会为 sidecar 请求附加认证头。 */
+  request: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
 
 const PlatformContext = createContext<PlatformCapabilities | null>(null);

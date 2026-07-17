@@ -1,4 +1,4 @@
-import { render } from "@/test/test-wrapper";
+import { render } from "../../../test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";

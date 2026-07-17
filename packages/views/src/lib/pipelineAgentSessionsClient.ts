@@ -1,5 +1,6 @@
 import { Result } from "neverthrow";
 import { z } from "zod/v4";
+import type { PlatformCapabilities } from "../platform";
 import {
   PipelineAgentAttachmentParseStatusSchema,
   PipelineAgentEntrypointSchema,
@@ -15,13 +16,6 @@ import {
   type PipelineAgentMode,
   type PipelineAgentProposal,
 } from "@repo/schemas";
-
-const pipelineAgentSessionsBaseUrl =
-  globalThis.window === undefined
-    ? "http://localhost:9433/api/pipeline-agent-sessions"
-    : globalThis.window.location.hostname === "localhost"
-      ? "http://localhost:9433/api/pipeline-agent-sessions"
-      : `${globalThis.window.location.origin}/api/pipeline-agent-sessions`;
 
 const PipelineAgentSessionClientRecordSchema = z.object({
   id: z.string().min(1),
@@ -204,14 +198,19 @@ const parseSseMessage = (message: string): PipelineAgentPlanEvent | null => {
   }
 };
 
-export const pipelineAgentSessionsClient = {
+type PipelineAgentSessionsTransport = Pick<PlatformCapabilities, "apiBaseUrl" | "request">;
+
+export const createPipelineAgentSessionsClient = (platform: PipelineAgentSessionsTransport) => {
+  const pipelineAgentSessionsBaseUrl = `${platform.apiBaseUrl}/pipeline-agent-sessions`;
+
+  return {
   async createSession(input: {
     entrypoint: PipelineAgentEntrypoint;
     mode: PipelineAgentMode;
     pipelineId?: string;
     snapshot?: unknown;
   }): Promise<PipelineAgentSessionClientRecord> {
-    const response = await fetch(pipelineAgentSessionsBaseUrl, {
+    const response = await platform.request(pipelineAgentSessionsBaseUrl, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(input),
@@ -224,7 +223,7 @@ export const pipelineAgentSessionsClient = {
     sessionId: string,
     input: { role: PipelineAgentMessageRole; kind: PipelineAgentMessageKind; content: string },
   ): Promise<PipelineAgentMessageClientRecord> {
-    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/messages`, {
+    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/messages`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(input),
@@ -244,7 +243,7 @@ export const pipelineAgentSessionsClient = {
       formData.append("runtimeId", input.runtimeId);
     }
 
-    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/attachments`, {
+    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/attachments`, {
       method: "POST",
       body: formData,
     });
@@ -253,7 +252,7 @@ export const pipelineAgentSessionsClient = {
   },
 
   async getSessionById(sessionId: string): Promise<PipelineAgentSessionClientDetail> {
-    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}`);
+    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}`);
 
     return readResponseJson(response, PipelineAgentSessionClientDetailSchema);
   },
@@ -296,7 +295,7 @@ export const pipelineAgentSessionsClient = {
   },
 
   async approveProposal(sessionId: string, proposalId: string) {
-    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/approve`, {
+    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/approve`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ proposalId }),
@@ -307,7 +306,7 @@ export const pipelineAgentSessionsClient = {
   },
 
   async supersedeProposal(sessionId: string, proposalId: string) {
-    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/supersede`, {
+    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/supersede`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ proposalId }),
@@ -318,7 +317,7 @@ export const pipelineAgentSessionsClient = {
   },
 
   async generatePipelineFromApprovedProposal(sessionId: string): Promise<{ pipelineId: string }> {
-    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/generate`, {
+    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/generate`, {
       method: "POST",
     });
 
@@ -374,7 +373,7 @@ export const pipelineAgentSessionsClient = {
       onEvent: (event: PipelineAgentPlanEvent) => void;
     },
   ) {
-    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/plan`, {
+    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/plan`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(input.runtimeId ? { runtimeId: input.runtimeId } : {}),
@@ -420,4 +419,5 @@ export const pipelineAgentSessionsClient = {
       emitBufferedMessages();
     }
   },
+  };
 };

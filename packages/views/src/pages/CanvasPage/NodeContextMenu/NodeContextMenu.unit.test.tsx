@@ -1,17 +1,7 @@
-import { render } from "@/test/test-wrapper";
-import { describe, expect, it, vi } from "vitest";
+import { render } from "../../../test/test-wrapper";
+import { describe, expect, it } from "vitest";
 import { createCanvasPageStore, CanvasPageStoreContext } from "../_store/canvasPageStore";
 import { NodeContextMenu } from "./NodeContextMenu";
-
-vi.mock("@/routes/canvas", () => ({
-  Route: {
-    useLoaderData: () => ({
-      pipeline: null,
-      operations: [],
-      bestPractices: [],
-    }),
-  },
-}));
 
 describe("NodeContextMenu", () => {
   it("renders without crashing", () => {

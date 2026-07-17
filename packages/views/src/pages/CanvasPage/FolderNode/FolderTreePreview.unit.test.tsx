@@ -1,4 +1,4 @@
-import { render } from "@/test/test-wrapper";
+import { render } from "../../../test/test-wrapper";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -13,7 +13,8 @@ const mockEntries = [
 
 const useListData = vi.fn(() => mockEntries);
 
-vi.mock("@refinedev/core", () => ({
+vi.mock("@refinedev/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@refinedev/core")>()),
   useList: () => ({
     query: {
       data: { data: useListData() },
@@ -74,7 +75,7 @@ describe("FolderTreePreview", () => {
       expect(screen.getByText("node_modules")).toBeInTheDocument();
     });
 
-    const excludeButtons = screen.getAllByRole("button", { name: /排除/ });
+    const excludeButtons = screen.getAllByRole("button", { name: /Exclude|排除/ });
     await user.click(excludeButtons[0]);
 
     expect(handleExclude).toHaveBeenCalledWith("node_modules");

@@ -11,7 +11,8 @@ vi.mock("@xyflow/react", () => ({
   useUpdateNodeInternals: () => () => undefined,
 }));
 
-vi.mock("@refinedev/core", () => ({
+vi.mock("@refinedev/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@refinedev/core")>()),
   useList: () => ({
     query: {
       data: { data: [], total: 0 },

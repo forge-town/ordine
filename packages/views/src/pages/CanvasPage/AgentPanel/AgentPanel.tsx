@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import {
@@ -35,9 +35,10 @@ import { useCanvasPageStore } from "../_store";
 import { ResourceName } from "../../../constants";
 import { getCanvasDataProvider } from "../../../lib/canvasDataProvider";
 import {
-  pipelineAgentSessionsClient,
+  createPipelineAgentSessionsClient,
   type PipelineAgentPlanEvent,
 } from "../../../lib/pipelineAgentSessionsClient";
+import { usePlatform } from "../../../platform";
 import { toastStore } from "../../../store/toastStore";
 
 interface Message {
@@ -99,6 +100,11 @@ const formatRuntimeLabel = (runtime: AgentRuntimeConfig): string =>
 
 export const AgentPanel = () => {
   const { t } = useTranslation();
+  const platform = usePlatform();
+  const pipelineAgentSessionsClient = useMemo(
+    () => createPipelineAgentSessionsClient(platform),
+    [platform],
+  );
   const store = useCanvasPageStore();
 
   const agentPanel = useStore(store, (state) => state.agentPanel);

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { CanvasPageStoreContext, createCanvasPageStore, type CanvasPageStore } from "../_store";
 import { FolderNode } from "./FolderNode";
+import "../../../test/use-test-language";
 
 vi.mock("@xyflow/react", () => ({
   Handle: () => null,
@@ -12,7 +13,8 @@ vi.mock("@xyflow/react", () => ({
   useUpdateNodeInternals: () => () => undefined,
 }));
 
-vi.mock("@refinedev/core", () => ({
+vi.mock("@refinedev/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@refinedev/core")>()),
   useList: () => ({
     query: {
       data: { data: [], total: 0 },

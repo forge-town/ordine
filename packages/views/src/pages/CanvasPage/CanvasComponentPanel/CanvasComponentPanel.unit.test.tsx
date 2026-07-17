@@ -1,4 +1,4 @@
-import { render } from "@/test/test-wrapper";
+import { render } from "../../../test/test-wrapper";
 import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Operation, Skill } from "@repo/schemas";
@@ -28,7 +28,8 @@ const skills = [
   },
 ] as Skill[];
 
-vi.mock("@refinedev/core", () => ({
+vi.mock("@refinedev/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@refinedev/core")>()),
   useList: ({ resource }: { resource: string }) => ({
     result: {
       data: resource === "skills" ? skills : operations,

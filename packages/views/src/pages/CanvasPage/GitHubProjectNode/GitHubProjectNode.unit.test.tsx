@@ -1,11 +1,12 @@
-import { render } from "@/test/test-wrapper";
+import { render } from "../../../test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
 import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
 import { GitHubProjectNode } from "./GitHubProjectNode";
 
-vi.mock("@refinedev/core", () => ({
+vi.mock("@refinedev/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@refinedev/core")>()),
   useList: () => ({
     query: {
       data: { data: [], total: 0 },

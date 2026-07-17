@@ -16,8 +16,26 @@ import type {
   UpdateParams,
   UpdateResponse,
 } from "@refinedev/core";
-import type { GithubProject, Job, JobTrace, Operation, PipelineData } from "@repo/schemas";
-import { ResourceName } from "@/integrations/refine/dataProvider";
+import type {
+  AgentRuntimeConfig,
+  GithubProject,
+  Job,
+  JobTrace,
+  Operation,
+  PipelineData,
+} from "@repo/schemas";
+import { ResourceName } from "../../constants";
+
+export const canvasStoryAgentRuntimes: AgentRuntimeConfig[] = [
+  {
+    id: "runtime-codex",
+    name: "Codex Local",
+    type: "codex",
+    connection: { mode: "local" },
+  },
+];
+
+const canvasStorySettings = [{ id: "default", defaultAgentRuntime: "codex" }];
 
 export const canvasStoryOperations: Operation[] = [
   {
@@ -151,6 +169,8 @@ const getFilterValue = (params: GetListParams, field: string): unknown => {
 };
 
 const getCanvasStoryRecords = (resource: string, params?: GetListParams): BaseRecord[] => {
+  if (resource === ResourceName.settings) return canvasStorySettings;
+  if (resource === ResourceName.agentRuntimes) return canvasStoryAgentRuntimes;
   if (resource === ResourceName.operations) return canvasStoryOperations;
   if (resource === ResourceName.githubProjects) return canvasStoryGithubProjects;
   if (resource === ResourceName.jobs) return canvasStoryJobs;

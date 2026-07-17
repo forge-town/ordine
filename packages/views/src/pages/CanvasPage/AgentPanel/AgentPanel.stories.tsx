@@ -1,29 +1,15 @@
 import { useEffect, useRef } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import type {
-  BaseRecord,
-  GetListParams,
-  GetListResponse,
-  GetOneParams,
-  GetOneResponse,
-} from "@refinedev/core";
-import type {
-  AgentRuntimeConfig,
   PipelineActionDiagnostic,
   PipelineActionProposal,
 } from "@repo/schemas";
 import { CanvasPageStoreContext, createCanvasPageStore, type CanvasPageStore } from "../_store";
 import { AgentPanel } from "./AgentPanel";
-import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
+import { setCanvasDataProvider } from "../../../lib/canvasDataProvider";
+import { canvasStoryDataProvider } from "../storybookData";
 
-const storyRuntimes: AgentRuntimeConfig[] = [
-  {
-    id: "runtime-codex",
-    name: "Codex Local",
-    type: "codex",
-    connection: { mode: "local" },
-  },
-];
+setCanvasDataProvider(canvasStoryDataProvider);
 
 const overflowDiagnostics: PipelineActionDiagnostic[] = [
   {
@@ -80,8 +66,6 @@ const AgentPanelStory = ({
   proposal?: PipelineActionProposal | null;
 }) => {
   const storeRef = useRef<CanvasPageStore | null>(null);
-  const originalGetOneRef = useRef(dataProvider.getOne);
-  const originalGetListRef = useRef(dataProvider.getList);
 
   if (!storeRef.current) {
     storeRef.current = createCanvasPageStore([], [], "story-pipeline", "Story Pipeline");
@@ -110,30 +94,6 @@ const AgentPanelStory = ({
       },
     });
 
-    dataProvider.getOne = async <TData extends BaseRecord = BaseRecord>(params: GetOneParams) => {
-      if (params.resource === ResourceName.settings) {
-        return {
-          data: { id: "default", defaultAgentRuntime: "codex" } as unknown as TData,
-        } satisfies GetOneResponse<TData>;
-      }
-
-      return originalGetOneRef.current!(params) as Promise<GetOneResponse<TData>>;
-    };
-    dataProvider.getList = async <TData extends BaseRecord = BaseRecord>(params: GetListParams) => {
-      if (params.resource === ResourceName.agentRuntimes) {
-        return {
-          data: storyRuntimes as unknown as TData[],
-          total: storyRuntimes.length,
-        } satisfies GetListResponse<TData>;
-      }
-
-      return originalGetListRef.current!(params) as Promise<GetListResponse<TData>>;
-    };
-
-    return () => {
-      dataProvider.getOne = originalGetOneRef.current;
-      dataProvider.getList = originalGetListRef.current;
-    };
   }, [diagnostics, proposal]);
 
   return (

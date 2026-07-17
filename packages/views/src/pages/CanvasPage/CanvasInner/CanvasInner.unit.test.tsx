@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CanvasPageStoreProvider } from "../_store";
 import type { PipelineNode } from "../_store/canvasSlice";
 import { CanvasInner } from "./CanvasInner";
+import "../../../test/use-test-language";
 
 vi.mock("@xyflow/react", async (importOriginal) => {
   const actual = await importOriginal<typeof XyFlowReact>();
@@ -19,11 +20,17 @@ vi.mock("@xyflow/react", async (importOriginal) => {
   };
 });
 
-vi.mock("@/services/pipelinesService", () => ({
-  updatePipeline: vi.fn(),
-}));
-
-vi.mock("@refinedev/core", () => ({
+vi.mock("@refinedev/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@refinedev/core")>()),
+  useDataProvider: () => () => ({
+    getList: vi.fn(async () => ({ data: [], total: 0 })),
+    getOne: vi.fn(async ({ id }: { id: string }) => ({ data: { id } })),
+    create: vi.fn(async ({ variables }: { variables: object }) => ({ data: variables })),
+    update: vi.fn(async ({ id, variables }: { id: string; variables: object }) => ({
+      data: { id, ...variables },
+    })),
+    custom: vi.fn(async () => ({ data: {} })),
+  }),
   useList: ({ resource }: { resource: string }) => ({
     result: {
       data:

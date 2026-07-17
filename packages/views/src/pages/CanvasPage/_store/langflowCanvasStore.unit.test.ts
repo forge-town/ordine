@@ -8,16 +8,11 @@ const dataProviderMocks = vi.hoisted(() => ({
   getList: vi.fn(),
 }));
 
-vi.mock("@/integrations/refine/dataProvider", () => ({
-  ResourceName: {
-    operations: "operations",
-    pipelines: "pipelines",
-    skills: "skills",
-  },
-  dataProvider: {
+vi.mock("../../../lib/canvasDataProvider", () => ({
+  getCanvasDataProvider: () => ({
     create: dataProviderMocks.create,
     getList: dataProviderMocks.getList,
-  },
+  }),
 }));
 
 const fileNode = {

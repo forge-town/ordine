@@ -2,16 +2,18 @@ import { act, render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasFloatingMenu } from "./CanvasFloatingMenu";
 import { createCanvasPageStore, CanvasPageStoreContext, CanvasPageStoreProvider } from "../_store";
-import { toastStore } from "@/store/toastStore";
+import { toastStore } from "../../../store/toastStore";
 import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";
 import { MAX_CANVAS_IMPORT_BYTES, MAX_CANVAS_IMPORT_NODES } from "../utils/canvasImportJson";
+import "../../../test/use-test-language";
 
 // ─── Mock @refinedev/core ─────────────────────────────────────────────────────
 
 const mockUpdate = vi.fn();
 const mockCreate = vi.fn();
 
-vi.mock("@refinedev/core", () => ({
+vi.mock("@refinedev/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@refinedev/core")>()),
   useUpdate: () => ({
     mutate: mockUpdate,
     mutation: { isPending: false },

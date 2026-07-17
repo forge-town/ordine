@@ -1,4 +1,4 @@
-import { render } from "@/test/test-wrapper";
+import { render } from "../../../test/test-wrapper";
 import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RunConsole } from "./RunConsole";
@@ -9,23 +9,6 @@ vi.mock("@xyflow/react", () => ({
   Handle: () => null,
   Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
   ReactFlowProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
-}));
-
-const { mockGetTracesQuery } = vi.hoisted(() => ({
-  mockGetTracesQuery: vi
-    .fn()
-    .mockResolvedValue([
-      { message: "[2026-04-08T16:00:00.000Z] Starting pipeline abc" },
-      { message: "[2026-04-08T16:00:01.000Z] Processing node [github-project] skills" },
-    ]),
-}));
-
-vi.mock("@/integrations/trpc/client", () => ({
-  trpcClient: {
-    jobs: {
-      getTraces: { query: mockGetTracesQuery },
-    },
-  },
 }));
 
 const wrapper = ({ children }: { children?: React.ReactNode }) => (
@@ -121,7 +104,8 @@ beforeEach(() => {
   ]);
 });
 
-vi.mock("@refinedev/core", () => ({
+vi.mock("@refinedev/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@refinedev/core")>()),
   useDataProvider: () => () => ({
     getOne: vi.fn(async () => ({ data: useOneData() })),
     custom: vi.fn(async () => ({

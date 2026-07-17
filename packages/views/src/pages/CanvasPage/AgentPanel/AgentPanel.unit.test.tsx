@@ -1,4 +1,4 @@
-import { render } from "@/test/test-wrapper";
+import { render } from "../../../test/test-wrapper";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -39,19 +39,16 @@ vi.mock("@repo/pipeline-engine/actions", () => ({
   applyPipelineActions: (...args: unknown[]) => mockApplyPipelineActions(...args),
 }));
 
-vi.mock("@/integrations/refine/dataProvider", () => ({
-  ResourceName: {
-    settings: "settings",
-    agentRuntimes: "agentRuntimes",
-  },
-  dataProvider: {
+vi.mock("../../../lib/canvasDataProvider", () => ({
+  setCanvasDataProvider: vi.fn(),
+  getCanvasDataProvider: () => ({
     getOne: (...args: unknown[]) => mockGetOne(...args),
     getList: (...args: unknown[]) => mockGetList(...args),
-  },
+  }),
 }));
 
-vi.mock("@/lib/pipelineAgentSessionsClient", () => ({
-  pipelineAgentSessionsClient: {
+vi.mock("../../../lib/pipelineAgentSessionsClient", () => ({
+  createPipelineAgentSessionsClient: () => ({
     appendMessage: (...args: unknown[]) => mockAppendMessage(...args),
     approveProposal: (...args: unknown[]) => mockApproveProposal(...args),
     createSession: (...args: unknown[]) => mockCreateSession(...args),
@@ -60,7 +57,7 @@ vi.mock("@/lib/pipelineAgentSessionsClient", () => ({
     planSessionStream: (...args: unknown[]) => mockPlanSessionStream(...args),
     supersedeProposal: (...args: unknown[]) => mockSupersedeProposal(...args),
     uploadAttachment: (...args: unknown[]) => mockUploadAttachment(...args),
-  },
+  }),
 }));
 
 vi.mock("@repo/ui/button", () => ({

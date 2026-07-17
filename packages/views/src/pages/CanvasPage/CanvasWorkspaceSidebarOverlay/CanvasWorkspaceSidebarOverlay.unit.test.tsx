@@ -9,7 +9,8 @@ const refineMocks = vi.hoisted(() => ({
   update: vi.fn(),
 }));
 
-vi.mock("@refinedev/core", () => ({
+vi.mock("@refinedev/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@refinedev/core")>()),
   useCreate: () => ({ mutate: refineMocks.create, mutation: { isPending: false } }),
   useUpdate: () => ({ mutate: refineMocks.update, mutation: { isPending: false } }),
 }));

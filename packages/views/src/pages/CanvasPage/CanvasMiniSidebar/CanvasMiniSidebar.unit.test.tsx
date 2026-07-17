@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
 import { CanvasMiniSidebar } from "./CanvasMiniSidebar";
+import "../../../test/use-test-language";
 
 const renderMiniSidebar = () => {
   const store = createCanvasPageStore();

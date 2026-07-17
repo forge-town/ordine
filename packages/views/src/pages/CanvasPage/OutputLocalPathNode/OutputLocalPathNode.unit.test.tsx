@@ -12,7 +12,7 @@ vi.mock("@xyflow/react", () => ({
   useUpdateNodeInternals: () => () => undefined,
 }));
 
-vi.mock("@/components/FolderBrowserDialog/FolderBrowserDialog", () => ({
+vi.mock("../../../components/FolderBrowserDialog/FolderBrowserDialog", () => ({
   FolderBrowserDialog: ({
     onSelect: handleSelect,
   }: {

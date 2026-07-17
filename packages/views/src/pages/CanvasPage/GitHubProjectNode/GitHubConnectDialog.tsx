@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialo
 import { parseGitHubUrl, fetchRepoInfo, type GitHubRepoInfo } from "../../../lib/githubApi";
 import { useGithubToken } from "../../../hooks/useGithubToken";
 import { GitHubTokenDialog } from "./GitHubTokenDialog";
+import { usePlatform } from "../../../platform";
 
 export interface ConnectedRepoInfo {
   owner: string;
@@ -31,6 +32,7 @@ export const GitHubConnectDialog = ({
   initialUrl = "",
 }: GitHubConnectDialogProps) => {
   const { t } = useTranslation();
+  const platform = usePlatform();
   const { token } = useGithubToken();
   const [url, setUrl] = useState(initialUrl);
   const [loading, setLoading] = useState(false);
@@ -52,7 +54,13 @@ export const GitHubConnectDialog = ({
       return;
     }
 
-    const result = await fetchRepoInfo(parsed.owner, parsed.repo, token, parsed.branch);
+    const result = await fetchRepoInfo(
+      parsed.owner,
+      parsed.repo,
+      token,
+      parsed.branch,
+      platform.request,
+    );
     result.match(
       (info) => {
         setRepoInfo(info);

@@ -1,20 +1,9 @@
-import { render } from "@/test/test-wrapper";
+import { render } from "../../test/test-wrapper";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CanvasPage } from "./CanvasPage";
 
-vi.mock("@/routes/canvas", () => ({
-  Route: {
-    useLoaderData: () => ({
-      pipeline: null,
-      operations: [],
-      bestPractices: [],
-    }),
-    useSearch: () => ({ id: "test-id" }),
-  },
-}));
-
-vi.mock("@/components/CanvasLayout", () => ({
+vi.mock("../../components/CanvasLayout", () => ({
   CanvasLayout: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="canvas-layout">{children}</div>
   ),
@@ -24,7 +13,8 @@ vi.mock("./CanvasPageContent", () => ({
   CanvasPageContent: () => <div data-testid="canvas-page-content" />,
 }));
 
-vi.mock("@refinedev/core", () => ({
+vi.mock("@refinedev/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@refinedev/core")>()),
   useOne: () => ({
     result: null,
     query: { isLoading: false },
@@ -33,12 +23,12 @@ vi.mock("@refinedev/core", () => ({
 
 describe("CanvasPage", () => {
   it("renders inside CanvasLayout", () => {
-    render(<CanvasPage />);
+    render(<CanvasPage id="test-id" />);
     expect(screen.getByTestId("canvas-layout")).toBeInTheDocument();
   });
 
   it("renders CanvasPageContent", () => {
-    render(<CanvasPage />);
+    render(<CanvasPage id="test-id" />);
     expect(screen.getByTestId("canvas-page-content")).toBeInTheDocument();
   });
 });

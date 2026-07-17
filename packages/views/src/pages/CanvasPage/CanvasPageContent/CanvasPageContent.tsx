@@ -1,5 +1,6 @@
 import { ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import "../canvas.css";
 import { CanvasInner } from "../CanvasInner";
 
 export const CanvasPageContent = () => {

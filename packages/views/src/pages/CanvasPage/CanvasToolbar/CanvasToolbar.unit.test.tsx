@@ -1,23 +1,15 @@
-import { render } from "@/test/test-wrapper";
-import i18n from "@/lib/i18n";
+import { render } from "../../../test/test-wrapper";
+import i18n from "i18next";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasToolbar } from "./CanvasToolbar";
 import { CanvasPageStoreProvider } from "../_store";
-import { toastStore } from "@/store/toastStore";
+import { toastStore } from "../../../store/toastStore";
+import { canvasTestDataProvider } from "../../../test/test-wrapper";
 
 const mockTrpcUpdate = vi.fn();
 const mockTrpcRun = vi.fn();
-vi.mock("@/integrations/trpc/client", () => ({
-  trpcClient: {
-    pipelines: {
-      update: { mutate: (...args: unknown[]) => mockTrpcUpdate(...args) },
-      run: { mutate: (...args: unknown[]) => mockTrpcRun(...args) },
-    },
-  },
-}));
-
 vi.mock("@repo/ui/button", () => ({
   Button: ({
     children,
@@ -114,9 +106,11 @@ describe("CanvasToolbar - viewport controls", () => {
 describe("CanvasToolbar - Run Test button", () => {
   beforeEach(() => {
     mockTrpcUpdate.mockReset();
-    mockTrpcUpdate.mockResolvedValue(undefined);
+    mockTrpcUpdate.mockResolvedValue({ data: { id: "pipe-test" } });
     mockTrpcRun.mockReset();
-    mockTrpcRun.mockResolvedValue({ jobId: "job-123" });
+    mockTrpcRun.mockResolvedValue({ data: { jobId: "job-123" } });
+    canvasTestDataProvider.update = mockTrpcUpdate;
+    canvasTestDataProvider.custom = mockTrpcRun;
     toastStore.setState({ toasts: [] });
   });
 
@@ -149,7 +143,9 @@ describe("CanvasToolbar - Run Test button", () => {
     });
 
     await waitFor(() => {
-      expect(mockTrpcRun).toHaveBeenCalledWith(expect.objectContaining({ id: "pipe-test" }));
+      expect(mockTrpcRun).toHaveBeenCalledWith(
+        expect.objectContaining({ payload: { id: "pipe-test" } }),
+      );
     });
   });
 

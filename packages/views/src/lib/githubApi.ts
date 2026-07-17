@@ -1,7 +1,10 @@
 import { Result, ResultAsync, errAsync } from "neverthrow";
 import i18n from "i18next";
+import type { PlatformCapabilities } from "../platform";
 
 const GITHUB_API_BASE = "https://api.github.com";
+const defaultRequest: PlatformCapabilities["request"] = (input, init) =>
+  globalThis.fetch(input, init);
 
 export type GitHubTokenStatus = { valid: true; login: string } | { valid: false; error: string };
 
@@ -26,7 +29,10 @@ export const getGitHubHeaders = (token?: string | null): HeadersInit => {
   return headers;
 };
 
-export const verifyGitHubToken = async (token: string | null): Promise<GitHubTokenStatus> => {
+export const verifyGitHubToken = async (
+  token: string | null,
+  request: PlatformCapabilities["request"] = defaultRequest,
+): Promise<GitHubTokenStatus> => {
   const t = i18n.t.bind(i18n);
 
   if (!token?.trim()) {
@@ -34,7 +40,7 @@ export const verifyGitHubToken = async (token: string | null): Promise<GitHubTok
   }
 
   const result = await ResultAsync.fromPromise(
-    fetch(`${GITHUB_API_BASE}/user`, {
+    request(`${GITHUB_API_BASE}/user`, {
       headers: getGitHubHeaders(token),
     }),
     () => `NETWORK_ERROR:${t("github.networkError")}`,
@@ -125,12 +131,13 @@ export const fetchRepoInfo = (
   repo: string,
   token?: string | null,
   branchHint?: string,
+  request: PlatformCapabilities["request"] = defaultRequest,
 ): ResultAsync<GitHubRepoInfo, string> => {
   const t = i18n.t.bind(i18n);
   const headers = getGitHubHeaders(token);
 
   return ResultAsync.fromPromise(
-    fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}`, { headers }),
+    request(`${GITHUB_API_BASE}/repos/${owner}/${repo}`, { headers }),
     () => t("github.connectError"),
   ).andThen((repoRes) => {
     if (repoRes.ok) {

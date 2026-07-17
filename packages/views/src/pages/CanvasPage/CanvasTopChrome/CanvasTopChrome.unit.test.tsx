@@ -1,5 +1,5 @@
-import { render } from "@/test/test-wrapper";
-import i18n from "@/lib/i18n";
+import { render } from "../../../test/test-wrapper";
+import i18n from "i18next";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";

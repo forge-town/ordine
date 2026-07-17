@@ -8,6 +8,7 @@ import { Label } from "@repo/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import { verifyGitHubToken } from "../../../lib/githubApi";
 import { useGithubToken } from "../../../hooks/useGithubToken";
+import { usePlatform } from "../../../platform";
 
 interface GitHubTokenDialogProps {
   open: boolean;
@@ -40,6 +41,7 @@ const GitHubTokenDialogContent = ({
   handleTokenSaved?: (token: string | null) => void;
 }) => {
   const { t } = useTranslation();
+  const platform = usePlatform();
   const { token: savedToken, setToken } = useGithubToken();
   const [inputValue, setInputValue] = useState(savedToken ?? "");
   const [showToken, setShowToken] = useState(false);
@@ -51,7 +53,7 @@ const GitHubTokenDialogContent = ({
     setVerifying(true);
     setVerifyError(null);
     setVerifiedLogin(null);
-    const result = await verifyGitHubToken(inputValue);
+    const result = await verifyGitHubToken(inputValue, platform.request);
     setVerifying(false);
     if (result.valid) {
       setVerifiedLogin(result.login);

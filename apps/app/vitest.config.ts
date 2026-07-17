@@ -12,6 +12,10 @@ export default defineConfig({
     viteReact(),
   ],
   test: {
+    include: [
+      "src/**/*.{test,spec}.{ts,tsx}",
+      "../../packages/views/src/**/*.{test,spec}.{ts,tsx}",
+    ],
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     globals: true,
