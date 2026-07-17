@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { LanguageSection } from "./LanguageSection";
 import { SettingsPageStoreProvider } from "../../_store";
+import { LanguageSection } from "./LanguageSection";
 
 const renderWithStore = (initial = {}) =>
   render(

@@ -25,6 +25,8 @@
     "./AgentsPage": "./src/pages/AgentsPage/index.ts",
     "./AgentDetailPage": "./src/pages/AgentDetailPage/index.ts",
     "./SkillsPage": "./src/pages/SkillsPage/index.ts",
+    "./SettingsPage": "./src/pages/SettingsPage/index.ts",
+    "./PluginsPage": "./src/pages/PluginsPage/index.ts",
     "./LoginPage": "./src/pages/LoginPage/index.ts",
     "./SignUpPage": "./src/pages/SignUpPage/index.ts",
     "./PipelinesPage": "./src/pages/PipelinesPage/index.ts",
@@ -37,6 +39,9 @@
     "./constants": "./src/constants.ts",
     "./store/sidebarStore": "./src/store/sidebarStore/index.ts",
     "./store/toastStore": "./src/store/toastStore/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -63,8 +68,15 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.2.0",
+    "@types/jsdom": "^28.0.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "typescript": "^5.8.3"
+    "jsdom": "^29.0.1",
+    "react-dom": "^19.1.0",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.6"
   }
 }

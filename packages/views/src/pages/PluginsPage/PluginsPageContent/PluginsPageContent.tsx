@@ -2,7 +2,7 @@ import { Puzzle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@repo/ui/badge";
 import { pluginRegistry } from "@repo/plugin";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "../../../components/PageHeader";
 
 export const PluginsPageContent = () => {
   const { t } = useTranslation();
