@@ -62,7 +62,7 @@ describe("processCodeFileNode", () => {
 
     const result = await processFileNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("code-1");
     expect(output).toBeDefined();
     expect(output!.inputPath).toBe(testFile);
@@ -78,7 +78,7 @@ describe("processCodeFileNode", () => {
 
     const result = await processFileNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("code-1");
     expect(output).toBeDefined();
     expect(output!.content).toBe("");
@@ -92,7 +92,7 @@ describe("processCodeFileNode", () => {
 
     const result = await processFileNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("code-1");
     expect(output!.content).toBe("");
     expect(output!.inputPath).toBe("");

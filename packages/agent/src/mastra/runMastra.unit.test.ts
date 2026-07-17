@@ -37,7 +37,9 @@ vi.mock("@repo/logger", () => ({
 }));
 
 vi.mock("../integrations/env", () => ({
-  getEnv: vi.fn(() => ({})),
+  // A fake key keeps this hermetic: without it the KIMI_API_KEY fast-fail guard
+  // would make the outcome depend on the host machine's real env.
+  getEnv: vi.fn(() => ({ KIMI_API_KEY: "test-key" })),
 }));
 
 import { runMastra } from "./runMastra";

@@ -73,7 +73,7 @@ describe("processGitHubProjectNode", () => {
 
     const result = await processGitHubProjectNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("gh-1");
     expect(output).toBeDefined();
     expect(output!.inputPath).toBe(testDir);
@@ -88,7 +88,7 @@ describe("processGitHubProjectNode", () => {
 
     const result = await processGitHubProjectNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("gh-1")!;
     expect(output.content).toContain("File tree:");
     expect(output.content).toContain("File contents:");
@@ -105,33 +105,33 @@ describe("processGitHubProjectNode", () => {
 
     const result = await processGitHubProjectNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("gh-1")!;
     expect(output.content).toContain("File contents:");
     expect(output.content).not.toContain("File tree:");
   });
 
-  it("handles missing localPath gracefully", async () => {
+  it("soft-fails on missing localPath without recording an output", async () => {
     const deps = makeDeps();
     const node = makeNode({ sourceType: "local" });
     const ctx = makeCtx(node, deps);
 
     const result = await processGitHubProjectNode(ctx);
 
-    expect(result.ok).toBe(true);
-    const output = ctx.nodeOutputs.get("gh-1")!;
-    expect(output.content).toBe("");
+    expect(result.outcome).toBe("soft-failed");
+    expect(ctx.nodeOutputs.has("gh-1")).toBe(false);
     expect(trace).toHaveBeenCalledWith("job-1", expect.stringContaining("missing localPath"));
   });
 
-  it("handles missing owner/repo gracefully", async () => {
+  it("soft-fails on missing owner/repo without recording an output", async () => {
     const deps = makeDeps();
     const node = makeNode({ sourceType: "remote" });
     const ctx = makeCtx(node, deps);
 
     const result = await processGitHubProjectNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("soft-failed");
+    expect(ctx.nodeOutputs.has("gh-1")).toBe(false);
     expect(trace).toHaveBeenCalledWith("job-1", expect.stringContaining("missing owner/repo"));
   });
 
@@ -171,7 +171,7 @@ describe("processGitHubProjectNode", () => {
 
     const result = await processGitHubProjectNode(ctx);
 
-    expect(result.ok).toBe(true);
+    expect(result.outcome).toBe("completed");
     const output = ctx.nodeOutputs.get("gh-1")!;
     expect(output.inputPath).toBe("https://github.com/forge-town/ordine");
     expect(output.content).toContain("forge-town/ordine");

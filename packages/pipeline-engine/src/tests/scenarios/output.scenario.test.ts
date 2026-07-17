@@ -62,3 +62,38 @@ describe("pipeline scenario: output flow", () => {
     await rm(dir, { recursive: true, force: true });
   });
 });
+
+describe("pipeline scenario: output summary honesty", () => {
+  it("does not claim outputs for output nodes skipped by an edge condition", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "pipeline-output-skipped-"));
+    const deps = makeTestDeps({ runPrompt: () => okAsync("no approval here") });
+    const gatedEdge = {
+      ...makeEdge("op", "out"),
+      data: { label: "gated", condition: { expression: 'content.includes("approved")' } },
+    };
+
+    const result = await executeScenario({
+      deps,
+      operations: new Map<string, OperationInfo>([
+        [
+          "draft-op",
+          {
+            id: "draft-op",
+            name: "Draft Op",
+            config: { executor: { type: "agent", agentMode: "prompt", prompt: "Draft" } },
+          },
+        ],
+      ]),
+      nodes: [
+        makeNode("op", "operation", { operationId: "draft-op" }),
+        makeNode("out", "output-local-path", { localPath: join(dir, "report.md") }),
+      ],
+      edges: [gatedEdge],
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.summary).not.toContain("Output written to");
+
+    await rm(dir, { recursive: true, force: true });
+  });
+});

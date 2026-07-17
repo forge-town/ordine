@@ -26,12 +26,15 @@
     "./AgentDetailPage": "./src/pages/AgentDetailPage/index.ts",
     "./SkillsPage": "./src/pages/SkillsPage/index.ts",
     "./CanvasPage": "./src/pages/CanvasPage/index.ts",
+    "./LoginPage": "./src/pages/LoginPage/index.ts",
+    "./SignUpPage": "./src/pages/SignUpPage/index.ts",
     "./PipelinesPage": "./src/pages/PipelinesPage/index.ts",
     "./PipelineDetailPage": "./src/pages/PipelineDetailPage/index.ts",
     "./PageHeader": "./src/components/PageHeader/index.ts",
     "./PageLoadingState": "./src/components/PageLoadingState/index.ts",
     "./ToastContainer": "./src/components/ToastContainer.tsx",
     "./platform": "./src/platform/index.ts",
+    "./auth": "./src/auth/index.ts",
     "./constants": "./src/constants.ts",
     "./store/sidebarStore": "./src/store/sidebarStore/index.ts",
     "./store/toastStore": "./src/store/toastStore/index.ts"
@@ -39,6 +42,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@refinedev/core": "^5.0.12",
+    "@repo/pipeline-engine": "workspace:*",
     "@repo/plugin": "workspace:*",
     "@repo/schemas": "workspace:*",
     "@repo/ui": "workspace:*",

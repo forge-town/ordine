@@ -172,11 +172,14 @@ export const createOperationRunnerService = (db: DbConnection) => {
 
           const result = await executeOperationNode(syntheticNode, input, opCtx);
 
-          if (result.ok) {
+          if (result.outcome === "completed") {
             await trace(jobId, `Operation completed successfully (${result.content.length} chars)`);
             await jobsDao.updateStatus(jobId, "done", { finishedAt: new Date() });
           } else {
-            const message = result.error?.message ?? "Operation execution failed";
+            const message =
+              result.outcome === "failed"
+                ? result.error.message
+                : "Operation was skipped (incomplete configuration)";
             await trace(jobId, `ERROR: ${message}`, "error");
             await jobsDao.updateStatus(jobId, "failed", {
               finishedAt: new Date(),

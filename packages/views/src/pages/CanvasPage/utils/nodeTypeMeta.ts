@@ -34,6 +34,10 @@ const nodeTypeI18nKeys = {
     label: "canvas.nodeTypes.prompt.label",
     shortLabel: "canvas.nodeTypes.prompt.shortLabel",
   },
+  decision: {
+    label: "canvas.nodeTypes.decision.label",
+    shortLabel: "canvas.nodeTypes.decision.shortLabel",
+  },
 } as const satisfies Record<BuiltinNodeType, { label: string; shortLabel: string }>;
 
 export const nodeTypeMeta = {
@@ -124,6 +128,17 @@ export const nodeTypeMeta = {
     iconBg: "bg-sky-500",
     handle: "!border-sky-400",
     plusBg: "bg-sky-100 text-sky-700 hover:bg-sky-200",
+  },
+  decision: {
+    label: "Decision",
+    shortLabel: "Decide",
+    border: "border-amber-200",
+    selectedBorder: "border-amber-500",
+    header: "bg-amber-50",
+    headerText: "text-amber-700",
+    iconBg: "bg-amber-500",
+    handle: "!border-amber-400",
+    plusBg: "bg-amber-100 text-amber-700 hover:bg-amber-200",
   },
 } as const satisfies Record<BuiltinNodeType, object>;
 

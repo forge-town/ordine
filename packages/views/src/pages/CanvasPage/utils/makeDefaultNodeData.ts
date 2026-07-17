@@ -74,5 +74,12 @@ export const makeDefaultNodeData = (
         prompt: "",
       };
     }
+    case "decision": {
+      return {
+        label: options?.label ?? "Decision",
+        nodeType: "decision",
+        selectMode: "single",
+      };
+    }
   }
 };

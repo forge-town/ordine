@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { trace } from "@repo/obs";
+import { encodeNodeDone, encodeNodeFail } from "@repo/schemas";
 import { listDirTree, readProjectFiles } from "@repo/utils";
 import type { NodeContext, NodeResult } from "../types";
 
@@ -8,9 +9,9 @@ export const processFolderNode = async (ctx: NodeContext): Promise<NodeResult> =
 
   if (node.data.nodeType !== "folder") {
     await trace(jobId, `WARNING: Expected folder node, got ${node.data.nodeType ?? "unknown"}`);
-    await trace(jobId, `@@NODE_FAIL::${node.id}`);
+    await trace(jobId, encodeNodeFail(node.id));
 
-    return { ok: false, error: null };
+    return { outcome: "soft-failed" };
   }
 
   const p = node.data.folderPath ?? "";
@@ -48,7 +49,7 @@ export const processFolderNode = async (ctx: NodeContext): Promise<NodeResult> =
   } else {
     nodeOutputs.set(node.id, { inputPath: p, content: "" });
   }
-  await trace(jobId, `@@NODE_DONE::${node.id}`);
+  await trace(jobId, encodeNodeDone(node.id));
 
-  return { ok: true };
+  return { outcome: "completed" };
 };
