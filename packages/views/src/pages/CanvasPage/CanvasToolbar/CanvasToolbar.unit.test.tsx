@@ -1,4 +1,4 @@
-import { render } from "../../../test/test-wrapper";
+import { canvasTestDataProvider, render } from "../../../test/test-wrapper";
 import i18n from "i18next";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -6,7 +6,6 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasToolbar } from "./CanvasToolbar";
 import { CanvasPageStoreProvider } from "../_store";
 import { toastStore } from "../../../store/toastStore";
-import { canvasTestDataProvider } from "../../../test/test-wrapper";
 
 const mockTrpcUpdate = vi.fn();
 const mockTrpcRun = vi.fn();

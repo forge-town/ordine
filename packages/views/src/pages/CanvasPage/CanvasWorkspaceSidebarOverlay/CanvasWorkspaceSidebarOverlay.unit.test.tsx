@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import type * as RefineCore from "@refinedev/core";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
@@ -10,7 +11,7 @@ const refineMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@refinedev/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@refinedev/core")>()),
+  ...(await importOriginal<typeof RefineCore>()),
   useCreate: () => ({ mutate: refineMocks.create, mutation: { isPending: false } }),
   useUpdate: () => ({ mutate: refineMocks.update, mutation: { isPending: false } }),
 }));

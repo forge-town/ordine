@@ -204,220 +204,235 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
   const pipelineAgentSessionsBaseUrl = `${platform.apiBaseUrl}/pipeline-agent-sessions`;
 
   return {
-  async createSession(input: {
-    entrypoint: PipelineAgentEntrypoint;
-    mode: PipelineAgentMode;
-    pipelineId?: string;
-    snapshot?: unknown;
-  }): Promise<PipelineAgentSessionClientRecord> {
-    const response = await platform.request(pipelineAgentSessionsBaseUrl, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(input),
-    });
-
-    return readResponseJson(response, PipelineAgentSessionClientRecordSchema);
-  },
-
-  async appendMessage(
-    sessionId: string,
-    input: { role: PipelineAgentMessageRole; kind: PipelineAgentMessageKind; content: string },
-  ): Promise<PipelineAgentMessageClientRecord> {
-    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/messages`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(input),
-    });
-
-    return readResponseJson(response, PipelineAgentMessageClientRecordSchema);
-  },
-
-  async uploadAttachment(
-    sessionId: string,
-    file: File,
-    input?: { runtimeId?: string | null },
-  ): Promise<PipelineAgentAttachmentUploadResult> {
-    const formData = new FormData();
-    formData.append("file", file);
-    if (input?.runtimeId) {
-      formData.append("runtimeId", input.runtimeId);
-    }
-
-    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/attachments`, {
-      method: "POST",
-      body: formData,
-    });
-
-    return readResponseJson(response, PipelineAgentAttachmentUploadResultSchema);
-  },
-
-  async getSessionById(sessionId: string): Promise<PipelineAgentSessionClientDetail> {
-    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}`);
-
-    return readResponseJson(response, PipelineAgentSessionClientDetailSchema);
-  },
-
-  async getLatestReadyProposal(
-    sessionId: string,
-    mode: PipelineAgentMode,
-    input?: { excludeProposalId?: string | null },
-  ): Promise<{ proposal: PipelineAgentProposal; proposalId: string } | null> {
-    const session = await this.getSessionById(sessionId);
-    const proposals = session.proposals ?? [];
-    const latestProposal =
-      proposals.find((proposal) => proposal.id === session.latestProposalId) ??
-      proposals.at(-1) ??
-      null;
-
-    if (
-      !latestProposal ||
-      latestProposal.id === input?.excludeProposalId ||
-      latestProposal.mode !== mode ||
-      latestProposal.status !== "proposal_ready"
-    ) {
-      return null;
-    }
-
-    return {
-      proposal: latestProposal.proposal,
-      proposalId: latestProposal.id,
-    };
-  },
-
-  async getLatestAssistantQuestion(sessionId: string): Promise<{ question: string } | null> {
-    const session = await this.getSessionById(sessionId);
-    const latestQuestion =
-      [...(session.messages ?? [])]
-        .reverse()
-        .find((message) => message.role === "assistant" && message.kind === "question") ?? null;
-
-    return latestQuestion ? { question: latestQuestion.content } : null;
-  },
-
-  async approveProposal(sessionId: string, proposalId: string) {
-    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/approve`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ proposalId }),
-    });
-    if (!response.ok) {
-      throw await readResponseError(response);
-    }
-  },
-
-  async supersedeProposal(sessionId: string, proposalId: string) {
-    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/supersede`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ proposalId }),
-    });
-    if (!response.ok) {
-      throw await readResponseError(response);
-    }
-  },
-
-  async generatePipelineFromApprovedProposal(sessionId: string): Promise<{ pipelineId: string }> {
-    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/generate`, {
-      method: "POST",
-    });
-
-    return readResponseJson(response, PipelineAgentCreatedPipelineResponseSchema);
-  },
-
-  async waitForCreatedPipeline(
-    sessionId: string,
-    input?: { intervalMs?: number; signal?: AbortSignal; timeoutMs?: number },
-  ): Promise<{ pipelineId: string }> {
-    const intervalMs = input?.intervalMs ?? 1000;
-    const timeoutMs = input?.timeoutMs ?? 6 * 60 * 1000;
-    const startedAt = Date.now();
-    const wait = (ms: number) =>
-      new Promise<void>((resolve) => {
-        if (input?.signal?.aborted) {
-          resolve();
-
-          return;
-        }
-
-        const handleAbort = () => {
-          globalThis.clearTimeout(timeoutId);
-          resolve();
-        };
-        const timeoutId = globalThis.setTimeout(() => {
-          input?.signal?.removeEventListener("abort", handleAbort);
-          resolve();
-        }, ms);
-        input?.signal?.addEventListener("abort", handleAbort, { once: true });
+    async createSession(input: {
+      entrypoint: PipelineAgentEntrypoint;
+      mode: PipelineAgentMode;
+      pipelineId?: string;
+      snapshot?: unknown;
+    }): Promise<PipelineAgentSessionClientRecord> {
+      const response = await platform.request(pipelineAgentSessionsBaseUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(input),
       });
 
-    while (Date.now() - startedAt < timeoutMs) {
-      if (input?.signal?.aborted) {
-        throw new Error(`Stopped waiting for generated pipeline in session ${sessionId}`);
-      }
-
-      const session = await this.getSessionById(sessionId);
-      if (session.status === "completed" && session.createdPipelineId) {
-        return { pipelineId: session.createdPipelineId };
-      }
-
-      await wait(intervalMs);
-    }
-
-    throw new Error(`Timed out waiting for generated pipeline in session ${sessionId}`);
-  },
-
-  async planSessionStream(
-    sessionId: string,
-    input: {
-      runtimeId?: string;
-      onEvent: (event: PipelineAgentPlanEvent) => void;
+      return readResponseJson(response, PipelineAgentSessionClientRecordSchema);
     },
-  ) {
-    const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/plan`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(input.runtimeId ? { runtimeId: input.runtimeId } : {}),
-    });
-    if (!response.ok) {
-      throw await readResponseError(response);
-    }
-    const reader = response.body?.getReader();
-    if (!reader) {
-      return;
-    }
 
-    const decoder = new TextDecoder();
-    const streamState = { buffer: "" };
-    const emitBufferedMessages = () => {
-      const messages = streamState.buffer.split(/\r?\n\r?\n/);
-      streamState.buffer = messages.pop() ?? "";
+    async appendMessage(
+      sessionId: string,
+      input: { role: PipelineAgentMessageRole; kind: PipelineAgentMessageKind; content: string },
+    ): Promise<PipelineAgentMessageClientRecord> {
+      const response = await platform.request(
+        `${pipelineAgentSessionsBaseUrl}/${sessionId}/messages`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(input),
+        },
+      );
 
-      for (const message of messages) {
-        const parsed = parseSseMessage(message);
-        if (parsed) {
-          input.onEvent(parsed);
-        }
+      return readResponseJson(response, PipelineAgentMessageClientRecordSchema);
+    },
+
+    async uploadAttachment(
+      sessionId: string,
+      file: File,
+      input?: { runtimeId?: string | null },
+    ): Promise<PipelineAgentAttachmentUploadResult> {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (input?.runtimeId) {
+        formData.append("runtimeId", input.runtimeId);
       }
-    };
 
-    while (true) {
-      const chunk = await reader.read();
-      if (chunk.done) {
-        streamState.buffer += decoder.decode();
-        emitBufferedMessages();
-        const trailingMessage = streamState.buffer.trim();
-        if (trailingMessage.length > 0) {
-          const parsed = parseSseMessage(trailingMessage);
+      const response = await platform.request(
+        `${pipelineAgentSessionsBaseUrl}/${sessionId}/attachments`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      return readResponseJson(response, PipelineAgentAttachmentUploadResultSchema);
+    },
+
+    async getSessionById(sessionId: string): Promise<PipelineAgentSessionClientDetail> {
+      const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}`);
+
+      return readResponseJson(response, PipelineAgentSessionClientDetailSchema);
+    },
+
+    async getLatestReadyProposal(
+      sessionId: string,
+      mode: PipelineAgentMode,
+      input?: { excludeProposalId?: string | null },
+    ): Promise<{ proposal: PipelineAgentProposal; proposalId: string } | null> {
+      const session = await this.getSessionById(sessionId);
+      const proposals = session.proposals ?? [];
+      const latestProposal =
+        proposals.find((proposal) => proposal.id === session.latestProposalId) ??
+        proposals.at(-1) ??
+        null;
+
+      if (
+        !latestProposal ||
+        latestProposal.id === input?.excludeProposalId ||
+        latestProposal.mode !== mode ||
+        latestProposal.status !== "proposal_ready"
+      ) {
+        return null;
+      }
+
+      return {
+        proposal: latestProposal.proposal,
+        proposalId: latestProposal.id,
+      };
+    },
+
+    async getLatestAssistantQuestion(sessionId: string): Promise<{ question: string } | null> {
+      const session = await this.getSessionById(sessionId);
+      const latestQuestion =
+        [...(session.messages ?? [])]
+          .reverse()
+          .find((message) => message.role === "assistant" && message.kind === "question") ?? null;
+
+      return latestQuestion ? { question: latestQuestion.content } : null;
+    },
+
+    async approveProposal(sessionId: string, proposalId: string) {
+      const response = await platform.request(
+        `${pipelineAgentSessionsBaseUrl}/${sessionId}/approve`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ proposalId }),
+        },
+      );
+      if (!response.ok) {
+        throw await readResponseError(response);
+      }
+    },
+
+    async supersedeProposal(sessionId: string, proposalId: string) {
+      const response = await platform.request(
+        `${pipelineAgentSessionsBaseUrl}/${sessionId}/supersede`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ proposalId }),
+        },
+      );
+      if (!response.ok) {
+        throw await readResponseError(response);
+      }
+    },
+
+    async generatePipelineFromApprovedProposal(sessionId: string): Promise<{ pipelineId: string }> {
+      const response = await platform.request(
+        `${pipelineAgentSessionsBaseUrl}/${sessionId}/generate`,
+        {
+          method: "POST",
+        },
+      );
+
+      return readResponseJson(response, PipelineAgentCreatedPipelineResponseSchema);
+    },
+
+    async waitForCreatedPipeline(
+      sessionId: string,
+      input?: { intervalMs?: number; signal?: AbortSignal; timeoutMs?: number },
+    ): Promise<{ pipelineId: string }> {
+      const intervalMs = input?.intervalMs ?? 1000;
+      const timeoutMs = input?.timeoutMs ?? 6 * 60 * 1000;
+      const startedAt = Date.now();
+      const wait = (ms: number) =>
+        new Promise<void>((resolve) => {
+          if (input?.signal?.aborted) {
+            resolve();
+
+            return;
+          }
+
+          const handleAbort = () => {
+            globalThis.clearTimeout(timeoutId);
+            resolve();
+          };
+          const timeoutId = globalThis.setTimeout(() => {
+            input?.signal?.removeEventListener("abort", handleAbort);
+            resolve();
+          }, ms);
+          input?.signal?.addEventListener("abort", handleAbort, { once: true });
+        });
+
+      while (Date.now() - startedAt < timeoutMs) {
+        if (input?.signal?.aborted) {
+          throw new Error(`Stopped waiting for generated pipeline in session ${sessionId}`);
+        }
+
+        const session = await this.getSessionById(sessionId);
+        if (session.status === "completed" && session.createdPipelineId) {
+          return { pipelineId: session.createdPipelineId };
+        }
+
+        await wait(intervalMs);
+      }
+
+      throw new Error(`Timed out waiting for generated pipeline in session ${sessionId}`);
+    },
+
+    async planSessionStream(
+      sessionId: string,
+      input: {
+        runtimeId?: string;
+        onEvent: (event: PipelineAgentPlanEvent) => void;
+      },
+    ) {
+      const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}/plan`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(input.runtimeId ? { runtimeId: input.runtimeId } : {}),
+      });
+      if (!response.ok) {
+        throw await readResponseError(response);
+      }
+      const reader = response.body?.getReader();
+      if (!reader) {
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      const streamState = { buffer: "" };
+      const emitBufferedMessages = () => {
+        const messages = streamState.buffer.split(/\r?\n\r?\n/);
+        streamState.buffer = messages.pop() ?? "";
+
+        for (const message of messages) {
+          const parsed = parseSseMessage(message);
           if (parsed) {
             input.onEvent(parsed);
           }
         }
-        break;
-      }
+      };
 
-      streamState.buffer += decoder.decode(chunk.value, { stream: true });
-      emitBufferedMessages();
-    }
-  },
+      while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) {
+          streamState.buffer += decoder.decode();
+          emitBufferedMessages();
+          const trailingMessage = streamState.buffer.trim();
+          if (trailingMessage.length > 0) {
+            const parsed = parseSseMessage(trailingMessage);
+            if (parsed) {
+              input.onEvent(parsed);
+            }
+          }
+          break;
+        }
+
+        streamState.buffer += decoder.decode(chunk.value, { stream: true });
+        emitBufferedMessages();
+      }
+    },
   };
 };

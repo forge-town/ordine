@@ -1,4 +1,5 @@
 import { render } from "../../../test/test-wrapper";
+import type * as RefineCore from "@refinedev/core";
 import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RunConsole } from "./RunConsole";
@@ -105,7 +106,7 @@ beforeEach(() => {
 });
 
 vi.mock("@refinedev/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@refinedev/core")>()),
+  ...(await importOriginal<typeof RefineCore>()),
   useDataProvider: () => () => ({
     getOne: vi.fn(async () => ({ data: useOneData() })),
     custom: vi.fn(async () => ({

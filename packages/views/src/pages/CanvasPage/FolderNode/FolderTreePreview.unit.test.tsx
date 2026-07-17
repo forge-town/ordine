@@ -1,4 +1,5 @@
 import { render } from "../../../test/test-wrapper";
+import type * as RefineCore from "@refinedev/core";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -14,7 +15,7 @@ const mockEntries = [
 const useListData = vi.fn(() => mockEntries);
 
 vi.mock("@refinedev/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@refinedev/core")>()),
+  ...(await importOriginal<typeof RefineCore>()),
   useList: () => ({
     query: {
       data: { data: useListData() },

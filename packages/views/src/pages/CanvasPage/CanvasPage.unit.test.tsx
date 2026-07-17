@@ -1,4 +1,5 @@
 import { render } from "../../test/test-wrapper";
+import type * as RefineCore from "@refinedev/core";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CanvasPage } from "./CanvasPage";
@@ -14,7 +15,7 @@ vi.mock("./CanvasPageContent", () => ({
 }));
 
 vi.mock("@refinedev/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@refinedev/core")>()),
+  ...(await importOriginal<typeof RefineCore>()),
   useOne: () => ({
     result: null,
     query: { isLoading: false },

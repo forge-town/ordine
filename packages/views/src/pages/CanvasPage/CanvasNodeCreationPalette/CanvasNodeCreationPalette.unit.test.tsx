@@ -1,4 +1,5 @@
 import { render } from "../../../test/test-wrapper";
+import type * as RefineCore from "@refinedev/core";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Operation } from "@repo/schemas";
@@ -17,7 +18,7 @@ const operations = [
 ] as Operation[];
 
 vi.mock("@refinedev/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@refinedev/core")>()),
+  ...(await importOriginal<typeof RefineCore>()),
   useList: () => ({
     result: {
       data: operations,

@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import type * as RefineCore from "@refinedev/core";
 import { describe, expect, it, vi } from "vitest";
 import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
 import { PromptNode } from "./PromptNode";
@@ -12,7 +13,7 @@ vi.mock("@xyflow/react", () => ({
 }));
 
 vi.mock("@refinedev/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@refinedev/core")>()),
+  ...(await importOriginal<typeof RefineCore>()),
   useList: () => ({
     query: {
       data: { data: [], total: 0 },

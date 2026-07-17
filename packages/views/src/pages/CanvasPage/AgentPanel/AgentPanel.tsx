@@ -217,7 +217,7 @@ export const AgentPanel = () => {
     sessionGraphSignatureRef.current = graphSignature;
 
     return session.id;
-  }, [edges, nodes, pipelineId]);
+  }, [edges, nodes, pipelineAgentSessionsClient, pipelineId]);
 
   useEffect(() => {
     const nextSignature = JSON.stringify({
@@ -482,6 +482,7 @@ export const AgentPanel = () => {
     ensureSession,
     fetchRuntimeState,
     handlePlanEvent,
+    pipelineAgentSessionsClient,
     selectedRuntimeId,
     t,
     scrollToBottom,
@@ -554,7 +555,7 @@ export const AgentPanel = () => {
         ]);
       }
     },
-    [ensureSession, selectedRuntimeId, t],
+    [ensureSession, pipelineAgentSessionsClient, selectedRuntimeId, t],
   );
 
   const hasBlockingDiagnostics =
@@ -611,7 +612,14 @@ export const AgentPanel = () => {
     };
 
     void run();
-  }, [activeProposal, applyAgentProposal, hasBlockingDiagnostics, scrollToBottom, t]);
+  }, [
+    activeProposal,
+    applyAgentProposal,
+    hasBlockingDiagnostics,
+    pipelineAgentSessionsClient,
+    scrollToBottom,
+    t,
+  ]);
 
   const handleDiscard = useCallback(() => {
     const run = async () => {
@@ -652,7 +660,7 @@ export const AgentPanel = () => {
     };
 
     void run();
-  }, [clearPendingProposal, scrollToBottom, t]);
+  }, [clearPendingProposal, pipelineAgentSessionsClient, scrollToBottom, t]);
 
   const proposal = activeProposal;
   const hasProposal = proposal !== null;

@@ -7,18 +7,18 @@ import type { DataProvider } from "@refinedev/core";
  * `setCanvasDataProvider` (see CanvasPageStoreProvider), keeping @repo/views
  * free of any client-specific data layer.
  */
-let canvasDataProvider: DataProvider | null = null;
+const canvasDataProviderRegistry: { current: DataProvider | null } = { current: null };
 
 export const setCanvasDataProvider = (dataProvider: DataProvider): void => {
-  canvasDataProvider = dataProvider;
+  canvasDataProviderRegistry.current = dataProvider;
 };
 
 export const getCanvasDataProvider = (): DataProvider => {
-  if (!canvasDataProvider) {
+  if (!canvasDataProviderRegistry.current) {
     throw new Error(
       "Canvas dataProvider not set. Ensure CanvasPageStoreProvider is mounted within a Refine provider.",
     );
   }
 
-  return canvasDataProvider;
+  return canvasDataProviderRegistry.current;
 };

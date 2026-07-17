@@ -13,7 +13,9 @@ describe("verifyGitHubToken", () => {
     });
     expect(request).toHaveBeenCalledWith(
       "https://api.github.com/user",
-      expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer github-token" }) }),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer github-token" }),
+      }),
     );
   });
 });

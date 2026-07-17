@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import type * as RefineCore from "@refinedev/core";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
@@ -21,7 +22,7 @@ vi.mock("@xyflow/react", async (importOriginal) => {
 });
 
 vi.mock("@refinedev/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@refinedev/core")>()),
+  ...(await importOriginal<typeof RefineCore>()),
   useDataProvider: () => () => ({
     getList: vi.fn(async () => ({ data: [], total: 0 })),
     getOne: vi.fn(async ({ id }: { id: string }) => ({ data: { id } })),

@@ -1,4 +1,5 @@
 import { act, render, screen, fireEvent, waitFor } from "@testing-library/react";
+import type * as RefineCore from "@refinedev/core";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CanvasFloatingMenu } from "./CanvasFloatingMenu";
 import { createCanvasPageStore, CanvasPageStoreContext, CanvasPageStoreProvider } from "../_store";
@@ -13,7 +14,7 @@ const mockUpdate = vi.fn();
 const mockCreate = vi.fn();
 
 vi.mock("@refinedev/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@refinedev/core")>()),
+  ...(await importOriginal<typeof RefineCore>()),
   useUpdate: () => ({
     mutate: mockUpdate,
     mutation: { isPending: false },

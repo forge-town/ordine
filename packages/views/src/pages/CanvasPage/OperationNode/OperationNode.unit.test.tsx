@@ -1,4 +1,5 @@
 import { render } from "../../../test/test-wrapper";
+import type * as RefineCore from "@refinedev/core";
 import i18n from "i18next";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -16,7 +17,7 @@ vi.mock("@xyflow/react", () => ({
 }));
 
 vi.mock("@refinedev/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@refinedev/core")>()),
+  ...(await importOriginal<typeof RefineCore>()),
   useList: ({ resource }: { resource: string }) => {
     if (resource === "agents") {
       return {

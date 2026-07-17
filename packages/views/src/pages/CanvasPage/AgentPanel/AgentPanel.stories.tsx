@@ -1,9 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import type {
-  PipelineActionDiagnostic,
-  PipelineActionProposal,
-} from "@repo/schemas";
+import type { PipelineActionDiagnostic, PipelineActionProposal } from "@repo/schemas";
 import { CanvasPageStoreContext, createCanvasPageStore, type CanvasPageStore } from "../_store";
 import { AgentPanel } from "./AgentPanel";
 import { setCanvasDataProvider } from "../../../lib/canvasDataProvider";
@@ -93,7 +90,6 @@ const AgentPanelStory = ({
         isLoading: false,
       },
     });
-
   }, [diagnostics, proposal]);
 
   return (
