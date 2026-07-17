@@ -1,5 +1,7 @@
 export * from "./PipelineNodeDataSchema";
 export * from "./CompoundNodeDataSchema";
+export * from "./DecisionNodeDataSchema";
+export * from "./DecisionSelectModeSchema";
 export * from "./FileObjectNodeDataSchema";
 export * from "./FolderObjectNodeDataSchema";
 export * from "./GithubProjectObjectNodeDataSchema";

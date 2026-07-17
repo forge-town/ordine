@@ -74,7 +74,14 @@ describe("runCodex", () => {
       string[],
       Record<string, unknown>,
     ];
-    expect(bin).toContain("codex");
+    if (process.platform === "win32") {
+      // Windows launches the command shim through cmd.exe — codex.cmd is in the
+      // args, not the spawned binary.
+      expect(bin).toBe("cmd.exe");
+      expect(args).toContain("codex.cmd");
+    } else {
+      expect(bin).toContain("codex");
+    }
     expect(args).toContain("exec");
     expect(args).toContain("--sandbox");
     expect(args).toContain("read-only");

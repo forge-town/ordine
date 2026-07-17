@@ -4,8 +4,9 @@ import { BuiltinNodeTypeSchema, type BuiltinNodeType } from "@repo/schemas";
 const nodeTypeArray = z.array(BuiltinNodeTypeSchema);
 
 export const NodeConnectionRulesSchema = z.object({
-  "file": nodeTypeArray,
+  file: nodeTypeArray,
   compound: nodeTypeArray,
+  decision: nodeTypeArray,
   folder: nodeTypeArray,
   "github-project": nodeTypeArray,
   operation: nodeTypeArray,
@@ -16,12 +17,13 @@ export const NodeConnectionRulesSchema = z.object({
 export type NodeConnectionRules = z.infer<typeof NodeConnectionRulesSchema>;
 
 export const NODE_CONNECTION_RULES: NodeConnectionRules = NodeConnectionRulesSchema.parse({
-  "file": ["operation", "compound"],
-  compound: ["operation", "compound", "output-project-path", "output-local-path"],
-  folder: ["operation", "compound"],
-  "github-project": ["operation", "compound"],
-  operation: ["operation", "compound", "output-project-path", "output-local-path"],
-  prompt: ["operation", "compound"],
+  file: ["operation", "compound", "decision"],
+  compound: ["operation", "compound", "decision", "output-project-path", "output-local-path"],
+  decision: ["operation", "compound", "output-project-path", "output-local-path"],
+  folder: ["operation", "compound", "decision"],
+  "github-project": ["operation", "compound", "decision"],
+  operation: ["operation", "compound", "decision", "output-project-path", "output-local-path"],
+  prompt: ["operation", "compound", "decision"],
   "output-project-path": [],
   "output-local-path": [],
 } satisfies Record<BuiltinNodeType, BuiltinNodeType[]>);

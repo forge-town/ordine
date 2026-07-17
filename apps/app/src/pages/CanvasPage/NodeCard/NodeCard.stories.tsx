@@ -55,7 +55,7 @@ const meta: Meta<typeof NodeCard> = {
   argTypes: {
     runStatus: {
       control: "select",
-      options: [undefined, "running", "pass", "fail"],
+      options: [undefined, "running", "done", "failed"],
     },
     theme: {
       control: "select",
@@ -209,7 +209,7 @@ export const Passed: Story = {
     headerRight: <CircleCheck className="h-3.5 w-3.5 text-green-500" />,
     icon: ShieldCheck,
     label: "Passed Node",
-    runStatus: "pass",
+    runStatus: "done",
     theme: "emerald",
   },
 };
@@ -220,7 +220,7 @@ export const Failed: Story = {
     headerRight: <CircleX className="h-3.5 w-3.5 text-red-500" />,
     icon: ShieldCheck,
     label: "Failed Node",
-    runStatus: "fail",
+    runStatus: "failed",
     theme: "amber",
   },
 };
@@ -297,7 +297,7 @@ export const RunStatusMatrix: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Run-state matrix covering queued, running, pass, and fail visual treatments.",
+        story: "Run-state matrix covering queued, running, done, and failed visual treatments.",
       },
     },
   },
@@ -323,7 +323,7 @@ export const RunStatusMatrix: Story = {
         headerRight={<CircleCheck className="h-3.5 w-3.5 text-green-500" />}
         icon={ShieldCheck}
         label="Passed"
-        runStatus="pass"
+        runStatus="done"
         theme="emerald"
       />
       <NodeCard
@@ -331,7 +331,7 @@ export const RunStatusMatrix: Story = {
         headerRight={<CircleX className="h-3.5 w-3.5 text-red-500" />}
         icon={ShieldCheck}
         label="Failed"
-        runStatus="fail"
+        runStatus="failed"
         theme="amber"
       />
     </div>

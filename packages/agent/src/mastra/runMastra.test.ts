@@ -31,7 +31,11 @@ describe("runMastra with Kimi", () => {
     expect(result.text.length).toBeGreaterThan(0);
   });
 
-  it("falls back to string model when apiKey is missing", async () => {
+  // With no key configured, the default Kimi model must fail fast with a clear,
+  // actionable message — assert the real message, not an environment-dependent
+  // SDK string. If this machine happens to have KIMI_API_KEY set, the missing-key
+  // path cannot trigger, so skip (mirrors the skipIf on the two tests above).
+  it.skipIf(apiKey)("throws a clear error when KIMI_API_KEY is missing", async () => {
     await expect(
       runMastra({
         systemPrompt: "sys",
@@ -39,6 +43,6 @@ describe("runMastra with Kimi", () => {
         cwd: process.cwd(),
         timeoutMs: 1000,
       }),
-    ).rejects.toThrow(/Failed to resolve model configuration/);
+    ).rejects.toThrow(/KIMI_API_KEY is not configured/);
   });
 });

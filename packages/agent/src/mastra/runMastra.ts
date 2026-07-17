@@ -54,6 +54,18 @@ export const runMastra = async ({
 
   const resolvedModel = model ?? "kimi-for-coding/k2p6";
 
+  // Kimi models need KIMI_API_KEY. Without this guard the SDK throws
+  // "Could not find API key" much later, which the UI mislabels as
+  // "Network error, please try again" — often after burning many minutes of
+  // upstream compute. Fail fast with an actionable message instead.
+  const needsKimiKey = typeof resolvedModel === "string" && resolvedModel.startsWith("kimi");
+  if (needsKimiKey && !apiKey && !env.KIMI_API_KEY && !process.env["KIMI_API_KEY"]) {
+    throw new Error(
+      `KIMI_API_KEY is not configured: model "${resolvedModel}" requires a Kimi API key. ` +
+        `Configure one in Settings, or switch this operation (or the default runtime) to claude-code (local CLI, no external key needed).`,
+    );
+  }
+
   logger.info(
     { cwd, model: typeof resolvedModel === "string" ? resolvedModel : "custom" },
     "runMastra: starting",

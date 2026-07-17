@@ -1,6 +1,6 @@
 import { eq, desc, and, lt, isNull, or, sql } from "drizzle-orm";
 import { jobsTable, type JobRecord } from "@repo/db-schema";
-import type { JobStatus, JobType } from "@repo/schemas";
+import type { JobStatus, JobType, NodeRunStatus } from "@repo/schemas";
 import type { DbExecutor } from "../../types";
 
 export class JobsDao {
@@ -42,6 +42,7 @@ export class JobsDao {
       error?: string;
       startedAt?: Date;
       finishedAt?: Date;
+      totalTokens?: number;
     },
   ) {
     const patch: Partial<JobRecord> = {
@@ -50,10 +51,21 @@ export class JobsDao {
       ...(extra?.error !== undefined && { error: extra.error }),
       ...(extra?.startedAt !== undefined && { startedAt: extra.startedAt }),
       ...(extra?.finishedAt !== undefined && { finishedAt: extra.finishedAt }),
+      ...(extra?.totalTokens !== undefined && { totalTokens: extra.totalTokens }),
     };
     const [updated] = await this.executor
       .update(jobsTable)
       .set(patch)
+      .where(eq(jobsTable.id, id))
+      .returning();
+
+    return updated;
+  }
+
+  async setNodeStatuses(id: string, nodeStatuses: Record<string, NodeRunStatus>) {
+    const [updated] = await this.executor
+      .update(jobsTable)
+      .set({ nodeStatuses, updatedAt: new Date() })
       .where(eq(jobsTable.id, id))
       .returning();
 
