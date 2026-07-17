@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { z } from "zod/v4";
-import { CanvasPage } from "@/pages/CanvasPage";
+import { CanvasPage } from "@repo/views/CanvasPage";
 import { useSession } from "@/integrations/better-auth-client";
 
 const CanvasRouteComponent = () => {
   const navigate = useNavigate();
+  const { id } = Route.useSearch();
   const { data: session, isPending } = useSession();
 
   useEffect(() => {
@@ -26,7 +27,7 @@ const CanvasRouteComponent = () => {
     return null;
   }
 
-  return <CanvasPage />;
+  return <CanvasPage id={id} />;
 };
 
 export const Route = createFileRoute("/canvas")({
