@@ -7,7 +7,7 @@
 
 import { z } from "zod/v4";
 import { Result } from "neverthrow";
-import { OperationOutputSchema } from "@repo/agent";
+import { extractJsonFromText, OperationOutputSchema } from "@repo/agent";
 import { logger } from "@repo/logger";
 
 // ─── JSON extraction ──────────────────────────────────────────────────────────
@@ -19,8 +19,10 @@ const tryParseJson = ({ text }: { text: string }): unknown | undefined => {
 };
 
 const extract = ({ rawText }: { rawText: string }): string => {
-  const fenceMatch = rawText.match(/```json\s*\n?([\s\S]*?)\n?\s*```/);
-  const candidate = fenceMatch?.[1]?.trim() ?? rawText.trim();
+  // Generic extraction (direct / fenced / first-brace substring) goes through the
+  // shared extractJsonFromText; the check/fix "type" fallback match and the
+  // OperationOutputSchema validation below are kept as-is.
+  const candidate = extractJsonFromText(rawText);
 
   const parsed =
     tryParseJson({ text: candidate }) ??

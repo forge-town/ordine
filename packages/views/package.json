@@ -42,7 +42,8 @@
     "./store/toastStore": "./src/store/toastStore/index.ts"
   },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "check-types": "tsc --noEmit -p tsconfig.check.json"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -85,6 +86,7 @@
     "jsdom": "^29.0.1",
     "react-dom": "^19.1.0",
     "typescript": "^5.8.3",
+    "vite": "^8.0.0",
     "vitest": "^4.1.6"
   }
 }

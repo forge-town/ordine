@@ -1,4 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { describe, expect, it, vi, beforeEach, afterAll } from "vitest";
 import { agentEngine } from "@repo/agent-engine";
 
 vi.mock("@repo/agent", () => ({}));
@@ -19,11 +22,18 @@ vi.mock("ai", () => ({
 
 import { promptExecutor } from ".";
 
+// A real directory: resolveCwd rejects explicitly configured paths that do not exist.
+const inputDir = mkdtempSync(join(tmpdir(), "prompt-executor-test-"));
+
+afterAll(() => {
+  rmSync(inputDir, { recursive: true, force: true });
+});
+
 describe("promptExecutor", () => {
   const baseOpts = {
     prompt: "Analyze this",
     inputContent: "some code",
-    inputPath: "/tmp/test",
+    inputPath: inputDir,
   };
 
   beforeEach(() => {
@@ -51,11 +61,32 @@ describe("promptExecutor", () => {
       expect.objectContaining({
         agent: "codex",
         mode: "direct",
-        systemPrompt: "Analyze this",
+        systemPrompt: expect.stringContaining("Analyze this"),
         userPrompt: "some code",
-        cwd: "/tmp/test",
+        cwd: inputDir,
       }),
     );
+  });
+
+  it("falls back to process.cwd() when no inputPath is configured", async () => {
+    const result = await promptExecutor.run({ ...baseOpts, inputPath: "", agent: "codex" });
+
+    expect(result.isOk()).toBe(true);
+    expect(agentEngine.run).toHaveBeenCalledWith(expect.objectContaining({ cwd: process.cwd() }));
+  });
+
+  it("fails the node when the configured inputPath does not exist", async () => {
+    const result = await promptExecutor.run({
+      ...baseOpts,
+      inputPath: "/nope/does/not/exist",
+      agent: "codex",
+    });
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error.message).toContain("/nope/does/not/exist");
+    }
+    expect(agentEngine.run).not.toHaveBeenCalled();
   });
 
   it("forwards jobId and agentId to agentEngine", async () => {
@@ -112,12 +143,22 @@ describe("promptExecutor", () => {
     expect(callArgs.systemPrompt).toContain("Analyze this");
   });
 
-  it("leaves standalone operation prompt unchanged without runtime context", async () => {
+  it("keeps the bare operation prompt without runtime context", async () => {
     const result = await promptExecutor.run({ ...baseOpts, agent: "codex" });
 
     expect(result.isOk()).toBe(true);
     const callArgs = vi.mocked(agentEngine.run).mock.calls[0]![0];
-    expect(callArgs.systemPrompt).toBe("Analyze this");
+    expect(callArgs.systemPrompt).toContain("Analyze this");
+    expect(callArgs.systemPrompt).not.toContain("## Runtime Context");
+  });
+
+  it("always appends the missing-configuration user-action instructions", async () => {
+    const result = await promptExecutor.run({ ...baseOpts, agent: "codex" });
+
+    expect(result.isOk()).toBe(true);
+    const callArgs = vi.mocked(agentEngine.run).mock.calls[0]![0];
+    expect(callArgs.systemPrompt).toContain("## When user-side configuration is missing");
+    expect(callArgs.systemPrompt).toContain("@@USER_ACTION::");
   });
 
   it("returns error for empty prompt", async () => {
