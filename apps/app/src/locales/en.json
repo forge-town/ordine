@@ -32,7 +32,11 @@
     "new": "New",
     "clear": "Clear",
     "noResults": "No matching results",
-    "generating": "Generating..."
+    "generating": "Generating...",
+    "metadata": "Metadata",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "clearSearch": "Clear search"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -57,7 +61,23 @@
     "preview": "Preview",
     "plugins": "Plugins",
     "agents": "Agents",
-    "logout": "Log out"
+    "logout": "Log out",
+    "groups": {
+      "assembly": "Assembly",
+      "capabilities": "Capabilities",
+      "monitor": "Monitor"
+    },
+    "items": {
+      "agents": "Agents",
+      "components": "Components",
+      "connectors": "Connectors",
+      "jobs": "Jobs",
+      "localAgents": "Local Agents",
+      "nodes": "Nodes",
+      "pipelines": "Pipelines",
+      "skills": "Skills",
+      "usage": "Usage"
+    }
   },
   "plugins": {
     "title": "Plugins",
@@ -72,7 +92,8 @@
     "noObjects": "No object types registered"
   },
   "sidebar": {
-    "user": "Ordine User"
+    "user": "Ordine User",
+    "reopen": "Show sidebar"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -105,7 +126,7 @@
     "quickActionBestPracticesSub": "View coding standards"
   },
   "jobs": {
-    "title": "Jobs Monitor",
+    "title": "Jobs",
     "running": "Running",
     "queued": "Queued",
     "done": "Done",
@@ -133,6 +154,7 @@
     "status": "Status",
     "statusQueued": "Queued",
     "statusRunning": "Running",
+    "statusPaused": "Paused",
     "statusDone": "Done",
     "statusFailed": "Failed",
     "statusCancelled": "Cancelled",
@@ -151,7 +173,112 @@
     "typeCustom": "Custom",
     "typePipeline": "Pipeline",
     "inProgress": "In Progress",
-    "result": "Result"
+    "result": "Result",
+    "agentRuns": {
+      "collapse": "Collapse",
+      "showAll": "Show all ({{count}} chars)"
+    },
+    "calendar": {
+      "live": "live",
+      "nextWeek": "Next week",
+      "noEventRoutines": "no event-triggered routines",
+      "onEvent": "on {{event}}",
+      "previousWeek": "Previous week",
+      "ranLegend": "ran",
+      "schedule": "Schedule",
+      "scheduledLegend": "scheduled",
+      "thisWeek": "this week",
+      "today": "Today"
+    },
+    "drawer": {
+      "close": "Close",
+      "noSteps": "No pipeline snapshot for this job.",
+      "noTrace": "No trace yet.",
+      "openCanvas": "Open pipeline on canvas",
+      "runtime_one": "Runtime · {{count}} step",
+      "runtime_other": "Runtime · {{count}} steps",
+      "trace": "Trace"
+    },
+    "emptyBody": "Launch a run or adjust the current filters.",
+    "emptyTitle": "No jobs yet",
+    "hasRoutine": "has routine",
+    "newRoutine": "New Routine",
+    "newRun": "New Run",
+    "noMatchTitle": "No matching jobs",
+    "pickPipeline": "Schedule which pipeline?",
+    "scheduleEditor": {
+      "cancel": "Cancel",
+      "close": "Close",
+      "cronExpression": "Cron expression",
+      "cronParts": {
+        "day": "day",
+        "hour": "hour",
+        "minute": "min",
+        "month": "month",
+        "weekday": "wday"
+      },
+      "delete": "Remove routine",
+      "enabledToggle": "Enabled",
+      "event": "Event",
+      "presets": {
+        "daily": "Daily 06:00",
+        "dailyHuman": "Runs every day at 06:00",
+        "hourly": "Every hour",
+        "hourlyHuman": "Runs at minute 0 of every hour",
+        "weekdays": "Weekdays 09:00",
+        "weekdaysHuman": "Runs Mon–Fri at 09:00",
+        "weekly": "Weekly Mon",
+        "weeklyHuman": "Runs every Monday at 09:00"
+      },
+      "presetsLabel": "Presets",
+      "save": "Save schedule",
+      "summary": {
+        "cron": "Runs on cron {{cron}}",
+        "event": "Runs on every {{event}}",
+        "manual": "Runs only when you press Run"
+      },
+      "title": "Schedule",
+      "trigger": "Trigger",
+      "triggers": {
+        "cron": "Schedule",
+        "event": "On event",
+        "manual": "Manual"
+      }
+    },
+    "searchPlaceholder": "Search jobs…",
+    "statusPaused": "Paused",
+    "subtitle": "Concurrent work orders. Operate the fleet — pause, rerun, step in. The how lives on the canvas.",
+    "summary": "{{running}} running · {{queued}} queued · {{waiting}} waiting on you · {{failed}} failed",
+    "table": {
+      "actionFailed": "Action failed",
+      "actions": {
+        "cancel": "Stop",
+        "cancelDone": "Stopped {{jobId}}",
+        "pause": "Pause",
+        "pauseDone": "Paused {{jobId}}",
+        "rerun": "Re-run",
+        "rerunDone": "Re-run started",
+        "resume": "Resume",
+        "resumeDone": "Resumed {{jobId}}",
+        "review": "Review"
+      },
+      "byRoutine": "routine",
+      "headers": {
+        "actions": "Actions",
+        "cost": "Cost",
+        "duration": "Duration",
+        "job": "Job",
+        "started": "Started",
+        "status": "Status"
+      }
+    },
+    "views": {
+      "calendar": "Calendar",
+      "list": "List"
+    },
+    "typeDistillation": "Distillation",
+    "typeOperation": "Operation",
+    "typeRefinement": "Refinement"
   },
   "distillations": {
     "title": "Distillations",
@@ -291,7 +418,17 @@
     "sortCategoryAsc": "Category A → Z",
     "count": "",
     "descriptionPlaceholder": "Briefly describe what this operation does",
-    "promptPlaceholder": "You are a code review expert, please analyze the following code..."
+    "promptPlaceholder": "You are a code review expert, please analyze the following code...",
+    "editTitle": "Edit Operation",
+    "run": {
+      "inputContent": "Content",
+      "inputContentPlaceholder": "Or paste content directly...",
+      "inputPath": "File Path",
+      "inputPathPlaceholder": "/path/to/file-or-folder",
+      "run": "Run",
+      "running": "Running...",
+      "title": "Run Operation"
+    }
   },
   "pipelines": {
     "title": "Pipelines",
@@ -402,7 +539,10 @@
       "snapToGrid": {
         "label": "Snap nodes to grid",
         "description": "Align dragged nodes to the canvas grid."
-      }
+      },
+      "nodeCardMode.label": "Node card mode",
+      "nodeCardMode.compact": "Compact",
+      "nodeCardMode.expanded": "Expanded"
     },
     "workspaceSidebar": {
       "title": "Workspace"
@@ -526,7 +666,8 @@
         "removeEdge": "Remove edge: {{edgeId}}",
         "reconnectEdge": "Reconnect edge: {{edgeId}}",
         "replaceNodeData": "Replace node data: {{nodeId}}"
-      }
+      },
+      "contextReset": "The canvas changed, so the attached context was cleared."
     },
     "operationsPanel": {
       "collapse": "Collapse operations panel",
@@ -653,6 +794,7 @@
       "nodeStatusFailed": "failed",
       "statusQueued": "Queued",
       "statusRunning": "Running",
+      "statusPaused": "Paused",
       "statusDone": "Done",
       "statusFailed": "Failed",
       "statusCancelled": "Cancelled",
@@ -695,7 +837,9 @@
     "disclosureFull": "Tree + file contents",
     "sourceTypeGitHub": "GitHub",
     "sourceTypeLocal": "Local folder",
-    "removeExclude": "Remove exclude"
+    "removeExclude": "Remove exclude",
+    "skillOperationCreateFailed": "Failed to add skill",
+    "skillOperationCreateFailedDescription": "Could not prepare a Skill Operation for this Canvas node."
   },
   "projects": {
     "title": "GitHub Projects",
@@ -803,6 +947,30 @@
     "codeSnippetTitlePlaceholder": "e.g. Good example / Bad example"
   },
   "skills": {
+    "pageStructure": "Page Structure",
+    "pageStructureDesc": "Generate standard page Anatomy: Wrapper + Content + optional Store, ensuring clear layered page structure.",
+    "stateManagement": "State Management Store",
+    "stateManagementDesc": "Create Store based on Zustand slice pattern, including Context Provider and type-safe hooks.",
+    "daoLayer": "DAO Layer",
+    "daoLayerDesc": "Create data access objects using Drizzle ORM standards, ensuring naming, type safety and query performance.",
+    "serviceLayer": "Service Layer",
+    "serviceLayerDesc": "Create Service following tRPC + Service + DAO architecture, separating business logic from data access.",
+    "formComponent": "Form Components",
+    "formComponentDesc": "Create form components following standards, including field validation, state management and UI structure.",
+    "schemaValidation": "Schema Validation",
+    "schemaValidationDesc": "Define database tables using Drizzle ORM schema, ensuring naming, relationships and index configuration standards.",
+    "barrelExport": "Barrel Export",
+    "barrelExportDesc": "Generate and check index.ts barrel export files, ensuring all index files only do re-export.",
+    "errorHandling": "Error Handling",
+    "errorHandlingDesc": "Standardize neverthrow-based error handling, keeping errors explicit and eliminating try-catch from application code.",
+    "dbNaming": "Database Table Naming",
+    "dbNamingDesc": "Verify and correct database table definition naming standards, including table names, column names and indexes.",
+    "svgIcon": "SVG Icon Standards",
+    "svgIconDesc": "Manage SVG icons in React TypeScript projects, ensuring naming, encapsulation and export standards.",
+    "oneComponent": "One Component Per File",
+    "oneComponentDesc": "Enforce one React/Vue component per file, no multiple components in one file.",
+    "refineTrpc": "Refine tRPC Standards",
+    "refineTrpcDesc": "Access data in React components through Refine hooks via DataProvider, no direct tRPC calls.",
     "title": "Skills",
     "noSkills": "No skills found",
     "createOperation": "Create Operation",
@@ -825,7 +993,7 @@
     "createOperation.generatePipeline": "Generate Pipeline Draft",
     "createOperation.generatePipelineSuccess": "Pipeline draft created successfully",
     "createOperation.generatePipelineError": "Failed to create pipeline draft",
-    "createOperation.outputNamePlaceholder": "output name",
+    "createOperation.outputNamePlaceholder": "Output name",
     "categories": {
       "all": "All",
       "page": "Page structure",
@@ -840,7 +1008,13 @@
     "language": "Language",
     "selectLanguage": "Select language",
     "timezone": "Timezone",
-    "appearance": "Appearance",
+    "appearance": {
+      "dark": "Dark",
+      "hint": "Applies immediately and is remembered on this device.",
+      "label": "Appearance",
+      "light": "Light",
+      "system": "System"
+    },
     "sections": {
       "profile": "Profile",
       "notifications": "Notifications",
@@ -848,7 +1022,12 @@
       "language": "Language & Region",
       "security": "Security",
       "agentRuntimes": "Agent Runtimes",
-      "developer": "Developer"
+      "developer": "Developer",
+      "advanced": "Advanced",
+      "autonomy": "Autonomy",
+      "defaults": "Defaults",
+      "keyboard": "Keyboard",
+      "project": "Project"
     },
     "saveChanges": "Save changes",
     "saved": "Saved ✓",
@@ -912,6 +1091,121 @@
       "keyPathPlaceholder": "~/.ssh/id_rsa",
       "remove": "Remove",
       "empty": "No agent runtimes configured. Add one to enable remote execution."
+    },
+    "advanced": {
+      "description": "Storage, data version, and maintenance facts for this machine.",
+      "rows": {
+        "dataDirectory": {
+          "hint": "All local pipelines, runs, and conversations live here.",
+          "label": "Data directory"
+        },
+        "localMode": {
+          "hint": "Start flag that bypasses login for local development.",
+          "label": "Local mode"
+        },
+        "schemaVersion": {
+          "hint": "Latest applied local database migration.",
+          "label": "Schema version"
+        }
+      },
+      "title": "Advanced"
+    },
+    "autonomy": {
+      "decrease": "Fewer retries",
+      "description": "How far self-heal goes before stopping and explaining.",
+      "deviceScope": "Stored on this device and sent with each run.",
+      "increase": "More retries",
+      "selfHeal": "Self-heal retries",
+      "selfHealHint": "How many rounds the engine retries a failing step before it stops. 0 = stop on first failure.",
+      "title": "Autonomy"
+    },
+    "defaults": {
+      "apiKey": "API key",
+      "apiKeyHint": "Stored locally and masked in the UI.",
+      "description": "What the Agent Bar reaches for first when assembling an executor.",
+      "model": "Default model",
+      "outputPath": "Default output path",
+      "runtime": "Default Local Agent",
+      "runtimeFix": "Switch to {{name}}",
+      "runtimeFixed": "Default runtime switched to {{name}}",
+      "runtimeInvalid": "Saved runtime “{{value}}” is not detected on this machine — Agent requests will fail until you pick a detected one.",
+      "save": "Save defaults",
+      "saveFailed": "Couldn't save defaults",
+      "saved": "Defaults saved",
+      "title": "Defaults",
+      "toggleKey": "Toggle key visibility"
+    },
+    "groups": {
+      "data": "Data",
+      "execution": "Execution",
+      "workspace": "Workspace"
+    },
+    "keyboard": {
+      "description": "Canvas shortcuts. Read-only for now.",
+      "groups": {
+        "editing": "Editing",
+        "navigation": "Navigation"
+      },
+      "shortcuts": {
+        "boxSelect": {
+          "keys": "drag on canvas",
+          "label": "Box-select"
+        },
+        "delete": {
+          "keys": "⌫ / Del",
+          "label": "Delete selection"
+        },
+        "drillOut": {
+          "keys": "Esc",
+          "label": "Drill out / clear selection"
+        },
+        "pan": {
+          "keys": "middle-drag",
+          "label": "Pan"
+        },
+        "redo": {
+          "keys": "⌘ ⇧ Z",
+          "label": "Redo"
+        },
+        "undo": {
+          "keys": "⌘ Z",
+          "label": "Undo"
+        },
+        "zoom": {
+          "keys": "⌘ scroll",
+          "label": "Zoom"
+        }
+      },
+      "title": "Keyboard"
+    },
+    "notifications": {
+      "description": "What gets pushed to the notification center, what stays silent.",
+      "done": "Run completed",
+      "doneHint": "A job you started finishes clean.",
+      "failed": "Run failed",
+      "failedHint": "Always worth knowing — includes runs started by a routine.",
+      "title": "Notifications",
+      "waiting": "Waiting on you",
+      "waitingHint": "A run paused for sign-off or a question."
+    },
+    "project": {
+      "clearCancel": "Cancel",
+      "clearConfirm": "Clear history",
+      "clearConfirmBody": "All saved Agent threads across pipelines will be removed. Pipelines, operations and runs are kept.",
+      "clearConfirmTitle": "Clear conversation history?",
+      "clearDone": "Conversation history cleared",
+      "clearFailed": "Failed to clear history",
+      "clearHistory": "Clear conversation history",
+      "clearHistoryHint": "Removes saved Agent threads. Pipelines are kept.",
+      "description": "Name and description for the workspace selected in the sidebar.",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "What this workspace is for…",
+      "empty": "No project selected yet — create one from the sidebar.",
+      "name": "Project name",
+      "save": "Save project",
+      "saveFailed": "Couldn't save the project",
+      "saved": "Project saved",
+      "title": "Project"
     }
   },
   "runtimes": {
@@ -946,7 +1240,11 @@
     "save": "Save",
     "saved": "Saved",
     "delete": "Delete",
-    "confirmDelete": "Confirm Delete"
+    "confirmDelete": "Confirm Delete",
+    "confirmSync": "Sync changes",
+    "noChanges": "No runtime changes detected.",
+    "scanResults": "Runtime scan results",
+    "scanResultsDescription": "Review detected runtime changes before syncing."
   },
   "errors": {
     "notFound": "Page not found",
@@ -980,7 +1278,14 @@
       "maxLoopCountAria": "Maximum loop count",
       "acceptanceCondition": "Acceptance condition",
       "loopConditionAria": "Loop acceptance condition",
-      "loopConditionPlaceholder": "Describe what the output must satisfy..."
+      "loopConditionPlaceholder": "Describe what the output must satisfy...",
+      "statusCancelled": "Cancelled",
+      "statusDone": "Done",
+      "statusFailed": "Failed",
+      "statusQueued": "Queued",
+      "statusRetrying": "Retrying",
+      "statusSkipped": "Skipped",
+      "statusWaitingForUser": "Waiting for you"
     },
     "outputLocalPath": {
       "label": "Path",
@@ -1074,32 +1379,6 @@
     "projectListEmpty": "Project library is empty. Connect a GitHub repository from the Projects page first.",
     "projectListNoResults": "No matching projects"
   },
-  "skills": {
-    "pageStructure": "Page Structure",
-    "pageStructureDesc": "Generate standard page Anatomy: Wrapper + Content + optional Store, ensuring clear layered page structure.",
-    "stateManagement": "State Management Store",
-    "stateManagementDesc": "Create Store based on Zustand slice pattern, including Context Provider and type-safe hooks.",
-    "daoLayer": "DAO Layer",
-    "daoLayerDesc": "Create data access objects using Drizzle ORM standards, ensuring naming, type safety and query performance.",
-    "serviceLayer": "Service Layer",
-    "serviceLayerDesc": "Create Service following tRPC + Service + DAO architecture, separating business logic from data access.",
-    "formComponent": "Form Components",
-    "formComponentDesc": "Create form components following standards, including field validation, state management and UI structure.",
-    "schemaValidation": "Schema Validation",
-    "schemaValidationDesc": "Define database tables using Drizzle ORM schema, ensuring naming, relationships and index configuration standards.",
-    "barrelExport": "Barrel Export",
-    "barrelExportDesc": "Generate and check index.ts barrel export files, ensuring all index files only do re-export.",
-    "errorHandling": "Error Handling",
-    "errorHandlingDesc": "Standardize neverthrow-based error handling, keeping errors explicit and eliminating try-catch from application code.",
-    "dbNaming": "Database Table Naming",
-    "dbNamingDesc": "Verify and correct database table definition naming standards, including table names, column names and indexes.",
-    "svgIcon": "SVG Icon Standards",
-    "svgIconDesc": "Manage SVG icons in React TypeScript projects, ensuring naming, encapsulation and export standards.",
-    "oneComponent": "One Component Per File",
-    "oneComponentDesc": "Enforce one React/Vue component per file, no multiple components in one file.",
-    "refineTrpc": "Refine tRPC Standards",
-    "refineTrpcDesc": "Access data in React components through Refine hooks via DataProvider, no direct tRPC calls."
-  },
   "time": {
     "minutesAgo": "{{minutes}} minutes ago",
     "hoursAgo": "{{hours}} hours ago",
@@ -1114,8 +1393,439 @@
     "noPipelines": "No Pipelines yet",
     "createPipeline": "Create one",
     "objectsCount": "{{count}} objects",
-    "noPipelineSelected": "\u2014 No pipeline selected",
-    "entireProject": "Entire project"
+    "noPipelineSelected": "— No pipeline selected",
+    "entireProject": "Entire project",
+    "canvas": {
+      "edges": {
+        "defaultLabel": "data"
+      },
+      "empty": {
+        "description": "Start with a node, then connect inputs, operations, and outputs into a runnable pipeline.",
+        "seed": "Seed node",
+        "seedLabel": "Starter prompt",
+        "title": "Start with a node..."
+      },
+      "nodes": {
+        "actions": {
+          "configure": "Configure node",
+          "delete": "Delete node",
+          "duplicate": "Duplicate node",
+          "ask": "Ask the Agent about this node",
+          "openThread": "Open this node's thread"
+        },
+        "compound": {
+          "childCount_one": "{{count}} child node",
+          "childCount_other": "{{count}} child nodes",
+          "openHint": "Double-click to open inside"
+        },
+        "file": {
+          "input": "File input",
+          "noFileSelected": "No file selected"
+        },
+        "folder": {
+          "input": "Folder input",
+          "noFolderSelected": "No folder selected"
+        },
+        "github": {
+          "detail": "GitHub"
+        },
+        "kind": {
+          "compound": "{{kind}} compound",
+          "custom": "custom",
+          "file": "File",
+          "folder": "Folder",
+          "github": "GitHub project",
+          "operation": "Operation",
+          "output": "Output",
+          "port": "Port",
+          "prompt": "Prompt"
+        },
+        "operation": {
+          "generatorDetail": "Draft candidate",
+          "generatorKind": "Generator",
+          "loopMax": "Loop · max {{count}}",
+          "qualityGateDetail": "Pass / revise",
+          "qualityGateKind": "Gate",
+          "verifierDetail": "Review criteria",
+          "verifierKind": "Verifier"
+        },
+        "output": {
+          "compoundOutput": "Compound output",
+          "localOutput": "Local output",
+          "projectOutput": "Project output"
+        },
+        "ports": {
+          "left": "Input port {{index}}",
+          "right": "Output port {{index}}"
+        },
+        "preview": {
+          "modified": "edited",
+          "new": "new",
+          "reuse": "reused"
+        },
+        "prompt": {
+          "compoundInput": "Compound input",
+          "empty": "Empty prompt",
+          "input": "Prompt input"
+        },
+        "status": {
+          "cancelled": "Cancelled",
+          "done": "Completed",
+          "failed": "Needs attention",
+          "idle": "Ready",
+          "queued": "Queued",
+          "retrying": "Retrying",
+          "running": "Working...",
+          "skipped": "Skipped",
+          "waitingForUser": "Checkpoint · review"
+        }
+      },
+      "chrome": {
+        "breadcrumb": {
+          "agent": "Agent",
+          "compoundFallback": "Compound",
+          "drillOut": "Drill out",
+          "renameTitle": "Click to rename"
+        },
+        "run": {
+          "noRunnableNodes": "Add an operation node to run",
+          "rerun": "Re-run",
+          "run": "Run",
+          "startFailed": "Couldn't start the run",
+          "started": "Run started",
+          "startedDescription": "Job {{jobId}} is running",
+          "stop": "Stop",
+          "stopFailed": "Couldn't stop the run",
+          "stopped": "Run stopped"
+        },
+        "states": {
+          "cancelled": "Cancelled",
+          "done": "Done",
+          "failed": "Failed",
+          "idle": "Idle",
+          "queued": "Queued",
+          "retrying": "Retrying",
+          "running": "Running",
+          "skipped": "Skipped",
+          "title": "Node run states",
+          "trigger": "States",
+          "waitingForUser": "Awaiting you"
+        },
+        "version": {
+          "current": "current",
+          "history": "History",
+          "overwrite": "Overwrite v{{version}}",
+          "saveAsNew": "Save as new version",
+          "saveAsNewSuccess": "Saved as v{{version}}",
+          "saveChanges": "Save changes",
+          "saveFailed": "Save failed",
+          "saveSuccess": "Saved over v{{version}}",
+          "saved": "saved",
+          "state": {
+            "done": "completed",
+            "draft": "draft",
+            "running": "running"
+          },
+          "unsaved": "unsaved"
+        },
+        "toolbar": {
+          "pan": "Pan",
+          "resetView": "Reset view",
+          "select": "Select / box-select",
+          "zoomIn": "Zoom in",
+          "zoomOut": "Zoom out"
+        },
+        "components": {
+          "emptyGroup": "Nothing here yet",
+          "groups": {
+            "compound": "Compound",
+            "inputObjects": "Input Objects",
+            "operations": "Operations",
+            "output": "Output"
+          },
+          "hint": "Click to drop on canvas, or drag one in.",
+          "items": {
+            "council": "Council",
+            "delegation": "Delegation",
+            "file": "File",
+            "folder": "Folder",
+            "github-project": "GitHub Project",
+            "output-local-path": "Local Path",
+            "output-project-path": "Project Path",
+            "prompt": "Prompt",
+            "verify": "Verify"
+          },
+          "trigger": "Components"
+        }
+      },
+      "nodeConfig": {
+        "checkpoint": {
+          "afterStep": "after this step finishes",
+          "pauseForReview": "Pause for review",
+          "title": "Checkpoint"
+        },
+        "close": "Close",
+        "done": "Done",
+        "editable": "editable",
+        "executor": {
+          "defaultRuntime": "Default runtime",
+          "hint": "Runtime and skill choices are saved on the node override.",
+          "noSkill": "No skill override",
+          "operationOnly": "Executors apply to operation nodes.",
+          "runtime": "Runtime",
+          "skill": "Skill",
+          "title": "Executor"
+        },
+        "io": {
+          "inputs": "Inputs",
+          "noInputs": "No incoming data.",
+          "noOutputs": "No outgoing data.",
+          "outputs": "Outputs",
+          "title": "Input / Output"
+        },
+        "lastRun": {
+          "noOutput": "No run output yet.",
+          "output": "Output",
+          "status": "Status",
+          "title": "Status · last run"
+        },
+        "prompt": {
+          "loopCondition": "Loop condition prompt",
+          "promptText": "Prompt text",
+          "title": "Prompt / Instruction",
+          "unavailable": "This node does not expose a prompt."
+        },
+        "reset": "Reset"
+      },
+      "edgeInspector": {
+        "clear": "Clear",
+        "close": "Close",
+        "condition": "Condition",
+        "deleteEdge": "Delete edge",
+        "dropped": "dropped",
+        "flow": "Flow",
+        "maxRetries": "Max retries",
+        "noMappings": "New connection · fields are inferred at run time.",
+        "noTransform": "No transform steps.",
+        "onFail": "On fail",
+        "qualityGate": "Quality Gate",
+        "qualityPlaceholder": "non-empty or required text",
+        "sourceField": "Source field",
+        "targetInput": "Target input",
+        "title": "Data Contract",
+        "toggleHint": "Tap a field to toggle whether it flows downstream · {{enabled}}/{{total}} on",
+        "transform": "Transform"
+      },
+      "compose": {
+        "askSelection": "Ask about selection",
+        "compose": "Compose into compound",
+        "defaultLabel": "Compound step",
+        "drillHint": "Inside compound · changes here write back to the parent pipeline. Esc to drill out.",
+        "selected_one": "{{count}} selected",
+        "selected_other": "{{count}} selected"
+      },
+      "run": {
+        "approveContinue": "Approve & continue",
+        "checkpointBody": "This step is marked as a checkpoint. Approve to let the run continue, or edit the step before resuming.",
+        "checkpointNext": "The run is holding until you decide.",
+        "checkpointSubtitle": "Paused after {{node}} · the run is holding",
+        "checkpointTitle": "Checkpoint · review before continuing",
+        "consoleTitle": "Run console",
+        "dismiss": "Dismiss",
+        "editStep": "Edit step",
+        "lines_one": "{{count}} line",
+        "lines_other": "{{count}} lines",
+        "notifications": {
+          "cancelled": "Run cancelled — {{title}}",
+          "done": "Run completed — {{title}}",
+          "expired": "Run expired — {{title}}",
+          "failed": "Run failed — {{title}}"
+        },
+        "resumeFailed": "Couldn't resume the run",
+        "resumed": "Checkpoint approved — continuing",
+        "waiting": "Waiting for the first step…"
+      },
+      "ask": {
+        "cancel": "Cancel",
+        "hint": "Adds a node-anchored message to the Agent conversation.",
+        "placeholder": "Tell the Agent what to change here…",
+        "send": "Send to Agent",
+        "title": "Ask about {{node}}"
+      }
+    },
+    "agentBar": {
+      "actionTitles": {
+        "addEdge": "Add edge",
+        "addNode": "Add {{nodeType}}",
+        "reconnectEdge": "Reconnect edge",
+        "removeEdge": "Remove edge",
+        "removeNode": "Remove node",
+        "replaceNodeData": "Update node"
+      },
+      "applied": {
+        "hint": "Applied — the nodes are on the canvas, yours to edit. Click any node to reference it here, or hit Run."
+      },
+      "checkpoint": {
+        "controls": "Run controls",
+        "nextNode": "next node",
+        "pause": "Pause",
+        "resume": "Resume",
+        "review": "Review",
+        "waiting": "Checkpoint · paused at {{node}}"
+      },
+      "collapse": "Collapse Agent Bar",
+      "composer": {
+        "attach": "Add attachments",
+        "attachMenu": {
+          "files": "Attach files",
+          "folder": "Attach folder"
+        },
+        "messageLabel": "Message",
+        "nameOnly": "name only",
+        "nameOnlyHint": "Binary file — only the filename is shared with the agent.",
+        "placeholder": "Describe a goal, drop a sample, or revise...",
+        "placeholderWithRefs": "Ask the Agent to change the referenced nodes...",
+        "removeAttachment": "Remove {{name}}",
+        "reverseDefault": "Reverse-engineer a pipeline from the attached sample: {{names}}",
+        "send": "Send message"
+      },
+      "context": {
+        "footer": {
+          "editing": "Window budget selects by state · editing prioritizes Canvas / selection.",
+          "running": "Window budget selects by state · run-time prioritizes Run / runtime."
+        },
+        "itemCount_one": "{{count}} item",
+        "itemCount_other": "{{count}} items",
+        "items": {
+          "annotations": "Canvas annotations",
+          "annotationsWith": "Canvas annotations · {{count}}",
+          "memory": "Memory summary",
+          "nodeRuntime": "Node runtime",
+          "project": "Project info",
+          "runState": "Run state",
+          "selection": "Selection",
+          "selectionWith": "Selection · {{refs}}",
+          "snapshot": "Pipeline snapshot",
+          "thread": "Conversation thread"
+        },
+        "rules": {
+          "always": "always",
+          "notImplemented": "not yet",
+          "runtime": "run-time priority",
+          "whenPresent": "when present",
+          "whenSelected": "when selected",
+          "windowed": "windowed"
+        },
+        "summary": {
+          "annotations": "+ annotations",
+          "default": "canvas + thread",
+          "running": "prioritizing run + runtime",
+          "selection": "+ selection"
+        },
+        "title": "Context"
+      },
+      "empty": {
+        "intro": "New canvas — tell me what to make, or drop a finished sample and I'll reverse-engineer the pipeline behind it.",
+        "suggestChangelog": "Summarize a GitHub repo into a changelog",
+        "suggestQuiz": "Turn my textbook PDFs into a Notion quiz",
+        "suggestReverse": "Upload a finished sample → reverse-engineer it"
+      },
+      "error": {
+        "tryPrefix": "Try:"
+      },
+      "errors": {
+        "AGENT_FAILED": "The local agent did not respond. It may not be running or is misconfigured — retry, or check the agent runtime.",
+        "BAD_AGENT_OUTPUT": "The agent responded, but I could not turn it into a valid proposal. This is usually transient — please retry.",
+        "INVALID_SNAPSHOT": "The canvas state could not be read. Reload the page and try again.",
+        "RUNTIME_NOT_FOUND": "The configured agent runtime is not available on this machine, so I cannot draft proposals. Pick a detected runtime in Settings → Defaults.",
+        "actions": {
+          "openSettings": "Open Settings",
+          "retry": "Retry"
+        },
+        "proposalDropped": "(The drafted proposal failed validation and was discarded — ask me to try again.)"
+      },
+      "messageActions": {
+        "copied": "Copied",
+        "copy": "Copy",
+        "edit": "Edit",
+        "retry": "Retry"
+      },
+      "proposal": {
+        "actionCount_one": "{{count}} graph action",
+        "actionCount_other": "{{count}} graph actions",
+        "apply": "Apply",
+        "askFix": "Ask agent to fix",
+        "blocked": "Resolve diagnostics before applying",
+        "loopBadge": "loop ×{{count}}",
+        "newOperationBadge": "new op",
+        "reject": "Reject",
+        "revise": "Revise"
+      },
+      "refChipTitle": "Hover to highlight · click to focus on canvas",
+      "removeRef": "Remove {{label}}",
+      "reopen": "Open Agent Bar",
+      "replies": {
+        "appliedNotSaved": "I applied the proposal locally, but could not save it yet.",
+        "appliedSaved": "Applied the proposal and saved the pipeline.",
+        "drafted": "I drafted a pipeline proposal.",
+        "fixRequest": "Please fix the validation errors in the proposal and submit a corrected version.",
+        "missingInputSource": "Heads up — this pipeline has no input source yet. Click the first node to configure its input, or tell me e.g. \"add a folder input\" and I will wire one in before you run.",
+        "noSafeChange": "I could not find a safe graph change for that request.",
+        "rejected": "Rejected the current proposal.",
+        "rejectedWithProposal": "Rejected the proposal “{{summary}}”.",
+        "requestFailed": "I could not reach the agent to draft a proposal. Please try again.",
+        "reviseHint": "Tell me what to revise and I will draft a new proposal.",
+        "reviseHintWithProposal": "Withdrew the proposal “{{summary}}”. Tell me what to revise and I will draft a new one."
+      },
+      "reversing": {
+        "intro": "Reading the sample — inferring the steps that produce it.",
+        "steps": {
+          "draft": "Drafting pipeline",
+          "draftDetail": "assembling nodes and edges",
+          "matched": "Matched components",
+          "matchedDetail": "reusable from your library",
+          "steps": "Inferred steps",
+          "stepsDetail": "parse → generate → verify → export",
+          "structure": "Read structure",
+          "structureDetail": "format, sections, citations"
+        }
+      },
+      "stages": {
+        "analyzing": "Analyzing the sample…",
+        "done": "Wrapping up…",
+        "drafting": "Drafting the proposal…",
+        "thinking": "Reading your request…",
+        "validating": "Validating the proposal…"
+      },
+      "subtitle": {
+        "applied": "Reading · canvas",
+        "clarify": "Reading · goal",
+        "done": "Run complete · asset saved",
+        "empty": "New canvas · no pipeline yet",
+        "proposal": "Drafting · proposal ready",
+        "refsSelected_one": "{{count}} reference selected",
+        "refsSelected_other": "{{count}} references selected",
+        "reversing": "Reading · sample",
+        "running": "Watching · live",
+        "watching": "Watching · {{jobId}} · live"
+      },
+      "thinking": "Thinking…",
+      "thread": {
+        "emptyBody": "All annotations on this node are resolved.",
+        "emptyTitle": "No open notes here",
+        "resolve": "Resolve",
+        "showAll": "Show all",
+        "title": "Thread"
+      },
+      "title": "Agent",
+      "userAction": {
+        "askAgent": "Ask agent",
+        "askDraft": "The executor needs something on node {{node}}: {{message}} — please handle it or tell me what to do.",
+        "openConfig": "Open node config",
+        "title": "Action needed ({{count}})"
+      }
+    },
+    "notFoundPipeline": "Pipeline not found"
   },
   "validation": {
     "nameRequired": "Name is required",
@@ -1150,6 +1860,28 @@
       "cancel": "Cancel",
       "save": "Save",
       "create": "Create"
+    }
+  },
+  "notifications": {
+    "clear": "Clear all",
+    "emptyBody": "Run, self-heal & connector events show here.",
+    "emptyTitle": "All clear",
+    "markRead": "Mark read",
+    "open": "open",
+    "title": "Notifications"
+  },
+  "components": {
+    "findForMe": {
+      "assetFallback": "Reusable pipeline asset",
+      "close": "Close",
+      "empty": "Nothing distilled yet — run a pipeline to grow the library.",
+      "intro": "Most reusable assets, ranked by how often they ran:",
+      "ranking": "Ranking by reuse and relevance",
+      "searching": "Searching your library…",
+      "subtitle": "The Agent scans your component library",
+      "title": "Find for me",
+      "usedTimes_one": "ran {{count}}×",
+      "usedTimes_other": "ran {{count}}×"
     }
   }
 }

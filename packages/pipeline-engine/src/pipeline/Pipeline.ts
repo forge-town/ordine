@@ -29,7 +29,7 @@ import {
   type MetaNodeType,
 } from "@repo/schemas";
 import type { PipelineEngineDeps } from "../deps";
-import { ScriptExecutionError, type PipelineRunError } from "../errors";
+import { PipelineCancelledError, ScriptExecutionError, type PipelineRunError } from "../errors";
 import { buildExecutionLevels, type CycleDetectedError } from "../dagScheduler";
 import { expandTilde, safeReadInputFile } from "../infrastructure";
 import type {
@@ -169,6 +169,8 @@ export interface PipelineRunControlEvent {
 
 export interface PipelineRunControl {
   shouldPauseBeforeNode?: (event: PipelineRunControlEvent) => boolean | Promise<boolean>;
+  /** Cancellation checkpoint: checked at every node boundary (and again after a resume wake-up). When it returns true the run stops scheduling further nodes and settles as cancelled. */
+  shouldCancelBeforeNode?: (event: PipelineRunControlEvent) => boolean | Promise<boolean>;
   waitForResume?: (event: PipelineRunControlEvent) => Promise<void>;
   /** Decision-node suspension: resolves with the candidate source-node id the user picked. When absent, decision nodes fail — choices are never fabricated. */
   waitForDecision?: (event: PipelineDecisionEvent) => Promise<DecisionResult>;
@@ -263,7 +265,13 @@ export class Pipeline {
 
       for (const result of results) {
         if (!result.ok) {
-          await trace(jobId, `Pipeline failed at level ${levelIndex}`);
+          const cancelled = result.error instanceof PipelineCancelledError;
+          await trace(
+            jobId,
+            cancelled
+              ? `Pipeline cancelled at level ${levelIndex}`
+              : `Pipeline failed at level ${levelIndex}`,
+          );
           const remainingLevels = levels.slice(levelIndex + 1).flat();
           await Promise.all(remainingLevels.map((node) => this.emitNodeStatus(node.id, "skipped")));
           await this.cleanupTempDirs();
@@ -335,6 +343,19 @@ export class Pipeline {
     return { inputPath, content };
   }
 
+  /**
+   * Settle a node that was reached after cancellation was requested: it never
+   * ran, so it is marked skipped, and the run stops with PipelineCancelledError.
+   */
+  private async stopForCancellation(
+    nodeId: string,
+  ): Promise<{ ok: false; error: PipelineRunError }> {
+    await trace(this.opts.jobId, `Run cancelled — stopping before node ${nodeId}`);
+    await this.emitNodeStatus(nodeId, "skipped");
+
+    return { ok: false, error: new PipelineCancelledError(nodeId) };
+  }
+
   private async processNodeWithPause(
     node: PipelineNode,
   ): Promise<{ ok: true } | { ok: false; error: PipelineRunError | CycleDetectedError }> {
@@ -352,6 +373,13 @@ export class Pipeline {
     }
 
     const event = { jobId: this.opts.jobId, nodeId: node.id, reason: "pause" as const };
+
+    // Cancellation checkpoint at the node boundary: never start another node
+    // once cancellation has been requested.
+    if (await this.opts.runControl?.shouldCancelBeforeNode?.(event)) {
+      return this.stopForCancellation(node.id);
+    }
+
     const shouldPause = await this.opts.runControl?.shouldPauseBeforeNode?.(event);
 
     if (shouldPause) {
@@ -372,6 +400,12 @@ export class Pipeline {
       await this.emitNodeStatus(node.id, "waitingForUser");
       await waitForResume(event);
       await trace(this.opts.jobId, encodeRunResume(node.id));
+
+      // Re-check after the wake-up: a paused run released by a cancellation
+      // request must stop here instead of running the next node.
+      if (await this.opts.runControl?.shouldCancelBeforeNode?.(event)) {
+        return this.stopForCancellation(node.id);
+      }
     }
 
     const firstResult = await this.processNode(node);
@@ -520,12 +554,15 @@ export class Pipeline {
       }
       await this.emitNodeStatus(node.id, "waitingForUser");
       await trace(jobId, encodeCheckpointWait(node.id));
-      await waitForResume({
-        jobId,
-        nodeId: node.id,
-        reason: "checkpoint",
-      });
+      const checkpointEvent = { jobId, nodeId: node.id, reason: "checkpoint" as const };
+      await waitForResume(checkpointEvent);
       await trace(jobId, encodeCheckpointResume(node.id));
+
+      // Re-check after the wake-up: a checkpoint released by a cancellation
+      // request must stop here instead of executing the node.
+      if (await this.opts.runControl?.shouldCancelBeforeNode?.(checkpointEvent)) {
+        return this.stopForCancellation(node.id);
+      }
       await this.emitNodeStatus(node.id, "running");
     }
 

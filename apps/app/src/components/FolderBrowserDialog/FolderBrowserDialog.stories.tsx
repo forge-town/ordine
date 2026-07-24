@@ -1,8 +1,18 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { Refine } from "@refinedev/core";
-import { canvasStoryDataProvider } from "../../pages/CanvasPage/storybookData";
+import { Refine, type DataProvider } from "@refinedev/core";
 import { FolderBrowserDialog } from "./FolderBrowserDialog";
+
+const mockEntries = [
+  { name: "Documents", path: "/home/user/Documents", type: "directory" },
+  { name: "Projects", path: "/home/user/Projects", type: "directory" },
+  { name: "notes.md", path: "/home/user/notes.md", type: "file" },
+];
+
+const mockDataProvider = {
+  getList: async () => ({ data: mockEntries, total: mockEntries.length }),
+  getApiUrl: () => "",
+} as unknown as DataProvider;
 
 const FolderBrowserStory = (args: React.ComponentProps<typeof FolderBrowserDialog>) => {
   const [open, setOpen] = useState(args.open);
@@ -34,7 +44,7 @@ const meta: Meta<typeof FolderBrowserDialog> = {
   },
   decorators: [
     (Story) => (
-      <Refine dataProvider={canvasStoryDataProvider}>
+      <Refine dataProvider={mockDataProvider}>
         <div className="relative min-h-[28rem] p-6">
           <Story />
         </div>

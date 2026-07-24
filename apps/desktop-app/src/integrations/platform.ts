@@ -1,4 +1,16 @@
-import type { PlatformCapabilities } from "@repo/views/platform";
+import { createScopedRequest, type PlatformCapabilities } from "@repo/views/platform";
+import { getDesktopAuthToken } from "./sidecar/server";
+
+export const DESKTOP_API_BASE = "http://127.0.0.1:9433/api";
+
+export const desktopRequest = createScopedRequest({
+  baseUrl: DESKTOP_API_BASE,
+  getHeaders: () => {
+    const token = getDesktopAuthToken();
+
+    return token ? { "X-Desktop-Token": token } : {};
+  },
+});
 
 /**
  * Desktop 端平台能力实现。
@@ -7,6 +19,8 @@ import type { PlatformCapabilities } from "@repo/views/platform";
  * 后续可替换为 Tauri 原生保存对话框（@tauri-apps/plugin-dialog + fs）。
  */
 export const desktopPlatform: PlatformCapabilities = {
+  apiBaseUrl: DESKTOP_API_BASE,
+  request: desktopRequest,
   downloadBlob: (blob, filename) => {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");

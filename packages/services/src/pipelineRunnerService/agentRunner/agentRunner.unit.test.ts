@@ -1,16 +1,26 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { describe, expect, it, vi, beforeEach, afterAll } from "vitest";
 import { agentEngine } from "@repo/agent-engine";
 import { runAgent } from "./agentRunner";
 
 vi.mock("@repo/agent-engine", () => ({
   agentEngine: {
-    run: vi.fn().mockResolvedValue({ text: "output", events: [] }),
+    run: vi.fn().mockResolvedValue({ text: "output", usage: null }),
   },
 }));
 
 vi.mock("@repo/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
+
+// A real directory: resolveCwd rejects explicitly configured paths that do not exist.
+const inputDir = mkdtempSync(join(tmpdir(), "agent-runner-test-"));
+
+afterAll(() => {
+  rmSync(inputDir, { recursive: true, force: true });
+});
 
 describe("runAgent", () => {
   beforeEach(() => {
@@ -21,7 +31,7 @@ describe("runAgent", () => {
     agent: "claude-code" as const,
     systemPrompt: "sys",
     userPrompt: "user",
-    inputPath: "/tmp/test",
+    inputPath: inputDir,
     agentId: "test-agent",
     logPrefix: "test",
   };
@@ -91,5 +101,22 @@ describe("runAgent", () => {
 
     expect(onProgress).toHaveBeenCalledWith(expect.stringContaining("test: agent=claude-code"));
     expect(onProgress).toHaveBeenCalledWith(expect.stringContaining("test: claude-code complete"));
+  });
+
+  it("emits a structured user-action marker before failing on a missing input path", async () => {
+    const onProgress = vi.fn();
+
+    await expect(
+      runAgent({ ...baseOpts, inputPath: "/nope/does/not/exist", onProgress }),
+    ).rejects.toThrow(/does not exist/);
+
+    const markerLine = onProgress.mock.calls
+      .map((call) => call[0] as string)
+      .find((line) => line.startsWith("@@USER_ACTION::"));
+    expect(markerLine).toBeDefined();
+    expect(markerLine).toContain('"kind":"configure-input"');
+    expect(markerLine).toContain('"field":"inputPath"');
+    expect(markerLine).toContain("/nope/does/not/exist");
+    expect(agentEngine.run).not.toHaveBeenCalled();
   });
 });

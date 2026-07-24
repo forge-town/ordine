@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PluginsPage } from "@repo/views/PluginsPage";
 
 export const Route = createFileRoute("/plugins")({
-  component: () => <div>Plugins</div>,
+  component: PluginsPage,
 });

@@ -14,9 +14,7 @@ import type {
   UpdateParams,
   UpdateResponse,
 } from "@refinedev/core";
-import { getDesktopAuthToken } from "../sidecar/server";
-
-const API_BASE = "http://127.0.0.1:9433/api";
+import { DESKTOP_API_BASE, desktopRequest } from "../platform";
 
 const RESOURCE_PATH: Record<string, string> = {
   agents: "agents",
@@ -35,16 +33,6 @@ const RESOURCE_PATH: Record<string, string> = {
 
 const getPath = (resource: string) => RESOURCE_PATH[resource] ?? resource;
 
-const getAuthHeaders = (): Record<string, string> => {
-  const token = getDesktopAuthToken();
-
-  if (token) {
-    return { "X-Desktop-Token": token };
-  }
-
-  return {};
-};
-
 export const dataProvider: DataProvider = {
   getList: async <TData extends BaseRecord = BaseRecord>(
     params: GetListParams,
@@ -52,7 +40,7 @@ export const dataProvider: DataProvider = {
     const { resource } = params;
     const path = getPath(resource);
 
-    const response = await fetch(`${API_BASE}/${path}`, { headers: getAuthHeaders() });
+    const response = await desktopRequest(`${DESKTOP_API_BASE}/${path}`);
     if (!response.ok) {
       return { data: [] as TData[], total: 0 };
     }
@@ -67,7 +55,7 @@ export const dataProvider: DataProvider = {
     const { resource, id } = params;
     const path = getPath(resource);
 
-    const response = await fetch(`${API_BASE}/${path}/${id}`, { headers: getAuthHeaders() });
+    const response = await desktopRequest(`${DESKTOP_API_BASE}/${path}/${id}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch ${resource}/${id}: ${response.status}`);
     }
@@ -82,9 +70,9 @@ export const dataProvider: DataProvider = {
     const { resource, variables } = params;
     const path = getPath(resource);
 
-    const response = await fetch(`${API_BASE}/${path}`, {
+    const response = await desktopRequest(`${DESKTOP_API_BASE}/${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(variables),
     });
     if (!response.ok) {
@@ -101,9 +89,9 @@ export const dataProvider: DataProvider = {
     const { resource, id, variables } = params;
     const path = getPath(resource);
 
-    const response = await fetch(`${API_BASE}/${path}/${id}`, {
+    const response = await desktopRequest(`${DESKTOP_API_BASE}/${path}/${id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(variables),
     });
     if (!response.ok) {
@@ -120,9 +108,8 @@ export const dataProvider: DataProvider = {
     const { resource, id } = params;
     const path = getPath(resource);
 
-    const response = await fetch(`${API_BASE}/${path}/${id}`, {
+    const response = await desktopRequest(`${DESKTOP_API_BASE}/${path}/${id}`, {
       method: "DELETE",
-      headers: getAuthHeaders(),
     });
     if (!response.ok) {
       throw new Error(`Failed to delete ${resource}/${id}: ${response.status}`);
@@ -132,17 +119,17 @@ export const dataProvider: DataProvider = {
     return { data };
   },
 
-  getApiUrl: () => API_BASE,
+  getApiUrl: () => DESKTOP_API_BASE,
 
   custom: async <TData extends BaseRecord = BaseRecord>(
     params: CustomParams,
   ): Promise<CustomResponse<TData>> => {
     const { url, method = "get", payload } = params;
-    const fetchUrl = url.startsWith("http") ? url : `${API_BASE}/${url}`;
+    const fetchUrl = url.startsWith("http") ? url : `${DESKTOP_API_BASE}/${url}`;
 
-    const response = await fetch(fetchUrl, {
+    const response = await desktopRequest(fetchUrl, {
       method: method.toUpperCase(),
-      headers: { ...(payload ? { "Content-Type": "application/json" } : {}), ...getAuthHeaders() },
+      headers: payload ? { "Content-Type": "application/json" } : undefined,
       body: payload ? JSON.stringify(payload) : undefined,
     });
     if (!response.ok) {

@@ -7,6 +7,7 @@ import {
   Clock,
   Loader2,
   Ban,
+  Pause,
   SkipForward,
   Terminal,
   Info,
@@ -38,6 +39,11 @@ const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; b
     icon: Loader2,
     cls: "bg-blue-50 text-blue-700",
     bar: "bg-blue-500",
+  },
+  paused: {
+    icon: Pause,
+    cls: "bg-violet-50 text-violet-700",
+    bar: "bg-violet-400",
   },
   done: {
     icon: CheckCircle2,
@@ -77,6 +83,7 @@ const getStatusLabel = (status: JobStatus, t: (key: string) => string): string =
   const statusMap: Record<JobStatus, string> = {
     queued: t("jobs.statusQueued"),
     running: t("jobs.statusRunning"),
+    paused: t("jobs.statusPaused"),
     done: t("jobs.statusDone"),
     failed: t("jobs.statusFailed"),
     cancelled: t("jobs.statusCancelled"),

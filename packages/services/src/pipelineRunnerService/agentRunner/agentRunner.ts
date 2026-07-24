@@ -1,7 +1,7 @@
 import { ResultAsync } from "neverthrow";
 import { agentEngine, type AgentInputAttachment } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
-import type { AgentRuntime, SshConnection } from "@repo/schemas";
+import { TRACE_MARKER, type AgentRuntime, type SshConnection } from "@repo/schemas";
 import { resolveCwd } from "../resolveCwd";
 
 export interface AgentRunnerOptions {
@@ -46,7 +46,22 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
     `${logPrefix}: agent=${agent}, system length=${systemPrompt.length}, input length=${userPrompt.length}`,
   );
 
-  const cwd = resolveCwd({ inputPath });
+  const cwdResult = resolveCwd({ inputPath });
+  if (cwdResult.isErr()) {
+    // Structured user-action marker: flows into job_traces via onProgress so the
+    // frontend can render a configuration guidance card. The node still fails.
+    await onProgress?.(
+      `${TRACE_MARKER.userAction}${JSON.stringify({
+        kind: "configure-input",
+        message: `Input path "${inputPath}" does not exist — configure an existing input folder or file for this node.`,
+        field: "inputPath",
+      })}`,
+    );
+    await onProgress?.(`${logPrefix}: Error — ${cwdResult.error.message}`);
+
+    throw cwdResult.error;
+  }
+  const cwd = cwdResult.value;
 
   const engineResult = await ResultAsync.fromPromise(
     agentEngine.run({

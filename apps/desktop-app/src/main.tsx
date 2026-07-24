@@ -8,6 +8,7 @@ import { routeTree } from "./routeTree.gen";
 import { dataProvider } from "./integrations/refine/dataProvider";
 import { desktopPlatform } from "./integrations/platform";
 import { ServerGate } from "./components/ServerGate";
+import "./plugins/init";
 import "./lib/i18n";
 import "./styles.css";
 

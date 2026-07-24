@@ -4,6 +4,7 @@ import {
   Clock,
   Loader2,
   Ban,
+  Pause,
   SkipForward,
   Trash2,
   ChevronRight,
@@ -26,6 +27,11 @@ const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot
     icon: Loader2,
     cls: "bg-blue-50 text-blue-700",
     dot: "bg-blue-500",
+  },
+  paused: {
+    icon: Pause,
+    cls: "bg-violet-50 text-violet-700",
+    dot: "bg-violet-400",
   },
   done: {
     icon: CheckCircle2,

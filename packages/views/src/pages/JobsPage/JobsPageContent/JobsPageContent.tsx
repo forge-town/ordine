@@ -50,6 +50,7 @@ export const JobsPageContent = () => {
   const counts: Record<JobStatus, number> = {
     queued: jobs.filter((j: Job) => j.status === "queued").length,
     running: jobs.filter((j: Job) => j.status === "running").length,
+    paused: jobs.filter((j: Job) => j.status === "paused").length,
     done: jobs.filter((j: Job) => j.status === "done").length,
     failed: jobs.filter((j: Job) => j.status === "failed").length,
     cancelled: jobs.filter((j: Job) => j.status === "cancelled").length,
