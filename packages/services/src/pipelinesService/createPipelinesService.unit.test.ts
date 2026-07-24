@@ -45,9 +45,13 @@ const mockExtractJsonFromText = vi.fn((raw: string) => raw);
 const mockDistillationsDao = {
   findById: vi.fn(),
 };
+const mockConversationMessagesDao = {
+  findManyByPipelineId: vi.fn().mockResolvedValue([]),
+};
 
 vi.mock("@repo/models", () => ({
   createAgentRuntimesDao: () => mockAgentRuntimesDao,
+  createConversationMessagesDao: () => mockConversationMessagesDao,
   createPipelinesDao: () => mockDao,
   createDistillationsDao: () => mockDistillationsDao,
   createJobsDao: () => ({}),
@@ -108,6 +112,8 @@ describe("createPipelinesService", () => {
     mockExtractJsonFromText.mockReset();
     mockExtractJsonFromText.mockImplementation((raw: string) => raw);
     mockDistillationsDao.findById.mockReset();
+    mockConversationMessagesDao.findManyByPipelineId.mockClear();
+    mockConversationMessagesDao.findManyByPipelineId.mockResolvedValue([]);
   };
 
   beforeEach(() => {
@@ -197,6 +203,140 @@ describe("createPipelinesService", () => {
     expect(mockDao.delete).not.toHaveBeenCalled();
   });
 
+  it("proposeActions surfaces reply and proposal from the new agent output format", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "我移除了过期节点。",
+        proposal: {
+          summary: "remove stale node",
+          actions: [{ type: "removeNode", nodeId: "folder-1" }],
+        },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "删掉 folder-1",
+      pipelineId: "p1",
+    });
+
+    expect(result.reply).toBe("我移除了过期节点。");
+    expect(result.proposal).toEqual({
+      summary: "remove stale node",
+      actions: [{ type: "removeNode", nodeId: "folder-1" }],
+    });
+    expect(result.diagnostics).toEqual([]);
+  });
+
+  it("proposeActions returns clarify options without a proposal when the agent asks back", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "你想处理哪种输入？",
+        clarifyOptions: ["本地文件夹", "GitHub 仓库", "纯文本指令"],
+        proposal: null,
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "帮我处理一下文件",
+      pipelineId: "p1",
+    });
+
+    expect(result.proposal).toBeNull();
+    expect(result.reply).toBe("你想处理哪种输入？");
+    expect(result.clarifyOptions).toEqual(["本地文件夹", "GitHub 仓库", "纯文本指令"]);
+    expect(result.diagnostics).toEqual([]);
+  });
+
+  it("proposeActions keeps the reply when the structured proposal fails validation", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "尝试修改图结构。",
+        proposal: { summary: "broken", actions: [{ type: "unknownAction" }] },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "改一下",
+      pipelineId: "p1",
+    });
+
+    expect(result.proposal).toBeNull();
+    expect(result.reply).toBe("尝试修改图结构。");
+  });
+
+  it("proposeActions retries once with schema diagnostics instead of dropping the proposal", async () => {
+    mockRunAgent
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          reply: "搭好了。",
+          proposal: { summary: "broken", actions: [{ type: "unknownAction" }] },
+        }),
+      )
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          reply: "修正后的提案。",
+          proposal: {
+            summary: "remove stale node",
+            actions: [{ type: "removeNode", nodeId: "folder-1" }],
+          },
+        }),
+      );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "搭一条流水线",
+      pipelineId: "p1",
+    });
+
+    expect(mockRunAgent).toHaveBeenCalledTimes(2);
+    const secondCall = mockRunAgent.mock.calls[1]?.[0] as { userPrompt: string } | undefined;
+    const secondPrompt = secondCall?.userPrompt ?? "";
+    expect(secondPrompt).toContain("=== PREVIOUS PROPOSAL DIAGNOSTICS ===");
+    expect(secondPrompt).toContain("Failed proposal for reference:");
+    expect(result.proposal).toEqual({
+      summary: "remove stale node",
+      actions: [{ type: "removeNode", nodeId: "folder-1" }],
+    });
+    expect(result.reply).toBe("修正后的提案。");
+  });
+
+  it("proposeActions injects conversation history into the user prompt", async () => {
+    mockConversationMessagesDao.findManyByPipelineId.mockResolvedValue([
+      { content: "build a quiz pipeline", metadata: null, role: "user" },
+      { content: "Drafted it.", metadata: { proposalSnapshot: {} }, role: "agent" },
+      { content: "再加一个校验步骤", metadata: null, role: "user" },
+    ] as never);
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        summary: "remove stale node",
+        actions: [{ type: "removeNode", nodeId: "folder-1" }],
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    await svc.proposeActions({
+      snapshot,
+      message: "再加一个校验步骤",
+      pipelineId: "p1",
+    });
+
+    const callArgs = mockRunAgent.mock.calls[0]?.[0] as { userPrompt: string };
+    expect(mockConversationMessagesDao.findManyByPipelineId).toHaveBeenCalledWith("p1");
+    expect(callArgs.userPrompt).toContain("=== CONVERSATION HISTORY (oldest first) ===");
+    expect(callArgs.userPrompt).toContain("[user]: build a quiz pipeline");
+    expect(callArgs.userPrompt).toContain("[assistant] (included a graph proposal): Drafted it.");
+    // The current message already sits in the USER REQUEST section; it must
+    // not repeat inside the history block.
+    expect(callArgs.userPrompt).not.toContain("[user]: 再加一个校验步骤");
+  });
+
   it("proposeActions uses the selected runtime config when runtimeId is provided", async () => {
     mockRunAgent.mockResolvedValue(
       JSON.stringify({
@@ -232,12 +372,12 @@ describe("createPipelinesService", () => {
     expect(result).toEqual({
       proposal: null,
       diagnostics: [],
-      reply: 'Selected runtime "missing-runtime" is not available.',
+      error: { code: "RUNTIME_NOT_FOUND", detail: "missing-runtime" },
     });
     expect(mockRunAgent).not.toHaveBeenCalled();
   });
 
-  it("proposeActions retries the agent three times, then returns an empty proposal", async () => {
+  it("proposeActions retries the agent three times, then reports AGENT_FAILED", async () => {
     mockRunAgent.mockRejectedValue(new Error("Agent unavailable"));
     const svc = createPipelinesService({} as never);
 
@@ -247,7 +387,11 @@ describe("createPipelinesService", () => {
     });
 
     expect(mockRunAgent).toHaveBeenCalledTimes(3);
-    expect(result).toStrictEqual({ proposal: null, diagnostics: [] });
+    expect(result).toStrictEqual({
+      proposal: null,
+      diagnostics: [],
+      error: { code: "AGENT_FAILED", detail: "agent failed after retries" },
+    });
   });
 
   it("proposeActions returns diagnostics for operation nodes with unknown operation IDs", async () => {
@@ -582,6 +726,221 @@ describe("createPipelinesService", () => {
     });
   });
 
+  it("proposeActions drops drafted operations whose id lacks the op_new_ prefix", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "Drafted a new step.",
+        newOperations: [
+          { id: "make_quiz", name: "Make Quiz", description: "quiz step", prompt: "do it" },
+        ],
+        proposal: {
+          summary: "remove stale node",
+          actions: [{ type: "removeNode", nodeId: "folder-1" }],
+        },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "draft a quiz step",
+    });
+
+    expect(result.pendingOperations).toBeUndefined();
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "INVALID_NODE_DATA",
+        severity: "warning",
+        message: expect.stringContaining('"make_quiz"'),
+      }),
+    ]);
+  });
+
+  it("proposeActions drops drafted operations whose id collides with the catalog", async () => {
+    mockOperationsDao.findMany.mockResolvedValueOnce([
+      {
+        id: "op_new_existing",
+        name: "Existing Materialized Operation",
+        description: "already in the catalog",
+        acceptedObjectTypes: ["folder"],
+      },
+    ]);
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "Drafted a replacement.",
+        newOperations: [
+          {
+            id: "op_new_existing",
+            name: "Shadowing Operation",
+            description: "tries to override",
+            prompt: "evil",
+          },
+        ],
+        proposal: {
+          summary: "add the step",
+          actions: [
+            {
+              type: "addNode",
+              node: {
+                id: "operation-1",
+                type: "operation",
+                position: { x: 0, y: 0 },
+                data: {
+                  nodeType: "operation",
+                  label: "Step",
+                  operationId: "op_new_existing",
+                  operationName: "Shadowing Operation",
+                  status: "idle",
+                },
+              },
+            },
+          ],
+        },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "add the step",
+    });
+
+    // The drafted operation never enters the catalog map, so the node's
+    // operationName is corrected back to the real catalog entry.
+    expect(result.pendingOperations).toBeUndefined();
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "INVALID_NODE_DATA",
+          severity: "warning",
+          message: expect.stringContaining("collides with an existing operation"),
+        }),
+        expect.objectContaining({
+          code: "INVALID_NODE_DATA",
+          severity: "error",
+          message: expect.stringContaining('"op_new_existing"'),
+        }),
+      ]),
+    );
+    const action = result.proposal?.actions[0];
+    expect(action).toMatchObject({
+      type: "addNode",
+      node: { data: { operationName: "Existing Materialized Operation" } },
+    });
+  });
+
+  it("proposeActions emits an error when a rejected draft id is still referenced", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "Drafted a step.",
+        newOperations: [
+          {
+            id: "bad_id",
+            name: "Bad Step",
+            description: "no prefix",
+            prompt: "do it",
+          },
+        ],
+        proposal: {
+          summary: "add the step",
+          actions: [
+            {
+              type: "addNode",
+              node: {
+                id: "operation-1",
+                type: "operation",
+                position: { x: 0, y: 0 },
+                data: {
+                  nodeType: "operation",
+                  label: "Step",
+                  operationId: "bad_id",
+                  operationName: "Bad Step",
+                  status: "idle",
+                },
+              },
+            },
+          ],
+        },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "add the step",
+    });
+
+    expect(result.pendingOperations).toBeUndefined();
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "INVALID_NODE_DATA",
+          severity: "warning",
+          message: expect.stringContaining('"bad_id"'),
+        }),
+        expect.objectContaining({
+          code: "INVALID_NODE_DATA",
+          severity: "error",
+          message: expect.stringContaining('"bad_id"'),
+        }),
+      ]),
+    );
+  });
+
+  it("proposeActions materializes valid op_new_ operations as pendingOperations", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "Drafted a summarize step.",
+        newOperations: [
+          {
+            id: "op_new_summarize",
+            name: "Summarize Notes",
+            description: "summarize input notes",
+            prompt: "Summarize the incoming notes.",
+          },
+        ],
+        proposal: {
+          summary: "add summarize step",
+          actions: [
+            {
+              type: "addNode",
+              node: {
+                id: "operation-1",
+                type: "operation",
+                position: { x: 0, y: 0 },
+                data: {
+                  nodeType: "operation",
+                  label: "Summarize",
+                  operationId: "op_new_summarize",
+                  operationName: "Summarize Notes",
+                  status: "idle",
+                },
+              },
+            },
+          ],
+        },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "add summarize step",
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.pendingOperations).toEqual([
+      expect.objectContaining({
+        id: "op_new_summarize",
+        name: "Summarize Notes",
+        description: "summarize input notes",
+      }),
+    ]);
+    expect(result.proposal?.actions[0]).toMatchObject({
+      node: { data: { operationId: "op_new_summarize", operationName: "Summarize Notes" } },
+    });
+  });
+
   it("proposeActions returns null proposal when snapshot is invalid at runtime", async () => {
     const svc = createPipelinesService({} as never);
 
@@ -590,7 +949,11 @@ describe("createPipelinesService", () => {
       message: "invalid snapshot",
     });
 
-    expect(result).toEqual({ proposal: null, diagnostics: [] });
+    expect(result).toEqual({
+      proposal: null,
+      diagnostics: [],
+      error: { code: "INVALID_SNAPSHOT" },
+    });
     expect(mockRunAgent).not.toHaveBeenCalled();
   });
 
@@ -604,7 +967,13 @@ describe("createPipelinesService", () => {
       message: "invalid",
     });
 
-    expect(result).toEqual({ proposal: null, diagnostics: [] });
+    // The response detail stays generic; the raw model snippet only goes to
+    // the error log.
+    expect(result).toEqual({
+      proposal: null,
+      diagnostics: [],
+      error: { code: "BAD_AGENT_OUTPUT", detail: "agent returned invalid JSON" },
+    });
     expect(mockDao.create).not.toHaveBeenCalled();
     expect(mockDao.update).not.toHaveBeenCalled();
     expect(mockDao.delete).not.toHaveBeenCalled();
@@ -625,7 +994,11 @@ describe("createPipelinesService", () => {
       message: "schema-invalid",
     });
 
-    expect(result).toEqual({ proposal: null, diagnostics: [] });
+    expect(result).toEqual({
+      proposal: null,
+      diagnostics: [],
+      error: { code: "BAD_AGENT_OUTPUT", detail: "proposal failed schema validation" },
+    });
     expect(mockDao.create).not.toHaveBeenCalled();
     expect(mockDao.update).not.toHaveBeenCalled();
     expect(mockDao.delete).not.toHaveBeenCalled();

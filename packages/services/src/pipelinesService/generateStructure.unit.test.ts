@@ -31,6 +31,7 @@ const mockAgentRuntimesDao = {
 
 vi.mock("@repo/models", () => ({
   createAgentRuntimesDao: () => mockAgentRuntimesDao,
+  createConversationMessagesDao: () => ({ findManyByPipelineId: vi.fn().mockResolvedValue([]) }),
   createPipelinesDao: () => mockDao,
   createDistillationsDao: () => ({}),
   createJobsDao: () => ({}),

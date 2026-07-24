@@ -370,6 +370,78 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
+  it("materializes pendingOperations when approving an edit-mode proposal", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "canvas-agent-panel",
+      mode: "edit",
+      status: "proposal_ready",
+      pipelineId: "pipe-1",
+      snapshot: { nodes: [], edges: [] },
+      latestProposalId: "proposal-edit-1",
+      approvedProposalId: null,
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    mockProposalsDao.findById.mockResolvedValueOnce({
+      id: "proposal-edit-1",
+      sessionId: "session-1",
+      mode: "edit",
+      status: "proposal_ready",
+      proposal: {
+        mode: "edit",
+        summary: "Add summarize step",
+        targetGraphIntent: "Add summarize step",
+        majorChanges: [],
+        assumptions: [],
+        openQuestions: [],
+        actions: [],
+        diagnosticsPreview: [],
+        readiness: "ready_for_generation",
+        pendingOperations: [
+          {
+            id: "op_new_summarize",
+            name: "Summarize Notes",
+            description: "summarize input notes",
+            config: { executor: { type: "agent" } },
+            acceptedObjectTypes: ["file", "folder"],
+          },
+        ],
+      },
+      createdAt: new Date("2026-06-03T12:00:02.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:02.000Z"),
+      approvedAt: null,
+    });
+    const service = createPipelineAgentSessionsService({} as never);
+
+    await service.approveProposal("session-1", "proposal-edit-1");
+
+    expect(mockPipelinesService.createPendingOperations).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: "op_new_summarize",
+        name: "Summarize Notes",
+        acceptedObjectTypes: ["file", "folder"],
+      }),
+    ]);
+    expect(mockProposalsDao.update).toHaveBeenCalledWith(
+      "proposal-edit-1",
+      expect.objectContaining({ status: "approved" }),
+    );
+    expect(mockSessionsDao.update).toHaveBeenCalledWith(
+      "session-1",
+      expect.objectContaining({ status: "approved" }),
+    );
+  });
+
+  it("does not call createPendingOperations for proposals without pendingOperations", async () => {
+    const service = createPipelineAgentSessionsService({} as never);
+
+    await service.approveProposal("session-1", "proposal-1");
+
+    expect(mockPipelinesService.createPendingOperations).not.toHaveBeenCalled();
+  });
+
   it("rejects approval when a proposal still needs user input", async () => {
     mockProposalsDao.findById.mockResolvedValueOnce({
       id: "proposal-needs-answer",
@@ -633,6 +705,70 @@ describe("createPipelineAgentSessionsService", () => {
           mode: "edit",
           summary: "Delete invalid middle nodes",
           actions: [{ type: "removeNode", nodeId: "node-1" }],
+        }),
+      }),
+    );
+  });
+
+  it("stores pendingOperations returned by proposeActions in the edit proposal", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-edit",
+      entrypoint: "canvas-agent-panel",
+      mode: "edit",
+      status: "draft",
+      pipelineId: "pipe-1",
+      snapshot: { nodes: [], edges: [] },
+      latestProposalId: null,
+      approvedProposalId: null,
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    mockRunAgent.mockResolvedValueOnce(
+      JSON.stringify({
+        type: "proposal",
+        proposal: {
+          mode: "edit",
+          summary: "Add summarize step",
+          targetGraphIntent: "Add summarize step",
+          majorChanges: ["Add summarize step"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+      }),
+    );
+    mockPipelinesService.proposeActions.mockResolvedValueOnce({
+      proposal: {
+        summary: "Add summarize step",
+        actions: [],
+      },
+      diagnostics: [],
+      pendingOperations: [
+        {
+          id: "op_new_summarize",
+          name: "Summarize Notes",
+          description: "summarize input notes",
+          config: { executor: { type: "agent" } },
+          acceptedObjectTypes: ["file", "folder"],
+        },
+      ],
+    });
+
+    const service = createPipelineAgentSessionsService({} as never);
+    const result = await service.planSession("session-edit");
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        type: "proposal",
+        proposal: expect.objectContaining({
+          mode: "edit",
+          pendingOperations: [
+            expect.objectContaining({
+              id: "op_new_summarize",
+              name: "Summarize Notes",
+            }),
+          ],
         }),
       }),
     );
