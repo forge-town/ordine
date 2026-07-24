@@ -505,6 +505,48 @@ describe("AgentPanel", () => {
     expect(screen.getByText("canvas.agentPanel.apply")).toBeInTheDocument();
   });
 
+  it("disables the apply button when a blocking diagnostic is present", async () => {
+    const proposal: PipelineActionProposal = {
+      summary: "Add a review operation",
+      actions: [
+        {
+          type: "addNode",
+          node: {
+            id: "op-1",
+            type: "operation",
+            position: { x: 100, y: 100 },
+            data: {
+              nodeType: "operation",
+              operationId: "review-code",
+              operationName: "Review Code",
+              label: "Review Code",
+              status: "idle",
+            },
+          },
+        },
+      ],
+    };
+    const diagnostics: PipelineActionDiagnostic[] = [
+      {
+        code: "INVALID_NODE_DATA",
+        severity: "error",
+        message: "Operation node references rejected drafted operation.",
+      },
+    ];
+
+    render(<AgentPanel />, {
+      wrapper: wrapperWithState({ pendingProposal: proposal, diagnostics }),
+    });
+
+    const applyButton = screen.getByText("canvas.agentPanel.apply");
+    expect(applyButton).toBeDisabled();
+
+    await userEvent.click(applyButton);
+
+    expect(mockApproveProposal).not.toHaveBeenCalled();
+    expect(mockApplyPipelineActions).not.toHaveBeenCalled();
+  });
+
   it("renders a follow-up question from session fallback when the stream misses question", async () => {
     mockPlanSessionStream.mockResolvedValue(undefined);
     mockGetLatestAssistantQuestion.mockResolvedValueOnce({

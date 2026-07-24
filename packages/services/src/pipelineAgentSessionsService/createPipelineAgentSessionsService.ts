@@ -21,6 +21,7 @@ import {
   type AgentRuntime,
   PipelineAgentPlanReadinessSchema,
   PipelineAgentPlanningResultSchema,
+  type ObjectNodeType,
   type PipelineAgentAttachmentParseStatus,
   type PipelineAgentAttachmentSourceType,
   type PipelineAgentContextArtifactContent,
@@ -732,6 +733,15 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         throw new Error(`Pipeline agent proposal ${proposalId} is not ready for approval`);
       }
 
+      if (proposal.proposal.mode === "edit" && proposal.proposal.pendingOperations?.length > 0) {
+        await pipelinesService.createPendingOperations(
+          proposal.proposal.pendingOperations.map((op) => ({
+            ...op,
+            acceptedObjectTypes: op.acceptedObjectTypes as ObjectNodeType[],
+          })),
+        );
+      }
+
       await proposalsDao.update(proposalId, {
         status: "approved",
         approvedAt: new Date(),
@@ -895,6 +905,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
               actions: actionProposalResult.proposal.actions,
               diagnosticsPreview: actionProposalResult.diagnostics,
               readiness: editProposal.readiness,
+              pendingOperations: actionProposalResult.pendingOperations ?? [],
             };
             const saved = await proposalsDao.create({
               id: crypto.randomUUID(),

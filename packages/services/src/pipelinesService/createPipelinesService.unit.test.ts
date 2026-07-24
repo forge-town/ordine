@@ -296,7 +296,8 @@ describe("createPipelinesService", () => {
     });
 
     expect(mockRunAgent).toHaveBeenCalledTimes(2);
-    const secondPrompt = (mockRunAgent.mock.calls[1]?.[0] as { userPrompt: string }).userPrompt;
+    const secondCall = mockRunAgent.mock.calls[1]?.[0] as { userPrompt: string } | undefined;
+    const secondPrompt = secondCall?.userPrompt ?? "";
     expect(secondPrompt).toContain("=== PREVIOUS PROPOSAL DIAGNOSTICS ===");
     expect(secondPrompt).toContain("Failed proposal for reference:");
     expect(result.proposal).toEqual({
@@ -389,7 +390,7 @@ describe("createPipelinesService", () => {
     expect(result).toStrictEqual({
       proposal: null,
       diagnostics: [],
-      error: { code: "AGENT_FAILED", detail: "Agent unavailable" },
+      error: { code: "AGENT_FAILED", detail: "agent failed after retries" },
     });
   });
 
@@ -807,18 +808,83 @@ describe("createPipelinesService", () => {
     // The drafted operation never enters the catalog map, so the node's
     // operationName is corrected back to the real catalog entry.
     expect(result.pendingOperations).toBeUndefined();
-    expect(result.diagnostics).toEqual([
-      expect.objectContaining({
-        code: "INVALID_NODE_DATA",
-        severity: "warning",
-        message: expect.stringContaining("collides with an existing operation"),
-      }),
-    ]);
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "INVALID_NODE_DATA",
+          severity: "warning",
+          message: expect.stringContaining("collides with an existing operation"),
+        }),
+        expect.objectContaining({
+          code: "INVALID_NODE_DATA",
+          severity: "error",
+          message: expect.stringContaining('"op_new_existing"'),
+        }),
+      ]),
+    );
     const action = result.proposal?.actions[0];
     expect(action).toMatchObject({
       type: "addNode",
       node: { data: { operationName: "Existing Materialized Operation" } },
     });
+  });
+
+  it("proposeActions emits an error when a rejected draft id is still referenced", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        reply: "Drafted a step.",
+        newOperations: [
+          {
+            id: "bad_id",
+            name: "Bad Step",
+            description: "no prefix",
+            prompt: "do it",
+          },
+        ],
+        proposal: {
+          summary: "add the step",
+          actions: [
+            {
+              type: "addNode",
+              node: {
+                id: "operation-1",
+                type: "operation",
+                position: { x: 0, y: 0 },
+                data: {
+                  nodeType: "operation",
+                  label: "Step",
+                  operationId: "bad_id",
+                  operationName: "Bad Step",
+                  status: "idle",
+                },
+              },
+            },
+          ],
+        },
+      }),
+    );
+    const svc = createPipelinesService({} as never);
+
+    const result = await svc.proposeActions({
+      snapshot,
+      message: "add the step",
+    });
+
+    expect(result.pendingOperations).toBeUndefined();
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "INVALID_NODE_DATA",
+          severity: "warning",
+          message: expect.stringContaining('"bad_id"'),
+        }),
+        expect.objectContaining({
+          code: "INVALID_NODE_DATA",
+          severity: "error",
+          message: expect.stringContaining('"bad_id"'),
+        }),
+      ]),
+    );
   });
 
   it("proposeActions materializes valid op_new_ operations as pendingOperations", async () => {

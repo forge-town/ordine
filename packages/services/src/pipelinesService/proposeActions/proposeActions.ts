@@ -13,22 +13,23 @@ import {
   PipelineActionProposalSchema,
   type AgentContextPayload,
   type ArtifactAnalysis,
-  type PipelineActionDiagnostic,
   type ProposeAttachment,
   type PipelineGraphSnapshot,
   type ProposeActionsResponse,
-  type ProposePendingOperation,
 } from "@repo/schemas";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
 import { analyzeArtifacts } from "./analyzeArtifacts";
+import { buildProposeUserPrompt } from "./buildProposePrompt";
 import { setProposeProgress } from "./progressStore";
-import { buildProposeUserPrompt, type ProposeActiveRun } from "./buildProposePrompt";
-import type { ProposeHistoryMessage } from "./conversationHistory";
+import { loadActiveRun } from "./loadActiveRun";
+import { loadConversationHistory } from "./loadConversationHistory";
 import { normalizeProposalActionCatalogNames } from "./normalizeProposalActionCatalogNames";
 import { normalizeProposalPayload } from "./normalizeProposalPayload";
-import { parseProposeAgentOutput, type ParsedNewOperation } from "./parseAgentOutput";
+import { parseProposeAgentOutput } from "./parseAgentOutput";
 import { runProposeAgent } from "./runProposeAgent";
+import { screenNewOperations, toPendingOperations } from "./screenNewOperations";
 import { validateProposalActionCatalog } from "./validateProposalCatalog";
+import { validateRejectedOperationReferences } from "./validateRejectedOperationReferences";
 
 export type ProposeActionsDeps = {
   agentRuntimesDao: ReturnType<typeof createAgentRuntimesDao>;
@@ -37,72 +38,6 @@ export type ProposeActionsDeps = {
   jobTracesDao: ReturnType<typeof createJobTracesDao>;
   operationsDao: ReturnType<typeof createOperationsDao>;
   settingsDao: ReturnType<typeof createSettingsDao>;
-};
-
-const MAX_ACTIVE_RUN_TRACES = 30;
-
-/**
- * When the message carries a runState, load the job plus its most recent
- * traces. Returns undefined when the job does not exist or no runState was
- * provided — in that case the prompt neither injects nor claims any run
- * context.
- */
-const loadActiveRun = async (
-  deps: Pick<ProposeActionsDeps, "jobsDao" | "jobTracesDao">,
-  runState: NonNullable<ProposeActionsOptions["context"]>["runState"],
-): Promise<ProposeActiveRun | undefined> => {
-  if (!runState) {
-    return undefined;
-  }
-
-  const job = await deps.jobsDao.findById(runState.jobId);
-  if (!job) {
-    logger.warn({ jobId: runState.jobId }, "proposeActions: runState job not found");
-
-    return undefined;
-  }
-
-  const traces = await deps.jobTracesDao.findByJobId(runState.jobId);
-
-  return {
-    jobId: job.id,
-    jobStatus: job.status,
-    nodeStatuses: runState.nodeStatuses,
-    // findByJobId returns newest first; slice, then reverse to oldest-first
-    // so the prompt reads chronologically.
-    traces: traces
-      .slice(0, MAX_ACTIVE_RUN_TRACES)
-      .reverse()
-      .map((trace) => ({ level: trace.level, message: trace.message })),
-  };
-};
-
-/**
- * Load the pipeline conversation as prompt history. The current user message
- * is persisted before proposeActions is called, so a trailing duplicate of it
- * is dropped to avoid repeating the USER REQUEST section.
- */
-const loadConversationHistory = async (
-  conversationMessagesDao: ProposeActionsDeps["conversationMessagesDao"],
-  pipelineId: string | undefined,
-  currentMessage: string,
-): Promise<ProposeHistoryMessage[]> => {
-  if (!pipelineId) {
-    return [];
-  }
-
-  const rows = await conversationMessagesDao.findManyByPipelineId(pipelineId);
-  const trailing = rows.at(-1);
-  const withoutCurrent =
-    trailing && trailing.role === "user" && trailing.content.trim() === currentMessage.trim()
-      ? rows.slice(0, -1)
-      : rows;
-
-  return withoutCurrent.map((row) => ({
-    content: row.content,
-    hasProposal: Boolean((row.metadata as { proposalSnapshot?: unknown } | null)?.proposalSnapshot),
-    role: row.role === "user" ? "user" : "agent",
-  }));
 };
 
 export type ProposeActionsOptions = {
@@ -133,89 +68,6 @@ export type ProposeActionsOptions = {
 
 const MAX_SEMANTIC_RETRIES = 1;
 const MAX_DIAGNOSTIC_ISSUES = 5;
-
-const NEW_OPERATION_ID_PREFIX = "op_new_";
-
-/**
- * Enforce the agent-drafted operation contract: ids must start with
- * `op_new_` and must not collide with the operation catalog (which includes
- * previously materialized op_new_ ids). Non-conforming entries are dropped —
- * they never enter the catalog map or pendingOperations — so the agent
- * cannot shadow a real operation; each drop surfaces as a warning
- * diagnostic.
- */
-const screenNewOperations = (
-  newOperations: ParsedNewOperation[],
-  catalogById: Map<string, { name: string }>,
-): { accepted: ParsedNewOperation[]; diagnostics: PipelineActionDiagnostic[] } => {
-  const accepted: ParsedNewOperation[] = [];
-  const acceptedIds = new Set<string>();
-  const diagnostics: PipelineActionDiagnostic[] = [];
-
-  for (const operation of newOperations) {
-    if (!operation.id.startsWith(NEW_OPERATION_ID_PREFIX)) {
-      diagnostics.push({
-        actionIndex: null,
-        code: "INVALID_NODE_DATA",
-        message: `Dropped drafted operation "${operation.name}": id "${operation.id}" must start with "${NEW_OPERATION_ID_PREFIX}".`,
-        severity: "warning",
-      });
-      continue;
-    }
-
-    if (catalogById.has(operation.id) || acceptedIds.has(operation.id)) {
-      diagnostics.push({
-        actionIndex: null,
-        code: "INVALID_NODE_DATA",
-        message: `Dropped drafted operation "${operation.name}": id "${operation.id}" collides with an existing operation.`,
-        severity: "warning",
-      });
-      continue;
-    }
-
-    accepted.push(operation);
-    acceptedIds.add(operation.id);
-  }
-
-  return { accepted, diagnostics };
-};
-
-/** Materialize agent-drafted operations as pending operation configs. */
-const toPendingOperations = (newOperations: ParsedNewOperation[]): ProposePendingOperation[] =>
-  newOperations.map((operation) => ({
-    acceptedObjectTypes: ["file", "folder", "github-project", "prompt"],
-    config: {
-      executor: {
-        type: "agent",
-        agentMode: "prompt",
-        prompt:
-          operation.prompt.trim().length > 0
-            ? operation.prompt
-            : [
-                `You are an automation agent executing the task: "${operation.name}".`,
-                operation.description ? `Context: ${operation.description}` : "",
-                "",
-                "You will receive input data from the previous pipeline step.",
-                "Analyze the input thoroughly and execute the task described above.",
-                "Output your results in well-structured markdown format.",
-              ]
-                .filter(Boolean)
-                .join("\n"),
-      },
-      inputs: [],
-      outputs: [
-        {
-          name: "result",
-          contentType: "markdown",
-          description: "Generated result",
-          templateIds: [],
-        },
-      ],
-    },
-    description: operation.description,
-    id: operation.id,
-    name: operation.name,
-  }));
 
 export type ProposeActionsResult = ProposeActionsResponse;
 
@@ -268,11 +120,15 @@ export const proposeActions = async (
     operationCatalog.map((operation) => [operation.id, { name: operation.name }]),
   );
   const history = await loadConversationHistory(
-    conversationMessagesDao,
+    { conversationMessagesDao },
     opts.pipelineId,
     opts.message,
   );
-  const activeRun = await loadActiveRun(deps, opts.context?.runState);
+  const activeRun = await loadActiveRun(
+    { jobsDao: deps.jobsDao, jobTracesDao: deps.jobTracesDao },
+    opts.context?.runState,
+    opts.pipelineId,
+  );
   // Stage one: attachments with real content go through structural analysis
   // first; the semantic retry round reuses the first round's result.
   const textAttachments = (opts.attachments ?? []).filter(
@@ -322,8 +178,9 @@ export const proposeActions = async (
   if (!agentResult.ok) {
     // runStructuredAgent reports terminal failures via code/detail; the caller
     // owns the single error log per failure. The full detail may embed raw
-    // model output, so it goes to the log only — the response carries a
-    // stable, generic detail.
+    // model output, spawn/SSH/provider errors, or operational configuration,
+    // so it goes to the log only — the response carries a stable, generic
+    // detail for both terminal failure codes.
     logger.error(
       { code: agentResult.code, detail: agentResult.detail },
       agentResult.code === "AGENT_FAILED"
@@ -339,7 +196,7 @@ export const proposeActions = async (
         detail:
           agentResult.code === "BAD_AGENT_OUTPUT"
             ? "agent returned invalid JSON"
-            : agentResult.detail,
+            : "agent failed after retries",
       },
     };
   }
@@ -348,8 +205,11 @@ export const proposeActions = async (
   const agentOutput = parseProposeAgentOutput(agentResult.json);
   const clarifyOptions =
     agentOutput.clarifyOptions.length > 0 ? agentOutput.clarifyOptions : undefined;
-  const { accepted: acceptedNewOperations, diagnostics: newOperationDiagnostics } =
-    screenNewOperations(agentOutput.newOperations, operationById);
+  const {
+    accepted: acceptedNewOperations,
+    diagnostics: newOperationDiagnostics,
+    rejectedIds: rejectedNewOperationIds,
+  } = screenNewOperations(agentOutput.newOperations, operationById);
   const pendingOperations = toPendingOperations(acceptedNewOperations);
   for (const operation of pendingOperations) {
     operationById.set(operation.id, { name: operation.name });
@@ -431,12 +291,21 @@ export const proposeActions = async (
   const validationResult = validatePipelineActions(snapshot, proposal.actions);
   const graphDiagnostics = validationResult.isErr() ? validationResult.error : [];
   const operationDiagnostics = validateProposalActionCatalog(proposal.actions, operationById);
+  const rejectedReferenceDiagnostics = validateRejectedOperationReferences(
+    proposal.actions,
+    rejectedNewOperationIds,
+  );
 
   return {
     ...(artifactAnalysis ? { artifactAnalysis } : {}),
     ...(agentOutput.pipelineName ? { pipelineName: agentOutput.pipelineName } : {}),
     clarifyOptions,
-    diagnostics: [...graphDiagnostics, ...operationDiagnostics, ...newOperationDiagnostics],
+    diagnostics: [
+      ...graphDiagnostics,
+      ...operationDiagnostics,
+      ...rejectedReferenceDiagnostics,
+      ...newOperationDiagnostics,
+    ],
     ...(pendingOperations.length > 0 ? { pendingOperations } : {}),
     proposal,
     reply: agentOutput.reply ?? proposal.summary,
