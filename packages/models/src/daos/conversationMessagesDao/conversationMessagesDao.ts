@@ -59,6 +59,11 @@ export class ConversationMessagesDao {
       .delete(conversationMessagesTable)
       .where(eq(conversationMessagesTable.id, id));
   }
+
+  /** Deletes every conversation message (used by "clear all history"; pipelines are untouched). */
+  async deleteAll() {
+    await this.executor.delete(conversationMessagesTable);
+  }
 }
 
 export const createConversationMessagesDao = (executor: DbExecutor) =>
