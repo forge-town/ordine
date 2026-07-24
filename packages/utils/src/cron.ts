@@ -132,10 +132,20 @@ export const getNextCronRunAt = (expression: string | null, from: Date): Date | 
   const candidate = startOfNextMinute(from);
   const windowEndMs = candidate.getTime() + SEARCH_WINDOW_DAYS * 24 * 60 * 60_000;
   while (candidate.getTime() <= windowEndMs) {
+    // Standard cron semantics: day-of-month and day-of-week are AND-ed with
+    // each other only when one of them is `*`. When both are constrained
+    // (specific values, ranges, or lists) they are OR-ed: a candidate matches
+    // if it satisfies either field. This matches Vixie cron and the common
+    // cron documentation.
+    const domMatches = isAllowed(day, candidate.getDate());
+    const dowMatches = isAllowed(weekday, candidate.getDay());
+    const domConstrained = day.size !== 31;
+    const dowConstrained = weekday.size !== 7;
     const dayMatches =
-      isAllowed(day, candidate.getDate()) &&
       isAllowed(month, candidate.getMonth() + 1) &&
-      isAllowed(weekday, candidate.getDay());
+      (domConstrained && dowConstrained
+        ? domMatches || dowMatches
+        : domMatches && dowMatches);
     if (!dayMatches) {
       // The date predicates cannot change within a local day: fast-forward to
       // the next local midnight instead of stepping through 1440 minutes.

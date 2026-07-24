@@ -85,4 +85,35 @@ describe("COD-244 migration", () => {
 
     await db.close();
   });
+
+  it("disables routines with cron expressions the new parser cannot parse", async () => {
+    const db = new PGlite();
+    await applyMigrations(db, { upTo: "0001_add_ordine_domain_tables.sql" });
+
+    await db.exec(`
+      INSERT INTO "pipelines" ("id", "name") VALUES ('pipeline-1', 'Pipeline');
+      INSERT INTO "routines" ("id", "pipeline_id", "name", "trigger_type", "cron_expression", "enabled")
+        VALUES ('routine-valid', 'pipeline-1', 'Valid', 'cron', '0 9 * * 1-5', true);
+      INSERT INTO "routines" ("id", "pipeline_id", "name", "trigger_type", "cron_expression", "enabled")
+        VALUES ('routine-legacy-l', 'pipeline-1', 'Legacy L', 'cron', '0 9 L * *', true);
+      INSERT INTO "routines" ("id", "pipeline_id", "name", "trigger_type", "cron_expression", "enabled")
+        VALUES ('routine-legacy-w', 'pipeline-1', 'Legacy W', 'cron', '0 9 15W * *', true);
+      INSERT INTO "routines" ("id", "pipeline_id", "name", "trigger_type", "cron_expression", "enabled")
+        VALUES ('routine-empty', 'pipeline-1', 'Empty', 'cron', '', true);
+    `);
+
+    await applyMigrations(db, { after: "0001_add_ordine_domain_tables.sql" });
+
+    const rows = await db.query<{ id: string; enabled: boolean; next_run_at: string | null }>(
+      `SELECT id, enabled, next_run_at FROM "routines" ORDER BY id`,
+    );
+    expect(rows.rows).toEqual([
+      { id: "routine-empty", enabled: false, next_run_at: null },
+      { id: "routine-legacy-l", enabled: false, next_run_at: null },
+      { id: "routine-legacy-w", enabled: false, next_run_at: null },
+      { id: "routine-valid", enabled: true, next_run_at: null },
+    ]);
+
+    await db.close();
+  });
 });

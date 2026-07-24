@@ -57,6 +57,21 @@ describe("getNextCronRunAt", () => {
     expect([5, 6, 0]).toContain(next!.getDay());
   });
 
+  it("ORs day-of-month and day-of-week when both are constrained", () => {
+    // 2026-06-10 is a Wednesday. The next Monday is 2026-06-15, but the 20th
+    // is a Saturday. Under AND semantics this would not match until 2026-07-20;
+    // under standard OR semantics it matches on 2026-06-15.
+    const next = getNextCronRunAt("0 9 20 * 1", new Date("2026-06-10T10:00:00.000Z"));
+    expect(next).not.toBeNull();
+    expect(next!.toISOString()).toBe("2026-06-15T09:00:00.000Z");
+  });
+
+  it("ANDs day-of-month and day-of-week when one is *", () => {
+    const next = getNextCronRunAt("0 9 14 * *", new Date("2026-06-10T10:00:00.000Z"));
+    expect(next).not.toBeNull();
+    expect(next!.getDate()).toBe(14);
+  });
+
   it("returns null for out-of-range or malformed fields", () => {
     expect(getNextCronRunAt("0 9 * * 6-8", new Date("2026-06-10T10:00:00.000Z"))).toBeNull();
     expect(getNextCronRunAt("0 9 * * 1-", new Date("2026-06-10T10:00:00.000Z"))).toBeNull();

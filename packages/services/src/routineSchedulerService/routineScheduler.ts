@@ -1,5 +1,5 @@
 import { ResultAsync, type Result } from "neverthrow";
-import { getNextCronRunAt } from "@repo/utils";
+import { getNextCronRunAt, toStringInputs } from "@repo/utils";
 import type { JobTriggeredBy } from "@repo/schemas";
 
 /** Default polling interval for the in-process scheduler. */
@@ -54,16 +54,6 @@ export type RoutineSchedulerDeps = {
   onError?: (error: unknown, routineId: string) => void;
 };
 
-const toStringInputs = (inputConfig: Record<string, unknown> | null): Record<string, string> => {
-  if (!inputConfig) return {};
-
-  return Object.fromEntries(
-    Object.entries(inputConfig).flatMap(([key, value]) =>
-      typeof value === "string" ? [[key, value]] : [],
-    ),
-  );
-};
-
 const describeError = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
@@ -81,9 +71,11 @@ const describeError = (error: unknown): string =>
  *   window and everything missed after it, then advance the schedule. Missed
  *   runs are never backfilled.
  *
- * On every failure path the schedule is advanced BEFORE the skipped record is
- * written: if persisting the skipped job fails, the next tick must not retry
- * the same window.
+ * On the start-run and missed-window failure paths the schedule is advanced
+ * BEFORE the skipped record is written: if persisting the skipped job fails,
+ * the next tick must not retry the same window. If advancing the routine itself
+ * throws, the schedule does not advance and the tick's per-routine error
+ * handler is invoked.
  *
  * Errors thrown while processing one routine are reported via deps.onError
  * and do not abort the tick for the remaining routines.

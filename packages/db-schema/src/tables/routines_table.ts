@@ -21,6 +21,7 @@ export const routinesTable = pgTable(
   (table) => [
     index("routines_pipeline_id_idx").on(table.pipelineId),
     index("routines_enabled_idx").on(table.enabled),
+    index("routines_enabled_next_run_at_idx").on(table.enabled, table.nextRunAt),
   ],
 );
 

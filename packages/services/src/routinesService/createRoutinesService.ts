@@ -1,7 +1,7 @@
 import { err, ok, type Result } from "neverthrow";
 import { createRoutinesDao, type DbConnection } from "@repo/models";
 import { mapWithMeta, withMeta } from "@repo/schemas";
-import { getNextCronRunAt } from "@repo/utils";
+import { getNextCronRunAt, toStringInputs } from "@repo/utils";
 import type { RoutineStartRun } from "../routineSchedulerService/routineScheduler";
 
 // Disabled routines never have a pending occurrence; enabled routines get the
@@ -23,13 +23,6 @@ const resolveSchedule = (
 
   return ok(nextRunAt);
 };
-
-const toStringInputs = (inputConfig: Record<string, unknown> | null): Record<string, string> =>
-  Object.fromEntries(
-    Object.entries(inputConfig ?? {}).flatMap(([key, value]) =>
-      typeof value === "string" ? [[key, value]] : [],
-    ),
-  );
 
 export const createRoutinesService = (
   db: DbConnection,

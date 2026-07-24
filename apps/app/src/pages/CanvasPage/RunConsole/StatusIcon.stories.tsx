@@ -2,7 +2,15 @@ import type { Meta, StoryObj } from "@storybook/react";
 import type { JobStatus } from "@repo/schemas";
 import { StatusIcon } from "./StatusIcon";
 
-const statuses: JobStatus[] = ["queued", "running", "done", "failed", "cancelled", "expired"];
+const statuses: JobStatus[] = [
+  "queued",
+  "running",
+  "done",
+  "failed",
+  "cancelled",
+  "expired",
+  "skipped",
+];
 
 const meta: Meta<typeof StatusIcon> = {
   title: "CanvasPage/RunConsole/StatusIcon",

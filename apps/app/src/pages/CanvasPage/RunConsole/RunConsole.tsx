@@ -90,7 +90,7 @@ const isStructuredLog = (log: string): boolean => {
 };
 
 const isTerminalStatus = (s: JobStatus) =>
-  s === "done" || s === "failed" || s === "cancelled" || s === "expired";
+  s === "done" || s === "failed" || s === "cancelled" || s === "expired" || s === "skipped";
 
 const timelineStatusLabelKeys: Record<RunTimelineStatus, string> = {
   running: "canvas.runConsole.nodeStatusRunning",
