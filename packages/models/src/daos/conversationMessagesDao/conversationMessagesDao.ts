@@ -26,10 +26,18 @@ export class ConversationMessagesDao {
     const query = this.executor
       .select()
       .from(conversationMessagesTable)
-      .where(eq(conversationMessagesTable.pipelineId, pipelineId))
-      .orderBy(asc(conversationMessagesTable.createdAt));
+      .where(eq(conversationMessagesTable.pipelineId, pipelineId));
 
-    return limit === undefined ? query : query.limit(limit);
+    if (limit === undefined) {
+      return query.orderBy(asc(conversationMessagesTable.createdAt));
+    }
+
+    // Latest N in chronological order: take DESC + limit, then reverse.
+    const rows = await query
+      .orderBy(desc(conversationMessagesTable.createdAt))
+      .limit(limit);
+
+    return rows.reverse();
   }
 
   async create(data: typeof conversationMessagesTable.$inferInsert) {

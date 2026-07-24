@@ -17,17 +17,26 @@ const denyManualConnected = <T extends { status?: string | null }>(data: T): T =
   data.status === "connected" ? { ...data, status: "needs_setup" } : data;
 
 /**
- * A config edit invalidates any previous handshake: status falls back to
- * needs_setup and client-supplied tools are stripped — the tool list may only
- * be backfilled by a real handshake (connect()).
+ * A config or method edit invalidates any previous handshake: status falls back
+ * to needs_setup, client-supplied tools are stripped, and lastSyncAt is cleared.
+ * Only a real handshake (connect()) may backfill tools and lastSyncAt.
  */
-const sanitizeUpdatePatch = (patch: UpdateConnectorPatch): UpdateConnectorPatch => {
-  if (!patch.config) return denyManualConnected(patch);
+const sanitizeUpdatePatch = (
+  patch: UpdateConnectorPatch,
+  current: Connector,
+): UpdateConnectorPatch => {
+  const configChanged = patch.config !== undefined;
+  const methodChanged = patch.method !== undefined && patch.method !== current.method;
 
-  const config = { ...(patch.config as Record<string, unknown>) };
+  if (!configChanged && !methodChanged) return denyManualConnected(patch);
+
+  const config = configChanged
+    ? { ...(patch.config as Record<string, unknown>) }
+    : { ...(current.config as Record<string, unknown>) };
   delete config.tools;
+  delete config.lastError;
 
-  return { ...patch, config, status: "needs_setup" };
+  return { ...patch, config, status: "needs_setup", lastSyncAt: null };
 };
 
 const withLastError = (config: ConnectorConfig, lastError: string): Record<string, unknown> => ({
@@ -111,12 +120,25 @@ export const createConnectorsService = (db: DbConnection) => {
       tools: handshake.value,
     };
     delete merged.lastError;
-    const updated = await dao.update(id, {
-      status: "connected",
-      config: merged,
-      lastSyncAt: new Date(),
-    });
-    if (!updated) return err(new NotFoundError("Connector", id));
+
+    // Compare-and-set against the snapshot that was handshaken: if method or
+    // config changed between the handshake and this write, the update must fail
+    // rather than overwrite fresh state with stale handshake data.
+    const updated = await dao.updateIfConfigUnchanged(
+      id,
+      {
+        status: "connected",
+        config: merged,
+        lastSyncAt: new Date(),
+      },
+      row.method,
+      config,
+    );
+    if (!updated) {
+      return err(
+        new ConflictError("Connector configuration changed during handshake; connect again"),
+      );
+    }
 
     return ok(updated);
   };
@@ -135,11 +157,20 @@ export const createConnectorsService = (db: DbConnection) => {
         toServiceError(error, "Create connector"),
       ),
     update: (id: string, patch: UpdateConnectorPatch) =>
-      ResultAsync.fromPromise(dao.update(id, sanitizeUpdatePatch(patch)), (error) =>
+      ResultAsync.fromPromise(dao.findById(id), (error) =>
         toServiceError(error, "Update connector"),
-      ).andThen((connector) =>
-        connector ? okAsync(connector) : errAsync(new NotFoundError("Connector", id)),
-      ),
+      )
+        .andThen((current) =>
+          current ? okAsync(current) : errAsync(new NotFoundError("Connector", id)),
+        )
+        .andThen((current) =>
+          ResultAsync.fromPromise(dao.update(id, sanitizeUpdatePatch(patch, current)), (error) =>
+            toServiceError(error, "Update connector"),
+          ),
+        )
+        .andThen((connector) =>
+          connector ? okAsync(connector) : errAsync(new NotFoundError("Connector", id)),
+        ),
     /**
      * DAO/handshake rejections are normalized like every other method: callers
      * always receive a Result (isErr), never a rejected promise.

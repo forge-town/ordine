@@ -184,4 +184,34 @@ describe("COD-116 domain DAOs with PGlite", () => {
     expect(await assets.findById("asset-1")).toBeUndefined();
     expect(await connectors.findById("connector-1")).toBeUndefined();
   });
+
+  it("returns the latest N conversation messages in chronological order", async () => {
+    const messages = createConversationMessagesDao(executor);
+
+    await executor
+      .insert(pipelinesTable)
+      .values({ id: "pipeline-messages", name: "Messages", projectId: "project-1" });
+
+    for (const i of [1, 2, 3, 4, 5]) {
+      await messages.create({
+        id: `msg-${i}`,
+        pipelineId: "pipeline-messages",
+        role: "user",
+        content: `message-${i}`,
+        createdAt: new Date(`2026-01-0${i}T00:00:00Z`),
+      });
+    }
+
+    const latest = await messages.findManyByPipelineId("pipeline-messages", 3);
+    expect(latest.map((m) => m.content)).toEqual(["message-3", "message-4", "message-5"]);
+
+    const all = await messages.findManyByPipelineId("pipeline-messages");
+    expect(all.map((m) => m.content)).toEqual([
+      "message-1",
+      "message-2",
+      "message-3",
+      "message-4",
+      "message-5",
+    ]);
+  });
 });
