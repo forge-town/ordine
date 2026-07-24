@@ -103,11 +103,11 @@ describe("CanvasSettingsDrawer", () => {
 
     expect(store.getState().nodeCardMode).toBe("compact");
 
-    await user.click(screen.getByRole("button", { name: /Expanded/i }));
+    await user.click(screen.getByRole("button", { name: /Expanded|展开/i }));
 
     expect(store.getState().nodeCardMode).toBe("expanded");
 
-    await user.click(screen.getByRole("button", { name: /Compact/i }));
+    await user.click(screen.getByRole("button", { name: /Compact|紧凑/i }));
 
     expect(store.getState().nodeCardMode).toBe("compact");
   });
