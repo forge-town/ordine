@@ -16,6 +16,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "types": ["vite/client"],
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
