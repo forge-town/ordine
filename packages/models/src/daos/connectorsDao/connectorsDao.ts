@@ -1,6 +1,9 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { connectorsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
+
+type ConnectorRecord = typeof connectorsTable.$inferSelect;
+type ConnectorSnapshot = Pick<ConnectorRecord, "method" | "config">;
 
 export class ConnectorsDao {
   constructor(readonly executor: DbExecutor) {}
@@ -34,6 +37,26 @@ export class ConnectorsDao {
       .update(connectorsTable)
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(connectorsTable.id, id))
+      .returning();
+
+    return updated;
+  }
+
+  async updateIfUnchanged(
+    id: string,
+    snapshot: ConnectorSnapshot,
+    patch: Partial<Omit<typeof connectorsTable.$inferInsert, "id">>,
+  ) {
+    const [updated] = await this.executor
+      .update(connectorsTable)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(
+        and(
+          eq(connectorsTable.id, id),
+          eq(connectorsTable.method, snapshot.method),
+          sql`${connectorsTable.config} = ${JSON.stringify(snapshot.config)}::jsonb`,
+        ),
+      )
       .returning();
 
     return updated;
