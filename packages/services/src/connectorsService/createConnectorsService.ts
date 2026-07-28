@@ -1,4 +1,4 @@
-import { listMcpToolsStdio } from "@repo/agent";
+import { listMcpToolsHttp, listMcpToolsStdio } from "@repo/agent";
 import { createConnectorsDao, type DbConnection } from "@repo/models";
 import { isMcpConnectorConfig, type ConnectorConfig } from "@repo/schemas";
 import { ResultAsync, err, errAsync, ok, okAsync, type Result } from "neverthrow";
@@ -78,8 +78,8 @@ export const createConnectorsService = (db: DbConnection) => {
 
   /**
    * Real connect. Failure taxonomy:
-   * - not attemptable (non-mcp method, unconfigured/legacy config, http transport
-   *   pending COD-245) -> status needs_setup + config.lastError
+   * - not attemptable (non-mcp method, unconfigured/legacy config)
+   *   -> status needs_setup + config.lastError
    * - valid config but handshake failed -> status error + config.lastError
    * Only a successful handshake sets connected and backfills tools + lastSyncAt.
    * A connector is **never** reported connected on failure or without a handshake.
@@ -111,15 +111,18 @@ export const createConnectorsService = (db: DbConnection) => {
     if (!isMcpConnectorConfig(config)) {
       return failSetup("Connector is not configured (set transport + command/url first).");
     }
-    if (config.transport === "http") {
-      return failSetup("http transport is not supported yet");
-    }
 
-    const handshake = await listMcpToolsStdio({
-      command: config.command,
-      args: config.args,
-      env: config.env,
-    });
+    const handshake =
+      config.transport === "stdio"
+        ? await listMcpToolsStdio({
+            command: config.command,
+            args: config.args,
+            env: config.env,
+          })
+        : await listMcpToolsHttp({
+            url: config.url,
+            headers: config.headers,
+          });
 
     // Re-read before persisting: the connector may have been edited while the
     // handshake was in flight; a stale result must never overwrite fresh config.
