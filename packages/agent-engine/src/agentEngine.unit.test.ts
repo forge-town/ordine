@@ -70,6 +70,27 @@ describe("agentEngine", () => {
     expect(result.usage).toBeNull();
   });
 
+  it("passes MCP injection options to runClaude for claude-code", async () => {
+    await agentEngine.run({
+      agent: "claude-code",
+      mode: "direct",
+      systemPrompt: "You can publish",
+      userPrompt: "Publish this project",
+      cwd: "/tmp/test",
+      allowedTools: ["Read"],
+      mcpConfigPath: "/tmp/ordine-mcp.json",
+      mcpToolNames: ["mcp__GitHub__create_issue"],
+    });
+
+    expect(runClaude).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allowedTools: ["Read"],
+        mcpConfigPath: "/tmp/ordine-mcp.json",
+        mcpToolNames: ["mcp__GitHub__create_issue"],
+      }),
+    );
+  });
+
   it("derives usage totals when the claude result event reports modelUsage", async () => {
     vi.mocked(runClaude).mockResolvedValueOnce({
       text: "with usage",

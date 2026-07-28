@@ -53,4 +53,6 @@ export interface AgentRunOptions {
   model?: string;
   githubToken?: string;
   ssh?: SshConnectionOptions;
+  mcpConfigPath?: string;
+  mcpToolNames?: readonly string[];
 }

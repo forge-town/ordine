@@ -19,8 +19,10 @@ import {
   createSettingsDao,
   createPipelineRunsDao,
   createAgentRuntimesDao,
+  createConnectorsDao,
   type DbConnection,
 } from "@repo/models";
+import { buildClaudeMcpInjection, type ClaudeMcpInjection } from "../../connectorsService";
 
 export class PipelineNotFoundError extends Error {
   constructor(pipelineId: string) {
@@ -57,6 +59,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
   const agentSpansDao = createAgentSpansDao(db);
   const settingsDao = createSettingsDao(db);
   const agentRuntimesDao = createAgentRuntimesDao(db);
+  const connectorsDao = createConnectorsDao(db);
 
   initObs(jobTracesDao);
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
@@ -97,12 +100,14 @@ export const createPipelineRunnerService = (db: DbConnection) => {
     model,
     defaultAgent,
     ssh,
+    getClaudeMcpInjection,
   }: {
     jobId: string;
     apiKey?: string;
     model?: string;
     defaultAgent?: AgentRuntime;
     ssh?: SshConnection;
+    getClaudeMcpInjection?: () => Promise<ClaudeMcpInjection | null>;
   }) =>
     pipelineRunnerEngineDeps.build({
       evaluateLoopCondition: loopEvaluatorFactory({ jobId }),
@@ -111,7 +116,20 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       model,
       defaultAgent,
       ssh,
+      getClaudeMcpInjection,
     });
+
+  const buildClaudeMcpInjectionProvider = () => {
+    const cache: { value?: Promise<ClaudeMcpInjection | null> } = {};
+
+    return () => {
+      cache.value ??= connectorsDao
+        .findMany()
+        .then((connectors) => buildClaudeMcpInjection(connectors));
+
+      return cache.value;
+    };
+  };
 
   return {
     startRun: async (opts: {
@@ -182,6 +200,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
             model: settings.defaultModel,
             defaultAgent: settings.defaultAgentRuntime,
             ssh,
+            getClaudeMcpInjection: buildClaudeMcpInjectionProvider(),
           }),
           runControl: pipelineRunControl.buildForJob(jobId),
           onRunSettled: () => pipelineRunControl.clear(jobId),
