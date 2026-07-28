@@ -1,18 +1,7 @@
+import type { McpConnectorInjection, McpServerEntry } from "@repo/agent";
 import { isMcpConnectorConfig, type ConnectorConfig } from "@repo/schemas";
 
-export type McpServerEntry =
-  | { command: string; args?: string[]; env?: Record<string, string> }
-  | { type: "http"; url: string; headers?: Record<string, string> };
-
-export type ClaudeMcpInjection = {
-  /** mcpServers map written into the `--mcp-config` file. */
-  mcpServers: Record<string, McpServerEntry>;
-  /**
-   * `mcp__<server>__<tool>` names appended to --allowedTools
-   * (falls back to `mcp__<server>` to allow the whole server when it has no tools).
-   */
-  toolNames: string[];
-};
+export type ClaudeMcpInjection = McpConnectorInjection;
 
 type ConnectorLike = { name: string; method: string; status: string; config: ConnectorConfig };
 
@@ -35,7 +24,9 @@ const uniqueServerKey = (base: string, taken: Record<string, unknown>): string =
  * disconnected ones never reach a run (keeps fake state out of the execution
  * chain).
  */
-export const buildClaudeMcpInjection = (connectors: ConnectorLike[]): ClaudeMcpInjection | null => {
+export const buildMcpConnectorInjection = (
+  connectors: ConnectorLike[],
+): McpConnectorInjection | null => {
   const mcpServers: Record<string, McpServerEntry> = {};
   const toolNames: string[] = [];
 
@@ -71,3 +62,5 @@ export const buildClaudeMcpInjection = (connectors: ConnectorLike[]): ClaudeMcpI
 
   return Object.keys(mcpServers).length > 0 ? { mcpServers, toolNames } : null;
 };
+
+export const buildClaudeMcpInjection = buildMcpConnectorInjection;

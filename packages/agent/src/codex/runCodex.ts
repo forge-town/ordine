@@ -1,6 +1,7 @@
 import { readFile, unlink } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { hasMcpConnectorInjection, type McpConnectorInjection } from "../mcp";
 import { logger } from "@repo/logger";
 import { spawnCommand } from "../spawn/spawnCommand";
 
@@ -12,6 +13,7 @@ export interface RunCodexOptions {
   model?: string;
   timeoutMs?: number;
   onProgress?: (line: string) => Promise<void>;
+  connectorInjection?: McpConnectorInjection;
 }
 
 const CODEX_BIN = process.platform === "win32" ? "codex.cmd" : "codex";
@@ -22,6 +24,81 @@ export const CODEX_SANDBOX_MODES = {
   fullAccess: "danger-full-access",
 } as const;
 
+const TOML_KEY_RE = /^[A-Za-z0-9_-]+$/;
+
+const tomlKey = (key: string): string =>
+  TOML_KEY_RE.test(key) ? key : JSON.stringify(key);
+
+const tomlValue = (value: unknown): string => {
+  if (typeof value === "string") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map((item) => tomlValue(item)).join(", ")}]`;
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, entryValue]) => `${tomlKey(key)} = ${tomlValue(entryValue)}`);
+
+    return `{ ${entries.join(", ")} }`;
+  }
+
+  throw new Error("unsupported codex config value");
+};
+
+const buildCodexMcpOverrides = (
+  injection?: McpConnectorInjection,
+): { configArgs: string[]; env: Record<string, string> } => {
+  if (!hasMcpConnectorInjection(injection)) {
+    return { configArgs: [], env: {} };
+  }
+
+  const env: Record<string, string> = {};
+  const configArgs: string[] = [];
+
+  for (const [serverName, serverEntry] of Object.entries(injection.mcpServers)) {
+    const serverPrefix = `mcp_servers.${serverName}`;
+    const enabledTools = injection.toolNames
+      .filter((toolName) => toolName.startsWith(`mcp__${serverName}__`))
+      .map((toolName) => toolName.slice(`mcp__${serverName}__`.length));
+
+    const serverConfig: Record<string, unknown> = {};
+    if ("command" in serverEntry) {
+      serverConfig.command = serverEntry.command;
+      if (serverEntry.args) serverConfig.args = serverEntry.args;
+      if (serverEntry.env) {
+        serverConfig.env_vars = Object.keys(serverEntry.env).sort();
+        for (const [envName, envValue] of Object.entries(serverEntry.env)) {
+          env[envName] = envValue;
+        }
+      }
+      if (enabledTools.length > 0) {
+        serverConfig.enabled_tools = enabledTools;
+      }
+    } else {
+      serverConfig.url = serverEntry.url;
+      if (serverEntry.headers) {
+        const envHeaders: Record<string, string> = {};
+        for (const [headerName, headerValue] of Object.entries(serverEntry.headers)) {
+          const envName = `ORDINE_MCP_${serverName.toUpperCase().replaceAll(/[^A-Z0-9]/g, "_")}_${headerName.toUpperCase().replaceAll(/[^A-Z0-9]/g, "_")}`;
+          env[envName] = headerValue;
+          envHeaders[headerName] = envName;
+        }
+        if (Object.keys(envHeaders).length > 0) {
+          serverConfig.env_http_headers = envHeaders;
+        }
+      }
+      if (enabledTools.length > 0) {
+        serverConfig.enabled_tools = enabledTools;
+      }
+    }
+
+    configArgs.push(
+      "-c",
+      `${serverPrefix}=${tomlValue(serverConfig)}`,
+    );
+  }
+
+  return { configArgs, env };
+};
+
 export const runCodex = async ({
   systemPrompt,
   userPrompt,
@@ -30,6 +107,7 @@ export const runCodex = async ({
   model,
   timeoutMs = 10 * 60 * 1000,
   onProgress,
+  connectorInjection,
 }: RunCodexOptions): Promise<string> => {
   const MAX_INPUT_CHARS = 50_000;
   const truncatedPrompt =
@@ -40,8 +118,10 @@ export const runCodex = async ({
     tmpdir(),
     `ordine-codex-last-message-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`,
   );
+  const codexMcpOverrides = buildCodexMcpOverrides(connectorInjection);
 
   const args = [
+    ...codexMcpOverrides.configArgs,
     "exec",
     "--sandbox",
     sandbox,
@@ -72,7 +152,7 @@ export const runCodex = async ({
     const child = spawnCommand(CODEX_BIN, args, {
       cwd,
       stdio: ["pipe", "pipe", "pipe"],
-      env: { ...process.env },
+      env: { ...process.env, ...codexMcpOverrides.env },
     });
 
     const stdoutChunks: Buffer[] = [];

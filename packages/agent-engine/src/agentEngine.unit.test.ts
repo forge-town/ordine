@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { ClaudeStreamEvent } from "@repo/agent";
+import { runClaude, runCodex, runHermes, runMastra, type ClaudeStreamEvent } from "@repo/agent";
 
 const fakeClaudeEvents: ClaudeStreamEvent[] = [
   {
@@ -12,16 +12,21 @@ const fakeClaudeEvents: ClaudeStreamEvent[] = [
 ];
 
 vi.mock("@repo/agent", () => ({
+  hasMcpConnectorInjection: (injection?: { mcpServers?: Record<string, unknown> } | null) =>
+    !!injection && Object.keys(injection.mcpServers ?? {}).length > 0,
   runClaude: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
     await opts.onProgress?.("progress");
+
     return { text: "fake claude output", events: fakeClaudeEvents };
   }),
   runCodex: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
     await opts.onProgress?.("progress");
+
     return "fake codex output";
   }),
   runHermes: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
     await opts.onProgress?.("progress");
+
     return {
       isErr: () => false,
       value: "fake hermes output",
@@ -29,10 +34,12 @@ vi.mock("@repo/agent", () => ({
   }),
   runMastra: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
     await opts.onProgress?.("progress");
+
     return { text: "fake mastra output", events: [] };
   }),
   runOpenclaw: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
     await opts.onProgress?.("progress");
+
     return { text: "fake openclaw output" };
   }),
 }));
@@ -46,7 +53,6 @@ vi.mock("@repo/logger", () => ({
 }));
 
 import { agentEngine } from "./agentEngine";
-import { runClaude, runHermes, runMastra } from "@repo/agent";
 import { recordAgentRunWithSpans } from "@repo/obs";
 
 describe("agentEngine", () => {
@@ -70,7 +76,7 @@ describe("agentEngine", () => {
     expect(result.usage).toBeNull();
   });
 
-  it("passes MCP injection options to runClaude for claude-code", async () => {
+  it("writes claude mcp config for connector injection", async () => {
     await agentEngine.run({
       agent: "claude-code",
       mode: "direct",
@@ -78,15 +84,19 @@ describe("agentEngine", () => {
       userPrompt: "Publish this project",
       cwd: "/tmp/test",
       allowedTools: ["Read"],
-      mcpConfigPath: "/tmp/ordine-mcp.json",
-      mcpToolNames: ["mcp__GitHub__create_issue"],
+      connectorInjection: {
+        mcpServers: {
+          GitHub: { command: "github-mcp" },
+        },
+        toolNames: ["mcp__GitHub__create_issue"],
+      },
     });
 
     expect(runClaude).toHaveBeenCalledWith(
       expect.objectContaining({
         allowedTools: ["Read"],
-        mcpConfigPath: "/tmp/ordine-mcp.json",
         mcpToolNames: ["mcp__GitHub__create_issue"],
+        mcpConfigPath: expect.stringContaining("ordine-claude-mcp-"),
       }),
     );
   });
@@ -156,11 +166,23 @@ describe("agentEngine", () => {
       systemPrompt: "Analyze this",
       userPrompt: "Hello",
       cwd: "/tmp/test",
+      connectorInjection: {
+        mcpServers: { linear: { type: "http", url: "https://mcp.linear.app/mcp" } },
+        toolNames: ["mcp__linear"],
+      },
     });
 
     expect(result.text).toBe("fake codex output");
     // Non-claude runtimes have no event stream → usage is unavailable (null), not a fake 0.
     expect(result.usage).toBeNull();
+    expect(runCodex).toHaveBeenCalledWith(
+      expect.objectContaining({
+        connectorInjection: {
+          mcpServers: { linear: { type: "http", url: "https://mcp.linear.app/mcp" } },
+          toolNames: ["mcp__linear"],
+        },
+      }),
+    );
   });
 
   it("dispatches to runHermes for hermes", async () => {

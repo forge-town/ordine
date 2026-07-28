@@ -1,5 +1,4 @@
 import { mkdtempSync, rmSync } from "node:fs";
-import { access, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi, beforeEach, afterAll } from "vitest";
@@ -90,90 +89,54 @@ describe("runAgent", () => {
     );
   });
 
-  it("injects connected connector MCP config for claude-code and removes the temp file", async () => {
-    const captured = { configPath: "", configContent: "" };
+  it("forwards connector MCP injection to agentEngine", async () => {
+    const connectorInjection = {
+      mcpServers: {
+        GitHub: { command: "github-mcp", args: ["--stdio"], env: { GH_TOKEN: "x" } },
+      },
+      toolNames: ["mcp__GitHub__create_issue"],
+    };
 
-    vi.mocked(agentEngine.run).mockImplementationOnce(async (opts) => {
-      captured.configPath = opts.mcpConfigPath ?? "";
-      captured.configContent = await readFile(captured.configPath, "utf8");
-
-      return { text: "output", usage: null };
-    });
-
-    const onProgress = vi.fn();
     await runAgent({
       ...baseOpts,
-      onProgress,
-      getClaudeMcpInjection: async () => ({
-        mcpServers: {
-          GitHub: { command: "github-mcp", args: ["--stdio"], env: { GH_TOKEN: "x" } },
-        },
-        toolNames: ["mcp__GitHub__create_issue"],
-      }),
+      getMcpConnectorInjection: async () => connectorInjection,
     });
 
     expect(agentEngine.run).toHaveBeenCalledWith(
       expect.objectContaining({
-        mcpConfigPath: captured.configPath,
-        mcpToolNames: ["mcp__GitHub__create_issue"],
+        connectorInjection,
       }),
     );
-    expect(JSON.parse(captured.configContent)).toEqual({
-      mcpServers: {
-        GitHub: { command: "github-mcp", args: ["--stdio"], env: { GH_TOKEN: "x" } },
-      },
-    });
-    expect(onProgress).toHaveBeenCalledWith("test: MCP tools injected — mcp__GitHub__create_issue");
-    await expect(access(captured.configPath)).rejects.toThrow();
   });
 
-  it("removes the temp MCP config when progress reporting fails after config creation", async () => {
-    const uuidSpy = vi
-      .spyOn(crypto, "randomUUID")
-      .mockReturnValueOnce(
-        "11111111-1111-4111-8111-111111111111" as ReturnType<typeof crypto.randomUUID>,
-      );
-    const configPath = join(
-      tmpdir(),
-      "ordine-claude-mcp-11111111-1111-4111-8111-111111111111.json",
-    );
-    const onProgress = vi.fn(async (line: string) => {
-      if (line.includes("MCP tools injected")) {
-        throw new Error("progress down");
-      }
-    });
-
+  it("fails when connector MCP injection cannot be prepared", async () => {
     await expect(
       runAgent({
         ...baseOpts,
-        onProgress,
-        getClaudeMcpInjection: async () => ({
-          mcpServers: { GitHub: { command: "github-mcp" } },
-          toolNames: ["mcp__GitHub__create_issue"],
-        }),
+        getMcpConnectorInjection: async () => {
+          throw new Error("connector store down");
+        },
       }),
-    ).rejects.toThrow("progress down");
+    ).rejects.toThrow("connector store down");
 
     expect(agentEngine.run).not.toHaveBeenCalled();
-    await expect(access(configPath)).rejects.toThrow();
-    uuidSpy.mockRestore();
   });
 
   it("skips MCP config when no connected connector can be injected", async () => {
-    const getClaudeMcpInjection = vi.fn().mockResolvedValue(null);
+    const getMcpConnectorInjection = vi.fn().mockResolvedValue(null);
 
-    await runAgent({ ...baseOpts, getClaudeMcpInjection });
+    await runAgent({ ...baseOpts, getMcpConnectorInjection });
 
-    expect(getClaudeMcpInjection).toHaveBeenCalledTimes(1);
+    expect(getMcpConnectorInjection).toHaveBeenCalledTimes(1);
     expect(agentEngine.run).toHaveBeenCalledWith(
       expect.not.objectContaining({
-        mcpConfigPath: expect.any(String),
+        connectorInjection: expect.any(Object),
       }),
     );
   });
 
-  it("skips connector MCP injection for SSH-backed claude-code runs", async () => {
-    const getClaudeMcpInjection = vi.fn().mockResolvedValue({
+  it("leaves SSH connector handling to the selected runtime adapter", async () => {
+    const getMcpConnectorInjection = vi.fn().mockResolvedValue({
       mcpServers: { GitHub: { command: "github-mcp" } },
       toolNames: ["mcp__GitHub__create_issue"],
     });
@@ -183,34 +146,37 @@ describe("runAgent", () => {
       ...baseOpts,
       ssh: { mode: "ssh", host: "remote.example.com", user: "runner" },
       onProgress,
-      getClaudeMcpInjection,
+      getMcpConnectorInjection,
     });
 
-    expect(getClaudeMcpInjection).not.toHaveBeenCalled();
-    expect(onProgress).toHaveBeenCalledWith("test: MCP tools skipped for SSH runtime");
+    expect(getMcpConnectorInjection).toHaveBeenCalledTimes(1);
     expect(agentEngine.run).toHaveBeenCalledWith(
       expect.objectContaining({
         ssh: { mode: "ssh", host: "remote.example.com", user: "runner" },
-        mcpConfigPath: undefined,
-        mcpToolNames: undefined,
+        connectorInjection: {
+          mcpServers: { GitHub: { command: "github-mcp" } },
+          toolNames: ["mcp__GitHub__create_issue"],
+        },
       }),
     );
   });
 
-  it("does not read connector MCP config for non-claude runtimes", async () => {
-    const getClaudeMcpInjection = vi.fn().mockResolvedValue({
+  it("passes connector MCP injection to non-claude runtimes", async () => {
+    const getMcpConnectorInjection = vi.fn().mockResolvedValue({
       mcpServers: { GitHub: { command: "github-mcp" } },
       toolNames: ["mcp__GitHub"],
     });
 
-    await runAgent({ ...baseOpts, agent: "mastra", getClaudeMcpInjection });
+    await runAgent({ ...baseOpts, agent: "mastra", getMcpConnectorInjection });
 
-    expect(getClaudeMcpInjection).not.toHaveBeenCalled();
+    expect(getMcpConnectorInjection).toHaveBeenCalledTimes(1);
     expect(agentEngine.run).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "mastra",
-        mcpConfigPath: undefined,
-        mcpToolNames: undefined,
+        connectorInjection: {
+          mcpServers: { GitHub: { command: "github-mcp" } },
+          toolNames: ["mcp__GitHub"],
+        },
       }),
     );
   });

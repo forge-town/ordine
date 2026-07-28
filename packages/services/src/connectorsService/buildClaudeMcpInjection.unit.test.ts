@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildClaudeMcpInjection, sanitizeServerKey } from "./buildClaudeMcpInjection";
+import { buildMcpConnectorInjection, sanitizeServerKey } from "./buildClaudeMcpInjection";
 
 const connected = (name: string, config: unknown, status = "connected", method = "mcp") =>
   ({ name, method, status, config }) as never;
@@ -11,20 +11,20 @@ describe("sanitizeServerKey", () => {
   });
 });
 
-describe("buildClaudeMcpInjection", () => {
+describe("buildMcpConnectorInjection", () => {
   it("returns null when there are no connected mcp connectors", () => {
-    expect(buildClaudeMcpInjection([])).toBeNull();
+    expect(buildMcpConnectorInjection([])).toBeNull();
     expect(
-      buildClaudeMcpInjection([
+      buildMcpConnectorInjection([
         connected("fs", { transport: "stdio", command: "x" }, "needs_setup"),
       ]),
     ).toBeNull();
-    expect(buildClaudeMcpInjection([connected("legacy", {})])).toBeNull();
+    expect(buildMcpConnectorInjection([connected("legacy", {})])).toBeNull();
   });
 
   it("skips non-mcp connectors even when they look connected", () => {
     expect(
-      buildClaudeMcpInjection([
+      buildMcpConnectorInjection([
         connected("api", { transport: "stdio", command: "x" }, "connected", "direct-api"),
         connected("builtin", { transport: "stdio", command: "y" }, "connected", "built-in"),
       ]),
@@ -32,7 +32,7 @@ describe("buildClaudeMcpInjection", () => {
   });
 
   it("builds stdio server entry + per-tool allow names", () => {
-    const out = buildClaudeMcpInjection([
+    const out = buildMcpConnectorInjection([
       connected("fs", {
         transport: "stdio",
         command: "npx",
@@ -51,7 +51,7 @@ describe("buildClaudeMcpInjection", () => {
   });
 
   it("builds http entry and whole-server allow when no tools discovered", () => {
-    const out = buildClaudeMcpInjection([
+    const out = buildMcpConnectorInjection([
       connected("remote api", { transport: "http", url: "https://x/sse" }),
     ]);
     expect(out!.mcpServers.remote_api).toEqual({ type: "http", url: "https://x/sse" });
@@ -59,7 +59,7 @@ describe("buildClaudeMcpInjection", () => {
   });
 
   it("dedupes server keys with the same sanitized name", () => {
-    const out = buildClaudeMcpInjection([
+    const out = buildMcpConnectorInjection([
       connected("api x", { transport: "stdio", command: "a" }),
       connected("api!x", { transport: "stdio", command: "b" }),
     ]);

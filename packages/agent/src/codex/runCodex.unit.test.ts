@@ -162,6 +162,58 @@ describe("runCodex", () => {
     expect(args).toContain("o3");
   });
 
+  it("injects MCP servers via codex config overrides without leaking secrets into args", async () => {
+    const promise = runCodex({
+      systemPrompt: "sys",
+      userPrompt: "user",
+      cwd: "/tmp",
+      connectorInjection: {
+        mcpServers: {
+          linear: {
+            type: "http",
+            url: "https://mcp.linear.app/mcp",
+            headers: { Authorization: "Bearer secret" },
+          },
+          fs: {
+            command: "npx",
+            args: ["-y", "server-fs"],
+            env: { TOKEN: "secret" },
+          },
+        },
+        toolNames: ["mcp__linear", "mcp__fs__read_file"],
+      },
+    });
+
+    await tick();
+    testState.mockProc.stdout.push("ok");
+    testState.mockProc.stdout.push(null);
+    testState.mockProc.stderr.push(null);
+    testState.mockProc.emit("close", 0);
+
+    await promise;
+
+    const [bin, args, spawnOpts] = spawnMock.mock.calls[0] as unknown as [
+      string,
+      string[],
+      Record<string, unknown>,
+    ];
+    expect(bin).toBeDefined();
+    expect(args.indexOf("-c")).toBeLessThan(args.indexOf("exec"));
+    expect(args.join(" ")).toContain("mcp_servers.linear");
+    expect(args.join(" ")).toContain("mcp_servers.fs");
+    expect(args.join(" ")).toContain("env_vars");
+    expect(args.join(" ")).toContain("enabled_tools");
+    expect(args.join(" ")).not.toContain("secret");
+
+    const env = spawnOpts.env as Record<string, string>;
+    expect(env.TOKEN).toBe("secret");
+    const headerEnvName = Object.keys(env).find((key) =>
+      key.startsWith("ORDINE_MCP_LINEAR_AUTHORIZATION"),
+    );
+    expect(headerEnvName).toBeDefined();
+    expect(env[headerEnvName!]).toBe("Bearer secret");
+  });
+
   it("rejects on timeout", async () => {
     vi.useFakeTimers();
 

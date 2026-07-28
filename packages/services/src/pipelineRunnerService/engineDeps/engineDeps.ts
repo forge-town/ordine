@@ -3,7 +3,7 @@ import { skillExecutor } from "../skillExecutor";
 import { structuredOutput } from "../structuredOutput";
 import type { PipelineEngineDeps } from "@repo/pipeline-engine";
 import type { AgentRuntime, SshConnection } from "@repo/schemas";
-import type { ClaudeMcpInjectionProvider } from "../agentRunner/agentRunner";
+import type { McpConnectorInjectionProvider } from "../agentRunner/agentRunner";
 import type { LoopEvaluatorFn } from "../loopEvaluator";
 
 export const pipelineRunnerEngineDeps = {
@@ -14,7 +14,7 @@ export const pipelineRunnerEngineDeps = {
     model,
     defaultAgent,
     ssh,
-    getClaudeMcpInjection,
+    getMcpConnectorInjection,
   }: {
     evaluateLoopCondition: LoopEvaluatorFn;
     jobId?: string;
@@ -22,7 +22,7 @@ export const pipelineRunnerEngineDeps = {
     model?: string;
     defaultAgent?: AgentRuntime;
     ssh?: SshConnection;
-    getClaudeMcpInjection?: ClaudeMcpInjectionProvider;
+    getMcpConnectorInjection?: McpConnectorInjectionProvider;
   }): PipelineEngineDeps => ({
     runPrompt: (o) =>
       promptExecutor.run({
@@ -32,7 +32,7 @@ export const pipelineRunnerEngineDeps = {
         apiKey,
         model,
         ssh,
-        getClaudeMcpInjection,
+        getMcpConnectorInjection,
       }),
     runSkill: (o) =>
       skillExecutor.run({
@@ -42,7 +42,7 @@ export const pipelineRunnerEngineDeps = {
         apiKey,
         model,
         ssh,
-        getClaudeMcpInjection,
+        getMcpConnectorInjection,
       }),
     structuredJsonToMarkdown: (content) => structuredOutput.toMarkdown({ content }),
     evaluateLoopCondition,
