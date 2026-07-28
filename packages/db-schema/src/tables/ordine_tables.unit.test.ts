@@ -42,6 +42,7 @@ describe("COD-115 database schema", () => {
     expect(routines.indexes.map((index) => index.config.name)).toEqual([
       "routines_pipeline_id_idx",
       "routines_enabled_idx",
+      "routines_enabled_next_run_at_idx",
     ]);
     expect(assets.indexes.map((index) => index.config.name)).toEqual([
       "pipeline_assets_pipeline_id_idx",

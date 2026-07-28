@@ -1,9 +1,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { connectorsTable } from "@repo/db-schema";
+import type { ConnectorConfig, ConnectorMethod } from "@repo/schemas";
 import type { DbExecutor } from "../../types";
-
-type ConnectorRecord = typeof connectorsTable.$inferSelect;
-type ConnectorSnapshot = Pick<ConnectorRecord, "method" | "config">;
 
 export class ConnectorsDao {
   constructor(readonly executor: DbExecutor) {}
@@ -42,10 +40,16 @@ export class ConnectorsDao {
     return updated;
   }
 
-  async updateIfUnchanged(
+  /**
+   * Compare-and-set update: only writes if the row still matches the expected
+   * method and config snapshot. Returns undefined when the predicate fails,
+   * allowing callers to turn the missed write into a concurrency conflict.
+   */
+  async updateIfConfigUnchanged(
     id: string,
-    snapshot: ConnectorSnapshot,
     patch: Partial<Omit<typeof connectorsTable.$inferInsert, "id">>,
+    expectedMethod: ConnectorMethod,
+    expectedConfig: ConnectorConfig,
   ) {
     const [updated] = await this.executor
       .update(connectorsTable)
@@ -53,8 +57,8 @@ export class ConnectorsDao {
       .where(
         and(
           eq(connectorsTable.id, id),
-          eq(connectorsTable.method, snapshot.method),
-          sql`${connectorsTable.config} = ${JSON.stringify(snapshot.config)}::jsonb`,
+          eq(connectorsTable.method, expectedMethod),
+          sql`${connectorsTable.config} = ${JSON.stringify(expectedConfig)}::jsonb`,
         ),
       )
       .returning();

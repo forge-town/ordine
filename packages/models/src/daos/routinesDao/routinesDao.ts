@@ -1,4 +1,4 @@
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { routinesTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
@@ -53,6 +53,22 @@ export class RoutinesDao {
       .returning();
 
     return updated;
+  }
+
+  async claimNextRun(id: string, scheduledAt: Date, nextRunAt: Date | null): Promise<boolean> {
+    const [updated] = await this.executor
+      .update(routinesTable)
+      .set({ nextRunAt, updatedAt: new Date() })
+      .where(
+        and(
+          eq(routinesTable.id, id),
+          eq(routinesTable.enabled, true),
+          eq(routinesTable.nextRunAt, scheduledAt),
+        ),
+      )
+      .returning({ id: routinesTable.id });
+
+    return updated !== undefined;
   }
 
   async delete(id: string) {

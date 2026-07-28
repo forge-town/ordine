@@ -9,11 +9,14 @@ export type ListMcpToolsHttpOptions = {
 };
 
 const DEFAULT_TIMEOUT_MS = 15_000;
-const PROTOCOL_VERSION = "2025-06-18";
+const SUPPORTED_PROTOCOL_VERSION = "2025-06-18";
+const PROTOCOL_HEADER = "MCP-Protocol-Version";
+const SESSION_HEADER = "MCP-Session-Id";
+const SESSION_EXPIRED = "session expired";
 
 type JsonRpcMessage = {
   id?: number | string;
-  result?: { tools?: unknown; nextCursor?: unknown };
+  result?: { protocolVersion?: unknown; tools?: unknown; nextCursor?: unknown };
   error?: { message?: string };
 };
 
@@ -35,19 +38,37 @@ const toToolSummaries = (raw: unknown): McpToolSummary[] => {
   });
 };
 
-const parseSseMessages = (body: string): JsonRpcMessage[] =>
-  body.split("\n\n").flatMap((event) => {
-    const data = event
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.startsWith("data:"))
-      .map((line) => line.slice("data:".length).trim())
-      .join("\n");
-    if (!data || data === "[DONE]") return [];
-    const parsed = safeJsonParse(data);
+const normalizeLineEndings = (body: string): string => body.replaceAll(/\r\n?/g, "\n");
 
-    return parsed.isOk() ? [parsed.value] : [];
-  });
+const parseSseMessages = (body: string): JsonRpcMessage[] => {
+  const messages: JsonRpcMessage[] = [];
+  const lines = normalizeLineEndings(body).split("\n");
+  const dataLines = { value: [] as string[] };
+
+  const flush = () => {
+    const data = dataLines.value.join("\n");
+    dataLines.value = [];
+
+    if (!data || data.trim() === "[DONE]") return;
+    const parsed = safeJsonParse(data);
+    if (parsed.isOk()) messages.push(parsed.value);
+  };
+
+  for (const line of lines) {
+    if (line === "") {
+      flush();
+
+      continue;
+    }
+    if (line.startsWith("data:")) {
+      dataLines.value.push(line.slice("data:".length).replace(/^ /, ""));
+    }
+  }
+
+  flush();
+
+  return messages;
+};
 
 const parseJsonMessages = (body: string): Result<JsonRpcMessage[], string> => {
   const parsed = safeJsonParse(body);
@@ -83,6 +104,11 @@ const selectResponseMessage = (
   return ok(msg);
 };
 
+type PostJsonRpcOptions = {
+  protocolVersion?: string;
+  allowSessionRecovery?: boolean;
+};
+
 export const listMcpToolsHttp = async ({
   url,
   headers,
@@ -90,10 +116,39 @@ export const listMcpToolsHttp = async ({
 }: ListMcpToolsHttpOptions): Promise<Result<McpToolSummary[], string>> => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
-  const state = { sessionId: undefined as string | undefined };
-  const requestId = { value: 1 };
+  const state = {
+    sessionId: undefined as string | undefined,
+    protocolVersion: undefined as string | undefined,
+  };
 
-  const postJsonRpc = async (message: unknown): Promise<Result<JsonRpcMessage[], string>> => {
+  logger.info({ url }, "listMcpToolsHttp: starting handshake");
+
+  const cleanupSession = async () => {
+    const sessionId = state.sessionId;
+    if (!sessionId) return;
+
+    state.sessionId = undefined;
+    const responseResult = await ResultAsync.fromPromise(
+      fetch(url, {
+        method: "DELETE",
+        headers: {
+          ...headers,
+          ...(state.protocolVersion ? { [PROTOCOL_HEADER]: state.protocolVersion } : {}),
+          [SESSION_HEADER]: sessionId,
+        },
+      }),
+      (error) => (error instanceof Error ? error.message : String(error)),
+    );
+    if (responseResult.isErr()) return;
+
+    const response = await responseResult.value;
+    if (response.status === 405) return;
+  };
+
+  const postJsonRpc = async (
+    message: unknown,
+    { protocolVersion, allowSessionRecovery = true }: PostJsonRpcOptions = {},
+  ): Promise<Result<JsonRpcMessage[], string>> => {
     const responseResult = await ResultAsync.fromPromise(
       fetch(url, {
         method: "POST",
@@ -101,8 +156,8 @@ export const listMcpToolsHttp = async ({
           ...headers,
           "content-type": "application/json",
           accept: "application/json, text/event-stream",
-          "mcp-protocol-version": PROTOCOL_VERSION,
-          ...(state.sessionId ? { "mcp-session-id": state.sessionId } : {}),
+          ...(protocolVersion ? { [PROTOCOL_HEADER]: protocolVersion } : {}),
+          ...(state.sessionId ? { [SESSION_HEADER]: state.sessionId } : {}),
         },
         body: JSON.stringify(message),
         signal: controller.signal,
@@ -112,54 +167,80 @@ export const listMcpToolsHttp = async ({
 
     if (responseResult.isErr()) return err(`HTTP request failed: ${responseResult.error}`);
     const response = await responseResult.value;
+    if (response.status === 404 && state.sessionId && allowSessionRecovery) {
+      state.sessionId = undefined;
+      state.protocolVersion = undefined;
+
+      return err(SESSION_EXPIRED);
+    }
     if (!response.ok) return err(`HTTP ${response.status}: ${response.statusText}`);
 
-    state.sessionId = response.headers.get("mcp-session-id") ?? state.sessionId;
+    const sessionId = response.headers.get(SESSION_HEADER);
+    if (sessionId) state.sessionId = sessionId;
 
     return parseResponseMessages(response);
   };
 
-  logger.info({ url }, "listMcpToolsHttp: starting handshake");
+  const runHandshakeOnce = async (): Promise<Result<McpToolSummary[], string>> => {
+    state.protocolVersion = undefined;
 
-  const runHandshake = async (): Promise<Result<McpToolSummary[], string>> => {
-    const initializeId = requestId.value;
-    requestId.value += 1;
-    const initializeMessages = await postJsonRpc({
-      jsonrpc: "2.0",
-      id: initializeId,
-      method: "initialize",
-      params: {
-        protocolVersion: PROTOCOL_VERSION,
-        capabilities: {},
-        clientInfo: { name: "ordine", version: "0.0.0" },
+    const initializeId = 1;
+    const initializeMessages = await postJsonRpc(
+      {
+        jsonrpc: "2.0",
+        id: initializeId,
+        method: "initialize",
+        params: {
+          protocolVersion: SUPPORTED_PROTOCOL_VERSION,
+          capabilities: {},
+          clientInfo: { name: "ordine", version: "0.0.0" },
+        },
       },
-    });
+      { allowSessionRecovery: false },
+    );
     if (initializeMessages.isErr()) return err(initializeMessages.error);
-    const initialized = selectResponseMessage(initializeMessages.value, initializeId);
-    if (initialized.isErr()) return err(initialized.error);
-    if (initialized.value.error) {
-      return err(`initialize error: ${initialized.value.error.message ?? "unknown"}`);
+
+    const initializeResponse = selectResponseMessage(initializeMessages.value, initializeId);
+    if (initializeResponse.isErr()) return err(initializeResponse.error);
+    if (initializeResponse.value.error) {
+      return err(`initialize error: ${initializeResponse.value.error.message ?? "unknown"}`);
     }
 
-    const initializedNotification = await postJsonRpc({
-      jsonrpc: "2.0",
-      method: "notifications/initialized",
-    });
-    if (initializedNotification.isErr()) return err(initializedNotification.error);
+    const negotiatedVersion = initializeResponse.value.result?.protocolVersion;
+    if (typeof negotiatedVersion !== "string" || negotiatedVersion.length === 0) {
+      return err("initialize result missing protocolVersion");
+    }
+    state.protocolVersion = negotiatedVersion;
+    if (negotiatedVersion !== SUPPORTED_PROTOCOL_VERSION) {
+      return err(`unsupported MCP protocol version: ${negotiatedVersion}`);
+    }
+
+    const initializedMessages = await postJsonRpc(
+      {
+        jsonrpc: "2.0",
+        method: "notifications/initialized",
+      },
+      { protocolVersion: negotiatedVersion },
+    );
+    if (initializedMessages.isErr()) return err(initializedMessages.error);
 
     const tools: McpToolSummary[] = [];
     const seenCursors = new Set<string>();
     const cursor = { value: undefined as string | undefined };
+    const requestId = { value: 2 };
 
     while (true) {
       const id = requestId.value;
       requestId.value += 1;
-      const toolMessages = await postJsonRpc({
-        jsonrpc: "2.0",
-        id,
-        method: "tools/list",
-        params: cursor.value ? { cursor: cursor.value } : {},
-      });
+      const toolMessages = await postJsonRpc(
+        {
+          jsonrpc: "2.0",
+          id,
+          method: "tools/list",
+          params: cursor.value ? { cursor: cursor.value } : {},
+        },
+        { protocolVersion: negotiatedVersion },
+      );
       if (toolMessages.isErr()) return err(toolMessages.error);
 
       const toolResponse = selectResponseMessage(toolMessages.value, id);
@@ -182,5 +263,19 @@ export const listMcpToolsHttp = async ({
     }
   };
 
-  return runHandshake().finally(() => clearTimeout(timer));
+  const runHandshakeWithRetry = async (
+    retriesRemaining: number,
+  ): Promise<Result<McpToolSummary[], string>> => {
+    const result = await runHandshakeOnce();
+    if (result.isOk()) return result;
+    if (result.error !== SESSION_EXPIRED || retriesRemaining === 0) return err(result.error);
+
+    return runHandshakeWithRetry(retriesRemaining - 1);
+  };
+
+  const result = await runHandshakeWithRetry(1);
+  clearTimeout(timer);
+  await cleanupSession();
+
+  return result;
 };

@@ -8,7 +8,6 @@ type ConnectorsDao = ReturnType<typeof createConnectorsDao>;
 type ConnectorRow = Awaited<ReturnType<ConnectorsDao["findById"]>>;
 type Connector = NonNullable<ConnectorRow>;
 type UpdateConnectorPatch = Parameters<ConnectorsDao["update"]>[1];
-type ConnectorSnapshot = Pick<Connector, "method" | "config">;
 
 /**
  * create/update must never set status to connected by hand — only a real
@@ -18,32 +17,33 @@ const denyManualConnected = <T extends { status?: string | null }>(data: T): T =
   data.status === "connected" ? { ...data, status: "needs_setup" } : data;
 
 /**
- * A config edit invalidates any previous handshake: status falls back to
- * needs_setup and client-supplied tools are stripped — the tool list may only
- * be backfilled by a real handshake (connect()).
+ * A config or method edit invalidates any previous handshake: status falls back
+ * to needs_setup, client-supplied tools are stripped, and lastSyncAt is cleared.
+ * Only a real handshake (connect()) may backfill tools and lastSyncAt.
  */
-const sanitizeUpdatePatch = (patch: UpdateConnectorPatch): UpdateConnectorPatch => {
-  const next = denyManualConnected(patch);
-  if (!next.config) return next;
+const sanitizeUpdatePatch = (
+  patch: UpdateConnectorPatch,
+  current: Connector,
+): UpdateConnectorPatch => {
+  const sanitized = denyManualConnected(patch);
+  const configChanged = sanitized.config !== undefined;
+  const methodChanged = sanitized.method !== undefined && sanitized.method !== current.method;
 
-  const config = { ...(next.config as Record<string, unknown>) };
+  if (!configChanged && !methodChanged) return sanitized;
+
+  const config = configChanged
+    ? { ...(sanitized.config as Record<string, unknown>) }
+    : { ...(current.config as Record<string, unknown>) };
   delete config.tools;
   delete config.lastError;
 
-  return { ...next, config, status: "needs_setup", lastSyncAt: null };
+  return { ...sanitized, config, status: "needs_setup", lastSyncAt: null };
 };
 
 const withLastError = (config: ConnectorConfig, lastError: string): Record<string, unknown> => ({
   ...(config as Record<string, unknown>),
   lastError,
 });
-
-/** Full structural comparison; both sides come from the same jsonb column. */
-const sameConfig = (a: ConnectorConfig, b: ConnectorConfig): boolean =>
-  JSON.stringify(a) === JSON.stringify(b);
-
-const sameSnapshot = (a: ConnectorSnapshot, b: ConnectorSnapshot): boolean =>
-  a.method === b.method && sameConfig(a.config, b.config);
 
 const stripHandshakeArtifacts = (config: ConnectorConfig): Record<string, unknown> => {
   const next = { ...(config as Record<string, unknown>) };
@@ -53,23 +53,28 @@ const stripHandshakeArtifacts = (config: ConnectorConfig): Record<string, unknow
   return next;
 };
 
+/** Full structural comparison; both sides come from the same jsonb column. */
+const sameConfig = (a: ConnectorConfig, b: ConnectorConfig): boolean =>
+  JSON.stringify(a) === JSON.stringify(b);
+
+const persistIfConfigUnchanged = async (
+  dao: ConnectorsDao,
+  id: string,
+  expected: Pick<Connector, "method" | "config">,
+  patch: UpdateConnectorPatch,
+  conflictMessage: string,
+): Promise<Result<Connector, Error>> => {
+  const updated = await dao.updateIfConfigUnchanged(id, patch, expected.method, expected.config);
+  if (updated) return ok(updated);
+
+  const current = await dao.findById(id);
+  if (!current) return err(new NotFoundError("Connector", id));
+
+  return err(new ConflictError(conflictMessage));
+};
+
 export const createConnectorsService = (db: DbConnection) => {
   const dao = createConnectorsDao(db);
-
-  const persistIfSnapshotUnchanged = async (
-    id: string,
-    snapshot: ConnectorSnapshot,
-    patch: UpdateConnectorPatch,
-    conflictMessage: string,
-  ): Promise<Result<Connector, Error>> => {
-    const updated = await dao.updateIfUnchanged(id, snapshot, patch);
-    if (updated) return ok(updated);
-
-    const current = await dao.findById(id);
-    if (!current) return err(new NotFoundError("Connector", id));
-
-    return err(new ConflictError(conflictMessage));
-  };
 
   /**
    * Real connect. Failure taxonomy:
@@ -82,12 +87,12 @@ export const createConnectorsService = (db: DbConnection) => {
   const connectImpl = async (id: string): Promise<Result<Connector, Error>> => {
     const row = await dao.findById(id);
     if (!row) return err(new NotFoundError("Connector", id));
-    const snapshot: ConnectorSnapshot = { method: row.method, config: row.config };
 
     const failSetup = async (message: string): Promise<Result<Connector, Error>> =>
-      persistIfSnapshotUnchanged(
+      persistIfConfigUnchanged(
+        dao,
         id,
-        snapshot,
+        row,
         {
           status: "needs_setup",
           config: withLastError(stripHandshakeArtifacts(row.config), message),
@@ -106,6 +111,7 @@ export const createConnectorsService = (db: DbConnection) => {
     if (!isMcpConnectorConfig(config)) {
       return failSetup("Connector is not configured (set transport + command/url first).");
     }
+
     const handshake =
       config.transport === "stdio"
         ? await listMcpToolsStdio({
@@ -122,7 +128,7 @@ export const createConnectorsService = (db: DbConnection) => {
     // handshake was in flight; a stale result must never overwrite fresh config.
     const current = await dao.findById(id);
     if (!current) return err(new NotFoundError("Connector", id));
-    if (!sameSnapshot(current, snapshot)) {
+    if (current.method !== row.method || !sameConfig(current.config, config)) {
       // Discard the stale handshake. The concurrent update() already reset the
       // status to needs_setup (sanitizeUpdatePatch), so nothing is written here.
       // ConflictError keeps 409 semantics: state changed concurrently, retry.
@@ -132,9 +138,10 @@ export const createConnectorsService = (db: DbConnection) => {
     }
 
     if (handshake.isErr()) {
-      const failed = await persistIfSnapshotUnchanged(
+      const failed = await persistIfConfigUnchanged(
+        dao,
         id,
-        snapshot,
+        row,
         {
           status: "error",
           config: withLastError(stripHandshakeArtifacts(current.config), handshake.error),
@@ -154,9 +161,10 @@ export const createConnectorsService = (db: DbConnection) => {
     };
     delete merged.lastError;
 
-    return persistIfSnapshotUnchanged(
+    return persistIfConfigUnchanged(
+      dao,
       id,
-      snapshot,
+      row,
       {
         status: "connected",
         config: merged,
@@ -170,29 +178,21 @@ export const createConnectorsService = (db: DbConnection) => {
     id: string,
     patch: UpdateConnectorPatch,
   ): Promise<Result<Connector, Error>> => {
-    const sanitized = sanitizeUpdatePatch(patch);
+    const current = await dao.findById(id);
+    if (!current) return err(new NotFoundError("Connector", id));
+
+    const sanitized = sanitizeUpdatePatch(patch, current);
     if (sanitized.method === undefined && sanitized.config === undefined) {
       const updated = await dao.update(id, sanitized);
 
       return updated ? ok(updated) : err(new NotFoundError("Connector", id));
     }
 
-    const current = await dao.findById(id);
-    if (!current) return err(new NotFoundError("Connector", id));
-
-    const nextConfig = stripHandshakeArtifacts(
-      (sanitized.config ?? current.config) as ConnectorConfig,
-    );
-
-    return persistIfSnapshotUnchanged(
+    return persistIfConfigUnchanged(
+      dao,
       id,
-      { method: current.method, config: current.config },
-      {
-        ...sanitized,
-        status: "needs_setup",
-        config: nextConfig,
-        lastSyncAt: null,
-      },
+      current,
+      sanitized,
       "Connector changed while updating; retry",
     );
   };

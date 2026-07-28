@@ -33,7 +33,7 @@ describe("COD-115 migration", () => {
     const journal = JSON.parse(readFileSync(postgresJournal, "utf8")) as {
       entries: Array<{ idx: number; tag: string }>;
     };
-    expect(journal.entries.at(-1)).toMatchObject({
+    expect(journal.entries.find((entry) => entry.idx === 28)).toMatchObject({
       idx: 28,
       tag: "0028_add_ordine_domain_tables",
     });
