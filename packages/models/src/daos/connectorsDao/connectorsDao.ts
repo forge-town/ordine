@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { connectorsTable } from "@repo/db-schema";
 import type { ConnectorConfig, ConnectorMethod } from "@repo/schemas";
 import type { DbExecutor } from "../../types";
@@ -58,7 +58,7 @@ export class ConnectorsDao {
         and(
           eq(connectorsTable.id, id),
           eq(connectorsTable.method, expectedMethod),
-          eq(connectorsTable.config, expectedConfig),
+          sql`${connectorsTable.config} = ${JSON.stringify(expectedConfig)}::jsonb`,
         ),
       )
       .returning();

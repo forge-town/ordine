@@ -9,7 +9,7 @@ export class ConversationMessagesDao {
     return this.executor
       .select()
       .from(conversationMessagesTable)
-      .orderBy(desc(conversationMessagesTable.createdAt));
+      .orderBy(desc(conversationMessagesTable.createdAt), desc(conversationMessagesTable.id));
   }
 
   async findById(id: string) {
@@ -29,12 +29,14 @@ export class ConversationMessagesDao {
       .where(eq(conversationMessagesTable.pipelineId, pipelineId));
 
     if (limit === undefined) {
-      return query.orderBy(asc(conversationMessagesTable.createdAt));
+      return query.orderBy(
+        asc(conversationMessagesTable.createdAt),
+        asc(conversationMessagesTable.id),
+      );
     }
 
-    // Latest N in chronological order: take DESC + limit, then reverse.
     const rows = await query
-      .orderBy(desc(conversationMessagesTable.createdAt))
+      .orderBy(desc(conversationMessagesTable.createdAt), desc(conversationMessagesTable.id))
       .limit(limit);
 
     return rows.reverse();
