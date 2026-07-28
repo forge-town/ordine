@@ -120,6 +120,7 @@
     "filterFailed": "Failed",
     "filterCancelled": "Cancelled",
     "filterExpired": "Expired",
+    "filterSkipped": "Skipped",
     "noJobs": "No jobs found",
     "deleteConfirm": "Are you sure you want to delete this job?",
     "duration": "Duration",
@@ -136,6 +137,7 @@
     "statusFailed": "Failed",
     "statusCancelled": "Cancelled",
     "statusExpired": "Expired",
+    "statusSkipped": "Skipped",
     "id": "ID",
     "basicInfo": "Basic Info",
     "viewProject": "View Project",
@@ -552,7 +554,8 @@
       "statusDone": "Done",
       "statusFailed": "Failed",
       "statusCancelled": "Cancelled",
-      "statusExpired": "Expired"
+      "statusExpired": "Expired",
+      "statusSkipped": "Skipped"
     },
     "history": {
       "addEdge": "Connect {{source}} -> {{target}}",

@@ -47,6 +47,8 @@ export const createRoutineSchedulerService = (
   const scheduler = createRoutineScheduler(
     {
       getEnabledRoutines: () => routinesDao.findManyEnabled(),
+      claimNextRun: (id, scheduledAt, nextRunAt) =>
+        routinesDao.claimNextRun(id, scheduledAt, nextRunAt),
       startRun: deps.startRun,
       updateRoutine: (id, patch) => routinesDao.update(id, patch),
       recordSkippedJob,

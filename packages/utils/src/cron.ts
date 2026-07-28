@@ -5,20 +5,27 @@
  * valid if and only if a next occurrence can be computed.
  *
  * Time semantics: expressions are interpreted in the server's local timezone.
- * The next occurrence is found by scanning forward minute by minute, and
- * repeated or nonexistent local times around DST transitions follow the
- * ECMAScript disambiguation rules (the earlier UTC instant is chosen), so a
- * fall-back transition does not produce a double run and a spring-forward
- * gap simply rolls forward to the next valid local time.
+ * The next occurrence is found by scanning strictly forward in UTC minutes and
+ * matching each candidate's local time fields. Around DST transitions this
+ * keeps the returned instant strictly later than `from`: repeated fall-back
+ * wall times are distinct occurrences, and spring-forward gaps are skipped.
  */
 
-type CronField = ReadonlySet<number>;
+type CronField = {
+  values: ReadonlySet<number>;
+  wildcard: boolean;
+};
 
 const fullRange = (min: number, max: number): number[] =>
   Array.from({ length: max - min + 1 }, (_, index) => min + index);
 
 const withStep = (values: number[], base: number, step: number): number[] =>
   values.filter((value) => (value - base) % step === 0);
+
+const makeField = (values: Iterable<number>, wildcard: boolean): CronField => ({
+  values: new Set(values),
+  wildcard,
+});
 
 /**
  * Parses a single cron field. Supported syntax: `*`, `*​/n`, a single value
@@ -30,18 +37,23 @@ const parseCronField = (field: string, min: number, max: number): CronField | nu
   // Comma list: parse each segment and merge; any invalid segment invalidates the whole field.
   if (field.includes(",")) {
     const parts = field.split(",");
-    const merged = new Set<number>();
-    for (const part of parts) {
-      const sub = parseCronField(part, min, max);
-      if (!sub) return null;
-      for (const value of sub) merged.add(value);
-    }
+    const merged = parts.reduce<{ values: Set<number>; wildcard: boolean } | null>(
+      (acc, part) => {
+        if (!acc) return null;
+        const sub = parseCronField(part, min, max);
+        if (!sub) return null;
+        for (const value of sub.values) acc.values.add(value);
 
-    return merged;
+        return { values: acc.values, wildcard: acc.wildcard || sub.wildcard };
+      },
+      { values: new Set<number>(), wildcard: false },
+    );
+
+    return merged ? makeField(merged.values, merged.wildcard) : null;
   }
 
   if (field === "*") {
-    return new Set(fullRange(min, max));
+    return makeField(fullRange(min, max), true);
   }
 
   // `*/n`: the full range with a step.
@@ -50,7 +62,7 @@ const parseCronField = (field: string, min: number, max: number): CronField | nu
     const step = Number(stepAllMatch[1]);
     if (!Number.isInteger(step) || step <= 0) return null;
 
-    return new Set(withStep(fullRange(min, max), min, step));
+    return makeField(withStep(fullRange(min, max), min, step), true);
   }
 
   // Range `a-b` and stepped range `a-b/n`.
@@ -71,13 +83,13 @@ const parseCronField = (field: string, min: number, max: number): CronField | nu
       return null;
     }
 
-    return new Set(withStep(fullRange(start, end), start, step));
+    return makeField(withStep(fullRange(start, end), start, step), false);
   }
 
   const value = Number(field);
   if (!Number.isInteger(value) || value < min || value > max) return null;
 
-  return new Set([value]);
+  return makeField([value], false);
 };
 
 // Standard cron accepts both 0 and 7 for Sunday; normalize 7 to 0 so ranges
@@ -86,17 +98,16 @@ const parseWeekdayField = (field: string): CronField | null => {
   const parsed = parseCronField(field, 0, 7);
   if (!parsed) return null;
 
-  return new Set([...parsed].map((value) => (value === 7 ? 0 : value)));
+  return makeField(
+    [...parsed.values].map((value) => (value === 7 ? 0 : value)),
+    parsed.wildcard,
+  );
 };
 
-const isAllowed = (field: CronField, value: number) => field.has(value);
+const isAllowed = (field: CronField, value: number) => field.values.has(value);
 
 const startOfNextMinute = (from: Date) => {
-  const next = new Date(from);
-  next.setSeconds(0, 0);
-  next.setMinutes(next.getMinutes() + 1);
-
-  return next;
+  return new Date(Math.floor(from.getTime() / 60_000) * 60_000 + 60_000);
 };
 
 /**
@@ -139,13 +150,11 @@ export const getNextCronRunAt = (expression: string | null, from: Date): Date | 
     // cron documentation.
     const domMatches = isAllowed(day, candidate.getDate());
     const dowMatches = isAllowed(weekday, candidate.getDay());
-    const domConstrained = day.size !== 31;
-    const dowConstrained = weekday.size !== 7;
+    const domConstrained = !day.wildcard;
+    const dowConstrained = !weekday.wildcard;
     const dayMatches =
       isAllowed(month, candidate.getMonth() + 1) &&
-      (domConstrained && dowConstrained
-        ? domMatches || dowMatches
-        : domMatches && dowMatches);
+      (domConstrained && dowConstrained ? domMatches || dowMatches : domMatches && dowMatches);
     if (!dayMatches) {
       // The date predicates cannot change within a local day: fast-forward to
       // the next local midnight instead of stepping through 1440 minutes.
@@ -158,7 +167,7 @@ export const getNextCronRunAt = (expression: string | null, from: Date): Date | 
     if (isAllowed(minute, candidate.getMinutes()) && isAllowed(hour, candidate.getHours())) {
       return new Date(candidate);
     }
-    candidate.setMinutes(candidate.getMinutes() + 1);
+    candidate.setTime(candidate.getTime() + 60_000);
   }
 
   return null;

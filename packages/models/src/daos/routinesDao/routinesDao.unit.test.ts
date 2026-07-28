@@ -48,6 +48,13 @@ describe("RoutinesDao", () => {
       }),
     ).resolves.toEqual(routine);
     await expect(dao.update(routine.id, { enabled: false })).resolves.toEqual(routine);
+    await expect(
+      dao.claimNextRun(
+        routine.id,
+        new Date("2026-06-10T09:00:00.000Z"),
+        new Date("2026-06-10T09:05:00.000Z"),
+      ),
+    ).resolves.toBe(true);
     await expect(dao.delete(routine.id)).resolves.toBeUndefined();
 
     expect(limit).toHaveBeenCalledWith(1);

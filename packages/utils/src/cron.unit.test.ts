@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
 import { getNextCronRunAt, isValidCronExpression } from "./cron";
 
 describe("getNextCronRunAt", () => {
@@ -63,7 +64,18 @@ describe("getNextCronRunAt", () => {
     // under standard OR semantics it matches on 2026-06-15.
     const next = getNextCronRunAt("0 9 20 * 1", new Date("2026-06-10T10:00:00.000Z"));
     expect(next).not.toBeNull();
-    expect(next!.toISOString()).toBe("2026-06-15T09:00:00.000Z");
+    expect(next!.getDate()).toBe(15);
+    expect(next!.getDay()).toBe(1);
+    expect(next!.getHours()).toBe(9);
+    expect(next!.getMinutes()).toBe(0);
+  });
+
+  it("treats explicit full ranges as constrained for DOM/DOW OR semantics", () => {
+    const next = getNextCronRunAt("0 9 1-31 * 1", new Date("2026-06-10T08:00:00.000Z"));
+    expect(next).not.toBeNull();
+    expect(next!.getDate()).toBe(10);
+    expect(next!.getHours()).toBe(9);
+    expect(next!.getMinutes()).toBe(0);
   });
 
   it("ANDs day-of-month and day-of-week when one is *", () => {
@@ -95,6 +107,54 @@ describe("getNextCronRunAt", () => {
     expect(next).not.toBeNull();
     expect(next!.getDate()).toBe(29);
     expect(next!.getMonth() + 1).toBe(2);
+  });
+
+  it("does not return a past UTC instant across DST fall-back", () => {
+    const output = execFileSync(
+      process.execPath,
+      [
+        "--input-type=module",
+        "--eval",
+        `
+          import { getNextCronRunAt } from ${JSON.stringify(new URL("cron.ts", import.meta.url).href)};
+          const from = new Date("2026-11-01T06:00:00.000Z");
+          const next = getNextCronRunAt("30 1 * * *", from);
+          console.log(JSON.stringify({ next: next?.toISOString(), after: next ? next.getTime() > from.getTime() : false }));
+        `,
+      ],
+      {
+        env: { ...process.env, TZ: "America/New_York" },
+        encoding: "utf8",
+      },
+    );
+    expect(JSON.parse(output)).toEqual({
+      next: "2026-11-01T06:30:00.000Z",
+      after: true,
+    });
+  });
+
+  it("keeps matching after DST spring-forward gaps", () => {
+    const output = execFileSync(
+      process.execPath,
+      [
+        "--input-type=module",
+        "--eval",
+        `
+          import { getNextCronRunAt } from ${JSON.stringify(new URL("cron.ts", import.meta.url).href)};
+          const from = new Date("2026-03-08T06:59:00.000Z");
+          const next = getNextCronRunAt("30 2 * * *", from);
+          console.log(JSON.stringify({ next: next?.toISOString(), after: next ? next.getTime() > from.getTime() : false }));
+        `,
+      ],
+      {
+        env: { ...process.env, TZ: "America/New_York" },
+        encoding: "utf8",
+      },
+    );
+    expect(JSON.parse(output)).toEqual({
+      next: "2026-03-09T06:30:00.000Z",
+      after: true,
+    });
   });
 });
 

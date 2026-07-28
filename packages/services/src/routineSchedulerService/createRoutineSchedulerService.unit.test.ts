@@ -3,10 +3,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const routinesDaoMock = {
   findManyEnabled: vi.fn(),
+  claimNextRun: vi.fn().mockResolvedValue(true),
   update: vi.fn().mockResolvedValue(undefined),
 };
 const jobsDaoMock = {
   create: vi.fn().mockResolvedValue(undefined),
+};
+
+const flushPromises = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
 };
 
 vi.mock("@repo/models", () => ({
@@ -57,11 +64,13 @@ describe("createRoutineSchedulerService", () => {
 
     // Two poll intervals elapse while the first tick is still awaiting the DB:
     // the in-flight guard must swallow both.
-    await vi.advanceTimersByTimeAsync(60_000);
+    vi.advanceTimersByTime(60_000);
     expect(routinesDaoMock.findManyEnabled).toHaveBeenCalledTimes(1);
 
     firstTickGate.release();
-    await vi.advanceTimersByTimeAsync(30_000);
+    await flushPromises();
+    vi.advanceTimersByTime(30_000);
+    await flushPromises();
     expect(routinesDaoMock.findManyEnabled).toHaveBeenCalledTimes(2);
 
     service.stop();
@@ -84,10 +93,18 @@ describe("createRoutineSchedulerService", () => {
         error: "Failed to start scheduled run: pipeline missing",
       }),
     );
-    expect(routinesDaoMock.update).toHaveBeenCalledWith("routine-1", {
-      nextRunAt: new Date("2026-06-10T09:05:00.000Z"),
+    expect(startRun).toHaveBeenCalledWith({
+      inputs: {},
+      jobId: "routine:routine-1:2026-06-10T09:00:00.000Z",
+      pipelineId: "pipe-1",
+      triggeredBy: "routine",
     });
-    const updateOrder = routinesDaoMock.update.mock.invocationCallOrder[0]!;
+    expect(routinesDaoMock.claimNextRun).toHaveBeenCalledWith(
+      "routine-1",
+      new Date("2026-06-10T09:00:00.000Z"),
+      new Date("2026-06-10T09:05:00.000Z"),
+    );
+    const updateOrder = routinesDaoMock.claimNextRun.mock.invocationCallOrder[0]!;
     const createOrder = jobsDaoMock.create.mock.invocationCallOrder[0]!;
     expect(updateOrder).toBeLessThan(createOrder);
   });
@@ -99,11 +116,13 @@ describe("createRoutineSchedulerService", () => {
 
     service.start();
     service.start();
-    await vi.advanceTimersByTimeAsync(0);
+    vi.advanceTimersByTime(0);
+    await flushPromises();
     expect(routinesDaoMock.findManyEnabled).toHaveBeenCalledTimes(1);
 
     service.stop();
-    await vi.advanceTimersByTimeAsync(120_000);
+    vi.advanceTimersByTime(120_000);
+    await flushPromises();
     expect(routinesDaoMock.findManyEnabled).toHaveBeenCalledTimes(1);
   });
 });

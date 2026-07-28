@@ -34,6 +34,7 @@ type RoutinePatch = {
 
 export type RoutineStartRun = (opts: {
   inputs?: Record<string, string>;
+  jobId?: string;
   pipelineId: string;
   triggeredBy?: JobTriggeredBy;
 }) => Promise<Result<{ jobId: string }, Error>>;
@@ -47,6 +48,7 @@ export type SkippedJobInput = {
 
 export type RoutineSchedulerDeps = {
   getEnabledRoutines: () => Promise<SchedulerRoutine[]>;
+  claimNextRun: (id: string, scheduledAt: Date, nextRunAt: Date | null) => Promise<boolean>;
   startRun: RoutineStartRun;
   updateRoutine: (id: string, patch: RoutinePatch) => Promise<unknown>;
   recordSkippedJob: (input: SkippedJobInput) => Promise<unknown>;
@@ -81,9 +83,9 @@ const describeError = (error: unknown): string =>
  * and do not abort the tick for the remaining routines.
  *
  * Time semantics: cron expressions are interpreted in the server's local
- * timezone (see the cron module in @repo/utils). A DST fall-back transition
- * does not double-run a routine; a spring-forward gap rolls the occurrence
- * forward to the next valid local time without recording a skipped entry.
+ * timezone (see the cron module in @repo/utils). DST fall-back and
+ * spring-forward transitions preserve strict UTC monotonicity while matching
+ * the next valid local time.
  *
  * Single-instance assumption: nothing prevents two processes polling the same
  * database from double-triggering a routine. Multi-instance coordination is
@@ -114,8 +116,9 @@ export const createRoutineScheduler = (
     const lateByMs = now.getTime() - scheduledAt.getTime();
 
     if (lateByMs > graceWindowMs) {
-      // Advance first so a failing skipped-write cannot re-trigger this window.
-      await deps.updateRoutine(routine.id, { nextRunAt: upcoming });
+      const claimed = await deps.claimNextRun(routine.id, scheduledAt, upcoming);
+      if (!claimed) return;
+
       await deps.recordSkippedJob({
         pipelineId: routine.pipelineId,
         routineId: routine.id,
@@ -126,12 +129,16 @@ export const createRoutineScheduler = (
       return;
     }
 
+    const claimed = await deps.claimNextRun(routine.id, scheduledAt, upcoming);
+    if (!claimed) return;
+
     // The startRun Result must be checked: a failed trigger (error Result
     // or rejected promise) becomes a skipped history entry instead of being
     // silently swallowed.
     const startResult = await ResultAsync.fromPromise(
       deps.startRun({
         inputs: toStringInputs(routine.inputConfig),
+        jobId: `routine:${routine.id}:${scheduledAt.toISOString()}`,
         pipelineId: routine.pipelineId,
         triggeredBy: "routine",
       }),
@@ -139,10 +146,8 @@ export const createRoutineScheduler = (
     ).andThen((result) => result);
 
     if (startResult.isOk()) {
-      await deps.updateRoutine(routine.id, { lastRunAt: now, nextRunAt: upcoming });
+      await deps.updateRoutine(routine.id, { lastRunAt: now });
     } else {
-      // Advance first so a failing skipped-write cannot re-trigger this window.
-      await deps.updateRoutine(routine.id, { nextRunAt: upcoming });
       await deps.recordSkippedJob({
         pipelineId: routine.pipelineId,
         routineId: routine.id,

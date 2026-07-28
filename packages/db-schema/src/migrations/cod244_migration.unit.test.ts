@@ -100,6 +100,12 @@ describe("COD-244 migration", () => {
         VALUES ('routine-legacy-w', 'pipeline-1', 'Legacy W', 'cron', '0 9 15W * *', true);
       INSERT INTO "routines" ("id", "pipeline_id", "name", "trigger_type", "cron_expression", "enabled")
         VALUES ('routine-empty', 'pipeline-1', 'Empty', 'cron', '', true);
+      INSERT INTO "routines" ("id", "pipeline_id", "name", "trigger_type", "cron_expression", "enabled")
+        VALUES ('routine-step-zero', 'pipeline-1', 'Step zero', 'cron', '*/0 * * * *', true);
+      INSERT INTO "routines" ("id", "pipeline_id", "name", "trigger_type", "cron_expression", "enabled")
+        VALUES ('routine-six-field', 'pipeline-1', 'Six field', 'cron', '* * * * * *', true);
+      INSERT INTO "routines" ("id", "pipeline_id", "name", "trigger_type", "cron_expression", "enabled")
+        VALUES ('routine-feb-30', 'pipeline-1', 'Feb 30', 'cron', '0 0 30 2 *', true);
     `);
 
     await applyMigrations(db, { after: "0001_add_ordine_domain_tables.sql" });
@@ -109,8 +115,11 @@ describe("COD-244 migration", () => {
     );
     expect(rows.rows).toEqual([
       { id: "routine-empty", enabled: false, next_run_at: null },
+      { id: "routine-feb-30", enabled: false, next_run_at: null },
       { id: "routine-legacy-l", enabled: false, next_run_at: null },
       { id: "routine-legacy-w", enabled: false, next_run_at: null },
+      { id: "routine-six-field", enabled: false, next_run_at: null },
+      { id: "routine-step-zero", enabled: false, next_run_at: null },
       { id: "routine-valid", enabled: true, next_run_at: null },
     ]);
 

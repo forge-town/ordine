@@ -20,6 +20,7 @@ const makeRoutine = (overrides: Partial<SchedulerRoutine> = {}): SchedulerRoutin
 
 const makeDeps = (routines: SchedulerRoutine[]) => ({
   getEnabledRoutines: vi.fn().mockResolvedValue(routines),
+  claimNextRun: vi.fn().mockResolvedValue(true),
   startRun: vi.fn().mockResolvedValue(ok({ jobId: "job-1" })),
   updateRoutine: vi.fn().mockResolvedValue(undefined),
   recordSkippedJob: vi.fn().mockResolvedValue(undefined),
@@ -36,14 +37,22 @@ describe("routine scheduler tick", () => {
 
     expect(deps.startRun).toHaveBeenCalledWith({
       inputs: { prompt: "daily brief" },
+      jobId: "routine:routine-1:2026-06-10T09:00:00.000Z",
       pipelineId: "pipe-1",
       triggeredBy: "routine",
     });
     expect(deps.recordSkippedJob).not.toHaveBeenCalled();
+    expect(deps.claimNextRun).toHaveBeenCalledWith(
+      "routine-1",
+      new Date("2026-06-10T09:00:00.000Z"),
+      new Date("2026-06-10T09:05:00.000Z"),
+    );
     expect(deps.updateRoutine).toHaveBeenCalledWith("routine-1", {
       lastRunAt: now,
-      nextRunAt: new Date("2026-06-10T09:05:00.000Z"),
     });
+    const claimOrder = deps.claimNextRun.mock.invocationCallOrder[0]!;
+    const startOrder = deps.startRun.mock.invocationCallOrder[0]!;
+    expect(claimOrder).toBeLessThan(startOrder);
   });
 
   it("records a skipped job when startRun returns an error Result", async () => {
@@ -60,9 +69,11 @@ describe("routine scheduler tick", () => {
       reason: "Failed to start scheduled run: pipeline missing",
     });
     // No retry: the schedule advances and lastRunAt stays untouched.
-    expect(deps.updateRoutine).toHaveBeenCalledWith("routine-1", {
-      nextRunAt: new Date("2026-06-10T09:05:00.000Z"),
-    });
+    expect(deps.claimNextRun).toHaveBeenCalledWith(
+      "routine-1",
+      new Date("2026-06-10T09:00:00.000Z"),
+      new Date("2026-06-10T09:05:00.000Z"),
+    );
     expect(deps.startRun).toHaveBeenCalledTimes(1);
   });
 
@@ -78,24 +89,26 @@ describe("routine scheduler tick", () => {
         reason: "Failed to start scheduled run: connection refused",
       }),
     );
-    expect(deps.updateRoutine).toHaveBeenCalledWith("routine-1", {
-      nextRunAt: new Date("2026-06-10T09:05:00.000Z"),
-    });
+    expect(deps.claimNextRun).toHaveBeenCalledWith(
+      "routine-1",
+      new Date("2026-06-10T09:00:00.000Z"),
+      new Date("2026-06-10T09:05:00.000Z"),
+    );
   });
 
-  it("advances the schedule before writing the skipped record", async () => {
+  it("claims the schedule before writing the skipped record", async () => {
     const deps = makeDeps([makeRoutine()]);
     deps.startRun.mockResolvedValue(err(new Error("boom")));
     const scheduler = createRoutineScheduler(deps);
 
     await scheduler.tick(new Date("2026-06-10T09:00:30.000Z"));
 
-    const updateOrder = deps.updateRoutine.mock.invocationCallOrder[0]!;
+    const updateOrder = deps.claimNextRun.mock.invocationCallOrder[0]!;
     const skipOrder = deps.recordSkippedJob.mock.invocationCallOrder[0]!;
     expect(updateOrder).toBeLessThan(skipOrder);
   });
 
-  it("still advances the schedule when the skipped write itself fails", async () => {
+  it("still claims the schedule when the skipped write itself fails", async () => {
     const deps = makeDeps([makeRoutine()]);
     deps.startRun.mockResolvedValue(err(new Error("boom")));
     deps.recordSkippedJob.mockRejectedValue(new Error("insert failed"));
@@ -103,10 +116,37 @@ describe("routine scheduler tick", () => {
 
     await scheduler.tick(new Date("2026-06-10T09:00:30.000Z"));
 
-    expect(deps.updateRoutine).toHaveBeenCalledWith("routine-1", {
-      nextRunAt: new Date("2026-06-10T09:05:00.000Z"),
-    });
+    expect(deps.claimNextRun).toHaveBeenCalledWith(
+      "routine-1",
+      new Date("2026-06-10T09:00:00.000Z"),
+      new Date("2026-06-10T09:05:00.000Z"),
+    );
     expect(deps.onError).toHaveBeenCalledWith(expect.any(Error), "routine-1");
+  });
+
+  it("does not start when another tick has already claimed the occurrence", async () => {
+    const deps = makeDeps([makeRoutine()]);
+    deps.claimNextRun.mockResolvedValue(false);
+    const scheduler = createRoutineScheduler(deps);
+
+    await scheduler.tick(new Date("2026-06-10T09:00:30.000Z"));
+
+    expect(deps.startRun).not.toHaveBeenCalled();
+    expect(deps.updateRoutine).not.toHaveBeenCalled();
+    expect(deps.recordSkippedJob).not.toHaveBeenCalled();
+  });
+
+  it("does not duplicate a launched job if the lastRunAt write fails later", async () => {
+    const deps = makeDeps([makeRoutine()]);
+    deps.claimNextRun.mockResolvedValueOnce(true).mockResolvedValue(false);
+    deps.updateRoutine.mockRejectedValue(new Error("lastRunAt failed"));
+    const scheduler = createRoutineScheduler(deps);
+
+    await scheduler.tick(new Date("2026-06-10T09:00:30.000Z"));
+    await scheduler.tick(new Date("2026-06-10T09:00:30.000Z"));
+
+    expect(deps.startRun).toHaveBeenCalledTimes(1);
+    expect(deps.claimNextRun).toHaveBeenCalledTimes(2);
   });
 
   it("isolates a failing routine so the rest of the tick continues", async () => {
@@ -143,11 +183,12 @@ describe("routine scheduler tick", () => {
       reason:
         "Missed scheduled run at 2026-06-10T09:00:00.000Z and all subsequently missed windows while the scheduler was offline; missed runs are not backfilled",
     });
-    expect(deps.updateRoutine).toHaveBeenCalledWith(
+    expect(deps.claimNextRun).toHaveBeenCalledWith(
       "routine-1",
-      expect.objectContaining({ nextRunAt: expect.any(Date) }),
+      new Date("2026-06-10T09:00:00.000Z"),
+      expect.any(Date),
     );
-    const updateOrder = deps.updateRoutine.mock.invocationCallOrder[0]!;
+    const updateOrder = deps.claimNextRun.mock.invocationCallOrder[0]!;
     const skipOrder = deps.recordSkippedJob.mock.invocationCallOrder[0]!;
     expect(updateOrder).toBeLessThan(skipOrder);
   });

@@ -115,6 +115,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
 
   return {
     startRun: async (opts: {
+      jobId?: string;
       pipelineId: string;
       inputPath?: string;
       githubToken?: string;
@@ -128,7 +129,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
         return err(new PipelineNotFoundError(opts.pipelineId));
       }
 
-      const jobId = crypto.randomUUID();
+      const jobId = opts.jobId ?? crypto.randomUUID();
       await jobsDao.create({
         id: jobId,
         title: `Run: ${pipeline.name}`,
