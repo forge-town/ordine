@@ -32,6 +32,7 @@ const statusLabelKeys: Record<JobStatus, string> = {
   failed: "canvas.runConsole.statusFailed",
   cancelled: "canvas.runConsole.statusCancelled",
   expired: "canvas.runConsole.statusExpired",
+  skipped: "canvas.runConsole.statusSkipped",
 };
 
 const parseTimestamp = (log: string): string => {
@@ -90,7 +91,7 @@ const isStructuredLog = (log: string): boolean => {
 };
 
 const isTerminalStatus = (s: JobStatus) =>
-  s === "done" || s === "failed" || s === "cancelled" || s === "expired";
+  s === "done" || s === "failed" || s === "cancelled" || s === "expired" || s === "skipped";
 
 const timelineStatusLabelKeys: Record<RunTimelineStatus, string> = {
   running: "canvas.runConsole.nodeStatusRunning",

@@ -6,10 +6,8 @@ const routine = {
   id: "routine-1",
   pipelineId: "pipeline-1",
   name: "Nightly",
-  triggerType: "cron" as const,
+  description: "Runs the nightly pipeline",
   cronExpression: "0 0 * * *",
-  eventType: null,
-  eventConfig: null,
   inputConfig: null,
   enabled: true,
   lastRunAt: null,
@@ -45,10 +43,18 @@ describe("RoutinesDao", () => {
         id: routine.id,
         pipelineId: routine.pipelineId,
         name: routine.name,
-        triggerType: routine.triggerType,
+        description: routine.description,
+        cronExpression: routine.cronExpression,
       }),
     ).resolves.toEqual(routine);
     await expect(dao.update(routine.id, { enabled: false })).resolves.toEqual(routine);
+    await expect(
+      dao.claimNextRun(
+        routine.id,
+        new Date("2026-06-10T09:00:00.000Z"),
+        new Date("2026-06-10T09:05:00.000Z"),
+      ),
+    ).resolves.toBe(true);
     await expect(dao.delete(routine.id)).resolves.toBeUndefined();
 
     expect(limit).toHaveBeenCalledWith(1);
