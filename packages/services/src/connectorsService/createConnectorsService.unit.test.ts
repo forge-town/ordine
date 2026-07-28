@@ -2,11 +2,15 @@ import { err, ok } from "neverthrow";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const listMcpToolsStdio = vi.fn();
+const listMcpToolsHttp = vi.fn();
 const findById = vi.fn();
 const update = vi.fn();
 const create = vi.fn();
 
-vi.mock("@repo/agent", () => ({ listMcpToolsStdio: (...a: unknown[]) => listMcpToolsStdio(...a) }));
+vi.mock("@repo/agent", () => ({
+  listMcpToolsStdio: (...a: unknown[]) => listMcpToolsStdio(...a),
+  listMcpToolsHttp: (...a: unknown[]) => listMcpToolsHttp(...a),
+}));
 vi.mock("@repo/models", () => ({
   createConnectorsDao: () => ({ findById, update, create, findMany: vi.fn(), delete: vi.fn() }),
 }));
@@ -76,17 +80,41 @@ describe("connectorsService.connect", () => {
     expect(patch.config.lastError).toContain("not configured");
   });
 
-  it("on http transport: falls back to needs_setup + lastError (not error) without handshaking", async () => {
-    findById.mockResolvedValue(stdioRow({ config: { transport: "http", url: "https://x/sse" } }));
-    update.mockResolvedValue(stdioRow());
+  it("on successful http handshake: sets connected + tools + lastSyncAt", async () => {
+    const config = {
+      transport: "http",
+      url: "https://x/mcp",
+      headers: { authorization: "Bearer token" },
+    };
+    findById.mockResolvedValue(stdioRow({ config }));
+    listMcpToolsHttp.mockResolvedValue(ok([{ name: "create_issue" }]));
+    update.mockImplementation((_id, patch) => Promise.resolve({ ...stdioRow(), ...patch }));
+
+    const result = await svc().connect("c1");
+
+    expect(result.isOk()).toBe(true);
+    expect(listMcpToolsStdio).not.toHaveBeenCalled();
+    expect(listMcpToolsHttp).toHaveBeenCalledWith({
+      url: "https://x/mcp",
+      headers: { authorization: "Bearer token" },
+    });
+    const patch = update.mock.calls[0]![1];
+    expect(patch.status).toBe("connected");
+    expect(patch.config.tools).toEqual([{ name: "create_issue" }]);
+    expect(patch.lastSyncAt).toBeInstanceOf(Date);
+  });
+
+  it("on http handshake failure: sets error + lastError, never connected", async () => {
+    findById.mockResolvedValue(stdioRow({ config: { transport: "http", url: "https://x/mcp" } }));
+    listMcpToolsHttp.mockResolvedValue(err("unauthorized"));
+    update.mockResolvedValue(stdioRow({ status: "error" }));
 
     const result = await svc().connect("c1");
 
     expect(result.isErr()).toBe(true);
-    expect(listMcpToolsStdio).not.toHaveBeenCalled();
     const patch = update.mock.calls[0]![1];
-    expect(patch.status).toBe("needs_setup");
-    expect(patch.config.lastError).toBe("http transport is not supported yet");
+    expect(patch.status).toBe("error");
+    expect(patch.config.lastError).toBe("unauthorized");
   });
 
   it("on non-mcp method: falls back to needs_setup + lastError without handshaking", async () => {
