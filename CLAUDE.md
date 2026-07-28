@@ -13,8 +13,9 @@ file automatically for every session, because many sessions are not code edits.
 
 Claude-specific working notes:
 
-- Work on a feature/fix branch and open PRs against the upstream `develop`
-  branch.
+- Work on a feature/fix branch and open PRs against the upstream repository's
+  `develop` branch. Confirm the remote name with `git remote -v`; it may be
+  `origin` or `upstream` depending on the worktree.
 - Do not push directly to protected or upstream mainline branches.
 - Keep `CLAUDE.md` public-safe: no credentials, internal-only details, or local
   personal paths.
