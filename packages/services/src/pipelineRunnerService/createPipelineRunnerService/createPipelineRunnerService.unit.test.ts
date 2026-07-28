@@ -1,12 +1,15 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { pipelineRunControl } from "../runControl";
 
-const { mockJobsDao } = vi.hoisted(() => ({
+const { mockJobsDao, mockConnectorsDao } = vi.hoisted(() => ({
   mockJobsDao: {
     findById: vi.fn(),
     updateStatus: vi.fn().mockResolvedValue(undefined),
     create: vi.fn().mockResolvedValue(undefined),
     setNodeStatuses: vi.fn().mockResolvedValue(undefined),
+  },
+  mockConnectorsDao: {
+    findMany: vi.fn().mockResolvedValue([]),
   },
 }));
 
@@ -32,6 +35,7 @@ vi.mock("@repo/models", () => ({
   createSettingsDao: vi.fn(() => ({ get: vi.fn().mockResolvedValue({}) })),
   createPipelineRunsDao: vi.fn(() => ({})),
   createAgentRuntimesDao: vi.fn(() => ({ findMany: vi.fn().mockResolvedValue([]) })),
+  createConnectorsDao: vi.fn(() => mockConnectorsDao),
 }));
 
 import type { DbConnection } from "@repo/models";
@@ -47,6 +51,7 @@ describe("createPipelineRunnerService run controls", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockJobsDao.updateStatus.mockResolvedValue(undefined);
+    mockConnectorsDao.findMany.mockResolvedValue([]);
   });
 
   it("resumeRun releases a checkpoint waiter while the job status is still running", async () => {
@@ -56,19 +61,19 @@ describe("createPipelineRunnerService run controls", () => {
 
     // The engine suspends on a checkpoint node; the job status stays "running".
     const control = pipelineRunControl.buildForJob(jobId);
-    let released = false;
+    const releaseState = { released: false };
     const waiting = control
       .waitForResume?.({ jobId, nodeId: "n1", reason: "checkpoint" })
       .then(() => {
-        released = true;
+        releaseState.released = true;
       });
-    expect(released).toBe(false);
+    expect(releaseState.released).toBe(false);
 
     const result = await service.resumeRun(jobId);
     await waiting;
 
     expect(result.isOk()).toBe(true);
-    expect(released).toBe(true);
+    expect(releaseState.released).toBe(true);
     expect(mockJobsDao.updateStatus).toHaveBeenCalledWith(jobId, "running", undefined);
 
     pipelineRunControl.clear(jobId);

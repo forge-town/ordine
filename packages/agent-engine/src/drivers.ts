@@ -30,6 +30,8 @@ const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult
     onProgress: toAsyncProgress(opts.onProgress),
     extraEnv,
     ssh: opts.ssh,
+    mcpConfigPath: opts.mcpConfigPath,
+    mcpToolNames: opts.mcpToolNames ? [...opts.mcpToolNames] : undefined,
   });
   return { text: result.text, events: result.events };
 };

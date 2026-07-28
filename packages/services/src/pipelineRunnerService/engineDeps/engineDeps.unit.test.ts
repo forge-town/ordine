@@ -130,4 +130,32 @@ describe("pipelineRunnerEngineDeps", () => {
       }),
     );
   });
+
+  it("passes Claude MCP injection provider to prompt and skill executors", () => {
+    const getClaudeMcpInjection = vi.fn().mockResolvedValue(null);
+    const deps = pipelineRunnerEngineDeps.build({
+      evaluateLoopCondition,
+      jobId: "job-1",
+      getClaudeMcpInjection,
+    });
+
+    deps.runPrompt({
+      prompt: "publish",
+      inputContent: "content",
+      inputPath: "/tmp/project",
+    });
+    deps.runSkill({
+      skillId: "skill-1",
+      skillDescription: "desc",
+      inputContent: "content",
+      inputPath: "/tmp/project",
+    });
+
+    expect(promptExecutor.run).toHaveBeenCalledWith(
+      expect.objectContaining({ getClaudeMcpInjection }),
+    );
+    expect(skillExecutor.run).toHaveBeenCalledWith(
+      expect.objectContaining({ getClaudeMcpInjection }),
+    );
+  });
 });
