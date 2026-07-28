@@ -9,7 +9,7 @@ export class ConversationMessagesDao {
     return this.executor
       .select()
       .from(conversationMessagesTable)
-      .orderBy(desc(conversationMessagesTable.createdAt));
+      .orderBy(desc(conversationMessagesTable.createdAt), desc(conversationMessagesTable.id));
   }
 
   async findById(id: string) {
@@ -26,10 +26,20 @@ export class ConversationMessagesDao {
     const query = this.executor
       .select()
       .from(conversationMessagesTable)
-      .where(eq(conversationMessagesTable.pipelineId, pipelineId))
-      .orderBy(asc(conversationMessagesTable.createdAt));
+      .where(eq(conversationMessagesTable.pipelineId, pipelineId));
 
-    return limit === undefined ? query : query.limit(limit);
+    if (limit === undefined) {
+      return query.orderBy(
+        asc(conversationMessagesTable.createdAt),
+        asc(conversationMessagesTable.id),
+      );
+    }
+
+    const rows = await query
+      .orderBy(desc(conversationMessagesTable.createdAt), desc(conversationMessagesTable.id))
+      .limit(limit);
+
+    return rows.reverse();
   }
 
   async create(data: typeof conversationMessagesTable.$inferInsert) {

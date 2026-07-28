@@ -1,5 +1,6 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { connectorsTable } from "@repo/db-schema";
+import type { ConnectorConfig, ConnectorMethod } from "@repo/schemas";
 import type { DbExecutor } from "../../types";
 
 export class ConnectorsDao {
@@ -34,6 +35,32 @@ export class ConnectorsDao {
       .update(connectorsTable)
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(connectorsTable.id, id))
+      .returning();
+
+    return updated;
+  }
+
+  /**
+   * Compare-and-set update: only writes if the row still matches the expected
+   * method and config snapshot. Returns undefined when the predicate fails,
+   * allowing callers to turn the missed write into a concurrency conflict.
+   */
+  async updateIfConfigUnchanged(
+    id: string,
+    patch: Partial<Omit<typeof connectorsTable.$inferInsert, "id">>,
+    expectedMethod: ConnectorMethod,
+    expectedConfig: ConnectorConfig,
+  ) {
+    const [updated] = await this.executor
+      .update(connectorsTable)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(
+        and(
+          eq(connectorsTable.id, id),
+          eq(connectorsTable.method, expectedMethod),
+          sql`${connectorsTable.config} = ${JSON.stringify(expectedConfig)}::jsonb`,
+        ),
+      )
       .returning();
 
     return updated;

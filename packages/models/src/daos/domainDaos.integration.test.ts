@@ -184,4 +184,70 @@ describe("COD-116 domain DAOs with PGlite", () => {
     expect(await assets.findById("asset-1")).toBeUndefined();
     expect(await connectors.findById("connector-1")).toBeUndefined();
   });
+
+  it("returns the latest N conversation messages in chronological order", async () => {
+    const messages = createConversationMessagesDao(executor);
+
+    await executor
+      .insert(pipelinesTable)
+      .values({ id: "pipeline-messages", name: "Messages", projectId: "project-1" });
+
+    for (const i of [1, 2, 3, 4, 5]) {
+      await messages.create({
+        id: `msg-${i}`,
+        pipelineId: "pipeline-messages",
+        role: "user",
+        content: `message-${i}`,
+        createdAt: new Date(`2026-01-0${i}T00:00:00Z`),
+      });
+    }
+
+    const latest = await messages.findManyByPipelineId("pipeline-messages", 3);
+    expect(latest.map((m) => m.content)).toEqual(["message-3", "message-4", "message-5"]);
+
+    const all = await messages.findManyByPipelineId("pipeline-messages");
+    expect(all.map((m) => m.content)).toEqual([
+      "message-1",
+      "message-2",
+      "message-3",
+      "message-4",
+      "message-5",
+    ]);
+  });
+
+  it("returns the latest pipeline messages in a stable order when created_at ties", async () => {
+    const projects = createProjectsDao(executor);
+    const messages = createConversationMessagesDao(executor);
+
+    await projects.create({ id: "project-order", name: "Ordered" });
+    await executor.insert(pipelinesTable).values({
+      id: "pipeline-order",
+      name: "Ordering",
+      projectId: "project-order",
+    });
+
+    const createdAt = new Date("2026-01-02T00:00:00.000Z");
+    for (const i of [1, 2, 3, 4, 5]) {
+      await messages.create({
+        id: `message-${i}`,
+        pipelineId: "pipeline-order",
+        role: "user",
+        content: `Message ${i}`,
+        createdAt,
+      });
+    }
+
+    await expect(messages.findManyByPipelineId("pipeline-order")).resolves.toEqual([
+      expect.objectContaining({ id: "message-1" }),
+      expect.objectContaining({ id: "message-2" }),
+      expect.objectContaining({ id: "message-3" }),
+      expect.objectContaining({ id: "message-4" }),
+      expect.objectContaining({ id: "message-5" }),
+    ]);
+    await expect(messages.findManyByPipelineId("pipeline-order", 3)).resolves.toEqual([
+      expect.objectContaining({ id: "message-3" }),
+      expect.objectContaining({ id: "message-4" }),
+      expect.objectContaining({ id: "message-5" }),
+    ]);
+  });
 });
