@@ -1,5 +1,6 @@
 import { readFile, unlink } from "node:fs";
-import { tmpdir } from "node:os";
+import { copyFile, mkdtemp, rm } from "node:fs/promises";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { hasMcpConnectorInjection, type McpConnectorInjection } from "../mcp";
 import { logger } from "@repo/logger";
@@ -25,9 +26,9 @@ export const CODEX_SANDBOX_MODES = {
 } as const;
 
 const TOML_KEY_RE = /^[A-Za-z0-9_-]+$/;
+const CODEX_PROCESS_ENV_NAMES = new Set(["CODEX_HOME", "HOME", "PATH"]);
 
-const tomlKey = (key: string): string =>
-  TOML_KEY_RE.test(key) ? key : JSON.stringify(key);
+const tomlKey = (key: string): string => (TOML_KEY_RE.test(key) ? key : JSON.stringify(key));
 
 const tomlValue = (value: unknown): string => {
   if (typeof value === "string") return JSON.stringify(value);
@@ -66,6 +67,14 @@ const buildCodexMcpOverrides = (
       if (serverEntry.env) {
         serverConfig.env_vars = Object.keys(serverEntry.env).sort();
         for (const [envName, envValue] of Object.entries(serverEntry.env)) {
+          if (CODEX_PROCESS_ENV_NAMES.has(envName)) {
+            throw new Error(
+              `MCP server ${serverName} cannot override Codex process env ${envName}`,
+            );
+          }
+          if (env[envName] !== undefined && env[envName] !== envValue) {
+            throw new Error(`MCP servers define conflicting values for env ${envName}`);
+          }
           env[envName] = envValue;
         }
       }
@@ -90,13 +99,29 @@ const buildCodexMcpOverrides = (
       }
     }
 
-    configArgs.push(
-      "-c",
-      `${serverPrefix}=${tomlValue(serverConfig)}`,
-    );
+    configArgs.push("-c", `${serverPrefix}=${tomlValue(serverConfig)}`);
   }
 
   return { configArgs, env };
+};
+
+const createIsolatedCodexHome = async (): Promise<string> => {
+  const isolatedHome = await mkdtemp(join(tmpdir(), "ordine-codex-home-"));
+
+  const sourceHome = process.env.CODEX_HOME ?? join(homedir(), ".codex");
+  const authCopy = await copyFile(
+    join(sourceHome, "auth.json"),
+    join(isolatedHome, "auth.json"),
+  ).then(
+    () => null,
+    (error: NodeJS.ErrnoException) => error,
+  );
+  if (authCopy && authCopy.code !== "ENOENT") {
+    await rm(isolatedHome, { recursive: true, force: true });
+    throw authCopy;
+  }
+
+  return isolatedHome;
 };
 
 export const runCodex = async ({
@@ -119,6 +144,9 @@ export const runCodex = async ({
     `ordine-codex-last-message-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`,
   );
   const codexMcpOverrides = buildCodexMcpOverrides(connectorInjection);
+  const isolatedCodexHome = hasMcpConnectorInjection(connectorInjection)
+    ? await createIsolatedCodexHome()
+    : undefined;
 
   const args = [
     ...codexMcpOverrides.configArgs,
@@ -148,11 +176,22 @@ export const runCodex = async ({
         }
       });
     };
+    const removeIsolatedCodexHome = () => {
+      if (!isolatedCodexHome) return;
+      void rm(isolatedCodexHome, { recursive: true, force: true }).then(
+        () => undefined,
+        (error) => logger.debug({ err: String(error) }, "runCodex: failed to remove isolated home"),
+      );
+    };
 
     const child = spawnCommand(CODEX_BIN, args, {
       cwd,
       stdio: ["pipe", "pipe", "pipe"],
-      env: { ...process.env, ...codexMcpOverrides.env },
+      env: {
+        ...process.env,
+        ...codexMcpOverrides.env,
+        ...(isolatedCodexHome ? { CODEX_HOME: isolatedCodexHome } : {}),
+      },
     });
 
     const stdoutChunks: Buffer[] = [];
@@ -168,12 +207,14 @@ export const runCodex = async ({
     const timer = setTimeout(() => {
       child.kill("SIGTERM");
       removeOutputFile();
+      removeIsolatedCodexHome();
       reject(new Error(`codex timed out after ${timeoutMs / 1000}s`));
     }, timeoutMs);
 
     child.on("error", (error) => {
       clearTimeout(timer);
       removeOutputFile();
+      removeIsolatedCodexHome();
       logger.error({ err: error.message }, "runCodex: spawn error");
       void onProgress?.(`[Codex] Spawn error: ${error.message}`);
       reject(error);
@@ -185,6 +226,7 @@ export const runCodex = async ({
       const stderr = Buffer.concat(stderrChunks).toString("utf8");
       readFile(outputFile, "utf8", (readError, fileOutput) => {
         removeOutputFile();
+        removeIsolatedCodexHome();
         const output = readError ? stdout : fileOutput;
 
         if (code !== 0 && output.trim().length === 0) {

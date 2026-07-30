@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi, beforeEach, afterAll } from "vitest";
+import { ToolNameSchema } from "@repo/agent";
 import { agentEngine } from "@repo/agent-engine";
 
 vi.mock("@repo/agent", () => ({
@@ -11,7 +12,9 @@ vi.mock("@repo/agent", () => ({
   CheckOutputSchema: { safeParse: vi.fn().mockReturnValue({ success: true, data: {} }) },
   FixOutputSchema: { safeParse: vi.fn().mockReturnValue({ success: false }) },
   ToolNameSchema: {
-    array: () => ({ readonly: () => ({ safeParse: vi.fn().mockReturnValue({ success: false }) }) }),
+    array: vi.fn(() => ({
+      readonly: () => ({ safeParse: vi.fn().mockReturnValue({ success: false }) }),
+    })),
   },
 }));
 
@@ -115,6 +118,25 @@ describe("skillExecutor", () => {
         jobId: "job-1",
         agentId: "test-skill",
       }),
+    );
+  });
+
+  it("preserves selected MCP tools alongside validated built-in tools", async () => {
+    const safeParse = vi.fn().mockReturnValue({ success: true, data: ["Read"] });
+    vi.mocked(ToolNameSchema.array).mockReturnValue({
+      readonly: () => ({ safeParse }),
+    } as never);
+
+    const result = await skillExecutor.run({
+      ...baseOpts,
+      agent: "codex",
+      allowedTools: ["Read", "mcp__github__read_issue"],
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(safeParse).toHaveBeenCalledWith(["Read"]);
+    expect(agentEngine.run).toHaveBeenCalledWith(
+      expect.objectContaining({ allowedTools: ["Read", "mcp__github__read_issue"] }),
     );
   });
 

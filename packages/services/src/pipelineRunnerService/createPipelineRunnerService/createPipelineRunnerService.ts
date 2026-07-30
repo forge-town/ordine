@@ -23,7 +23,7 @@ import {
   type DbConnection,
 } from "@repo/models";
 import { buildMcpConnectorInjection } from "../../connectorsService";
-import type { McpConnectorInjection } from "@repo/agent";
+import type { McpConnectorInjectionProvider } from "@repo/agent-engine";
 
 export class PipelineNotFoundError extends Error {
   constructor(pipelineId: string) {
@@ -108,7 +108,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
     model?: string;
     defaultAgent?: AgentRuntime;
     ssh?: SshConnection;
-    getMcpConnectorInjection?: () => Promise<McpConnectorInjection | null>;
+    getMcpConnectorInjection?: McpConnectorInjectionProvider;
   }) =>
     pipelineRunnerEngineDeps.build({
       evaluateLoopCondition: loopEvaluatorFactory({ jobId }),
@@ -121,14 +121,10 @@ export const createPipelineRunnerService = (db: DbConnection) => {
     });
 
   const buildMcpConnectorInjectionProvider = () => {
-    const cache: { value?: Promise<McpConnectorInjection | null> } = {};
+    return async (selectedToolNames: readonly string[]) => {
+      const connectors = await connectorsDao.findMany();
 
-    return () => {
-      cache.value ??= connectorsDao
-        .findMany()
-        .then((connectors) => buildMcpConnectorInjection(connectors));
-
-      return cache.value;
+      return buildMcpConnectorInjection(connectors, selectedToolNames);
     };
   };
 

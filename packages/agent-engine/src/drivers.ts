@@ -39,6 +39,26 @@ const describeConnectorInjection = (injection: McpConnectorInjection): string =>
     ? injection.toolNames.join(", ")
     : Object.keys(injection.mcpServers).join(", ");
 
+const selectedConnectorToolNames = (opts: AgentRunOptions): readonly string[] =>
+  opts.allowedTools?.filter((toolName) => toolName.startsWith("mcp__")) ?? [];
+
+const runtimeToolNames = (opts: AgentRunOptions): readonly string[] | undefined =>
+  opts.allowedTools?.filter((toolName) => !toolName.startsWith("mcp__"));
+
+const loadConnectorInjection = async (
+  opts: AgentRunOptions,
+): Promise<McpConnectorInjection | undefined> => {
+  if (hasMcpConnectorInjection(opts.connectorInjection)) return opts.connectorInjection;
+  const selectedTools = selectedConnectorToolNames(opts);
+  if (!opts.getMcpConnectorInjection || selectedTools.length === 0) return undefined;
+
+  return (await opts.getMcpConnectorInjection(selectedTools)) ?? undefined;
+};
+
+const hasRequestedConnectorInjection = (opts: AgentRunOptions): boolean =>
+  hasMcpConnectorInjection(opts.connectorInjection) ||
+  (!!opts.getMcpConnectorInjection && selectedConnectorToolNames(opts).length > 0);
+
 const writeClaudeMcpConfig = async (
   injection: McpConnectorInjection,
 ): Promise<PreparedClaudeMcpInjection> => {
@@ -72,7 +92,7 @@ const reportConnectorInjectionSkipped = async (
   opts: AgentRunOptions,
   reason: string,
 ): Promise<void> => {
-  if (!hasMcpConnectorInjection(opts.connectorInjection)) return;
+  if (!hasRequestedConnectorInjection(opts)) return;
 
   logger.warn({ agent: opts.agent, reason }, "connector injection skipped");
   await opts.onProgress?.(`[Connector Injection] ${opts.agent} skipped: ${reason}`);
@@ -80,9 +100,10 @@ const reportConnectorInjectionSkipped = async (
 
 const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
   const extraEnv = opts.githubToken ? { GITHUB_TOKEN: opts.githubToken } : undefined;
+  const selectedRuntimeTools = runtimeToolNames(opts);
   const effectiveTools =
-    opts.allowedTools && opts.allowedTools.length > 0
-      ? (opts.allowedTools as ToolName[])
+    selectedRuntimeTools && selectedRuntimeTools.length > 0
+      ? (selectedRuntimeTools as ToolName[])
       : undefined;
 
   if (opts.ssh) {
@@ -92,15 +113,15 @@ const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult
     );
   }
 
-  const preparedMcp =
-    opts.ssh || !hasMcpConnectorInjection(opts.connectorInjection)
-      ? null
-      : await writeClaudeMcpConfig(opts.connectorInjection);
+  const connectorInjection = opts.ssh ? undefined : await loadConnectorInjection(opts);
+  const preparedMcp = !hasMcpConnectorInjection(connectorInjection)
+    ? null
+    : await writeClaudeMcpConfig(connectorInjection);
 
   const runWithMcp = (async () => {
-    if (preparedMcp && opts.connectorInjection) {
+    if (preparedMcp && connectorInjection) {
       await opts.onProgress?.(
-        `[Connector Injection] claude-code injected: ${describeConnectorInjection(opts.connectorInjection)}`,
+        `[Connector Injection] claude-code injected: ${describeConnectorInjection(connectorInjection)}`,
       );
     }
 
@@ -127,12 +148,26 @@ const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult
 };
 
 const runCodexDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
+  if (opts.ssh) {
+    await reportConnectorInjectionSkipped(
+      opts,
+      "SSH runtime cannot safely use local Codex MCP configuration",
+    );
+  }
+
+  const connectorInjection = opts.ssh ? undefined : await loadConnectorInjection(opts);
+  if (connectorInjection) {
+    await opts.onProgress?.(
+      `[Connector Injection] codex injected: ${describeConnectorInjection(connectorInjection)}`,
+    );
+  }
+
   const text = await runCodex({
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
     onProgress: toAsyncProgress(opts.onProgress),
-    connectorInjection: opts.connectorInjection,
+    connectorInjection,
   });
 
   return { text, events: [] };
@@ -168,7 +203,7 @@ const runHermesDirect = async (opts: AgentRunOptions): Promise<DriverResult> => 
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
     model: opts.model,
-    allowedTools: opts.allowedTools,
+    allowedTools: runtimeToolNames(opts),
     onProgress: toAsyncProgress(opts.onProgress),
   });
 

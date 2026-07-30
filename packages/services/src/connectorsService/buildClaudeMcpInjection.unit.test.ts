@@ -65,4 +65,27 @@ describe("buildMcpConnectorInjection", () => {
     ]);
     expect(Object.keys(out!.mcpServers).sort()).toEqual(["api_x", "api_x_"]);
   });
+
+  it("only includes connectors selected for the current run", () => {
+    const out = buildMcpConnectorInjection(
+      [
+        connected("github", {
+          transport: "stdio",
+          command: "github-mcp",
+          tools: [{ name: "create_issue" }, { name: "read_issue" }],
+        }),
+        connected("linear", {
+          transport: "http",
+          url: "https://mcp.linear.app/mcp",
+          tools: [{ name: "create_issue" }],
+        }),
+      ],
+      ["mcp__github__read_issue"],
+    );
+
+    expect(out).toEqual({
+      mcpServers: { github: { command: "github-mcp" } },
+      toolNames: ["mcp__github__read_issue"],
+    });
+  });
 });

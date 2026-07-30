@@ -185,6 +185,71 @@ describe("agentEngine", () => {
     );
   });
 
+  it("loads only the selected connector tools inside a supported adapter", async () => {
+    const injection = {
+      mcpServers: { github: { command: "github-mcp" } },
+      toolNames: ["mcp__github__read_issue"],
+    };
+    const getMcpConnectorInjection = vi.fn().mockResolvedValue(injection);
+
+    await agentEngine.run({
+      agent: "codex",
+      mode: "direct",
+      systemPrompt: "Analyze this",
+      userPrompt: "Hello",
+      cwd: "/tmp/test",
+      allowedTools: ["Read", "mcp__github__read_issue"],
+      getMcpConnectorInjection,
+    });
+
+    expect(getMcpConnectorInjection).toHaveBeenCalledWith(["mcp__github__read_issue"]);
+    expect(runCodex).toHaveBeenCalledWith(
+      expect.objectContaining({ connectorInjection: injection }),
+    );
+  });
+
+  it("does not resolve connector credentials for Codex SSH runtimes", async () => {
+    const getMcpConnectorInjection = vi.fn();
+    const onProgress = vi.fn();
+
+    await agentEngine.run({
+      agent: "codex",
+      mode: "direct",
+      systemPrompt: "Analyze this",
+      userPrompt: "Hello",
+      cwd: "/tmp/test",
+      ssh: { host: "remote.example.com", user: "runner" },
+      allowedTools: ["mcp__github__read_issue"],
+      getMcpConnectorInjection,
+      onProgress,
+    });
+
+    expect(getMcpConnectorInjection).not.toHaveBeenCalled();
+    expect(runCodex).toHaveBeenCalledWith(
+      expect.objectContaining({ connectorInjection: undefined }),
+    );
+    expect(onProgress).toHaveBeenCalledWith(expect.stringContaining("codex skipped"));
+  });
+
+  it("does not resolve connector credentials for unsupported runtimes", async () => {
+    const getMcpConnectorInjection = vi.fn();
+    const onProgress = vi.fn();
+
+    await agentEngine.run({
+      agent: "mastra",
+      mode: "direct",
+      systemPrompt: "Analyze this",
+      userPrompt: "Hello",
+      cwd: "/tmp/test",
+      allowedTools: ["mcp__github__read_issue"],
+      getMcpConnectorInjection,
+      onProgress,
+    });
+
+    expect(getMcpConnectorInjection).not.toHaveBeenCalled();
+    expect(onProgress).toHaveBeenCalledWith(expect.stringContaining("mastra skipped"));
+  });
+
   it("dispatches to runHermes for hermes", async () => {
     const result = await agentEngine.run({
       agent: "hermes",

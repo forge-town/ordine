@@ -26,9 +26,11 @@ const uniqueServerKey = (base: string, taken: Record<string, unknown>): string =
  */
 export const buildMcpConnectorInjection = (
   connectors: ConnectorLike[],
+  selectedToolNames?: readonly string[],
 ): McpConnectorInjection | null => {
   const mcpServers: Record<string, McpServerEntry> = {};
   const toolNames: string[] = [];
+  const selectedTools = selectedToolNames ? new Set(selectedToolNames) : null;
 
   for (const connector of connectors) {
     if (connector.method !== "mcp") continue;
@@ -37,6 +39,14 @@ export const buildMcpConnectorInjection = (
     if (!isMcpConnectorConfig(config)) continue;
 
     const key = uniqueServerKey(sanitizeServerKey(connector.name), mcpServers);
+    const serverToolPrefix = `mcp__${key}`;
+    const selectedServerTools = selectedTools
+      ? [...selectedTools].filter(
+          (toolName) =>
+            toolName === serverToolPrefix || toolName.startsWith(`${serverToolPrefix}__`),
+        )
+      : null;
+    if (selectedServerTools?.length === 0) continue;
 
     if (config.transport === "stdio") {
       mcpServers[key] = {
@@ -52,11 +62,15 @@ export const buildMcpConnectorInjection = (
       };
     }
 
-    const tools = config.tools ?? [];
-    if (tools.length === 0) {
-      toolNames.push(`mcp__${key}`);
+    if (selectedServerTools) {
+      toolNames.push(...selectedServerTools);
     } else {
-      for (const tool of tools) toolNames.push(`mcp__${key}__${tool.name}`);
+      const tools = config.tools ?? [];
+      if (tools.length === 0) {
+        toolNames.push(serverToolPrefix);
+      } else {
+        for (const tool of tools) toolNames.push(`${serverToolPrefix}__${tool.name}`);
+      }
     }
   }
 

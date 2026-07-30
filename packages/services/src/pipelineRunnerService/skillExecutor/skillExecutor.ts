@@ -227,11 +227,15 @@ const run = ({
     runtimeContext,
   });
 
-  const parsedCustomTools = customAllowedTools
-    ? ToolNameSchema.array().readonly().safeParse(customAllowedTools)
+  const connectorTools =
+    customAllowedTools?.filter((toolName) => toolName.startsWith("mcp__")) ?? [];
+  const builtInTools = customAllowedTools?.filter((toolName) => !toolName.startsWith("mcp__"));
+  const parsedCustomTools = builtInTools
+    ? ToolNameSchema.array().readonly().safeParse(builtInTools)
     : null;
   const allowedTools =
-    (parsedCustomTools?.success ? parsedCustomTools.data : null) ?? READ_ONLY_TOOLS;
+    (parsedCustomTools?.success ? [...parsedCustomTools.data, ...connectorTools] : null) ??
+    READ_ONLY_TOOLS;
 
   return ResultAsync.fromPromise(
     (async () => {

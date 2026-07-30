@@ -1,17 +1,37 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { pipelineRunControl } from "../runControl";
 
-const { mockJobsDao, mockConnectorsDao } = vi.hoisted(() => ({
-  mockJobsDao: {
-    findById: vi.fn(),
-    updateStatus: vi.fn().mockResolvedValue(undefined),
-    create: vi.fn().mockResolvedValue(undefined),
-    setNodeStatuses: vi.fn().mockResolvedValue(undefined),
-  },
-  mockConnectorsDao: {
-    findMany: vi.fn().mockResolvedValue([]),
-  },
-}));
+type EngineDepsMock = {
+  runSkill: (opts: unknown) => Promise<void>;
+};
+
+type PipelineRunOptionsMock = {
+  engineDeps: EngineDepsMock;
+};
+
+type EngineDepsBuildOptionsMock = {
+  getMcpConnectorInjection?: (selectedToolNames: readonly string[]) => Promise<unknown>;
+};
+
+const { mockJobsDao, mockConnectorsDao, mockPipelinesDao, mockPipelineRunExecutorRun } = vi.hoisted(
+  () => ({
+    mockJobsDao: {
+      findById: vi.fn(),
+      updateStatus: vi.fn().mockResolvedValue(undefined),
+      create: vi.fn().mockResolvedValue(undefined),
+      setNodeStatuses: vi.fn().mockResolvedValue(undefined),
+    },
+    mockConnectorsDao: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    mockPipelinesDao: {
+      findById: vi.fn(),
+    },
+    mockPipelineRunExecutorRun: vi.fn(async (opts: PipelineRunOptionsMock) => {
+      await opts.engineDeps.runSkill({ allowedTools: ["mcp__github__read_issue"] } as never);
+    }),
+  }),
+);
 
 vi.mock("@repo/obs", () => ({
   initObs: vi.fn(),
@@ -26,16 +46,35 @@ vi.mock("@repo/logger", () => ({
 vi.mock("@repo/models", () => ({
   createAgentsDao: vi.fn(() => ({})),
   createOperationsDao: vi.fn(() => ({})),
-  createPipelinesDao: vi.fn(() => ({ findById: vi.fn() })),
+  createPipelinesDao: vi.fn(() => mockPipelinesDao),
   createJobsDao: vi.fn(() => mockJobsDao),
   createJobTracesDao: vi.fn(() => ({})),
   createSkillsDao: vi.fn(() => ({})),
   createAgentRawExportsDao: vi.fn(() => ({})),
   createAgentSpansDao: vi.fn(() => ({})),
   createSettingsDao: vi.fn(() => ({ get: vi.fn().mockResolvedValue({}) })),
-  createPipelineRunsDao: vi.fn(() => ({})),
+  createPipelineRunsDao: vi.fn(() => ({ create: vi.fn().mockResolvedValue(undefined) })),
   createAgentRuntimesDao: vi.fn(() => ({ findMany: vi.fn().mockResolvedValue([]) })),
   createConnectorsDao: vi.fn(() => mockConnectorsDao),
+}));
+
+vi.mock("../engineDeps", () => ({
+  pipelineRunnerEngineDeps: {
+    build: vi.fn((opts: EngineDepsBuildOptionsMock) => ({
+      runPrompt: vi.fn(),
+      runSkill: vi.fn(async () => {
+        await opts.getMcpConnectorInjection?.(["mcp__github__read_issue"]);
+      }),
+      structuredJsonToMarkdown: vi.fn(),
+      evaluateLoopCondition: vi.fn(),
+    })),
+  },
+}));
+
+vi.mock("../runPipeline", () => ({
+  pipelineRunExecutor: {
+    run: mockPipelineRunExecutorRun,
+  },
 }));
 
 import type { DbConnection } from "@repo/models";
@@ -52,6 +91,14 @@ describe("createPipelineRunnerService run controls", () => {
     vi.clearAllMocks();
     mockJobsDao.updateStatus.mockResolvedValue(undefined);
     mockConnectorsDao.findMany.mockResolvedValue([]);
+    mockPipelinesDao.findById.mockResolvedValue({
+      id: "pipe-1",
+      name: "Pipe",
+      description: "Pipeline description",
+      projectId: null,
+      nodes: [],
+      edges: [],
+    });
   });
 
   it("resumeRun releases a checkpoint waiter while the job status is still running", async () => {
@@ -161,5 +208,16 @@ describe("createPipelineRunnerService run controls", () => {
     if (result.isErr()) {
       expect(result.error.message).toContain("DB down");
     }
+  });
+
+  it("builds connector injection from only the tools selected for the run", async () => {
+    const service = makeService();
+
+    const result = await service.startRun({ pipelineId: "pipe-1" });
+    expect(result.isOk()).toBe(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(mockConnectorsDao.findMany).toHaveBeenCalledOnce();
   });
 });

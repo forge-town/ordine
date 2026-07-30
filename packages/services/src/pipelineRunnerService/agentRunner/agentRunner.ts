@@ -1,11 +1,14 @@
 import { ResultAsync } from "neverthrow";
-import type { McpConnectorInjection } from "@repo/agent";
-import { agentEngine, type AgentInputAttachment } from "@repo/agent-engine";
+import {
+  agentEngine,
+  type AgentInputAttachment,
+  type McpConnectorInjectionProvider,
+} from "@repo/agent-engine";
 import { logger } from "@repo/logger";
 import { TRACE_MARKER, type AgentRuntime, type SshConnection } from "@repo/schemas";
 import { resolveCwd } from "../resolveCwd";
 
-export type McpConnectorInjectionProvider = () => Promise<McpConnectorInjection | null>;
+export type { McpConnectorInjectionProvider } from "@repo/agent-engine";
 
 export interface AgentRunnerOptions {
   agent: AgentRuntime;
@@ -68,25 +71,6 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
   }
   const cwd = cwdResult.value;
 
-  const connectorInjectionResult = getMcpConnectorInjection
-    ? await ResultAsync.fromPromise(getMcpConnectorInjection(), (error) => error)
-    : null;
-  if (connectorInjectionResult?.isErr()) {
-    const errMsg =
-      connectorInjectionResult.error instanceof Error
-        ? connectorInjectionResult.error.message
-        : String(connectorInjectionResult.error);
-    logger.error({ err: errMsg, agent }, `${logPrefix}: MCP injection setup failed`);
-    await onProgress?.(`${logPrefix}: MCP injection setup FAILED — ${errMsg}`);
-    throw new Error(`${agent} MCP injection setup failed: ${errMsg}`, {
-      cause: connectorInjectionResult.error,
-    });
-  }
-
-  const connectorInjection = connectorInjectionResult?.isOk()
-    ? connectorInjectionResult.value ?? undefined
-    : undefined;
-
   const engineResult = await ResultAsync.fromPromise(
     agentEngine.run({
       agent,
@@ -103,7 +87,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
       model,
       githubToken,
       ssh: opts.ssh,
-      connectorInjection,
+      getMcpConnectorInjection,
     }),
     (error) => error,
   );

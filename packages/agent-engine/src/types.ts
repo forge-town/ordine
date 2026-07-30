@@ -39,6 +39,10 @@ export interface DriverResult {
   events: ClaudeStreamEvent[];
 }
 
+export type McpConnectorInjectionProvider = (
+  selectedToolNames: readonly string[],
+) => Promise<McpConnectorInjection | null>;
+
 export interface AgentRunOptions {
   agent: AgentRuntime;
   mode: "direct";
@@ -55,4 +59,5 @@ export interface AgentRunOptions {
   githubToken?: string;
   ssh?: SshConnectionOptions;
   connectorInjection?: McpConnectorInjection;
+  getMcpConnectorInjection?: McpConnectorInjectionProvider;
 }

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChildProcess } from "node:child_process";
+import { existsSync } from "node:fs";
 import { EventEmitter, Readable, Writable } from "node:stream";
 
 vi.mock("@repo/logger", () => ({
@@ -34,7 +35,11 @@ const createMockProcess = () => {
 
 import { runCodex, CODEX_SANDBOX_MODES, type RunCodexOptions } from "./runCodex";
 
-const tick = () => new Promise((r) => setTimeout(r, 0));
+const waitForSpawn = async () => {
+  while (spawnMock.mock.calls.length === 0) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+};
 
 describe("runCodex", () => {
   const testState = {
@@ -60,7 +65,7 @@ describe("runCodex", () => {
 
     const promise = runCodex(opts);
 
-    await tick();
+    await waitForSpawn();
     testState.mockProc.stdout.push("Hello from codex");
     testState.mockProc.stdout.push(null);
     testState.mockProc.stderr.push(null);
@@ -95,7 +100,7 @@ describe("runCodex", () => {
       cwd: "/tmp",
     });
 
-    await tick();
+    await waitForSpawn();
     testState.mockProc.stdout.push("result text");
     testState.mockProc.stdout.push(null);
     testState.mockProc.stderr.push(null);
@@ -112,7 +117,7 @@ describe("runCodex", () => {
       cwd: "/tmp",
     });
 
-    await tick();
+    await waitForSpawn();
     testState.mockProc.stdout.push(null);
     testState.mockProc.stderr.push("error details");
     testState.mockProc.stderr.push(null);
@@ -129,7 +134,7 @@ describe("runCodex", () => {
       sandbox: "workspace-write",
     });
 
-    await tick();
+    await waitForSpawn();
     testState.mockProc.stdout.push("ok");
     testState.mockProc.stdout.push(null);
     testState.mockProc.stderr.push(null);
@@ -149,7 +154,7 @@ describe("runCodex", () => {
       model: "o3",
     });
 
-    await tick();
+    await waitForSpawn();
     testState.mockProc.stdout.push("ok");
     testState.mockProc.stdout.push(null);
     testState.mockProc.stderr.push(null);
@@ -184,7 +189,7 @@ describe("runCodex", () => {
       },
     });
 
-    await tick();
+    await waitForSpawn();
     testState.mockProc.stdout.push("ok");
     testState.mockProc.stdout.push(null);
     testState.mockProc.stderr.push(null);
@@ -212,6 +217,43 @@ describe("runCodex", () => {
     );
     expect(headerEnvName).toBeDefined();
     expect(env[headerEnvName!]).toBe("Bearer secret");
+    expect(env.CODEX_HOME).toContain("ordine-codex-home-");
+    expect(existsSync(`${env.CODEX_HOME}/config.toml`)).toBe(false);
+  });
+
+  it("rejects conflicting stdio MCP environment values", async () => {
+    await expect(
+      runCodex({
+        systemPrompt: "sys",
+        userPrompt: "user",
+        cwd: "/tmp",
+        connectorInjection: {
+          mcpServers: {
+            first: { command: "first-mcp", env: { TOKEN: "first" } },
+            second: { command: "second-mcp", env: { TOKEN: "second" } },
+          },
+          toolNames: ["mcp__first", "mcp__second"],
+        },
+      }),
+    ).rejects.toThrow("conflicting values for env TOKEN");
+
+    expect(spawnMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects stdio MCP overrides of Codex process environment", async () => {
+    await expect(
+      runCodex({
+        systemPrompt: "sys",
+        userPrompt: "user",
+        cwd: "/tmp",
+        connectorInjection: {
+          mcpServers: { unsafe: { command: "unsafe-mcp", env: { CODEX_HOME: "/tmp/x" } } },
+          toolNames: ["mcp__unsafe"],
+        },
+      }),
+    ).rejects.toThrow("cannot override Codex process env CODEX_HOME");
+
+    expect(spawnMock).not.toHaveBeenCalled();
   });
 
   it("rejects on timeout", async () => {
@@ -227,6 +269,7 @@ describe("runCodex", () => {
     // Attach the rejection handler before advancing timers
     const rejectPromise = expect(promise).rejects.toThrow(/timed out/);
 
+    await vi.waitFor(() => expect(spawnMock).toHaveBeenCalledOnce());
     await vi.advanceTimersByTimeAsync(1001);
     await rejectPromise;
 
@@ -252,7 +295,7 @@ describe("runCodex", () => {
       cwd: "/tmp",
     });
 
-    await tick();
+    await waitForSpawn();
     testState.mockProc.stdout.push("ok");
     testState.mockProc.stdout.push(null);
     testState.mockProc.stderr.push(null);
