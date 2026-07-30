@@ -38,9 +38,31 @@ describe("ConnectorsDao", () => {
       dao.create({ id: connector.id, name: connector.name, method: connector.method }),
     ).resolves.toEqual(connector);
     await expect(dao.update(connector.id, { status: "connected" })).resolves.toEqual(connector);
+    await expect(
+      dao.updateIfConfigUnchanged(
+        connector.id,
+        { status: "connected" },
+        connector.method,
+        connector.config,
+      ),
+    ).resolves.toEqual(connector);
     await expect(dao.delete(connector.id)).resolves.toBeUndefined();
 
     expect(limit).toHaveBeenCalledWith(1);
     expect(set).toHaveBeenCalledWith(expect.objectContaining({ status: "connected" }));
+  });
+
+  it("updates only when method and config match the expected snapshot", async () => {
+    await expect(
+      dao.updateIfConfigUnchanged(
+        connector.id,
+        { status: "connected" },
+        connector.method,
+        connector.config,
+      ),
+    ).resolves.toEqual(connector);
+
+    expect(set).toHaveBeenCalledWith(expect.objectContaining({ status: "connected" }));
+    expect(where).toHaveBeenCalledTimes(1);
   });
 });

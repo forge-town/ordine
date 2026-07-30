@@ -14,6 +14,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@repo/utils": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
