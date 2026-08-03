@@ -11,6 +11,7 @@ export class PipelineAgentProposalsDao {
       .insert(pipelineAgentProposalsTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
@@ -20,6 +21,7 @@ export class PipelineAgentProposalsDao {
       .from(pipelineAgentProposalsTable)
       .where(eq(pipelineAgentProposalsTable.id, id))
       .limit(1);
+
     return rows[0];
   }
 
@@ -30,6 +32,7 @@ export class PipelineAgentProposalsDao {
       .where(eq(pipelineAgentProposalsTable.sessionId, sessionId))
       .orderBy(desc(pipelineAgentProposalsTable.createdAt))
       .limit(1);
+
     return rows[0];
   }
 
@@ -50,6 +53,7 @@ export class PipelineAgentProposalsDao {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(pipelineAgentProposalsTable.id, id))
       .returning();
+
     return updated;
   }
 }

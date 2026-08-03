@@ -11,6 +11,7 @@ export class PipelineAgentContextArtifactsDao {
       .insert(pipelineAgentContextArtifactsTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
