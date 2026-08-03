@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod/v4";
 import { CreateConnectorSchema, UpdateConnectorSchema } from "@repo/schemas";
-import { publicProcedure, router } from "../init";
+import { authedProcedure, publicProcedure, router } from "../init";
 import { connectorsService } from "../services";
 import { unwrapResult } from "./result";
 
@@ -16,21 +16,21 @@ export const connectorsRouter = router({
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => unwrapResult(await connectorsService.getById(input.id))),
 
-  create: publicProcedure
+  create: authedProcedure
     .input(CreateConnectorRouteSchema)
     .mutation(async ({ input }) => unwrapResult(await connectorsService.create(input))),
 
-  update: publicProcedure
+  update: authedProcedure
     .input(z.object({ id: z.string(), patch: UpdateConnectorSchema }))
     .mutation(async ({ input }) =>
       unwrapResult(await connectorsService.update(input.id, input.patch)),
     ),
 
-  connect: publicProcedure
+  connect: authedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => unwrapResult(await connectorsService.connect(input.id))),
 
-  delete: publicProcedure
+  delete: authedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => unwrapResult(await connectorsService.delete(input.id))),
 });

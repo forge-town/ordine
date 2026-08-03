@@ -17,6 +17,10 @@ export const conversationsRouter = router({
           pipelineId: z.string().optional(),
           limit: z.number().int().positive().optional(),
         })
+        .refine(({ limit, pipelineId }) => limit === undefined || pipelineId !== undefined, {
+          message: "limit requires pipelineId",
+          path: ["limit"],
+        })
         .optional(),
     )
     .query(async ({ input }) => {

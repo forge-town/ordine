@@ -715,8 +715,25 @@
     "language": "Language",
     "selectLanguage": "Select language",
     "timezone": "Timezone",
+    "general": {
+      "appearance": {
+        "title": "Appearance",
+        "description": "Choose how Ordine looks on this device.",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Choose which run status changes are recorded and shown.",
+        "done": "Run completed",
+        "failed": "Run failed",
+        "waiting": "Run needs attention"
+      }
+    },
     "appearance": "Appearance",
     "sections": {
+      "general": "General",
       "profile": "Profile",
       "notifications": "Notifications",
       "appearance": "Appearance",

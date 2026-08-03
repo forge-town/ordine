@@ -39,7 +39,10 @@
     "./auth": "./src/auth/index.ts",
     "./constants": "./src/constants.ts",
     "./store/sidebarStore": "./src/store/sidebarStore/index.ts",
-    "./store/toastStore": "./src/store/toastStore/index.ts"
+    "./store/toastStore": "./src/store/toastStore/index.ts",
+    "./store/themeStore": "./src/store/themeStore/index.ts",
+    "./store/notificationStore": "./src/store/notificationStore/index.ts",
+    "./store/autonomyStore": "./src/store/autonomyStore/index.ts"
   },
   "scripts": {
     "test": "vitest run",

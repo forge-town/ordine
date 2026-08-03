@@ -1,0 +1,26 @@
+export const ResourceName = {
+  agents: "agents",
+  agentRuntimes: "agentRuntimes",
+  connectors: "connectors",
+  conversationMessages: "conversationMessages",
+  filesystem: "filesystem",
+  operations: "operations",
+  pipelineAssets: "pipelineAssets",
+  pipelines: "pipelines",
+  projects: "projects",
+  routines: "routines",
+  jobs: "jobs",
+  githubProjects: "githubProjects",
+  skills: "skills",
+  recipes: "recipes",
+  checklistItems: "checklistItems",
+  codeSnippets: "codeSnippets",
+  skillDraftOperations: "skillDraftOperations",
+  skillAnalyses: "skillAnalyses",
+  distillations: "distillations",
+  refinements: "refinements",
+  settings: "settings",
+  operationOutputItemTemplates: "operationOutputItemTemplates",
+} as const;
+
+export type ResourceNameValue = (typeof ResourceName)[keyof typeof ResourceName];

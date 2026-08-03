@@ -31,7 +31,7 @@ export const createSettingsPageMetaSlice: StateCreator<
       resetSaved: _resetSaved,
       ...settings
     } = get();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(settings));
     set({ saved: true });
   },
 

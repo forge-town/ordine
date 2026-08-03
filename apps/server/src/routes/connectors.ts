@@ -2,10 +2,13 @@ import { randomUUID } from "node:crypto";
 import { Hono } from "hono";
 import { z } from "zod/v4";
 import { CreateConnectorSchema, UpdateConnectorSchema } from "@repo/schemas";
+import { agentApiAuthMiddleware } from "../integrations/auth";
 import { connectorsService } from "../services.js";
 import { resultJson, resultNoContent, validateJson, validationErrorJson } from "./result.js";
 
 export const connectorsRoutes = new Hono();
+
+connectorsRoutes.use("*", agentApiAuthMiddleware);
 
 const CreateConnectorRouteSchema = CreateConnectorSchema.extend({
   id: z.string().default(() => randomUUID()),

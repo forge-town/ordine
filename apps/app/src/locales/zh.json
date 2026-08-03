@@ -1008,6 +1008,22 @@
     "language": "语言",
     "selectLanguage": "选择语言",
     "timezone": "时区",
+    "general": {
+      "appearance": {
+        "title": "外观",
+        "description": "选择 Ordine 在此设备上的显示方式。",
+        "light": "浅色",
+        "dark": "深色",
+        "system": "跟随系统"
+      },
+      "notifications": {
+        "title": "通知",
+        "description": "选择需要记录和显示的运行状态变化。",
+        "done": "运行完成",
+        "failed": "运行失败",
+        "waiting": "运行需要处理"
+      }
+    },
     "appearance": {
       "dark": "深色",
       "hint": "立即生效，并在本设备记住该选择。",
@@ -1016,6 +1032,7 @@
       "system": "跟随系统"
     },
     "sections": {
+      "general": "通用",
       "profile": "个人信息",
       "notifications": "通知",
       "appearance": "外观",

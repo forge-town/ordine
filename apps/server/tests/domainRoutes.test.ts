@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ok } from "neverthrow";
+import { err, ok } from "neverthrow";
+
+vi.hoisted(() => {
+  process.env.ORDINE_AGENT_API_TOKEN = "test-agent-api-token-that-is-long-enough";
+});
 
 const mocks = vi.hoisted(() => ({
   connectorsConnect: vi.fn(),
@@ -9,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   pipelineAssetsGetAll: vi.fn(),
   pipelineAssetsGetUsageCount: vi.fn(),
   projectsGetAll: vi.fn(),
+  routinesGetByPipelineId: vi.fn(),
   routinesGetAll: vi.fn(),
   routinesRunNow: vi.fn(),
   usageGetDailyTokenSeries: vi.fn(),
@@ -40,6 +45,7 @@ vi.mock("../src/services.js", () => ({
   projectsService: { getAll: mocks.projectsGetAll },
   routinesService: {
     getAll: mocks.routinesGetAll,
+    getByPipelineId: mocks.routinesGetByPipelineId,
     runNow: mocks.routinesRunNow,
   },
   skillsService: {},
@@ -61,6 +67,7 @@ beforeEach(() => {
   mocks.pipelineAssetsGetUsageCount.mockResolvedValue(ok({ assetId: "asset-1", count: 1 }));
   mocks.projectsGetAll.mockResolvedValue(ok([]));
   mocks.routinesGetAll.mockResolvedValue([]);
+  mocks.routinesGetByPipelineId.mockResolvedValue([]);
   mocks.routinesRunNow.mockResolvedValue(ok({ jobId: "job-1" }));
   mocks.usageGetDailyTokenSeries.mockResolvedValue(ok([]));
   mocks.usageGetSummary.mockResolvedValue(ok({ runCount: 0, totalTokens: 0 }));
@@ -74,7 +81,9 @@ describe("domain REST routes", () => {
     ["/api/projects", mocks.projectsGetAll],
     ["/api/routines", mocks.routinesGetAll],
   ])("registers GET %s", async (path, serviceCall) => {
-    const response = await app.request(path);
+    const response = await app.request(path, {
+      headers: path === "/api/connectors" ? authorizedHeaders : undefined,
+    });
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual([]);
@@ -91,9 +100,33 @@ describe("domain REST routes", () => {
     expect(mocks.routinesRunNow).toHaveBeenCalledWith("routine-1");
   });
 
+  it("maps a missing routine run to 404", async () => {
+    const notFound = new Error("Routine:missing not found");
+    notFound.name = "NotFoundError";
+    mocks.routinesRunNow.mockResolvedValue(err(notFound));
+
+    const response = await app.request("/api/routines/missing/run-now", { method: "POST" });
+
+    expect(response.status).toBe(404);
+    expect(mocks.routinesRunNow).toHaveBeenCalledWith("missing");
+  });
+
+  it("filters pipeline routines by enabled status", async () => {
+    mocks.routinesGetByPipelineId.mockResolvedValue([
+      { id: "enabled", enabled: true },
+      { id: "disabled", enabled: false },
+    ]);
+
+    const response = await app.request("/api/routines?pipelineId=p1&enabled=true");
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual([{ id: "enabled", enabled: true }]);
+  });
+
   it("exposes current connector and conversation actions", async () => {
     const connectResponse = await app.request("/api/connectors/connector-1/connect", {
       method: "POST",
+      headers: authorizedHeaders,
     });
     const clearResponse = await app.request("/api/conversations", { method: "DELETE" });
 
@@ -102,6 +135,22 @@ describe("domain REST routes", () => {
     expect(clearResponse.status).toBe(204);
     expect(mocks.connectorsConnect).toHaveBeenCalledWith("connector-1");
     expect(mocks.conversationsClearAll).toHaveBeenCalledOnce();
+  });
+
+  it("rejects unauthenticated connector access before spawning a connector", async () => {
+    const response = await app.request("/api/connectors/connector-1/connect", {
+      method: "POST",
+    });
+
+    expect(response.status).toBe(401);
+    expect(mocks.connectorsConnect).not.toHaveBeenCalled();
+  });
+
+  it("rejects limit without pipelineId instead of silently ignoring it", async () => {
+    const response = await app.request("/api/conversations?limit=1");
+
+    expect(response.status).toBe(400);
+    expect(mocks.conversationsGetAll).not.toHaveBeenCalled();
   });
 
   it("returns pipeline asset usage counts", async () => {
@@ -125,3 +174,7 @@ describe("domain REST routes", () => {
     expect(mocks.usageGetDailyTokenSeries).toHaveBeenCalledOnce();
   });
 });
+
+const authorizedHeaders = {
+  Authorization: "Bearer test-agent-api-token-that-is-long-enough",
+};
