@@ -115,6 +115,7 @@ const run = ({
   apiKey,
   model,
   extraTools,
+  allowedTools,
   githubToken,
   ssh,
   outputItems,
@@ -128,6 +129,7 @@ const run = ({
 
   const outputSection = buildOutputItemsSection(outputItems, outputDir);
   const effectiveInput = outputSection ? `${inputContent}\n${outputSection}` : inputContent;
+  const effectiveAllowedTools = [...new Set([...(allowedTools ?? []), ...(extraTools ?? [])])];
 
   return ResultAsync.fromPromise(
     (async () => {
@@ -139,7 +141,7 @@ const run = ({
         inputPath,
         jobId,
         agentId: PROMPT_AGENT_ID,
-        allowedTools: extraTools ?? [],
+        allowedTools: effectiveAllowedTools,
         onProgress,
         logPrefix: "[LLM] runPrompt",
         apiKey,

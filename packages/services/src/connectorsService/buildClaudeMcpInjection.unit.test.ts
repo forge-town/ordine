@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { buildMcpConnectorInjection, sanitizeServerKey } from "./buildClaudeMcpInjection";
 
-const connected = (name: string, config: unknown, status = "connected", method = "mcp") =>
-  ({ name, method, status, config }) as never;
+const connected = (
+  name: string,
+  config: unknown,
+  status = "connected",
+  method = "mcp",
+  id = `connector-${name}`,
+) => ({ id, name, method, status, config }) as never;
 
 describe("sanitizeServerKey", () => {
   it("keeps word chars, replaces the rest", () => {
@@ -87,5 +92,51 @@ describe("buildMcpConnectorInjection", () => {
       mcpServers: { github: { command: "github-mcp" } },
       toolNames: ["mcp__github__read_issue"],
     });
+  });
+
+  it("uses connector id order for stable deduped keys", () => {
+    const connectors = [
+      connected(
+        "api",
+        { transport: "stdio", command: "second-mcp", tools: [{ name: "read" }] },
+        "connected",
+        "mcp",
+        "connector-b",
+      ),
+      connected(
+        "api",
+        { transport: "stdio", command: "first-mcp", tools: [{ name: "read" }] },
+        "connected",
+        "mcp",
+        "connector-a",
+      ),
+    ];
+
+    for (const orderedConnectors of [connectors, [...connectors].reverse()]) {
+      expect(buildMcpConnectorInjection(orderedConnectors, ["mcp__api___read"])).toEqual({
+        mcpServers: { api_: { command: "second-mcp" } },
+        toolNames: ["mcp__api___read"],
+      });
+    }
+  });
+
+  it("fails closed when a selected tool name maps to multiple servers", () => {
+    expect(() =>
+      buildMcpConnectorInjection(
+        [
+          connected("api x", {
+            transport: "stdio",
+            command: "first-mcp",
+            tools: [{ name: "_read" }],
+          }),
+          connected("api!x", {
+            transport: "stdio",
+            command: "second-mcp",
+            tools: [{ name: "read" }],
+          }),
+        ],
+        ["mcp__api_x___read"],
+      ),
+    ).toThrow("Ambiguous MCP tool selection mcp__api_x___read");
   });
 });

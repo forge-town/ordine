@@ -92,6 +92,24 @@ describe("executeOperationNode", () => {
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ prompt: "Do analysis" }));
   });
 
+  it("passes selected tools to prompt operations", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "prompt",
+      prompt: "Do analysis",
+      allowedTools: ["Read", "mcp__github__read_issue"],
+    });
+    const ctx = makeCtx(deps, new Map([["op-id", op]]));
+
+    const result = await executeOperationNode(makeNode({ operationId: "op-id" }), makeInput(), ctx);
+
+    expect(result.outcome).toBe("completed");
+    expect(deps.runPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({ allowedTools: ["Read", "mcp__github__read_issue"] }),
+    );
+  });
+
   it("passes structured pipeline and operation runtime context to prompt operations", async () => {
     const deps = makeDeps();
     const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Do analysis" });

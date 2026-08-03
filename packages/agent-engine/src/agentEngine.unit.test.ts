@@ -208,26 +208,26 @@ describe("agentEngine", () => {
     );
   });
 
-  it("does not resolve connector credentials for Codex SSH runtimes", async () => {
+  it("rejects Codex SSH runtimes before resolving connector credentials", async () => {
     const getMcpConnectorInjection = vi.fn();
     const onProgress = vi.fn();
 
-    await agentEngine.run({
-      agent: "codex",
-      mode: "direct",
-      systemPrompt: "Analyze this",
-      userPrompt: "Hello",
-      cwd: "/tmp/test",
-      ssh: { host: "remote.example.com", user: "runner" },
-      allowedTools: ["mcp__github__read_issue"],
-      getMcpConnectorInjection,
-      onProgress,
-    });
+    await expect(
+      agentEngine.run({
+        agent: "codex",
+        mode: "direct",
+        systemPrompt: "Analyze this",
+        userPrompt: "Hello",
+        cwd: "/tmp/test",
+        ssh: { host: "remote.example.com", user: "runner" },
+        allowedTools: ["mcp__github__read_issue"],
+        getMcpConnectorInjection,
+        onProgress,
+      }),
+    ).rejects.toThrow("Codex SSH runtime is not supported yet");
 
     expect(getMcpConnectorInjection).not.toHaveBeenCalled();
-    expect(runCodex).toHaveBeenCalledWith(
-      expect.objectContaining({ connectorInjection: undefined }),
-    );
+    expect(runCodex).not.toHaveBeenCalled();
     expect(onProgress).toHaveBeenCalledWith(expect.stringContaining("codex skipped"));
   });
 

@@ -149,13 +149,11 @@ const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult
 
 const runCodexDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
   if (opts.ssh) {
-    await reportConnectorInjectionSkipped(
-      opts,
-      "SSH runtime cannot safely use local Codex MCP configuration",
-    );
+    await reportConnectorInjectionSkipped(opts, "Codex SSH runtime is not supported yet");
+    throw new Error("Codex SSH runtime is not supported yet");
   }
 
-  const connectorInjection = opts.ssh ? undefined : await loadConnectorInjection(opts);
+  const connectorInjection = await loadConnectorInjection(opts);
   if (connectorInjection) {
     await opts.onProgress?.(
       `[Connector Injection] codex injected: ${describeConnectorInjection(connectorInjection)}`,

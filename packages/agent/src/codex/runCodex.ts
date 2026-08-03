@@ -1,5 +1,4 @@
-import { readFile, unlink } from "node:fs";
-import { copyFile, mkdtemp, rm } from "node:fs/promises";
+import { copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { hasMcpConnectorInjection, type McpConnectorInjection } from "../mcp";
@@ -26,7 +25,6 @@ export const CODEX_SANDBOX_MODES = {
 } as const;
 
 const TOML_KEY_RE = /^[A-Za-z0-9_-]+$/;
-const CODEX_PROCESS_ENV_NAMES = new Set(["CODEX_HOME", "HOME", "PATH"]);
 
 const tomlKey = (key: string): string => (TOML_KEY_RE.test(key) ? key : JSON.stringify(key));
 
@@ -44,84 +42,104 @@ const tomlValue = (value: unknown): string => {
   throw new Error("unsupported codex config value");
 };
 
-const buildCodexMcpOverrides = (
+const tomlTable = (path: readonly string[]): string => `[${path.map(tomlKey).join(".")}]`;
+
+const envLookupName = (name: string): string =>
+  process.platform === "win32" ? name.toLowerCase() : name;
+
+const setChildEnvValue = (env: Record<string, string>, name: string, value: string): void => {
+  const lookupName = envLookupName(name);
+  for (const existingName of Object.keys({ ...process.env, ...env })) {
+    if (envLookupName(existingName) !== lookupName) continue;
+    const existingValue = env[existingName] ?? process.env[existingName];
+    if (existingValue !== undefined && existingValue !== value) {
+      throw new Error(`MCP headers define conflicting values for env ${name}`);
+    }
+  }
+
+  env[name] = value;
+};
+
+const buildCodexMcpConfig = (
   injection?: McpConnectorInjection,
-): { configArgs: string[]; env: Record<string, string> } => {
+): { configToml: string | null; env: Record<string, string> } => {
   if (!hasMcpConnectorInjection(injection)) {
-    return { configArgs: [], env: {} };
+    return { configToml: null, env: {} };
   }
 
   const env: Record<string, string> = {};
-  const configArgs: string[] = [];
+  const lines: string[] = [];
 
-  for (const [serverName, serverEntry] of Object.entries(injection.mcpServers)) {
-    const serverPrefix = `mcp_servers.${serverName}`;
+  for (const [serverIndex, [serverName, serverEntry]] of Object.entries(
+    injection.mcpServers,
+  ).entries()) {
+    const serverPath = ["mcp_servers", serverName];
     const enabledTools = injection.toolNames
       .filter((toolName) => toolName.startsWith(`mcp__${serverName}__`))
       .map((toolName) => toolName.slice(`mcp__${serverName}__`.length));
 
-    const serverConfig: Record<string, unknown> = {};
+    lines.push(tomlTable(serverPath));
     if ("command" in serverEntry) {
-      serverConfig.command = serverEntry.command;
-      if (serverEntry.args) serverConfig.args = serverEntry.args;
-      if (serverEntry.env) {
-        serverConfig.env_vars = Object.keys(serverEntry.env).sort();
-        for (const [envName, envValue] of Object.entries(serverEntry.env)) {
-          if (CODEX_PROCESS_ENV_NAMES.has(envName)) {
-            throw new Error(
-              `MCP server ${serverName} cannot override Codex process env ${envName}`,
-            );
-          }
-          if (env[envName] !== undefined && env[envName] !== envValue) {
-            throw new Error(`MCP servers define conflicting values for env ${envName}`);
-          }
-          env[envName] = envValue;
-        }
-      }
+      lines.push(`command = ${tomlValue(serverEntry.command)}`);
+      if (serverEntry.args) lines.push(`args = ${tomlValue(serverEntry.args)}`);
       if (enabledTools.length > 0) {
-        serverConfig.enabled_tools = enabledTools;
+        lines.push(`enabled_tools = ${tomlValue(enabledTools)}`);
+      }
+      if (serverEntry.env) {
+        lines.push("");
+        lines.push(tomlTable([...serverPath, "env"]));
+        for (const [envName, envValue] of Object.entries(serverEntry.env)) {
+          lines.push(`${tomlKey(envName)} = ${tomlValue(envValue)}`);
+        }
       }
     } else {
-      serverConfig.url = serverEntry.url;
-      if (serverEntry.headers) {
-        const envHeaders: Record<string, string> = {};
-        for (const [headerName, headerValue] of Object.entries(serverEntry.headers)) {
-          const envName = `ORDINE_MCP_${serverName.toUpperCase().replaceAll(/[^A-Z0-9]/g, "_")}_${headerName.toUpperCase().replaceAll(/[^A-Z0-9]/g, "_")}`;
-          env[envName] = headerValue;
-          envHeaders[headerName] = envName;
-        }
-        if (Object.keys(envHeaders).length > 0) {
-          serverConfig.env_http_headers = envHeaders;
-        }
-      }
+      lines.push(`url = ${tomlValue(serverEntry.url)}`);
       if (enabledTools.length > 0) {
-        serverConfig.enabled_tools = enabledTools;
+        lines.push(`enabled_tools = ${tomlValue(enabledTools)}`);
+      }
+      if (serverEntry.headers) {
+        lines.push("");
+        lines.push(tomlTable([...serverPath, "env_http_headers"]));
+        for (const [headerIndex, [headerName, headerValue]] of Object.entries(
+          serverEntry.headers,
+        ).entries()) {
+          const envName = `ORDINE_MCP_${serverIndex}_${headerIndex}`;
+          setChildEnvValue(env, envName, headerValue);
+          lines.push(`${tomlKey(headerName)} = ${tomlValue(envName)}`);
+        }
       }
     }
 
-    configArgs.push("-c", `${serverPrefix}=${tomlValue(serverConfig)}`);
+    lines.push("");
   }
 
-  return { configArgs, env };
+  return { configToml: lines.join("\n"), env };
 };
 
-const createIsolatedCodexHome = async (): Promise<string> => {
+const createIsolatedCodexHome = async (configToml: string): Promise<string> => {
   const isolatedHome = await mkdtemp(join(tmpdir(), "ordine-codex-home-"));
-
   const sourceHome = process.env.CODEX_HOME ?? join(homedir(), ".codex");
-  const authCopy = await copyFile(
-    join(sourceHome, "auth.json"),
-    join(isolatedHome, "auth.json"),
-  ).then(
-    () => null,
-    (error: NodeJS.ErrnoException) => error,
-  );
-  if (authCopy && authCopy.code !== "ENOENT") {
+  const setup = copyFile(join(sourceHome, "auth.json"), join(isolatedHome, "auth.json"))
+    .catch((error: NodeJS.ErrnoException) => {
+      if (error.code !== "ENOENT") throw error;
+    })
+    .then(() => writeFile(join(isolatedHome, "config.toml"), configToml, { mode: 0o600 }));
+  await setup.catch(async (error) => {
     await rm(isolatedHome, { recursive: true, force: true });
-    throw authCopy;
-  }
+    throw error;
+  });
 
   return isolatedHome;
+};
+
+const cleanupPath = async (path: string, label: string): Promise<void> => {
+  const cleanup = await rm(path, { recursive: true, force: true }).then(
+    () => null,
+    (error) => error,
+  );
+  if (cleanup) {
+    logger.debug({ err: String(cleanup) }, `runCodex: failed to remove ${label}`);
+  }
 };
 
 export const runCodex = async ({
@@ -143,13 +161,12 @@ export const runCodex = async ({
     tmpdir(),
     `ordine-codex-last-message-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`,
   );
-  const codexMcpOverrides = buildCodexMcpOverrides(connectorInjection);
-  const isolatedCodexHome = hasMcpConnectorInjection(connectorInjection)
-    ? await createIsolatedCodexHome()
+  const codexMcpConfig = buildCodexMcpConfig(connectorInjection);
+  const isolatedCodexHome = codexMcpConfig.configToml
+    ? await createIsolatedCodexHome(codexMcpConfig.configToml)
     : undefined;
 
   const args = [
-    ...codexMcpOverrides.configArgs,
     "exec",
     "--sandbox",
     sandbox,
@@ -166,95 +183,85 @@ export const runCodex = async ({
   }
 
   logger.info({ cwd, sandbox }, "runCodex: starting");
-  await onProgress?.(`[Codex] Starting codex exec (cwd=${cwd}, sandbox=${sandbox})...`);
 
-  return new Promise<string>((resolve, reject) => {
-    const removeOutputFile = () => {
-      unlink(outputFile, (error) => {
-        if (error && error.code !== "ENOENT") {
-          logger.debug({ err: error.message }, "runCodex: failed to remove output file");
-        }
+  const execution = async (): Promise<string> => {
+    await onProgress?.(`[Codex] Starting codex exec (cwd=${cwd}, sandbox=${sandbox})...`);
+
+    return new Promise<string>((resolve, reject) => {
+      const child = spawnCommand(CODEX_BIN, args, {
+        cwd,
+        stdio: ["pipe", "pipe", "pipe"],
+        env: {
+          ...process.env,
+          ...codexMcpConfig.env,
+          ...(isolatedCodexHome ? { CODEX_HOME: isolatedCodexHome } : {}),
+        },
       });
-    };
-    const removeIsolatedCodexHome = () => {
-      if (!isolatedCodexHome) return;
-      void rm(isolatedCodexHome, { recursive: true, force: true }).then(
-        () => undefined,
-        (error) => logger.debug({ err: String(error) }, "runCodex: failed to remove isolated home"),
-      );
-    };
 
-    const child = spawnCommand(CODEX_BIN, args, {
-      cwd,
-      stdio: ["pipe", "pipe", "pipe"],
-      env: {
-        ...process.env,
-        ...codexMcpOverrides.env,
-        ...(isolatedCodexHome ? { CODEX_HOME: isolatedCodexHome } : {}),
-      },
-    });
+      const stdoutChunks: Buffer[] = [];
+      const stderrChunks: Buffer[] = [];
 
-    const stdoutChunks: Buffer[] = [];
-    const stderrChunks: Buffer[] = [];
+      child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
+      child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
 
-    child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
-    child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
+      const prompt = `<system>${systemPrompt}</system>\n\n${truncatedPrompt}`;
+      child.stdin.write(prompt);
+      child.stdin.end();
 
-    const prompt = `<system>${systemPrompt}</system>\n\n${truncatedPrompt}`;
-    child.stdin.write(prompt);
-    child.stdin.end();
+      const timer = setTimeout(() => {
+        child.kill("SIGTERM");
+        reject(new Error(`codex timed out after ${timeoutMs / 1000}s`));
+      }, timeoutMs);
 
-    const timer = setTimeout(() => {
-      child.kill("SIGTERM");
-      removeOutputFile();
-      removeIsolatedCodexHome();
-      reject(new Error(`codex timed out after ${timeoutMs / 1000}s`));
-    }, timeoutMs);
+      child.on("error", (error) => {
+        clearTimeout(timer);
+        logger.error({ err: error.message }, "runCodex: spawn error");
+        void onProgress?.(`[Codex] Spawn error: ${error.message}`);
+        reject(error);
+      });
 
-    child.on("error", (error) => {
-      clearTimeout(timer);
-      removeOutputFile();
-      removeIsolatedCodexHome();
-      logger.error({ err: error.message }, "runCodex: spawn error");
-      void onProgress?.(`[Codex] Spawn error: ${error.message}`);
-      reject(error);
-    });
-
-    child.on("close", (code) => {
-      clearTimeout(timer);
-      const stdout = Buffer.concat(stdoutChunks).toString("utf8");
-      const stderr = Buffer.concat(stderrChunks).toString("utf8");
-      readFile(outputFile, "utf8", (readError, fileOutput) => {
-        removeOutputFile();
-        removeIsolatedCodexHome();
-        const output = readError ? stdout : fileOutput;
-
-        if (code !== 0 && output.trim().length === 0) {
-          logger.error({ code, stderr: stderr.slice(0, 500) }, "runCodex: non-zero exit");
-          void onProgress?.(`[Codex] Exit code ${code}: ${stderr.slice(0, 200)}`);
-          reject(new Error(`codex exited with code ${code}: ${stderr.slice(0, 500)}`));
-
-          return;
-        }
-
-        if (code !== 0) {
-          logger.warn(
-            { code, outputLen: output.length, stderr: stderr.slice(0, 300) },
-            "runCodex: non-zero exit but output present, using output",
+      child.on("close", (code) => {
+        clearTimeout(timer);
+        const stdout = Buffer.concat(stdoutChunks).toString("utf8");
+        const stderr = Buffer.concat(stderrChunks).toString("utf8");
+        void (async () => {
+          const output = await readFile(outputFile, "utf8").then(
+            (fileOutput) => fileOutput,
+            () => stdout,
           );
-          void onProgress?.(
-            `[Codex] Exit code ${code} (non-fatal, ${output.length} chars captured)`,
-          );
-        }
 
-        if (stderr) {
-          logger.debug({ stderr: stderr.slice(0, 500) }, "runCodex: stderr");
-        }
+          if (code !== 0 && output.trim().length === 0) {
+            logger.error({ code, stderr: stderr.slice(0, 500) }, "runCodex: non-zero exit");
+            void onProgress?.(`[Codex] Exit code ${code}: ${stderr.slice(0, 200)}`);
+            reject(new Error(`codex exited with code ${code}: ${stderr.slice(0, 500)}`));
 
-        logger.info({ len: output.length }, "runCodex: complete");
-        void onProgress?.(`[Codex] Complete (${output.length} chars)`);
-        resolve(output);
+            return;
+          }
+
+          if (code !== 0) {
+            logger.warn(
+              { code, outputLen: output.length, stderr: stderr.slice(0, 300) },
+              "runCodex: non-zero exit but output present, using output",
+            );
+            void onProgress?.(
+              `[Codex] Exit code ${code} (non-fatal, ${output.length} chars captured)`,
+            );
+          }
+
+          if (stderr) {
+            logger.debug({ stderr: stderr.slice(0, 500) }, "runCodex: stderr");
+          }
+
+          logger.info({ len: output.length }, "runCodex: complete");
+          void onProgress?.(`[Codex] Complete (${output.length} chars)`);
+          resolve(output);
+        })();
       });
     });
+  };
+
+  return execution().finally(async () => {
+    await cleanupPath(outputFile, "output file");
+    if (isolatedCodexHome) await cleanupPath(isolatedCodexHome, "isolated home");
   });
 };

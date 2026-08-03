@@ -161,6 +161,20 @@ describe("promptExecutor", () => {
     expect(callArgs.systemPrompt).toContain("@@USER_ACTION::");
   });
 
+  it("forwards selected MCP tools for prompt operations", async () => {
+    const result = await promptExecutor.run({
+      ...baseOpts,
+      agent: "codex",
+      allowedTools: ["Read", "mcp__github__read_issue"],
+      extraTools: ["Read"],
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(agentEngine.run).toHaveBeenCalledWith(
+      expect.objectContaining({ allowedTools: ["Read", "mcp__github__read_issue"] }),
+    );
+  });
+
   it("returns error for empty prompt", async () => {
     const result = await promptExecutor.run({ ...baseOpts, prompt: "  " });
     expect(result.isErr()).toBe(true);
