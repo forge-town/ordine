@@ -1,6 +1,7 @@
 import { createRouter } from "@tanstack/react-router";
 import { Provider } from "@/integrations/tanstack-query/root-provider";
 import { RefineProvider } from "@/integrations/refine/provider";
+import { ThemeApplier } from "@/store/themeStore";
 import { routeTree } from "./routeTree.gen.ts";
 
 const createAppRouter = () =>
@@ -12,7 +13,10 @@ const createAppRouter = () =>
     Wrap: ({ children }) => {
       return (
         <Provider>
-          <RefineProvider>{children}</RefineProvider>
+          <RefineProvider>
+            <ThemeApplier />
+            {children}
+          </RefineProvider>
         </Provider>
       );
     },
