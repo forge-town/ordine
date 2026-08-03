@@ -12,6 +12,7 @@ export const RunPromptOptionsSchema = z.object({
   agent: AgentRuntimeSchema.optional(),
   apiKey: z.string().optional(),
   model: z.string().optional(),
+  allowedTools: z.array(z.string()).optional(),
   extraTools: z.array(z.string()).optional(),
   githubToken: z.string().optional(),
   outputItems: z.array(OutputItemSchema).optional(),

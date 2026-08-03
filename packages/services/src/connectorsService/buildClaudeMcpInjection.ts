@@ -1,20 +1,15 @@
-import { isMcpConnectorConfig, type ConnectorConfig } from "@repo/schemas";
+import type { McpConnectorInjection, McpServerEntry } from "@repo/agent";
+import { isMcpConnectorConfig, type ConnectorConfig, type McpConnectorConfig } from "@repo/schemas";
 
-export type McpServerEntry =
-  | { command: string; args?: string[]; env?: Record<string, string> }
-  | { type: "http"; url: string; headers?: Record<string, string> };
+export type ClaudeMcpInjection = McpConnectorInjection;
 
-export type ClaudeMcpInjection = {
-  /** mcpServers map written into the `--mcp-config` file. */
-  mcpServers: Record<string, McpServerEntry>;
-  /**
-   * `mcp__<server>__<tool>` names appended to --allowedTools
-   * (falls back to `mcp__<server>` to allow the whole server when it has no tools).
-   */
-  toolNames: string[];
+type ConnectorLike = {
+  id: string;
+  name: string;
+  method: string;
+  status: string;
+  config: ConnectorConfig;
 };
-
-type ConnectorLike = { name: string; method: string; status: string; config: ConnectorConfig };
 
 /**
  * Server keys keep only [A-Za-z0-9_-]; everything else becomes _
@@ -27,6 +22,26 @@ export const sanitizeServerKey = (name: string): string =>
 const uniqueServerKey = (base: string, taken: Record<string, unknown>): string =>
   base in taken ? uniqueServerKey(`${base}_`, taken) : base;
 
+const selectedMcpToolNames = ({
+  serverKey,
+  config,
+  selectedTools,
+}: {
+  serverKey: string;
+  config: McpConnectorConfig;
+  selectedTools: ReadonlySet<string> | null;
+}): string[] => {
+  const serverToolPrefix = `mcp__${serverKey}`;
+  const availableToolNames =
+    config.tools && config.tools.length > 0
+      ? config.tools.map((tool) => `${serverToolPrefix}__${tool.name}`)
+      : [serverToolPrefix];
+
+  return selectedTools
+    ? availableToolNames.filter((toolName) => selectedTools.has(toolName))
+    : availableToolNames;
+};
+
 /**
  * Assembles method=mcp, status=connected connectors into the claude CLI
  * injection payload. No usable connector -> returns null (callers then skip
@@ -35,17 +50,45 @@ const uniqueServerKey = (base: string, taken: Record<string, unknown>): string =
  * disconnected ones never reach a run (keeps fake state out of the execution
  * chain).
  */
-export const buildClaudeMcpInjection = (connectors: ConnectorLike[]): ClaudeMcpInjection | null => {
+export const buildMcpConnectorInjection = (
+  connectors: ConnectorLike[],
+  selectedToolNames?: readonly string[],
+): McpConnectorInjection | null => {
   const mcpServers: Record<string, McpServerEntry> = {};
   const toolNames: string[] = [];
+  const selectedTools = selectedToolNames ? new Set(selectedToolNames) : null;
+  const selectedToolOwners = new Map<string, string>();
+  const takenServerKeys: Record<string, unknown> = {};
+  const eligibleConnectors = connectors
+    .map((connector) => ({ connector }))
+    .filter(({ connector }) => {
+      if (connector.method !== "mcp") return false;
+      if (connector.status !== "connected") return false;
 
-  for (const connector of connectors) {
-    if (connector.method !== "mcp") continue;
-    if (connector.status !== "connected") continue;
+      return isMcpConnectorConfig(connector.config);
+    })
+    .sort((a, b) => a.connector.id.localeCompare(b.connector.id))
+    .map(({ connector }) => {
+      const key = uniqueServerKey(sanitizeServerKey(connector.name), takenServerKeys);
+      takenServerKeys[key] = true;
+
+      return { connector, key };
+    });
+
+  for (const { connector, key } of eligibleConnectors) {
     const config = connector.config;
     if (!isMcpConnectorConfig(config)) continue;
 
-    const key = uniqueServerKey(sanitizeServerKey(connector.name), mcpServers);
+    const selectedServerTools = selectedMcpToolNames({ serverKey: key, config, selectedTools });
+    if (selectedServerTools.length === 0) continue;
+
+    for (const toolName of selectedServerTools) {
+      const existingOwner = selectedToolOwners.get(toolName);
+      if (existingOwner && existingOwner !== key) {
+        throw new Error(`Ambiguous MCP tool selection ${toolName}`);
+      }
+      selectedToolOwners.set(toolName, key);
+    }
 
     if (config.transport === "stdio") {
       mcpServers[key] = {
@@ -61,13 +104,10 @@ export const buildClaudeMcpInjection = (connectors: ConnectorLike[]): ClaudeMcpI
       };
     }
 
-    const tools = config.tools ?? [];
-    if (tools.length === 0) {
-      toolNames.push(`mcp__${key}`);
-    } else {
-      for (const tool of tools) toolNames.push(`mcp__${key}__${tool.name}`);
-    }
+    toolNames.push(...selectedServerTools);
   }
 
   return Object.keys(mcpServers).length > 0 ? { mcpServers, toolNames } : null;
 };
+
+export const buildClaudeMcpInjection = buildMcpConnectorInjection;

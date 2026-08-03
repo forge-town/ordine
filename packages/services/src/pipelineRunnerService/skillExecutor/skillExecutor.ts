@@ -14,7 +14,7 @@ import type {
   RunSkillOptions as EngineRunSkillOptions,
 } from "@repo/pipeline-engine";
 import type { OutputItem, SshConnection } from "@repo/schemas";
-import { runAgent, type ClaudeMcpInjectionProvider } from "../agentRunner/agentRunner";
+import { runAgent, type McpConnectorInjectionProvider } from "../agentRunner/agentRunner";
 
 const CHECK_OUTPUT_EXAMPLE: CheckOutput = {
   type: "check" as const,
@@ -83,7 +83,7 @@ export class SkillExecutionError extends Error {
 type RunSkillExecutorOptions = EngineRunSkillOptions & {
   jobId?: string;
   ssh?: SshConnection;
-  getClaudeMcpInjection?: ClaudeMcpInjectionProvider;
+  getMcpConnectorInjection?: McpConnectorInjectionProvider;
 };
 
 export const DEFAULT_SKILL_SYSTEM_PROMPT = [
@@ -214,7 +214,7 @@ const run = ({
   outputItems,
   outputDir,
   runtimeContext,
-  getClaudeMcpInjection,
+  getMcpConnectorInjection,
 }: RunSkillExecutorOptions): ResultAsync<string, SkillExecutionError> => {
   const effectiveSystemPrompt = systemPrompt ?? DEFAULT_SKILL_SYSTEM_PROMPT;
   const userPrompt = buildSkillUserPrompt({
@@ -227,11 +227,15 @@ const run = ({
     runtimeContext,
   });
 
-  const parsedCustomTools = customAllowedTools
-    ? ToolNameSchema.array().readonly().safeParse(customAllowedTools)
+  const connectorTools =
+    customAllowedTools?.filter((toolName) => toolName.startsWith("mcp__")) ?? [];
+  const builtInTools = customAllowedTools?.filter((toolName) => !toolName.startsWith("mcp__"));
+  const parsedCustomTools = builtInTools
+    ? ToolNameSchema.array().readonly().safeParse(builtInTools)
     : null;
   const allowedTools =
-    (parsedCustomTools?.success ? parsedCustomTools.data : null) ?? READ_ONLY_TOOLS;
+    (parsedCustomTools?.success ? [...parsedCustomTools.data, ...connectorTools] : null) ??
+    READ_ONLY_TOOLS;
 
   return ResultAsync.fromPromise(
     (async () => {
@@ -250,7 +254,7 @@ const run = ({
         apiKey,
         model,
         ssh,
-        getClaudeMcpInjection,
+        getMcpConnectorInjection,
       });
 
       if (raw.length === 0) {

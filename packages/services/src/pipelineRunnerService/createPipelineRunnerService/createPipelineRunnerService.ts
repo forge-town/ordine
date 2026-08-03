@@ -22,7 +22,8 @@ import {
   createConnectorsDao,
   type DbConnection,
 } from "@repo/models";
-import { buildClaudeMcpInjection, type ClaudeMcpInjection } from "../../connectorsService";
+import { buildMcpConnectorInjection } from "../../connectorsService";
+import type { McpConnectorInjectionProvider } from "@repo/agent-engine";
 
 export class PipelineNotFoundError extends Error {
   constructor(pipelineId: string) {
@@ -100,14 +101,14 @@ export const createPipelineRunnerService = (db: DbConnection) => {
     model,
     defaultAgent,
     ssh,
-    getClaudeMcpInjection,
+    getMcpConnectorInjection,
   }: {
     jobId: string;
     apiKey?: string;
     model?: string;
     defaultAgent?: AgentRuntime;
     ssh?: SshConnection;
-    getClaudeMcpInjection?: () => Promise<ClaudeMcpInjection | null>;
+    getMcpConnectorInjection?: McpConnectorInjectionProvider;
   }) =>
     pipelineRunnerEngineDeps.build({
       evaluateLoopCondition: loopEvaluatorFactory({ jobId }),
@@ -116,24 +117,19 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       model,
       defaultAgent,
       ssh,
-      getClaudeMcpInjection,
+      getMcpConnectorInjection,
     });
 
-  const buildClaudeMcpInjectionProvider = () => {
-    const cache: { value?: Promise<ClaudeMcpInjection | null> } = {};
+  const buildMcpConnectorInjectionProvider = () => {
+    return async (selectedToolNames: readonly string[]) => {
+      const connectors = await connectorsDao.findMany();
 
-    return () => {
-      cache.value ??= connectorsDao
-        .findMany()
-        .then((connectors) => buildClaudeMcpInjection(connectors));
-
-      return cache.value;
+      return buildMcpConnectorInjection(connectors, selectedToolNames);
     };
   };
 
   return {
     startRun: async (opts: {
-      jobId?: string;
       pipelineId: string;
       inputPath?: string;
       githubToken?: string;
@@ -147,7 +143,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
         return err(new PipelineNotFoundError(opts.pipelineId));
       }
 
-      const jobId = opts.jobId ?? crypto.randomUUID();
+      const jobId = crypto.randomUUID();
       await jobsDao.create({
         id: jobId,
         title: `Run: ${pipeline.name}`,
@@ -156,9 +152,9 @@ export const createPipelineRunnerService = (db: DbConnection) => {
         pipelineId: pipeline.id,
         projectId: pipeline.projectId ?? null,
         status: "queued",
-        triggeredBy: opts.triggeredBy ?? "manual",
         startedAt: null,
         finishedAt: null,
+        triggeredBy: opts.triggeredBy ?? "manual",
       });
 
       await pipelineRunsDao.create({
@@ -201,7 +197,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
             model: settings.defaultModel,
             defaultAgent: settings.defaultAgentRuntime,
             ssh,
-            getClaudeMcpInjection: buildClaudeMcpInjectionProvider(),
+            getMcpConnectorInjection: buildMcpConnectorInjectionProvider(),
           }),
           runControl: pipelineRunControl.buildForJob(jobId),
           onRunSettled: () => pipelineRunControl.clear(jobId),

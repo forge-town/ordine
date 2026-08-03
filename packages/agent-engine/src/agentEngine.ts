@@ -2,7 +2,13 @@ import { DRIVERS } from "./drivers";
 import { extractTokenTotals, recordObservability } from "./obs/observability";
 import type { AgentRunOptions, AgentRunOutcome, AgentUsage } from "./types";
 
-export type { AgentInputAttachment, AgentRunOptions, AgentRunOutcome, AgentUsage } from "./types";
+export type {
+  AgentInputAttachment,
+  AgentRunOptions,
+  AgentRunOutcome,
+  AgentUsage,
+  McpConnectorInjectionProvider,
+} from "./types";
 
 const supportsImageAttachments = (agent: AgentRunOptions["agent"]) => agent === "mastra";
 

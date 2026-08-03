@@ -2,7 +2,7 @@ import { ResultAsync, errAsync } from "neverthrow";
 import { logger } from "@repo/logger";
 import type { OperationRuntimeContext, RunPromptOptions } from "@repo/pipeline-engine";
 import { TRACE_MARKER, type OutputItem, type SshConnection } from "@repo/schemas";
-import { runAgent, type ClaudeMcpInjectionProvider } from "../agentRunner/agentRunner";
+import { runAgent, type McpConnectorInjectionProvider } from "../agentRunner/agentRunner";
 
 export class PromptExecutionError extends Error {
   constructor(
@@ -18,7 +18,7 @@ const PROMPT_AGENT_ID = "prompt-executor";
 
 type PromptExecutorOptions = RunPromptOptions & {
   ssh?: SshConnection;
-  getClaudeMcpInjection?: ClaudeMcpInjectionProvider;
+  getMcpConnectorInjection?: McpConnectorInjectionProvider;
 };
 
 /**
@@ -115,12 +115,13 @@ const run = ({
   apiKey,
   model,
   extraTools,
+  allowedTools,
   githubToken,
   ssh,
   outputItems,
   outputDir,
   runtimeContext,
-  getClaudeMcpInjection,
+  getMcpConnectorInjection,
 }: PromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
@@ -128,6 +129,7 @@ const run = ({
 
   const outputSection = buildOutputItemsSection(outputItems, outputDir);
   const effectiveInput = outputSection ? `${inputContent}\n${outputSection}` : inputContent;
+  const effectiveAllowedTools = [...new Set([...(allowedTools ?? []), ...(extraTools ?? [])])];
 
   return ResultAsync.fromPromise(
     (async () => {
@@ -139,14 +141,14 @@ const run = ({
         inputPath,
         jobId,
         agentId: PROMPT_AGENT_ID,
-        allowedTools: extraTools ?? [],
+        allowedTools: effectiveAllowedTools,
         onProgress,
         logPrefix: "[LLM] runPrompt",
         apiKey,
         model,
         githubToken,
         ssh,
-        getClaudeMcpInjection,
+        getMcpConnectorInjection,
       });
       if (onChunk) await onChunk(raw);
 

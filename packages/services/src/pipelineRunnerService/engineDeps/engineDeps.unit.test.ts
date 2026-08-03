@@ -132,11 +132,11 @@ describe("pipelineRunnerEngineDeps", () => {
   });
 
   it("passes Claude MCP injection provider to prompt and skill executors", () => {
-    const getClaudeMcpInjection = vi.fn().mockResolvedValue(null);
+    const getMcpConnectorInjection = vi.fn().mockResolvedValue(null);
     const deps = pipelineRunnerEngineDeps.build({
       evaluateLoopCondition,
       jobId: "job-1",
-      getClaudeMcpInjection,
+      getMcpConnectorInjection,
     });
 
     deps.runPrompt({
@@ -152,10 +152,10 @@ describe("pipelineRunnerEngineDeps", () => {
     });
 
     expect(promptExecutor.run).toHaveBeenCalledWith(
-      expect.objectContaining({ getClaudeMcpInjection }),
+      expect.objectContaining({ getMcpConnectorInjection }),
     );
     expect(skillExecutor.run).toHaveBeenCalledWith(
-      expect.objectContaining({ getClaudeMcpInjection }),
+      expect.objectContaining({ getMcpConnectorInjection }),
     );
   });
 });

@@ -1,14 +1,14 @@
-import { rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { ResultAsync } from "neverthrow";
-import { agentEngine, type AgentInputAttachment } from "@repo/agent-engine";
+import {
+  agentEngine,
+  type AgentInputAttachment,
+  type McpConnectorInjectionProvider,
+} from "@repo/agent-engine";
 import { logger } from "@repo/logger";
 import { TRACE_MARKER, type AgentRuntime, type SshConnection } from "@repo/schemas";
-import type { ClaudeMcpInjection } from "../../connectorsService";
 import { resolveCwd } from "../resolveCwd";
 
-export type ClaudeMcpInjectionProvider = () => Promise<ClaudeMcpInjection | null>;
+export type { McpConnectorInjectionProvider } from "@repo/agent-engine";
 
 export interface AgentRunnerOptions {
   agent: AgentRuntime;
@@ -25,58 +25,8 @@ export interface AgentRunnerOptions {
   model?: string;
   githubToken?: string;
   ssh?: SshConnection;
-  getClaudeMcpInjection?: ClaudeMcpInjectionProvider;
+  getMcpConnectorInjection?: McpConnectorInjectionProvider;
 }
-
-type PreparedClaudeMcpInjection = {
-  configPath: string;
-  toolNames: string[];
-};
-
-const writeClaudeMcpConfig = async (
-  injection: ClaudeMcpInjection,
-): Promise<PreparedClaudeMcpInjection> => {
-  const configPath = join(tmpdir(), `ordine-claude-mcp-${crypto.randomUUID()}.json`);
-  await writeFile(
-    configPath,
-    `${JSON.stringify({ mcpServers: injection.mcpServers }, null, 2)}\n`,
-    { mode: 0o600 },
-  );
-
-  return { configPath, toolNames: injection.toolNames };
-};
-
-const prepareClaudeMcpInjection = async ({
-  agent,
-  ssh,
-  getClaudeMcpInjection,
-}: {
-  agent: AgentRuntime;
-  ssh?: SshConnection;
-  getClaudeMcpInjection?: ClaudeMcpInjectionProvider;
-}): Promise<PreparedClaudeMcpInjection | null> => {
-  if (agent !== "claude-code") return null;
-  if (ssh) return null;
-  if (!getClaudeMcpInjection) return null;
-
-  const injection = await getClaudeMcpInjection();
-  if (!injection) return null;
-
-  return writeClaudeMcpConfig(injection);
-};
-
-const cleanupClaudeMcpConfig = async ({
-  configPath,
-  logPrefix,
-}: {
-  configPath: string;
-  logPrefix: string;
-}): Promise<void> => {
-  const cleanup = await ResultAsync.fromPromise(rm(configPath, { force: true }), (error) => error);
-  if (cleanup.isErr()) {
-    logger.warn({ err: cleanup.error, configPath }, `${logPrefix}: failed to remove MCP config`);
-  }
-};
 
 export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
   const {
@@ -93,7 +43,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
     apiKey,
     model,
     githubToken,
-    getClaudeMcpInjection,
+    getMcpConnectorInjection,
   } = opts;
 
   logger.info(
@@ -121,34 +71,8 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
   }
   const cwd = cwdResult.value;
 
-  if (agent === "claude-code" && opts.ssh && getClaudeMcpInjection) {
-    logger.warn({ agent, host: opts.ssh.host }, `${logPrefix}: MCP tools skipped for SSH runtime`);
-    await onProgress?.(`${logPrefix}: MCP tools skipped for SSH runtime`);
-  }
-
-  const mcpInjectionResult = await ResultAsync.fromPromise(
-    prepareClaudeMcpInjection({ agent, ssh: opts.ssh, getClaudeMcpInjection }),
-    (error) => error,
-  );
-  if (mcpInjectionResult.isErr()) {
-    const errMsg =
-      mcpInjectionResult.error instanceof Error
-        ? mcpInjectionResult.error.message
-        : String(mcpInjectionResult.error);
-    logger.error({ err: errMsg, agent }, `${logPrefix}: MCP injection setup failed`);
-    await onProgress?.(`${logPrefix}: MCP injection setup FAILED — ${errMsg}`);
-    throw new Error(`${agent} MCP injection setup failed: ${errMsg}`, {
-      cause: mcpInjectionResult.error,
-    });
-  }
-  const mcpInjection = mcpInjectionResult.value;
-
-  const runWithMcpInjection = (async () => {
-    if (mcpInjection) {
-      await onProgress?.(`${logPrefix}: MCP tools injected — ${mcpInjection.toolNames.join(", ")}`);
-    }
-
-    return agentEngine.run({
+  const engineResult = await ResultAsync.fromPromise(
+    agentEngine.run({
       agent,
       mode: "direct",
       systemPrompt,
@@ -163,16 +87,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
       model,
       githubToken,
       ssh: opts.ssh,
-      mcpConfigPath: mcpInjection?.configPath,
-      mcpToolNames: mcpInjection?.toolNames,
-    });
-  })();
-
-  const engineResult = await ResultAsync.fromPromise(
-    runWithMcpInjection.finally(async () => {
-      if (mcpInjection) {
-        await cleanupClaudeMcpConfig({ configPath: mcpInjection.configPath, logPrefix });
-      }
+      getMcpConnectorInjection,
     }),
     (error) => error,
   );

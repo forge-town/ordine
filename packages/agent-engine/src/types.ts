@@ -2,6 +2,7 @@ import { type AgentRuntime } from "@repo/schemas";
 import type {
   AgentInputAttachment as RuntimeAgentInputAttachment,
   ClaudeStreamEvent,
+  McpConnectorInjection,
   SshConnectionOptions,
 } from "@repo/agent";
 
@@ -38,6 +39,10 @@ export interface DriverResult {
   events: ClaudeStreamEvent[];
 }
 
+export type McpConnectorInjectionProvider = (
+  selectedToolNames: readonly string[],
+) => Promise<McpConnectorInjection | null>;
+
 export interface AgentRunOptions {
   agent: AgentRuntime;
   mode: "direct";
@@ -53,6 +58,6 @@ export interface AgentRunOptions {
   model?: string;
   githubToken?: string;
   ssh?: SshConnectionOptions;
-  mcpConfigPath?: string;
-  mcpToolNames?: readonly string[];
+  connectorInjection?: McpConnectorInjection;
+  getMcpConnectorInjection?: McpConnectorInjectionProvider;
 }
