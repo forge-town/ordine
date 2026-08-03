@@ -11,6 +11,7 @@ export class PipelineAgentAttachmentsDao {
       .insert(pipelineAgentAttachmentsTable)
       .values({ ...data, createdAt: now, updatedAt: now })
       .returning();
+
     return inserted!;
   }
 
@@ -31,6 +32,7 @@ export class PipelineAgentAttachmentsDao {
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(pipelineAgentAttachmentsTable.id, id))
       .returning();
+
     return updated;
   }
 }

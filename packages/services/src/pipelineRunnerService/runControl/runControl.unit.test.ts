@@ -22,16 +22,16 @@ describe("pipelineRunControl", () => {
     pipelineRunControl.pause(jobId);
     expect(control.shouldPauseBeforeNode?.({ jobId, nodeId: "n1", reason: "pause" })).toBe(true);
 
-    let resumed = false;
+    const resumed = { value: false };
     const waiting = control.waitForResume?.({ jobId, nodeId: "n1", reason: "pause" }).then(() => {
-      resumed = true;
+      resumed.value = true;
     });
 
-    expect(resumed).toBe(false);
+    expect(resumed.value).toBe(false);
     const result = pipelineRunControl.resume(jobId);
     await waiting;
 
-    expect(resumed).toBe(true);
+    expect(resumed.value).toBe(true);
     expect(result).toEqual({ jobId, resumed: true });
     expect(control.shouldPauseBeforeNode?.({ jobId, nodeId: "n2", reason: "pause" })).toBe(false);
 
@@ -76,15 +76,15 @@ describe("pipelineRunControl", () => {
     const control = pipelineRunControl.buildForJob(jobId);
 
     pipelineRunControl.pause(jobId);
-    let woken = false;
+    const woken = { value: false };
     const waiting = control.waitForResume?.({ jobId, nodeId: "n1", reason: "pause" }).then(() => {
-      woken = true;
+      woken.value = true;
     });
 
     pipelineRunControl.cancel(jobId);
     await waiting;
 
-    expect(woken).toBe(true);
+    expect(woken.value).toBe(true);
     // After waking, the engine re-checks the cancel flag and must stop.
     expect(control.shouldCancelBeforeNode?.({ jobId, nodeId: "n1", reason: "pause" })).toBe(true);
 

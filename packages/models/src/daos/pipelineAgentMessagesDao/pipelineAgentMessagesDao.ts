@@ -7,6 +7,7 @@ export class PipelineAgentMessagesDao {
 
   async create(data: typeof pipelineAgentMessagesTable.$inferInsert) {
     const [inserted] = await this.executor.insert(pipelineAgentMessagesTable).values(data).returning();
+
     return inserted!;
   }
 

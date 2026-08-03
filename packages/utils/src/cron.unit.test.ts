@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
 import { getNextCronRunAt, isValidCronExpression } from "./cron";
 
+// 实现按本地时间匹配 cron 字段,以下断言隐含"本地时区 = UTC"的前提;
+// 在 UTC+N 宿主机上会整体偏移,这里显式钉住(TZ 在首次 Date 调用前设置即生效)。
+process.env.TZ = "UTC";
+
 describe("getNextCronRunAt", () => {
   it("computes the next run time for step expressions", () => {
     expect(
