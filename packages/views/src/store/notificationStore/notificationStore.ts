@@ -65,7 +65,6 @@ export const createNotificationStore = (): NotificationStore =>
     ),
   );
 
-export const notificationStore = createNotificationStore();
 export const NotificationStoreContext = createContext<NotificationStore | null>(null);
 
 export const useNotificationStore = () => {

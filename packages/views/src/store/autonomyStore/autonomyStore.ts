@@ -26,7 +26,6 @@ export const createAutonomyStore = (): AutonomyStore =>
     ),
   );
 
-export const autonomyStore = createAutonomyStore();
 export const AutonomyStoreContext = createContext<AutonomyStore | null>(null);
 
 export const useAutonomyStore = () => {

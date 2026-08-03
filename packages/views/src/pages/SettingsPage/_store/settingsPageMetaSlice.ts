@@ -24,6 +24,8 @@ export const createSettingsPageMetaSlice: StateCreator<
     })),
 
   save: () => {
+    if (typeof globalThis.localStorage === "undefined") return;
+
     const {
       saved: _saved,
       updateSection: _updateSection,
@@ -31,7 +33,7 @@ export const createSettingsPageMetaSlice: StateCreator<
       resetSaved: _resetSaved,
       ...settings
     } = get();
-    globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(settings));
+    globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     set({ saved: true });
   },
 

@@ -22,7 +22,6 @@ export const createThemeStore = (): ThemeStore =>
     ),
   );
 
-export const themeStore = createThemeStore();
 export const ThemeStoreContext = createContext<ThemeStore | null>(null);
 
 export const useThemeStore = () => {
