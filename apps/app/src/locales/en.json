@@ -1423,6 +1423,7 @@
         "title": "Start with a node..."
       },
       "nodes": {
+        "skillCreateFailed": "Failed to create skill operation",
         "actions": {
           "configure": "Configure node",
           "delete": "Delete node",

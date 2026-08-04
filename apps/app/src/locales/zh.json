@@ -1418,6 +1418,7 @@
         "title": "从一个节点开始..."
       },
       "nodes": {
+        "skillCreateFailed": "创建 Skill Operation 失败",
         "actions": {
           "configure": "配置节点",
           "delete": "删除节点",
